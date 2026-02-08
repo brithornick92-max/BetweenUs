@@ -1,0 +1,69 @@
+{
+  "expo": {
+    "name": "Between Us",
+    "slug": "between-us",
+    "scheme": "betweenus",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1C1C1E"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.brittany.betweenus",
+      "buildNumber": "1.0.0",
+      "deploymentTarget": "17.1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing."
+      }
+    },
+    "android": {
+      "package": "com.brittany.betweenus",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#1C1C1E"
+      }
+    },
+    "web": {
+      "favicon": "./assets/icon.png"
+    },
+    "description": "Between Us — Private. Playful. Intimate. A couples app for connection, communication, and date nights.",
+    "extra": {
+      "appName": "Between Us",
+      "tagline": "Private. Playful. Intimate."
+    },
+    "experiments": {
+      "lazyBundling": false
+    },
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "node_modules/@react-native-vector-icons/fontawesome6/fonts/FontAwesome6_Brands.ttf",
+            "node_modules/@react-native-vector-icons/fontawesome6/fonts/FontAwesome6_Regular.ttf",
+            "node_modules/@react-native-vector-icons/fontawesome6/fonts/FontAwesome6_Solid.ttf",
+            "node_modules/@react-native-vector-icons/feather/fonts/Feather.ttf",
+            "node_modules/@react-native-vector-icons/ionicons/fonts/Ionicons.ttf"
+          ]
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-camera",
+      "expo-sqlite"
+    ]
+  }
+}

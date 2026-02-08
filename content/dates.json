@@ -1,0 +1,2905 @@
+{
+  "meta": {
+    "type": "dates",
+    "app": "Between Us",
+    "version": "2.1.0",
+    "description": "Unique date ideas with location preferences and diverse activities for all couples",
+    "minMinutes": 45,
+    "locations": {
+      "home": "At-home intimate experiences",
+      "out": "Public and outdoor adventures",
+      "either": "Flexible location options"
+    },
+    "moods": {
+      "romantic": "Sweet and loving connection",
+      "playful": "Fun and lighthearted activities",
+      "emotional": "Deep bonding and vulnerability",
+      "intimate": "Close physical and emotional connection",
+      "spicy": "Flirty and sensual experiences",
+      "adventurous": "Exciting and new experiences",
+      "calm": "Peaceful and relaxing activities"
+    }
+  },
+  "items": [
+    {
+      "id": "d001",
+      "title": "Midnight Kitchen Dance Party",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "playful",
+        "romantic"
+      ],
+      "steps": [
+        "Put on favorite songs",
+        "Dance while making late-night snacks",
+        "Feed each other",
+        "Slow dance to last song"
+      ]
+    },
+    {
+      "id": "d002",
+      "title": "Secret Message Treasure Hunt",
+      "minutes": 75,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Create clues for partner",
+        "Hide messages around town",
+        "Follow each other's trails",
+        "Meet at final romantic location"
+      ]
+    },
+    {
+      "id": "d003",
+      "title": "Sensory Deprivation Experience",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "spicy"
+      ],
+      "steps": [
+        "Blindfold partner",
+        "Feed different textures and tastes",
+        "Play with temperature",
+        "End with gentle massage"
+      ]
+    },
+    {
+      "id": "d004",
+      "title": "Sunrise Photography Walk",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "calm"
+      ],
+      "steps": [
+        "Wake up early together",
+        "Find perfect sunrise spot",
+        "Take photos of each other",
+        "Share coffee and quiet conversation"
+      ]
+    },
+    {
+      "id": "d005",
+      "title": "Living Room Fort Cinema",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "playful",
+        "intimate"
+      ],
+      "steps": [
+        "Build elaborate blanket fort",
+        "Create movie theater snacks",
+        "Watch childhood favorites",
+        "Cuddle and share memories"
+      ]
+    },
+    {
+      "id": "d006",
+      "title": "Bookstore Poetry Challenge",
+      "minutes": 75,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "playful"
+      ],
+      "steps": [
+        "Browse bookstore separately",
+        "Find poems that remind you of partner",
+        "Read discoveries aloud",
+        "Buy one book to share"
+      ]
+    },
+    {
+      "id": "d007",
+      "title": "Bathtub Wine Tasting",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "spicy"
+      ],
+      "steps": [
+        "Draw warm bath with candles",
+        "Bring different wines or drinks",
+        "Take turns describing flavors",
+        "Share intimate conversation"
+      ]
+    },
+    {
+      "id": "d008",
+      "title": "Geocaching Adventure",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Download geocaching app",
+        "Choose nearby treasure hunts",
+        "Work together to solve clues",
+        "Celebrate finds with kisses"
+      ]
+    },
+    {
+      "id": "d009",
+      "title": "Blindfolded Cooking Challenge",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "playful",
+        "intimate"
+      ],
+      "steps": [
+        "One partner blindfolded",
+        "Other guides through cooking",
+        "Switch roles halfway",
+        "Enjoy chaotic but delicious results"
+      ]
+    },
+    {
+      "id": "d010",
+      "title": "Museum Storytelling Date",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "playful"
+      ],
+      "steps": [
+        "Visit art or history museum",
+        "Create stories about exhibits",
+        "Share what moves you",
+        "End with coffee discussion"
+      ]
+    },
+    {
+      "id": "d011",
+      "title": "Massage Oil Creation Lab",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "spicy"
+      ],
+      "steps": [
+        "Research essential oil blends",
+        "Create custom massage oils",
+        "Test on each other",
+        "Save best blend for later"
+      ]
+    },
+    {
+      "id": "d012",
+      "title": "Thrift Store Fashion Show",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Set budget for thrift shopping",
+        "Pick outfits for each other",
+        "Model purchases at home",
+        "Keep favorite finds"
+      ]
+    },
+    {
+      "id": "d013",
+      "title": "Candlelit Letter Writing",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "emotional"
+      ],
+      "steps": [
+        "Light candles, turn off phones",
+        "Write letters to future selves",
+        "Share what you wrote",
+        "Seal to open in one year"
+      ]
+    },
+    {
+      "id": "d014",
+      "title": "Food Truck Crawl",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Research local food trucks",
+        "Try different cuisines",
+        "Share every dish",
+        "Rate favorites together"
+      ]
+    },
+    {
+      "id": "d015",
+      "title": "Home Spa Retreat",
+      "minutes": 105,
+      "location": "home",
+      "moods": [
+        "calm",
+        "intimate"
+      ],
+      "steps": [
+        "Create spa atmosphere",
+        "Give each other facials",
+        "Take relaxing bath",
+        "End with meditation together"
+      ]
+    },
+    {
+      "id": "d016",
+      "title": "Vintage Record Store Dig",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "playful"
+      ],
+      "steps": [
+        "Browse vinyl collections",
+        "Find songs from your past",
+        "Listen to discoveries",
+        "Buy one record together"
+      ]
+    },
+    {
+      "id": "d017",
+      "title": "Chocolate Tasting Ceremony",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "spicy"
+      ],
+      "steps": [
+        "Buy variety of chocolates",
+        "Create tasting notes",
+        "Feed each other slowly",
+        "Discuss flavors and feelings"
+      ]
+    },
+    {
+      "id": "d018",
+      "title": "Street Art Walking Tour",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Find street art district",
+        "Photograph murals together",
+        "Learn about artists",
+        "Discuss meanings"
+      ]
+    },
+    {
+      "id": "d019",
+      "title": "Pillow Fight Championship",
+      "minutes": 45,
+      "location": "home",
+      "moods": [
+        "playful",
+        "intimate"
+      ],
+      "steps": [
+        "Set up safe battle zone",
+        "Create silly rules",
+        "Have epic pillow fight",
+        "Winner gives loser massage"
+      ]
+    },
+    {
+      "id": "d020",
+      "title": "Botanical Garden Meditation",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "calm",
+        "romantic"
+      ],
+      "steps": [
+        "Visit botanical gardens",
+        "Find quiet spot together",
+        "Practice breathing exercises",
+        "Share peaceful observations"
+      ]
+    },
+    {
+      "id": "d021",
+      "title": "Wine and Paint Night",
+      "minutes": 120,
+      "location": "home",
+      "moods": [
+        "playful",
+        "romantic"
+      ],
+      "steps": [
+        "Set up art supplies",
+        "Paint portraits of each other",
+        "Sip wine and laugh",
+        "Display masterpieces proudly"
+      ]
+    },
+    {
+      "id": "d022",
+      "title": "Antique Shop Time Travel",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "playful"
+      ],
+      "steps": [
+        "Browse antique stores",
+        "Imagine stories behind items",
+        "Share childhood memories",
+        "Find one treasure together"
+      ]
+    },
+    {
+      "id": "d023",
+      "title": "Bedroom Picnic Feast",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "intimate"
+      ],
+      "steps": [
+        "Prepare finger foods",
+        "Set up picnic in bedroom",
+        "Feed each other",
+        "Share dreams and desires"
+      ]
+    },
+    {
+      "id": "d024",
+      "title": "Local Farm Visit",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "calm"
+      ],
+      "steps": [
+        "Visit working farm",
+        "Pet animals together",
+        "Learn about farming",
+        "Buy fresh produce"
+      ]
+    },
+    {
+      "id": "d025",
+      "title": "Karaoke Living Room Concert",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "playful",
+        "emotional"
+      ],
+      "steps": [
+        "Set up karaoke system",
+        "Perform for each other",
+        "Duet on love songs",
+        "Award silly prizes"
+      ]
+    },
+    {
+      "id": "d026",
+      "title": "Rooftop Stargazing Session",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "calm"
+      ],
+      "steps": [
+        "Find rooftop or hill",
+        "Bring blankets and snacks",
+        "Identify constellations",
+        "Share wishes on stars"
+      ]
+    },
+    {
+      "id": "d027",
+      "title": "Perfume Blending Workshop",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "spicy"
+      ],
+      "steps": [
+        "Research fragrance notes",
+        "Create custom scents",
+        "Test on each other",
+        "Name your creations"
+      ]
+    },
+    {
+      "id": "d028",
+      "title": "Arcade Tournament Night",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Find retro arcade",
+        "Challenge each other",
+        "Win prizes for partner",
+        "Celebrate with victory dinner"
+      ]
+    },
+    {
+      "id": "d029",
+      "title": "Breakfast in Bed Surprise",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "intimate"
+      ],
+      "steps": [
+        "Wake up early secretly",
+        "Prepare elaborate breakfast",
+        "Serve in bed with flowers",
+        "Stay cozy all morning"
+      ]
+    },
+    {
+      "id": "d030",
+      "title": "Ghost Tour Adventure",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "intimate"
+      ],
+      "steps": [
+        "Book local ghost tour",
+        "Hold hands during scares",
+        "Share brave moments",
+        "Comfort each other after"
+      ]
+    },
+    {
+      "id": "d031",
+      "title": "Tea Ceremony Ritual",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "calm",
+        "emotional"
+      ],
+      "steps": [
+        "Learn tea ceremony basics",
+        "Practice mindful preparation",
+        "Savor each sip together",
+        "Discuss life philosophies"
+      ]
+    },
+    {
+      "id": "d032",
+      "title": "Mini Golf Championship",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "playful",
+        "romantic"
+      ],
+      "steps": [
+        "Play mini golf course",
+        "Create silly penalties",
+        "Celebrate holes-in-one",
+        "Winner plans next date"
+      ]
+    },
+    {
+      "id": "d033",
+      "title": "Erotic Story Reading",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "intimate"
+      ],
+      "steps": [
+        "Find tasteful erotic literature",
+        "Take turns reading aloud",
+        "Discuss what excites you",
+        "Create your own story"
+      ]
+    },
+    {
+      "id": "d034",
+      "title": "Flea Market Treasure Hunt",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Set treasure hunt goals",
+        "Search for unique items",
+        "Negotiate prices together",
+        "Share stories behind finds"
+      ]
+    },
+    {
+      "id": "d035",
+      "title": "Couples Yoga Session",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "calm",
+        "intimate"
+      ],
+      "steps": [
+        "Follow online yoga video",
+        "Help each other with poses",
+        "Practice partner stretches",
+        "End with relaxation"
+      ]
+    },
+    {
+      "id": "d036",
+      "title": "Drive-In Movie Experience",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "playful"
+      ],
+      "steps": [
+        "Find drive-in theater",
+        "Bring cozy blankets",
+        "Share movie snacks",
+        "Cuddle during film"
+      ]
+    },
+    {
+      "id": "d037",
+      "title": "Sensual Fruit Tasting",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "romantic"
+      ],
+      "steps": [
+        "Buy exotic fruits",
+        "Feed each other slowly",
+        "Describe textures and flavors",
+        "Get playfully messy"
+      ]
+    },
+    {
+      "id": "d038",
+      "title": "Escape Room Challenge",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Book escape room",
+        "Work as team",
+        "Celebrate problem-solving",
+        "Discuss teamwork over dinner"
+      ]
+    },
+    {
+      "id": "d039",
+      "title": "Love Letter Scavenger Hunt",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "emotional"
+      ],
+      "steps": [
+        "Write love notes",
+        "Hide around house",
+        "Take turns finding messages",
+        "End with biggest surprise"
+      ]
+    },
+    {
+      "id": "d040",
+      "title": "Pottery Painting Date",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "playful",
+        "calm"
+      ],
+      "steps": [
+        "Visit pottery studio",
+        "Paint pieces for each other",
+        "Share creative process",
+        "Plan pickup date"
+      ]
+    },
+    {
+      "id": "d041",
+      "title": "Midnight Dessert Making",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "playful",
+        "spicy"
+      ],
+      "steps": [
+        "Choose decadent dessert recipe",
+        "Cook together late night",
+        "Lick spoons and fingers",
+        "Enjoy sweet creation"
+      ]
+    },
+    {
+      "id": "d042",
+      "title": "Hiking Trail Discovery",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "calm"
+      ],
+      "steps": [
+        "Research new hiking trail",
+        "Pack snacks and water",
+        "Take photos together",
+        "Find scenic spot to rest"
+      ]
+    },
+    {
+      "id": "d043",
+      "title": "Board Game Tournament",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "playful",
+        "emotional"
+      ],
+      "steps": [
+        "Choose variety of games",
+        "Create tournament bracket",
+        "Play with silly stakes",
+        "Crown ultimate champion"
+      ]
+    },
+    {
+      "id": "d044",
+      "title": "Jazz Club Evening",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "emotional"
+      ],
+      "steps": [
+        "Find intimate jazz venue",
+        "Order classic cocktails",
+        "Listen to live music",
+        "Dance if there's space"
+      ]
+    },
+    {
+      "id": "d045",
+      "title": "Bubble Bath Philosophy",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "emotional"
+      ],
+      "steps": [
+        "Draw luxurious bubble bath",
+        "Discuss life's big questions",
+        "Share deepest thoughts",
+        "Enjoy peaceful silence"
+      ]
+    },
+    {
+      "id": "d046",
+      "title": "Food Photography Tour",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Visit photogenic restaurants",
+        "Take artistic food photos",
+        "Share on social media",
+        "Rate presentation vs taste"
+      ]
+    },
+    {
+      "id": "d047",
+      "title": "Tantric Breathing Practice",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "spicy"
+      ],
+      "steps": [
+        "Learn tantric breathing",
+        "Practice eye gazing",
+        "Synchronize breath together",
+        "Feel deeper connection"
+      ]
+    },
+    {
+      "id": "d048",
+      "title": "Vintage Car Show Stroll",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "calm",
+        "playful"
+      ],
+      "steps": [
+        "Attend classic car show",
+        "Imagine road trips together",
+        "Talk to car owners",
+        "Dream about adventures"
+      ]
+    },
+    {
+      "id": "d049",
+      "title": "Midnight Balcony Picnic",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "intimate"
+      ],
+      "steps": [
+        "Set up balcony with lights",
+        "Prepare midnight snacks",
+        "Stargaze together",
+        "Share secret thoughts"
+      ]
+    },
+    {
+      "id": "d050",
+      "title": "Comedy Show Date Night",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Find local comedy show",
+        "Laugh until you cry",
+        "Quote favorite jokes",
+        "Keep mood light all night"
+      ]
+    },
+    {
+      "id": "d051",
+      "title": "Erotic Massage Exchange",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "intimate"
+      ],
+      "steps": [
+        "Set romantic atmosphere",
+        "Take turns giving massages",
+        "Use scented oils",
+        "Let touch lead naturally"
+      ]
+    },
+    {
+      "id": "d052",
+      "title": "Outdoor Concert Under Stars",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "adventurous"
+      ],
+      "steps": [
+        "Find outdoor concert venue",
+        "Bring blanket and wine",
+        "Dance to live music",
+        "Stay for entire show"
+      ]
+    },
+    {
+      "id": "d053",
+      "title": "Truth Serum Game Night",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "spicy"
+      ],
+      "steps": [
+        "Create truth questions",
+        "Take turns answering honestly",
+        "Share vulnerable moments",
+        "Reward honesty with kisses"
+      ]
+    },
+    {
+      "id": "d054",
+      "title": "Couples Tide Pool Exploration",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "calm"
+      ],
+      "steps": [
+        "Visit tide pools at low tide",
+        "Discover sea creatures together",
+        "Take photos of findings",
+        "Learn about marine life"
+      ]
+    },
+    {
+      "id": "d055",
+      "title": "Cocktail Creation Lab",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "playful",
+        "spicy"
+      ],
+      "steps": [
+        "Research cocktail recipes",
+        "Experiment with ingredients",
+        "Name drinks after each other",
+        "Get tipsy and flirty"
+      ]
+    },
+    {
+      "id": "d056",
+      "title": "Bookstore Café Philosophy",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "calm"
+      ],
+      "steps": [
+        "Browse bookstore together",
+        "Find café corner",
+        "Read passages aloud",
+        "Discuss favorite authors"
+      ]
+    },
+    {
+      "id": "d057",
+      "title": "Bedroom Camping Adventure",
+      "minutes": 105,
+      "location": "home",
+      "moods": [
+        "playful",
+        "intimate"
+      ],
+      "steps": [
+        "Set up tent in bedroom",
+        "Tell ghost stories",
+        "Make s'mores indoors",
+        "Sleep under 'stars'"
+      ]
+    },
+    {
+      "id": "d058",
+      "title": "Art Gallery Opening",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "adventurous"
+      ],
+      "steps": [
+        "Attend gallery opening",
+        "Discuss art interpretations",
+        "Meet other art lovers",
+        "Find piece you both love"
+      ]
+    },
+    {
+      "id": "d059",
+      "title": "Slow Dance Marathon",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "intimate"
+      ],
+      "steps": [
+        "Create romantic playlist",
+        "Dim lights and light candles",
+        "Dance to every song",
+        "End with passionate kiss"
+      ]
+    },
+    {
+      "id": "d060",
+      "title": "Farmers Market Cooking",
+      "minutes": 135,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "calm"
+      ],
+      "steps": [
+        "Shop farmers market together",
+        "Buy mystery ingredients",
+        "Create meal from purchases",
+        "Enjoy farm-fresh dinner"
+      ]
+    },
+    {
+      "id": "d061",
+      "title": "Sensory Play Exploration",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "intimate"
+      ],
+      "steps": [
+        "Gather different textures",
+        "Blindfold and surprise partner",
+        "Explore with ice and warmth",
+        "Focus on sensation"
+      ]
+    },
+    {
+      "id": "d062",
+      "title": "Vintage Arcade Tournament",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Find retro arcade bar",
+        "Challenge each other",
+        "Win tickets for prizes",
+        "Celebrate with drinks"
+      ]
+    },
+    {
+      "id": "d063",
+      "title": "Meditation Garden Visit",
+      "minutes": 75,
+      "location": "out",
+      "moods": [
+        "calm",
+        "emotional"
+      ],
+      "steps": [
+        "Visit meditation garden",
+        "Practice mindfulness together",
+        "Share peaceful moments",
+        "Discuss inner thoughts"
+      ]
+    },
+    {
+      "id": "d064",
+      "title": "Dessert Making Seduction",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "playful"
+      ],
+      "steps": [
+        "Choose aphrodisiac dessert",
+        "Feed each other ingredients",
+        "Get flour in hair",
+        "Enjoy sweet rewards"
+      ]
+    },
+    {
+      "id": "d065",
+      "title": "Rooftop Bar Romance",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "adventurous"
+      ],
+      "steps": [
+        "Find rooftop bar",
+        "Order signature cocktails",
+        "Watch city lights",
+        "Toast to your love"
+      ]
+    },
+    {
+      "id": "d066",
+      "title": "Love Potion Brewing",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "playful",
+        "spicy"
+      ],
+      "steps": [
+        "Research aphrodisiac drinks",
+        "Create 'love potions'",
+        "Test effects together",
+        "See if magic works"
+      ]
+    },
+    {
+      "id": "d067",
+      "title": "Outdoor Movie Night",
+      "minutes": 135,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "calm"
+      ],
+      "steps": [
+        "Find outdoor movie screening",
+        "Bring cozy blankets",
+        "Share movie snacks",
+        "Cuddle under stars"
+      ]
+    },
+    {
+      "id": "d068",
+      "title": "Couples Memory Palace Building",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "playful"
+      ],
+      "steps": [
+        "Learn memory palace technique",
+        "Create shared memory spaces",
+        "Store relationship memories",
+        "Test each other's recall"
+      ]
+    },
+    {
+      "id": "d069",
+      "title": "Salsa Dancing Lesson",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "spicy"
+      ],
+      "steps": [
+        "Take salsa class",
+        "Practice moves together",
+        "Feel rhythm and heat",
+        "Dance until sweaty"
+      ]
+    },
+    {
+      "id": "d070",
+      "title": "Candlelit Confession Night",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "intimate"
+      ],
+      "steps": [
+        "Light candles everywhere",
+        "Share deepest secrets",
+        "Practice vulnerability",
+        "Hold each other close"
+      ]
+    },
+    {
+      "id": "d071",
+      "title": "Couples Triathlon Training",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Sign up for mini triathlon",
+        "Train together for weeks",
+        "Support each other's progress",
+        "Celebrate completion together"
+      ]
+    },
+    {
+      "id": "d072",
+      "title": "Erotic Poetry Reading",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "emotional"
+      ],
+      "steps": [
+        "Find sensual poetry",
+        "Read to each other",
+        "Write your own verses",
+        "Express desires creatively"
+      ]
+    },
+    {
+      "id": "d073",
+      "title": "Moonlight Kayaking",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "romantic"
+      ],
+      "steps": [
+        "Rent kayaks for evening",
+        "Paddle under moonlight",
+        "Find quiet cove",
+        "Float and stargaze"
+      ]
+    },
+    {
+      "id": "d074",
+      "title": "Aphrodisiac Cooking Class",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "playful"
+      ],
+      "steps": [
+        "Research aphrodisiac foods",
+        "Cook sensual meal",
+        "Feed each other",
+        "See if it works"
+      ]
+    },
+    {
+      "id": "d075",
+      "title": "Jazz Brunch Adventure",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "calm",
+        "romantic"
+      ],
+      "steps": [
+        "Find jazz brunch spot",
+        "Order mimosas",
+        "Listen to live music",
+        "Linger over conversation"
+      ]
+    },
+    {
+      "id": "d076",
+      "title": "Blindfolded Trust Exercise",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "emotional"
+      ],
+      "steps": [
+        "Take turns being blindfolded",
+        "Guide partner safely",
+        "Build complete trust",
+        "Share vulnerable feelings"
+      ]
+    },
+    {
+      "id": "d077",
+      "title": "Vintage Shopping Spree",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Set vintage shopping budget",
+        "Find outfits for each other",
+        "Model purchases",
+        "Create new style together"
+      ]
+    },
+    {
+      "id": "d078",
+      "title": "Tantric Eye Gazing",
+      "minutes": 45,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "emotional"
+      ],
+      "steps": [
+        "Sit facing each other",
+        "Maintain eye contact",
+        "Breathe together",
+        "Feel soul connection"
+      ]
+    },
+    {
+      "id": "d079",
+      "title": "Night Photography Walk",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "calm"
+      ],
+      "steps": [
+        "Explore city at night",
+        "Take artistic photos",
+        "Capture each other",
+        "Find beauty in darkness"
+      ]
+    },
+    {
+      "id": "d080",
+      "title": "Crystal Healing Session",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "calm",
+        "intimate"
+      ],
+      "steps": [
+        "Research crystal properties",
+        "Place crystals on each other",
+        "Meditate together",
+        "Share energy experiences"
+      ]
+    },
+    {
+      "id": "d081",
+      "title": "Outdoor Sculpture Garden",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "calm",
+        "emotional"
+      ],
+      "steps": [
+        "Visit sculpture garden",
+        "Discuss art meanings",
+        "Take artistic photos",
+        "Find inspiration together"
+      ]
+    },
+    {
+      "id": "d082",
+      "title": "Midnight Skinny Dip",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "adventurous"
+      ],
+      "steps": [
+        "Wait for privacy",
+        "Slip into pool/bath naked",
+        "Feel water on skin",
+        "Embrace freedom together"
+      ]
+    },
+    {
+      "id": "d083",
+      "title": "Wine Tasting Tour",
+      "minutes": 135,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "adventurous"
+      ],
+      "steps": [
+        "Book wine tasting",
+        "Learn about varietals",
+        "Share tasting notes",
+        "Buy bottle to remember"
+      ]
+    },
+    {
+      "id": "d084",
+      "title": "Love Language Workshop",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "intimate"
+      ],
+      "steps": [
+        "Take love language quiz",
+        "Discuss results",
+        "Practice each other's language",
+        "Plan future dates accordingly"
+      ]
+    },
+    {
+      "id": "d085",
+      "title": "Couples Beekeeping Experience",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "educational"
+      ],
+      "steps": [
+        "Visit local beekeeper",
+        "Learn about bee colonies",
+        "Wear protective suits together",
+        "Taste fresh honey"
+      ]
+    },
+    {
+      "id": "d086",
+      "title": "Chocolate Body Painting",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "playful"
+      ],
+      "steps": [
+        "Melt chocolate safely",
+        "Paint on each other",
+        "Lick off artwork",
+        "Get creative and messy"
+      ]
+    },
+    {
+      "id": "d087",
+      "title": "Historic District Walk",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "calm",
+        "emotional"
+      ],
+      "steps": [
+        "Explore historic neighborhood",
+        "Learn local history",
+        "Imagine past lives",
+        "Find romantic café"
+      ]
+    },
+    {
+      "id": "d088",
+      "title": "Desire Mapping Session",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "emotional"
+      ],
+      "steps": [
+        "Create desire lists",
+        "Share fantasies safely",
+        "Map boundaries",
+        "Plan future exploration"
+      ]
+    },
+    {
+      "id": "d089",
+      "title": "Outdoor Concert Picnic",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "adventurous"
+      ],
+      "steps": [
+        "Pack gourmet picnic",
+        "Find outdoor concert",
+        "Dance on grass",
+        "Stay until last song"
+      ]
+    },
+    {
+      "id": "d090",
+      "title": "Couples Wilderness Survival",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Take survival skills class",
+        "Learn to build shelter",
+        "Start fire together",
+        "Depend on each other"
+      ]
+    },
+    {
+      "id": "d091",
+      "title": "Antique Market Adventure",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Browse antique market",
+        "Create stories for items",
+        "Find unique treasure",
+        "Imagine its history"
+      ]
+    },
+    {
+      "id": "d092",
+      "title": "Couples Drone Flying",
+      "minutes": 75,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Learn drone operation",
+        "Take aerial photos together",
+        "Race drones playfully",
+        "Capture unique perspectives"
+      ]
+    },
+    {
+      "id": "d093",
+      "title": "Moonlight Beach Walk",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "calm"
+      ],
+      "steps": [
+        "Walk beach at night",
+        "Feel sand between toes",
+        "Listen to waves",
+        "Share dreams under stars"
+      ]
+    },
+    {
+      "id": "d094",
+      "title": "Couples Meditation Retreat",
+      "minutes": 120,
+      "location": "home",
+      "moods": [
+        "calm",
+        "emotional"
+      ],
+      "steps": [
+        "Create meditation space",
+        "Practice guided meditation",
+        "Share insights",
+        "Feel deeper connection"
+      ]
+    },
+    {
+      "id": "d095",
+      "title": "Erotic Art Creation",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "playful"
+      ],
+      "steps": [
+        "Sketch each other nude",
+        "Focus on beauty",
+        "Share artistic vision",
+        "Display private gallery"
+      ]
+    },
+    {
+      "id": "d096",
+      "title": "Food Market Exploration",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Visit international market",
+        "Try exotic foods",
+        "Buy mystery ingredients",
+        "Cook adventure meal"
+      ]
+    },
+    {
+      "id": "d097",
+      "title": "Intimate Truth Circle",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "intimate"
+      ],
+      "steps": [
+        "Sit in circle of candles",
+        "Ask deep questions",
+        "Answer with complete honesty",
+        "Hold space for vulnerability"
+      ]
+    },
+    {
+      "id": "d098",
+      "title": "Outdoor Adventure Race",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Create obstacle course",
+        "Race against each other",
+        "Celebrate effort",
+        "Winner gives massage"
+      ]
+    },
+    {
+      "id": "d099",
+      "title": "Sensual Storytelling Night",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "emotional"
+      ],
+      "steps": [
+        "Create erotic stories together",
+        "Take turns adding chapters",
+        "Act out favorite scenes",
+        "Write your own ending"
+      ]
+    },
+    {
+      "id": "d100",
+      "title": "Sunrise Mountain Hike",
+      "minutes": 135,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "romantic"
+      ],
+      "steps": [
+        "Start hike before dawn",
+        "Reach summit for sunrise",
+        "Share energy bars",
+        "Feel accomplished together"
+      ]
+    },
+    {
+      "id": "d101",
+      "title": "Memory Lane Photo Shoot",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "emotional"
+      ],
+      "steps": [
+        "Visit places from your relationship",
+        "Recreate old photos",
+        "Take new ones in same spots",
+        "Create then and now album"
+      ]
+    },
+    {
+      "id": "d102",
+      "title": "Blindfolded Dessert Tasting",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "playful"
+      ],
+      "steps": [
+        "Blindfold partner",
+        "Feed exotic desserts",
+        "Guess flavors together",
+        "Reward correct guesses with kisses"
+      ]
+    },
+    {
+      "id": "d103",
+      "title": "Outdoor Hammock Reading",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "calm",
+        "romantic"
+      ],
+      "steps": [
+        "Find hammock or bring one",
+        "Read same book together",
+        "Take turns reading aloud",
+        "Discuss favorite passages"
+      ]
+    },
+    {
+      "id": "d104",
+      "title": "DIY Perfume Workshop",
+      "minutes": 105,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "playful"
+      ],
+      "steps": [
+        "Research scent combinations",
+        "Blend custom fragrances",
+        "Test on each other",
+        "Create signature couple scent"
+      ]
+    },
+    {
+      "id": "d105",
+      "title": "Midnight Diner Adventure",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "romantic"
+      ],
+      "steps": [
+        "Find 24-hour diner",
+        "Order breakfast at midnight",
+        "Share stories over coffee",
+        "Watch late-night people"
+      ]
+    },
+    {
+      "id": "d106",
+      "title": "Couples Glassblowing Class",
+      "minutes": 135,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "intimate"
+      ],
+      "steps": [
+        "Take glassblowing workshop",
+        "Create art pieces together",
+        "Help shape molten glass",
+        "Make matching ornaments"
+      ]
+    },
+    {
+      "id": "d107",
+      "title": "Couples Blacksmithing Workshop",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Take blacksmithing class",
+        "Forge metal together",
+        "Create matching keepsakes",
+        "Feel primal connection"
+      ]
+    },
+    {
+      "id": "d108",
+      "title": "Rooftop Picnic Sunset",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "calm"
+      ],
+      "steps": [
+        "Pack gourmet picnic",
+        "Find rooftop with view",
+        "Watch sunset together",
+        "Stay for first stars"
+      ]
+    },
+    {
+      "id": "d109",
+      "title": "Love Letter Time Capsule",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "romantic"
+      ],
+      "steps": [
+        "Write letters to future selves",
+        "Include current photos",
+        "Seal in time capsule",
+        "Plan opening date"
+      ]
+    },
+    {
+      "id": "d110",
+      "title": "Midnight Bowling Date",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Find late-night bowling",
+        "Play with silly stakes",
+        "Celebrate strikes with dances",
+        "Share nachos and laughs"
+      ]
+    },
+    {
+      "id": "d111",
+      "title": "Bedroom Fort Storytelling",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "playful"
+      ],
+      "steps": [
+        "Build cozy bedroom fort",
+        "Tell childhood stories",
+        "Share embarrassing moments",
+        "Create new memories"
+      ]
+    },
+    {
+      "id": "d112",
+      "title": "Couples Urban Foraging",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "educational"
+      ],
+      "steps": [
+        "Join urban foraging tour",
+        "Learn about edible plants",
+        "Gather ingredients together",
+        "Cook foraged meal"
+      ]
+    },
+    {
+      "id": "d113",
+      "title": "Erotic Book Club",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "spicy",
+        "emotional"
+      ],
+      "steps": [
+        "Choose erotic novel",
+        "Read chapters aloud",
+        "Discuss favorite scenes",
+        "Act out inspiration"
+      ]
+    },
+    {
+      "id": "d114",
+      "title": "Vintage Drive-In Experience",
+      "minutes": 150,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "playful"
+      ],
+      "steps": [
+        "Find drive-in theater",
+        "Dress in vintage style",
+        "Bring classic car snacks",
+        "Cuddle during intermission"
+      ]
+    },
+    {
+      "id": "d115",
+      "title": "Tantric Yoga Session",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "calm"
+      ],
+      "steps": [
+        "Learn tantric yoga poses",
+        "Practice breathing together",
+        "Focus on energy connection",
+        "End with meditation"
+      ]
+    },
+    {
+      "id": "d116",
+      "title": "Couples Food Styling Workshop",
+      "minutes": 105,
+      "location": "home",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Learn food styling techniques",
+        "Create Instagram-worthy dishes",
+        "Practice plating together",
+        "Start food blog"
+      ]
+    },
+    {
+      "id": "d117",
+      "title": "Couples Scuba Diving",
+      "minutes": 150,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "intimate"
+      ],
+      "steps": [
+        "Take scuba diving lesson",
+        "Explore underwater together",
+        "Communicate with hand signals",
+        "Share amazing experience"
+      ]
+    },
+    {
+      "id": "d118",
+      "title": "Literary Speed Dating",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "playful",
+        "emotional"
+      ],
+      "steps": [
+        "Attend literary speed dating event",
+        "Meet other book lovers",
+        "Discuss favorite authors",
+        "Appreciate your connection"
+      ]
+    },
+    {
+      "id": "d119",
+      "title": "Tarot Card Reading Date",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "playful"
+      ],
+      "steps": [
+        "Learn basic tarot",
+        "Read cards for each other",
+        "Discuss interpretations",
+        "Plan based on insights"
+      ]
+    },
+    {
+      "id": "d120",
+      "title": "Couples Drive-In Theater",
+      "minutes": 180,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "playful"
+      ],
+      "steps": [
+        "Find classic drive-in theater",
+        "Bring car snacks and blankets",
+        "Cuddle in backseat",
+        "Stay for double feature"
+      ]
+    },
+    {
+      "id": "d121",
+      "title": "Couples Massage Class",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "intimate",
+        "calm"
+      ],
+      "steps": [
+        "Take professional massage class",
+        "Learn new techniques",
+        "Practice on each other",
+        "Book follow-up session"
+      ]
+    },
+    {
+      "id": "d122",
+      "title": "Midnight Baking Session",
+      "minutes": 105,
+      "location": "home",
+      "moods": [
+        "playful",
+        "romantic"
+      ],
+      "steps": [
+        "Choose complex recipe",
+        "Bake together late night",
+        "Lick bowls and spoons",
+        "Enjoy warm results"
+      ]
+    },
+    {
+      "id": "d123",
+      "title": "Historic Mansion Tour",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "adventurous"
+      ],
+      "steps": [
+        "Visit historic mansion",
+        "Imagine living there together",
+        "Learn about past residents",
+        "Dream about your future"
+      ]
+    },
+    {
+      "id": "d124",
+      "title": "Desire Vision Board",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "emotional"
+      ],
+      "steps": [
+        "Create vision boards",
+        "Include relationship goals",
+        "Share deepest desires",
+        "Plan steps together"
+      ]
+    },
+    {
+      "id": "d125",
+      "title": "Sunrise Kayak Adventure",
+      "minutes": 135,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "calm"
+      ],
+      "steps": [
+        "Rent kayaks for sunrise",
+        "Paddle to quiet spot",
+        "Watch sunrise on water",
+        "Share breakfast on shore"
+      ]
+    },
+    {
+      "id": "d126",
+      "title": "Chocolate Making Workshop",
+      "minutes": 120,
+      "location": "home",
+      "moods": [
+        "playful",
+        "spicy"
+      ],
+      "steps": [
+        "Learn chocolate tempering",
+        "Create custom flavors",
+        "Feed each other samples",
+        "Package romantic gifts"
+      ]
+    },
+    {
+      "id": "d127",
+      "title": "Couples Mushroom Foraging",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "calm"
+      ],
+      "steps": [
+        "Join guided mushroom hunt",
+        "Learn to identify species",
+        "Collect edible varieties",
+        "Cook mushroom feast"
+      ]
+    },
+    {
+      "id": "d128",
+      "title": "Couples Fire Dancing Class",
+      "minutes": 75,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "spicy"
+      ],
+      "steps": [
+        "Take fire dancing lesson",
+        "Learn safety techniques",
+        "Practice with LED props first",
+        "Perform with real fire"
+      ]
+    },
+    {
+      "id": "d129",
+      "title": "Couples Cheese Making Class",
+      "minutes": 135,
+      "location": "out",
+      "moods": [
+        "playful",
+        "calm"
+      ],
+      "steps": [
+        "Learn artisan cheese making",
+        "Work with milk and cultures",
+        "Age cheese together",
+        "Plan tasting date"
+      ]
+    },
+    {
+      "id": "d130",
+      "title": "Couples Stargazing Camping",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "adventurous"
+      ],
+      "steps": [
+        "Pack camping gear",
+        "Find dark sky location",
+        "Set up tent together",
+        "Fall asleep under stars"
+      ]
+    },
+    {
+      "id": "d131",
+      "title": "Wine and Cheese Pairing",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "calm"
+      ],
+      "steps": [
+        "Research wine pairings",
+        "Buy variety of cheeses",
+        "Create tasting notes",
+        "Discover favorites together"
+      ]
+    },
+    {
+      "id": "d135",
+      "title": "Couples Falconry Experience",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Visit falconry center",
+        "Learn about birds of prey",
+        "Handle hawks with trainer",
+        "Watch flight demonstrations"
+      ]
+    },
+    {
+      "id": "d132",
+      "title": "Couples Bowling League",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Join couples bowling league",
+        "Learn proper technique",
+        "Cheer each other on",
+        "Make new friends"
+      ]
+    },
+    {
+      "id": "d133",
+      "title": "Couples Creative Writing",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "playful"
+      ],
+      "steps": [
+        "Write short stories together",
+        "Create fictional characters",
+        "Take turns adding plot twists",
+        "Publish in relationship journal"
+      ]
+    },
+    {
+      "id": "d134",
+      "title": "Couples Butterfly Garden Visit",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "calm",
+        "romantic"
+      ],
+      "steps": [
+        "Visit butterfly conservatory",
+        "Walk among tropical butterflies",
+        "Take photos with colorful wings",
+        "Learn about metamorphosis"
+      ]
+    },
+    {
+      "id": "d136",
+      "title": "Couples Rock Climbing",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Take outdoor climbing lesson",
+        "Belay for each other",
+        "Conquer fears together",
+        "Celebrate at summit"
+      ]
+    },
+    {
+      "id": "d137",
+      "title": "Candle Making Workshop",
+      "minutes": 105,
+      "location": "home",
+      "moods": [
+        "romantic",
+        "playful"
+      ],
+      "steps": [
+        "Melt wax together",
+        "Choose scents",
+        "Create custom candles",
+        "Light them for ambiance"
+      ]
+    },
+    {
+      "id": "d138",
+      "title": "Couples Axe Throwing",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Visit axe throwing venue",
+        "Learn proper technique",
+        "Compete playfully",
+        "Celebrate bullseyes"
+      ]
+    },
+    {
+      "id": "d139",
+      "title": "Couples Stand-Up Comedy",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "playful",
+        "emotional"
+      ],
+      "steps": [
+        "Write comedy routines about relationship",
+        "Practice timing together",
+        "Perform for each other",
+        "Laugh at yourselves"
+      ]
+    },
+    {
+      "id": "d144",
+      "title": "Couples Escape Room Design",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Design escape room for friends",
+        "Create puzzles together",
+        "Test difficulty level",
+        "Host game night"
+      ]
+    },
+    {
+      "id": "d153",
+      "title": "Couples Cooking Class",
+      "minutes": 135,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Take professional cooking class",
+        "Learn new cuisine",
+        "Work as team",
+        "Enjoy meal together"
+      ]
+    },
+    {
+      "id": "d171",
+      "title": "Stargazing Telescope Date",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "calm"
+      ],
+      "steps": [
+        "Rent or borrow telescope",
+        "Find dark sky location",
+        "Identify planets and stars",
+        "Make wishes together"
+      ]
+    },
+    {
+      "id": "d172",
+      "title": "Couples Cooking Competition",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Choose mystery ingredients",
+        "Cook separate dishes",
+        "Judge each other's creations",
+        "Winner gets massage"
+      ]
+    },
+    {
+      "id": "d173",
+      "title": "Sunrise Hot Air Balloon",
+      "minutes": 180,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "romantic"
+      ],
+      "steps": [
+        "Book sunrise balloon ride",
+        "Wake up early together",
+        "Float above landscape",
+        "Celebrate with champagne"
+      ]
+    },
+    {
+      "id": "d174",
+      "title": "Couples Trivia Night",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "playful",
+        "emotional"
+      ],
+      "steps": [
+        "Find couples trivia event",
+        "Test relationship knowledge",
+        "Learn new facts",
+        "Celebrate teamwork"
+      ]
+    },
+    {
+      "id": "d175",
+      "title": "Couples Karate Class",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Take beginner karate class",
+        "Practice moves together",
+        "Learn self-defense",
+        "Feel empowered together"
+      ]
+    },
+    {
+      "id": "d176",
+      "title": "Indoor Rock Climbing",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Visit climbing gym",
+        "Belay for each other",
+        "Encourage and support",
+        "Celebrate achievements"
+      ]
+    },
+    {
+      "id": "d177",
+      "title": "Soap Making Workshop",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "playful",
+        "calm"
+      ],
+      "steps": [
+        "Learn soap making basics",
+        "Choose scents and colors",
+        "Create custom bars",
+        "Package as gifts"
+      ]
+    },
+    {
+      "id": "d178",
+      "title": "Couples Improv Class",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Take improv comedy class",
+        "Practice scenes together",
+        "Laugh at mistakes",
+        "Build confidence together"
+      ]
+    },
+    {
+      "id": "d181",
+      "title": "Couples Zip-lining Adventure",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "intimate"
+      ],
+      "steps": [
+        "Book zip-line course",
+        "Encourage each other",
+        "Scream together",
+        "Celebrate bravery"
+      ]
+    },
+    {
+      "id": "d182",
+      "title": "Couples Bungee Jumping",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "intimate"
+      ],
+      "steps": [
+        "Book bungee jumping",
+        "Support each other's fears",
+        "Jump together",
+        "Celebrate courage"
+      ]
+    },
+    {
+      "id": "d183",
+      "title": "Couples Pottery Wheel",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "intimate",
+        "playful"
+      ],
+      "steps": [
+        "Take pottery wheel class",
+        "Get clay on hands",
+        "Help shape each other's pieces",
+        "Recreate Ghost movie scene"
+      ]
+    },
+    {
+      "id": "d184",
+      "title": "Couples Paragliding",
+      "minutes": 150,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "romantic"
+      ],
+      "steps": [
+        "Book tandem paragliding",
+        "Soar through sky together",
+        "Enjoy aerial views",
+        "Land with adrenaline rush"
+      ]
+    },
+    {
+      "id": "d189",
+      "title": "Couples Archery Lesson",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Take archery class",
+        "Help each other aim",
+        "Compete playfully",
+        "Celebrate bullseyes"
+      ]
+    },
+    {
+      "id": "d193",
+      "title": "Couples Horseback Riding",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "romantic"
+      ],
+      "steps": [
+        "Book horseback riding lesson",
+        "Learn to ride together",
+        "Explore trails",
+        "Share peaceful moments"
+      ]
+    },
+    {
+      "id": "d194",
+      "title": "Winter Wonderland Walk",
+      "minutes": 75,
+      "location": "out",
+      "moods": [
+        "romantic",
+        "calm"
+      ],
+      "steps": [
+        "Bundle up in warm clothes",
+        "Walk through snowy park",
+        "Build mini snowman together",
+        "Warm up with hot cocoa"
+      ]
+    },
+    {
+      "id": "d195",
+      "title": "Volunteer at Animal Shelter",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "adventurous"
+      ],
+      "steps": [
+        "Sign up to volunteer together",
+        "Walk dogs or play with cats",
+        "Share love for animals",
+        "Discuss adopting pet"
+      ]
+    },
+    {
+      "id": "d196",
+      "title": "Digital Detox Picnic",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "calm",
+        "emotional"
+      ],
+      "steps": [
+        "Turn off all devices",
+        "Pack simple picnic",
+        "Focus only on each other",
+        "Rediscover conversation"
+      ]
+    },
+    {
+      "id": "d197",
+      "title": "Couples Meditation App Challenge",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "calm",
+        "intimate"
+      ],
+      "steps": [
+        "Download meditation app",
+        "Complete daily challenges together",
+        "Share mindfulness insights",
+        "Track progress as team"
+      ]
+    },
+    {
+      "id": "d198",
+      "title": "Free Museum Day Adventure",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "playful"
+      ],
+      "steps": [
+        "Find free museum admission day",
+        "Explore exhibits together",
+        "Discuss favorite pieces",
+        "Create art-inspired date plans"
+      ]
+    },
+    {
+      "id": "d199",
+      "title": "Couples Fitness Challenge",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Create workout routine together",
+        "Set fitness goals as team",
+        "Exercise side by side",
+        "Celebrate achievements"
+      ]
+    },
+    {
+      "id": "d200",
+      "title": "Autumn Leaf Collection Walk",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "calm",
+        "romantic"
+      ],
+      "steps": [
+        "Walk through fall foliage",
+        "Collect beautiful leaves",
+        "Press leaves in book",
+        "Create seasonal art together"
+      ]
+    },
+    {
+      "id": "d201",
+      "title": "Virtual Reality Gaming Date",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Visit VR gaming center",
+        "Try cooperative games",
+        "Explore virtual worlds together",
+        "Compete in fun challenges"
+      ]
+    },
+    {
+      "id": "d202",
+      "title": "Community Garden Volunteering",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "calm",
+        "emotional"
+      ],
+      "steps": [
+        "Find local community garden",
+        "Volunteer to help maintain",
+        "Plant seeds together",
+        "Learn about sustainable living"
+      ]
+    },
+    {
+      "id": "d203",
+      "title": "Couples Podcast Recording",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "playful",
+        "emotional"
+      ],
+      "steps": [
+        "Choose relationship topic",
+        "Record podcast episode",
+        "Share stories and advice",
+        "Create series together"
+      ]
+    },
+    {
+      "id": "d204",
+      "title": "Beach Cleanup Date",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Join beach cleanup event",
+        "Work together for environment",
+        "Feel good about impact",
+        "Reward with beach walk"
+      ]
+    },
+    {
+      "id": "d205",
+      "title": "Couples Language Learning",
+      "minutes": 60,
+      "location": "home",
+      "moods": [
+        "playful",
+        "adventurous"
+      ],
+      "steps": [
+        "Choose language to learn",
+        "Practice with language app",
+        "Teach each other phrases",
+        "Plan trip to practice"
+      ]
+    },
+    {
+      "id": "d206",
+      "title": "Couples Beach Volleyball",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Join beach volleyball game",
+        "Play as team against others",
+        "Celebrate good plays",
+        "Cool off in ocean"
+      ]
+    },
+    {
+      "id": "d207",
+      "title": "Couples Budgeting Workshop",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "intimate"
+      ],
+      "steps": [
+        "Review finances together",
+        "Set shared financial goals",
+        "Plan dream purchases",
+        "Celebrate money teamwork"
+      ]
+    },
+    {
+      "id": "d208",
+      "title": "Accessible Nature Trail",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "calm",
+        "adventurous"
+      ],
+      "steps": [
+        "Find wheelchair accessible trail",
+        "Enjoy nature at comfortable pace",
+        "Spot wildlife together",
+        "Rest at scenic viewpoints"
+      ]
+    },
+    {
+      "id": "d209",
+      "title": "Couples Geocaching Championship",
+      "minutes": 120,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Join geocaching competition",
+        "Race against other couples",
+        "Use teamwork to solve clues",
+        "Celebrate victories together"
+      ]
+    },
+    {
+      "id": "d210",
+      "title": "Couples Vision Board Creation",
+      "minutes": 90,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "romantic"
+      ],
+      "steps": [
+        "Gather magazines and supplies",
+        "Create shared vision board",
+        "Include relationship dreams",
+        "Display prominently together"
+      ]
+    },
+    {
+      "id": "d211",
+      "title": "Senior Center Volunteer Date",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "calm"
+      ],
+      "steps": [
+        "Volunteer at senior center",
+        "Play games with residents",
+        "Listen to life stories",
+        "Share intergenerational wisdom"
+      ]
+    },
+    {
+      "id": "d212",
+      "title": "Couples Meal Prep Sunday",
+      "minutes": 120,
+      "location": "home",
+      "moods": [
+        "playful",
+        "intimate"
+      ],
+      "steps": [
+        "Plan week's meals together",
+        "Shop for ingredients",
+        "Prep meals side by side",
+        "Enjoy organized week ahead"
+      ]
+    },
+    {
+      "id": "d213",
+      "title": "Outdoor Sculpture Hunt",
+      "minutes": 105,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "playful"
+      ],
+      "steps": [
+        "Research public art locations",
+        "Create sculpture scavenger hunt",
+        "Take photos with each piece",
+        "Discuss artistic interpretations"
+      ]
+    },
+    {
+      "id": "d214",
+      "title": "Couples Sleep Study Date",
+      "minutes": 480,
+      "location": "home",
+      "moods": [
+        "intimate",
+        "calm"
+      ],
+      "steps": [
+        "Create perfect sleep environment",
+        "Practice sleep hygiene together",
+        "Try couples sleep positions",
+        "Wake up refreshed together"
+      ]
+    },
+    {
+      "id": "d215",
+      "title": "Local History Walking Tour",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "emotional",
+        "adventurous"
+      ],
+      "steps": [
+        "Research neighborhood history",
+        "Walk historic route together",
+        "Imagine past eras",
+        "Share what you learned"
+      ]
+    },
+    {
+      "id": "d216",
+      "title": "Couples Gratitude Practice",
+      "minutes": 45,
+      "location": "home",
+      "moods": [
+        "emotional",
+        "calm"
+      ],
+      "steps": [
+        "Share three daily gratitudes",
+        "Write appreciation letters",
+        "Express thankfulness for each other",
+        "Create gratitude jar together"
+      ]
+    },
+    {
+      "id": "d217",
+      "title": "Adaptive Sports Experience",
+      "minutes": 90,
+      "location": "out",
+      "moods": [
+        "adventurous",
+        "emotional"
+      ],
+      "steps": [
+        "Try adaptive sports together",
+        "Learn about accessibility",
+        "Support each other's efforts",
+        "Celebrate inclusive activities"
+      ]
+    },
+    {
+      "id": "d218",
+      "title": "Couples Digital Art Creation",
+      "minutes": 75,
+      "location": "home",
+      "moods": [
+        "playful",
+        "intimate"
+      ],
+      "steps": [
+        "Download art creation app",
+        "Create digital portraits",
+        "Collaborate on artwork",
+        "Share creations online"
+      ]
+    }
+  ]
+}

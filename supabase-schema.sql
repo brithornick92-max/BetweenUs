@@ -1,0 +1,111 @@
+-- Supabase Schema for BetweenUs App (Sync + E2EE)
+-- Run in Supabase SQL Editor
+
+-- Profiles for each user (minimal - just premium status and preferences)
+create table profiles (
+  id uuid references auth.users on delete cascade primary key,
+  email text,
+  display_name text,
+  is_premium boolean default false,
+  preferences jsonb default '{}',
+  created_at timestamp default now(),
+  updated_at timestamp default now()
+);
+
+-- Couples
+create table couples (
+  id uuid primary key default gen_random_uuid(),
+  created_by uuid references auth.users not null,
+  relationship_start_date date,
+  couple_name text,
+  is_active boolean default true,
+  preferences jsonb default '{}',
+  created_at timestamp default now(),
+  updated_at timestamp default now()
+);
+
+-- Couple members
+create table couple_members (
+  id uuid primary key default gen_random_uuid(),
+  couple_id uuid references couples(id) on delete cascade not null,
+  user_id uuid references auth.users not null,
+  role text default 'member',
+  created_at timestamp default now(),
+  unique(couple_id, user_id)
+);
+
+-- Shared couple data (sensitive payloads can be encrypted_value)
+create table couple_data (
+  id uuid primary key default gen_random_uuid(),
+  couple_id uuid references couples(id) on delete cascade not null,
+  key text not null,
+  value jsonb,
+  encrypted_value text,
+  data_type text not null,
+  created_by uuid references auth.users not null,
+  is_private boolean default false,
+  tags text[] default '{}',
+  created_at timestamp default now(),
+  updated_at timestamp default now()
+);
+
+-- Indexes
+create index idx_profiles_email on profiles(email);
+create index idx_profiles_premium on profiles(is_premium);
+
+create index idx_couples_created_by on couples(created_by);
+create index idx_couples_active on couples(is_active);
+create index idx_couple_members_couple on couple_members(couple_id);
+create index idx_couple_members_user on couple_members(user_id);
+
+create index idx_couple_data_couple_id on couple_data(couple_id);
+create index idx_couple_data_key on couple_data(key);
+create index idx_couple_data_type on couple_data(data_type);
+create index idx_couple_data_created_by on couple_data(created_by);
+create index idx_couple_data_private on couple_data(is_private);
+create index idx_couple_data_created_at on couple_data(created_at desc);
+
+-- Helper function to get couple ID for a user
+create or replace function get_user_couple_id(input_user_id uuid)
+returns uuid as $$
+begin
+  return (
+    select couple_id from couple_members
+    where user_id = input_user_id
+    limit 1
+  );
+end;
+$$ language plpgsql security definer;
+
+-- Helper function to check if user is part of couple
+create or replace function is_couple_member(couple_uuid uuid, user_uuid uuid)
+returns boolean as $$
+begin
+  return exists(
+    select 1 from couple_members
+    where couple_id = couple_uuid
+    and user_id = user_uuid
+  );
+end;
+$$ language plpgsql security definer;
+
+-- Updated_at trigger
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger update_profiles_updated_at
+  before update on profiles
+  for each row execute function update_updated_at_column();
+
+create trigger update_couples_updated_at
+  before update on couples
+  for each row execute function update_updated_at_column();
+
+create trigger update_couple_data_updated_at
+  before update on couple_data
+  for each row execute function update_updated_at_column();
