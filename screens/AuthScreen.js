@@ -11,8 +11,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Keyboard,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -24,7 +22,7 @@ export default function AuthScreen() {
   const { signIn, signUp, loading } = useAuth();
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [focused, setFocused] = useState(null); // 'email' | 'password' | 'displayName' | 'confirmPassword' | null
+  const [focused, setFocused] = useState(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -97,177 +95,147 @@ export default function AuthScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.topSpacer} />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          // ✅ THIS is the key: don’t let taps get swallowed / keyboard close
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.topSpacer} />
 
-            {/* Header */}
-            <View style={styles.header}>
-              <MaterialCommunityIcons name="heart" size={48} color="#9B6B7B" style={styles.heartIcon} />
-              <Text style={styles.title}>Between Us</Text>
-              <Text style={styles.subtitle}>A PRIVATE SANCTUARY</Text>
-            </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <MaterialCommunityIcons name="heart" size={48} color="#9B6B7B" style={styles.heartIcon} />
+            <Text style={styles.title}>Between Us</Text>
+            <Text style={styles.subtitle}>A PRIVATE SANCTUARY</Text>
+          </View>
 
-            {/* Form */}
-            <View style={styles.form}>
-              {isSignUp && (
-                <View style={[styles.inputContainer, focusStyle('displayName')]}>
-                  <MaterialCommunityIcons
-                    name="account"
-                    size={20}
-                    color="#9B6B7B"
-                    style={styles.inputIcon}
-                    pointerEvents="none"
-                  />
-                  <View style={styles.inputFieldColumn}>
-                    <Text style={styles.inputLabel}>YOUR NAME</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Your name"
-                      placeholderTextColor="rgba(255,255,255,0.2)"
-                      value={displayName}
-                      onChangeText={setDisplayName}
-                      autoCapitalize="words"
-                      returnKeyType="next"
-                      textContentType="name"
-                      autoComplete="name"
-                      onFocus={() => setFocused('displayName')}
-                      onBlur={() => setFocused(null)}
-                    />
-                  </View>
-                </View>
-              )}
-
-              <View style={[styles.inputContainer, focusStyle('email')]}>
-                <MaterialCommunityIcons
-                  name="email"
-                  size={20}
-                  color="#9B6B7B"
-                  style={styles.inputIcon}
-                  pointerEvents="none"
-                />
+          {/* Form */}
+          <View style={styles.form}>
+            {isSignUp && (
+              <View style={[styles.inputContainer, focusStyle('displayName')]}>
+                <MaterialCommunityIcons name="account" size={20} color="#9B6B7B" style={styles.inputIcon} />
                 <View style={styles.inputFieldColumn}>
-                  <Text style={styles.inputLabel}>EMAIL</Text>
+                  <Text style={styles.inputLabel}>YOUR NAME</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="name@example.com"
+                    placeholder="Your name"
                     placeholderTextColor="rgba(255,255,255,0.2)"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
+                    value={displayName}
+                    onChangeText={setDisplayName}
+                    autoCapitalize="words"
                     returnKeyType="next"
-                    // ✅ IMPORTANT: do NOT use oneTimeCode here (causes focus loss)
-                    textContentType="emailAddress"
-                    autoComplete="email"
-                    importantForAutofill="no"
-                    onFocus={() => setFocused('email')}
+                    textContentType="name"
+                    autoComplete="name"
+                    onFocus={() => setFocused('displayName')}
                     onBlur={() => setFocused(null)}
                   />
                 </View>
               </View>
+            )}
 
-              <View style={[styles.inputContainer, focusStyle('password')]}>
-                <MaterialCommunityIcons
-                  name="lock"
-                  size={20}
-                  color="#9B6B7B"
-                  style={styles.inputIcon}
-                  pointerEvents="none"
+            <View style={[styles.inputContainer, focusStyle('email')]}>
+              <MaterialCommunityIcons name="email" size={20} color="#9B6B7B" style={styles.inputIcon} />
+              <View style={styles.inputFieldColumn}>
+                <Text style={styles.inputLabel}>EMAIL</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="name@example.com"
+                  placeholderTextColor="rgba(255,255,255,0.2)"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  // ✅ do NOT use oneTimeCode
+                  textContentType="emailAddress"
+                  autoComplete="email"
+                  onFocus={() => setFocused('email')}
+                  onBlur={() => setFocused(null)}
                 />
+              </View>
+            </View>
+
+            <View style={[styles.inputContainer, focusStyle('password')]}>
+              <MaterialCommunityIcons name="lock" size={20} color="#9B6B7B" style={styles.inputIcon} />
+              <View style={styles.inputFieldColumn}>
+                <Text style={styles.inputLabel}>PASSWORD</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="••••••••"
+                  placeholderTextColor="rgba(255,255,255,0.2)"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  returnKeyType={isSignUp ? 'next' : 'done'}
+                  onSubmitEditing={isSignUp ? undefined : handleAuth}
+                  textContentType="password"
+                  autoComplete={Platform.OS === 'ios' ? 'password' : 'off'}
+                  onFocus={() => setFocused('password')}
+                  onBlur={() => setFocused(null)}
+                />
+              </View>
+            </View>
+
+            {isSignUp && (
+              <View style={[styles.inputContainer, focusStyle('confirmPassword')]}>
+                <MaterialCommunityIcons name="lock-check" size={20} color="#9B6B7B" style={styles.inputIcon} />
                 <View style={styles.inputFieldColumn}>
-                  <Text style={styles.inputLabel}>PASSWORD</Text>
+                  <Text style={styles.inputLabel}>CONFIRM PASSWORD</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="••••••••"
                     placeholderTextColor="rgba(255,255,255,0.2)"
-                    value={password}
-                    onChangeText={setPassword}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
                     secureTextEntry
-                    returnKeyType={isSignUp ? 'next' : 'done'}
-                    onSubmitEditing={isSignUp ? undefined : handleAuth}
-                    // ✅ IMPORTANT: do NOT use oneTimeCode here (causes focus loss)
+                    returnKeyType="done"
+                    onSubmitEditing={handleAuth}
                     textContentType="password"
                     autoComplete={Platform.OS === 'ios' ? 'password' : 'off'}
-                    importantForAutofill="no"
-                    onFocus={() => setFocused('password')}
+                    onFocus={() => setFocused('confirmPassword')}
                     onBlur={() => setFocused(null)}
                   />
                 </View>
               </View>
+            )}
 
-              {isSignUp && (
-                <View style={[styles.inputContainer, focusStyle('confirmPassword')]}>
-                  <MaterialCommunityIcons
-                    name="lock-check"
-                    size={20}
-                    color="#9B6B7B"
-                    style={styles.inputIcon}
-                    pointerEvents="none"
-                  />
-                  <View style={styles.inputFieldColumn}>
-                    <Text style={styles.inputLabel}>CONFIRM PASSWORD</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="••••••••"
-                      placeholderTextColor="rgba(255,255,255,0.2)"
-                      value={confirmPassword}
-                      onChangeText={setConfirmPassword}
-                      secureTextEntry
-                      returnKeyType="done"
-                      onSubmitEditing={handleAuth}
-                      textContentType="password"
-                      autoComplete={Platform.OS === 'ios' ? 'password' : 'off'}
-                      importantForAutofill="no"
-                      onFocus={() => setFocused('confirmPassword')}
-                      onBlur={() => setFocused(null)}
-                    />
-                  </View>
-                </View>
-              )}
-
-              <View style={styles.buttonShadow}>
-                <LinearGradient
-                  colors={['#E8E8E8', '#A9A9A9', '#C0C0C0']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.authButtonGradient}
+            <View style={styles.buttonShadow}>
+              <LinearGradient
+                colors={['#E8E8E8', '#A9A9A9', '#C0C0C0']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.authButtonGradient}
+              >
+                <TouchableOpacity
+                  style={styles.authButtonTouchable}
+                  onPress={handleAuth}
+                  disabled={loading}
+                  activeOpacity={0.9}
                 >
-                  <TouchableOpacity
-                    style={styles.authButtonTouchable}
-                    onPress={handleAuth}
-                    disabled={loading}
-                    activeOpacity={0.9}
-                  >
-                    <Text style={styles.authButtonText}>
-                      {loading ? 'Please wait…' : isSignUp ? 'Create Account' : 'Sign In'}
-                    </Text>
-                  </TouchableOpacity>
-                </LinearGradient>
-              </View>
-
-              <TouchableOpacity style={styles.toggleButton} onPress={toggleMode} disabled={loading}>
-                <Text style={styles.toggleText}>
-                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-                </Text>
-              </TouchableOpacity>
+                  <Text style={styles.authButtonText}>
+                    {loading ? 'Please wait…' : isSignUp ? 'Create Account' : 'Sign In'}
+                  </Text>
+                </TouchableOpacity>
+              </LinearGradient>
             </View>
 
-            {/* Security */}
-            <View style={styles.securityBadge}>
-              <MaterialCommunityIcons name="shield-check" size={16} color={COLORS?.mutedGold ?? '#C6A65B'} />
-              <Text style={styles.securityText}>Your intimate responses are encrypted and private</Text>
-            </View>
+            <TouchableOpacity style={styles.toggleButton} onPress={toggleMode} disabled={loading}>
+              <Text style={styles.toggleText}>
+                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-            <View style={styles.bottomSpacer} />
-          </ScrollView>
-        </TouchableWithoutFeedback>
+          <View style={styles.securityBadge}>
+            <MaterialCommunityIcons name="shield-check" size={16} color={COLORS?.mutedGold ?? '#C6A65B'} />
+            <Text style={styles.securityText}>Your intimate responses are encrypted and private</Text>
+          </View>
+
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
@@ -286,10 +254,7 @@ const styles = StyleSheet.create({
   topSpacer: { height: 44 },
   bottomSpacer: { height: 36 },
 
-  header: {
-    alignItems: 'center',
-    marginBottom: 18,
-  },
+  header: { alignItems: 'center', marginBottom: 18 },
   heartIcon: { marginBottom: 18 },
   title: {
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
@@ -311,10 +276,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 
-  form: {
-    width: '100%',
-    marginBottom: 14,
-  },
+  form: { width: '100%', marginBottom: 14 },
 
   inputFieldColumn: {
     flex: 1,
@@ -344,8 +306,6 @@ const styles = StyleSheet.create({
     height: 62,
   },
   inputIcon: { marginRight: 12 },
-
-  // Important: input height smaller than container so caret positioning is stable
   input: {
     flex: 1,
     color: '#FFF',
@@ -385,10 +345,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 
-  toggleButton: {
-    marginTop: 18,
-    alignItems: 'center',
-  },
+  toggleButton: { marginTop: 18, alignItems: 'center' },
   toggleText: {
     color: COLORS?.roseGold ?? '#D4AF37',
     fontSize: 14,

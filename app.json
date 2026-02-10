@@ -28,7 +28,9 @@
       "package": "com.brittany.betweenus",
       "versionCode": 1,
       "permissions": [
-        "CAMERA"
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
@@ -41,7 +43,10 @@
     "description": "Between Us — Private. Playful. Intimate. A couples app for connection, communication, and date nights.",
     "extra": {
       "appName": "Between Us",
-      "tagline": "Private. Playful. Intimate."
+      "tagline": "Private. Playful. Intimate.",
+      "eas": {
+        "projectId": "ab5503ed-b0de-4bf0-aabc-6c46d0c00ec1"
+      }
     },
     "experiments": {
       "lazyBundling": false
