@@ -34,5 +34,8 @@ yarn-error.*
 .env*.local
 
 # typescript
-*.tsbuildinfoios/
+*.tsbuildinfo
+
+# native folders (CNG / prebuild)
+ios/
 android/
