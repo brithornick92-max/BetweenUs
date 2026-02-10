@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 // ✅ MUST match RevenueCat dashboard entitlement IDENTIFIER (not display name)
 // Update this to match your actual entitlement identifier from RevenueCat dashboard
 // Use the RevenueCat Debug screen (Settings → RevenueCat Debug) to find the correct ID
-const ENTITLEMENT_ID = 'premium'; // Common options: 'premium', 'pro', 'plus', 'betweenus_pro'
+const ENTITLEMENT_ID = 'Between Us Pro';
 
 class RevenueCatService {
   constructor() {

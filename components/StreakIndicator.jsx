@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Card from './Card';
 import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY } from '../utils/theme';

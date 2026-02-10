@@ -177,10 +177,10 @@ export const promptStorage = {
             const data = await EncryptionService.decryptJson(answer.encryptedData);
             decrypted[dateKey][promptId] = data
               ? { ...data, isEncrypted: false }
-              : answer;
+              : { ...answer, decryptionFailed: true };
           } catch (error) {
             console.error('Failed to decrypt answer:', error);
-            decrypted[dateKey][promptId] = answer;
+            decrypted[dateKey][promptId] = { ...answer, decryptionFailed: true };
           }
         } else {
           decrypted[dateKey][promptId] = answer;
@@ -259,7 +259,7 @@ export const journalStorage = {
         if (entry.isEncrypted) {
           try {
             const data = await EncryptionService.decryptJson(entry.encryptedData);
-            if (!data) return entry;
+            if (!data) return { ...entry, decryptionFailed: true };
             return {
               ...entry,
               title: data.title,
@@ -269,7 +269,7 @@ export const journalStorage = {
             };
           } catch (error) {
             console.error('Failed to decrypt journal entry:', error);
-            return entry;
+            return { ...entry, decryptionFailed: true };
           }
         }
         return entry;
@@ -687,13 +687,17 @@ export const biometricVaultStorage = {
       if (entry?.encryptedData) {
         try {
           const value = await EncryptionService.decryptJson(entry.encryptedData);
-          decrypted[key] = {
-            ...entry,
-            value,
-            isEncrypted: false,
-          };
+          if (value != null) {
+            decrypted[key] = {
+              ...entry,
+              value,
+              isEncrypted: false,
+            };
+          } else {
+            decrypted[key] = { ...entry, decryptionFailed: true };
+          }
         } catch {
-          decrypted[key] = entry;
+          decrypted[key] = { ...entry, decryptionFailed: true };
         }
       } else {
         decrypted[key] = entry;

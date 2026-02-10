@@ -24,7 +24,7 @@ import { COLORS, GRADIENTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Night theme colors - calming and intimate
-const NIGHT_COLORS = {
+export const NIGHT_COLORS = {
   deepNight: '#0A0A0F',
   midnightBlue: '#1A1A2E',
   softPurple: '#16213E',
@@ -34,6 +34,8 @@ const NIGHT_COLORS = {
   calmLavender: '#B8A9C9',
   gentleGold: '#D4C5A9',
   whisperBlue: '#A8B5C8',
+  text: '#E8E8F0',
+  textSecondary: '#C7C7D1',
 };
 
 // Night ritual structure - 4 elements as per requirements

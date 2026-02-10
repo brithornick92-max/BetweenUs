@@ -151,8 +151,11 @@ class LocalStorageService {
 
       const userData = await AsyncStorage.getItem(`user_${userId}`);
       if (userData) {
-        this.currentUser = JSON.parse(userData);
-        return this.currentUser;
+        const parsed = JSON.parse(userData);
+        if (parsed && typeof parsed === 'object' && parsed.uid) {
+          this.currentUser = parsed;
+          return this.currentUser;
+        }
       }
 
       return null;
@@ -507,12 +510,17 @@ class LocalStorageService {
           case 'remove':
             await AsyncStorage.removeItem(key);
             break;
-          case 'update':
+          case 'update': {
             const existing = await AsyncStorage.getItem(key);
-            const existingData = existing ? JSON.parse(existing) : {};
+            let existingData = {};
+            if (existing) {
+              const parsed = JSON.parse(existing);
+              existingData = (parsed && typeof parsed === 'object') ? parsed : {};
+            }
             const updatedData = { ...existingData, ...data };
             await AsyncStorage.setItem(key, JSON.stringify(updatedData));
             break;
+          }
         }
       }
     } catch (error) {

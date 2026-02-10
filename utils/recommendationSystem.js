@@ -73,10 +73,14 @@ class RecommendationSystem {
       const items = Array.isArray(availableContent) ? availableContent : [];
       if (items.length === 0) return [];
 
+      // Filter out items missing required .text property
+      const validItems = items.filter(item => item && typeof item.text === 'string' && item.text.trim());
+      if (validItems.length === 0) return [];
+
       const limit = Math.max(1, options.limit || 5);
       const seed = `${userId || 'anon'}_${new Date().toISOString().slice(0, 10)}`;
 
-      const scored = items.map((item, index) => ({
+      const scored = validItems.map((item, index) => ({
         ...item,
         recommendationScore: this._stableScore(seed, item?.id ?? index),
       }));
@@ -86,7 +90,8 @@ class RecommendationSystem {
         .slice(0, limit);
     } catch (error) {
       console.error('Failed to get lightweight recommendations:', error);
-      return Array.isArray(availableContent) ? availableContent.slice(0, options.limit || 5) : [];
+      const fallback = Array.isArray(availableContent) ? availableContent : [];
+      return fallback.filter(item => item && typeof item.text === 'string').slice(0, options.limit || 5);
     }
   }
   /**

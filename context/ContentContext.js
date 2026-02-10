@@ -93,11 +93,25 @@ export const ContentProvider = ({ children }) => {
       // Select top recommendation or fallback to deterministic selection
       let selectedPrompt;
       if (recommendations.length > 0) {
-        selectedPrompt = recommendations[0];
+        // Find first recommendation with a valid .text property
+        selectedPrompt = recommendations.find(r => r && typeof r.text === 'string' && r.text.trim())
+          || recommendations[0];
       } else {
         const today = new Date().toISOString().split('T')[0];
         const promptIndex = today.split('-').reduce((acc, val) => acc + parseInt(val), 0) % promptsData.length;
         selectedPrompt = promptsData[promptIndex];
+      }
+
+      // Guard against prompt missing .text (corrupted data, bad recommendation, etc.)
+      if (!selectedPrompt || typeof selectedPrompt.text !== 'string' || !selectedPrompt.text.trim()) {
+        const fallback = promptsData.find(p => p && typeof p.text === 'string' && p.text.trim());
+        selectedPrompt = fallback || {
+          id: 'fallback_1',
+          text: 'What\'s one thing you love about our relationship?',
+          category: 'emotional',
+          heat: 1,
+          relationshipDuration: ['universal']
+        };
       }
 
       // Track successful personalization

@@ -86,7 +86,7 @@ export default function RootNavigator() {
     headerShadowVisible: false,
     headerTintColor: COLORS.softCream,
     headerTitleStyle: {
-      ...TYPOGRAPHY.header,
+      ...TYPOGRAPHY.h3,
       fontSize: 18,
       fontWeight: "700",
       letterSpacing: -0.5,

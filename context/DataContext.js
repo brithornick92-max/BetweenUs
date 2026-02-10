@@ -28,7 +28,7 @@ import { AppState } from 'react-native';
 import { DataLayer, SyncEngine, Database } from '../services/localfirst';
 import { useAuth } from './AuthContext';
 import { useEntitlements } from './EntitlementsContext';
-import { useApp } from './AppContext';
+import { useAppContext as useApp } from './AppContext';
 
 const DataContext = createContext(null);
 

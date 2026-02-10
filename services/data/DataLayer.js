@@ -207,6 +207,7 @@ const DataLayer = {
   },
 
   async _decryptJournal(row) {
+    if (!row) return null;
     // Detect which key tier the envelope was encrypted with
     const info = E2EEncryption.inspect(row.title_cipher);
     const kt = info?.keyTier || keyTier();
@@ -219,8 +220,9 @@ const DataLayer = {
         tags: row.tags ? JSON.parse(row.tags) : [],
         is_private: !!row.is_private,
       };
-    } catch {
+    } catch (err) {
       // Decryption failed — return with locked flag
+      console.warn('[DataLayer] Journal decryption failed:', err?.message);
       return { ...row, title: null, body: null, tags: [], locked: true };
     }
   },
@@ -269,6 +271,7 @@ const DataLayer = {
   },
 
   async _decryptPromptAnswer(row) {
+    if (!row) return null;
     const info = E2EEncryption.inspect(row.answer_cipher);
     const kt = info?.keyTier || keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
@@ -281,7 +284,8 @@ const DataLayer = {
           : null,
         is_revealed: !!row.is_revealed,
       };
-    } catch {
+    } catch (err) {
+      console.warn('[DataLayer] Prompt answer decryption failed:', err?.message);
       return { ...row, answer: null, partnerAnswer: null, locked: true };
     }
   },
@@ -330,6 +334,7 @@ const DataLayer = {
   },
 
   async _decryptMemory(row) {
+    if (!row) return null;
     const info = E2EEncryption.inspect(row.body_cipher);
     const kt = info?.keyTier || keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
@@ -339,7 +344,8 @@ const DataLayer = {
         content: await E2EEncryption.decryptString(row.body_cipher, kt, cid),
         is_private: !!row.is_private,
       };
-    } catch {
+    } catch (err) {
+      console.warn('[DataLayer] Memory decryption failed:', err?.message);
       return { ...row, content: null, locked: true };
     }
   },
