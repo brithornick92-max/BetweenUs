@@ -9,7 +9,7 @@
     "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#1a0614"
     },
     "assetBundlePatterns": [
@@ -21,7 +21,9 @@
       "buildNumber": "1.0.0",
       "deploymentTarget": "17.1",
       "infoPlist": {
-        "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing."
+        "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing.",
+        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes and memories.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -29,8 +31,7 @@
       "versionCode": 1,
       "permissions": [
         "CAMERA",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.CAMERA"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
@@ -40,10 +41,10 @@
     "web": {
       "favicon": "./assets/icon.png"
     },
-    "description": "Between Us — Private. Playful. Intimate. A couples app for connection, communication, and date nights.",
+    "description": "Between Us — Where closeness deepens. A couples app for intimacy, connection, and meaningful moments.",
     "extra": {
       "appName": "Between Us",
-      "tagline": "Private. Playful. Intimate.",
+      "tagline": "Where closeness deepens.",
       "eas": {
         "projectId": "ab5503ed-b0de-4bf0-aabc-6c46d0c00ec1"
       }
@@ -54,21 +55,33 @@
     "newArchEnabled": true,
     "plugins": [
       "expo-font",
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "node_modules/@react-native-vector-icons/fontawesome6/fonts/FontAwesome6_Brands.ttf",
-            "node_modules/@react-native-vector-icons/fontawesome6/fonts/FontAwesome6_Regular.ttf",
-            "node_modules/@react-native-vector-icons/fontawesome6/fonts/FontAwesome6_Solid.ttf",
-            "node_modules/@react-native-vector-icons/feather/fonts/Feather.ttf",
-            "node_modules/@react-native-vector-icons/ionicons/fonts/Ionicons.ttf"
-          ]
-        }
-      ],
       "@react-native-community/datetimepicker",
       "expo-camera",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "imageWidth": 1284,
+          "resizeMode": "cover",
+          "backgroundColor": "#1a0614"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1a0614"
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "brittany-hornick"
+        }
+      ]
     ]
   }
 }

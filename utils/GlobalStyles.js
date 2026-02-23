@@ -1,20 +1,17 @@
 // File: utils/GlobalStyles.js
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet } from "react-native";
 import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from "./theme";
 
 /**
- * GLOBAL STYLES — Between Us
- * Purpose:
- * - Normalize layout spacing
- * - Provide reusable typography & surface patterns
- * - Keep screens visually consistent
+ * GLOBAL STYLES — Between Us · Midnight Intimacy
+ * Charcoal-plum surfaces · wine accents · 8pt grid · minimal shadows
  */
 
 export const GlobalStyles = StyleSheet.create({
   /* ----------------------------- Layout ----------------------------- */
   screen: {
     flex: 1,
-    backgroundColor: COLORS.warmCharcoal,
+    backgroundColor: COLORS.inkBlack,
   },
 
   safeArea: {
@@ -22,8 +19,8 @@ export const GlobalStyles = StyleSheet.create({
   },
 
   scrollContent: {
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.xxl,
+    paddingHorizontal: SPACING.screen,
+    paddingBottom: SPACING.xxxl,
   },
 
   center: {
@@ -40,6 +37,18 @@ export const GlobalStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+
+  /* ----- Sections with generous 8pt-grid spacing ----- */
+  section: {
+    paddingHorizontal: SPACING.screen,
+    paddingVertical: SPACING.section,
+  },
+
+  sectionCentered: {
+    paddingHorizontal: SPACING.screen,
+    paddingVertical: SPACING.section,
+    alignItems: "center",
   },
 
   /* ----------------------------- Text ----------------------------- */
@@ -64,111 +73,120 @@ export const GlobalStyles = StyleSheet.create({
   },
 
   muted: {
-    color: "rgba(255,255,255,0.5)",
+    color: "rgba(242,233,230,0.4)",
   },
 
   accent: {
-    color: COLORS.blushRose,
+    color: COLORS.mulberry,
   },
 
   /* ----------------------------- Cards / Surfaces ----------------------------- */
   card: {
-    backgroundColor: COLORS.deepPlum,
+    backgroundColor: COLORS.charcoalPlum,
     borderRadius: BORDER_RADIUS.xl,
-    padding: SPACING.lg,
+    padding: SPACING.xl,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "rgba(255,255,255,0.06)",
     ...SHADOWS.small,
   },
 
   glassCard: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(28,21,32,0.5)",
     borderRadius: BORDER_RADIUS.xl,
-    padding: SPACING.lg,
+    padding: SPACING.xl,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    ...SHADOWS.medium,
+    borderColor: "rgba(255,255,255,0.06)",
+    ...SHADOWS.small,
   },
 
   elevatedCard: {
-    backgroundColor: COLORS.charcoal,
+    backgroundColor: COLORS.surfacePlum,
     borderRadius: BORDER_RADIUS.xl,
-    padding: SPACING.lg,
-    ...SHADOWS.large,
+    padding: SPACING.xl,
+    ...SHADOWS.medium,
   },
 
   /* ----------------------------- Inputs ----------------------------- */
   input: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(28,21,32,0.6)",
     borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: Platform.OS === "ios" ? SPACING.md : SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: Platform.OS === "ios" ? 14 : SPACING.sm,
     color: COLORS.softCream,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: COLORS.cardBorder,
+    fontSize: 15,
+    ...TYPOGRAPHY.bodySecondary,
   },
 
   inputLabel: {
-    ...TYPOGRAPHY.caption,
-    marginBottom: 6,
-    color: COLORS.creamSubtle,
+    ...TYPOGRAPHY.label,
+    marginBottom: SPACING.sm,
+    color: COLORS.mulberry,
   },
 
   /* ----------------------------- Buttons ----------------------------- */
   buttonPrimary: {
     borderRadius: BORDER_RADIUS.lg,
     overflow: "hidden",
+    height: 52,
   },
 
   buttonOutline: {
     borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1.5,
-    borderColor: COLORS.blushRose + "80",
+    borderWidth: 1,
+    borderColor: COLORS.wineMuted,
     backgroundColor: "transparent",
+    height: 52,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   /* ----------------------------- Separators ----------------------------- */
   divider: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    marginVertical: SPACING.md,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    marginVertical: SPACING.lg,
   },
 
   spacerSm: { height: SPACING.sm },
   spacerMd: { height: SPACING.md },
   spacerLg: { height: SPACING.lg },
+  spacerXl: { height: SPACING.xl },
 
   /* ----------------------------- Headers ----------------------------- */
   headerContainer: {
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.md,
+    paddingHorizontal: SPACING.screen,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.lg,
+    alignItems: "center",
   },
 
   headerTitle: {
     ...TYPOGRAPHY.h1,
     color: COLORS.softCream,
-    letterSpacing: 1,
+    textAlign: "center",
   },
 
   headerSubtitle: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.blushRose,
-    marginTop: 4,
+    color: COLORS.mulberry,
+    marginTop: 8,
+    textAlign: "center",
   },
 
   /* ----------------------------- Pills / Tags ----------------------------- */
   tag: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.blushRose + "20",
+    backgroundColor: COLORS.wine + "15",
   },
 
   tagText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.blushRose,
-    fontWeight: "700",
+    color: COLORS.mulberry,
+    fontWeight: "600",
   },
 });
 

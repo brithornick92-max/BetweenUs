@@ -1,45 +1,117 @@
+# ============================
 # Dependencies
+# ============================
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
+# ============================
 # Expo
+# ============================
 .expo/
 dist/
 web-build/
+.expo-shared/
 
-# Native
+# ============================
+# Metro
+# ============================
+.metro-health-check*
+
+# ============================
+# Native / Mobile
+# ============================
 *.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.keystore
 
-# Metro
-.metro-health-check*
-
-# Debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
+# ============================
+# iOS / macOS
+# ============================
 .DS_Store
-*.pem
+*.xcuserstate
+*.xcuserdata
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
 
-# local env files
-.env
-.env*.local
+# ============================
+# Android
+# ============================
+*.apk
+*.aab
+*.iml
+.gradle/
+local.properties
 
-# env
+# ============================
+# Environment variables (CRITICAL)
+# ============================
 .env
 .env.*
+.env*.local
 
-# typescript
+# ============================
+# Logs
+# ============================
+logs/
+*.log
+
+# ============================
+# Testing / Coverage
+# ============================
+coverage/
+.nyc_output/
+
+# ============================
+# Build outputs
+# ============================
+build/
+output/
+
+# ============================
+# Temporary / Cache
+# ============================
+.cache/
+.tmp/
+.temp/
+
+# ============================
+# IDE / Editors
+# ============================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ============================
+# TypeScript
+# ============================
 *.tsbuildinfo
 
-# native folders (CNG / prebuild)
+# ============================
+# Prebuild / CNG native folders
+# (Ignore ONLY if staying managed)
+# ============================
 ios/
 android/
+
+# ============================
+# Python scripts / artifacts
+# ============================
+__pycache__/
+*.pyc
+
+# ============================
+# Misc
+# ============================
+*.pem
+
+.env.local

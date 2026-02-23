@@ -3,7 +3,7 @@ import React, { createContext, useContext, useReducer, useEffect, useMemo, useRe
 import * as Crypto from 'expo-crypto';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 import { useEntitlements } from './EntitlementsContext';
-import RealtimeSyncService from '../services/RealtimeSyncService';
+import { NicknameEngine } from '../services/PolishEngine';
 
 const initialState = {
   userId: null,
@@ -113,7 +113,7 @@ export function AppProvider({ children }) {
     let active = true;
 
     const init = async () => {
-      let userId = await storage.get(STORAGE_KEYS.USER_ID);
+      let userId = await storage.get(STORAGE_KEYS.USER_ID, null);
       if (!userId) {
         userId = Crypto.randomUUID();
         await storage.set(STORAGE_KEYS.USER_ID, userId);
@@ -127,14 +127,14 @@ export function AppProvider({ children }) {
         coupleId,
         appLockEnabled,
         lastPartnerActivity
-      ] = await Promise.all([
-        storage.get(STORAGE_KEYS.ONBOARDING_COMPLETED),
-        storage.get(STORAGE_KEYS.USER_PROFILE),
-        storage.get(STORAGE_KEYS.PARTNER_LABEL),
-        storage.get(STORAGE_KEYS.COUPLE_ID),
-        storage.get(STORAGE_KEYS.APP_LOCK_ENABLED),
-        storage.get(STORAGE_KEYS.LAST_PARTNER_ACTIVITY),
-      ]);
+        ] = await Promise.all([
+          storage.get(STORAGE_KEYS.ONBOARDING_COMPLETED, false),
+          storage.get(STORAGE_KEYS.USER_PROFILE, {}),
+          storage.get(STORAGE_KEYS.PARTNER_LABEL, null),
+          storage.get(STORAGE_KEYS.COUPLE_ID, null),
+          storage.get(STORAGE_KEYS.APP_LOCK_ENABLED, false),
+          storage.get(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, null),
+        ]);
 
       // QR pairing does not use invite codes, so coupleId alone marks linkage.
       const now = Date.now();
@@ -161,6 +161,26 @@ export function AppProvider({ children }) {
         } 
       });
       
+      // ── Sync partnerLabel ↔ NicknameEngine on boot ──
+      // If one system has a name and the other doesn't, propagate.
+      try {
+        const nicknameConfig = await NicknameEngine.getConfig();
+        const effectiveLabel = partnerLabel || 'Partner';
+        const hasNicknamePartner = !!nicknameConfig.partnerNickname?.trim();
+        const hasContextLabel = effectiveLabel !== 'Partner';
+
+        if (hasNicknamePartner && !hasContextLabel) {
+          // NicknameEngine has a name → push to AppContext storage
+          await storage.set(STORAGE_KEYS.PARTNER_LABEL, nicknameConfig.partnerNickname.trim());
+          dispatch({ type: ACTIONS.SET_PARTNER_LABEL, payload: nicknameConfig.partnerNickname.trim() });
+        } else if (hasContextLabel && !hasNicknamePartner) {
+          // AppContext has a name → seed NicknameEngine
+          await NicknameEngine.setConfig({ partnerNickname: effectiveLabel });
+        }
+      } catch (e) {
+        // Non-critical — swallow
+      }
+
       // Setup vibe sync listeners
       const { vibeSyncService } = await import('../utils/vibeSync');
 
@@ -189,7 +209,7 @@ export function AppProvider({ children }) {
             break;
           case 'concurrent_vibes':
             // Handle concurrent vibe updates gracefully
-            console.log('Concurrent vibe updates detected:', data);
+            if (__DEV__) console.log('Concurrent vibe updates detected:', data);
             break;
           case 'concurrent_resolved':
             dispatch({ type: ACTIONS.SET_PARTNER_VIBE, payload: { vibe: data.vibe } });
@@ -216,55 +236,6 @@ export function AppProvider({ children }) {
     dispatch({ type: ACTIONS.REFRESH_PREMIUM, payload: { isPremium, isCouplePremium } });
   }, [isPremium]);
 
-  // Firebase Real-time Sync
-  useEffect(() => {
-    if (state.isLinked && state.coupleId && state.userId) {
-      console.log('Setting up local real-time sync for couple:', state.coupleId);
-      
-      // Subscribe to partner activity
-      const unsubscribe = RealtimeSyncService.subscribeToPartnerActivity(
-        state.coupleId,
-        state.userId,
-        (partnerData) => {
-          if (partnerData.error) {
-            console.error('Partner activity sync error:', partnerData.error);
-            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'offline' } });
-            return;
-          }
-          
-          // Update partner vibe if changed (use ref to compare without dep)
-          if (partnerData.currentVibe && partnerData.currentVibe !== stateRef.current.partnerVibe) {
-            dispatch({ 
-              type: ACTIONS.SET_PARTNER_VIBE, 
-              payload: { vibe: partnerData.currentVibe } 
-            });
-          }
-          
-          // Update partner activity timestamp
-          if (partnerData.lastActivity) {
-            const timestamp = partnerData.lastActivity.toMillis ? 
-              partnerData.lastActivity.toMillis() : 
-              partnerData.lastActivity;
-            
-            dispatch({ 
-              type: ACTIONS.UPDATE_PARTNER_ACTIVITY, 
-              payload: timestamp 
-            });
-            storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, timestamp);
-          }
-          
-          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'synced' } });
-        }
-      );
-      
-      // Cleanup on unmount or when couple changes
-      return () => {
-        console.log('Cleaning up local real-time sync');
-        unsubscribe();
-      };
-    }
-  }, [state.isLinked, state.coupleId, state.userId]);
-
   const actions = useMemo(() => ({
     unlock: () => dispatch({ type: ACTIONS.UNLOCK }),
     refreshPremium: async () => {
@@ -279,30 +250,20 @@ export function AppProvider({ children }) {
     // Premium Value Loop Actions
     setVibe: async (vibe) => {
       dispatch({ type: ACTIONS.SET_VIBE, payload: { vibe } });
-      
+
       const s = stateRef.current;
-      // Try local real-time sync first
-      if (s.isLinked && s.coupleId) {
-        try {
-          await RealtimeSyncService.updateVibe(s.coupleId, s.userId, vibe);
-          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'synced' } });
-          return;
-        } catch (error) {
-          console.error('Local vibe sync failed, falling back to local sync:', error);
-        }
-      }
-      
-      // Fallback to local vibe sync service
+
+      // ── Primary path: persist via DataLayer → SQLite → Supabase sync ──
+      // DataLayer.saveVibe writes to local SQLite with sync_status='pending'.
+      // SyncEngine.push() then encrypts and upserts to Supabase couple_data,
+      // which fires a postgres_changes event the partner's SyncEngine picks up.
       try {
-        const { vibeSyncService } = await import('../utils/vibeSync');
-        const result = await vibeSyncService.sendVibeToPartner(vibe, s.userId);
-        if (result.success) {
-          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'synced' } });
-        } else if (result.queued) {
-          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'syncing' } });
-        }
-      } catch (error) {
-        console.error('Failed to sync vibe:', error);
+        const { DataLayer } = await import('../services/localfirst');
+        const vibeValue = typeof vibe === 'object' ? JSON.stringify(vibe) : vibe;
+        await DataLayer.saveVibe({ vibe: vibeValue, note: null });
+        dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'synced' } });
+      } catch (err) {
+        console.warn('[setVibe] DataLayer.saveVibe failed:', err.message);
         dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'offline' } });
       }
     },

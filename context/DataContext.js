@@ -26,6 +26,7 @@ import React, {
 } from 'react';
 import { AppState } from 'react-native';
 import { DataLayer, SyncEngine, Database } from '../services/localfirst';
+import { MomentSignalSender } from '../services/ConnectionEngine';
 import { useAuth } from './AuthContext';
 import { useEntitlements } from './EntitlementsContext';
 import { useAppContext as useApp } from './AppContext';
@@ -35,10 +36,12 @@ const DataContext = createContext(null);
 export function DataProvider({ children }) {
   const { user } = useAuth();
   const { isPremiumEffective: isPremium } = useEntitlements();
-  const { state: appState } = useApp();
+  const { state: appState, actions: appActions } = useApp();
 
   const userId = user?.id || user?.uid || appState?.userId;
   const coupleId = appState?.coupleId;
+  const appActionsRef = useRef(appActions);
+  appActionsRef.current = appActions;
 
   const [syncStatus, setSyncStatus] = useState({
     syncing: false,
@@ -69,12 +72,15 @@ export function DataProvider({ children }) {
           isPremium: !!isPremium,
         });
 
+        // Configure MomentSignalSender with user context
+        MomentSignalSender.configure({ userId, coupleId: coupleId || null });
+
         if (cancelled) return;
         initializedRef.current = true;
         setIsReady(true);
 
         // Listen to sync events
-        unsubSyncEventRef.current = SyncEngine.onSyncEvent((event, data) => {
+        unsubSyncEventRef.current = SyncEngine.onSyncEvent(async (event, data) => {
           if (event === 'sync:start') {
             setSyncStatus(s => ({ ...s, syncing: true }));
           } else if (event === 'sync:complete') {
@@ -91,6 +97,18 @@ export function DataProvider({ children }) {
               syncing: false,
               lastError: data?.error || 'Sync failed',
             }));
+          } else if (event === 'sync:realtime' && data?.table === 'vibes') {
+            // Partner sent a new vibe — fetch it and push to AppContext
+            try {
+              const { Database } = await import('../services/localfirst');
+              const partnerVibe = await Database.getPartnerLatestVibe(userId, coupleId);
+              if (partnerVibe?.vibe) {
+                const parsed = (() => { try { return JSON.parse(partnerVibe.vibe); } catch { return partnerVibe.vibe; } })();
+                appActionsRef.current?.setPartnerVibe(parsed);
+              }
+            } catch (err) {
+              console.warn('[DataContext] Failed to fetch partner vibe:', err.message);
+            }
           }
         });
 
@@ -129,6 +147,7 @@ export function DataProvider({ children }) {
       coupleId: coupleId || null,
       isPremium: !!isPremium,
     });
+    MomentSignalSender.configure({ userId, coupleId: coupleId || null });
   }, [userId, coupleId, isPremium]);
 
   // ─── Sync on app foreground ─────────────────────────────────

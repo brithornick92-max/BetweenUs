@@ -4,9 +4,9 @@ import StorageRouter from './storage/StorageRouter';
 class PremiumGatekeeper {
   constructor() {
     this.DAILY_LIMITS = {
-      FREE_PROMPTS: 1,
-      FREE_DATES: 1,
-      FREE_HEAT_LEVELS: [1, 2, 3], // Free users only get levels 1-3
+      FREE_PROMPTS: 0, // Free users get 3 fixed read-only preview prompts only
+      FREE_DATES: 0,   // Date browsing is preview-only for free users
+      FREE_HEAT_LEVELS: [1, 2, 3], // Free preview prompts cover levels 1-3
       PREMIUM_HEAT_LEVELS: [1, 2, 3, 4, 5] // Premium gets all levels
     };
   }
@@ -44,7 +44,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: `Free users get ${this.DAILY_LIMITS.FREE_PROMPTS} prompt per day. Upgrade to premium for unlimited access.`
+          message: 'Free users can preview 3 read-only prompts. Upgrade to premium for unlimited prompts and responses.'
         };
       }
       
@@ -81,7 +81,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: `Free users get ${this.DAILY_LIMITS.FREE_DATES} date idea per day. Upgrade to premium for unlimited access.`
+          message: 'Date ideas require premium. Upgrade for the full date night catalog.'
         };
       }
       
@@ -195,52 +195,6 @@ class PremiumGatekeeper {
     } catch (error) {
       throw new Error(`Failed to get usage status: ${error.message}`);
     }
-  }
-
-  /**
-   * @deprecated Use RevenueCatService.getOfferings() for real prices.
-   * These hardcoded fallback prices will drift from App Store pricing.
-   */
-  getPricingInfo() {
-    console.warn('[PremiumGatekeeper] getPricingInfo() is deprecated. Use RevenueCatService.getOfferings() for live pricing.');
-    return {
-      monthly: {
-        price: 7.99,
-        currency: 'USD',
-        period: 'month',
-        description: 'Per couple, per month'
-      },
-      yearly: {
-        price: 49.00,
-        currency: 'USD',
-        period: 'year',
-        description: 'Per couple, per year (save 49%)',
-        savings: '49%'
-      },
-      lifetime: {
-        price: 69.00,
-        currency: 'USD',
-        period: 'lifetime',
-        description: 'Per couple, one-time payment',
-        bestValue: true
-      }
-    };
-  }
-
-  // Get premium benefits list
-  /** @deprecated Use FEATURE_META from utils/featureFlags.js instead. */
-  getPremiumBenefits() {
-    console.warn('[PremiumGatekeeper] getPremiumBenefits() is deprecated. Use FEATURE_META from utils/featureFlags.js.');
-    return [
-      'Unlimited prompts and date ideas',
-      'Access to all heat levels (including 4 & 5)',
-      'Dark mode theme',
-      'Advanced personalization',
-      'Partner sync and notifications',
-      'Export your memories',
-      'Priority customer support',
-      'No ads ever'
-    ];
   }
 }
 

@@ -70,7 +70,7 @@ All will initially forward to: brittanyapps@outlook.com
 ## Support Hours
 
 **Email Support:** 24/7 (responses within 24-48 hours)  
-**Timezone:** [Your timezone]
+**Timezone:** US Eastern (ET)
 
 ---
 
@@ -84,9 +84,9 @@ For urgent safety concerns:
 
 ## App Store Support
 
-**Apple App Store:** [Link when published]  
-**Google Play Store:** [Link when published]
+**Apple App Store:** Available on the App Store (search "Between Us")
+**Google Play Store:** Coming soon
 
 ---
 
-**Last Updated:** February 3, 2026
+**Last Updated:** February 16, 2026

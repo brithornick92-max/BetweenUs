@@ -36,7 +36,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
   const loadSettings = async () => {
     try {
-      const settings = await storage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS);
+      const settings = await storage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS, {});
       if (settings) {
         setDailyPromptReminder(settings.dailyPromptReminder ?? true);
         setPartnerActivity(settings.partnerActivity ?? true);
@@ -222,7 +222,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
             onPress={handleSave}
             disabled={isSaving}
           >
-            <Text style={styles.saveButtonText}>
+            <Text style={[styles.saveButtonText, { color: '#FFFFFF' }]}> 
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Text>
           </TouchableOpacity>

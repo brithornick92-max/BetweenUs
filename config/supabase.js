@@ -36,6 +36,10 @@ export const TABLES = {
   COUPLES: "couples",
   COUPLE_MEMBERS: "couple_members",
   COUPLE_DATA: "couple_data",
+  CALENDAR_EVENTS: "calendar_events",
+  MOMENTS: "moments",
+  PARTNER_LINK_CODES: "partner_link_codes",
+  USER_ENTITLEMENTS: "user_entitlements",
   USAGE_EVENTS: "usage_events",
 };
 

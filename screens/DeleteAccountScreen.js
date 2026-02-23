@@ -205,13 +205,13 @@ const DeleteAccountScreen = ({ navigation }) => {
             disabled={isDeleting || confirmText.toLowerCase() !== 'delete'}
           >
             {isDeleting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="trash" size={20} color="#fff" />
-                <Text style={styles.deleteButtonText}>Delete My Account Forever</Text>
-              </>
-            )}
+                <ActivityIndicator color={colors.surface} />
+              ) : (
+                <>
+                  <Ionicons name="trash" size={20} color={colors.text} />
+                  <Text style={[styles.deleteButtonText, { color: colors.text }]}>Delete My Account Forever</Text>
+                </>
+              )}
           </TouchableOpacity>
 
           {/* Cancel Button */}
@@ -360,7 +360,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
-    fontStyle: 'italic',
   },
 });
 

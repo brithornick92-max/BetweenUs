@@ -1,6 +1,4 @@
-// File: screens/AuthScreen.js
-
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useRef, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,358 +9,402 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { useAuth } from '../context/AuthContext';
-import { COLORS } from '../utils/theme';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
+import { BORDER_RADIUS } from '../utils/theme';
 
 export default function AuthScreen() {
-  const { signIn, signUp, loading } = useAuth();
+  const auth = useAuth();
+  const signIn = auth?.signIn;
+  const signUp = auth?.signUp;
+  const loading = !!auth?.busy;
+  const { colors, isDark } = useTheme();
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [focused, setFocused] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmRef = useRef(null);
 
-  const focusStyle = useMemo(
-    () => (key) =>
-      focused === key
-        ? {
-            borderColor: '#D41D6D',
-            shadowColor: '#D41D6D',
-            shadowOpacity: 0.35,
-            shadowRadius: 8,
-            shadowOffset: { width: 0, height: 4 },
-            elevation: 6,
-          }
-        : {},
-    [focused]
-  );
+  // Canonical luxury palette
+  const C = useMemo(() => ({
+    bg: colors.background,
+    card: colors.surface,
+    accent: colors.primary,
+    accentHover: colors.primary,
+    accentMuted: colors.primary + "CC",
+    cream: colors.text,
+    creamSoft: colors.text + "CC",
+    creamFaint: colors.textMuted,
+    inputBg: colors.surface,
+    inputBorder: colors.border,
+    inputBorderFocus: colors.primary,
+    sectionLabel: colors.textMuted,
+  }), [colors]);
 
-  const handleAuth = async () => {
+  const styles = useMemo(() => createStyles(C, colors), [C, colors]);
+
+  const handleAuth = useCallback(async () => {
     try {
-      if (!email.trim() || !password.trim()) {
-        Alert.alert('Error', 'Please fill in all fields');
+      if (!signIn || !signUp) {
+        Alert.alert("Auth not ready", "Please wait a moment and try again.");
         return;
       }
-
+      if (!email.trim() || !password.trim()) {
+        Alert.alert("Missing fields", "Please enter your email and password.");
+        return;
+      }
       if (isSignUp) {
         if (!displayName.trim()) {
-          Alert.alert('Error', 'Please enter your name');
+          Alert.alert("Missing name", "Please enter your name.");
           return;
         }
         if (password !== confirmPassword) {
-          Alert.alert('Error', 'Passwords do not match');
+          Alert.alert("Mismatch", "Passwords do not match.");
           return;
         }
         if (password.length < 6) {
-          Alert.alert('Error', 'Password must be at least 6 characters');
+          Alert.alert("Too short", "Password must be at least 6 characters.");
           return;
         }
-
         await signUp(email.trim(), password, displayName.trim());
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        Alert.alert('Success', 'Account created successfully!');
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        Alert.alert("Welcome", "Your account has been created.");
       } else {
         await signIn(email.trim(), password);
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       }
     } catch (error) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      Alert.alert('Error', error?.message ?? 'Something went wrong');
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      Alert.alert("Error", error?.message ?? "Something went wrong.");
     }
-  };
+  }, [signIn, signUp, email, password, displayName, confirmPassword, isSignUp]);
 
-  const toggleMode = async () => {
-    await Haptics.selectionAsync();
+  const toggleMode = useCallback(() => {
+    Haptics.selectionAsync().catch(() => {});
     setIsSignUp((v) => !v);
-    setFocused(null);
-    setEmail('');
-    setPassword('');
-    setDisplayName('');
-    setConfirmPassword('');
-  };
+    setEmail("");
+    setPassword("");
+    setDisplayName("");
+    setConfirmPassword("");
+  }, []);
 
   return (
-    <LinearGradient colors={['#2D0B22', '#2D0B22']} style={styles.container} locations={[0, 1]}>
-      <KeyboardAvoidingView
-        style={styles.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          // ✅ THIS is the key: don’t let taps get swallowed / keyboard close
-          keyboardShouldPersistTaps="always"
-          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-          showsVerticalScrollIndicator={false}
+    <View
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+        <KeyboardAvoidingView
+          style={styles.kav}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          <View style={styles.topSpacer} />
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            bounces={false}
+          >
+            {/* Header */}
+            <View style={styles.header}>
+              <View style={styles.heartGlow}>
+                <MaterialCommunityIcons name="heart" size={40} color={C.accent} />
+              </View>
+              <Text style={styles.title}>Between Us</Text>
+              <View style={styles.divider} />
+              <Text style={styles.subtitle}>
+                {isSignUp ? "Where closeness deepens" : "Welcome back, love"}
+              </Text>
+            </View>
 
-          {/* Header */}
-          <View style={styles.header}>
-            <MaterialCommunityIcons name="heart" size={48} color="#9B6B7B" style={styles.heartIcon} />
-            <Text style={styles.title}>Between Us</Text>
-            <Text style={styles.subtitle}>A PRIVATE SANCTUARY</Text>
-          </View>
-
-          {/* Form */}
-          <View style={styles.form}>
-            {isSignUp && (
-              <View style={[styles.inputContainer, focusStyle('displayName')]}>
-                <MaterialCommunityIcons name="account" size={20} color="#9B6B7B" style={styles.inputIcon} />
-                <View style={styles.inputFieldColumn}>
-                  <Text style={styles.inputLabel}>YOUR NAME</Text>
+            {/* Form */}
+            <View style={styles.form}>
+              {isSignUp && (
+                <View style={styles.inputContainer}>
+                  <MaterialCommunityIcons
+                    name="account-outline"
+                    size={20}
+                    color={C.creamFaint}
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Your name"
-                    placeholderTextColor="rgba(255,255,255,0.2)"
+                    placeholderTextColor={C.creamFaint}
                     value={displayName}
                     onChangeText={setDisplayName}
                     autoCapitalize="words"
                     returnKeyType="next"
-                    textContentType="name"
-                    autoComplete="name"
-                    onFocus={() => setFocused('displayName')}
-                    onBlur={() => setFocused(null)}
+                    onSubmitEditing={() => emailRef.current?.focus()}
+                    blurOnSubmit={false}
                   />
                 </View>
-              </View>
-            )}
+              )}
 
-            <View style={[styles.inputContainer, focusStyle('email')]}>
-              <MaterialCommunityIcons name="email" size={20} color="#9B6B7B" style={styles.inputIcon} />
-              <View style={styles.inputFieldColumn}>
-                <Text style={styles.inputLabel}>EMAIL</Text>
+              <View style={styles.inputContainer}>
+                <MaterialCommunityIcons
+                  name="email-outline"
+                  size={20}
+                  color={C.creamFaint}
+                  style={styles.inputIcon}
+                />
                 <TextInput
+                  ref={emailRef}
                   style={styles.input}
-                  placeholder="name@example.com"
-                  placeholderTextColor="rgba(255,255,255,0.2)"
+                  placeholder="Email address"
+                  placeholderTextColor={C.creamFaint}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  returnKeyType="next"
-                  // ✅ do NOT use oneTimeCode
                   textContentType="emailAddress"
                   autoComplete="email"
-                  onFocus={() => setFocused('email')}
-                  onBlur={() => setFocused(null)}
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  blurOnSubmit={false}
                 />
               </View>
-            </View>
 
-            <View style={[styles.inputContainer, focusStyle('password')]}>
-              <MaterialCommunityIcons name="lock" size={20} color="#9B6B7B" style={styles.inputIcon} />
-              <View style={styles.inputFieldColumn}>
-                <Text style={styles.inputLabel}>PASSWORD</Text>
+              <View style={styles.inputContainer}>
+                <MaterialCommunityIcons
+                  name="lock-outline"
+                  size={20}
+                  color={C.creamFaint}
+                  style={styles.inputIcon}
+                />
                 <TextInput
+                  ref={passwordRef}
                   style={styles.input}
-                  placeholder="••••••••"
-                  placeholderTextColor="rgba(255,255,255,0.2)"
+                  placeholder="Password"
+                  placeholderTextColor={C.creamFaint}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
-                  returnKeyType={isSignUp ? 'next' : 'done'}
-                  onSubmitEditing={isSignUp ? undefined : handleAuth}
                   textContentType="password"
-                  autoComplete={Platform.OS === 'ios' ? 'password' : 'off'}
-                  onFocus={() => setFocused('password')}
-                  onBlur={() => setFocused(null)}
+                  autoComplete="password"
+                  returnKeyType={isSignUp ? "next" : "done"}
+                  onSubmitEditing={isSignUp ? () => confirmRef.current?.focus() : handleAuth}
+                  blurOnSubmit={!isSignUp}
                 />
               </View>
-            </View>
 
-            {isSignUp && (
-              <View style={[styles.inputContainer, focusStyle('confirmPassword')]}>
-                <MaterialCommunityIcons name="lock-check" size={20} color="#9B6B7B" style={styles.inputIcon} />
-                <View style={styles.inputFieldColumn}>
-                  <Text style={styles.inputLabel}>CONFIRM PASSWORD</Text>
+              {isSignUp && (
+                <View style={styles.inputContainer}>
+                  <MaterialCommunityIcons
+                    name="lock-check-outline"
+                    size={20}
+                    color={C.creamFaint}
+                    style={styles.inputIcon}
+                  />
                   <TextInput
+                    ref={confirmRef}
                     style={styles.input}
-                    placeholder="••••••••"
-                    placeholderTextColor="rgba(255,255,255,0.2)"
+                    placeholder="Confirm password"
+                    placeholderTextColor={C.creamFaint}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     secureTextEntry
+                    textContentType="oneTimeCode"
+                    autoComplete="off"
                     returnKeyType="done"
                     onSubmitEditing={handleAuth}
-                    textContentType="password"
-                    autoComplete={Platform.OS === 'ios' ? 'password' : 'off'}
-                    onFocus={() => setFocused('confirmPassword')}
-                    onBlur={() => setFocused(null)}
                   />
                 </View>
-              </View>
-            )}
+              )}
 
-            <View style={styles.buttonShadow}>
-              <LinearGradient
-                colors={['#E8E8E8', '#A9A9A9', '#C0C0C0']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.authButtonGradient}
+              {/* CTA Button */}
+              <TouchableOpacity
+                style={styles.authButton}
+                onPress={handleAuth}
+                disabled={loading}
+                activeOpacity={0.85}
               >
-                <TouchableOpacity
-                  style={styles.authButtonTouchable}
-                  onPress={handleAuth}
-                  disabled={loading}
-                  activeOpacity={0.9}
+                <View
+                  style={styles.authButtonGradient}
                 >
                   <Text style={styles.authButtonText}>
-                    {loading ? 'Please wait…' : isSignUp ? 'Create Account' : 'Sign In'}
+                    {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
                   </Text>
-                </TouchableOpacity>
-              </LinearGradient>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.toggleButton}
+                onPress={toggleMode}
+                disabled={loading}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.toggleText}>
+                  {isSignUp
+                    ? "Already have an account? Sign in"
+                    : "Don't have an account? Sign up"}
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.toggleButton} onPress={toggleMode} disabled={loading}>
-              <Text style={styles.toggleText}>
-                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+            {/* Security badge */}
+            <View style={styles.securityBadge}>
+              <MaterialCommunityIcons name="shield-check" size={14} color={C.sectionLabel} />
+              <Text style={styles.securityText}>
+                Your intimate responses are encrypted and private
               </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.securityBadge}>
-            <MaterialCommunityIcons name="shield-check" size={16} color={COLORS?.mutedGold ?? '#C6A65B'} />
-            <Text style={styles.securityText}>Your intimate responses are encrypted and private</Text>
-          </View>
-
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </LinearGradient>
-  );
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+        </SafeAreaView>
+      </View>
+    );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const createStyles = (C, colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  safeArea: { flex: 1 },
   kav: { flex: 1 },
 
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 30,
-    alignItems: 'center',
+    justifyContent: "center",
+    paddingHorizontal: 28,
+    paddingVertical: 32,
   },
 
-  topSpacer: { height: 44 },
-  bottomSpacer: { height: 36 },
+  header: {
+    alignItems: "center",
+    marginBottom: 36,
+  },
 
-  header: { alignItems: 'center', marginBottom: 18 },
-  heartIcon: { marginBottom: 18 },
+  heartGlow: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+
   title: {
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#F5F5F5',
-    letterSpacing: -1,
-    marginTop: 10,
+    fontFamily: Platform.select({
+      ios: "DMSerifDisplay-Regular",
+      android: "DMSerifDisplay_400Regular",
+    }),
+    fontSize: 38,
+    color: C.cream,
+    letterSpacing: -0.5,
   },
+
+  divider: {
+    width: 40,
+    height: 1.5,
+    backgroundColor: C.accent,
+    marginVertical: 14,
+    borderRadius: 1,
+    opacity: 0.6,
+  },
+
   subtitle: {
-    fontFamily: Platform.OS === 'ios' ? 'Inter' : 'sans-serif',
-    fontSize: 12,
-    color: 'rgba(192, 192, 192, 0.7)',
-    marginTop: 10,
-    marginBottom: 18,
-    textAlign: 'center',
-    fontWeight: '600',
-    letterSpacing: 4,
-    textTransform: 'uppercase',
+    fontSize: 15,
+    color: C.creamSoft,
+    textAlign: "center",
+    fontWeight: "400",
+    letterSpacing: 0.3,
   },
 
-  form: { width: '100%', marginBottom: 14 },
-
-  inputFieldColumn: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    minWidth: 0,
-  },
-  inputLabel: {
-    fontFamily: Platform.OS === 'ios' ? 'Inter' : 'sans-serif',
-    fontSize: 10,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.5)',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginBottom: 4,
+  form: {
+    width: "100%",
   },
 
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 16,
-    marginBottom: 16,
-    paddingHorizontal: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: C.inputBg,
+    borderRadius: 14,
+    marginBottom: 14,
+    paddingHorizontal: 16,
+    height: 56,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    height: 62,
+    borderColor: C.inputBorder,
   },
-  inputIcon: { marginRight: 12 },
+
+  inputIcon: {
+    marginRight: 12,
+  },
+
   input: {
     flex: 1,
-    color: '#FFF',
+    color: C.cream,
     fontSize: 16,
-    backgroundColor: 'transparent',
-    height: 40,
     paddingVertical: 0,
   },
 
-  buttonShadow: {
-    shadowColor: '#C0C0C0',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    elevation: 5,
-    marginTop: 10,
-  },
-  authButtonGradient: {
-    height: 56,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  authButtonTouchable: {
-    height: 56,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  authButtonText: {
-    color: '#1a0614',
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+  authButton: {
+    marginTop: 20,
+    borderRadius: 14,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: C.accent,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0,
+        shadowRadius: 12,
+      },
+      android: { elevation: 8 },
+    }),
   },
 
-  toggleButton: { marginTop: 18, alignItems: 'center' },
+  authButtonGradient: {
+    height: 52,
+    borderRadius: BORDER_RADIUS.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: C.accent,
+  },
+
+  authButtonText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+  },
+
+  toggleButton: {
+    marginTop: 20,
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+
   toggleText: {
-    color: COLORS?.roseGold ?? '#D4AF37',
+    color: C.accent,
+    paddingVertical: 8,
+  },
+
+  toggleText: {
+    color: C.accentHover,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "500",
   },
 
   securityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 18,
-    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 32,
+    opacity: 0.7,
   },
+
   securityText: {
-    color: 'rgba(255,255,255,0.4)',
+    color: C.creamSoft,
     fontSize: 11,
-    textAlign: 'center',
     marginLeft: 6,
-    lineHeight: 18,
+    textAlign: "center",
   },
 });

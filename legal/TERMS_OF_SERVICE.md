@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last Updated: February 3, 2026**
+**Last Updated: February 16, 2026**
 
 Welcome to Between Us! These Terms of Service ("Terms") govern your use of the Between Us mobile application and related services (collectively, the "Service"). By using Between Us, you agree to these Terms.
 
@@ -16,16 +16,25 @@ By creating an account or using Between Us, you agree to be bound by these Terms
 
 ## 2. Description of Service
 
-Between Us is a relationship app designed to help couples deepen their connection through:
-- Daily conversation prompts
-- Journaling and reflection
-- Shared experiences and memories
-- Relationship milestones
-- Intimate connection tools
+Between Us is a couples app — where closeness deepens. It helps couples deepen their intimacy and connection through:
+- Daily conversation prompts across 5 heat levels
+- Journaling and prompt responses
+- Date night ideas and planning
+- Love notes with optional photo attachments
+- Night rituals and shared routines
+- Relationship memories and milestones
+- Vibe Signals and Moment Signals (real-time mood sharing)
+- Inside Jokes vault (shared nicknames, jokes, and rituals)
+- Reveal Together (simultaneous answer sharing)
+- Energy Matcher and Relationship Climate (personalized content)
+- Year Reflection narratives
+- Soft Boundaries (private content control)
+- Calendar and event scheduling
+- Biometric app lock (Face ID / Touch ID)
 
-**Important:** Between Us is designed for couples who are thriving and want to deepen their connection. It is **not appropriate for couples who are struggling** with serious relationship issues, conflict, trust problems, or considering separation. If you're experiencing relationship difficulties, please seek professional counseling or therapy.
+**Important:** Between Us is designed for couples who already have a loving foundation and want to deepen their intimacy and connection. It is **not appropriate** for couples navigating serious relationship concerns, trust breakdowns, or considering separation. If your relationship needs professional support, please seek qualified counseling or therapy.
 
-The Service is intended for couples in healthy, committed relationships who want to strengthen their bond.
+The Service is intended for couples in healthy, committed relationships who want to grow closer.
 
 ---
 
@@ -71,8 +80,8 @@ You agree not to post content that:
 ## 5. Subscription and Payments
 
 ### 5.1 Free and Premium Features
-- Basic features are available for free (Heat levels 1-2)
-- Premium features require a paid subscription
+- Free users may preview a limited selection of read-only prompts (Heat levels 1-3)
+- All other features (responding, love notes, calendar, partner connection, cloud sync) require a paid subscription
 - Premium subscription is per couple (both partners get access when linked)
 - Current pricing:
   - Monthly: $7.99/month
@@ -158,9 +167,9 @@ You agree to use Between Us only for its intended purpose: strengthening your re
 - Between Us is not a substitute for professional counseling
 - We don't provide medical, therapeutic, or legal advice
 - Prompts are for entertainment and connection purposes
-- **The app is designed for thriving couples, not those struggling with serious relationship issues**
-- If you're experiencing relationship difficulties, conflict, trust issues, or considering separation, please seek professional help
-- Seek a therapist or counselor for relationship problems
+- **The app is designed for couples who already have a loving foundation — it deepens intimacy and connection**
+- If your relationship needs professional support, please seek qualified counseling
+- A licensed therapist or counselor is the right resource for serious relationship concerns
 
 ### 9.3 Content Accuracy
 - Prompts and content are provided "as is"
@@ -210,13 +219,13 @@ We may suspend or terminate your account if you:
 ## 12. Dispute Resolution
 
 ### 12.1 Governing Law
-These Terms are governed by the laws of [Your Jurisdiction], without regard to conflict of law principles.
+These Terms are governed by the laws of the United States, without regard to conflict of law principles.
 
 ### 12.2 Arbitration
 - Disputes will be resolved through binding arbitration
 - You waive the right to a jury trial
 - Class action lawsuits are not permitted
-- Arbitration is conducted under [Arbitration Rules]
+- Arbitration is conducted under the rules of the American Arbitration Association
 
 ### 12.3 Exceptions
 You may bring claims in small claims court if they qualify.
@@ -247,7 +256,7 @@ We're not liable for delays or failures due to circumstances beyond our control.
 If you have questions about these Terms:
 
 **Email:** brittanyapps@outlook.com  
-**Mail:** Between Us Legal Department, [Your Address]  
+**Mail:** brittanyapps@outlook.com  
 **Support:** brittanyapps@outlook.com
 
 ---

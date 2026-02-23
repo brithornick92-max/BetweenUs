@@ -85,26 +85,93 @@ const CoupleKeyService = {
     return encode(kp.publicKey);
   },
 
-  // ─── Key exchange (ECDH + KDF) ─────────────────────────────────
+  // ─── Key exchange (ECDH + HKDF) ─────────────────────────────────
 
   /**
-   * KDF: SHA-512(info ‖ IKM), truncated to 32 bytes.
+   * HMAC-SHA-512 using tweetnacl's nacl.hash (SHA-512).
+   * Implements RFC 2104 HMAC construction.
    *
-   * ⚠️  This is NOT standard HKDF (RFC 5869) because tweetnacl lacks HMAC.
-   * It is a one-pass hash-based KDF that is safe for our threat model
-   * (each X25519 shared secret is unique per couple key-pair).
+   * @param {Uint8Array} key — HMAC key
+   * @param {Uint8Array} message — message to authenticate
+   * @returns {Uint8Array} — 64-byte HMAC-SHA-512 output
+   */
+  _hmacSha512(key, message) {
+    const BLOCK_SIZE = 128; // SHA-512 block size
+    let k = key;
+    // If key is longer than block size, hash it first
+    if (k.length > BLOCK_SIZE) {
+      k = nacl.hash(k);
+    }
+    // Pad key to block size
+    const paddedKey = new Uint8Array(BLOCK_SIZE);
+    paddedKey.set(k);
+
+    // Inner and outer pads
+    const ipad = new Uint8Array(BLOCK_SIZE);
+    const opad = new Uint8Array(BLOCK_SIZE);
+    for (let i = 0; i < BLOCK_SIZE; i++) {
+      ipad[i] = paddedKey[i] ^ 0x36;
+      opad[i] = paddedKey[i] ^ 0x5c;
+    }
+
+    // inner = SHA-512(ipad || message)
+    const innerInput = new Uint8Array(BLOCK_SIZE + message.length);
+    innerInput.set(ipad, 0);
+    innerInput.set(message, BLOCK_SIZE);
+    const innerHash = nacl.hash(innerInput);
+
+    // outer = SHA-512(opad || inner)
+    const outerInput = new Uint8Array(BLOCK_SIZE + innerHash.length);
+    outerInput.set(opad, 0);
+    outerInput.set(innerHash, BLOCK_SIZE);
+    return nacl.hash(outerInput);
+  },
+
+  /**
+   * HKDF-SHA-512 (RFC 5869) — Extract-then-Expand.
+   *
+   * Replaces the previous non-standard SHA-512 truncation.
+   * Uses proper HMAC-SHA-512 for both extract and expand phases.
+   *
+   * @param {Uint8Array} ikm — input keying material (X25519 shared secret)
+   * @param {string} info — domain separation / context string
+   * @param {Uint8Array} [salt] — optional salt (defaults to 64 zero bytes per RFC)
+   * @param {number} [length=32] — output key length in bytes
+   * @returns {Uint8Array} — derived key
+   */
+  _hkdf(ikm, info = "betweenus-couple-key-v2", salt = null, length = 32) {
+    // 1. Extract: PRK = HMAC-SHA-512(salt, IKM)
+    const effectiveSalt = salt || new Uint8Array(64); // 64 zero bytes for SHA-512
+    const prk = this._hmacSha512(effectiveSalt, ikm);
+
+    // 2. Expand: OKM = T(1) || T(2) || ... truncated to `length`
+    const infoBytes = naclUtil.decodeUTF8(info);
+    const hashLen = 64; // SHA-512 output
+    const n = Math.ceil(length / hashLen);
+    const okm = new Uint8Array(n * hashLen);
+    let prev = new Uint8Array(0);
+
+    for (let i = 1; i <= n; i++) {
+      const input = new Uint8Array(prev.length + infoBytes.length + 1);
+      input.set(prev, 0);
+      input.set(infoBytes, prev.length);
+      input[input.length - 1] = i;
+      prev = this._hmacSha512(prk, input);
+      okm.set(prev, (i - 1) * hashLen);
+    }
+
+    return okm.slice(0, length);
+  },
+
+  /**
+   * KDF wrapper — delegates to HKDF-SHA-512 (RFC 5869).
    *
    * @param {Uint8Array} ikm — input keying material (X25519 shared secret)
    * @param {string} info — domain separation string
    * @returns {Uint8Array} — 32-byte derived key
    */
-  _kdf(ikm, info = "betweenus-couple-key-v1") {
-    const infoBytes = naclUtil.decodeUTF8(info);
-    const combined = new Uint8Array(ikm.length + infoBytes.length);
-    combined.set(infoBytes, 0);
-    combined.set(ikm, infoBytes.length);
-    const hash = nacl.hash(combined); // 64 bytes (SHA-512)
-    return hash.slice(0, 32);
+  _kdf(ikm, info = "betweenus-couple-key-v2") {
+    return this._hkdf(ikm, info);
   },
 
   /**

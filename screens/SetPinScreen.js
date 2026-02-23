@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,29 +6,55 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import { useTheme } from '../context/ThemeContext';
+import { useEntitlements } from '../context/EntitlementsContext';
 
 const PIN_KEY = 'betweenus_app_lock_pin_v1';
 const PIN_SERVICE = 'betweenus_app_lock';
 
+function sanitizePin(input) {
+  // keep digits only, max 4
+  return (input || '').replace(/[^\d]/g, '').slice(0, 4);
+}
+
 const SetPinScreen = ({ navigation }) => {
-  const { colors } = useTheme();
+  const { colors } = useTheme();  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  // Raw values: don’t aggressively rewrite on every keystroke
+  const [pinRaw, setPinRaw] = useState('');
+  const [confirmPinRaw, setConfirmPinRaw] = useState('');
+
+  // Sanitized values used for validation/saving
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
+
   const [saving, setSaving] = useState(false);
+
+  // Sanitize asynchronously (prevents iOS secureTextEntry/number-pad “flash” issues)
+  useEffect(() => {
+    const next = sanitizePin(pinRaw);
+    if (next !== pin) setPin(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinRaw]);
+
+  useEffect(() => {
+    const next = sanitizePin(confirmPinRaw);
+    if (next !== confirmPin) setConfirmPin(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmPinRaw]);
 
   const handleSave = async () => {
     if (pin.length !== 4 || confirmPin.length !== 4) {
-      Alert.alert('PIN must be 4 digits', 'Please enter a 4‑digit PIN.');
+      Alert.alert('PIN must be 4 digits', 'Please enter a 4-digit PIN.');
       return;
     }
     if (pin !== confirmPin) {
-      Alert.alert('PINs do not match', 'Please re‑enter your PIN.');
+      Alert.alert('PINs do not match', 'Please re-enter your PIN.');
       return;
     }
 
@@ -65,6 +91,34 @@ const SetPinScreen = ({ navigation }) => {
     }
   };
 
+  if (!isPremium) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Set App Lock PIN</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
+          <Ionicons name="lock-closed" size={56} color={colors.primary} style={{ marginBottom: 16 }} />
+          <Text style={{ color: colors.text, fontSize: 20, fontWeight: '600', marginBottom: 8, textAlign: 'center' }}>Premium Feature</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
+            App Lock PIN is a premium security feature. Upgrade to protect your private space with biometric and PIN authentication.
+          </Text>
+          <TouchableOpacity
+            onPress={() => showPaywall('vaultAndBiometric')}
+            style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 }}
+            activeOpacity={0.85}
+          >
+            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>Upgrade to Premium</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -76,28 +130,45 @@ const SetPinScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.content}>
-        <Text style={[styles.label, { color: colors.text }]}>Enter 4‑digit PIN</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Enter 4-digit PIN</Text>
         <TextInput
-          value={pin}
-          onChangeText={(v) => setPin(v.replace(/[^0-9]/g, '').slice(0, 4))}
+          value={pinRaw}
+          onChangeText={setPinRaw}
           keyboardType="number-pad"
           secureTextEntry
           style={[styles.input, { color: colors.text, borderColor: colors.border }]}
           placeholder="••••"
           placeholderTextColor={colors.textSecondary}
           editable={!saving}
+          // Stability / iOS PIN UX
+          blurOnSubmit={false}
+          autoCorrect={false}
+          autoCapitalize="none"
+          // iOS: helps prevent autofill/focus jumps
+          textContentType="oneTimeCode"
+          autoComplete="off"
+          importantForAutofill="no"
+          // This avoids selection weirdness with secure inputs on some iOS versions
+          caretHidden={false}
         />
 
         <Text style={[styles.label, { color: colors.text }]}>Confirm PIN</Text>
         <TextInput
-          value={confirmPin}
-          onChangeText={(v) => setConfirmPin(v.replace(/[^0-9]/g, '').slice(0, 4))}
+          value={confirmPinRaw}
+          onChangeText={setConfirmPinRaw}
           keyboardType="number-pad"
           secureTextEntry
           style={[styles.input, { color: colors.text, borderColor: colors.border }]}
           placeholder="••••"
           placeholderTextColor={colors.textSecondary}
           editable={!saving}
+          blurOnSubmit={false}
+          autoCorrect={false}
+          autoCapitalize="none"
+          textContentType="oneTimeCode"
+          autoComplete="off"
+          importantForAutofill="no"
+          caretHidden={false}
         />
 
         <TouchableOpacity
@@ -164,7 +235,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryButtonText: {
-    color: '#0B0B0B',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   secondaryButton: {

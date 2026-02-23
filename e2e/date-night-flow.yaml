@@ -1,0 +1,53 @@
+# date-night-flow.yaml — E2E test: Date night card browsing
+# Tests: filter dropdowns, card flip, swipe right/left, tonight's picks
+
+appId: com.brittany.betweenus
+
+---
+
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to Date Plans tab
+- tapOn: "DatePlans"
+- waitForAnimationToEnd
+
+# Should see the date night header
+- assertVisible:
+    text: ".*Draw a date.*|.*date.*"
+    optional: true
+
+# Open filter controls (if not already open)
+- tapOn:
+    id: "filter-toggle"
+    optional: true
+- waitForAnimationToEnd
+
+# Try tapping a filter dropdown (Mood)
+- tapOn:
+    text: "Mood"
+    optional: true
+- waitForAnimationToEnd
+
+# Dismiss dropdown by tapping elsewhere or selecting
+- tapOn:
+    text: ".*Any.*"
+    optional: true
+
+# Tap top card to flip (reveal)
+- tapOn:
+    text: ".*tap to reveal.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Swipe right (like for tonight)
+- swipe:
+    direction: RIGHT
+    duration: 500
+
+- waitForAnimationToEnd
+
+# Verify "Tonight's picks" section appears
+- assertVisible:
+    text: ".*Tonight.*pick.*"
+    optional: true

@@ -23,11 +23,11 @@ const CustomerCenter = ({ onDismiss }) => {
 
         // Set up event listener for customer center actions
         removeListener = RevenueCatUI.addCustomerCenterListener((event) => {
-          console.log('Customer Center Event:', event);
+          if (__DEV__) console.log('Customer Center Event:', event);
 
           switch (event.action) {
             case CUSTOMER_CENTER_ACTION.CANCELLED:
-              console.log('User cancelled subscription');
+              if (__DEV__) console.log('User cancelled subscription');
               Alert.alert(
                 'Subscription Cancelled',
                 'Your subscription has been cancelled. You\'ll continue to have access until the end of your billing period.',
@@ -37,7 +37,7 @@ const CustomerCenter = ({ onDismiss }) => {
               break;
 
             case CUSTOMER_CENTER_ACTION.RESTORED:
-              console.log('Purchases restored');
+              if (__DEV__) console.log('Purchases restored');
               Alert.alert(
                 'Purchases Restored',
                 'Your purchases have been restored successfully.',
@@ -47,11 +47,11 @@ const CustomerCenter = ({ onDismiss }) => {
               break;
 
             case CUSTOMER_CENTER_ACTION.REFUND_REQUEST_STARTED:
-              console.log('Refund request started');
+              if (__DEV__) console.log('Refund request started');
               break;
 
             case CUSTOMER_CENTER_ACTION.REFUND_REQUEST_COMPLETED:
-              console.log('Refund request completed');
+              if (__DEV__) console.log('Refund request completed');
               Alert.alert(
                 'Refund Requested',
                 'Your refund request has been submitted. You\'ll receive an email confirmation shortly.',
@@ -61,7 +61,7 @@ const CustomerCenter = ({ onDismiss }) => {
               break;
 
             default:
-              console.log('Unknown customer center action:', event.action);
+              if (__DEV__) console.log('Unknown customer center action:', event.action);
           }
         });
       } catch (error) {

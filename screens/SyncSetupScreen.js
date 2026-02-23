@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,7 +22,7 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
 
 export default function SyncSetupScreen({ navigation }) {
   const { isPremiumEffective: isPremium } = useEntitlements();
-  const { theme } = useTheme();
+  const theme = useTheme();
 
   const [email, setEmail] = useState('');
   const [sessionEmail, setSessionEmail] = useState(null);
@@ -75,10 +77,7 @@ export default function SyncSetupScreen({ navigation }) {
       setLoading(true);
       await SupabaseAuthService.sendMagicLink(email.trim());
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      Alert.alert(
-        'Check your email',
-        'Open the link in your email to finish signing in.'
-      );
+      Alert.alert('Check your email', 'Open the link in your email to finish signing in.');
     } catch (error) {
       if (String(error?.message || '').includes('Supabase is not configured')) {
         setSupabaseAvailable(false);
@@ -160,8 +159,18 @@ export default function SyncSetupScreen({ navigation }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <LinearGradient colors={theme.gradients.secondary} style={StyleSheet.absoluteFill} />
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
+      {/* IMPORTANT: prevent background layer from stealing touches */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={theme.gradients.secondary || theme.gradients.background || [theme.colors.background, theme.colors.background]}
+        style={StyleSheet.absoluteFill}
+      />
+
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity
@@ -180,6 +189,7 @@ export default function SyncSetupScreen({ navigation }) {
           <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
             Sync is optional and only available to premium couples.
           </Text>
+
           {!supabaseAvailable && (
             <Text style={[styles.notice, { color: theme.colors.warning }]}>
               Sync isn’t available in this build.
@@ -195,6 +205,12 @@ export default function SyncSetupScreen({ navigation }) {
             autoCapitalize="none"
             keyboardType="email-address"
             editable={!loading && supabaseAvailable}
+            // Keyboard stability helpers
+            autoCorrect={false}
+            blurOnSubmit={false}
+            returnKeyType="done"
+            textContentType="emailAddress"
+            autoComplete="email"
           />
 
           <TouchableOpacity
@@ -212,7 +228,9 @@ export default function SyncSetupScreen({ navigation }) {
             disabled={loading || !supabaseAvailable}
             activeOpacity={0.9}
           >
-            <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>I clicked the link</Text>
+            <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>
+              I clicked the link
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.statusRow}>
@@ -221,8 +239,7 @@ export default function SyncSetupScreen({ navigation }) {
               size={20}
               color={sessionEmail ? theme.colors.success : theme.colors.textSecondary}
             />
-            <Text style={[styles.statusText, { color: theme.colors.textSecondary }]}
-            >
+            <Text style={[styles.statusText, { color: theme.colors.textSecondary }]}>
               {sessionEmail ? `Signed in as ${sessionEmail}` : 'Not signed in'}
             </Text>
           </View>
@@ -230,35 +247,23 @@ export default function SyncSetupScreen({ navigation }) {
           <View style={styles.divider} />
 
           {syncEnabled ? (
-            <TouchableOpacity
-              style={styles.dangerButton}
-              onPress={handleDisableSync}
-              activeOpacity={0.9}
-            >
+            <TouchableOpacity style={styles.dangerButton} onPress={handleDisableSync} activeOpacity={0.9}>
               <Text style={styles.dangerButtonText}>Disable Sync</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleEnableSync}
-              activeOpacity={0.9}
-            >
+            <TouchableOpacity style={styles.primaryButton} onPress={handleEnableSync} activeOpacity={0.9}>
               <Text style={styles.primaryButtonText}>Enable Sync</Text>
             </TouchableOpacity>
           )}
 
           {sessionEmail && (
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={handleSignOut}
-              activeOpacity={0.9}
-            >
+            <TouchableOpacity style={styles.secondaryButton} onPress={handleSignOut} activeOpacity={0.9}>
               <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>Sign Out</Text>
             </TouchableOpacity>
           )}
         </View>
       </SafeAreaView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -293,7 +298,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#151118',
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING.xl,
   },
@@ -316,7 +321,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   primaryButton: {
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#A89060',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',
@@ -362,7 +367,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   dangerButtonText: {
-    color: '#F7E7CE',
+    color: '#C8A870',
     fontWeight: '700',
   },
   buttonDisabled: {

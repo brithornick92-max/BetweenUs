@@ -79,7 +79,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
           style={[styles.button, { backgroundColor: colors.accent }]}
           onPress={loadDebugInfo}
         >
-          <Text style={styles.buttonText}>Retry</Text>
+          <Text style={[styles.buttonText, { color: colors.text }]}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -114,14 +114,14 @@ export default function RevenueCatDebugScreen({ navigation }) {
           <Text style={[styles.sectionTitle, { color: colors.accent }]}>
             🔑 Active Entitlement Keys
           </Text>
-          {data.activeEntitlementKeys.length > 0 ? (
+          {data.activeEntitlementKeys && data.activeEntitlementKeys.length > 0 ? (
             <>
-              {data.activeEntitlementKeys.map((key, index) => (
-                <Text key={index} style={[styles.code, { color: colors.success }]}>
+              {(data.activeEntitlementKeys || []).map((key, index) => (
+                <Text key={index} style={[styles.code, { color: colors.success }]}> 
                   '{key}'
                 </Text>
               ))}
-              <Text style={[styles.hint, { color: colors.textSecondary, marginTop: 8 }]}>
+              <Text style={[styles.hint, { color: colors.textSecondary, marginTop: 8 }]}> 
                 ⚠️ Update ENTITLEMENT_ID in services/RevenueCatService.js to match one of these
               </Text>
             </>
@@ -137,12 +137,14 @@ export default function RevenueCatDebugScreen({ navigation }) {
           <Text style={[styles.sectionTitle, { color: colors.accent }]}>
             All Entitlement Keys (from Dashboard)
           </Text>
-          {data.allEntitlementKeys.length > 0 ? (
-            data.allEntitlementKeys.map((key, index) => (
-              <Text key={index} style={[styles.code, { color: colors.text }]}>
-                '{key}'
-              </Text>
-            ))
+          {data.allEntitlementKeys && data.allEntitlementKeys.length > 0 ? (
+            <>
+              {(data.allEntitlementKeys || []).map((key, index) => (
+                <Text key={index} style={[styles.code, { color: colors.text }]}> 
+                  '{key}'
+                </Text>
+              ))}
+            </>
           ) : (
             <Text style={[styles.value, { color: colors.textSecondary }]}>
               No entitlements configured in RevenueCat dashboard
@@ -153,13 +155,13 @@ export default function RevenueCatDebugScreen({ navigation }) {
         {/* Offerings */}
         <View style={[styles.section, { backgroundColor: colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: colors.accent }]}>Offerings</Text>
-          {data.offerings?.packages?.length > 0 ? (
+          {data.offerings && data.offerings.packages && data.offerings.packages.length > 0 ? (
             <>
-              <Text style={[styles.value, { color: colors.success }]}>
-                ✅ {data.offerings.packages.length} package(s) available
+              <Text style={[styles.value, { color: colors.success }]}> 
+                ✅ {(data.offerings?.packages || []).length} package(s) available
               </Text>
-              {data.offerings.packages.map((pkg, index) => (
-                <Text key={index} style={[styles.hint, { color: colors.textSecondary }]}>
+              {(data.offerings?.packages || []).map((pkg, index) => (
+                <Text key={index} style={[styles.hint, { color: colors.textSecondary }]}> 
                   • {pkg.identifier}: {pkg.product?.priceString}
                 </Text>
               ))}
@@ -209,7 +211,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
           style={[styles.button, { backgroundColor: colors.accent }]}
           onPress={loadDebugInfo}
         >
-          <Text style={styles.buttonText}>🔄 Refresh</Text>
+          <Text style={[styles.buttonText, { color: colors.text }]}>🔄 Refresh</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

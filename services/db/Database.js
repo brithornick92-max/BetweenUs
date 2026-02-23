@@ -29,7 +29,7 @@ const makeId = (prefix = 'row') => {
 /** Whitelist of tables that sync helpers may reference via string interpolation. */
 const VALID_SYNC_TABLES = new Set([
   'journal_entries', 'prompt_answers', 'memories',
-  'rituals', 'check_ins', 'vibes', 'attachments',
+  'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes',
 ]);
 
 function assertValidTable(tableName) {
@@ -242,7 +242,35 @@ async function migrate(db) {
     await db.execAsync('PRAGMA user_version = 4;');
   }
 
-  // Future migrations: if (user_version < 5) { ... PRAGMA user_version = 5; }
+  // v5: Love notes table (E2EE text + sender + photo attachment)
+  if (user_version < 5) {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS love_notes (
+        id                TEXT PRIMARY KEY,
+        user_id           TEXT NOT NULL,
+        couple_id         TEXT,
+        text_cipher       TEXT,
+        stationery_id     TEXT,
+        sender_name_cipher TEXT,
+        media_ref         TEXT,
+        is_read           INTEGER DEFAULT 0,
+        read_at           TEXT,
+        created_at        TEXT NOT NULL,
+        updated_at        TEXT NOT NULL,
+        deleted_at        TEXT,
+        sync_status       TEXT DEFAULT 'pending',
+        sync_version      INTEGER DEFAULT 0,
+        sync_source       TEXT DEFAULT 'local'
+      );
+      CREATE INDEX IF NOT EXISTS idx_ln_user   ON love_notes(user_id);
+      CREATE INDEX IF NOT EXISTS idx_ln_couple ON love_notes(couple_id);
+      CREATE INDEX IF NOT EXISTS idx_ln_sync   ON love_notes(sync_status);
+      CREATE INDEX IF NOT EXISTS idx_ln_date   ON love_notes(created_at);
+    `);
+    await db.execAsync('PRAGMA user_version = 5;');
+  }
+
+  // Future migrations: if (user_version < 6) { ... PRAGMA user_version = 6; }
 }
 
 // ─── Generic CRUD ───────────────────────────────────────────────────
@@ -333,12 +361,13 @@ const Database = {
     await db.runAsync(
       `INSERT INTO prompt_answers
          (id, user_id, couple_id, prompt_id, date_key, answer_cipher,
-          heat_level, is_revealed, reveal_at, created_at, updated_at,
+          heat_level, heat_level_cipher, is_revealed, reveal_at, created_at, updated_at,
           sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null, entry.prompt_id,
        entry.date_key, entry.answer_cipher ?? null,
-       entry.heat_level ?? 1, entry.is_revealed ? 1 : 0,
+       entry.heat_level ?? 1, entry.heat_level_cipher ?? null,
+       entry.is_revealed ? 1 : 0,
        entry.reveal_at ?? null, entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
@@ -351,7 +380,7 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['answer_cipher', 'partner_answer_cipher', 'is_revealed', 'reveal_at', 'heat_level'].includes(k)) {
+      if (['answer_cipher', 'partner_answer_cipher', 'is_revealed', 'reveal_at', 'heat_level', 'heat_level_cipher'].includes(k)) {
         fields.push(`${k} = ?`);
         params.push(k === 'is_revealed' ? (v ? 1 : 0) : v);
       }
@@ -401,11 +430,11 @@ const Database = {
     await db.runAsync(
       `INSERT INTO memories
          (id, user_id, couple_id, type, body_cipher, media_ref,
-          mood, is_private, created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+          mood, mood_cipher, is_private, created_at, updated_at, sync_status, sync_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null, entry.type ?? 'moment',
        entry.body_cipher ?? null, entry.media_ref ?? null,
-       entry.mood ?? null, entry.is_private ? 1 : 0,
+       entry.mood ?? null, entry.mood_cipher ?? null, entry.is_private ? 1 : 0,
        entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
@@ -418,7 +447,7 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['body_cipher', 'media_ref', 'mood', 'type', 'is_private'].includes(k)) {
+      if (['body_cipher', 'media_ref', 'mood', 'mood_cipher', 'type', 'is_private'].includes(k)) {
         fields.push(`${k} = ?`);
         params.push(k === 'is_private' ? (v ? 1 : 0) : v);
       }
@@ -498,11 +527,11 @@ const Database = {
     const ts = now();
     await db.runAsync(
       `INSERT INTO check_ins
-         (id, user_id, couple_id, body_cipher, mood, date_key,
+         (id, user_id, couple_id, body_cipher, mood, mood_cipher, date_key,
           created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null,
-       entry.body_cipher ?? null, entry.mood ?? null,
+       entry.body_cipher ?? null, entry.mood ?? null, entry.mood_cipher ?? null,
        entry.date_key, entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
@@ -555,6 +584,21 @@ const Database = {
     );
   },
 
+  /**
+   * Get the latest vibe from the partner (any user in the same couple that
+   * is NOT the current user). Used to display partner's vibe in real-time.
+   */
+  async getPartnerLatestVibe(userId, coupleId) {
+    if (!coupleId) return null;
+    const db = await getDb();
+    return db.getFirstAsync(
+      `SELECT * FROM vibes
+       WHERE couple_id = ? AND user_id != ? AND deleted_at IS NULL
+       ORDER BY created_at DESC LIMIT 1`,
+      [coupleId, userId]
+    );
+  },
+
   // ─── Attachments ────────────────────────────────────────────────
 
   async insertAttachment(entry) {
@@ -602,6 +646,78 @@ const Database = {
     );
   },
 
+  // ─── Love Notes ──────────────────────────────────────────────────
+
+  async insertLoveNote(entry) {
+    const db = await getDb();
+    const id = entry.id || makeId('ln');
+    const ts = now();
+    await db.runAsync(
+      `INSERT INTO love_notes
+         (id, user_id, couple_id, text_cipher, stationery_id,
+          sender_name_cipher, media_ref, is_read, read_at,
+          created_at, updated_at, sync_status, sync_version, sync_source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, 'local')`,
+      [id, entry.user_id, entry.couple_id ?? null,
+       entry.text_cipher ?? null, entry.stationery_id ?? null,
+       entry.sender_name_cipher ?? null, entry.media_ref ?? null,
+       entry.is_read ? 1 : 0, entry.read_at ?? null,
+       entry.created_at ?? ts, ts]
+    );
+    return { id, created_at: entry.created_at ?? ts, updated_at: ts };
+  },
+
+  async getLoveNotes(userId, coupleId, { limit = 100, offset = 0 } = {}) {
+    const db = await getDb();
+    return db.getAllAsync(
+      `SELECT * FROM love_notes
+       WHERE couple_id IS ? AND deleted_at IS NULL
+       ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [coupleId, limit, offset]
+    );
+  },
+
+  async getLoveNoteById(id) {
+    const db = await getDb();
+    return db.getFirstAsync(
+      'SELECT * FROM love_notes WHERE id = ? AND deleted_at IS NULL',
+      [id]
+    );
+  },
+
+  async markLoveNoteRead(id) {
+    const db = await getDb();
+    const ts = now();
+    await db.runAsync(
+      `UPDATE love_notes SET is_read = 1, read_at = ?, updated_at = ?,
+       sync_status = 'pending', sync_version = sync_version + 1
+       WHERE id = ? AND deleted_at IS NULL`,
+      [ts, ts, id]
+    );
+    return { id, read_at: ts, updated_at: ts };
+  },
+
+  async softDeleteLoveNote(id) {
+    const db = await getDb();
+    const ts = now();
+    await db.runAsync(
+      `UPDATE love_notes SET deleted_at = ?, updated_at = ?,
+       sync_status = 'pending', sync_version = sync_version + 1
+       WHERE id = ?`,
+      [ts, ts, id]
+    );
+  },
+
+  async getUnreadLoveNoteCount(userId, coupleId) {
+    const db = await getDb();
+    const row = await db.getFirstAsync(
+      `SELECT COUNT(*) as count FROM love_notes
+       WHERE couple_id = ? AND user_id != ? AND is_read = 0 AND deleted_at IS NULL`,
+      [coupleId, userId]
+    );
+    return row?.count || 0;
+  },
+
   // ─── Sync helpers ───────────────────────────────────────────────
 
   /**
@@ -622,7 +738,7 @@ const Database = {
 
   /** After a successful push, mark rows as synced. */
   async markSynced(tableName, ids) {
-    if (!ids.length) return;
+    if (!ids || !ids.length) return;
     assertValidTable(tableName);
     const db = await getDb();
     const placeholders = ids.map(() => '?').join(',');
@@ -680,7 +796,7 @@ const Database = {
    * Prevents half-applied state if the app crashes mid-pull.
    */
   async batchUpsertFromRemote(tableName, rows) {
-    if (!rows.length) return { inserted: 0, updated: 0, skipped: 0 };
+    if (!rows || !rows.length) return { inserted: 0, updated: 0, skipped: 0 };
     assertValidTable(tableName);
     const db = await getDb();
     const results = { inserted: 0, updated: 0, skipped: 0 };
@@ -732,7 +848,7 @@ const Database = {
   async purgeDeleted(daysOld = 30) {
     const db = await getDb();
     const cutoff = new Date(Date.now() - daysOld * 86400000).toISOString();
-    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'attachments'];
+    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'attachments', 'love_notes'];
     let total = 0;
     for (const t of tables) {
       const result = await db.runAsync(
@@ -748,7 +864,7 @@ const Database = {
 
   async wipeAll() {
     const db = await getDb();
-    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'vibes', 'attachments', 'sync_meta'];
+    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes', 'sync_meta'];
     for (const t of tables) {
       await db.runAsync(`DELETE FROM ${t}`);
     }

@@ -37,7 +37,7 @@ export const SubscriptionProvider = ({ children }) => {
         return;
       }
 
-      const id = await storage.get(STORAGE_KEYS.COUPLE_ID);
+      const id = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
       if (active) setStoredCoupleId(id || null);
     };
 
@@ -119,7 +119,7 @@ export const SubscriptionProvider = ({ children }) => {
     premiumListenersRef.current.forEach((cb) => {
       try {
         cb(value);
-      } catch {}
+      } catch (e) { /* listener error non-critical */ }
     });
   }, []);
 
@@ -132,7 +132,7 @@ export const SubscriptionProvider = ({ children }) => {
       if (premium) updateSubscriptionDetails(info);
       else setSubscriptionDetails(null);
 
-      console.log("✅ Subscription status checked:", premium ? "Premium" : "Free");
+      if (__DEV__) console.log("✅ Subscription status checked:", premium ? "Premium" : "Free");
     } catch (error) {
       console.error("❌ Failed to check subscription status:", error);
       setIsPremium(false);
@@ -145,9 +145,15 @@ export const SubscriptionProvider = ({ children }) => {
     try {
       const offeringsData = await RevenueCatService.getOfferings();
       setOfferings(offeringsData);
-      console.log("✅ Offerings loaded:", offeringsData.packages?.length || 0, "packages");
+      if (offeringsData?.nonFatal) {
+        if (__DEV__) console.log("ℹ️ RevenueCat offerings unavailable; using free mode fallback.");
+      } else {
+        if (__DEV__) console.log("✅ Offerings loaded:", offeringsData.packages?.length || 0, "packages");
+      }
     } catch (error) {
       console.error("❌ Failed to load offerings:", error);
+      // Keep app in free mode without crashing paywall consumers
+      setOfferings({ current: null, packages: [], nonFatal: true, reason: 'load_failed' });
     }
   }, []);
 
@@ -192,7 +198,7 @@ export const SubscriptionProvider = ({ children }) => {
         if (listenerRef.current) {
           try {
             listenerRef.current();
-          } catch {}
+          } catch (e) { /* cleanup non-critical */ }
           listenerRef.current = null;
         }
 
@@ -225,12 +231,12 @@ export const SubscriptionProvider = ({ children }) => {
       if (listenerRef.current) {
         try {
           listenerRef.current();
-        } catch {}
+        } catch (e) { /* cleanup non-critical */ }
         listenerRef.current = null;
       } else if (typeof Purchases.removeCustomerInfoUpdateListener === 'function') {
         try {
           Purchases.removeCustomerInfoUpdateListener();
-        } catch {}
+        } catch (e) { /* cleanup non-critical */ }
       }
       initInFlightRef.current = false;
     };

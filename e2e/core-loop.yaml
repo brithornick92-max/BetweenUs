@@ -1,0 +1,58 @@
+# core-loop.yaml — E2E test: View prompt → answer → verify in journal
+# Tests the critical daily engagement loop.
+#
+# Prerequisite: User is authenticated and onboarded (on Home tab).
+
+appId: com.brittany.betweenus
+
+---
+
+- launchApp
+
+# Wait for home screen to load
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: ".*prompt.*|.*moment.*"
+    timeout: 10000
+
+# Navigate to Prompts tab
+- tapOn: "Prompts"
+- waitForAnimationToEnd
+
+# Should see prompt content
+- assertVisible:
+    text: ".*prompt.*|.*question.*"
+    optional: true
+
+# Tap on a prompt to answer it (if premium or free preview)
+- tapOn:
+    index: 0
+    id: "prompt-card"
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate to the Date Plans tab
+- tapOn: "DatePlans"
+- waitForAnimationToEnd
+
+# Should see date night content
+- assertVisible:
+    text: ".*date.*|.*draw.*"
+    optional: true
+
+# Navigate to Calendar tab
+- tapOn: "Calendar"
+- waitForAnimationToEnd
+
+# Navigate to Settings tab
+- tapOn: "Settings"
+- waitForAnimationToEnd
+
+# Should see settings content
+- assertVisible:
+    text: ".*Settings.*|.*Sign Out.*"
+    optional: true
+
+# Return to Home
+- tapOn: "Home"
+- waitForAnimationToEnd

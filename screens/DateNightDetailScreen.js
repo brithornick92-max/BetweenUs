@@ -1,3 +1,4 @@
+// screens/DateNightDetailScreen.js
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
@@ -8,63 +9,65 @@ import {
   Alert,
   TouchableOpacity,
   Platform,
-  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import { useAppContext } from "../context/AppContext";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS, COLORS } from "../utils/theme";
+import { TYPOGRAPHY } from "../utils/theme";
+import { getDimensionMeta } from "../utils/contentLoader";
 import Button from "../components/Button";
-
-const { width } = Dimensions.get("window");
-
-const toISODate = (d) => {
-  const date = new Date(d);
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${month}/${day}/${year}`;
-};
 
 export default function DateNightDetailScreen({ route, navigation }) {
   const { date } = route.params || {};
-  const { state } = useAppContext();
-  const { theme: activeTheme, isDark } = useTheme();
+  const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
-  // Gate: date night details require premium after the first free one
+  const t = useMemo(
+    () => ({
+      background: colors.background,
+      surface: colors.surface,
+      surfaceSecondary: colors.surface2,
+      text: colors.text,
+      textSecondary: colors.textMuted,
+      border: colors.border,
+      blushRose: colors.accent || colors.primary,
+      mutedGold: colors.accent || colors.primary,
+      deepPlum: colors.primaryMuted || colors.primary,
+      success: colors.success,
+    }),
+    [colors]
+  );
+
+  // Gate: date night details require premium if date is premium
   useEffect(() => {
     if (!isPremium && date?.isPremium) {
-      showPaywall('DATE_NIGHT_DETAILS');
+      showPaywall("DATE_NIGHT_DETAILS");
     }
   }, [isPremium, date?.isPremium, showPaywall]);
 
-  // ✅ Theme normalization (works with either {colors} or flat theme objects)
-  const t = useMemo(() => {
-    const base = activeTheme?.colors ? activeTheme.colors : activeTheme;
-
-    return {
-      background: base?.background ?? (isDark ? COLORS.warmCharcoal : COLORS.softCream),
-      surface: base?.surface ?? (isDark ? COLORS.deepPlum : COLORS.pureWhite),
-      surfaceSecondary:
-        base?.surfaceSecondary ?? (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)"),
-      text: base?.text ?? (isDark ? COLORS.softCream : COLORS.charcoal),
-      textSecondary:
-        base?.textSecondary ??
-        (isDark ? "rgba(246,242,238,0.70)" : "rgba(51,51,51,0.68)"),
-      border: base?.border ?? (isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"),
-      blushRose: base?.blushRose ?? base?.accent ?? COLORS.blushRose,
-      mutedGold: base?.mutedGold ?? COLORS.mutedGold,
-      deepPlum: base?.deepPlum ?? COLORS.deepPlum,
-      success: base?.success ?? COLORS.success,
-    };
-  }, [activeTheme, isDark]);
-
   const steps = useMemo(() => (Array.isArray(date?.steps) ? date.steps : []), [date?.steps]);
-
+  const dimensionBadges = useMemo(() => {
+    const dims = getDimensionMeta();
+    const badges = [];
+    if (typeof date?.heat === 'number') {
+      const h = dims.heat.find(x => x.level === date.heat);
+      if (h) badges.push({ label: h.label, icon: h.icon, color: h.color });
+    }
+    if (typeof date?.load === 'number') {
+      const l = dims.load.find(x => x.level === date.load);
+      if (l) badges.push({ label: l.label, icon: l.icon, color: l.color });
+    }
+    if (date?.style) {
+      const s = dims.style.find(x => x.id === date.style);
+      if (s) badges.push({ label: s.label, icon: s.icon, color: s.color });
+    }
+    if (date?._matchLabel) {
+      badges.unshift({ label: date._matchLabel, icon: '', color: '#C9A84C' });
+    }
+    return badges;
+  }, [date?.heat, date?.load, date?.style, date?._matchLabel]);
   const [currentStep, setCurrentStep] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
@@ -81,13 +84,11 @@ export default function DateNightDetailScreen({ route, navigation }) {
       const next = !prev;
 
       if (next) {
-        // start
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
           setTimeElapsed((s) => s + 1);
         }, 1000);
       } else {
-        // stop
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = null;
       }
@@ -104,67 +105,80 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
   const handleSchedule = () => {
     const stepsText = steps.length ? `• ${steps.join("\n• ")}` : "";
+
+    // Default to tomorrow at 7:30 PM so the user has a sensible starting point
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(19, 30, 0, 0);
+
     const prefill = {
-      __token: `${Date.now()}_${Math.random().toString(16).slice(2)}`, // ✅ prevents duplicate prefill reuse
+      __token: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
       title: `Date: ${date.title || "Date Night"}`,
-      dateStr: new Date().toLocaleDateString('en-US', { 
-        month: '2-digit', 
-        day: '2-digit', 
-        year: 'numeric' 
-      }),
-      timeStr: "7:30 PM",
+      prefillDate: tomorrow.getTime(),      // timestamp — pickers understand this
       location: date?.location === "home" ? "Our Home" : "Out & About",
       notes: stepsText,
       isDateNight: true,
+      minutes: date?.minutes || null,
     };
-    navigation.navigate("Calendar", { prefill });
+    navigation.navigate("MainTabs", { screen: "Calendar", params: { prefill } });
   };
 
-  if (!date) return null;
+  if (!date) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: t.textMuted, fontSize: 16, marginBottom: 16 }}>This date isn't available.</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, backgroundColor: t.primary }}>
+          <Text style={{ color: t.background, fontWeight: '700' }}>Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Immersive Header */}
-        <LinearGradient
-          colors={[`${t.blushRose}40`, t.background]}
-          style={styles.heroHeader}
-        >
+
+        <LinearGradient colors={[`${t.blushRose}40`, t.background]} style={styles.heroHeader}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <MaterialCommunityIcons name="arrow-left" size={24} color={t.text} />
           </TouchableOpacity>
 
-          <Text style={[TYPOGRAPHY.display, { color: t.text, fontSize: 32 }]}>
-            {date.title}
-          </Text>
+          <Text style={[TYPOGRAPHY.display, { color: t.text, fontSize: 32 }]}>{date.title}</Text>
 
-          <View style={styles.metaBadgeRow}>
-            <View style={[styles.glassBadge, { backgroundColor: t.surfaceSecondary }]}>
+
+
+
+
+
+          {/* Duration and Place badges restored */}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 15, alignSelf: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: t.surfaceSecondary, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, marginRight: 8 }}>
               <MaterialCommunityIcons name="clock-outline" size={16} color={t.blushRose} />
-              <Text style={[styles.badgeText, { color: t.text }]}>{date.minutes}m</Text>
+              <Text style={{ fontSize: 12, fontWeight: '700', marginLeft: 6, color: t.text }}>{date.minutes}m</Text>
             </View>
-
-            <View style={[styles.glassBadge, { backgroundColor: t.surfaceSecondary }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: t.surfaceSecondary, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 }}>
               <MaterialCommunityIcons
                 name={date.location === "home" ? "home-variant" : "map-marker"}
                 size={16}
                 color={t.mutedGold}
               />
-              <Text style={[styles.badgeText, { color: t.text }]}>
+              <Text style={{ fontSize: 12, fontWeight: '700', marginLeft: 6, color: t.text }}>
                 {date.location === "home" ? "Home" : "Out"}
               </Text>
             </View>
           </View>
 
-          <TouchableOpacity style={styles.scheduleFloat} onPress={handleSchedule}>
-            <LinearGradient colors={[t.blushRose, t.deepPlum]} style={styles.scheduleInner}>
-              <MaterialCommunityIcons name="calendar-plus" size={20} color={COLORS.pureWhite} />
-              <Text style={styles.scheduleText}>Schedule</Text>
-            </LinearGradient>
-          </TouchableOpacity>
         </LinearGradient>
 
-        {/* The Connection Timer */}
+        {/* Schedule Button above Presence Timer */}
+        <TouchableOpacity style={[styles.scheduleFloat, { marginTop: 0, alignSelf: 'center' }]} onPress={handleSchedule}>
+          <LinearGradient colors={[t.blushRose, t.deepPlum]} style={styles.scheduleInner}>
+            <MaterialCommunityIcons name="calendar-plus" size={20} color="#FFF" />
+            <Text style={[styles.scheduleText, { color: '#FFF' }]}>Schedule</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+
         <View style={styles.timerSection}>
           <BlurView
             intensity={20}
@@ -181,26 +195,29 @@ export default function DateNightDetailScreen({ route, navigation }) {
               onPress={toggleTimer}
               style={[
                 styles.playBtn,
-                { backgroundColor: timerActive ? t.surface : t.blushRose, borderColor: t.border },
+                {
+                  backgroundColor: timerActive ? t.surface : t.blushRose,
+                  borderColor: t.border,
+                },
               ]}
             >
-              <MaterialCommunityIcons
-                name={timerActive ? "pause" : "play"}
-                size={28}
-                color={timerActive ? t.text : "#FFF"}
-              />
+              <MaterialCommunityIcons name={timerActive ? "pause" : "play"} size={28} color="#FFF" />
             </TouchableOpacity>
           </BlurView>
         </View>
 
-        {/* Step-by-Step Guide */}
         <View style={styles.stepsContainer}>
           <Text style={[TYPOGRAPHY.h2, { marginBottom: 20, marginLeft: 5, color: t.text }]}>
             The Experience
           </Text>
 
           {steps.length === 0 ? (
-            <View style={[styles.stepCard, { backgroundColor: t.surface, borderColor: t.border, borderWidth: 1 }]}>
+            <View
+              style={[
+                styles.stepCard,
+                { backgroundColor: t.surface, borderColor: t.border, borderWidth: 1 },
+              ]}
+            >
               <Text style={[TYPOGRAPHY.body, { color: t.textSecondary }]}>
                 No steps for this date yet.
               </Text>
@@ -224,14 +241,23 @@ export default function DateNightDetailScreen({ route, navigation }) {
                   <View
                     style={[
                       styles.stepIndicator,
-                      { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)" },
+                      {
+                        backgroundColor: isDark
+                          ? "rgba(255,255,255,0.06)"
+                          : "rgba(0,0,0,0.05)",
+                      },
                       isCompleted && { backgroundColor: t.success },
                     ]}
                   >
                     {isCompleted ? (
-                      <MaterialCommunityIcons name="check" size={16} color="#FFF" />
+                      <MaterialCommunityIcons name="check" size={16} color={t.text} />
                     ) : (
-                      <Text style={[styles.stepNumber, { color: isActive ? t.blushRose : t.textSecondary }]}>
+                      <Text
+                        style={[
+                          styles.stepNumber,
+                          { color: isActive ? t.blushRose : t.textSecondary },
+                        ]}
+                      >
                         {index + 1}
                       </Text>
                     )}
@@ -253,12 +279,9 @@ export default function DateNightDetailScreen({ route, navigation }) {
           )}
         </View>
 
-        {/* Completion Action */}
         <View style={styles.footer}>
           <Button
-            title={
-              steps.length > 0 && currentStep === steps.length - 1 ? "Complete Date" : "Next Step"
-            }
+            title={steps.length > 0 && currentStep === steps.length - 1 ? "Complete Date" : "Next Step"}
             onPress={() => {
               if (steps.length === 0) {
                 Alert.alert("No steps", "This date doesn’t have steps yet.");
@@ -293,6 +316,11 @@ const styles = StyleSheet.create({
   backBtn: { marginBottom: 20 },
 
   metaBadgeRow: { flexDirection: "row", gap: 10, marginTop: 15 },
+  moodBadgeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 12,
+  },
   glassBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -300,7 +328,20 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
   },
+  moodBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    marginRight: 8,
+    marginBottom: 8,
+  },
   badgeText: { fontSize: 12, fontWeight: "700", marginLeft: 6 },
+  moodBadgeText: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
 
   scheduleFloat: { marginTop: 25, alignSelf: "flex-start" },
   scheduleInner: {
@@ -310,9 +351,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 25,
   },
-  scheduleText: { color: "#FFF", fontWeight: "800", marginLeft: 8, fontSize: 14 },
+  scheduleText: { fontWeight: "800", marginLeft: 8, fontSize: 14 },
 
-  timerSection: { paddingHorizontal: 30, marginTop: -40 },
+    timerSection: { paddingHorizontal: 30, marginTop: 20 },
   timerCard: {
     padding: 25,
     borderRadius: 30,
@@ -320,7 +361,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
-  timerDisplay: { fontSize: 42, fontWeight: "800", marginVertical: 10, fontVariant: ["tabular-nums"] },
+  timerDisplay: {
+    fontSize: 42,
+    fontWeight: "800",
+    marginVertical: 10,
+    fontVariant: ["tabular-nums"],
+  },
   playBtn: {
     width: 56,
     height: 56,

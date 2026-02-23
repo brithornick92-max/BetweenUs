@@ -11,43 +11,47 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useContent } from '../context/ContentContext';
+import { useEntitlements } from '../context/EntitlementsContext';
 
 const HEAT_LEVELS = [
   {
     level: 1,
     emoji: '😊',
-    title: 'Sweet & Wholesome',
-    description: 'Focus on emotional connection, daily life, and building friendship',
+    title: 'Heart Connection',
+    description: 'Pure emotional intimacy, non-sexual — building friendship and trust',
   },
   {
     level: 2,
     emoji: '💕',
-    title: 'Romantic',
-    description: 'Add romance, affection, and deeper emotional intimacy',
+    title: 'Spark & Attraction',
+    description: 'Flirty attraction, romance, and deeper emotional intimacy',
   },
   {
     level: 3,
     emoji: '🔥',
-    title: 'Passionate',
-    description: 'Include attraction, desire, and physical connection',
+    title: 'Intimate Connection',
+    description: 'Moderately sexual, relationship-focused desire and attraction',
   },
   {
     level: 4,
     emoji: '🌶️',
-    title: 'Spicy',
-    description: 'Explore fantasies, preferences, and intimate desires',
+    title: 'Adventurous Exploration',
+    description: 'Playfully sexual, suggestive, and adventurous topics',
   },
   {
     level: 5,
     emoji: '🔥🔥',
-    title: 'Extra Spicy',
-    description: 'Dive deep into fantasies, role-play, and adventurous topics',
+    title: 'Unrestrained Passion',
+    description: 'Intensely passionate, deeply intimate explorations',
   },
 ];
 
 const HeatLevelSettingsScreen = ({ navigation }) => {
   const { colors } = useTheme();
   const { userProfile, updateProfile } = useAuth();
+  const { loadContentProfile } = useContent();
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const [selectedLevel, setSelectedLevel] = useState(3);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -66,6 +70,11 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
         heatLevelPreference: selectedLevel,
       });
 
+      // Refresh the content profile so all screens pick up the new heat level
+      if (loadContentProfile) {
+        await loadContentProfile();
+      }
+
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Success);
       Alert.alert('Success', 'Heat level updated successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() },
@@ -79,6 +88,10 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
   };
 
   const handleLevelSelect = (level) => {
+    if (level >= 4 && !isPremium) {
+      showPaywall('heatLevels4to5');
+      return;
+    }
     setSelectedLevel(level);
     Haptics.selectionAsync();
   };
@@ -133,9 +146,11 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
                       {heatLevel.description}
                     </Text>
                   </View>
-                  {selectedLevel === heatLevel.level && (
+                  {heatLevel.level >= 4 && !isPremium ? (
+                    <Ionicons name="lock-closed" size={20} color={colors.textSecondary} />
+                  ) : selectedLevel === heatLevel.level ? (
                     <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
-                  )}
+                  ) : null}
                 </View>
               </TouchableOpacity>
             ))}
@@ -155,7 +170,7 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
             onPress={handleSave}
             disabled={isSaving}
           >
-            <Text style={styles.saveButtonText}>
+            <Text style={[styles.saveButtonText, { color: '#FFFFFF' }]}>
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Text>
           </TouchableOpacity>

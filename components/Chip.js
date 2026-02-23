@@ -7,8 +7,8 @@ import {
   Animated,
   Platform,
 } from "react-native";
-import { BlurView } from "expo-blur";
-import { COLORS, SPACING, BORDER_RADIUS } from "../utils/theme";
+import { useTheme } from "../context/ThemeContext";
+import { SPACING, BORDER_RADIUS } from "../utils/theme";
 
 /**
  * Optional dependency: expo-haptics (safe import)
@@ -25,20 +25,49 @@ try {
  * High-End Interactive Chip
  * Features: Spring-based scaling, optional haptics, mood coloring, and glass variant.
  */
+
+const createStyles = (colors) => StyleSheet.create({
+  chip: {
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    backgroundColor: colors.surface,
+    overflow: "hidden",
+  },
+  content: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  icon: { marginRight: 6 },
+
+  // Sizes
+  size_sm: { paddingVertical: 6, paddingHorizontal: 12 },
+  size_md: { paddingVertical: 8, paddingHorizontal: 16 },
+  size_lg: { paddingVertical: 10, paddingHorizontal: 20 },
+
+  // Text
+  text: { fontWeight: "600", letterSpacing: 0.3 },
+  text_sm: { fontSize: 12 },
+  text_md: { fontSize: 14 },
+  text_lg: { fontSize: 16 },
+
+  disabled: { opacity: 0.3 },
+});
+
 export default function Chip({
   label,
-  value = null, // ✅ optional stable value for selection + mood mapping
+  value = null,
   selected = false,
   onPress = null,
   icon = null,
-  variant = "default", // 'default', 'mood', 'glass'
+  variant = "default",
   color = null,
   size = "md",
   disabled = false,
-  blurTint = "dark",
-  blurIntensity = 10,
   haptic = true,
 }) {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   // Mood color mapping should key off value (best), fallback to label
@@ -47,29 +76,75 @@ export default function Chip({
     return raw.trim().toLowerCase();
   }, [value, label]);
 
-  const moodColors = {
-    romantic: COLORS.blushRose,
-    playful: COLORS.mutedGold,
-    spicy: "#FF5252",
-    emotional: "#B39DDB",
-    calm: "#80CBC4",
-    happy: "#FFD700",
-    anxious: "#9370DB",
-    stressed: "#FF6347",
-    loving: "#FF69B4",
-    grateful: "#40E0D0",
+  const moodColorsDark = {
+    comfort: '#162218', connection: '#1E1228', flirtation: '#261018',
+    intimacy: '#200C0C', passion: '#1A0808',
+    calm: '#121E14', balanced: '#1E160A', energizing: '#1E0E06',
+    talking: '#0E1A24', doing: '#14101E', mixed: '#1E0C16',
+    sweet: '#162218', flirty: '#1E1228', intimate: '#261018',
+    steamy: '#200C0C', scorching: '#1A0808',
+    spicy: '#200808', romantic: '#1E0810', heartfelt: '#0C1420',
+    adventurous: '#0C1A0E', cozy: '#121E14', playful: '#1E1808',
+    tranquil: '#081A16', connected: '#1E1808',
+    reflective: colors.textMuted, energized: colors.primary,
+    emotional: colors.textMuted, happy: colors.primary,
+    anxious: colors.textMuted, stressed: colors.textMuted,
+    loving: colors.primary, grateful: colors.primary,
   };
 
+  const moodColorsLight = {
+    // Heat levels (Closeness)
+    comfort: '#5A8A5C',
+    connection: '#8B5A9E',
+    flirtation: '#B85A78',
+    intimacy: '#A84848',
+    passion: '#8C1E1E',
+    // Load levels (Energy)
+    calm: '#4D7A50',
+    balanced: '#B8863A',
+    energizing: '#C05228',
+    // Interaction style
+    talking: '#4A82B0',
+    doing: '#6B4E96',
+    mixed: '#A84468',
+    // Heat tiers (legacy labels)
+    sweet: '#5A8A5C',
+    flirty: '#8B5A9E',
+    intimate: '#B85A78',
+    steamy: '#A84848',
+    scorching: '#8C1E1E',
+    // Legacy / general mood colors (for prompts or other features)
+    spicy: '#A83232',
+    romantic: '#8B2248',
+    heartfelt: '#3A6A9E',
+    adventurous: '#2E6E30',
+    cozy: '#5A7A56',
+    playful: '#B8961E',
+    tranquil: '#1A6E62',
+    connected: '#B8961E',
+    reflective: colors.textMuted,
+    energized: colors.primary,
+    emotional: colors.textMuted,
+    happy: colors.primary,
+    anxious: colors.textMuted,
+    stressed: colors.textMuted,
+    loving: colors.primary,
+    grateful: colors.primary,
+  };
+
+  const moodColors = isDark ? moodColorsDark : moodColorsLight;
+
   const activeColor =
-    color || (variant === "mood" ? moodColors[moodKey] || COLORS.blushRose : COLORS.blushRose);
+    color || (variant === "mood" ? moodColors[moodKey] || colors.primary : colors.primary);
 
   // Sync animation with selection state
   useEffect(() => {
     Animated.spring(scaleAnim, {
       toValue: selected ? 1.05 : 1,
       useNativeDriver: true,
-      friction: 7,
-      tension: 100,
+      damping: 14,
+      stiffness: 150,
+      mass: 1,
     }).start();
   }, [selected, scaleAnim]);
 
@@ -79,26 +154,10 @@ export default function Chip({
     if (haptic && Platform.OS !== "web" && Haptics?.selectionAsync) {
       try {
         await Haptics.selectionAsync();
-      } catch {}
+      } catch (e) { /* haptics non-critical */ }
     }
     onPress();
   };
-
-  const Content = () => (
-    <View style={[styles.content, styles[`size_${size}`]]}>
-      {icon && <View style={styles.icon}>{icon}</View>}
-      <Text
-        style={[
-          styles.text,
-          styles[`text_${size}`],
-          { color: selected ? activeColor : COLORS.creamSubtle },
-        ]}
-        numberOfLines={1}
-      >
-        {label}
-      </Text>
-    </View>
-  );
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
@@ -106,24 +165,29 @@ export default function Chip({
         onPress={handlePress}
         activeOpacity={0.85}
         disabled={disabled || !onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ selected, disabled }}
         style={[
           styles.chip,
-          { borderColor: selected ? activeColor : "rgba(255,255,255,0.15)" },
+          { borderColor: selected ? activeColor : colors.border },
           selected && { backgroundColor: activeColor + "15" },
           disabled && styles.disabled,
         ]}
       >
-        {variant === "glass" && !selected ? (
-          <BlurView
-            intensity={blurIntensity}
-            tint={blurTint}
-            style={styles.blurFill}
+        <View style={[styles.content, styles[`size_${size}`]]}>
+          {icon && <View style={styles.icon}>{icon}</View>}
+          <Text
+            style={[
+              styles.text,
+              styles[`text_${size}`],
+              { color: selected ? activeColor : colors.textMuted },
+            ]}
+            numberOfLines={1}
           >
-            <Content />
-          </BlurView>
-        ) : (
-          <Content />
-        )}
+            {label}
+          </Text>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -188,42 +252,10 @@ export function ChipGroup({
   );
 }
 
-const styles = StyleSheet.create({
-  chip: {
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1.2,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    overflow: "hidden",
-  },
-  blurFill: {
-    width: "100%",
-    overflow: "hidden",
-  },
-  content: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  icon: { marginRight: 6 },
-
-  // Sizes
-  size_sm: { paddingVertical: 6, paddingHorizontal: 12 },
-  size_md: { paddingVertical: 8, paddingHorizontal: 16 },
-  size_lg: { paddingVertical: 10, paddingHorizontal: 20 },
-
-  // Text
-  text: { fontWeight: "600", letterSpacing: 0.3 },
-  text_sm: { fontSize: 12 },
-  text_md: { fontSize: 14 },
-  text_lg: { fontSize: 16 },
-
-  disabled: { opacity: 0.3 },
-});
-
 const groupStyles = StyleSheet.create({
   container: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: SPACING.sm,
   },
 });

@@ -6,13 +6,26 @@
 
 ## 🔒 Your Data is Protected
 
-### What We Encrypt
-✅ Your journal entries  
-✅ Your responses to prompts  
-✅ Your shared memories  
-✅ Everything intimate  
+### What We Encrypt (End-to-End)
+✅ Your journal entries
+✅ Your responses to prompts
+✅ Love notes and photo attachments
+✅ Shared memories and milestones
 
-**How:** End-to-end encryption means your content is encrypted on your device before upload. Only you and your partner can read it. Not even we can see it.
+### What We Encrypt (Device-Level)
+✅ Daily check-ins (mood, closeness, notes)
+✅ Relationship memories
+✅ Inside jokes and shared references
+✅ Relationship climate selections
+
+### What We Don't Encrypt (But Still Protect)
+⚠️ Metadata like timestamps, mood labels, and heat-level preferences  
+⚠️ Calendar events and date plans  
+⚠️ Nickname and tone settings  
+
+**Why:** Metadata isn’t encrypted so the app can filter, sort, and display your content. It’s still protected by access controls and standard server encryption — just not end-to-end.
+
+**How E2EE works:** Your journal entries are encrypted on your device before upload. Only you and your partner can read them. Not even we can see them.
 
 ---
 
@@ -23,6 +36,7 @@
 ❌ **Track you across apps** - We only care about Between Us.  
 ❌ **Read your journal** - It's encrypted. We literally can't.  
 ❌ **Ask about your orientation** - Love is love. That's all we need to know.
+❌ **Store your biometrics** - Face ID/Touch ID runs on your device's hardware only.
 
 ---
 
@@ -33,7 +47,7 @@
 - Partner names (what you call each other)
 - Relationship start date (optional, for better prompts)
 - Your responses (encrypted, for you and your partner)
-- Usage data (to make the app better)
+- Daily usage counts (for free-tier limits)
 
 ### We Use It To
 - Show you personalized prompts
@@ -42,10 +56,18 @@
 - Fix bugs
 - Send you notifications (if you want them)
 
+### What Never Leaves Your Device
+- Soft boundary settings (hidden categories, paused prompts)
+- Energy level and relationship climate choices
+- Inside jokes and shared references
+- Year reflection narratives
+- Content preference history
+- Biometric vault key
+
 ### We Process On Your Device
-- Personalization happens on your phone
-- ML recommendations run locally
-- Your data doesn't leave your device for processing
+- Personalization and prompt selection happen on your phone
+- Energy matching and content recommendations run locally
+- Your preference data stays on your device
 - Privacy by design
 
 ---
@@ -60,11 +82,14 @@
 
 ### Your Partner Can See
 - Only what you choose to share
+- Your Vibe Signals and Moment Signals (when you send them)
+- Revealed prompt answers (only when both opt in)
 - Nothing private
 - Nothing after you unlink
 
 ### Your Partner Cannot See
 - Your private entries
+- Your soft boundary settings
 - Your deleted content
 - Your account password
 - Your payment info
@@ -90,11 +115,9 @@
 ## 🛡️ Your Rights
 
 ### You Can
-✅ See all your data  
-✅ Export your journal  
-✅ Delete everything  
-✅ Opt out of analytics  
-✅ Use anonymous mode  
+✅ See all your data
+✅ Export your journal
+✅ Delete everything
 ✅ Control notifications  
 
 ### We Must
@@ -136,5 +159,5 @@ We make money from subscriptions, not from your data.
 
 ---
 
-**Read the full Privacy Policy:** [Link]  
-**Last Updated:** February 3, 2026
+**Read the full Privacy Policy:** See PRIVACY_POLICY.md
+**Last Updated:** February 16, 2026

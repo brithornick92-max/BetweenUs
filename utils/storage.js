@@ -71,6 +71,9 @@ export const STORAGE_KEYS = {
   
   // Ritual Reminder Storage Keys
   RITUAL_REMINDERS: "@betweenus:ritualReminders",
+
+  // Love Notes
+  LOVE_NOTES: "@betweenus:loveNotes",
 };
 
 /**
@@ -86,24 +89,39 @@ const safeParse = (raw) => {
 };
 
 const makeId = (prefix) => {
-  const entropy = Math.random().toString(36).substring(2, 10);
-  return `${prefix}_${Date.now()}_${entropy}`;
+  // Use crypto-quality randomness to avoid ID collisions in concurrent writes
+  try {
+    const { randomUUID } = require('expo-crypto');
+    return `${prefix}_${randomUUID()}`;
+  } catch {
+    // Fallback if expo-crypto unavailable
+    const entropy = Math.random().toString(36).substring(2, 10) +
+      Math.random().toString(36).substring(2, 10);
+    return `${prefix}_${Date.now()}_${entropy}`;
+  }
 };
 
 const ensureArray = (v) => (Array.isArray(v) ? v : []);
 const ensureObject = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
-const dayKeyLocal = (date = new Date()) => date.toISOString().split("T")[0];
+const dayKeyLocal = (date = new Date()) => {
+  const d = date instanceof Date ? date : new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
 /**
  * CORE STORAGE ENGINE (Singleton)
  */
 export const storage = {
-  async get(key) {
+  async get(key, defaultValue = null) {
     try {
       const value = await AsyncStorage.getItem(key);
-      return safeParse(value);
+      const parsed = safeParse(value);
+      return parsed === null ? defaultValue : parsed;
     } catch (error) {
-      return null;
+      return defaultValue;
     }
   },
 
@@ -162,7 +180,7 @@ export const storage = {
  */
 export const promptStorage = {
   async getAll() {
-    const data = await storage.get(STORAGE_KEYS.PROMPT_ANSWERS);
+    const data = await storage.get(STORAGE_KEYS.PROMPT_ANSWERS, {});
     const all = ensureObject(data);
     
     // Decrypt answers if encrypted
@@ -197,7 +215,7 @@ export const promptStorage = {
   },
 
   async setAnswer(dateKey, promptId, payload) {
-    const rawData = await storage.get(STORAGE_KEYS.PROMPT_ANSWERS) || {};
+    const rawData = await storage.get(STORAGE_KEYS.PROMPT_ANSWERS, {}) || {};
     const all = ensureObject(rawData);
     const byDate = ensureObject(all[dateKey]);
 
@@ -227,7 +245,7 @@ export const promptStorage = {
   },
 
   async deleteAnswer(dateKey, promptId) {
-    const all = await storage.get(STORAGE_KEYS.PROMPT_ANSWERS) || {};
+    const all = await storage.get(STORAGE_KEYS.PROMPT_ANSWERS, {}) || {};
     const byDate = ensureObject(all[dateKey]);
     delete byDate[promptId];
     all[dateKey] = byDate;
@@ -249,7 +267,7 @@ export const promptStorage = {
  */
 export const journalStorage = {
   async getEntries() {
-    const data = await storage.get(STORAGE_KEYS.JOURNAL_ENTRIES);
+    const data = await storage.get(STORAGE_KEYS.JOURNAL_ENTRIES, []);
     const entries = ensureArray(data).sort((a, b) => b.createdAt - a.createdAt);
     
     // Decrypt entries if encrypted
@@ -280,7 +298,7 @@ export const journalStorage = {
   },
 
   async saveEntry(entry) {
-    const entries = await storage.get(STORAGE_KEYS.JOURNAL_ENTRIES) || [];
+    const entries = await storage.get(STORAGE_KEYS.JOURNAL_ENTRIES, []) || [];
     const isUpdate = !!entry.id;
 
     const processedEntry = {
@@ -316,7 +334,7 @@ export const journalStorage = {
   },
 
   async deleteEntry(entryId) {
-    const entries = await storage.get(STORAGE_KEYS.JOURNAL_ENTRIES) || [];
+    const entries = await storage.get(STORAGE_KEYS.JOURNAL_ENTRIES, []) || [];
     return storage.set(
       STORAGE_KEYS.JOURNAL_ENTRIES,
       entries.filter((e) => e.id !== entryId)
@@ -325,16 +343,132 @@ export const journalStorage = {
 };
 
 /**
+ * DOMAIN: Love Notes
+ * Share love notes and pictures with your partner.
+ * Shape: [ { id, text, imageUri?, senderName?, isRead, createdAt, updatedAt } ]
+ * ⚠️ Encrypted at rest via EncryptionService (device-local key).
+ *    Legacy plaintext notes are decrypted transparently on read.
+ */
+export const loveNoteStorage = {
+  /** Decrypt a single note entry — handles both encrypted and legacy plaintext */
+  async _decryptNote(note) {
+    if (!note?.isEncrypted || !note?.encryptedData) return note;
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const data = await EncryptionService.decryptJson(note.encryptedData);
+      return data ? { ...data, isEncrypted: false } : { ...note, decryptionFailed: true };
+    } catch {
+      return { ...note, decryptionFailed: true };
+    }
+  },
+
+  /** Encrypt a note's sensitive fields, keeping id/isRead/timestamps in the clear for indexing */
+  async _encryptNote(note) {
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const { id, isRead, readAt, createdAt, updatedAt, isEncrypted, encryptedData, encryptedAt, ...sensitive } = note;
+      const encryptedPayload = await EncryptionService.encryptJson(sensitive);
+      return { id, isRead, readAt, createdAt, updatedAt, encryptedData: encryptedPayload, isEncrypted: true, encryptedAt: Date.now() };
+    } catch {
+      // Encryption failed — fall back to plaintext rather than losing data
+      return note;
+    }
+  },
+
+  async getNotes() {
+    const data = await storage.get(STORAGE_KEYS.LOVE_NOTES, []);
+    const notes = ensureArray(data);
+    const decrypted = await Promise.all(notes.map(n => this._decryptNote(n)));
+    return decrypted.sort((a, b) => b.createdAt - a.createdAt);
+  },
+
+  async saveNote(note) {
+    const notes = await storage.get(STORAGE_KEYS.LOVE_NOTES, []) || [];
+    const isUpdate = !!note.id && notes.some((n) => n.id === note.id);
+
+    const processed = {
+      ...note,
+      id: isUpdate ? note.id : makeId("note"),
+      updatedAt: Date.now(),
+      createdAt: isUpdate ? note.createdAt : Date.now(),
+      isRead: note.isRead ?? false,
+    };
+
+    // Encrypt before persisting
+    const encrypted = await this._encryptNote(processed);
+
+    const next = isUpdate
+      ? notes.map((n) => (n.id === encrypted.id ? encrypted : n))
+      : [encrypted, ...notes];
+
+    await storage.set(STORAGE_KEYS.LOVE_NOTES, next);
+    return processed; // Return decrypted for immediate use
+  },
+
+  async markRead(noteId) {
+    const notes = await storage.get(STORAGE_KEYS.LOVE_NOTES, []) || [];
+    const updated = notes.map((n) =>
+      n.id === noteId ? { ...n, isRead: true, readAt: Date.now() } : n
+    );
+    await storage.set(STORAGE_KEYS.LOVE_NOTES, updated);
+  },
+
+  async deleteNote(noteId) {
+    const notes = await storage.get(STORAGE_KEYS.LOVE_NOTES, []) || [];
+    return storage.set(
+      STORAGE_KEYS.LOVE_NOTES,
+      notes.filter((n) => n.id !== noteId)
+    );
+  },
+
+  async getUnreadCount() {
+    const notes = await this.getNotes();
+    return notes.filter((n) => !n.isRead).length;
+  },
+};
+
+/**
  * DOMAIN: Check-Ins
  * @deprecated Use DataLayer.saveCheckIn() / DataLayer.getCheckIns()
  * for couple-aware E2EE + cross-device sync.
+ * ⚠️ Encrypted at rest via EncryptionService (device-local key).
+ *    Legacy plaintext entries are readable transparently.
  * Compatible with your CheckInScreen:
  * - getTodayCheckIn()
  * - saveCheckIn({ mood, closeness, touch, intimacy, space })
  */
 export const checkInStorage = {
+  /** Decrypt a single check-in entry */
+  async _decryptEntry(entry) {
+    if (!entry?.isEncrypted || !entry?.encryptedData) return entry;
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const data = await EncryptionService.decryptJson(entry.encryptedData);
+      return data ? { ...data, isEncrypted: false } : entry;
+    } catch {
+      return { ...entry, decryptionFailed: true };
+    }
+  },
+
+  /** Encrypt a check-in entry, keeping dateKey and timestamp in the clear */
+  async _encryptEntry(entry) {
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const { isEncrypted, encryptedData, encryptedAt, ...sensitive } = entry;
+      const encryptedPayload = await EncryptionService.encryptJson(sensitive);
+      return { encryptedData: encryptedPayload, isEncrypted: true, encryptedAt: Date.now(), timestamp: entry.timestamp };
+    } catch {
+      return entry;
+    }
+  },
+
   async getAll() {
-    return ensureObject(await storage.get(STORAGE_KEYS.CHECK_INS));
+    const raw = ensureObject(await storage.get(STORAGE_KEYS.CHECK_INS, {}));
+    const decrypted = {};
+    for (const [dateKey, entry] of Object.entries(raw)) {
+      decrypted[dateKey] = await this._decryptEntry(entry);
+    }
+    return decrypted;
   },
 
   async getTodayCheckIn() {
@@ -343,18 +477,24 @@ export const checkInStorage = {
   },
 
   async saveCheckIn(payload) {
-    const all = await this.getAll();
+    // Read raw (encrypted) data to avoid decrypt→re-encrypt cycle for other days
+    const all = ensureObject(await storage.get(STORAGE_KEYS.CHECK_INS, {}));
     const today = dayKeyLocal();
 
-    all[today] = {
-      ...(all[today] || {}),
+    // Decrypt today's existing entry to merge with
+    const existingDecrypted = all[today] ? await this._decryptEntry(all[today]) : {};
+
+    const merged = {
+      ...(existingDecrypted || {}),
       ...(payload || {}),
       timestamp: Date.now(),
       synced: false,
     };
 
+    // Encrypt and store
+    all[today] = await this._encryptEntry(merged);
     await storage.set(STORAGE_KEYS.CHECK_INS, all);
-    return all[today];
+    return merged; // Return decrypted for immediate use
   },
 
   // Backwards compatibility
@@ -380,7 +520,7 @@ export const checkInStorage = {
  */
 export const myDatesStorage = {
   async getMyDates() {
-    const data = await storage.get(STORAGE_KEYS.MY_DATES);
+    const data = await storage.get(STORAGE_KEYS.MY_DATES, []);
     return ensureArray(data).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   },
 
@@ -426,7 +566,7 @@ export const myDatesStorage = {
  */
 export const calendarStorage = {
   async getEvents() {
-    return ensureArray(await storage.get(STORAGE_KEYS.CALENDAR_EVENTS));
+    return ensureArray(await storage.get(STORAGE_KEYS.CALENDAR_EVENTS, []));
   },
 
   async upsertEvent(event) {
@@ -460,7 +600,7 @@ export const calendarStorage = {
  */
 export const userStorage = {
   async isOnboardingCompleted() {
-    return (await storage.get(STORAGE_KEYS.ONBOARDING_COMPLETED)) === true;
+    return (await storage.get(STORAGE_KEYS.ONBOARDING_COMPLETED, false)) === true;
   },
 
   async setOnboardingCompleted(v) {
@@ -468,19 +608,19 @@ export const userStorage = {
   },
 
   async getProfile() {
-    return await storage.get(STORAGE_KEYS.USER_PROFILE);
+    return await (await import('./encryptedStorage')).encryptedStorage.get(STORAGE_KEYS.USER_PROFILE, {});
   },
 
   async setProfile(profile) {
-    return storage.set(STORAGE_KEYS.USER_PROFILE, profile);
+    return (await import('./encryptedStorage')).encryptedStorage.set(STORAGE_KEYS.USER_PROFILE, profile);
   },
 
   async getPartnerLabel() {
-    return await storage.get(STORAGE_KEYS.PARTNER_LABEL);
+    return await (await import('./encryptedStorage')).encryptedStorage.get(STORAGE_KEYS.PARTNER_LABEL, null);
   },
 
   async setPartnerLabel(label) {
-    return storage.set(STORAGE_KEYS.PARTNER_LABEL, label);
+    return (await import('./encryptedStorage')).encryptedStorage.set(STORAGE_KEYS.PARTNER_LABEL, label);
   },
 };
 
@@ -491,9 +631,9 @@ export const userStorage = {
 export const coupleStorage = {
   async getCoupleData() {
     const [coupleId, role, partnerProfile] = await Promise.all([
-      storage.get(STORAGE_KEYS.COUPLE_ID),
-      storage.get(STORAGE_KEYS.COUPLE_ROLE),
-      storage.get(STORAGE_KEYS.PARTNER_PROFILE),
+      (await import('./encryptedStorage')).encryptedStorage.get(STORAGE_KEYS.COUPLE_ID, null),
+      storage.get(STORAGE_KEYS.COUPLE_ROLE, null),
+      (await import('./encryptedStorage')).encryptedStorage.get(STORAGE_KEYS.PARTNER_PROFILE, {}),
     ]);
 
     return {
@@ -504,17 +644,16 @@ export const coupleStorage = {
   },
 
   async setCoupleData({ coupleId, role, partnerProfile = null }) {
-    return storage.multiSet({
-      [STORAGE_KEYS.COUPLE_ID]: coupleId,
-      [STORAGE_KEYS.COUPLE_ROLE]: role,
-      [STORAGE_KEYS.PARTNER_PROFILE]: partnerProfile,
-    });
+    await (await import('./encryptedStorage')).encryptedStorage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
+    await storage.set(STORAGE_KEYS.COUPLE_ROLE, role);
+    await (await import('./encryptedStorage')).encryptedStorage.set(STORAGE_KEYS.PARTNER_PROFILE, partnerProfile);
+    return true;
   },
 
   async clearCouple() {
-    await storage.remove(STORAGE_KEYS.COUPLE_ID);
+    await (await import('./encryptedStorage')).encryptedStorage.remove(STORAGE_KEYS.COUPLE_ID);
     await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
-    await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
+    await (await import('./encryptedStorage')).encryptedStorage.remove(STORAGE_KEYS.PARTNER_PROFILE);
     return true;
   },
 };
@@ -525,7 +664,7 @@ export const coupleStorage = {
  */
 export const settingsStorage = {
   async getAppLockEnabled() {
-    return (await storage.get(STORAGE_KEYS.APP_LOCK_ENABLED)) === true;
+    return (await storage.get(STORAGE_KEYS.APP_LOCK_ENABLED, false)) === true;
   },
 
   async setAppLockEnabled(enabled) {
@@ -533,7 +672,7 @@ export const settingsStorage = {
   },
 
   async getDateNightDefaults() {
-    return await storage.get("@betweenus:dateNightDefaults");
+    return await storage.get("@betweenus:dateNightDefaults", {});
   },
 
   async setDateNightDefaults(defaults) {
@@ -543,14 +682,42 @@ export const settingsStorage = {
 /**
  * DOMAIN: Premium Value Loop - Memories
  * Relationship memory storage with timeline generation
+ * ⚠️ Encrypted at rest via EncryptionService (device-local key).
+ *    Legacy plaintext memories are readable transparently.
  */
 export const memoryStorage = {
+  /** Decrypt a single memory — handles both encrypted and legacy plaintext */
+  async _decryptMemory(mem) {
+    if (!mem?.isEncrypted || !mem?.encryptedData) return mem;
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const data = await EncryptionService.decryptJson(mem.encryptedData);
+      return data ? { ...data, isEncrypted: false } : { ...mem, decryptionFailed: true };
+    } catch {
+      return { ...mem, decryptionFailed: true };
+    }
+  },
+
+  /** Encrypt a memory, keeping id/createdAt/updatedAt/type/date in the clear for filtering */
+  async _encryptMemory(mem) {
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const { id, createdAt, updatedAt, type, date, isEncrypted, encryptedData, encryptedAt, ...sensitive } = mem;
+      const encryptedPayload = await EncryptionService.encryptJson(sensitive);
+      return { id, createdAt, updatedAt, type, date, encryptedData: encryptedPayload, isEncrypted: true, encryptedAt: Date.now() };
+    } catch {
+      return mem;
+    }
+  },
+
   async getMemories() {
-    return ensureArray(await storage.get(STORAGE_KEYS.MEMORIES));
+    const raw = ensureArray(await storage.get(STORAGE_KEYS.MEMORIES, []));
+    return Promise.all(raw.map(m => this._decryptMemory(m)));
   },
 
   async addMemory(memory) {
-    const memories = await this.getMemories();
+    // Read raw to avoid decrypt→re-encrypt cycle on all entries
+    const rawMemories = ensureArray(await storage.get(STORAGE_KEYS.MEMORIES, []));
     const processedMemory = {
       ...memory,
       id: memory.id || makeId("mem"),
@@ -558,23 +725,25 @@ export const memoryStorage = {
       updatedAt: Date.now(),
     };
     
-    const newMemories = [processedMemory, ...memories.filter(m => m.id !== processedMemory.id)];
+    const encrypted = await this._encryptMemory(processedMemory);
+    const newMemories = [encrypted, ...rawMemories.filter(m => m.id !== processedMemory.id)];
     await storage.set(STORAGE_KEYS.MEMORIES, newMemories);
-    return processedMemory;
+    return processedMemory; // Return decrypted for immediate use
   },
 
   async updateMemory(memory) {
     if (!memory?.id) return null;
-    const memories = await this.getMemories();
+    const rawMemories = ensureArray(await storage.get(STORAGE_KEYS.MEMORIES, []));
     const processed = { ...memory, updatedAt: Date.now() };
-    const newMemories = [processed, ...memories.filter(m => m.id !== processed.id)];
+    const encrypted = await this._encryptMemory(processed);
+    const newMemories = [encrypted, ...rawMemories.filter(m => m.id !== processed.id)];
     await storage.set(STORAGE_KEYS.MEMORIES, newMemories);
     return processed;
   },
 
   async deleteMemory(memoryId) {
-    const memories = await this.getMemories();
-    return storage.set(STORAGE_KEYS.MEMORIES, memories.filter(m => m.id !== memoryId));
+    const rawMemories = ensureArray(await storage.get(STORAGE_KEYS.MEMORIES, []));
+    return storage.set(STORAGE_KEYS.MEMORIES, rawMemories.filter(m => m.id !== memoryId));
   },
 
   async getMemoriesByType(type) {
@@ -594,14 +763,38 @@ export const memoryStorage = {
 /**
  * DOMAIN: Premium Value Loop - Rituals
  * Night ritual storage with history and custom flows
+ * ⚠️ Encrypted at rest via EncryptionService (device-local key).
  */
 export const ritualStorage = {
+  async _decryptItem(item) {
+    if (!item?.isEncrypted || !item?.encryptedData) return item;
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const data = await EncryptionService.decryptJson(item.encryptedData);
+      return data ? { ...data, isEncrypted: false } : { ...item, decryptionFailed: true };
+    } catch {
+      return { ...item, decryptionFailed: true };
+    }
+  },
+
+  async _encryptItem(item) {
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const { id, createdAt, updatedAt, isPremium, isEncrypted, encryptedData, encryptedAt, ...sensitive } = item;
+      const encryptedPayload = await EncryptionService.encryptJson(sensitive);
+      return { id, createdAt, updatedAt, isPremium, encryptedData: encryptedPayload, isEncrypted: true, encryptedAt: Date.now() };
+    } catch {
+      return item;
+    }
+  },
+
   async getRitualHistory() {
-    return ensureArray(await storage.get(STORAGE_KEYS.RITUAL_HISTORY));
+    const raw = ensureArray(await storage.get(STORAGE_KEYS.RITUAL_HISTORY, []));
+    return Promise.all(raw.map(r => this._decryptItem(r)));
   },
 
   async addRitual(ritual) {
-    const history = await this.getRitualHistory();
+    const rawHistory = ensureArray(await storage.get(STORAGE_KEYS.RITUAL_HISTORY, []));
     const processedRitual = {
       ...ritual,
       id: ritual.id || makeId("ritual"),
@@ -609,17 +802,19 @@ export const ritualStorage = {
       updatedAt: Date.now(),
     };
     
-    const newHistory = [processedRitual, ...history.filter(r => r.id !== processedRitual.id)];
+    const encrypted = await this._encryptItem(processedRitual);
+    const newHistory = [encrypted, ...rawHistory.filter(r => r.id !== processedRitual.id)];
     await storage.set(STORAGE_KEYS.RITUAL_HISTORY, newHistory);
     return processedRitual;
   },
 
   async getCustomFlows() {
-    return ensureArray(await storage.get(STORAGE_KEYS.CUSTOM_RITUAL_FLOWS));
+    const raw = ensureArray(await storage.get(STORAGE_KEYS.CUSTOM_RITUAL_FLOWS, []));
+    return Promise.all(raw.map(f => this._decryptItem(f)));
   },
 
   async addCustomFlow(flow) {
-    const flows = await this.getCustomFlows();
+    const rawFlows = ensureArray(await storage.get(STORAGE_KEYS.CUSTOM_RITUAL_FLOWS, []));
     const processedFlow = {
       ...flow,
       id: flow.id || makeId("flow"),
@@ -628,14 +823,15 @@ export const ritualStorage = {
       isPremium: true,
     };
     
-    const newFlows = [processedFlow, ...flows.filter(f => f.id !== processedFlow.id)];
+    const encrypted = await this._encryptItem(processedFlow);
+    const newFlows = [encrypted, ...rawFlows.filter(f => f.id !== processedFlow.id)];
     await storage.set(STORAGE_KEYS.CUSTOM_RITUAL_FLOWS, newFlows);
     return processedFlow;
   },
 
   async deleteCustomFlow(flowId) {
-    const flows = await this.getCustomFlows();
-    return storage.set(STORAGE_KEYS.CUSTOM_RITUAL_FLOWS, flows.filter(f => f.id !== flowId));
+    const rawFlows = ensureArray(await storage.get(STORAGE_KEYS.CUSTOM_RITUAL_FLOWS, []));
+    return storage.set(STORAGE_KEYS.CUSTOM_RITUAL_FLOWS, rawFlows.filter(f => f.id !== flowId));
   },
 };
 
@@ -643,13 +839,39 @@ export const ritualStorage = {
  * DOMAIN: Premium Value Loop - Vibe History
  * Track vibe signal history for analytics and themes
  */
+/**
+ * ⚠️ Encrypted at rest via EncryptionService (device-local key).
+ */
 export const vibeStorage = {
+  async _decryptEntry(entry) {
+    if (!entry?.isEncrypted || !entry?.encryptedData) return entry;
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const data = await EncryptionService.decryptJson(entry.encryptedData);
+      return data ? { ...data, isEncrypted: false } : { ...entry, decryptionFailed: true };
+    } catch {
+      return { ...entry, decryptionFailed: true };
+    }
+  },
+
+  async _encryptEntry(entry) {
+    try {
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const { id, timestamp, synced, isEncrypted, encryptedData, encryptedAt, ...sensitive } = entry;
+      const encryptedPayload = await EncryptionService.encryptJson(sensitive);
+      return { id, timestamp, synced, encryptedData: encryptedPayload, isEncrypted: true, encryptedAt: Date.now() };
+    } catch {
+      return entry;
+    }
+  },
+
   async getVibeHistory() {
-    return ensureArray(await storage.get(STORAGE_KEYS.VIBE_HISTORY));
+    const raw = ensureArray(await storage.get(STORAGE_KEYS.VIBE_HISTORY, []));
+    return Promise.all(raw.map(e => this._decryptEntry(e)));
   },
 
   async addVibeEntry(vibe, userId) {
-    const history = await this.getVibeHistory();
+    const rawHistory = ensureArray(await storage.get(STORAGE_KEYS.VIBE_HISTORY, []));
     const entry = {
       id: makeId("vibe"),
       vibe,
@@ -658,7 +880,8 @@ export const vibeStorage = {
       synced: false,
     };
     
-    const newHistory = [entry, ...history.slice(0, 99)]; // Keep last 100 entries
+    const encrypted = await this._encryptEntry(entry);
+    const newHistory = [encrypted, ...rawHistory.slice(0, 99)]; // Keep last 100 entries
     await storage.set(STORAGE_KEYS.VIBE_HISTORY, newHistory);
     return entry;
   },
@@ -677,7 +900,7 @@ export const vibeStorage = {
  */
 export const biometricVaultStorage = {
   async getVaultData() {
-    const raw = ensureObject(await storage.get(STORAGE_KEYS.BIOMETRIC_VAULT));
+    const raw = ensureObject(await storage.get(STORAGE_KEYS.BIOMETRIC_VAULT, {}));
     if (!Object.keys(raw).length) return raw;
 
     const { default: EncryptionService } = await import('../services/EncryptionService');
@@ -712,7 +935,7 @@ export const biometricVaultStorage = {
   },
 
   async addToVault(key, value) {
-    const vault = ensureObject(await storage.get(STORAGE_KEYS.BIOMETRIC_VAULT));
+    const vault = ensureObject(await storage.get(STORAGE_KEYS.BIOMETRIC_VAULT, {}));
     const { default: EncryptionService } = await import('../services/EncryptionService');
     const encryptedData = await EncryptionService.encryptJson(value);
     vault[key] = {
@@ -740,7 +963,7 @@ export const biometricVaultStorage = {
  */
 export const cloudSyncStorage = {
   async getSyncStatus() {
-    return ensureObject(await storage.get(STORAGE_KEYS.CLOUD_SYNC_STATUS));
+    return ensureObject(await storage.get(STORAGE_KEYS.CLOUD_SYNC_STATUS, {}));
   },
 
   async setSyncStatus(status) {
@@ -751,7 +974,7 @@ export const cloudSyncStorage = {
   },
 
   async getBackupMetadata() {
-    return ensureArray(await storage.get(STORAGE_KEYS.CLOUD_BACKUP_METADATA));
+    return ensureArray(await storage.get(STORAGE_KEYS.CLOUD_BACKUP_METADATA, []));
   },
 
   async addBackupMetadata(metadata) {
@@ -768,7 +991,7 @@ export const cloudSyncStorage = {
   },
 
   async getLastSyncTime() {
-    return await storage.get(STORAGE_KEYS.LAST_CLOUD_SYNC);
+    return await storage.get(STORAGE_KEYS.LAST_CLOUD_SYNC, null);
   },
 
   async setLastSyncTime(timestamp = Date.now()) {
@@ -776,7 +999,7 @@ export const cloudSyncStorage = {
   },
 
   async getSyncQueue() {
-    return ensureArray(await storage.get(STORAGE_KEYS.CLOUD_SYNC_QUEUE));
+    return ensureArray(await storage.get(STORAGE_KEYS.CLOUD_SYNC_QUEUE, []));
   },
 
   async setSyncQueue(queue) {
@@ -813,12 +1036,12 @@ export const cloudSyncStorage = {
  */
 export const memoryExportStorage = {
   async getCachedExport(exportId) {
-    const cache = ensureObject(await storage.get(STORAGE_KEYS.MEMORY_EXPORT_CACHE));
+    const cache = ensureObject(await storage.get(STORAGE_KEYS.MEMORY_EXPORT_CACHE, {}));
     return cache[exportId] || null;
   },
 
   async setCachedExport(exportId, exportData) {
-    const cache = ensureObject(await storage.get(STORAGE_KEYS.MEMORY_EXPORT_CACHE));
+    const cache = ensureObject(await storage.get(STORAGE_KEYS.MEMORY_EXPORT_CACHE, {}));
     cache[exportId] = {
       ...exportData,
       cachedAt: Date.now(),

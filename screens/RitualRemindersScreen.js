@@ -15,13 +15,15 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useRitualContext } from '../context/RitualContext';
+import { useEntitlements } from '../context/EntitlementsContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 import { cancelNotification } from '../utils/notifications';
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
 
 export default function RitualRemindersScreen({ navigation }) {
-  const { theme } = useTheme();
+  const theme = useTheme();
   const { actions } = useRitualContext();
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const [reminders, setReminders] = useState([]);
   const [showPicker, setShowPicker] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -34,7 +36,7 @@ export default function RitualRemindersScreen({ navigation }) {
   }, [reminders]);
 
   const loadReminders = async () => {
-    const data = (await storage.get(STORAGE_KEYS.RITUAL_REMINDERS)) || [];
+    const data = await storage.get(STORAGE_KEYS.RITUAL_REMINDERS, []);
     setReminders(Array.isArray(data) ? data : []);
   };
 
@@ -95,9 +97,40 @@ export default function RitualRemindersScreen({ navigation }) {
     ]);
   };
 
+  if (!isPremium) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <LinearGradient colors={theme.gradients.secondary || theme.gradients.background || [theme.colors.background, theme.colors.background]} style={StyleSheet.absoluteFill} />
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+              <MaterialCommunityIcons name="arrow-left" size={24} color={theme.colors.text} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Ritual Reminders</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
+            <MaterialCommunityIcons name="bell-ring-outline" size={56} color={theme.colors.primary} style={{ marginBottom: 16 }} />
+            <Text style={{ color: theme.colors.text, fontSize: 20, fontWeight: '600', marginBottom: 8, textAlign: 'center' }}>Premium Feature</Text>
+            <Text style={{ color: theme.colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
+              Ritual reminders help you build consistent connection habits with your partner. Upgrade to schedule personalized reminders.
+            </Text>
+            <TouchableOpacity
+              onPress={() => showPaywall('ritualReminders')}
+              style={{ backgroundColor: theme.colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 }}
+              activeOpacity={0.85}
+            >
+              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>Upgrade to Premium</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <LinearGradient colors={theme.gradients.secondary} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={theme.gradients.secondary || theme.gradients.background || [theme.colors.background, theme.colors.background]} style={StyleSheet.absoluteFill} />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -257,14 +290,14 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: '#151118',
     marginBottom: SPACING.md,
   },
   timeText: {
     ...TYPOGRAPHY.body,
   },
   primaryButton: {
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#A89060',
     paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     alignItems: 'center',
@@ -289,7 +322,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: '#151118',
   },
   reminderInfo: {
     flex: 1,

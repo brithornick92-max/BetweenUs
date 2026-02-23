@@ -1,0 +1,68 @@
+{
+  "meta": {
+    "type": "settings-spec",
+    "app": "Between Us",
+    "version": "1.1.0",
+    "description": "Design spec for user settings. This file is NOT imported at runtime. Actual settings are managed by NicknameEngine (@bu_nickname_config), AppContext (storage utility), and PrivacySecuritySettingsScreen.",
+    "status": "design-document-only"
+  },
+  "implemented": {
+    "partnerNames": {
+      "engine": "NicknameEngine (services/PolishEngine.js)",
+      "storage": "AsyncStorage @bu_nickname_config + AppContext PARTNER_LABEL",
+      "ui": "components/NicknameSettings.jsx in SettingsScreen",
+      "fields": {
+        "myNickname": "How the user wants to be called",
+        "partnerNickname": "How their partner is called (synced to AppContext.partnerLabel on change)"
+      }
+    },
+    "heatLevel": {
+      "engine": "PremiumGatekeeper + ContentContext",
+      "storage": "AsyncStorage @betweenus:heatLevelPreference",
+      "ui": "HeatLevelSettingsScreen + OnboardingScreen",
+      "levels": ["Heart Connection", "Spark & Attraction", "Intimate Connection", "Adventurous Exploration", "Unrestrained Passion"]
+    },
+    "tone": {
+      "engine": "NicknameEngine (services/PolishEngine.js)",
+      "storage": "AsyncStorage @bu_nickname_config.tone",
+      "options": ["warm", "playful", "intimate", "minimal"],
+      "ui": "components/NicknameSettings.jsx"
+    },
+    "appLock": {
+      "engine": "AppContext + PrivacySecuritySettingsScreen",
+      "storage": "AsyncStorage APP_LOCK_ENABLED",
+      "ui": "screens/PrivacySecuritySettingsScreen.js"
+    },
+    "relationshipSeason": {
+      "engine": "RelationshipSeasons (services/PolishEngine.js)",
+      "storage": "AsyncStorage @bu_relationship_season",
+      "ui": "components/SeasonSelector.jsx in SettingsScreen"
+    },
+    "softBoundaries": {
+      "engine": "SoftBoundaries (services/PolishEngine.js)",
+      "storage": "AsyncStorage @bu_soft_boundaries",
+      "ui": "components/SoftBoundariesPanel.jsx in SettingsScreen"
+    }
+  },
+  "notImplemented": {
+    "bodyPositive": {
+      "originalSpec": "Include prompts that celebrate all body types and abilities",
+      "reason": "No prompts in prompts.json have a bodyPositive metadata tag. Needs content tagging before filter can work.",
+      "effort": "medium"
+    },
+    "savePreferences": {
+      "originalSpec": "Remember My Settings",
+      "reason": "All settings are always persisted. This toggle has no useful behavior.",
+      "recommendation": "remove from spec"
+    },
+    "anonymousUsage": {
+      "originalSpec": "Don't store any personal preference data",
+      "reason": "App has no analytics/telemetry. No data sent externally. Would only prevent local preferences.",
+      "recommendation": "remove from spec"
+    }
+  },
+  "onboardingFlow": {
+    "note": "Actual onboarding is in screens/OnboardingScreen.js",
+    "steps": ["welcome", "partnerNames", "heatLevel", "relationshipDuration", "tone"]
+  }
+}

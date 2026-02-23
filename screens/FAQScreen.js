@@ -7,9 +7,11 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTheme } from '../context/ThemeContext';
 
 const FAQ_DATA = [
   {
@@ -17,15 +19,15 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What is Between Us?',
-        a: 'Between Us is a relationship app designed to help thriving couples deepen their connection through daily prompts, journaling, and shared experiences. We provide conversation starters, intimate questions, and tools to help you and your partner grow closer.\n\nImportant: Between Us is for couples who are already doing well and want to do even better. It\'s not designed for couples experiencing serious relationship difficulties.',
+        a: 'Between Us is a couples app built around one idea: where closeness deepens. Through daily prompts, shared journaling, and intimate rituals, it gives you and your partner a private space to connect more meaningfully.\n\nBetween Us is designed for couples who already have a loving foundation — it\'s for those who want to explore even deeper intimacy and connection together.',
       },
       {
         q: 'Who is Between Us for?',
-        a: 'Between Us is for thriving couples who want to deepen their connection. It\'s NOT appropriate for couples struggling with serious conflicts, trust issues, communication breakdowns, or considering separation.\n\nIf you\'re experiencing relationship difficulties, please seek professional counseling.',
+        a: 'Between Us is for couples who are already in a good place and want to go deeper. If your relationship has a strong foundation and you want to make it even richer, this app is for you.\n\nIt\'s not a therapy app and isn\'t designed for couples navigating serious relationship concerns. If that\'s where you are, we\'d gently encourage professional counseling.',
       },
       {
         q: 'How much does it cost?',
-        a: 'Free version: Basic prompts (Heat levels 1-2)\n\nPremium:\n• Monthly: $7.99/month per couple\n• Yearly: $49.99/year (save 48%!)\n• Lifetime: $69.99 one-time payment\n\nPremium is per couple - when one partner subscribes, both get premium features when linked.',
+        a: 'Free version: Preview 3 read-only prompts (Heat levels 1-3)\n\nPremium:\n• Monthly: $7.99/month per couple\n• Yearly: $49.99/year (save 48%!)\n• Lifetime: $69.99 one-time payment\n\nPremium unlocks unlimited prompts, responses, love notes, calendar, partner connection, and more. One subscription covers both partners.',
       },
       {
         q: 'How do I get started?',
@@ -118,7 +120,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'The app isn\'t working. What should I do?',
-        a: '1. Force close and reopen the app\n2. Check for app updates\n3. Restart your device\n4. Check your internet connection\n5. Contact support if issues persist',
+        a: '1. Force close and reopen the app\n2. Check for app updates\n3. Restart your device\n4. Check your internet connection\n5. Contact support if this continues',
       },
       {
         q: 'My partner and I aren\'t syncing. Help!',
@@ -131,19 +133,19 @@ const FAQ_DATA = [
     ],
   },
   {
-    category: 'Relationship Advice',
+    category: 'About Between Us & Your Relationship',
     questions: [
       {
         q: 'Is Between Us a substitute for therapy?',
-        a: 'No. Between Us is a tool for connection, not therapy. The app is designed for thriving couples, not those in crisis. Serious issues need professional help.\n\nSeek professional help if you\'re experiencing ongoing conflict, trust issues, abuse, or considering separation.',
+        a: 'No. Between Us is a connection experience, not therapy. It\'s designed for couples who already have a loving foundation and want to go deeper — it\'s not a space for navigating serious relationship concerns.\n\nIf you\'re in a place that needs professional support, we\'d always encourage reaching out to a licensed therapist.',
       },
       {
         q: 'When should we NOT use Between Us?',
-        a: 'Don\'t use Between Us if you\'re:\n• In active conflict or crisis\n• Dealing with infidelity or trust issues\n• Experiencing abuse\n• Considering separation or divorce\n• Feeling unsafe with your partner\n\nBetween Us is for thriving couples who want to deepen their connection, not for couples in crisis.',
+        a: 'Between Us may not be the right fit if you\'re:\n• Navigating a relationship crisis\n• Working through trust concerns\n• Experiencing abuse of any kind\n• Considering separation or divorce\n• Feeling unsafe with your partner\n\nThis app is for couples who are in a good place — it\'s built to deepen what\'s already beautiful. For serious concerns, please reach out to a licensed therapist.',
       },
       {
-        q: 'Can Between Us save a struggling relationship?',
-        a: 'No. Between Us is not designed for couples in crisis. It\'s for thriving couples who want to deepen their connection. If you\'re experiencing serious relationship problems, please seek professional help from a licensed therapist or counselor.',
+        q: 'Is Between Us right for every couple?',
+        a: 'Between Us is designed for couples who are already in a loving place and want to explore deeper intimacy and connection. It\'s not a substitute for professional support. If your relationship needs that kind of care, a licensed therapist or counselor is the right next step.',
       },
     ],
   },
@@ -151,6 +153,7 @@ const FAQ_DATA = [
 
 export default function FAQScreen({ navigation }) {
   const [expandedItems, setExpandedItems] = useState({});
+  const { colors } = useTheme();
 
   const toggleItem = (categoryIndex, questionIndex) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -163,16 +166,15 @@ export default function FAQScreen({ navigation }) {
 
   const handleContactSupport = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // In a real app, this would open email or contact form
-    alert('Contact Support\n\nEmail: brittanyapps@outlook.com\nResponse time: 24-48 hours');
+    Alert.alert('Contact Support', 'Email: brittanyapps@outlook.com\nResponse time: 24-48 hours');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" />
       
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -180,25 +182,25 @@ export default function FAQScreen({ navigation }) {
           }}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>FAQ</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>FAQ</Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Introduction */}
-        <View style={styles.intro}>
-          <Text style={styles.introTitle}>Frequently Asked Questions</Text>
-          <Text style={styles.introText}>
+        <View style={[styles.intro, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.introTitle, { color: colors.text }]}>Frequently Asked Questions</Text>
+          <Text style={[styles.introText, { color: colors.textSecondary }]}>
             Find answers to common questions about Between Us. Can't find what you're looking for? Contact support below.
           </Text>
         </View>
 
         {/* FAQ Categories */}
         {FAQ_DATA.map((category, categoryIndex) => (
-          <View key={categoryIndex} style={styles.category}>
-            <Text style={styles.categoryTitle}>{category.category}</Text>
+          <View key={categoryIndex} style={[styles.category, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.categoryTitle, { color: colors.blushRose }]}>{category.category}</Text>
             
             {category.questions.map((item, questionIndex) => {
               const key = `${categoryIndex}-${questionIndex}`;
@@ -207,22 +209,22 @@ export default function FAQScreen({ navigation }) {
               return (
                 <TouchableOpacity
                   key={questionIndex}
-                  style={styles.faqItem}
+                  style={[styles.faqItem, { borderTopColor: colors.border }]}
                   onPress={() => toggleItem(categoryIndex, questionIndex)}
                   activeOpacity={0.7}
                 >
                   <View style={styles.questionRow}>
-                    <Text style={styles.question}>{item.q}</Text>
+                    <Text style={[styles.question, { color: colors.text }]}>{item.q}</Text>
                     <Ionicons
                       name={isExpanded ? 'chevron-up' : 'chevron-down'}
                       size={20}
-                      color="#666"
+                      color={colors.textSecondary}
                       style={styles.chevron}
                     />
                   </View>
                   
                   {isExpanded && (
-                    <Text style={styles.answer}>{item.a}</Text>
+                    <Text style={[styles.answer, { color: colors.textSecondary }]}>{item.a}</Text>
                   )}
                 </TouchableOpacity>
               );
@@ -231,22 +233,22 @@ export default function FAQScreen({ navigation }) {
         ))}
 
         {/* Contact Support */}
-        <View style={styles.supportSection}>
-          <Text style={styles.supportTitle}>Still have questions?</Text>
-          <Text style={styles.supportText}>
+        <View style={[styles.supportSection, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.supportTitle, { color: colors.text }]}>Still have questions?</Text>
+          <Text style={[styles.supportText, { color: colors.textSecondary }]}>
             We're here to help! Contact our support team and we'll get back to you within 24-48 hours.
           </Text>
           
           <TouchableOpacity
-            style={styles.supportButton}
+            style={[styles.supportButton, { backgroundColor: colors.primary }]}
             onPress={handleContactSupport}
             activeOpacity={0.8}
           >
-            <Ionicons name="mail-outline" size={20} color="#FFF" />
-            <Text style={styles.supportButtonText}>Contact Support</Text>
+            <Ionicons name="mail-outline" size={20} color={'#FFFFFF'} />
+            <Text style={[styles.supportButtonText, { color: '#FFFFFF' }]}>Contact Support</Text>
           </TouchableOpacity>
           
-          <Text style={styles.supportEmail}>brittanyapps@outlook.com</Text>
+          <Text style={[styles.supportEmail, { color: colors.textSecondary }]}>brittanyapps@outlook.com</Text>
         </View>
 
         <View style={styles.bottomPadding} />
@@ -258,7 +260,6 @@ export default function FAQScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   header: {
     flexDirection: 'row',
@@ -266,9 +267,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
   },
   backButton: {
     padding: 4,
@@ -276,7 +275,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   placeholder: {
     width: 32,
@@ -285,30 +283,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   intro: {
-    backgroundColor: '#FFF',
     padding: 20,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   introTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333',
     marginBottom: 12,
   },
   introText: {
     fontSize: 15,
-    color: '#666',
     lineHeight: 22,
   },
   category: {
-    backgroundColor: '#FFF',
-    marginBottom: 16,
+    marginBottom: 12,
     paddingTop: 20,
   },
   categoryTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
     paddingHorizontal: 20,
     marginBottom: 12,
   },
@@ -316,7 +311,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
   },
   questionRow: {
     flexDirection: 'row',
@@ -327,7 +321,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     lineHeight: 22,
     marginRight: 12,
   },
@@ -336,12 +329,10 @@ const styles = StyleSheet.create({
   },
   answer: {
     fontSize: 15,
-    color: '#666',
     lineHeight: 22,
     marginTop: 12,
   },
   supportSection: {
-    backgroundColor: '#FFF',
     padding: 20,
     marginBottom: 16,
     alignItems: 'center',
@@ -349,12 +340,10 @@ const styles = StyleSheet.create({
   supportTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
     marginBottom: 8,
   },
   supportText: {
     fontSize: 15,
-    color: '#666',
     lineHeight: 22,
     textAlign: 'center',
     marginBottom: 20,
@@ -362,7 +351,6 @@ const styles = StyleSheet.create({
   supportButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF6B9D',
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 12,
@@ -376,7 +364,6 @@ const styles = StyleSheet.create({
   },
   supportEmail: {
     fontSize: 14,
-    color: '#999',
   },
   bottomPadding: {
     height: 40,

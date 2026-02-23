@@ -26,7 +26,7 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
  * 6. Store the couple symmetric key locally.
  */
 export default function PairingQRCodeScreen({ navigation }) {
-  const { theme } = useTheme();
+  const theme = useTheme();
   const { isPremiumEffective: isPremium } = useEntitlements();
   const { user, updateProfile } = useAuth();
 
@@ -123,7 +123,7 @@ export default function PairingQRCodeScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <LinearGradient colors={theme.gradients.secondary} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={theme.gradients.secondary || theme.gradients.background || [theme.colors.background, theme.colors.background]} style={StyleSheet.absoluteFill} />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.card}>
           <Text style={[styles.title, { color: theme.colors.text }]}>Link Partner</Text>
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1, paddingHorizontal: SPACING.xl, justifyContent: 'center' },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#151118',
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING.xl,
     alignItems: 'center',
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   qrWrap: { marginTop: SPACING.lg, padding: SPACING.lg, borderRadius: BORDER_RADIUS.lg },
   primaryButton: {
     marginTop: SPACING.lg,
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#A89060',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,

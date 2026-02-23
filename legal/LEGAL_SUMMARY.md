@@ -1,6 +1,6 @@
 # Legal Documents Summary
 
-**Last Updated: February 3, 2026**
+**Last Updated: February 16, 2026**
 
 This document provides an overview of all legal documents for the Between Us app.
 
@@ -76,7 +76,7 @@ This document provides an overview of all legal documents for the Between Us app
 
 ### Data Protection
 🔒 **End-to-End Encrypted** - Your intimate content is protected  
-🔒 **Client-Side ML** - Processing happens on your device  
+🔒 **Client-Side Processing** - Personalization happens on your device  
 🔒 **No Third-Party Sharing** - We never sell your data  
 
 ---
@@ -112,11 +112,10 @@ This document provides an overview of all legal documents for the Between Us app
 - ✅ App Store Guidelines
 - ✅ Google Play Policies
 
-### Certifications
+### Security
 - Industry-standard client-side encryption (XSalsa20-Poly1305)
 - TLS/SSL for data in transit
-- Regular security audits
-- SOC 2 Type II (in progress)
+- Encryption keys stored in device secure hardware
 
 ---
 
@@ -137,21 +136,9 @@ This document provides an overview of all legal documents for the Between Us app
 
 ## Legal Jurisdiction
 
-**Governing Law:** [Your Jurisdiction]  
+**Governing Law:** United States  
 **Dispute Resolution:** Binding arbitration  
 **Small Claims:** Available for qualifying disputes
-
----
-
-## For Developers
-
-### API Terms
-- Separate API terms available
-- Contact: brittanyapps@outlook.com
-
-### Partner Integration
-- Partnership terms available
-- Contact: brittanyapps@outlook.com
 
 ---
 
@@ -173,8 +160,6 @@ We publish annual transparency reports covering:
 All legal documents are:
 - Available in plain language
 - Accessible via screen readers
-- Downloadable as PDF
-- Available in multiple formats
 
 ---
 
@@ -182,6 +167,9 @@ All legal documents are:
 
 | Document | Version | Date | Changes |
 |----------|---------|------|---------|
+| Terms of Service | 1.1 | Feb 16, 2026 | Accurate feature descriptions |
+| Privacy Policy | 1.1 | Feb 16, 2026 | Removed inaccurate data collection claims |
+| FAQ | 1.1 | Feb 16, 2026 | Updated feature descriptions and export formats |
 | Terms of Service | 1.0 | Jan 29, 2026 | Initial version |
 | Privacy Policy | 1.0 | Jan 29, 2026 | Initial version |
 | FAQ | 1.0 | Jan 29, 2026 | Initial version |

@@ -128,7 +128,7 @@ export const EntitlementsProvider = ({ children }) => {
         input_is_premium: !!isPremiumSelf,
         input_source: isPremiumSelf ? user.uid : 'none',
       });
-      console.log('[Entitlements] Synced self premium to couple:', isPremiumSelf);
+      if (__DEV__) console.log('[Entitlements] Synced self premium to couple:', isPremiumSelf);
     } catch (err) {
       console.warn('[Entitlements] Failed to sync premium to couple:', err.message);
     }
@@ -181,7 +181,7 @@ export const EntitlementsProvider = ({ children }) => {
           const newPremium = payload.new?.is_premium ?? false;
           setIsPremiumCouple(newPremium);
           _cacheCouplePremium(newPremium);
-          console.log('[Entitlements] Real-time couple premium update:', newPremium);
+          if (__DEV__) console.log('[Entitlements] Real-time couple premium update:', newPremium);
         }
       )
       .subscribe();
@@ -193,7 +193,8 @@ export const EntitlementsProvider = ({ children }) => {
 
   // ─── Derived State ──────────────────────────────────────────────────────────
 
-  const isPremiumEffective = !!(isPremiumSelf || isPremiumCouple);
+  // TODO: Remove this dev override when done testing
+  const isPremiumEffective = __DEV__ ? true : !!(isPremiumSelf || isPremiumCouple);
 
   // Determine source
   useEffect(() => {
@@ -400,6 +401,12 @@ async function _loadCachedCouplePremium() {
     const raw = await AsyncStorage.getItem(COUPLE_PREMIUM_CACHE_KEY);
     if (!raw) return null;
     const { isPremium, cachedAt } = JSON.parse(raw);
+
+    // Reject tampered timestamps (future dates or non-numbers)
+    if (typeof cachedAt !== 'number' || cachedAt > Date.now() + 60000) {
+      // Suspicious cache — treat as expired
+      return false;
+    }
 
     // Honor the 72-hour grace window
     if (Date.now() - cachedAt > GRACE_WINDOW_MS) {

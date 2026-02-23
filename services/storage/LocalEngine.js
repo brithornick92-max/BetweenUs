@@ -13,8 +13,8 @@ class LocalEngine {
     return LocalStorageService.signInWithEmailAndPassword(email, password);
   }
 
-  signOut() {
-    return LocalStorageService.signOut();
+  signOut(scope) {
+    return LocalStorageService.signOut(scope);
   }
 
   onAuthStateChanged(callback) {

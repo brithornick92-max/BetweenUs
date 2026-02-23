@@ -46,35 +46,58 @@ export const PREMIUM_FEATURES = {
     emotionalValue: 'Peace of mind for your relationship history',
     icon: '☁️',
   },
-  LUXURY_THEMES: {
-    id: 'luxury_themes',
-    name: 'Luxury Themes',
-    description: 'Exclusive color palettes and anniversary themes',
-    category: 'customization',
-    emotionalValue: 'Make every moment feel special',
-    icon: '✨',
-  },
-  CUSTOM_HAPTICS: {
-    id: 'custom_haptics',
-    name: 'Custom Haptics',
-    description: 'Personalized touch feedback for your interactions',
-    category: 'customization',
-    emotionalValue: 'Feel the connection in every touch',
-    icon: '💫',
-  },
 };
 
 export const SUBSCRIPTION_TIERS = {
-  PREMIUM: {
+  MONTHLY: {
     id: 'premium_monthly',
-    name: 'Premium Couple',
-    price: '$9.99/month',
+    name: 'Monthly',
+    price: '$7.99/month',
+    mostPopular: false,
     features: Object.values(PREMIUM_FEATURES),
     emotionalBenefits: [
       'Protect your love story forever',
       'Create deeper intimacy through custom rituals',
       'Never lose precious memories',
       'Build stronger connection habits',
+    ],
+    memoryProtection: [
+      'Unlimited memory storage',
+      'PDF export of your timeline',
+      'Secure cloud backup',
+      'Biometric vault protection',
+    ],
+  },
+  YEARLY: {
+    id: 'premium_yearly',
+    name: 'Yearly',
+    price: '$49.99/year',
+    mostPopular: true,
+    features: Object.values(PREMIUM_FEATURES),
+    emotionalBenefits: [
+      'Best value: Save 50% vs monthly',
+      'All premium features, all year',
+      'Priority support',
+      'Protect your love story forever',
+    ],
+    memoryProtection: [
+      'Unlimited memory storage',
+      'PDF export of your timeline',
+      'Secure cloud backup',
+      'Biometric vault protection',
+    ],
+  },
+  LIFETIME: {
+    id: 'premium_lifetime',
+    name: 'Lifetime',
+    price: '$69.99 one-time',
+    mostPopular: false,
+    features: Object.values(PREMIUM_FEATURES),
+    emotionalBenefits: [
+      'One payment, forever premium',
+      'No renewals, no worries',
+      'All future features included',
+      'Protect your love story forever',
     ],
     memoryProtection: [
       'Unlimited memory storage',
@@ -113,13 +136,15 @@ export class PremiumGatekeeper {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
     // Focus on emotional value and memory protection
+    // Use YEARLY tier (most popular) as the default paywall presentation
+    const defaultTier = SUBSCRIPTION_TIERS.YEARLY;
     const paywallContent = {
       title: "Protect Your Love Story",
       subtitle: "Premium features help preserve and enhance your relationship memories",
       feature: feature,
-      tier: SUBSCRIPTION_TIERS.PREMIUM,
-      emotionalBenefits: SUBSCRIPTION_TIERS.PREMIUM.emotionalBenefits,
-      memoryProtection: SUBSCRIPTION_TIERS.PREMIUM.memoryProtection,
+      tier: defaultTier,
+      emotionalBenefits: defaultTier.emotionalBenefits,
+      memoryProtection: defaultTier.memoryProtection,
     };
 
     // Notify all registered paywall callbacks
@@ -161,14 +186,6 @@ export class PremiumGatekeeper {
     return this.validateFeatureAccess('cloud_sync', isPremium, false);
   }
 
-  async canUseLuxuryThemes(isPremium) {
-    return this.validateFeatureAccess('luxury_themes', isPremium, false);
-  }
-
-  async canUseCustomHaptics(isPremium) {
-    return this.validateFeatureAccess('custom_haptics', isPremium, false);
-  }
-
   // Feature access with automatic paywall
   async requireMemoryExport(isPremium) {
     return this.validateFeatureAccess('memory_export', isPremium, true);
@@ -190,14 +207,6 @@ export class PremiumGatekeeper {
     return this.validateFeatureAccess('cloud_sync', isPremium, true);
   }
 
-  async requireLuxuryThemes(isPremium) {
-    return this.validateFeatureAccess('luxury_themes', isPremium, true);
-  }
-
-  async requireCustomHaptics(isPremium) {
-    return this.validateFeatureAccess('custom_haptics', isPremium, true);
-  }
-
   getFeaturesByCategory(category) {
     return Object.values(PREMIUM_FEATURES).filter(feature => feature.category === category);
   }
@@ -212,7 +221,7 @@ export class PremiumGatekeeper {
 
   // Get premium feature usage analytics
   async getFeatureUsageStats() {
-    const usage = (await storage.get(FEATURE_USAGE_KEY)) || {};
+    const usage = (await storage.get(FEATURE_USAGE_KEY, {})) || {};
     const counts = usage?.counts || {};
     const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
     const mostUsedFeature =
@@ -227,7 +236,7 @@ export class PremiumGatekeeper {
 
   async trackFeatureAccess(featureId) {
     if (!featureId) return;
-    const usage = (await storage.get(FEATURE_USAGE_KEY)) || {};
+    const usage = (await storage.get(FEATURE_USAGE_KEY, {})) || {};
     const counts = usage?.counts || {};
     const nextCounts = {
       ...counts,

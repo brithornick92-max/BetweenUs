@@ -114,7 +114,7 @@ export class AnniversaryThemeGenerator {
    */
   async getTodaysAnniversaryThemes() {
     try {
-      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES) || [];
+      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES, []) || [];
       const today = new Date();
       
       return themes.filter(theme => {
@@ -134,7 +134,7 @@ export class AnniversaryThemeGenerator {
    */
   async getUpcomingAnniversaryThemes() {
     try {
-      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES) || [];
+      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES, []) || [];
       const today = new Date();
       const nextWeek = new Date(today.getTime() + (7 * 24 * 60 * 60 * 1000));
       
@@ -162,7 +162,7 @@ export class AnniversaryThemeGenerator {
       const theme = this.generateThemeFromMemory(memory);
       
       // Get existing themes
-      const existingThemes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES) || [];
+      const existingThemes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES, []) || [];
       
       // Check if theme already exists for this memory
       const existingTheme = existingThemes.find(t => t.memoryId === memory.id);
@@ -186,7 +186,7 @@ export class AnniversaryThemeGenerator {
    */
   async updateAnniversaryTheme(themeId, updates) {
     try {
-      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES) || [];
+      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES, []) || [];
       const themeIndex = themes.findIndex(t => t.id === themeId);
       
       if (themeIndex === -1) {
@@ -212,7 +212,7 @@ export class AnniversaryThemeGenerator {
    */
   async deleteAnniversaryTheme(themeId) {
     try {
-      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES) || [];
+      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES, []) || [];
       const filteredThemes = themes.filter(t => t.id !== themeId);
       
       await storage.set(STORAGE_KEYS.ANNIVERSARY_THEMES, filteredThemes);
@@ -228,8 +228,8 @@ export class AnniversaryThemeGenerator {
    */
   async getAnniversaryStats() {
     try {
-      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES) || [];
-      const vibeHistory = await storage.get(STORAGE_KEYS.ANNIVERSARY_VIBE_HISTORY) || [];
+      const themes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES, []) || [];
+      const vibeHistory = await storage.get(STORAGE_KEYS.ANNIVERSARY_VIBE_HISTORY, []) || [];
       
       return {
         totalThemes: themes.length,

@@ -7,9 +7,11 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Modal,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -26,26 +28,41 @@ const ExportDataScreen = ({ navigation }) => {
   const { state: memoryState } = useMemoryContext();
   const memories = memoryState?.memories;
   const [isExporting, setIsExporting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [includeSharedEntries, setIncludeSharedEntries] = useState(false);
+  const [includeAccountDetails, setIncludeAccountDetails] = useState(false);
 
-  const exportData = async () => {
+  const exportData = async (options = {}) => {
     try {
       setIsExporting(true);
 
       // Prepare data for export
-      const exportData = {
+      const includeShared = !!options.includeSharedEntries;
+      const includeAccount = !!options.includeAccountDetails;
+
+      // Filter shared entries when user opts out
+      const filteredEntries = (memories || []).filter((m) => {
+        if (includeShared) return true;
+        // Common shared flags; if present and true, exclude when includeShared is false
+        return !(m?.shared === true || m?.isShared === true || m?.partnerShared === true);
+      });
+
+      const exportPayload = {
         exportDate: new Date().toISOString(),
-        user: {
-          email: user?.email,
-          displayName: userProfile?.displayName,
-          relationshipStartDate: userProfile?.relationshipStartDate,
-          createdAt: userProfile?.createdAt,
-        },
-        journalEntries: memories || [],
-        totalEntries: memories?.length || 0,
+        user: includeAccount
+          ? {
+              email: user?.email,
+              displayName: userProfile?.displayName,
+              relationshipStartDate: userProfile?.relationshipStartDate,
+              createdAt: userProfile?.createdAt,
+            }
+          : null,
+        journalEntries: filteredEntries,
+        totalEntries: filteredEntries?.length || 0,
       };
 
       // Convert to JSON
-      const jsonData = JSON.stringify(exportData, null, 2);
+      const jsonData = JSON.stringify(exportPayload, null, 2);
 
       // Create filename with timestamp
       const timestamp = new Date().toISOString().split('T')[0];
@@ -66,11 +83,12 @@ const ExportDataScreen = ({ navigation }) => {
           UTI: 'public.json',
         });
 
-        Alert.alert(
-          'Export Successful',
-          'Your data has been exported. You can now save it to your device or share it.',
-          [{ text: 'OK' }]
-        );
+        // Clean up exported file after sharing to avoid plaintext data lingering on disk
+        try {
+          await FileSystem.deleteAsync(fileUri, { idempotent: true });
+        } catch (e) { /* cleanup non-critical */ }
+
+        Alert.alert('Export Successful', 'Your data has been exported. The temporary file has been removed from this device.', [{ text: 'OK' }]);
       } else {
         Alert.alert(
           'Export Complete',
@@ -79,7 +97,7 @@ const ExportDataScreen = ({ navigation }) => {
         );
       }
     } catch (error) {
-      console.error('Export error:', error);
+      console.error('Export error:', error?.message ?? error);
       Alert.alert(
         'Export Failed',
         'Failed to export your data. Please try again.',
@@ -91,17 +109,7 @@ const ExportDataScreen = ({ navigation }) => {
   };
 
   const handleExport = () => {
-    Alert.alert(
-      'Export Your Data',
-      'This will create a file containing all your journal entries and account information. The file will be in JSON format.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Export',
-          onPress: exportData,
-        },
-      ]
-    );
+    setShowConfirm(true);
   };
 
   return (
@@ -209,14 +217,49 @@ const ExportDataScreen = ({ navigation }) => {
             disabled={isExporting}
           >
             {isExporting ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.surface} />
             ) : (
               <>
-                <Ionicons name="download" size={20} color="#fff" />
-                <Text style={styles.exportButtonText}>Export My Data</Text>
+                <Ionicons name="download" size={20} color={'#FFFFFF'} />
+                <Text style={[styles.exportButtonText, { color: '#FFFFFF' }]}>Export My Data</Text>
               </>
             )}
           </TouchableOpacity>
+
+          {/* Export confirmation modal with toggles */}
+          <Modal visible={showConfirm} transparent animationType="slide">
+            <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}> 
+              <View style={[styles.modalCard, { backgroundColor: colors.card }]}> 
+                <Text style={[styles.cardTitle, { color: colors.text }]}>Export your data?</Text>
+                <Text style={[styles.cardText, { color: colors.textSecondary, marginBottom: 12 }]}>Your export may include personal and shared entries. Shared entries may contain your partner’s words. Choose what to include before continuing.</Text>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <Text style={[styles.listText, { color: colors.text }]}>Include shared entries</Text>
+                  <Switch value={includeSharedEntries} onValueChange={setIncludeSharedEntries} />
+                </View>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <Text style={[styles.listText, { color: colors.text }]}>Include account details</Text>
+                  <Switch value={includeAccountDetails} onValueChange={setIncludeAccountDetails} />
+                </View>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
+                  <TouchableOpacity onPress={() => setShowConfirm(false)} style={{ padding: 10 }}>
+                    <Text style={{ color: colors.textSecondary }}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowConfirm(false);
+                      exportData({ includeSharedEntries, includeAccountDetails });
+                    }}
+                    style={[styles.exportButton, { backgroundColor: colors.primary, marginBottom: 0 }]}
+                  >
+                    <Text style={styles.exportButtonText}>Export</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
 
           {/* GDPR/CCPA Info */}
           <Text style={[styles.legalText, { color: colors.textSecondary }]}>
@@ -341,7 +384,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
-    fontStyle: 'italic',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 12,
+    padding: 20,
   },
 });
 

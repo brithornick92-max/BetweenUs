@@ -13,10 +13,16 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
+import { useEntitlements } from '../context/EntitlementsContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 
 const PrivacySecuritySettingsScreen = ({ navigation }) => {
   const { colors } = useTheme();
+  const { signOutLocal, signOutGlobal, busy } = useAuth();
+  const { actions } = useAppContext();
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const [appLockEnabled, setAppLockEnabled] = useState(false);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [biometricsAvailable, setBiometricsAvailable] = useState(false);
@@ -55,7 +61,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
   const loadSettings = async () => {
     try {
-      const settings = await storage.get(STORAGE_KEYS.PRIVACY_SETTINGS);
+      const settings = await storage.get(STORAGE_KEYS.PRIVACY_SETTINGS, {});
       if (settings) {
         setAppLockEnabled(settings.appLockEnabled ?? false);
         setBiometricsEnabled(settings.biometricsEnabled ?? false);
@@ -68,6 +74,10 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
   };
 
   const handleToggleAppLock = async (value) => {
+    if (value && !isPremium) {
+      showPaywall('vaultAndBiometric');
+      return;
+    }
     if (value && biometricsAvailable) {
       // Test biometric authentication
       const result = await LocalAuthentication.authenticateAsync({
@@ -128,6 +138,13 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
       await storage.set(STORAGE_KEYS.PRIVACY_SETTINGS, settings);
 
+      // Also persist appLockEnabled to the key AppContext reads on boot
+      await storage.set(STORAGE_KEYS.APP_LOCK_ENABLED, appLockEnabled);
+      // Immediately update AppContext so the lock takes effect without restart
+      if (actions?.setAppLockEnabled) {
+        actions.setAppLockEnabled(appLockEnabled);
+      }
+
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Success);
       Alert.alert('Success', 'Privacy settings updated!', [
         { text: 'OK', onPress: () => navigation.goBack() },
@@ -185,7 +202,15 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
           {/* App Lock Section */}
           <View style={[styles.settingsCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>App Lock</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>App Lock</Text>
+              {!isPremium && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                  <Ionicons name="lock-closed" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+                  <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '600' }}>PREMIUM</Text>
+                </View>
+              )}
+            </View>
 
             {renderSettingRow(
               'Enable App Lock',
@@ -238,15 +263,127 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
             )}
           </View>
 
-          {/* Data Encryption Info */}
+          {/* Privacy Info (accurate, trust-building copy) */}
           <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
             <Ionicons name="lock-closed" size={24} color={colors.primary} />
             <View style={styles.infoContent}>
-              <Text style={[styles.infoTitle, { color: colors.text }]}>
-                End-to-End Encryption
-              </Text>
+              <Text style={[styles.infoTitle, { color: colors.text }]}>Your data is encrypted and private</Text>
               <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                All your journal entries and personal data are encrypted end-to-end. Only you and your partner can read them.
+                Only you and your partner can see your shared space.{"\n\n"}
+                All data is encrypted in transit (HTTPS/TLS) and at rest on our servers. Access is controlled by row-level security — even with a valid login, users can only see data from their own couple.{"\n\n"}
+                Photos are stored in a private bucket. Viewing requires a short-lived signed URL that expires automatically.{"\n\n"}
+                One shared space. Nothing public. Ever.
+              </Text>
+            </View>
+          </View>
+
+          {/* Session Security */}
+          <View style={[styles.settingsCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Session Security</Text>
+
+            <TouchableOpacity
+              style={styles.actionRow}
+              onPress={() => {
+                Alert.alert(
+                  'Sign Out This Device',
+                  'This will sign you out of Between Us on this device only. Your other devices will stay logged in.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Sign Out',
+                      onPress: async () => {
+                        try {
+                          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                          await signOutLocal();
+                        } catch (error) {
+                          Alert.alert('Error', 'Failed to sign out. Please try again.');
+                        }
+                      },
+                    },
+                  ]
+                );
+              }}
+              disabled={busy}
+              activeOpacity={0.7}
+            >
+              <View style={styles.actionInfo}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>
+                  Sign out (this device)
+                </Text>
+                <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
+                  Keep other devices signed in
+                </Text>
+              </View>
+              <Ionicons name="log-out-outline" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionRow}
+              onPress={() => {
+                Alert.alert(
+                  'Sign Out Everywhere',
+                  'This will sign you out of Between Us on ALL devices. Other sessions will be forced out when their access token expires.\n\nRecommended if you lost your phone or suspect unauthorized access.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Sign Out Everywhere',
+                      style: 'destructive',
+                      onPress: async () => {
+                        try {
+                          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                          await signOutGlobal();
+                        } catch (error) {
+                          Alert.alert('Error', 'Failed to sign out. Please try again.');
+                        }
+                      },
+                    },
+                  ]
+                );
+              }}
+              disabled={busy}
+              activeOpacity={0.7}
+            >
+              <View style={styles.actionInfo}>
+                <Text style={[styles.actionTitle, { color: colors.error || '#FF4444' }]}>
+                  Sign out everywhere
+                </Text>
+                <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
+                  Revokes all sessions on every device
+                </Text>
+              </View>
+              <Ionicons name="shield-outline" size={20} color={colors.error || '#FF4444'} />
+            </TouchableOpacity>
+          </View>
+
+          {/* New Phone / Lost Phone Info */}
+          <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+            <Ionicons name="phone-portrait-outline" size={24} color={colors.primary} />
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoTitle, { color: colors.text }]}>New phone?</Text>
+              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                Just sign in with your email and password to restore your shared space — your couple link, calendar events, shared moments, and premium access will all be there.
+              </Text>
+            </View>
+          </View>
+
+          <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+            <Ionicons name="warning-outline" size={24} color={colors.primary} />
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoTitle, { color: colors.text }]}>Lost your phone?</Text>
+              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                Sign in on another device and use "Sign out everywhere" above to protect your account. All other sessions will be revoked.
+              </Text>
+            </View>
+          </View>
+
+          {/* Partner Linking Info */}
+          <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+            <Ionicons name="heart-outline" size={24} color={colors.primary} />
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoTitle, { color: colors.text }]}>Partner Linking</Text>
+              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                Invite-only. Temporary code. Only your partner can join.{"\n\n"}
+                Codes expire in 15 minutes, are single-use, and are never stored in plain text. Your couple container is created securely on the server and survives new phones automatically.
               </Text>
             </View>
           </View>
@@ -294,7 +431,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
             onPress={handleSave}
             disabled={isSaving}
           >
-            <Text style={styles.saveButtonText}>
+            <Text style={[styles.saveButtonText, { color: '#FFFFFF' }]}>
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Text>
           </TouchableOpacity>

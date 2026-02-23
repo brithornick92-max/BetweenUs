@@ -33,7 +33,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
         <View style={styles.content}>
           <Text style={[styles.title, { color: colors.text }]}>Between Us - Privacy Policy</Text>
           <Text style={[styles.date, { color: colors.textSecondary }]}>
-            Last Updated: January 29, 2026
+            Last Updated: February 3, 2026
           </Text>
 
           <Text style={[styles.intro, { color: colors.textSecondary }]}>
@@ -102,8 +102,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>5. Third-Party Services</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            We use the following third-party services:{'\n\n'}
-            • RevenueCat - Subscription management{'\n'}
+            We use the following third-party services:{'\n\n'}            • Supabase - Cloud data storage and authentication{'\n'}            • RevenueCat - Subscription management{'\n'}
             • Apple/Google - In-app purchases and payments{'\n\n'}
             These services have their own privacy policies and may collect data independently.
           </Text>
@@ -226,7 +225,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     marginBottom: 24,
-    fontStyle: 'italic',
   },
   sectionTitle: {
     fontSize: 18,

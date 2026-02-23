@@ -13,7 +13,7 @@
  * (and synced to Supabase couple_data for cross-device access).
  */
 
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import naclUtil from 'tweetnacl-util';
 import E2EEncryption from './E2EEncryption';
 import Database from '../db/Database';

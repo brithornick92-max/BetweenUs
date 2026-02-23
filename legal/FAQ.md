@@ -1,36 +1,31 @@
 # Frequently Asked Questions (FAQ)
 
-**Last Updated: February 3, 2026**
+**Last Updated: February 16, 2026**
 
 ---
 
 ## Getting Started
 
 ### What is Between Us?
-Between Us is a relationship app designed to help thriving couples deepen their connection through daily prompts, journaling, and shared experiences. We provide conversation starters, intimate questions, and tools to help you and your partner grow closer.
+Between Us is a couples app built around one idea: where closeness deepens. Through daily prompts, shared journaling, and intimate rituals, it gives you and your partner a private space to connect more meaningfully.
 
-**Important:** Between Us is for couples who are already doing well and want to do even better. It's not designed for couples experiencing serious relationship difficulties.
+**Important:** Between Us is designed for couples who already have a loving foundation and want to deepen their intimacy and connection.
 
 ### Who is Between Us for?
-Between Us is for couples in committed relationships who want to:
-- Strengthen their emotional connection
-- Explore intimacy together
-- Create shared memories
-- Maintain relationship excitement
-- Communicate more deeply
+Between Us is for couples who are already in a good place and want to deepen their intimacy and connection. If your relationship has a strong foundation and you want to make it even richer, this app is for you.
 
-**Important:** Between Us is designed for **thriving couples** who want to deepen their connection. It is **not appropriate for couples who are struggling** with:
-- Serious relationship conflicts
-- Trust issues or infidelity
+**Important:** Between Us is designed for couples who already have a **loving foundation**. It is **not appropriate** for couples experiencing:
+- Serious relationship concerns
+- Trust breakdowns or infidelity
 - Communication breakdowns
 - Considering separation or divorce
 - Abuse or safety concerns
 - Mental health crises
 
-If you're experiencing relationship difficulties, please seek professional counseling or therapy. Between Us is a tool for enhancement, not repair.
+If your relationship needs professional support, please seek qualified counseling or therapy. Between Us deepens what's already beautiful — it's not a substitute for professional care.
 
 ### Is Between Us for all couples?
-Between Us works for couples of all orientations and identities - our prompts are universally designed. However, it's specifically for **thriving couples** who want to deepen their connection.
+Between Us works for couples of all orientations and identities — our prompts are universally designed. It's specifically for couples who already have a **loving foundation** and want to deepen their intimacy and connection.
 
 **All couples welcome (by orientation/identity):**
 - All sexual orientations
@@ -40,30 +35,30 @@ Between Us works for couples of all orientations and identities - our prompts ar
 - Any length of relationship
 
 **But designed for couples who are:**
-- In fundamentally healthy relationships
-- Wanting to deepen their connection
+- Already in a loving, safe place
+- Wanting to deepen their intimacy and connection
 - Feeling safe and respected
 - Excited to explore together
-- Looking to enhance, not repair
+- Looking to grow closer and go deeper
 
 **Not appropriate for couples experiencing:**
-- Serious relationship conflicts
-- Trust issues or infidelity
+- Serious relationship concerns
+- Trust breakdowns or infidelity
 - Communication breakdowns
 - Considering separation
 - Abuse or safety concerns
 
-So yes, all couples are welcome in terms of who you are - but the app is specifically designed for couples whose relationships are thriving, not struggling.
+So yes, all couples are welcome in terms of who you are — but the app is specifically designed for couples who already have a loving foundation and want to deepen their intimacy and connection.
 
 ### How much does it cost?
-- **Free version:** Access to basic prompts and features (Heat levels 1-2)
+- **Free version:** Preview 3 read-only prompts (Heat levels 1-3)
 - **Premium Monthly:** $7.99/month per couple
 - **Premium Yearly:** $49.99/year per couple (save 48%!)
 - **Premium Lifetime:** $69.99 one-time payment per couple
 
-Premium unlocks all heat levels (1-5), unlimited prompts, advanced features, and more.
+Premium unlocks unlimited prompts, responses, love notes, calendar, partner connection, cloud sync, and more.
 
-**Note:** Pricing is per couple, not per person. Once one partner subscribes, both partners get premium features when linked.
+**Note:** Pricing is per couple, not per person. One subscription covers both partners when linked.
 
 ### How do I get started?
 1. Download the app from the App Store or Google Play
@@ -141,11 +136,27 @@ Yes! We never see your payment details:
 - Subscriptions managed through your app store account
 
 ### Can Between Us read my journal entries?
-No! Your intimate content is end-to-end encrypted:
+No! Your journal entries, prompt responses, and love notes are end-to-end encrypted:
 - Encrypted on your device before sending
-- We can't decrypt your content
-- Only you and your linked partner have the keys
-- Even our employees can't read it
+- We can't decrypt your journal entries, prompt responses, or love notes
+- Only you and your linked partner have the keys (derived via secure key exchange during pairing)
+- Our employees cannot read your encrypted content
+
+**Note:** Some metadata (timestamps, mood labels, heat-level preferences) is not encrypted so the app can provide features like filtering and calendar views. This metadata is protected by access controls and standard server-side encryption.
+
+### Does the app collect biometric data?
+No. Between Us uses your device's built-in Face ID or Touch ID for app lock, but no biometric data is ever collected, stored, or transmitted by the app. Authentication happens entirely within your device's secure hardware (Secure Enclave on iOS, StrongBox/TEE on Android).
+
+### What data stays only on my device?
+Many features store data exclusively on your device:
+- Soft boundary settings (hidden categories, paused prompts)
+- Energy level and relationship climate selections
+- Inside jokes and shared references
+- Year reflection narratives
+- Content preference history
+- Biometric vault key
+
+This data is never uploaded to our servers.
 
 ---
 
@@ -153,11 +164,11 @@ No! Your intimate content is end-to-end encrypted:
 
 ### What are heat levels?
 Heat levels help you choose the right prompts for the moment:
-- **Heat 1:** Pure emotional connection (non-sexual)
-- **Heat 2:** Flirty and romantic
-- **Heat 3:** Intimate and moderately sexual
-- **Heat 4:** Playfully sexual and adventurous
-- **Heat 5:** Intensely passionate
+- **Heat 1 — Heart Connection:** Pure emotional intimacy (non-sexual)
+- **Heat 2 — Spark & Attraction:** Flirty attraction and romantic tension
+- **Heat 3 — Intimate Connection:** Moderately sexual, relationship-focused
+- **Heat 4 — Adventurous Exploration:** Playfully sexual and adventurous (Premium)
+- **Heat 5 — Unrestrained Passion:** Intensely passionate and deeply intimate (Premium)
 
 You can adjust your heat level anytime based on your mood.
 
@@ -180,7 +191,10 @@ Yes! You can:
 Prompts are tailored based on:
 - Your relationship duration
 - Your heat level preference
-- Your engagement patterns
+- Your energy level (via Energy Matcher)
+- Your relationship climate selection
+- Your engagement patterns and This or That choices
+- Your soft boundary settings (hidden categories)
 - Time of day and context
 - All processing happens on your device for privacy
 
@@ -191,12 +205,41 @@ Prompts are tailored based on:
 - Use content filtering in settings
 - Remember: You're always in control
 
-### Can I create custom prompts?
+### Can I create custom rituals?
 Premium users can:
-- Create custom rituals
-- Save favorite prompts
-- Build personalized prompt collections
-- Share custom prompts with your partner
+- Create custom night ritual routines
+- Set personalized ritual prompts and flow
+- Save and revisit favorite prompts
+
+### What are Vibe Signals?
+Vibe Signals let you share your current mood or energy with your partner in real time. Choose from vibes like passionate, tender, luxurious, mysterious, serene, or adventurous. Your partner sees your vibe and it helps personalize your shared experience. (Premium)
+
+### What are Moment Signals?
+Moment Signals are quick one-tap "thinking of you" messages you can send to your partner — like thinking, grateful, missing, proud, wanting, or loving. They're a simple way to stay connected throughout the day. (Premium)
+
+### What is Reveal Together?
+After both you and your partner answer the same prompt, you can choose to reveal your answers to each other simultaneously. This creates a shared moment of discovery and deeper connection.
+
+### What are Soft Boundaries?
+Soft Boundaries let you privately control what content you see. You can hide spicy content, pause specific prompts, or hide entire categories. These settings are private to your device and are never shared with your partner.
+
+### What is the Energy Matcher?
+The Energy Matcher lets you set your current energy level (low, medium, or high) so the app can suggest prompts and dates that match how you're feeling right now. (Premium)
+
+### What is This or That?
+This or That presents you with fun binary choices that help the app learn your preferences and spark playful conversation with your partner.
+
+### What is the Inside Jokes vault?
+The Inside Jokes vault is a private space where you and your partner can save your shared nicknames, jokes, comfort rituals, and special phrases — all the little things that make your relationship uniquely yours. (Premium)
+
+### What is Year Reflection?
+Year Reflection generates a personalized narrative of your year together based on your journals, dates, and love notes. It's a beautiful way to look back on your relationship journey. (Premium)
+
+### What is Surprise Tonight?
+Surprise Tonight is a spontaneous feature that occasionally suggests an unexpected date or activity based on your preferences, energy, and relationship season. It appears 1-2 times per month to keep things fresh. (Premium)
+
+### Can I lock the app with Face ID or Touch ID?
+Yes! You can enable biometric lock (Face ID or Touch ID) in your settings. The app uses your device's built-in authentication — no biometric data is collected or stored by Between Us.
 
 ---
 
@@ -206,11 +249,20 @@ Premium users can:
 Premium unlocks:
 - **All heat levels (1-5)** - From emotional to passionate
 - **Unlimited daily prompts** - Refresh as many times as you want
-- **Advanced personalization** - Smarter recommendations
+- **Full prompt responses** - Write and share your answers
+- **Love notes** - Send love notes with optional photo attachments
+- **Date night ideas** - Full catalog with planning tools
+- **Night rituals** - Custom evening routines together
+- **Calendar and scheduling** - Plan dates and set reminders
+- **Partner connection and cloud sync** - Sync with your linked partner
+- **Vibe Signals** - Share your mood with your partner in real time
+- **Moment Signals** - Send "thinking of you" taps throughout the day
+- **Energy Matcher** - Get content matched to your current energy
+- **Inside Jokes vault** - Save your shared nicknames, jokes, and rituals
+- **Year Reflection** - A personalized narrative of your year together
+- **Surprise Tonight** - Spontaneous date suggestions tailored to you
 - **Custom rituals and routines** - Create your own traditions
-- **Memory export features** - Download your journal entries
-- **Priority support** - Faster response times
-- **Ad-free experience** - No interruptions
+- **Data export** - Download your journal entries
 - **Both partners get access** - Premium is per couple
 
 **Pricing:**
@@ -266,7 +318,7 @@ Try these steps:
 2. Check for app updates
 3. Restart your device
 4. Check your internet connection
-5. Contact support if issues persist
+5. Contact support if this continues
 
 ### My partner and I aren't syncing. Help!
 Check that:
@@ -276,12 +328,11 @@ Check that:
 - You've both updated to the latest version
 - Try unlinking and relinking if needed
 
-### I forgot my password. How do I reset it?
-1. Tap "Forgot Password" on login screen
-2. Enter your email address
-3. Check your email for reset link
-4. Create a new password
-5. Log in with new credentials
+### I forgot my password. What can I do?
+Currently, password reset requires creating a new account. We recommend:
+- Using a password you'll remember
+- Storing your password in a password manager
+- Contact brittanyapps@outlook.com for account recovery assistance
 
 ### How do I delete my account?
 1. Go to Settings > Account
@@ -310,7 +361,7 @@ Yes! Your account syncs across devices:
 ## Content & Prompts
 
 ### How many prompts are there?
-We have 582 professionally crafted prompts across:
+We have 632 professionally crafted prompts across:
 - 5 heat levels
 - 12 categories
 - Multiple relationship stages
@@ -328,13 +379,12 @@ You control the heat level to match your comfort.
 ### Can I suggest new prompts?
 We love feedback! Send suggestions to:
 - Email: brittanyapps@outlook.com
-- In-app feedback form
 - We review all suggestions
 - Popular ideas may be added
 
 ### Do prompts repeat?
 Our smart system minimizes repetition:
-- 582 unique prompts
+- 632 unique prompts
 - Personalized selection
 - Tracks what you've seen
 - Fresh content regularly added
@@ -342,64 +392,64 @@ Our smart system minimizes repetition:
 ### What if we've answered all the prompts?
 - Prompts can be revisited (your answers may change!)
 - New content added regularly
-- Create custom prompts (Premium)
+- Create custom night rituals (Premium)
 - Use prompts as conversation starters
 
 ---
 
-## Relationship Advice
+## About Between Us & Your Relationship
 
 ### Is Between Us a substitute for therapy?
-No. Between Us is a tool for connection, not therapy:
+No. Between Us is a connection experience, not therapy:
 - We provide prompts, not counseling
-- **The app is designed for thriving couples, not those in crisis**
-- Serious issues need professional help
-- We encourage healthy communication
-- Seek a therapist for relationship problems
+- **The app is designed for couples who already have a loving foundation — it deepens intimacy and closeness**
+- Serious concerns need professional support
+- We encourage open, loving communication
+- A licensed therapist is the right resource for serious concerns
 
 **When to seek professional help instead:**
-- You're experiencing ongoing conflict
-- There are trust issues or infidelity
+- You're navigating ongoing relationship concerns
+- There are trust breakdowns or infidelity
 - You're considering separation
 - There's abuse or safety concerns
 - Communication has broken down
-- You feel stuck or hopeless about your relationship
+- You feel stuck or uncertain about your relationship
 
 Between Us works best when your relationship is fundamentally healthy and you want to make it even better.
 
-### What if prompts reveal relationship issues?
+### What if prompts surface something tender?
 Prompts can surface important topics:
 - Use them as conversation starters
 - Approach with openness and honesty
-- **If serious issues emerge, seek professional help**
+- **If serious concerns emerge, seek professional support**
 - Remember: Communication is key
 
 **Red flags that indicate you need professional help:**
 - Prompts consistently lead to arguments
-- You're avoiding certain prompts due to conflict
+- You're avoiding certain prompts due to discomfort
 - Responses reveal deep-seated resentment
 - You feel unsafe sharing honestly
-- Issues feel too big to handle alone
+- Something feels too big to navigate alone
 
-Between Us is designed for enhancement, not repair. If using the app reveals serious problems, that's valuable information—and a sign to seek professional support.
+Between Us deepens what's already beautiful — it's not a substitute for professional care. If using the app surfaces something important, that's valuable — and a sign to seek professional support.
 
 ### What if my partner and I disagree on prompts?
 Healthy disagreement is normal! However:
 - **Minor differences:** Great opportunity for discussion
-- **Frequent conflict:** May indicate deeper issues
+- **Repeated tension:** May suggest something deeper to explore with a professional
 - **Feeling unsafe:** Seek professional help immediately
 
-Between Us works best when both partners feel safe, respected, and excited to connect. If the app is causing stress rather than joy, it may not be the right time to use it.
+Between Us works best when both partners feel safe, respected, and excited to connect. If the app is creating tension rather than closeness, it may not be the right time.
 
 ### When should we NOT use Between Us?
 Don't use Between Us if you're:
-- In active conflict or crisis
-- Dealing with infidelity or trust issues
+- Navigating a relationship crisis
+- Working through infidelity or trust breakdowns
 - Experiencing abuse (emotional, physical, or sexual)
 - Considering separation or divorce
-- In couples therapy for serious issues (ask your therapist first)
+- In couples therapy for serious concerns (ask your therapist first)
 - Feeling unsafe with your partner
-- Using it to avoid addressing real problems
+- Using it to avoid what needs professional attention
 
 **Use Between Us when:**
 - Your relationship is fundamentally healthy
@@ -409,16 +459,16 @@ Don't use Between Us if you're:
 - You want to maintain relationship vitality
 - You're looking for fun ways to connect
 
-### Can Between Us save a struggling relationship?
-**No.** Between Us is not designed for couples in crisis:
-- It's for thriving couples who want to deepen their connection
-- It cannot fix serious relationship problems
+### Is Between Us right for every couple?
+**Between Us is designed for couples who are in a good place.** It's not for every situation:
+- It’s for couples who already have a loving foundation and want to deepen their intimacy and connection
+- It's not a substitute for professional support
 - It's not a substitute for therapy or counseling
-- Professional help is needed for struggling relationships
+- Professional support is the right path for serious concerns
 
 **If you're experiencing:**
-- Frequent conflict or fighting
-- Trust issues or betrayal
+- Ongoing tension or frequent disagreements
+- Trust breakdowns or betrayal
 - Communication breakdowns
 - Emotional distance or disconnection
 - Considering separation
@@ -430,7 +480,7 @@ Don't use Between Us if you're:
 - Relationship coach
 - Mental health professional
 
-Between Us can complement therapy for couples working on their relationship, but it should not replace professional support when serious issues exist.
+Between Us can complement therapy for couples who are already in a good place, but it should not replace professional support when serious concerns are present.
 
 ### Is Between Us only for romantic relationships?
 While designed for romantic couples, the prompts can work for:
@@ -445,8 +495,7 @@ While designed for romantic couples, the prompts can work for:
 
 ### What if I experience harassment?
 - Unlink from your partner immediately
-- Report the behavior to us
-- Block the user
+- Report the behavior to us at brittanyapps@outlook.com
 - Contact support for help
 - We take safety seriously
 
@@ -468,10 +517,10 @@ Email: brittanyapps@outlook.com
 
 ### Is my data safe from hackers?
 We use industry-standard security:
-- End-to-end encryption
-- Secure authentication
-- Regular security audits
-- Intrusion detection
+- End-to-end encryption (XSalsa20-Poly1305)
+- Secure authentication with hashed passwords
+- Encryption keys stored in device secure hardware
+- TLS/SSL for all data in transit
 - Your intimate content is protected
 
 ---
@@ -493,16 +542,13 @@ Currently:
 
 ### Can I export my journal entries?
 Yes! Premium users can:
-- Export as PDF
-- Download as text file
-- Create memory books
-- Save your relationship history
+- Export journal entries as JSON data
+- Save your relationship history locally
 
 ### Do you have a desktop version?
 Currently mobile-only:
 - iOS and Android apps
-- Web version in development
-- Stay tuned for updates!
+- Stay tuned for future updates!
 
 ### How do I contact support?
 **Email:** brittanyapps@outlook.com  

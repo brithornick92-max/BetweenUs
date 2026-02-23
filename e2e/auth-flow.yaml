@@ -1,0 +1,30 @@
+# auth-flow.yaml — E2E test: Authentication flow
+# Tests: sign-up screen loads, auth UI elements present, magic link flow initiates
+
+appId: com.brittany.betweenus
+
+---
+
+- launchApp:
+    clearState: true
+
+# Auth screen should appear first for new users
+- assertVisible: "Sign in"
+- assertVisible: "email"
+
+# Verify the auth screen has key elements
+- assertVisible:
+    text: ".*Between Us.*"
+    optional: true
+
+# Enter a test email
+- tapOn:
+    id: "email-input"
+    optional: true
+- inputText: "test@example.com"
+
+# Tap the sign-in button
+- tapOn: "Sign in"
+
+# Should show feedback (loading or confirmation)
+- waitForAnimationToEnd

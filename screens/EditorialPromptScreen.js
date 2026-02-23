@@ -1,5 +1,5 @@
 // screens/EditorialPromptScreen.js
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -8,70 +8,54 @@ import {
   TouchableOpacity,
   Animated,
   Platform,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import EditorialPrompt from '../components/EditorialPrompt';
-import { useAppContext } from '../context/AppContext';
-import { useEntitlements } from '../context/EntitlementsContext';
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import EditorialPrompt from "../components/EditorialPrompt";
+import { useAppContext } from "../context/AppContext";
+import { useEntitlements } from "../context/EntitlementsContext";
+import { useTheme } from "../context/ThemeContext";
+import {
+  SPACING,
+  TYPOGRAPHY,
+  BORDER_RADIUS,
+  ICON_SIZES,
+} from "../utils/theme";
 
 const EditorialPromptScreen = ({ route, navigation }) => {
   const { promptId, category } = route?.params || {};
   const { state } = useAppContext();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
-  
-  // Animation values
+  const { colors, isDark } = useTheme();
+
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const slideAnimation = useRef(new Animated.Value(50)).current;
-  const shimmerAnimation = useRef(new Animated.Value(0)).current;
+  const slideAnimation = useRef(new Animated.Value(30)).current;
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
-    // Entrance animation
     Animated.parallel([
       Animated.timing(fadeAnimation, {
         toValue: 1,
-        duration: 800,
+        duration: 600,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnimation, {
         toValue: 0,
-        duration: 800,
+        duration: 600,
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Shimmer animation for premium elements
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnimation, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnimation, {
-          toValue: 0,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
   }, []);
 
   const handleAnswerSubmit = async (prompt, answer) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (__DEV__) {
-      console.log('Answer submitted');
-    }
   };
 
   const handlePartnerAnswerRevealed = async (prompt, partnerAnswer) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (__DEV__) {
-      console.log('Partner answer revealed');
-    }
   };
 
   const handleBackPress = async () => {
@@ -80,7 +64,7 @@ const EditorialPromptScreen = ({ route, navigation }) => {
   };
 
   const renderHeader = () => (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.header,
         {
@@ -92,53 +76,38 @@ const EditorialPromptScreen = ({ route, navigation }) => {
       <TouchableOpacity
         onPress={handleBackPress}
         style={styles.backButton}
-        activeOpacity={0.8}
+        activeOpacity={0.85}
       >
-        <BlurView intensity={20} style={styles.backButtonBlur}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.softCream} />
+        <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.backButtonBlur}>
+          <MaterialCommunityIcons
+            name="arrow-left"
+            size={ICON_SIZES.lg}
+            color={colors.text}
+          />
         </BlurView>
       </TouchableOpacity>
 
       <View style={styles.headerContent}>
-        <Animated.View
-          style={[
-            styles.headerShimmer,
-            {
-              opacity: shimmerAnimation.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.3, 0.8],
-              }),
-            },
-          ]}
-        />
-        
         <View style={styles.headerIcon}>
-          <MaterialCommunityIcons name="feather" size={32} color="#9B59B6" />
+          <MaterialCommunityIcons
+            name={category === "daily_life" ? "calendar-heart" : "feather"}
+            size={32}
+            color={colors.primary}
+          />
         </View>
-        
+
         <Text style={styles.headerTitle}>
-          {category === 'daily_life' ? 'Daily Reflection' : 'Editorial Prompts'}
+          {category === "daily_life" ? "Daily Reflection" : "Editorial Prompts"}
         </Text>
         <Text style={styles.headerSubtitle}>
-          {category === 'daily_life' 
-            ? 'Share about your day and connect through daily moments'
-            : 'Thoughtful questions designed to deepen your connection through meaningful reflection'
-          }
+          {category === "daily_life"
+            ? "Share about your day and connect through daily moments"
+            : "Thoughtful questions designed to deepen your connection through meaningful reflection"}
         </Text>
-        
+
         {isPremium && (
           <View style={styles.premiumBadge}>
-            <BlurView intensity={15} style={styles.premiumBadgeBlur}>
-              <LinearGradient
-                colors={['#D4AF37', '#F7E7CE']}
-                style={styles.premiumBadgeGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <MaterialCommunityIcons name="crown" size={14} color="#0B0B0B" />
-                <Text style={styles.premiumBadgeText}>PREMIUM FEATURE</Text>
-              </LinearGradient>
-            </BlurView>
+            <Text style={styles.premiumBadgeText}>PREMIUM</Text>
           </View>
         )}
       </View>
@@ -146,43 +115,17 @@ const EditorialPromptScreen = ({ route, navigation }) => {
   );
 
   const renderCategoryInfo = () => {
-    const categoryInfo = {
-      reflection: {
-        icon: 'mirror',
-        name: 'Reflection',
-        description: 'Deep questions about your inner world and experiences',
-        color: '#3498DB',
-      },
-      connection: {
-        icon: 'heart-multiple',
-        name: 'Connection',
-        description: 'Prompts to strengthen your bond and understanding',
-        color: '#E74C3C',
-      },
-      growth: {
-        icon: 'trending-up',
-        name: 'Growth',
-        description: 'Questions about personal development and aspirations',
-        color: '#2ECC71',
-      },
-      intimacy: {
-        icon: 'heart-pulse',
-        name: 'Intimacy',
-        description: 'Vulnerable prompts for deeper emotional connection',
-        color: '#9B59B6',
-      },
-      dreams: {
-        icon: 'star-outline',
-        name: 'Dreams',
-        description: 'Explore your hopes, dreams, and future together',
-        color: '#F39C12',
-      },
+    const info = {
+      reflection: { icon: "mirror", name: "Reflection", description: "Deep questions about your inner world" },
+      connection: { icon: "heart-multiple", name: "Connection", description: "Prompts to strengthen your bond" },
+      growth: { icon: "trending-up", name: "Growth", description: "Questions about development and aspirations" },
+      intimacy: { icon: "heart-pulse", name: "Intimacy", description: "Vulnerable prompts for deeper connection" },
+      dreams: { icon: "star-outline", name: "Dreams", description: "Explore hopes and future together" },
     };
+    const categoryInfo = info[category] || info.reflection;
 
-    const info = categoryInfo[category] || categoryInfo.reflection;
-    
     return (
-      <Animated.View 
+      <Animated.View
         style={[
           styles.categoryInfo,
           {
@@ -191,22 +134,19 @@ const EditorialPromptScreen = ({ route, navigation }) => {
           },
         ]}
       >
-        <BlurView intensity={15} style={styles.categoryCard}>
-          <LinearGradient
-            colors={['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']}
-            style={StyleSheet.absoluteFill}
-          />
-          
-          <View style={styles.categoryHeader}>
-            <View style={[styles.categoryIconContainer, { backgroundColor: info.color + '20' }]}>
-              <MaterialCommunityIcons name={info.icon} size={24} color={info.color} />
-            </View>
-            <View style={styles.categoryTextContainer}>
-              <Text style={styles.categoryName}>{info.name}</Text>
-              <Text style={styles.categoryDescription}>{info.description}</Text>
-            </View>
+        <View style={styles.categoryCard}>
+          <View style={styles.categoryIconContainer}>
+            <MaterialCommunityIcons
+              name={categoryInfo.icon}
+              size={ICON_SIZES.lg}
+              color={colors.primary}
+            />
           </View>
-        </BlurView>
+          <View style={styles.categoryTextContainer}>
+            <Text style={styles.categoryName}>{categoryInfo.name}</Text>
+            <Text style={styles.categoryDescription}>{categoryInfo.description}</Text>
+          </View>
+        </View>
       </Animated.View>
     );
   };
@@ -215,67 +155,56 @@ const EditorialPromptScreen = ({ route, navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={[COLORS.warmCharcoal, COLORS.deepPlum + '80', COLORS.warmCharcoal]}
+          colors={[colors.background, colors.surface + "80", colors.background]}
           style={StyleSheet.absoluteFill}
           locations={[0, 0.5, 1]}
         />
-        
+
         <View style={styles.paywallContainer}>
           <TouchableOpacity
             onPress={handleBackPress}
             style={styles.backButton}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <BlurView intensity={20} style={styles.backButtonBlur}>
-              <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.softCream} />
+            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.backButtonBlur}>
+              <MaterialCommunityIcons
+                name="arrow-left"
+                size={ICON_SIZES.lg}
+                color={colors.text}
+              />
             </BlurView>
           </TouchableOpacity>
-          
+
           <View style={styles.paywallContent}>
-            <MaterialCommunityIcons 
-              name={category === 'daily_life' ? "calendar-heart" : "feather"} 
-              size={64} 
-              color={category === 'daily_life' ? "#F4A461" : "#9B59B6"} 
-            />
+            <View style={styles.paywallIconWrap}>
+              <MaterialCommunityIcons
+                name={category === "daily_life" ? "calendar-heart" : "feather"}
+                size={48}
+                color={colors.primary}
+              />
+            </View>
             <Text style={styles.paywallTitle}>
-              {category === 'daily_life' ? 'Daily Reflection' : 'Editorial Prompts'}
+              {category === "daily_life" ? "Daily Reflection" : "Editorial Prompts"}
             </Text>
             <Text style={styles.paywallDescription}>
-              {category === 'daily_life' 
-                ? 'Connect with your partner by sharing daily moments, thoughts, and feelings. Build intimacy through everyday conversations and mutual understanding.'
-                : 'Discover thoughtfully crafted questions designed to spark meaningful conversations and deepen your emotional connection. Each prompt is carefully curated to help you explore new dimensions of your relationship.'
-              }
+              {category === "daily_life"
+                ? "Connect with your partner by sharing daily moments, thoughts, and feelings."
+                : "Discover thoughtfully crafted questions designed to spark meaningful conversations."}
             </Text>
-            
+
             <View style={styles.paywallFeatures}>
-              <View style={styles.paywallFeature}>
-                <MaterialCommunityIcons name="check-circle" size={20} color="#2ECC71" />
-                <Text style={styles.paywallFeatureText}>5 unique categories of prompts</Text>
-              </View>
-              <View style={styles.paywallFeature}>
-                <MaterialCommunityIcons name="check-circle" size={20} color="#2ECC71" />
-                <Text style={styles.paywallFeatureText}>Privacy-first answer sharing</Text>
-              </View>
-              <View style={styles.paywallFeature}>
-                <MaterialCommunityIcons name="check-circle" size={20} color="#2ECC71" />
-                <Text style={styles.paywallFeatureText}>Beautiful magazine-style interface</Text>
-              </View>
+              <PaywallFeatureRow text="5 unique categories of prompts" color={colors.primary} />
+              <PaywallFeatureRow text="Privacy-first answer sharing" color={colors.primary} />
+              <PaywallFeatureRow text="Magazine-style interface" color={colors.primary} />
             </View>
-            
+
             <TouchableOpacity
               onPress={showPaywall}
               style={styles.upgradeButton}
-              activeOpacity={0.9}
+              activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={['#D4AF37', '#F7E7CE']}
-                style={styles.upgradeButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <MaterialCommunityIcons name="crown" size={20} color="#0B0B0B" />
-                <Text style={styles.upgradeButtonText}>Upgrade to Premium</Text>
-              </LinearGradient>
+              <MaterialCommunityIcons name="crown" size={18} color={colors.text} />
+              <Text style={[styles.upgradeButtonText, { color: colors.text }]}>Discover the full experience</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -286,14 +215,14 @@ const EditorialPromptScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={[COLORS.warmCharcoal, COLORS.deepPlum + '80', COLORS.warmCharcoal]}
+        colors={[colors.background, colors.surface + "60", colors.background]}
         style={StyleSheet.absoluteFill}
         locations={[0, 0.5, 1]}
       />
-      
+
       {renderHeader()}
       {category && renderCategoryInfo()}
-      
+
       <Animated.View
         style={[
           styles.promptContainer,
@@ -314,237 +243,221 @@ const EditorialPromptScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+function PaywallFeatureRow({ text, color }) {
+  return (
+    <View style={styles.paywallFeature}>
+      <MaterialCommunityIcons name="check-circle" size={18} color={color} />
+      <Text style={styles.paywallFeatureText}>{text}</Text>
+    </View>
+  );
+}
+
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
   },
-  
+
   header: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.xl,
     paddingBottom: SPACING.lg,
-    position: 'relative',
+    position: "relative",
   },
-  
+
   backButton: {
-    position: 'absolute',
-    top: SPACING.xl, // Changed from SPACING.lg to move it down
+    position: "absolute",
+    top: SPACING.xl,
     left: SPACING.lg,
     width: 44,
     height: 44,
     borderRadius: 22,
-    overflow: 'hidden',
+    overflow: "hidden",
     zIndex: 10,
   },
-  
+
   backButtonBlur: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: colors.border,
   },
-  
+
   headerContent: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: SPACING.xl,
-    position: 'relative',
+    position: "relative",
   },
-  
-  headerShimmer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: '#9B59B6',
-  },
-  
+
   headerIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#9B59B620',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary + "18",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: SPACING.md,
   },
-  
+
   headerTitle: {
     ...TYPOGRAPHY.display,
-    color: COLORS.softCream,
-    textAlign: 'center',
+    color: colors.text,
+    textAlign: "center",
     marginBottom: SPACING.sm,
-    fontFamily: Platform.select({
-      ios: "PlayfairDisplay-Bold",
-      android: "PlayfairDisplay_700Bold",
-    }),
+    fontSize: 28,
+    fontWeight: "300",
   },
-  
+
   headerSubtitle: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream + 'CC',
-    textAlign: 'center',
+    color: colors.text + "CC",
+    textAlign: "center",
     lineHeight: 24,
     marginBottom: SPACING.lg,
     paddingHorizontal: SPACING.md,
+    fontSize: 14,
   },
-  
+
   premiumBadge: {
-    borderRadius: BORDER_RADIUS.full,
-    overflow: 'hidden',
-  },
-  
-  premiumBadgeBlur: {
-    borderRadius: BORDER_RADIUS.full,
-    overflow: 'hidden',
-  },
-  
-  premiumBadgeGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    gap: 6,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.full,
+    backgroundColor: colors.accent + "25",
   },
-  
+
   premiumBadgeText: {
     fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    color: '#0B0B0B',
+    fontWeight: "600",
+    letterSpacing: 1,
+    color: colors.accent,
   },
-  
+
   categoryInfo: {
     paddingHorizontal: SPACING.lg,
     marginBottom: SPACING.lg,
   },
-  
+
   categoryCard: {
-    borderRadius: BORDER_RADIUS.xl,
-    overflow: 'hidden',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: { elevation: 4 },
-    }),
+    borderColor: colors.border,
   },
-  
-  categoryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  
+
   categoryIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primary + "18",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: SPACING.md,
   },
-  
+
   categoryTextContainer: {
     flex: 1,
   },
-  
+
   categoryName: {
-    ...TYPOGRAPHY.h2,
-    color: COLORS.softCream,
-    marginBottom: SPACING.xs,
-    fontSize: 18,
+    ...TYPOGRAPHY.h3,
+    color: colors.text,
+    marginBottom: 2,
+    fontSize: 16,
   },
-  
+
   categoryDescription: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.softCream + 'CC',
-    fontSize: 14,
-    lineHeight: 20,
+    ...TYPOGRAPHY.caption,
+    color: colors.text + "CC",
+    fontSize: 13,
+    lineHeight: 18,
   },
-  
+
   promptContainer: {
     flex: 1,
   },
-  
-  // Paywall styles
+
   paywallContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: SPACING.xl,
   },
-  
+
   paywallContent: {
-    alignItems: 'center',
+    alignItems: "center",
     maxWidth: 320,
   },
-  
+
+  paywallIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.primary + "18",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   paywallTitle: {
     ...TYPOGRAPHY.display,
-    color: COLORS.softCream,
-    textAlign: 'center',
-    marginTop: SPACING.lg,
+    color: colors.text,
+    textAlign: "center",
+    marginTop: SPACING.xl,
     marginBottom: SPACING.md,
-    fontFamily: Platform.select({
-      ios: "PlayfairDisplay-Bold",
-      android: "PlayfairDisplay_700Bold",
-    }),
+    fontSize: 28,
+    fontWeight: "300",
   },
-  
+
   paywallDescription: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream + 'CC',
-    textAlign: 'center',
+    color: colors.text + "CC",
+    textAlign: "center",
     lineHeight: 24,
     marginBottom: SPACING.xl,
+    fontSize: 14,
   },
-  
+
   paywallFeatures: {
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
     marginBottom: SPACING.xl,
   },
-  
+
   paywallFeature: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: SPACING.md,
     paddingHorizontal: SPACING.sm,
   },
-  
+
   paywallFeatureText: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream + 'E6',
-    marginLeft: SPACING.sm,
-    fontSize: 15,
+    color: colors.text + "E6",
+    marginLeft: SPACING.md,
+    fontSize: 14,
   },
-  
+
   upgradeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
     borderRadius: BORDER_RADIUS.lg,
-    overflow: 'hidden',
-  },
-  
-  upgradeButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.xl,
     gap: SPACING.sm,
+    width: "100%",
   },
-  
+
   upgradeButtonText: {
     ...TYPOGRAPHY.button,
-    color: '#0B0B0B',
-    fontSize: 16,
-    fontWeight: '700',
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    textTransform: "none",
   },
 });
 

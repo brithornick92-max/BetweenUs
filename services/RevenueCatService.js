@@ -1,9 +1,7 @@
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import { Platform } from 'react-native';
 
-// ✅ MUST match RevenueCat dashboard entitlement IDENTIFIER (not display name)
-// Update this to match your actual entitlement identifier from RevenueCat dashboard
-// Use the RevenueCat Debug screen (Settings → RevenueCat Debug) to find the correct ID
+// ✅ Matches RevenueCat dashboard entitlement identifier exactly
 const ENTITLEMENT_ID = 'Between Us Pro';
 
 class RevenueCatService {
@@ -11,6 +9,8 @@ class RevenueCatService {
     this.currentUserId = null;
     this._configured = false;
     this._initPromise = null;
+    this._offeringsUnavailable = false;
+    this._offeringsUnavailableWarned = false;
   }
 
   /**
@@ -24,10 +24,16 @@ class RevenueCatService {
     return this._initPromise;
   }
 
+  ensureConfigured() {
+    if (!this._configured) {
+      throw new Error('RevenueCat not configured');
+    }
+  }
+
   async _doInit() {
     try {
-      // Optional: keep verbose logs in dev only
-      Purchases.setLogLevel(__DEV__ ? LOG_LEVEL.DEBUG : LOG_LEVEL.WARN);
+      // Keep SDK logs quiet to avoid noisy non-fatal offerings spam
+      Purchases.setLogLevel(LOG_LEVEL.WARN);
 
       const apiKey =
         Platform.OS === 'ios'
@@ -42,7 +48,7 @@ class RevenueCatService {
       Purchases.configure({ apiKey });
 
       this._configured = true;
-      console.log('✅ RevenueCat configured');
+      if (__DEV__) console.log('✅ RevenueCat configured');
     
       // Debug: Log available entitlements to help identify the correct ENTITLEMENT_ID
       if (__DEV__) {
@@ -50,7 +56,7 @@ class RevenueCatService {
           const customerInfo = await Purchases.getCustomerInfo();
           console.log('📋 Available entitlement keys:', Object.keys(customerInfo?.entitlements?.active ?? {}));
         } catch (error) {
-          console.log('Could not fetch initial customer info:', error);
+          if (__DEV__) console.log('Could not fetch initial customer info:', error?.message);
         }
       }
     } catch (error) {
@@ -69,10 +75,14 @@ class RevenueCatService {
     try {
       // Ensure SDK is initialized before logging in
       await this.init();
-      
+      this.ensureConfigured();
+
       await Purchases.logIn(userId);
       this.currentUserId = userId;
-      console.log('✅ User identified:', userId);
+      // Reset per-user offerings cache flag
+      this._offeringsUnavailable = false;
+      this._offeringsUnavailableWarned = false;
+      if (__DEV__) console.log('RevenueCat identify ok');
     } catch (error) {
       console.error('❌ Failed to identify user:', error);
       throw error;
@@ -84,6 +94,7 @@ class RevenueCatService {
    */
   async logoutUser() {
     try {
+      this.ensureConfigured();
       await Purchases.logOut();
       this.currentUserId = null;
       console.log('User logged out');
@@ -99,18 +110,52 @@ class RevenueCatService {
    */
   async getOfferings() {
     try {
+      this.ensureConfigured();
+
+      // Quiet fallback after first known "not configured" offerings failure
+      if (this._offeringsUnavailable) {
+        return {
+          current: null,
+          packages: [],
+          nonFatal: true,
+          reason: 'offerings_unavailable',
+        };
+      }
+
       const offerings = await Purchases.getOfferings();
       
       if (offerings.current !== null && offerings.current.availablePackages.length > 0) {
         return {
           current: offerings.current,
-          packages: offerings.current.availablePackages,
+          packages: offerings.current.availablePackages || [],
+          nonFatal: false,
         };
       }
       
-      console.warn('No offerings available');
-      return { current: null, packages: [] };
+      return { current: null, packages: [], nonFatal: true, reason: 'no_offerings' };
     } catch (error) {
+      const msg = String(error?.message || error || '').toLowerCase();
+      const nonFatalMissingOfferings =
+        msg.includes('no offerings') ||
+        msg.includes('offeringsmanager.error') ||
+        msg.includes('why-are-offerings-empty') ||
+        msg.includes('product catalog') ||
+        msg.includes('no app store products');
+
+      if (nonFatalMissingOfferings) {
+        this._offeringsUnavailable = true;
+        if (!this._offeringsUnavailableWarned) {
+          this._offeringsUnavailableWarned = true;
+          console.warn('[RevenueCat] Offerings unavailable; falling back to free mode.');
+        }
+        return {
+          current: null,
+          packages: [],
+          nonFatal: true,
+          reason: 'offerings_unavailable',
+        };
+      }
+
       console.error('Failed to get offerings:', error);
       throw error;
     }
@@ -121,6 +166,7 @@ class RevenueCatService {
    */
   async purchasePackage(packageToPurchase) {
     try {
+      this.ensureConfigured();
       const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
       
       // Check if user now has premium access
@@ -155,6 +201,7 @@ class RevenueCatService {
    */
   async restorePurchases() {
     try {
+      this.ensureConfigured();
       const customerInfo = await Purchases.restorePurchases();
       const isPremium = this.checkPremiumStatus(customerInfo);
       
@@ -177,14 +224,15 @@ class RevenueCatService {
    */
   async getCustomerInfo() {
     try {
+      this.ensureConfigured();
       const customerInfo = await Purchases.getCustomerInfo();
       const isPremium = this.checkPremiumStatus(customerInfo);
-      
+
       return {
         customerInfo,
         isPremium,
-        activeSubscriptions: customerInfo.activeSubscriptions,
-        entitlements: customerInfo.entitlements.active,
+        activeSubscriptions: customerInfo?.activeSubscriptions ?? [],
+        entitlements: customerInfo?.entitlements?.active ?? {},
       };
     } catch (error) {
       console.error('Failed to get customer info:', error);
@@ -198,9 +246,9 @@ class RevenueCatService {
    */
   checkPremiumStatus(customerInfo) {
     if (!customerInfo) return false;
-    
-    // Check if user has active entitlement
-    const premiumEntitlement = customerInfo.entitlements.active[ENTITLEMENT_ID];
+
+    // Safe-check nested structure for entitlement
+    const premiumEntitlement = customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] ?? null;
     return premiumEntitlement !== undefined && premiumEntitlement !== null;
   }
 
@@ -210,7 +258,7 @@ class RevenueCatService {
    */
   getActiveEntitlement(customerInfo) {
     const active = customerInfo?.entitlements?.active ?? {};
-    return active[ENTITLEMENT_ID] ?? null;
+    return active?.[ENTITLEMENT_ID] ?? null;
   }
 
   /**
@@ -308,6 +356,32 @@ class RevenueCatService {
     if (identifier.includes('lifetime')) return 'one-time';
     
     return '';
+  }
+
+  /**
+   * Check if package is yearly/annual (the recommended plan)
+   */
+  isYearlyPackage(packageItem) {
+    if (!packageItem) return false;
+    const id = (packageItem.identifier || '').toLowerCase();
+    return id.includes('annual') || id.includes('yearly');
+  }
+
+  /**
+   * Sort packages: yearly first, then monthly, then lifetime
+   */
+  sortPackages(packages) {
+    if (!packages?.length) return [];
+    return [...packages].sort((a, b) => {
+      const order = (pkg) => {
+        const id = (pkg.identifier || '').toLowerCase();
+        if (id.includes('annual') || id.includes('yearly')) return 0;
+        if (id.includes('monthly')) return 1;
+        if (id.includes('lifetime')) return 2;
+        return 3;
+      };
+      return order(a) - order(b);
+    });
   }
 }
 

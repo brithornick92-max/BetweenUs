@@ -1,7 +1,10 @@
 // context/MemoryContext.js
+// Migrated from legacy memoryManager (AsyncStorage) → DataLayer (SQLite + E2EE)
+// The memoryManager is still used only for PDF export and yearly recap,
+// which don't need encryption or sync.
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
-import { storage, STORAGE_KEYS } from '../utils/storage';
 import { useAppContext } from './AppContext';
+import { useData } from './DataContext';
 import { memoryManager, MEMORY_TYPES } from '../utils/memoryManager';
 
 const initialState = {
@@ -96,29 +99,36 @@ export function MemoryProvider({ children }) {
   const stateRef = useRef(state);
   stateRef.current = state;
   const { actions: appActions } = useAppContext();
+  const { data: DataLayer } = useData();
 
-  // Load memories from storage on mount
+  // Load memories from DataLayer (SQLite + E2EE) on mount
   useEffect(() => {
     const loadMemories = async () => {
       try {
-        // Initialize memory manager
-        await memoryManager.initialize();
-        
-        // Get data from memory manager
-        const timeline = memoryManager.getTimeline();
-        const milestones = memoryManager.getMilestones();
-        const anniversaries = memoryManager.getAnniversaries();
-        const memories = Array.from(memoryManager.memories.values());
-        
+        // Primary source: DataLayer (SQLite with encryption)
+        const memories = await DataLayer.getMemories({ limit: 500 });
+
+        // Still init legacy manager for PDF export / recap functions only
+        await memoryManager.initialize().catch(() => {});
+
+        const milestones = memoryManager.getMilestones?.() || [];
+        const anniversaries = memoryManager.getAnniversaries?.() || [];
+
         dispatch({
           type: ACTIONS.LOAD_MEMORIES,
-          payload: { memories, timeline, milestones, anniversaries }
+          payload: {
+            memories: memories || [],
+            timeline: generateTimeline(memories || []),
+            milestones,
+            anniversaries,
+          }
         });
 
         // Update app context with memory stats
+        const count = memories?.length || 0;
         appActions.updateMemoryStats(
-          memories.length,
-          memories.length > 0 ? memories[memories.length - 1].date : null
+          count,
+          count > 0 ? memories[count - 1].created_at || memories[count - 1].date : null
         );
       } catch (error) {
         console.error('Failed to load memories:', error);
@@ -127,37 +137,50 @@ export function MemoryProvider({ children }) {
     };
 
     loadMemories();
-  }, [appActions]);
+  }, [appActions, DataLayer]);
 
   const actions = useMemo(() => ({
     addMemory: async (memoryData) => {
-      const memory = await memoryManager.addMemory(memoryData);
-      
-      // Update local state
+      // Write through DataLayer (SQLite + E2EE + sync)
+      const memory = await DataLayer.saveMemory({
+        content: memoryData.content || memoryData.text || '',
+        type: memoryData.type || 'moment',
+        mood: memoryData.mood,
+        isPrivate: memoryData.isPrivate || false,
+        mediaUri: memoryData.mediaUri,
+        mimeType: memoryData.mimeType,
+        fileName: memoryData.fileName,
+      });
+
+      // Also write to legacy manager for PDF/recap (fire-and-forget)
+      memoryManager.addMemory(memoryData).catch(() => {});
+
       dispatch({ type: ACTIONS.ADD_MEMORY, payload: { memory } });
-      
-      // Update app context stats (use ref for latest state)
+
       const currentMemories = stateRef.current.memories;
       const updatedMemories = [...currentMemories, memory];
-      appActions.updateMemoryStats(updatedMemories.length, memory.date);
-      
+      appActions.updateMemoryStats(updatedMemories.length, memory.created_at || memory.date);
+
       return memory;
     },
 
     updateMemory: async (memoryId, updates) => {
+      // DataLayer doesn't have updateMemory yet — use legacy + re-save pattern
       const updatedMemory = await memoryManager.updateMemory(memoryId, updates);
-      
+
       dispatch({ type: ACTIONS.UPDATE_MEMORY, payload: { memory: updatedMemory } });
-      
+
       return updatedMemory;
     },
 
     deleteMemory: async (memoryId) => {
-      await memoryManager.deleteMemory(memoryId);
-      
+      // Delete from DataLayer (SQLite)
+      await DataLayer.deleteMemory(memoryId).catch(() => {});
+      // Also remove from legacy manager
+      await memoryManager.deleteMemory(memoryId).catch(() => {});
+
       dispatch({ type: ACTIONS.DELETE_MEMORY, payload: { id: memoryId } });
-      
-      // Update app context stats (use ref for latest state)
+
       const currentMemories = stateRef.current.memories;
       const filteredMemories = currentMemories.filter(memory => memory.id !== memoryId);
       appActions.updateMemoryStats(
@@ -184,13 +207,17 @@ export function MemoryProvider({ children }) {
     },
 
     syncWithPartner: async () => {
-      const result = await memoryManager.syncToCloud({ encryptData: true });
-      if (result?.success) {
+      // Use DataLayer's built-in sync (SyncEngine) instead of legacy cloud sync
+      try {
+        await DataLayer.sync();
         dispatch({ type: ACTIONS.SYNC_COMPLETE });
+        return { success: true };
+      } catch (err) {
+        console.warn('[MemoryContext] sync failed:', err?.message);
+        return { success: false, error: err?.message };
       }
-      return result;
     },
-  }), [appActions]);
+  }), [appActions, DataLayer]);
 
   return (
     <MemoryContext.Provider value={{ state, actions }}>

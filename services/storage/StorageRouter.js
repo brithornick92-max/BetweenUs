@@ -40,7 +40,7 @@ class StorageRouter {
   }
 
   async getCoupleId() {
-    return storage.get(STORAGE_KEYS.COUPLE_ID);
+    return storage.get(STORAGE_KEYS.COUPLE_ID, null);
   }
 
   async setActiveCoupleId(coupleId) {
@@ -70,8 +70,8 @@ class StorageRouter {
     return LocalEngine.signInWithEmailAndPassword(email, password);
   }
 
-  signOut() {
-    return LocalEngine.signOut();
+  signOut(scope = 'global') {
+    return LocalEngine.signOut(scope);
   }
 
   async getUserDocument(userId) {
@@ -227,7 +227,7 @@ class StorageRouter {
   }
 
   async queueRitualSync(payload) {
-    const queue = (await storage.get(STORAGE_KEYS.RITUAL_SYNC_QUEUE)) || [];
+    const queue = await storage.get(STORAGE_KEYS.RITUAL_SYNC_QUEUE, []);
     const item = {
       ...payload,
       id: payload?.id || `ritual_sync_${Date.now()}`,
@@ -243,7 +243,7 @@ class StorageRouter {
 
   async flushRitualSyncQueue() {
     if (!this._useCloud()) return false;
-    const queue = (await storage.get(STORAGE_KEYS.RITUAL_SYNC_QUEUE)) || [];
+    const queue = await storage.get(STORAGE_KEYS.RITUAL_SYNC_QUEUE, []);
     if (!queue.length) return true;
 
     const coupleId = await this.getCoupleId();

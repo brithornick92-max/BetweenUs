@@ -11,9 +11,9 @@ import { useTheme } from "../context/ThemeContext";
  * Automatically handles purchases, restore, and customer info
  */
 const FALLBACK_COLORS = {
-  background: "#0B0B0B",
-  primary: "#D4AF37",
-  text: "#FFFFFF",
+  background: "#0E0B10",
+  primary: "#8F2D56",
+  text: "#F2EDF1",
 };
 
 const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {

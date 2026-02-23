@@ -113,13 +113,13 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
             <Text style={[styles.examplesTitle, { color: colors.text }]}>Examples</Text>
             <View style={styles.exampleRow}>
               <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
-              <Text style={[styles.exampleText, { color: colors.textSecondary }]}>
+              <Text style={[styles.exampleText, { color: '#FFFFFF' }]}>
                 "What does {myName || 'My Name'} love most about {partnerName || 'Partner Name'}?"
               </Text>
             </View>
             <View style={styles.exampleRow}>
               <Ionicons name="heart" size={16} color={colors.primary} />
-              <Text style={[styles.exampleText, { color: colors.textSecondary }]}>
+              <Text style={[styles.exampleText, { color: '#FFFFFF' }]}>
                 "{myName || 'My Name'} and {partnerName || 'Partner Name'}'s favorite memory"
               </Text>
             </View>
@@ -139,7 +139,7 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
             onPress={handleSave}
             disabled={isSaving}
           >
-            <Text style={styles.saveButtonText}>
+            <Text style={[styles.saveButtonText, { color: '#FFFFFF' }]}> 
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Text>
           </TouchableOpacity>

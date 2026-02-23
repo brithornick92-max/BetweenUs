@@ -198,7 +198,7 @@ const DataLayer = {
 
   async getJournalEntries({ limit = 50, offset = 0, mood } = {}) {
     const rows = await Database.getJournals(_userId, { limit, offset, mood });
-    return Promise.all(rows.map(r => this._decryptJournal(r)));
+    return Promise.all((rows || []).map(r => this._decryptJournal(r)));
   },
 
   async getJournalEntry(id) {
@@ -261,7 +261,7 @@ const DataLayer = {
 
   async getPromptAnswers({ dateKey: dk, promptId, limit = 100 } = {}) {
     const rows = await Database.getPromptAnswers(_userId, { dateKey: dk, promptId, limit });
-    return Promise.all(rows.map(r => this._decryptPromptAnswer(r)));
+    return Promise.all((rows || []).map(r => this._decryptPromptAnswer(r)));
   },
 
   async getPromptAnswerForToday(promptId) {
@@ -296,6 +296,7 @@ const DataLayer = {
     const kt = isPrivate ? deviceTier() : keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
     const bodyCipher = await E2EEncryption.encryptString(content, kt, cid);
+    const moodCipher = mood ? await E2EEncryption.encryptString(mood, kt, cid) : null;
 
     let mediaRef = null;
 
@@ -321,6 +322,7 @@ const DataLayer = {
       body_cipher: bodyCipher,
       media_ref: mediaRef,
       mood,
+      mood_cipher: moodCipher,
       is_private: isPrivate,
     });
 
@@ -330,7 +332,7 @@ const DataLayer = {
 
   async getMemories({ type, limit = 100, offset = 0 } = {}) {
     const rows = await Database.getMemories(_userId, { type, limit, offset });
-    return Promise.all(rows.map(r => this._decryptMemory(r)));
+    return Promise.all((rows || []).map(r => this._decryptMemory(r)));
   },
 
   async _decryptMemory(row) {
@@ -376,7 +378,7 @@ const DataLayer = {
 
   async getRituals({ limit = 100, offset = 0 } = {}) {
     const rows = await Database.getRituals(_userId, { limit, offset });
-    return Promise.all(rows.map(async (row) => {
+    return Promise.all((rows || []).map(async (row) => {
       const info = E2EEncryption.inspect(row.body_cipher);
       const kt = info?.keyTier || keyTier();
       const cid = kt === 'couple' ? _coupleId : null;
@@ -417,7 +419,7 @@ const DataLayer = {
 
   async getCheckIns({ limit = 100, offset = 0 } = {}) {
     const rows = await Database.getCheckIns(_userId, { limit, offset });
-    return Promise.all(rows.map(async (row) => {
+    return Promise.all((rows || []).map(async (row) => {
       const info = E2EEncryption.inspect(row.body_cipher);
       const kt = info?.keyTier || keyTier();
       const cid = kt === 'couple' ? _coupleId : null;
@@ -466,7 +468,7 @@ const DataLayer = {
 
   async getVibes({ limit = 100 } = {}) {
     const rows = await Database.getVibes(_userId, { limit });
-    return Promise.all(rows.map(async (row) => {
+    return Promise.all((rows || []).map(async (row) => {
       const info = E2EEncryption.inspect(row.note_cipher);
       const kt = info?.keyTier || keyTier();
       const cid = kt === 'couple' ? _coupleId : null;
@@ -498,6 +500,186 @@ const DataLayer = {
       };
     } catch {
       return { ...row, note: null, locked: true };
+    }
+  },
+
+  // ─── Love Notes (E2EE + couple-synced) ─────────────────────────
+
+  /**
+   * Save a love note. Text and sender name are encrypted with the couple
+   * key so only the two partners can read them. If a photo is attached,
+   * it is encrypted via EncryptedAttachments (file bytes never leave the
+   * device in plaintext).
+   */
+  async saveLoveNote({ text, stationeryId, senderName, imageUri }) {
+    const kt = keyTier();
+    const cid = kt === 'couple' ? _coupleId : null;
+
+    // Pre-check: if couple tier is required, make sure the key exists
+    if (kt === 'couple' && !_coupleKeyAvailable) {
+      // Re-check in case it became available after init
+      _coupleKeyAvailable = await E2EEncryption.hasCoupleKey(_coupleId);
+      if (!_coupleKeyAvailable) {
+        throw new Error(
+          'COUPLE_KEY_MISSING: Your partner encryption key is not available yet. ' +
+          'Please make sure both partners have completed pairing.'
+        );
+      }
+    }
+
+    const textCipher = await E2EEncryption.encryptString(text, kt, cid);
+    const senderCipher = senderName
+      ? await E2EEncryption.encryptString(senderName, kt, cid)
+      : null;
+
+    let mediaRef = null;
+    if (imageUri) {
+      const att = await EncryptedAttachments.encryptAndStore({
+        sourceUri: imageUri,
+        fileName: `love_note_${Date.now()}.jpg`,
+        mimeType: 'image/jpeg',
+        userId: _userId,
+        coupleId: _coupleId,
+        parentType: 'love_note',
+        parentId: null, // linked after insert
+        keyTier: kt,
+      });
+      mediaRef = att.id;
+    }
+
+    const row = await Database.insertLoveNote({
+      user_id: _userId,
+      couple_id: _coupleId,
+      text_cipher: textCipher,
+      stationery_id: stationeryId || null,
+      sender_name_cipher: senderCipher,
+      media_ref: mediaRef,
+      is_read: true, // sender has "read" their own note
+    });
+
+    // Link the attachment to this note
+    if (mediaRef) {
+      const db = await Database.init();
+      await db.runAsync(
+        `UPDATE attachments SET parent_id = ? WHERE id = ?`,
+        [row.id, mediaRef]
+      );
+    }
+
+    debouncedPush();
+    return row;
+  },
+
+  /**
+   * Get all love notes for the couple, decrypted.
+   * Returns notes from BOTH partners (sorted newest-first).
+   */
+  async getLoveNotes({ limit = 100, offset = 0 } = {}) {
+    const rows = await Database.getLoveNotes(_userId, _coupleId, { limit, offset });
+    return Promise.all((rows || []).map(r => this._decryptLoveNote(r)));
+  },
+
+  /**
+   * Get a single love note by ID, decrypted.
+   */
+  async getLoveNote(id) {
+    const row = await Database.getLoveNoteById(id);
+    return row ? this._decryptLoveNote(row) : null;
+  },
+
+  /**
+   * Mark a love note as read (for the receiving partner).
+   */
+  async markLoveNoteRead(id) {
+    const result = await Database.markLoveNoteRead(id);
+    debouncedPush();
+    return result;
+  },
+
+  /**
+   * Soft-delete a love note.
+   */
+  async deleteLoveNote(id) {
+    // Also clean up the encrypted attachment file
+    const note = await Database.getLoveNoteById(id);
+    if (note?.media_ref) {
+      try {
+        await EncryptedAttachments.deleteAttachment(note.media_ref);
+      } catch { /* ok — attachment may already be gone */ }
+    }
+    await Database.softDeleteLoveNote(id);
+    debouncedPush();
+  },
+
+  /**
+   * Count unread love notes (notes sent by the partner).
+   */
+  async getUnreadLoveNoteCount() {
+    return Database.getUnreadLoveNoteCount(_userId, _coupleId);
+  },
+
+  /**
+   * Get a decrypted local URI for a love note's photo.
+   * Returns null if the note has no attachment.
+   */
+  async getLoveNoteImageUri(mediaRef) {
+    if (!mediaRef) return null;
+    try {
+      return await EncryptedAttachments.getDecryptedUri(
+        mediaRef, keyTier(), _coupleId
+      );
+    } catch (err) {
+      console.warn('[DataLayer] Love note image decryption failed:', err?.message);
+      return null;
+    }
+  },
+
+  /** @private */
+  async _decryptLoveNote(row) {
+    if (!row) return null;
+    const info = E2EEncryption.inspect(row.text_cipher);
+    const kt = info?.keyTier || keyTier();
+    const cid = kt === 'couple' ? _coupleId : null;
+    try {
+      // Decrypt the photo to a temp URI if present
+      let decryptedImageUri = null;
+      if (row.media_ref) {
+        try {
+          decryptedImageUri = await EncryptedAttachments.getDecryptedUri(
+            row.media_ref, kt, cid
+          );
+        } catch { /* photo may be still uploading/downloading */ }
+      }
+
+      return {
+        id: row.id,
+        text: await E2EEncryption.decryptString(row.text_cipher, kt, cid),
+        stationeryId: row.stationery_id,
+        senderName: row.sender_name_cipher
+          ? await E2EEncryption.decryptString(row.sender_name_cipher, kt, cid)
+          : null,
+        imageUri: decryptedImageUri,
+        mediaRef: row.media_ref,
+        isRead: !!row.is_read,
+        readAt: row.read_at,
+        isOwn: row.user_id === _userId,
+        userId: row.user_id,
+        createdAt: new Date(row.created_at).getTime(),
+        updatedAt: new Date(row.updated_at).getTime(),
+      };
+    } catch (err) {
+      console.warn('[DataLayer] Love note decryption failed:', err?.message);
+      return {
+        id: row.id,
+        text: null,
+        stationeryId: row.stationery_id,
+        senderName: null,
+        imageUri: null,
+        isRead: !!row.is_read,
+        isOwn: row.user_id === _userId,
+        createdAt: new Date(row.created_at).getTime(),
+        locked: true,
+      };
     }
   },
 

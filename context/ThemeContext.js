@@ -1,162 +1,110 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
-import { storage, STORAGE_KEYS } from '../utils/storage';
-import { COLORS } from '../utils/theme';
+import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
+import { useColorScheme } from "react-native";
+import {
+  DARK_PALETTE,
+  LIGHT_PALETTE,
+  getGradients,
+  getShadows,
+  getNavigationTheme,
+} from "../utils/theme";
+import { storage } from "../utils/storage";
+import { STORAGE_KEYS } from "../utils/storage";
 
-const ThemeContext = createContext({});
+const ThemeContext = createContext(null);
 
-// Safe default theme for when context is not available
-const DEFAULT_THEME = {
-  colors: {
-    background: COLORS.warmCharcoal,
-    surface: COLORS.deepPlum,
-    surfaceSecondary: 'rgba(255,255,255,0.04)',
-    text: COLORS.softCream,
-    textSecondary: 'rgba(246,242,238,0.60)',
-    border: 'rgba(255,255,255,0.08)',
-    accent: COLORS.blushRose,
-    blushRose: COLORS.blushRose,
-    mutedGold: COLORS.mutedGold,
-    success: COLORS.success,
-    error: COLORS.error,
-    warning: COLORS.warning,
-  },
-  gradients: {
-    primary: [COLORS.blushRose, COLORS.mutedGold],
-    secondary: [COLORS.warmCharcoal, COLORS.deepPlum + '30'],
-  },
-  isDark: true,
+const THEME_MODES = ["auto", "dark", "light"];
+
+/** Auto mode: light 6 AM–8 PM, dark otherwise */
+const isNightTime = () => {
+  const h = new Date().getHours();
+  return h < 6 || h >= 20;
 };
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
-  
-  // Return safe default instead of throwing error
-  if (!context || !context.colors) {
-    console.warn('useTheme: Context not available, using default theme');
+  const systemColorScheme = useColorScheme();
+
+  if (!context) {
+    const fallbackPalette = DARK_PALETTE;
     return {
-      theme: DEFAULT_THEME,
+      themeMode: "dark",
+      setThemeMode: () => {},
       isDark: true,
-      themeMode: 'dark',
-      setTheme: () => {},
-      toggleTheme: () => {},
-      colors: DEFAULT_THEME.colors,
-      gradients: DEFAULT_THEME.gradients,
+      colors: fallbackPalette,
+      gradients: getGradients(fallbackPalette),
+      shadows: getShadows(fallbackPalette),
+      navigationTheme: getNavigationTheme(fallbackPalette),
     };
   }
-  
+
   return context;
-};
-
-// Light theme colors
-const LIGHT_THEME = {
-  colors: {
-    background: COLORS.softCream,
-    surface: '#FFFFFF',
-    surfaceSecondary: 'rgba(0,0,0,0.02)',
-    text: COLORS.charcoal,
-    textSecondary: 'rgba(51,51,51,0.60)',
-    border: 'rgba(0,0,0,0.06)',
-    accent: COLORS.blushRose,
-    blushRose: COLORS.blushRose,
-    mutedGold: COLORS.mutedGold,
-    success: COLORS.success,
-    error: COLORS.error,
-    warning: COLORS.warning,
-  },
-  gradients: {
-    primary: [COLORS.blushRose, COLORS.mutedGold],
-    secondary: [COLORS.softCream, COLORS.blushRose + '20'],
-  },
-  isDark: false,
-};
-
-// Dark theme colors
-const DARK_THEME = {
-  colors: {
-    background: COLORS.warmCharcoal,
-    surface: COLORS.deepPlum,
-    surfaceSecondary: 'rgba(255,255,255,0.04)',
-    text: COLORS.softCream,
-    textSecondary: 'rgba(246,242,238,0.60)',
-    border: 'rgba(255,255,255,0.08)',
-    accent: COLORS.blushRose,
-    blushRose: COLORS.blushRose,
-    mutedGold: COLORS.mutedGold,
-    success: COLORS.success,
-    error: COLORS.error,
-    warning: COLORS.warning,
-  },
-  gradients: {
-    primary: [COLORS.blushRose, COLORS.mutedGold],
-    secondary: [COLORS.warmCharcoal, COLORS.deepPlum + '30'],
-  },
-  isDark: true,
 };
 
 export const ThemeProvider = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const [themeMode, setThemeMode] = useState('system'); // 'light', 'dark', 'system'
-  const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
+  const [themeMode, setThemeModeState] = useState("dark");
+  const [loaded, setLoaded] = useState(false);
 
-  // Load saved theme preference
   useEffect(() => {
-    const loadThemePreference = async () => {
+    let active = true;
+    const load = async () => {
       try {
-        const savedTheme = await storage.get(STORAGE_KEYS.THEME_MODE) || 'system';
-        setThemeMode(savedTheme);
-        
-        if (savedTheme === 'system') {
-          setIsDark(systemColorScheme === 'dark');
-        } else {
-          setIsDark(savedTheme === 'dark');
+        const stored = await storage.get(STORAGE_KEYS.THEME_MODE, "dark");
+        if (active && THEME_MODES.includes(stored)) {
+          setThemeModeState(stored);
         }
-      } catch (error) {
-        console.error('Error loading theme preference:', error);
+      } catch {
+        // ignore
+      } finally {
+        if (active) setLoaded(true);
       }
     };
+    load();
+    return () => { active = false; };
+  }, []);
 
-    loadThemePreference();
-  }, [systemColorScheme]);
-
-  // Update theme when system changes (if using system theme)
-  useEffect(() => {
-    if (themeMode === 'system') {
-      setIsDark(systemColorScheme === 'dark');
-    }
-  }, [systemColorScheme, themeMode]);
-
-  const setTheme = async (mode) => {
+  const setThemeMode = async (mode) => {
+    if (!THEME_MODES.includes(mode)) return;
+    setThemeModeState(mode);
     try {
-      setThemeMode(mode);
       await storage.set(STORAGE_KEYS.THEME_MODE, mode);
-      
-      if (mode === 'system') {
-        setIsDark(systemColorScheme === 'dark');
-      } else {
-        setIsDark(mode === 'dark');
-      }
-    } catch (error) {
-      console.error('Error saving theme preference:', error);
+    } catch {
+      // ignore
     }
   };
 
-  const toggleTheme = () => {
-    const newMode = isDark ? 'light' : 'dark';
-    setTheme(newMode);
-  };
+  // Re-evaluate auto mode every minute
+  const [autoTick, setAutoTick] = useState(0);
+  useEffect(() => {
+    if (themeMode !== "auto") return;
+    const id = setInterval(() => setAutoTick((n) => n + 1), 60_000);
+    return () => clearInterval(id);
+  }, [themeMode]);
 
-  const theme = isDark ? DARK_THEME : LIGHT_THEME;
+  const palette = useMemo(() => {
+    if (themeMode === "auto") return isNightTime() ? DARK_PALETTE : LIGHT_PALETTE;
+    return themeMode === "dark" ? DARK_PALETTE : LIGHT_PALETTE;
+  }, [themeMode, autoTick]);
 
-  const value = {
-    theme,
-    isDark,
-    themeMode,
-    setTheme,
-    toggleTheme,
-    colors: theme.colors,
-    gradients: theme.gradients,
-  };
+  const isDark = useMemo(() => palette === DARK_PALETTE, [palette]);
+
+  const gradients = useMemo(() => getGradients(palette), [palette]);
+  const shadows = useMemo(() => getShadows(palette), [palette]);
+  const navigationTheme = useMemo(() => getNavigationTheme(palette), [palette]);
+
+  const value = useMemo(
+    () => ({
+      themeMode,
+      setThemeMode,
+      isDark,
+      colors: palette,
+      gradients,
+      shadows,
+      navigationTheme,
+      loaded,
+    }),
+    [themeMode, isDark, palette, gradients, shadows, navigationTheme, loaded]
+  );
 
   return (
     <ThemeContext.Provider value={value}>

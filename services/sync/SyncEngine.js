@@ -37,7 +37,9 @@ const SYNC_TABLES = [
   'rituals',
   'check_ins',
   'vibes',
-];
+  'love_notes',
+    'prompt_ratings',
+  ];
 
 /** Maps SQLite table → Supabase couple_data.data_type */
 const TABLE_TO_TYPE = {
@@ -47,13 +49,16 @@ const TABLE_TO_TYPE = {
   rituals: 'ritual',
   check_ins: 'check_in',
   vibes: 'vibe',
-};
+  love_notes: 'love_note',
+    prompt_ratings: 'prompt_rating',
+  };
 
 /** Columns that contain ciphertext (don't re-encrypt; pass through). */
 const CIPHER_COLUMNS = new Set([
   'title_cipher', 'body_cipher', 'answer_cipher', 'partner_answer_cipher',
   'note_cipher', 'file_name_cipher',
   'mood_cipher', 'tags_cipher', 'heat_level_cipher',
+  'text_cipher', 'sender_name_cipher',
 ]);
 
 /** Columns that should NOT be sent to Supabase. */

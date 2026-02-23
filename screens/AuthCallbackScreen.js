@@ -10,11 +10,12 @@ import { cloudSyncStorage } from '../utils/storage';
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
 
 export default function AuthCallbackScreen({ navigation }) {
-  const { theme } = useTheme();
+  const { colors, gradients } = useTheme();
   const { isPremiumEffective: isPremium } = useEntitlements();
   const [status, setStatus] = useState('Checking sign-in status...');
   const [hasSession, setHasSession] = useState(null);
   const [checking, setChecking] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -50,6 +51,7 @@ export default function AuthCallbackScreen({ navigation }) {
         if (!active) return;
         setChecking(false);
         if (sessionFound) {
+          // small delay to let state settle
           setTimeout(() => {
             navigation.navigate('SyncSetup');
           }, 500);
@@ -62,22 +64,29 @@ export default function AuthCallbackScreen({ navigation }) {
     return () => {
       active = false;
     };
-  }, [isPremium, navigation]);
+  }, [isPremium, navigation, retryKey]);
 
   const handleRetry = () => {
     setChecking(true);
     setHasSession(null);
     setStatus('Checking sign-in status...');
-    navigation.replace('AuthCallback');
+    setRetryKey((k) => k + 1);
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <LinearGradient colors={theme.gradients.secondary} style={StyleSheet.absoluteFill} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* IMPORTANT: prevent background layer from stealing touches */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={gradients?.secondary || gradients?.background || [colors.background, colors.background]}
+        style={StyleSheet.absoluteFill}
+      />
+
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.card}>
-          {checking && <ActivityIndicator color={theme.colors.blushRose} />}
-          <Text style={[styles.title, { color: theme.colors.text }]}>{status}</Text>
+          {checking && <ActivityIndicator color={colors.primary} />}
+          <Text style={[styles.title, { color: colors.text }]}>{status}</Text>
+
           {hasSession === false && (
             <TouchableOpacity style={styles.primaryButton} onPress={handleRetry} activeOpacity={0.9}>
               <Text style={styles.primaryButtonText}>Retry</Text>
@@ -99,7 +108,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#151118',
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING.xl,
     alignItems: 'center',
@@ -111,7 +120,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     marginTop: SPACING.lg,
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#A89060',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,

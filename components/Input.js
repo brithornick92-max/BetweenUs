@@ -6,197 +6,19 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Platform,
 } from "react-native";
+import { Platform } from "react-native";
 import { BlurView } from "expo-blur";
-import { COLORS, BORDER_RADIUS } from "../utils/theme";
+import { useTheme } from "../context/ThemeContext";
+import { BORDER_RADIUS } from "../utils/theme";
 
 /**
  * High-End Animated Input Component
- * ✅ Theme-aware (optional)
- * ✅ Fixes BlurView fill style
- * ✅ Better light/dark defaults
+ * ✅ Theme-aware
+ * ✅ FIX: BlurView + Animated stacking on iOS (KEYBOARD / FOCUS ISSUE)
  */
-export default function Input({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  multiline = false,
-  numberOfLines = 1,
-  secureTextEntry = false,
-  keyboardType = "default",
-  autoCapitalize = "sentences",
-  editable = true,
-  error = null,
-  helper = null,
-  icon = null,
-  rightIcon = null,
-  onRightIconPress,
-  maxLength,
-  style,
 
-  // ✅ Optional props you’ll want across the app
-  onSubmitEditing,
-  returnKeyType,
-  autoFocus = false,
-  blur = true,
-
-  // ✅ Optional theme hook injection
-  // Pass: theme={activeTheme} isDark={isDark}
-  theme = null,
-  isDark = true,
-}) {
-  const [focused, setFocused] = useState(false);
-  const focusAnim = useRef(new Animated.Value(0)).current;
-
-  const palette = useMemo(() => {
-    // If no theme is passed, fall back to your global COLORS (dark)
-    const t = theme?.colors;
-
-    const baseText = t?.text ?? (isDark ? "#FFFFFF" : "#111111");
-    const secondaryText = t?.textSecondary ?? (isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)");
-    const border = t?.border ?? (isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)");
-    const surface = t?.surface ?? (isDark ? "rgba(30,30,30,0.40)" : "rgba(255,255,255,0.75)");
-    const surfaceFocused = t?.surfaceSecondary ?? (isDark ? "rgba(40,40,40,0.80)" : "rgba(255,255,255,0.95)");
-    const accent = t?.blushRose ?? COLORS.blushRose;
-    const err = t?.error ?? COLORS.error;
-
-    const placeholderColor = isDark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.35)";
-    const helperColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
-    const counterColor = isDark ? "rgba(255,255,255,0.30)" : "rgba(0,0,0,0.30)";
-
-    return {
-      baseText,
-      secondaryText,
-      border,
-      surface,
-      surfaceFocused,
-      accent,
-      err,
-      placeholderColor,
-      helperColor,
-      counterColor,
-    };
-  }, [theme, isDark]);
-
-  const handleFocus = () => {
-    setFocused(true);
-    Animated.timing(focusAnim, {
-      toValue: 1,
-      duration: 250,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const handleBlur = () => {
-    setFocused(false);
-    Animated.timing(focusAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  // Error always wins for border color
-  const borderColor = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      error ? palette.err : palette.border,
-      error ? palette.err : palette.accent,
-    ],
-  });
-
-  const backgroundColor = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [palette.surface, palette.surfaceFocused],
-  });
-
-  const labelColor = error
-    ? palette.err
-    : focused
-      ? palette.accent
-      : palette.secondaryText;
-
-  return (
-    <View style={[styles.wrapper, style]}>
-      {label && <Text style={[styles.label, { color: labelColor }]}>{label}</Text>}
-
-      <Animated.View
-        style={[
-          styles.container,
-          { borderColor, backgroundColor },
-          multiline && styles.containerMultiline,
-          !editable && styles.containerDisabled,
-        ]}
-      >
-        {blur && Platform.OS === "ios" && (
-          <BlurView
-            intensity={focused ? 15 : 6}
-            tint={isDark ? "dark" : "light"}
-            style={StyleSheet.absoluteFillObject}
-          />
-        )}
-
-        {icon && <View style={styles.icon}>{icon}</View>}
-
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={palette.placeholderColor}
-          multiline={multiline}
-          numberOfLines={multiline ? numberOfLines : 1}
-          secureTextEntry={secureTextEntry}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          editable={editable}
-          maxLength={maxLength}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onSubmitEditing={onSubmitEditing}
-          returnKeyType={returnKeyType}
-          autoFocus={autoFocus}
-          selectionColor={palette.accent}
-          style={[
-            styles.input,
-            multiline && styles.inputMultiline,
-            { color: palette.baseText, textAlignVertical: multiline ? "top" : "center" },
-          ]}
-        />
-
-        {rightIcon && (
-          <TouchableOpacity
-            onPress={onRightIconPress}
-            style={styles.rightIcon}
-            disabled={!onRightIconPress}
-            activeOpacity={0.7}
-          >
-            {rightIcon}
-          </TouchableOpacity>
-        )}
-      </Animated.View>
-
-      <View style={styles.footer}>
-        {(error || helper) ? (
-          <Text style={[styles.helper, { color: error ? palette.err : palette.helperColor }]}>
-            {error || helper}
-          </Text>
-        ) : (
-          <View />
-        )}
-
-        {typeof maxLength === "number" && (
-          <Text style={[styles.counter, { color: palette.counterColor }]}>
-            {(value?.length || 0)}/{maxLength}
-          </Text>
-        )}
-      </View>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   wrapper: {
     marginVertical: 10,
     width: "100%",
@@ -209,7 +31,10 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
+
+  // ✅ must be relative for blur zIndex to behave reliably on iOS
   container: {
+    position: "relative",
     flexDirection: "row",
     alignItems: "center",
     borderRadius: BORDER_RADIUS.lg,
@@ -218,6 +43,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     minHeight: 56,
   },
+
+  // ✅ true background layer
+  blurLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: -1,
+  },
+
   containerMultiline: {
     alignItems: "flex-start",
     paddingVertical: 12,
@@ -260,3 +92,179 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
 });
+
+export default function Input({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  multiline = false,
+  numberOfLines = 1,
+  secureTextEntry = false,
+  keyboardType = "default",
+  autoCapitalize = "sentences",
+  editable = true,
+  error = null,
+  helper = null,
+  icon = null,
+  rightIcon = null,
+  onRightIconPress,
+  maxLength,
+  style,
+
+  onSubmitEditing,
+  returnKeyType,
+  autoFocus = false,
+  blur = true,
+
+  // handy defaults (safe)
+  autoCorrect = false,
+  keyboardAppearance,
+}) {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const [focused, setFocused] = useState(false);
+  const focusAnim = useRef(new Animated.Value(0)).current;
+
+  const palette = useMemo(() => {
+    return {
+      baseText: colors.text,
+      secondaryText: colors.textMuted,
+      border: colors.border,
+      surface: colors.surface,
+      surfaceFocused: colors.surface2,
+      accent: colors.primary,
+      err: colors.danger,
+      placeholderColor: colors.textMuted,
+      helperColor: colors.textMuted,
+      counterColor: colors.textMuted,
+    };
+  }, [colors]);
+
+  const handleFocus = () => {
+    setFocused(true);
+    Animated.timing(focusAnim, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleBlur = () => {
+    setFocused(false);
+    Animated.timing(focusAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const borderColor = focusAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [error ? palette.err : palette.border, error ? palette.err : palette.accent],
+  });
+
+  const backgroundColor = focusAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [palette.surface, palette.surfaceFocused],
+  });
+
+  const labelColor = error
+    ? palette.err
+    : focused
+      ? palette.accent
+      : palette.secondaryText;
+
+  return (
+    <View style={[styles.wrapper, style]}>
+      {label && <Text style={[styles.label, { color: labelColor }]}>{label}</Text>}
+
+      <Animated.View
+        // ✅ "box-none" prevents wrapper from blocking touch/focus
+        pointerEvents="box-none"
+        style={[
+          styles.container,
+          { borderColor, backgroundColor },
+          multiline && styles.containerMultiline,
+          !editable && styles.containerDisabled,
+        ]}
+      >
+        {/* ✅ Most reliable fix:
+            1) pointerEvents="none" so blur never captures touches
+            2) zIndex:-1 so blur is truly BEHIND the TextInput on iOS
+            3) container is position:"relative" so zIndex works consistently
+        */}
+        {blur && Platform.OS === "ios" && (
+          <BlurView
+            pointerEvents="none"
+            intensity={focused ? 15 : 6}
+            tint={isDark ? "dark" : "light"}
+            style={styles.blurLayer}
+          />
+        )}
+
+        {icon && <View style={styles.icon}>{icon}</View>}
+
+        <TextInput
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={palette.placeholderColor}
+          multiline={multiline}
+          numberOfLines={multiline ? numberOfLines : 1}
+          secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
+          autoCorrect={autoCorrect}
+          editable={editable}
+          maxLength={maxLength}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onSubmitEditing={onSubmitEditing}
+          returnKeyType={returnKeyType}
+          autoFocus={autoFocus}
+          selectionColor={palette.accent}
+          keyboardAppearance={keyboardAppearance ?? (isDark ? "dark" : "light")}
+          accessibilityLabel={label || placeholder}
+          accessibilityState={{ disabled: !editable }}
+          style={[
+            styles.input,
+            multiline && styles.inputMultiline,
+            {
+              color: palette.baseText,
+              textAlignVertical: multiline ? "top" : "center",
+            },
+          ]}
+        />
+
+        {rightIcon && (
+          <TouchableOpacity
+            onPress={onRightIconPress}
+            style={styles.rightIcon}
+            disabled={!onRightIconPress}
+            activeOpacity={0.7}
+          >
+            {rightIcon}
+          </TouchableOpacity>
+        )}
+      </Animated.View>
+
+      <View style={styles.footer}>
+        {error || helper ? (
+          <Text style={[styles.helper, { color: error ? palette.err : palette.helperColor }]}>
+            {error || helper}
+          </Text>
+        ) : (
+          <View />
+        )}
+
+        {typeof maxLength === "number" && (
+          <Text style={[styles.counter, { color: palette.counterColor }]}>
+            {(value?.length || 0)}/{maxLength}
+          </Text>
+        )}
+      </View>
+    </View>
+  );
+}

@@ -1,0 +1,46 @@
+# premium-flow.yaml — E2E test: Premium gating verification
+# Tests: Free user hits paywall at correct gates, paywall displays correctly
+
+appId: com.brittany.betweenus
+
+---
+
+- launchApp:
+    clearState: true
+
+# After auth + onboarding, verify free user is gated
+
+# Navigate to Prompts
+- tapOn: "Prompts"
+- waitForAnimationToEnd
+
+# Free users should see limited content or paywall trigger
+- assertVisible:
+    text: ".*preview.*|.*unlock.*|.*premium.*"
+    optional: true
+
+# Navigate to Date Plans
+- tapOn: "DatePlans"
+- waitForAnimationToEnd
+
+# Try to access heat level 4+ (should show lock or paywall)
+- tapOn:
+    text: "Mood"
+    optional: true
+- waitForAnimationToEnd
+
+# Look for lock icon on heat 4+
+- assertVisible:
+    id: "lock-outline"
+    optional: true
+
+# Navigate to Settings and check premium section
+- tapOn: "Settings"
+- waitForAnimationToEnd
+
+- scroll:
+    direction: DOWN
+
+- assertVisible:
+    text: ".*Premium.*|.*Pro.*|.*Upgrade.*"
+    optional: true

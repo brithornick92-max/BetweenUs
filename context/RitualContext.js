@@ -17,23 +17,93 @@ export const RITUAL_TYPES = {
 };
 
 const STANDARD_PROMPTS = {
+  prompt: [
+    "What is one thing you'd like to leave behind from today?",
+    "If tonight could hold one feeling for both of us, what would it be?",
+    "What part of today do you want to carry into tomorrow?",
+    "If you could whisper one thing to your future self, what would it be?",
+    "What's something small that felt big today?",
+    "What does rest mean to you right now?",
+    "If this evening had a soundtrack, what would be playing?",
+    "What's one thing you're quietly proud of from today?",
+    "What are you ready to let go of before sleep?",
+    "If you could replay any 15 minutes from today, which would you choose?",
+    "What's a thought that kept coming back to you today?",
+    "What would make tomorrow feel softer than today?",
+    "What's something you noticed today that you usually overlook?",
+    "If tonight were a color, what would it be and why?",
+    "What's one thing you learned about yourself today?",
+    "Where in your body are you holding today's stress?",
+    "What's a word that captures how today felt?",
+    "If you could share one dream tonight, what world would it take you to?",
+    "What's something unfinished that you're okay leaving for tomorrow?",
+    "What gentle truth do you want to sit with tonight?",
+  ],
   checkIn: [
     "How are you feeling right now?",
     "What's on your mind tonight?",
     "How was your day, really?",
     "What do you need from me tonight?",
+    "How full is your cup right now — and what would top it off?",
+    "What emotion surprised you today?",
+    "On a scale of cozy to restless, how do you feel right now?",
+    "What's the heaviest thing you're carrying tonight?",
+    "If I could take one thing off your plate, what would help most?",
+    "What kind of comfort are you craving right now?",
+    "How did you take care of yourself today?",
+    "What's been replaying in your mind this evening?",
+    "Did anything make you feel unseen today?",
+    "What part of your day felt the most like 'you'?",
+    "How is your heart different tonight than it was this morning?",
+    "What would make right now feel a little more peaceful?",
+    "Is there something you wanted to say today but didn't?",
+    "What's one thing that went right today, even if it was small?",
+    "How are you feeling about us tonight?",
+    "What kind of energy are you bringing to bed tonight?",
   ],
   appreciation: [
     "What made you smile about us today?",
     "Something I did that you appreciated?",
     "A moment today when you felt loved?",
     "What are you grateful for about our relationship?",
+    "What's one thing about me that you noticed today?",
+    "When did you feel most connected to me today?",
+    "What's a quality of mine you were grateful for today?",
+    "What's something I do that always makes your day better?",
+    "When did you feel proud of us today?",
+    "What's a tiny thing I did that meant more than I probably realize?",
+    "What moment today reminded you why you chose this?",
+    "What's something about our routine that you secretly love?",
+    "How did I show up for you today, even in a small way?",
+    "What's a way I made your day easier without being asked?",
+    "What's your favorite ordinary moment we shared today?",
+    "What about us feels effortless right now?",
+    "What recent memory of us makes you feel warm inside?",
+    "What's one way we've grown together that you're grateful for?",
+    "What did I say today that stuck with you?",
+    "What's a comfort you find in us that you didn't expect?",
   ],
   dateIdea: [
     "What's one thing we could do together this weekend?",
     "A simple way we could connect tomorrow?",
     "Something new we could try together?",
     "How could we make tomorrow special?",
+    "If we had two hours with nothing to do, how would you spend them with me?",
+    "What's a meal we could cook together soon?",
+    "Where would you take me if we could escape for an afternoon?",
+    "What's something playful we haven't done in a while?",
+    "What would a perfect lazy morning together look like?",
+    "If we could recreate any date we've had, which one?",
+    "What's a place in our town we've never explored together?",
+    "What's a conversation topic we never seem to get to?",
+    "What's an activity that would make us both laugh?",
+    "If we declared tomorrow a mini celebration, what would we celebrate?",
+    "What's something creative we could do together?",
+    "What would a 'no phones' evening together look like?",
+    "What's a skill we could learn side by side?",
+    "Where would you want to watch the next sunset with me?",
+    "What's one thing on your bucket list we could start planning?",
+    "What would our ideal weekend morning look like?",
   ],
 };
 
@@ -153,6 +223,7 @@ function generateMemoryContextualPrompt(category, todayMemories, anniversaryMemo
   if (anniversaryMemories.length > 0) {
     const anniversary = anniversaryMemories[0];
     const anniversaryPrompts = {
+      prompt: `Today marks ${anniversary.title}. As the day winds down, what feelings are surfacing?`,
       checkIn: `Today marks ${anniversary.title}. How are you feeling about this special milestone?`,
       appreciation: `On this anniversary of ${anniversary.title}, what are you most grateful for about our journey together?`,
       dateIdea: `How would you like to celebrate ${anniversary.title} together?`,
@@ -164,6 +235,7 @@ function generateMemoryContextualPrompt(category, todayMemories, anniversaryMemo
   if (todayMemories.length > 0) {
     const memory = todayMemories[0];
     const memoryPrompts = {
+      prompt: `With ${memory.title} on your mind tonight, what are you reflecting on?`,
       checkIn: `Thinking about ${memory.title}, how are you feeling tonight?`,
       appreciation: `What about ${memory.title} brings you the most joy?`,
       dateIdea: `Inspired by ${memory.title}, what could we do together tomorrow?`,
@@ -173,23 +245,45 @@ function generateMemoryContextualPrompt(category, todayMemories, anniversaryMemo
   
   // Default prompts with gentle evening tone
   const eveningPrompts = {
+    prompt: [
+      "As this day comes to a close, what lingers in your heart?",
+      "What's one feeling you'd like to name before you sleep?",
+      "If tonight could hold one wish, what would it be?",
+      "What gentle truth do you want to carry into your dreams?",
+      "What's a question you've been sitting with lately?",
+      "If you could paint tonight's sky to match your mood, what colors would you use?",
+      "What's one thing you're quietly learning about yourself?",
+      "What would you tell your morning self about the day that unfolded?",
+    ],
     checkIn: [
       "How is your heart feeling as this day comes to an end?",
       "What emotions are you carrying with you tonight?",
       "As you prepare for rest, what's on your mind?",
       "How are you feeling about us tonight?",
+      "Where are you holding tension right now — body or mind?",
+      "What would make this moment feel a little more complete?",
+      "What do you need to hear from me before we sleep?",
+      "How full or empty is your emotional tank tonight?",
     ],
     appreciation: [
       "What moment today made you feel most connected to love?",
       "What's something beautiful you noticed about us today?",
       "What are you grateful for in this moment?",
       "What made you smile about our relationship today?",
+      "What quiet act of love did you witness or receive today?",
+      "What's something about our bond that felt solid today?",
+      "When did you feel most seen by me today?",
+      "What's a gift this ordinary day gave us?",
     ],
     dateIdea: [
       "What's one gentle way we could connect tomorrow?",
       "How could we make tomorrow feel special together?",
       "What would bring you joy to do with me tomorrow?",
       "What's a simple pleasure we could share tomorrow?",
+      "If tomorrow had no obligations, what would we do first?",
+      "What's an errand we could turn into quality time tomorrow?",
+      "What's something small we could plan that would give us something to look forward to?",
+      "How could we carve out 20 minutes of just-us time tomorrow?",
     ],
   };
   
@@ -210,7 +304,7 @@ export function RitualProvider({ children }) {
   useEffect(() => {
     const loadRituals = async () => {
       try {
-        const history = await storage.get(STORAGE_KEYS.RITUAL_HISTORY) || [];
+        const history = await storage.get(STORAGE_KEYS.RITUAL_HISTORY, []) || [];
         const lastCompleted = history.length > 0 ? 
           new Date(Math.max(...history.map(r => new Date(r.date)))) : null;
         const streak = calculateStreak(history);
@@ -221,7 +315,7 @@ export function RitualProvider({ children }) {
         });
 
         // Load custom flows for premium users
-        const customFlows = await storage.get(STORAGE_KEYS.CUSTOM_RITUAL_FLOWS) || [];
+        const customFlows = await storage.get(STORAGE_KEYS.CUSTOM_RITUAL_FLOWS, []) || [];
         dispatch({
           type: ACTIONS.LOAD_CUSTOM_FLOWS,
           payload: { flows: customFlows }
@@ -241,7 +335,12 @@ export function RitualProvider({ children }) {
         id: `ritual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         date: new Date(),
         type,
-        prompt: getRandomPrompt('checkIn'),
+        prompt: {
+          question: getRandomPrompt('prompt'),
+          userAnswer: null,
+          partnerAnswer: null,
+          isRevealed: false,
+        },
         checkIn: {
           question: getRandomPrompt('checkIn'),
           userAnswer: null,
@@ -336,7 +435,12 @@ export function RitualProvider({ children }) {
         type: RITUAL_TYPES.STANDARD,
         hasMemoryContext: todayMemories.length > 0 || anniversaryMemories.length > 0,
         contextMemories: [...todayMemories, ...anniversaryMemories],
-        prompt: getRandomPrompt('checkIn'),
+        prompt: {
+          question: generateMemoryContextualPrompt('prompt', todayMemories, anniversaryMemories),
+          userAnswer: null,
+          partnerAnswer: null,
+          isRevealed: false,
+        },
         checkIn: {
           question: generateMemoryContextualPrompt('checkIn', todayMemories, anniversaryMemories),
           userAnswer: null,
@@ -497,7 +601,7 @@ export function RitualProvider({ children }) {
         when,
       });
 
-      const existing = (await storage.get(STORAGE_KEYS.RITUAL_REMINDERS)) || [];
+      const existing = (await storage.get(STORAGE_KEYS.RITUAL_REMINDERS, [])) || [];
       const filtered = existing.filter((item) => item?.id !== schedule?.id);
       const reminder = {
         ...schedule,

@@ -1,1098 +1,1182 @@
-import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
+// screens/DateNightScreen.js — Date night card game
+// Swipe right to save for tonight, swipe left to skip.
+// Cards start face-down with heat-themed gradient back, tap to flip and reveal.
+// Behind cards animate outward as the top card is dragged.
+
+import React, {
+  useState, useMemo, useCallback, useRef,
+  useImperativeHandle, forwardRef, useEffect,
+} from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-  Animated,
-  Dimensions,
-  Platform,
-  Image,
-} from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+  View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback,
+  ScrollView, Platform, Dimensions, StatusBar, InteractionManager,
+  ActivityIndicator, Modal, Pressable,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue, useAnimatedStyle,
+  withSpring, withTiming, runOnJS, interpolate,
+  Easing,
+} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { useAppContext } from "../context/AppContext";
-import { useTheme } from "../context/ThemeContext";
-import {
-  filterDates,
-  surpriseMeDate,
-  getAvailableMoods,
-  getAllDates,
-} from "../utils/contentLoader";
-import { myDatesStorage } from "../utils/storage";
-import { useEntitlements } from "../context/EntitlementsContext";
-import { FREE_LIMITS } from "../utils/featureFlags";
-import {
-  TYPOGRAPHY,
-  SPACING,
-  BORDER_RADIUS,
-  SHADOWS,
-  COLORS,
-  getGlassStyle,
-} from "../utils/theme";
-import { SurpriseMeHeader } from "../components/SurpriseMeHeader";
-import { ChipGroup } from "../components/Chip";
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../context/ThemeContext';
+import { useEntitlements } from '../context/EntitlementsContext';
+import { getAllDates, filterDates, getDimensionMeta } from '../utils/contentLoader';
+import { FREE_LIMITS } from '../utils/featureFlags';
+import { SPACING, BORDER_RADIUS } from '../utils/theme';
+import PreferenceEngine from '../services/PreferenceEngine';
+import { useAuth } from '../context/AuthContext';
+import DateCardFront, { HEAT_GRADIENTS, HEAT_ICONS } from '../components/DateCardFront';
+import DateCardBack from '../components/DateCardBack';
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get('window');
+const CARD_W = width - 48;
+const CARD_H = Math.min(height * 0.38, 340);
+const SWIPE_THRESHOLD = 85;
+const FLIP_DURATION = 500;
+const DIMS = getDimensionMeta();
 
-// Generate image URL based on date content
-const getDateImage = (item) => {
-  // Use Unsplash for dynamic images based on keywords
-  const keywords = [];
-  
-  // Add location-based keywords
-  if (item.location === "home") {
-    keywords.push("cozy", "home", "intimate");
-  } else {
-    keywords.push("adventure", "outdoor", "city");
-  }
-  
-  // Add mood-based keywords
-  if (Array.isArray(item.moods)) {
-    keywords.push(...item.moods);
-  }
-  
-  // Add activity-based keywords from title
-  const title = item.title?.toLowerCase() || "";
-  if (title.includes("dance")) keywords.push("dance");
-  if (title.includes("cook")) keywords.push("cooking");
-  if (title.includes("art") || title.includes("paint")) keywords.push("art");
-  if (title.includes("music") || title.includes("record")) keywords.push("music");
-  if (title.includes("food") || title.includes("restaurant")) keywords.push("food");
-  if (title.includes("nature") || title.includes("garden")) keywords.push("nature");
-  if (title.includes("book")) keywords.push("books");
-  if (title.includes("wine")) keywords.push("wine");
-  if (title.includes("spa") || title.includes("massage")) keywords.push("spa");
-  
-  // Default to romantic couple if no specific keywords
-  const searchTerm = keywords.length > 0 ? keywords.slice(0, 2).join(",") : "romantic,couple";
-  
-  // Use Unsplash with specific dimensions for consistency
-  return `https://source.unsplash.com/400x200/?${searchTerm}&sig=${item.id}`;
+const SPRING = { damping: 22, stiffness: 180, mass: 0.8 };
+
+const FONTS = {
+  serif: Platform.select({ ios: 'Playfair Display', android: 'PlayfairDisplay_300Light', default: 'serif' }),
+  body: Platform.select({ ios: 'Inter', android: 'Inter_400Regular', default: 'sans-serif' }),
+  bodyBold: Platform.select({ ios: 'Inter-SemiBold', android: 'Inter_600SemiBold', default: 'sans-serif' }),
 };
 
-const DURATION_OPTIONS = [
-  { value: 60, label: "60 min" },
-  { value: 90, label: "90 min" },
-  { value: 120, label: "120+ min" },
-];
+// HEAT_GRADIENTS and HEAT_ICONS now imported from components/DateCardFront
 
-const LOCATION_OPTIONS = [
-  { value: "either", label: "Either" },
-  { value: "home", label: "At Home" },
-  { value: "out", label: "Going Out" },
-];
+// CardFront = DateCardFront (imported from components/DateCardFront)
+const CardFront = ({ date, colors }) => <DateCardFront date={date} colors={colors} dims={DIMS} />;
 
-// Animated Date Card Component
-function AnimatedDateCard({ item, onPress, theme, isDark, index, navigation }) {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+// CardBack = DateCardBack (imported from components/DateCardBack)
+const CardBack = ({ date }) => <DateCardBack date={date} dims={DIMS} />;
+
+// ── Card stack with flip + swipe ─────────────────────────────────────────────────
+const CardStack = forwardRef(function CardStack(
+  { deck, deckIndex, colors, isDark, onSwipeLeft, onSwipeRight, onPress },
+  ref,
+) {
+  const topX = useSharedValue(0);
+  const topY = useSharedValue(0);
+  const flipProgress = useSharedValue(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  const deckRef = useRef({ deck, deckIndex, onSwipeLeft, onSwipeRight, onPress });
+  useEffect(() => {
+    deckRef.current = { deck, deckIndex, onSwipeLeft, onSwipeRight, onPress };
+  }, [deck, deckIndex, onSwipeLeft, onSwipeRight, onPress]);
+
+  // Reset flip + position when deck advances
+  useEffect(() => {
+    flipProgress.value = 0;
+    setIsFlipped(false);
+    topX.value = 0;
+    topY.value = 0;
+  }, [deckIndex]);
+
+  const reset = useCallback(() => {
+    topX.value = 0;
+    topY.value = 0;
+    flipProgress.value = 0;
+    setIsFlipped(false);
+  }, []);
+
+  const doSwipeRight = useCallback(() => {
+    const { deck: d, deckIndex: i, onSwipeRight: cb } = deckRef.current;
+    reset();
+    cb(d[i]);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }, [reset]);
+
+  const doSwipeLeft = useCallback(() => {
+    const { onSwipeLeft: cb } = deckRef.current;
+    reset();
+    cb();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [reset]);
+
+  const handleFlip = useCallback(() => {
+    const target = isFlipped ? 0 : 1;
+    flipProgress.value = withTiming(target, {
+      duration: FLIP_DURATION,
+      easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+    });
+    setIsFlipped(!isFlipped);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [isFlipped, flipProgress]);
+
+  useImperativeHandle(ref, () => ({
+    swipeRight: () => {
+      topX.value = withTiming(width + 120, { duration: 320 }, () => runOnJS(doSwipeRight)());
+    },
+    swipeLeft: () => {
+      topX.value = withTiming(-(width + 120), { duration: 320 }, () => runOnJS(doSwipeLeft)());
+    },
+  }), [doSwipeRight, doSwipeLeft]);
+
+  // Pan gesture (only when flipped to front)
+  // activeOffsetX prevents conflict with parent ScrollView's vertical scroll
+  const gesture = Gesture.Pan()
+    .enabled(isFlipped)
+    .activeOffsetX([-15, 15])
+    .failOffsetY([-20, 20])
+    .onUpdate((e) => {
+      topX.value = e.translationX;
+      topY.value = e.translationY * 0.25;
+    })
+    .onEnd((e) => {
+      if (e.translationX > SWIPE_THRESHOLD) {
+        topX.value = withTiming(width + 120, { duration: 320 }, () => runOnJS(doSwipeRight)());
+      } else if (e.translationX < -SWIPE_THRESHOLD) {
+        topX.value = withTiming(-(width + 120), { duration: 320 }, () => runOnJS(doSwipeLeft)());
+      } else {
+        topX.value = withSpring(0, SPRING);
+        topY.value = withSpring(0, SPRING);
+      }
+    });
+
+  // Tap gesture (flip when face-down, open detail when face-up)
+  const tap = Gesture.Tap().onEnd(() => {
+    if (!isFlipped) {
+      runOnJS(handleFlip)();
+    } else {
+      const { deck: d, deckIndex: i, onPress: pressHandler } = deckRef.current;
+      if (d[i]) runOnJS(pressHandler)(d[i]);
+    }
+  });
+
+  const composedGesture = Gesture.Race(gesture, tap);
+
+  // Top card drag animation
+  const topStyle = useAnimatedStyle(() => {
+    const rotate = interpolate(topX.value, [-width / 2, 0, width / 2], [-13, 0, 13]);
+    return {
+      transform: [
+        { translateX: topX.value },
+        { translateY: topY.value },
+        { rotate: rotate + 'deg' },
+      ],
+    };
+  });
+
+  // Behind cards animate outward as top moves
+  const behind1Style = useAnimatedStyle(() => {
+    const p = Math.min(Math.abs(topX.value) / SWIPE_THRESHOLD, 1);
+    return {
+      transform: [
+        { scale: 0.94 + p * 0.06 },
+        { translateY: 10 - p * 10 },
+      ],
+    };
+  });
+
+  const behind2Style = useAnimatedStyle(() => {
+    const p = Math.min(Math.abs(topX.value) / SWIPE_THRESHOLD, 1);
+    return {
+      transform: [
+        { scale: 0.88 + p * 0.06 },
+        { translateY: 20 - p * 10 },
+      ],
+    };
+  });
+
+  // Flip faces
+  const backFaceStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [0, 90, 180]);
+    return {
+      transform: [{ perspective: 1200 }, { rotateY: rotateY + 'deg' }],
+      backfaceVisibility: 'hidden',
+      opacity: flipProgress.value < 0.5 ? 1 : 0,
+    };
+  });
+
+  const frontFaceStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [180, 90, 0]);
+    return {
+      transform: [{ perspective: 1200 }, { rotateY: rotateY + 'deg' }],
+      backfaceVisibility: 'hidden',
+      opacity: flipProgress.value > 0.5 ? 1 : 0,
+    };
+  });
+
+  // Swipe hint overlays
+  const rightHintStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(topX.value, [0, SWIPE_THRESHOLD], [0, 0.9], 'clamp'),
+  }));
+  const leftHintStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(topX.value, [-SWIPE_THRESHOLD, 0], [0.9, 0], 'clamp'),
+  }));
+
+  const topCard = deck[deckIndex];
+  const nextCard = deck[deckIndex + 1];
+  const nextNextCard = deck[deckIndex + 2];
+
+  if (!topCard) return null;
+
+  const cardBase = {
+    height: CARD_H,
+    position: 'absolute',
+    width: CARD_W,
+    borderRadius: BORDER_RADIUS.xl,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#060410',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+      },
+      android: { elevation: 6 },
+    }),
+  };
+
+  return (
+    <View style={[styles.stackContainer, { height: CARD_H + 28 }]}>
+      {/* Card 3 — furthest back */}
+      {nextNextCard && (
+        <Animated.View
+          style={[
+            cardBase,
+            { backgroundColor: isDark ? colors.surface : '#FAF6F2', borderColor: colors.primary + '12', zIndex: 1 },
+            behind2Style,
+          ]}
+        >
+          <CardBack date={nextNextCard} />
+        </Animated.View>
+      )}
+
+      {/* Card 2 */}
+      {nextCard && (
+        <Animated.View
+          style={[
+            cardBase,
+            { backgroundColor: isDark ? colors.surface : '#FAF6F2', borderColor: colors.primary + '18', zIndex: 2 },
+            behind1Style,
+          ]}
+        >
+          <CardBack date={nextCard} />
+        </Animated.View>
+      )}
+
+      {/* Card 1 — top, gesture-enabled */}
+      <GestureDetector gesture={composedGesture}>
+        <Animated.View
+          style={[
+            cardBase,
+            { zIndex: 3 },
+            topStyle,
+          ]}
+        >
+          {/* Back face */}
+          <Animated.View style={[styles.flipFace, backFaceStyle]}>
+            <CardBack date={topCard} />
+          </Animated.View>
+
+          {/* Front face */}
+          <Animated.View style={[styles.flipFace, frontFaceStyle]}>
+            <View style={[styles.cardFrontWrap, { backgroundColor: isDark ? '#0E0B14' : '#FAF6F2' }]}>
+              <CardFront date={topCard} colors={colors} />
+            </View>
+          </Animated.View>
+
+          {/* Swipe hint pills (only show when flipped) */}
+          {isFlipped && (
+            <>
+              <Animated.View style={[styles.swipeHint, styles.swipeHintRight, rightHintStyle]}>
+                <MaterialCommunityIcons name="heart" size={18} color="#FFF" />
+                <Text style={styles.swipeHintText}>Tonight</Text>
+              </Animated.View>
+              <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}>
+                <MaterialCommunityIcons name="arrow-right" size={18} color="#FFF" />
+                <Text style={styles.swipeHintText}>Skip</Text>
+              </Animated.View>
+            </>
+          )}
+        </Animated.View>
+      </GestureDetector>
+    </View>
+  );
+});
+
+// ── Main screen ─────────────────────────────────────────────────────────────
+export default function DateNightScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { userProfile } = useAuth();
+
+  const [ready, setReady] = useState(false);
+  const [allDates, setAllDates] = useState([]);
+  const [contentProfile, setContentProfile] = useState(null);
+  const [selectedHeat, setSelectedHeat] = useState(null);
+  const [selectedLoad, setSelectedLoad] = useState(null);
+  const [selectedStyle, setSelectedStyle] = useState(null);
+  const [deckIndex, setDeckIndex] = useState(0);
+  const [likedDates, setLikedDates] = useState([]);
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(null); // 'heat' | 'load' | 'style' | null
+
+  const stackRef = useRef(null);
+  const loadedProfileRef = useRef(null);
+
+  // Defer heavy work until the tab transition animation finishes
+  // Only reload when userProfile actually changes (not on every focus event)
+  useFocusEffect(
+    useCallback(() => {
+      const profileKey = JSON.stringify(userProfile || {});
+      if (loadedProfileRef.current === profileKey) return; // already loaded for this profile
+      loadedProfileRef.current = profileKey;
+      const task = InteractionManager.runAfterInteractions(() => {
+        setAllDates(getAllDates());
+        PreferenceEngine.getContentProfile(userProfile || {})
+          .then(setContentProfile)
+          .catch(() => {})
+          .finally(() => setReady(true));
+      });
+      return () => task.cancel();
+    }, [userProfile])
+  );
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        delay: index * 80,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        delay: index * 80,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    setDeckIndex(0);
+    setLikedDates([]);
+  }, [selectedHeat, selectedLoad, selectedStyle]);
+
+  const activeFilters = useMemo(() => {
+    const f = {};
+    if (selectedHeat) f.heat = selectedHeat;
+    if (selectedLoad) f.load = selectedLoad;
+    if (selectedStyle) f.style = selectedStyle;
+    if (!selectedHeat && contentProfile?.maxHeat) f.maxHeat = contentProfile.maxHeat;
+    return f;
+  }, [selectedHeat, selectedLoad, selectedStyle, contentProfile]);
+
+  const deck = useMemo(() => {
+    let base = filterDates(allDates, activeFilters);
+    if (contentProfile && base.length > 0) {
+      const dims = {};
+      if (selectedHeat) dims.heat = selectedHeat;
+      if (selectedLoad) dims.load = selectedLoad;
+      if (selectedStyle) dims.style = selectedStyle;
+      base = PreferenceEngine.filterDatesWithProfile(base, contentProfile, dims);
+    }
+    // Free users only see a small preview of dates
+    if (!isPremium && base.length > FREE_LIMITS.VISIBLE_DATE_IDEAS) {
+      base = base.slice(0, FREE_LIMITS.VISIBLE_DATE_IDEAS);
+    }
+    return base;
+  }, [allDates, activeFilters, contentProfile, selectedHeat, selectedLoad, selectedStyle, isPremium]);
+
+  const hasFilters = selectedHeat || selectedLoad || selectedStyle;
+  const remaining = deck.length - deckIndex;
+  const deckDone = deckIndex >= deck.length && deck.length > 0;
+
+  const handleSwipeRight = useCallback((date) => {
+    if (!isPremium && likedDates.length >= 1) {
+      showPaywall?.('DATE_NIGHT_BROWSE');
+      return;
+    }
+    setLikedDates(prev => [...prev, date]);
+    setDeckIndex(prev => prev + 1);
+  }, [isPremium, likedDates.length, showPaywall]);
+
+  const handleSwipeLeft = useCallback(() => {
+    setDeckIndex(prev => prev + 1);
+  }, []);
+
+  const openDate = useCallback((date) => {
+    if (!isPremium) {
+      showPaywall?.('DATE_NIGHT_BROWSE');
+      return;
+    }
+    navigation.navigate('DateNightDetail', { date });
+  }, [isPremium, showPaywall, navigation]);
+
+  const handleReset = useCallback(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setDeckIndex(0);
+    setLikedDates([]);
+  }, []);
+
+  const handleFilterPress = useCallback(async (dim, value) => {
+    await Haptics.selectionAsync();
+    if (dim === 'heat') setSelectedHeat(prev => prev === value ? null : value);
+    else if (dim === 'load') setSelectedLoad(prev => prev === value ? null : value);
+    else setSelectedStyle(prev => prev === value ? null : value);
+    setDropdownOpen(null);
+  }, []);
+
+  const clearFilters = useCallback(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedHeat(null);
+    setSelectedLoad(null);
+    setSelectedStyle(null);
   }, []);
 
   return (
-    <Animated.View
-      style={[
-        styles.cardWrapper,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        },
-      ]}
-    >
-      <TouchableOpacity onPress={async () => {
-        await Haptics.selectionAsync();
-        onPress();
-      }} activeOpacity={0.9}>
-        <BlurView
-          intensity={isDark ? 35 : 60}
-          tint={isDark ? "dark" : "light"}
-          style={styles.dateCard}
+    <View style={[styles.root, { backgroundColor: isDark ? '#070509' : '#F7F0EB' }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <LinearGradient
-            colors={
-              isDark
-                ? ["rgba(255,255,255,0.04)", "rgba(255,255,255,0.01)"]
-                : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]
-            }
-            style={StyleSheet.absoluteFill}
-          />
 
-          {item.__custom && (
-            <View style={[styles.customBadge, { backgroundColor: theme.blushRose }]}>
-              <Text style={styles.customBadgeText}>YOURS</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={[styles.headerEye, { color: colors.primary + 'AA' }]}>
+              {!ready ? 'Shuffling your deck\u2026' : !isPremium && remaining > 0 ? remaining + ' free previews left' : remaining > 0 ? remaining + ' cards in your deck' : deck.length > 0 ? 'All drawn!' : allDates.length + '+ date ideas'}
+            </Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Draw a date</Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.filterToggle, { borderColor: colors.border, backgroundColor: filtersOpen ? colors.primary + '12' : 'transparent' }]}
+            onPress={() => setFiltersOpen(o => !o)}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="tune-variant" size={16} color={hasFilters ? colors.primary : colors.textMuted} />
+            {hasFilters && <View style={[styles.filterDot, { backgroundColor: colors.primary }]} />}
+          </TouchableOpacity>
+        </View>
+
+        {/* Show lightweight placeholder until data is ready */}
+        {!ready ? (
+          <View style={styles.stackWrapper}>
+            <ActivityIndicator size="small" color={colors.primary} style={{ opacity: 0.5 }} />
+          </View>
+        ) : (
+        <>
+        {/* Filters — dropdown selectors */}
+        {filtersOpen && (
+          <View style={styles.filterSection}>
+            <View style={styles.filterDropdowns}>
+              {/* Mood dropdown */}
+              {(() => {
+                const activeHeat = DIMS.heat.find(h => h.level === selectedHeat);
+                return (
+                  <TouchableOpacity
+                    style={[styles.dropdownBtn, { borderColor: activeHeat ? activeHeat.color + '60' : colors.border, backgroundColor: activeHeat ? activeHeat.color + '10' : isDark ? colors.surface : '#FFFAF7' }]}
+                    onPress={() => setDropdownOpen(o => o === 'heat' ? null : 'heat')}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Mood</Text>
+                    <View style={styles.dropdownValue}>
+                      {activeHeat ? (
+                        <Text style={[styles.dropdownValueText, { color: activeHeat.color }]}>{activeHeat.icon} {activeHeat.label}</Text>
+                      ) : (
+                        <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Any</Text>
+                      )}
+                      <MaterialCommunityIcons name={dropdownOpen === 'heat' ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
+                    </View>
+                  </TouchableOpacity>
+                );
+              })()}
+
+              {/* Effort dropdown */}
+              {(() => {
+                const activeLoad = DIMS.load.find(l => l.level === selectedLoad);
+                return (
+                  <TouchableOpacity
+                    style={[styles.dropdownBtn, { borderColor: activeLoad ? activeLoad.color + '60' : colors.border, backgroundColor: activeLoad ? activeLoad.color + '10' : isDark ? colors.surface : '#FFFAF7' }]}
+                    onPress={() => setDropdownOpen(o => o === 'load' ? null : 'load')}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Effort</Text>
+                    <View style={styles.dropdownValue}>
+                      {activeLoad ? (
+                        <Text style={[styles.dropdownValueText, { color: activeLoad.color }]}>{activeLoad.icon} {activeLoad.label}</Text>
+                      ) : (
+                        <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Any</Text>
+                      )}
+                      <MaterialCommunityIcons name={dropdownOpen === 'load' ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
+                    </View>
+                  </TouchableOpacity>
+                );
+              })()}
+
+              {/* Style dropdown */}
+              {(() => {
+                const activeStyle = DIMS.style.find(s => s.id === selectedStyle);
+                return (
+                  <TouchableOpacity
+                    style={[styles.dropdownBtn, { borderColor: activeStyle ? activeStyle.color + '60' : colors.border, backgroundColor: activeStyle ? activeStyle.color + '10' : isDark ? colors.surface : '#FFFAF7' }]}
+                    onPress={() => setDropdownOpen(o => o === 'style' ? null : 'style')}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Style</Text>
+                    <View style={styles.dropdownValue}>
+                      {activeStyle ? (
+                        <Text style={[styles.dropdownValueText, { color: activeStyle.color }]}>{activeStyle.icon} {activeStyle.label}</Text>
+                      ) : (
+                        <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Any</Text>
+                      )}
+                      <MaterialCommunityIcons name={dropdownOpen === 'style' ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
+                    </View>
+                  </TouchableOpacity>
+                );
+              })()}
             </View>
-          )}
 
-          <View style={styles.cardContent}>
-            <View style={styles.cardHeader}>
-              <View style={styles.titleRow}>
-                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={2}>
-                  {item.title}
-                </Text>
-                {item.__custom && (
-                  <MaterialCommunityIcons name="pencil-heart" size={18} color={theme.blushRose} />
-                )}
-              </View>
+            {hasFilters && (
+              <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearFilters} activeOpacity={0.7}>
+                <MaterialCommunityIcons name="close-circle-outline" size={14} color={colors.textMuted} />
+                <Text style={[styles.clearFiltersTxt, { color: colors.textMuted }]}>Clear all</Text>
+              </TouchableOpacity>
+            )}
 
-              <View style={[styles.durationBadge, { backgroundColor: theme.blushRose + "20" }]}>
-                <MaterialCommunityIcons name="clock-outline" size={14} color={theme.blushRose} />
-                <Text style={[styles.durationText, { color: theme.blushRose }]}>
-                  {item.minutes}m
-                </Text>
+            {/* Dropdown option panels */}
+            {dropdownOpen === 'heat' && (
+              <View style={[styles.dropdownPanel, { backgroundColor: isDark ? colors.surface : '#FFFAF7', borderColor: colors.border }]}>
+                {DIMS.heat.map((h) => {
+                  const active = selectedHeat === h.level;
+                  const locked = !isPremium && h.level >= 4;
+                  return (
+                    <TouchableOpacity
+                      key={h.level}
+                      style={[styles.dropdownOption, active && { backgroundColor: h.color + '15' }, locked && { opacity: 0.4 }]}
+                      onPress={() => locked ? showPaywall?.('HEAT_LEVEL') : handleFilterPress('heat', h.level)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.dropdownOptionEmoji}>{h.icon}</Text>
+                      <View style={styles.dropdownOptionContent}>
+                        <Text style={[styles.dropdownOptionLabel, { color: active ? h.color : colors.text }]}>{h.label}</Text>
+                      </View>
+                      {active && <MaterialCommunityIcons name="check" size={18} color={h.color} />}
+                      {locked && <MaterialCommunityIcons name="lock-outline" size={14} color={colors.textMuted} />}
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
+            )}
+
+            {dropdownOpen === 'load' && (
+              <View style={[styles.dropdownPanel, { backgroundColor: isDark ? colors.surface : '#FFFAF7', borderColor: colors.border }]}>
+                {DIMS.load.map((l) => {
+                  const active = selectedLoad === l.level;
+                  return (
+                    <TouchableOpacity
+                      key={l.level}
+                      style={[styles.dropdownOption, active && { backgroundColor: l.color + '15' }]}
+                      onPress={() => handleFilterPress('load', l.level)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.dropdownOptionEmoji}>{l.icon}</Text>
+                      <View style={styles.dropdownOptionContent}>
+                        <Text style={[styles.dropdownOptionLabel, { color: active ? l.color : colors.text }]}>{l.label}</Text>
+                      </View>
+                      {active && <MaterialCommunityIcons name="check" size={18} color={l.color} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+
+            {dropdownOpen === 'style' && (
+              <View style={[styles.dropdownPanel, { backgroundColor: isDark ? colors.surface : '#FFFAF7', borderColor: colors.border }]}>
+                {DIMS.style.map((s) => {
+                  const active = selectedStyle === s.id;
+                  return (
+                    <TouchableOpacity
+                      key={s.id}
+                      style={[styles.dropdownOption, active && { backgroundColor: s.color + '15' }]}
+                      onPress={() => handleFilterPress('style', s.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.dropdownOptionEmoji}>{s.icon}</Text>
+                      <View style={styles.dropdownOptionContent}>
+                        <Text style={[styles.dropdownOptionLabel, { color: active ? s.color : colors.text }]}>{s.label}</Text>
+                      </View>
+                      {active && <MaterialCommunityIcons name="check" size={18} color={s.color} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Card stack */}
+        <View style={styles.stackWrapper}>
+          {deck.length === 0 ? (
+            <View style={[styles.emptyStack, { borderColor: colors.border }]}>
+              <MaterialCommunityIcons name="cards-outline" size={40} color={colors.textMuted} />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>No matches</Text>
+              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>Adjust your filters above</Text>
             </View>
-
-            <View style={styles.cardMeta}>
-              <MaterialCommunityIcons
-                name={item.location === "home" ? "home-variant" : "map-marker"}
-                size={14}
-                color={theme.textSecondary}
-              />
-              <Text style={[styles.metaText, { color: theme.textSecondary }]}>
-                {item.location === "home" ? "Cozy at Home" : "A Night Out"}
-              </Text>
-              {Array.isArray(item.moods) && item.moods.length > 0 && (
+          ) : deckDone ? (
+            <View style={[styles.emptyStack, { borderColor: colors.border }]}>
+              {!isPremium ? (
                 <>
-                  <View style={[styles.metaDot, { backgroundColor: theme.textSecondary }]} />
-                  <Text style={[styles.metaText, { color: theme.textSecondary }]}>
-                    {item.moods[0]}
+                  <Text style={{ fontSize: 40 }}>🔒</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.text }]}>You've seen your free previews</Text>
+                  <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
+                    Unlock {allDates.length}+ dates across 5 heat levels
                   </Text>
+                  <View style={styles.teaserChips}>
+                    {DIMS.heat.slice(0, 3).map(h => (
+                      <View key={h.level} style={[styles.teaserChipSm, { borderColor: h.color + '30' }]}>
+                        <Text style={[styles.teaserChipSmTxt, { color: h.color }]}>{h.icon}</Text>
+                      </View>
+                    ))}
+                    <Text style={{ color: colors.textMuted, fontSize: 11 }}>→</Text>
+                    {DIMS.heat.slice(3).map(h => (
+                      <View key={h.level} style={[styles.teaserChipSm, { borderColor: h.color + '30', backgroundColor: h.color + '08' }]}>
+                        <Text style={[styles.teaserChipSmTxt, { color: h.color }]}>{h.icon}</Text>
+                        <MaterialCommunityIcons name="lock-outline" size={9} color={h.color} />
+                      </View>
+                    ))}
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.resetBtn, { backgroundColor: colors.primary }]}
+                    onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
+                    activeOpacity={0.85}
+                  >
+                    <MaterialCommunityIcons name="star-outline" size={16} color="#FFF" />
+                    <Text style={styles.resetTxt}>Unlock all dates</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <Text style={{ fontSize: 40 }}>✨</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.text }]}>All cards drawn</Text>
+                  <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
+                    {likedDates.length > 0 ? likedDates.length + ' saved for tonight' : 'Shuffle and draw again'}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.resetBtn, { backgroundColor: colors.primary }]}
+                    onPress={handleReset}
+                    activeOpacity={0.85}
+                  >
+                    <MaterialCommunityIcons name="cards-outline" size={16} color="#FFF" />
+                    <Text style={styles.resetTxt}>Shuffle deck</Text>
+                  </TouchableOpacity>
                 </>
               )}
             </View>
-
-            <View style={styles.cardActions}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.actionSecondary]}
-                onPress={async () => {
-                  await Haptics.selectionAsync();
-                  // Add to calendar functionality
-                  const stepsText = Array.isArray(item.steps) && item.steps.length 
-                    ? `• ${item.steps.join("\n• ")}` 
-                    : "";
-                  const prefill = {
-                    __token: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-                    title: `Date: ${item.title || "Date Night"}`,
-                    dateStr: new Date().toLocaleDateString('en-US', { 
-                      month: '2-digit', 
-                      day: '2-digit', 
-                      year: 'numeric' 
-                    }),
-                    timeStr: "7:30 PM",
-                    location: item?.location === "home" ? "Our Home" : "Out & About",
-                    notes: stepsText,
-                    isDateNight: true,
-                  };
-                  navigation.navigate("Calendar", { prefill });
-                }}
-                activeOpacity={0.9}
-              >
-                <View style={[styles.actionSecondaryInner, { borderColor: theme.blushRose + "40" }]}>
-                  <MaterialCommunityIcons name="calendar-plus" size={14} color={theme.blushRose} />
-                  <Text style={[styles.actionTextSecondary, { color: theme.blushRose }]}>Add to Calendar</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.actionButton, styles.actionPrimary]}
-                onPress={async () => {
-                  await Haptics.selectionAsync();
-                  onPress();
-                }}
-                activeOpacity={0.9}
-              >
-                <LinearGradient
-                  colors={[theme.blushRose, theme.burgundy || "#99004C"]}
-                  style={styles.actionGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={styles.actionTextPrimary}>View Details</Text>
-                  <MaterialCommunityIcons name="arrow-right" size={16} color="#FFF" />
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </BlurView>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-}
-
-export default function DateNightScreen({ navigation }) {
-  const { state } = useAppContext();
-  const { theme: activeTheme, isDark } = useTheme();
-
-  const t = useMemo(() => {
-    const base = activeTheme?.colors ? activeTheme.colors : activeTheme;
-    return {
-      background: base?.background ?? (isDark ? COLORS.warmCharcoal : COLORS.softCream),
-      surface: base?.surface ?? (isDark ? COLORS.deepPlum : "#FFFFFF"),
-      text: base?.text ?? (isDark ? COLORS.softCream : COLORS.charcoal),
-      textSecondary:
-        base?.textSecondary ?? (isDark ? "rgba(246,242,238,0.70)" : "rgba(51,51,51,0.68)"),
-      border: base?.border ?? (isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"),
-      accent: base?.accent ?? COLORS.blushRose,
-      primary: base?.primary ?? (isDark ? COLORS.vividCoral : COLORS.burgundy),
-      onPrimary: base?.onPrimary ?? (isDark ? COLORS.warmCharcoal : "#FFFFFF"),
-      blushRose: COLORS.blushRose,
-      blushRoseLight: COLORS.blushRoseLight,
-      burgundy: COLORS.burgundy,
-      mutedGold: COLORS.mutedGold,
-    };
-  }, [activeTheme, isDark]);
-
-  const [dates, setDates] = useState([]);
-  const [myDates, setMyDates] = useState([]);
-  const [location, setLocation] = useState(state.dateNightDefaults?.location || "either");
-  const [selectedMoods, setSelectedMoods] = useState(state.dateNightDefaults?.moods || []);
-  const [duration, setDuration] = useState(state.dateNightDefaults?.duration || 60);
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
-  const [showFilters, setShowFilters] = useState(false);
-  const [showAllDates, setShowAllDates] = useState(false);
-  const [currentGroup, setCurrentGroup] = useState(0); // Track which group of 20 we're showing
-
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [1, 0.85],
-    extrapolate: "clamp",
-  });
-
-  const moods = getAvailableMoods();
-
-  const loadMyDates = async () => {
-    const list = await myDatesStorage.getMyDates();
-    const safe = Array.isArray(list) ? list : [];
-    const normalized = safe.map((d) => ({
-      ...d,
-      __custom: true,
-      title: d.title || "My Date",
-      minutes: typeof d.minutes === "number" ? d.minutes : 60,
-    }));
-    setMyDates(normalized);
-  };
-
-  useEffect(() => {
-    // subscription context is source of truth
-  }, [isPremium]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadMyDates();
-    }, [])
-  );
-
-  const allPreloadedDates = useMemo(() => getAllDates(), []);
-  const combinedDates = useMemo(
-    () => [...myDates, ...allPreloadedDates],
-    [myDates, allPreloadedDates]
-  );
-
-  useEffect(() => {
-    applyFilters();
-    setShowAllDates(false); // Reset to show limited view when filters change
-  }, [location, selectedMoods, duration, isPremium, myDates]);
-
-  const applyFilters = () => {
-    let maxMinutes = duration === 60 ? 75 : duration === 90 ? 105 : Infinity;
-
-    const filtered = filterDates(combinedDates, {
-      location,
-      moods: selectedMoods,
-      minMinutes: duration === 120 ? 105 : duration,
-      maxMinutes,
-    });
-
-    if (!isPremium) {
-      const freeIds = allPreloadedDates
-        .slice(0, FREE_LIMITS.VISIBLE_DATE_IDEAS)
-        .map((d) => d.id);
-      setDates(filtered.filter((d) => d.__custom || freeIds.includes(d.id)));
-    } else {
-      // Create 10 diverse groups of 20 dates each
-      const diverseGroups = createDiverseGroups(filtered, 10, 20);
-      const currentGroupDates = diverseGroups[currentGroup] || [];
-      setDates(currentGroupDates);
-    }
-  };
-
-  // Function to create diverse groups of dates
-  const createDiverseGroups = (allDates, numGroups, groupSize) => {
-    if (allDates.length === 0) return [];
-    
-    const groups = Array.from({ length: numGroups }, () => []);
-    const remaining = [...allDates];
-    
-    // Characteristics for diversity scoring
-    const getDateCharacteristics = (date) => ({
-      location: date.location || 'either',
-      duration: getDurationCategory(date.minutes || 60),
-      moods: Array.isArray(date.moods) ? date.moods : [],
-      activityType: getActivityType(date.title || ''),
-    });
-    
-    const getDurationCategory = (minutes) => {
-      if (minutes <= 60) return 'quick';
-      if (minutes <= 90) return 'medium';
-      if (minutes <= 120) return 'long';
-      return 'extended';
-    };
-    
-    const getActivityType = (title) => {
-      const t = title.toLowerCase();
-      if (t.includes('cook') || t.includes('food') || t.includes('eat')) return 'culinary';
-      if (t.includes('art') || t.includes('paint') || t.includes('create')) return 'creative';
-      if (t.includes('walk') || t.includes('hike') || t.includes('outdoor')) return 'outdoor';
-      if (t.includes('dance') || t.includes('music') || t.includes('sing')) return 'musical';
-      if (t.includes('game') || t.includes('play') || t.includes('fun')) return 'playful';
-      if (t.includes('spa') || t.includes('massage') || t.includes('relax')) return 'wellness';
-      if (t.includes('shop') || t.includes('market') || t.includes('store')) return 'shopping';
-      if (t.includes('book') || t.includes('read') || t.includes('story')) return 'literary';
-      if (t.includes('wine') || t.includes('drink') || t.includes('bar')) return 'beverage';
-      return 'general';
-    };
-    
-    // Calculate diversity score between two dates
-    const getDiversityScore = (date1, date2) => {
-      const char1 = getDateCharacteristics(date1);
-      const char2 = getDateCharacteristics(date2);
-      
-      let score = 0;
-      
-      // Location diversity (high weight)
-      if (char1.location !== char2.location) score += 3;
-      
-      // Duration diversity (medium weight)
-      if (char1.duration !== char2.duration) score += 2;
-      
-      // Activity type diversity (high weight)
-      if (char1.activityType !== char2.activityType) score += 3;
-      
-      // Mood diversity (medium weight)
-      const commonMoods = char1.moods.filter(mood => char2.moods.includes(mood));
-      const totalMoods = [...new Set([...char1.moods, ...char2.moods])].length;
-      const moodDiversity = totalMoods - commonMoods.length;
-      score += moodDiversity;
-      
-      return score;
-    };
-    
-    // Fill groups with maximum diversity
-    for (let groupIndex = 0; groupIndex < numGroups && remaining.length > 0; groupIndex++) {
-      const currentGroup = groups[groupIndex];
-      
-      // Add first date randomly
-      if (remaining.length > 0) {
-        const firstIndex = Math.floor(Math.random() * remaining.length);
-        currentGroup.push(remaining.splice(firstIndex, 1)[0]);
-      }
-      
-      // Add remaining dates to maximize diversity
-      while (currentGroup.length < groupSize && remaining.length > 0) {
-        let bestDate = null;
-        let bestScore = -1;
-        let bestIndex = -1;
-        
-        // Find the date that maximizes diversity with current group
-        remaining.forEach((candidate, index) => {
-          let totalScore = 0;
-          
-          // Calculate average diversity score with all dates in current group
-          currentGroup.forEach(existingDate => {
-            totalScore += getDiversityScore(candidate, existingDate);
-          });
-          
-          const averageScore = totalScore / currentGroup.length;
-          
-          if (averageScore > bestScore) {
-            bestScore = averageScore;
-            bestDate = candidate;
-            bestIndex = index;
-          }
-        });
-        
-        if (bestDate) {
-          currentGroup.push(bestDate);
-          remaining.splice(bestIndex, 1);
-        } else {
-          // Fallback: add random date if no good diversity match
-          if (remaining.length > 0) {
-            const randomIndex = Math.floor(Math.random() * remaining.length);
-            currentGroup.push(remaining.splice(randomIndex, 1)[0]);
-          }
-        }
-      }
-    }
-    
-    // Distribute any remaining dates
-    let groupIndex = 0;
-    while (remaining.length > 0) {
-      groups[groupIndex % numGroups].push(remaining.shift());
-      groupIndex++;
-    }
-    
-    return groups;
-  };
-
-  // Function to get next group of dates
-  const loadNextGroup = () => {
-    const nextGroup = (currentGroup + 1) % 10; // Cycle through 10 groups
-    setCurrentGroup(nextGroup);
-    setShowAllDates(false); // Reset to show limited view
-  };
-
-  // Function to get diverse selection of dates
-  const getDiverseSelection = (dates, count) => {
-    if (dates.length <= count) return dates;
-
-    const selected = [];
-    const remaining = [...dates];
-    
-    // Group dates by characteristics for diversity
-    const byLocation = {
-      home: remaining.filter(d => d.location === 'home'),
-      out: remaining.filter(d => d.location === 'out'),
-    };
-    
-    const byDuration = {
-      short: remaining.filter(d => (d.minutes || 0) <= 75),
-      medium: remaining.filter(d => (d.minutes || 0) > 75 && (d.minutes || 0) <= 105),
-      long: remaining.filter(d => (d.minutes || 0) > 105),
-    };
-    
-    const moods = ['romantic', 'playful', 'emotional', 'intimate', 'spicy', 'adventurous', 'calm'];
-    const byMood = {};
-    moods.forEach(mood => {
-      byMood[mood] = remaining.filter(d => 
-        Array.isArray(d.moods) && d.moods.includes(mood)
-      );
-    });
-
-    // Ensure diversity by picking from different categories
-    const categories = [
-      { key: 'location', groups: byLocation },
-      { key: 'duration', groups: byDuration },
-      { key: 'mood', groups: byMood },
-    ];
-
-    // Round-robin selection for diversity
-    let attempts = 0;
-    const maxAttempts = count * 3; // Prevent infinite loops
-    
-    while (selected.length < count && remaining.length > 0 && attempts < maxAttempts) {
-      attempts++;
-      
-      // Try to pick from underrepresented categories
-      let added = false;
-      
-      for (const category of categories) {
-        if (selected.length >= count) break;
-        
-        // Find the least represented group in this category
-        const groupCounts = {};
-        Object.keys(category.groups).forEach(groupKey => {
-          groupCounts[groupKey] = selected.filter(d => {
-            if (category.key === 'location') return d.location === groupKey;
-            if (category.key === 'duration') {
-              const mins = d.minutes || 0;
-              if (groupKey === 'short') return mins <= 75;
-              if (groupKey === 'medium') return mins > 75 && mins <= 105;
-              if (groupKey === 'long') return mins > 105;
-            }
-            if (category.key === 'mood') {
-              return Array.isArray(d.moods) && d.moods.includes(groupKey);
-            }
-            return false;
-          }).length;
-        });
-        
-        // Find group with least representation
-        const sortedGroups = Object.keys(groupCounts)
-          .sort((a, b) => groupCounts[a] - groupCounts[b]);
-        
-        for (const groupKey of sortedGroups) {
-          const availableInGroup = category.groups[groupKey].filter(d => 
-            remaining.includes(d)
-          );
-          
-          if (availableInGroup.length > 0) {
-            // Pick random from this group
-            const randomIndex = Math.floor(Math.random() * availableInGroup.length);
-            const picked = availableInGroup[randomIndex];
-            
-            selected.push(picked);
-            remaining.splice(remaining.indexOf(picked), 1);
-            added = true;
-            break;
-          }
-        }
-        
-        if (added) break;
-      }
-      
-      // If no category-based selection worked, pick randomly
-      if (!added && remaining.length > 0) {
-        const randomIndex = Math.floor(Math.random() * remaining.length);
-        const picked = remaining[randomIndex];
-        selected.push(picked);
-        remaining.splice(randomIndex, 1);
-      }
-    }
-    
-    // Fill remaining slots randomly if needed
-    while (selected.length < count && remaining.length > 0) {
-      const randomIndex = Math.floor(Math.random() * remaining.length);
-      selected.push(remaining.splice(randomIndex, 1)[0]);
-    }
-    
-    return selected;
-  };
-
-  const handleSurpriseMe = async () => {
-    await Haptics.selectionAsync();
-    
-    if (!isPremium) {
-      navigation.navigate("Paywall");
-      return;
-    }
-    const date = surpriseMeDate(combinedDates, {
-      location,
-      moods: selectedMoods,
-      minMinutes: duration,
-    });
-    date
-      ? navigation.navigate("DateNightDetail", { date })
-      : Alert.alert("No match", "Try adjusting filters.");
-  };
-
-  const renderDateCard = ({ item, index }) => (
-    <AnimatedDateCard
-      item={item}
-      index={index}
-      onPress={() => navigation.navigate("DateNightDetail", { date: item })}
-      theme={t}
-      isDark={isDark}
-      navigation={navigation}
-    />
-  );
-
-  // Limit displayed dates to 3 initially
-  const displayedDates = showAllDates ? dates : dates.slice(0, 3);
-  const hasMoreDates = dates.length > 3;
-
-  const renderViewMoreButton = () => {
-    if (!hasMoreDates || showAllDates) return null;
-
-    return (
-      <View style={styles.viewMoreContainer}>
-        <TouchableOpacity
-          style={styles.viewMoreButton}
-          onPress={async () => {
-            await Haptics.selectionAsync();
-            setShowAllDates(true);
-          }}
-          activeOpacity={0.9}
-        >
-          <BlurView
-            intensity={isDark ? 40 : 70}
-            tint={isDark ? "dark" : "light"}
-            style={styles.viewMoreBlur}
-          >
-            <LinearGradient
-              colors={
-                isDark
-                  ? ["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]
-                  : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]
-              }
-              style={StyleSheet.absoluteFill}
+          ) : (
+            <CardStack
+              ref={stackRef}
+              deck={deck}
+              deckIndex={deckIndex}
+              colors={colors}
+              isDark={isDark}
+              onSwipeRight={handleSwipeRight}
+              onSwipeLeft={handleSwipeLeft}
+              onPress={openDate}
             />
-            
-            <View style={styles.viewMoreContent}>
-              <Text style={[styles.viewMoreText, { color: t.text }]}>
-                View {dates.length - 3} More Experiences
-              </Text>
-              <MaterialCommunityIcons name="chevron-down" size={20} color={t.accent} />
-            </View>
-          </BlurView>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.viewMoreButton, { marginTop: SPACING.sm }]}
-          onPress={async () => {
-            await Haptics.selectionAsync();
-            loadNextGroup();
-          }}
-          activeOpacity={0.9}
-        >
-          <BlurView
-            intensity={isDark ? 40 : 70}
-            tint={isDark ? "dark" : "light"}
-            style={styles.viewMoreBlur}
-          >
-            <LinearGradient
-              colors={[t.accent + "20", t.accent + "10"]}
-              style={StyleSheet.absoluteFill}
-            />
-            
-            <View style={styles.viewMoreContent}>
-              <Text style={[styles.viewMoreText, { color: t.accent }]}>
-                Next Group of Dates (Group {currentGroup + 1}/10)
-              </Text>
-              <MaterialCommunityIcons name="refresh" size={20} color={t.accent} />
-            </View>
-          </BlurView>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-  return (
-    <View style={[styles.container, { backgroundColor: t.background }]}>
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={
-          isDark
-            ? [COLORS.warmCharcoal, COLORS.deepPlum + "40", COLORS.warmCharcoal]
-            : [COLORS.softCream, COLORS.blushRose + "15", COLORS.softCream]
-        }
-        style={StyleSheet.absoluteFill}
-        locations={[0, 0.5, 1]}
-      />
-
-      <SafeAreaView style={styles.safeArea}>
-        <Animated.FlatList
-          data={displayedDates}
-          renderItem={renderDateCard}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
           )}
-          scrollEventThrottle={16}
-          ListHeaderComponent={
-            <>
-              {/* Magazine Header */}
-              <Animated.View style={[styles.header, { opacity: headerOpacity }]}>
-                <View style={styles.headerTop}>
-                  <View>
-                    <Text style={[styles.headerEyebrow, { color: t.mutedGold }]}>
-                      CURATED EXPERIENCES
-                    </Text>
-                    <Text style={[styles.headerTitle, { color: t.text }]}>Date Night</Text>
-                  </View>
+        </View>
 
-                  <TouchableOpacity
-                    onPress={async () => {
-                      await Haptics.selectionAsync();
-                      setShowFilters((v) => !v);
-                    }}
-                    style={styles.filterButton}
-                    activeOpacity={0.9}
-                  >
-                    <BlurView
-                      intensity={isDark ? 30 : 50}
-                      tint={isDark ? "dark" : "light"}
-                      style={styles.filterButtonBlur}
-                    >
-                      <MaterialCommunityIcons
-                        name={showFilters ? "close" : "tune-variant"}
-                        size={22}
-                        color={t.accent}
-                      />
-                    </BlurView>
-                  </TouchableOpacity>
-                </View>
-              </Animated.View>
+        {/* Action buttons */}
+        {!deckDone && deck.length > 0 && (
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: isDark ? colors.surface : '#FFF', borderColor: colors.border }]}
+              onPress={() => stackRef.current?.swipeLeft()}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="close" size={26} color={colors.textMuted} />
+            </TouchableOpacity>
 
-              {/* Surprise Me Feature */}
-              <View style={styles.surpriseSection}>
-                <SurpriseMeHeader onReveal={handleSurpriseMe} />
-              </View>
-
-              {/* Filter Drawer */}
-              {showFilters && (
-                <BlurView
-                  intensity={isDark ? 40 : 70}
-                  tint={isDark ? "dark" : "light"}
-                  style={styles.filterDrawer}
-                >
-                  <LinearGradient
-                    colors={
-                      isDark
-                        ? ["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]
-                        : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]
-                    }
-                    style={StyleSheet.absoluteFill}
-                  />
-
-                  <View style={styles.filterContent}>
-                    <Text style={[styles.filterTitle, { color: t.text }]}>Filter Preferences</Text>
-
-                    <View style={styles.filterGroup}>
-                      <Text style={[styles.filterLabel, { color: t.textSecondary }]}>
-                        Location
-                      </Text>
-                      <ChipGroup
-                        items={LOCATION_OPTIONS}
-                        selectedItems={[location]}
-                        onSelectionChange={(val) => setLocation(val[0])}
-                      />
-                    </View>
-
-                    <View style={styles.filterGroup}>
-                      <Text style={[styles.filterLabel, { color: t.textSecondary }]}>Mood</Text>
-                      <ChipGroup
-                        items={moods.map((m) => ({ value: m, label: m }))}
-                        selectedItems={selectedMoods}
-                        onSelectionChange={setSelectedMoods}
-                      />
-                    </View>
-                  </View>
-                </BlurView>
-              )}
-
-              {/* Section Divider */}
-              <View style={styles.sectionDivider}>
-                <Text style={[styles.resultsText, { color: t.textSecondary }]}>
-                  {dates.length} {dates.length === 1 ? "experience" : "experiences"} available
+            <View style={styles.actionCounterWrap}>
+              <Text style={[styles.actionCounter, { color: colors.textMuted }]}>
+                {deckIndex + 1} / {deck.length}
+              </Text>
+              {!isPremium && (
+                <Text style={[styles.actionCounterSub, { color: colors.primary + '90' }]}>
+                  of {allDates.length}+ total
                 </Text>
-              </View>
-            </>
-          }
-          ListFooterComponent={
-            <>
-              {renderViewMoreButton()}
-            </>
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <MaterialCommunityIcons name="heart-broken" size={64} color={t.border} />
-              <Text style={[styles.emptyTitle, { color: t.text }]}>No dates found</Text>
-              <Text style={[styles.emptySubtext, { color: t.textSecondary }]}>
-                Try adjusting your filters
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={styles.likeBtn}
+              onPress={() => stackRef.current?.swipeRight()}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={[colors.primary, colors.primary + 'BB']}
+                style={styles.likeBtnGrad}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <MaterialCommunityIcons name="heart" size={26} color="#FFF" />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Free-user teaser banner */}
+        {!isPremium && !deckDone && deck.length > 0 && (
+          <TouchableOpacity
+            style={[styles.teaserBanner, { backgroundColor: isDark ? colors.primary + '14' : colors.primary + '0A', borderColor: colors.primary + '25' }]}
+            onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.teaserTop}>
+              <MaterialCommunityIcons name="lock-open-variant-outline" size={16} color={colors.primary} />
+              <Text style={[styles.teaserTitle, { color: colors.text }]}>
+                {allDates.length}+ dates waiting for you
               </Text>
             </View>
-          }
-        />
+            <Text style={[styles.teaserBody, { color: colors.textMuted }]}>
+              From cozy nights in to adventurous outings — upgrade to unlock every idea
+            </Text>
+            <View style={styles.teaserChips}>
+              {DIMS.heat.map(h => (
+                <View key={h.level} style={[styles.teaserChip, { borderColor: h.color + '40', backgroundColor: h.color + '10' }]}>
+                  <Text style={[styles.teaserChipTxt, { color: h.color }]}>{h.icon} {h.label}</Text>
+                  {h.level >= 4 && <MaterialCommunityIcons name="lock-outline" size={10} color={h.color} style={{ marginLeft: 2 }} />}
+                </View>
+              ))}
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {/* Tonight's list */}
+        {likedDates.length > 0 && (
+          <View style={styles.likedSection}>
+            <Text style={[styles.likedTitle, { color: colors.text }]}>
+              Tonight's picks <Text style={{ color: colors.primary }}>({likedDates.length})</Text>
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.likedRow}>
+              {likedDates.map((d, i) => {
+                const hm = DIMS.heat.find(h => h.level === d.heat) || DIMS.heat[0];
+                return (
+                  <TouchableOpacity
+                    key={d.id || i}
+                    style={[styles.likedCard, { backgroundColor: isDark ? colors.surface : '#FAF6F2', borderColor: hm.color + '30' }]}
+                    onPress={() => openDate(d)}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={{ fontSize: 16 }}>{hm.icon}</Text>
+                    <Text style={[styles.likedCardTitle, { color: colors.text }]} numberOfLines={2}>
+                      {d.title}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
+        </>
+        )}
+
+        <View style={{ height: 100 }} />
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  safeArea: { flex: 1 },
-  listContent: { paddingBottom: 100 },
+  root: { flex: 1 },
+  safe: { flex: 1, paddingHorizontal: 16 },
+  scrollContent: { flexGrow: 1, paddingBottom: 4 },
 
   // Header
   header: {
-    paddingHorizontal: SPACING.lg,
-    paddingTop: 20,
-    marginBottom: 30,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.md,
   },
-
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+  headerEye: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 11,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 3,
   },
-
-  headerEyebrow: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1.8,
-    marginBottom: 8,
-  },
-
   headerTitle: {
-    fontFamily: Platform.select({
-      ios: "PlayfairDisplay-Bold",
-      android: "PlayfairDisplay_700Bold",
-    }),
-    fontSize: 42,
-    lineHeight: 48,
-    letterSpacing: -0.5,
+    fontFamily: FONTS.serif,
+    fontSize: 30,
+    fontWeight: '300',
+    letterSpacing: -0.3,
+    lineHeight: 36,
   },
-
-  filterButton: {
-    width: 48,
-    height: 48,
-  },
-
-  filterButtonBlur: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
+  filterToggle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  filterDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
   },
 
-  // Surprise Section
-  surpriseSection: {
-    paddingHorizontal: SPACING.lg,
-    marginBottom: 30,
-  },
-
-  // Filter Drawer
-  filterDrawer: {
-    marginHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.xl,
-    overflow: "hidden",
-    marginBottom: 30,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-
-  filterContent: {
-    padding: 24,
-  },
-
-  filterTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 20,
-  },
-
-  filterGroup: {
-    marginBottom: 20,
-  },
-
-  filterLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    marginBottom: 12,
-  },
-
-  // Section Divider
-  sectionDivider: {
-    paddingHorizontal: SPACING.lg,
-    marginBottom: 20,
-  },
-
-  resultsText: {
-    fontSize: 13,
-    fontStyle: "italic",
-  },
-
-  // Date Cards
-  cardWrapper: {
-    marginHorizontal: SPACING.lg,
-    marginBottom: 20,
-  },
-
-  dateCard: {
-    borderRadius: BORDER_RADIUS.xl,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 20,
-      },
-      android: { elevation: 6 },
-    }),
-  },
-
-  customBadge: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: BORDER_RADIUS.sm,
-    zIndex: 10,
-  },
-
-  customBadgeText: {
-    color: "#FFF",
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
-
-  cardContent: {
-    padding: 20,
-  },
-
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-
-  titleRow: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    paddingRight: 12,
-  },
-
-  cardTitle: {
-    flex: 1,
-    fontSize: 16, // Made smaller (was 20)
-    fontWeight: "700",
-    lineHeight: 22, // Adjusted line height proportionally
-  },
-
-  durationBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: BORDER_RADIUS.full,
-    gap: 4,
-  },
-
-  durationText: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-
-  cardMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 16,
-  },
-
-  metaText: {
-    fontSize: 13,
-  },
-
-  metaDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-  },
-
-  cardActions: {
-    flexDirection: "row",
+  // Filter dropdowns
+  filterSection: {
+    marginBottom: SPACING.md,
     gap: 10,
   },
-
-  actionButton: {
+  filterDropdowns: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  dropdownBtn: {
     flex: 1,
-    height: 32, // Made much smaller (was 48)
-    borderRadius: BORDER_RADIUS.sm, // Smaller border radius
-    overflow: "hidden",
-  },
-
-  actionPrimary: {},
-
-  actionSecondary: {},
-
-  actionGradient: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6, // Smaller gap
-  },
-
-  actionSecondaryInner: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6, // Smaller gap
-    borderWidth: 1.5,
-    borderRadius: BORDER_RADIUS.sm, // Smaller border radius
-  },
-
-  actionTextPrimary: {
-    color: "#FFF",
-    fontSize: 12, // Much smaller text
-    fontWeight: "700",
-  },
-
-  actionTextSecondary: {
-    fontSize: 12, // Much smaller text
-    fontWeight: "700",
-  },
-
-  // Empty State
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: 80,
-    paddingHorizontal: 40,
-  },
-
-  emptyTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginTop: 20,
-  },
-
-  emptySubtext: {
-    fontSize: 15,
-    marginTop: 8,
-    textAlign: "center",
-  },
-
-  // View More Button
-  viewMoreContainer: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-  },
-
-  viewMoreButton: {
-    borderRadius: BORDER_RADIUS.xl,
-    overflow: "hidden",
-  },
-
-  viewMoreBlur: {
-    borderRadius: BORDER_RADIUS.xl,
-    overflow: "hidden",
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 10,
+    paddingVertical: 9,
   },
-
-  viewMoreContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
+  dropdownLabel: {
+    fontFamily: FONTS.body,
+    fontSize: 8,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 3,
+  },
+  dropdownValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dropdownValueText: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 10,
+    letterSpacing: 0.1,
+  },
+  dropdownPanel: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  dropdownOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     gap: 8,
   },
-
-  viewMoreText: {
-    fontSize: 14,
-    fontWeight: "600",
+  dropdownOptionEmoji: { fontSize: 14 },
+  dropdownOptionContent: { flex: 1 },
+  dropdownOptionLabel: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 12,
+    letterSpacing: 0.1,
   },
+  clearFiltersBtn: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  clearFiltersTxt: { fontFamily: FONTS.body, fontSize: 12, letterSpacing: 0.2 },
+
+  // Stack
+  stackWrapper: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  stackContainer: { width: CARD_W, alignItems: 'center', justifyContent: 'flex-end' },
+
+  // Flip face (absolute overlay for back/front)
+  flipFace: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: BORDER_RADIUS.xl,
+    overflow: 'hidden',
+  },
+
+  // Card back
+  cardBackGradient: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.xl,
+  },
+  backRing: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
+  },
+  backRingInner: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: BORDER_RADIUS.full,
+    gap: 7,
+    marginBottom: SPACING.sm,
+  },
+  backPillEmoji: { fontSize: 15 },
+  backPillText: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.88)',
+    letterSpacing: 0.8,
+  },
+  backHint: {
+    fontFamily: FONTS.body,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.35)',
+    letterSpacing: 0.8,
+    fontStyle: 'italic',
+  },
+  cornerMark: {
+    position: 'absolute',
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.10)',
+  },
+
+  // Card front
+  cardFrontWrap: {
+    flex: 1,
+    borderRadius: BORDER_RADIUS.xl,
+    overflow: 'hidden',
+  },
+  cardFrontInner: { flex: 1 },
+  cardFrontBand: {
+    height: 5,
+    borderTopLeftRadius: BORDER_RADIUS.xl,
+    borderTopRightRadius: BORDER_RADIUS.xl,
+  },
+  cardFrontBandTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 6,
+  },
+  cardFrontBandTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+  },
+  cardFrontBandTagText: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 10,
+    letterSpacing: 0.3,
+  },
+  cardFrontBody: {
+    flex: 1,
+    paddingHorizontal: 22,
+    paddingTop: 18,
+    paddingBottom: 20,
+    gap: 8,
+  },
+  cardFrontTitle: {
+    fontFamily: FONTS.serif,
+    fontSize: 24,
+    fontWeight: '400',
+    lineHeight: 31,
+    letterSpacing: -0.2,
+  },
+  cardFrontDesc: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    lineHeight: 22,
+    opacity: 0.8,
+  },
+  cardFrontFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 4,
+  },
+  cardFrontMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  cardFrontMetaTxt: { fontFamily: FONTS.body, fontSize: 12 },
+  cardFrontFooterRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  cardFrontHint: {
+    fontFamily: FONTS.body,
+    fontSize: 11,
+    letterSpacing: 0.3,
+    fontStyle: 'italic',
+  },
+
+  // Swipe hint pills
+  swipeHint: {
+    position: 'absolute',
+    top: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: BORDER_RADIUS.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    zIndex: 10,
+  },
+  swipeHintRight: {
+    left: 14,
+    backgroundColor: 'rgba(90, 30, 60, 0.9)',
+  },
+  swipeHintLeft: {
+    right: 14,
+    backgroundColor: 'rgba(40, 35, 55, 0.9)',
+  },
+  swipeHintText: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 13,
+    color: '#FFF',
+    letterSpacing: 0.3,
+  },
+
+  // Actions
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 28,
+    paddingVertical: SPACING.md,
+  },
+  actionBtn: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionCounter: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    letterSpacing: 0.5,
+    minWidth: 52,
+    textAlign: 'center',
+  },
+  likeBtn: { width: 66, height: 66, borderRadius: 33, overflow: 'hidden' },
+  likeBtnGrad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+
+  // Empty / end states
+  emptyStack: {
+    width: CARD_W,
+    height: CARD_H,
+    borderRadius: BORDER_RADIUS.xl,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  emptyTitle: { fontFamily: FONTS.serif, fontSize: 22, fontWeight: '300' },
+  emptyBody: { fontFamily: FONTS.body, fontSize: 14, textAlign: 'center' },
+  resetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    borderRadius: BORDER_RADIUS.full,
+    marginTop: 8,
+  },
+  resetTxt: { fontFamily: FONTS.bodyBold, fontSize: 14, color: '#FFF' },
+
+  // Free-user teaser
+  teaserBanner: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: SPACING.md,
+    gap: 8,
+  },
+  teaserTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  teaserTitle: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 14,
+    letterSpacing: 0.2,
+  },
+  teaserBody: {
+    fontFamily: FONTS.body,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  teaserChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+  },
+  teaserChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  teaserChipTxt: {
+    fontFamily: FONTS.body,
+    fontSize: 11,
+    letterSpacing: 0.2,
+  },
+  teaserChipSm: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    gap: 2,
+  },
+  teaserChipSmTxt: {
+    fontSize: 13,
+  },
+  actionCounterWrap: {
+    alignItems: 'center',
+    minWidth: 52,
+  },
+  actionCounterSub: {
+    fontFamily: FONTS.body,
+    fontSize: 10,
+    letterSpacing: 0.2,
+    marginTop: 1,
+  },
+
+  // Tonight's list
+  likedSection: { paddingBottom: 8 },
+  likedTitle: { fontFamily: FONTS.bodyBold, fontSize: 13, letterSpacing: 0.3, marginBottom: 8 },
+  likedRow: { gap: 8 },
+  likedCard: {
+    width: 130,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    gap: 6,
+  },
+  likedCardTitle: { fontFamily: FONTS.serif, fontSize: 13, lineHeight: 18 },
 });

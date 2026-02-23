@@ -58,14 +58,6 @@ export const usePremiumFeatures = () => {
     async () => hasFeature(PremiumFeature.CLOUD_SYNC),
     [hasFeature]
   );
-  const canUseLuxuryThemes = useCallback(
-    async () => hasFeature(PremiumFeature.LUXURY_THEMES),
-    [hasFeature]
-  );
-  const canUseCustomHaptics = useCallback(
-    async () => hasFeature(PremiumFeature.CUSTOM_HAPTICS),
-    [hasFeature]
-  );
 
   // Feature requirements (with automatic paywall)
   const requireMemoryExport = useCallback(
@@ -86,14 +78,6 @@ export const usePremiumFeatures = () => {
   );
   const requireCloudSync = useCallback(
     async () => requireFeature(PremiumFeature.CLOUD_SYNC),
-    [requireFeature]
-  );
-  const requireLuxuryThemes = useCallback(
-    async () => requireFeature(PremiumFeature.LUXURY_THEMES),
-    [requireFeature]
-  );
-  const requireCustomHaptics = useCallback(
-    async () => requireFeature(PremiumFeature.CUSTOM_HAPTICS),
     [requireFeature]
   );
 
@@ -135,8 +119,6 @@ export const usePremiumFeatures = () => {
     canScheduleReminders,
     canAccessBiometricVault,
     canSyncToCloud,
-    canUseLuxuryThemes,
-    canUseCustomHaptics,
 
     // Feature requirements (with paywall)
     requireMemoryExport,
@@ -144,8 +126,6 @@ export const usePremiumFeatures = () => {
     requireScheduledReminders,
     requireBiometricVault,
     requireCloudSync,
-    requireLuxuryThemes,
-    requireCustomHaptics,
 
     // Generic access
     hasFeatureAccess,

@@ -1,23 +1,23 @@
-// navigation/Tabs.js - Premium Tab Navigation
+// File: navigation/Tabs.js - Premium Tab Navigation
 import React, { useEffect } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import Animated, { 
-  useAnimatedStyle, 
-  withSpring, 
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
   withTiming,
-  interpolate,
   useSharedValue,
 } from "react-native-reanimated";
-import { COLORS, TYPOGRAPHY } from "../utils/theme";
+import { useTheme } from "../context/ThemeContext";
+import { TYPOGRAPHY, withAlpha, SANS_BOLD } from '../utils/theme';
 
 // Tab screens
 import HomeScreen from "../screens/HomeScreen";
+import PromptsScreen from "../screens/PromptsScreen";
 import CalendarScreen from "../screens/CalendarScreen";
-import JournalScreen from "../screens/JournalScreen";
 import DateNightScreen from "../screens/DateNightScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 
@@ -40,19 +40,18 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
     opacity: opacity.value,
   }));
 
-  // Premium icon mapping with sophisticated variants
   const getIconName = () => {
     switch (routeName) {
       case "Home":
         return focused ? "heart" : "heart-outline";
+      case "Prompts":
+        return focused ? "chat-processing" : "chat-processing-outline";
       case "Calendar":
-        return focused ? "calendar-heart" : "calendar-heart-outline";
-      case "Journal":
-        return focused ? "book-open-variant" : "book-open-outline";
-      case "DateNight":
-        return focused ? "heart-multiple" : "heart-multiple-outline";
+        return focused ? "calendar-month" : "calendar-month-outline";
+      case "DatePlans":
+        return focused ? "glass-wine" : "glass-wine";
       case "Settings":
-        return focused ? "cog" : "cog-outline";
+        return focused ? "tune-variant" : "tune-variant";
       default:
         return focused ? "circle" : "circle-outline";
     }
@@ -60,9 +59,9 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
 
   return (
     <Animated.View style={[styles.iconContainer, animatedStyle]}>
-      <MaterialCommunityIcons 
-        name={getIconName()} 
-        size={size} 
+      <MaterialCommunityIcons
+        name={getIconName()}
+        size={size}
         color={color}
         style={styles.icon}
       />
@@ -70,24 +69,38 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
   );
 }
 
-// Premium Tab Bar Background Component
-function PremiumTabBarBackground() {
+function PremiumTabBarBackground({ colors, isDark }) {
   if (Platform.OS === "web") {
     return (
-      <View style={styles.webTabBackground} />
+      <View
+        style={[
+          StyleSheet.absoluteFillObject,
+          {
+            backgroundColor: withAlpha(colors.background, 0.94),
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: colors.borderGlass || colors.border,
+          },
+        ]}
+      />
     );
   }
 
   return (
     <BlurView
-      intensity={40}
-      tint="dark"
-      style={[StyleSheet.absoluteFill, styles.blurBackground]}
+      pointerEvents="none"
+      intensity={60}
+      tint={isDark ? 'dark' : 'light'}
+      style={[
+        StyleSheet.absoluteFill,
+        { backgroundColor: withAlpha(colors.background, 0.72) },
+      ]}
     />
   );
 }
 
 export default function Tabs() {
+  const { colors, isDark } = useTheme();
+
   const handleTabPress = () => {
     if (Platform.OS !== "web") {
       Haptics.selectionAsync();
@@ -98,7 +111,7 @@ export default function Tabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-
+        tabBarShowLabel: true,
         tabBarIcon: ({ focused, color, size }) => (
           <AnimatedTabIcon
             routeName={route.name}
@@ -108,138 +121,88 @@ export default function Tabs() {
           />
         ),
 
-        // Premium color scheme
-        tabBarActiveTintColor: COLORS?.blushRose ?? "#E6A6B8",
-        tabBarInactiveTintColor: COLORS?.creamSubtle ?? "#E8DDC8",
-        
-        // Premium tab bar styling
-        tabBarStyle: styles.tabBar,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: withAlpha(colors.textMuted, 0.56),
+
+        tabBarStyle: [styles.tabBar, { borderTopColor: colors.borderGlass || withAlpha(colors.border, 0.13) }],
         tabBarLabelStyle: styles.label,
         tabBarItemStyle: styles.tabItem,
 
-        // Premium blur background
-        tabBarBackground: () => <PremiumTabBarBackground />,
+        tabBarBackground: () => <PremiumTabBarBackground colors={colors} isDark={isDark} />,
 
-        // Smooth transitions
         tabBarHideOnKeyboard: true,
         tabBarVisibilityAnimationConfig: {
-          show: {
-            animation: 'timing',
-            config: {
-              duration: 400,
-            },
-          },
-          hide: {
-            animation: 'timing',
-            config: {
-              duration: 400,
-            },
-          },
+          show: { animation: "timing", config: { duration: 400 } },
+          hide: { animation: "timing", config: { duration: 400 } },
         },
       })}
       screenListeners={{
         tabPress: handleTabPress,
-        state: () => {
-          if (Platform.OS !== "web") Haptics.selectionAsync();
-        },
       }}
     >
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeScreen}
-        options={{
-          tabBarLabel: "Heart",
-        }}
+        options={{ tabBarLabel: "Home" }}
       />
-      <Tab.Screen 
-        name="Calendar" 
+      <Tab.Screen
+        name="Prompts"
+        component={PromptsScreen}
+        options={{ tabBarLabel: "Prompts" }}
+      />
+      <Tab.Screen
+        name="Calendar"
         component={CalendarScreen}
-        options={{
-          tabBarLabel: "Dates",
-        }}
+        options={{ tabBarLabel: "Calendar" }}
       />
-      <Tab.Screen 
-        name="Journal" 
-        component={JournalScreen}
-        options={{
-          tabBarLabel: "Story",
-        }}
-      />
-      <Tab.Screen 
-        name="DateNight" 
+      <Tab.Screen
+        name="DatePlans"
         component={DateNightScreen}
-        options={{
-          tabBarLabel: "Nights",
-        }}
+        options={{ tabBarLabel: "Dates" }}
       />
-      <Tab.Screen 
-        name="Settings" 
+      <Tab.Screen
+        name="Settings"
         component={SettingsScreen}
-        options={{
-          tabBarLabel: "You",
-        }}
+        options={{ tabBarLabel: "Settings" }}
       />
     </Tab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
-  // Premium tab bar styling
   tabBar: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 85 : 65,
-    paddingBottom: Platform.OS === 'ios' ? 25 : 10,
+    height: Platform.OS === "ios" ? 82 : 68,
+    paddingBottom: Platform.OS === "ios" ? 12 : 8,
     paddingTop: 10,
-    paddingHorizontal: 20,
-    borderTopWidth: 0.5,
-    borderTopColor: `${COLORS?.blushRose ?? "#E6A6B8"}30`, // 19% opacity
+    paddingHorizontal: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
     elevation: 0,
     shadowOpacity: 0,
   },
 
-  // Premium tab item styling
   tabItem: {
-    paddingVertical: 5,
+    paddingVertical: 4,
     marginHorizontal: 2,
   },
 
-  // Premium label styling
   label: {
+    fontFamily: SANS_BOLD,
     fontSize: 10,
-    fontWeight: "700",
+    letterSpacing: 1.2,
+    marginTop: 2,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginTop: 4,
-    ...TYPOGRAPHY.caption,
   },
 
-  // Icon container with premium effects
   iconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
     paddingVertical: 2,
   },
 
-  icon: {
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-
-  // Blur background styling
-  blurBackground: {
-    backgroundColor: `${COLORS?.warmCharcoal ?? "#2A2A2A"}E6`, // 90% opacity fallback
-  },
-
-  // Web fallback background
-  webTabBackground: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: `${COLORS?.warmCharcoal ?? "#2A2A2A"}F0`, // 94% opacity
-    borderTopWidth: 0.5,
-    borderTopColor: `${COLORS?.blushRose ?? "#E6A6B8"}30`,
-  },
+  icon: {},
 });

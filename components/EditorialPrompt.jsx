@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
-  Platform,
   KeyboardAvoidingView,
   ScrollView,
 } from 'react-native';
@@ -17,16 +16,45 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useAppContext } from '../context/AppContext';
 import { useMemoryContext } from '../context/MemoryContext';
-import { storage, STORAGE_KEYS } from '../utils/storage';
-// NOTE: promptSync module not yet implemented — stubbed to prevent crash
-const promptSyncService = {
-  syncPromptAnswer: async () => ({ success: true }),
-  onPartnerAnswer: () => () => {},
-  getSharedPrompt: async () => null,
-};
-import { COLORS, GRADIENTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
+import { storage, STORAGE_KEYS, promptStorage } from '../utils/storage';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../utils/theme';
+import PreferenceEngine from '../services/PreferenceEngine';
+import { Platform } from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+// Prompt sync adapter — bridges local storage to EditorialPrompt's API.
+// Partner sync methods are honest about requiring Supabase Realtime (not yet wired).
+const promptSyncService = {
+  addListener: () => () => {},
+
+  // Partner real-time sync not yet available — returns no-op unsubscribe
+  onPartnerAnswer: () => () => {},
+
+  // Load a prompt's saved answer (when navigated to by ID)
+  getPromptWithPrivacy: async (promptId) => {
+    if (!promptId) return null;
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const saved = await promptStorage.getAnswer(today, promptId);
+      return saved ? { id: promptId, userAnswer: saved.content || saved.answer, ...saved } : null;
+    } catch {
+      return null;
+    }
+  },
+
+  // Persist the user's answer to encrypted local storage
+  submitAnswer: async (promptId, answer, userId) => {
+    const today = new Date().toISOString().split('T')[0];
+    await promptStorage.setAnswer(today, promptId, { answer, userId });
+    return { success: true };
+  },
+
+  // Partner reveal requires cross-device sync (Supabase Realtime) — not yet wired.
+  // Returns success so UI transitions naturally; partner data will be null.
+  revealPartnerAnswer: async () => ({ success: true, partnerSyncPending: true }),
+};
 
 // Editorial prompt categories and themes
 const PROMPT_CATEGORIES = {
@@ -34,43 +62,31 @@ const PROMPT_CATEGORIES = {
     id: 'reflection',
     name: 'Daily Reflection',
     icon: '💭',
-    color: COLORS.deepPlum,
-    gradient: [COLORS.deepPlum, COLORS.charcoal],
   },
   GRATITUDE: {
     id: 'gratitude',
     name: 'Gratitude',
     icon: '🙏',
-    color: COLORS.mutedGold,
-    gradient: GRADIENTS.goldShimmer,
   },
   DREAMS: {
     id: 'dreams',
     name: 'Dreams & Future',
     icon: '✨',
-    color: COLORS.blushRose,
-    gradient: GRADIENTS.roseDepth,
   },
   INTIMACY: {
     id: 'intimacy',
     name: 'Intimacy',
     icon: '💕',
-    color: COLORS.deepRed,
-    gradient: [COLORS.deepRed, COLORS.beetroot],
   },
   PLAYFUL: {
     id: 'playful',
     name: 'Playful',
     icon: '😄',
-    color: COLORS.champagneGold,
-    gradient: [COLORS.champagneGold, COLORS.mutedGold],
   },
   DAILY_LIFE: {
     id: 'daily_life',
     name: 'Daily Life',
     icon: '☀️',
-    color: COLORS.mutedGold,
-    gradient: [COLORS.mutedGold, COLORS.champagneGold],
   },
 };
 
@@ -95,7 +111,7 @@ const EDITORIAL_PROMPTS = {
     "How do you envision your relationship in five years?",
     "What's a dream you have that you haven't shared yet?",
     "What tradition would you like to start together?",
-    "What's one way you'd like to surprise your partner this year?",
+    "What's one way you'd love to delight your partner this year?",
   ],
   [PROMPT_CATEGORIES.INTIMACY.id]: [
     "What makes you feel most loved by your partner?",
@@ -138,77 +154,123 @@ const EditorialPrompt = ({
   onPartnerAnswerRevealed,
   compact = false,
 }) => {
+  const { colors, isDark, gradients } = useTheme();
   const { state: appState } = useAppContext();
   const { state: memoryState } = useMemoryContext();
-  
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [currentPrompt, setCurrentPrompt] = useState(null);
   const [userAnswer, setUserAnswer] = useState('');
   const [partnerAnswer, setPartnerAnswer] = useState('');
   const [isPartnerAnswerRevealed, setIsPartnerAnswerRevealed] = useState(false);
   const [hasUserSubmitted, setHasUserSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [promptCategory, setPromptCategory] = useState(PROMPT_CATEGORIES[category]);
-  
+
+  // Derived category data with dynamic colors
+  const promptCategory = useMemo(() => {
+    const catId = currentPrompt?.category || category;
+    const cat = Object.values(PROMPT_CATEGORIES).find(c => c.id === catId) || PROMPT_CATEGORIES.REFLECTION;
+    
+    // Map categories to dynamic gradients
+    let catGradient = gradients.primary;
+    if (catId === 'gratitude' || catId === 'daily_life') {
+      catGradient = gradients.gold || gradients.primary;
+    } else if (catId === 'playful') {
+      catGradient = gradients.champagne || gradients.primary;
+    } else if (catId === 'intimacy') {
+      catGradient = [colors.primaryMuted, colors.danger];
+    }
+    
+    return { ...cat, gradient: catGradient };
+  }, [currentPrompt?.category, category, colors, gradients]);
+
   // Animation values
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const blurAnimation = useRef(new Animated.Value(20)).current;
   const revealAnimation = useRef(new Animated.Value(0)).current;
   const submitAnimation = useRef(new Animated.Value(1)).current;
 
-  // Load or generate prompt on mount
+  // ---------------------------------------------------------------------------
+  // 1) Load or generate prompt (IMPORTANT: do NOT depend on currentPrompt?.id)
+  // ---------------------------------------------------------------------------
   useEffect(() => {
+    let isMounted = true;
+
     const loadPrompt = async () => {
       try {
         let prompt;
-        
+
         if (promptId) {
-          // Load specific prompt with privacy controls
           prompt = await promptSyncService.getPromptWithPrivacy(promptId);
         }
-        
+
         if (!prompt) {
-          // Generate new prompt
-          prompt = await generateDailyPrompt(category);
+          // Respect boundaries — remap intimacy when hideSpicy is on
+          let effectiveCategory = category;
+          try {
+            const profile = await PreferenceEngine.getContentProfile();
+            if (profile?.hideSpicy && category === 'intimacy') {
+              effectiveCategory = 'reflection';
+            }
+          } catch (e) { /* fallback to default category */ }
+          prompt = await generateDailyPrompt(effectiveCategory);
         }
-        
+
+        if (!isMounted) return;
+
         setCurrentPrompt(prompt);
-        setPromptCategory(PROMPT_CATEGORIES[prompt.category] || PROMPT_CATEGORIES.REFLECTION);
-        
+
         // Load existing answers
         if (prompt.userAnswer) {
           setUserAnswer(prompt.userAnswer);
           setHasUserSubmitted(true);
+        } else {
+          setUserAnswer('');
+          setHasUserSubmitted(false);
         }
-        
+
         if (prompt.partnerAnswer && prompt.partnerAnswer !== '[HIDDEN]') {
           setPartnerAnswer(prompt.partnerAnswer);
-          if (prompt.isRevealed) {
-            setIsPartnerAnswerRevealed(true);
-          }
+          setIsPartnerAnswerRevealed(!!prompt.isRevealed);
         } else if (prompt.hasPartnerAnswer) {
-          // Partner has answered but it's hidden
           setPartnerAnswer('Partner has shared their reflection...');
+          setIsPartnerAnswerRevealed(false);
+        } else {
+          setPartnerAnswer('');
+          setIsPartnerAnswerRevealed(false);
         }
-        
+
         // Animate in
+        fadeAnimation.setValue(0);
         Animated.timing(fadeAnimation, {
           toValue: 1,
           duration: 600,
           useNativeDriver: true,
         }).start();
-        
       } catch (error) {
         console.error('Failed to load prompt:', error);
       }
     };
-    
+
     loadPrompt();
-    
-    // Set up sync listeners
+
+    return () => {
+      isMounted = false;
+    };
+    // ✅ Only these — removing currentPrompt?.id prevents the focus-killing reload loop
+  }, [promptId, category]);
+
+  // ---------------------------------------------------------------------------
+  // 2) Set up sync listeners once we have a prompt id
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!currentPrompt?.id) return;
+
     const unsubscribe = promptSyncService.addListener((event, data) => {
       switch (event) {
         case 'partner_answer_received':
-          if (data.promptId === currentPrompt?.id) {
+          if (data.promptId === currentPrompt.id) {
             if (data.canReveal) {
               setPartnerAnswer(data.partnerAnswer);
               setTimeout(() => revealPartnerAnswer(), 400);
@@ -218,27 +280,46 @@ const EditorialPrompt = ({
           }
           break;
         case 'partner_answer_revealed':
-          if (data.promptId === currentPrompt?.id) {
+          if (data.promptId === currentPrompt.id) {
             setIsPartnerAnswerRevealed(true);
           }
           break;
         case 'answer_synced':
-          // Handle successful sync
+          break;
+        default:
           break;
       }
     });
-    
-    return unsubscribe;
-  }, [promptId, category, currentPrompt?.id]);
+
+    return typeof unsubscribe === 'function' ? unsubscribe : undefined;
+  }, [currentPrompt?.id]); // ✅ listener depends only on prompt id
 
   const generateDailyPrompt = async (categoryId) => {
     const today = new Date().toISOString().split('T')[0];
+    const [curYear, curMonth] = today.split('-');
+    const monthKey = `${curYear}-${curMonth}`;
     const prompts = EDITORIAL_PROMPTS[categoryId] || EDITORIAL_PROMPTS.reflection;
-    
-    // Use date as seed for consistent daily prompt
-    const dateHash = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
-    const promptIndex = dateHash % prompts.length;
-    
+
+    // Load this month's used indices for this category to avoid repeats
+    let usedIndices = [];
+    const storageKey = `editorial_month_${categoryId}`;
+    try {
+      const raw = await storage.get(storageKey, null);
+      if (raw && raw.month === monthKey && Array.isArray(raw.indices)) {
+        usedIndices = raw.indices;
+      }
+    } catch (e) { /* fallback to fresh start */ }
+
+    // Build list of fresh (unused this month) indices
+    const allIndices = prompts.map((_, i) => i);
+    let freshIndices = allIndices.filter(i => !usedIndices.includes(i));
+    // If all prompts have been shown, reset the cycle
+    if (freshIndices.length === 0) freshIndices = allIndices;
+
+    // Deterministic pick from the fresh set using the day of month
+    const dayOfMonth = parseInt(today.split('-')[2], 10);
+    const promptIndex = freshIndices[dayOfMonth % freshIndices.length];
+
     const prompt = {
       id: `prompt_${today}_${categoryId}`,
       date: today,
@@ -249,25 +330,31 @@ const EditorialPrompt = ({
       createdAt: new Date(),
       isRevealed: false,
     };
-    
+
+    // Persist the updated month history
+    if (!usedIndices.includes(promptIndex)) usedIndices.push(promptIndex);
+    try {
+      await storage.set(storageKey, { month: monthKey, indices: usedIndices });
+    } catch (e) {
+      console.warn('[EditorialPrompt] Failed to persist month history:', e?.message);
+    }
+
     // Store prompt
-    const storedPrompts = await storage.get(STORAGE_KEYS.EDITORIAL_PROMPTS) || {};
+    const storedPrompts = await storage.get(STORAGE_KEYS.EDITORIAL_PROMPTS, {});
     storedPrompts[prompt.id] = prompt;
     await storage.set(STORAGE_KEYS.EDITORIAL_PROMPTS, storedPrompts);
-    
+
     return prompt;
   };
 
   const handleAnswerSubmit = async () => {
-    if (!userAnswer.trim() || isSubmitting) return;
-    
+    if (!userAnswer.trim() || isSubmitting || !currentPrompt?.id) return;
+
     setIsSubmitting(true);
-    
+
     try {
-      // Haptic feedback
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      
-      // Submit animation
+
       Animated.sequence([
         Animated.timing(submitAnimation, {
           toValue: 0.95,
@@ -280,24 +367,14 @@ const EditorialPrompt = ({
           useNativeDriver: true,
         }),
       ]).start();
-      
-      // Submit answer through sync service
-      const result = await promptSyncService.submitAnswer(
-        currentPrompt.id,
-        userAnswer.trim(),
-        appState.userId
-      );
-      
+
+      await promptSyncService.submitAnswer(currentPrompt.id, userAnswer.trim(), appState.userId);
+
       setHasUserSubmitted(true);
-      
-      // If partner has already answered, their answer will be revealed automatically
-      // by the sync service listener
-      
-      // Callback
+
       if (onAnswerSubmit) {
         onAnswerSubmit(currentPrompt, userAnswer.trim());
       }
-      
     } catch (error) {
       console.error('Failed to submit answer:', error);
     } finally {
@@ -306,16 +383,13 @@ const EditorialPrompt = ({
   };
 
   const revealPartnerAnswer = async () => {
-    if (!partnerAnswer || isPartnerAnswerRevealed) return;
-    
+    if (!partnerAnswer || isPartnerAnswerRevealed || !currentPrompt?.id) return;
+
     try {
-      // Use sync service to reveal answer with proper privacy controls
       await promptSyncService.revealPartnerAnswer(currentPrompt.id);
-      
-      // Haptic feedback for reveal
+
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      
-      // Reveal animation with 400ms timing as per requirements
+
       Animated.parallel([
         Animated.timing(blurAnimation, {
           toValue: 0,
@@ -328,28 +402,26 @@ const EditorialPrompt = ({
           useNativeDriver: true,
         }),
       ]).start();
-      
+
       setIsPartnerAnswerRevealed(true);
-      
-      // Callback
+
       if (onPartnerAnswerRevealed) {
         onPartnerAnswerRevealed(currentPrompt, partnerAnswer);
       }
-      
     } catch (error) {
       console.error('Failed to reveal partner answer:', error);
     }
   };
 
   const renderPromptHeader = () => (
-    <View style={styles.promptHeader}>
+    <View style={styles.header}>
       <View style={styles.categoryContainer}>
         <Text style={styles.categoryIcon}>{promptCategory.icon}</Text>
-        <Text style={styles.categoryName}>{promptCategory.name}</Text>
+        <Text style={[styles.categoryName, { color: colors.primary }]}>{promptCategory.name}</Text>
       </View>
-      
+
       <View style={styles.dateContainer}>
-        <Text style={styles.dateText}>
+        <Text style={[styles.dateText, { color: colors.textMuted }]}>
           {currentPrompt ? new Date(currentPrompt.createdAt).toLocaleDateString() : 'Today'}
         </Text>
       </View>
@@ -358,7 +430,7 @@ const EditorialPrompt = ({
 
   const renderPromptQuestion = () => (
     <View style={styles.questionContainer}>
-      <Text style={styles.questionText}>
+      <Text style={[styles.questionText, { color: colors.text }]}>
         {currentPrompt?.question || 'Loading your daily reflection...'}
       </Text>
     </View>
@@ -366,50 +438,58 @@ const EditorialPrompt = ({
 
   const renderUserAnswerSection = () => (
     <View style={styles.answerSection}>
-      <Text style={styles.answerLabel}>Your Reflection</Text>
-      
+      <Text style={[styles.answerLabel, { color: colors.primary }]}>Your Reflection</Text>
+
       {hasUserSubmitted ? (
         <View style={styles.submittedAnswer}>
-          <BlurView intensity={5} style={styles.submittedAnswerBlur}>
-            <Text style={styles.submittedAnswerText}>{userAnswer}</Text>
-            <Text style={styles.submittedTimestamp}>
-              Submitted {currentPrompt?.userSubmittedAt ? 
-                new Date(currentPrompt.userSubmittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
-                'just now'
-              }
+          <BlurView intensity={5} style={[styles.submittedAnswerBlur, { backgroundColor: colors.surfaceSubtle, borderColor: colors.border }]}>
+            <Text style={[styles.submittedAnswerText, { color: colors.text }]}>{userAnswer}</Text>
+            <Text style={[styles.submittedTimestamp, { color: colors.textMuted }]}>
+              Submitted{' '}
+              {currentPrompt?.userSubmittedAt
+                ? new Date(currentPrompt.userSubmittedAt).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : 'just now'}
             </Text>
           </BlurView>
         </View>
       ) : (
         <View style={styles.answerInputContainer}>
           <TextInput
-            style={styles.answerInput}
+            style={[styles.answerInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
             value={userAnswer}
             onChangeText={setUserAnswer}
             placeholder="Share your thoughts..."
-            placeholderTextColor={COLORS.creamSubtle + '60'}
+            placeholderTextColor={colors.textMuted + '60'}
             multiline
             textAlignVertical="top"
             maxLength={500}
+            // These help reduce “focus lost” weirdness on iOS
+            blurOnSubmit={false}
+            autoCorrect
+            autoCapitalize="sentences"
+            scrollEnabled
           />
-          
+
           <Animated.View style={[styles.submitButtonContainer, { transform: [{ scale: submitAnimation }] }]}>
             <TouchableOpacity
               onPress={handleAnswerSubmit}
               disabled={!userAnswer.trim() || isSubmitting}
               style={[
                 styles.submitButton,
-                (!userAnswer.trim() || isSubmitting) && styles.submitButtonDisabled
+                (!userAnswer.trim() || isSubmitting) && styles.submitButtonDisabled,
               ]}
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={promptCategory.gradient}
+                colors={promptCategory.gradient || ['#6B2D5B', '#4A1942']}
                 style={styles.submitButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Text style={styles.submitButtonText}>
+                <Text style={[styles.submitButtonText, { color: colors.text }]}> 
                   {isSubmitting ? 'Submitting...' : 'Submit Reflection'}
                 </Text>
               </LinearGradient>
@@ -424,14 +504,13 @@ const EditorialPrompt = ({
     if (!partnerAnswer) {
       return (
         <View style={styles.answerSection}>
-          <Text style={styles.answerLabel}>Partner's Reflection</Text>
+          <Text style={[styles.answerLabel, { color: colors.primary }]}>Partner's Reflection</Text>
           <View style={styles.waitingForPartner}>
-            <BlurView intensity={10} style={styles.waitingBlur}>
-              <Text style={styles.waitingText}>
-                {hasUserSubmitted ? 
-                  'Waiting for your partner to reflect...' :
-                  'Submit your reflection to see your partner\'s response'
-                }
+            <BlurView intensity={10} style={[styles.waitingBlur, { backgroundColor: colors.surface + '40', borderColor: colors.border }]}>
+              <Text style={[styles.waitingText, { color: colors.textMuted }]}>
+                {hasUserSubmitted
+                  ? 'Waiting for your partner to reflect...'
+                  : "Submit your reflection to see your partner's response"}
               </Text>
             </BlurView>
           </View>
@@ -441,36 +520,34 @@ const EditorialPrompt = ({
 
     return (
       <View style={styles.answerSection}>
-        <Text style={styles.answerLabel}>Partner's Reflection</Text>
-        
-        <Animated.View style={[
-          styles.partnerAnswer,
-          {
-            opacity: isPartnerAnswerRevealed ? revealAnimation : 1,
-          }
-        ]}>
-          <BlurView 
-            intensity={isPartnerAnswerRevealed ? 5 : blurAnimation} 
-            style={styles.partnerAnswerBlur}
-          >
+        <Text style={[styles.answerLabel, { color: colors.primary }]}>Partner's Reflection</Text>
+
+        <Animated.View
+          style={[
+            styles.partnerAnswer,
+            {
+              opacity: isPartnerAnswerRevealed ? revealAnimation : 1,
+            },
+          ]}
+        >
+          <BlurView intensity={isPartnerAnswerRevealed ? 5 : blurAnimation} style={[styles.partnerAnswerBlur, { backgroundColor: colors.surfaceSubtle, borderColor: colors.border }]}>
             {isPartnerAnswerRevealed ? (
               <>
-                <Text style={styles.partnerAnswerText}>{partnerAnswer}</Text>
-                <Text style={styles.revealedTimestamp}>
-                  Revealed {currentPrompt?.revealedAt ? 
-                    new Date(currentPrompt.revealedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
-                    'just now'
-                  }
+                <Text style={[styles.partnerAnswerText, { color: colors.text }]}>{partnerAnswer}</Text>
+                <Text style={[styles.revealedTimestamp, { color: colors.textMuted }]}>
+                  Revealed{' '}
+                  {currentPrompt?.revealedAt
+                    ? new Date(currentPrompt.revealedAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : 'just now'}
                 </Text>
               </>
             ) : (
               <View style={styles.blurredContent}>
-                <Text style={styles.blurredText}>
-                  Your partner has shared their reflection...
-                </Text>
-                <Text style={styles.blurredSubtext}>
-                  Submit your answer to reveal theirs
-                </Text>
+                <Text style={[styles.blurredText, { color: colors.textMuted }]}>Your partner has shared their reflection...</Text>
+                <Text style={[styles.blurredSubtext, { color: colors.textMuted + '80' }]}>Submit your answer to reveal theirs</Text>
               </View>
             )}
           </BlurView>
@@ -482,37 +559,34 @@ const EditorialPrompt = ({
   if (!currentPrompt) {
     return (
       <View style={[styles.container, styles.loadingContainer, style]}>
-        <Text style={styles.loadingText}>Preparing your daily reflection...</Text>
+        <Text style={[styles.loadingText, { color: colors.textMuted }]}>Preparing your daily reflection...</Text>
       </View>
     );
   }
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={[styles.container, style]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      // If you have a header/nav bar, adjust this up (common iOS fix)
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
     >
       <Animated.View style={[styles.content, { opacity: fadeAnimation }]}>
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          // ✅ Key keyboard props
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         >
-          {/* Header */}
           {renderPromptHeader()}
-          
-          {/* Question */}
           {renderPromptQuestion()}
-          
-          {/* User Answer Section */}
           {renderUserAnswerSection()}
-          
-          {/* Partner Answer Section */}
           {renderPartnerAnswerSection()}
-          
-          {/* Editorial Footer */}
-          <View style={styles.editorialFooter}>
-            <Text style={styles.editorialFooterText}>
+
+          <View style={[styles.editorialFooter, { borderTopColor: colors.border }]}>
+            <Text style={[styles.editorialFooterText, { color: colors.textMuted }]}>
               "The unexamined life is not worth living." — Socrates
             </Text>
           </View>
@@ -522,231 +596,171 @@ const EditorialPrompt = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
-  
   loadingContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
   loadingText: {
     ...TYPOGRAPHY.body,
-    color: COLORS.creamSubtle,
   },
-  
   content: {
     flex: 1,
   },
-  
   scrollView: {
     flex: 1,
   },
-  
   scrollContent: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.xl,
+    padding: SPACING.lg,
+    paddingBottom: SPACING.xxxl,
   },
-  
-  promptHeader: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: SPACING.xl,
   },
-  
   categoryContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
   categoryIcon: {
-    fontSize: 20,
+    fontSize: 24,
     marginRight: SPACING.sm,
   },
-  
   categoryName: {
-    ...TYPOGRAPHY.label,
-    color: COLORS.blushRose,
+    ...TYPOGRAPHY.h3,
+    fontSize: 16,
   },
-  
   dateContainer: {
-    // Date styling
+    alignItems: 'flex-end',
   },
-  
   dateText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.creamSubtle,
   },
-  
   questionContainer: {
     marginBottom: SPACING.xxl,
-    paddingHorizontal: SPACING.md,
   },
-  
   questionText: {
     ...TYPOGRAPHY.h1,
-    color: COLORS.softCream,
-    textAlign: 'center',
-    lineHeight: 42,
-    letterSpacing: -0.5,
+    fontSize: 26,
+    lineHeight: 34,
   },
-  
   answerSection: {
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.xxl,
   },
-  
   answerLabel: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.blushRose,
+    ...TYPOGRAPHY.label,
     marginBottom: SPACING.md,
   },
-  
   answerInputContainer: {
-    // Input container styling
+    width: '100%',
   },
-  
   answerInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    color: COLORS.softCream,
     ...TYPOGRAPHY.body,
     minHeight: 120,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 211, 233, 0.3)',
-    marginBottom: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    borderWidth: 1,
+    textAlignVertical: 'top',
   },
-  
   submitButtonContainer: {
-    // Submit button container
+    marginTop: SPACING.md,
+    alignSelf: 'flex-end',
   },
-  
   submitButton: {
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.full,
     overflow: 'hidden',
   },
-  
   submitButtonDisabled: {
     opacity: 0.5,
   },
-  
   submitButtonGradient: {
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xl,
   },
-  
   submitButtonText: {
     ...TYPOGRAPHY.button,
-    color: COLORS.pureWhite,
+    fontSize: 14,
   },
-  
   submittedAnswer: {
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.md,
     overflow: 'hidden',
   },
-  
   submittedAnswerBlur: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 211, 233, 0.3)',
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.md,
   },
-  
   submittedAnswerText: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream,
-    marginBottom: SPACING.sm,
-    lineHeight: 24,
   },
-  
   submittedTimestamp: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.creamSubtle,
-  },
-  
-  waitingForPartner: {
-    borderRadius: BORDER_RADIUS.lg,
-    overflow: 'hidden',
-  },
-  
-  waitingBlur: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 211, 233, 0.2)',
-  },
-  
-  waitingText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.creamSubtle,
-    textAlign: 'center',
+    marginTop: SPACING.sm,
     fontStyle: 'italic',
   },
-  
+  waitingForPartner: {
+    marginTop: SPACING.sm,
+  },
+  waitingBlur: {
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  waitingText: {
+    ...TYPOGRAPHY.bodySecondary,
+    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
   partnerAnswer: {
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.md,
     overflow: 'hidden',
   },
-  
   partnerAnswerBlur: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 211, 233, 0.3)',
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.md,
+    minHeight: 80,
+    justifyContent: 'center',
   },
-  
   partnerAnswerText: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream,
-    marginBottom: SPACING.sm,
-    lineHeight: 24,
   },
-  
   revealedTimestamp: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.creamSubtle,
+    marginTop: SPACING.sm,
+    fontStyle: 'italic',
   },
-  
   blurredContent: {
     alignItems: 'center',
     paddingVertical: SPACING.md,
   },
-  
   blurredText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.creamSubtle,
-    textAlign: 'center',
-    marginBottom: SPACING.xs,
+    ...TYPOGRAPHY.bodySecondary,
+    fontSize: 14,
+    marginBottom: 4,
   },
-  
   blurredSubtext: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.creamSubtle + '80',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    fontSize: 12,
   },
-  
   editorialFooter: {
     marginTop: SPACING.xxl,
-    paddingTop: SPACING.xl,
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(255, 211, 233, 0.2)',
+    paddingTop: SPACING.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
   },
-  
   editorialFooterText: {
-    ...TYPOGRAPHY.pullQuote,
-    color: COLORS.creamSubtle,
-    textAlign: 'center',
+    ...TYPOGRAPHY.caption,
     fontStyle: 'italic',
+    textAlign: 'center',
   },
 });
 

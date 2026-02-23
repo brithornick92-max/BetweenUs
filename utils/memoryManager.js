@@ -371,7 +371,7 @@ export class MemoryManager {
     };
     
     // Store anniversary theme
-    const anniversaryThemes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES) || [];
+    const anniversaryThemes = await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES, []) || [];
     anniversaryThemes.push(anniversaryTheme);
     await storage.set(STORAGE_KEYS.ANNIVERSARY_THEMES, anniversaryThemes);
     
@@ -547,7 +547,7 @@ export class MemoryManager {
   async syncToCloud(config = {}) {
     try {
       const { includePhotos = false, encryptData = true } = config;
-      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID);
+      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
       if (!coupleId) {
         return { success: false, error: 'Couple not linked.' };
       }
@@ -556,7 +556,7 @@ export class MemoryManager {
       
       const syncData = {
         memories: Array.from(this.memories.values()),
-        anniversaryThemes: await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES) || [],
+        anniversaryThemes: await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES, []) || [],
         syncTimestamp: new Date(),
         deviceId: await this.getDeviceId(),
         version: '1.0',
@@ -608,7 +608,7 @@ export class MemoryManager {
    */
   async restoreFromCloud(backupId) {
     try {
-      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID);
+      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
       if (!coupleId) {
         return { success: false, error: 'Couple not linked.' };
       }
@@ -962,7 +962,11 @@ export class MemoryManager {
           <div style="margin-bottom: 30px;">
             <h3>${photoGroup.memoryTitle}</h3>
             <p style="color: #666; font-size: 12px;">${new Date(photoGroup.date).toLocaleDateString()}</p>
-            <!-- Photo placeholders would go here -->
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+              ${(photoGroup.photos || []).map(photo => `
+                <img src="${photo.uri || photo}" style="max-width: 300px; max-height: 300px; border-radius: 8px; object-fit: cover;" />
+              `).join('')}
+            </div>
           </div>
         `).join('')}
       </div>

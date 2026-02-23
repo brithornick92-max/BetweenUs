@@ -4,6 +4,7 @@ import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -21,16 +22,44 @@ import { useContent } from "../context/ContentContext";
 import { useEntitlements } from '../context/EntitlementsContext';
 import { promptStorage } from "../utils/storage";
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from "../utils/theme";
+import PreferenceEngine from '../services/PreferenceEngine';
+import PromptAllocator from '../services/PromptAllocator';
 
 const CATEGORIES = [
   { id: "all", label: "All", icon: "view-grid" },
-  { id: "emotional", label: "Emotional", icon: "heart" },
-  { id: "physical", label: "Physical", icon: "hand-heart" },
-  { id: "fun", label: "Fun", icon: "party-popper" },
-  { id: "deep", label: "Deep", icon: "thought-bubble" },
+  { id: "romance", label: "Romance", icon: "heart" },
+  { id: "emotional", label: "Emotional", icon: "hand-heart" },
+  { id: "playful", label: "Playful", icon: "party-popper" },
+  { id: "physical", label: "Physical", icon: "hand-wave" },
   { id: "fantasy", label: "Fantasy", icon: "star" },
-  { id: "roleplay", label: "Role-play", icon: "drama-masks" },
+  { id: "memory", label: "Memory", icon: "camera" },
+  { id: "future", label: "Future", icon: "crystal-ball" },
+  { id: "sensory", label: "Sensory", icon: "eye" },
+  { id: "visual", label: "Visual", icon: "palette" },
+  { id: "kinky", label: "Kinky", icon: "drama-masks" },
+  { id: "location", label: "Location", icon: "map-marker" },
+  { id: "seasonal", label: "Seasonal", icon: "weather-sunny" },
 ];
+
+const DURATION_FILTERS = [
+  { id: "all", label: "All Stages" },
+  { id: "new", label: "New" },
+  { id: "developing", label: "Developing" },
+  { id: "established", label: "Established" },
+  { id: "mature", label: "Mature" },
+  { id: "long_term", label: "Long-term" },
+  { id: "universal", label: "Universal" },
+];
+
+/** Load the full bundled prompt catalog */
+const loadAllBundledPrompts = () => {
+  try {
+    const bundled = require("../content/prompts.json");
+    return Array.isArray(bundled?.items) ? bundled.items : [];
+  } catch {
+    return [];
+  }
+};
 
 // Safe fallback prompt (never missing .text)
 const FALLBACK_PROMPT = {
@@ -52,7 +81,7 @@ const normalizePrompt = (p) => {
 };
 
 export default function PromptLibraryScreen({ navigation }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
   // ContentContext could expose different methods in your app.
@@ -64,8 +93,11 @@ export default function PromptLibraryScreen({ navigation }) {
 
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedHeat, setSelectedHeat] = useState(1);
+  const [selectedDuration, setSelectedDuration] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [prompts, setPrompts] = useState([]); // raw loaded list
+  const [allPromptsCount, setAllPromptsCount] = useState(0);
   const [favorites, setFavorites] = useState([]);
 
   const [loading, setLoading] = useState(false);
@@ -83,13 +115,41 @@ export default function PromptLibraryScreen({ navigation }) {
     }
   }, []);
 
+  // Load user's preferred heat level as default
+  useEffect(() => {
+    (async () => {
+      try {
+        const profile = await PreferenceEngine.getContentProfile();
+        if (profile?.heatLevel) setSelectedHeat(profile.heatLevel);
+      } catch (e) { /* fallback to default heat */ }
+    })();
+  }, []);
+
   // -----------------------
   // Load prompts (local + fallback)
   // -----------------------
   const loadPrompts = useCallback(async () => {
     setLoading(true);
     try {
-      // ✅ If your ContentContext supports filtering locally, use it.
+      // Premium users get the full bundled catalog, filtered by boundaries
+      if (isPremium) {
+        const allPrompts = loadAllBundledPrompts();
+        setAllPromptsCount(allPrompts.length);
+        try {
+          const profile = await PreferenceEngine.getContentProfile();
+          const filtered = allPrompts.filter(p => {
+            if (profile?.hiddenCategories?.includes(p.category)) return false;
+            if (profile?.pausedEntries?.includes(p.id)) return false;
+            return true;
+          });
+          setPrompts(filtered.map(normalizePrompt));
+        } catch {
+          setPrompts(allPrompts.map(normalizePrompt));
+        }
+        return;
+      }
+
+      // Free users: use ContentContext filtering (respects PremiumGatekeeper limits)
       if (typeof getFilteredPrompts === "function") {
         const filters = {
           minHeatLevel: selectedHeat,
@@ -102,30 +162,19 @@ export default function PromptLibraryScreen({ navigation }) {
         return;
       }
 
-      // Otherwise fallback to placeholder list (your current mock)
-      const mockPrompts = [
-        {
-          id: "mock_1",
-          text: "What's one thing you love about our relationship?",
-          category: "emotional",
-          heat: 1,
-        },
-        {
-          id: "mock_2",
-          text: "Describe a perfect date night with your partner.",
-          category: "fun",
-          heat: 2,
-        },
-      ];
-
-      setPrompts(mockPrompts.map(normalizePrompt));
+      // Fallback: load from bundled prompts.json content
+      const allPrompts = loadAllBundledPrompts();
+      setAllPromptsCount(allPrompts.length);
+      // Free users only get heat 1-3
+      const freePrompts = allPrompts.filter((p) => (p.heat || 1) <= 3);
+      setPrompts(freePrompts.map(normalizePrompt));
     } catch (error) {
       console.error("Error loading prompts:", error);
       setPrompts([]);
     } finally {
       setLoading(false);
     }
-  }, [getFilteredPrompts, selectedCategory, selectedHeat]);
+  }, [isPremium, getFilteredPrompts, selectedCategory, selectedHeat]);
 
   useEffect(() => {
     loadPrompts();
@@ -137,7 +186,7 @@ export default function PromptLibraryScreen({ navigation }) {
   // -----------------------
   const filteredPrompts = useMemo(() => {
     const list = Array.isArray(prompts) ? prompts : [];
-    return list
+    const base = list
       .map(normalizePrompt)
       .filter((p) => {
         if (!p) return false;
@@ -149,9 +198,30 @@ export default function PromptLibraryScreen({ navigation }) {
           const cat = typeof p.category === "string" ? p.category : "general";
           if (cat !== selectedCategory) return false;
         }
+
+        // Relationship duration filter (premium only)
+        if (isPremium && selectedDuration !== "all") {
+          const durations = Array.isArray(p.relationshipDuration) ? p.relationshipDuration : [];
+          if (!durations.includes(selectedDuration) && !durations.includes("universal")) {
+            return false;
+          }
+        }
+
+        // Search filter
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase().trim();
+          const text = (p.text || "").toLowerCase();
+          const cat = (p.category || "").toLowerCase();
+          if (!text.includes(query) && !cat.includes(query)) {
+            return false;
+          }
+        }
+
         return true;
       });
-  }, [prompts, selectedCategory, selectedHeat]);
+    // Remove today's daily prompt + already-answered, then tag the rest
+    return PromptAllocator.tagAnswered(PromptAllocator.excludeUsed(base));
+  }, [prompts, selectedCategory, selectedHeat, selectedDuration, searchQuery, isPremium]);
 
   // -----------------------
   // Favorite toggle
@@ -159,6 +229,10 @@ export default function PromptLibraryScreen({ navigation }) {
   const toggleFavorite = useCallback(
     async (promptId) => {
       if (!promptId) return;
+      if (!isPremium) {
+        showPaywall?.('unlimitedPrompts');
+        return;
+      }
 
       await Haptics.selectionAsync();
 
@@ -189,11 +263,11 @@ export default function PromptLibraryScreen({ navigation }) {
 
       const safePrompt = normalizePrompt(prompt);
 
-      // Optional: block heat 5 for non-premium
-      if (!isPremium && safePrompt.heat === 5) {
+      // Block heat 4-5 for non-premium
+      if (!isPremium && safePrompt.heat >= 4) {
         Alert.alert(
           "Premium Feature",
-          "Heat level 5 prompts are available with Premium.",
+          "Heat levels 4 & 5 prompts are available with Premium.",
           [
             { text: "Maybe Later", style: "cancel" },
             { text: "Upgrade", onPress: () => navigation.navigate("Paywall") },
@@ -272,12 +346,12 @@ export default function PromptLibraryScreen({ navigation }) {
         <MaterialCommunityIcons
           name={category.icon}
           size={18}
-          color={isSelected ? "#FFF" : colors.text}
+          color={isSelected ? colors.surface : colors.text}
         />
         <Text
           style={[
             styles.categoryLabel,
-            { color: isSelected ? "#FFF" : colors.text },
+            { color: isSelected ? colors.surface : colors.text },
           ]}
         >
           {category.label}
@@ -295,7 +369,7 @@ export default function PromptLibraryScreen({ navigation }) {
       <View style={styles.heatButtons}>
         {[1, 2, 3, 4, 5].map((heat) => {
           const isSelected = selectedHeat === heat;
-          const locked = !isPremium && heat === 5;
+          const locked = !isPremium && heat >= 4;
 
           return (
             <TouchableOpacity
@@ -312,7 +386,7 @@ export default function PromptLibraryScreen({ navigation }) {
                 if (locked) {
                   Alert.alert(
                     "Premium Feature",
-                    "Heat level 5 is available with Premium.",
+                    "Heat levels 4 & 5 are available with Premium.",
                     [
                       { text: "Maybe Later", style: "cancel" },
                       {
@@ -332,7 +406,7 @@ export default function PromptLibraryScreen({ navigation }) {
                 <Text
                   style={[
                     styles.heatButtonText,
-                    { color: isSelected ? "#FFF" : colors.text },
+                    { color: isSelected ? colors.surface : colors.text },
                   ]}
                 >
                   {heat}
@@ -341,7 +415,7 @@ export default function PromptLibraryScreen({ navigation }) {
                   <MaterialCommunityIcons
                     name="lock"
                     size={14}
-                    color={isSelected ? "#FFF" : colors.textSecondary}
+                    color={isSelected ? colors.surface : colors.textSecondary}
                   />
                 ) : null}
               </View>
@@ -362,21 +436,27 @@ export default function PromptLibraryScreen({ navigation }) {
       <TouchableOpacity
         style={[
           styles.promptCard,
-          { backgroundColor: colors.card, borderColor: colors.border },
+          { backgroundColor: isDark ? '#0C0810' : colors.card, borderColor: isDark ? 'rgba(196,86,122,0.06)' : colors.border },
+          item.answered && { opacity: 0.55 },
         ]}
         onPress={() => handlePromptSelect(safeItem)}
         activeOpacity={0.8}
       >
         <View style={styles.promptCardHeader}>
-          <View
-            style={[
-              styles.categoryBadge,
-              { backgroundColor: `${colors.primary}20` },
-            ]}
-          >
-            <Text style={[styles.categoryBadgeText, { color: colors.primary }]}>
-              {(safeItem.category || "general").toString()}
-            </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View
+              style={[
+                styles.categoryBadge,
+                { backgroundColor: `${colors.primary}20` },
+              ]}
+            >
+              <Text style={[styles.categoryBadgeText, { color: colors.primary }]}>
+                {(safeItem.category || "general").toString()}
+              </Text>
+            </View>
+            {item.answered && (
+              <MaterialCommunityIcons name="check-circle" size={16} color={colors.success || '#4CAF50'} />
+            )}
           </View>
 
           <TouchableOpacity
@@ -429,7 +509,7 @@ export default function PromptLibraryScreen({ navigation }) {
             color={colors.textSecondary}
           />
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No prompts found
+            No prompts match that — try a different mood
           </Text>
         </>
       )}
@@ -467,6 +547,62 @@ export default function PromptLibraryScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {/* Premium prompt count badge */}
+        {isPremium && allPromptsCount > 0 && (
+          <View style={[styles.premiumBadgeBanner, { backgroundColor: `${colors.primary}15` }]}>
+            <MaterialCommunityIcons name="diamond-stone" size={18} color={colors.primary} />
+            <Text style={[styles.premiumBadgeText, { color: colors.primary }]}>
+              {allPromptsCount} prompts unlocked
+            </Text>
+            <Text style={[styles.premiumBadgeSubtext, { color: colors.textSecondary }]}>
+              {filteredPrompts.length} matching filters
+            </Text>
+          </View>
+        )}
+
+        {/* Free user upsell banner */}
+        {!isPremium && (
+          <TouchableOpacity
+            style={[styles.upsellBanner, { backgroundColor: `${colors.primary}12`, borderColor: `${colors.primary}30` }]}
+            onPress={() => showPaywall?.('unlimitedPrompts')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.upsellBannerContent}>
+              <MaterialCommunityIcons name="lock-open-variant" size={22} color={colors.primary} />
+              <View style={styles.upsellBannerText}>
+                <Text style={[styles.upsellTitle, { color: colors.text }]}>
+                  Unlock All 632 Prompts
+                </Text>
+                <Text style={[styles.upsellSubtitle, { color: colors.textSecondary }]}>
+                  All heat levels, categories & search — go Premium
+                </Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={22} color={colors.primary} />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {/* Search bar (premium) */}
+        {isPremium && (
+          <View style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.text }]}
+              placeholder="Search prompts…"
+              placeholderTextColor={colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7}>
+                <MaterialCommunityIcons name="close-circle" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         {/* Category Filter */}
         <ScrollView
           horizontal
@@ -476,6 +612,46 @@ export default function PromptLibraryScreen({ navigation }) {
         >
           {CATEGORIES.map(renderCategoryChip)}
         </ScrollView>
+
+        {/* Relationship Duration Filter (premium only) */}
+        {isPremium && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoryScroll}
+            contentContainerStyle={styles.categoryScrollContent}
+          >
+            {DURATION_FILTERS.map((d) => {
+              const isSelected = selectedDuration === d.id;
+              return (
+                <TouchableOpacity
+                  key={d.id}
+                  style={[
+                    styles.categoryChip,
+                    {
+                      backgroundColor: isSelected ? colors.accent || colors.primary : colors.card,
+                      borderColor: isSelected ? colors.accent || colors.primary : colors.border,
+                    },
+                  ]}
+                  onPress={() => {
+                    setSelectedDuration(d.id);
+                    Haptics.selectionAsync();
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.categoryLabel,
+                      { color: isSelected ? colors.surface : colors.text },
+                    ]}
+                  >
+                    {d.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
 
         {/* Heat Level Selector */}
         {renderHeatSelector()}
@@ -617,5 +793,68 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.body,
     fontSize: 16,
     marginTop: SPACING.md,
+  },
+
+  // Premium badge banner
+  premiumBadgeBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    gap: SPACING.xs,
+  },
+  premiumBadgeText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  premiumBadgeSubtext: {
+    fontSize: 12,
+    marginLeft: "auto",
+  },
+
+  // Upsell banner
+  upsellBanner: {
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    padding: SPACING.md,
+  },
+  upsellBannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.sm,
+  },
+  upsellBannerText: {
+    flex: 1,
+  },
+  upsellTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  upsellSubtitle: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+
+  // Search bar
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    gap: SPACING.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    paddingVertical: 4,
   },
 });

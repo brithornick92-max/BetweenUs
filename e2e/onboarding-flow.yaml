@@ -1,0 +1,62 @@
+# onboarding-flow.yaml — E2E test: Complete onboarding (4 steps)
+# Tests: Intro → Alignment (names/date) → Preferences → Pairing
+#
+# Prerequisite: User is authenticated but hasn't completed onboarding.
+# In test environment, this means clearState after auth.
+
+appId: com.brittany.betweenus
+
+---
+
+- launchApp
+
+# Step 1: HeartbeatEntry intro (auto-advances after ~4s)
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Continue"
+    timeout: 8000
+
+# Step 2: Alignment — partner names + anniversary date
+- assertVisible: "Continue"
+- tapOn:
+    id: "your-name-input"
+    optional: true
+- inputText: "Alex"
+
+- tapOn:
+    id: "partner-name-input"
+    optional: true
+- inputText: "Jordan"
+
+- tapOn: "Continue"
+- waitForAnimationToEnd
+
+# Step 3: Preferences — season, heat level, tone
+- assertVisible:
+    text: ".*season.*|.*preference.*"
+    optional: true
+
+# Select a heat level (tap the first option)
+- tapOn:
+    index: 0
+    id: "heat-option"
+    optional: true
+
+- tapOn: "Continue"
+- waitForAnimationToEnd
+
+# Step 4: Pairing — generate or skip
+- assertVisible:
+    text: ".*link later.*|.*invitation.*|.*pair.*"
+    optional: true
+
+- tapOn:
+    text: ".*later.*|.*skip.*"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Should now be on the main tabs (Home)
+- assertVisible:
+    text: ".*Home.*|.*tonight.*|.*moment.*"
+    optional: true

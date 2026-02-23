@@ -2,7 +2,7 @@
 // ✅ ULTRA SAFE VERSION - Cannot crash during module loading
 // ✅ Guarantees prompt-returning functions always return an object with .text (never undefined)
 
-console.log("🔵 ContentLoader: Module loading started");
+if (__DEV__) console.log("🔵 ContentLoader: Module loading started");
 
 // Initialize with empty safe defaults
 let promptsData = { items: [], meta: {} };
@@ -13,7 +13,7 @@ try {
   const loadedPrompts = require("../content/prompts.json");
   if (loadedPrompts && Array.isArray(loadedPrompts.items)) {
     promptsData = loadedPrompts;
-    console.log("✅ ContentLoader: Loaded", promptsData.items.length, "prompts");
+    if (__DEV__) console.log("✅ ContentLoader: Loaded", promptsData.items.length, "prompts");
   } else {
     console.warn("⚠️ ContentLoader: prompts.json loaded but missing items[]");
   }
@@ -25,7 +25,7 @@ try {
   const loadedDates = require("../content/dates.json");
   if (loadedDates && Array.isArray(loadedDates.items)) {
     datesData = loadedDates;
-    console.log("✅ ContentLoader: Loaded", datesData.items.length, "dates");
+    if (__DEV__) console.log("✅ ContentLoader: Loaded", datesData.items.length, "dates");
   } else {
     console.warn("⚠️ ContentLoader: dates.json loaded but missing items[]");
   }
@@ -238,21 +238,39 @@ export function getPromptsByCategory(category) {
 // DATES
 // =======================
 
+const VALID_STYLES = ["talking", "doing", "mixed"];
+
+const normalizeDate = (date) => {
+  if (!date || typeof date !== "object") return null;
+
+  const heat = typeof date.heat === "number" ? Math.max(1, Math.min(5, date.heat)) : 1;
+  const load = typeof date.load === "number" ? Math.max(1, Math.min(3, date.load)) : 2;
+  const style = VALID_STYLES.includes(date.style) ? date.style : "mixed";
+
+  return {
+    ...date,
+    heat,
+    load,
+    style,
+  };
+};
+
 export function filterDates(sourceData = null, filters = {}) {
   const dataToFilter = Array.isArray(sourceData) ? sourceData : safeArray(datesData?.items);
+  const normalized = dataToFilter.map(normalizeDate).filter(Boolean);
 
   const {
     location = "either",
-    moods = [],
+    heat = null,          // exact heat level 1-5, or null (any)
+    minHeat = 1,          // 1-5, floor heat level
+    maxHeat = 5,          // 1-5, caps heat level
+    load = null,          // exact load level 1-3, or null (any)
+    style = null,         // "talking" | "doing" | "mixed" | null (any)
     minMinutes = 0,
     maxMinutes = Infinity,
-    excludeMoods = [],
   } = filters || {};
 
-  const moodList = safeArray(moods);
-  const excludeMoodList = safeArray(excludeMoods);
-
-  const filtered = dataToFilter.filter((date) => {
+  const filtered = normalized.filter((date) => {
     if (!date || typeof date !== "object") return false;
 
     const mins = typeof date.minutes === "number" ? date.minutes : 0;
@@ -261,17 +279,13 @@ export function filterDates(sourceData = null, filters = {}) {
     const loc = typeof date.location === "string" ? date.location : "either";
     if (location !== "either" && loc !== "either" && loc !== location) return false;
 
-    if (moodList.length > 0) {
-      const dateMoods = safeArray(date.moods);
-      const hasMatch = moodList.some((mood) => dateMoods.includes(mood));
-      if (!hasMatch) return false;
+    // Dimension filters
+    if (typeof date.heat === "number") {
+      if (heat !== null && date.heat !== heat) return false;
+      if (date.heat > maxHeat || date.heat < minHeat) return false;
     }
-
-    if (excludeMoodList.length > 0) {
-      const dateMoods = safeArray(date.moods);
-      const hasExcluded = excludeMoodList.some((mood) => dateMoods.includes(mood));
-      if (hasExcluded) return false;
-    }
+    if (load !== null && date.load !== load) return false;
+    if (style && date.style !== style) return false;
 
     return true;
   });
@@ -289,29 +303,78 @@ export function filterDates(sourceData = null, filters = {}) {
 
 export function surpriseMeDate(sourceData = null, filters = {}, topN = 5) {
   const matches = filterDates(sourceData, filters);
-  const pool =
-    matches.length > 0 ? matches : Array.isArray(sourceData) ? sourceData : safeArray(datesData?.items);
+  const pool = matches.length > 0
+    ? matches
+    : Array.isArray(sourceData)
+      ? sourceData.map(normalizeDate).filter(Boolean)
+      : safeArray(datesData?.items).map(normalizeDate).filter(Boolean);
 
   if (!Array.isArray(pool) || pool.length === 0) return null;
 
-  const shuffled = [...pool].sort(() => 0.5 - Math.random());
-  const n = Math.min(typeof topN === "number" ? topN : 5, shuffled.length);
+  // ─── Context-aware scoring ──────────────────────────────────────
+  const {
+    recentIds = [],
+    preferredLoad = null,
+    preferredStyle = null,
+    timeBucket,
+  } = filters._context || {};
 
-  return shuffled[Math.floor(Math.random() * n)] || null;
+  const scored = pool.map((date) => {
+    let score = Math.random() * 0.3; // Small random factor for variety
+
+    // Penalize recently shown dates heavily
+    if (recentIds.includes(date.id)) {
+      score -= 2;
+    }
+
+    // Boost dates matching preferred dimensions
+    if (preferredLoad !== null && date.load === preferredLoad) score += 0.5;
+    if (preferredStyle && date.style === preferredStyle) score += 0.5;
+
+    // Time-of-day awareness: boost calm dates at night, energizing in morning/afternoon
+    if (timeBucket === 'night' || timeBucket === 'evening') {
+      if (date.load === 1) score += 0.4;
+      if (date.location === 'home') score += 0.2;
+    } else if (timeBucket === 'morning' || timeBucket === 'afternoon') {
+      if (date.load === 3) score += 0.4;
+      if (date.location === 'out') score += 0.2;
+    }
+
+    return { date, score };
+  });
+
+  // Sort by score descending, then pick from top N
+  scored.sort((a, b) => b.score - a.score);
+  const n = Math.min(typeof topN === 'number' ? topN : 5, scored.length);
+  const topCandidates = scored.slice(0, n);
+
+  // Weighted random from top candidates (higher scores more likely)
+  const minScore = Math.min(...topCandidates.map(c => c.score));
+  const shifted = topCandidates.map(c => ({ ...c, w: c.score - minScore + 0.1 }));
+  const totalW = shifted.reduce((s, c) => s + c.w, 0);
+  let r = Math.random() * totalW;
+  for (const c of shifted) {
+    r -= c.w;
+    if (r <= 0) return c.date;
+  }
+
+  return topCandidates[0]?.date || null;
 }
 
-export function getAvailableMoods() {
-  return (
-    datesData?.meta?.moods || {
-      romantic: "Sweet and loving connection",
-      playful: "Fun and lighthearted activities",
-      emotional: "Deep bonding and vulnerability",
-      intimate: "Close physical and emotional connection",
-      spicy: "Flirty and sensual experiences",
-      adventurous: "Exciting and new experiences",
-      calm: "Peaceful and relaxing activities",
-    }
-  );
+export function getAvailableEnergy() {
+  return {
+    chill: "Low-key and relaxed",
+    moderate: "Some effort, but easygoing",
+    active: "Get up and go",
+  };
+}
+
+export function getAvailableDepth() {
+  return {
+    light: "Fun and lighthearted",
+    meaningful: "Thoughtful connection",
+    deep: "Vulnerable and intimate",
+  };
 }
 
 export function getAvailableCategories() {
@@ -345,24 +408,46 @@ export function getHeatLevels() {
   );
 }
 
+export function getDimensionMeta() {
+  return {
+    // 🔥 Heat — How close do you want to feel? (1-5)
+    heat: [
+      { level: 1, label: "Comfort",    icon: "🫶",  color: "#5A8A5C", darkColor: "#162218" },
+      { level: 2, label: "Connection", icon: "💛",  color: "#8B5A9E", darkColor: "#1E1228" },
+      { level: 3, label: "Flirtation", icon: "😏",  color: "#B85A78", darkColor: "#261018" },
+      { level: 4, label: "Intimacy",   icon: "🔥",  color: "#A84848", darkColor: "#200C0C" },
+      { level: 5, label: "Passion",    icon: "💥",  color: "#8C1E1E", darkColor: "#1A0808" },
+    ],
+    // 🪫 Load — What kind of energy do you want? (1-3)
+    load: [
+      { level: 1, label: "Calm",       icon: "🌙", color: "#4D7A50", darkColor: "#121E14" },
+      { level: 2, label: "Balanced",   icon: "☀️", color: "#B8863A", darkColor: "#1E160A" },
+      { level: 3, label: "Energizing", icon: "⚡", color: "#C05228", darkColor: "#1E0E06" },
+    ],
+    // 🤝 Style — How do you want to connect? (talking/doing/mixed)
+    style: [
+      { id: "talking", label: "Talking", icon: "💬", color: "#4A82B0", darkColor: "#0E1A24" },
+      { id: "doing",   label: "Doing",   icon: "🎯", color: "#6B4E96", darkColor: "#14101E" },
+      { id: "mixed",   label: "Mixed",   icon: "✨", color: "#A84468", darkColor: "#1E0C16" },
+    ],
+  };
+}
+
+// Legacy alias — some callers may still reference getMoodMeta
 export function getMoodMeta() {
+  const dims = getDimensionMeta();
   return [
-    { id: "romantic", label: "Romantic", color: "#D38CA3" },
-    { id: "playful", label: "Playful", color: "#C9A86A" },
-    { id: "emotional", label: "Emotional", color: "#9575CD" },
-    { id: "intimate", label: "Intimate", color: "#B39DDB" },
-    { id: "spicy", label: "Spicy", color: "#800020" },
-    { id: "adventurous", label: "Adventurous", color: "#FF6B35" },
-    { id: "calm", label: "Calm", color: "#81C784" },
+    ...dims.load.map(l => ({ id: `load-${l.level}`, label: l.label, color: l.color })),
+    ...dims.style.map(s => ({ id: `style-${s.id}`, label: s.label, color: s.color })),
   ];
 }
 
 export function getAllDates() {
-  return safeArray(datesData?.items).filter(Boolean);
+  return safeArray(datesData?.items).map(normalizeDate).filter(Boolean);
 }
 
 export function getDateById(id) {
-  const items = safeArray(datesData?.items);
+  const items = safeArray(datesData?.items).map(normalizeDate).filter(Boolean);
   return items.find((d) => d && d.id === id) || null;
 }
 
@@ -382,11 +467,52 @@ export function getContentStats() {
     promptsByHeat,
     totalDates: safeArray(datesData?.items).length,
     lastUpdated: new Date().toLocaleDateString(),
-    version: "3.1.0-ultra-safe",
+    version: "5.0.0-emotional",
   };
 }
 
-console.log("🔵 ContentLoader: All exports defined");
+/**
+ * Get filtered prompts respecting a PreferenceEngine content profile.
+ * This is the preference-aware replacement for getFilteredPrompts.
+ */
+export function getFilteredPromptsWithProfile(profile = null) {
+  if (!profile) return getFilteredPrompts();
+
+  const items = safeArray(promptsData?.items);
+
+  // Apply hard filters from profile
+  return items.filter((prompt) => {
+    if (!prompt || typeof prompt !== "object") return false;
+    if (typeof prompt.text !== "string" || !prompt.text.trim()) return false;
+
+    const heat = typeof prompt.heat === "number" ? prompt.heat : 1;
+    if (heat > (profile.maxHeat || 5)) return false;
+
+    const category = typeof prompt.category === "string" ? prompt.category : "";
+    if (profile.boundaries?.hiddenCategories?.includes(category)) return false;
+    if (profile.boundaries?.pausedEntries?.includes(prompt.id)) return false;
+
+    return true;
+  });
+}
+
+/**
+ * Dates filtered by profile preferences (season duration cap, paused dates)
+ */
+export function getFilteredDatesWithProfile(profile = null) {
+  if (!profile) return getAllDates();
+
+  const items = safeArray(datesData?.items).map(normalizeDate).filter(Boolean);
+
+  return items.filter((date) => {
+    if (profile.boundaries?.pausedDates?.includes(date.id)) return false;
+    if (profile.season?.maxDuration && date.minutes > profile.season.maxDuration) return false;
+    if (typeof profile.maxHeat === "number" && date.heat > profile.maxHeat) return false;
+    return true;
+  });
+}
+
+if (__DEV__) console.log("🔵 ContentLoader: All exports defined");
 
 if (__DEV__) {
   console.log("🔍 ContentLoader: Development mode - monitoring ready");

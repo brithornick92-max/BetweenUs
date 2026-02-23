@@ -1,13 +1,15 @@
+// File: context/ContentContext.js
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageRouter from '../services/storage/StorageRouter';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import E2EEncryption from '../services/e2ee/E2EEncryption';
-import promptCache from '../utils/promptCache';
-import performanceMonitor from '../utils/performanceMonitor';
-import analytics from '../utils/analytics';
-import recommendationSystem from '../utils/recommendationSystem';
 import { useAuth } from './AuthContext';
 import { useEntitlements } from './EntitlementsContext';
+import PreferenceEngine from '../services/PreferenceEngine';
+import { NicknameEngine } from '../services/PolishEngine';
+import PromptAllocator from '../services/PromptAllocator';
 
 const ContentContext = createContext({});
 
@@ -28,139 +30,166 @@ export const ContentProvider = ({ children }) => {
   const [userResponses, setUserResponses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [usageStatus, setUsageStatus] = useState(null);
-  const [personalizedContent, setPersonalizedContent] = useState([]);
-  const [contentSequence, setContentSequence] = useState([]);
+  const [contentProfile, setContentProfile] = useState(null);
 
-  // Load today's prompt with ML-powered personalization
-  const loadTodayPrompt = async (heatLevel = 1) => {
-    const operationName = 'load_today_prompt';
-    performanceMonitor.startTimer(operationName);
-    
+  // Personalize prompt text with partner/user nicknames
+  const personalizePrompt = async (prompt) => {
+    if (!prompt || typeof prompt.text !== 'string') return prompt;
+    try {
+      const personalized = await NicknameEngine.personalize(prompt.text);
+      return { ...prompt, text: personalized, rawText: prompt.text };
+    } catch {
+      return prompt;
+    }
+  };
+
+  // Load the unified content profile (all user preferences)
+  const loadContentProfile = async () => {
+    try {
+      const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+      setContentProfile(profile);
+      return profile;
+    } catch (error) {
+      console.error('Error loading content profile:', error);
+      return null;
+    }
+  };
+
+  // Load today's prompt — preference-aware
+  // If heatLevel is explicitly passed (e.g. from HeatLevelScreen), use it.
+  // Otherwise, use the user's full content profile (season, energy, boundaries, etc.)
+  const loadTodayPrompt = async (heatLevel = null) => {
     try {
       if (!user) {
         throw new Error('User not authenticated');
       }
 
       setLoading(true);
-      
-      // Track analytics
-      await analytics.trackFeatureUsage('prompt', 'load_today', { heat_level: heatLevel });
-      
+
+      // Load (or refresh) the content profile
+      const profile = await loadContentProfile();
+
+      // Determine effective heat level
+      const effectiveHeat = heatLevel || profile?.maxHeat || (userProfile?.heatLevelPreference) || 1;
+
       // Check if user can access this heat level
-      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, heatLevel, isPremium);
+      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, effectiveHeat, isPremium);
       if (!accessCheck.canAccess) {
-        await analytics.trackUserBehavior('premium_gate_hit', { 
-          feature: 'prompt', 
-          heat_level: heatLevel 
-        });
         throw new Error(accessCheck.message);
       }
 
       // Get relationship duration for filtering
       const relationshipDuration = getRelationshipDuration();
       const durationCategory = getDurationCategory(relationshipDuration);
-      
+
       const filters = {
-        heatLevel,
+        maxHeatLevel: effectiveHeat,
         relationshipDuration: durationCategory,
-        limit: 50
+        limit: 100,
       };
 
-      // Monitor cache performance
-      const promptsData = await performanceMonitor.monitorCacheOperation(
-        'today_prompt',
-        () => promptCache.getCachedPrompts(filters),
-        () => StorageRouter.getPrompts(filters)
-      );
+      let promptsData = await StorageRouter.getPrompts(filters);
+
+      if (promptsData.length === 0) {
+        // Fallback: try without duration filter
+        promptsData = await StorageRouter.getPrompts({ maxHeatLevel: effectiveHeat, limit: 100 });
+      }
 
       if (promptsData.length === 0) {
         throw new Error('No prompts available for your preferences');
       }
 
-      // Cache the results if they came from storage
-      const cachedResult = await promptCache.getCachedPrompts(filters);
-      if (!cachedResult && promptsData.length > 0) {
-        await promptCache.cachePrompts(filters, promptsData);
-      }
-
-      // Use ML recommendation system to select best prompt
-      const recommendations = await recommendationSystem.getRecommendations(
-        user.uid,
-        promptsData,
-        { type: 'prompt', heatLevel, limit: 5 }
-      );
-
-      // Select top recommendation or fallback to deterministic selection
+      // Use PreferenceEngine to rank prompts by all preferences
+      const today = new Date().toISOString().split('T')[0];
+      const [curYear, curMonth] = today.split('-');
+      const monthKey = `${curYear}-${curMonth}`;
       let selectedPrompt;
-      if (recommendations.length > 0) {
-        // Find first recommendation with a valid .text property
-        selectedPrompt = recommendations.find(r => r && typeof r.text === 'string' && r.text.trim())
-          || recommendations[0];
-      } else {
-        const today = new Date().toISOString().split('T')[0];
-        const promptIndex = today.split('-').reduce((acc, val) => acc + parseInt(val), 0) % promptsData.length;
-        selectedPrompt = promptsData[promptIndex];
+
+      // ── Load this month's prompt history to prevent repeats ──
+      let monthShownIds = [];
+      try {
+        const raw = await AsyncStorage.getItem('month_prompt_ids');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          // Reset history when the month rolls over
+          if (parsed.month === monthKey && Array.isArray(parsed.ids)) {
+            monthShownIds = parsed.ids;
+          }
+        }
+      } catch (e) { /* fallback to empty shown IDs */ }
+      const excludeIds = new Set(monthShownIds);
+
+      if (profile) {
+        // Smart selection: filter + rank by season, climate, energy, tone
+        const profileForHeat = { ...profile, maxHeat: effectiveHeat };
+        selectedPrompt = PreferenceEngine.selectDailyPrompt(promptsData, profileForHeat, today, excludeIds);
       }
 
-      // Guard against prompt missing .text (corrupted data, bad recommendation, etc.)
+      // Fallback to hash-based selection if PreferenceEngine returns null
+      if (!selectedPrompt) {
+        // Remove already-shown prompts this month
+        const freshPool = promptsData.filter(p => !excludeIds.has(p.id));
+        const pool = freshPool.length > 0 ? freshPool : promptsData;
+        const [y, m, d] = today.split('-').map(Number);
+        const dateHash = ((y * 31 + m) * 31 + d) ^ (y * 7 + m * 13 + d * 37);
+        let promptIndex = Math.abs(dateHash) % pool.length;
+        selectedPrompt = pool[promptIndex];
+      }
+
+      // Guard against prompt missing .text
       if (!selectedPrompt || typeof selectedPrompt.text !== 'string' || !selectedPrompt.text.trim()) {
-        const fallback = promptsData.find(p => p && typeof p.text === 'string' && p.text.trim());
-        selectedPrompt = fallback || {
-          id: 'fallback_1',
-          text: 'What\'s one thing you love about our relationship?',
-          category: 'emotional',
-          heat: 1,
-          relationshipDuration: ['universal']
-        };
+        const fallback = promptsData.find((p) => p && typeof p.text === 'string' && p.text.trim());
+        selectedPrompt =
+          fallback || {
+            id: 'fallback_1',
+            text: "What's one thing you love about our relationship?",
+            category: 'emotional',
+            heat: 1,
+            relationshipDuration: ['universal'],
+          };
       }
 
-      // Track successful personalization
-      await analytics.trackPromptPersonalization(heatLevel, durationCategory, promptsData.length);
+      // Reserve this prompt so browse screens won't show it
+      PromptAllocator.setDailyPromptId(selectedPrompt.id);
 
-      setTodayPrompt(selectedPrompt);
-      
-      // Record performance metric
-      await performanceMonitor.endTimer(operationName, {
-        heat_level: heatLevel,
-        prompt_count: promptsData.length,
-        relationship_duration: durationCategory,
-        cached: !!cachedResult,
-        ml_recommended: recommendations.length > 0
-      });
-      
+      setTodayPrompt(await personalizePrompt(selectedPrompt));
+
+      // Save selected prompt id to month history to prevent repeats this month
+      try {
+        if (!monthShownIds.includes(selectedPrompt.id)) {
+          monthShownIds.push(selectedPrompt.id);
+        }
+        await AsyncStorage.setItem(
+          'month_prompt_ids',
+          JSON.stringify({ month: monthKey, ids: monthShownIds })
+        );
+        // Keep legacy key for backward compat
+        await AsyncStorage.setItem('last_prompt_id', selectedPrompt.id);
+      } catch (e) {
+        console.warn('[ContentContext] Failed to persist prompt selection:', e?.message);
+      }
+
       return selectedPrompt;
     } catch (error) {
-      console.error('Error loading today\'s prompt:', error);
-      
-      // Track error
-      await analytics.trackUserBehavior('prompt_load_error', { 
-        error: error.message,
-        heat_level: heatLevel 
-      });
-      
-      // Record failed performance metric
-      await performanceMonitor.endTimer(operationName, {
-        error: error.message,
-        heat_level: heatLevel
-      });
-      
-      // Provide fallback prompt if storage fails
+      console.error("Error loading today's prompt:", error);
+
       const fallbackPrompt = {
         id: 'fallback_1',
-        text: 'What\'s one thing you love about our relationship?',
+        text: "What's one thing you love about our relationship?",
         category: 'emotional',
         heat: 1,
-        relationshipDuration: ['universal']
+        relationshipDuration: ['universal'],
       };
-      
-      setTodayPrompt(fallbackPrompt);
+
+      setTodayPrompt(await personalizePrompt(fallbackPrompt));
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  // Get filtered prompts based on user preferences and premium status (with caching)
+  // Get filtered prompts based on user preferences and premium status
+  // Uses PreferenceEngine to rank by season, climate, energy, boundaries
   const getFilteredPrompts = async (filters = {}) => {
     try {
       if (!user) return [];
@@ -168,36 +197,27 @@ export const ContentProvider = ({ children }) => {
       // Add relationship duration filtering
       const relationshipDuration = getRelationshipDuration();
       const durationCategory = getDurationCategory(relationshipDuration);
-      
+
       const enhancedFilters = {
         ...filters,
-        relationshipDuration: durationCategory
+        relationshipDuration: durationCategory,
       };
 
-      // Try cache first
-      let cachedPrompts = await promptCache.getCachedPrompts(enhancedFilters);
-      
-      if (cachedPrompts) {
-        // Apply premium filtering to cached results
-        const accessiblePrompts = await PremiumGatekeeper.getAccessiblePrompts(user.uid, enhancedFilters);
-        return accessiblePrompts.prompts.filter(prompt => 
-          cachedPrompts.some(cached => cached.id === prompt.id)
-        );
-      }
-
-      // Fallback to full fetch
       const accessiblePrompts = await PremiumGatekeeper.getAccessiblePrompts(
         user.uid,
         enhancedFilters,
         isPremium
       );
-      
-      // Cache the results
-      if (accessiblePrompts.prompts.length > 0) {
-        await promptCache.cachePrompts(enhancedFilters, accessiblePrompts.prompts);
+
+      const rawPrompts = accessiblePrompts.prompts || [];
+
+      // Apply PreferenceEngine ranking
+      const profile = contentProfile || await loadContentProfile();
+      if (profile && rawPrompts.length > 0) {
+        return PreferenceEngine.filterPrompts(rawPrompts, profile);
       }
-      
-      return accessiblePrompts.prompts;
+
+      return rawPrompts;
     } catch (error) {
       console.error('Error getting filtered prompts:', error);
       return [];
@@ -207,7 +227,7 @@ export const ContentProvider = ({ children }) => {
   // Calculate relationship duration in days
   const getRelationshipDuration = () => {
     if (!userProfile?.relationshipStartDate) return 0;
-    
+
     const startDate = new Date(userProfile.relationshipStartDate);
     const today = new Date();
     const diffTime = Math.abs(today - startDate);
@@ -228,11 +248,11 @@ export const ContentProvider = ({ children }) => {
   const getRelationshipDurationText = () => {
     const days = getRelationshipDuration();
     if (days === 0) return 'Set your anniversary date';
-    
+
     const years = Math.floor(days / 365);
     const months = Math.floor((days % 365) / 30);
     const remainingDays = days % 30;
-    
+
     if (years > 0) {
       if (months > 0) {
         return `${years} year${years > 1 ? 's' : ''}, ${months} month${months > 1 ? 's' : ''}`;
@@ -245,20 +265,13 @@ export const ContentProvider = ({ children }) => {
     }
   };
 
-  // Update relationship start date with analytics tracking
+  // Update relationship start date
   const updateRelationshipStartDate = async (startDate) => {
     try {
       if (!user) throw new Error('User not authenticated');
-      
-      const relationshipDuration = getRelationshipDuration();
-      
+
       await StorageRouter.updateUserDocument(user.uid, { relationshipStartDate: startDate });
-      
-      // Track anniversary date setting
-      await analytics.trackAnniversaryDateSet(relationshipDuration, 'manual_update');
-      
-      // Reload user profile to get updated data
-      // This would typically be handled by the AuthContext
+
       return true;
     } catch (error) {
       console.error('Error updating relationship start date:', error);
@@ -266,7 +279,7 @@ export const ContentProvider = ({ children }) => {
     }
   };
 
-  // Get date ideas with premium filtering
+  // Get date ideas with premium filtering + preference-based ranking
   const getDateIdeas = async (filters = {}) => {
     try {
       if (!user) return [];
@@ -278,6 +291,17 @@ export const ContentProvider = ({ children }) => {
       }
 
       const dates = await StorageRouter.getDates(filters);
+
+      // Apply preference-based ranking (season, climate, dimensions)
+      const profile = contentProfile || await loadContentProfile();
+      if (profile && dates.length > 0) {
+        const dims = {};
+        if (filters.heat) dims.heat = filters.heat;
+        if (filters.load) dims.load = filters.load;
+        if (filters.style) dims.style = filters.style;
+        return PreferenceEngine.filterDatesWithProfile(dates, profile, Object.keys(dims).length ? dims : null);
+      }
+
       return dates;
     } catch (error) {
       console.error('Error getting date ideas:', error);
@@ -293,7 +317,7 @@ export const ContentProvider = ({ children }) => {
       let responseData = {
         content: response,
         timestamp: Date.now(),
-        promptId
+        promptId,
       };
 
       // Encrypt private responses
@@ -301,7 +325,10 @@ export const ContentProvider = ({ children }) => {
         const coupleId = userProfile?.coupleId || null;
         const keyTier = coupleId ? 'couple' : 'device';
         const encryptedPayload = await E2EEncryption.encryptJson(
-          responseData, keyTier, coupleId, `prompt_response:${promptId}`
+          responseData,
+          keyTier,
+          coupleId,
+          `prompt_response:${promptId}`
         );
         responseData = {
           encryptedData: encryptedPayload,
@@ -312,13 +339,16 @@ export const ContentProvider = ({ children }) => {
       }
 
       await StorageRouter.saveMemory(user.uid, responseData, userProfile?.coupleId || null);
-      
+
+      // Keep the allocator cache in sync
+      PromptAllocator.recordAnswer(promptId);
+
       // Track usage for freemium limits
       await PremiumGatekeeper.trackPromptUsage(user.uid, promptId);
-      
+
       // Reload usage status
       await loadUsageStatus();
-      
+
       return true;
     } catch (error) {
       console.error('Error saving response:', error);
@@ -332,16 +362,18 @@ export const ContentProvider = ({ children }) => {
       if (!user) return;
 
       const responses = await StorageRouter.getUserMemories(user.uid);
-      
+
       // Decrypt encrypted responses
       const decryptedResponses = await Promise.all(
-        responses.map(async (response) => {
+        (responses || []).map(async (response) => {
           if (response.isEncrypted) {
             try {
               const coupleId = userProfile?.coupleId || null;
               const keyTier = coupleId ? 'couple' : 'device';
               const decrypted = await E2EEncryption.decryptJson(
-                response.encryptedData, keyTier, coupleId
+                response.encryptedData,
+                keyTier,
+                coupleId
               );
               return decrypted ? { ...response, decryptedContent: decrypted } : response;
             } catch (error) {
@@ -388,56 +420,32 @@ export const ContentProvider = ({ children }) => {
     }
   };
 
-  // Get personalized content recommendations
+  // Get content (prompts or dates)
   const getPersonalizedContent = async (contentType = 'prompt', options = {}) => {
     try {
       if (!user) return [];
-
-      const content = contentType === 'prompt' ? prompts : dates;
-      const recommendations = await recommendationSystem.getRecommendations(
-        user.uid,
-        content,
-        { type: contentType, ...options }
-      );
-
-      setPersonalizedContent(recommendations);
-      return recommendations;
+      return contentType === 'prompt' ? prompts : dates;
     } catch (error) {
-      console.error('Error getting personalized content:', error);
+      console.error('Error getting content:', error);
       return [];
     }
   };
 
-  // Load usage status when user changes
+  // Load usage status, content profile, and allocator when user changes
   useEffect(() => {
     if (user) {
+      PromptAllocator.load(user.uid);
       loadUsageStatus();
       loadUserResponses();
-      
-      // Preload common prompts for better performance
-      if (userProfile) {
-        const relationshipDuration = getRelationshipDuration();
-        const durationCategory = getDurationCategory(relationshipDuration);
-        
-        promptCache.preloadCommonPrompts({
-          relationshipDuration: durationCategory
-        });
-      }
+      loadContentProfile();
     } else {
+      PromptAllocator.reset();
       setUsageStatus(null);
       setUserResponses([]);
       setTodayPrompt(null);
+      setContentProfile(null);
     }
   }, [user, userProfile]);
-
-  // Cleanup expired cache periodically
-  useEffect(() => {
-    const cleanupInterval = setInterval(() => {
-      promptCache.clearExpiredCache();
-    }, 60 * 60 * 1000); // Every hour
-
-    return () => clearInterval(cleanupInterval);
-  }, []);
 
   const value = {
     prompts,
@@ -446,8 +454,6 @@ export const ContentProvider = ({ children }) => {
     userResponses,
     loading,
     usageStatus,
-    personalizedContent,
-    contentSequence,
     loadTodayPrompt,
     getFilteredPrompts,
     getDateIdeas,
@@ -460,11 +466,10 @@ export const ContentProvider = ({ children }) => {
     getRelationshipDurationText,
     updateRelationshipStartDate,
     getPersonalizedContent,
+    contentProfile,
+    loadContentProfile,
+    promptAllocator: PromptAllocator,
   };
 
-  return (
-    <ContentContext.Provider value={value}>
-      {children}
-    </ContentContext.Provider>
-  );
+  return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>;
 };

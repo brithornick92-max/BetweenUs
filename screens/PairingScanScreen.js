@@ -27,7 +27,7 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
  * the inviter will derive the identical couple key when they read our public key.
  */
 export default function PairingScanScreen({ navigation }) {
-  const { theme } = useTheme();
+  const theme = useTheme();
   const { isPremiumEffective: isPremium } = useEntitlements();
   const { user, updateProfile } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1, paddingHorizontal: SPACING.xl, justifyContent: 'center' },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#151118',
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING.xl,
     alignItems: 'center',
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   subtitle: { ...TYPOGRAPHY.body, marginTop: SPACING.sm, textAlign: 'center' },
   primaryButton: {
     marginTop: SPACING.lg,
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#A89060',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,

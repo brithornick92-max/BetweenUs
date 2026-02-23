@@ -19,13 +19,15 @@ export const PremiumFeature = Object.freeze({
   CUSTOM_RITUALS: 'customRituals',
   RITUAL_REMINDERS: 'ritualReminders',
   CLOUD_SYNC: 'cloudSync',
-  LUXURY_THEMES: 'luxuryThemes',
-  CUSTOM_HAPTICS: 'customHaptics',
   EDITORIAL_PROMPTS: 'editorialPrompts',
   VIBE_SIGNAL: 'vibeSignal',
   NIGHT_RITUAL_MODE: 'nightRitualMode',
   PROMPT_REFRESH: 'promptRefresh',
   AD_FREE: 'adFree',
+  LOVE_NOTES: 'loveNotes',
+  CALENDAR: 'calendar',
+  PARTNER_LINKING: 'partnerLinking',
+  PROMPT_RESPONSES: 'promptResponses',
 });
 
 // ─── Guard Behavior Enum ────────────────────────────────────────────────────────
@@ -40,23 +42,61 @@ export const GuardBehavior = Object.freeze({
 
 // ─── Free-Tier Limits ───────────────────────────────────────────────────────────
 export const FREE_LIMITS = Object.freeze({
-  PROMPTS_PER_DAY: 1,
-  DATE_IDEAS_PER_DAY: 1,
-  VISIBLE_DATE_IDEAS: 10,
-  JOURNAL_ENTRIES_VISIBLE: 7,
+  PROMPTS_PER_DAY: 0,           // No daily prompts — only 3 fixed preview prompts total
+  PREVIEW_PROMPTS_TOTAL: 3,     // Exactly 3 fixed preview prompts (1 per heat 1-3)
+  DATE_IDEAS_PER_DAY: 0,        // No date ideas for free users
+  VISIBLE_DATE_IDEAS: 3,        // 3 preview date ideas visible for free users
+  JOURNAL_ENTRIES_VISIBLE: 0,   // No journal access
   FREE_HEAT_LEVELS: [1, 2, 3],
   SURPRISE_ME_ENABLED: false,
+  LOVE_NOTES_ENABLED: false,
+  CALENDAR_ENABLED: false,
+  PARTNER_LINKING_ENABLED: false,
+  PROMPT_RESPONSES_ENABLED: false,
+  CLOUD_SYNC_ENABLED: false,
 });
 
 // ─── Premium Limits (effectively unlimited) ─────────────────────────────────────
 export const PREMIUM_LIMITS = Object.freeze({
   PROMPTS_PER_DAY: Infinity,
+  PREVIEW_PROMPTS_TOTAL: Infinity,
   DATE_IDEAS_PER_DAY: Infinity,
   VISIBLE_DATE_IDEAS: Infinity,
   JOURNAL_ENTRIES_VISIBLE: Infinity,
   ALL_HEAT_LEVELS: [1, 2, 3, 4, 5],
   SURPRISE_ME_ENABLED: true,
+  LOVE_NOTES_ENABLED: true,
+  CALENDAR_ENABLED: true,
+  PARTNER_LINKING_ENABLED: true,
+  PROMPT_RESPONSES_ENABLED: true,
+  CLOUD_SYNC_ENABLED: true,
 });
+
+// ─── Fixed Preview Prompts for Free Users ────────────────────────────────────
+// Exactly 3 hand-picked prompts (1 per heat level 1-3). Read-only, no responses.
+export const FREE_PREVIEW_PROMPTS = Object.freeze([
+  {
+    id: 'free_preview_h1',
+    text: "What's one small thing I do that makes you feel truly loved?",
+    category: 'emotional',
+    heat: 1,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h2',
+    text: "If we could relive one date from our relationship, which would you pick and why?",
+    category: 'romance',
+    heat: 2,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h3',
+    text: "What's something you've always wanted to try together but haven't brought up yet?",
+    category: 'physical',
+    heat: 3,
+    isPreview: true,
+  },
+]);
 
 // ─── Usage Event Types ──────────────────────────────────────────────────────────
 // Canonical event types written to both local cache and Supabase.
@@ -79,15 +119,15 @@ export const PremiumSource = Object.freeze({
 export const FEATURE_META = Object.freeze({
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     name: 'Unlimited Prompts',
-    description: 'No daily prompt cap — explore as many as you want',
-    icon: '💬',
+    description: 'Unlimited prompts with full access to Heat Levels 1–5, prompt history & favorites, and Surprise Me generator',
+    icon: '🔥',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
     emotionalValue: 'Never run out of things to talk about',
   },
   [PremiumFeature.HEAT_LEVELS_4_5]: {
     name: 'All Heat Levels',
-    description: 'Unlock levels 4 (Adventurous) & 5 (Unrestrained Passion)',
+    description: 'Explore levels 4 (Adventurous Exploration) & 5 (Unrestrained Passion)',
     icon: '🔥',
     category: 'content',
     guardBehavior: GuardBehavior.LOCK,
@@ -103,7 +143,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.SURPRISE_ME]: {
     name: 'Surprise Me',
-    description: 'Random date picker for spontaneous moments',
+    description: 'Curated date picker for spontaneous moments',
     icon: '🎲',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
@@ -150,28 +190,12 @@ export const FEATURE_META = Object.freeze({
     emotionalValue: 'Build consistent connection habits',
   },
   [PremiumFeature.CLOUD_SYNC]: {
-    name: 'Cloud Backup',
-    description: 'Cloud backup & partner data sync',
-    icon: '☁️',
+    name: 'Privacy & Cloud Sync',
+    description: 'End-to-end encrypted storage, secure cloud sync with row-level security, encrypted backups and restore',
+    icon: '🔐',
     category: 'sync',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Never lose your precious memories',
-  },
-  [PremiumFeature.LUXURY_THEMES]: {
-    name: 'Luxury Themes',
-    description: 'Exclusive color palettes & anniversary themes',
-    icon: '✨',
-    category: 'customization',
-    guardBehavior: GuardBehavior.LOCK,
-    emotionalValue: 'Make every moment feel special',
-  },
-  [PremiumFeature.CUSTOM_HAPTICS]: {
-    name: 'Custom Haptics',
-    description: 'Personalized touch feedback',
-    icon: '💫',
-    category: 'customization',
-    guardBehavior: GuardBehavior.LOCK,
-    emotionalValue: 'Feel the connection in every touch',
+    emotionalValue: 'Your data is never sold or shared',
   },
   [PremiumFeature.EDITORIAL_PROMPTS]: {
     name: 'Editorial Prompts',
@@ -213,7 +237,56 @@ export const FEATURE_META = Object.freeze({
     guardBehavior: GuardBehavior.HIDE,
     emotionalValue: 'Uninterrupted connection',
   },
+  [PremiumFeature.LOVE_NOTES]: {
+    name: 'Love Notes',
+    description: 'Send and receive private love notes with end-to-end encrypted delivery, optional notifications, and notes that persist across devices',
+    icon: '💌',
+    category: 'connection',
+    guardBehavior: GuardBehavior.BLOCK,
+    emotionalValue: 'Express your love in your own words',
+  },
+  [PremiumFeature.CALENDAR]: {
+    name: 'Shared Calendar',
+    description: 'Add, edit, and schedule date nights, anniversaries, and special moments with reminders and shared visibility',
+    icon: '📅',
+    category: 'planning',
+    guardBehavior: GuardBehavior.BLOCK,
+    emotionalValue: 'Protect time for what matters most',
+  },
+  [PremiumFeature.PARTNER_LINKING]: {
+    name: 'Partner Connection',
+    description: 'Secure partner linking with a private couple code, shared access to all premium features, and encrypted syncing',
+    icon: '💞',
+    category: 'connection',
+    guardBehavior: GuardBehavior.BLOCK,
+    emotionalValue: 'Build your shared love story together',
+  },
+  [PremiumFeature.PROMPT_RESPONSES]: {
+    name: 'Prompt Responses',
+    description: 'Write, save, and share your responses with your partner',
+    icon: '✏️',
+    category: 'content',
+    guardBehavior: GuardBehavior.BLOCK,
+    emotionalValue: 'Capture your thoughts and grow together',
+  },
 });
+
+// ─── Paywall Feature List (live + premium-gated) ─────────────────────────────
+// Only include features that are currently premium AND fully available in-app.
+export const PAYWALL_FEATURE_IDS = Object.freeze([
+  PremiumFeature.PARTNER_LINKING,
+  PremiumFeature.UNLIMITED_PROMPTS,
+  PremiumFeature.PROMPT_RESPONSES,
+  PremiumFeature.HEAT_LEVELS_4_5,
+  PremiumFeature.LOVE_NOTES,
+  PremiumFeature.CALENDAR,
+  PremiumFeature.CLOUD_SYNC,
+  PremiumFeature.UNLIMITED_DATE_IDEAS,
+  PremiumFeature.NIGHT_RITUAL_MODE,
+  PremiumFeature.VIBE_SIGNAL,
+  PremiumFeature.EDITORIAL_PROMPTS,
+  PremiumFeature.UNLIMITED_JOURNAL_HISTORY,
+]);
 
 /**
  * Helper: get the limit object for a given premium state
@@ -243,6 +316,15 @@ export function getFeaturesByCategory(category) {
  */
 export function getAllPremiumFeatures() {
   return Object.entries(FEATURE_META).map(([id, meta]) => ({ id, ...meta }));
+}
+
+/**
+ * Helper: get paywall features (curated list of live, premium-gated items)
+ */
+export function getPaywallFeatures() {
+  return PAYWALL_FEATURE_IDS
+    .map((id) => ({ id, ...(FEATURE_META[id] || {}) }))
+    .filter((item) => item?.name && item?.description);
 }
 
 /**

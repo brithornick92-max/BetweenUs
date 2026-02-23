@@ -1,5 +1,5 @@
 // screens/VibeSignalScreen.js
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -16,17 +16,51 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import VibeSignal from '../components/VibeSignal';
 import { useAppContext } from '../context/AppContext';
-import { usePremiumFeatures } from '../hooks/usePremiumFeatures';
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
+import { useEntitlements } from '../context/EntitlementsContext';
+import { useTheme } from '../context/ThemeContext';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
+import { vibeStorage } from '../utils/storage';
 
 const VibeSignalScreen = ({ navigation }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { state } = useAppContext();
-  const { isPremium, showPaywall } = usePremiumFeatures();
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   
   // Animation values
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const slideAnimation = useRef(new Animated.Value(50)).current;
   const glowAnimation = useRef(new Animated.Value(0)).current;
+
+  // Real vibe history for the chart
+  const [weeklyData, setWeeklyData] = useState(null);
+
+  // Map vibe types to intensity scores for chart display
+  const VIBE_INTENSITY = {
+    passionate: 90, adventurous: 80, luxurious: 70,
+    mysterious: 60, tender: 50, serene: 30,
+  };
+
+  useEffect(() => {
+    // Load real vibe history for chart
+    vibeStorage.getRecentVibes(7).then(vibes => {
+      if (!vibes || vibes.length === 0) { setWeeklyData(null); return; }
+      // Bucket vibes by day-of-week (0=Sun..6=Sat)
+      const buckets = [[], [], [], [], [], [], []];
+      for (const v of vibes) {
+        const dow = new Date(v.timestamp).getDay();
+        const vibeId = v.vibe?.id || v.vibe?.name?.toLowerCase() || '';
+        buckets[dow].push(VIBE_INTENSITY[vibeId] ?? 50);
+      }
+      // Order Mon–Sun, average each day
+      const orderedDays = [1, 2, 3, 4, 5, 6, 0]; // Mon first
+      const data = orderedDays.map(d => {
+        if (buckets[d].length === 0) return 0;
+        return Math.round(buckets[d].reduce((a, b) => a + b, 0) / buckets[d].length);
+      });
+      setWeeklyData(data);
+    }).catch(() => setWeeklyData(null));
+  }, []);
 
   useEffect(() => {
     // Entrance animation
@@ -44,7 +78,7 @@ const VibeSignalScreen = ({ navigation }) => {
     ]).start();
 
     // Glow animation
-    Animated.loop(
+    const glowLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnimation, {
           toValue: 1,
@@ -57,12 +91,14 @@ const VibeSignalScreen = ({ navigation }) => {
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    glowLoop.start();
+    return () => glowLoop.stop();
   }, []);
 
   const handleVibeChange = async (vibe, isAnniversaryVibe) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    console.log('Vibe changed:', vibe.name, isAnniversaryVibe ? '(Anniversary Theme)' : '');
+    if (__DEV__) console.log('Vibe changed:', vibe.name, isAnniversaryVibe ? '(Anniversary Theme)' : '');
   };
 
   const handleBackPress = async () => {
@@ -86,7 +122,7 @@ const VibeSignalScreen = ({ navigation }) => {
         activeOpacity={0.8}
       >
         <BlurView intensity={20} style={styles.backButtonBlur}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.softCream} />
+          <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
         </BlurView>
       </TouchableOpacity>
 
@@ -111,12 +147,12 @@ const VibeSignalScreen = ({ navigation }) => {
           <View style={styles.premiumBadge}>
             <BlurView intensity={15} style={styles.premiumBadgeBlur}>
               <LinearGradient
-                colors={[COLORS.mutedGold, COLORS.champagneGold]}
+                colors={[colors.accent, colors.accent]}
                 style={styles.premiumBadgeGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <MaterialCommunityIcons name="crown" size={14} color={COLORS.obsidian} />
+                <MaterialCommunityIcons name="crown" size={14} color={colors.background} />
                 <Text style={styles.premiumBadgeText}>PREMIUM FEATURE</Text>
               </LinearGradient>
             </BlurView>
@@ -141,25 +177,25 @@ const VibeSignalScreen = ({ navigation }) => {
       >
         <BlurView intensity={15} style={styles.connectionCard}>
           <LinearGradient
-            colors={['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']}
+            colors={['#151118', '#151118']}
             style={StyleSheet.absoluteFill}
           />
           
           <View style={styles.connectionHeader}>
-            <MaterialCommunityIcons name="heart-pulse" size={20} color={COLORS.blushRose} />
+            <MaterialCommunityIcons name="heart-pulse" size={20} color={colors.primary} />
             <Text style={styles.connectionTitle}>Connection Status</Text>
           </View>
           
           <View style={styles.connectionIndicators}>
             <View style={styles.connectionIndicator}>
-              <View style={[styles.connectionDot, { backgroundColor: COLORS.success }]} />
+              <View style={[styles.connectionDot, { backgroundColor: colors.success }]} />
               <Text style={styles.connectionLabel}>You</Text>
             </View>
             
             <View style={styles.connectionLine} />
             
             <View style={styles.connectionIndicator}>
-              <View style={[styles.connectionDot, { backgroundColor: COLORS.blushRose }]} />
+              <View style={[styles.connectionDot, { backgroundColor: colors.primary }]} />
               <Text style={styles.connectionLabel}>{partnerLabel}</Text>
             </View>
           </View>
@@ -172,7 +208,11 @@ const VibeSignalScreen = ({ navigation }) => {
     );
   };
 
-  const renderVibeHistory = () => (
+  const renderVibeHistory = () => {
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const hasData = weeklyData && weeklyData.some(v => v > 0);
+
+    return (
     <Animated.View 
       style={[
         styles.historySection,
@@ -182,32 +222,62 @@ const VibeSignalScreen = ({ navigation }) => {
         },
       ]}
     >
-      <Text style={styles.historyTitle}>Recent Vibes</Text>
-      <Text style={styles.historySubtitle}>
-        Your emotional journey together over the past week
+      <Text style={[styles.historyTitle, { color: colors.text }]}>Energy Flow</Text>
+      <Text style={[styles.historySubtitle, { color: colors.textMuted }]}>
+        Your rhythm together this week
       </Text>
       
-      <BlurView intensity={10} style={styles.historyCard}>
-        <LinearGradient
-          colors={['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)']}
-          style={StyleSheet.absoluteFill}
-        />
-        
-        <View style={styles.historyPlaceholder}>
-          <MaterialCommunityIcons name="chart-line" size={32} color={COLORS.mutedGold + '60'} />
-          <Text style={styles.historyPlaceholderText}>
-            Vibe history will appear here as you and your partner share your moods
+      <BlurView intensity={10} tint={isDark ? "dark" : "light"} style={styles.historyCard}>
+        {hasData ? (
+        <View style={styles.chartContainer}>
+           {weeklyData.map((value, index) => (
+             <View key={index} style={styles.chartColumn}>
+               <View style={styles.chartBarTrack}>
+                 <Animated.View 
+                   style={[
+                     styles.chartBarFill, 
+                     { 
+                       height: `${value}%`,
+                       backgroundColor: value > 70 ? colors.primary : colors.textMuted 
+                     }
+                   ]} 
+                 />
+               </View>
+               <Text style={[styles.chartDayLabel, { color: colors.textMuted }]}>{days[index]}</Text>
+             </View>
+           ))}
+        </View>
+        ) : (
+        <View style={styles.chartEmptyState}>
+          <MaterialCommunityIcons name="heart-pulse" size={28} color={colors.textMuted} />
+          <Text style={[styles.chartEmptyText, { color: colors.textMuted }]}>
+            Start sending vibes to see your rhythm
           </Text>
         </View>
+        )}
       </BlurView>
+
+      {/* Ghost Pulse Button */}
+      <TouchableOpacity 
+        style={[styles.ghostPulseButton, { borderColor: colors.primary + '40' }]}
+        onPress={async () => {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          // In real app: send push notification
+        }}
+        activeOpacity={0.8}
+      >
+        <MaterialCommunityIcons name="broadcast" size={20} color={colors.primary} />
+        <Text style={[styles.ghostPulseText, { color: colors.primary }]}>Send Heartbeat Signal</Text>
+      </TouchableOpacity>
     </Animated.View>
-  );
+    );
+  };
 
   if (!isPremium) {
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={[COLORS.warmCharcoal, COLORS.deepPlum + '80', COLORS.warmCharcoal]}
+          colors={[colors.background, colors.surface2 + '80', colors.background]}
           style={StyleSheet.absoluteFill}
           locations={[0, 0.5, 1]}
         />
@@ -219,12 +289,12 @@ const VibeSignalScreen = ({ navigation }) => {
             activeOpacity={0.8}
           >
             <BlurView intensity={20} style={styles.backButtonBlur}>
-              <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.softCream} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
             </BlurView>
           </TouchableOpacity>
           
           <View style={styles.paywallContent}>
-            <MaterialCommunityIcons name="heart-pulse" size={64} color={COLORS.blushRose} />
+            <MaterialCommunityIcons name="heart-pulse" size={64} color={colors.primary} />
             <Text style={styles.paywallTitle}>Vibe Signal</Text>
             <Text style={styles.paywallDescription}>
               Share your emotional state in real-time and feel your partner's energy through beautiful, synchronized mood signals.
@@ -236,13 +306,13 @@ const VibeSignalScreen = ({ navigation }) => {
               activeOpacity={0.9}
             >
               <LinearGradient
-                colors={[COLORS.mutedGold, COLORS.champagneGold]}
+                colors={[colors.accent, colors.accent]}
                 style={styles.upgradeButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <MaterialCommunityIcons name="crown" size={20} color={COLORS.obsidian} />
-                <Text style={styles.upgradeButtonText}>Upgrade to Premium</Text>
+                <MaterialCommunityIcons name="crown" size={20} color={colors.background} />
+                <Text style={[styles.upgradeButtonText, { color: '#FFFFFF' }]}>Upgrade to Premium</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -254,7 +324,7 @@ const VibeSignalScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={[COLORS.warmCharcoal, COLORS.deepPlum + '80', COLORS.warmCharcoal]}
+        colors={[colors.background, colors.surface2 + '80', colors.background]}
         style={StyleSheet.absoluteFill}
         locations={[0, 0.5, 1]}
       />
@@ -288,7 +358,7 @@ const VibeSignalScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -310,7 +380,7 @@ const styles = StyleSheet.create({
   
   backButton: {
     position: 'absolute',
-    top: SPACING.xl, // Changed from SPACING.lg to move it down
+    top: SPACING.xxl,
     left: SPACING.lg,
     width: 44,
     height: 44,
@@ -341,23 +411,23 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: COLORS.blushRose,
+    backgroundColor: colors.primary,
   },
   
   headerTitle: {
     ...TYPOGRAPHY.display,
-    color: COLORS.softCream,
+    color: colors.text,
     textAlign: 'center',
     marginBottom: SPACING.sm,
     fontFamily: Platform.select({
-      ios: "PlayfairDisplay-Bold",
+      ios: "PlayfairDisplay_700Bold",
       android: "PlayfairDisplay_700Bold",
     }),
   },
   
   headerSubtitle: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream + 'CC',
+    color: colors.text + 'CC',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: SPACING.lg,
@@ -383,9 +453,9 @@ const styles = StyleSheet.create({
   
   premiumBadgeText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: 0.5,
-    color: COLORS.obsidian,
+    color: colors.background,
   },
   
   connectionStatus: {
@@ -398,12 +468,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: SPACING.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: '#151118',
     ...Platform.select({
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0,
         shadowRadius: 16,
       },
       android: { elevation: 8 },
@@ -418,7 +488,7 @@ const styles = StyleSheet.create({
   
   connectionTitle: {
     ...TYPOGRAPHY.h2,
-    color: COLORS.softCream,
+    color: colors.text,
     marginLeft: SPACING.sm,
     fontSize: 18,
   },
@@ -443,26 +513,26 @@ const styles = StyleSheet.create({
   
   connectionLabel: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.softCream + 'CC',
+    color: colors.text + 'CC',
     fontSize: 12,
   },
   
   connectionLine: {
     width: 60,
     height: 2,
-    backgroundColor: COLORS.blushRose + '40',
+    backgroundColor: colors.primary + '40',
     marginHorizontal: SPACING.lg,
   },
   
   connectionDescription: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream + '99',
+    color: colors.text + '99',
     textAlign: 'center',
     fontSize: 14,
-    fontStyle: 'italic',
   },
   
   vibeSignalContainer: {
+    marginTop: -SPACING.xl,
     marginBottom: SPACING.xl,
   },
   
@@ -473,40 +543,53 @@ const styles = StyleSheet.create({
   
   historyTitle: {
     ...TYPOGRAPHY.h1,
-    color: COLORS.softCream,
+    color: colors.text,
     marginBottom: SPACING.xs,
+    textAlign: 'center',
     fontFamily: Platform.select({
-      ios: "PlayfairDisplay-Bold",
+      ios: "PlayfairDisplay_700Bold",
       android: "PlayfairDisplay_700Bold",
     }),
   },
   
   historySubtitle: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream + 'CC',
+    color: colors.text + 'CC',
     marginBottom: SPACING.lg,
     lineHeight: 22,
+    textAlign: 'center',
   },
   
   historyCard: {
     borderRadius: BORDER_RADIUS.xl,
     overflow: 'hidden',
-    padding: SPACING.xl,
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    minHeight: 120,
+    borderColor: colors.border,
+    minHeight: 140,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.surface,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.12,
+        shadowRadius: 20,
+      },
+      android: { elevation: 6 },
+    }),
   },
   
   historyPlaceholder: {
     alignItems: 'center',
-    gap: SPACING.md,
+    gap: SPACING.sm,
   },
   
   historyPlaceholderText: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream + '80',
+    color: colors.textMuted,
     textAlign: 'center',
     fontSize: 14,
     lineHeight: 20,
@@ -527,19 +610,19 @@ const styles = StyleSheet.create({
   
   paywallTitle: {
     ...TYPOGRAPHY.display,
-    color: COLORS.softCream,
+    color: colors.text,
     textAlign: 'center',
     marginTop: SPACING.lg,
     marginBottom: SPACING.md,
     fontFamily: Platform.select({
-      ios: "PlayfairDisplay-Bold",
+      ios: "PlayfairDisplay_700Bold",
       android: "PlayfairDisplay_700Bold",
     }),
   },
   
   paywallDescription: {
     ...TYPOGRAPHY.body,
-    color: COLORS.softCream + 'CC',
+    color: colors.text + 'CC',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: SPACING.xl,
@@ -560,10 +643,70 @@ const styles = StyleSheet.create({
   
   upgradeButtonText: {
     ...TYPOGRAPHY.button,
-    color: COLORS.obsidian,
+    color: colors.background,
     fontSize: 16,
     fontWeight: '700',
   },
+
+  // Chart
+  chartContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 150,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
+  },
+  chartColumn: {
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  chartBarTrack: {
+    width: 6,
+    height: '100%',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 3,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  chartBarFill: {
+    width: '100%',
+    borderRadius: 3,
+  },
+  chartDayLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  chartEmptyState: {
+    height: 150,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: SPACING.lg,
+  },
+  chartEmptyText: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  ghostPulseButton: {
+    marginTop: SPACING.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  ghostPulseText: {
+    fontWeight: '600',
+    fontSize: 14,
+    letterSpacing: 0.5,
+  },
 });
+
 
 export default VibeSignalScreen;

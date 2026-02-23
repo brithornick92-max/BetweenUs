@@ -12,7 +12,8 @@ import Animated, {
   useDerivedValue,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { COLORS, SPACING } from '../utils/theme';
+import { useTheme } from '../context/ThemeContext';
+import { SPACING, SANS_BOLD } from '../utils/theme';
 
 /**
  * High-End Interactive Slider
@@ -28,6 +29,8 @@ export default function Slider({
   labels = null,
   trackHeight = 6,
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
   const isPressed = useSharedValue(false);
@@ -96,7 +99,7 @@ export default function Slider({
       { translateX: translateX.value - 14 },
       { scale: withSpring(isPressed.value ? 1.2 : 1) },
     ],
-    backgroundColor: isPressed.value ? COLORS.blushRose : COLORS.softCream,
+    backgroundColor: isPressed.value ? colors.primary : colors.text,
   }));
 
   const fillStyle = useAnimatedStyle(() => ({
@@ -104,7 +107,12 @@ export default function Slider({
   }));
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessibilityRole="adjustable"
+      accessibilityLabel={label}
+      accessibilityValue={{ min, max, now: value, text: displayValue }}
+    >
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
         <Text style={styles.valueText}>{displayValue}</Text>
@@ -144,7 +152,7 @@ function formatDisplay(val, labels, min, max) {
   return String(val);
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: { marginVertical: SPACING.md, width: '100%' },
   header: {
     flexDirection: 'row',
@@ -153,16 +161,18 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.6)',
+    fontFamily: SANS_BOLD,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   valueText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.blushRose,
+    fontFamily: SANS_BOLD,
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
     fontVariant: ['tabular-nums'],
   },
   trackWrapper: {
@@ -172,12 +182,12 @@ const styles = StyleSheet.create({
   },
   trackBase: {
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: colors.surface2,
     borderRadius: 10,
   },
   trackFill: {
     position: 'absolute',
-    backgroundColor: COLORS.blushRose,
+    backgroundColor: colors.primary,
     borderRadius: 10,
   },
   thumb: {
@@ -186,9 +196,9 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     borderWidth: 3,
-    borderColor: COLORS.blushRose,
+    borderColor: colors.primary,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 5 },
       android: { elevation: 6 },
     }),
   },
@@ -198,9 +208,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   tickText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.3)',
+    fontFamily: SANS_BOLD,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.text + '40',
     textTransform: 'uppercase',
   },
 });

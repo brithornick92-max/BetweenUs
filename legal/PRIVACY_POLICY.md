@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last Updated: February 3, 2026**
+**Last Updated: February 16, 2026**
 
 At Between Us, your privacy is our top priority. This Privacy Policy explains how we collect, use, protect, and share your information when you use our app.
 
@@ -30,8 +30,14 @@ At Between Us, your privacy is our top priority. This Privacy Policy explains ho
 **Content You Create:**
 - Journal entries and responses to prompts
 - Shared memories and milestones
+- Love notes (text and optional photo attachments)
+- Inside jokes, nicknames, and shared references
 - Custom rituals and preferences
-- Heat level preferences
+- Heat level and energy level preferences
+- Relationship climate selections (e.g., connected, playful, calm)
+- Soft boundary settings (hidden categories, paused content)
+- Calendar events (title, date, time, optional location, notes)
+- Vibe signal selections (e.g., passionate, tender, adventurous)
 - Relationship duration
 
 **Usage Preferences:**
@@ -49,25 +55,18 @@ At Between Us, your privacy is our top priority. This Privacy Policy explains ho
 
 **Usage Data:**
 - Features you use
-- Time spent in app
-- Prompts you respond to
-- Navigation patterns
+- Prompts you respond to (tracked locally for deduplication)
+- Daily usage counts (prompts viewed, dates viewed)
 - Error logs and crash reports
-
-**Analytics Data:**
-- Aggregated, anonymized usage statistics
-- Feature engagement metrics
-- Performance data
 
 ### 1.3 Information We Don't Collect
 
 We **never** collect:
 - ❌ Your sexual orientation
-- ❌ Gender identity details
 - ❌ Precise location data
 - ❌ Contact lists
 - ❌ Photos or media (unless you explicitly share)
-- ❌ Biometric data
+- ❌ Biometric data (we use Face ID/Touch ID for app lock via your device's built-in authentication, but no biometric data is collected, stored, or transmitted by Between Us — authentication happens entirely within your device's secure hardware)
 - ❌ Financial information (handled by app stores)
 
 ---
@@ -82,11 +81,9 @@ We **never** collect:
 - Provide customer support
 
 ### 2.2 To Improve the Service
-- Analyze usage patterns (anonymized)
 - Fix bugs and improve performance
 - Develop new features
 - Optimize user experience
-- Conduct A/B testing
 
 ### 2.3 To Communicate With You
 - Send important service updates
@@ -106,29 +103,51 @@ We **never** collect:
 
 ## 3. Data Security and Encryption
 
-### 3.1 End-to-End Encryption
-**Your intimate content is protected:**
-- Sensitive content is encrypted on your device before upload
-- Only you and your linked partner can decrypt it
-- We cannot read your encrypted content
-- Encryption keys are never stored on our servers
+### 3.1 End-to-End Encryption (Couple Key)
+**Your intimate content is protected with E2EE:**
+- Journal entries, prompt responses, and love notes are encrypted on your device before upload
+- Only you and your linked partner can decrypt encrypted content
+- We cannot read your encrypted journal entries, prompt responses, or love notes
+- Encryption keys are derived via X25519 key exchange during partner pairing and never stored on our servers
+- Partner pairing uses QR codes containing only a couple ID and a public key — no personal data
 
-### 3.2 Security Measures
+### 3.2 Device-Level Encryption
+**Additional local data is encrypted with a device-specific key:**
+- Love notes and photo attachments
+- Daily check-ins (mood, closeness, and notes)
+- Relationship memories and milestones
+- Inside jokes and shared references
+- Relationship climate selections
+
+This data is encrypted on your device using a key stored in your phone's secure hardware (Keychain on iOS, Keystore on Android). It cannot be read by extracting the app's storage files.
+
+**Note:** Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored without end-to-end encryption so we can provide features like filtering, sorting, and calendar scheduling. This metadata is still protected by TLS in transit and access controls at rest.
+
+### 3.3 Security Measures
 We implement industry-standard security:
 - TLS/SSL encryption for data in transit
 - Client-side encryption using XSalsa20-Poly1305 (NaCl secretbox)
 - Encrypted storage at rest by our cloud provider
 - Secure authentication protocols
-- Regular security audits
-- Intrusion detection systems
 - Access controls and monitoring
 
-### 3.3 Client-Side Processing
+### 3.4 Device-Only Data
+**The following data is stored exclusively on your device and never uploaded:**
+- Soft boundary settings (hidden categories, paused content)
+- Energy level and relationship climate selections
+- Inside jokes and shared references
+- Year reflection narratives
+- Content preference history (This or That choices, prompt engagement)
+- Welcome back and return-detection timestamps
+- Biometric vault key (stored in device secure hardware)
+
+### 3.5 Client-Side Processing
 **Privacy by design:**
-- ML personalization runs on your device
-- No intimate content sent to servers for processing
-- Recommendations generated locally
-- Your data stays on your device
+- Personalization and content recommendations are processed on your device
+- No intimate content is sent to servers for analysis
+- Prompt selection, energy matching, and filtering happen locally
+- Your preference data stays on your device
+- Surprise Tonight and content personalization algorithms run locally
 
 ---
 
@@ -136,14 +155,16 @@ We implement industry-standard security:
 
 ### 4.1 With Your Partner
 - Content you choose to share is visible to your linked partner
+- Vibe signals and moment signals are shared with your linked partner in real time
+- Prompt responses can be shared via the Reveal Together feature (both partners must opt in)
 - You control what you share and when
-- Your partner cannot access your private entries
+- Your partner cannot access your private entries or soft boundary settings
 - Unlinking stops all data sharing
 
 ### 4.2 With Service Providers
 We work with trusted partners who help us operate:
-- **Cloud hosting:** Supabase (encrypted data only)
-- **Analytics:** Anonymized usage data only
+- **Cloud hosting:** Supabase (journal content is E2E encrypted; metadata such as timestamps, mood labels, and couple IDs is stored with standard server-side encryption)
+- **Subscription management:** RevenueCat (subscription status, entitlement IDs, and anonymous user identifiers — no personal content)
 - **Payment processing:** Handled by Apple/Google (we don't see payment details)
 - **Customer support:** Only if you contact us
 
@@ -180,7 +201,7 @@ We'll notify you unless legally prohibited.
 - Edit or delete entries anytime
 - Unlink from your partner
 - Change privacy settings
-- Opt out of analytics
+- Configure soft boundaries to hide content categories
 
 ### 5.3 Delete Your Data
 - Delete individual entries
@@ -190,9 +211,7 @@ We'll notify you unless legally prohibited.
 
 ### 5.4 Opt-Out Rights
 - Disable notifications
-- Opt out of analytics
-- Decline optional data collection
-- Use anonymous mode
+- Decline optional data collection (e.g., relationship start date)
 
 ### 5.5 Regional Rights
 **For EU/UK users (GDPR):**
@@ -243,43 +262,28 @@ Between Us is **not for children:**
 
 ## 8. International Data Transfers
 
-- Our servers are located in [Your Region]
+- Our servers are located in the United States
 - Data may be transferred internationally
 - We use standard contractual clauses
 - Your data receives the same protection everywhere
 
 ---
 
-## 9. Cookies and Tracking
+## 9. Third-Party Services
 
-### 9.1 What We Use
-- **Essential cookies:** Required for app functionality
-- **Analytics cookies:** Anonymized usage data (opt-out available)
-- **Preference cookies:** Remember your settings
-
-### 9.2 What We Don't Use
-- ❌ Advertising cookies
-- ❌ Third-party tracking
-- ❌ Cross-site tracking
-- ❌ Social media pixels
-
----
-
-## 10. Third-Party Services
-
-### 10.1 Services We Use
-- **Supabase:** Encrypted data storage
+### 9.1 Services We Use
+- **Supabase:** Encrypted data storage and authentication
+- **RevenueCat:** Subscription management
 - **Apple/Google:** Payment processing and app distribution
-- **Analytics:** Anonymized usage metrics
 
-### 10.2 Their Privacy Policies
+### 9.2 Their Privacy Policies
 - [Supabase Privacy Policy](https://supabase.com/privacy)
 - [Apple Privacy Policy](https://www.apple.com/privacy/)
 - [Google Privacy Policy](https://policies.google.com/privacy)
 
 ---
 
-## 11. Changes to This Policy
+## 10. Changes to This Policy
 
 - We may update this policy from time to time
 - Material changes will be notified via email or app
@@ -288,20 +292,18 @@ Between Us is **not for children:**
 
 ---
 
-## 12. Your Choices
+## 11. Your Choices
 
 ### You Control Your Privacy:
 
 **Minimize Data Collection:**
-- Use anonymous mode
-- Disable analytics
-- Opt out of optional features
+- Skip optional fields (e.g., relationship start date)
+- Disable notifications
 
 **Protect Your Account:**
-- Use a strong password
-- Enable device security
-- Don't share your login
-- Log out on shared devices
+- Use a strong, unique password
+- Enable device security (passcode, biometrics)
+- Don't share your login credentials
 
 **Manage Sharing:**
 - Choose what to share with your partner
@@ -310,7 +312,7 @@ Between Us is **not for children:**
 
 ---
 
-## 13. Contact Us
+## 12. Contact Us
 
 **Privacy Questions:**
 - Email: brittanyapps@outlook.com
@@ -320,15 +322,15 @@ Between Us is **not for children:**
 - Email: brittanyapps@outlook.com
 - Include: Your email and request type
 
-**Mail:**
+**Email:**
 Between Us Privacy Team  
-[Your Address]
+brittanyapps@outlook.com
 
 **Response Time:** We respond within 30 days
 
 ---
 
-## 14. Transparency Report
+## 13. Transparency Report
 
 We believe in transparency. We'll publish an annual report on:
 - Government data requests
@@ -338,7 +340,7 @@ We believe in transparency. We'll publish an annual report on:
 
 ---
 
-## 15. Privacy by Design
+## 14. Privacy by Design
 
 **Our Principles:**
 
@@ -372,4 +374,4 @@ We believe in transparency. We'll publish an annual report on:
 
 **Your privacy matters to us. If you have any questions or concerns, please reach out.**
 
-*Last Updated: February 3, 2026*
+*Last Updated: February 16, 2026*

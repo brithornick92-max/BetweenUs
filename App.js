@@ -1,19 +1,28 @@
-// App.js
-// Between Us — App Entry Point (production-ready)
-// ✅ AppProvider + ThemeProvider + MemoryProvider + RitualProvider
-// ✅ RootNavigator handles onboarding/linking/tabs/deep routes
-// ✅ Biometric App Lock Integration
-// ✅ RevenueCat Subscription Integration
-
+import "./polyfills"; // MUST be first — crypto polyfill for CryptoJS/Supabase
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import React, { useState, useEffect, useRef } from "react";
-import { NavigationContainer, DarkTheme } from "@react-navigation/native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
+import * as SplashScreen from "expo-splash-screen";
 import { AppState, View, Text } from "react-native";
+import { useFonts } from "expo-font";
+import {
+  PlayfairDisplay_700Bold,
+} from "@expo-google-fonts/playfair-display";
+import {
+  DMSerifDisplay_400Regular,
+} from "@expo-google-fonts/dm-serif-display";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 
 import RootNavigator from "./navigation/RootNavigator";
-import { ThemeProvider } from "./context/ThemeContext";
+import { registerAutoClearDecryptedCache } from "./services/autoClearDecryptedCache";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AppProvider, useAppContext } from "./context/AppContext";
 import { MemoryProvider } from "./context/MemoryContext";
 import { RitualProvider } from "./context/RitualContext";
@@ -23,67 +32,99 @@ import { SubscriptionProvider } from "./context/SubscriptionContext";
 import { EntitlementsProvider, useEntitlements } from "./context/EntitlementsContext";
 import { DataProvider } from "./context/DataContext";
 import LockScreen from "./components/LockScreen";
+import ErrorBoundary from "./components/ErrorBoundary";
+import CrashReporting from "./services/CrashReporting";
+import AnalyticsService from "./services/AnalyticsService";
+import DeepLinkHandler from "./services/DeepLinkHandler";
 import revenueCatService from "./services/RevenueCatService";
 import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
 import { cloudSyncStorage } from "./utils/storage";
 
-// Global error handler to catch the exact error location
+// Dev error helpers: keep helpful console.error behavior in DEV only
 if (__DEV__) {
   const originalConsoleError = console.error;
   console.error = (...args) => {
-    if (args[0] && args[0].includes && args[0].includes("Cannot read property 'text'")) {
-      console.log('🔴 ERROR CAUGHT! Stack trace:');
-      console.log(new Error().stack);
+    try {
+      const msg = args.map(a => (a instanceof Error ? `${a.name}: ${a.message}` : String(a ?? ''))).join(' ');
+      if (msg.includes("Cannot read property 'map'") || msg.includes("Cannot read properties of undefined (reading 'map')")) {
+        console.log("🔴 MAP ERROR! Full args:", JSON.stringify(args.map(a => a instanceof Error ? { name: a.name, message: a.message, stack: a.stack } : a), null, 2));
+        console.log("🔴 Call site:", new Error().stack);
+      }
+    } catch (e) {
+      // ignore logging helper failures
     }
     originalConsoleError(...args);
   };
 }
 
-if (!__DEV__) {
-  console.log = () => {};
-  console.warn = () => {};
-}
+// Do NOT override console.log in production — keep SDKs and platform logging working.
 
-// Enhanced global error catcher to reveal the file (dev only)
-if (__DEV__ && global.ErrorUtils?.setGlobalHandler) {
+// Safe global error handler for development only
+if (__DEV__ && global?.ErrorUtils?.setGlobalHandler) {
   const defaultHandler = global.ErrorUtils.getGlobalHandler?.();
   global.ErrorUtils.setGlobalHandler((error, isFatal) => {
-    console.log("🔴 GLOBAL ERROR CAUGHT:", error?.message);
-    console.log("📍 Stack trace:");
-    console.log(error?.stack);
-    console.log("🔍 Error details:", JSON.stringify(error, null, 2));
+    try {
+      const msg = String(error?.message || '');
+      console.error('[global_error]', error?.name, msg.slice(0, 200), { isFatal });
+      if (msg.includes("map") || msg.includes("undefined")) {
+        console.log('🔴 GLOBAL CRASH — full stack:');
+        console.log(error?.stack);
+        console.log('🔴 Component stack (if any):', error?.componentStack || '(none)');
+      }
+    } catch (e) {
+      // ignore
+    }
     defaultHandler?.(error, isFatal);
   });
 }
 
-// Initialize RevenueCat SDK using the service
+// Utility helpers for consistent, non-sensitive logging
+const isDev = __DEV__;
+
+function safeErrorMessage(err) {
+  if (!err) return 'unknown';
+  if (typeof err === 'string') return err.slice(0, 120);
+  const name = err.name ? String(err.name) : 'Error';
+  const msg = err.message ? String(err.message) : 'Something went wrong';
+  return `${name}: ${msg}`.slice(0, 160);
+}
+
+function logError(context, err) {
+  if (isDev) {
+    console.error(`[${context}]`, err?.name, err?.message);
+    return;
+  }
+  console.error(`[${context}] failed`);
+}
+
 const initializeRevenueCat = async () => {
   try {
     await revenueCatService.init();
-    console.log('✅ RevenueCat initialized via service');
+    if (isDev) console.log('✅ RevenueCat initialized via service');
   } catch (error) {
-    console.error('❌ Failed to initialize RevenueCat:', error);
+    logError('revenuecat_init', error);
   }
 };
 
-// Main App Component with Lock Screen Logic
+const navigationRef = createNavigationContainerRef();
+
 function AppContent() {
   const { state } = useAppContext();
-  const { isPremiumEffective: isPremium } = useEntitlements();
+  const { isPremiumEffective: isPremium, paywallVisible, paywallFeature } = useEntitlements();
+  const { isDark, navigationTheme } = useTheme();
+
   const [isLocked, setIsLocked] = useState(false);
+  const [navReady, setNavReady] = useState(false);
   const [appStateVisible, setAppStateVisible] = useState(AppState.currentState);
   const backgroundTimeRef = useRef(null);
 
-  // Grace period before locking (5 minutes)
-  const LOCK_GRACE_PERIOD = 5 * 60 * 1000; // 5 minutes in milliseconds
+  const LOCK_GRACE_PERIOD = 5 * 60 * 1000;
 
   useEffect(() => {
-    // Only lock on initial load if app lock is enabled and app was closed
-    if (state.appLockEnabled && appStateVisible === 'active') {
-      // Check if this is a fresh app start (not just coming from background)
+    if (state.appLockEnabled && appStateVisible === "active") {
       const lastBackgroundTime = backgroundTimeRef.current;
-      if (!lastBackgroundTime || (Date.now() - lastBackgroundTime) > LOCK_GRACE_PERIOD) {
+      if (!lastBackgroundTime || Date.now() - lastBackgroundTime > LOCK_GRACE_PERIOD) {
         setIsLocked(true);
       }
     }
@@ -93,12 +134,10 @@ function AppContent() {
     const handleAppStateChange = (nextAppState) => {
       if (state.appLockEnabled) {
         if (nextAppState.match(/inactive|background/)) {
-          // App going to background - record the time
           backgroundTimeRef.current = Date.now();
-        } else if (nextAppState === 'active' && appStateVisible.match(/inactive|background/)) {
-          // App coming back from background
+        } else if (nextAppState === "active" && appStateVisible.match(/inactive|background/)) {
           const backgroundTime = backgroundTimeRef.current;
-          if (backgroundTime && (Date.now() - backgroundTime) > LOCK_GRACE_PERIOD) {
+          if (backgroundTime && Date.now() - backgroundTime > LOCK_GRACE_PERIOD) {
             setIsLocked(true);
           }
         }
@@ -106,7 +145,7 @@ function AppContent() {
       setAppStateVisible(nextAppState);
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener("change", handleAppStateChange);
     return () => subscription?.remove();
   }, [appStateVisible, state.appLockEnabled]);
 
@@ -121,22 +160,23 @@ function AppContent() {
             const status = await cloudSyncStorage.getSyncStatus();
             const syncEnabled = !!status?.enabled && !!isPremium;
             if (!active) return;
+
             await StorageRouter.setSupabaseSession(session);
             await StorageRouter.configureSync({
               isPremium: !!isPremium,
               syncEnabled,
               supabaseSessionPresent: !!session,
             });
-          } catch (error) {
-            // ignore sync update errors
+          } catch {
+            // ignore
           }
         });
 
         unsubscribe =
           result?.data?.subscription?.unsubscribe ||
           result?.unsubscribe ||
-          (typeof result === 'function' ? result : null);
-      } catch (error) {
+          (typeof result === "function" ? result : null);
+      } catch {
         // Supabase not configured; ignore
       }
     };
@@ -145,21 +185,27 @@ function AppContent() {
 
     return () => {
       active = false;
-      if (typeof unsubscribe === 'function') unsubscribe();
+      if (typeof unsubscribe === "function") unsubscribe();
     };
   }, [isPremium]);
 
+  useEffect(() => {
+    if (!navReady || !paywallVisible || !navigationRef.isReady()) return;
+    const currentRoute = navigationRef.getCurrentRoute()?.name;
+    if (currentRoute !== "Paywall") {
+      navigationRef.navigate("Paywall", { feature: paywallFeature || null });
+    }
+  }, [navReady, paywallVisible, paywallFeature]);
+
   const handleUnlock = () => {
     setIsLocked(false);
-    backgroundTimeRef.current = null; // Reset background time
+    backgroundTimeRef.current = null;
   };
 
-  // Show lock screen if app lock is enabled and app is locked
   if (state.appLockEnabled && isLocked) {
     return <LockScreen onUnlock={handleUnlock} />;
   }
 
-  // Show main app
   const linking = {
     prefixes: ["betweenus://"],
     config: {
@@ -167,28 +213,80 @@ function AppContent() {
         AuthCallback: "auth-callback",
         PairingQRCode: "pairing-qr",
         PairingScan: "pairing-scan",
+        LoveNoteDetail: "love-note/:noteId",
+        VibeSignal: "vibe",
+        PromptAnswer: "prompt/:promptId",
+        NightRitual: "ritual",
+        JournalEntry: "journal",
+        DateNightDetail: "date/:dateId",
+        MainTabs: {
+          screens: {
+            Calendar: "calendar",
+            DatePlans: "dates",
+            Prompts: "prompts",
+          },
+        },
       },
     },
   };
 
+  const navTheme = useMemo(
+    () => ({
+      dark: navigationTheme.dark,
+      colors: navigationTheme.colors,
+      fonts: navigationTheme.fonts,
+    }),
+    [navigationTheme]
+  );
+
   return (
-    <NavigationContainer linking={linking} theme={DarkTheme}>
-      <StatusBar style="light" />
+    <NavigationContainer
+      linking={linking}
+      theme={navTheme}
+      ref={navigationRef}
+      onReady={() => {
+        setNavReady(true);
+        DeepLinkHandler.setNavigationRef(navigationRef);
+      }}
+    >
+      <StatusBar style={isDark ? "light" : "dark"} />
       <RootNavigator />
     </NavigationContainer>
   );
 }
 
-export default function App() {
-  // Initialize RevenueCat on app start
+function App() {
+  const [fontsLoaded] = useFonts({
+    "PlayfairDisplay-Bold": PlayfairDisplay_700Bold,
+    PlayfairDisplay_700Bold: PlayfairDisplay_700Bold,
+    "DMSerifDisplay-Regular": DMSerifDisplay_400Regular,
+    DMSerifDisplay_400Regular: DMSerifDisplay_400Regular,
+    "Inter-Regular": Inter_400Regular,
+    "Inter-Medium": Inter_500Medium,
+    "Inter-SemiBold": Inter_600SemiBold,
+    "Inter-Bold": Inter_700Bold,
+  });
+
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
   useEffect(() => {
+    CrashReporting.init();
+    AnalyticsService.init({}).catch(() => {});
     initializeRevenueCat();
+    registerAutoClearDecryptedCache();
+    return () => AnalyticsService.destroy();
   }, []);
 
-  // Wrap everything in error boundary
+  if (!fontsLoaded) return null;
+
   try {
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
+        <ErrorBoundary>
         <AuthProvider>
           <SubscriptionProvider>
             <EntitlementsProvider>
@@ -208,17 +306,17 @@ export default function App() {
             </EntitlementsProvider>
           </SubscriptionProvider>
         </AuthProvider>
+        </ErrorBoundary>
       </GestureHandlerRootView>
     );
   } catch (error) {
-    console.error('🔴 APP INITIALIZATION ERROR:', error);
-    console.error('Stack:', error.stack);
+    logError('app_init', error);
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-        <Text style={{ color: '#fff', padding: 20 }}>
-          App initialization error. Check console for details.
-        </Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#070509' }}>
+        <Text style={{ color: '#E8E0EC', padding: 20 }}>App initialization error. Please restart the app.</Text>
       </View>
     );
   }
 }
+
+export default CrashReporting.wrap(App);

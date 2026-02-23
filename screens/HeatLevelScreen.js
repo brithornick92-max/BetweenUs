@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,60 +14,64 @@ import * as Haptics from 'expo-haptics';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
-import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
-
-const HEAT_LEVELS = [
-  {
-    level: 1,
-    name: 'Heart Connection',
-    description: 'Pure emotional intimacy, non-sexual',
-    icon: 'heart',
-    color: COLORS.success,
-    gradient: ['#4CAF50', '#66BB6A'],
-    free: true,
-  },
-  {
-    level: 2,
-    name: 'Spark & Attraction',
-    description: 'Flirty attraction, romantic tension',
-    icon: 'heart-pulse',
-    color: COLORS.blushRose,
-    gradient: [COLORS.blushRose, '#FF8A95'],
-    free: true,
-  },
-  {
-    level: 3,
-    name: 'Intimate Connection',
-    description: 'Moderately sexual, relationship-focused',
-    icon: 'fire',
-    color: COLORS.mutedGold,
-    gradient: [COLORS.mutedGold, '#FFD54F'],
-    free: true,
-  },
-  {
-    level: 4,
-    name: 'Adventurous Exploration',
-    description: 'Mostly sexual, kinky, adventurous',
-    icon: 'fire-circle',
-    color: '#FF6B35',
-    gradient: ['#FF6B35', '#FF8F65'],
-    premium: true,
-  },
-  {
-    level: 5,
-    name: 'Unrestrained Passion',
-    description: 'Highly sexual, graphic, intense',
-    icon: 'fire-alert',
-    color: '#E53E3E',
-    gradient: ['#E53E3E', '#FC8181'],
-    premium: true,
-  },
-];
+import { useTheme } from '../context/ThemeContext';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 
 export default function HeatLevelScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall, canConsumePrompt } = useEntitlements();
-  const { loadTodayPrompt, usageStatus } = useContent();
+  const { loadTodayPrompt, usageStatus, loadContentProfile } = useContent();
+  const { updateProfile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const HEAT_LEVELS = [
+    {
+      level: 1,
+      name: 'Heart Connection',
+      description: 'Pure emotional intimacy, non-sexual',
+      icon: 'heart',
+      color: colors.success,
+      gradient: ['#4CAF50', '#66BB6A'],
+      free: true,
+    },
+    {
+      level: 2,
+      name: 'Spark & Attraction',
+      description: 'Flirty attraction, romantic tension',
+      icon: 'heart-pulse',
+      color: colors.primary,
+      gradient: [colors.primary, '#FF8A95'],
+      free: true,
+    },
+    {
+      level: 3,
+      name: 'Intimate Connection',
+      description: 'Moderately sexual, relationship-focused',
+      icon: 'fire',
+      color: colors.accent,
+      gradient: [colors.accent, '#FFD54F'],
+      free: true,
+    },
+    {
+      level: 4,
+      name: 'Adventurous Exploration',
+      description: 'Mostly sexual, kinky, adventurous',
+      icon: 'fire-circle',
+      color: '#FF6B35',
+      gradient: ['#FF6B35', '#FF8F65'],
+      premium: true,
+    },
+    {
+      level: 5,
+      name: 'Unrestrained Passion',
+      description: 'Highly sexual, graphic, intense',
+      icon: 'fire-alert',
+      color: '#E53E3E',
+      gradient: ['#E53E3E', '#FC8181'],
+      premium: true,
+    },
+  ];
 
   const handleSelectHeatLevel = async (level) => {
     try {
@@ -90,8 +94,8 @@ export default function HeatLevelScreen({ navigation }) {
       // Check daily limits for free users
       if (!isPremium && usageStatus?.remaining?.prompts === 0) {
         Alert.alert(
-          'Daily Limit Reached',
-          'Free users get 1 prompt per day. Upgrade to premium for unlimited access.',
+          'Premium Feature',
+          'Free users can preview 3 read-only prompts. Upgrade to premium for unlimited prompts and responses.',
           [
             { text: 'Maybe Later', style: 'cancel' },
             { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Paywall') }
@@ -102,6 +106,15 @@ export default function HeatLevelScreen({ navigation }) {
 
       // Load today's prompt for this heat level
       const prompt = await loadTodayPrompt(level);
+
+      // Persist the heat level as their preference
+      if (updateProfile) {
+        updateProfile({ heatLevelPreference: level }).catch(() => {});
+      }
+      // Refresh the content profile so other screens pick up the change
+      if (loadContentProfile) {
+        loadContentProfile().catch(() => {});
+      }
       
       if (prompt) {
         navigation.navigate('PromptAnswer', {
@@ -134,7 +147,7 @@ export default function HeatLevelScreen({ navigation }) {
         activeOpacity={0.9}
       >
         <LinearGradient
-          colors={isLocked ? ['#666', '#888'] : heatLevel.gradient}
+          colors={isLocked ? ['#666', '#888'] : (heatLevel.gradient || ['#6B2D5B', '#4A1942'])}
           style={styles.heatLevelGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -145,13 +158,13 @@ export default function HeatLevelScreen({ navigation }) {
                 <MaterialCommunityIcons
                   name={isLocked ? 'lock' : heatLevel.icon}
                   size={32}
-                  color="#FFF"
+                  color={colors.text}
                 />
               </View>
               
               {isLocked && (
                 <View style={styles.premiumBadge}>
-                  <MaterialCommunityIcons name="crown" size={16} color="#0B0B0B" />
+                  <MaterialCommunityIcons name="crown" size={16} color={colors.text} />
                 </View>
               )}
             </View>
@@ -176,7 +189,7 @@ export default function HeatLevelScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[COLORS.warmCharcoal, COLORS.deepPlum + '30', COLORS.warmCharcoal]}
+        colors={[colors.background, colors.surface2 || colors.background, colors.background]}
         style={StyleSheet.absoluteFill}
         locations={[0, 0.5, 1]}
       />
@@ -192,14 +205,14 @@ export default function HeatLevelScreen({ navigation }) {
             <MaterialCommunityIcons
               name="arrow-left"
               size={24}
-              color={COLORS.softCream}
+              color={colors.text}
             />
           </TouchableOpacity>
 
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Choose Heat Level</Text>
+            <Text style={styles.headerTitle}>Set the Mood</Text>
             <Text style={styles.headerSubtitle}>
-              Select your comfort level for today's connection
+              How deep do you want to go tonight?
             </Text>
           </View>
         </View>
@@ -210,7 +223,7 @@ export default function HeatLevelScreen({ navigation }) {
             <MaterialCommunityIcons
               name="information"
               size={16}
-              color={COLORS.mutedGold}
+              color={colors.primary}
             />
             <Text style={styles.usageText}>
               {usageStatus.remaining.prompts} prompt{usageStatus.remaining.prompts !== 1 ? 's' : ''} remaining today
@@ -234,7 +247,7 @@ export default function HeatLevelScreen({ navigation }) {
               activeOpacity={0.9}
             >
               <LinearGradient
-                colors={['#D4AF37', '#F7E7CE']}
+                colors={['#A89060', '#C8A870']}
                 style={styles.premiumCTAGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
@@ -253,7 +266,7 @@ export default function HeatLevelScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -272,7 +285,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: colors.surface2 || 'rgba(255,255,255,0.05)',
     marginRight: SPACING.md,
   },
   headerContent: {
@@ -281,13 +294,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...TYPOGRAPHY.h1,
     fontSize: 24,
-    color: COLORS.softCream,
+    color: colors.text,
     marginBottom: 4,
   },
   headerSubtitle: {
     ...TYPOGRAPHY.body,
     fontSize: 14,
-    color: COLORS.softCream + '80',
+    color: colors.textSecondary,
   },
   usageStatus: {
     flexDirection: 'row',
@@ -298,7 +311,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   usageText: {
-    color: COLORS.mutedGold,
+    color: colors.primary,
     fontSize: 14,
     marginLeft: SPACING.xs,
   },
@@ -343,7 +356,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#A89060',
     borderRadius: 12,
     width: 24,
     height: 24,
@@ -351,20 +364,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heatLevelNumber: {
-    color: '#FFF',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: SPACING.xs,
   },
   heatLevelName: {
-    color: '#FFF',
+    color: colors.text,
     fontSize: 20,
     fontWeight: '700',
     marginBottom: SPACING.xs,
     textAlign: 'center',
   },
   heatLevelDescription: {
-    color: 'rgba(255,255,255,0.9)',
+    color: colors.textMuted,
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
@@ -373,13 +386,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: SPACING.sm,
     right: SPACING.sm,
-    backgroundColor: COLORS.success,
+    backgroundColor: colors.success,
     paddingHorizontal: SPACING.xs,
     paddingVertical: 2,
     borderRadius: 8,
   },
   freeBadgeText: {
-    color: '#FFF',
+    color: colors.text,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -397,7 +410,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   premiumCTAText: {
-    color: '#0B0B0B',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
     flex: 1,

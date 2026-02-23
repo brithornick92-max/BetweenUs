@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+// components/LockScreen.js
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,7 +7,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Animated,
-  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -14,51 +14,46 @@ import * as Haptics from "expo-haptics";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
-import { COLORS, SPACING, TYPOGRAPHY } from "../utils/theme";
-
+import { useTheme } from "../context/ThemeContext";
+import { SPACING, TYPOGRAPHY } from "../utils/theme";
 import { storage, STORAGE_KEYS } from "../utils/storage";
+import { Platform } from "react-native";
 
-const PIN_LEN = 4;
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 30_000;
+const PIN_LENGTH = 4;
 const PIN_KEY = "betweenus_app_lock_pin_v1";
 const PIN_SERVICE = "betweenus_app_lock";
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 30000; // 30 seconds
 
-export default function LockScreen({ onUnlock, pinCode }) {
+export default function LockScreen({ onUnlock }) {
+  const { colors, gradients } = useTheme();
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
-
-  const [storedPinHash, setStoredPinHash] = useState(null); // string | null
-  const [bioAvailable, setBioAvailable] = useState(false);
-  const [bioTypeIcon, setBioTypeIcon] = useState("face-recognition");
-
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
-  const isLockedOut = Date.now() < lockedUntil;
+  const [storedPinHash, setStoredPinHash] = useState(null);
+  const [biometricType, setBiometricType] = useState(null);
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // Prevent immediate re-prompt loop if user cancels biometrics
-  const bioCanceledRef = useRef(false);
-  const authInFlightRef = useRef(false);
+  const isLockedOut = Date.now() < lockedUntil;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true,
-    }).start();
+    initializeLock();
+  }, []);
 
-    (async () => {
-      // Load stored PIN hash (if any)
+  const initializeLock = async () => {
+    try {
+      // 1. Get stored PIN hash
       let savedHash = await SecureStore.getItemAsync(PIN_KEY, {
         keychainService: PIN_SERVICE,
       });
+
+      // Migration logic from old storage if needed
       if (!savedHash) {
-        // Migrate legacy AsyncStorage PIN if present
-        const legacyPin = await storage.get(STORAGE_KEYS.APP_LOCK_PIN);
-        if (typeof legacyPin === "string" && legacyPin.length > 0) {
+        const legacyPin = await storage.get(STORAGE_KEYS.APP_LOCK_PIN, null);
+        if (legacyPin && typeof legacyPin === "string") {
           savedHash = await Crypto.digestStringAsync(
             Crypto.CryptoDigestAlgorithm.SHA256,
             legacyPin
@@ -69,281 +64,269 @@ export default function LockScreen({ onUnlock, pinCode }) {
           await storage.remove(STORAGE_KEYS.APP_LOCK_PIN);
         }
       }
-      setStoredPinHash(typeof savedHash === "string" ? savedHash : null);
+      setStoredPinHash(savedHash);
 
-      // Determine biometrics availability
-      if (Platform.OS === "web") return;
-
-      try {
+      // 2. Check Biometrics
+      if (Platform.OS !== "web") {
         const hasHardware = await LocalAuthentication.hasHardwareAsync();
         const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-        const canBio = !!hasHardware && !!isEnrolled;
-        setBioAvailable(canBio);
 
-        if (canBio) {
+        if (hasHardware && isEnrolled) {
           const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
-          // 1 = fingerprint, 2 = facial (per expo docs)
-          const hasFace = types?.includes(2);
-          setBioTypeIcon(hasFace ? "face-recognition" : "fingerprint");
+          if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+            setBiometricType("face-recognition");
+          } else if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+            setBiometricType("fingerprint");
+          } else {
+            setBiometricType("generic");
+          }
 
-          // Auto-trigger once (only if enrolled and not previously cancelled in this session)
-          triggerBiometrics({ allowAuto: true });
+          // Auto-prompt biometrics on load
+          authenticateBiometrically();
         }
-      } catch {
-        setBioAvailable(false);
       }
-    })();
-  }, []);
-
-  const safeHaptic = async (type = "light") => {
-    if (Platform.OS === "web") return;
-    try {
-      if (type === "error") await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      else if (type === "medium") await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      else await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch {}
+    } catch (err) {
+      console.warn("[LockScreen] Initialization error:", err);
+    }
   };
 
-  const shake = async () => {
+  const authenticateBiometrically = async () => {
+    try {
+      if (Platform.OS === "web") return;
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Unlock Between Us",
+        fallbackLabel: "Use PIN",
+      });
+      if (result.success) {
+        onUnlock?.();
+      }
+    } catch (err) {
+      console.warn("[LockScreen] Biometric auth error:", err);
+    }
+  };
+
+  const shake = () => {
     Animated.sequence([
       Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
     ]).start();
-    await safeHaptic("error");
-  };
-
-  const lockout = () => {
-    const until = Date.now() + LOCKOUT_MS;
-    setLockedUntil(until);
-    // reset attempts after lockout ends (optional)
-    setTimeout(() => setAttempts(0), LOCKOUT_MS);
-  };
-
-  const succeed = () => {
-    setPin("");
-    setError(false);
-    setAttempts(0);
-    onUnlock?.();
-  };
-
-  const fail = async () => {
-    setError(true);
-    await shake();
-
-    const next = attempts + 1;
-    setAttempts(next);
-
-    setTimeout(() => {
-      setPin("");
-      setError(false);
-    }, 600);
-
-    if (next >= MAX_ATTEMPTS) lockout();
-  };
-
-const triggerBiometrics = async () => {
-  try {
-    const hasHardware = await LocalAuthentication.hasHardwareAsync();
-    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-
-    if (!hasHardware || !isEnrolled) return;
-
-    const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: "Unlock Between Us",
-      fallbackLabel: "Use PIN",
-      cancelLabel: "Cancel",
-      disableDeviceFallback: false,
-    });
-
-    if (result?.success) {
-      onUnlock?.();
+    if (Platform.OS !== "web") {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
-  } catch (e) {
-    // Fail silently -> user can use PIN
-    console.warn("[LockScreen] Biometrics failed:", e?.message || e);
-  }
-};
-
-  const validatePin = async (candidate) => {
-    // If no PIN is set, allow access (since PIN lock is optional)
-    if (!storedPinHash) return true;
-    const hash = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      candidate
-    );
-    return hash === storedPinHash;
   };
 
   const handlePressDigit = async (digit) => {
-    if (isLockedOut) return;
-    if (pin.length >= PIN_LEN) return;
+    if (isLockedOut || pin.length >= PIN_LENGTH) return;
 
-    await safeHaptic("light");
+    if (Platform.OS !== "web") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    const newPin = pin + digit;
+    setPin(newPin);
 
-    const next = pin + digit;
-    setPin(next);
+    if (newPin.length === PIN_LENGTH) {
+      // If no PIN set, allow (or developer should handle setup flow elsewhere)
+      if (!storedPinHash) {
+        onUnlock?.();
+        return;
+      }
 
-    if (next.length === PIN_LEN) {
-      if (await validatePin(next)) {
-        succeed();
+      const hash = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        newPin
+      );
+
+      if (hash === storedPinHash) {
+        onUnlock?.();
       } else {
-        fail();
+        setError(true);
+        shake();
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+
+        if (newAttempts >= MAX_ATTEMPTS) {
+          setLockedUntil(Date.now() + LOCKOUT_DURATION);
+        }
+
+        setTimeout(() => {
+          setPin("");
+          setError(false);
+        }, 500);
       }
     }
   };
 
-  const handleDelete = async () => {
-    if (isLockedOut) return;
-    if (pin.length === 0) return;
-    await safeHaptic("medium");
-    setPin((p) => p.slice(0, -1));
+  const handleDelete = () => {
+    if (pin.length > 0) {
+      setPin(pin.slice(0, -1));
+      if (Platform.OS !== "web") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    }
   };
 
-  const lockoutSeconds = useMemo(() => {
-    if (!isLockedOut) return 0;
-    return Math.ceil((lockedUntil - Date.now()) / 1000);
-  }, [lockedUntil, isLockedOut]);
+  const keypadRows = [
+    ["1", "2", "3"],
+    ["4", "5", "6"],
+    ["7", "8", "9"],
+  ];
 
   return (
-    <LinearGradient colors={[COLORS.deepPlum, COLORS.warmCharcoal]} style={styles.container}>
+    <LinearGradient
+      colors={gradients.screenBackground || [colors.background, colors.background]}
+      style={styles.container}
+    >
       <SafeAreaView style={styles.safeArea}>
         <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
           <View style={styles.header}>
-            <MaterialCommunityIcons name="heart-lock" size={48} color={COLORS.blushRose} />
-            <Text style={[TYPOGRAPHY.display, styles.title]}>Between Us</Text>
-            <Text style={[TYPOGRAPHY.body, styles.subtitle]}>
-              {isLockedOut ? `Try again in ${lockoutSeconds}s` : "Your space is locked"}
+            <MaterialCommunityIcons name="heart-lock" size={60} color={colors.primary} />
+            <Text style={[TYPOGRAPHY.h1, { color: colors.text, marginTop: SPACING.lg, textAlign: "center" }]}>
+              Between Us
             </Text>
-            {!storedPinHash && (
-              <Text style={[TYPOGRAPHY.caption, { color: COLORS.creamSubtle, opacity: 0.7, marginTop: 6 }]}>
-                PIN lock is optional — toggle in Settings
-              </Text>
-            )}
+            <Text style={[TYPOGRAPHY.body, { color: colors.textMuted, marginTop: SPACING.xs, textAlign: "center" }]}>
+              {isLockedOut ? "Too many attempts. Try again later." : "Enter PIN to unlock"}
+            </Text>
           </View>
 
-          {/* PIN Dots */}
-          <Animated.View style={[styles.dotsContainer, { transform: [{ translateX: shakeAnim }] }]}>
-            {[0, 1, 2, 3].map((i) => (
+          <Animated.View
+            style={[
+              styles.dotsContainer,
+              { transform: [{ translateX: shakeAnim }] },
+            ]}
+          >
+            {Array(PIN_LENGTH).fill(0).map((_, i) => (
               <View
                 key={i}
                 style={[
                   styles.dot,
-                  i < pin.length && styles.dotFilled,
-                  error && styles.dotError,
-                  isLockedOut && { opacity: 0.4 },
+                  { borderColor: colors.primary },
+                  (i < pin.length && !error) && { backgroundColor: colors.primary },
+                  error && { backgroundColor: colors.danger, borderColor: colors.danger },
                 ]}
               />
             ))}
           </Animated.View>
 
-          {/* Keypad */}
           <View style={styles.keypad}>
-            {[
-              ["1", "2", "3"],
-              ["4", "5", "6"],
-              ["7", "8", "9"],
-            ].map((row, idx) => (
-              <View key={idx} style={styles.row}>
+            {keypadRows.map((row, i) => (
+              <View key={i} style={styles.row}>
                 {row.map((digit) => (
-                  <TouchableOpacity
+                  <Key
                     key={digit}
-                    style={[styles.key, isLockedOut && styles.keyDisabled]}
+                    label={digit}
                     onPress={() => handlePressDigit(digit)}
-                    activeOpacity={0.6}
                     disabled={isLockedOut}
-                  >
-                    <Text style={styles.keyText}>{digit}</Text>
-                  </TouchableOpacity>
+                    textColor={colors.text}
+                  />
                 ))}
               </View>
             ))}
-
             <View style={styles.row}>
               <TouchableOpacity
-                style={[styles.key, (!bioAvailable || isLockedOut) && styles.keyDisabled]}
-                onPress={() => triggerBiometrics({ allowAuto: false })}
-                activeOpacity={0.6}
-                disabled={!bioAvailable || isLockedOut}
+                style={styles.key}
+                onPress={authenticateBiometrically}
+                disabled={!biometricType || isLockedOut}
               >
-                <MaterialCommunityIcons name={bioTypeIcon} size={28} color={COLORS.blushRose} />
+                {biometricType && (
+                  <MaterialCommunityIcons
+                    name={biometricType === "face-recognition" ? "face-recognition" : "fingerprint"}
+                    size={32}
+                    color={colors.primary}
+                    style={{ opacity: isLockedOut ? 0.3 : 1 }}
+                  />
+                )}
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.key, isLockedOut && styles.keyDisabled]}
+              <Key
+                label="0"
                 onPress={() => handlePressDigit("0")}
-                activeOpacity={0.6}
                 disabled={isLockedOut}
-              >
-                <Text style={styles.keyText}>0</Text>
-              </TouchableOpacity>
-
+                textColor={colors.text}
+              />
               <TouchableOpacity
-                style={[styles.key, isLockedOut && styles.keyDisabled]}
+                style={styles.key}
                 onPress={handleDelete}
-                activeOpacity={0.6}
                 disabled={isLockedOut}
+                activeOpacity={0.7}
               >
-                <MaterialCommunityIcons name="backspace-outline" size={24} color={COLORS.creamSubtle} />
+                <MaterialCommunityIcons
+                  name="backspace-outline"
+                  size={28}
+                  color={colors.textMuted}
+                  style={{ opacity: isLockedOut ? 0.3 : 1 }}
+                />
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Optional: Forgot PIN */}
-          <TouchableOpacity
-            style={styles.forgotBtn}
-            onPress={() => {
-              // Up to you: route to “Reset Lock” flow
-              // Usually requires device auth + clears pin.
-            }}
-            disabled
-          >
-            <Text style={styles.forgotText}>Forgot PIN?</Text>
-          </TouchableOpacity>
         </Animated.View>
       </SafeAreaView>
     </LinearGradient>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  safeArea: { flex: 1 },
-  content: { flex: 1, alignItems: "center", justifyContent: "space-between", paddingVertical: SPACING.xxl },
-  header: { alignItems: "center", marginTop: SPACING.xl },
-  title: { color: COLORS.softCream, marginTop: SPACING.md },
-  subtitle: { color: COLORS.creamSubtle, opacity: 0.7 },
+const Key = ({ label, onPress, disabled, textColor }) => (
+  <TouchableOpacity
+    style={[styles.key, disabled && { opacity: 0.3 }]}
+    onPress={onPress}
+    disabled={disabled}
+    activeOpacity={0.7}
+  >
+    <Text style={[styles.keyText, { color: textColor }]}>{label}</Text>
+  </TouchableOpacity>
+);
 
-  dotsContainer: { flexDirection: "row", gap: 20, marginVertical: 40 },
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: SPACING.xxxl,
+    paddingHorizontal: SPACING.xl,
+  },
+  header: {
+    alignItems: "center",
+    marginTop: SPACING.xl,
+  },
+  dotsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: SPACING.xxl,
+  },
   dot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: "rgba(184, 115, 144, 0.4)",
+    marginHorizontal: SPACING.sm,
     backgroundColor: "transparent",
   },
-  dotFilled: { backgroundColor: COLORS.blushRose, borderColor: COLORS.blushRose, transform: [{ scale: 1.2 }] },
-  dotError: { backgroundColor: "#FF5252", borderColor: "#FF5252" },
-
-  keypad: { width: "100%", paddingHorizontal: 40 },
-  row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
+  keypad: {
+    width: "100%",
+    maxWidth: 320,
+    marginBottom: SPACING.xl,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SPACING.lg,
+  },
   key: {
-    width: 75,
-    height: 75,
-    borderRadius: 38,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
-  keyDisabled: {
-    opacity: 0.35,
+  keyText: {
+    fontSize: 32,
+    fontWeight: "400",
   },
-  keyText: { fontSize: 28, color: COLORS.softCream, fontWeight: "400" },
-
-  forgotBtn: { marginBottom: 20, opacity: 0.6 },
-  forgotText: { ...TYPOGRAPHY.caption, color: COLORS.blushRose, fontWeight: "700" },
 });

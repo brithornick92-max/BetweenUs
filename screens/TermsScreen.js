@@ -48,7 +48,7 @@ const TermsScreen = ({ navigation, route }) => {
         <View style={styles.content}>
           <Text style={[styles.title, { color: colors.text }]}>Between Us - Terms of Service</Text>
           <Text style={[styles.date, { color: colors.textSecondary }]}>
-            Last Updated: January 29, 2026
+            Last Updated: February 3, 2026
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>1. Acceptance of Terms</Text>
@@ -65,9 +65,9 @@ const TermsScreen = ({ navigation, route }) => {
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>3. Intended Use</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            Between Us is designed for couples in healthy, thriving relationships who want to deepen their 
+            Between Us is designed for couples who already have a loving foundation and want to deepen their intimacy and 
             connection. The App is NOT intended as a substitute for professional therapy, counseling, or 
-            medical advice. If you are experiencing serious relationship issues, please seek professional help.
+            medical guidance. If your relationship needs professional support, please seek qualified help.
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>4. User Accounts</Text>
@@ -164,9 +164,9 @@ const TermsScreen = ({ navigation, route }) => {
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.surface} />
             ) : (
-              <Text style={styles.acceptText}>Accept & Continue</Text>
+              <Text style={[styles.acceptText, { color: colors.text }]}>Accept & Continue</Text>
             )}
           </TouchableOpacity>
         </View>

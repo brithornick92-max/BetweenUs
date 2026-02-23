@@ -8,9 +8,8 @@ import {
   Animated,
   Platform,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from "../utils/theme";
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from "../utils/theme";
+import { useTheme } from "../context/ThemeContext";
 
 let Haptics = null;
 try {
@@ -19,12 +18,6 @@ try {
   Haptics = null;
 }
 
-/**
- * Luxury Button Component with Magazine Aesthetic
- * ✨ Glassmorphism variants
- * ✨ Premium gradient overlays
- * ✨ Sophisticated animations
- */
 export default function Button({
   title,
   onPress,
@@ -38,53 +31,36 @@ export default function Button({
   style,
   haptic = true,
 }) {
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
 
   const isDisabled = disabled || loading;
 
   const textColor = useMemo(() => {
-    if (isDisabled) {
-      if (variant === "primary" || variant === "glass") return COLORS.softCream;
-      return COLORS.creamSubtle;
-    }
-    if (variant === "primary" || variant === "glass") return COLORS.pureWhite;
-    if (variant === "secondary") return COLORS.deepPlum;
-    return COLORS.blushRose;
-  }, [isDisabled, variant]);
+    if (isDisabled) return colors.textMuted;
+    if (variant === "primary") return '#FFFFFF';
+    if (variant === "glass") return colors.text;
+    if (variant === "secondary") return colors.text;
+    return colors.primary;
+  }, [isDisabled, variant, colors]);
 
   const handlePressIn = () => {
     if (isDisabled) return;
-    
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.96,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 100,
-      }),
-      Animated.timing(glowAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 100,
+    }).start();
   };
 
   const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 100,
-      }),
-      Animated.timing(glowAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 100,
+    }).start();
   };
 
   const handlePress = async () => {
@@ -93,7 +69,7 @@ export default function Button({
     if (haptic && Platform.OS !== "web" && Haptics?.impactAsync) {
       try {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch {}
+      } catch (e) { /* haptics non-critical */ }
     }
 
     onPress?.();
@@ -102,24 +78,26 @@ export default function Button({
   const variantStyle = useMemo(() => {
     switch (variant) {
       case "outline":
-        return styles.outline;
+        return { ...styles.outline, borderColor: colors.border };
       case "ghost":
         return styles.ghost;
       case "secondary":
-        return styles.secondary;
+        return { ...styles.secondary, backgroundColor: colors.surface };
       case "glass":
-        return styles.glass;
+        return { ...styles.glass, backgroundColor: colors.surface, borderColor: colors.border };
       default:
         return null;
     }
-  }, [variant]);
+  }, [variant, colors]);
 
   const disabledStyle = useMemo(() => {
     if (!isDisabled) return null;
-    if (variant === "primary" || variant === "glass") return styles.disabledPrimary;
+    if (variant === "primary" || variant === "glass") return { ...styles.disabledPrimary, backgroundColor: colors.surface };
     if (variant === "outline" || variant === "ghost") return styles.disabledTransparent;
     return styles.disabledSecondary;
-  }, [isDisabled, variant]);
+  }, [isDisabled, variant, colors]);
+
+  const primarySolidStyle = variant === "primary" && !isDisabled ? { backgroundColor: colors.primary } : null;
 
   const renderContent = () => (
     <View style={[styles.content, styles[`size_${size}_padding`]]}>
@@ -144,9 +122,6 @@ export default function Button({
     </View>
   );
 
-  const showGradient = variant === "primary" && !isDisabled;
-  const showGlass = variant === "glass" && !isDisabled;
-
   return (
     <Animated.View
       style={[
@@ -163,38 +138,12 @@ export default function Button({
         disabled={isDisabled}
         activeOpacity={1}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        style={[styles.buttonBase, variantStyle, disabledStyle]}
+        style={[styles.buttonBase, variantStyle, disabledStyle, primarySolidStyle]}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityState={{ disabled: isDisabled }}
       >
-        {showGradient ? (
-          <LinearGradient
-            colors={[COLORS.blushRose, COLORS.beetroot]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradient}
-          >
-            <Animated.View
-              style={[
-                styles.glowOverlay,
-                { opacity: glowAnim },
-              ]}
-            />
-            {renderContent()}
-          </LinearGradient>
-        ) : showGlass ? (
-          <BlurView
-            intensity={Platform.OS === "ios" ? 40 : 60}
-            tint="dark"
-            style={styles.glassBlur}
-          >
-            <LinearGradient
-              colors={["rgba(255,255,255,0.1)", "rgba(255,255,255,0.05)"]}
-              style={StyleSheet.absoluteFill}
-            />
-            {renderContent()}
-          </BlurView>
-        ) : (
-          renderContent()
-        )}
+        {renderContent()}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -213,34 +162,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  gradient: {
-    width: "100%",
-    borderRadius: BORDER_RADIUS.lg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  glassBlur: {
-    width: "100%",
-    borderRadius: BORDER_RADIUS.lg,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  glowOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255,255,255,0.2)",
   },
   content: {
     flexDirection: "row",
@@ -248,31 +169,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Sizes
   size_sm_padding: { paddingVertical: 10, paddingHorizontal: 16 },
   size_md_padding: { paddingVertical: 14, paddingHorizontal: 24 },
   size_lg_padding: { paddingVertical: 18, paddingHorizontal: 32 },
 
-  // Variants
   outline: {
     backgroundColor: "transparent",
-    borderWidth: 1.5,
-    borderColor: COLORS.blushRose + "80",
+    borderWidth: 1,
   },
-  secondary: {
-    backgroundColor: COLORS.creamSubtle,
-  },
+  secondary: {},
   ghost: {
     backgroundColor: "transparent",
   },
   glass: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
   },
 
-  // Disabled states
   disabledPrimary: {
     opacity: 0.5,
-    backgroundColor: COLORS.deepPlum,
   },
   disabledSecondary: {
     opacity: 0.5,
@@ -281,16 +195,15 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
 
-  // Text
   text: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "600",
     textAlign: "center",
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   textPrimary: {
-    fontWeight: "800",
-    letterSpacing: 0.8,
+    fontWeight: "600",
+    letterSpacing: 0.3,
   },
   text_sm: { fontSize: 14 },
   text_md: { fontSize: 16 },
