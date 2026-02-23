@@ -195,6 +195,8 @@ export default function LockScreen({ onUnlock }) {
               styles.dotsContainer,
               { transform: [{ translateX: shakeAnim }] },
             ]}
+            accessibilityLabel={`PIN entry: ${pin.length} of ${PIN_LENGTH} digits entered`}
+            accessibilityRole="text"
           >
             {Array(PIN_LENGTH).fill(0).map((_, i) => (
               <View
@@ -228,6 +230,9 @@ export default function LockScreen({ onUnlock }) {
                 style={styles.key}
                 onPress={authenticateBiometrically}
                 disabled={!biometricType || isLockedOut}
+                accessibilityRole="button"
+                accessibilityLabel={biometricType === 'face-recognition' ? 'Unlock with Face ID' : 'Unlock with fingerprint'}
+                accessibilityState={{ disabled: !biometricType || isLockedOut }}
               >
                 {biometricType && (
                   <MaterialCommunityIcons
@@ -249,6 +254,9 @@ export default function LockScreen({ onUnlock }) {
                 onPress={handleDelete}
                 disabled={isLockedOut}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Delete last digit"
+                accessibilityState={{ disabled: isLockedOut }}
               >
                 <MaterialCommunityIcons
                   name="backspace-outline"
@@ -271,6 +279,9 @@ const Key = ({ label, onPress, disabled, textColor }) => (
     onPress={onPress}
     disabled={disabled}
     activeOpacity={0.7}
+    accessibilityRole="button"
+    accessibilityLabel={`Digit ${label}`}
+    accessibilityState={{ disabled }}
   >
     <Text style={[styles.keyText, { color: textColor }]}>{label}</Text>
   </TouchableOpacity>

@@ -7,6 +7,7 @@ import {
   TextInput,
   Alert,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -111,6 +112,8 @@ const SetPinScreen = ({ navigation }) => {
             onPress={() => showPaywall('vaultAndBiometric')}
             style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 }}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Upgrade to Premium"
           >
             <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>Upgrade to Premium</Text>
           </TouchableOpacity>
@@ -122,13 +125,14 @@ const SetPinScreen = ({ navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Go back">
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Set App Lock PIN</Text>
         <View style={{ width: 24 }} />
       </View>
 
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.content}>
         <Text style={[styles.label, { color: colors.text }]}>Enter 4-digit PIN</Text>
         <TextInput
@@ -150,6 +154,8 @@ const SetPinScreen = ({ navigation }) => {
           importantForAutofill="no"
           // This avoids selection weirdness with secure inputs on some iOS versions
           caretHidden={false}
+          accessibilityLabel="Enter 4-digit PIN"
+          accessibilityHint="Enter a 4-digit number to lock the app"
         />
 
         <Text style={[styles.label, { color: colors.text }]}>Confirm PIN</Text>
@@ -169,6 +175,8 @@ const SetPinScreen = ({ navigation }) => {
           autoComplete="off"
           importantForAutofill="no"
           caretHidden={false}
+          accessibilityLabel="Confirm PIN"
+          accessibilityHint="Re-enter your 4-digit PIN to confirm"
         />
 
         <TouchableOpacity
@@ -176,6 +184,9 @@ const SetPinScreen = ({ navigation }) => {
           onPress={handleSave}
           disabled={saving}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Save PIN"
+          accessibilityState={{ disabled: saving }}
         >
           <Text style={styles.primaryButtonText}>Save PIN</Text>
         </TouchableOpacity>
@@ -185,10 +196,14 @@ const SetPinScreen = ({ navigation }) => {
           onPress={handleClear}
           disabled={saving}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Clear PIN"
+          accessibilityState={{ disabled: saving }}
         >
           <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Clear PIN</Text>
         </TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
     </View>
   );
 };

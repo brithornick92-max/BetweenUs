@@ -1,6 +1,6 @@
 # Frequently Asked Questions (FAQ)
 
-**Last Updated: February 16, 2026**
+**Last Updated: February 22, 2026**
 
 ---
 
@@ -262,7 +262,7 @@ Premium unlocks:
 - **Year Reflection** - A personalized narrative of your year together
 - **Surprise Tonight** - Spontaneous date suggestions tailored to you
 - **Custom rituals and routines** - Create your own traditions
-- **Data export** - Download your journal entries
+- **Data export** - Download your journals, prompts, memories, rituals, check-ins, vibes, and love notes
 - **Both partners get access** - Premium is per couple
 
 **Pricing:**
@@ -361,7 +361,7 @@ Yes! Your account syncs across devices:
 ## Content & Prompts
 
 ### How many prompts are there?
-We have 632 professionally crafted prompts across:
+We have 686 professionally crafted prompts across:
 - 5 heat levels
 - 12 categories
 - Multiple relationship stages
@@ -384,7 +384,7 @@ We love feedback! Send suggestions to:
 
 ### Do prompts repeat?
 Our smart system minimizes repetition:
-- 632 unique prompts
+- 686 unique prompts
 - Personalized selection
 - Tracks what you've seen
 - Fresh content regularly added
@@ -540,10 +540,18 @@ Currently:
 - More languages coming soon!
 - Request your language: brittanyapps@outlook.com
 
-### Can I export my journal entries?
-Yes! Premium users can:
-- Export journal entries as JSON data
-- Save your relationship history locally
+### Can I export my data?
+Yes! Premium users can export:
+- Journal entries
+- Prompt answers
+- Memories and milestones
+- Rituals
+- Check-ins
+- Vibes
+- Love notes
+- Account details (optional)
+
+All exported as JSON data you can save locally.
 
 ### Do you have a desktop version?
 Currently mobile-only:

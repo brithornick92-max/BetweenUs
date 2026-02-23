@@ -417,12 +417,14 @@ CREATE POLICY "Couple members can delete own media"
   );
 
 -- ============================================================================
--- PART 7: CLEANUP — Expire old partner link codes (optional cron)
--- If using pg_cron extension:
--- SELECT cron.schedule('cleanup-expired-codes', '0 * * * *',
---   $$DELETE FROM partner_link_codes WHERE expires_at < now() - interval '1 day' AND used_at IS NULL$$
--- );
+-- PART 7: CLEANUP — Expire old partner link codes (pg_cron)
+-- Requires: CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- Run hourly to clean expired, unused partner link codes older than 1 day.
 -- ============================================================================
+
+SELECT cron.schedule('cleanup-expired-codes', '0 * * * *',
+  $$DELETE FROM partner_link_codes WHERE expires_at < now() - interval '1 day' AND used_at IS NULL$$
+);
 
 -- 🎉 v3 SECURITY HARDENING COMPLETE
 -- ✅ calendar_events with Free-can-view / Premium-can-edit model

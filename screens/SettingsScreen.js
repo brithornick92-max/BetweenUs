@@ -12,6 +12,7 @@ import {
   TextInput,
   ActivityIndicator,
   Dimensions,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -273,10 +274,12 @@ export default function SettingsScreen({ navigation }) {
   return (
     <View style={[s.root, { backgroundColor: colors.background }]}>
       <SafeAreaView style={s.safe} edges={['top']}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           style={s.scroll}
           contentContainerStyle={s.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* ═══ TOP: Profile header area ═══ */}
           <View style={s.profileArea}>
@@ -401,6 +404,8 @@ export default function SettingsScreen({ navigation }) {
                         autoCapitalize="characters"
                         autoCorrect={false}
                         autoFocus
+                        accessibilityLabel="Partner invite code"
+                        accessibilityHint="Enter your partner's 6-character invite code"
                       />
                     </View>
                     <View style={s.codeBtnRow}>
@@ -604,6 +609,7 @@ export default function SettingsScreen({ navigation }) {
 
           <View style={{ height: 40 }} />
         </ScrollView>
+        </KeyboardAvoidingView>
 
         {/* ─── Date Picker ─── */}
         {showDatePicker && (

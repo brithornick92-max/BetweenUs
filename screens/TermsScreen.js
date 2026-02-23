@@ -48,7 +48,7 @@ const TermsScreen = ({ navigation, route }) => {
         <View style={styles.content}>
           <Text style={[styles.title, { color: colors.text }]}>Between Us - Terms of Service</Text>
           <Text style={[styles.date, { color: colors.textSecondary }]}>
-            Last Updated: February 3, 2026
+            Last Updated: February 22, 2026
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>1. Acceptance of Terms</Text>
@@ -78,11 +78,14 @@ const TermsScreen = ({ navigation, route }) => {
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>5. Subscription & Payment</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            • Premium subscriptions are billed monthly, annually, or as a one-time lifetime purchase{'\n'}
-            • Subscriptions automatically renew unless cancelled 24 hours before the renewal date{'\n'}
+            • Payment is charged to your Apple ID or Google Play account at confirmation of purchase{'\n'}
+            • Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period{'\n'}
+            • Your account will be charged for renewal within 24 hours prior to the end of the current period{'\n'}
+            • You can manage and cancel subscriptions in your device's Account Settings{'\n'}
+            • Any unused portion of a free trial is forfeited when you purchase a subscription{'\n'}
             • One subscription covers both partners when accounts are linked{'\n'}
-            • Refunds are handled according to Apple App Store and Google Play Store policies{'\n'}
-            • Prices: $7.99/month, $49.99/year, $69.99 lifetime
+            • Prices: $7.99/month, $49.99/year, $69.99 lifetime{'\n'}
+            • EU/UK users may have a 14-day right of withdrawal as provided by Apple/Google store policies
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>6. Privacy & Data</Text>

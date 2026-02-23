@@ -75,6 +75,20 @@ const ITEM_SPACING = (width - ITEM_WIDTH) / 2;
 // Standard Polaroid Background Color
 const POLAROID_WHITE = "#FAF9F6";
 
+// Stationery theme map for love notes (hoisted to module scope for FlatList perf)
+const STATIONERY_MAP = {
+  love:    { bg: ["#9A2E5E", "#7A1E4E"], emoji: "💌" },
+  heart:   { bg: ["#A8516E", "#8B3A5C"], emoji: "💕" },
+  sparkle: { bg: ["#6E4B7A", "#4A2E5E"], emoji: "✨" },
+  rose:    { bg: ["#B8606A", "#9A3E4E"], emoji: "🌹" },
+  sunset:  { bg: ["#D4856A", "#A85A4A"], emoji: "🌅" },
+  night:   { bg: ["#3A4A7A", "#1E2E5E"], emoji: "🌙" },
+};
+const STATIONERY_FALLBACK = [
+  STATIONERY_MAP.love, STATIONERY_MAP.heart, STATIONERY_MAP.sparkle,
+  STATIONERY_MAP.rose, STATIONERY_MAP.sunset, STATIONERY_MAP.night,
+];
+
 const MemoryCard = ({ item, index, scrollX, onPress, isLocked, colors }) => {
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [
@@ -299,12 +313,18 @@ export default function JournalScreen({ navigation }) {
   });
 
   const loadData = async () => {
-    const [j, n] = await Promise.all([
-      journalStorage.getEntries(),
-      DataLayer.getLoveNotes(),
-    ]);
-    setEntries(Array.isArray(j) ? j : []);
-    setLoveNotes(Array.isArray(n) ? n : []);
+    try {
+      const [j, n] = await Promise.all([
+        journalStorage.getEntries(),
+        DataLayer.getLoveNotes(),
+      ]);
+      setEntries(Array.isArray(j) ? j : []);
+      setLoveNotes(Array.isArray(n) ? n : []);
+    } catch {
+      // Graceful fallback — show empty state rather than crash
+      setEntries((prev) => prev);
+      setLoveNotes((prev) => prev);
+    }
   };
 
   useFocusEffect(
@@ -437,18 +457,6 @@ export default function JournalScreen({ navigation }) {
               }
               renderItem={({ item, index }) => {
                 const hasImage = !!item.imageUri;
-                const STATIONERY_MAP = {
-                  love:    { bg: ["#9A2E5E", "#7A1E4E"], emoji: "💌" },
-                  heart:   { bg: ["#A8516E", "#8B3A5C"], emoji: "💕" },
-                  sparkle: { bg: ["#6E4B7A", "#4A2E5E"], emoji: "✨" },
-                  rose:    { bg: ["#B8606A", "#9A3E4E"], emoji: "🌹" },
-                  sunset:  { bg: ["#D4856A", "#A85A4A"], emoji: "🌅" },
-                  night:   { bg: ["#3A4A7A", "#1E2E5E"], emoji: "🌙" },
-                };
-                const STATIONERY_FALLBACK = [
-                  STATIONERY_MAP.love, STATIONERY_MAP.heart, STATIONERY_MAP.sparkle,
-                  STATIONERY_MAP.rose, STATIONERY_MAP.sunset, STATIONERY_MAP.night,
-                ];
                 const stationery = (item.stationeryId && STATIONERY_MAP[item.stationeryId])
                   || STATIONERY_FALLBACK[index % STATIONERY_FALLBACK.length];
 

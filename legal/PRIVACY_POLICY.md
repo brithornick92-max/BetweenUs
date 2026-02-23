@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last Updated: February 16, 2026**
+**Last Updated: February 22, 2026**
 
 At Between Us, your privacy is our top priority. This Privacy Policy explains how we collect, use, protect, and share your information when you use our app.
 
@@ -77,7 +77,8 @@ We **never** collect:
 - Display personalized prompts based on relationship duration
 - Sync data between you and your partner
 - Save your journal entries and responses
-- Send notifications (if enabled)
+- Send notifications (if enabled): daily prompt reminders, partner activity alerts, weekly relationship recaps, and milestone celebrations
+- Collect aggregated analytics events (screen views, feature usage) server-side to improve the app
 - Provide customer support
 
 ### 2.2 To Improve the Service
@@ -193,7 +194,7 @@ We'll notify you unless legally prohibited.
 
 ### 5.1 Access Your Data
 - View all your data in the app
-- Export your journal entries
+- Export your data (journal entries, prompt answers, memories, rituals, check-ins, vibes, and love notes)
 - Download your account information
 - Request a copy of your data
 
@@ -274,10 +275,13 @@ Between Us is **not for children:**
 ### 9.1 Services We Use
 - **Supabase:** Encrypted data storage and authentication
 - **RevenueCat:** Subscription management
+- **Sentry:** Crash reporting, performance monitoring, and session replays (10% of sessions; 100% of sessions where an error occurs — replays capture screen interactions to help us reproduce and fix bugs). Also powers optional user feedback submission.
 - **Apple/Google:** Payment processing and app distribution
 
 ### 9.2 Their Privacy Policies
 - [Supabase Privacy Policy](https://supabase.com/privacy)
+- [RevenueCat Privacy Policy](https://www.revenuecat.com/privacy)
+- [Sentry Privacy Policy](https://sentry.io/privacy/)
 - [Apple Privacy Policy](https://www.apple.com/privacy/)
 - [Google Privacy Policy](https://policies.google.com/privacy)
 
@@ -374,4 +378,4 @@ We believe in transparency. We'll publish an annual report on:
 
 **Your privacy matters to us. If you have any questions or concerns, please reach out.**
 
-*Last Updated: February 16, 2026*
+*Last Updated: February 22, 2026*

@@ -37,7 +37,12 @@ async function getOrCreateKeyBytes() {
       const bytes = b64decode(existing);
       if (bytes?.length === nacl.secretbox.keyLength) return bytes;
     } catch (e) {
-      // fall through to regenerate
+      // Key exists but is corrupted — report before regenerating
+      const CrashReporting = require('./CrashReporting').default;
+      CrashReporting.captureException(
+        new Error('EncryptionService: device key corrupted, regenerating — previous ciphertext will be unreadable'),
+        { keyName: KEY_NAME }
+      );
     }
   }
 

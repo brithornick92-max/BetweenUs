@@ -527,7 +527,9 @@ const DataLayer = {
       }
     }
 
-    const textCipher = await E2EEncryption.encryptString(text, kt, cid);
+    const textCipher = text
+      ? await E2EEncryption.encryptString(text, kt, cid)
+      : null;
     const senderCipher = senderName
       ? await E2EEncryption.encryptString(senderName, kt, cid)
       : null;

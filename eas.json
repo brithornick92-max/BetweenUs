@@ -25,6 +25,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "brittanyapps@outlook.com",
+        "ascAppId": "6758961262",
+        "appleTeamId": "RFZSMR6K78"
+      }
+    }
   }
 }

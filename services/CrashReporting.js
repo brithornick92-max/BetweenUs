@@ -140,10 +140,11 @@ const CrashReporting = {
 
   /**
    * Wrap the root component with Sentry's error boundary if available.
-   * Falls back to passing children through unchanged.
+   * Must be called at module scope (export default CrashReporting.wrap(App)).
+   * Sentry.wrap does NOT require init() to have been called first.
    */
   wrap(RootComponent) {
-    if (!Sentry || !_initialized || !Sentry.wrap) return RootComponent;
+    if (!Sentry || !Sentry.wrap) return RootComponent;
     try {
       return Sentry.wrap(RootComponent);
     } catch {

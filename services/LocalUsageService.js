@@ -1,9 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+/**
+ * @deprecated Use FREE_LIMITS from utils/featureFlags.js instead.
+ * Kept only for backward compatibility — values now match featureFlags.
+ */
 export const FREE_TIER_LIMITS = {
-  promptsPerDay: 1,
-  visibleDates: 10,
-  journalEntriesVisible: 7,
+  promptsPerDay: 0,
+  visibleDates: 3,
+  journalEntriesVisible: 0,
   surpriseMeEnabled: false,
 };
 

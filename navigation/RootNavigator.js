@@ -5,7 +5,6 @@ import { useAppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { TYPOGRAPHY } from "../utils/theme";
-import * as Haptics from "expo-haptics";
 import ConnectionMemory from "../utils/connectionMemory";
 import AnalyticsService from "../services/AnalyticsService";
 
@@ -35,7 +34,6 @@ import HeatLevelSettingsScreen from "../screens/HeatLevelSettingsScreen";
 import NotificationSettingsScreen from "../screens/NotificationSettingsScreen";
 import PrivacySecuritySettingsScreen from "../screens/PrivacySecuritySettingsScreen";
 import PromptLibraryScreen from "../screens/PromptLibraryScreen";
-import RevenueCatDebugScreen from "../screens/RevenueCatDebugScreen";
 import SyncSetupScreen from "../screens/SyncSetupScreen";
 import AuthCallbackScreen from "../screens/AuthCallbackScreen";
 import PairingQRCodeScreen from "../screens/PairingQRCodeScreen";
@@ -51,6 +49,11 @@ import YearReflectionScreen from "../screens/YearReflectionScreen";
 
 // Tabs
 import Tabs from "./Tabs";
+
+// Lazy-load debug screen so it's excluded from production bundles
+const RevenueCatDebugScreen = __DEV__
+  ? require("../screens/RevenueCatDebugScreen").default
+  : () => null;
 
 const Stack = createNativeStackNavigator();
 
@@ -128,11 +131,7 @@ export default function RootNavigator() {
     keyboardHandlingEnabled: false,
   };
 
-  const handleNavigationStateChange = () => {
-    if (Platform.OS !== "web") {
-      Haptics.selectionAsync().catch(() => {});
-    }
-  };
+  // Haptics handled per-interaction in Tabs.js — no global listener needed
 
   // Screens that should NOT trigger "continue where you left off"
   const IGNORED_CONTINUITY_SCREENS = new Set([
@@ -161,7 +160,6 @@ export default function RootNavigator() {
         screenOptions={globalScreenOptions}
         screenListeners={{
           state: (e) => {
-            handleNavigationStateChange();
             handleStateChange(e.data?.state);
           },
         }}

@@ -1,5 +1,5 @@
 // screens/LoveNoteDetailScreen.js — View a single love note (E2EE)
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   Dimensions,
   Platform,
   Alert,
-  Share,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,7 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, { FadeIn, FadeInUp, useSharedValue, useAnimatedStyle, withTiming, withDelay } from "react-native-reanimated";
-import EnvelopeSVG from "../components/EnvelopeSVG";
+import LottieView from "lottie-react-native";
 
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
@@ -27,12 +26,12 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from "../utils/theme";
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 const STATIONERY_MAP = {
-  love: { emoji: "💌", gradient: ["#9A2E5E", "#7A1E4E"] },
-  heart: { emoji: "💕", gradient: ["#A8516E", "#8B3A5C"] },
-  sparkle: { emoji: "✨", gradient: ["#6E4B7A", "#4A2E5E"] },
-  rose: { emoji: "🌹", gradient: ["#B8606A", "#9A3E4E"] },
-  sunset: { emoji: "🌅", gradient: ["#D4856A", "#A85A4A"] },
-  night: { emoji: "🌙", gradient: ["#3A4A7A", "#1E2E5E"] },
+  love:    { emoji: "💗", gradient: ["#E8A0BF", "#BA6B8F"] },
+  heart:   { emoji: "💞", gradient: ["#F4C2C2", "#D4878F"] },
+  sparkle: { emoji: "🫧", gradient: ["#C8A2D4", "#8E6AA0"] },
+  rose:    { emoji: "🌷", gradient: ["#F2B5D4", "#C96B8E"] },
+  sunset:  { emoji: "🧡", gradient: ["#F8C8A4", "#E08860"] },
+  night:   { emoji: "🌌", gradient: ["#6C7EBB", "#3B4678"] },
 };
 
 function formatDate(ts) {
@@ -53,6 +52,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [envelopeOpen, setEnvelopeOpen] = useState(false);
+  const lottieRef = useRef(null);
   // Animation value: 0 = closed, 1 = open
   const openAnim = useSharedValue(0);
 
@@ -80,6 +80,15 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
     })();
     return () => { active = false; };
   }, [noteId]);
+
+  // Animation styles — must be above early returns to preserve hook order
+  const bodyAnim = useAnimatedStyle(() => ({
+    opacity: openAnim.value,
+    transform: [
+      { translateY: withTiming(openAnim.value ? 0 : 40, { duration: 400 }) },
+      { scale: withTiming(openAnim.value ? 1 : 0.95, { duration: 400 }) },
+    ],
+  }));
 
   const stationery = note?.stationeryId
     ? (STATIONERY_MAP[note.stationeryId] || STATIONERY_MAP.love)
@@ -109,17 +118,6 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
     );
   };
 
-  const handleShare = async () => {
-    try {
-      await Haptics.selectionAsync();
-      await Share.share({
-        message: `💌 Love Note\n\n"${note.text}"\n\n— Shared from Between Us`,
-      });
-    } catch {
-      // User cancelled
-    }
-  };
-
   if (loading) {
     return (
       <View style={[styles.container, { alignItems: "center", justifyContent: "center" }]}> 
@@ -136,41 +134,47 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
     );
   }
 
-  // Envelope open animation style
-  const flapAnim = useAnimatedStyle(() => ({
-    transform: [
-      { rotateX: `${-60 + openAnim.value * 60}deg` }, // -60deg (closed) to 0deg (open)
-      { perspective: 600 },
-    ],
-    zIndex: 2,
-  }));
-  const bodyAnim = useAnimatedStyle(() => ({
-    opacity: openAnim.value,
-    transform: [
-      { translateY: withTiming(openAnim.value ? 0 : 40, { duration: 400 }) },
-      { scale: withTiming(openAnim.value ? 1 : 0.95, { duration: 400 }) },
-    ],
-  }));
-
   return (
     <View style={styles.container}>
       {/* Envelope animation overlay */}
       {!envelopeOpen && (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}>
-          <Animated.View style={[{ position: "absolute", top: "30%" }, flapAnim]}>
-            <EnvelopeSVG width={240} height={150} color="#fff" border="#e0cfc2" />
-          </Animated.View>
-          <TouchableOpacity
-            style={{ marginTop: 180, backgroundColor: colors.primary, borderRadius: 24, paddingHorizontal: 32, paddingVertical: 14 }}
-            onPress={() => {
-              openAnim.value = withTiming(1, { duration: 700 });
-              setTimeout(() => setEnvelopeOpen(true), 700);
-            }}
-            activeOpacity={0.85}
-          >
-            <Text style={{ color: "#fff", fontSize: 18, fontWeight: "600" }}>Open Envelope</Text>
-          </TouchableOpacity>
-        </View>
+        <SafeAreaView style={styles.envelopeContainer}>
+          {/* Back button */}
+          <View style={styles.envelopeTopBar}>
+            <TouchableOpacity
+              style={[styles.circleButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="chevron-left" size={26} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Centered Lottie envelope + open prompt */}
+          <View style={styles.envelopeCenterArea}>
+            <Text style={[styles.envelopeLabel, { color: colors.textMuted }]}>You have a love note</Text>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                lottieRef.current?.play();
+                setTimeout(() => setEnvelopeOpen(true), 2200);
+              }}
+            >
+              <View style={styles.envelopeWrapper}>
+                <LottieView
+                  ref={lottieRef}
+                  source={require("../assets/envelope-love.json")}
+                  style={styles.lottieEnvelope}
+                  autoPlay={false}
+                  loop={false}
+                  speed={1.2}
+                />
+              </View>
+            </TouchableOpacity>
+            <Text style={[styles.envelopeTapHint, { color: colors.textMuted }]}>Tap to open</Text>
+          </View>
+        </SafeAreaView>
       )}
       {envelopeOpen && (
         <>
@@ -195,14 +199,9 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                 <MaterialCommunityIcons name="chevron-left" size={26} color="#FFF" />
               </TouchableOpacity>
 
-              <View style={styles.topBarActions}>
-                <TouchableOpacity style={styles.circleButton} onPress={handleShare} activeOpacity={0.8}>
-                  <MaterialCommunityIcons name="share-variant-outline" size={20} color="#FFF" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.circleButton} onPress={handleDelete} activeOpacity={0.8}>
-                  <MaterialCommunityIcons name="delete-outline" size={20} color="#FFF" />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity style={styles.circleButton} onPress={handleDelete} activeOpacity={0.8}>
+                <MaterialCommunityIcons name="delete-outline" size={20} color="#FFF" />
+              </TouchableOpacity>
             </Animated.View>
 
             {/* Center card */}
@@ -226,7 +225,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                   {note.senderName && (
                     <Text style={styles.senderLabel}>From {note.senderName}</Text>
                   )}
-                  <Text style={styles.noteText}>{note.text}</Text>
+                  {!!note.text && <Text style={styles.noteText}>{note.text}</Text>}
                   <Text style={styles.dateText}>{formatDate(note.createdAt)}</Text>
                 </View>
               </Animated.View>
@@ -260,6 +259,44 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
 const createStyles = (colors) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
+    envelopeContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    envelopeTopBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: SPACING.lg,
+      paddingTop: SPACING.sm,
+    },
+    envelopeCenterArea: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingBottom: SPACING.xxl,
+    },
+    envelopeWrapper: {
+      width: 300,
+      height: 300,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    lottieEnvelope: {
+      width: 300,
+      height: 300,
+    },
+    envelopeLabel: {
+      fontSize: 16,
+      fontWeight: "500",
+      letterSpacing: 0.3,
+      marginBottom: SPACING.xl,
+    },
+    envelopeTapHint: {
+      fontSize: 13,
+      fontWeight: "400",
+      marginTop: SPACING.lg,
+      opacity: 0.6,
+    },
     fullBg: {
       ...StyleSheet.absoluteFillObject,
     },
@@ -279,10 +316,7 @@ const createStyles = (colors) =>
       paddingHorizontal: SPACING.lg,
       paddingTop: SPACING.sm,
     },
-    topBarActions: {
-      flexDirection: "row",
-      gap: SPACING.sm,
-    },
+
     circleButton: {
       width: 44,
       height: 44,
@@ -296,11 +330,11 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      paddingHorizontal: SPACING.xl,
+      paddingHorizontal: SPACING.lg,
     },
     card: {
-      width: screenWidth * 0.85,
-      maxHeight: screenHeight * 0.6,
+      width: screenWidth - SPACING.lg * 2,
+      height: screenHeight * 0.72,
       borderRadius: BORDER_RADIUS.xl,
       overflow: "hidden",
       borderWidth: 1,

@@ -8,6 +8,8 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -77,14 +79,15 @@ const DeleteAccountScreen = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Go back">
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Delete Account</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.content}>
           {/* Warning Icon */}
           <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
@@ -190,6 +193,8 @@ const DeleteAccountScreen = ({ navigation }) => {
               onChangeText={setConfirmText}
               autoCapitalize="characters"
               autoCorrect={false}
+              accessibilityLabel="Confirmation field"
+              accessibilityHint="Type DELETE in capital letters to confirm account deletion"
             />
           </View>
 
@@ -203,6 +208,9 @@ const DeleteAccountScreen = ({ navigation }) => {
             ]}
             onPress={handleDeleteAccount}
             disabled={isDeleting || confirmText.toLowerCase() !== 'delete'}
+            accessibilityRole="button"
+            accessibilityLabel="Delete my account forever"
+            accessibilityState={{ disabled: isDeleting || confirmText.toLowerCase() !== 'delete' }}
           >
             {isDeleting ? (
                 <ActivityIndicator color={colors.surface} />
@@ -219,6 +227,8 @@ const DeleteAccountScreen = ({ navigation }) => {
             style={[styles.cancelButton, { borderColor: colors.border }]}
             onPress={() => navigation.goBack()}
             disabled={isDeleting}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel, keep my account"
           >
             <Text style={[styles.cancelButtonText, { color: colors.text }]}>
               Cancel, Keep My Account
@@ -233,6 +243,7 @@ const DeleteAccountScreen = ({ navigation }) => {
           </Text>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };

@@ -6,6 +6,9 @@ import { NavigationContainer, createNavigationContainerRef } from "@react-naviga
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { AppState, View, Text } from "react-native";
+
+// Keep splash visible until fonts + init complete
+SplashScreen.preventAutoHideAsync();
 import { useFonts } from "expo-font";
 import {
   PlayfairDisplay_700Bold,
@@ -36,10 +39,14 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import CrashReporting from "./services/CrashReporting";
 import AnalyticsService from "./services/AnalyticsService";
 import DeepLinkHandler from "./services/DeepLinkHandler";
+import { addNotificationResponseListener } from "./utils/notifications";
 import revenueCatService from "./services/RevenueCatService";
 import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
 import { cloudSyncStorage } from "./utils/storage";
+
+// Initialize Sentry BEFORE the component tree mounts
+CrashReporting.init();
 
 // Dev error helpers: keep helpful console.error behavior in DEV only
 if (__DEV__) {
@@ -197,6 +204,14 @@ function AppContent() {
     }
   }, [navReady, paywallVisible, paywallFeature]);
 
+  // Wire up notification tap → deep link routing
+  useEffect(() => {
+    const sub = addNotificationResponseListener((response) => {
+      DeepLinkHandler.handleNotificationResponse(response);
+    });
+    return () => sub?.remove();
+  }, []);
+
   const handleUnlock = () => {
     setIsLocked(false);
     backgroundTimeRef.current = null;
@@ -274,7 +289,7 @@ function App() {
   }, [fontsLoaded]);
 
   useEffect(() => {
-    CrashReporting.init();
+    // CrashReporting.init() already called at module scope above
     AnalyticsService.init({}).catch(() => {});
     initializeRevenueCat();
     registerAutoClearDecryptedCache();

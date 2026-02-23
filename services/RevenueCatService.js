@@ -97,7 +97,7 @@ class RevenueCatService {
       this.ensureConfigured();
       await Purchases.logOut();
       this.currentUserId = null;
-      console.log('User logged out');
+      if (__DEV__) console.log('User logged out');
     } catch (error) {
       console.error('Failed to logout user:', error);
       throw error;

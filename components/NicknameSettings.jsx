@@ -60,6 +60,8 @@ export default function NicknameSettings({ onConfigChanged }) {
           placeholder="Your nickname, initials, or 'my love'..."
           placeholderTextColor={colors.textMuted + '60'}
           maxLength={30}
+          accessibilityLabel="Your nickname"
+          accessibilityHint="Enter what the app should call you"
         />
       </View>
 
@@ -74,6 +76,8 @@ export default function NicknameSettings({ onConfigChanged }) {
           placeholder="Their nickname, initials, or name..."
           placeholderTextColor={colors.textMuted + '60'}
           maxLength={30}
+          accessibilityLabel="Partner's nickname"
+          accessibilityHint="Enter what the app should call your partner"
         />
       </View>
 
@@ -99,6 +103,9 @@ export default function NicknameSettings({ onConfigChanged }) {
                 ]}
                 onPress={() => selectTone(tone.id)}
                 activeOpacity={0.8}
+                accessibilityRole="radio"
+                accessibilityLabel={`${tone.label} tone`}
+                accessibilityState={{ selected: isActive }}
               >
                 <MaterialCommunityIcons
                   name={tone.icon}

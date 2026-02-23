@@ -33,7 +33,7 @@ try {
   console.error("❌ ContentLoader: Failed to load dates", e?.message || e);
 }
 
-console.log("🔵 ContentLoader: Module loading complete");
+if (__DEV__) console.log("🔵 ContentLoader: Module loading complete");
 
 // =======================
 // SAFETY HELPERS

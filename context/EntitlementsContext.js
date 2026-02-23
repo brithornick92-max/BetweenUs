@@ -193,8 +193,10 @@ export const EntitlementsProvider = ({ children }) => {
 
   // ─── Derived State ──────────────────────────────────────────────────────────
 
-  // TODO: Remove this dev override when done testing
-  const isPremiumEffective = __DEV__ ? true : !!(isPremiumSelf || isPremiumCouple);
+  // 🔧 DEV ONLY: Temporary premium override — set to false when done testing
+  const DEV_FORCE_PREMIUM = __DEV__;
+
+  const isPremiumEffective = DEV_FORCE_PREMIUM || !!(isPremiumSelf || isPremiumCouple);
 
   // Determine source
   useEffect(() => {

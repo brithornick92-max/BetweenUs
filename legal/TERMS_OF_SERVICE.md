@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last Updated: February 16, 2026**
+**Last Updated: February 22, 2026**
 
 Welcome to Between Us! These Terms of Service ("Terms") govern your use of the Between Us mobile application and related services (collectively, the "Service"). By using Between Us, you agree to these Terms.
 
@@ -90,11 +90,13 @@ You agree not to post content that:
 - Prices may change with 30 days notice
 
 ### 5.2 Billing
-- Monthly and yearly subscriptions auto-renew unless cancelled
-- You'll be charged at the start of each billing period
+- Payment is charged to your Apple ID or Google Play account at confirmation of purchase
+- Monthly and yearly subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period
+- Your account will be charged for renewal within 24 hours prior to the end of the current period at the same price
+- You can manage and cancel subscriptions in your device's Account Settings (iOS: Settings > Apple ID > Subscriptions; Android: Google Play > Subscriptions)
+- Any unused portion of a free trial period is forfeited when you purchase a subscription
 - Lifetime subscriptions are one-time payments with no renewal
-- Cancellation takes effect at the end of the current period (monthly/yearly only)
-- No refunds for partial periods
+- EU/UK users may have a 14-day right of withdrawal for digital purchases, as provided by Apple/Google store policies
 
 ### 5.3 Partner Access
 - Premium subscription is per couple, not per person

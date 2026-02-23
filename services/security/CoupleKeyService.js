@@ -61,7 +61,14 @@ const CoupleKeyService = {
           };
           return _deviceKpCache;
         }
-      } catch { /* fall through to regenerate */ }
+      } catch (e) {
+        // Keypair corrupted — report before regenerating
+        const CrashReporting = require('../CrashReporting').default;
+        CrashReporting.captureException(
+          new Error('CoupleKeyService: device keypair corrupted, regenerating — existing couple key wrapping will break'),
+          { keyName: DEVICE_KP_NAME, error: e?.message }
+        );
+      }
     }
 
     // Generate fresh keypair

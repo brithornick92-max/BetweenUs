@@ -31,14 +31,14 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS, ICON_SIZES } from "../utils/theme";
 const { width: screenWidth } = Dimensions.get("window");
 
 const STATIONERY_OPTIONS = [
-  { id: "love",    image: require("../assets/intimate.png"), gradient: ["#9A2E5E", "#7A1E4E"], label: "Intimate" },
-  { id: "fun",     image: require("../assets/fun.png"),      gradient: ["#F5A623", "#F7D046"], label: "Fun" },
-  { id: "sexy",    image: require("../assets/sexy.png"),     gradient: ["#C0392B", "#8E2323"], label: "Sexy" },
-  { id: "spicy",   image: require("../assets/spicy.png"),    gradient: ["#D35400", "#A83210"], label: "Spicy" },
-  { id: "sweet",   image: require("../assets/sweet.png"),    gradient: ["#D4856A", "#A85A4A"], label: "Sweet" },
-  { id: "flirty",  image: require("../assets/flirty.png"),   gradient: ["#8E44AD", "#6C3483"], label: "Flirty" },
-  { id: "classic", image: require("../assets/classic.png"),  gradient: ["#5D6D7E", "#2C3E50"], label: "Classic" },
-  { id: "dreamy",  image: require("../assets/dreamy.png"),   gradient: ["#3A4A7A", "#1E2E5E"], label: "Dreamy" },
+  { id: "love",    emoji: "💗", gradient: ["#E8A0BF", "#BA6B8F"], label: "Intimate" },
+  { id: "fun",     emoji: "🎉", gradient: ["#FFD966", "#F5A623"], label: "Fun" },
+  { id: "sexy",    emoji: "🔥", gradient: ["#E74C3C", "#8E2323"], label: "Sexy" },
+  { id: "spicy",   emoji: "🌶️", gradient: ["#FF8C42", "#C0392B"], label: "Spicy" },
+  { id: "sweet",   emoji: "🍬", gradient: ["#F8C8DC", "#E891B2"], label: "Sweet" },
+  { id: "flirty",  emoji: "😘", gradient: ["#C39BD3", "#8E44AD"], label: "Flirty" },
+  { id: "classic", emoji: "✉️", gradient: ["#AEB6BF", "#5D6D7E"], label: "Classic" },
+  { id: "dreamy",  emoji: "☁️", gradient: ["#A8C0E8", "#6C7EBB"], label: "Dreamy" },
 ];
 
 const PROMPTS = [
@@ -145,8 +145,11 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   };
 
   const handleSend = async () => {
-    if (!text.trim()) {
-      Alert.alert("Write something", "Your love note needs at least a few words. 💕");
+    const hasText = text.trim().length > 0;
+    const hasImg = !!imageUri;
+
+    if (!hasText && !hasImg) {
+      Alert.alert("Add something", "Write a message or add a photo to send. 💕");
       return;
     }
 
@@ -154,7 +157,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     try {
       await DataLayer.saveLoveNote({
-        text: text.trim(),
+        text: hasText ? text.trim() : null,
         imageUri: imageUri || null,
         stationeryId: selectedStationery.id,
         senderName: senderName || null,
@@ -222,9 +225,9 @@ export default function ComposeLoveNoteScreen({ navigation }) {
             </View>
 
             <TouchableOpacity
-              style={[styles.sendButton, !text.trim() && styles.sendButtonDisabled]}
+              style={[styles.sendButton, (!text.trim() && !imageUri) && styles.sendButtonDisabled]}
               onPress={handleSend}
-              disabled={isSending || !text.trim()}
+              disabled={isSending || (!text.trim() && !imageUri)}
               activeOpacity={0.85}
             >
               <Text style={styles.sendText}>{isSending ? "…" : "Send"}</Text>
@@ -243,10 +246,9 @@ export default function ComposeLoveNoteScreen({ navigation }) {
                 {imageUri ? (
                   <Image source={{ uri: imageUri }} style={styles.previewImage} />
                 ) : (
-                  <>
-                    <Image source={selectedStationery.image} style={styles.previewStationeryImage} blurRadius={1} />
-                    <LinearGradient colors={previewBg} style={styles.previewGradientOverlay} />
-                  </>
+                  <LinearGradient colors={previewBg} style={styles.previewGradientFill}>
+                    <Text style={styles.previewBgEmoji}>{selectedStationery.emoji}</Text>
+                  </LinearGradient>
                 )}
                 <LinearGradient
                   colors={["transparent", "rgba(0,0,0,0.65)"]}
@@ -286,7 +288,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
                           isActive && { borderColor: colors.text, borderWidth: 2 },
                         ]}
                       >
-                        <Image source={opt.image} style={styles.stationeryImage} />
+                        <Text style={styles.stationeryEmoji}>{opt.emoji}</Text>
                       </LinearGradient>
                       <Text style={[styles.stationeryLabel, isActive && { color: colors.text }]}>
                         {opt.label}
@@ -343,14 +345,13 @@ export default function ComposeLoveNoteScreen({ navigation }) {
               <TextInput
                 ref={inputRef}
                 style={styles.textInput}
-                placeholder="Write from the heart…"
+                placeholder="Add a message (optional)…"
                 placeholderTextColor={colors.text + "40"}
                 value={text}
                 onChangeText={handleTextChange}
                 multiline
                 scrollEnabled={false}
                 selectionColor={colors.primary}
-                autoFocus
               />
             </Animated.View>
 
@@ -459,15 +460,14 @@ const createStyles = (colors) =>
     previewImage: {
       ...StyleSheet.absoluteFillObject,
     },
-    previewStationeryImage: {
+    previewGradientFill: {
       ...StyleSheet.absoluteFillObject,
-      width: "100%",
-      height: "100%",
-      resizeMode: "cover",
+      alignItems: "center",
+      justifyContent: "center",
     },
-    previewGradientOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      opacity: 0.45,
+    previewBgEmoji: {
+      fontSize: 72,
+      opacity: 0.15,
     },
     previewOverlay: {
       ...StyleSheet.absoluteFillObject,
@@ -507,11 +507,8 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: "transparent",
     },
-    stationeryImage: {
-      width: 36,
-      height: 36,
-      borderRadius: 8,
-      resizeMode: "cover",
+    stationeryEmoji: {
+      fontSize: 22,
     },
     stationeryLabel: {
       color: colors.textMuted,

@@ -39,7 +39,7 @@ export default function InsideJokesScreen({ navigation }) {
             Your private language vault — nicknames, jokes, and shared references — is a premium feature.
           </Text>
           <TouchableOpacity
-            onPress={() => showPaywall?.('unlimitedJournalHistory')}
+            onPress={() => showPaywall?.('insideJokes')}
             style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 }}
             activeOpacity={0.85}
           >

@@ -12,10 +12,10 @@ beforeEach(() => {
 });
 
 describe('FREE_TIER_LIMITS', () => {
-  it('defines correct limits', () => {
-    expect(FREE_TIER_LIMITS.promptsPerDay).toBe(1);
-    expect(FREE_TIER_LIMITS.visibleDates).toBe(10);
-    expect(FREE_TIER_LIMITS.journalEntriesVisible).toBe(7);
+  it('defines correct limits matching featureFlags.FREE_LIMITS', () => {
+    expect(FREE_TIER_LIMITS.promptsPerDay).toBe(0);
+    expect(FREE_TIER_LIMITS.visibleDates).toBe(3);
+    expect(FREE_TIER_LIMITS.journalEntriesVisible).toBe(0);
     expect(FREE_TIER_LIMITS.surpriseMeEnabled).toBe(false);
   });
 });

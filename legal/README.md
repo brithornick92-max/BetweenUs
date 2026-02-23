@@ -349,7 +349,7 @@ Before launching Between Us:
 
 ---
 
-**Last Updated:** February 3, 2026  
+**Last Updated:** February 22, 2026  
 **Version:** 1.0  
 **Status:** ✅ Ready for Production
 

@@ -41,7 +41,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
       try {
         offerings = await RevenueCatService.getOfferings();
       } catch (e) {
-        console.log('Could not load offerings:', e);
+        if (__DEV__) console.log('Could not load offerings:', e);
       }
 
       setData({

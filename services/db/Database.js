@@ -203,43 +203,64 @@ async function migrate(db) {
 
   // v2: Add sync_source column (prevents pull→push loops)
   if (user_version < 2) {
-    const tables = [
-      'journal_entries', 'prompt_answers', 'memories',
-      'rituals', 'check_ins', 'vibes', 'attachments',
-    ];
-    for (const t of tables) {
-      await db.execAsync(
-        `ALTER TABLE ${t} ADD COLUMN sync_source TEXT DEFAULT 'local';`
-      );
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      const tables = [
+        'journal_entries', 'prompt_answers', 'memories',
+        'rituals', 'check_ins', 'vibes', 'attachments',
+      ];
+      for (const t of tables) {
+        await db.execAsync(
+          `ALTER TABLE ${t} ADD COLUMN sync_source TEXT DEFAULT 'local';`
+        );
+      }
+      await db.execAsync('PRAGMA user_version = 2;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
     }
-    await db.execAsync('PRAGMA user_version = 2;');
   }
 
   // v3: Add encrypted metadata columns (mood_cipher, tags_cipher, heat_level_cipher)
   if (user_version < 3) {
-    // journal_entries: mood + tags can be encrypted
-    await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN mood_cipher TEXT;`);
-    await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN tags_cipher TEXT;`);
-    // prompt_answers: heat_level can be encrypted
-    await db.execAsync(`ALTER TABLE prompt_answers ADD COLUMN heat_level_cipher TEXT;`);
-    // memories: mood can be encrypted
-    await db.execAsync(`ALTER TABLE memories ADD COLUMN mood_cipher TEXT;`);
-    // check_ins: mood can be encrypted
-    await db.execAsync(`ALTER TABLE check_ins ADD COLUMN mood_cipher TEXT;`);
-    await db.execAsync('PRAGMA user_version = 3;');
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      // journal_entries: mood + tags can be encrypted
+      await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN mood_cipher TEXT;`);
+      await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN tags_cipher TEXT;`);
+      // prompt_answers: heat_level can be encrypted
+      await db.execAsync(`ALTER TABLE prompt_answers ADD COLUMN heat_level_cipher TEXT;`);
+      // memories: mood can be encrypted
+      await db.execAsync(`ALTER TABLE memories ADD COLUMN mood_cipher TEXT;`);
+      // check_ins: mood can be encrypted
+      await db.execAsync(`ALTER TABLE check_ins ADD COLUMN mood_cipher TEXT;`);
+      await db.execAsync('PRAGMA user_version = 3;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
   }
 
   // v4: Add missing updated_at / deleted_at to vibes table
   if (user_version < 4) {
+    await db.execAsync('BEGIN TRANSACTION;');
     try {
-      await db.execAsync(`ALTER TABLE vibes ADD COLUMN updated_at TEXT;`);
-    } catch { /* column may already exist */ }
-    try {
-      await db.execAsync(`ALTER TABLE vibes ADD COLUMN deleted_at TEXT;`);
-    } catch { /* column may already exist */ }
-    // Backfill: set updated_at = created_at for existing rows
-    await db.execAsync(`UPDATE vibes SET updated_at = created_at WHERE updated_at IS NULL;`);
-    await db.execAsync('PRAGMA user_version = 4;');
+      try {
+        await db.execAsync(`ALTER TABLE vibes ADD COLUMN updated_at TEXT;`);
+      } catch { /* column may already exist */ }
+      try {
+        await db.execAsync(`ALTER TABLE vibes ADD COLUMN deleted_at TEXT;`);
+      } catch { /* column may already exist */ }
+      // Backfill: set updated_at = created_at for existing rows
+      await db.execAsync(`UPDATE vibes SET updated_at = created_at WHERE updated_at IS NULL;`);
+      await db.execAsync('PRAGMA user_version = 4;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
   }
 
   // v5: Love notes table (E2EE text + sender + photo attachment)

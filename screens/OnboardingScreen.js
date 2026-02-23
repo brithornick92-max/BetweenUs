@@ -221,6 +221,8 @@ export default function OnboardingScreen({ navigation }) {
             placeholderTextColor={colors.text + '40'}
             value={myName}
             onChangeText={setMyName}
+            accessibilityLabel="Your name"
+            accessibilityHint="Enter your first name"
           />
           <Text style={styles.madLibsText}>and I am building a life with</Text>
           <TextInput
@@ -229,6 +231,8 @@ export default function OnboardingScreen({ navigation }) {
             placeholderTextColor={colors.text + '40'}
             value={partnerName}
             onChangeText={setPartnerName}
+            accessibilityLabel="Partner's name"
+            accessibilityHint="Enter your partner's first name"
           />
         </View>
 
@@ -241,6 +245,9 @@ export default function OnboardingScreen({ navigation }) {
               setShowDatePicker(true);
             }}
             style={styles.dateDisplay}
+            accessibilityRole="button"
+            accessibilityLabel={`Anniversary date: ${anniversaryDate.toLocaleDateString('en-US')}`}
+            accessibilityHint="Tap to change your relationship start date"
           >
             <Text style={styles.dateText}>
               {anniversaryDate.toLocaleDateString('en-US')}
@@ -330,6 +337,8 @@ export default function OnboardingScreen({ navigation }) {
             transitionTo(2);
           }}
           disabled={showDatePicker}
+          accessibilityRole="button"
+          accessibilityLabel="Continue to preferences"
         >
           <Text style={styles.primaryButtonText}>Continue</Text>
         </TouchableOpacity>
@@ -471,6 +480,10 @@ export default function OnboardingScreen({ navigation }) {
               style={styles.generateInviteButton}
               onPress={handleGenerateInvitation}
               disabled={isGenerating}
+              accessibilityRole="button"
+              accessibilityLabel="Generate invitation"
+              accessibilityHint="Creates a code to invite your partner"
+              accessibilityState={{ disabled: isGenerating }}
             >
               {isGenerating ? (
                 <ActivityIndicator color={colors.background} />
@@ -504,13 +517,15 @@ export default function OnboardingScreen({ navigation }) {
                 Clipboard.setStringAsync(inviteCode);
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               }}
+              accessibilityRole="button"
+              accessibilityLabel={`Invite code: ${inviteCode}. Tap to copy.`}
             >
               <Text style={styles.codeLabel}>INVITE CODE</Text>
               <Text style={styles.codeText}>{inviteCode}</Text>
               <Feather name="copy" size={16} color={colors.primary} />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.shareSlot} onPress={handleShare}>
+            <TouchableOpacity style={styles.shareSlot} onPress={handleShare} accessibilityRole="button" accessibilityLabel="Send invitation to partner">
               <LinearGradient
                 colors={[colors.primary, colors.primary + "CC"]}
                 start={{x: 0, y: 0}}

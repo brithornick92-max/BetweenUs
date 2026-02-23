@@ -28,6 +28,8 @@ export const PremiumFeature = Object.freeze({
   CALENDAR: 'calendar',
   PARTNER_LINKING: 'partnerLinking',
   PROMPT_RESPONSES: 'promptResponses',
+  INSIDE_JOKES: 'insideJokes',
+  YEAR_REFLECTION: 'yearReflection',
 });
 
 // ─── Guard Behavior Enum ────────────────────────────────────────────────────────
@@ -135,7 +137,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     name: 'Unlimited Date Ideas',
-    description: 'Full catalog with diverse date grouping',
+    description: 'Full catalog of date ideas with multi-dimensional filtering by mood, style, and budget',
     icon: '🌹',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
@@ -151,7 +153,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.UNLIMITED_JOURNAL_HISTORY]: {
     name: 'Full Journal History',
-    description: 'See all your journal entries, not just the last 7',
+    description: 'Full journal access — write, save, and revisit all your entries',
     icon: '📖',
     category: 'memory',
     guardBehavior: GuardBehavior.BLUR,
@@ -199,7 +201,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.EDITORIAL_PROMPTS]: {
     name: 'Editorial Prompts',
-    description: 'Curated editorial prompt experience',
+    description: 'Editorially curated deep-conversation prompts with themed seasons and partner reveal',
     icon: '✍️',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
@@ -207,7 +209,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.VIBE_SIGNAL]: {
     name: 'Vibe Signal',
-    description: 'Send and receive vibe signals',
+    description: 'Share your emotional state with your partner and stay in tune throughout the day',
     icon: '📡',
     category: 'connection',
     guardBehavior: GuardBehavior.BLOCK,
@@ -215,7 +217,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.NIGHT_RITUAL_MODE]: {
     name: 'Night Ritual Mode',
-    description: 'Custom night ritual section',
+    description: 'Guided bedtime connection rituals for winding down together',
     icon: '🌜',
     category: 'ritual',
     guardBehavior: GuardBehavior.HIDE,
@@ -269,6 +271,22 @@ export const FEATURE_META = Object.freeze({
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Capture your thoughts and grow together',
   },
+  [PremiumFeature.INSIDE_JOKES]: {
+    name: 'Inside Jokes Vault',
+    description: 'A private vault for your nicknames, inside jokes, and shared references',
+    icon: '🤫',
+    category: 'memory',
+    guardBehavior: GuardBehavior.BLOCK,
+    emotionalValue: 'Celebrate the language only you two share',
+  },
+  [PremiumFeature.YEAR_REFLECTION]: {
+    name: 'Year in Review',
+    description: 'A personalized recap of your relationship milestones, memories, and growth over the year',
+    icon: '📆',
+    category: 'memory',
+    guardBehavior: GuardBehavior.HIDE,
+    emotionalValue: 'See how far you\'ve come together',
+  },
 });
 
 // ─── Paywall Feature List (live + premium-gated) ─────────────────────────────
@@ -286,6 +304,8 @@ export const PAYWALL_FEATURE_IDS = Object.freeze([
   PremiumFeature.VIBE_SIGNAL,
   PremiumFeature.EDITORIAL_PROMPTS,
   PremiumFeature.UNLIMITED_JOURNAL_HISTORY,
+  PremiumFeature.INSIDE_JOKES,
+  PremiumFeature.YEAR_REFLECTION,
 ]);
 
 /**

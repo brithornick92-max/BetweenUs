@@ -160,4 +160,4 @@ We make money from subscriptions, not from your data.
 ---
 
 **Read the full Privacy Policy:** See PRIVACY_POLICY.md
-**Last Updated:** February 16, 2026
+**Last Updated:** February 22, 2026

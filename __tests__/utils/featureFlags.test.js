@@ -23,9 +23,9 @@ import {
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
 describe('PremiumFeature enum', () => {
-  it('contains all 19 features', () => {
+  it('contains all 21 features', () => {
     const features = Object.keys(PremiumFeature);
-    expect(features.length).toBe(19);
+    expect(features.length).toBe(21);
   });
 
   it('is frozen (immutable)', () => {

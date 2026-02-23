@@ -145,6 +145,8 @@ export default function AuthScreen() {
                     returnKeyType="next"
                     onSubmitEditing={() => emailRef.current?.focus()}
                     blurOnSubmit={false}
+                    accessibilityLabel="Your name"
+                    accessibilityHint="Enter your display name"
                   />
                 </View>
               )}
@@ -171,6 +173,8 @@ export default function AuthScreen() {
                   returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   blurOnSubmit={false}
+                  accessibilityLabel="Email address"
+                  accessibilityHint="Enter your email to sign in or create an account"
                 />
               </View>
 
@@ -194,6 +198,7 @@ export default function AuthScreen() {
                   returnKeyType={isSignUp ? "next" : "done"}
                   onSubmitEditing={isSignUp ? () => confirmRef.current?.focus() : handleAuth}
                   blurOnSubmit={!isSignUp}
+                  accessibilityLabel="Password"
                 />
               </View>
 
@@ -216,8 +221,7 @@ export default function AuthScreen() {
                     textContentType="oneTimeCode"
                     autoComplete="off"
                     returnKeyType="done"
-                    onSubmitEditing={handleAuth}
-                  />
+                    onSubmitEditing={handleAuth}                    accessibilityLabel="Confirm password"                  />
                 </View>
               )}
 
@@ -227,6 +231,9 @@ export default function AuthScreen() {
                 onPress={handleAuth}
                 disabled={loading}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={loading ? "Please wait" : isSignUp ? "Create Account" : "Sign In"}
+                accessibilityState={{ disabled: loading }}
               >
                 <View
                   style={styles.authButtonGradient}
@@ -242,6 +249,8 @@ export default function AuthScreen() {
                 onPress={toggleMode}
                 disabled={loading}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={isSignUp ? "Switch to sign in" : "Switch to sign up"}
               >
                 <Text style={styles.toggleText}>
                   {isSignUp

@@ -27,6 +27,7 @@ import Database from '../db/Database';
 import E2EEncryption from '../e2ee/E2EEncryption';
 import EncryptedAttachments from '../e2ee/EncryptedAttachments';
 import { supabase, TABLES } from '../../config/supabase';
+import CrashReporting from '../CrashReporting';
 
 // ─── Config ─────────────────────────────────────────────────────────
 
@@ -38,8 +39,12 @@ const SYNC_TABLES = [
   'check_ins',
   'vibes',
   'love_notes',
-    'prompt_ratings',
-  ];
+];
+
+const PULL_PAGE_SIZE = 200;
+const MIN_SYNC_INTERVAL_MS = 10_000; // 10 seconds between full cycles
+const MAX_PUSH_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 1000; // exponential backoff base
 
 /** Maps SQLite table → Supabase couple_data.data_type */
 const TABLE_TO_TYPE = {
@@ -50,8 +55,7 @@ const TABLE_TO_TYPE = {
   check_ins: 'check_in',
   vibes: 'vibe',
   love_notes: 'love_note',
-    prompt_ratings: 'prompt_rating',
-  };
+};
 
 /** Columns that contain ciphertext (don't re-encrypt; pass through). */
 const CIPHER_COLUMNS = new Set([
@@ -75,6 +79,7 @@ let _coupleId = null;
 let _userId = null;
 let _isPremium = false;
 let _listeners = [];
+let _lastSyncAt = 0;
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
@@ -95,6 +100,8 @@ function canSync() {
  */
 function toRemoteRow(tableName, row) {
   const dataType = TABLE_TO_TYPE[tableName];
+  if (!dataType) throw new Error(`[Sync] Unknown table: ${tableName}`);
+  if (!row?.id) throw new Error(`[Sync] Row missing id for ${tableName}`);
   const metadata = {};
   const encryptedPayload = {};
 
@@ -134,11 +141,29 @@ function fromRemoteRow(tableName, remoteRow) {
 
   try {
     metadata = remoteRow.value ? JSON.parse(remoteRow.value) : {};
-  } catch { /* corrupted metadata — skip */ }
+  } catch (e) {
+    CrashReporting.captureException(
+      new Error(`[Sync] Corrupted metadata in ${tableName}: ${e?.message}`),
+      { key: remoteRow.key }
+    );
+    return null; // skip this row
+  }
 
   try {
     cipherFields = remoteRow.encrypted_value ? JSON.parse(remoteRow.encrypted_value) : {};
-  } catch { /* corrupted cipher — skip */ }
+  } catch (e) {
+    CrashReporting.captureException(
+      new Error(`[Sync] Corrupted cipher payload in ${tableName}: ${e?.message}`),
+      { key: remoteRow.key }
+    );
+    return null; // skip this row
+  }
+
+  // Validate: must have an id
+  if (!metadata.id) {
+    CrashReporting.captureMessage(`[Sync] Remote row missing id for ${tableName}`, 'warning');
+    return null;
+  }
 
   return {
     ...metadata,
@@ -151,6 +176,10 @@ function fromRemoteRow(tableName, remoteRow) {
 
 // ─── Push (local → Supabase) ────────────────────────────────────────
 
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function pushTable(tableName) {
   const pending = await Database.getPendingSync(tableName);
   if (!pending.length) return { pushed: 0, failed: 0 };
@@ -161,24 +190,35 @@ async function pushTable(tableName) {
   const syncedIds = [];
 
   for (const row of pending) {
-    try {
-      const remote = toRemoteRow(tableName, row);
+    let lastErr = null;
+    for (let attempt = 0; attempt < MAX_PUSH_RETRIES; attempt++) {
+      try {
+        const remote = toRemoteRow(tableName, row);
 
-      // Tombstone: if soft-deleted locally, mark as deleted on remote
-      if (row.deleted_at) {
-        remote.is_deleted = true;
-        remote.deleted_at = row.deleted_at;
+        // Tombstone: if soft-deleted locally, mark as deleted on remote
+        if (row.deleted_at) {
+          remote.is_deleted = true;
+          remote.deleted_at = row.deleted_at;
+        }
+
+        const { error } = await sb
+          .from(TABLES.COUPLE_DATA)
+          .upsert(remote, { onConflict: 'couple_id,key' });
+
+        if (error) throw error;
+        syncedIds.push(row.id);
+        pushed++;
+        lastErr = null;
+        break; // success
+      } catch (err) {
+        lastErr = err;
+        if (attempt < MAX_PUSH_RETRIES - 1) {
+          await sleep(RETRY_BASE_DELAY_MS * Math.pow(2, attempt));
+        }
       }
-
-      const { error } = await sb
-        .from(TABLES.COUPLE_DATA)
-        .upsert(remote, { onConflict: 'couple_id,key' });
-
-      if (error) throw error;
-      syncedIds.push(row.id);
-      pushed++;
-    } catch (err) {
-      console.warn(`[Sync] Push ${tableName}/${row.id} failed:`, err.message);
+    }
+    if (lastErr) {
+      console.warn(`[Sync] Push ${tableName}/${row.id} failed after ${MAX_PUSH_RETRIES} attempts:`, lastErr.message);
       failed++;
     }
   }
@@ -195,65 +235,75 @@ async function pushTable(tableName) {
 async function pullTable(tableName) {
   const dataType = TABLE_TO_TYPE[tableName];
   const meta = await Database.getSyncMeta(tableName);
-  const lastPulled = meta?.last_pulled_at || '1970-01-01T00:00:00.000Z';
+  let cursor = meta?.last_pulled_at || '1970-01-01T00:00:00.000Z';
 
   const sb = supabase;
-  let query = sb
-    .from(TABLES.COUPLE_DATA)
-    .select('*')
-    .eq('couple_id', _coupleId)
-    .eq('data_type', dataType)
-    .gt('updated_at', lastPulled)
-    .order('updated_at', { ascending: true })
-    .limit(200);
+  let totalPulled = 0;
 
-  const { data: rows, error } = await query;
-  if (error) throw error;
-  if (!rows || !rows.length) return { pulled: 0 };
+  // Paginate: keep fetching until we get fewer rows than page size
+  while (true) {
+    const { data: rows, error } = await sb
+      .from(TABLES.COUPLE_DATA)
+      .select('*')
+      .eq('couple_id', _coupleId)
+      .eq('data_type', dataType)
+      .gt('updated_at', cursor)
+      .order('updated_at', { ascending: true })
+      .limit(PULL_PAGE_SIZE);
 
-  // Separate tombstones from live rows
-  const liveRows = [];
-  const tombstoneRows = [];
-  for (const remoteRow of rows) {
-    if (remoteRow.is_deleted || remoteRow.deleted_at) {
-      tombstoneRows.push(remoteRow);
-    } else {
-      liveRows.push(remoteRow);
-    }
-  }
+    if (error) throw error;
+    if (!rows || !rows.length) break;
 
-  // Convert to local format
-  const localRows = liveRows.map(r => fromRemoteRow(tableName, r));
-
-  // Batch upsert in a single transaction (atomic)
-  const results = await Database.batchUpsertFromRemote(tableName, localRows);
-
-  // Apply tombstones: soft-delete locally
-  for (const remote of tombstoneRows) {
-    try {
-      const parsed = remote.value ? JSON.parse(remote.value) : {};
-      if (parsed.id) {
-        const db = await Database.init();
-        await db.runAsync(
-          `UPDATE ${tableName} SET deleted_at = ?, sync_status = 'synced', sync_source = 'remote' WHERE id = ?`,
-          [remote.deleted_at || new Date().toISOString(), parsed.id]
-        );
+    // Separate tombstones from live rows
+    const liveRows = [];
+    const tombstoneRows = [];
+    for (const remoteRow of rows) {
+      if (remoteRow.is_deleted || remoteRow.deleted_at) {
+        tombstoneRows.push(remoteRow);
+      } else {
+        liveRows.push(remoteRow);
       }
-    } catch (err) {
-      console.warn(`[Sync] Tombstone apply ${tableName} failed:`, err.message);
     }
+
+    // Convert to local format, filtering out invalid rows
+    const localRows = liveRows
+      .map(r => fromRemoteRow(tableName, r))
+      .filter(Boolean);
+
+    // Batch upsert in a single transaction (atomic)
+    const results = await Database.batchUpsertFromRemote(tableName, localRows);
+
+    // Apply tombstones: soft-delete locally
+    for (const remote of tombstoneRows) {
+      try {
+        const parsed = remote.value ? JSON.parse(remote.value) : {};
+        if (parsed.id) {
+          const db = await Database.init();
+          await db.runAsync(
+            `UPDATE ${tableName} SET deleted_at = ?, sync_status = 'synced', sync_source = 'remote' WHERE id = ?`,
+            [remote.deleted_at || new Date().toISOString(), parsed.id]
+          );
+        }
+      } catch (err) {
+        console.warn(`[Sync] Tombstone apply ${tableName} failed:`, err.message);
+      }
+    }
+
+    // Advance cursor to the latest timestamp we saw
+    for (const row of rows) {
+      if (row.updated_at > cursor) {
+        cursor = row.updated_at;
+      }
+    }
+
+    totalPulled += results.inserted + results.updated + tombstoneRows.length;
+
+    // If we got fewer than the page size, we've caught up
+    if (rows.length < PULL_PAGE_SIZE) break;
   }
 
-  // Update cursor to the latest timestamp we saw
-  let latestTimestamp = lastPulled;
-  for (const row of rows) {
-    if (row.updated_at > latestTimestamp) {
-      latestTimestamp = row.updated_at;
-    }
-  }
-
-  await Database.setSyncMeta(tableName, { last_pulled_at: latestTimestamp });
-  return { pulled: results.inserted + results.updated + tombstoneRows.length };
+  await Database.setSyncMeta(tableName, { last_pulled_at: cursor });
+  return { pulled: totalPulled };
 }
 
 // ─── Full sync cycle ────────────────────────────────────────────────
@@ -270,13 +320,20 @@ const SyncEngine = {
 
   /**
    * Run a full push + pull cycle for all tables.
-   * Safe to call frequently — guards against re-entrant runs.
+   * Safe to call frequently — guards against re-entrant runs and throttles.
    */
   async sync() {
     if (_syncing) return { skipped: true };
     if (!canSync()) return { skipped: true, reason: 'not configured' };
 
+    // Throttle: don't allow more than one sync per MIN_SYNC_INTERVAL_MS
+    const now = Date.now();
+    if (now - _lastSyncAt < MIN_SYNC_INTERVAL_MS) {
+      return { skipped: true, reason: 'throttled' };
+    }
+
     _syncing = true;
+    _lastSyncAt = now;
     emit('sync:start', null);
 
     const results = { pushed: 0, pulled: 0, failed: 0, attachments: { uploaded: 0, failed: 0 } };
@@ -399,6 +456,7 @@ const SyncEngine = {
     _userId = null;
     _isPremium = false;
     _listeners = [];
+    _lastSyncAt = 0;
     await Database.wipeAll();
   },
 

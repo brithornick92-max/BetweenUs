@@ -16,6 +16,7 @@ import * as Sharing from 'expo-sharing';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useMemoryContext } from '../context/MemoryContext';
+import DataLayer from '../services/data/DataLayer';
 
 /**
  * Export Data Screen
@@ -32,23 +33,68 @@ const ExportDataScreen = ({ navigation }) => {
   const [includeSharedEntries, setIncludeSharedEntries] = useState(false);
   const [includeAccountDetails, setIncludeAccountDetails] = useState(false);
 
+  /**
+   * Gather all user data from the local-first DataLayer (SQLite + E2EE decrypt).
+   * Returns decrypted plaintext so the export is human-readable.
+   */
+  const gatherAllData = async ({ includeShared }) => {
+    const filterPrivate = (rows) => {
+      if (includeShared) return rows || [];
+      return (rows || []).filter(r =>
+        !(r?.shared === true || r?.isShared === true || r?.partnerShared === true || r?.is_private === false)
+      );
+    };
+
+    // Fetch from each data type via DataLayer (handles decryption)
+    const [journalEntries, promptAnswers, memoryRows, rituals, checkIns, vibes, loveNotes] =
+      await Promise.all([
+        DataLayer.getJournalEntries({ limit: 10000 }).catch(() => []),
+        DataLayer.getPromptAnswers({ limit: 10000 }).catch(() => []),
+        DataLayer.getMemories({ limit: 10000 }).catch(() => []),
+        DataLayer.getRituals({ limit: 10000 }).catch(() => []),
+        DataLayer.getCheckIns({ limit: 10000 }).catch(() => []),
+        DataLayer.getVibes({ limit: 10000 }).catch(() => []),
+        DataLayer.getLoveNotes({ limit: 10000 }).catch(() => []),
+      ]);
+
+    // Strip cipher columns and internal sync metadata from output
+    const sanitize = (rows) => (rows || []).map(r => {
+      if (!r) return r;
+      const clean = { ...r };
+      // Remove cipher columns (user already has the plaintext fields)
+      for (const key of Object.keys(clean)) {
+        if (key.endsWith('_cipher') || ['sync_status', 'sync_version', 'sync_source'].includes(key)) {
+          delete clean[key];
+        }
+      }
+      delete clean.locked;
+      return clean;
+    });
+
+    return {
+      journalEntries: sanitize(filterPrivate(journalEntries)),
+      promptAnswers: sanitize(filterPrivate(promptAnswers)),
+      memories: sanitize(filterPrivate(memoryRows)),
+      rituals: sanitize(rituals),
+      checkIns: sanitize(checkIns),
+      vibes: sanitize(vibes),
+      loveNotes: sanitize(filterPrivate(loveNotes)),
+    };
+  };
+
   const exportData = async (options = {}) => {
     try {
       setIsExporting(true);
 
-      // Prepare data for export
       const includeShared = !!options.includeSharedEntries;
       const includeAccount = !!options.includeAccountDetails;
 
-      // Filter shared entries when user opts out
-      const filteredEntries = (memories || []).filter((m) => {
-        if (includeShared) return true;
-        // Common shared flags; if present and true, exclude when includeShared is false
-        return !(m?.shared === true || m?.isShared === true || m?.partnerShared === true);
-      });
+      // Gather all data from DataLayer (decrypted)
+      const allData = await gatherAllData({ includeShared });
 
       const exportPayload = {
         exportDate: new Date().toISOString(),
+        appVersion: '1.0.0',
         user: includeAccount
           ? {
               email: user?.email,
@@ -57,8 +103,16 @@ const ExportDataScreen = ({ navigation }) => {
               createdAt: userProfile?.createdAt,
             }
           : null,
-        journalEntries: filteredEntries,
-        totalEntries: filteredEntries?.length || 0,
+        ...allData,
+        totals: {
+          journalEntries: allData.journalEntries.length,
+          promptAnswers: allData.promptAnswers.length,
+          memories: allData.memories.length,
+          rituals: allData.rituals.length,
+          checkIns: allData.checkIns.length,
+          vibes: allData.vibes.length,
+          loveNotes: allData.loveNotes.length,
+        },
       };
 
       // Convert to JSON
@@ -202,13 +256,16 @@ const ExportDataScreen = ({ navigation }) => {
           <View style={[styles.statsCard, { backgroundColor: colors.card }]}>
             <View style={styles.statItem}>
               <Text style={[styles.statNumber, { color: colors.primary }]}>
-                {memories?.length || 0}
+                {(memories?.length || 0)}
               </Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Journal Entries
+                Memories
               </Text>
             </View>
           </View>
+          <Text style={[styles.cardText, { color: colors.textSecondary, textAlign: 'center', marginBottom: 16 }]}>
+            Journal entries, prompt responses, rituals, check-ins, vibes, and love notes will also be included.
+          </Text>
 
           {/* Export Button */}
           <TouchableOpacity

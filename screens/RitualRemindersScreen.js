@@ -8,6 +8,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -140,7 +141,8 @@ export default function RitualRemindersScreen({ navigation }) {
           <View style={styles.headerSpacer} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
               {editing ? 'Edit reminder' : 'Add reminder'}
@@ -152,6 +154,7 @@ export default function RitualRemindersScreen({ navigation }) {
               placeholderTextColor={theme.colors.textSecondary}
               value={title}
               onChangeText={setTitle}
+              accessibilityLabel="Reminder title"
             />
             <TextInput
               style={[styles.input, { color: theme.colors.text, borderColor: theme.colors.border }]}
@@ -159,6 +162,7 @@ export default function RitualRemindersScreen({ navigation }) {
               placeholderTextColor={theme.colors.textSecondary}
               value={body}
               onChangeText={setBody}
+              accessibilityLabel="Reminder message"
             />
 
             <TouchableOpacity
@@ -172,7 +176,7 @@ export default function RitualRemindersScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.primaryButton} onPress={handleAddOrUpdate}>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleAddOrUpdate} accessibilityRole="button" accessibilityLabel={editing ? 'Save reminder' : 'Schedule reminder'}>
               <Text style={styles.primaryButtonText}>
                 {editing ? 'Save reminder' : 'Schedule reminder'}
               </Text>
@@ -219,6 +223,7 @@ export default function RitualRemindersScreen({ navigation }) {
             ))}
           </View>
         </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
 
       {showPicker && (

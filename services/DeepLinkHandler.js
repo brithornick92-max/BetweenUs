@@ -104,9 +104,9 @@ const DeepLinkHandler = {
 
       const handler = ROUTE_MAP[data.route];
       if (!handler) {
-        // Fallback: try navigating directly to the route name
-        _navigationRef.navigate(data.route, data.params || {});
-        return true;
+        // No fallback — only allowlisted routes are navigable via notifications
+        if (__DEV__) console.warn('[DeepLink] Unrecognized notification route:', data.route);
+        return false;
       }
 
       const { screen, params } = handler({

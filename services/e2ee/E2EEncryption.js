@@ -74,7 +74,14 @@ async function getDeviceKey() {
         _deviceKeyCache = bytes;
         return bytes;
       }
-    } catch { /* regenerate */ }
+    } catch (e) {
+      // Key exists but is corrupted — report before regenerating
+      const CrashReporting = require('../CrashReporting').default;
+      CrashReporting.captureException(
+        new Error('E2EEncryption: device key corrupted, regenerating — previous ciphertext will be unreadable'),
+        { keyName: DEVICE_KEY_NAME, error: e?.message }
+      );
+    }
   }
   const keyBytes = nacl.randomBytes(nacl.secretbox.keyLength);
   await SecureStore.setItemAsync(DEVICE_KEY_NAME, b64(keyBytes), {

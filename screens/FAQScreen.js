@@ -99,7 +99,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Advanced personalization\n• Custom rituals and routines\n• Memory export features\n• Priority support\n• Ad-free experience\n• Both partners get access',
+        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Love notes with photo attachments\n• Date night catalog with planning tools\n• Night rituals and custom routines\n• Calendar and scheduling\n• Partner connection and cloud sync\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Soft Boundaries (hide content privately)\n• Data export (journals, prompts, memories, and more)\n• Both partners get access',
       },
       {
         q: 'How do I subscribe?',

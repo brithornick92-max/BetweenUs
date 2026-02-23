@@ -13,7 +13,8 @@
       "backgroundColor": "#1a0614"
     },
     "assetBundlePatterns": [
-      "**/*"
+      "assets/**",
+      "content/**"
     ],
     "ios": {
       "supportsTablet": true,
@@ -22,7 +23,7 @@
       "deploymentTarget": "17.1",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing.",
-        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes and memories.",
+        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes, journal entries, and memories.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -59,15 +60,6 @@
       "expo-camera",
       "expo-sqlite",
       [
-        "expo-splash-screen",
-        {
-          "image": "./assets/splash.png",
-          "imageWidth": 1284,
-          "resizeMode": "cover",
-          "backgroundColor": "#1a0614"
-        }
-      ],
-      [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
@@ -78,10 +70,13 @@
         "@sentry/react-native/expo",
         {
           "url": "https://sentry.io/",
-          "project": "react-native",
+          "project": "between-us",
           "organization": "brittany-hornick"
         }
-      ]
+      ],
+      ["./plugins/withFullScreenSplash.cjs", {
+        "backgroundColor": "#1a0614"
+      }]
     ]
   }
 }

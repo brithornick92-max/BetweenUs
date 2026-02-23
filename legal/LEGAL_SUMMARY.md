@@ -1,6 +1,6 @@
 # Legal Documents Summary
 
-**Last Updated: February 16, 2026**
+**Last Updated: February 22, 2026**
 
 This document provides an overview of all legal documents for the Between Us app.
 
@@ -167,6 +167,9 @@ All legal documents are:
 
 | Document | Version | Date | Changes |
 |----------|---------|------|---------|
+| Terms of Service | 1.2 | Feb 22, 2026 | Synced dates, accuracy review |
+| Privacy Policy | 1.2 | Feb 22, 2026 | Added Sentry disclosure, synced dates |
+| FAQ | 1.2 | Feb 22, 2026 | Updated prompt count (686), synced dates |
 | Terms of Service | 1.1 | Feb 16, 2026 | Accurate feature descriptions |
 | Privacy Policy | 1.1 | Feb 16, 2026 | Removed inaccurate data collection claims |
 | FAQ | 1.1 | Feb 16, 2026 | Updated feature descriptions and export formats |

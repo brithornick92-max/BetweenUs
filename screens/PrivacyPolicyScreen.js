@@ -33,7 +33,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
         <View style={styles.content}>
           <Text style={[styles.title, { color: colors.text }]}>Between Us - Privacy Policy</Text>
           <Text style={[styles.date, { color: colors.textSecondary }]}>
-            Last Updated: February 3, 2026
+            Last Updated: February 22, 2026
           </Text>
 
           <Text style={[styles.intro, { color: colors.textSecondary }]}>
@@ -66,7 +66,9 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             • Feature interactions{'\n'}
             • Crash reports{'\n'}
             • Performance data{'\n'}
-            • Device information (type, OS version)
+            • Device information (type, OS version){'\n'}
+            • Aggregated analytics events (screen views, feature usage) stored server-side{'\n'}
+            • Session replays on error (screen interactions to help fix bugs)
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>2. How We Use Your Information</Text>
@@ -102,7 +104,10 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>5. Third-Party Services</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            We use the following third-party services:{'\n\n'}            • Supabase - Cloud data storage and authentication{'\n'}            • RevenueCat - Subscription management{'\n'}
+            We use the following third-party services:{'\n\n'}
+            • Supabase - Cloud data storage and authentication{'\n'}
+            • RevenueCat - Subscription management{'\n'}
+            • Sentry - Crash reporting, performance monitoring, and session replays (10% of sessions; 100% on error) to help fix bugs. Also powers optional user feedback.{'\n'}
             • Apple/Google - In-app purchases and payments{'\n\n'}
             These services have their own privacy policies and may collect data independently.
           </Text>
