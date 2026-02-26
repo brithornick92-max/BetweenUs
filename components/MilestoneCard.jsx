@@ -6,14 +6,23 @@
  * Thriving couples like reflection, not achievement badges.
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Animated,
   TouchableOpacity,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  withSpring,
+  runOnJS,
+  Easing,
+  FadeInDown,
+} from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { BORDER_RADIUS, SPACING } from '../utils/theme';
@@ -23,47 +32,51 @@ export default function MilestoneCard() {
   const { colors } = useTheme();
   const [milestone, setMilestone] = useState(null);
   const [dismissed, setDismissed] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(16);
 
   useEffect(() => {
     (async () => {
       const m = await RelationshipMilestones.checkForMilestone();
       if (m) {
         setMilestone(m);
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 800,
-          delay: 600,
-          useNativeDriver: true,
-        }).start();
+        opacity.value = withDelay(600, withTiming(1, { duration: 700, easing: Easing.out(Easing.quad) }));
+        translateY.value = withDelay(600, withSpring(0, { damping: 18, stiffness: 140 }));
       }
     })();
   }, []);
 
-  const handleDismiss = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 400,
-      useNativeDriver: true,
-    }).start(() => setDismissed(true));
-  };
+  const handleDismiss = useCallback(() => {
+    opacity.value = withTiming(0, { duration: 350 }, (finished) => {
+      if (finished) runOnJS(setDismissed)(true);
+    });
+    translateY.value = withTiming(-8, { duration: 350 });
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
 
   if (!milestone || dismissed) return null;
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+    <Animated.View style={[styles.container, animatedStyle]}>
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={handleDismiss}
         style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
       >
-        <View style={[styles.iconCircle, { backgroundColor: colors.primary + '12' }]}>
+        <Animated.View
+          entering={FadeInDown.delay(800).duration(400)}
+          style={[styles.iconCircle, { backgroundColor: colors.primary + '12' }]}
+        >
           <MaterialCommunityIcons
             name={milestone.icon}
             size={20}
             color={colors.primary}
           />
-        </View>
+        </Animated.View>
         <Text style={[styles.message, { color: colors.text }]}>
           {milestone.message}
         </Text>

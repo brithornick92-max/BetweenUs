@@ -9,6 +9,7 @@ import {
   Platform,
   Linking,
 } from "react-native";
+import Animated, { FadeInDown, FadeIn, FadeInUp } from "react-native-reanimated";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useNavigation } from "@react-navigation/native";
@@ -79,8 +80,8 @@ const PremiumPaywall = ({
     return features;
   }, []);
 
-  const BenefitItem = ({ icon, title, body }) => (
-    <View style={styles.benefitItem}>
+  const BenefitItem = ({ icon, title, body, index = 0 }) => (
+    <Animated.View entering={FadeInDown.delay(200 + index * 80).duration(400)} style={styles.benefitItem}>
       <View style={styles.benefitIconContainer}>
         <Text style={styles.benefitEmoji}>{icon}</Text>
       </View>
@@ -88,13 +89,14 @@ const PremiumPaywall = ({
         <Text style={styles.benefitTitle}>{title}</Text>
         <Text style={styles.benefitBody}>{body}</Text>
       </View>
-    </View>
+    </Animated.View>
   );
 
-  const PricingCard = ({ pkg, title, priceText, subtext, isPopular }) => {
+  const PricingCard = ({ pkg, title, priceText, subtext, isPopular, index = 0 }) => {
     const isPlanAvailable = !!pkg;
     return (
-    <View
+    <Animated.View
+      entering={FadeInUp.delay(100 + index * 120).duration(500).springify().damping(16)}
       style={[
         styles.pricingCard,
         isPopular && styles.pricingCardPopular,
@@ -127,14 +129,14 @@ const PremiumPaywall = ({
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Animated.View>
     );
   };
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
+        <Animated.View entering={FadeInDown.delay(100).duration(600)} style={styles.header}>
           {showCloseButton && (
             <TouchableOpacity
               onPress={onClose}
@@ -152,17 +154,18 @@ const PremiumPaywall = ({
           <Text style={styles.subtitle}>
             Protect and grow your love story.
           </Text>
-        </View>
+        </Animated.View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>What Premium unlocks</Text>
 
-          {premiumFeatures.map((feature) => (
+          {premiumFeatures.map((feature, index) => (
             <BenefitItem
               key={feature.id}
               icon={feature.icon}
               title={feature.name}
               body={feature.description}
+              index={index}
             />
           ))}
         </View>
@@ -182,6 +185,7 @@ const PremiumPaywall = ({
             title="Monthly"
             priceText={monthlyPkg?.product?.priceString || "$7.99 / month"}
             subtext="Per couple · both partners included"
+            index={0}
           />
 
           <PricingCard
@@ -190,6 +194,7 @@ const PremiumPaywall = ({
             priceText={yearlyPkg?.product?.priceString || "$49.99 / year"}
             subtext="Most popular · per couple · both partners included"
             isPopular={true}
+            index={1}
           />
 
           <PricingCard
@@ -199,6 +204,7 @@ const PremiumPaywall = ({
               lifetimePkg?.product?.priceString || "$69.99 one-time"
             }
             subtext="Per couple · both partners included"
+            index={2}
           />
         </View>
 

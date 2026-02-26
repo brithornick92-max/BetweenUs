@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -347,7 +348,11 @@ const VibeSignal = ({
   };
 
   return (
-    <View style={[styles.container, style]}>
+    <ScrollView
+      style={[styles.container, style]}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Send a Vibe</Text>
@@ -399,12 +404,13 @@ const VibeSignal = ({
           </BlurView>
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 };
 
 const createStyles = (colors) => StyleSheet.create({
-  container: { flex: 1, padding: 16 },
+  container: { flex: 1 },
+  contentContainer: { padding: 16, paddingBottom: 32 },
   header: { alignItems: 'center', marginBottom: 12 },
   title: { fontSize: 18, fontWeight: '600' },
   subtitle: { fontSize: 14 },
@@ -452,11 +458,11 @@ const createStyles = (colors) => StyleSheet.create({
   partnerVibeGradient: { padding: 12 },
   partnerVibeName: { fontSize: 16, fontWeight: '700' },
   partnerVibeEmotion: { fontSize: 12 },
-  anniversaryNotice: { position: 'absolute', bottom: 16, left: 16, right: 16 },
+  anniversaryNotice: { marginTop: 16 },
   anniversaryNoticeBlur: { padding: 12, borderRadius: 12, alignItems: 'center', flexDirection: 'row' },
   anniversaryNoticeIcon: { marginRight: 8 },
   anniversaryNoticeText: { fontSize: 14 },
-  selectedVibeInfo: { position: 'absolute', bottom: 16, left: 16, right: 16 },
+  selectedVibeInfo: { marginTop: 16 },
   selectedVibeBlur: { padding: 12, borderRadius: 12 },
   selectedVibeText: { fontSize: 14 },
   selectedVibeName: { fontWeight: '700' },

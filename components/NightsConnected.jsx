@@ -2,8 +2,19 @@
 // Quiet, warm, brand-aligned replacement for StreakIndicator
 // No gamification language. No levels. No fire. Just quiet connection.
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withRepeat,
+  withSequence,
+  FadeInDown,
+  FadeIn,
+  Easing,
+  interpolate,
+} from 'react-native-reanimated';
 import Card from './Card';
 import { SPACING, BORDER_RADIUS, TYPOGRAPHY, withAlpha, SANS } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -25,6 +36,22 @@ export default function NightsConnected({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const safeHistory = Array.isArray(streakHistory) ? streakHistory : [];
+
+  // Gentle heartbeat / pulse animation on the heart emoji
+  const pulse = useSharedValue(1);
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.15, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+  }, []);
+  const heartPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }));
 
   const getMessage = (count) => {
     if (count === 0) return 'Begin tonight — just one moment together';
@@ -71,17 +98,17 @@ export default function NightsConnected({
     >
       <View style={styles.content}>
         {/* Gentle count */}
-        <View style={styles.countSection}>
-          <Text style={styles.heartEmoji}>❤️</Text>
-          <Text style={styles.count}>{currentStreak}</Text>
-          <Text style={styles.label}>nights connected</Text>
-        </View>
+        <Animated.View entering={FadeIn.duration(600)} style={styles.countSection}>
+          <Animated.Text style={[styles.heartEmoji, heartPulseStyle]}>❤️</Animated.Text>
+          <Animated.Text entering={FadeInDown.delay(200).duration(500)} style={styles.count}>{currentStreak}</Animated.Text>
+          <Animated.Text entering={FadeInDown.delay(350).duration(500)} style={styles.label}>nights connected</Animated.Text>
+        </Animated.View>
 
         {/* Warm message */}
-        <Text style={styles.message}>{message}</Text>
+        <Animated.Text entering={FadeInDown.delay(450).duration(500)} style={styles.message}>{message}</Animated.Text>
 
         {/* Quiet stats */}
-        <View style={styles.stats}>
+        <Animated.View entering={FadeInDown.delay(550).duration(500)} style={styles.stats}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{longestStreak}</Text>
             <Text style={styles.statLabel}>longest</Text>
@@ -91,14 +118,15 @@ export default function NightsConnected({
             <Text style={styles.statValue}>{safeHistory.length}</Text>
             <Text style={styles.statLabel}>total evenings</Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Last 7 days — soft dots */}
         {safeHistory.length > 0 && (
           <View style={styles.recentDays}>
             {safeHistory.slice(-7).map((day, index) => (
-              <View
+              <Animated.View
                 key={index}
+                entering={FadeIn.delay(650 + index * 80).duration(400)}
                 style={[
                   styles.dayDot,
                   day.completed && styles.dayDotFilled,

@@ -66,10 +66,10 @@ const CardStack = forwardRef(function CardStack(
   const flipProgress = useSharedValue(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
+  // Keep ref in sync during render (NOT in useEffect) so gesture handlers
+  // always read the same deck/deckIndex that's currently displayed on screen.
   const deckRef = useRef({ deck, deckIndex, onSwipeLeft, onSwipeRight, onPress });
-  useEffect(() => {
-    deckRef.current = { deck, deckIndex, onSwipeLeft, onSwipeRight, onPress };
-  }, [deck, deckIndex, onSwipeLeft, onSwipeRight, onPress]);
+  deckRef.current = { deck, deckIndex, onSwipeLeft, onSwipeRight, onPress };
 
   // Reset flip + position when deck advances
   useEffect(() => {
@@ -110,6 +110,12 @@ const CardStack = forwardRef(function CardStack(
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, [isFlipped, flipProgress]);
 
+  // Open detail for the current top card — runs on JS thread so deckRef is fresh
+  const doCardPress = useCallback(() => {
+    const { deck: d, deckIndex: i, onPress: pressHandler } = deckRef.current;
+    if (d[i]) pressHandler(d[i]);
+  }, []);
+
   useImperativeHandle(ref, () => ({
     swipeRight: () => {
       topX.value = withTiming(width + 120, { duration: 320 }, () => runOnJS(doSwipeRight)());
@@ -141,12 +147,14 @@ const CardStack = forwardRef(function CardStack(
     });
 
   // Tap gesture (flip when face-down, open detail when face-up)
+  // doCardPress runs on the JS thread (via runOnJS) so it reads the
+  // latest deckRef.current — reading the ref directly inside the worklet
+  // would use a stale UI-thread snapshot and open the wrong date.
   const tap = Gesture.Tap().onEnd(() => {
     if (!isFlipped) {
       runOnJS(handleFlip)();
     } else {
-      const { deck: d, deckIndex: i, onPress: pressHandler } = deckRef.current;
-      if (d[i]) runOnJS(pressHandler)(d[i]);
+      runOnJS(doCardPress)();
     }
   });
 
@@ -222,16 +230,18 @@ const CardStack = forwardRef(function CardStack(
     height: CARD_H,
     position: 'absolute',
     width: CARD_W,
-    borderRadius: BORDER_RADIUS.xl,
+    borderRadius: 18,
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.12)',
     ...Platform.select({
       ios: {
-        shadowColor: '#060410',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.6,
+        shadowRadius: 32,
       },
-      android: { elevation: 6 },
+      android: { elevation: 16 },
     }),
   };
 
@@ -242,7 +252,7 @@ const CardStack = forwardRef(function CardStack(
         <Animated.View
           style={[
             cardBase,
-            { backgroundColor: isDark ? colors.surface : '#FAF6F2', borderColor: colors.primary + '12', zIndex: 1 },
+            { backgroundColor: '#0E0B14', zIndex: 1 },
             behind2Style,
           ]}
         >
@@ -255,7 +265,7 @@ const CardStack = forwardRef(function CardStack(
         <Animated.View
           style={[
             cardBase,
-            { backgroundColor: isDark ? colors.surface : '#FAF6F2', borderColor: colors.primary + '18', zIndex: 2 },
+            { backgroundColor: '#0E0B14', zIndex: 2 },
             behind1Style,
           ]}
         >
@@ -279,7 +289,7 @@ const CardStack = forwardRef(function CardStack(
 
           {/* Front face */}
           <Animated.View style={[styles.flipFace, frontFaceStyle]}>
-            <View style={[styles.cardFrontWrap, { backgroundColor: isDark ? '#0E0B14' : '#FAF6F2' }]}>
+            <View style={[styles.cardFrontWrap, { backgroundColor: '#0E0B14' }]}>
               <CardFront date={topCard} colors={colors} />
             </View>
           </Animated.View>
@@ -312,9 +322,9 @@ export default function DateNightScreen({ navigation }) {
   const [ready, setReady] = useState(false);
   const [allDates, setAllDates] = useState([]);
   const [contentProfile, setContentProfile] = useState(null);
-  const [selectedHeat, setSelectedHeat] = useState(null);
-  const [selectedLoad, setSelectedLoad] = useState(null);
-  const [selectedStyle, setSelectedStyle] = useState(null);
+  const [selectedHeat, setSelectedHeat] = useState(null);   // mood: 1=Heart, 2=Play, 3=Heat
+  const [selectedLoad, setSelectedLoad] = useState(null);   // energy: 1=Chill, 2=Moderate, 3=Active
+  const [selectedStyle, setSelectedStyle] = useState(null); // style: talking, doing, mixed
   const [deckIndex, setDeckIndex] = useState(0);
   const [likedDates, setLikedDates] = useState([]);
   const [filtersOpen, setFiltersOpen] = useState(true);
@@ -341,19 +351,20 @@ export default function DateNightScreen({ navigation }) {
     }, [userProfile])
   );
 
+  // Reset deck position whenever the filtered deck changes
+  // (filter change, profile load, premium status change)
   useEffect(() => {
     setDeckIndex(0);
     setLikedDates([]);
-  }, [selectedHeat, selectedLoad, selectedStyle]);
+  }, [selectedHeat, selectedLoad, selectedStyle, contentProfile, isPremium]);
 
   const activeFilters = useMemo(() => {
     const f = {};
     if (selectedHeat) f.heat = selectedHeat;
     if (selectedLoad) f.load = selectedLoad;
     if (selectedStyle) f.style = selectedStyle;
-    if (!selectedHeat && contentProfile?.maxHeat) f.maxHeat = contentProfile.maxHeat;
     return f;
-  }, [selectedHeat, selectedLoad, selectedStyle, contentProfile]);
+  }, [selectedHeat, selectedLoad, selectedStyle]);
 
   const deck = useMemo(() => {
     let base = filterDates(allDates, activeFilters);
@@ -371,6 +382,7 @@ export default function DateNightScreen({ navigation }) {
     return base;
   }, [allDates, activeFilters, contentProfile, selectedHeat, selectedLoad, selectedStyle, isPremium]);
 
+  const allSelected = selectedHeat && selectedLoad && selectedStyle;
   const hasFilters = selectedHeat || selectedLoad || selectedStyle;
   const remaining = deck.length - deckIndex;
   const deckDone = deckIndex >= deck.length && deck.length > 0;
@@ -404,9 +416,10 @@ export default function DateNightScreen({ navigation }) {
 
   const handleFilterPress = useCallback(async (dim, value) => {
     await Haptics.selectionAsync();
-    if (dim === 'heat') setSelectedHeat(prev => prev === value ? null : value);
-    else if (dim === 'load') setSelectedLoad(prev => prev === value ? null : value);
-    else setSelectedStyle(prev => prev === value ? null : value);
+    // Required selection — tapping same value again does nothing (can't deselect)
+    if (dim === 'heat') setSelectedHeat(value);
+    else if (dim === 'load') setSelectedLoad(value);
+    else setSelectedStyle(value);
     setDropdownOpen(null);
   }, []);
 
@@ -432,7 +445,7 @@ export default function DateNightScreen({ navigation }) {
         <View style={styles.header}>
           <View>
             <Text style={[styles.headerEye, { color: colors.primary + 'AA' }]}>
-              {!ready ? 'Shuffling your deck\u2026' : !isPremium && remaining > 0 ? remaining + ' free previews left' : remaining > 0 ? remaining + ' cards in your deck' : deck.length > 0 ? 'All drawn!' : allDates.length + '+ date ideas'}
+              {!ready ? 'Shuffling your deck\u2026' : !allSelected ? 'Choose your vibe below' : !isPremium && remaining > 0 ? remaining + ' free previews left' : remaining > 0 ? remaining + ' cards in your deck' : deck.length > 0 ? 'All drawn!' : allDates.length + '+ date ideas'}
             </Text>
             <Text style={[styles.headerTitle, { color: colors.text }]}>Draw a date</Text>
           </View>
@@ -471,7 +484,7 @@ export default function DateNightScreen({ navigation }) {
                       {activeHeat ? (
                         <Text style={[styles.dropdownValueText, { color: activeHeat.color }]}>{activeHeat.icon} {activeHeat.label}</Text>
                       ) : (
-                        <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Any</Text>
+                        <Text style={[styles.dropdownValueText, { color: colors.primary, opacity: 0.8 }]}>Choose</Text>
                       )}
                       <MaterialCommunityIcons name={dropdownOpen === 'heat' ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
                     </View>
@@ -488,12 +501,12 @@ export default function DateNightScreen({ navigation }) {
                     onPress={() => setDropdownOpen(o => o === 'load' ? null : 'load')}
                     activeOpacity={0.7}
                   >
-                    <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Effort</Text>
+                    <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Energy</Text>
                     <View style={styles.dropdownValue}>
                       {activeLoad ? (
                         <Text style={[styles.dropdownValueText, { color: activeLoad.color }]}>{activeLoad.icon} {activeLoad.label}</Text>
                       ) : (
-                        <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Any</Text>
+                        <Text style={[styles.dropdownValueText, { color: colors.primary, opacity: 0.8 }]}>Choose</Text>
                       )}
                       <MaterialCommunityIcons name={dropdownOpen === 'load' ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
                     </View>
@@ -515,7 +528,7 @@ export default function DateNightScreen({ navigation }) {
                       {activeStyle ? (
                         <Text style={[styles.dropdownValueText, { color: activeStyle.color }]}>{activeStyle.icon} {activeStyle.label}</Text>
                       ) : (
-                        <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Any</Text>
+                        <Text style={[styles.dropdownValueText, { color: colors.primary, opacity: 0.8 }]}>Choose</Text>
                       )}
                       <MaterialCommunityIcons name={dropdownOpen === 'style' ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
                     </View>
@@ -536,12 +549,11 @@ export default function DateNightScreen({ navigation }) {
               <View style={[styles.dropdownPanel, { backgroundColor: isDark ? colors.surface : '#FFFAF7', borderColor: colors.border }]}>
                 {DIMS.heat.map((h) => {
                   const active = selectedHeat === h.level;
-                  const locked = !isPremium && h.level >= 4;
                   return (
                     <TouchableOpacity
                       key={h.level}
-                      style={[styles.dropdownOption, active && { backgroundColor: h.color + '15' }, locked && { opacity: 0.4 }]}
-                      onPress={() => locked ? showPaywall?.('HEAT_LEVEL') : handleFilterPress('heat', h.level)}
+                      style={[styles.dropdownOption, active && { backgroundColor: h.color + '15' }]}
+                      onPress={() => handleFilterPress('heat', h.level)}
                       activeOpacity={0.7}
                     >
                       <Text style={styles.dropdownOptionEmoji}>{h.icon}</Text>
@@ -549,7 +561,6 @@ export default function DateNightScreen({ navigation }) {
                         <Text style={[styles.dropdownOptionLabel, { color: active ? h.color : colors.text }]}>{h.label}</Text>
                       </View>
                       {active && <MaterialCommunityIcons name="check" size={18} color={h.color} />}
-                      {locked && <MaterialCommunityIcons name="lock-outline" size={14} color={colors.textMuted} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -604,11 +615,24 @@ export default function DateNightScreen({ navigation }) {
 
         {/* Card stack */}
         <View style={styles.stackWrapper}>
-          {deck.length === 0 ? (
+          {!allSelected ? (
+            <View style={[styles.emptyStack, { borderColor: colors.border }]}>
+              <MaterialCommunityIcons name="tune-variant" size={40} color={colors.primary} />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>Pick your vibe</Text>
+              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
+                Choose one from each category above{'\n'}to see your personalized date deck
+              </Text>
+              <View style={styles.teaserChips}>
+                {!selectedHeat && <View style={[styles.teaserChip, { borderColor: colors.primary + '40', backgroundColor: colors.primary + '10' }]}><Text style={[styles.teaserChipTxt, { color: colors.primary }]}>Mood?</Text></View>}
+                {!selectedLoad && <View style={[styles.teaserChip, { borderColor: colors.primary + '40', backgroundColor: colors.primary + '10' }]}><Text style={[styles.teaserChipTxt, { color: colors.primary }]}>Energy?</Text></View>}
+                {!selectedStyle && <View style={[styles.teaserChip, { borderColor: colors.primary + '40', backgroundColor: colors.primary + '10' }]}><Text style={[styles.teaserChipTxt, { color: colors.primary }]}>Style?</Text></View>}
+              </View>
+            </View>
+          ) : deck.length === 0 ? (
             <View style={[styles.emptyStack, { borderColor: colors.border }]}>
               <MaterialCommunityIcons name="cards-outline" size={40} color={colors.textMuted} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>No matches</Text>
-              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>Adjust your filters above</Text>
+              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>Try a different combination</Text>
             </View>
           ) : deckDone ? (
             <View style={[styles.emptyStack, { borderColor: colors.border }]}>
@@ -617,19 +641,12 @@ export default function DateNightScreen({ navigation }) {
                   <Text style={{ fontSize: 40 }}>🔒</Text>
                   <Text style={[styles.emptyTitle, { color: colors.text }]}>You've seen your free previews</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                    Unlock {allDates.length}+ dates across 5 heat levels
+                    Unlock {allDates.length}+ date ideas
                   </Text>
                   <View style={styles.teaserChips}>
-                    {DIMS.heat.slice(0, 3).map(h => (
+                    {DIMS.heat.map(h => (
                       <View key={h.level} style={[styles.teaserChipSm, { borderColor: h.color + '30' }]}>
-                        <Text style={[styles.teaserChipSmTxt, { color: h.color }]}>{h.icon}</Text>
-                      </View>
-                    ))}
-                    <Text style={{ color: colors.textMuted, fontSize: 11 }}>→</Text>
-                    {DIMS.heat.slice(3).map(h => (
-                      <View key={h.level} style={[styles.teaserChipSm, { borderColor: h.color + '30', backgroundColor: h.color + '08' }]}>
-                        <Text style={[styles.teaserChipSmTxt, { color: h.color }]}>{h.icon}</Text>
-                        <MaterialCommunityIcons name="lock-outline" size={9} color={h.color} />
+                        <Text style={[styles.teaserChipSmTxt, { color: h.color }]}>{h.icon} {h.label}</Text>
                       </View>
                     ))}
                   </View>
@@ -675,7 +692,7 @@ export default function DateNightScreen({ navigation }) {
         </View>
 
         {/* Action buttons */}
-        {!deckDone && deck.length > 0 && (
+        {allSelected && !deckDone && deck.length > 0 && (
           <View style={styles.actions}>
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: isDark ? colors.surface : '#FFF', borderColor: colors.border }]}
@@ -714,7 +731,7 @@ export default function DateNightScreen({ navigation }) {
         )}
 
         {/* Free-user teaser banner */}
-        {!isPremium && !deckDone && deck.length > 0 && (
+        {allSelected && !isPremium && !deckDone && deck.length > 0 && (
           <TouchableOpacity
             style={[styles.teaserBanner, { backgroundColor: isDark ? colors.primary + '14' : colors.primary + '0A', borderColor: colors.primary + '25' }]}
             onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
@@ -733,7 +750,6 @@ export default function DateNightScreen({ navigation }) {
               {DIMS.heat.map(h => (
                 <View key={h.level} style={[styles.teaserChip, { borderColor: h.color + '40', backgroundColor: h.color + '10' }]}>
                   <Text style={[styles.teaserChipTxt, { color: h.color }]}>{h.icon} {h.label}</Text>
-                  {h.level >= 4 && <MaterialCommunityIcons name="lock-outline" size={10} color={h.color} style={{ marginLeft: 2 }} />}
                 </View>
               ))}
             </View>

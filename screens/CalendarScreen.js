@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,9 +21,11 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
+import { useAppContext } from '../context/AppContext';
 import { calendarStorage, myDatesStorage } from '../utils/storage';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { supabase, TABLES } from '../config/supabase';
 
 // Event type visual config — color-coded topics
 const EVENT_TYPES = {
@@ -252,6 +254,9 @@ function TimelineEvent({ item, index, onLongPress, styles }) {
 export default function CalendarScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { state: appState } = useAppContext();
+  const coupleId = appState.coupleId;
+  const userId = appState.userId;
   const [events, setEvents] = useState([]);
   const [myDates, setMyDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -278,11 +283,46 @@ export default function CalendarScreen({ navigation, route }) {
   });
 
   const loadEvents = async () => {
-    const [list, dates] = await Promise.all([
+    const [localList, dates] = await Promise.all([
       calendarStorage.getEvents(),
       myDatesStorage.getMyDates(),
     ]);
-    const safe = Array.isArray(list) ? list : [];
+    let safe = Array.isArray(localList) ? localList : [];
+
+    // ── Merge with Supabase calendar_events (shared with partner) ──
+    if (supabase && coupleId) {
+      try {
+        const { data: remoteEvents, error } = await supabase
+          .from(TABLES.CALENDAR_EVENTS)
+          .select('*')
+          .eq('couple_id', coupleId)
+          .order('event_date', { ascending: true });
+
+        if (!error && Array.isArray(remoteEvents)) {
+          // Convert Supabase rows → local event shape
+          const mapped = remoteEvents.map(r => ({
+            id: r.id,
+            title: r.title,
+            location: r.location || '',
+            notes: r.description || '',
+            eventType: r.event_type || 'general',
+            isDateNight: r.event_type === 'dateNight' || r.event_type === 'date_night',
+            whenTs: new Date(r.event_date).getTime(),
+            createdBy: r.created_by,
+            isRemote: true, // flag so we know it came from Supabase
+            metadata: r.metadata || {},
+          }));
+          // Merge: remote events take precedence for same id
+          const remoteIds = new Set(mapped.map(e => e.id));
+          const localOnly = safe.filter(e => !remoteIds.has(e.id) && !e.supabaseId);
+          safe = [...mapped, ...localOnly];
+        }
+      } catch (err) {
+        console.warn('[Calendar] Failed to fetch remote events:', err.message);
+        // Fall back to local-only — offline-safe
+      }
+    }
+
     setEvents(safe.sort((a, b) => (a.whenTs || 0) - (b.whenTs || 0)));
     setMyDates(Array.isArray(dates) ? dates : []);
   };
@@ -338,6 +378,32 @@ export default function CalendarScreen({ navigation, route }) {
     }, [route?.params?.prefill])
   );
 
+  // ── Realtime: auto-refresh when partner adds/removes calendar events ──
+  useEffect(() => {
+    if (!supabase || !coupleId) return;
+
+    const channel = supabase
+      .channel(`calendar_${coupleId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: TABLES.CALENDAR_EVENTS,
+          filter: `couple_id=eq.${coupleId}`,
+        },
+        () => {
+          // Partner created/updated/deleted an event — reload
+          loadEvents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [coupleId]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await loadEvents();
@@ -378,7 +444,47 @@ export default function CalendarScreen({ navigation, route }) {
       }
 
       const eventData = { ...form, whenTs, notificationId, eventType: form.eventType };
-      const savedEvent = await calendarStorage.addEvent(eventData);
+
+      // ── Sync to Supabase so partner sees it ──
+      let supabaseId = null;
+      if (supabase && coupleId && userId) {
+        try {
+          const { data: inserted, error } = await supabase
+            .from(TABLES.CALENDAR_EVENTS)
+            .insert({
+              couple_id: coupleId,
+              title: form.title.trim(),
+              description: form.notes || null,
+              event_date: new Date(whenTs).toISOString(),
+              event_type: form.eventType || 'general',
+              location: form.location || null,
+              metadata: {
+                isDateNight: form.isDateNight,
+                notify: form.notify,
+                notifyMins: form.notifyMins,
+                notificationId,
+              },
+              created_by: userId,
+            })
+            .select('id')
+            .single();
+
+          if (!error && inserted) {
+            supabaseId = inserted.id;
+          } else if (error) {
+            console.warn('[Calendar] Supabase insert failed:', error.message);
+          }
+        } catch (syncErr) {
+          console.warn('[Calendar] Supabase sync error:', syncErr.message);
+          // Continue — event still saves locally
+        }
+      }
+
+      // Save locally (with Supabase id reference for dedup)
+      const savedEvent = await calendarStorage.addEvent({
+        ...eventData,
+        ...(supabaseId ? { id: supabaseId, supabaseId } : {}),
+      });
 
       if (form.isDateNight || form.eventType === 'dateNight') {
         await myDatesStorage.addMyDate({
@@ -393,6 +499,10 @@ export default function CalendarScreen({ navigation, route }) {
       }
 
       setModalOpen(false);
+      // Navigate the calendar to the date of the newly saved event
+      const savedDate = new Date(combined);
+      savedDate.setHours(0, 0, 0, 0);
+      setSelectedDate(savedDate);
       await loadEvents();
       const now = new Date();
       setPickerDate(now);
@@ -484,6 +594,18 @@ export default function CalendarScreen({ navigation, route }) {
                       { text: 'Delete', style: 'destructive', onPress: async () => {
                         if (event.notificationId) {
                           await cancelNotification(event.notificationId);
+                        }
+                        // Delete from Supabase if it came from there
+                        if (supabase && (event.isRemote || event.supabaseId)) {
+                          try {
+                            const remoteId = event.supabaseId || event.id;
+                            await supabase
+                              .from(TABLES.CALENDAR_EVENTS)
+                              .delete()
+                              .eq('id', remoteId);
+                          } catch (err) {
+                            console.warn('[Calendar] Supabase delete failed:', err.message);
+                          }
                         }
                         await calendarStorage.deleteEvent(event.id);
                         loadEvents();

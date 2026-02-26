@@ -18,32 +18,32 @@ const HEAT_LEVELS = [
   {
     level: 1,
     emoji: '😊',
-    title: 'Heart Connection',
-    description: 'Pure emotional intimacy, non-sexual — building friendship and trust',
+    title: 'Emotional Connection',
+    description: 'Emotional intimacy, non-sexual — building friendship and trust',
   },
   {
     level: 2,
     emoji: '💕',
-    title: 'Spark & Attraction',
+    title: 'Flirty & Romantic',
     description: 'Flirty attraction, romance, and deeper emotional intimacy',
   },
   {
     level: 3,
     emoji: '🔥',
-    title: 'Intimate Connection',
-    description: 'Moderately sexual, relationship-focused desire and attraction',
+    title: 'Sensual',
+    description: 'Sensual, relationship-focused desire and attraction',
   },
   {
     level: 4,
     emoji: '🌶️',
-    title: 'Adventurous Exploration',
-    description: 'Playfully sexual, suggestive, and adventurous topics',
+    title: 'Steamy',
+    description: 'Suggestive, adventurous, and heated topics',
   },
   {
     level: 5,
     emoji: '🔥🔥',
-    title: 'Unrestrained Passion',
-    description: 'Intensely passionate, deeply intimate explorations',
+    title: 'Explicit',
+    description: 'Intensely passionate, graphic, explicit explorations',
   },
 ];
 

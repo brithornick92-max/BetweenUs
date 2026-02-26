@@ -112,7 +112,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
     tomorrow.setHours(19, 30, 0, 0);
 
     const prefill = {
-      __token: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+      __token: `${Date.now()}_${require('expo-crypto').randomUUID().slice(0, 12)}`,
       title: `Date: ${date.title || "Date Night"}`,
       prefillDate: tomorrow.getTime(),      // timestamp — pickers understand this
       location: date?.location === "home" ? "Our Home" : "Out & About",
@@ -145,13 +145,20 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
           <Text style={[TYPOGRAPHY.display, { color: t.text, fontSize: 32 }]}>{date.title}</Text>
 
+          {/* Dimension badges — heat, load, style */}
+          {dimensionBadges.length > 0 && (
+            <View style={styles.metaBadgeRow}>
+              {dimensionBadges.map((b, i) => (
+                <View key={i} style={[styles.glassBadge, { backgroundColor: b.color + '18' }]}>
+                  {b.icon ? <Text style={{ fontSize: 14 }}>{b.icon}</Text> : null}
+                  <Text style={[styles.badgeText, { color: b.color }]}>{b.label}</Text>
+                </View>
+              ))}
+            </View>
+          )}
 
-
-
-
-
-          {/* Duration and Place badges restored */}
-          <View style={{ flexDirection: 'row', gap: 10, marginTop: 15, alignSelf: 'center' }}>
+          {/* Duration and Place badges */}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 10, alignSelf: 'center' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: t.surfaceSecondary, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, marginRight: 8 }}>
               <MaterialCommunityIcons name="clock-outline" size={16} color={t.blushRose} />
               <Text style={{ fontSize: 12, fontWeight: '700', marginLeft: 6, color: t.text }}>{date.minutes}m</Text>
@@ -315,7 +322,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { marginBottom: 20 },
 
-  metaBadgeRow: { flexDirection: "row", gap: 10, marginTop: 15 },
+  metaBadgeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 15, justifyContent: "center" },
   moodBadgeRow: {
     flexDirection: "row",
     flexWrap: "wrap",

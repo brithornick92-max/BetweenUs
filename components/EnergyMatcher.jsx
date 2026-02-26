@@ -9,12 +9,15 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
+import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import { ContentIntensityMatcher, ENERGY_LEVELS } from '../services/ConnectionEngine';
 import { useContent } from '../context/ContentContext';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 const FONTS = {
   serif: Platform.select({
@@ -93,15 +96,16 @@ export default function EnergyMatcher({ onSelect, compact = false }) {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.question, { color: colors.text }]}>
+      <Animated.Text entering={FadeIn.duration(450)} style={[styles.question, { color: colors.text }]}>
         How much energy do you have?
-      </Text>
+      </Animated.Text>
       <View style={styles.options}>
-        {ENERGY_LEVELS.map((level) => {
+        {ENERGY_LEVELS.map((level, index) => {
           const isSelected = selected === level.id;
           return (
-            <TouchableOpacity
+            <AnimatedTouchable
               key={level.id}
+              entering={FadeInUp.delay(150 + index * 100).duration(400).springify().damping(16)}
               style={[
                 styles.option,
                 {
@@ -123,7 +127,7 @@ export default function EnergyMatcher({ onSelect, compact = false }) {
               <Text style={[styles.description, { color: colors.textMuted }]}>
                 {level.description}
               </Text>
-            </TouchableOpacity>
+            </AnimatedTouchable>
           );
         })}
       </View>

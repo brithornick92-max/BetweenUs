@@ -14,11 +14,14 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { BORDER_RADIUS, SPACING } from '../utils/theme';
 import { NicknameEngine } from '../services/PolishEngine';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function NicknameSettings({ onConfigChanged }) {
   const { colors } = useTheme();
@@ -49,7 +52,7 @@ export default function NicknameSettings({ onConfigChanged }) {
   return (
     <View style={styles.container}>
       {/* Nickname Inputs */}
-      <View style={styles.inputGroup}>
+      <Animated.View entering={FadeInDown.delay(100).duration(450)} style={styles.inputGroup}>
         <Text style={[styles.inputLabel, { color: colors.textMuted }]}>
           What should we call you?
         </Text>
@@ -63,9 +66,9 @@ export default function NicknameSettings({ onConfigChanged }) {
           accessibilityLabel="Your nickname"
           accessibilityHint="Enter what the app should call you"
         />
-      </View>
+      </Animated.View>
 
-      <View style={styles.inputGroup}>
+      <Animated.View entering={FadeInDown.delay(200).duration(450)} style={styles.inputGroup}>
         <Text style={[styles.inputLabel, { color: colors.textMuted }]}>
           What should we call your partner?
         </Text>
@@ -79,7 +82,7 @@ export default function NicknameSettings({ onConfigChanged }) {
           accessibilityLabel="Partner's nickname"
           accessibilityHint="Enter what the app should call your partner"
         />
-      </View>
+      </Animated.View>
 
       {/* Tone Selector */}
       <View style={styles.toneSection}>
@@ -91,11 +94,12 @@ export default function NicknameSettings({ onConfigChanged }) {
         </Text>
 
         <View style={styles.toneGrid}>
-          {NicknameEngine.TONE_OPTIONS.map((tone) => {
+          {NicknameEngine.TONE_OPTIONS.map((tone, index) => {
             const isActive = config.tone === tone.id;
             return (
-              <TouchableOpacity
+              <AnimatedTouchable
                 key={tone.id}
+                entering={FadeInDown.delay(350 + index * 80).duration(400).springify().damping(16)}
                 style={[
                   styles.toneCard,
                   { borderColor: isActive ? colors.primary : colors.border },
@@ -118,7 +122,7 @@ export default function NicknameSettings({ onConfigChanged }) {
                 <Text style={[styles.tonePreview, { color: colors.textMuted }]} numberOfLines={1}>
                   {tone.preview.replace('{partner}', config.partnerNickname || 'them')}
                 </Text>
-              </TouchableOpacity>
+              </AnimatedTouchable>
             );
           })}
         </View>

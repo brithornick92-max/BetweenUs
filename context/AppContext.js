@@ -4,6 +4,7 @@ import * as Crypto from 'expo-crypto';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 import { useEntitlements } from './EntitlementsContext';
 import { NicknameEngine } from '../services/PolishEngine';
+import CoupleService from '../services/supabase/CoupleService';
 
 const initialState = {
   userId: null,
@@ -181,45 +182,55 @@ export function AppProvider({ children }) {
         // Non-critical — swallow
       }
 
-      // Setup vibe sync listeners
-      const { vibeSyncService } = await import('../utils/vibeSync');
+      // Setup Supabase Realtime listener for partner vibe/data changes
+      // (replaces the old local-only vibeSyncService which never actually synced)
+      const coupleIdVal = isActuallyLinked ? coupleId : null;
+      if (coupleIdVal) {
+        try {
+          const { supabase, TABLES } = await import('../config/supabase');
+          if (supabase && active) {
+            const channel = supabase
+              .channel(`couple_sync_${coupleIdVal}`)
+              .on(
+                'postgres_changes',
+                {
+                  event: '*',
+                  schema: 'public',
+                  table: TABLES.COUPLE_DATA,
+                  filter: `couple_id=eq.${coupleIdVal}`,
+                },
+                (payload) => {
+                  if (!active) return;
+                  const row = payload.new;
+                  // Partner vibe update
+                  if (row?.data_type === 'vibe' && row?.created_by !== userId) {
+                    try {
+                      const vibeData = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+                      dispatch({ type: ACTIONS.SET_PARTNER_VIBE, payload: { vibe: vibeData } });
+                    } catch { /* ignore parse errors */ }
+                    const ts = Date.now();
+                    dispatch({ type: ACTIONS.UPDATE_PARTNER_ACTIVITY, payload: ts });
+                    storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, ts);
+                  }
+                  dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'synced' } });
+                }
+              )
+              .subscribe((status) => {
+                if (!active) return;
+                if (status === 'SUBSCRIBED') {
+                  dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'synced' } });
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                  dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'offline' } });
+                }
+              });
 
-      if (!active) return;
-
-      unsubscribe = vibeSyncService.addListener((event, data) => {
-        switch (event) {
-          case 'partner_vibe_received':
-            dispatch({ type: ACTIONS.SET_PARTNER_VIBE, payload: { vibe: data.vibe } });
-            // Update partner activity timestamp
-            const now = Date.now();
-            dispatch({ type: ACTIONS.UPDATE_PARTNER_ACTIVITY, payload: now });
-            storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, now);
-            break;
-          case 'vibe_synced':
-            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'synced' } });
-            break;
-          case 'vibe_sync_failed':
-            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'offline' } });
-            break;
-          case 'network_restored':
-            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'syncing' } });
-            break;
-          case 'network_lost':
-            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'offline' } });
-            break;
-          case 'concurrent_vibes':
-            // Handle concurrent vibe updates gracefully
-            if (__DEV__) console.log('Concurrent vibe updates detected:', data);
-            break;
-          case 'concurrent_resolved':
-            dispatch({ type: ACTIONS.SET_PARTNER_VIBE, payload: { vibe: data.vibe } });
-            // Update partner activity timestamp
-            const resolvedNow = Date.now();
-            dispatch({ type: ACTIONS.UPDATE_PARTNER_ACTIVITY, payload: resolvedNow });
-            storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, resolvedNow);
-            break;
+            unsubscribe = () => supabase.removeChannel(channel);
+          }
+        } catch (err) {
+          // Supabase not configured — offline mode
+          if (__DEV__) console.log('Realtime not available:', err.message);
         }
-      });
+      }
     };
     
     init();
@@ -322,6 +333,14 @@ export function AppProvider({ children }) {
     
     leaveCouple: async () => {
       try {
+        // Remove server-side couple_members row first
+        try {
+          await CoupleService.unlinkFromCouple();
+        } catch (serverErr) {
+          // Log but don't block local cleanup — user may be offline
+          console.warn('Server unlink failed (will retry):', serverErr.message);
+        }
+
         await storage.remove(STORAGE_KEYS.COUPLE_ID);
         await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
         await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);

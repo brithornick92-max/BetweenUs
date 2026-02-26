@@ -63,13 +63,13 @@ export default function DateFilterDropdowns({
             {activeHeat ? (
               <Text style={[styles.dropdownValueText, { color: activeHeat.color }]}>{activeHeat.icon} {activeHeat.label}</Text>
             ) : (
-              <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Any</Text>
+              <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Choose</Text>
             )}
             <MaterialCommunityIcons name={dropdownOpen === 'heat' ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
           </View>
         </TouchableOpacity>
 
-        {/* Effort dropdown */}
+        {/* Energy dropdown */}
         <TouchableOpacity
           style={[styles.dropdownBtn, {
             borderColor: activeLoad ? activeLoad.color + '60' : colors.border,
@@ -78,12 +78,12 @@ export default function DateFilterDropdowns({
           onPress={() => setDropdownOpen(o => o === 'load' ? null : 'load')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Effort</Text>
+          <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Energy</Text>
           <View style={styles.dropdownValue}>
             {activeLoad ? (
               <Text style={[styles.dropdownValueText, { color: activeLoad.color }]}>{activeLoad.icon} {activeLoad.label}</Text>
             ) : (
-              <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Any</Text>
+              <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Choose</Text>
             )}
             <MaterialCommunityIcons name={dropdownOpen === 'load' ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
           </View>
@@ -103,7 +103,7 @@ export default function DateFilterDropdowns({
             {activeStyleMeta ? (
               <Text style={[styles.dropdownValueText, { color: activeStyleMeta.color }]}>{activeStyleMeta.icon} {activeStyleMeta.label}</Text>
             ) : (
-              <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Any</Text>
+              <Text style={[styles.dropdownValueText, { color: colors.textMuted, opacity: 0.6 }]}>Choose</Text>
             )}
             <MaterialCommunityIcons name={dropdownOpen === 'style' ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
           </View>
@@ -122,12 +122,11 @@ export default function DateFilterDropdowns({
         <View style={[styles.dropdownPanel, { backgroundColor: isDark ? colors.surface : '#FFFAF7', borderColor: colors.border }]}>
           {dims.heat.map((h) => {
             const active = selectedHeat === h.level;
-            const locked = !isPremium && h.level >= 4;
             return (
               <TouchableOpacity
                 key={h.level}
-                style={[styles.dropdownOption, active && { backgroundColor: h.color + '15' }, locked && { opacity: 0.4 }]}
-                onPress={() => locked ? showPaywall?.('HEAT_LEVEL') : onFilterPress('heat', h.level)}
+                style={[styles.dropdownOption, active && { backgroundColor: h.color + '15' }]}
+                onPress={() => onFilterPress('heat', h.level)}
                 activeOpacity={0.7}
               >
                 <Text style={styles.dropdownOptionEmoji}>{h.icon}</Text>
@@ -135,7 +134,6 @@ export default function DateFilterDropdowns({
                   <Text style={[styles.dropdownOptionLabel, { color: active ? h.color : colors.text }]}>{h.label}</Text>
                 </View>
                 {active && <MaterialCommunityIcons name="check" size={18} color={h.color} />}
-                {locked && <MaterialCommunityIcons name="lock-outline" size={14} color={colors.textMuted} />}
               </TouchableOpacity>
             );
           })}

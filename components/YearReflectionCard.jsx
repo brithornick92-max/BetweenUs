@@ -1,12 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Animated, { FadeInRight } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function YearReflectionCard({ onPress }) {
   const { colors } = useTheme();
   return (
-    <TouchableOpacity
+    <AnimatedTouchable
+      entering={FadeInRight.duration(500).springify().damping(16)}
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
       activeOpacity={0.85}
       onPress={onPress}
@@ -19,7 +23,7 @@ export default function YearReflectionCard({ onPress }) {
         <Text style={[styles.subtitle, { color: colors.textMuted }]}>A warm, written look back at your year together.</Text>
       </View>
       <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textMuted} />
-    </TouchableOpacity>
+    </AnimatedTouchable>
   );
 }
 

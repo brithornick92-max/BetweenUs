@@ -313,10 +313,12 @@ const styles = StyleSheet.create({
   },
 
   promptContainer: {
-    padding: 24,
+    padding: 28,
     borderRadius: 30,
     marginBottom: 30,
     borderWidth: 1,
+    minHeight: Math.min(Dimensions.get('window').height * 0.85, 720),
+    justifyContent: 'center',
   },
   questionLabel: {
     fontSize: 11,
@@ -327,7 +329,7 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 20,
     fontWeight: "700",
-    lineHeight: 28,
+    lineHeight: 30,
   },
 
   lockedStage: {

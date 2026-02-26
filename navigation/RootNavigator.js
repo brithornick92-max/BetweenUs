@@ -38,6 +38,7 @@ import SyncSetupScreen from "../screens/SyncSetupScreen";
 import AuthCallbackScreen from "../screens/AuthCallbackScreen";
 import PairingQRCodeScreen from "../screens/PairingQRCodeScreen";
 import PairingScanScreen from "../screens/PairingScanScreen";
+import JoinWithCodeScreen from "../screens/JoinWithCodeScreen";
 import SetPinScreen from "../screens/SetPinScreen";
 import RitualRemindersScreen from "../screens/RitualRemindersScreen";
 import ComposeLoveNoteScreen from "../screens/ComposeLoveNoteScreen";
@@ -221,6 +222,7 @@ export default function RootNavigator() {
         <Stack.Screen name="AuthCallback" component={AuthCallbackScreen} options={{ headerShown: false, animation: "fade", animationDuration: 300 }} />
         <Stack.Screen name="PairingQRCode" component={PairingQRCodeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="PairingScan" component={PairingScanScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="JoinWithCode" component={JoinWithCodeScreen} options={{ headerShown: false }} />
 
         {__DEV__ && (
           <Stack.Screen

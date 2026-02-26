@@ -42,27 +42,27 @@ import {
 
 const MAX_LEN = 1000;
 
-// Category colours for card accent
-const CAT_COLORS = {
-  romance:   ['#D4607A', '#9A2E5E'],
-  playful:   ['#F09A5A', '#D96B2A'],
-  physical:  ['#9B72CF', '#6B3FA0'],
-  fantasy:   ['#C84B5A', '#8B1A2A'],
-  sensory:   ['#C49A6C', '#8A6540'],
-  emotional: ['#7B6DAF', '#504880'],
-  future:    ['#5BA8D4', '#2E6E9A'],
-  memory:    ['#5FAA7A', '#337A50'],
-  visual:    ['#D4A830', '#A07820'],
+// Heat-level colours, icons, and labels for card accent
+const HEAT_COLORS = {
+  1: ['#B07EFF', '#9060E0'],
+  2: ['#FF7EB8', '#E0609A'],
+  3: ['#FF7080', '#E05468'],
+  4: ['#FF8534', '#E06820'],
+  5: ['#FF2D2D', '#E01818'],
 };
-const CAT_ICONS = {
-  romance: 'heart', playful: 'star-four-points', physical: 'fire',
-  fantasy: 'lightning-bolt', sensory: 'weather-night', emotional: 'chat-outline',
-  future: 'telescope', memory: 'camera-outline', visual: 'eye-outline',
+const HEAT_ICONS = {
+  1: 'hand-heart',
+  2: 'heart-multiple',
+  3: 'heart-pulse',
+  4: 'water',
+  5: 'fire',
 };
-const CAT_LABELS = {
-  romance: 'Romantic', playful: 'Playful', physical: 'Intimate',
-  fantasy: 'Spicy', sensory: 'Cozy', emotional: 'Deep Talk',
-  future: 'Dreams', memory: 'Appreciation', visual: 'Curiosity',
+const HEAT_LABELS = {
+  1: 'Emotional',
+  2: 'Flirty',
+  3: 'Sensual',
+  4: 'Steamy',
+  5: 'Explicit',
 };
 
 const INSPIRATION_CHIPS = [
@@ -92,9 +92,10 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const dealScale = useSharedValue(0.85);
   const dealOpacity = useSharedValue(0);
 
-  const catGradient = CAT_COLORS[prompt?.category] || [colors.primary, colors.primaryMuted || colors.primary];
-  const catIcon = CAT_ICONS[prompt?.category] || 'help-circle-outline';
-  const catLabel = CAT_LABELS[prompt?.category] || prompt?.category || '';
+  const heat = prompt?.heat || 1;
+  const catGradient = HEAT_COLORS[heat] || ['#B07EFF', '#9060E0'];
+  const catIcon = HEAT_ICONS[heat] || 'hand-heart';
+  const catLabel = HEAT_LABELS[heat] || 'Emotional';
 
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -288,7 +289,6 @@ export default function PromptAnswerScreen({ route, navigation }) {
               {/* FRONT FACE — prompt text */}
               <Animated.View style={[styles.cardFace, frontFaceStyle]}>
                 <BlurView intensity={25} tint={isDark ? "dark" : "light"} style={styles.blurCard}>
-                  <View style={styles.promptContent}>
                     {/* Category band */}
                     <LinearGradient
                       colors={catGradient}
@@ -300,27 +300,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
                       <Text style={styles.cardFrontBandText}>{catLabel}</Text>
                     </LinearGradient>
 
-                    <Text style={styles.promptLabel}>TODAY'S REFLECTION</Text>
+                  <View style={styles.promptContent}>
                     <Text style={styles.promptText}>{prompt?.text}</Text>
-              
-                    {/* Inspiration Chips */}
-                    <View style={styles.chipsContainer}>
-                      <Text style={styles.chipsLabel}>Need a spark?</Text>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>
-                        {INSPIRATION_CHIPS.map((chip, i) => (
-                          <TouchableOpacity
-                            key={i}
-                            style={[styles.chip, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}
-                            onPress={() => {
-                              Haptics.selectionAsync();
-                              setAnswer(prev => prev + (prev ? " " : "") + chip + " ");
-                            }}
-                          >
-                            <Text style={[styles.chipText, { color: colors.primary }]}>{chip}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
                   </View>
                 </BlurView>
               </Animated.View>
@@ -466,7 +447,7 @@ const createStyles = (colors) => StyleSheet.create({
     marginBottom: SPACING.xl,
     borderRadius: BORDER_RADIUS.xl,
     overflow: "hidden",
-    minHeight: 260,
+    minHeight: Math.min(Dimensions.get('window').height * 0.85, 720),
   },
   cardFace: {
     position: "absolute",
@@ -557,6 +538,8 @@ const createStyles = (colors) => StyleSheet.create({
   },
   promptContent: {
     alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
   },
   promptLabel: {
     ...TYPOGRAPHY.label,
@@ -569,11 +552,12 @@ const createStyles = (colors) => StyleSheet.create({
       ios: "Playfair Display",
       android: "PlayfairDisplay_300Light",
     }),
-    fontSize: 24,
-    lineHeight: 34,
+    fontSize: 18,
+    lineHeight: 26,
     color: colors.text,
     textAlign: "center",
     fontWeight: "300",
+    marginBottom: SPACING.md,
   },
   inputWrapper: {
     flex: 1,

@@ -4,6 +4,7 @@
 
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import Card from './Card';
 import { SPACING, BORDER_RADIUS, TYPOGRAPHY, withAlpha } from '../utils/theme';
@@ -86,7 +87,7 @@ export default function InvitationCard({
       accessibilityRole="button"
       accessibilityLabel={`${challenge?.name || 'Invitation'}${isComplete ? ', completed' : ''}${isExpired ? ', passed' : ''}`}
     >
-      <View style={styles.content}>
+      <Animated.View entering={FadeInDown.duration(500).springify().damping(16)} style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.typeIcon}>{typeIcon}</Text>
@@ -122,24 +123,26 @@ export default function InvitationCard({
         )}
 
         {onAccept && challenge?.status === 'available' && !isExpired && (
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={onAccept}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={`Begin ${challenge?.name || 'invitation'}`}
-          >
-            <LinearGradient
-              colors={[colors.primary, colors.primaryMuted]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.acceptGradient}
+          <Animated.View entering={FadeIn.delay(300).duration(400)}>
+            <TouchableOpacity
+              style={styles.acceptButton}
+              onPress={onAccept}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={`Begin ${challenge?.name || 'invitation'}`}
             >
-              <Text style={styles.acceptText}>Begin</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={[colors.primary, colors.primaryMuted]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.acceptGradient}
+              >
+                <Text style={styles.acceptText}>Begin</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
         )}
-      </View>
+      </Animated.View>
     </Card>
   );
 }

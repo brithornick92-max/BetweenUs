@@ -124,7 +124,7 @@ export function getFilteredPrompts(filters = {}) {
 
 export function getPromptByHeatLevel(heatLevel) {
   try {
-    const level = typeof heatLevel === "number" ? heatLevel : Number(heatLevel) || 1;
+    const level = typeof heatLevel === "number" ? heatLevel : Number(heatLevel) || 5;
     const items = safeArray(promptsData?.items);
 
     const levelPrompts = items.filter(
@@ -212,7 +212,7 @@ export function getAllPrompts() {
 }
 
 export function getPromptsByHeatLevel(heatLevel) {
-  const level = typeof heatLevel === "number" ? heatLevel : Number(heatLevel) || 1;
+  const level = typeof heatLevel === "number" ? heatLevel : Number(heatLevel) || 5;
   const items = safeArray(promptsData?.items);
 
   return items.filter(
@@ -243,7 +243,7 @@ const VALID_STYLES = ["talking", "doing", "mixed"];
 const normalizeDate = (date) => {
   if (!date || typeof date !== "object") return null;
 
-  const heat = typeof date.heat === "number" ? Math.max(1, Math.min(5, date.heat)) : 1;
+  const heat = typeof date.heat === "number" ? Math.max(1, Math.min(3, date.heat)) : 1;
   const load = typeof date.load === "number" ? Math.max(1, Math.min(3, date.load)) : 2;
   const style = VALID_STYLES.includes(date.style) ? date.style : "mixed";
 
@@ -261,9 +261,9 @@ export function filterDates(sourceData = null, filters = {}) {
 
   const {
     location = "either",
-    heat = null,          // exact heat level 1-5, or null (any)
-    minHeat = 1,          // 1-5, floor heat level
-    maxHeat = 5,          // 1-5, caps heat level
+    heat = null,          // exact mood level 1-3, or null (any)
+    minHeat = 1,          // 1-3, floor mood level
+    maxHeat = 3,          // 1-3, caps mood level
     load = null,          // exact load level 1-3, or null (any)
     style = null,         // "talking" | "doing" | "mixed" | null (any)
     minMinutes = 0,
@@ -399,30 +399,28 @@ export function getAvailableCategories() {
 export function getHeatLevels() {
   return (
     promptsData?.meta?.heatLevels || {
-      1: { name: "Heart Connection", description: "Pure emotional intimacy, non-sexual" },
-      2: { name: "Spark & Attraction", description: "Flirty attraction, romantic tension" },
-      3: { name: "Intimate Connection", description: "Moderately sexual, relationship-focused" },
-      4: { name: "Adventurous Exploration", description: "Mostly sexual, kinky, adventurous" },
-      5: { name: "Unrestrained Passion", description: "Highly sexual, graphic, intense" },
+      1: { name: "Emotional Connection", description: "Emotional intimacy, non-sexual" },
+      2: { name: "Flirty & Romantic", description: "Flirty attraction, romantic tension" },
+      3: { name: "Sensual", description: "Sensual, relationship-focused intimacy" },
+      4: { name: "Steamy", description: "Suggestive, adventurous, and heated" },
+      5: { name: "Explicit", description: "Intensely passionate, graphic, explicit" },
     }
   );
 }
 
 export function getDimensionMeta() {
   return {
-    // 🔥 Heat — How close do you want to feel? (1-5)
+    // � Mood — What kind of date? (1-3)
     heat: [
-      { level: 1, label: "Comfort",    icon: "🫶",  color: "#5A8A5C", darkColor: "#162218" },
-      { level: 2, label: "Connection", icon: "💛",  color: "#8B5A9E", darkColor: "#1E1228" },
-      { level: 3, label: "Flirtation", icon: "😏",  color: "#B85A78", darkColor: "#261018" },
-      { level: 4, label: "Intimacy",   icon: "🔥",  color: "#A84848", darkColor: "#200C0C" },
-      { level: 5, label: "Passion",    icon: "💥",  color: "#8C1E1E", darkColor: "#1A0808" },
+      { level: 1, label: "Heart",  icon: "💜",  color: "#B07EFF", darkColor: "#1C1030" },
+      { level: 2, label: "Play",   icon: "🎉",  color: "#FF7EB8", darkColor: "#2C1020" },
+      { level: 3, label: "Heat",   icon: "🔥",  color: "#FF5A5A", darkColor: "#2C0808" },
     ],
-    // 🪫 Load — What kind of energy do you want? (1-3)
+    // ⚡ Energy — How much effort? (1-3)
     load: [
-      { level: 1, label: "Calm",       icon: "🌙", color: "#4D7A50", darkColor: "#121E14" },
-      { level: 2, label: "Balanced",   icon: "☀️", color: "#B8863A", darkColor: "#1E160A" },
-      { level: 3, label: "Energizing", icon: "⚡", color: "#C05228", darkColor: "#1E0E06" },
+      { level: 1, label: "Chill",    icon: "🌙", color: "#4D7A50", darkColor: "#121E14" },
+      { level: 2, label: "Moderate", icon: "☀️", color: "#B8863A", darkColor: "#1E160A" },
+      { level: 3, label: "Active",   icon: "⚡", color: "#C05228", darkColor: "#1E0E06" },
     ],
     // 🤝 Style — How do you want to connect? (talking/doing/mixed)
     style: [

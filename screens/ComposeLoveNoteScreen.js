@@ -162,7 +162,12 @@ export default function ComposeLoveNoteScreen({ navigation }) {
         stationeryId: selectedStationery.id,
         senderName: senderName || null,
       });
-      navigation.goBack();
+      // Navigate back — the Inbox focus listener will auto-reload to show the sent note
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.navigate('LoveNotesInbox');
+      }
     } catch (err) {
       console.error('[ComposeLoveNote] Send failed:', err);
       const message = err?.message?.startsWith('COUPLE_KEY_MISSING')

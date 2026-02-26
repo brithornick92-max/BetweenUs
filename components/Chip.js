@@ -77,13 +77,14 @@ export default function Chip({
   }, [value, label]);
 
   const moodColorsDark = {
-    comfort: '#162218', connection: '#1E1228', flirtation: '#261018',
-    intimacy: '#200C0C', passion: '#1A0808',
+    emotional: '#1C1030', flirty: '#2C1020', sensual: '#2C0E1C',
+    steamy: '#2C1408', explicit: '#2C0808',
     calm: '#121E14', balanced: '#1E160A', energizing: '#1E0E06',
     talking: '#0E1A24', doing: '#14101E', mixed: '#1E0C16',
-    sweet: '#162218', flirty: '#1E1228', intimate: '#261018',
-    steamy: '#200C0C', scorching: '#1A0808',
-    spicy: '#200808', romantic: '#1E0810', heartfelt: '#0C1420',
+    sweet: '#1C1030', comfort: '#1C1030', connection: '#2C1020',
+    flirtation: '#2C0E1C', intimate: '#2C0E1C',
+    intimacy: '#2C1408', passion: '#2C0808', scorching: '#2C0808',
+    spicy: '#2C0808', romantic: '#1E0810', heartfelt: '#0C1420',
     adventurous: '#0C1A0E', cozy: '#121E14', playful: '#1E1808',
     tranquil: '#081A16', connected: '#1E1808',
     reflective: colors.textMuted, energized: colors.primary,
@@ -93,12 +94,12 @@ export default function Chip({
   };
 
   const moodColorsLight = {
-    // Heat levels (Closeness)
-    comfort: '#5A8A5C',
-    connection: '#8B5A9E',
-    flirtation: '#B85A78',
-    intimacy: '#A84848',
-    passion: '#8C1E1E',
+    // Heat levels
+    emotional: '#B07EFF',
+    flirty: '#FF7EB8',
+    sensual: '#FF7080',
+    steamy: '#FF8534',
+    explicit: '#FF2D2D',
     // Load levels (Energy)
     calm: '#4D7A50',
     balanced: '#B8863A',
@@ -108,11 +109,14 @@ export default function Chip({
     doing: '#6B4E96',
     mixed: '#A84468',
     // Heat tiers (legacy labels)
-    sweet: '#5A8A5C',
-    flirty: '#8B5A9E',
-    intimate: '#B85A78',
-    steamy: '#A84848',
-    scorching: '#8C1E1E',
+    sweet: '#B07EFF',
+    comfort: '#B07EFF',
+    connection: '#FF7EB8',
+    flirtation: '#FF7080',
+    intimate: '#FF7080',
+    intimacy: '#FF8534',
+    passion: '#FF2D2D',
+    scorching: '#FF2D2D',
     // Legacy / general mood colors (for prompts or other features)
     spicy: '#A83232',
     romantic: '#8B2248',

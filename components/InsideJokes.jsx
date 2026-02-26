@@ -18,10 +18,23 @@ import {
   TextInput,
   Modal,
   Alert,
-  Animated,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withRepeat,
+  withSequence,
+  withDelay,
+  withSpring,
+  FadeInDown,
+  FadeIn,
+  Easing,
+  interpolate,
+  SlideInRight,
+} from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
@@ -36,6 +49,8 @@ const JOKE_TYPES = [
   { key: 'phrase', label: 'Our Phrase', icon: 'format-quote-open', color: '#8B7D6B' },
 ];
 
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 export default function InsideJokes({ compact = false }) {
   const { colors } = useTheme();
   const [jokes, setJokes] = useState([]);
@@ -43,6 +58,23 @@ export default function InsideJokes({ compact = false }) {
   const [selectedType, setSelectedType] = useState('joke');
   const [formTitle, setFormTitle] = useState('');
   const [formStory, setFormStory] = useState('');
+
+  // Breathing animation for empty state icon
+  const breathe = useSharedValue(1);
+  useEffect(() => {
+    breathe.value = withRepeat(
+      withSequence(
+        withTiming(1.12, { duration: 2400, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+  }, []);
+  const breatheStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breathe.value }],
+    opacity: interpolate(breathe.value, [1, 1.12], [0.5, 0.8]),
+  }));
 
   const loadJokes = useCallback(async () => {
     const loaded = await PrivateLanguageVault.getAll();
@@ -109,10 +141,11 @@ export default function InsideJokes({ compact = false }) {
   }
 
   // Full mode: scrollable vault
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item, index }) => {
     const config = getTypeConfig(item.type);
     return (
-      <TouchableOpacity
+      <AnimatedTouchable
+        entering={FadeInDown.delay(index * 80).duration(400).springify().damping(18)}
         style={[styles.jokeCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
         activeOpacity={0.8}
         onLongPress={() => handleDelete(item.id)}
@@ -132,7 +165,7 @@ export default function InsideJokes({ compact = false }) {
             {item.story}
           </Text>
         ) : null}
-      </TouchableOpacity>
+      </AnimatedTouchable>
     );
   };
 
@@ -156,15 +189,23 @@ export default function InsideJokes({ compact = false }) {
       </View>
 
       {jokes.length === 0 ? (
-        <View style={styles.emptyState}>
-          <MaterialCommunityIcons name="lock-heart" size={48} color={colors.textMuted + '30'} />
-          <Text style={[styles.emptyTitle, { color: colors.textMuted }]}>
+        <Animated.View entering={FadeIn.duration(800)} style={styles.emptyState}>
+          <Animated.View style={breatheStyle}>
+            <MaterialCommunityIcons name="book-heart-outline" size={52} color={colors.textMuted + '50'} />
+          </Animated.View>
+          <Animated.Text
+            entering={FadeInDown.delay(200).duration(600)}
+            style={[styles.emptyTitle, { color: colors.textMuted }]}
+          >
             Your vault is empty
-          </Text>
-          <Text style={[styles.emptySubtitle, { color: colors.textMuted + '80' }]}>
+          </Animated.Text>
+          <Animated.Text
+            entering={FadeInDown.delay(400).duration(600)}
+            style={[styles.emptySubtitle, { color: colors.textMuted + '80' }]}
+          >
             Add the nicknames, jokes, and rituals{'\n'}that belong to just the two of you.
-          </Text>
-        </View>
+          </Animated.Text>
+        </Animated.View>
       ) : (
         <FlatList
           data={jokes}

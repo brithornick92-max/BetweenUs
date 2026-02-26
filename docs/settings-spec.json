@@ -20,7 +20,7 @@
       "engine": "PremiumGatekeeper + ContentContext",
       "storage": "AsyncStorage @betweenus:heatLevelPreference",
       "ui": "HeatLevelSettingsScreen + OnboardingScreen",
-      "levels": ["Heart Connection", "Spark & Attraction", "Intimate Connection", "Adventurous Exploration", "Unrestrained Passion"]
+      "levels": ["Emotional Connection", "Flirty & Romantic", "Sensual", "Steamy", "Explicit"]
     },
     "tone": {
       "engine": "NicknameEngine (services/PolishEngine.js)",

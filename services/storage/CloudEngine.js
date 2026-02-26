@@ -39,6 +39,17 @@ class CloudEngine {
     this._ensureSession();
     const supabase = getSupabaseOrThrow();
     const userId = await this._getUserId();
+
+    // Guard: check if user is already in a couple
+    const { data: existing } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .select('couple_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (existing?.couple_id) {
+      throw new Error('You are already linked to a partner. Leave your current couple first.');
+    }
+
     const { data, error } = await supabase
       .from(TABLES.COUPLES)
       .insert({ created_by: userId })
@@ -67,6 +78,17 @@ class CloudEngine {
     this._ensureSession();
     const supabase = getSupabaseOrThrow();
     const userId = await this._getUserId();
+
+    // Guard: check if user is already in a couple
+    const { data: existing } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .select('couple_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (existing?.couple_id) {
+      throw new Error('You are already linked to a partner. Leave your current couple first.');
+    }
+
     const memberRow = {
       couple_id: coupleId,
       user_id: userId,
@@ -241,6 +263,61 @@ class CloudEngine {
       .eq('couple_id', coupleId)
       .eq('key', key);
     if (error) throw error;
+    return true;
+  }
+
+  /**
+   * Delete all cloud data for the current user: profile, couple membership,
+   * couple data they created, and empty couples left behind.
+   * Called during account deletion before the auth user is removed.
+   */
+  async deleteUserData() {
+    this._ensureSession();
+    const supabase = getSupabaseOrThrow();
+    const userId = await this._getUserId();
+
+    // 1. Find the user's couple (if any)
+    const { data: membership } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .select('couple_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    const coupleId = membership?.couple_id;
+
+    if (coupleId) {
+      // 2. Delete couple_data rows this user created
+      await supabase
+        .from(TABLES.COUPLE_DATA)
+        .delete()
+        .eq('couple_id', coupleId)
+        .eq('created_by', userId);
+
+      // 3. Remove user from couple_members
+      await supabase
+        .from(TABLES.COUPLE_MEMBERS)
+        .delete()
+        .eq('couple_id', coupleId)
+        .eq('user_id', userId);
+
+      // 4. If no members remain, delete the couple entirely
+      const { count } = await supabase
+        .from(TABLES.COUPLE_MEMBERS)
+        .select('id', { count: 'exact', head: true })
+        .eq('couple_id', coupleId);
+
+      if (count === 0) {
+        await supabase.from(TABLES.COUPLE_DATA).delete().eq('couple_id', coupleId);
+        await supabase.from(TABLES.COUPLES).delete().eq('id', coupleId);
+      }
+    }
+
+    // 5. Delete the user's profile
+    await supabase
+      .from(TABLES.PROFILES)
+      .delete()
+      .eq('id', userId);
+
     return true;
   }
 }

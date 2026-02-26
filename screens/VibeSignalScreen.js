@@ -20,12 +20,14 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
+import { MomentSignalSender } from '../services/ConnectionEngine';
 
 const VibeSignalScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { state } = useAppContext();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const partnerLabel = state.partnerLabel || 'Partner';
   
   // Animation values
   const fadeAnimation = useRef(new Animated.Value(0)).current;
@@ -34,6 +36,13 @@ const VibeSignalScreen = ({ navigation }) => {
 
   // Real vibe history for the chart
   const [weeklyData, setWeeklyData] = useState(null);
+
+  // Heartbeat signal state
+  const [heartbeatSent, setHeartbeatSent] = useState(false);
+  const [heartbeatSending, setHeartbeatSending] = useState(false);
+  const [heartbeatError, setHeartbeatError] = useState(null);
+  const heartbeatFadeAnim = useRef(new Animated.Value(0)).current;
+  const heartbeatScaleAnim = useRef(new Animated.Value(0.8)).current;
 
   // Map vibe types to intensity scores for chart display
   const VIBE_INTENSITY = {
@@ -163,8 +172,6 @@ const VibeSignalScreen = ({ navigation }) => {
   );
 
   const renderConnectionStatus = () => {
-    const partnerLabel = state.partnerLabel || "Partner";
-    
     return (
       <Animated.View 
         style={[
@@ -257,18 +264,93 @@ const VibeSignalScreen = ({ navigation }) => {
         )}
       </BlurView>
 
-      {/* Ghost Pulse Button */}
-      <TouchableOpacity 
-        style={[styles.ghostPulseButton, { borderColor: colors.primary + '40' }]}
-        onPress={async () => {
-          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          // In real app: send push notification
-        }}
-        activeOpacity={0.8}
-      >
-        <MaterialCommunityIcons name="broadcast" size={20} color={colors.primary} />
-        <Text style={[styles.ghostPulseText, { color: colors.primary }]}>Send Heartbeat Signal</Text>
-      </TouchableOpacity>
+      {/* Ghost Pulse Button / Sent Confirmation */}
+      {heartbeatSent ? (
+        <Animated.View
+          style={[
+            styles.heartbeatSentContainer,
+            {
+              opacity: heartbeatFadeAnim,
+              transform: [{ scale: heartbeatScaleAnim }],
+            },
+          ]}
+        >
+          <View style={[styles.heartbeatCheckCircle, { backgroundColor: colors.primary }]}>
+            <MaterialCommunityIcons name="check" size={22} color="#fff" />
+          </View>
+          <Text style={[styles.heartbeatSentText, { color: colors.text }]}>
+            Sent to {partnerLabel}
+          </Text>
+          <Text style={[styles.heartbeatSentSubtext, { color: colors.textMuted }]}>
+            They'll feel your heartbeat
+          </Text>
+          {heartbeatError && (
+            <Text style={[styles.heartbeatErrorText, { color: colors.textMuted }]}>
+              {heartbeatError}
+            </Text>
+          )}
+        </Animated.View>
+      ) : (
+        <TouchableOpacity 
+          style={[
+            styles.ghostPulseButton, 
+            { 
+              borderColor: colors.primary + '40',
+              opacity: heartbeatSending ? 0.5 : 1,
+            },
+          ]}
+          onPress={async () => {
+            if (heartbeatSending) return;
+            setHeartbeatSending(true);
+            setHeartbeatError(null);
+
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+            // Show sent state immediately (optimistic)
+            setHeartbeatSent(true);
+            heartbeatScaleAnim.setValue(0.8);
+            Animated.parallel([
+              Animated.sequence([
+                Animated.timing(heartbeatFadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+                Animated.delay(3500),
+                Animated.timing(heartbeatFadeAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+              ]),
+              Animated.spring(heartbeatScaleAnim, { toValue: 1, friction: 5, tension: 80, useNativeDriver: true }),
+            ]).start(() => {
+              setHeartbeatSent(false);
+              setHeartbeatSending(false);
+            });
+
+            // Second gentle haptic after a beat
+            setTimeout(() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+            }, 400);
+
+            // Actually send via ConnectionEngine
+            try {
+              const result = await MomentSignalSender.send('thinking');
+              if (!result.sent) {
+                setHeartbeatError(result.error || 'Please wait before sending again');
+              } else if (result.error) {
+                setHeartbeatError('Sent locally — will sync when connected');
+              }
+            } catch (err) {
+              setHeartbeatError('Sent locally — will sync later');
+            }
+          }}
+          disabled={heartbeatSending}
+          activeOpacity={0.8}
+        >
+          {heartbeatSending ? (
+            <MaterialCommunityIcons name="loading" size={20} color={colors.primary} />
+          ) : (
+            <MaterialCommunityIcons name="broadcast" size={20} color={colors.primary} />
+          )}
+          <Text style={[styles.ghostPulseText, { color: colors.primary }]}>
+            {heartbeatSending ? 'Sending...' : 'Send Heartbeat Signal'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </Animated.View>
     );
   };
@@ -705,6 +787,36 @@ const createStyles = (colors) => StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
     letterSpacing: 0.5,
+  },
+  heartbeatSentContainer: {
+    marginTop: SPACING.lg,
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    gap: 6,
+  },
+  heartbeatCheckCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  heartbeatSentText: {
+    fontWeight: '600',
+    fontSize: 15,
+    letterSpacing: 0.3,
+  },
+  heartbeatSentSubtext: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    letterSpacing: 0.2,
+  },
+  heartbeatErrorText: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 4,
+    opacity: 0.7,
   },
 });
 

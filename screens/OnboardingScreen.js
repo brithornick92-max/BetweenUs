@@ -28,13 +28,17 @@ import { useContent } from "../context/ContentContext";
 import { useTheme } from "../context/ThemeContext";
 import { TYPOGRAPHY, COLORS } from "../utils/theme";
 import HeartbeatEntry from "../components/HeartbeatEntry";
+import CrashReporting from "../services/CrashReporting";
 import { useAuth } from "../context/AuthContext";
 import SeasonSelector from "../components/SeasonSelector";
 import EnergyMatcher from "../components/EnergyMatcher";
 import { NicknameEngine, SEASONS } from "../services/PolishEngine";
 import CloudEngine from "../services/storage/CloudEngine";
 import CoupleKeyService from "../services/security/CoupleKeyService";
+import CoupleService from "../services/supabase/CoupleService";
 import StorageRouter from "../services/storage/StorageRouter";
+import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
+import { cloudSyncStorage, STORAGE_KEYS, storage } from "../utils/storage";
 import { getSupabaseOrThrow } from "../config/supabase";
 
 const { width } = Dimensions.get("window");
@@ -47,7 +51,7 @@ export default function OnboardingScreen({ navigation }) {
   
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  // Steps: 0 (Intro), 1 (Alignment), 2 (Preferences), 3 (Pairing)
+  // Steps: 0 (Intro), 1 (Your Story), 2 (Preferences), 3 (Pairing)
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -67,9 +71,46 @@ export default function OnboardingScreen({ navigation }) {
   const [inviteCode, setInviteCode] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Cloud auth modal state (for inline Supabase session bridging)
+  const [showCloudAuth, setShowCloudAuth] = useState(false);
+  const [cloudAuthPw, setCloudAuthPw] = useState('');
+  const [cloudAuthBusy, setCloudAuthBusy] = useState(false);
+  const cloudAuthResolve = useRef(null);
+
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
+
+  // ─── Poll for partner linking after invite code is generated ───
+  useEffect(() => {
+    if (!inviteCode) return;
+    let active = true;
+    const poll = setInterval(async () => {
+      try {
+        const couple = await CoupleService.getMyCouple();
+        if (couple?.couple_id && active) {
+          clearInterval(poll);
+          // Store couple ID locally
+          await storage.set(STORAGE_KEYS.COUPLE_ID, couple.couple_id);
+          await StorageRouter.setActiveCoupleId(couple.couple_id);
+          // Upload our public key to the new couple membership
+          try {
+            const myPubKey = await CoupleKeyService.getDevicePublicKeyB64();
+            await CloudEngine.joinCouple(couple.couple_id, myPubKey).catch(() => {});
+          } catch (err) {
+            CrashReporting.captureException(err, { context: 'onboarding_key_upload' });
+          }
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          Alert.alert(
+            'You\'re linked! 💕',
+            `Your partner has joined. You\'re now connected on Between Us.`,
+            [{ text: 'Let\'s go!', onPress: () => actions.completeOnboarding() }]
+          );
+        }
+      } catch (_) {}
+    }, 3000);
+    return () => { active = false; clearInterval(poll); };
+  }, [inviteCode]);
 
   // 1. Intro Transition
   useEffect(() => {
@@ -112,6 +153,61 @@ export default function OnboardingScreen({ navigation }) {
     return diffDays.toLocaleString();
   }, [anniversaryDate]);
 
+  /**
+   * Ensure a Supabase session exists. If not, show an inline password
+   * modal so the user can set up their cloud account without leaving onboarding.
+   */
+  const ensureSupabaseSession = async () => {
+    const supabase = getSupabaseOrThrow();
+    const { data: { session: existing } } = await supabase.auth.getSession();
+    if (existing) return existing;
+
+    const email = user?.email;
+    if (!email) return null;
+
+    return new Promise((resolve) => {
+      cloudAuthResolve.current = resolve;
+      setCloudAuthPw('');
+      setShowCloudAuth(true);
+    });
+  };
+
+  const handleCloudAuthDone = async () => {
+    const email = user?.email;
+    const pw = cloudAuthPw;
+    if (!pw || pw.length < 6) {
+      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
+      return;
+    }
+    setCloudAuthBusy(true);
+    try {
+      let session = null;
+      try { session = await SupabaseAuthService.signInWithPassword(email, pw); } catch (_) {}
+      if (!session) {
+        session = await SupabaseAuthService.signUp(email, pw);
+        if (!session) {
+          try { session = await SupabaseAuthService.signInWithPassword(email, pw); } catch (_) {}
+        }
+      }
+      if (session) {
+        await StorageRouter.setSupabaseSession(session);
+        await cloudSyncStorage.setSyncStatus({ enabled: true, email: session.user?.email || email });
+        await StorageRouter.configureSync({ isPremium: true, syncEnabled: true, supabaseSessionPresent: true });
+      }
+      setShowCloudAuth(false);
+      cloudAuthResolve.current?.(session);
+    } catch (err) {
+      Alert.alert('Sign-in failed', err?.message || 'Please try again.');
+    } finally {
+      setCloudAuthBusy(false);
+    }
+  };
+
+  const handleCloudAuthCancel = () => {
+    setShowCloudAuth(false);
+    cloudAuthResolve.current?.(null);
+  };
+
   const handleGenerateInvitation = async () => {
     setIsGenerating(true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -138,13 +234,12 @@ export default function OnboardingScreen({ navigation }) {
       if (__DEV__) console.log("🔑 [invite] Step 2c: session =", !!session);
 
       if (!session) {
-        // No active session — redirect to SyncSetup for magic-link sign-in
-        // instead of attempting signInAnonymously (which is disabled on this Supabase project
-        // and triggers auth state change microtasks that cause render crashes).
-        if (__DEV__) console.log("🔑 [invite] Step 3: No session — redirecting to SyncSetup for sign-in");
-        navigation?.navigate?.("SyncSetup");
-        setIsGenerating(false);
-        return;
+        if (__DEV__) console.log("🔑 [invite] Step 3: No session — prompting for password");
+        session = await ensureSupabaseSession();
+        if (!session) {
+          setIsGenerating(false);
+          return;
+        }
       }
 
       if (__DEV__) console.log("🔑 [invite] Step 4: CloudEngine.initialize");
@@ -152,22 +247,24 @@ export default function OnboardingScreen({ navigation }) {
       if (__DEV__) console.log("🔑 [invite] Step 4b: setSupabaseSession");
       await StorageRouter.setSupabaseSession(session);
 
-      // 2. Generate Invite Code via CloudEngine
-      if (__DEV__) console.log("🔑 [invite] Step 5: getDevicePublicKeyB64");
-      const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-      if (__DEV__) console.log("🔑 [invite] Step 5b: createCouple");
-      const coupleId = await CloudEngine.createCouple(myPublicKeyB64);
-      if (__DEV__) console.log("🔑 [invite] Step 6: coupleId =", coupleId);
+      // 2. Generate a 6-character invite code via CoupleService
+      if (__DEV__) console.log("🔑 [invite] Step 5: generateInviteCode");
+      const result = await CoupleService.generateInviteCode();
+      if (__DEV__) console.log("🔑 [invite] Step 6: code =", result.code);
       
-      setInviteCode(coupleId);
-      if (__DEV__) console.log("🔑 [invite] Step 6b: setActiveCoupleId");
-      await StorageRouter.setActiveCoupleId(coupleId);
-      if (__DEV__) console.log("🔑 [invite] ✅ Complete!");
+      setInviteCode(result.code);
+      if (__DEV__) console.log("🔑 [invite] ✅ Complete! Code expires:", result.expiresAt);
     } catch (error) {
       const msg = String(error?.message || "");
       console.error("🔑 [invite] ❌ Error:", error?.name, msg, error?.stack?.slice(0, 500));
       if (msg.toLowerCase().includes("cloud pairing is not signed in yet")) {
-        navigation?.navigate?.("SyncSetup");
+        // Try the inline password prompt instead of navigating away
+        const retrySession = await ensureSupabaseSession();
+        if (retrySession) {
+          // Retry the whole flow
+          setIsGenerating(false);
+          handleGenerateInvitation();
+        }
         return;
       }
 
@@ -202,7 +299,7 @@ export default function OnboardingScreen({ navigation }) {
 
   const renderIntro = () => <HeartbeatEntry />;
 
-  const renderAlignment = () => (
+  const renderYourStory = () => (
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : "height"} 
       style={styles.content}
@@ -211,33 +308,53 @@ export default function OnboardingScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={[TYPOGRAPHY.display, styles.title]}>Alignment</Text>
-        
-        <View style={styles.madLibsContainer}>
-          <Text style={styles.madLibsText}>I am</Text>
-          <TextInput
-            style={styles.madLibsInput}
-            placeholder="Your Name"
-            placeholderTextColor={colors.text + '40'}
-            value={myName}
-            onChangeText={setMyName}
-            accessibilityLabel="Your name"
-            accessibilityHint="Enter your first name"
-          />
-          <Text style={styles.madLibsText}>and I am building a life with</Text>
-          <TextInput
-            style={styles.madLibsInput}
-            placeholder="Partner's Name"
-            placeholderTextColor={colors.text + '40'}
-            value={partnerName}
-            onChangeText={setPartnerName}
-            accessibilityLabel="Partner's name"
-            accessibilityHint="Enter your partner's first name"
-          />
+        <Text style={[TYPOGRAPHY.display, styles.title]}>Your Story</Text>
+        <Text style={styles.storySubtitle}>Tell us a little about your relationship</Text>
+
+        {/* Names Card */}
+        <View style={styles.storyCard}>
+          <View style={styles.storyCardHeader}>
+            <MaterialCommunityIcons name="account-heart-outline" size={20} color={colors.primary} />
+            <Text style={styles.storyCardTitle}>Who's in this love story?</Text>
+          </View>
+
+          <View style={styles.storyFieldRow}>
+            <View style={styles.storyFieldGroup}>
+              <Text style={styles.storyFieldLabel}>YOUR NAME</Text>
+              <TextInput
+                style={styles.storyInput}
+                placeholder="e.g. Alex"
+                placeholderTextColor={colors.text + '40'}
+                value={myName}
+                onChangeText={setMyName}
+                accessibilityLabel="Your name"
+                accessibilityHint="Enter your first name"
+              />
+            </View>
+            <View style={styles.storyFieldDivider}>
+              <MaterialCommunityIcons name="heart" size={16} color={colors.primary + '60'} />
+            </View>
+            <View style={styles.storyFieldGroup}>
+              <Text style={styles.storyFieldLabel}>PARTNER'S NAME</Text>
+              <TextInput
+                style={styles.storyInput}
+                placeholder="e.g. Jordan"
+                placeholderTextColor={colors.text + '40'}
+                value={partnerName}
+                onChangeText={setPartnerName}
+                accessibilityLabel="Partner's name"
+                accessibilityHint="Enter your partner's first name"
+              />
+            </View>
+          </View>
         </View>
 
-        <View style={styles.dateSelector}>
-          <Text style={[TYPOGRAPHY.h2, styles.question]}>How long has your story been unfolding?</Text>
+        {/* Date Card */}
+        <View style={styles.storyCard}>
+          <View style={styles.storyCardHeader}>
+            <MaterialCommunityIcons name="calendar-heart" size={20} color={colors.primary} />
+            <Text style={styles.storyCardTitle}>When did it all begin?</Text>
+          </View>
           
           <TouchableOpacity 
             onPress={() => {
@@ -347,11 +464,11 @@ export default function OnboardingScreen({ navigation }) {
   );
 
   const HEAT_LABELS = [
-    { level: 1, emoji: '😊', name: 'Heart Connection' },
-    { level: 2, emoji: '💕', name: 'Spark & Attraction' },
-    { level: 3, emoji: '🔥', name: 'Intimate Connection' },
-    { level: 4, emoji: '🌶️', name: 'Adventurous Exploration' },
-    { level: 5, emoji: '🔥🔥', name: 'Unrestrained Passion' },
+    { level: 1, emoji: '😊', name: 'Emotional Connection' },
+    { level: 2, emoji: '💕', name: 'Flirty & Romantic' },
+    { level: 3, emoji: '🔥', name: 'Sensual' },
+    { level: 4, emoji: '🌶️', name: 'Steamy' },
+    { level: 5, emoji: '🔥🔥', name: 'Explicit' },
   ];
 
   const TONE_OPTIONS = NicknameEngine.TONE_OPTIONS;
@@ -493,6 +610,17 @@ export default function OnboardingScreen({ navigation }) {
             </TouchableOpacity>
 
             <TouchableOpacity 
+              style={styles.joinCodeButton}
+              onPress={() => navigation.navigate('JoinWithCode')}
+              accessibilityRole="button"
+              accessibilityLabel="I have an invite code"
+              accessibilityHint="Enter an invite code from your partner"
+            >
+              <Feather name="log-in" size={18} color={colors.primary} />
+              <Text style={styles.joinCodeButtonText}>I have a code</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
               onPress={async () => {
                 await actions.completeOnboarding();
               }}
@@ -555,9 +683,48 @@ export default function OnboardingScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       {step === 0 ? renderIntro() : (
         <Animated.View style={[styles.stepWrapper, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          {step === 1 ? renderAlignment() : step === 2 ? renderPreferences() : renderPairing()}
+          {step === 1 ? renderYourStory() : step === 2 ? renderPreferences() : renderPairing()}
         </Animated.View>
       )}
+
+      {/* Cloud Auth Password Modal */}
+      <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
+        <KeyboardAvoidingView
+          style={styles.cloudAuthOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <View style={[styles.cloudAuthCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <MaterialCommunityIcons name="cloud-lock-outline" size={32} color={colors.primary} style={{ marginBottom: 12 }} />
+            <Text style={[styles.cloudAuthTitle, { color: colors.text }]}>One more step</Text>
+            <Text style={[styles.cloudAuthBody, { color: colors.textMuted }]}>
+              Enter your password to enable partner linking.
+            </Text>
+            <TextInput
+              style={[styles.cloudAuthInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              placeholder="Password"
+              placeholderTextColor={colors.textMuted}
+              secureTextEntry
+              value={cloudAuthPw}
+              onChangeText={setCloudAuthPw}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="go"
+              onSubmitEditing={handleCloudAuthDone}
+              editable={!cloudAuthBusy}
+            />
+            <View style={styles.cloudAuthBtns}>
+              <TouchableOpacity style={[styles.cloudAuthBtn, { backgroundColor: colors.background }]} onPress={handleCloudAuthCancel} disabled={cloudAuthBusy}>
+                <Text style={{ color: colors.text, fontWeight: '600' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.cloudAuthBtn, { backgroundColor: colors.primary }]} onPress={handleCloudAuthDone} disabled={cloudAuthBusy}>
+                {cloudAuthBusy
+                  ? <ActivityIndicator size="small" color="#FFF" />
+                  : <Text style={{ color: '#FFF', fontWeight: '700' }}>Continue</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -611,27 +778,30 @@ const createStyles = (colors) => StyleSheet.create({
   },
   dateSelector: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 12,
   },
   dateDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 30,
-    marginBottom: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginBottom: 12,
   },
   dateText: {
     color: colors.text,
     fontSize: 18,
-    marginRight: 10,
+    fontWeight: '500',
   },
   calculationText: {
     color: colors.textMuted,
-    fontSize: 16,
+    fontSize: 14,
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   datePickerContainer: {
     width: '100%',
@@ -701,6 +871,24 @@ const createStyles = (colors) => StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 0.6,
+  },
+  joinCodeButton: {
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+    minWidth: '80%',
+  },
+  joinCodeButtonText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
   pairingContainer: {
     flex: 1,
@@ -846,32 +1034,118 @@ const createStyles = (colors) => StyleSheet.create({
     opacity: 0.6,
   },
 
-  // Mad Libs Styles
-  madLibsContainer: {
-    marginBottom: 40,
-    marginTop: 20,
+  // Your Story card styles
+  storySubtitle: {
+    color: colors.textMuted,
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 28,
+    fontStyle: 'italic',
+    lineHeight: 22,
+  },
+  storyCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  storyCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  storyCardTitle: {
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  storyFieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
-  madLibsText: {
-    fontFamily: Platform.select({ ios: 'Playfair Display', default: 'serif' }),
-    fontSize: 28,
-    color: colors.text,
-    lineHeight: 38,
+  storyFieldGroup: {
+    flex: 1,
   },
-  madLibsInput: {
-    fontFamily: Platform.select({ ios: 'Playfair Display', default: 'serif' }),
-    fontSize: 28,
-    color: colors.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    paddingVertical: 4,
-    minWidth: 120,
-    fontStyle: 'italic',
+  storyFieldDivider: {
+    paddingTop: 18,
+    alignItems: 'center',
+  },
+  storyFieldLabel: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    marginBottom: 6,
+  },
+  storyInput: {
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '500',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   celebrationContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 10,
-  }
+  },
+
+  // Cloud auth modal
+  cloudAuthOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  cloudAuthCard: {
+    width: '100%',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  cloudAuthTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  cloudAuthBody: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  cloudAuthInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  cloudAuthBtns: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  cloudAuthBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 

@@ -13,11 +13,14 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { BORDER_RADIUS, SPACING } from '../utils/theme';
 import { RelationshipSeasons, SEASONS } from '../services/PolishEngine';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function SeasonSelector({ compact = false, onSeasonChange }) {
   const { colors } = useTheme();
@@ -58,18 +61,19 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
   // Full: all seasons in a selectable list
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { color: colors.textMuted }]}>
+      <Animated.Text entering={FadeIn.duration(400)} style={[styles.title, { color: colors.textMuted }]}>
         YOUR SEASON
-      </Text>
-      <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+      </Animated.Text>
+      <Animated.Text entering={FadeIn.delay(100).duration(400)} style={[styles.subtitle, { color: colors.textMuted }]}>
         Shapes what the app suggests
-      </Text>
+      </Animated.Text>
       <View style={styles.grid}>
-        {SEASONS.map((season) => {
+        {SEASONS.map((season, index) => {
           const isActive = currentSeason === season.id;
           return (
-            <TouchableOpacity
+            <AnimatedTouchable
               key={season.id}
+              entering={FadeInDown.delay(150 + index * 80).duration(400).springify().damping(16)}
               style={[
                 styles.seasonCard,
                 { borderColor: isActive ? season.color : colors.border },
@@ -87,7 +91,7 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
               <Text style={[styles.seasonDesc, { color: colors.textMuted }]} numberOfLines={2}>
                 {season.description}
               </Text>
-            </TouchableOpacity>
+            </AnimatedTouchable>
           );
         })}
       </View>

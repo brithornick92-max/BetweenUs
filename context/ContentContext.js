@@ -70,7 +70,7 @@ export const ContentProvider = ({ children }) => {
       const profile = await loadContentProfile();
 
       // Determine effective heat level
-      const effectiveHeat = heatLevel || profile?.maxHeat || (userProfile?.heatLevelPreference) || 1;
+      const effectiveHeat = heatLevel || profile?.maxHeat || (userProfile?.heatLevelPreference) || 5;
 
       // Check if user can access this heat level
       const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, effectiveHeat, isPremium);

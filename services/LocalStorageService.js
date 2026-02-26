@@ -482,11 +482,13 @@ class LocalStorageService {
 
   // Utility Methods
   generateUserId() {
-    return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const { randomUUID } = require('expo-crypto');
+    return 'user_' + randomUUID();
   }
 
   generateId() {
-    return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const { randomUUID } = require('expo-crypto');
+    return randomUUID();
   }
 
   async getAllUsers() {

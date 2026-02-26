@@ -10,11 +10,14 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
+import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import { RelationshipClimateState, CLIMATE_OPTIONS } from '../services/ConnectionEngine';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_GAP = SPACING.sm;
@@ -82,7 +85,7 @@ export default function RelationshipClimate({ onClimateChange, compact = false }
           const isSelected = selected === option.id;
           const c = isDark ? option.colorDark : option.colorLight;
           return (
-            <TouchableOpacity
+            <AnimatedTouchable
               key={option.id}
               style={[
                 styles.option,
@@ -122,7 +125,7 @@ export default function RelationshipClimate({ onClimateChange, compact = false }
               >
                 {option.label}
               </Text>
-            </TouchableOpacity>
+            </AnimatedTouchable>
           );
         })}
       </View>

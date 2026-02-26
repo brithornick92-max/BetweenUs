@@ -17,6 +17,7 @@
 
 import { getSupabaseOrThrow } from '../../config/supabase';
 import CryptoJS from 'crypto-js';
+import * as ExpoCrypto from 'expo-crypto';
 
 const CODE_EXPIRY_MINUTES = 15;
 const SIGNED_URL_EXPIRY_SECONDS = 300; // 5 minutes
@@ -47,10 +48,11 @@ const CoupleService = {
       throw new Error('You are already in a couple');
     }
 
-    // Generate random code
+    // Generate cryptographically random code (CSPRNG)
+    const randomBytes = await ExpoCrypto.getRandomBytesAsync(CODE_LENGTH);
     let code = '';
     for (let i = 0; i < CODE_LENGTH; i++) {
-      code += CODE_CHARS.charAt(Math.floor(Math.random() * CODE_CHARS.length));
+      code += CODE_CHARS.charAt(randomBytes[i] % CODE_CHARS.length);
     }
 
     // Hash it — never store the plain code
@@ -90,11 +92,10 @@ const CoupleService = {
     // Hash the code the same way
     const codeHash = CryptoJS.SHA256(plainCode.toUpperCase().trim()).toString(CryptoJS.enc.Hex);
 
-    // Call the atomic server-side function
+    // Call the atomic server-side function (server uses auth.uid())
     const { data, error } = await supabase
       .rpc('redeem_partner_code', {
         input_code_hash: codeHash,
-        redeemer_id: user.id,
       });
 
     if (error) throw error;

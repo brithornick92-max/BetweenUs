@@ -71,11 +71,11 @@ const CAT_ICONS = {
 };
 
 const HEAT_LEVELS = [
-  { value: 1, label: 'Light' },
-  { value: 2, label: 'Warm' },
-  { value: 3, label: 'Bold' },
-  { value: 4, label: 'Spicy' },
-  { value: 5, label: 'Deep' },
+  { value: 1, label: 'Emotional', color: '#B07EFF' },
+  { value: 2, label: 'Flirty', color: '#FF7EB8' },
+  { value: 3, label: 'Sensual', color: '#FF7080' },
+  { value: 4, label: 'Steamy', color: '#FF8534' },
+  { value: 5, label: 'Explicit', color: '#FF2D2D' },
 ];
 
 const CATEGORIES = [
@@ -117,11 +117,11 @@ const FALLBACK_PROMPT = {
   heat: 1,
 };
 
-const FREE_PREVIEW_PROMPTS = [
-  { id: 'preview_1', text: "What is one moment from this week that made you feel close to me?", category: 'emotional', heat: 1, isPreview: true },
-  { id: 'preview_2', text: "If we could spend tomorrow exactly how we wanted, what would we do?", category: 'romance', heat: 2, isPreview: true },
-  { id: 'preview_3', text: "What is something you have been wanting to try together but have not yet?", category: 'playful', heat: 3, isPreview: true },
-];
+// One teaser prompt per locked heat level so free users can preview what's behind the paywall
+const getPreviewPrompt = (allPrompts, heat) => {
+  const match = allPrompts.find(p => (p.heat || 1) === heat);
+  return match ? { ...match, isPreview: true } : null;
+};
 
 const normalizePrompt = (p) => {
   if (!p || typeof p !== 'object') return FALLBACK_PROMPT;
@@ -148,7 +148,6 @@ export default function PromptsScreen({ navigation }) {
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
 
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedHeat, setSelectedHeat] = useState(null);
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -159,7 +158,7 @@ export default function PromptsScreen({ navigation }) {
       try {
         const profile = await PreferenceEngine.getContentProfile(userProfile || {});
         setContentProfile(profile);
-        setSelectedHeat(profile?.heatLevel || userProfile?.heatLevelPreference || 1);
+        setSelectedHeat(profile?.heatLevel || userProfile?.heatLevelPreference || 5);
       } catch {
         setSelectedHeat(1);
       }
@@ -170,68 +169,45 @@ export default function PromptsScreen({ navigation }) {
     if (selectedHeat === null) return;
     setLoading(true);
     try {
-      if (!isPremium) {
-        setPrompts(FREE_PREVIEW_PROMPTS.map(normalizePrompt));
-        return;
-      }
+      // Always load ALL prompts — filtering by heat level happens in deckPrompts
       const allPrompts = loadAllBundledPrompts().map(normalizePrompt);
-      if (contentProfile) {
-        const ranked = PreferenceEngine.filterPrompts(allPrompts, contentProfile);
-        setPrompts(ranked.length > 0 ? ranked : allPrompts);
-      } else {
-        setPrompts(allPrompts);
-      }
+      setPrompts(allPrompts);
     } catch {
       setPrompts([]);
     } finally {
       setLoading(false);
     }
-  }, [isPremium, contentProfile, selectedHeat]);
+  }, [selectedHeat]);
 
   useEffect(() => { loadPrompts(); }, [loadPrompts]);
 
   const deckPrompts = useMemo(() => {
-    const byCat = selectedCategory !== 'all'
-      ? prompts.filter((p) => p.category === selectedCategory)
-      : prompts;
+    const heat = selectedHeat ?? 1;
+    const isLocked = !isPremium && heat >= 4;
 
-    const heatCap = selectedHeat ?? 3;
-    let byHeat = byCat.filter((p) => (p.heat || 1) <= heatCap);
-
-    if (selectedCategory === 'all') {
-      const covered = new Set(byHeat.map(p => p.category));
-      const extras = [];
-      GUARANTEED_CATEGORIES.forEach(cat => {
-        if (!covered.has(cat)) {
-          const fallback = prompts
-            .filter(p => p.category === cat)
-            .sort((a, b) => (a.heat || 1) - (b.heat || 1))[0];
-          if (fallback) extras.push(fallback);
-        }
-      });
-      if (extras.length > 0) byHeat = [...byHeat, ...extras];
+    if (isLocked) {
+      // Free users see one preview prompt for locked levels
+      const preview = getPreviewPrompt(prompts, heat);
+      return preview ? [preview] : [];
     }
 
-    if (byHeat.length === 0 && byCat.length > 0) {
-      byHeat = byCat.sort((a, b) => (a.heat || 1) - (b.heat || 1)).slice(0, 5);
-    }
-
+    // Exact heat-level match
+    let byHeat = prompts.filter((p) => (p.heat || 1) === heat);
     return shuffleArray(byHeat);
-  }, [prompts, selectedCategory, selectedHeat]);
+  }, [prompts, selectedHeat, isPremium]);
 
   const handlePromptSelect = useCallback((prompt) => {
-    if (!isPremium && prompt.isPreview) {
+    if (!isPremium && (prompt.isPreview || (prompt.heat || 1) >= 4)) {
       showPaywall?.('unlimitedPrompts');
       return;
     }
-    navigation.navigate('PromptAnswer', { prompt });
+    navigation.navigate('PromptAnswer', { prompt: { ...prompt, dateKey: new Date().toISOString().split('T')[0] } });
   }, [isPremium, showPaywall, navigation]);
 
   const handleHeatSelect = useCallback((heat) => {
-    if (!isPremium) { showPaywall?.('unlimitedPrompts'); return; }
     setSelectedHeat(heat);
     Haptics.selectionAsync();
-  }, [isPremium, showPaywall]);
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -270,7 +246,7 @@ export default function PromptsScreen({ navigation }) {
                     ]} />
                   </View>
                   <Text style={[styles.upsellBody, { color: colors.textMuted }]}>
-                    You’ve seen {deckPrompts.length} out of {TOTAL_PROMPT_COUNT} prompts across 5 depth levels &amp; 9 moods
+                    You've seen {deckPrompts.length} out of {TOTAL_PROMPT_COUNT} prompts across 5 heat levels
                   </Text>
                 </View>
                 <LinearGradient
@@ -286,15 +262,15 @@ export default function PromptsScreen({ navigation }) {
           )}
 
           {/* Heat level selector — visible to all, teaser for free */}
-          <Animated.View entering={FadeIn.duration(600).delay(200)}>
+          <Animated.View entering={FadeIn.duration(600).delay(200)} style={{ zIndex: 10 }}>
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>DEPTH</Text>
+              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>HEAT LEVEL</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.chipRow}
               >
-                {HEAT_LEVELS.map(({ value, label }) => {
+                {HEAT_LEVELS.map(({ value, label, color: heatColor }) => {
                   const active = selectedHeat === value;
                   const locked = !isPremium && value >= 4;
                   const count = HEAT_COUNTS[value] || 0;
@@ -304,19 +280,18 @@ export default function PromptsScreen({ navigation }) {
                       style={[
                         styles.heatChip,
                         {
-                          backgroundColor: active ? colors.primary : locked ? (isDark ? colors.surface : '#F5F0ED') : 'transparent',
-                          borderColor: active ? colors.primary : locked ? colors.border + '80' : colors.border,
-                          opacity: locked ? 0.65 : 1,
+                          backgroundColor: active ? heatColor : 'transparent',
+                          borderColor: active ? heatColor : locked ? heatColor + '60' : colors.border,
                         },
                       ]}
                       onPress={() => handleHeatSelect(value)}
                       activeOpacity={0.75}
                     >
                       <View style={styles.heatChipInner}>
-                        <Text style={[styles.heatLabel, { color: active ? '#FFF' : locked ? colors.textMuted : colors.textMuted }]}>
+                        <Text style={[styles.heatLabel, { color: active ? '#FFF' : locked ? heatColor : colors.text }]}>
                           {label}
                         </Text>
-                        {locked && <MaterialCommunityIcons name="lock-outline" size={11} color={colors.textMuted} style={{ marginLeft: 3 }} />}
+                        {locked && <MaterialCommunityIcons name="lock-outline" size={11} color={locked && active ? '#FFF' : heatColor} style={{ marginLeft: 3 }} />}
                       </View>
                       {!isPremium && (
                         <Text style={[styles.heatCount, { color: active ? '#FFFFFFAA' : colors.textMuted + '80' }]}>
@@ -329,52 +304,7 @@ export default function PromptsScreen({ navigation }) {
               </ScrollView>
             </View>
 
-            {/* Category selector */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>MOOD</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chipRow}
-              >
-                {CATEGORIES.map((cat) => {
-                  const active = isPremium && selectedCategory === cat.id;
-                  const catColor = CAT_COLORS[cat.id]?.[0] || colors.primary;
-                  const locked = !isPremium && cat.id !== 'all';
-                  return (
-                    <TouchableOpacity
-                      key={cat.id}
-                      style={[
-                        styles.catChip,
-                        {
-                          backgroundColor: active ? catColor : 'transparent',
-                          borderColor: active ? catColor : locked ? colors.border + '60' : colors.border,
-                          opacity: locked ? 0.55 : 1,
-                        },
-                      ]}
-                      onPress={() => {
-                        if (!isPremium) { showPaywall?.('unlimitedPrompts'); return; }
-                        setSelectedCategory(cat.id);
-                        Haptics.selectionAsync();
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      {cat.id !== 'all' && (
-                        <MaterialCommunityIcons
-                          name={CAT_ICONS[cat.id] || 'circle-small'}
-                          size={11}
-                          color={active ? '#FFF' : locked ? colors.textMuted : catColor}
-                        />
-                      )}
-                      <Text style={[styles.catLabel, { color: active ? '#FFF' : locked ? colors.textMuted : colors.textMuted }]}>
-                        {cat.label}
-                      </Text>
-                      {locked && <MaterialCommunityIcons name="lock-outline" size={10} color={colors.textMuted} style={{ marginLeft: 1 }} />}
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
+
           </Animated.View>
 
           {loading ? (
@@ -385,7 +315,7 @@ export default function PromptsScreen({ navigation }) {
             <View style={styles.empty}>
               <MaterialCommunityIcons name="cards-outline" size={44} color={colors.textMuted} />
               <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                No cards match — try a different mood
+                No cards match — try a different heat level
               </Text>
             </View>
           ) : (

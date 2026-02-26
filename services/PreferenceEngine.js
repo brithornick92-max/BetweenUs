@@ -38,7 +38,7 @@ import {
  */
 export async function getContentProfile(userProfile = {}) {
   // 1. Heat Level Preference (saved in user profile via HeatLevelSettingsScreen)
-  const heatLevelPref = userProfile?.heatLevelPreference || 3;
+  const heatLevelPref = userProfile?.heatLevelPreference || 5;
 
   // 2. Relationship Season
   const seasonData = await RelationshipSeasons.get();
@@ -232,17 +232,17 @@ function filterPrompts(allPrompts, profile, options = {}) {
 
 /**
  * Score and filter dates based on the user's full content profile.
- * Uses the emotional dimension system: heat (1-5), load (1-3), style (talking/doing/mixed).
+ * Uses the emotional dimension system: mood (1-3), load (1-3), style (talking/doing/mixed).
  *
  * Smart matching score:
- *   (5 - |date.heat - user.heat|) +
+ *   (3 - |date.heat - user.heat|) +
  *   (3 - |date.load - user.load|) +
  *   (style match: exact=2, mixed=1, mismatch=0)
  *
  * Result labels:
- *   ≥ 8  — 🌟 Perfect fit
- *   ≥ 6  — 👍 Good match
- *   < 6  — 🔄 Try something gentler
+ *   ≥ 7  — 🌟 Perfect fit
+ *   ≥ 5  — 👍 Good match
+ *   < 5  — 🔄 Try something gentler
  *
  * @param {object} selectedDimensions - Optional active UI selections
  *   e.g. { heat: 3, load: 1, style: 'talking' }
@@ -278,15 +278,15 @@ export function filterDatesWithProfile(allDates, profile, selectedDimensions = n
   });
 
   // Phase 2: Smart matching score
-  const userHeat = selectedDimensions?.heat || profile.heatLevel || 2;
+  const userHeat = selectedDimensions?.heat || profile.heatLevel || 3;
   const userLoad = selectedDimensions?.load || (season?.preferLoad ?? 2);
   const userStyle = selectedDimensions?.style || climate?.preferStyle || 'mixed';
 
   const scored = eligible.map((date) => {
     let score = 0;
 
-    // Core smart matching: heat proximity (0-5)
-    score += 5 - Math.abs((date.heat || 1) - userHeat);
+    // Core smart matching: mood proximity (0-3)
+    score += 3 - Math.abs((date.heat || 1) - userHeat);
 
     // Core smart matching: load proximity (0-3)
     score += 3 - Math.abs((date.load || 2) - userLoad);
@@ -323,14 +323,16 @@ export function filterDatesWithProfile(allDates, profile, selectedDimensions = n
       score -= 0.5;
     }
 
-    // Random jitter
-    score += Math.random() * 0.3;
+    // Deterministic tie-breaker based on date id (no random jitter —
+    // random made the deck order change on every recomputation)
+    const idHash = (date.id || '').split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0);
+    score += (Math.abs(idHash) % 100) * 0.003;  // 0 – 0.3 range, stable per date
 
     // Match label
-    const baseScore = score - (Math.random() * 0.3); // strip jitter for label
+    const baseScore = score - ((Math.abs(idHash) % 100) * 0.003); // strip tie-breaker for label
     let matchLabel = '🔄';
-    if (baseScore >= 8) matchLabel = '🌟';
-    else if (baseScore >= 6) matchLabel = '👍';
+    if (baseScore >= 7) matchLabel = '🌟';
+    else if (baseScore >= 5) matchLabel = '👍';
 
     return { date: { ...date, _matchLabel: matchLabel, _matchScore: Math.round(baseScore) }, score };
   });

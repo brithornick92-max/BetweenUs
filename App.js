@@ -41,12 +41,27 @@ import AnalyticsService from "./services/AnalyticsService";
 import DeepLinkHandler from "./services/DeepLinkHandler";
 import { addNotificationResponseListener } from "./utils/notifications";
 import revenueCatService from "./services/RevenueCatService";
+import PushNotificationService from "./services/PushNotificationService";
 import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
 import { cloudSyncStorage } from "./utils/storage";
 
 // Initialize Sentry BEFORE the component tree mounts
 CrashReporting.init();
+
+// ── Global error handlers (production + dev) ──────────────────────
+// Catches fatal JS errors and unhandled promise rejections in release builds
+// so they are reported to Sentry instead of silently dying.
+if (global?.ErrorUtils?.setGlobalHandler) {
+  const defaultHandler = global.ErrorUtils.getGlobalHandler?.();
+  global.ErrorUtils.setGlobalHandler((error, isFatal) => {
+    CrashReporting.captureException(error, { isFatal, source: 'globalHandler' });
+    if (__DEV__) {
+      // In dev, still show the red box
+      defaultHandler?.(error, isFatal);
+    }
+  });
+}
 
 // Dev error helpers: keep helpful console.error behavior in DEV only
 if (__DEV__) {
@@ -196,6 +211,25 @@ function AppContent() {
     };
   }, [isPremium]);
 
+  // Register Expo push token when Supabase session is available
+  useEffect(() => {
+    let active = true;
+    const registerPush = async () => {
+      try {
+        const { supabase } = require("./config/supabase");
+        if (!supabase || !active) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && active) {
+          await PushNotificationService.initialize(supabase);
+        }
+      } catch {
+        // Push registration is non-critical
+      }
+    };
+    registerPush();
+    return () => { active = false; };
+  }, [isPremium]);
+
   useEffect(() => {
     if (!navReady || !paywallVisible || !navigationRef.isReady()) return;
     const currentRoute = navigationRef.getCurrentRoute()?.name;
@@ -211,6 +245,28 @@ function AppContent() {
     });
     return () => sub?.remove();
   }, []);
+
+  // Handle notification that launched the app from killed state (cold start)
+  useEffect(() => {
+    if (!navReady) return;
+    let handled = false;
+    const checkInitialNotification = async () => {
+      try {
+        const Notifications = require('expo-notifications');
+        const response = await Notifications.getLastNotificationResponseAsync();
+        if (response && !handled) {
+          handled = true;
+          // Brief delay to ensure navigation stack is fully mounted
+          setTimeout(() => {
+            DeepLinkHandler.handleNotificationResponse(response);
+          }, 500);
+        }
+      } catch {
+        // expo-notifications not available — ignore
+      }
+    };
+    checkInitialNotification();
+  }, [navReady]);
 
   const handleUnlock = () => {
     setIsLocked(false);

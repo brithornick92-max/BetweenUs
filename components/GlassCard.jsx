@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
@@ -48,7 +49,11 @@ export default function GlassCard({
   const v = variants[variant] || variants.default;
 
   return (
-    <View style={[styles.wrapper, style]} {...rest}>
+    <Animated.View
+      entering={FadeIn.duration(500)}
+      style={[styles.wrapper, style]}
+      {...rest}
+    >
       {/* Optional accent glow bloom behind card */}
       {glow && (
         <View style={styles.glowWrap} pointerEvents="none">
@@ -77,7 +82,7 @@ export default function GlassCard({
           </View>
         )}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

@@ -47,8 +47,10 @@ const NightRitualScreen = ({ navigation }) => {
   const handleRitualComplete = async (ritual, responses) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (__DEV__) {
-      console.log('Night ritual completed:', ritual.id);
+      console.log('Night ritual completed:', ritual?.id);
     }
+    // Navigate back after a short delay so the completion overlay is visible
+    setTimeout(() => navigation.goBack(), 3200);
   };
 
   const handleElementComplete = async (elementId, response) => {

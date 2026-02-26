@@ -15,11 +15,11 @@ jest.mock('../../content/prompts.json', () => ({
       playful: 'Light-hearted and fun',
     },
     heatLevels: {
-      1: { name: 'Heart Connection', description: 'Pure emotional intimacy' },
-      2: { name: 'Spark & Attraction', description: 'Flirty attraction' },
-      3: { name: 'Intimate Connection', description: 'Moderately sexual' },
-      4: { name: 'Adventurous Exploration', description: 'Mostly sexual' },
-      5: { name: 'Unrestrained Passion', description: 'Highly sexual' },
+      1: { name: 'Emotional Connection', description: 'Emotional intimacy, non-sexual' },
+      2: { name: 'Flirty & Romantic', description: 'Flirty attraction, romantic tension' },
+      3: { name: 'Sensual', description: 'Sensual, relationship-focused intimacy' },
+      4: { name: 'Steamy', description: 'Suggestive, adventurous, and heated' },
+      5: { name: 'Explicit', description: 'Intensely passionate, graphic, explicit' },
     },
   },
   items: [

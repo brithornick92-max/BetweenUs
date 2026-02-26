@@ -129,7 +129,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.HEAT_LEVELS_4_5]: {
     name: 'All Heat Levels',
-    description: 'Explore levels 4 (Adventurous Exploration) & 5 (Unrestrained Passion)',
+    description: 'Explore levels 4 (Steamy) & 5 (Explicit)',
     icon: '🔥',
     category: 'content',
     guardBehavior: GuardBehavior.LOCK,

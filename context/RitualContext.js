@@ -1,7 +1,7 @@
 // context/RitualContext.js
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
 import * as Haptics from 'expo-haptics';
-import { storage, STORAGE_KEYS } from '../utils/storage';
+import { storage, STORAGE_KEYS, makeId } from '../utils/storage';
 import { useAppContext } from './AppContext';
 import { useEntitlements } from './EntitlementsContext';
 import StorageRouter from '../services/storage/StorageRouter';
@@ -332,7 +332,7 @@ export function RitualProvider({ children }) {
   const actions = useMemo(() => ({
     startNightRitual: async (type = RITUAL_TYPES.STANDARD) => {
       const ritual = {
-        id: `ritual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: makeId('ritual'),
         date: new Date(),
         type,
         prompt: {
@@ -430,7 +430,7 @@ export function RitualProvider({ children }) {
       
       // Create ritual with memory context
       const ritual = {
-        id: `ritual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: makeId('ritual'),
         date: new Date(),
         type: RITUAL_TYPES.STANDARD,
         hasMemoryContext: todayMemories.length > 0 || anniversaryMemories.length > 0,
@@ -481,7 +481,7 @@ export function RitualProvider({ children }) {
       }
       
       const customFlow = {
-        id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: makeId('custom'),
         ...flowData,
         createdAt: new Date(),
         isPremium: true,
@@ -511,7 +511,7 @@ export function RitualProvider({ children }) {
       
       // Create ritual based on custom flow
       const ritual = {
-        id: `ritual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: makeId('ritual'),
         date: new Date(),
         type: RITUAL_TYPES.CUSTOM,
         customFlowId: customFlowId,

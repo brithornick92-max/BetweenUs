@@ -34,7 +34,9 @@ async function ensureDir() {
 // ─── helpers ────────────────────────────────────────────────────────
 
 function makeAttachmentId() {
-  return `att_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  // Use crypto-safe randomness for attachment IDs
+  const { randomUUID } = require('expo-crypto');
+  return `att_${randomUUID()}`;
 }
 
 /**

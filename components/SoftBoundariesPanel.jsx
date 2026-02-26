@@ -17,6 +17,7 @@ import {
   Switch,
   Platform,
 } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
@@ -46,14 +47,17 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>
+      <Animated.Text entering={FadeIn.duration(400)} style={[styles.sectionLabel, { color: colors.textMuted }]}>
         YOUR BOUNDARIES
-      </Text>
-      <Text style={[styles.sectionSub, { color: colors.textMuted }]}>
+      </Animated.Text>
+      <Animated.Text entering={FadeIn.delay(80).duration(400)} style={[styles.sectionSub, { color: colors.textMuted }]}>
         You're always in control of what appears
-      </Text>
+      </Animated.Text>
 
-      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <Animated.View
+        entering={FadeInDown.delay(180).duration(500).springify().damping(18)}
+        style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+      >
         {/* Hide Spicy */}
         <View style={styles.row}>
           <View style={styles.rowLeft}>
@@ -113,11 +117,11 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
             </View>
           </View>
         </View>
-      </View>
+      </Animated.View>
 
-      <Text style={[styles.footer, { color: colors.textMuted }]}>
+      <Animated.Text entering={FadeIn.delay(400).duration(500)} style={[styles.footer, { color: colors.textMuted }]}>
         These settings are private to your device and never shared.
-      </Text>
+      </Animated.Text>
     </View>
   );
 }

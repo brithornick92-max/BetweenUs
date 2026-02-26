@@ -12,6 +12,7 @@
  */
 
 import * as SQLite from 'expo-sqlite';
+import { randomUUID } from 'expo-crypto';
 
 const DB_NAME = 'betweenus.db';
 const DB_VERSION = 1;
@@ -22,8 +23,7 @@ let _db = null;
 const now = () => new Date().toISOString();
 
 const makeId = (prefix = 'row') => {
-  const entropy = Math.random().toString(36).substring(2, 10);
-  return `${prefix}_${Date.now()}_${entropy}`;
+  return `${prefix}_${randomUUID()}`;
 };
 
 /** Whitelist of tables that sync helpers may reference via string interpolation. */

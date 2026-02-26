@@ -36,6 +36,7 @@ export const STORAGE_KEYS = {
   BIOMETRICS_AVAILABLE: "@betweenus:biometricsAvailable",
   THEME_MODE: "@betweenus:themeMode",
   NOTIFICATION_SETTINGS: "@betweenus:notificationSettings",
+  PUSH_TOKEN: "@betweenus:pushToken",
   PRIVACY_SETTINGS: "@betweenus:privacySettings",
 
   // Core Content
@@ -88,7 +89,7 @@ const safeParse = (raw) => {
   }
 };
 
-const makeId = (prefix) => {
+export const makeId = (prefix) => {
   // Use crypto-quality randomness to avoid ID collisions in concurrent writes
   try {
     const { randomUUID } = require('expo-crypto');

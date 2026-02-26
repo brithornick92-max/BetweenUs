@@ -96,6 +96,12 @@ CREATE INDEX IF NOT EXISTS idx_entitlements_premium ON user_entitlements(is_prem
 -- PART 3: HELPER FUNCTIONS
 -- ============================================================================
 
+-- Return the couple_ids the current user belongs to (bypasses RLS to avoid recursion)
+CREATE OR REPLACE FUNCTION get_my_couple_ids()
+RETURNS SETOF uuid AS $$
+  SELECT couple_id FROM couple_members WHERE user_id = auth.uid();
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
 -- Check if a user has premium entitlement (server-side source of truth)
 CREATE OR REPLACE FUNCTION is_premium_user(check_user_id uuid)
 RETURNS boolean AS $$
@@ -189,14 +195,17 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Timestamps triggers for new tables
+DROP TRIGGER IF EXISTS update_calendar_events_updated_at ON calendar_events;
 CREATE TRIGGER update_calendar_events_updated_at
   BEFORE UPDATE ON calendar_events
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_moments_updated_at ON moments;
 CREATE TRIGGER update_moments_updated_at
   BEFORE UPDATE ON moments
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_entitlements_updated_at ON user_entitlements;
 CREATE TRIGGER update_entitlements_updated_at
   BEFORE UPDATE ON user_entitlements
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -217,6 +226,7 @@ ALTER TABLE user_entitlements ENABLE ROW LEVEL SECURITY;
 
 -- ─── CALENDAR_EVENTS ───────────────────────────────────────────────
 -- SELECT: Both Free and Premium users can view all shared events
+DROP POLICY IF EXISTS "Couple members can view calendar events" ON calendar_events;
 CREATE POLICY "Couple members can view calendar events"
   ON calendar_events FOR SELECT
   USING (
@@ -228,6 +238,7 @@ CREATE POLICY "Couple members can view calendar events"
   );
 
 -- INSERT: Only Premium users can create events
+DROP POLICY IF EXISTS "Premium members can create calendar events" ON calendar_events;
 CREATE POLICY "Premium members can create calendar events"
   ON calendar_events FOR INSERT
   WITH CHECK (
@@ -241,6 +252,7 @@ CREATE POLICY "Premium members can create calendar events"
   );
 
 -- UPDATE: Only Premium + original creator can update
+DROP POLICY IF EXISTS "Premium creators can update calendar events" ON calendar_events;
 CREATE POLICY "Premium creators can update calendar events"
   ON calendar_events FOR UPDATE
   USING (
@@ -254,6 +266,7 @@ CREATE POLICY "Premium creators can update calendar events"
   );
 
 -- DELETE: Only Premium + original creator can delete
+DROP POLICY IF EXISTS "Premium creators can delete calendar events" ON calendar_events;
 CREATE POLICY "Premium creators can delete calendar events"
   ON calendar_events FOR DELETE
   USING (
@@ -268,6 +281,7 @@ CREATE POLICY "Premium creators can delete calendar events"
 
 -- ─── MOMENTS ───────────────────────────────────────────────────────
 -- SELECT: Couple members can see shared moments (private only by creator)
+DROP POLICY IF EXISTS "Couple members can view moments" ON moments;
 CREATE POLICY "Couple members can view moments"
   ON moments FOR SELECT
   USING (
@@ -283,6 +297,7 @@ CREATE POLICY "Couple members can view moments"
   );
 
 -- INSERT: Couple members can add moments
+DROP POLICY IF EXISTS "Couple members can create moments" ON moments;
 CREATE POLICY "Couple members can create moments"
   ON moments FOR INSERT
   WITH CHECK (
@@ -295,6 +310,7 @@ CREATE POLICY "Couple members can create moments"
   );
 
 -- UPDATE: Only creator can update their moments
+DROP POLICY IF EXISTS "Creators can update moments" ON moments;
 CREATE POLICY "Creators can update moments"
   ON moments FOR UPDATE
   USING (
@@ -307,6 +323,7 @@ CREATE POLICY "Creators can update moments"
   );
 
 -- DELETE: Only creator can delete their moments
+DROP POLICY IF EXISTS "Creators can delete moments" ON moments;
 CREATE POLICY "Creators can delete moments"
   ON moments FOR DELETE
   USING (
@@ -320,11 +337,13 @@ CREATE POLICY "Creators can delete moments"
 
 -- ─── PARTNER_LINK_CODES ─────────────────────────────────────────────
 -- SELECT: Only creator can view their own codes
+DROP POLICY IF EXISTS "Users can view own link codes" ON partner_link_codes;
 CREATE POLICY "Users can view own link codes"
   ON partner_link_codes FOR SELECT
   USING (created_by = auth.uid());
 
 -- INSERT: Authenticated users can create codes
+DROP POLICY IF EXISTS "Authenticated users can create link codes" ON partner_link_codes;
 CREATE POLICY "Authenticated users can create link codes"
   ON partner_link_codes FOR INSERT
   WITH CHECK (
@@ -340,6 +359,7 @@ CREATE POLICY "Authenticated users can create link codes"
 
 -- ─── USER_ENTITLEMENTS ──────────────────────────────────────────────
 -- SELECT: Users can only see their own entitlements
+DROP POLICY IF EXISTS "Users can view own entitlements" ON user_entitlements;
 CREATE POLICY "Users can view own entitlements"
   ON user_entitlements FOR SELECT
   USING (user_id = auth.uid());
@@ -351,15 +371,12 @@ CREATE POLICY "Users can view own entitlements"
 -- Allow couple members to see their partner's membership too
 -- (needed for the couple container to work)
 DROP POLICY IF EXISTS "Users can view own memberships" ON couple_members;
+DROP POLICY IF EXISTS "Couple members can view memberships" ON couple_members;
 
 CREATE POLICY "Couple members can view memberships"
   ON couple_members FOR SELECT
   USING (
-    EXISTS (
-      SELECT 1 FROM couple_members my_membership
-      WHERE my_membership.couple_id = couple_members.couple_id
-        AND my_membership.user_id = auth.uid()
-    )
+    couple_id IN (SELECT get_my_couple_ids())
   );
 
 -- ============================================================================
@@ -374,6 +391,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Storage policy: Authenticated couple members can upload to their couple folder
 -- Path format: couples/<couple_id>/<filename>
+DROP POLICY IF EXISTS "Couple members can upload media" ON storage.objects;
 CREATE POLICY "Couple members can upload media"
   ON storage.objects FOR INSERT
   WITH CHECK (
@@ -388,6 +406,7 @@ CREATE POLICY "Couple members can upload media"
   );
 
 -- Storage policy: Couple members can view files in their couple folder
+DROP POLICY IF EXISTS "Couple members can view media" ON storage.objects;
 CREATE POLICY "Couple members can view media"
   ON storage.objects FOR SELECT
   USING (
@@ -402,6 +421,7 @@ CREATE POLICY "Couple members can view media"
   );
 
 -- Storage policy: Couple members can delete their own uploads
+DROP POLICY IF EXISTS "Couple members can delete own media" ON storage.objects;
 CREATE POLICY "Couple members can delete own media"
   ON storage.objects FOR DELETE
   USING (
@@ -417,14 +437,17 @@ CREATE POLICY "Couple members can delete own media"
   );
 
 -- ============================================================================
--- PART 7: CLEANUP — Expire old partner link codes (pg_cron)
--- Requires: CREATE EXTENSION IF NOT EXISTS pg_cron;
--- Run hourly to clean expired, unused partner link codes older than 1 day.
+-- PART 7: CLEANUP — Expire old partner link codes
+-- Optional: If pg_cron is enabled, uncomment the line below to auto-clean
+-- expired codes hourly. Otherwise, expired codes are harmless (they simply
+-- fail validation in redeem_partner_code).
 -- ============================================================================
 
-SELECT cron.schedule('cleanup-expired-codes', '0 * * * *',
-  $$DELETE FROM partner_link_codes WHERE expires_at < now() - interval '1 day' AND used_at IS NULL$$
-);
+-- To enable, first run:  CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- Then uncomment:
+-- SELECT cron.schedule('cleanup-expired-codes', '0 * * * *',
+--   $$DELETE FROM partner_link_codes WHERE expires_at < now() - interval '1 day' AND used_at IS NULL$$
+-- );
 
 -- 🎉 v3 SECURITY HARDENING COMPLETE
 -- ✅ calendar_events with Free-can-view / Premium-can-edit model

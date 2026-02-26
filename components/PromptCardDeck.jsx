@@ -3,7 +3,7 @@
 // Swipe right → open/answer · Swipe left → skip · Tap → flip to reveal.
 // Quiet, intimate animations aligned with Brand Guardrails.
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Dimensions,
   Platform,
   TouchableWithoutFeedback,
+  Animated as RNAnimated,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -18,6 +19,8 @@ import Animated, {
   withTiming,
   withSpring,
   withDelay,
+  withRepeat,
+  withSequence,
   interpolate,
   runOnJS,
   Easing,
@@ -35,8 +38,8 @@ import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const CARD_W = SCREEN_W - 48;
-const CARD_H = Math.min(SCREEN_H * 0.52, 440);
+const CARD_W = SCREEN_W - 32;
+const CARD_H = Math.min(SCREEN_H * 0.65, 580);
 const SWIPE_THRESHOLD = SCREEN_W * 0.28;
 
 const SPRING_CONFIG = { damping: 22, stiffness: 180, mass: 0.8 };
@@ -65,50 +68,35 @@ const FONTS = {
   }),
 };
 
-// Category gradient + icon mapping
-const CAT_COLORS = {
-  romance:   ['#D4607A', '#9A2E5E'],
-  playful:   ['#F09A5A', '#D96B2A'],
-  physical:  ['#9B72CF', '#6B3FA0'],
-  fantasy:   ['#C84B5A', '#8B1A2A'],
-  sensory:   ['#C49A6C', '#8A6540'],
-  emotional: ['#7B6DAF', '#504880'],
-  future:    ['#5BA8D4', '#2E6E9A'],
-  memory:    ['#5FAA7A', '#337A50'],
-  visual:    ['#D4A830', '#A07820'],
+// Heat-level gradient + icon + label mapping
+const HEAT_COLORS = {
+  1: ['#B07EFF', '#9060E0'],
+  2: ['#FF7EB8', '#E0609A'],
+  3: ['#FF7080', '#E05468'],
+  4: ['#FF8534', '#E06820'],
+  5: ['#FF2D2D', '#E01818'],
 };
-const CAT_COLORS_DARK = {
-  romance:   ['#3A1520', '#1E0A12'],
-  playful:   ['#2E1A0E', '#1A0E06'],
-  physical:  ['#1E1430', '#100A1E'],
-  fantasy:   ['#2A1018', '#16080E'],
-  sensory:   ['#241A12', '#140E08'],
-  emotional: ['#181428', '#0E0C18'],
-  future:    ['#0E1E2A', '#081218'],
-  memory:    ['#0E2218', '#08140E'],
-  visual:    ['#281E08', '#181204'],
+// Metallic base tones per heat (dark chrome → accent)
+const HEAT_METAL = {
+  1: { base: '#1A1230', chrome: '#C4A8FF', highlight: '#E0CCFF', mid: '#6B48B8' },
+  2: { base: '#1E0F1A', chrome: '#FFB0D6', highlight: '#FFD6EA', mid: '#B8487A' },
+  3: { base: '#1E0F12', chrome: '#FFB0B8', highlight: '#FFD0D6', mid: '#B84858' },
+  4: { base: '#1E1408', chrome: '#FFC080', highlight: '#FFE0B8', mid: '#B86820' },
+  5: { base: '#1E0808', chrome: '#FF8080', highlight: '#FFB0B0', mid: '#B82020' },
 };
-const CAT_ICONS = {
-  romance:   'heart',
-  playful:   'star-four-points',
-  physical:  'fire',
-  fantasy:   'lightning-bolt',
-  sensory:   'weather-night',
-  emotional: 'chat-outline',
-  future:    'telescope',
-  memory:    'camera-outline',
-  visual:    'eye-outline',
+const HEAT_ICONS = {
+  1: 'hand-heart',
+  2: 'heart-multiple',
+  3: 'heart-pulse',
+  4: 'water',
+  5: 'fire',
 };
-const CAT_LABELS = {
-  romance:   'Romantic',
-  playful:   'Playful',
-  physical:  'Intimate',
-  fantasy:   'Spicy',
-  sensory:   'Cozy',
-  emotional: 'Deep Talk',
-  future:    'Dreams',
-  memory:    'Appreciation',
-  visual:    'Curiosity',
+const HEAT_LABELS = {
+  1: 'Emotional',
+  2: 'Flirty',
+  3: 'Sensual',
+  4: 'Steamy',
+  5: 'Explicit',
 };
 
 // ────────────────────────────────────────────────────────
@@ -122,10 +110,30 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
   const [isFlipped, setIsFlipped] = useState(false);
   const scale = useSharedValue(1);
 
-  const catColors = isDark ? CAT_COLORS_DARK : CAT_COLORS;
-  const catGradient = catColors[item?.category] || (isDark ? ['#14101A', '#0A080E'] : [colors.primary, colors.primaryMuted || colors.primary]);
-  const catIcon = CAT_ICONS[item?.category] || 'help-circle-outline';
-  const catLabel = CAT_LABELS[item?.category] || item?.category || '';
+  const heat = item?.heat || 1;
+  const catGradient = HEAT_COLORS[heat] || ['#B07EFF', '#9060E0'];
+  const catIcon = HEAT_ICONS[heat] || 'heart-outline';
+  const catLabel = HEAT_LABELS[heat] || 'Emotional';
+  const metal = HEAT_METAL[heat] || HEAT_METAL[1];
+
+  // Shimmer animation for metallic highlight
+  const shimmerAnim = useRef(new RNAnimated.Value(0)).current;
+  useEffect(() => {
+    const loop = RNAnimated.loop(
+      RNAnimated.timing(shimmerAnim, {
+        toValue: 1,
+        duration: 3000,
+        easing: require('react-native').Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
+  const shimmerTranslate = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-CARD_W * 1.5, CARD_W * 1.5],
+  });
 
   // Reset when card becomes top
   useEffect(() => {
@@ -246,78 +254,226 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
       <Animated.View style={[styles.cardContainer, containerStyle]}>
         {/* ── BACK FACE ── */}
         <Animated.View style={[styles.card, backStyle]}>
+          {/* Base dark metallic layer */}
           <LinearGradient
-            colors={catGradient}
+            colors={[metal.base, '#0A0A0F', metal.base]}
             style={styles.cardBack}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            {/* Decorative pattern */}
-            <View style={styles.backPattern}>
-              <View style={styles.backPatternInner}>
-                <MaterialCommunityIcons name={catIcon} size={48} color="rgba(255,255,255,0.25)" />
+            {/* Metallic sheen overlay — diagonal color band */}
+            <LinearGradient
+              colors={[
+                'transparent',
+                metal.chrome + '08',
+                metal.chrome + '18',
+                metal.highlight + '22',
+                metal.chrome + '18',
+                metal.chrome + '08',
+                'transparent',
+              ]}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+
+            {/* Chrome edge highlights — top edge */}
+            <LinearGradient
+              colors={[metal.chrome + '30', 'transparent']}
+              style={styles.topEdgeShine}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+            />
+
+            {/* Chrome edge highlights — left edge */}
+            <LinearGradient
+              colors={[metal.chrome + '20', 'transparent']}
+              style={styles.leftEdgeShine}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+            />
+
+            {/* Animated shimmer band */}
+            <RNAnimated.View
+              style={[
+                styles.shimmerBand,
+                { transform: [{ translateX: shimmerTranslate }, { rotate: '25deg' }] },
+              ]}
+              pointerEvents="none"
+            >
+              <LinearGradient
+                colors={[
+                  'transparent',
+                  'rgba(255,255,255,0.0)',
+                  'rgba(255,255,255,0.07)',
+                  'rgba(255,255,255,0.15)',
+                  'rgba(255,255,255,0.07)',
+                  'rgba(255,255,255,0.0)',
+                  'transparent',
+                ]}
+                style={{ width: '100%', height: '100%' }}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+              />
+            </RNAnimated.View>
+
+            {/* Chrome inner frame */}
+            <View style={[styles.backFrame, { borderColor: metal.chrome + '35' }]}>
+              {/* Metallic inner top line */}
+              <LinearGradient
+                colors={['transparent', metal.chrome + '40', 'transparent']}
+                style={styles.frameTopLine}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+              />
+
+              {/* Top heat badge — brushed metal style */}
+              <View style={[styles.backTopBadge, { borderColor: metal.chrome + '30' }]}>
+                <MaterialCommunityIcons name={catIcon} size={14} color={metal.chrome} />
+                <Text style={[styles.backBadgeText, { color: metal.chrome }]}>{catLabel}</Text>
               </View>
+
+              {/* Center emblem — chrome rings */}
+              <View style={styles.backEmblem}>
+                <View style={[styles.backEmblemOuter, { borderColor: metal.chrome + '40' }]}>
+                  <LinearGradient
+                    colors={[metal.chrome + '15', 'transparent', metal.chrome + '10']}
+                    style={StyleSheet.absoluteFill}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  />
+                  <View style={[styles.backEmblemInner, { borderColor: metal.chrome + '25' }]}>
+                    <LinearGradient
+                      colors={[catGradient[0] + '30', 'transparent']}
+                      style={StyleSheet.absoluteFill}
+                      start={{ x: 0.5, y: 0 }}
+                      end={{ x: 0.5, y: 1 }}
+                    />
+                    <MaterialCommunityIcons name={catIcon} size={38} color={metal.chrome + 'CC'} />
+                  </View>
+                </View>
+                <Text style={[styles.backLevelText, { color: metal.chrome + '80' }]}>{'✦ '.repeat(heat).trim()}</Text>
+              </View>
+
+              {/* Metallic inner bottom line */}
+              <LinearGradient
+                colors={['transparent', metal.chrome + '30', 'transparent']}
+                style={styles.frameBottomLine}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+              />
+
+              <Text style={[styles.backHint, { color: metal.chrome + '50' }]}>tap to reveal</Text>
             </View>
 
-            {/* Category label */}
-            <View style={styles.backCategoryPill}>
-              <MaterialCommunityIcons name={catIcon} size={14} color="rgba(255,255,255,0.9)" />
-              <Text style={styles.backCategoryText}>{catLabel}</Text>
-            </View>
-
-            {/* Subtle hint */}
-            <Text style={styles.backHint}>tap to reveal</Text>
-
-            {/* Corner flourishes */}
-            <View style={[styles.cornerMark, styles.topLeft]}>
-              <Text style={styles.cornerText}>✦</Text>
-            </View>
-            <View style={[styles.cornerMark, styles.topRight]}>
-              <Text style={styles.cornerText}>✦</Text>
-            </View>
-            <View style={[styles.cornerMark, styles.bottomLeft]}>
-              <Text style={styles.cornerText}>✦</Text>
-            </View>
-            <View style={[styles.cornerMark, styles.bottomRight]}>
-              <Text style={styles.cornerText}>✦</Text>
-            </View>
+            {/* Bottom edge shine */}
+            <LinearGradient
+              colors={['transparent', metal.chrome + '15']}
+              style={styles.bottomEdgeShine}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+            />
           </LinearGradient>
         </Animated.View>
 
         {/* ── FRONT FACE ── */}
         <Animated.View style={[styles.card, styles.cardFrontWrap, frontStyle]}>
-          <View style={[styles.cardFront, { backgroundColor: isDark ? '#0A080E' : '#FFFAF7' }]}>
-            {/* Category band */}
+          <View style={[styles.cardFront, { backgroundColor: metal.base }]}>
+            {/* Metallic base sheen */}
             <LinearGradient
-              colors={catGradient}
-              style={styles.frontBand}
+              colors={[metal.chrome + '08', 'transparent', metal.chrome + '06']}
+              style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <MaterialCommunityIcons name={catIcon} size={16} color="rgba(255,255,255,0.9)" />
-              <Text style={styles.frontBandLabel}>{catLabel}</Text>
-            </LinearGradient>
+              end={{ x: 1, y: 1 }}
+            />
 
-            {/* Prompt text */}
-            <View style={styles.frontBody}>
-              <Text
-                style={[styles.frontPromptText, { color: colors.text }]}
-                numberOfLines={8}
-              >
-                {item?.text || 'Something beautiful awaits…'}
-              </Text>
+            {/* Top edge chrome highlight */}
+            <LinearGradient
+              colors={[metal.chrome + '25', 'transparent']}
+              style={styles.frontTopShine}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+            />
+
+            {/* Animated shimmer on front too */}
+            <RNAnimated.View
+              style={[
+                styles.shimmerBand,
+                { transform: [{ translateX: shimmerTranslate }, { rotate: '25deg' }] },
+              ]}
+              pointerEvents="none"
+            />
+
+            {/* Top band — brushed metal with heat accent */}
+            <View style={styles.frontBand}>
+              <LinearGradient
+                colors={[metal.mid + '90', catGradient[0] + '70', metal.mid + '90']}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              />
+              {/* Chrome top edge on band */}
+              <LinearGradient
+                colors={['rgba(255,255,255,0.25)', 'transparent']}
+                style={styles.bandTopEdge}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+              />
+              <View style={styles.frontBandLeft}>
+                <MaterialCommunityIcons name={catIcon} size={16} color={metal.highlight} />
+                <Text style={[styles.frontBandLabel, { color: metal.highlight }]}>{catLabel}</Text>
+              </View>
+              <Text style={[styles.frontBandLevel, { color: metal.chrome + 'AA' }]}>{'✦'.repeat(heat)}</Text>
             </View>
 
-            {/* Bottom hint */}
-            <View style={styles.frontFooter}>
-              <Text style={[styles.frontFooterText, { color: colors.textMuted }]}>
-                swipe right to reflect
-              </Text>
-              <MaterialCommunityIcons
-                name="arrow-right"
-                size={14}
-                color={colors.textMuted}
+            {/* Chrome separator line under band */}
+            <LinearGradient
+              colors={['transparent', metal.chrome + '40', metal.highlight + '50', metal.chrome + '40', 'transparent']}
+              style={styles.chromeDivider}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+            />
+
+            {/* Inner card frame — metallic border */}
+            <View style={[styles.frontFrame, { borderColor: metal.chrome + '18' }]}>
+              {/* Subtle inner gradient */}
+              <LinearGradient
+                colors={[metal.chrome + '06', 'transparent', metal.chrome + '04']}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
               />
+              <View style={styles.frontBody}>
+                <Text
+                  style={[styles.frontPromptText, { color: metal.highlight, fontSize: (item?.text?.length || 0) > 180 ? 16 : (item?.text?.length || 0) > 120 ? 18 : 22 }]}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.6}
+                >
+                  {item?.text || 'Something beautiful awaits…'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Chrome separator above footer */}
+            <LinearGradient
+              colors={['transparent', metal.chrome + '30', metal.highlight + '40', metal.chrome + '30', 'transparent']}
+              style={styles.chromeDivider}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+            />
+
+            {/* Bottom bar */}
+            <View style={styles.frontFooter}>
+              <View style={styles.frontFooterContent}>
+                <Text style={[styles.frontFooterText, { color: metal.chrome + '60' }]}>
+                  swipe right to reflect
+                </Text>
+                <MaterialCommunityIcons
+                  name="arrow-right"
+                  size={14}
+                  color={metal.chrome + '60'}
+                />
+              </View>
             </View>
           </View>
         </Animated.View>
@@ -449,16 +605,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
-    borderRadius: BORDER_RADIUS.xl,
+    borderRadius: 18,
     overflow: 'hidden',
+    // Double-border metallic edge: outer chrome rim
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.12)',
     ...Platform.select({
       ios: {
-        shadowColor: '#060410',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.35,
-        shadowRadius: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.6,
+        shadowRadius: 32,
       },
-      android: { elevation: 8 },
+      android: { elevation: 16 },
     }),
   },
 
@@ -467,90 +626,202 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: SPACING.xl,
+    padding: 12,
   },
 
-  backPattern: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  // Chrome edge shine overlays
+  topEdgeShine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+  },
+  leftEdgeShine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: 40,
+  },
+  bottomEdgeShine: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 40,
+  },
+
+  // Animated shimmer band
+  shimmerBand: {
+    position: 'absolute',
+    top: -CARD_H * 0.3,
+    width: CARD_W * 0.35,
+    height: CARD_H * 1.8,
+  },
+
+  backFrame: {
+    flex: 1,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.xl,
-  },
-  backPatternInner: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 12,
+    margin: 8,
+    paddingVertical: 22,
+    paddingHorizontal: 14,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    overflow: 'hidden',
   },
 
-  backCategoryPill: {
+  // Fine metallic lines inside frame
+  frameTopLine: {
+    position: 'absolute',
+    top: 0,
+    left: 16,
+    right: 16,
+    height: 1,
+  },
+  frameBottomLine: {
+    position: 'absolute',
+    bottom: 40,
+    left: 16,
+    right: 16,
+    height: 1,
+  },
+
+  backTopBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: BORDER_RADIUS.full,
-    gap: 6,
-    marginBottom: SPACING.md,
+    paddingVertical: 7,
+    borderRadius: 20,
+    gap: 7,
   },
-  backCategoryText: {
+  backBadgeText: {
     fontFamily: FONTS.bodyBold,
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.9)',
-    letterSpacing: 0.5,
+    fontSize: 11,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+
+  backEmblem: {
+    alignItems: 'center',
+    gap: 14,
+  },
+  backEmblemOuter: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(255,255,255,0.25)',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 1,
+        shadowRadius: 16,
+      },
+      android: {},
+    }),
+  },
+  backEmblemInner: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  backLevelText: {
+    fontFamily: FONTS.body,
+    fontSize: 15,
+    letterSpacing: 5,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
 
   backHint: {
     fontFamily: FONTS.body,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.4)',
-    letterSpacing: 0.5,
-  },
-
-  // Corner flourishes
-  cornerMark: {
-    position: 'absolute',
-  },
-  topLeft: { top: 18, left: 18 },
-  topRight: { top: 18, right: 18 },
-  bottomLeft: { bottom: 18, left: 18 },
-  bottomRight: { bottom: 18, right: 18 },
-  cornerText: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.18)',
+    fontSize: 10,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
 
   // ── Front face ──
-  cardFrontWrap: {
-    // sits on top of the back
-  },
+  cardFrontWrap: {},
 
   cardFront: {
     flex: 1,
-    borderRadius: BORDER_RADIUS.xl,
+    borderRadius: 18,
     overflow: 'hidden',
+  },
+
+  frontTopShine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 50,
+    zIndex: 1,
   },
 
   frontBand: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 18,
-    paddingVertical: 12,
+    paddingVertical: 14,
+    overflow: 'hidden',
+  },
+  bandTopEdge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  frontBandLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   frontBandLabel: {
     fontFamily: FONTS.bodyBold,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.9)',
-    letterSpacing: 0.8,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  frontBandLevel: {
+    fontSize: 12,
+    letterSpacing: 3,
+  },
+
+  // Chrome divider lines
+  chromeDivider: {
+    height: 1,
+    marginHorizontal: 10,
+  },
+
+  frontFrame: {
+    flex: 1,
+    marginHorizontal: 12,
+    marginTop: 6,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderRadius: 10,
+    overflow: 'hidden',
   },
 
   frontBody: {
@@ -562,22 +833,30 @@ const styles = StyleSheet.create({
   frontPromptText: {
     fontFamily: FONTS.serifAccent,
     fontSize: 22,
-    lineHeight: 32,
+    lineHeight: 30,
     fontWeight: '300',
     textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
 
   frontFooter: {
+    paddingHorizontal: 18,
+    paddingBottom: 14,
+    paddingTop: 6,
+  },
+  frontFooterContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 20,
     gap: 6,
   },
   frontFooterText: {
     fontFamily: FONTS.body,
-    fontSize: 12,
-    letterSpacing: 0.3,
+    fontSize: 10,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 
   // ── Swipe hints ──
@@ -586,18 +865,20 @@ const styles = StyleSheet.create({
     top: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   swipeHintRight: {
     left: 16,
-    backgroundColor: 'rgba(122, 30, 78, 0.85)',
+    backgroundColor: 'rgba(122, 30, 78, 0.9)',
   },
   swipeHintLeft: {
     right: 16,
-    backgroundColor: 'rgba(60, 50, 80, 0.85)',
+    backgroundColor: 'rgba(60, 50, 80, 0.9)',
   },
   swipeHintText: {
     fontFamily: FONTS.bodyBold,

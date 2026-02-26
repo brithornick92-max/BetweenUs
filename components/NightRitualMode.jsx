@@ -285,11 +285,13 @@ const NightRitualMode = ({
       }
       
       // Auto-dismiss after showing completion
+      // Note: parent screen handles navigation via onRitualComplete.
+      // We keep the completion overlay visible and do NOT reset currentRitual
+      // to null, which would flash the loading state.
       completionTimerRef.current = setTimeout(() => {
         setShowCompletion(false);
         setCurrentElement(0);
         setResponses({});
-        setCurrentRitual(null);
       }, 3000);
       
     } catch (error) {

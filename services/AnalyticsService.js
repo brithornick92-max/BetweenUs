@@ -228,7 +228,13 @@ const AnalyticsService = {
   },
 };
 
-// Simple session ID (random per app launch)
-const _sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+// Simple session ID (random per app launch — crypto-safe)
+const _sessionId = (() => {
+  try {
+    return require('expo-crypto').randomUUID();
+  } catch {
+    return Date.now().toString(36) + '_anon';
+  }
+})();
 
 export default AnalyticsService;

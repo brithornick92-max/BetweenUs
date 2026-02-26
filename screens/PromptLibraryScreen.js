@@ -41,6 +41,9 @@ const CATEGORIES = [
   { id: "seasonal", label: "Seasonal", icon: "weather-sunny" },
 ];
 
+const HEAT_LABELS = { 1: 'Emotional', 2: 'Flirty', 3: 'Sensual', 4: 'Steamy', 5: 'Explicit' };
+const HEAT_BADGE_COLORS = { 1: '#B07EFF', 2: '#FF7EB8', 3: '#FF7080', 4: '#FF8534', 5: '#FF2D2D' };
+
 const DURATION_FILTERS = [
   { id: "all", label: "All Stages" },
   { id: "new", label: "New" },
@@ -131,50 +134,17 @@ export default function PromptLibraryScreen({ navigation }) {
   const loadPrompts = useCallback(async () => {
     setLoading(true);
     try {
-      // Premium users get the full bundled catalog, filtered by boundaries
-      if (isPremium) {
-        const allPrompts = loadAllBundledPrompts();
-        setAllPromptsCount(allPrompts.length);
-        try {
-          const profile = await PreferenceEngine.getContentProfile();
-          const filtered = allPrompts.filter(p => {
-            if (profile?.hiddenCategories?.includes(p.category)) return false;
-            if (profile?.pausedEntries?.includes(p.id)) return false;
-            return true;
-          });
-          setPrompts(filtered.map(normalizePrompt));
-        } catch {
-          setPrompts(allPrompts.map(normalizePrompt));
-        }
-        return;
-      }
-
-      // Free users: use ContentContext filtering (respects PremiumGatekeeper limits)
-      if (typeof getFilteredPrompts === "function") {
-        const filters = {
-          minHeatLevel: selectedHeat,
-          maxHeatLevel: selectedHeat,
-          categories: selectedCategory === "all" ? [] : [selectedCategory],
-        };
-
-        const local = getFilteredPrompts(filters);
-        setPrompts(Array.isArray(local) ? local.map(normalizePrompt) : []);
-        return;
-      }
-
-      // Fallback: load from bundled prompts.json content
+      // Always load ALL prompts — heat gating handled in filteredPrompts
       const allPrompts = loadAllBundledPrompts();
       setAllPromptsCount(allPrompts.length);
-      // Free users only get heat 1-3
-      const freePrompts = allPrompts.filter((p) => (p.heat || 1) <= 3);
-      setPrompts(freePrompts.map(normalizePrompt));
+      setPrompts(allPrompts.map(normalizePrompt));
     } catch (error) {
       console.error("Error loading prompts:", error);
       setPrompts([]);
     } finally {
       setLoading(false);
     }
-  }, [isPremium, getFilteredPrompts, selectedCategory, selectedHeat]);
+  }, [isPremium]);
 
   useEffect(() => {
     loadPrompts();
@@ -186,6 +156,14 @@ export default function PromptLibraryScreen({ navigation }) {
   // -----------------------
   const filteredPrompts = useMemo(() => {
     const list = Array.isArray(prompts) ? prompts : [];
+    const isLocked = !isPremium && selectedHeat >= 4;
+
+    // For locked levels, show exactly 1 preview prompt
+    if (isLocked) {
+      const match = list.map(normalizePrompt).find(p => (typeof p.heat === 'number' ? p.heat : 1) === selectedHeat);
+      return match ? [{ ...match, isPreview: true }] : [];
+    }
+
     const base = list
       .map(normalizePrompt)
       .filter((p) => {
@@ -263,16 +241,9 @@ export default function PromptLibraryScreen({ navigation }) {
 
       const safePrompt = normalizePrompt(prompt);
 
-      // Block heat 4-5 for non-premium
-      if (!isPremium && safePrompt.heat >= 4) {
-        Alert.alert(
-          "Premium Feature",
-          "Heat levels 4 & 5 prompts are available with Premium.",
-          [
-            { text: "Maybe Later", style: "cancel" },
-            { text: "Upgrade", onPress: () => navigation.navigate("Paywall") },
-          ]
-        );
+      // Block heat 4-5 for non-premium (preview prompts trigger paywall)
+      if (!isPremium && (safePrompt.isPreview || (safePrompt.heat || 1) >= 4)) {
+        showPaywall?.('unlimitedPrompts');
         return;
       }
 
@@ -377,26 +348,11 @@ export default function PromptLibraryScreen({ navigation }) {
               style={[
                 styles.heatButton,
                 {
-                  backgroundColor: isSelected ? colors.primary : colors.card,
-                  borderColor: isSelected ? colors.primary : colors.border,
-                  opacity: locked ? 0.55 : 1,
+                  backgroundColor: isSelected ? (HEAT_BADGE_COLORS[heat] || colors.primary) : colors.card,
+                  borderColor: isSelected ? (HEAT_BADGE_COLORS[heat] || colors.primary) : locked ? (HEAT_BADGE_COLORS[heat] || colors.primary) + '60' : colors.border,
                 },
               ]}
               onPress={() => {
-                if (locked) {
-                  Alert.alert(
-                    "Premium Feature",
-                    "Heat levels 4 & 5 are available with Premium.",
-                    [
-                      { text: "Maybe Later", style: "cancel" },
-                      {
-                        text: "Upgrade",
-                        onPress: () => navigation.navigate("Paywall"),
-                      },
-                    ]
-                  );
-                  return;
-                }
                 setSelectedHeat(heat);
                 Haptics.selectionAsync();
               }}
@@ -406,16 +362,16 @@ export default function PromptLibraryScreen({ navigation }) {
                 <Text
                   style={[
                     styles.heatButtonText,
-                    { color: isSelected ? colors.surface : colors.text },
+                    { color: isSelected ? colors.surface : locked ? (HEAT_BADGE_COLORS[heat] || colors.text) : colors.text },
                   ]}
                 >
-                  {heat}
+                  {HEAT_LABELS[heat]}
                 </Text>
                 {locked ? (
                   <MaterialCommunityIcons
                     name="lock"
                     size={14}
-                    color={isSelected ? colors.surface : colors.textSecondary}
+                    color={isSelected ? colors.surface : (HEAT_BADGE_COLORS[heat] || colors.textSecondary)}
                   />
                 ) : null}
               </View>
@@ -447,11 +403,11 @@ export default function PromptLibraryScreen({ navigation }) {
             <View
               style={[
                 styles.categoryBadge,
-                { backgroundColor: `${colors.primary}20` },
+                { backgroundColor: `${HEAT_BADGE_COLORS[safeItem.heat] || '#B07EFF'}20` },
               ]}
             >
-              <Text style={[styles.categoryBadgeText, { color: colors.primary }]}>
-                {(safeItem.category || "general").toString()}
+              <Text style={[styles.categoryBadgeText, { color: HEAT_BADGE_COLORS[safeItem.heat] || '#B07EFF' }]}>
+                {HEAT_LABELS[safeItem.heat] || 'Emotional'}
               </Text>
             </View>
             {item.answered && (
@@ -478,14 +434,9 @@ export default function PromptLibraryScreen({ navigation }) {
 
         <View style={styles.promptCardFooter}>
           <View style={styles.heatIndicator}>
-            {Array.from({ length: safeItem.heat || 1 }).map((_, i) => (
-              <MaterialCommunityIcons
-                key={`${safeItem.id}_fire_${i}`}
-                name="fire"
-                size={14}
-                color={colors.primary}
-              />
-            ))}
+            <Text style={{ fontSize: 12, color: HEAT_BADGE_COLORS[safeItem.heat] || colors.textSecondary, fontWeight: '600' }}>
+              {HEAT_LABELS[safeItem.heat] || 'Emotional'}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -509,7 +460,7 @@ export default function PromptLibraryScreen({ navigation }) {
             color={colors.textSecondary}
           />
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No prompts match that — try a different mood
+            No prompts match that — try a different heat level
           </Text>
         </>
       )}

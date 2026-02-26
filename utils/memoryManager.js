@@ -259,7 +259,7 @@ export class MemoryManager {
     const now = new Date();
     
     return {
-      id: memoryData.id || `memory_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: memoryData.id || `memory_${Date.now()}_${require('expo-crypto').randomUUID().slice(0, 9)}`,
       type: memoryData.type || MEMORY_TYPES.MOMENT,
       title: memoryData.title || '',
       description: memoryData.description || '',
@@ -1015,7 +1015,8 @@ export class MemoryManager {
   
   async getDeviceId() {
     // Get unique device identifier for cloud sync
-    return `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const { randomUUID } = require('expo-crypto');
+    return `device_${randomUUID()}`;
   }
 }
 

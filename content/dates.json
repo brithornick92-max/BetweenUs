@@ -21,15 +21,13 @@
       "deep": "Vulnerable and transformative"
     },
     "heat": {
-      "1": "Sweet — no romantic/sensual element",
-      "2": "Romantic — candles, hand-holding, love letters",
-      "3": "Flirty — massage, bath, physical closeness",
-      "4": "Sensual — erotic, body-focused, provocative",
-      "5": "Intense — boundary-pushing, explicit exploration"
+      "1": "Heart — Emotional, romantic, deep connection",
+      "2": "Play — Fun, lighthearted, adventurous",
+      "3": "Heat — Sensual, steamy, passionate"
     },
     "dimensions": {
-      "heat": "1-5 (Comfort → Passion)",
-      "load": "1-3 (Calm → Energizing)",
+      "mood": "1-3 (Heart, Play, Heat)",
+      "load": "1-3 (Chill, Moderate, Active)",
       "style": "talking | doing | mixed"
     }
   },
@@ -45,7 +43,7 @@
         "Take photos of each other",
         "Share coffee and quiet conversation"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "talking"
     },
@@ -60,7 +58,7 @@
         "Share what you wrote",
         "Seal to open in one year"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -75,7 +73,7 @@
         "Feed each other slowly",
         "Discuss flavors and feelings"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -90,7 +88,7 @@
         "Feed each other",
         "Share dreams and desires"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -105,7 +103,7 @@
         "Identify constellations",
         "Share wishes on stars"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -120,7 +118,7 @@
         "Serve in bed with flowers",
         "Stay cozy all morning"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -150,7 +148,7 @@
         "Take turns finding messages",
         "End with biggest surprise"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "mixed"
     },
@@ -180,7 +178,7 @@
         "Stargaze together",
         "Share secret thoughts"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -210,7 +208,7 @@
         "Dance to every song",
         "End with passionate kiss"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -225,7 +223,7 @@
         "Watch city lights",
         "Toast to your love"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "mixed"
     },
@@ -240,7 +238,7 @@
         "Share movie snacks",
         "Cuddle under stars"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 1,
       "style": "talking"
     },
@@ -255,7 +253,7 @@
         "Find quiet cove",
         "Float and stargaze"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -270,7 +268,7 @@
         "Listen to waves",
         "Share dreams under stars"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "talking"
     },
@@ -285,7 +283,7 @@
         "Take new ones in same spots",
         "Create then and now album"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "doing"
     },
@@ -300,7 +298,7 @@
         "Watch sunset together",
         "Stay for first stars"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "mixed"
     },
@@ -315,7 +313,7 @@
         "Set up tent together",
         "Fall asleep under stars"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "doing"
     },
@@ -330,7 +328,7 @@
         "Identify planets and stars",
         "Make wishes together"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "doing"
     },
@@ -345,7 +343,7 @@
         "Build mini snowman together",
         "Warm up with hot cocoa"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "doing"
     },
@@ -360,7 +358,7 @@
         "Stop for a short stargazing break",
         "Share whispered compliments"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -375,7 +373,7 @@
         "Follow the trail together",
         "End with a cozy cuddle spot"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -390,7 +388,7 @@
         "Slow dance for three songs",
         "Share one bold compliment each"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "mixed"
     },
@@ -405,7 +403,7 @@
         "Pair flavors with playful compliments",
         "End with a slow dance"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -420,7 +418,7 @@
         "Stroll hand-in-hand",
         "Share one lingering kiss at the end"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "talking"
     },
@@ -435,7 +433,7 @@
         "Read notes aloud over warm drinks",
         "Save notes in a keepsake box"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -450,7 +448,7 @@
         "Stop to watch the sky change colors",
         "Share one wish for your future"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -465,7 +463,7 @@
         "Serve a candlelit dinner outside",
         "Linger under the moon together"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "doing"
     },
@@ -480,7 +478,7 @@
         "Add your names and the date",
         "Hang it as a keepsake"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "doing"
     },
@@ -495,7 +493,7 @@
         "Frame and display your star map",
         "Share what you remember from that night"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -510,7 +508,7 @@
         "Explain why each song was chosen",
         "Slow dance to the final song"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "doing"
     },
@@ -525,7 +523,7 @@
         "Watch the world go by together",
         "Explore the destination town"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "doing"
     },
@@ -540,7 +538,7 @@
         "Feed each other by candlelight",
         "Share your favorite bites"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -555,7 +553,7 @@
         "Float and watch the sunset",
         "Share a kiss on the water"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "talking"
     },
@@ -570,7 +568,7 @@
         "Stroll the area hand in hand",
         "Share wishes over dessert"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "mixed"
     },
@@ -600,7 +598,7 @@
         "Nap together in the afternoon sun",
         "Wake up slowly in each other's arms"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -630,7 +628,7 @@
         "Watch the waves crash below",
         "Kiss with the wind in your hair"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "doing"
     },
@@ -645,7 +643,7 @@
         "Lock it on a bridge or fence",
         "Toss the key or keep as memento"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "talking"
     },
@@ -660,7 +658,7 @@
         "Share wine and simple snacks",
         "Take photos in the warm light"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "talking"
     },
@@ -675,7 +673,7 @@
         "Release lanterns into the sky together",
         "Hold each other as they float away"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -690,7 +688,7 @@
         "Cuddle under a thick blanket",
         "Share whispered sweet nothings"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -705,7 +703,7 @@
         "Kiss at the highest point",
         "Share cotton candy below"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "talking"
     },
@@ -720,7 +718,7 @@
         "Toast to your love and future",
         "Crawl back into bed together"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -735,7 +733,7 @@
         "Sing it to each other awkwardly",
         "Record your creation as a keepsake"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "talking"
     },
@@ -750,7 +748,7 @@
         "Share champagne on deck",
         "Feel the breeze together"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "talking"
     },
@@ -765,7 +763,7 @@
         "Read vows by candlelight",
         "Seal with a meaningful kiss"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -780,7 +778,7 @@
         "Compare memories of the original",
         "Appreciate how far you've come"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "talking"
     },
@@ -810,7 +808,7 @@
         "Watch childhood favorites",
         "Cuddle and share memories"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -825,7 +823,7 @@
         "Switch roles halfway",
         "Enjoy chaotic but delicious results"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -840,7 +838,7 @@
         "Share what moves you",
         "End with coffee discussion"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -855,7 +853,7 @@
         "Model purchases at home",
         "Keep favorite finds"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -870,7 +868,7 @@
         "Listen to discoveries",
         "Buy one record together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -885,7 +883,7 @@
         "Have epic pillow fight",
         "Winner gives loser massage"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -915,7 +913,7 @@
         "Share childhood memories",
         "Find one treasure together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -945,7 +943,7 @@
         "Test on each other",
         "Name your creations"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -960,7 +958,7 @@
         "Win prizes for partner",
         "Celebrate with victory dinner"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -975,7 +973,7 @@
         "Celebrate holes-in-one",
         "Winner plans next date"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -990,7 +988,7 @@
         "Share creative process",
         "Plan pickup date"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1005,7 +1003,7 @@
         "Lick spoons and fingers",
         "Enjoy sweet creation"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -1020,7 +1018,7 @@
         "Play with silly stakes",
         "Crown ultimate champion"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -1035,7 +1033,7 @@
         "Share on social media",
         "Rate presentation vs taste"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -1050,7 +1048,7 @@
         "Quote favorite jokes",
         "Keep mood light all night"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -1065,7 +1063,7 @@
         "Name drinks after each other",
         "Get tipsy and flirty"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "mixed"
     },
@@ -1110,7 +1108,7 @@
         "Store relationship memories",
         "Test each other's recall"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1140,7 +1138,7 @@
         "Celebrate strikes with dances",
         "Share nachos and laughs"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1185,7 +1183,7 @@
         "Discuss favorite authors",
         "Appreciate your connection"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "talking"
     },
@@ -1215,7 +1213,7 @@
         "Lick bowls and spoons",
         "Enjoy warm results"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -1230,7 +1228,7 @@
         "Age cheese together",
         "Plan tasting date"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -1245,7 +1243,7 @@
         "Take turns adding plot twists",
         "Publish in relationship journal"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "talking"
     },
@@ -1260,7 +1258,7 @@
         "Perform for each other",
         "Laugh at yourselves"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "talking"
     },
@@ -1275,7 +1273,7 @@
         "Test difficulty level",
         "Host game night"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1290,7 +1288,7 @@
         "Judge each other's creations",
         "Winner gets massage"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1305,7 +1303,7 @@
         "Learn new facts",
         "Celebrate teamwork"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -1320,7 +1318,7 @@
         "Create custom bars",
         "Package as gifts"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -1335,7 +1333,7 @@
         "Laugh at mistakes",
         "Build confidence together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1350,7 +1348,7 @@
         "Help shape each other's pieces",
         "Recreate Ghost movie scene"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1365,7 +1363,7 @@
         "Move together side by side",
         "Celebrate each other"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1380,7 +1378,7 @@
         "Share stories and reflections",
         "Create series together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "talking"
     },
@@ -1395,7 +1393,7 @@
         "Teach each other phrases",
         "Plan trip to practice"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -1410,7 +1408,7 @@
         "Collaborate on artwork",
         "Share creations online"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "mixed"
     },
@@ -1425,7 +1423,7 @@
         "Taste-test with playful scoring",
         "Finish with a shared dessert"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1440,7 +1438,7 @@
         "Compare textures and temperatures",
         "Create a favorite pairing"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -1455,7 +1453,7 @@
         "Choose one photo to keep",
         "Celebrate with a late-night treat"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1470,7 +1468,7 @@
         "Add playful eye contact",
         "Celebrate with a shared dessert"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1485,7 +1483,7 @@
         "Pick one item to keep",
         "Wrap up with a close-up photo"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -1500,7 +1498,7 @@
         "Battle with silly rules and forfeits",
         "Loser makes winner a snack"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -1515,7 +1513,7 @@
         "Laugh at outtakes and fails",
         "Post or keep your favorites"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -1530,7 +1528,7 @@
         "Solve the mystery as a team",
         "Discuss theories over dessert"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "talking"
     },
@@ -1560,7 +1558,7 @@
         "Share vulnerable moments",
         "Reward honesty with kisses"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -1575,7 +1573,7 @@
         "Practice vulnerability",
         "Hold each other close"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -1635,7 +1633,7 @@
         "Share love for animals",
         "Discuss adopting pet"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -1650,7 +1648,7 @@
         "Plan dream purchases",
         "Celebrate money teamwork"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "talking"
     },
@@ -1665,7 +1663,7 @@
         "Listen to life stories",
         "Share intergenerational wisdom"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -1755,7 +1753,7 @@
         "Hold hands through difficult admissions",
         "Affirm each other under the stars"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -1860,7 +1858,7 @@
         "Share and discuss them openly",
         "Place intentions somewhere visible"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "talking"
     },
@@ -1965,7 +1963,7 @@
         "Share how you want to be remembered",
         "Identify one legacy project to start"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "talking"
     },
@@ -2085,7 +2083,7 @@
         "Exchange heartfelt words or small gifts",
         "Take a photo to mark the occasion"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "mixed"
     },
@@ -2175,7 +2173,7 @@
         "Save recordings for hard days",
         "Listen back together and hold hands"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -2265,7 +2263,7 @@
         "Seal in a box with meaningful objects",
         "Set a date to open it together"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "talking"
     },
@@ -2295,7 +2293,7 @@
         "Take turns describing flavors",
         "Share intimate conversation"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -2325,7 +2323,7 @@
         "Share deepest thoughts",
         "Enjoy peaceful silence"
       ],
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -2340,7 +2338,7 @@
         "Breathe together",
         "Feel soul connection"
       ],
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -2355,7 +2353,7 @@
         "Practice on each other",
         "Book follow-up session"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -2385,7 +2383,7 @@
         "Use textures on hands and shoulders",
         "Share which ones felt most exciting"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "mixed"
     },
@@ -2445,7 +2443,7 @@
         "Massage scalp slowly",
         "Dry and brush with care"
       ],
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -2460,7 +2458,7 @@
         "Pay attention to tension spots",
         "Switch roles and enjoy being cared for"
       ],
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -2490,7 +2488,7 @@
         "Share where you hold tension",
         "Gently massage each other's tension spots"
       ],
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -2535,7 +2533,7 @@
         "Describe what you see and love",
         "Close with a soft forehead kiss"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -2595,7 +2593,7 @@
         "Work through hair slowly",
         "Wrap in a warm towel together"
       ],
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -2610,7 +2608,7 @@
         "Hold each other without checking phones",
         "Let the music set a peaceful tone"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -2625,7 +2623,7 @@
         "Spoon or intertwine your bodies",
         "Drift off together without guilt"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -2655,7 +2653,7 @@
         "Use warm towels between massage rounds",
         "Finish with a long grateful hug"
       ],
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -2670,7 +2668,7 @@
         "Walk in silence for the first half",
         "Share what the silence felt like"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -2685,7 +2683,7 @@
         "Ask what feels best and follow their cues",
         "End with a warm embrace"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -2730,7 +2728,7 @@
         "One partner gives a long forehead kiss",
         "Switch and repeat in unhurried silence"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -2745,7 +2743,7 @@
         "Laugh when you wobble and fall",
         "End in a supported savasana together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -2760,7 +2758,7 @@
         "Dance in the kitchen while it cooks",
         "Eat together at a candlelit table"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -2790,7 +2788,7 @@
         "Gently pat in serums on partner's face",
         "Admire each other's glowing skin"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -2805,7 +2803,7 @@
         "Hold hands throughout the session",
         "Share what images or feelings arose"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -2820,7 +2818,7 @@
         "Choose items with personal meaning",
         "Discuss which sense felt most connected"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "mixed"
     },
@@ -2835,7 +2833,7 @@
         "Massage each other's feet while soaking",
         "Talk about your day without screens"
       ],
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -2880,7 +2878,7 @@
         "Share memories connected to their hands",
         "Kiss each fingertip slowly"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "mixed"
     },
@@ -2910,7 +2908,7 @@
         "Sway together in the living room",
         "Rest your head on partner's shoulder"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -2940,7 +2938,7 @@
         "Kiss between each gratitude",
         "Fall asleep in gentle appreciation"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -2955,7 +2953,7 @@
         "Pause to discuss interesting points",
         "Stay intertwined the entire time"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 1,
       "style": "talking"
     },
@@ -2985,7 +2983,7 @@
         "Look in the mirror and laugh together",
         "Wash off together side by side"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -3000,7 +2998,7 @@
         "Draw words of affirmation and love",
         "Switch roles and enjoy the touch"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -3030,7 +3028,7 @@
         "Bump hips and steal kisses while cooking",
         "Eat at the counter shoulder to shoulder"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -3060,7 +3058,7 @@
         "Discuss what excites you",
         "Create your own story"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "talking"
     },
@@ -3090,7 +3088,7 @@
         "Synchronize breath together",
         "Feel deeper connection"
       ],
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -3105,7 +3103,7 @@
         "Use scented oils",
         "Let touch lead naturally"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -3135,7 +3133,7 @@
         "Write your own verses",
         "Express desires creatively"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "talking"
     },
@@ -3165,7 +3163,7 @@
         "Feel water on skin",
         "Embrace freedom together"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "mixed"
     },
@@ -3180,7 +3178,7 @@
         "Lick off artwork",
         "Get creative and messy"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -3210,7 +3208,7 @@
         "Share artistic vision",
         "Display private gallery"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 3,
       "style": "talking"
     },
@@ -3225,7 +3223,7 @@
         "Trade dares for small reveals",
         "End with a cozy cuddle"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -3240,7 +3238,7 @@
         "Mark favorite sensations and pacing",
         "End with a shared aftercare cuddle"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -3255,7 +3253,7 @@
         "Stay in character for a short scene",
         "Debrief with kisses and compliments"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "mixed"
     },
@@ -3270,7 +3268,7 @@
         "Add teasing touch without rushing",
         "Finish with a deep, unhurried kiss"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -3300,7 +3298,7 @@
         "Agree on one new thing to try",
         "End with affectionate closeness"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "talking"
     },
@@ -3315,7 +3313,7 @@
         "Pause for lingering makeout breaks",
         "Share what scenes turned you on"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "talking"
     },
@@ -3330,7 +3328,7 @@
         "Explore slow, mutual touch while watching",
         "End with a long embrace"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -3345,7 +3343,7 @@
         "Record a short, playful moment together",
         "Review and delete or keep by mutual agreement"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "mixed"
     },
@@ -3360,7 +3358,7 @@
         "Escalate intensity gradually",
         "End with the boldest dare you're both comfortable with"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -3375,7 +3373,7 @@
         "Build anticipation and desire",
         "Lift the restriction when tension peaks"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -3405,7 +3403,7 @@
         "Take turns drawing and reading aloud",
         "Discuss which ones excite you both"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "mixed"
     },
@@ -3420,7 +3418,7 @@
         "Take turns photographing each other",
         "Review photos together and choose favorites"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "mixed"
     },
@@ -3435,7 +3433,7 @@
         "Try to lip-read and guess what they said",
         "Act out the ones you guess correctly"
       ],
-      "heat": 4,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -3450,7 +3448,7 @@
         "Be honest with truths and bold with dares",
         "Set a safe word for comfort"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "talking"
     },
@@ -3465,7 +3463,7 @@
         "Partner rates each kiss location",
         "Switch roles and discover new favorites"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -3480,7 +3478,7 @@
         "Follow cold trails with warm breath",
         "Alternate between ice and warm hands"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 3,
       "style": "doing"
     },
@@ -3495,7 +3493,7 @@
         "Be playful and encouraging in the fitting area",
         "Buy one surprise item for later"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 3,
       "style": "doing"
     },
@@ -3525,7 +3523,7 @@
         "Include feathers, silk, ice, warmth, and breath",
         "Let anticipation build between spins"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -3540,7 +3538,7 @@
         "Add forfeits for running out of items",
         "Let the game dissolve into closeness"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 3,
       "style": "doing"
     },
@@ -3555,7 +3553,7 @@
         "Pause just before the peak and restart",
         "Discover new levels of intensity together"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 2,
       "style": "talking"
     },
@@ -3570,7 +3568,7 @@
         "Star yourselves as the characters",
         "Read the finished story aloud together"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "talking"
     },
@@ -3585,7 +3583,7 @@
         "Follow with cool lotion or ice",
         "Alternate sensations and enjoy reactions"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -3600,7 +3598,7 @@
         "Explore the thrill of gentle restraint",
         "Untie slowly and reconnect with touch"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 1,
       "style": "mixed"
     },
@@ -3615,7 +3613,7 @@
         "Discuss surprises and discoveries",
         "Act on one answer that excites you both"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "talking"
     },
@@ -3630,7 +3628,7 @@
         "Unbox and explore together with curiosity",
         "Check in about what felt good and what didn't"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 3,
       "style": "mixed"
     },
@@ -3675,7 +3673,7 @@
         "Perform for each other with full energy",
         "Let the performance evolve naturally"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "mixed"
     },
@@ -3690,7 +3688,7 @@
         "Flirt as if meeting for the first time",
         "Let the roleplay unfold at your own pace"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "mixed"
     },
@@ -3705,7 +3703,7 @@
         "Focus on every millimeter of contact",
         "Let slowness amplify every sensation"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -3720,7 +3718,7 @@
         "Enjoy the freedom of nighttime water",
         "Warm up together afterward"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -3765,7 +3763,7 @@
         "Exchange booklets with anticipation",
         "Redeem one coupon immediately"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -3780,7 +3778,7 @@
         "Discuss maybes with curiosity not pressure",
         "Plan to explore one new yes together"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "talking"
     },
@@ -3825,7 +3823,7 @@
         "Share every dish",
         "Rate favorites together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -3840,7 +3838,7 @@
         "Learn about artists",
         "Discuss meanings"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -3855,7 +3853,7 @@
         "Learn about farming",
         "Buy fresh produce"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -3885,7 +3883,7 @@
         "Negotiate prices together",
         "Share stories behind finds"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -3900,7 +3898,7 @@
         "Celebrate your teamwork",
         "Discuss teamwork over dinner"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -3915,7 +3913,7 @@
         "Take photos together",
         "Find scenic spot to rest"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -3930,7 +3928,7 @@
         "Take photos of findings",
         "Learn about marine life"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -3945,7 +3943,7 @@
         "Meet other art lovers",
         "Find piece you both love"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -3960,7 +3958,7 @@
         "Create meal from purchases",
         "Enjoy farm-fresh dinner"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -3975,7 +3973,7 @@
         "Feel rhythm and heat",
         "Dance until sweaty"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -3990,7 +3988,7 @@
         "Support each other's progress",
         "Celebrate completion together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -4005,7 +4003,7 @@
         "Capture each other",
         "Find beauty in darkness"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4035,7 +4033,7 @@
         "Wear protective suits together",
         "Taste fresh honey"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4065,7 +4063,7 @@
         "Race drones playfully",
         "Capture unique perspectives"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -4080,7 +4078,7 @@
         "Buy mystery ingredients",
         "Cook adventure meal"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4095,7 +4093,7 @@
         "Celebrate effort",
         "Winner gives massage"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4110,7 +4108,7 @@
         "Share energy bars",
         "Feel accomplished together"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "doing"
     },
@@ -4125,7 +4123,7 @@
         "Share stories over coffee",
         "Watch late-night people"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -4140,7 +4138,7 @@
         "Help shape molten glass",
         "Make matching ornaments"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4155,7 +4153,7 @@
         "Create matching keepsakes",
         "Feel primal connection"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4170,7 +4168,7 @@
         "Gather ingredients together",
         "Cook foraged meal"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4185,7 +4183,7 @@
         "Communicate with hand signals",
         "Share amazing experience"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -4215,7 +4213,7 @@
         "Watch sunrise on water",
         "Share breakfast on shore"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4230,7 +4228,7 @@
         "Practice with LED props first",
         "Perform with real fire"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4245,7 +4243,7 @@
         "Handle hawks with trainer",
         "Watch flight demonstrations"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "mixed"
     },
@@ -4260,7 +4258,7 @@
         "Conquer fears together",
         "Celebrate at summit"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4275,7 +4273,7 @@
         "Compete playfully",
         "Celebrate bullseyes"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4290,7 +4288,7 @@
         "Work as team",
         "Enjoy meal together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -4320,7 +4318,7 @@
         "Learn self-defense",
         "Feel empowered together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -4335,7 +4333,7 @@
         "Scream together",
         "Celebrate bravery"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4350,7 +4348,7 @@
         "Jump together",
         "Celebrate courage"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "mixed"
     },
@@ -4365,7 +4363,7 @@
         "Enjoy aerial views",
         "Land with adrenaline rush"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "mixed"
     },
@@ -4380,7 +4378,7 @@
         "Compete playfully",
         "Celebrate bullseyes"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4395,7 +4393,7 @@
         "Explore trails",
         "Share peaceful moments"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -4410,7 +4408,7 @@
         "Explore virtual worlds together",
         "Discover fun games together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4425,7 +4423,7 @@
         "Celebrate good plays",
         "Cool off in ocean"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4440,7 +4438,7 @@
         "Imagine past eras",
         "Share what you learned"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -4455,7 +4453,7 @@
         "Support each other's efforts",
         "Celebrate inclusive activities"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -4485,7 +4483,7 @@
         "Haggle for unique handmade souvenirs",
         "People-watch over a shared drink"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -4500,7 +4498,7 @@
         "Challenge to a best-of-three series",
         "Celebrate with victory high-fives"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -4515,7 +4513,7 @@
         "Document your tour with photos",
         "Crown the best vendor together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4530,7 +4528,7 @@
         "Laugh at every wipeout",
         "Warm up on the beach with towels and snacks"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4545,7 +4543,7 @@
         "Take relaxing bath",
         "End with meditation together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -4590,7 +4588,7 @@
         "Practice partner stretches",
         "End with relaxation"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -4605,7 +4603,7 @@
         "Talk to car owners",
         "Dream about adventures"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -4620,7 +4618,7 @@
         "Read passages aloud",
         "Discuss favorite authors"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "talking"
     },
@@ -4650,7 +4648,7 @@
         "Listen to live music",
         "Linger over conversation"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -4680,7 +4678,7 @@
         "Take artistic photos",
         "Find inspiration together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4755,7 +4753,7 @@
         "Take photos with colorful wings",
         "Learn about metamorphosis"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4785,7 +4783,7 @@
         "Focus only on each other",
         "Rediscover conversation"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "talking"
     },
@@ -4800,7 +4798,7 @@
         "Press leaves in book",
         "Create seasonal art together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -4830,7 +4828,7 @@
         "Feel good about impact",
         "Reward with beach walk"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4845,7 +4843,7 @@
         "Spot wildlife together",
         "Rest at scenic viewpoints"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -4860,7 +4858,7 @@
         "Prep meals side by side",
         "Enjoy organized week ahead"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -4875,7 +4873,7 @@
         "Try couples sleep positions",
         "Wake up refreshed together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -4905,7 +4903,7 @@
         "Point out shapes and tell silly stories",
         "Drift into peaceful silence together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "talking"
     },
@@ -4920,7 +4918,7 @@
         "Work in comfortable quiet",
         "Compare your unique perspectives"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -4950,7 +4948,7 @@
         "Play soft music in the background",
         "Frame the finished puzzle as art"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -4995,7 +4993,7 @@
         "Set a proper table with flowers",
         "Eat slowly and savor every bite"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -5010,7 +5008,7 @@
         "Identify birds you spot together",
         "Keep a shared birding list"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -5025,7 +5023,7 @@
         "Share colored pencils and compare styles",
         "Display your favorite pages"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -5040,7 +5038,7 @@
         "Read poetry or short stories to each other",
         "Let the warmth lull you into coziness"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -5055,7 +5053,7 @@
         "Share snacks between casts",
         "Celebrate any catch with excitement"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "talking"
     },
@@ -5070,7 +5068,7 @@
         "Watch the neighborhood settle into evening",
         "Swing gently and talk about nothing important"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -5100,7 +5098,7 @@
         "Meet up and share your finds",
         "Read silently side by side"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "talking"
     },
@@ -5115,7 +5113,7 @@
         "Count each other's skips and cheer",
         "Sit on the bank and listen to the water"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "mixed"
     },
@@ -5130,7 +5128,7 @@
         "Identify constellations together",
         "Sit in comfortable silence"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -5145,7 +5143,7 @@
         "Buy one special ingredient together",
         "Walk home hand in hand"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -5175,7 +5173,7 @@
         "Arrange finds in order of beauty",
         "Take the best ones home as decor"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -5190,7 +5188,7 @@
         "Help each other with tricky knots",
         "Hang your creation proudly"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -5205,7 +5203,7 @@
         "Share observations and laugh quietly",
         "Enjoy being still in a moving world"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "talking"
     },
@@ -5220,7 +5218,7 @@
         "Create a bouquet together",
         "Place it as a centerpiece in your home"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "doing"
     },
@@ -5250,7 +5248,7 @@
         "Identify planets and constellations",
         "Make up your own constellation story"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -5280,7 +5278,7 @@
         "Let the sunset warm your skin during savasana",
         "Walk home slowly in the twilight"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -5310,7 +5308,7 @@
         "Share three things you're grateful for tonight"
       ],
       "id": "d417",
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "doing"
     },
@@ -5340,7 +5338,7 @@
         "Take a photo to remember the moment"
       ],
       "id": "d419",
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "doing"
     },
@@ -5355,7 +5353,7 @@
         "End with a long embrace in the quiet"
       ],
       "id": "d420",
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "mixed"
     },
@@ -5385,7 +5383,7 @@
         "Sign and date your masterpieces together"
       ],
       "id": "d422",
-      "heat": 3,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -5415,7 +5413,7 @@
         "Make a wish on a shooting star together"
       ],
       "id": "d424",
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "mixed"
     },
@@ -5430,7 +5428,7 @@
         "End with a slow dance to your favorite love song"
       ],
       "id": "d425",
-      "heat": 3,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -5445,7 +5443,7 @@
         "Lie together and listen to the night sounds"
       ],
       "id": "d426",
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -5460,7 +5458,7 @@
         "Stay in character the entire evening"
       ],
       "id": "d427",
-      "heat": 3,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -5475,7 +5473,7 @@
         "Share the story behind each song you chose"
       ],
       "id": "d428",
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -5490,7 +5488,7 @@
         "Write something to release and burn it together"
       ],
       "id": "d429",
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "mixed"
     },
@@ -5520,7 +5518,7 @@
         "Hang them somewhere you'll both see daily"
       ],
       "id": "d431",
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -5535,7 +5533,7 @@
         "Print the winners and add to a memory wall"
       ],
       "id": "d432",
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -5550,7 +5548,7 @@
         "End dinner with handwritten notes of appreciation"
       ],
       "id": "d433",
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "mixed"
     },
@@ -5565,7 +5563,7 @@
         "Watch the sun set from the water together"
       ],
       "id": "d434",
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "doing"
     },
@@ -5580,7 +5578,7 @@
         "End with a blindfolded slow dance"
       ],
       "id": "d435",
-      "heat": 3,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -5595,7 +5593,7 @@
         "Taste-test your creation cuddled on the couch"
       ],
       "id": "d436",
-      "heat": 3,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -5610,7 +5608,7 @@
         "Dry off with warm towels and hot cocoa"
       ],
       "id": "d437",
-      "heat": 3,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -5625,7 +5623,7 @@
         "Create a then-and-now photo collage at home"
       ],
       "id": "d438",
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "mixed"
     },
@@ -5655,7 +5653,7 @@
         "Reflect on surprises over dessert"
       ],
       "id": "d440",
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -5670,7 +5668,7 @@
         "Plan the first one for the coming month"
       ],
       "id": "d441",
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -5685,7 +5683,7 @@
         "Stay and talk long after the credits roll"
       ],
       "id": "d442",
-      "heat": 3,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -5700,7 +5698,7 @@
         "Award each other superlatives like 'Best Drama'"
       ],
       "id": "d443",
-      "heat": 3,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -5715,7 +5713,7 @@
         "Water your garden together each week"
       ],
       "id": "d444",
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "doing"
     },
@@ -5730,7 +5728,7 @@
         "Reward yourselves with ice cream at the end"
       ],
       "id": "d445",
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -5745,7 +5743,7 @@
         "Sit in comfortable silence watching the flames"
       ],
       "id": "d446",
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -5775,7 +5773,7 @@
         "Read the final one together at a special spot"
       ],
       "id": "d448",
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -5820,7 +5818,7 @@
         "Read your journals aloud to each other"
       ],
       "id": "d451",
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -5835,7 +5833,7 @@
         "Appreciate how well you know each other"
       ],
       "id": "d452",
-      "heat": 3,
+      "heat": 2,
       "load": 2,
       "style": "talking"
     },
@@ -5850,7 +5848,7 @@
         "Dry off in the sun and share a quiet moment"
       ],
       "id": "d453",
-      "heat": 4,
+      "heat": 3,
       "load": 3,
       "style": "doing"
     },
@@ -5895,7 +5893,7 @@
         "Dream about where you'll be in 10 years"
       ],
       "id": "d456",
-      "heat": 3,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -5910,7 +5908,7 @@
         "Vote on your favorite dessert and conversation"
       ],
       "id": "d457",
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "talking"
     },
@@ -5925,7 +5923,7 @@
         "Cook slowly, enjoying the process side by side"
       ],
       "id": "d458",
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "doing"
     },
@@ -5940,7 +5938,7 @@
         "Take the train back as the sun sets"
       ],
       "id": "d459",
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "doing"
     },
@@ -5955,7 +5953,7 @@
         "The winner gets to choose the next activity"
       ],
       "id": "d460",
-      "heat": 4,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -5970,7 +5968,7 @@
         "Make a wish together as the first star appears"
       ],
       "id": "d461",
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "doing"
     },
@@ -5985,7 +5983,7 @@
         "Discuss what you learned about how you communicate"
       ],
       "id": "d462",
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -6000,7 +5998,7 @@
         "Frame or save the poems as keepsakes"
       ],
       "id": "d463",
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -6015,7 +6013,7 @@
         "Linger and enjoy the scenery together"
       ],
       "id": "d464",
-      "heat": 2,
+      "heat": 1,
       "load": 3,
       "style": "mixed"
     },
@@ -6030,7 +6028,7 @@
         "Dance wildly until you collapse into a hug"
       ],
       "id": "d465",
-      "heat": 2,
+      "heat": 1,
       "load": 2,
       "style": "mixed"
     },
@@ -6045,7 +6043,7 @@
         "Discuss which traits feel accurate",
         "Compare your compatibility placements"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "talking"
     },
@@ -6060,7 +6058,7 @@
         "Discuss what the cards mean for your relationship",
         "Set one shared intention based on your pulls"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "talking"
     },
@@ -6090,7 +6088,7 @@
         "Read them aloud by candlelight",
         "Place your notes under the moonlight overnight"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -6120,7 +6118,7 @@
         "Design each other's dream pizza",
         "Rate your creations with dramatic judging"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -6135,7 +6133,7 @@
         "Roll different styles and compare results",
         "Plate beautifully and eat with chopsticks"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -6165,7 +6163,7 @@
         "Rate every combination honestly",
         "Crown the ultimate taco architect"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "doing"
     },
@@ -6180,7 +6178,7 @@
         "Set up a cozy outdoor table",
         "Eat slowly and enjoy the evening air"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -6210,7 +6208,7 @@
         "Try holding hands while rolling",
         "Laugh at every wobble and wipeout"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -6225,7 +6223,7 @@
         "Play through levels or compete head to head",
         "Loser gives the winner a back rub"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -6240,7 +6238,7 @@
         "Strategize and cover each other",
         "Celebrate with victory snacks after"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     },
@@ -6255,7 +6253,7 @@
         "Try the foam pit and dodgeball court",
         "Collapse in a laughing heap at the end"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -6285,7 +6283,7 @@
         "Take silly photos imitating the animals",
         "Share ice cream on a bench before leaving"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -6315,7 +6313,7 @@
         "Share funnel cake and cotton candy",
         "Win each other a stuffed animal"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -6330,7 +6328,7 @@
         "Let them dry and reveal the results",
         "Wear your creations on your next date"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "mixed"
     },
@@ -6345,7 +6343,7 @@
         "Take turns being lead and backup",
         "Record your ridiculous jam session as a keepsake"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
       "style": "talking"
     },
@@ -6360,7 +6358,7 @@
         "Cool off with cold plunges between rounds",
         "Relax over herbal tea afterward"
       ],
-      "heat": 2,
+      "heat": 1,
       "load": 1,
       "style": "mixed"
     },
@@ -6390,7 +6388,7 @@
         "Ask follow-up questions without judgment",
         "Choose one fantasy to explore together tonight"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 1,
       "style": "talking"
     },
@@ -6405,7 +6403,7 @@
         "Use feathers, ice, warm oil, and fingertips to explore",
         "Switch roles and compare sensations afterward"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -6420,7 +6418,7 @@
         "Take turns drawing and reading aloud",
         "Negotiate and act on the ones you both want"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 1,
       "style": "mixed"
     },
@@ -6435,7 +6433,7 @@
         "Pay attention to reactions and linger where it feels best",
         "Let the massage evolve naturally into whatever feels right"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -6450,7 +6448,7 @@
         "Escalate the intensity gradually with each round",
         "End the game whenever desire takes over"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 2,
       "style": "mixed"
     },
@@ -6465,7 +6463,7 @@
         "Pause to act out scenes that excite you",
         "Talk about what turned you on most afterward"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 1,
       "style": "mixed"
     },
@@ -6480,7 +6478,7 @@
         "Alternate hot and cold sensations across the body",
         "Pay close attention to your partner's reactions and adjust"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -6495,7 +6493,7 @@
         "Rate and compliment each outfit in detail",
         "Let the favorite outfit lead to what comes next"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -6510,7 +6508,7 @@
         "Start tasteful and let the comfort level evolve",
         "Review photos together and delete anything unwanted"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 2,
       "style": "mixed"
     },
@@ -6525,7 +6523,7 @@
         "Undress together and ease into the water slowly",
         "Let the vulnerability and closeness take over"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 2,
       "style": "doing"
     },
@@ -6540,7 +6538,7 @@
         "Switch roles at the halfway point",
         "Debrief together about what felt exciting and what to try again"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 3,
       "style": "mixed"
     },
@@ -6555,7 +6553,7 @@
         "Exchange maps and study each other's desires",
         "Follow the maps as closely as possible"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 1,
       "style": "mixed"
     },
@@ -6570,7 +6568,7 @@
         "Flirt and seduce each other from scratch",
         "Go to the room and let the characters take over"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 3,
       "style": "mixed"
     },
@@ -6585,7 +6583,7 @@
         "Mix feeding with gentle, unexpected touches",
         "Switch roles and see who gets more creative"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 1,
       "style": "doing"
     },
@@ -6600,7 +6598,7 @@
         "Communicate openly—guide hands and movements",
         "Focus on discovery rather than any destination"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 2,
       "style": "talking"
     },
@@ -6615,7 +6613,7 @@
         "No deflecting—lean into vulnerability and openness",
         "Let the conversation build heat naturally"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 1,
       "style": "talking"
     },
@@ -6630,7 +6628,7 @@
         "Add stakes — loser gives winner a massage",
         "End with your favorite answers about each other"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -6645,7 +6643,7 @@
         "Keep the dares flirty and fun",
         "End at a cozy spot for a final round"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 3,
       "style": "talking"
     },
@@ -6660,7 +6658,7 @@
         "Have a mini dance-off competition",
         "Slow dance together to close the night"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -6675,7 +6673,7 @@
         "Lay out a blanket and stargaze side by side",
         "Share your boldest wishes for us under the stars"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -6690,7 +6688,7 @@
         "Guide each other through with only touch and voice",
         "Celebrate finishing together"
       ],
-      "heat": 4,
+      "heat": 3,
       "load": 3,
       "style": "mixed"
     },
@@ -6705,7 +6703,7 @@
         "Paint designs on each other's skin",
         "Photograph your art before washing off together"
       ],
-      "heat": 4,
+      "heat": 2,
       "load": 3,
       "style": "mixed"
     },
@@ -6720,7 +6718,7 @@
         "No judgments — only curiosity and openness",
         "Discuss what you'd love to explore together"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 3,
       "style": "talking"
     },
@@ -6735,7 +6733,7 @@
         "Discuss openly — no holding back",
         "Pick one to plan together in detail"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 3,
       "style": "talking"
     },
@@ -6750,7 +6748,7 @@
         "Take turns leading adventurous activities",
         "Push boundaries with full trust and enthusiasm"
       ],
-      "heat": 5,
+      "heat": 3,
       "load": 3,
       "style": "doing"
     },
@@ -6765,7 +6763,7 @@
         "Complete each challenge together",
         "The final card is dealer's choice — go all in"
       ],
-      "heat": 5,
+      "heat": 2,
       "load": 3,
       "style": "doing"
     }

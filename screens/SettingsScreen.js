@@ -28,10 +28,12 @@ import { useAppContext } from '../context/AppContext';
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS, COLORS } from '../utils/theme';
 import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+import CrashReporting from '../services/CrashReporting';
 import { useSubscription } from '../context/SubscriptionContext';
 import RevenueCatService from '../services/RevenueCatService';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
+import StorageRouter from '../services/storage/StorageRouter';
 import NicknameSettings from '../components/NicknameSettings';
 import SeasonSelector from '../components/SeasonSelector';
 import SoftBoundariesPanel from '../components/SoftBoundariesPanel';
@@ -65,6 +67,11 @@ export default function SettingsScreen({ navigation }) {
   const [codeExpiresAt, setCodeExpiresAt] = useState(null);
   const [codeLoading, setCodeLoading] = useState(false);
   const [premiumUsage, setPremiumUsage] = useState(null);
+  const [showCloudAuthModal, setShowCloudAuthModal] = useState(false);
+  const [cloudAuthPassword, setCloudAuthPassword] = useState('');
+  const [cloudAuthLoading, setCloudAuthLoading] = useState(false);
+  const cloudAuthResolveRef = useRef(null);
+
   const [selectedDate, setSelectedDate] = useState(
     userProfile?.relationshipStartDate ? new Date(userProfile.relationshipStartDate) : new Date()
   );
@@ -112,6 +119,40 @@ export default function SettingsScreen({ navigation }) {
     return () => { active = false; if (typeof unsubscribe === 'function') unsubscribe(); };
   }, [isPremium, navigation, refreshSyncStatus]);
 
+  // ─── Poll for partner linking after generating an invite code ───
+  useEffect(() => {
+    if (!inviteCode) return;
+    let active = true;
+    const poll = setInterval(async () => {
+      try {
+        const couple = await CoupleService.getMyCouple();
+        if (couple?.couple_id && active) {
+          clearInterval(poll);
+          // Store couple ID + refresh
+          await storage.set(STORAGE_KEYS.COUPLE_ID, couple.couple_id);
+          await StorageRouter.setActiveCoupleId(couple.couple_id);
+          // Upload our public key to pair
+          try {
+            const myPubKey = await CoupleKeyService.getDevicePublicKeyB64();
+            const CloudEngine = (await import('../services/storage/CloudEngine')).default;
+            await CloudEngine.joinCouple(couple.couple_id, myPubKey).catch(() => {});
+          } catch (err) {
+            CrashReporting.captureException(err, { context: 'settings_key_upload' });
+          }
+          setInviteCode(null);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          const partnerLabel = userProfile?.partnerNames?.partnerName || 'Your partner';
+          Alert.alert(
+            'You\'re linked! 💕',
+            `${partnerLabel} has joined. You\'re now connected on Between Us.`,
+            [{ text: 'Awesome!', onPress: () => refreshSyncStatus() }]
+          );
+        }
+      } catch (_) {}
+    }, 3000);
+    return () => { active = false; clearInterval(poll); };
+  }, [inviteCode]);
+
   // ─── Partner linking handlers ───
   const handleUnlink = async () => {
     try {
@@ -129,6 +170,68 @@ export default function SettingsScreen({ navigation }) {
     }
   };
 
+  /**
+   * Ensure we have an active Supabase session.
+   * If not, show a password modal to create/sign-in the cloud account.
+   * Returns the session, or null if user cancels.
+   */
+  const ensureSupabaseSession = async () => {
+    let session = await SupabaseAuthService.getSession().catch(() => null);
+    if (session) return session;
+
+    const email = user?.email;
+    if (!email) return null;
+
+    // Show the password modal and wait for the user to submit or cancel
+    return new Promise((resolve) => {
+      cloudAuthResolveRef.current = resolve;
+      setCloudAuthPassword('');
+      setShowCloudAuthModal(true);
+    });
+  };
+
+  const handleCloudAuthSubmit = async () => {
+    const email = user?.email;
+    const password = cloudAuthPassword;
+    if (!password || password.length < 6) {
+      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
+      return;
+    }
+    setCloudAuthLoading(true);
+    try {
+      let session = null;
+      try {
+        session = await SupabaseAuthService.signInWithPassword(email, password);
+      } catch (_) {}
+      if (!session) {
+        session = await SupabaseAuthService.signUp(email, password);
+        if (!session) {
+          try { session = await SupabaseAuthService.signInWithPassword(email, password); } catch (_) {}
+        }
+      }
+      if (session) {
+        await StorageRouter.setSupabaseSession(session);
+        await cloudSyncStorage.setSyncStatus({ enabled: true, email: session.user?.email || email });
+        await StorageRouter.configureSync({
+          isPremium: true,
+          syncEnabled: true,
+          supabaseSessionPresent: true,
+        });
+      }
+      setShowCloudAuthModal(false);
+      cloudAuthResolveRef.current?.(session);
+    } catch (err) {
+      Alert.alert('Sign-in failed', err?.message || 'Please try again.');
+    } finally {
+      setCloudAuthLoading(false);
+    }
+  };
+
+  const handleCloudAuthCancel = () => {
+    setShowCloudAuthModal(false);
+    cloudAuthResolveRef.current?.(null);
+  };
+
   const generateInviteCode = async () => {
     if (codeLoading) return;
     if (!user) {
@@ -137,6 +240,10 @@ export default function SettingsScreen({ navigation }) {
     }
     try {
       setCodeLoading(true);
+
+      const session = await ensureSupabaseSession();
+      if (!session) return;
+
       const result = await CoupleService.generateInviteCode();
       setInviteCode(result.code);
       setCodeExpiresAt(result.expiresAt);
@@ -163,7 +270,7 @@ export default function SettingsScreen({ navigation }) {
     } catch (e) { /* share cancelled or failed */ }
   };
 
-  const handleCodeEntry = () => { setShowCodeEntry(true); setInviteCode(null); };
+  const handleCodeEntry = () => { navigation.navigate('JoinWithCode'); };
 
   const submitEnteredCode = async () => {
     if (enteredCode.length !== 6) {
@@ -176,6 +283,11 @@ export default function SettingsScreen({ navigation }) {
     }
     try {
       setCodeLoading(true);
+
+      // CoupleService requires an active Supabase session
+      const session = await ensureSupabaseSession();
+      if (!session) return;
+
       const result = await CoupleService.redeemInviteCode(enteredCode);
       if (result?.coupleId) await storage.set(STORAGE_KEYS.COUPLE_ID, result.coupleId);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -248,13 +360,14 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Choose how to sign out:', [
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'This device only',
+        text: 'Sign Out',
+        style: 'destructive',
         onPress: async () => {
           try {
-            await signOutLocal();
+            await signOutGlobal();
             await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           } catch { Alert.alert('Something went wrong', 'We couldn\'t sign you out. Please try again.'); }
         },
@@ -646,6 +759,44 @@ export default function SettingsScreen({ navigation }) {
               </View>
             </View>
           </View>
+        </Modal>
+
+        {/* ─── Cloud Auth Password Modal ─── */}
+        <Modal visible={showCloudAuthModal} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
+          <KeyboardAvoidingView style={s.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <View style={[s.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={[s.modalIcon, { backgroundColor: colors.primary + '18' }]}>
+                <MaterialCommunityIcons name="cloud-lock-outline" size={24} color={colors.primary} />
+              </View>
+              <Text style={[s.modalTitle, { color: colors.text }]}>Set up partner linking</Text>
+              <Text style={[s.modalBody, { color: colors.textMuted }]}>
+                Enter your password to enable cloud sync for partner linking. This is a one-time step.
+              </Text>
+              <TextInput
+                style={[s.cloudAuthInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                placeholder="Password"
+                placeholderTextColor={colors.textMuted}
+                secureTextEntry
+                value={cloudAuthPassword}
+                onChangeText={setCloudAuthPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="go"
+                onSubmitEditing={handleCloudAuthSubmit}
+                editable={!cloudAuthLoading}
+              />
+              <View style={s.modalBtns}>
+                <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.background }]} onPress={handleCloudAuthCancel} disabled={cloudAuthLoading}>
+                  <Text style={[s.modalBtnText, { color: colors.text }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.primary }]} onPress={handleCloudAuthSubmit} disabled={cloudAuthLoading}>
+                  {cloudAuthLoading
+                    ? <ActivityIndicator size="small" color="#FFF" />
+                    : <Text style={[s.modalBtnText, { color: '#FFF' }]}>Continue</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
         </Modal>
       </SafeAreaView>
     </View>
@@ -1055,5 +1206,14 @@ const s = StyleSheet.create({
   modalBtnText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
+  },
+  cloudAuthInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.md,
+    fontSize: 16,
   },
 });

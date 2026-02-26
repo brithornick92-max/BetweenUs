@@ -1,5 +1,5 @@
 // screens/LoveNotesInboxScreen.js — Inbox for sent & received love notes (E2EE)
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -97,6 +97,14 @@ export default function LoveNotesInboxScreen({ navigation }) {
   useEffect(() => {
     loadNotes();
   }, [loadNotes]);
+
+  // Reload notes when screen regains focus (e.g. after sending a new note)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadNotes();
+    });
+    return unsubscribe;
+  }, [navigation, loadNotes]);
 
   // Mark received notes as read when viewing inbox
   useEffect(() => {

@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,6 +26,9 @@ export default function SyncSetupScreen({ navigation }) {
   const theme = useTheme();
 
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authMode, setAuthMode] = useState('password'); // 'password' | 'magic'
+  const [isSignUp, setIsSignUp] = useState(false);
   const [sessionEmail, setSessionEmail] = useState(null);
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -84,6 +88,61 @@ export default function SyncSetupScreen({ navigation }) {
         Alert.alert('Sync unavailable', "Sync isn’t available in this build.");
       } else {
         Alert.alert('Sign-in failed', error?.message || 'Unable to send magic link.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordAuth = async () => {
+    if (!supabaseAvailable) {
+      Alert.alert('Sync unavailable', "Sync isn't available in this build.");
+      return;
+    }
+    if (!email || !email.includes('@')) {
+      Alert.alert('Enter email', 'Please enter a valid email to continue.');
+      return;
+    }
+    if (!password || password.length < 6) {
+      Alert.alert('Password required', 'Please enter a password (at least 6 characters).');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      let session;
+      if (isSignUp) {
+        session = await SupabaseAuthService.signUp(email.trim(), password);
+        if (!session) {
+          // Some Supabase projects require email confirmation even for password sign-up
+          Alert.alert('Check your email', 'Please confirm your email address, then come back and sign in.');
+          setIsSignUp(false);
+          return;
+        }
+      } else {
+        session = await SupabaseAuthService.signInWithPassword(email.trim(), password);
+      }
+
+      if (session) {
+        await StorageRouter.setSupabaseSession(session);
+        await StorageRouter.configureSync({
+          isPremium: !!isPremium,
+          syncEnabled,
+          supabaseSessionPresent: true,
+        });
+        setSessionEmail(session.user?.email || null);
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Alert.alert('Signed in', 'Your sync account is ready.');
+      }
+    } catch (error) {
+      const msg = error?.message || 'Unable to sign in.';
+      if (msg.includes('Invalid login credentials')) {
+        Alert.alert('Sign-in failed', 'Incorrect email or password. If you don\'t have an account yet, tap "Create account" below.');
+      } else if (msg.includes('User already registered')) {
+        Alert.alert('Account exists', 'This email already has an account. Switch to sign-in mode.');
+        setIsSignUp(false);
+      } else {
+        Alert.alert('Sign-in failed', msg);
       }
     } finally {
       setLoading(false);
@@ -184,6 +243,7 @@ export default function SyncSetupScreen({ navigation }) {
           <View style={styles.headerSpacer} />
         </View>
 
+        <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
           <Text style={[styles.title, { color: theme.colors.text }]}>Enable Secure Sync</Text>
           <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
@@ -195,7 +255,27 @@ export default function SyncSetupScreen({ navigation }) {
               Sync isn’t available in this build.
             </Text>
           )}
-
+          {/* Auth mode toggle */}
+          <View style={styles.authToggleRow}>
+            <TouchableOpacity
+              style={[styles.authToggle, authMode === 'password' && styles.authToggleActive]}
+              onPress={() => setAuthMode('password')}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.authToggleText, authMode === 'password' && styles.authToggleTextActive]}>
+                Email & Password
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.authToggle, authMode === 'magic' && styles.authToggleActive]}
+              onPress={() => setAuthMode('magic')}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.authToggleText, authMode === 'magic' && styles.authToggleTextActive]}>
+                Magic Link
+              </Text>
+            </TouchableOpacity>
+          </View>
           <TextInput
             style={[styles.input, { color: theme.colors.text, borderColor: theme.colors.border }]}
             placeholder="Email"
@@ -205,33 +285,75 @@ export default function SyncSetupScreen({ navigation }) {
             autoCapitalize="none"
             keyboardType="email-address"
             editable={!loading && supabaseAvailable}
-            // Keyboard stability helpers
             autoCorrect={false}
             blurOnSubmit={false}
-            returnKeyType="done"
+            returnKeyType={authMode === 'password' ? 'next' : 'done'}
             textContentType="emailAddress"
             autoComplete="email"
           />
 
-          <TouchableOpacity
-            style={[styles.primaryButton, loading && styles.buttonDisabled]}
-            onPress={handleSendMagicLink}
-            disabled={loading || !supabaseAvailable}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.primaryButtonText}>Send Magic Link</Text>
-          </TouchableOpacity>
+          {authMode === 'password' && (
+            <TextInput
+              style={[styles.input, { color: theme.colors.text, borderColor: theme.colors.border }]}
+              placeholder="Password (min 6 characters)"
+              placeholderTextColor={theme.colors.textSecondary}
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+              secureTextEntry
+              editable={!loading && supabaseAvailable}
+              autoCorrect={false}
+              blurOnSubmit
+              returnKeyType="done"
+              textContentType="password"
+              autoComplete="password"
+            />
+          )}
 
-          <TouchableOpacity
-            style={[styles.secondaryButton, loading && styles.buttonDisabled]}
-            onPress={handleCheckSession}
-            disabled={loading || !supabaseAvailable}
-            activeOpacity={0.9}
-          >
-            <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>
-              I clicked the link
-            </Text>
-          </TouchableOpacity>
+          {authMode === 'password' ? (
+            <>
+              <TouchableOpacity
+                style={[styles.primaryButton, loading && styles.buttonDisabled]}
+                onPress={handlePasswordAuth}
+                disabled={loading || !supabaseAvailable}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.primaryButtonText}>{isSignUp ? 'Create Account' : 'Sign In'}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.toggleLink}
+                onPress={() => setIsSignUp(!isSignUp)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.toggleLinkText, { color: theme.colors.textSecondary }]}>
+                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={[styles.primaryButton, loading && styles.buttonDisabled]}
+                onPress={handleSendMagicLink}
+                disabled={loading || !supabaseAvailable}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.primaryButtonText}>Send Magic Link</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.secondaryButton, loading && styles.buttonDisabled]}
+                onPress={handleCheckSession}
+                disabled={loading || !supabaseAvailable}
+                activeOpacity={0.9}
+              >
+                <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>
+                  I clicked the link
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           <View style={styles.statusRow}>
             <MaterialCommunityIcons
@@ -262,6 +384,7 @@ export default function SyncSetupScreen({ navigation }) {
             </TouchableOpacity>
           )}
         </View>
+        </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -274,6 +397,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: SPACING.xl,
+  },
+  scrollContent: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -372,5 +498,36 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  authToggleRow: {
+    flexDirection: 'row',
+    marginBottom: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  authToggle: {
+    flex: 1,
+    paddingVertical: SPACING.sm,
+    alignItems: 'center',
+  },
+  authToggleActive: {
+    backgroundColor: 'rgba(168,144,96,0.25)',
+  },
+  authToggleText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.5)',
+  },
+  authToggleTextActive: {
+    color: '#A89060',
+  },
+  toggleLink: {
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  toggleLinkText: {
+    fontSize: 13,
   },
 });

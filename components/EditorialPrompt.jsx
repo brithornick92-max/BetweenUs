@@ -1,5 +1,5 @@
 // components/EditorialPrompt.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,19 +18,61 @@ import { useAppContext } from '../context/AppContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS, promptStorage } from '../utils/storage';
+import { supabase, TABLES } from '../config/supabase';
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../utils/theme';
 import PreferenceEngine from '../services/PreferenceEngine';
 import { Platform } from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// Prompt sync adapter — bridges local storage to EditorialPrompt's API.
-// Partner sync methods are honest about requiring Supabase Realtime (not yet wired).
+// Prompt sync adapter — bridges local storage + Supabase couple_data for partner sharing.
 const promptSyncService = {
-  addListener: () => () => {},
+  _listeners: new Set(),
 
-  // Partner real-time sync not yet available — returns no-op unsubscribe
-  onPartnerAnswer: () => () => {},
+  addListener(callback) {
+    this._listeners.add(callback);
+    return () => this._listeners.delete(callback);
+  },
+
+  _emit(event, data) {
+    this._listeners.forEach(cb => {
+      try { cb(event, data); } catch { /* ignore */ }
+    });
+  },
+
+  // Partner real-time sync — subscribe to couple_data changes for prompt answers
+  subscribeToPartner(coupleId, userId, promptId) {
+    if (!supabase || !coupleId) return () => {};
+
+    const channel = supabase
+      .channel(`prompt_sync_${coupleId}_${promptId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: TABLES.COUPLE_DATA,
+          filter: `couple_id=eq.${coupleId}`,
+        },
+        (payload) => {
+          const row = payload.new;
+          if (row?.data_type !== 'prompt_answer' || row?.created_by === userId) return;
+          try {
+            const meta = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+            if (meta?.promptId === promptId) {
+              this._emit('partner_answer_received', {
+                promptId,
+                partnerAnswer: meta.answer,
+                canReveal: true,
+              });
+            }
+          } catch { /* ignore parse errors */ }
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  },
 
   // Load a prompt's saved answer (when navigated to by ID)
   getPromptWithPrivacy: async (promptId) => {
@@ -44,16 +86,57 @@ const promptSyncService = {
     }
   },
 
-  // Persist the user's answer to encrypted local storage
-  submitAnswer: async (promptId, answer, userId) => {
+  // Persist the user's answer to encrypted local storage + sync to Supabase
+  submitAnswer: async (promptId, answer, userId, coupleId) => {
     const today = new Date().toISOString().split('T')[0];
     await promptStorage.setAnswer(today, promptId, { answer, userId });
+
+    // Sync to Supabase couple_data so partner can see it
+    if (supabase && coupleId && userId) {
+      try {
+        await supabase
+          .from(TABLES.COUPLE_DATA)
+          .upsert({
+            couple_id: coupleId,
+            key: `prompt_answer_${today}_${promptId}_${userId}`,
+            data_type: 'prompt_answer',
+            value: JSON.stringify({ promptId, answer, date: today }),
+            created_by: userId,
+            is_private: false,
+          }, { onConflict: 'couple_id,key' });
+      } catch (err) {
+        if (__DEV__) console.warn('[PromptSync] Supabase sync failed:', err.message);
+        // Local save succeeded — partner sync will catch up later
+      }
+    }
+
     return { success: true };
   },
 
-  // Partner reveal requires cross-device sync (Supabase Realtime) — not yet wired.
-  // Returns success so UI transitions naturally; partner data will be null.
-  revealPartnerAnswer: async () => ({ success: true, partnerSyncPending: true }),
+  // Fetch partner's answer from Supabase couple_data
+  fetchPartnerAnswer: async (promptId, coupleId, userId) => {
+    if (!supabase || !coupleId) return null;
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from(TABLES.COUPLE_DATA)
+        .select('value, created_by')
+        .eq('couple_id', coupleId)
+        .eq('data_type', 'prompt_answer')
+        .like('key', `prompt_answer_${today}_${promptId}_%`)
+        .neq('created_by', userId)
+        .maybeSingle();
+
+      if (!error && data) {
+        const meta = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+        return meta?.answer || null;
+      }
+    } catch { /* offline — no partner data */ }
+    return null;
+  },
+
+  // Partner reveal — mark as revealed (no server action needed, it's a local UI state)
+  revealPartnerAnswer: async () => ({ success: true }),
 };
 
 // Editorial prompt categories and themes
@@ -262,12 +345,15 @@ const EditorialPrompt = ({
   }, [promptId, category]);
 
   // ---------------------------------------------------------------------------
-  // 2) Set up sync listeners once we have a prompt id
+  // 2) Set up sync listeners + Supabase Realtime for partner answers
   // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!currentPrompt?.id) return;
 
-    const unsubscribe = promptSyncService.addListener((event, data) => {
+    const cleanups = [];
+
+    // Local event listener
+    const unsubLocal = promptSyncService.addListener((event, data) => {
       switch (event) {
         case 'partner_answer_received':
           if (data.promptId === currentPrompt.id) {
@@ -284,15 +370,32 @@ const EditorialPrompt = ({
             setIsPartnerAnswerRevealed(true);
           }
           break;
-        case 'answer_synced':
-          break;
         default:
           break;
       }
     });
+    if (typeof unsubLocal === 'function') cleanups.push(unsubLocal);
 
-    return typeof unsubscribe === 'function' ? unsubscribe : undefined;
-  }, [currentPrompt?.id]); // ✅ listener depends only on prompt id
+    // Supabase Realtime subscription for live partner answers
+    if (appState.coupleId && appState.userId) {
+      const unsubRealtime = promptSyncService.subscribeToPartner(
+        appState.coupleId,
+        appState.userId,
+        currentPrompt.id
+      );
+      if (typeof unsubRealtime === 'function') cleanups.push(unsubRealtime);
+
+      // Also fetch any existing partner answer (in case they answered first)
+      promptSyncService.fetchPartnerAnswer(currentPrompt.id, appState.coupleId, appState.userId)
+        .then(answer => {
+          if (answer) {
+            setPartnerAnswer(answer);
+          }
+        });
+    }
+
+    return () => cleanups.forEach(fn => fn());
+  }, [currentPrompt?.id, appState.coupleId]); // re-subscribe when prompt or couple changes
 
   const generateDailyPrompt = async (categoryId) => {
     const today = new Date().toISOString().split('T')[0];
@@ -368,7 +471,7 @@ const EditorialPrompt = ({
         }),
       ]).start();
 
-      await promptSyncService.submitAnswer(currentPrompt.id, userAnswer.trim(), appState.userId);
+      await promptSyncService.submitAnswer(currentPrompt.id, userAnswer.trim(), appState.userId, appState.coupleId);
 
       setHasUserSubmitted(true);
 
