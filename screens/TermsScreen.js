@@ -79,14 +79,14 @@ const TermsScreen = ({ navigation, route }) => {
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>5. Subscription & Payment</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            • Payment is charged to your Apple ID or Google Play account at confirmation of purchase{'\n'}
+            • Payment is charged to your Apple ID account at confirmation of purchase{'\n'}
             • Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period{'\n'}
             • Your account will be charged for renewal within 24 hours prior to the end of the current period{'\n'}
-            • You can manage and cancel subscriptions in your device's Account Settings{'\n'}
+            • You can manage and cancel subscriptions in your Account Settings{'\n'}
             • Any unused portion of a free trial is forfeited when you purchase a subscription{'\n'}
             • One subscription covers both partners when accounts are linked{'\n'}
             • Prices: {FALLBACK_PRICES.monthly}, {FALLBACK_PRICES.yearly}, {FALLBACK_PRICES.lifetime} lifetime{'\n'}
-            • EU/UK users have a 14-day right of withdrawal as provided by the Consumer Rights Directive and applicable Apple/Google store policies
+            • EU/UK users have a 14-day right of withdrawal as provided by the Consumer Rights Directive and applicable Apple store policies
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>6. Privacy & Data</Text>

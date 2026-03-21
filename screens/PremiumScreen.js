@@ -273,9 +273,7 @@ export default function PremiumScreen({ navigation }) {
                 {/* 24-hour cancellation notice — required by App Store */}
                 {selectedPlan !== "lifetime" && (
                   <Text style={styles.renewalNotice}>
-                    {Platform.OS === "ios"
-                      ? "Payment charged to your Apple ID at confirmation. Subscription renews automatically unless cancelled at least 24 hours before the end of the current period. Manage in your Apple ID subscription settings."
-                      : "Payment processed through Google Play. Subscription renews automatically unless cancelled at least 24 hours before the end of the current period. Manage in Google Play subscription settings."}
+                    Payment charged to your Apple ID at confirmation. Subscription renews automatically unless cancelled at least 24 hours before the end of the current period. Manage in your Apple ID subscription settings.
                   </Text>
                 )}
 

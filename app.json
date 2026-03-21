@@ -23,8 +23,7 @@
       "deploymentTarget": "17.1",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing.",
-        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes, journal entries, and memories.",
-        "ITSAppUsesNonExemptEncryption": true      },
+        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes, journal entries, and memories.",        "NSFaceIDUsageDescription": "Between Us uses Face ID to protect your private content with biometric authentication.",        "ITSAppUsesNonExemptEncryption": true      },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
@@ -58,18 +57,6 @@
             "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
           }
         ]      }
-    },
-    "android": {
-      "package": "com.brittany.betweenus",
-      "versionCode": 1,
-      "permissions": [
-        "CAMERA",
-        "android.permission.CAMERA"
-      ],
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#1a0614"
-      }
     },
     "web": {
       "favicon": "./assets/icon.png"

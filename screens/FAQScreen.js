@@ -127,7 +127,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can I cancel anytime?',
-        a: 'Yes! Cancel through your app store:\n\niOS: Settings > Apple ID > Subscriptions\nAndroid: Google Play > Subscriptions\n\nYour premium access continues until the end of your billing period.',
+        a: 'Yes! Cancel anytime:\n\nGo to Settings > Apple ID > Subscriptions on your device, then tap Between Us to cancel.\n\nYour premium access continues until the end of your billing period.',
       },
       {
         q: 'Can I share Premium with my partner?',
@@ -166,6 +166,10 @@ const FAQ_DATA = [
       {
         q: 'Is Between Us right for every couple?',
         a: 'Between Us is designed for couples who are already in a loving place and want to explore deeper intimacy and connection. It\'s not a substitute for professional support. If your relationship needs that kind of care, a licensed therapist or counselor is the right next step.',
+      },
+      {
+        q: 'Where can I find help if I\'m in an unsafe situation?',
+        a: 'If you or someone you know is experiencing abuse or feels unsafe:\\n\\n• National Domestic Violence Hotline: 1-800-799-7233 (call or text)\\n• Crisis Text Line: Text HOME to 741741\\n• RAINN (sexual assault): 1-800-656-4673\\n• International Association for Suicide Prevention: https://www.iasp.info/resources/Crisis_Centres/\\n\\nYou are not alone, and help is available 24/7.',
       },
     ],
   },

@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { BORDER_RADIUS } from '../utils/theme';
@@ -29,6 +30,10 @@ export default function AuthScreen() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  const navigation = useNavigation();
 
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
@@ -75,6 +80,14 @@ export default function AuthScreen() {
           Alert.alert("Too short", "Password must be at least 6 characters.");
           return;
         }
+        if (!ageConfirmed) {
+          Alert.alert("Age Confirmation Required", "You must confirm you are 18 or older to use Between Us.");
+          return;
+        }
+        if (!termsAccepted) {
+          Alert.alert("Terms Required", "Please accept the Terms of Service and Privacy Policy to continue.");
+          return;
+        }
         await signUp(email.trim(), password, displayName.trim());
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
         Alert.alert("Welcome", "Your account has been created.");
@@ -95,6 +108,8 @@ export default function AuthScreen() {
     setPassword("");
     setDisplayName("");
     setConfirmPassword("");
+    setAgeConfirmed(false);
+    setTermsAccepted(false);
   }, []);
 
   return (
@@ -222,6 +237,45 @@ export default function AuthScreen() {
                     autoComplete="off"
                     returnKeyType="done"
                     onSubmitEditing={handleAuth}                    accessibilityLabel="Confirm password"                  />
+                </View>
+              )}
+
+              {isSignUp && (
+                <View style={styles.legalChecks}>
+                  <TouchableOpacity
+                    style={styles.checkRow}
+                    onPress={() => setAgeConfirmed(v => !v)}
+                    activeOpacity={0.7}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: ageConfirmed }}
+                  >
+                    <MaterialCommunityIcons
+                      name={ageConfirmed ? "checkbox-marked" : "checkbox-blank-outline"}
+                      size={22}
+                      color={ageConfirmed ? C.accent : C.creamFaint}
+                    />
+                    <Text style={styles.checkText}>I confirm I am 18 years or older</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.checkRow}
+                    onPress={() => setTermsAccepted(v => !v)}
+                    activeOpacity={0.7}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: termsAccepted }}
+                  >
+                    <MaterialCommunityIcons
+                      name={termsAccepted ? "checkbox-marked" : "checkbox-blank-outline"}
+                      size={22}
+                      color={termsAccepted ? C.accent : C.creamFaint}
+                    />
+                    <Text style={styles.checkText}>
+                      I agree to the{" "}
+                      <Text style={styles.linkText} onPress={() => navigation.navigate("Terms")}>Terms of Service</Text>
+                      {" "}and{" "}
+                      <Text style={styles.linkText} onPress={() => navigation.navigate("PrivacyPolicy")}>Privacy Policy</Text>
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
 
@@ -415,5 +469,29 @@ const createStyles = (C, colors) => StyleSheet.create({
     fontSize: 11,
     marginLeft: 6,
     textAlign: "center",
+  },
+
+  legalChecks: {
+    marginTop: 16,
+    gap: 12,
+  },
+
+  checkRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+  },
+
+  checkText: {
+    flex: 1,
+    color: C.creamSoft,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 2,
+  },
+
+  linkText: {
+    color: C.accent,
+    textDecorationLine: "underline",
   },
 });

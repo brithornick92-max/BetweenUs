@@ -74,7 +74,7 @@ export default function HomeScreen({ navigation }) {
   const { todayPrompt, loadTodayPrompt } = useContent();
   const { colors, isDark } = useTheme();
 
-  const todayKey = useMemo(() => dayKeyLocal(new Date()), []);
+  const todayKey = useMemo(() => dateKey(new Date()), []);
   const prompt = useMemo(() => normalizePrompt(todayPrompt), [todayPrompt]);
   const promptReady = !!todayPrompt?.id && typeof todayPrompt?.text === 'string' && !!todayPrompt.text.trim();
 
@@ -122,7 +122,7 @@ export default function HomeScreen({ navigation }) {
     (async () => {
       try {
         const past = await DataLayer.getPromptAnswers({ limit: 50 });
-        const answered = (past || []).filter(r => r.answer && r.date_key !== dayKeyLocal());
+        const answered = (past || []).filter(r => r.answer && r.date_key !== dateKey());
         if (answered.length > 0) {
           const pick = answered[Math.floor(Math.random() * answered.length)];
           setThrowback(pick);
