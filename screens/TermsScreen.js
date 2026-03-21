@@ -342,6 +342,11 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 14,
+    marginBottom: 16,
+  },
+  intro: {
+    fontSize: 14,
+    lineHeight: 22,
     marginBottom: 24,
   },
   sectionTitle: {

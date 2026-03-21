@@ -93,7 +93,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const dealOpacity = useSharedValue(0);
 
   const heat = prompt?.heat || 1;
-  const catGradient = HEAT_COLORS[heat] || ['#B07EFF', '#9060E0'];
+  const catGradient = HEAT_COLORS[heat] || ['#7A1E4E', '#5E1940'];
   const catIcon = HEAT_ICONS[heat] || 'hand-heart';
   const catLabel = HEAT_LABELS[heat] || 'Emotional';
 

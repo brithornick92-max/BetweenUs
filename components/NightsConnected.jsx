@@ -111,7 +111,7 @@ export default function NightsConnected({
         <Animated.View entering={FadeInDown.delay(550).duration(500)} style={styles.stats}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{longestStreak}</Text>
-            <Text style={styles.statLabel}>longest</Text>
+            <Text style={styles.statLabel}>longest run</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>

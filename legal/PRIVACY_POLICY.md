@@ -120,7 +120,7 @@ We **never** collect:
 - Inside jokes and shared references
 - Relationship climate selections
 
-This data is encrypted on your device using a key stored in your phone's secure hardware (Keychain on iOS, Keystore on Android). It cannot be read by extracting the app's storage files.
+This data is encrypted on your device using a key stored in your device's secure Keychain. It cannot be read by extracting the app's storage files.
 
 **Note:** Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored without end-to-end encryption so we can provide features like filtering, sorting, and calendar scheduling. This metadata is still protected by TLS in transit and access controls at rest.
 
@@ -166,7 +166,7 @@ We implement industry-standard security:
 We work with trusted partners who help us operate:
 - **Cloud hosting:** Supabase (journal content is E2E encrypted; metadata such as timestamps, mood labels, and couple IDs is stored with standard server-side encryption)
 - **Subscription management:** RevenueCat (subscription status, entitlement IDs, and anonymous user identifiers — no personal content)
-- **Payment processing:** Handled by Apple/Google (we don't see payment details)
+- **Payment processing:** Handled by Apple (we don't see payment details)
 - **Customer support:** Only if you contact us
 
 All providers are bound by strict confidentiality agreements.
@@ -276,14 +276,13 @@ Between Us is **not for children:**
 - **Supabase:** Encrypted data storage and authentication
 - **RevenueCat:** Subscription management
 - **Sentry:** Crash reporting, performance monitoring, and session replays (10% of sessions; 100% of sessions where an error occurs — replays capture screen interactions to help us reproduce and fix bugs). Also powers optional user feedback submission.
-- **Apple/Google:** Payment processing and app distribution
+- **Apple:** Payment processing and app distribution
 
 ### 9.2 Their Privacy Policies
 - [Supabase Privacy Policy](https://supabase.com/privacy)
 - [RevenueCat Privacy Policy](https://www.revenuecat.com/privacy)
 - [Sentry Privacy Policy](https://sentry.io/privacy/)
 - [Apple Privacy Policy](https://www.apple.com/privacy/)
-- [Google Privacy Policy](https://policies.google.com/privacy)
 
 ---
 

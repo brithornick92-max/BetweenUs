@@ -90,13 +90,13 @@ You agree not to post content that:
 - Prices may change with 30 days notice
 
 ### 5.2 Billing
-- Payment is charged to your Apple ID or Google Play account at confirmation of purchase
+- Payment is charged to your Apple ID account at confirmation of purchase
 - Monthly and yearly subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period
 - Your account will be charged for renewal within 24 hours prior to the end of the current period at the same price
-- You can manage and cancel subscriptions in your device's Account Settings (iOS: Settings > Apple ID > Subscriptions; Android: Google Play > Subscriptions)
+- You can manage and cancel subscriptions in Settings > Apple ID > Subscriptions
 - Any unused portion of a free trial period is forfeited when you purchase a subscription
 - Lifetime subscriptions are one-time payments with no renewal
-- EU/UK users may have a 14-day right of withdrawal for digital purchases, as provided by Apple/Google store policies
+- EU/UK users may have a 14-day right of withdrawal for digital purchases, as provided by Apple store policies
 
 ### 5.3 Partner Access
 - Premium subscription is per couple, not per person

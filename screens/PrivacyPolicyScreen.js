@@ -89,7 +89,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             The app stores data locally on your device for offline access:{'\n\n'}
             • An encrypted SQLite database containing your content{'\n'}
             • Preferences and settings in local storage{'\n'}
-            • Encryption keys and credentials in your device's hardware-backed secure keychain (Keychain on iOS, Keystore on Android)
+            • Encryption keys and credentials in your device's secure Keychain
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>2. How We Use Your Information</Text>
@@ -132,7 +132,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             • RevenueCat - Subscription management{'\n'}
             • Sentry - Crash reporting, performance monitoring, and session replays (10% of sessions; 100% on error) to help fix bugs. Also powers optional user feedback.{'\n'}
             • Expo - Push notification delivery and over-the-air updates{'\n'}
-            • Apple/Google - In-app purchases and payments{'\n\n'}
+            • Apple - In-app purchases and payments{'\n\n'}
             These services have their own privacy policies and may collect data independently.
           </Text>
 

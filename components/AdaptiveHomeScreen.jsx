@@ -328,7 +328,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
               <View style={styles.statsGrid}>
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>{milestones.stats.totalPoints}</Text>
-                  <Text style={styles.statLabel}>Moments shared</Text>
+                  <Text style={styles.statLabel}>Reflections</Text>
                 </View>
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>{milestones.stats.unlockedCount}</Text>
