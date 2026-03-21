@@ -71,26 +71,32 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
         {SEASONS.map((season, index) => {
           const isActive = currentSeason === season.id;
           return (
-            <AnimatedTouchable
+              <AnimatedTouchable
               key={season.id}
               entering={FadeInDown.delay(150 + index * 80).duration(400).springify().damping(16)}
               style={[
                 styles.seasonCard,
-                { borderColor: isActive ? season.color : colors.border },
-                isActive && { backgroundColor: season.color + '10' },
+                { 
+                  borderColor: isActive ? season.color : 'rgba(255,255,255,0.05)',
+                  backgroundColor: isActive ? season.color + '15' : 'rgba(255,255,255,0.02)',
+                  opacity: isActive ? 1 : 0.5,
+                  transform: [{ scale: isActive ? 1 : 0.98 }]
+                },
               ]}
               onPress={() => handleSelect(season.id)}
               activeOpacity={0.8}
             >
-              <View style={[styles.iconWrap, { backgroundColor: season.color + '15' }]}>
+              <View style={[styles.iconWrap, { backgroundColor: season.color + '20' }]}>
                 <MaterialCommunityIcons name={season.icon} size={20} color={season.color} />
               </View>
-              <Text style={[styles.seasonLabel, { color: isActive ? season.color : colors.text }]}>
-                {season.label}
-              </Text>
-              <Text style={[styles.seasonDesc, { color: colors.textMuted }]} numberOfLines={2}>
-                {season.description}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.seasonLabel, { color: isActive ? season.color : colors.text }]}>
+                  {season.label}
+                </Text>
+                <Text style={[styles.seasonDesc, { color: colors.textMuted }]} numberOfLines={1}>
+                  {season.description}
+                </Text>
+              </View>
             </AnimatedTouchable>
           );
         })}
@@ -104,46 +110,47 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
   },
   title: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '600',
-    letterSpacing: 1.5,
+    letterSpacing: 2.5,
     textTransform: 'uppercase',
-    marginBottom: 4,
+    marginBottom: 8,
+    opacity: 0.8,
   },
   subtitle: {
-    fontSize: 13,
-    fontFamily: 'Lato_400Regular',
-    marginBottom: SPACING.md,
+    fontSize: 15,
+    fontFamily: 'Lato-Italic',
+    marginBottom: 20,
     opacity: 0.7,
   },
   grid: {
-    gap: SPACING.sm,
+    gap: 12,
   },
   seasonCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
+    padding: 18,
+    borderRadius: 20,
     borderWidth: 1,
-    gap: SPACING.md,
+    gap: 16, // Matched with Onboarding choices
   },
   iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   seasonLabel: {
-    fontSize: 15,
-    fontFamily: 'Lato_700Bold',
-    minWidth: 100,
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+    letterSpacing: -0.3,
   },
   seasonDesc: {
-    flex: 1,
-    fontSize: 12,
-    fontFamily: 'Lato_400Regular',
-    lineHeight: 16,
+    fontSize: 15,
+    fontStyle: 'italic',
+    lineHeight: 20,
   },
 
   // Compact

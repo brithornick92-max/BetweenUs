@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -17,31 +18,36 @@ import { useEntitlements } from '../context/EntitlementsContext';
 const HEAT_LEVELS = [
   {
     level: 1,
-    emoji: '😊',
+    icon: 'heart-outline',
+    color: '#8B6BA0',
     title: 'Emotional Connection',
     description: 'Emotional intimacy, non-sexual — building friendship and trust',
   },
   {
     level: 2,
-    emoji: '💕',
+    icon: 'heart-multiple-outline',
+    color: '#C2607A',
     title: 'Flirty & Romantic',
     description: 'Flirty attraction, romance, and deeper emotional intimacy',
   },
   {
     level: 3,
-    emoji: '🔥',
+    icon: 'candle',
+    color: '#D4834A',
     title: 'Sensual',
     description: 'Sensual, relationship-focused desire and attraction',
   },
   {
     level: 4,
-    emoji: '🌶️',
+    icon: 'fire',
+    color: '#D0504A',
     title: 'Steamy',
     description: 'Suggestive, adventurous, and heated topics',
   },
   {
     level: 5,
-    emoji: '🔥🔥',
+    icon: 'fire-alert',
+    color: '#B03030',
     title: 'Explicit',
     description: 'Intensely passionate, graphic, explicit explorations',
   },
@@ -111,7 +117,7 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
         <View style={styles.content}>
           {/* Icon */}
           <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-            <Text style={styles.iconEmoji}>🌡️</Text>
+            <MaterialCommunityIcons name="heart-pulse" size={40} color={colors.primary} />
           </View>
 
           {/* Title */}
@@ -129,18 +135,21 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
                   styles.levelCard,
                   {
                     backgroundColor: colors.card,
-                    borderColor: selectedLevel === heatLevel.level ? colors.primary : 'transparent',
-                    borderWidth: selectedLevel === heatLevel.level ? 2 : 1,
+                    borderColor: selectedLevel === heatLevel.level ? heatLevel.color : colors.border,
+                    borderWidth: 1,
                   },
+                  selectedLevel === heatLevel.level && { backgroundColor: heatLevel.color + '10' },
                 ]}
                 onPress={() => handleLevelSelect(heatLevel.level)}
                 activeOpacity={0.7}
               >
                 <View style={styles.levelHeader}>
-                  <Text style={styles.levelEmoji}>{heatLevel.emoji}</Text>
+                  <View style={[styles.levelIconWrap, { backgroundColor: heatLevel.color + '18' }]}>
+                    <MaterialCommunityIcons name={heatLevel.icon} size={20} color={heatLevel.color} />
+                  </View>
                   <View style={styles.levelInfo}>
                     <Text style={[styles.levelTitle, { color: colors.text }]}>
-                      Heat {heatLevel.level}: {heatLevel.title}
+                      {heatLevel.title}
                     </Text>
                     <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>
                       {heatLevel.description}
@@ -149,7 +158,7 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
                   {heatLevel.level >= 4 && !isPremium ? (
                     <Ionicons name="lock-closed" size={20} color={colors.textSecondary} />
                   ) : selectedLevel === heatLevel.level ? (
-                    <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                    <Ionicons name="checkmark-circle" size={24} color={heatLevel.color} />
                   ) : null}
                 </View>
               </TouchableOpacity>
@@ -234,15 +243,19 @@ const styles = StyleSheet.create({
   },
   levelCard: {
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 14,
   },
   levelHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  levelEmoji: {
-    fontSize: 32,
+  levelIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   levelInfo: {
     flex: 1,

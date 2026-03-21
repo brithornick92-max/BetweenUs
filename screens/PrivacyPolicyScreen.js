@@ -97,9 +97,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
           <Text style={[styles.subTitle, { color: colors.text }]}>Information We Don't Collect</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            We never collect:{'
-
-'}
+            We never collect:{'\n'}
             • Your sexual orientation{'\n'}
             • Precise location data{'\n'}
             • Contact lists{'\n'}
@@ -129,9 +127,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             • We cannot access your encrypted content{'\n'}
             • Encryption keys are stored in your device's secure hardware keychain{'\n'}
             • Even if our servers are compromised, your content remains private{'\n\n'}
-            Important: If you lose access to your device without having cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable.{'
-
-'}
+            Important: If you lose access to your device without having cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable.{'\n\n'}
             Note: Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored without end-to-end encryption so we can provide features like filtering, sorting, and calendar scheduling. This metadata is still protected by TLS in transit and access controls at rest.
           </Text>
 
