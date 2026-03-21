@@ -379,7 +379,7 @@ const createStyles = (C, colors) => StyleSheet.create({
   },
 
   authButtonText: {
-    color: '#FFFFFF',
+    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: "600",
     letterSpacing: 0.3,

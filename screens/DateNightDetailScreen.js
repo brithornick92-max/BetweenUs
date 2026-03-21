@@ -180,8 +180,8 @@ export default function DateNightDetailScreen({ route, navigation }) {
         {/* Schedule Button above Presence Timer */}
         <TouchableOpacity style={[styles.scheduleFloat, { marginTop: 0, alignSelf: 'center' }]} onPress={handleSchedule}>
           <LinearGradient colors={[t.blushRose, t.deepPlum]} style={styles.scheduleInner}>
-            <MaterialCommunityIcons name="calendar-plus" size={20} color="#FFF" />
-            <Text style={[styles.scheduleText, { color: '#FFF' }]}>Schedule</Text>
+            <MaterialCommunityIcons name="calendar-plus" size={20} color="#F2E9E6" />
+            <Text style={[styles.scheduleText, { color: '#F2E9E6' }]}>Schedule</Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -208,7 +208,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
                 },
               ]}
             >
-              <MaterialCommunityIcons name={timerActive ? "pause" : "play"} size={28} color="#FFF" />
+              <MaterialCommunityIcons name={timerActive ? "pause" : "play"} size={28} color="#F2E9E6" />
             </TouchableOpacity>
           </BlurView>
         </View>

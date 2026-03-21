@@ -115,7 +115,7 @@ const SetPinScreen = ({ navigation }) => {
             accessibilityRole="button"
             accessibilityLabel="Upgrade to Premium"
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>Upgrade to Premium</Text>
+            <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Upgrade to Premium</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryButtonText: {
-    color: '#FFFFFF',
+    color: '#F2E9E6',
     fontWeight: '700',
   },
   secondaryButton: {

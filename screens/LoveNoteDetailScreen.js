@@ -196,11 +196,11 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                 onPress={() => navigation.goBack()}
                 activeOpacity={0.8}
               >
-                <MaterialCommunityIcons name="chevron-left" size={26} color="#FFF" />
+                <MaterialCommunityIcons name="chevron-left" size={26} color="#F2E9E6" />
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.circleButton} onPress={handleDelete} activeOpacity={0.8}>
-                <MaterialCommunityIcons name="delete-outline" size={20} color="#FFF" />
+                <MaterialCommunityIcons name="delete-outline" size={20} color="#F2E9E6" />
               </TouchableOpacity>
             </Animated.View>
 
@@ -242,7 +242,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                   }}
                   activeOpacity={0.85}
                 >
-                  <MaterialCommunityIcons name="reply" size={18} color="#FFF" />
+                  <MaterialCommunityIcons name="reply" size={18} color="#F2E9E6" />
                   <Text style={styles.replyButtonText}>Write Back</Text>
                 </TouchableOpacity>
               ) : (
@@ -365,7 +365,7 @@ const createStyles = (colors) =>
       color: "rgba(242,233,230,0.7)",
       fontSize: 12,
       fontWeight: "600",
-      letterSpacing: 1,
+      letterSpacing: 1.5,
       textTransform: "uppercase",
       marginBottom: SPACING.sm,
     },
@@ -404,7 +404,7 @@ const createStyles = (colors) =>
       }),
     },
     replyButtonText: {
-      color: "#FFFFFF",
+      color: "#F2E9E6",
       fontSize: 14,
       fontWeight: "600",
       letterSpacing: 0.5,

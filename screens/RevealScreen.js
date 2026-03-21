@@ -307,8 +307,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 1.2,
+    fontWeight: "600",
+    letterSpacing: 1.5,
     textTransform: "uppercase",
   },
 

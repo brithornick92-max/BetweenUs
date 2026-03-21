@@ -25,7 +25,9 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS, COLORS } from '../utils/theme';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, COLORS, withAlpha } from '../utils/theme';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
 import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import CrashReporting from '../services/CrashReporting';
@@ -386,6 +388,9 @@ export default function SettingsScreen({ navigation }) {
   // ════════════════════════════════════
   return (
     <View style={[s.root, { backgroundColor: colors.background }]}>
+      <GlowOrb color={withAlpha(colors.primary, 0.12)} size={200} top={-40} left={-30} />
+      <GlowOrb color={withAlpha(colors.accent, 0.06)} size={140} top={300} left={SCREEN_WIDTH - 80} delay={1500} />
+      <FilmGrain />
       <SafeAreaView style={s.safe} edges={['top']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
@@ -453,7 +458,7 @@ export default function SettingsScreen({ navigation }) {
                   onPress={() => showPaywall?.('partnerLinking')}
                   activeOpacity={0.8}
                 >
-                  <MaterialCommunityIcons name="crown-outline" size={16} color="#FFF" style={{ marginRight: 6 }} />
+                  <MaterialCommunityIcons name="crown-outline" size={16} color="#F2E9E6" style={{ marginRight: 6 }} />
                   <Text style={s.ctaBtnText}>Upgrade to Premium</Text>
                 </TouchableOpacity>
               </View>
@@ -526,7 +531,7 @@ export default function SettingsScreen({ navigation }) {
                         <Text style={[s.halfBtnText, { color: colors.textMuted }]}>Cancel</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={[s.halfBtn, s.halfBtnFill, { backgroundColor: colors.primary }]} onPress={submitEnteredCode}>
-                        {codeLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[s.halfBtnText, { color: '#FFF' }]}>Submit</Text>}
+                        {codeLoading ? <ActivityIndicator size="small" color="#F2E9E6" /> : <Text style={[s.halfBtnText, { color: '#F2E9E6' }]}>Submit</Text>}
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -539,7 +544,7 @@ export default function SettingsScreen({ navigation }) {
                       disabled={codeLoading}
                     >
                       {codeLoading
-                        ? <ActivityIndicator size="small" color="#FFF" />
+                        ? <ActivityIndicator size="small" color="#F2E9E6" />
                         : <Text style={s.ctaBtnText}>Generate partner code</Text>
                       }
                     </TouchableOpacity>
@@ -791,8 +796,8 @@ export default function SettingsScreen({ navigation }) {
                 </TouchableOpacity>
                 <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.primary }]} onPress={handleCloudAuthSubmit} disabled={cloudAuthLoading}>
                   {cloudAuthLoading
-                    ? <ActivityIndicator size="small" color="#FFF" />
-                    : <Text style={[s.modalBtnText, { color: '#FFF' }]}>Continue</Text>}
+                    ? <ActivityIndicator size="small" color="#F2E9E6" />
+                    : <Text style={[s.modalBtnText, { color: '#F2E9E6' }]}>Continue</Text>}
                 </TouchableOpacity>
               </View>
             </View>
@@ -841,7 +846,7 @@ const s = StyleSheet.create({
   avatarLetter: {
     fontSize: 22,
     fontFamily: 'Lato_700Bold',
-    color: '#FFFFFF',
+    color: '#F2E9E6',
   },
   profileInfo: {
     flex: 1,
@@ -996,7 +1001,7 @@ const s = StyleSheet.create({
   ctaBtnText: {
     fontFamily: 'Lato_700Bold',
     fontSize: 15,
-    color: '#FFFFFF',
+    color: '#F2E9E6',
   },
   outlineBtn: {
     height: 44,

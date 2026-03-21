@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   compactTitle: {
     fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
   compactItem: {
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.5,

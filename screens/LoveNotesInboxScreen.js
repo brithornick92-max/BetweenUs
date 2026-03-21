@@ -158,7 +158,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
         Send your first love note — they're encrypted{"\n"}so only you two can read them.
       </Text>
       <TouchableOpacity style={styles.emptyButton} onPress={handleCompose} activeOpacity={0.85}>
-        <MaterialCommunityIcons name="pen" size={18} color="#FFF" />
+        <MaterialCommunityIcons name="pen" size={18} color="#F2E9E6" />
         <Text style={styles.emptyButtonText}>Write a Love Note</Text>
       </TouchableOpacity>
     </Animated.View>
@@ -266,7 +266,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
             onPress={handleCompose}
             activeOpacity={0.85}
           >
-            <MaterialCommunityIcons name="pen" size={16} color="#FFF" />
+            <MaterialCommunityIcons name="pen" size={16} color="#F2E9E6" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -534,7 +534,7 @@ const createStyles = (colors, isDark) =>
     emptyButtonText: {
       fontFamily: SANS_BOLD,
       fontSize: 14,
-      color: "#FFFFFF",
+      color: "#F2E9E6",
       letterSpacing: 0.5,
     },
   });

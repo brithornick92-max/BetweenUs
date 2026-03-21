@@ -661,7 +661,7 @@ export default function OnboardingScreen({ navigation }) {
                 style={styles.shareGradient}
               >
                 <Text style={styles.shareText}>Send Invitation</Text>
-                <Feather name="share-2" size={18} color="#FFFFFF" />
+                <Feather name="share-2" size={18} color="#F2E9E6" />
               </LinearGradient>
             </TouchableOpacity>
 
@@ -718,8 +718,8 @@ export default function OnboardingScreen({ navigation }) {
               </TouchableOpacity>
               <TouchableOpacity style={[styles.cloudAuthBtn, { backgroundColor: colors.primary }]} onPress={handleCloudAuthDone} disabled={cloudAuthBusy}>
                 {cloudAuthBusy
-                  ? <ActivityIndicator size="small" color="#FFF" />
-                  : <Text style={{ color: '#FFF', fontWeight: '700' }}>Continue</Text>}
+                  ? <ActivityIndicator size="small" color="#F2E9E6" />
+                  : <Text style={{ color: '#F2E9E6', fontWeight: '700' }}>Continue</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -850,7 +850,7 @@ const createStyles = (colors) => StyleSheet.create({
     marginTop: 20,
   },
   primaryButtonText: {
-    color: "#FFFFFF",
+    color: "#F2E9E6",
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 1,
@@ -867,7 +867,7 @@ const createStyles = (colors) => StyleSheet.create({
     justifyContent: 'center',
   },
   generateInviteButtonText: {
-    color: '#FFFFFF',
+    color: '#F2E9E6',
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 0.6,
@@ -955,7 +955,7 @@ const createStyles = (colors) => StyleSheet.create({
     alignItems: 'center',
   },
   shareText: {
-    color: "#FFFFFF",
+    color: "#F2E9E6",
     fontWeight: '700',
     marginRight: 10,
   },

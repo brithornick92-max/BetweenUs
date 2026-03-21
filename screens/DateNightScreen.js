@@ -27,7 +27,9 @@ import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { getAllDates, filterDates, getDimensionMeta } from '../utils/contentLoader';
 import { FREE_LIMITS } from '../utils/featureFlags';
-import { SPACING, BORDER_RADIUS } from '../utils/theme';
+import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
 import PreferenceEngine from '../services/PreferenceEngine';
 import { useAuth } from '../context/AuthContext';
 import DateCardFront, { HEAT_GRADIENTS, HEAT_ICONS } from '../components/DateCardFront';
@@ -298,11 +300,11 @@ const CardStack = forwardRef(function CardStack(
           {isFlipped && (
             <>
               <Animated.View style={[styles.swipeHint, styles.swipeHintRight, rightHintStyle]}>
-                <MaterialCommunityIcons name="heart" size={18} color="#FFF" />
+                <MaterialCommunityIcons name="heart" size={18} color="#F2E9E6" />
                 <Text style={styles.swipeHintText}>Tonight</Text>
               </Animated.View>
               <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}>
-                <MaterialCommunityIcons name="arrow-right" size={18} color="#FFF" />
+                <MaterialCommunityIcons name="arrow-right" size={18} color="#F2E9E6" />
                 <Text style={styles.swipeHintText}>Skip</Text>
               </Animated.View>
             </>
@@ -432,6 +434,9 @@ export default function DateNightScreen({ navigation }) {
 
   return (
     <View style={[styles.root, { backgroundColor: isDark ? '#070509' : '#F7F0EB' }]}>
+      <GlowOrb color={withAlpha(colors.primary, 0.12)} size={200} top={-40} left={-30} />
+      <GlowOrb color={withAlpha(colors.accent, 0.06)} size={140} top={300} left={width - 80} delay={1500} />
+      <FilmGrain />
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
@@ -655,7 +660,7 @@ export default function DateNightScreen({ navigation }) {
                     onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
                     activeOpacity={0.85}
                   >
-                    <MaterialCommunityIcons name="star-outline" size={16} color="#FFF" />
+                    <MaterialCommunityIcons name="star-outline" size={16} color="#F2E9E6" />
                     <Text style={styles.resetTxt}>Unlock all dates</Text>
                   </TouchableOpacity>
                 </>
@@ -671,7 +676,7 @@ export default function DateNightScreen({ navigation }) {
                     onPress={handleReset}
                     activeOpacity={0.85}
                   >
-                    <MaterialCommunityIcons name="cards-outline" size={16} color="#FFF" />
+                    <MaterialCommunityIcons name="cards-outline" size={16} color="#F2E9E6" />
                     <Text style={styles.resetTxt}>Shuffle deck</Text>
                   </TouchableOpacity>
                 </>
@@ -695,7 +700,7 @@ export default function DateNightScreen({ navigation }) {
         {allSelected && !deckDone && deck.length > 0 && (
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: isDark ? colors.surface : '#FFF', borderColor: colors.border }]}
+              style={[styles.actionBtn, { backgroundColor: isDark ? colors.surface : '#F2E9E6', borderColor: colors.border }]}
               onPress={() => stackRef.current?.swipeLeft()}
               activeOpacity={0.8}
             >
@@ -724,7 +729,7 @@ export default function DateNightScreen({ navigation }) {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <MaterialCommunityIcons name="heart" size={26} color="#FFF" />
+                <MaterialCommunityIcons name="heart" size={26} color="#F2E9E6" />
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -857,7 +862,7 @@ const styles = StyleSheet.create({
   dropdownLabel: {
     fontFamily: FONTS.body,
     fontSize: 8,
-    letterSpacing: 1.2,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 3,
   },
@@ -1064,7 +1069,7 @@ const styles = StyleSheet.create({
   swipeHintText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 13,
-    color: '#FFF',
+    color: '#F2E9E6',
     letterSpacing: 0.3,
   },
 
@@ -1116,7 +1121,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.full,
     marginTop: 8,
   },
-  resetTxt: { fontFamily: FONTS.bodyBold, fontSize: 14, color: '#FFF' },
+  resetTxt: { fontFamily: FONTS.bodyBold, fontSize: 14, color: '#F2E9E6' },
 
   // Free-user teaser
   teaserBanner: {

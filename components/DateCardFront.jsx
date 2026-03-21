@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: FONTS.body,
     fontSize: 10,
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
 });

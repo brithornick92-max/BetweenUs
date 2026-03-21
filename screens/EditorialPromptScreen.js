@@ -454,7 +454,7 @@ const createStyles = (colors) => StyleSheet.create({
 
   upgradeButtonText: {
     ...TYPOGRAPHY.button,
-    color: "#FFFFFF",
+    color: "#F2E9E6",
     fontSize: 14,
     fontWeight: "600",
     textTransform: "none",

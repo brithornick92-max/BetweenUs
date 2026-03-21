@@ -430,7 +430,7 @@ const createStyles = (colors) => StyleSheet.create({
   subscribeButtonText: {
     ...TYPOGRAPHY.button,
     fontSize: 14,
-    color: "#FFFFFF",
+    color: "#F2E9E6",
     letterSpacing: 0.8,
   },
   footer: {

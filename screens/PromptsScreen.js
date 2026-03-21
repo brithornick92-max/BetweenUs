@@ -255,7 +255,7 @@ export default function PromptsScreen({ navigation }) {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <MaterialCommunityIcons name="lock-open-variant-outline" size={16} color="#FFF" />
+                  <MaterialCommunityIcons name="lock-open-variant-outline" size={16} color="#F2E9E6" />
                 </LinearGradient>
               </TouchableOpacity>
             </Animated.View>
@@ -288,13 +288,13 @@ export default function PromptsScreen({ navigation }) {
                       activeOpacity={0.75}
                     >
                       <View style={styles.heatChipInner}>
-                        <Text style={[styles.heatLabel, { color: active ? '#FFF' : locked ? heatColor : colors.text }]}>
+                        <Text style={[styles.heatLabel, { color: active ? '#F2E9E6' : locked ? heatColor : colors.text }]}>
                           {label}
                         </Text>
-                        {locked && <MaterialCommunityIcons name="lock-outline" size={11} color={locked && active ? '#FFF' : heatColor} style={{ marginLeft: 3 }} />}
+                        {locked && <MaterialCommunityIcons name="lock-outline" size={11} color={locked && active ? '#F2E9E6' : heatColor} style={{ marginLeft: 3 }} />}
                       </View>
                       {!isPremium && (
-                        <Text style={[styles.heatCount, { color: active ? '#FFFFFFAA' : colors.textMuted + '80' }]}>
+                        <Text style={[styles.heatCount, { color: active ? '#F2E9E699' : colors.textMuted + '80' }]}>
                           {count} cards
                         </Text>
                       )}

@@ -25,11 +25,11 @@ const createStyles = (colors) => StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: "600",
     marginBottom: 8,
     marginLeft: 4,
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
 
   // ✅ must be relative for blur zIndex to behave reliably on iOS

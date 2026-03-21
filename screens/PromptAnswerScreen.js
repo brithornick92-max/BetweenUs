@@ -361,7 +361,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
                   (!answer.trim() || isSaving) && styles.saveButtonDisabled,
                 ]}
               >
-                  <Text style={[styles.saveButtonText, { color: '#FFFFFF' }]}> 
+                  <Text style={[styles.saveButtonText, { color: '#F2E9E6' }]}> 
                   {isSaving
                     ? "Saving..."
                     : existingAnswer
@@ -525,7 +525,7 @@ const createStyles = (colors) => StyleSheet.create({
     fontWeight: "600",
     fontSize: 11,
     color: 'rgba(255,255,255,0.9)',
-    letterSpacing: 0.8,
+    letterSpacing: 1.5,
     textTransform: "uppercase",
   },
   blurCard: {

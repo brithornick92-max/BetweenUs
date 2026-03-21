@@ -394,7 +394,7 @@ const VibeSignalScreen = ({ navigation }) => {
                 end={{ x: 1, y: 1 }}
               >
                 <MaterialCommunityIcons name="crown" size={20} color={colors.background} />
-                <Text style={[styles.upgradeButtonText, { color: '#FFFFFF' }]}>Upgrade to Premium</Text>
+                <Text style={[styles.upgradeButtonText, { color: '#F2E9E6' }]}>Upgrade to Premium</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

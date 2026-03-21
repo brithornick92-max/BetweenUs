@@ -14,6 +14,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Switch,
+  Dimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -24,8 +25,12 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useAppContext } from '../context/AppContext';
 import { calendarStorage, myDatesStorage } from '../utils/storage';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
-import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme';
 import { supabase, TABLES } from '../config/supabase';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
+
+const { width: SCREEN_W } = Dimensions.get('window');
 
 // Event type visual config — color-coded topics
 const EVENT_TYPES = {
@@ -546,7 +551,7 @@ export default function CalendarScreen({ navigation, route }) {
             style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 }}
             activeOpacity={0.85}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>Upgrade to Premium</Text>
+            <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Upgrade to Premium</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -554,7 +559,11 @@ export default function CalendarScreen({ navigation, route }) {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <GlowOrb color={withAlpha(colors.primary, 0.12)} size={200} top={-40} left={-30} />
+      <GlowOrb color={withAlpha(colors.accent, 0.06)} size={140} top={300} left={SCREEN_W - 80} delay={1500} />
+      <FilmGrain />
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
@@ -784,6 +793,7 @@ export default function CalendarScreen({ navigation, route }) {
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
+    </View>
   );
 }
 
@@ -816,7 +826,7 @@ const createStyles = (colors) => StyleSheet.create({
   whisperDot: { width: 6, height: 6, borderRadius: 3, position: 'absolute', top: 6 },
   eventCardStationery: { flex: 1, paddingLeft: 20, paddingBottom: 30 },
   eventTypeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
-  eventTypeLabel: { fontSize: 10, fontWeight: '600', letterSpacing: 1.2, textTransform: 'uppercase' },
+  eventTypeLabel: { fontSize: 10, fontWeight: '600', letterSpacing: 1.5, textTransform: 'uppercase' },
   eventTimeText: { fontSize: 12, fontFamily: TYPOGRAPHY.body.fontFamily, marginBottom: 4 },
   eventTitleText: { fontSize: 18, fontFamily: TYPOGRAPHY.h1.fontFamily, fontWeight: '400', marginBottom: 4 },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -832,7 +842,7 @@ const createStyles = (colors) => StyleSheet.create({
   row: { flexDirection: 'row', gap: 16 },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
   primaryBtn: { backgroundColor: colors.primary, paddingVertical: 18, borderRadius: BORDER_RADIUS.full, alignItems: 'center', marginTop: 20, ...Platform.select({ ios: { shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 }, android: { elevation: 6 } }) },
-  primaryBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', letterSpacing: 1.2, textTransform: 'uppercase' },
+  primaryBtnText: { color: '#F2E9E6', fontSize: 14, fontWeight: '600', letterSpacing: 1.5, textTransform: 'uppercase' },
   eventTypeSelector: { marginVertical: 8 },
   eventTypeSelectorLabel: { fontSize: 13, fontWeight: '600', marginBottom: 10, fontFamily: TYPOGRAPHY.body.fontFamily },
   eventTypeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -894,7 +904,7 @@ const createStyles = (colors) => StyleSheet.create({
   daysLabel: {
     fontSize: 10,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   
   // Memories

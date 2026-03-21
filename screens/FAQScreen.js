@@ -8,11 +8,17 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
+import { withAlpha } from '../utils/theme';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
 import { FALLBACK_PRICES } from '../utils/premiumFeatures';
+
+const { width: SCREEN_W } = Dimensions.get('window');
 
 const FAQ_DATA = [
   {
@@ -171,7 +177,11 @@ export default function FAQScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <GlowOrb color={withAlpha(colors.primary, 0.12)} size={200} top={-40} left={-30} />
+      <GlowOrb color={withAlpha(colors.accent, 0.06)} size={140} top={300} left={SCREEN_W - 80} delay={1500} />
+      <FilmGrain />
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <StatusBar barStyle="light-content" />
       
       {/* Header */}
@@ -245,8 +255,8 @@ export default function FAQScreen({ navigation }) {
             onPress={handleContactSupport}
             activeOpacity={0.8}
           >
-            <Ionicons name="mail-outline" size={20} color={'#FFFFFF'} />
-            <Text style={[styles.supportButtonText, { color: '#FFFFFF' }]}>Contact Support</Text>
+            <Ionicons name="mail-outline" size={20} color={'#F2E9E6'} />
+            <Text style={[styles.supportButtonText, { color: '#F2E9E6' }]}>Contact Support</Text>
           </TouchableOpacity>
           
           <Text style={[styles.supportEmail, { color: colors.textSecondary }]}>brittanyapps@outlook.com</Text>
@@ -255,6 +265,7 @@ export default function FAQScreen({ navigation }) {
         <View style={styles.bottomPadding} />
       </ScrollView>
     </SafeAreaView>
+    </View>
   );
 }
 
@@ -302,8 +313,8 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.4,
+    fontWeight: '600',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
     paddingHorizontal: 20,
     marginBottom: 12,
@@ -360,7 +371,7 @@ const styles = StyleSheet.create({
   supportButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFF',
+    color: '#F2E9E6',
     marginLeft: 8,
   },
   supportEmail: {

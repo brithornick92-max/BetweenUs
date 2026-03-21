@@ -35,7 +35,7 @@ const uiPersonalization = {
 
     const FEATURE_META = {
       prompts:  { icon: '💬', label: 'Prompts',    screen: 'PromptsScreen' },
-      journal:  { icon: '📝', label: 'Journal',    screen: 'JournalScreen' },
+      journal:  { icon: '📝', label: 'Journal',    screen: 'JournalEntry' },
       dates:    { icon: '🗓️', label: 'Date Night', screen: 'DateScreen' },
       rituals:  { icon: '🌙', label: 'Rituals',    screen: 'NightRitualScreen' },
       lovenote: { icon: '💌', label: 'Love Notes', screen: 'LoveNotesScreen' },

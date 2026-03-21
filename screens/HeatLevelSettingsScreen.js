@@ -170,7 +170,7 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
             onPress={handleSave}
             disabled={isSaving}
           >
-            <Text style={[styles.saveButtonText, { color: '#FFFFFF' }]}>
+            <Text style={[styles.saveButtonText, { color: '#F2E9E6' }]}>
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Text>
           </TouchableOpacity>
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },

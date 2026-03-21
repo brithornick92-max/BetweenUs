@@ -264,7 +264,7 @@ export default function PremiumScreen({ navigation }) {
                   disabled={purchasing || isLoading}
                 >
                   {purchasing ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
+                    <ActivityIndicator color="#F2E9E6" size="small" />
                   ) : (
                     <Text style={styles.ctaButtonText}>{ctaLabel}</Text>
                   )}
@@ -479,7 +479,7 @@ const createStyles = (colors, isDark) => {
       fontSize: 10,
       letterSpacing: 1.5,
       textTransform: "uppercase",
-      color: "#FFFFFF",
+      color: "#F2E9E6",
     },
     planCardInner: {
       flexDirection: "row",
@@ -555,7 +555,7 @@ const createStyles = (colors, isDark) => {
       fontFamily: sansBold,
       fontSize: 15,
       letterSpacing: 0.5,
-      color: "#FFFFFF",
+      color: "#F2E9E6",
     },
 
     // Required App Store renewal / cancellation disclosure

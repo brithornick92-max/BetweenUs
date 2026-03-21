@@ -283,8 +283,8 @@ const ExportDataScreen = ({ navigation }) => {
               <ActivityIndicator color={colors.surface} />
             ) : (
               <>
-                <Ionicons name="download" size={20} color={'#FFFFFF'} />
-                <Text style={[styles.exportButtonText, { color: '#FFFFFF' }]}>Export My Data</Text>
+                <Ionicons name="download" size={20} color={'#F2E9E6'} />
+                <Text style={[styles.exportButtonText, { color: '#F2E9E6' }]}>Export My Data</Text>
               </>
             )}
           </TouchableOpacity>
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: 48,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 4,
   },
   statLabel: {

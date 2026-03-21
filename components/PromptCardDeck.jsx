@@ -482,11 +482,11 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
         {isTop && (
           <>
             <Animated.View style={[styles.swipeHint, styles.swipeHintRight, rightHintStyle]}>
-              <MaterialCommunityIcons name="pencil-outline" size={28} color="#FFF" />
+              <MaterialCommunityIcons name="pencil-outline" size={28} color="#F2E9E6" />
               <Text style={styles.swipeHintText}>Reflect</Text>
             </Animated.View>
             <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}>
-              <MaterialCommunityIcons name="arrow-right" size={28} color="#FFF" />
+              <MaterialCommunityIcons name="arrow-right" size={28} color="#F2E9E6" />
               <Text style={styles.swipeHintText}>Next</Text>
             </Animated.View>
           </>
@@ -855,7 +855,7 @@ const styles = StyleSheet.create({
   frontFooterText: {
     fontFamily: FONTS.body,
     fontSize: 10,
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
 
@@ -883,7 +883,7 @@ const styles = StyleSheet.create({
   swipeHintText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 13,
-    color: '#FFF',
+    color: '#F2E9E6',
     letterSpacing: 0.3,
   },
 

@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   dropdownLabel: {
     fontSize: 10,
     fontFamily: FONTS.body,
-    letterSpacing: 0.8,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 3,
   },

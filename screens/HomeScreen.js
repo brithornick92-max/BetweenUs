@@ -35,34 +35,13 @@ import MilestoneCard from '../components/MilestoneCard';
 import YearReflectionCard from '../components/YearReflectionCard.jsx';
 import WelcomeBack from '../components/WelcomeBack';
 import OfflineIndicator from '../components/OfflineIndicator';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
 import { RelationshipMilestones } from '../services/PolishEngine';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
-// ─── Floating Glow Orb ──────────────────────────────
-const GlowOrb = ({ color, size = 200, top, left, delay = 0 }) => {
-  const pulse = useRef(new Animated.Value(0.25)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.5, duration: 4000 + delay, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0.25, duration: 4000 + delay, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-  return (
-    <Animated.View
-      pointerEvents="none"
-      style={{
-        position: 'absolute', top, left,
-        width: size, height: size, borderRadius: size / 2,
-        backgroundColor: color, opacity: pulse,
-      }}
-    />
-  );
-};
-
-function dayKeyLocal(date = new Date()) {
+function dateKey(date) {
   const d = date instanceof Date ? date : new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
@@ -251,6 +230,7 @@ export default function HomeScreen({ navigation }) {
       {/* Floating glow orbs */}
       <GlowOrb color={colors.primaryGlow || withAlpha(colors.primary, 0.15)} size={240} top={-60} left={-40} />
       <GlowOrb color={colors.accentMuted || withAlpha(colors.accent, 0.08)} size={160} top={220} left={SCREEN_W - 100} delay={1500} />
+      <FilmGrain />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
 
@@ -366,7 +346,7 @@ export default function HomeScreen({ navigation }) {
                   onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 >
                   <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
-                  <MaterialCommunityIcons name="arrow-right" size={16} color="#FFF" />
+                  <MaterialCommunityIcons name="arrow-right" size={16} color="#F2E9E6" />
                 </TouchableOpacity>
               </LinearGradient>
             </GlassCard>
@@ -600,8 +580,8 @@ const styles = StyleSheet.create({
   ctaLabel: {
     fontFamily: SANS_BOLD,
     fontSize: 13,
-    letterSpacing: 1.2,
-    color: '#FFFFFF',
+    letterSpacing: 1.5,
+    color: '#F2E9E6',
     textTransform: 'uppercase',
   },
 
@@ -657,7 +637,7 @@ const styles = StyleSheet.create({
   noteBadgeText: {
     fontFamily: SANS_BOLD,
     fontSize: 10,
-    color: '#FFFFFF',
+    color: '#F2E9E6',
     lineHeight: 14,
   },
 
