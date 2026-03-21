@@ -21,6 +21,7 @@ import {
   ICON_SIZES,
 } from "../utils/theme";
 import { getPaywallFeatures, PremiumFeature } from "../utils/featureFlags";
+import { FALLBACK_PRICES } from "../utils/premiumFeatures";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config/supabase";
 
 const PremiumPaywall = ({
@@ -186,7 +187,7 @@ const PremiumPaywall = ({
           <PricingCard
             pkg={monthlyPkg}
             title="Monthly"
-            priceText={monthlyPkg?.product?.priceString || "$7.99 / month"}
+            priceText={monthlyPkg?.product?.priceString || FALLBACK_PRICES.monthly}
             subtext="Per couple · both partners included"
             index={0}
           />
@@ -194,7 +195,7 @@ const PremiumPaywall = ({
           <PricingCard
             pkg={yearlyPkg}
             title="Yearly"
-            priceText={yearlyPkg?.product?.priceString || "$49.99 / year"}
+            priceText={yearlyPkg?.product?.priceString || FALLBACK_PRICES.yearly}
             subtext="Most popular · per couple · both partners included"
             isPopular={true}
             index={1}
@@ -204,7 +205,7 @@ const PremiumPaywall = ({
             pkg={lifetimePkg}
             title="Lifetime"
             priceText={
-              lifetimePkg?.product?.priceString || "$69.99 one-time"
+              lifetimePkg?.product?.priceString || `${FALLBACK_PRICES.lifetime} one-time`
             }
             subtext="Per couple · both partners included"
             index={2}

@@ -3,24 +3,68 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useData } from '../context/DataContext';
 import { SPACING, TYPOGRAPHY } from '../utils/theme';
-// uiPersonalization — static defaults until personalization engine is built
-const uiPersonalization = {
-  getPersonalizedUI: async () => ({
-    layout: {
-      type: "comfortable",
-      spacing: { padding: SPACING.xl, gap: SPACING.lg },
-      fontSize: { title: 28, heading: 18, base: 16 },
-    },
-    shortcuts: [],
-    widgets: [],
-    theme: {},
-  }),
-  getPersonalizedLayout: async () => ({ sections: [], preferences: {} }),
-  trackInteraction: async () => {},
-};
+import ConnectionMemory from '../utils/connectionMemory';
 import achievementEngine from '../utils/achievementEngine';
 import challengeSystem from '../utils/challengeSystem';
+
+// Build personalized UI from real behavioral signals
+const uiPersonalization = {
+  getPersonalizedUI: async () => {
+    const avgSession = await ConnectionMemory.getAverageSessionLength();
+    const dims = await ConnectionMemory.getPreferredDimensions(2);
+    const affinities = (await ConnectionMemory.getSnapshot()).featureAffinities || {};
+
+    // Layout density adapts to session length: short sessions → compact
+    const isCompact = avgSession != null && avgSession < 120; // < 2 min
+    const layout = {
+      type: isCompact ? 'compact' : 'comfortable',
+      spacing: isCompact
+        ? { padding: SPACING.md, gap: SPACING.sm }
+        : { padding: SPACING.xl, gap: SPACING.lg },
+      fontSize: isCompact
+        ? { title: 24, heading: 16, base: 14 }
+        : { title: 28, heading: 18, base: 16 },
+    };
+
+    // Smart shortcuts: surface the features the couple uses most
+    const sortedFeatures = Object.entries(affinities)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 4);
+
+    const FEATURE_META = {
+      prompts:  { icon: '💬', label: 'Prompts',    screen: 'PromptsScreen' },
+      journal:  { icon: '📝', label: 'Journal',    screen: 'JournalScreen' },
+      dates:    { icon: '🗓️', label: 'Date Night', screen: 'DateScreen' },
+      rituals:  { icon: '🌙', label: 'Rituals',    screen: 'NightRitualScreen' },
+      lovenote: { icon: '💌', label: 'Love Notes', screen: 'LoveNotesScreen' },
+      checkin:  { icon: '🌡️', label: 'Check-in',   screen: 'CheckInScreen' },
+      memories: { icon: '📸', label: 'Memories',   screen: 'MemoriesScreen' },
+    };
+
+    const shortcuts = sortedFeatures
+      .map(([name]) => FEATURE_META[name])
+      .filter(Boolean);
+
+    // Widgets: always show streak + achievements; add challenges if user engages frequently
+    const widgets = [
+      { type: 'streak_indicator', data: { streak: 0 } },
+      { type: 'achievement_badge', data: {} },
+      { type: 'challenge_card', data: {} },
+    ];
+
+    if (avgSession != null && avgSession > 300) {
+      // Engaged user — add progress tracker
+      widgets.push({ type: 'progress_tracker', data: {} });
+    }
+
+    return { layout, shortcuts, widgets, theme: {} };
+  },
+  trackInteraction: async (feature) => {
+    await ConnectionMemory.recordFeatureUse(feature);
+  },
+};
 import QuietMilestone from './QuietMilestone';
 import StoryProgress from './StoryProgress';
 import InvitationCard from './InvitationCard';
@@ -38,6 +82,7 @@ import PreferenceEngine from '../services/PreferenceEngine';
 export default function AdaptiveHomeScreen({ navigation }) {
   const { user } = useAuth();
   const { colors } = useTheme();
+  const { data: dataLayer } = useData();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [personalizedUI, setPersonalizedUI] = useState(null);
@@ -89,7 +134,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
       setPersonalizedUI(uiConfig);
 
       // Load milestones
-      const milestoneData = await achievementEngine.checkAchievements(user.uid);
+      const milestoneData = await achievementEngine.checkAchievements(user.uid, dataLayer);
       setMilestones(milestoneData);
 
       // Check for newly discovered milestones
@@ -106,8 +151,8 @@ export default function AdaptiveHomeScreen({ navigation }) {
 
       // Load invitations
       const invitationData = await challengeSystem.generateChallenges(user.uid, {
-        maxChallenges: 3
-      });
+        count: 3,
+      }, dataLayer);
       setInvitations(invitationData);
 
     } catch (error) {

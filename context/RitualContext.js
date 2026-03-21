@@ -176,23 +176,30 @@ function reducer(state, action) {
 function calculateStreak(history) {
   if (history.length === 0) return 0;
   
-  const sortedHistory = history.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sortedHistory = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
   let streak = 0;
-  let currentDate = new Date();
+  let currentDay = normalizeToDay(new Date());
   
   for (const ritual of sortedHistory) {
-    const ritualDate = new Date(ritual.date);
-    const daysDiff = Math.floor((currentDate - ritualDate) / (1000 * 60 * 60 * 24));
+    const ritualDay = normalizeToDay(new Date(ritual.date));
+    const daysDiff = Math.round((currentDay - ritualDay) / (1000 * 60 * 60 * 24));
     
     if (daysDiff <= 1) {
       streak++;
-      currentDate = ritualDate;
+      currentDay = ritualDay;
     } else {
       break;
     }
   }
   
   return streak;
+}
+
+// Normalize a Date to midnight for accurate day-diff calculations
+function normalizeToDay(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
 
 // Helper function to generate random prompt

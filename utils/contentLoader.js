@@ -465,7 +465,6 @@ export function getContentStats() {
     promptsByHeat,
     totalDates: safeArray(datesData?.items).length,
     lastUpdated: new Date().toLocaleDateString(),
-    version: "5.0.0-emotional",
   };
 }
 

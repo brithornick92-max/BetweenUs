@@ -62,6 +62,8 @@ class LocalStorageService {
       // Store user data
       await AsyncStorage.setItem(`user_${userId}`, JSON.stringify(user));
       await AsyncStorage.setItem('currentUserId', userId);
+      // Maintain email-to-uid index for efficient lookup
+      await this._setEmailIndex(email, userId);
       
       this.currentUser = user;
       this.notifyAuthListeners(user);
@@ -75,8 +77,20 @@ class LocalStorageService {
 
   async signInWithEmailAndPassword(email, password) {
     try {
-      const users = await this.getAllUsers();
-      const user = users.find(u => u.email === email);
+      // Use email index for O(1) lookup instead of scanning all users
+      let user = null;
+      const uid = await this._getUidByEmail(email);
+      if (uid) {
+        const raw = await AsyncStorage.getItem(`user_${uid}`);
+        if (raw) user = JSON.parse(raw);
+      }
+      // Fallback: scan all users if index miss (legacy accounts)
+      if (!user) {
+        const users = await this.getAllUsers();
+        user = users.find(u => u.email === email);
+        // Backfill index for next time
+        if (user) await this._setEmailIndex(email, user.uid);
+      }
       
       if (!user) {
         throw new Error('User not found');
@@ -500,6 +514,21 @@ class LocalStorageService {
   generateId() {
     const { randomUUID } = require('expo-crypto');
     return randomUUID();
+  }
+
+  // Email-to-UID index for O(1) lookups
+  async _setEmailIndex(email, uid) {
+    try {
+      await AsyncStorage.setItem(`email_idx_${email.toLowerCase()}`, uid);
+    } catch { /* non-critical */ }
+  }
+
+  async _getUidByEmail(email) {
+    try {
+      return await AsyncStorage.getItem(`email_idx_${email.toLowerCase()}`);
+    } catch {
+      return null;
+    }
   }
 
   async getAllUsers() {

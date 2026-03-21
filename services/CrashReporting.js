@@ -28,6 +28,7 @@ const CrashReporting = {
   init() {
     if (_initialized || !Sentry || !SENTRY_DSN) {
       if (__DEV__ && !Sentry) {
+        // eslint-disable-next-line no-console
         console.log('[CrashReporting] @sentry/react-native not installed — skipping');
       }
       return;

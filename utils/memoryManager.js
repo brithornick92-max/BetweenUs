@@ -559,7 +559,7 @@ export class MemoryManager {
         anniversaryThemes: await storage.get(STORAGE_KEYS.ANNIVERSARY_THEMES, []) || [],
         syncTimestamp: new Date(),
         deviceId: await this.getDeviceId(),
-        version: '1.0',
+        version: '2.0',
       };
       
       const coupleKey = await CoupleKeyService.getCoupleKey(coupleId);

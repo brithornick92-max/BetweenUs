@@ -165,8 +165,34 @@ export function MemoryProvider({ children }) {
     },
 
     updateMemory: async (memoryId, updates) => {
-      // DataLayer doesn't have updateMemory yet — use legacy + re-save pattern
-      const updatedMemory = await memoryManager.updateMemory(memoryId, updates);
+      // Re-encrypt updated fields and write through DataLayer (SQLite + sync)
+      const dbUpdates = {};
+      if (updates.content !== undefined || updates.text !== undefined) {
+        const kt = updates.isPrivate ? 'device' : 'couple';
+        const { default: E2EEncryption } = await import('../services/localfirst/E2EEncryption');
+        dbUpdates.body_cipher = await E2EEncryption.encryptString(
+          updates.content || updates.text || '',
+          kt,
+          null
+        );
+      }
+      if (updates.type !== undefined) dbUpdates.type = updates.type;
+      if (updates.mood !== undefined) dbUpdates.mood = updates.mood;
+      if (updates.isPrivate !== undefined) dbUpdates.is_private = updates.isPrivate;
+
+      let updatedMemory;
+      if (Object.keys(dbUpdates).length > 0) {
+        const { default: Database } = await import('../services/db/Database');
+        await Database.updateMemory(memoryId, dbUpdates);
+        // Re-fetch the decrypted version
+        const allMemories = await DataLayer.getMemories({ limit: 9999 });
+        updatedMemory = allMemories.find((m) => m.id === memoryId) || { id: memoryId, ...updates };
+      } else {
+        updatedMemory = { id: memoryId, ...updates };
+      }
+
+      // Also update legacy manager (fire-and-forget)
+      memoryManager.updateMemory(memoryId, updates).catch(() => {});
 
       dispatch({ type: ACTIONS.UPDATE_MEMORY, payload: { memory: updatedMemory } });
 

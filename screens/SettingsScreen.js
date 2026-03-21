@@ -599,7 +599,6 @@ export default function SettingsScreen({ navigation }) {
           <Section title="Appearance" colors={colors}>
             <View style={s.themeRow}>
               {[
-                { key: 'light', icon: 'white-balance-sunny', label: 'Light' },
                 { key: 'dark', icon: 'weather-night', label: 'Dark' },
                 { key: 'auto', icon: 'theme-light-dark', label: 'Auto' },
               ].map(({ key, icon, label }) => {

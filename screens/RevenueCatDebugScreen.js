@@ -50,7 +50,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
         allEntitlementKeys,
         customerInfo,
         offerings,
-        currentEntitlementId: 'premium', // From your service
+        currentEntitlementId: 'Between Us Pro',
       });
     } catch (err) {
       console.error('Debug screen error:', err);

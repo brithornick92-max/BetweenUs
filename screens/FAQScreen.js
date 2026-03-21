@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
+import { FALLBACK_PRICES } from '../utils/premiumFeatures';
 
 const FAQ_DATA = [
   {
@@ -27,7 +28,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: 'Free version: Preview 3 read-only prompts (Heat levels 1-3)\n\nPremium:\n• Monthly: $7.99/month per couple\n• Yearly: $49.99/year (save 48%!)\n• Lifetime: $69.99 one-time payment\n\nPremium unlocks unlimited prompts, responses, love notes, calendar, partner connection, and more. One subscription covers both partners.',
+        a: `Free version: Preview 3 read-only prompts (Heat levels 1-3)\n\nPremium:\n• Monthly: ${FALLBACK_PRICES.monthly} per couple\n• Yearly: ${FALLBACK_PRICES.yearly} (save 48%!)\n• Lifetime: ${FALLBACK_PRICES.lifetime} one-time payment\n\nPremium unlocks unlimited prompts, responses, love notes, calendar, partner connection, and more. One subscription covers both partners.`,
       },
       {
         q: 'How do I get started?',

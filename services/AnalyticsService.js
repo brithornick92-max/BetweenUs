@@ -180,8 +180,9 @@ const AnalyticsService = {
       // Clear persisted queue on success
       await AsyncStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(_queue));
     } catch {
-      // Restore queue on network failure
+      // Restore queue on network failure and persist to survive app kill
       _queue = [...batch, ..._queue].slice(-MAX_QUEUE_SIZE);
+      await AsyncStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(_queue)).catch(() => {});
     }
   },
 

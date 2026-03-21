@@ -23,6 +23,7 @@ import { useSubscription } from "../context/SubscriptionContext";
 import { usePremiumFeatures } from "../hooks/usePremiumFeatures";
 import { useAppContext } from "../context/AppContext";
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from "../utils/theme";
+import { FALLBACK_PRICES } from "../utils/premiumFeatures";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -233,20 +234,20 @@ export default function PremiumScreen({ navigation }) {
                 <PlanCard
                   id="monthly"
                   label="Monthly"
-                  price={monthlyPkg?.product?.priceString || "$7.99 / mo"}
+                  price={monthlyPkg?.product?.priceString || `${FALLBACK_PRICES.monthly.replace('/month', '')} / mo`}
                   detail="Flexible · cancel anytime"
                 />
                 <PlanCard
                   id="yearly"
                   label="Yearly"
-                  price={yearlyPkg?.product?.priceString || "$49.99 / yr"}
+                  price={yearlyPkg?.product?.priceString || `${FALLBACK_PRICES.yearly.replace('/year', '')} / yr`}
                   detail="Save over 45% · best value"
                   badge="Most Popular"
                 />
                 <PlanCard
                   id="lifetime"
                   label="Lifetime"
-                  price={lifetimePkg?.product?.priceString || "$69.99"}
+                  price={lifetimePkg?.product?.priceString || FALLBACK_PRICES.lifetime}
                   detail="One payment, yours forever"
                 />
 

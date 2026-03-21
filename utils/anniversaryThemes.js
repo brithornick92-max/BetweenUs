@@ -31,7 +31,7 @@ export class AnniversaryThemeGenerator {
         primary: COLORS.mutedGold,
         secondary: COLORS.champagneGold,
         glow: 'rgba(212, 175, 55, 0.4)',
-        gradient: GRADIENTS.goldShimmer,
+        gradient: GRADIENTS.gold,
         emotion: 'Forever together',
       },
       'wedding': {

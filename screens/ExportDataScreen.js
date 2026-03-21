@@ -17,6 +17,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import DataLayer from '../services/data/DataLayer';
+import Constants from 'expo-constants';
 
 /**
  * Export Data Screen
@@ -94,7 +95,7 @@ const ExportDataScreen = ({ navigation }) => {
 
       const exportPayload = {
         exportDate: new Date().toISOString(),
-        appVersion: '1.0.0',
+        appVersion: Constants.expoConfig?.version || Constants.manifest?.version || '1.0.0',
         user: includeAccount
           ? {
               email: user?.email,

@@ -4,6 +4,15 @@ import { storage } from './storage';
 
 const FEATURE_USAGE_KEY = '@betweenus:premiumFeatureUsage';
 
+// Single source of truth for fallback display prices.
+// Actual purchase prices always come from RevenueCat / App Store / Google Play at runtime.
+// Update these when you change pricing in App Store Connect / Google Play Console.
+export const FALLBACK_PRICES = {
+  monthly: '$7.99/month',
+  yearly: '$49.99/year',
+  lifetime: '$69.99',
+};
+
 // Premium features configuration
 export const PREMIUM_FEATURES = {
   MEMORY_EXPORT: {
@@ -48,11 +57,13 @@ export const PREMIUM_FEATURES = {
   },
 };
 
+// Fallback display prices — actual prices come from RevenueCat at runtime.
+// Keep these in sync with App Store Connect / Google Play Console pricing.
 export const SUBSCRIPTION_TIERS = {
   MONTHLY: {
     id: 'premium_monthly',
     name: 'Monthly',
-    price: '$7.99/month',
+    price: FALLBACK_PRICES.monthly,
     mostPopular: false,
     features: Object.values(PREMIUM_FEATURES),
     emotionalBenefits: [
@@ -71,7 +82,7 @@ export const SUBSCRIPTION_TIERS = {
   YEARLY: {
     id: 'premium_yearly',
     name: 'Yearly',
-    price: '$49.99/year',
+    price: FALLBACK_PRICES.yearly,
     mostPopular: true,
     features: Object.values(PREMIUM_FEATURES),
     emotionalBenefits: [
@@ -90,7 +101,7 @@ export const SUBSCRIPTION_TIERS = {
   LIFETIME: {
     id: 'premium_lifetime',
     name: 'Lifetime',
-    price: '$69.99 one-time',
+    price: FALLBACK_PRICES.lifetime + ' one-time',
     mostPopular: false,
     features: Object.values(PREMIUM_FEATURES),
     emotionalBenefits: [

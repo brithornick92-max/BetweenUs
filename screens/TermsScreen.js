@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { FALLBACK_PRICES } from '../utils/premiumFeatures';
 
 /**
  * Terms of Service Screen
@@ -84,7 +85,7 @@ const TermsScreen = ({ navigation, route }) => {
             • You can manage and cancel subscriptions in your device's Account Settings{'\n'}
             • Any unused portion of a free trial is forfeited when you purchase a subscription{'\n'}
             • One subscription covers both partners when accounts are linked{'\n'}
-            • Prices: $7.99/month, $49.99/year, $69.99 lifetime{'\n'}
+            • Prices: {FALLBACK_PRICES.monthly}, {FALLBACK_PRICES.yearly}, {FALLBACK_PRICES.lifetime} lifetime{'\n'}
             • EU/UK users may have a 14-day right of withdrawal as provided by Apple/Google store policies
           </Text>
 
