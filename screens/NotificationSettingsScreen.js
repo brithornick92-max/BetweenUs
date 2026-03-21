@@ -197,7 +197,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
             {renderSettingRow(
               'Milestones & Celebrations',
-              'Celebrate anniversaries and achievements',
+              'Celebrate anniversaries and milestones',
               milestones,
               (value) => {
                 setMilestones(value);

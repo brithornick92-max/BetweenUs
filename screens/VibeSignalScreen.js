@@ -550,10 +550,10 @@ const createStyles = (colors) => StyleSheet.create({
     overflow: 'hidden',
     padding: SPACING.lg,
     borderWidth: 1,
-    borderColor: '#151118',
+    borderColor: 'rgba(255,255,255,0.06)',
     ...Platform.select({
       ios: {
-        shadowColor: "#000",
+        shadowColor: "#070509",
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0,
         shadowRadius: 16,
@@ -655,7 +655,7 @@ const createStyles = (colors) => StyleSheet.create({
     backgroundColor: colors.surface,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.12,
         shadowRadius: 20,

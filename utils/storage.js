@@ -365,15 +365,10 @@ export const loveNoteStorage = {
 
   /** Encrypt a note's sensitive fields, keeping id/isRead/timestamps in the clear for indexing */
   async _encryptNote(note) {
-    try {
-      const { default: EncryptionService } = await import('../services/EncryptionService');
-      const { id, isRead, readAt, createdAt, updatedAt, isEncrypted, encryptedData, encryptedAt, ...sensitive } = note;
-      const encryptedPayload = await EncryptionService.encryptJson(sensitive);
-      return { id, isRead, readAt, createdAt, updatedAt, encryptedData: encryptedPayload, isEncrypted: true, encryptedAt: Date.now() };
-    } catch {
-      // Encryption failed — fall back to plaintext rather than losing data
-      return note;
-    }
+    const { default: EncryptionService } = await import('../services/EncryptionService');
+    const { id, isRead, readAt, createdAt, updatedAt, isEncrypted, encryptedData, encryptedAt, ...sensitive } = note;
+    const encryptedPayload = await EncryptionService.encryptJson(sensitive);
+    return { id, isRead, readAt, createdAt, updatedAt, encryptedData: encryptedPayload, isEncrypted: true, encryptedAt: Date.now() };
   },
 
   async getNotes() {

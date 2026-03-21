@@ -107,10 +107,10 @@ export default function LockScreen({ onUnlock }) {
 
   const shake = () => {
     Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 65, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 65, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 65, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 65, useNativeDriver: true }),
     ]).start();
     if (Platform.OS !== "web") {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

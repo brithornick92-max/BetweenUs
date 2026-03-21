@@ -2,9 +2,13 @@
 -- Run this next in Supabase SQL Editor:
 
 alter table profiles enable row level security;
+alter table profiles force row level security;
 alter table couples enable row level security;
+alter table couples force row level security;
 alter table couple_data enable row level security;
+alter table couple_data force row level security;
 alter table couple_members enable row level security;
+alter table couple_members force row level security;
 
 -- PROFILES: Users can only see/edit their own profile
 create policy "Users can view own profile" on profiles

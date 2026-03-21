@@ -145,9 +145,14 @@ const ExportDataScreen = ({ navigation }) => {
 
         Alert.alert('Export Successful', 'Your data has been exported. The temporary file has been removed from this device.', [{ text: 'OK' }]);
       } else {
+        // Sharing not available — clean up the plaintext file immediately
+        try {
+          await FileSystem.deleteAsync(fileUri, { idempotent: true });
+        } catch (e) { /* cleanup non-critical */ }
+
         Alert.alert(
-          'Export Complete',
-          `Your data has been saved to:\n${fileUri}`,
+          'Export Unavailable',
+          'Sharing is not available on this device. The export file has been removed for your privacy.',
           [{ text: 'OK' }]
         );
       }

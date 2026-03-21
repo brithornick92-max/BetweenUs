@@ -21,12 +21,8 @@ const _getSupabase = () => {
 
 // ── Shared encrypt/decrypt helpers (device-local key via EncryptionService) ──
 const _encrypt = async (data) => {
-  try {
-    const { default: EncryptionService } = await import('./EncryptionService');
-    return { __enc: true, d: await EncryptionService.encryptJson(data) };
-  } catch {
-    return data;
-  }
+  const { default: EncryptionService } = await import('./EncryptionService');
+  return { __enc: true, d: await EncryptionService.encryptJson(data) };
 };
 const _decrypt = async (raw) => {
   if (!raw || typeof raw !== 'object') return raw;

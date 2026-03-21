@@ -89,8 +89,8 @@ export default function RevealScreen({ route, navigation }) {
     if (!isRevealed) {
       const loop = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.08, duration: 1400, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 1400, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1.08, duration: 1000, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
         ])
       );
       loop.start();

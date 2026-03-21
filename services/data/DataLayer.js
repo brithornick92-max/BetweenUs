@@ -180,8 +180,20 @@ const DataLayer = {
     const kt = isPrivate ? deviceTier() : keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
 
-    if (title !== undefined) updates.title_cipher = await E2EEncryption.encryptString(title, kt, cid);
-    if (body !== undefined) updates.body_cipher = await E2EEncryption.encryptString(body, kt, cid);
+    // When toggling private→shared, we must re-encrypt title and body
+    // with the couple key even if the caller didn't provide new values.
+    let effectiveTitle = title;
+    let effectiveBody = body;
+    if (isPrivate === false && (effectiveTitle === undefined || effectiveBody === undefined)) {
+      const existing = await this.getJournalEntry(id);
+      if (existing && existing.is_private) {
+        if (effectiveTitle === undefined) effectiveTitle = existing.title;
+        if (effectiveBody === undefined) effectiveBody = existing.body;
+      }
+    }
+
+    if (effectiveTitle !== undefined) updates.title_cipher = await E2EEncryption.encryptString(effectiveTitle, kt, cid);
+    if (effectiveBody !== undefined) updates.body_cipher = await E2EEncryption.encryptString(effectiveBody, kt, cid);
     if (mood !== undefined) updates.mood = mood;
     if (tags !== undefined) updates.tags = tags;
     if (isPrivate !== undefined) updates.is_private = isPrivate;

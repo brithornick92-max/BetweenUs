@@ -65,6 +65,16 @@ create index idx_couple_data_created_by on couple_data(created_by);
 create index idx_couple_data_private on couple_data(is_private);
 create index idx_couple_data_created_at on couple_data(created_at desc);
 
+-- ── Enable Row Level Security on all tables ──────────────────────
+alter table profiles enable row level security;
+alter table profiles force row level security;
+alter table couples enable row level security;
+alter table couples force row level security;
+alter table couple_data enable row level security;
+alter table couple_data force row level security;
+alter table couple_members enable row level security;
+alter table couple_members force row level security;
+
 -- Helper function to get couple ID for a user
 create or replace function get_user_couple_id(input_user_id uuid)
 returns uuid as $$

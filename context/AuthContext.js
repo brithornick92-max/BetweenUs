@@ -8,6 +8,8 @@ import CoupleKeyService from '../services/security/CoupleKeyService';
 import ConnectionMemory from '../utils/connectionMemory';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import { cloudSyncStorage } from '../utils/storage';
+import Database from '../services/db/Database';
+import * as FileSystem from 'expo-file-system';
 
 const AuthContext = createContext(null);
 
@@ -247,7 +249,16 @@ export const AuthProvider = ({ children }) => {
       // 6. Clear all remaining local data
       await AsyncStorage.clear();
 
-      // 7. Update React state — triggers navigation to auth screen
+      // 7. Purge SQLite database file from disk
+      try {
+        await Database.close();
+        const dbPath = `${FileSystem.documentDirectory}SQLite/betweenus.db`;
+        await FileSystem.deleteAsync(dbPath, { idempotent: true });
+      } catch (dbErr) {
+        console.warn('SQLite cleanup (non-fatal):', dbErr?.message);
+      }
+
+      // 8. Update React state — triggers navigation to auth screen
       setUser(null);
       setUserProfile(null);
 

@@ -191,7 +191,14 @@ class LocalStorageService {
       if (userData) {
         const parsed = JSON.parse(userData);
         if (parsed && typeof parsed === 'object' && parsed.uid) {
-          this.currentUser = parsed;
+          // Strip legacy credential fields from AsyncStorage if still present
+          if (parsed.passwordHash) {
+            const { passwordHash, passwordSalt, passwordIterations, ...cleanUser } = parsed;
+            await AsyncStorage.setItem(`user_${userId}`, JSON.stringify(cleanUser));
+            this.currentUser = cleanUser;
+          } else {
+            this.currentUser = parsed;
+          }
           return this.currentUser;
         }
       }

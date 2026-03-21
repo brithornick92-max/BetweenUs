@@ -183,12 +183,12 @@ const VibeSignal = ({
     Animated.sequence([
       Animated.timing(scaleAnimation, {
         toValue: 0.95,
-        duration: 100,
+        duration: 120,
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnimation, {
         toValue: 1,
-        duration: 300,
+        duration: 280,
         useNativeDriver: true,
       }),
     ]).start();

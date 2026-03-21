@@ -461,12 +461,12 @@ const EditorialPrompt = ({
       Animated.sequence([
         Animated.timing(submitAnimation, {
           toValue: 0.95,
-          duration: 100,
+          duration: 120,
           useNativeDriver: true,
         }),
         Animated.timing(submitAnimation, {
           toValue: 1,
-          duration: 300,
+          duration: 280,
           useNativeDriver: true,
         }),
       ]).start();
