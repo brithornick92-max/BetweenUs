@@ -10,6 +10,7 @@ import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import { cloudSyncStorage } from '../utils/storage';
 import Database from '../services/db/Database';
 import * as FileSystem from 'expo-file-system';
+import AnalyticsService from '../services/AnalyticsService';
 
 const AuthContext = createContext(null);
 
@@ -42,10 +43,12 @@ export const AuthProvider = ({ children }) => {
         setUser(localUser || null);
 
         if (!localUser) {
+          AnalyticsService.setUser(null);
           setUserProfile(null);
           await EncryptionService.clearKey();
           E2EEncryption.clearCache();
         } else {
+          AnalyticsService.setUser(localUser.uid);
           const profile = await StorageRouter.getUserDocument(localUser.uid);
           if (!active) return;
           setUserProfile(profile);
