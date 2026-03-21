@@ -20,18 +20,18 @@ import PreferenceEngine from '../services/PreferenceEngine';
 
 const FONTS = {
   serif: Platform.select({
-    ios: 'Playfair Display',
-    android: 'PlayfairDisplay_300Light',
+    ios: 'DMSerifDisplay-Regular',
+    android: 'DMSerifDisplay_400Regular',
     default: 'serif',
   }),
   body: Platform.select({
-    ios: 'Inter',
-    android: 'Inter_400Regular',
+    ios: 'Lato-Regular',
+    android: 'Lato_400Regular',
     default: 'sans-serif',
   }),
   bodyBold: Platform.select({
-    ios: 'Inter-SemiBold',
-    android: 'Inter_600SemiBold',
+    ios: 'Lato-Bold',
+    android: 'Lato_700Bold',
     default: 'sans-serif',
   }),
 };

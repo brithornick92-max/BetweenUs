@@ -14,9 +14,9 @@ const SCREEN_W = Dimensions.get('window').width;
 
 const FONTS = {
   serif: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular', default: 'serif' }),
-  serifAccent: Platform.select({ ios: 'Playfair Display', android: 'PlayfairDisplay_300Light', default: 'serif' }),
-  body: Platform.select({ ios: 'Inter', android: 'Inter_400Regular', default: 'sans-serif' }),
-  bodyBold: Platform.select({ ios: 'Inter-SemiBold', android: 'Inter_600SemiBold', default: 'sans-serif' }),
+  serifAccent: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular', default: 'serif' }),
+  body: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
+  bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
 };
 
 export const HEAT_GRADIENTS = {
@@ -149,8 +149,8 @@ export default function DateCardFront({ date, colors, dims }) {
               </View>
             ) : null}
             {date._matchLabel ? (
-              <View style={[styles.tag, { borderColor: '#C9A84C50' }]}>
-                <Text style={[styles.tagText, { color: '#C9A84C' }]}>{date._matchLabel}</Text>
+              <View style={[styles.tag, { borderColor: colors.primaryMuted + '50' }]}>
+                <Text style={[styles.tagText, { color: colors.primaryMuted }]}>{date._matchLabel}</Text>
               </View>
             ) : null}
           </Animated.View>

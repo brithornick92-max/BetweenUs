@@ -1,4 +1,4 @@
-import "./polyfills"; // MUST be first — crypto polyfill for CryptoJS/Supabase
+import "./polyfills"; // MUST be first — crypto polyfill for tweetnacl/Supabase
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -11,17 +11,12 @@ import { AppState, View, Text } from "react-native";
 SplashScreen.preventAutoHideAsync();
 import { useFonts } from "expo-font";
 import {
-  PlayfairDisplay_700Bold,
-} from "@expo-google-fonts/playfair-display";
+  Lato_400Regular,
+  Lato_700Bold,
+} from "@expo-google-fonts/lato";
 import {
   DMSerifDisplay_400Regular,
 } from "@expo-google-fonts/dm-serif-display";
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from "@expo-google-fonts/inter";
 
 import RootNavigator from "./navigation/RootNavigator";
 import { registerAutoClearDecryptedCache } from "./services/autoClearDecryptedCache";
@@ -134,7 +129,7 @@ const navigationRef = createNavigationContainerRef();
 function AppContent() {
   const { state } = useAppContext();
   const { isPremiumEffective: isPremium, paywallVisible, paywallFeature } = useEntitlements();
-  const { isDark, navigationTheme } = useTheme();
+  const { navigationTheme } = useTheme();
 
   const [isLocked, setIsLocked] = useState(false);
   const [navReady, setNavReady] = useState(false);
@@ -320,7 +315,7 @@ function AppContent() {
         DeepLinkHandler.setNavigationRef(navigationRef);
       }}
     >
-      <StatusBar style={isDark ? "light" : "dark"} />
+      <StatusBar style="light" />
       <RootNavigator />
     </NavigationContainer>
   );
@@ -328,14 +323,12 @@ function AppContent() {
 
 function App() {
   const [fontsLoaded] = useFonts({
-    "PlayfairDisplay-Bold": PlayfairDisplay_700Bold,
-    PlayfairDisplay_700Bold: PlayfairDisplay_700Bold,
+    "Lato-Regular": Lato_400Regular,
+    Lato_400Regular: Lato_400Regular,
+    "Lato-Bold": Lato_700Bold,
+    Lato_700Bold: Lato_700Bold,
     "DMSerifDisplay-Regular": DMSerifDisplay_400Regular,
     DMSerifDisplay_400Regular: DMSerifDisplay_400Regular,
-    "Inter-Regular": Inter_400Regular,
-    "Inter-Medium": Inter_500Medium,
-    "Inter-SemiBold": Inter_600SemiBold,
-    "Inter-Bold": Inter_700Bold,
   });
 
   const onLayoutRootView = useCallback(async () => {
@@ -384,7 +377,7 @@ function App() {
     logError('app_init', error);
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#070509' }}>
-        <Text style={{ color: '#E8E0EC', padding: 20 }}>App initialization error. Please restart the app.</Text>
+        <Text style={{ color: '#F2E9E6', padding: 20 }}>Something didn’t work. Please restart the app.</Text>
       </View>
     );
   }

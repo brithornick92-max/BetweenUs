@@ -197,15 +197,15 @@ const styles = StyleSheet.create({
   },
   yearLabel: {
     fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     letterSpacing: 3,
     textTransform: 'uppercase',
     marginBottom: SPACING.sm,
   },
   title: {
     fontFamily: Platform.select({
-      ios: 'Playfair Display',
-      android: 'PlayfairDisplay_300Light',
+      ios: 'DMSerifDisplay-Regular',
+      android: 'DMSerifDisplay_400Regular',
       default: 'serif',
     }),
     fontSize: 32,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 17,
     lineHeight: 28,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
   },
   endMark: {
     alignItems: 'center',
@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
   },
   gateTitle: {
     fontFamily: Platform.select({
-      ios: 'Playfair Display',
-      android: 'PlayfairDisplay_300Light',
+      ios: 'DMSerifDisplay-Regular',
+      android: 'DMSerifDisplay_400Regular',
       default: 'serif',
     }),
     fontSize: 24,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   },
   gateBtnText: {
     fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     letterSpacing: 0.5,
   },
 });

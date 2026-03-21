@@ -25,18 +25,18 @@ const CARD_WIDTH = (SCREEN_WIDTH - SPACING.md * 2 - GRID_GAP) / 2;
 
 const FONTS = {
   serif: Platform.select({
-    ios: 'Playfair Display',
-    android: 'PlayfairDisplay_300Light',
+    ios: 'DMSerifDisplay-Regular',
+    android: 'DMSerifDisplay_400Regular',
     default: 'serif',
   }),
   body: Platform.select({
-    ios: 'Inter',
-    android: 'Inter_400Regular',
+    ios: 'Lato-Regular',
+    android: 'Lato_400Regular',
     default: 'sans-serif',
   }),
   bodyBold: Platform.select({
-    ios: 'Inter-SemiBold',
-    android: 'Inter_600SemiBold',
+    ios: 'Lato-Bold',
+    android: 'Lato_700Bold',
     default: 'sans-serif',
   }),
 };
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   shadowIOS: {
-    shadowColor: '#060410',
+    shadowColor: '#070509',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,

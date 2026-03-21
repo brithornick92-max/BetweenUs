@@ -116,7 +116,7 @@ const createStyles = (colors) => StyleSheet.create({
     zIndex: 2,
     shadowColor: colors.text,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.12,
     shadowRadius: 10,
   },
   quoteContainer: {

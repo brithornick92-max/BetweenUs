@@ -20,8 +20,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 const SCREEN_W = Dimensions.get('window').width;
 
 const FONTS = {
-  body: Platform.select({ ios: 'Inter', android: 'Inter_400Regular', default: 'sans-serif' }),
-  bodyBold: Platform.select({ ios: 'Inter-SemiBold', android: 'Inter_600SemiBold', default: 'sans-serif' }),
+  body: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
+  bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
 };
 
 const HEAT_METAL = {

@@ -16,7 +16,6 @@
  */
 
 import { getSupabaseOrThrow } from '../../config/supabase';
-import CryptoJS from 'crypto-js';
 import * as ExpoCrypto from 'expo-crypto';
 
 const CODE_EXPIRY_MINUTES = 15;
@@ -56,7 +55,10 @@ const CoupleService = {
     }
 
     // Hash it — never store the plain code
-    const codeHash = CryptoJS.SHA256(code).toString(CryptoJS.enc.Hex);
+    const codeHash = await ExpoCrypto.digestStringAsync(
+      ExpoCrypto.CryptoDigestAlgorithm.SHA256,
+      code,
+    );
 
     // Store hashed code with expiry
     const expiresAt = new Date(Date.now() + CODE_EXPIRY_MINUTES * 60 * 1000).toISOString();
@@ -90,7 +92,10 @@ const CoupleService = {
     if (!user) throw new Error('Not authenticated');
 
     // Hash the code the same way
-    const codeHash = CryptoJS.SHA256(plainCode.toUpperCase().trim()).toString(CryptoJS.enc.Hex);
+    const codeHash = await ExpoCrypto.digestStringAsync(
+      ExpoCrypto.CryptoDigestAlgorithm.SHA256,
+      plainCode.toUpperCase().trim(),
+    );
 
     // Call the atomic server-side function (server uses auth.uid())
     const { data, error } = await supabase

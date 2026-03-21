@@ -448,8 +448,8 @@ const createStyles = (colors) => StyleSheet.create({
     fontSize: 24,
     lineHeight: 32,
     fontFamily: Platform.select({
-      ios: "Playfair Display",
-      android: "PlayfairDisplay_300Light",
+      ios: "DMSerifDisplay-Regular",
+      android: "DMSerifDisplay_400Regular",
     }),
     fontWeight: "300",
   },

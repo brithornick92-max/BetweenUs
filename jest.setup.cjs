@@ -47,16 +47,12 @@ jest.mock('@supabase/supabase-js', () => ({
   })),
 }));
 
-// Mock crypto-js
-jest.mock('crypto-js', () => ({
-  AES: {
-    encrypt: jest.fn(),
-    decrypt: jest.fn(),
-  },
-  SHA256: jest.fn(),
-  enc: {
-    Utf8: 'utf8',
-  },
+// Mock @noble/hashes (replaces crypto-js)
+jest.mock('@noble/hashes/pbkdf2.js', () => ({
+  pbkdf2: jest.fn(() => new Uint8Array(32)),
+}));
+jest.mock('@noble/hashes/sha2.js', () => ({
+  sha256: jest.fn(),
 }));
 
 // Increase timeout for property-based tests

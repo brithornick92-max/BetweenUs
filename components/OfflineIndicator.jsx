@@ -90,7 +90,7 @@ export default function OfflineIndicator() {
         ? `Offline. ${pendingCount} ${pendingCount === 1 ? 'item' : 'items'} will sync when you're back`
         : 'Offline. Everything saved is still here'}
     >
-      <View style={[styles.dot, { backgroundColor: colors.accent || '#C9A84C' }]} />
+      <View style={[styles.dot, { backgroundColor: colors.primaryMuted }]} />
       <Text style={[styles.text, { color: colors.textMuted }]}>
         {pendingCount > 0
           ? `Offline · ${pendingCount} ${pendingCount === 1 ? 'item' : 'items'} will sync when you're back`

@@ -1,6 +1,6 @@
-// utils/theme.js — "Velvet Glass" Design System
-// Hybrid: Velvet Minimal (luxury, slow, intentional) × Magnetic Glass (premium, alive, polished)
-// Deep plum backgrounds · Large serif headlines · Glass cards · Single glowing accent · Huge breathing room
+// utils/theme.js — "Midnight Intimacy" Design System
+// Dark theme only · Plum, wine, and cream · Handcrafted warmth
+// Deep plum backgrounds · Serif headlines · Glass cards · Wine accent · Breathing room
 
 import { Platform } from "react-native";
 
@@ -41,63 +41,40 @@ export function withAlpha(color, alpha) {
 // ═══════════════════════════════════════════════════════
 
 export const DARK_PALETTE = {
-  // Deep velvet plum backgrounds — richer than pure black
-  background: "#0B0710",       // deep plum-black
-  surface: "#140F1C",          // glass card base
-  surface2: "#1D1528",         // elevated glass surface
-  surfaceGlass: "rgba(24,18,36,0.65)", // frosted glass overlay
+  // Ink-black background — Midnight Intimacy palette
+  background: "#070509",       // inkBlack
+  surface: "#131016",          // charcoalPlum — cards, inputs
+  surface2: "#1C1520",         // surfacePlum — secondary surfaces
+  surfaceElevated: "#241C28", // tertiary surfaces, modal overlays
+  surfaceGlass: "rgba(28,21,32,0.55)", // plum-tinted frosted glass
 
-  // Warm cream text with intentional hierarchy
-  text: "#F5EDE8",             // warm cream white
-  textSecondary: "rgba(245,237,232,0.78)", // secondary text
-  textMuted: "rgba(245,237,232,0.42)",     // whisper-level text
-  textGlow: "rgba(200,160,180,0.9)",       // accent glow text
+  // Soft cream text with intentional hierarchy
+  text: "#F2E9E6",             // softCream
+  textSecondary: "rgba(242,233,230,0.78)", // creamSubtle-level
+  textMuted: "rgba(242,233,230,0.58)",     // readable muted text (WCAG AA)
+  textGlow: "rgba(154,46,94,0.9)",         // mulberry glow text
 
-  // Subtle glass borders
-  border: "rgba(255,255,255,0.07)",
-  borderGlass: "rgba(255,255,255,0.12)",   // glass card borders
-  divider: "rgba(255,255,255,0.05)",
+  // Subtle glass borders — white at very low opacity
+  border: "rgba(255,255,255,0.06)",
+  borderGlass: "rgba(255,255,255,0.08)",   // glass card borders
+  divider: "rgba(255,255,255,0.04)",
 
-  // Single glowing accent — warm rose-wine
-  primary: "#C4567A",          // glowing rose accent
-  primaryMuted: "#8B3456",     // deeper muted rose
-  primaryGlow: "rgba(196,86,122,0.35)",    // glow halo
-  accent: "#D4A574",           // warm champagne gold accent
-  accentMuted: "rgba(212,165,116,0.4)",
+  // Wine accent — deep, not bright
+  primary: "#7A1E4E",          // wine — primary CTAs, active states
+  primaryMuted: "#9A2E5E",     // mulberry — secondary accent
+  primaryGlow: "rgba(122,30,78,0.35)",     // wine glow halo
+  accent: "#A89060",           // matteGold — PREMIUM ONLY
+  accentMuted: "rgba(168,144,96,0.4)",
 
   // Semantic
   danger: "#B85454",
   success: "#5A8B60",
-  shadow: "#060410",
-  overlay: "rgba(8,4,14,0.8)",
+  shadow: "#070509",
+  overlay: "rgba(7,5,9,0.8)",
 };
 
-export const LIGHT_PALETTE = {
-  background: "#FAF7F5",       // warm linen white
-  surface: "#FFFFFF",
-  surface2: "#F3EDE8",
-  surfaceGlass: "rgba(255,255,255,0.72)",
-
-  text: "#1A1118",
-  textSecondary: "rgba(26,17,24,0.72)",
-  textMuted: "rgba(26,17,24,0.45)",
-  textGlow: "#9A3D5C",
-
-  border: "rgba(26,17,24,0.08)",
-  borderGlass: "rgba(26,17,24,0.14)",
-  divider: "rgba(26,17,24,0.06)",
-
-  primary: "#B04466",
-  primaryMuted: "#8B3456",
-  primaryGlow: "rgba(176,68,102,0.18)",
-  accent: "#C4946A",
-  accentMuted: "rgba(196,148,106,0.3)",
-
-  danger: "#C25A6A",
-  success: "#5A8B60",
-  shadow: "#1A1118",
-  overlay: "rgba(0,0,0,0.35)",
-};
+// Brand guardrails: "Dark theme only" — no light palette
+export const LIGHT_PALETTE = DARK_PALETTE;
 
 // Legacy: COLORS = dark palette for backward compatibility
 export const COLORS = {
@@ -112,8 +89,8 @@ export const COLORS = {
   textTertiary: DARK_PALETTE.textMuted,
   card: DARK_PALETTE.surface,
   cardBorder: DARK_PALETTE.border,
-  wine: DARK_PALETTE.primaryMuted,
-  mulberry: DARK_PALETTE.primary,
+  wine: DARK_PALETTE.primary,
+  mulberry: DARK_PALETTE.primaryMuted,
   wineMuted: "#5E1940",
   wineDeep: "#4C1030",
   error: DARK_PALETTE.danger,
@@ -128,14 +105,14 @@ export const COLORS = {
   roseCopper: DARK_PALETTE.primary,
   classicGold: DARK_PALETTE.accent,
   mutedGold: DARK_PALETTE.accentMuted,
-  blushRose: DARK_PALETTE.primary,
+  blushRose: DARK_PALETTE.primaryMuted,
   highlight: DARK_PALETTE.accent,
   plumVignette: "#1A0D18",
-  blushRoseLight: "#D4708B",
-  deepRed: DARK_PALETTE.primaryMuted,
+  blushRoseLight: DARK_PALETTE.primaryMuted,
+  deepRed: DARK_PALETTE.primary,
   beetroot: "#5E1940",
-  roseGold: DARK_PALETTE.primary,
-  platinum: "rgba(245,237,232,0.9)",
+  roseGold: DARK_PALETTE.primaryMuted,
+  platinum: "rgba(242,233,230,0.9)",
 };
 
 // ═══════════════════════════════════════════════════════
@@ -144,45 +121,26 @@ export const COLORS = {
 
 export const getGradients = (palette) => {
   const p = palette || DARK_PALETTE;
-  const isDark = p.background === DARK_PALETTE.background;
-  if (isDark) {
-    return {
-      // Screen background: deep vertical wash
-      screenBackground: [p.background, "#0F0A18", p.background],
-      // Glass card fill
-      glass: ["rgba(30,22,44,0.55)", "rgba(20,14,32,0.70)"],
-      glassSubtle: ["rgba(30,22,44,0.35)", "rgba(20,14,32,0.45)"],
-      // Accent glow bloom (for behind cards)
-      accentBloom: [p.primaryGlow, "transparent"],
-      // CTA button
-      cta: [p.primary, p.primaryMuted],
-      ctaGlow: [p.primaryGlow, "transparent"],
-      // Legacy compat
-      wineCTA: [p.primaryMuted, p.primary],
-      plumVignette: ["#1A0D18", p.background],
-      background: [p.background, p.background],
-      surface: ["rgba(30,22,44,0.60)", "rgba(20,14,32,0.50)"],
-      primary: [p.primary, p.primaryMuted],
-      secondary: [p.surface2, p.primaryMuted],
-      gold: [p.accent, "#B8860B"],
-      champagne: [p.text, p.text + "CC"],
-    };
-  }
   return {
-    screenBackground: [p.background, p.surface2, p.background],
-    glass: ["rgba(255,255,255,0.85)", "rgba(255,255,255,0.65)"],
-    glassSubtle: ["rgba(255,255,255,0.60)", "rgba(255,255,255,0.45)"],
+    // Screen background: deep vertical wash
+    screenBackground: [p.background, "#0A0611", p.background],
+    // Glass card fill — plum-tinted
+    glass: ["rgba(28,21,32,0.55)", "rgba(19,16,22,0.70)"],
+    glassSubtle: ["rgba(28,21,32,0.35)", "rgba(19,16,22,0.45)"],
+    // Accent glow bloom (for behind cards)
     accentBloom: [p.primaryGlow, "transparent"],
+    // CTA button
     cta: [p.primary, p.primaryMuted],
     ctaGlow: [p.primaryGlow, "transparent"],
-    wineCTA: [p.primaryMuted, p.primary],
-    plumVignette: [p.surface2, p.background],
+    // Legacy compat
+    wineCTA: [p.primary, p.primaryMuted],
+    plumVignette: ["#1A0D18", p.background],
     background: [p.background, p.background],
-    surface: [p.surface, p.surface2],
+    surface: ["rgba(28,21,32,0.60)", "rgba(19,16,22,0.50)"],
     primary: [p.primary, p.primaryMuted],
-    secondary: [p.surface2, p.primaryMuted],
-    gold: [p.accent, "#B8860B"],
-    champagne: [p.text, p.text + "99"],
+    secondary: [p.surface2, p.primary],
+    gold: [p.accent, "#8B7340"],
+    champagne: [p.text, p.text + "CC"],
   };
 };
 
@@ -199,44 +157,40 @@ export const SERIF = Platform.select({
   default: "System",
 });
 
-export const SERIF_ACCENT = Platform.select({
-  ios: "Playfair Display",
-  android: "PlayfairDisplay_300Light",
-  default: "System",
-});
+export const SERIF_ACCENT = SERIF; // Brand: only DM Serif Display allowed for serif
 
 export const SANS = Platform.select({
-  ios: "Inter",
-  android: "Inter_400Regular",
+  ios: "Lato-Regular",
+  android: "Lato_400Regular",
   default: "System",
 });
 
 export const SANS_MEDIUM = Platform.select({
-  ios: "Inter-Medium",
-  android: "Inter_500Medium",
+  ios: "Lato-Regular",
+  android: "Lato_400Regular",
   default: "System",
 });
 
 export const SANS_BOLD = Platform.select({
-  ios: "Inter-SemiBold",
-  android: "Inter_600SemiBold",
+  ios: "Lato-Bold",
+  android: "Lato_700Bold",
   default: "System",
 });
 
 const typographyBase = {
-  // Hero display — fragrance-ad large
+  // Hero display
   display: {
     fontFamily: SERIF,
-    fontSize: 42,
-    lineHeight: 50,
+    fontSize: 36,
+    lineHeight: 44,
     letterSpacing: -0.5,
     fontWeight: "400",
   },
   // Page title
   h1: {
     fontFamily: SERIF,
-    fontSize: 34,
-    lineHeight: 42,
+    fontSize: 32,
+    lineHeight: 40,
     letterSpacing: -0.3,
     fontWeight: "400",
   },
@@ -251,26 +205,27 @@ const typographyBase = {
   // Card title / subsection
   h3: {
     fontFamily: SANS_BOLD,
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 22,
     letterSpacing: -0.1,
+    fontWeight: "600",
   },
   // Body text
   body: {
-    fontFamily: SANS,
-    fontSize: 16,
-    lineHeight: 26,
-    letterSpacing: 0.1,
-  },
-  bodySecondary: {
     fontFamily: SANS,
     fontSize: 15,
     lineHeight: 24,
     letterSpacing: 0.1,
   },
+  bodySecondary: {
+    fontFamily: SANS,
+    fontSize: 14,
+    lineHeight: 22,
+    letterSpacing: 0.1,
+  },
   // Small text
   caption: {
-    fontFamily: SANS_MEDIUM,
+    fontFamily: SANS,
     fontSize: 13,
     lineHeight: 18,
     letterSpacing: 0.2,
@@ -278,17 +233,17 @@ const typographyBase = {
   // Eyebrow / overline
   label: {
     fontFamily: SANS_BOLD,
-    fontSize: 11,
-    lineHeight: 14,
-    letterSpacing: 2.5,
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 1.5,
     textTransform: "uppercase",
   },
   // CTA button
   button: {
     fontFamily: SANS_BOLD,
-    fontSize: 14,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
+    fontSize: 16,
+    letterSpacing: 0.5,
+    fontWeight: "600",
   },
 };
 
@@ -305,16 +260,16 @@ export const TYPOGRAPHY = {
 // ═══════════════════════════════════════════════════════
 
 export const SPACING = {
-  xs: 6,
-  sm: 12,
-  md: 18,
-  lg: 24,
-  xl: 32,
-  xxl: 48,
-  xxxl: 72,
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 28,
+  xxxl: 48,
   screen: 24,    // horizontal screen padding
-  section: 40,   // between content sections
-  gutter: 20,    // between cards in a row
+  section: 28,   // between content sections
+  gutter: 16,    // between cards in a row
 };
 
 // ═══════════════════════════════════════════════════════
@@ -322,11 +277,11 @@ export const SPACING = {
 // ═══════════════════════════════════════════════════════
 
 export const BORDER_RADIUS = {
-  sm: 12,
-  md: 18,
-  lg: 24,
-  xl: 28,
-  xxl: 36,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 28,
   full: 9999,
 };
 
@@ -335,20 +290,19 @@ export const BORDER_RADIUS = {
 // ═══════════════════════════════════════════════════════
 
 export const getGlassStyle = (palette) => {
-  const isDark = palette?.background === DARK_PALETTE.background;
   return {
-    backgroundColor: isDark ? "rgba(20,15,28,0.55)" : "rgba(255,255,255,0.70)",
+    backgroundColor: "rgba(28,21,32,0.55)",
     borderWidth: 1,
-    borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.35)",
+    borderColor: "rgba(255,255,255,0.06)",
     borderRadius: BORDER_RADIUS.xl,
     ...(Platform.OS === "ios"
       ? {
-          shadowColor: isDark ? "#000" : "#1A1118",
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: isDark ? 0.35 : 0.08,
-          shadowRadius: 24,
+          shadowColor: "#070509",
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.08,
+          shadowRadius: 16,
         }
-      : { elevation: 6 }),
+      : { elevation: 4 }),
   };
 };
 
@@ -357,47 +311,46 @@ export const getGlassStyle = (palette) => {
 // ═══════════════════════════════════════════════════════
 
 export const getShadows = (palette) => {
-  const shadowColor = palette?.shadow ?? "#000";
-  const isLight = palette?.background === LIGHT_PALETTE.background;
+  const shadowColor = palette?.shadow ?? "#070509";
   return {
     small: Platform.select({
       ios: {
         shadowColor,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: isLight ? 0.06 : 0.25,
-        shadowRadius: 8,
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
       },
-      android: { elevation: 3 },
+      android: { elevation: 2 },
       default: {},
     }),
     medium: Platform.select({
       ios: {
         shadowColor,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: isLight ? 0.10 : 0.40,
-        shadowRadius: 20,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
       },
-      android: { elevation: 6 },
+      android: { elevation: 4 },
       default: {},
     }),
     large: Platform.select({
       ios: {
         shadowColor,
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: isLight ? 0.12 : 0.50,
-        shadowRadius: 32,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 20,
       },
-      android: { elevation: 10 },
+      android: { elevation: 8 },
       default: {},
     }),
     glow: Platform.select({
       ios: {
-        shadowColor: palette?.primary || "#C4567A",
+        shadowColor: palette?.primary || "#7A1E4E",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.30,
-        shadowRadius: 16,
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
       },
-      android: { elevation: 8 },
+      android: { elevation: 6 },
       default: {},
     }),
   };
@@ -428,9 +381,8 @@ export const Z_INDEX = { base: 0, card: 5, overlay: 10, modal: 1000 };
 
 export const getNavigationTheme = (palette) => {
   const p = palette || DARK_PALETTE;
-  const isDark = p === DARK_PALETTE;
   return {
-    dark: isDark,
+    dark: true,
     colors: {
       primary: p.primary,
       background: p.background,

@@ -41,8 +41,8 @@ export default function AdaptiveHomeScreen({ navigation }) {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [personalizedUI, setPersonalizedUI] = useState(null);
-  const [achievements, setAchievements] = useState(null);
-  const [challenges, setChallenges] = useState(null);
+  const [milestones, setMilestones] = useState(null);
+  const [invitations, setInvitations] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showReward, setShowReward] = useState(false);
@@ -88,27 +88,27 @@ export default function AdaptiveHomeScreen({ navigation }) {
       const uiConfig = await uiPersonalization.getPersonalizedUI(user.uid);
       setPersonalizedUI(uiConfig);
 
-      // Load achievements
-      const achievementData = await achievementEngine.checkAchievements(user.uid);
-      setAchievements(achievementData);
+      // Load milestones
+      const milestoneData = await achievementEngine.checkAchievements(user.uid);
+      setMilestones(milestoneData);
 
-      // Check for newly unlocked achievements
-      if (achievementData.newlyUnlocked.length > 0) {
-        const newAchievement = achievementData.newlyUnlocked[0];
+      // Check for newly discovered milestones
+      if (milestoneData.newlyUnlocked.length > 0) {
+        const newMilestone = milestoneData.newlyUnlocked[0];
         setRewardData({
           type: 'milestone',
           title: 'A quiet milestone',
-          message: newAchievement.name,
-          icon: newAchievement.icon
+          message: newMilestone.name,
+          icon: newMilestone.icon
         });
         setShowReward(true);
       }
 
-      // Load challenges
-      const challengeData = await challengeSystem.generateChallenges(user.uid, {
+      // Load invitations
+      const invitationData = await challengeSystem.generateChallenges(user.uid, {
         maxChallenges: 3
       });
-      setChallenges(challengeData);
+      setInvitations(invitationData);
 
     } catch (error) {
       console.error('Failed to load personalization:', error);
@@ -129,21 +129,19 @@ export default function AdaptiveHomeScreen({ navigation }) {
     }
   };
 
-  const handleAchievementPress = (achievement) => {
-    // Navigate to achievements screen or show details
-    if (__DEV__) console.log('Achievement pressed:', achievement.id);
+  const handleMilestonePress = (milestone) => {
+    if (__DEV__) console.log('Milestone pressed:', milestone.id);
   };
 
-  const handleChallengePress = (challenge) => {
-    // Navigate to challenge details
-    if (__DEV__) console.log('Challenge pressed:', challenge.id);
+  const handleInvitationPress = (invitation) => {
+    if (__DEV__) console.log('Invitation pressed:', invitation.id);
   };
 
   if (loading || !personalizedUI) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Your personalized experience...</Text>
+          <Text style={styles.loadingText}>Finding something meaningful…</Text>
         </View>
       </SafeAreaView>
     );
@@ -152,8 +150,8 @@ export default function AdaptiveHomeScreen({ navigation }) {
   const { layout, shortcuts, widgets, theme: uiTheme } = personalizedUI;
   const safeShortcuts = Array.isArray(shortcuts) ? shortcuts : [];
   const safeWidgets = Array.isArray(widgets) ? widgets : [];
-  const safeNewlyUnlocked = Array.isArray(achievements?.newlyUnlocked) ? achievements.newlyUnlocked : [];
-  const safeChallenges = Array.isArray(challenges?.challenges) ? challenges.challenges : [];
+  const safeNewlyUnlocked = Array.isArray(milestones?.newlyUnlocked) ? milestones.newlyUnlocked : [];
+  const safeInvitations = Array.isArray(invitations?.challenges) ? invitations.challenges : [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -224,42 +222,42 @@ export default function AdaptiveHomeScreen({ navigation }) {
                   <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading }]}>
                     Recent Milestones
                   </Text>
-                  {safeNewlyUnlocked.slice(0, 3).map((achievement, idx) => (
+                  {safeNewlyUnlocked.slice(0, 3).map((milestone, idx) => (
                     <QuietMilestone
                       key={idx}
-                      achievement={achievement}
+                      achievement={milestone}
                       size={layout.type === 'compact' ? 'small' : 'medium'}
-                      onPress={() => handleAchievementPress(achievement)}
+                      onPress={() => handleMilestonePress(milestone)}
                     />
                   ))}
                 </View>
               ) : null;
 
             case 'challenge_card':
-              return safeChallenges.length > 0 ? (
+              return safeInvitations.length > 0 ? (
                 <View key={index} style={[styles.section, { marginBottom: layout.spacing.gap }]}>
                   <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading }]}>
                     Invitations to Connect
                   </Text>
-                  {safeChallenges.slice(0, 2).map((challenge, idx) => (
+                  {safeInvitations.slice(0, 2).map((invitation, idx) => (
                     <InvitationCard
                       key={idx}
-                      challenge={challenge}
+                      challenge={invitation}
                       compact={layout.type === 'compact'}
-                      onPress={() => handleChallengePress(challenge)}
+                      onPress={() => handleInvitationPress(invitation)}
                     />
                   ))}
                 </View>
               ) : null;
 
             case 'progress_tracker':
-              return achievements ? (
+              return milestones ? (
                 <View key={index} style={[styles.section, { marginBottom: layout.spacing.gap }]}>
                   <StoryProgress
                     title="Your story so far"
-                    progress={achievements.stats.completionPercentage / 100}
-                    current={achievements.stats.unlockedCount}
-                    target={achievements.stats.totalAchievements}
+                    progress={milestones.stats.completionPercentage / 100}
+                    current={milestones.stats.unlockedCount}
+                    target={milestones.stats.totalAchievements}
                     unit="moments discovered"
                     animated={true}
                   />
@@ -275,8 +273,8 @@ export default function AdaptiveHomeScreen({ navigation }) {
           }
         })}
 
-        {/* Achievement Stats Summary */}
-        {achievements && (
+        {/* Journey Summary */}
+        {milestones && (
           <View style={[styles.section, { marginBottom: layout.spacing.gap }]}>
             <Card variant="glass" padding="md">
               <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading }]}>
@@ -284,18 +282,18 @@ export default function AdaptiveHomeScreen({ navigation }) {
               </Text>
               <View style={styles.statsGrid}>
                 <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{achievements.stats.totalPoints}</Text>
+                  <Text style={styles.statValue}>{milestones.stats.totalPoints}</Text>
                   <Text style={styles.statLabel}>Moments shared</Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{achievements.stats.unlockedCount}</Text>
+                  <Text style={styles.statValue}>{milestones.stats.unlockedCount}</Text>
                   <Text style={styles.statLabel}>Moments</Text>
                 </View>
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>
-                    {Math.round(achievements.stats.completionPercentage)}%
+                    {Math.round(milestones.stats.completionPercentage)}%
                   </Text>
-                  <Text style={styles.statLabel}>Complete</Text>
+                  <Text style={styles.statLabel}>Discovered</Text>
                 </View>
               </View>
             </Card>

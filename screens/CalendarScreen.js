@@ -30,10 +30,10 @@ import { supabase, TABLES } from '../config/supabase';
 // Event type visual config — color-coded topics
 const EVENT_TYPES = {
   dateNight: { label: 'Date Plans', icon: 'heart', color: '#9A2E5E' },
-  ritual: { label: 'Ritual', icon: 'star-four-points-outline', color: '#C9A84C' },
-  loveNote: { label: 'Love Note', icon: 'email-heart-outline', color: '#D4839A' },
-  anniversary: { label: 'Anniversary', icon: 'party-popper', color: '#E8726A' },
-  general: { label: 'General', icon: 'calendar-outline', color: '#7A6B73' },
+  ritual: { label: 'Ritual', icon: 'star-four-points-outline', color: '#7A1E4E' },
+  loveNote: { label: 'Love Note', icon: 'email-heart-outline', color: '#9A2E5E' },
+  anniversary: { label: 'Anniversary', icon: 'party-popper', color: '#5E1940' },
+  general: { label: 'General', icon: 'calendar-outline', color: '#4C1030' },
 };
 
 const REMINDER_OPTIONS = [
@@ -792,7 +792,7 @@ const createStyles = (colors) => StyleSheet.create({
   mainPadding: { paddingHorizontal: SPACING.screen, paddingTop: 20 },
   topHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
   editorialTitle: { fontFamily: TYPOGRAPHY.h1.fontFamily, fontSize: 34, fontWeight: '400', letterSpacing: -0.3 },
-  fab: { position: 'absolute', bottom: 100, alignSelf: 'center', left: '50%', marginLeft: -28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', ...Platform.select({ ios: { shadowColor: '#C4567A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 12 }, android: { elevation: 8 } }) },
+  fab: { position: 'absolute', bottom: 100, alignSelf: 'center', left: '50%', marginLeft: -28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', ...Platform.select({ ios: { shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 }, android: { elevation: 8 } }) },
   calendarContainer: { marginBottom: 40 },
   calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 },
   monthTitle: { fontFamily: TYPOGRAPHY.h1.fontFamily, fontSize: 26, fontWeight: '400' },
@@ -831,7 +831,7 @@ const createStyles = (colors) => StyleSheet.create({
   input: { borderBottomWidth: 1, paddingVertical: 12, fontSize: 16, fontFamily: TYPOGRAPHY.body.fontFamily },
   row: { flexDirection: 'row', gap: 16 },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
-  primaryBtn: { backgroundColor: colors.primary, paddingVertical: 18, borderRadius: BORDER_RADIUS.full, alignItems: 'center', marginTop: 20, ...Platform.select({ ios: { shadowColor: '#C4567A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12 }, android: { elevation: 6 } }) },
+  primaryBtn: { backgroundColor: colors.primary, paddingVertical: 18, borderRadius: BORDER_RADIUS.full, alignItems: 'center', marginTop: 20, ...Platform.select({ ios: { shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 }, android: { elevation: 6 } }) },
   primaryBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', letterSpacing: 1.2, textTransform: 'uppercase' },
   eventTypeSelector: { marginVertical: 8 },
   eventTypeSelectorLabel: { fontSize: 13, fontWeight: '600', marginBottom: 10, fontFamily: TYPOGRAPHY.body.fontFamily },
@@ -871,7 +871,7 @@ const createStyles = (colors) => StyleSheet.create({
     backgroundColor: colors.primary + '0A',
   },
   countdownLabel: {
-    fontFamily: Platform.select({ ios: 'Inter-SemiBold', default: 'sans-serif' }),
+    fontFamily: Platform.select({ ios: 'Lato-Bold', default: 'sans-serif' }),
     fontSize: 10,
     letterSpacing: 2,
     marginBottom: 4,

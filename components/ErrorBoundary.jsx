@@ -40,7 +40,7 @@ export default class ErrorBoundary extends React.Component {
             <Text style={styles.emoji} accessibilityElementsHidden>💔</Text>
             <Text style={styles.title}>Something went wrong</Text>
             <Text style={styles.subtitle}>
-              We hit an unexpected issue. Your data is safe.
+              Something didn't work — your data is safe.
             </Text>
             {__DEV__ && this.state.error?.message ? (
               <Text style={styles.devError} numberOfLines={4}>
@@ -81,21 +81,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    color: '#E8E0EC',
+    color: '#F2E9E6',
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    color: '#A09AA6',
+    color: 'rgba(242,233,230,0.58)',
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
   },
   devError: {
-    color: '#FF6B6B',
+    color: '#B85454',
     fontSize: 12,
     fontFamily: 'monospace',
     textAlign: 'center',
@@ -103,14 +103,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   button: {
-    backgroundColor: '#A89060',
-    borderRadius: 12,
+    backgroundColor: '#7A1E4E',
+    borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 40,
   },
   buttonText: {
-    color: '#0B0B0B',
+    color: '#F2E9E6',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });

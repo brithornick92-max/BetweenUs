@@ -340,18 +340,18 @@ const createStyles = (colors, isDark) => {
   const subtleColor = isDark ? "rgba(242,233,230,0.35)" : colors.textMuted + "99";
 
   const serif = Platform.select({
-    ios: "Playfair Display",
-    android: "PlayfairDisplay_300Light",
+    ios: "DMSerifDisplay-Regular",
+    android: "DMSerifDisplay_400Regular",
     default: "System",
   });
   const sans = Platform.select({
-    ios: "Inter",
-    android: "Inter_400Regular",
+    ios: "Lato-Regular",
+    android: "Lato_400Regular",
     default: "System",
   });
   const sansBold = Platform.select({
-    ios: "Inter-SemiBold",
-    android: "Inter_600SemiBold",
+    ios: "Lato-Bold",
+    android: "Lato_700Bold",
     default: "System",
   });
 

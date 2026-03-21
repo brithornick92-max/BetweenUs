@@ -43,9 +43,9 @@ const DIMS = getDimensionMeta();
 const SPRING = { damping: 22, stiffness: 180, mass: 0.8 };
 
 const FONTS = {
-  serif: Platform.select({ ios: 'Playfair Display', android: 'PlayfairDisplay_300Light', default: 'serif' }),
-  body: Platform.select({ ios: 'Inter', android: 'Inter_400Regular', default: 'sans-serif' }),
-  bodyBold: Platform.select({ ios: 'Inter-SemiBold', android: 'Inter_600SemiBold', default: 'sans-serif' }),
+  serif: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular', default: 'serif' }),
+  body: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
+  bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
 };
 
 // HEAT_GRADIENTS and HEAT_ICONS now imported from components/DateCardFront
@@ -236,9 +236,9 @@ const CardStack = forwardRef(function CardStack(
     borderColor: 'rgba(255,255,255,0.12)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 16 },
-        shadowOpacity: 0.6,
+        shadowOpacity: 0.12,
         shadowRadius: 32,
       },
       android: { elevation: 16 },

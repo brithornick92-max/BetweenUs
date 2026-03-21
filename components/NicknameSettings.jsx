@@ -140,13 +140,13 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 13,
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Lato_400Regular',
   },
   input: {
     borderBottomWidth: 1,
     paddingVertical: 10,
     fontSize: 16,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
   },
   toneSection: {
     marginTop: SPACING.sm,
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   toneSub: {
     fontSize: 13,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     marginBottom: SPACING.md,
     opacity: 0.7,
   },
@@ -177,13 +177,13 @@ const styles = StyleSheet.create({
   },
   toneName: {
     fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     minWidth: 65,
   },
   tonePreview: {
     flex: 1,
     fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     fontStyle: 'italic',
     opacity: 0.6,
   },

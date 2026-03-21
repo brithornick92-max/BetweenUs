@@ -459,9 +459,9 @@ const createStyles = (colors) => StyleSheet.create({
     overflow: "hidden",
     ...Platform.select({
       ios: {
-        shadowColor: '#060410',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.12,
         shadowRadius: 20,
       },
       android: { elevation: 6 },
@@ -549,8 +549,8 @@ const createStyles = (colors) => StyleSheet.create({
   },
   promptText: {
     fontFamily: Platform.select({
-      ios: "Playfair Display",
-      android: "PlayfairDisplay_300Light",
+      ios: "DMSerifDisplay-Regular",
+      android: "DMSerifDisplay_400Regular",
     }),
     fontSize: 18,
     lineHeight: 26,
@@ -587,8 +587,8 @@ const createStyles = (colors) => StyleSheet.create({
     paddingTop: 0,
     minHeight: 220,
     fontFamily: Platform.select({
-      ios: "Inter",
-      android: "Inter_400Regular",
+      ios: "Lato-Regular",
+      android: "Lato_400Regular",
     }),
   },
   footer: {

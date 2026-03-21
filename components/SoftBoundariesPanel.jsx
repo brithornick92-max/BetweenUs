@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   sectionSub: {
     fontSize: 13,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     marginBottom: SPACING.md,
     opacity: 0.7,
   },
@@ -168,11 +168,11 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     fontSize: 15,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
   },
   rowSub: {
     fontSize: 13,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     marginTop: 2,
   },
   divider: {
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     textAlign: 'center',
     marginTop: SPACING.md,
     opacity: 0.5,

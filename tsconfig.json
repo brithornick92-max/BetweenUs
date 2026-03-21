@@ -12,7 +12,8 @@
     "node_modules",
     "babel.config.cjs",
     "metro.config.cjs",
-    "jest.config.cjs"
+    "jest.config.cjs",
+    "supabase/functions"
   ],
   "extends": "expo/tsconfig.base"
 }

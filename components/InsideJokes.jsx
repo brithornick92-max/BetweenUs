@@ -42,11 +42,11 @@ import { TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 import { PrivateLanguageVault } from '../services/ConnectionEngine';
 
 const JOKE_TYPES = [
-  { key: 'nickname', label: 'Nickname', icon: 'account-heart', color: '#D4839A' },
-  { key: 'joke', label: 'Inside Joke', icon: 'emoticon-wink-outline', color: '#C9A84C' },
-  { key: 'ritual', label: 'Comfort Ritual', icon: 'candelabra', color: '#9A2E5E' },
-  { key: 'reference', label: 'Shared Reference', icon: 'bookmark-outline', color: '#7B9EBC' },
-  { key: 'phrase', label: 'Our Phrase', icon: 'format-quote-open', color: '#8B7D6B' },
+  { key: 'nickname', label: 'Nickname', icon: 'account-heart', color: '#9A2E5E' },
+  { key: 'joke', label: 'Inside Joke', icon: 'emoticon-wink-outline', color: '#7A1E4E' },
+  { key: 'ritual', label: 'Comfort Ritual', icon: 'candelabra', color: '#5E1940' },
+  { key: 'reference', label: 'Shared Reference', icon: 'bookmark-outline', color: '#9A2E5E' },
+  { key: 'phrase', label: 'Our Phrase', icon: 'format-quote-open', color: '#4C1030' },
 ];
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -311,14 +311,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontFamily: 'PlayfairDisplay_400Regular',
+    fontFamily: 'DMSerifDisplay_400Regular',
     fontSize: 24,
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 13,
     marginTop: 4,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
   },
   addButton: {
     width: 40,
@@ -357,14 +357,14 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   jokeTitle: {
-    fontFamily: 'PlayfairDisplay_400Regular',
+    fontFamily: 'DMSerifDisplay_400Regular',
     fontSize: 18,
     marginBottom: 6,
   },
   jokeStory: {
     fontSize: 14,
     lineHeight: 20,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
   },
 
   // Empty state
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyTitle: {
-    fontFamily: 'PlayfairDisplay_400Regular',
+    fontFamily: 'DMSerifDisplay_400Regular',
     fontSize: 20,
     marginTop: 16,
   },
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   },
   compactItemText: {
     fontSize: 14,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     flex: 1,
   },
 
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   modalTitle: {
-    fontFamily: 'PlayfairDisplay_400Regular',
+    fontFamily: 'DMSerifDisplay_400Regular',
     fontSize: 22,
   },
   typeSelector: {
@@ -460,14 +460,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     paddingVertical: 12,
     fontSize: 16,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     marginBottom: 16,
   },
   storyInput: {
     borderBottomWidth: 1,
     paddingVertical: 12,
     fontSize: 14,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     marginBottom: 24,
     minHeight: 60,
   },

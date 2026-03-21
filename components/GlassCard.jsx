@@ -29,20 +29,20 @@ export default function GlassCard({
 }) {
   const { colors, isDark, gradients } = useTheme();
 
-  const blurIntensity = intensity ?? (isDark ? 30 : 20);
+  const blurIntensity = intensity ?? 30;
 
   const variants = {
     default: {
-      backgroundColor: isDark ? 'rgba(20,15,28,0.55)' : 'rgba(255,255,255,0.70)',
-      borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.35)',
+      backgroundColor: 'rgba(28,21,32,0.55)',
+      borderColor: 'rgba(255,255,255,0.06)',
     },
     subtle: {
-      backgroundColor: isDark ? 'rgba(20,15,28,0.35)' : 'rgba(255,255,255,0.50)',
-      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.20)',
+      backgroundColor: 'rgba(28,21,32,0.35)',
+      borderColor: 'rgba(255,255,255,0.04)',
     },
     elevated: {
-      backgroundColor: isDark ? 'rgba(30,22,44,0.65)' : 'rgba(255,255,255,0.85)',
-      borderColor: isDark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.45)',
+      backgroundColor: 'rgba(36,28,40,0.65)',
+      borderColor: 'rgba(255,255,255,0.08)',
     },
   };
 
@@ -71,7 +71,7 @@ export default function GlassCard({
         {Platform.OS === 'ios' ? (
           <BlurView
             intensity={blurIntensity}
-            tint={isDark ? 'dark' : 'light'}
+            tint="dark"
             style={styles.blur}
           >
             <View style={styles.content}>{children}</View>
@@ -108,10 +108,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   shadowIOS: {
-    shadowColor: '#060410',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.10,
-    shadowRadius: 24,
+    shadowColor: '#070509',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
   },
   shadowAndroid: {
     elevation: 8,

@@ -767,7 +767,7 @@ const createStyles = (colors) => StyleSheet.create({
     color: colors.text,
     fontSize: 20,
     paddingVertical: 10,
-    fontFamily: Platform.OS === 'ios' ? 'Inter' : 'sans-serif',
+    fontFamily: Platform.OS === 'ios' ? 'Lato-Regular' : 'sans-serif',
   },
   question: {
     color: colors.text,

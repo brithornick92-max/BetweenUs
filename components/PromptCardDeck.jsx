@@ -52,18 +52,18 @@ const FONTS = {
     default: 'serif',
   }),
   serifAccent: Platform.select({
-    ios: 'Playfair Display',
-    android: 'PlayfairDisplay_300Light',
+    ios: 'DMSerifDisplay-Regular',
+    android: 'DMSerifDisplay_400Regular',
     default: 'serif',
   }),
   body: Platform.select({
-    ios: 'Inter',
-    android: 'Inter_400Regular',
+    ios: 'Lato-Regular',
+    android: 'Lato_400Regular',
     default: 'sans-serif',
   }),
   bodyBold: Platform.select({
-    ios: 'Inter-SemiBold',
-    android: 'Inter_600SemiBold',
+    ios: 'Lato-Bold',
+    android: 'Lato_700Bold',
     default: 'sans-serif',
   }),
 };
@@ -612,9 +612,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 16 },
-        shadowOpacity: 0.6,
+        shadowOpacity: 0.12,
         shadowRadius: 32,
       },
       android: { elevation: 16 },

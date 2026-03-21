@@ -18,13 +18,13 @@ import { MomentSignalSender, MOMENT_TYPES } from '../services/ConnectionEngine';
 
 const FONTS = {
   body: Platform.select({
-    ios: 'Inter',
-    android: 'Inter_400Regular',
+    ios: 'Lato-Regular',
+    android: 'Lato_400Regular',
     default: 'sans-serif',
   }),
   bodyBold: Platform.select({
-    ios: 'Inter-SemiBold',
-    android: 'Inter_600SemiBold',
+    ios: 'Lato-Bold',
+    android: 'Lato_700Bold',
     default: 'sans-serif',
   }),
 };

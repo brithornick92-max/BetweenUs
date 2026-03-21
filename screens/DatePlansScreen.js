@@ -39,23 +39,23 @@ const FONTS = {
     default: 'serif',
   }),
   serifAccent: Platform.select({
-    ios: 'Playfair Display',
-    android: 'PlayfairDisplay_300Light',
+    ios: 'DMSerifDisplay-Regular',
+    android: 'DMSerifDisplay_400Regular',
     default: 'serif',
   }),
   body: Platform.select({
-    ios: 'Inter',
-    android: 'Inter_400Regular',
+    ios: 'Lato-Regular',
+    android: 'Lato_400Regular',
     default: 'sans-serif',
   }),
   bodyMedium: Platform.select({
-    ios: 'Inter-Medium',
-    android: 'Inter_500Medium',
+    ios: 'Lato-Regular',
+    android: 'Lato_400Regular',
     default: 'sans-serif',
   }),
   bodyBold: Platform.select({
-    ios: 'Inter-SemiBold',
-    android: 'Inter_600SemiBold',
+    ios: 'Lato-Bold',
+    android: 'Lato_700Bold',
     default: 'sans-serif',
   }),
 };
@@ -191,7 +191,7 @@ function FeaturedCard({ date, colors, isDark, onPress }) {
               </Text>
             </View>
             {date._matchLabel ? (
-              <Text style={[styles.heroMatchLabel, { color: '#C9A84C' }]}>
+              <Text style={[styles.heroMatchLabel, { color: colors.primaryMuted }]}>
                 {date._matchLabel}
               </Text>
             ) : null}
@@ -656,9 +656,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     ...Platform.select({
       ios: {
-        shadowColor: '#060410',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.18,
+        shadowOpacity: 0.12,
         shadowRadius: 20,
       },
       android: { elevation: 8 },
@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#060410',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.12,
         shadowRadius: 10,

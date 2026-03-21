@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 13,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     marginBottom: SPACING.md,
     opacity: 0.7,
   },
@@ -136,13 +136,13 @@ const styles = StyleSheet.create({
   },
   seasonLabel: {
     fontSize: 15,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     minWidth: 100,
   },
   seasonDesc: {
     flex: 1,
     fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     lineHeight: 16,
   },
 
@@ -155,11 +155,11 @@ const styles = StyleSheet.create({
   },
   compactLabel: {
     fontSize: 12,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
   },
   compactSub: {
     fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     opacity: 0.6,
     flex: 1,
   },

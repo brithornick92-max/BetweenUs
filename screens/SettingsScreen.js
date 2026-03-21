@@ -840,7 +840,7 @@ const s = StyleSheet.create({
   },
   avatarLetter: {
     fontSize: 22,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     color: '#FFFFFF',
   },
   profileInfo: {
@@ -858,7 +858,7 @@ const s = StyleSheet.create({
     letterSpacing: -0.3,
   },
   profileEmail: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     fontSize: 13,
     marginTop: 2,
     opacity: 0.65,
@@ -872,7 +872,7 @@ const s = StyleSheet.create({
     gap: 3,
   },
   proBadgeText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Lato_700Bold',
     fontSize: 9,
     letterSpacing: 0.8,
   },
@@ -891,7 +891,7 @@ const s = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
   },
   sectionLabel: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     fontSize: 11,
     letterSpacing: 1.8,
     textTransform: 'uppercase',
@@ -905,9 +905,9 @@ const s = StyleSheet.create({
     paddingVertical: SPACING.sm,
     ...Platform.select({
       ios: {
-        shadowColor: '#060410',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.14,
+        shadowOpacity: 0.12,
         shadowRadius: 14,
       },
       android: { elevation: 3 },
@@ -933,11 +933,11 @@ const s = StyleSheet.create({
     flex: 1,
   },
   rowTitle: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Lato_400Regular',
     fontSize: 15,
   },
   rowSub: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     fontSize: 13,
     marginTop: 2,
     opacity: 0.65,
@@ -961,12 +961,12 @@ const s = StyleSheet.create({
     marginBottom: 14,
   },
   partnerTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     fontSize: 15,
     marginBottom: 4,
   },
   partnerBody: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     fontSize: 14,
     lineHeight: 20,
     opacity: 0.7,
@@ -994,7 +994,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaBtnText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     fontSize: 15,
     color: '#FFFFFF',
   },
@@ -1006,7 +1006,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   outlineBtnText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Lato_400Regular',
     fontSize: 14,
   },
 
@@ -1015,7 +1015,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   codeLabelSmall: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     fontSize: 13,
     marginBottom: 8,
   },
@@ -1034,7 +1034,7 @@ const s = StyleSheet.create({
     letterSpacing: 4,
   },
   codeHelper: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
@@ -1052,7 +1052,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
   },
   codeActionText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Lato_400Regular',
     fontSize: 13,
   },
   codeInputBox: {
@@ -1067,7 +1067,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   codeInput: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Lato_700Bold',
     fontSize: 24,
     letterSpacing: 4,
     textAlign: 'center',
@@ -1090,7 +1090,7 @@ const s = StyleSheet.create({
     borderWidth: 0,
   },
   halfBtnText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     fontSize: 14,
   },
 
@@ -1111,7 +1111,7 @@ const s = StyleSheet.create({
     borderWidth: 1.5,
   },
   themeChipText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     fontSize: 13,
     letterSpacing: 0.2,
   },
@@ -1130,7 +1130,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
   },
   signOutText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Lato_400Regular',
     fontSize: 15,
   },
 
@@ -1140,7 +1140,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   versionText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     fontSize: 12,
     opacity: 0.3,
   },
@@ -1162,9 +1162,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#060410',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.12,
         shadowRadius: 28,
       },
       android: { elevation: 10 },
@@ -1179,13 +1179,13 @@ const s = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   modalTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     fontSize: 18,
     marginBottom: SPACING.xs,
     textAlign: 'center',
   },
   modalBody: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     fontSize: 14,
     lineHeight: 21,
     textAlign: 'center',
@@ -1204,7 +1204,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   modalBtnText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     fontSize: 15,
   },
   cloudAuthInput: {

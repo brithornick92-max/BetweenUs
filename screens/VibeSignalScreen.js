@@ -502,8 +502,8 @@ const createStyles = (colors) => StyleSheet.create({
     textAlign: 'center',
     marginBottom: SPACING.sm,
     fontFamily: Platform.select({
-      ios: "PlayfairDisplay_700Bold",
-      android: "PlayfairDisplay_700Bold",
+      ios: "DMSerifDisplay_400Regular",
+      android: "DMSerifDisplay_400Regular",
     }),
   },
   
@@ -629,8 +629,8 @@ const createStyles = (colors) => StyleSheet.create({
     marginBottom: SPACING.xs,
     textAlign: 'center',
     fontFamily: Platform.select({
-      ios: "PlayfairDisplay_700Bold",
-      android: "PlayfairDisplay_700Bold",
+      ios: "DMSerifDisplay_400Regular",
+      android: "DMSerifDisplay_400Regular",
     }),
   },
   
@@ -697,8 +697,8 @@ const createStyles = (colors) => StyleSheet.create({
     marginTop: SPACING.lg,
     marginBottom: SPACING.md,
     fontFamily: Platform.select({
-      ios: "PlayfairDisplay_700Bold",
-      android: "PlayfairDisplay_700Bold",
+      ios: "DMSerifDisplay_400Regular",
+      android: "DMSerifDisplay_400Regular",
     }),
   },
   

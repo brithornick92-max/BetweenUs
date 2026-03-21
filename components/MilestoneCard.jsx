@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     lineHeight: 20,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
   },
   dismiss: {
     opacity: 0.4,

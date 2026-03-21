@@ -6,9 +6,16 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
-import CryptoJS from 'crypto-js';
+import * as ExpoCrypto from 'expo-crypto';
+import { pbkdf2 } from '@noble/hashes/pbkdf2.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 
 const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
+
+/** Convert Uint8Array to lowercase hex string */
+function bytesToHex(bytes) {
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
 
 class LocalStorageService {
   constructor() {
@@ -17,21 +24,22 @@ class LocalStorageService {
   }
 
   _hashPassword(password, salt, iterations) {
-    return CryptoJS.PBKDF2(password, salt, {
-      keySize: 256 / 32,
-      iterations,
-    }).toString();
+    const enc = new TextEncoder();
+    const derived = pbkdf2(sha256, enc.encode(password), enc.encode(salt), {
+      c: iterations,
+      dkLen: 32,
+    });
+    return bytesToHex(derived);
   }
 
   // Authentication Methods (Local-first, SecureStore-backed)
   async createAccount(email, password, displayName) {
     try {
       const userId = this.generateUserId();
-      const passwordSalt = CryptoJS.lib.WordArray.random(16).toString();
+      const passwordSalt = bytesToHex(ExpoCrypto.getRandomBytes(16));
       // 50,000 iterations: below current OWASP recommendation (600k+ for SHA-256),
       // but chosen for mobile performance (2-3s in pure JS). Credentials are stored
-      // in hardware-backed SecureStore, not exposed database. Upgrade to native PBKDF2
-      // (expo-crypto) in the future will allow higher iteration counts without blocking JS.
+      // in hardware-backed SecureStore, not exposed database.
       const passwordIterations = 50000;
       const passwordHash = this._hashPassword(password, passwordSalt, passwordIterations);
 
@@ -93,16 +101,19 @@ class LocalStorageService {
       if (cred?.passwordHash) {
         if (cred.passwordSalt && cred.passwordIterations) {
           const providedHash = this._hashPassword(password, cred.passwordSalt, cred.passwordIterations);
-          if (!CryptoJS.enc.Hex.parse(providedHash).toString(CryptoJS.enc.Hex) === CryptoJS.enc.Hex.parse(cred.passwordHash).toString(CryptoJS.enc.Hex)) {
+          if (providedHash !== cred.passwordHash) {
             throw new Error('Invalid password');
           }
         } else {
           // Legacy SHA256 verification + upgrade to PBKDF2
-          const providedHash = CryptoJS.SHA256(password).toString();
-          if (!CryptoJS.enc.Hex.parse(providedHash).toString(CryptoJS.enc.Hex) === CryptoJS.enc.Hex.parse(cred.passwordHash).toString(CryptoJS.enc.Hex)) {
+          const providedHash = await ExpoCrypto.digestStringAsync(
+            ExpoCrypto.CryptoDigestAlgorithm.SHA256,
+            password,
+          );
+          if (providedHash !== cred.passwordHash) {
             throw new Error('Invalid password');
           }
-          const passwordSalt = CryptoJS.lib.WordArray.random(16).toString();
+          const passwordSalt = bytesToHex(ExpoCrypto.getRandomBytes(16));
           const passwordIterations = 50000;
           const upgradedHash = this._hashPassword(password, passwordSalt, passwordIterations);
           cred = { passwordHash: upgradedHash, passwordSalt, passwordIterations };

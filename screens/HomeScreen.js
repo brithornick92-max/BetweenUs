@@ -188,7 +188,7 @@ export default function HomeScreen({ navigation }) {
       setMyAnswer(finalText);
       setInlineText('');
     } catch {
-      Alert.alert('Error', "We couldn't save your thoughts. Please try again.");
+      Alert.alert('Something didn\u2019t work', "We couldn\u2019t save your thoughts \u2014 try again?");
     } finally {
       setIsSavingInline(false);
     }
@@ -274,6 +274,8 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigation.navigate('VibeSignal')}
             activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Send a vibe signal"
           >
             <MaterialCommunityIcons name="heart-pulse" size={32} color={colors.primary} />
           </TouchableOpacity>
@@ -329,7 +331,7 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => showPaywall?.('promptResponses')}
                   style={[styles.input, {
                     borderColor: colors.borderGlass || colors.border,
-                    backgroundColor: isDark ? 'rgba(30,22,44,0.50)' : 'rgba(245,240,235,0.60)',
+                    backgroundColor: 'rgba(28,21,32,0.50)',
                     justifyContent: 'center',
                   }]}
                 >
@@ -389,8 +391,10 @@ export default function HomeScreen({ navigation }) {
                   key={action.key}
                   activeOpacity={0.75}
                   onPress={() => handleAction(action.key)}
+                  accessibilityRole="button"
+                  accessibilityLabel={action.label}
                   style={[styles.actionCard, {
-                    backgroundColor: isDark ? 'rgba(20,15,28,0.45)' : 'rgba(255,255,255,0.65)',
+                    backgroundColor: 'rgba(28,21,32,0.45)',
                     borderColor: colors.borderGlass || colors.border,
                   }]}
                 >
@@ -582,7 +586,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.full,
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#C4567A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 16 },
+      ios: { shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 },
       android: { elevation: 8 },
     }),
   },
@@ -616,7 +620,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     position: 'relative',
     ...Platform.select({
-      ios: { shadowColor: '#060410', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.20, shadowRadius: 12 },
+      ios: { shadowColor: '#070509', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 },
       android: { elevation: 4 },
     }),
   },

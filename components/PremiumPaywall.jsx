@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
-  Linking,
 } from "react-native";
 import Animated, { FadeInDown, FadeIn, FadeInUp } from "react-native-reanimated";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -105,7 +104,7 @@ const PremiumPaywall = ({
     >
       {isPopular && (
         <View style={styles.popularBadge}>
-          <Text style={styles.popularBadgeText}>MOST POPULAR</Text>
+          <Text style={styles.popularBadgeText}>BEST VALUE</Text>
         </View>
       )}
       <View style={styles.pricingCardContent}>
@@ -117,6 +116,8 @@ const PremiumPaywall = ({
           onPress={() => handleSubscribe(pkg)}
           activeOpacity={0.85}
           disabled={isSubscribing || !isPlanAvailable || isLoading}
+          accessibilityRole="button"
+          accessibilityLabel={`Subscribe to ${title} plan at ${priceText}`}
         >
           <Text style={styles.subscribeButtonText}>
             {isLoading
@@ -124,8 +125,8 @@ const PremiumPaywall = ({
               : !isPlanAvailable
                 ? "Not available"
                 : title === "Lifetime"
-                  ? "Unlock forever"
-                  : `Start ${title.toLowerCase()}`}
+                  ? "Discover forever"
+                  : `Discover ${title.toLowerCase()}`}
           </Text>
         </TouchableOpacity>
       </View>
@@ -142,6 +143,8 @@ const PremiumPaywall = ({
               onPress={onClose}
               style={styles.closeButton}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
             >
               <MaterialCommunityIcons
                 name="close"
@@ -152,12 +155,12 @@ const PremiumPaywall = ({
           )}
           <Text style={styles.title}>Premium</Text>
           <Text style={styles.subtitle}>
-            Protect and grow your love story.
+            This is part of the deeper experience.
           </Text>
         </Animated.View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What Premium unlocks</Text>
+          <Text style={styles.sectionTitle}>What awaits</Text>
 
           {premiumFeatures.map((feature, index) => (
             <BenefitItem
@@ -297,11 +300,11 @@ const createStyles = (colors) => StyleSheet.create({
   },
   title: {
     fontFamily: Platform.select({
-      ios: "Playfair Display",
-      android: "PlayfairDisplay_300Light",
+      ios: "DMSerifDisplay-Regular",
+      android: "DMSerifDisplay_400Regular",
     }),
     fontSize: 36,
-    fontWeight: "300",
+    fontWeight: "400",
     color: colors.text,
     textAlign: "center",
     marginBottom: SPACING.sm,

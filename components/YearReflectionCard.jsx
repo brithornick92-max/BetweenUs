@@ -46,12 +46,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Lato_700Bold',
     marginBottom: 2,
   },
   subtitle: {
     fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Lato_400Regular',
     lineHeight: 16,
   },
 });

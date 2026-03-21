@@ -367,7 +367,7 @@ const createStyles = (colors, isDark) =>
       alignItems: "center",
       justifyContent: "center",
       ...Platform.select({
-        ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10 },
+        ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 10 },
         android: { elevation: 6 },
       }),
     },
@@ -527,7 +527,7 @@ const createStyles = (colors, isDark) =>
       paddingVertical: 14,
       borderRadius: BORDER_RADIUS.full,
       ...Platform.select({
-        ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12 },
+        ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 },
         android: { elevation: 6 },
       }),
     },

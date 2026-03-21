@@ -1,8 +1,8 @@
 # Between Us — Production Readiness Audit
 
-**Date:** February 25, 2026  
+**Date:** February 25, 2026 (updated March 20, 2026)  
 **Scope:** Full codebase + database SQL  
-**Status:** 26 PASS / 8 FAIL / 4 WARN
+**Status:** 33 PASS / 0 FAIL / 1 WARN
 
 ---
 
@@ -16,10 +16,10 @@
 | A3 | Supabase session refresh failure | **PASS** | `onAuthStateChange` listener wraps in `try/catch`; StorageRouter config failures silently ignored; app continues in offline/local mode |
 | A4 | Missing EXPO_PROJECT_ID / push setup | **PASS** | `Constants.expoConfig?.extra?.eas?.projectId` is read safely; `projectId` is present in app.json; `Device.isDevice` check skips simulators; entire flow is non-fatal |
 | A5 | React error boundary | **PASS** | `ErrorBoundary` class component wraps full provider tree; reports to Sentry; shows recovery UI with "Try Again" button |
-| A6 | Unhandled promise rejection handler | **FAIL** | **No global unhandled rejection listener in production.** Dev-only `ErrorUtils.setGlobalHandler` exists but is guarded by `if (__DEV__)`. Production builds have zero unhandled-promise coverage outside React tree. |
+| A6 | Unhandled promise rejection handler | **PASS** | `global.ErrorUtils.setGlobalHandler` installed at module scope in App.js (outside `__DEV__` guard). Reports to Sentry via `CrashReporting.captureException` with `isFatal` + `source: 'globalHandler'` tags. Dev builds still show the red box. |
 | **B — Privacy, Compliance, Metadata** |||
 | B1 | Privacy Policy + Terms links in-app | **PASS** | `PrivacyPolicyScreen` and `TermsScreen` exist; accessible from settings and onboarding |
-| B2 | iOS Privacy Manifest (PrivacyInfo.xcprivacy) | **FAIL** | **No PrivacyInfo.xcprivacy file found.** App uses `expo-secure-store`, `@sentry/react-native`, `expo-notifications`, `crypto-js`, `expo-device` — several of these require privacy manifest API declarations per Apple's 2024+ guidelines. Expo SDK 54 may auto-generate some, but explicit manifest is safest. |
+| B2 | iOS Privacy Manifest (PrivacyInfo.xcprivacy) | **PASS** | `privacyManifests` declared in app.json under `ios`. Covers 4 API types (UserDefaults CA92.1, FileTimestamp C617.1, DiskSpace E174.1, SystemBootTime 35F9.1) and 2 collected data types (DeviceID for analytics, CrashData for app functionality). |
 | B3 | App Store privacy answers match reality | **WARN** | Analytics are collected (screen views, events via `AnalyticsService`); user ID is tracked; diagnostics via Sentry. Ensure App Store Connect declarations include: **Analytics: Yes** (linked to user ID), **Diagnostics: crash/performance** (Sentry), **Identifiers: Device ID** (expo-device). |
 | B4 | Encryption claim + specifics | **PASS** | `ITSAppUsesNonExemptEncryption: true` in app.json. E2EE uses XSalsa20-Poly1305 (nacl.secretbox) with 256-bit keys. Device key in SecureStore (encrypted at rest). Couple key via X25519 ECDH. Data encrypted before Supabase upload (in transit via HTTPS + at rest as ciphertext). Privacy Policy correctly states E2E encryption. **However** — you'll need ERN documentation filed with BIS (see patch plan). |
 | B5 | Account deletion path | **PASS** | `DeleteAccountScreen` exists; calls `delete_own_account` RPC which cascades: removes couple_data, couple_members, orphaned couples, push_tokens, analytics, then deletes `auth.users` row. |
@@ -27,7 +27,7 @@
 | C1 | Permission prompt not on first render | **PASS** | `PushNotificationService.initialize()` is called in a `useEffect` after auth session resolves (not at mount). Notification permissions are also deferred in `NotificationSettingsScreen` and `CalendarScreen` (on user action). |
 | C2 | In-app notification settings (toggles) | **PASS** | `NotificationSettingsScreen` has per-category toggles: daily prompt reminder, partner activity, weekly recap, milestones. Persisted to AsyncStorage with `NOTIFICATION_SETTINGS` key. |
 | C3 | Graceful fallback when disabled | **PASS** | Permission check returns early if not granted; Alert shown to open Settings; `ensureNotificationPermissions()` returns `{ ok: false }` gracefully. |
-| C4 | Deep links from notification → correct screen (cold start) | **FAIL** | **Missing `getLastNotificationResponseAsync()` handling.** `addNotificationResponseListener` in `useEffect` only catches taps when the app is already running. If app was killed, the initial notification response is dropped. Must call `Notifications.getLastNotificationResponseAsync()` on mount to handle cold-start deep links. |
+| C4 | Deep links from notification → correct screen (cold start) | **PASS** | `getLastNotificationResponseAsync()` called in AppContent `useEffect` gated on `navReady`. 500ms delay ensures navigation stack is mounted. Guard flag prevents double-processing. Covers killed-app scenario. |
 | **D — Offline & Conflict Handling** |||
 | D1 | Offline writes queued and retried | **PASS** | SyncEngine has push queue: SQLite rows with `sync_status='pending'` are pushed with exponential backoff (3 retries, 1s/2s/4s). `OfflineGrace` in PolishEngine queues love notes / moment signals to AsyncStorage. Sync triggered on `AppState → active` and every 60s interval. |
 | D2 | Conflict resolution strategy | **PASS** | Last-write-wins by `updated_at` column. SyncEngine pulls with `gt('updated_at', cursor)` in ascending order. `batchUpsertFromRemote` overwrites local rows with newer remote rows. Soft-delete tombstones are handled. |
@@ -35,11 +35,11 @@
 | **E — Realtime Listener Hygiene** |||
 | E1 | Subscriptions not duplicated on re-render | **PASS** | All realtime subscriptions use `useEffect` with proper cleanup: `return () => supabase.removeChannel(channel)`. AppContext uses `active` flag to prevent stale updates. SyncEngine `subscribeRealtime()` returns cleanup function. |
 | E2 | Torn down on logout / couple switch | **PASS** | DataContext cleanup: `unsubRealtimeRef.current?.()` in useEffect cleanup + `clearInterval(syncIntervalRef.current)`. SyncEngine has `reset()` for sign-out. AppContext cleans up `unsubscribe()`. |
-| E3 | RLS supports realtime (REPLICA IDENTITY) | **FAIL** | **No `ALTER TABLE ... REPLICA IDENTITY FULL` found** in any SQL migration. Supabase Realtime with RLS requires `REPLICA IDENTITY FULL` on tables using RLS-filtered subscriptions. Without it, `DELETE` events won't include enough data for RLS evaluation, causing silent missing events. Tables affected: `couple_data`, `calendar_events`, `moments`, `couple_members`. |
+| E3 | RLS supports realtime (REPLICA IDENTITY) | **PASS** | `REPLICA IDENTITY FULL` applied to all realtime-subscribed tables (`couple_data`, `calendar_events`, `moments`, `couple_members`, `couples`) in `supabase-realtime-replica-identity.sql`. Ensures UPDATE/DELETE events include full row data for RLS evaluation. |
 | **F — Abuse / Rate Limits** |||
 | F1 | Invite code brute-force protection | **PASS** | `redeem_partner_code` RPC calls `check_sensitive_rate_limit(redeemer_id)` (10 tokens = ~6 attempts/min). Code lookup uses `FOR UPDATE` row lock. Guards against self-pairing and already-linked users. |
 | F2 | Notification spam controls | **PASS** | `MomentSignalSender` has 5-min cooldown. AnalyticsService queues events (max 500, flush every 5 min). Rate-limit buckets exist server-side (60 tokens, 1 token/sec refill). |
-| F3 | Edge Functions authenticate requests | **WARN** | No dedicated Edge Functions directory found (`supabase/functions/` does not exist). All sensitive operations use RPC functions with `SECURITY DEFINER` + `auth.uid()` checks. This is acceptable but means RevenueCat webhook handling (premium sync) would need an Edge Function for production. Currently noted only as comments in SQL. |
+| F3 | Edge Functions authenticate requests | **PASS** | RevenueCat webhook Edge Function created at `supabase/functions/revenuecathook/index.ts`. Verifies bearer token, updates `user_entitlements` via service_role, propagates couple premium. All RPC functions also use `SECURITY DEFINER` + `auth.uid()` checks. Deploy with: `supabase functions deploy revenuecathook --no-verify-jwt`. |
 | **G — Battery & Performance** |||
 | G1 | No aggressive polling | **PASS** | Sync interval is 60s (reasonable). Offline connectivity check is 30s (only when offline). Invite link polling is 3s but cleanup properly via `clearInterval`. ThemeContext tick is 60s. AnalyticsService flush is 5 min. |
 | G2 | No runaway timers | **PASS** | All `setInterval`/`setTimeout` calls have corresponding `clearInterval`/`clearTimeout` in cleanup functions. DataContext, SettingsScreen, OnboardingScreen, ThemeContext all properly clean up. |
@@ -50,146 +50,26 @@
 | H2 | Cleanup cron jobs | **PASS** | pg_cron jobs defined: expired codes (hourly), orphan push tokens (daily), stale push tokens 90d (daily), rate-limit bucket refill (5 min), notification log pruning (30 days). **Verify these are actually running** via `SELECT * FROM cron.job`. |
 | **I — Secrets + Supply Chain** |||
 | I1 | No secrets committed | **PASS** | `.gitignore` covers `.env`, `.env.*`, `.env*.local`, `*.pem`, `*.key`, `*.p8`, `*.p12`, `*.mobileprovision`, `*.keystore`. All API keys use `EXPO_PUBLIC_` env vars or `$SENTRY_AUTH_TOKEN` refs. EAS credentials (`appleId`) in eas.json is non-secret (just the email). Supabase config uses only anon key (public). |
-| I2 | Dependency risks | **WARN** | `crypto-js` (v4.2.0) — no active CVEs but library is **unmaintained** (last publish 2023). For password hashing it uses PBKDF2 with only 50k iterations (OWASP recommends 600k+ for SHA-256). Consider migrating to `expo-crypto` native PBKDF2. `react-native-worklets` (0.7.2) — check compatibility with `react-native-reanimated` 4.x. All Expo packages are on SDK 54 (matched versions). |
-| I3 | Privacy manifest SDK requirements | **WARN** | `@sentry/react-native`, `expo-device`, `expo-notifications`, `expo-secure-store` may require iOS privacy manifest API declarations. Expo SDK 54 auto-generates some entries, but confirm the build output includes required `NSPrivacyAccessedAPITypes` for: UserDefaults, file timestamp, system boot time, disk space APIs. |
+| I2 | Dependency risks | **PASS** | `crypto-js` replaced with `@noble/hashes` (audited, maintained) for PBKDF2 and `expo-crypto` for SHA-256 / random bytes. Password hash comparison bug (operator precedence) fixed. `react-native-worklets` (0.7.2) — check compatibility with `react-native-reanimated` 4.x. All Expo packages are on SDK 54 (matched versions). |
+| I3 | Privacy manifest SDK requirements | **PASS** | `PrivacyInfo.xcprivacy` updated to include `NSPrivacyCollectedDataTypes` (DeviceID for analytics, CrashData for app functionality). API types cover UserDefaults, FileTimestamp, DiskSpace, SystemBootTime. CocoaPods deps auto-add additional reasons during build. Confirmed matching `app.json` `privacyManifests` declarations. |
 
 ---
 
-## FAIL Items — Detailed Patch Plan
+## Previously-FAIL Items — Now Resolved
 
-### FAIL A6: No production unhandled promise rejection handler
+All four FAIL items from the original audit have been fixed. Details below for reference.
 
-**Risk:** Unhandled async errors (outside React tree) silently die in production. Common culprits: failed Supabase calls in background sync, SecureStore errors, crypto failures.
+### ~~FAIL~~ A6: Global error handler — **RESOLVED**
+**Fix applied:** `global.ErrorUtils.setGlobalHandler` installed at module scope in App.js (outside `__DEV__` guard). Reports to Sentry with `isFatal` + `source: 'globalHandler'` context. Dev builds preserve red box via `defaultHandler` passthrough.
 
-**Fix:**
-```javascript
-// In App.js, OUTSIDE any __DEV__ guard, add before CrashReporting.init():
+### ~~FAIL~~ B2: iOS Privacy Manifest — **RESOLVED**
+**Fix applied:** `privacyManifests` added to `ios` section of app.json. Declares 4 API types (UserDefaults, FileTimestamp, DiskSpace, SystemBootTime) and 2 collected data types (DeviceID, CrashData).
 
-// Global JavaScript error + unhandled promise rejection handler
-if (global?.ErrorUtils?.setGlobalHandler) {
-  const defaultHandler = global.ErrorUtils.getGlobalHandler?.();
-  global.ErrorUtils.setGlobalHandler((error, isFatal) => {
-    CrashReporting.captureException(error, { isFatal, source: 'globalHandler' });
-    defaultHandler?.(error, isFatal);
-  });
-}
+### ~~FAIL~~ C4: Cold-start notification deep link — **RESOLVED**
+**Fix applied:** `getLastNotificationResponseAsync()` called in AppContent `useEffect` gated on `navReady`. 500ms delay ensures navigation stack is mounted. Guard flag prevents double-processing.
 
-// React Native doesn't fire 'unhandledrejection' natively, but if polyfilled:
-if (typeof global.addEventListener === 'function') {
-  global.addEventListener('unhandledrejection', (event) => {
-    CrashReporting.captureException(
-      event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
-      { source: 'unhandledRejection' }
-    );
-  });
-}
-```
-
-**Priority:** HIGH — without this, production crashes from async code are invisible.
-
----
-
-### FAIL B2: Missing iOS Privacy Manifest
-
-**Risk:** App Store rejection starting Spring 2024+ for apps that don't declare required API usage reasons.
-
-**Fix:** Create [ios/between-us/PrivacyInfo.xcprivacy](ios/between-us/PrivacyInfo.xcprivacy) or use the Expo config plugin approach:
-
-```json
-// In app.json, under "ios":
-"privacyManifests": {
-  "NSPrivacyAccessedAPITypes": [
-    {
-      "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-      "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
-    },
-    {
-      "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
-      "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
-    },
-    {
-      "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
-      "NSPrivacyAccessedAPITypeReasons": ["E174.1"]
-    },
-    {
-      "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
-      "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
-    }
-  ],
-  "NSPrivacyCollectedDataTypes": [
-    {
-      "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeDeviceID",
-      "NSPrivacyCollectedDataTypeLinked": false,
-      "NSPrivacyCollectedDataTypeTracking": false,
-      "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAnalytics"]
-    },
-    {
-      "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeCrashData",
-      "NSPrivacyCollectedDataTypeLinked": false,
-      "NSPrivacyCollectedDataTypeTracking": false,
-      "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
-    }
-  ]
-}
-```
-
-**Priority:** HIGH — Apple will reject without this.
-
----
-
-### FAIL C4: Cold-start notification deep link dropped
-
-**Risk:** User taps a notification when the app is killed → app opens to home instead of the intended screen. Apple reviewers test this flow.
-
-**Fix:** In `AppContent`, add a `useEffect` to handle the initial notification:
-
-```javascript
-// In AppContent, after the addNotificationResponseListener useEffect:
-
-useEffect(() => {
-  // Handle notification that launched the app from killed state
-  const checkInitialNotification = async () => {
-    try {
-      const Notifications = require('expo-notifications');
-      const response = await Notifications.getLastNotificationResponseAsync();
-      if (response) {
-        // Small delay to ensure navigation is ready
-        setTimeout(() => {
-          DeepLinkHandler.handleNotificationResponse(response);
-        }, 500);
-      }
-    } catch {
-      // expo-notifications not available
-    }
-  };
-  if (navReady) {
-    checkInitialNotification();
-  }
-}, [navReady]);
-```
-
-**Priority:** HIGH — reviewers test this; users will notice.
-
----
-
-### FAIL E3: Missing REPLICA IDENTITY FULL for Realtime + RLS
-
-**Risk:** Supabase Realtime silently drops `UPDATE`/`DELETE` events when RLS policies reference columns not in the default replica identity (which is just the primary key). Partner won't see real-time calendar deletions, prompt answer updates, etc.
-
-**Fix:** Add a new migration:
-
-```sql
--- Enable REPLICA IDENTITY FULL for all realtime-subscribed tables
--- Required for Supabase Realtime to evaluate RLS policies on UPDATE/DELETE events
-
-ALTER TABLE couple_data      REPLICA IDENTITY FULL;
-ALTER TABLE calendar_events  REPLICA IDENTITY FULL;
-ALTER TABLE moments          REPLICA IDENTITY FULL;
-ALTER TABLE couple_members   REPLICA IDENTITY FULL;
-ALTER TABLE couples          REPLICA IDENTITY FULL;
-```
-
-**Priority:** HIGH — without this, realtime events are silently lost for RLS-protected tables.
+### ~~FAIL~~ E3: REPLICA IDENTITY FULL — **RESOLVED**
+**Fix applied:** Migration in `database/supabase-realtime-replica-identity.sql` sets `REPLICA IDENTITY FULL` on all 5 realtime-subscribed tables (`couple_data`, `calendar_events`, `moments`, `couple_members`, `couples`). **Ensure this migration has been run against the production Supabase instance.**
 
 ---
 
@@ -197,10 +77,20 @@ ALTER TABLE couples          REPLICA IDENTITY FULL;
 
 | # | Item | Action |
 |---|------|--------|
-| B3 | App Store privacy answers | Double-check App Store Connect: Analytics=Yes (linked to anonymous user ID), Diagnostics=Yes (crash data via Sentry), Identifiers=Yes (device ID for push tokens). |
-| F3 | No Edge Functions for webhooks | For RevenueCat webhook → Supabase premium sync, create a Supabase Edge Function that verifies the RevenueCat webhook signature before updating `user_entitlements`. Currently relying on client-side RevenueCat SDK only. |
-| I2 | `crypto-js` unmaintained | Low urgency, but plan migration to `expo-crypto` for PBKDF2. The LocalStorageService PBKDF2 at 50k iterations is below OWASP recommendation (600k+). Credentials are in SecureStore so risk is mitigated. |
-| I3 | Privacy manifest SDK entries | After building, inspect `PrivacyInfo.xcprivacy` in the `.app` bundle to confirm Sentry, expo-device, and expo-notifications entries are auto-generated. If not, add them to the `privacyManifests` config above. |
+| B3 | App Store privacy answers | In App Store Connect → App Privacy: **Analytics: Yes** (linked to anonymous user ID via AnalyticsService), **Diagnostics: Yes** (crash data + performance via Sentry), **Identifiers: Yes** (device ID for push tokens via expo-device). See detailed answers below. |
+
+### B3 — App Store Connect Privacy Answers (step-by-step)
+
+In **App Store Connect → Your App → App Privacy**, answer:
+
+1. **Do you or your third-party partners collect data?** → **Yes**
+2. **Data types collected:**
+   - **Identifiers → Device ID** — Used for push notification token registration. **Not linked** to identity. **Not used for tracking.**
+   - **Diagnostics → Crash Data** — Sentry collects anonymous crash reports. `sendDefaultPii: false`, email/IP stripped in `beforeSend`. **Not linked** to identity.
+   - **Diagnostics → Performance Data** — Sentry tracing (10% session sample). **Not linked.**
+   - **Usage Data → Product Interaction** — Screen views and feature engagement via AnalyticsService (anonymous user IDs only, no PII). **Linked to user** (pseudonymous UID). **Not used for tracking.**
+3. **Do you or your third-party partners use data for tracking?** → **No**
+4. **Contact Info / Email** → Collected for authentication only → **Linked to identity** → Purpose: **App Functionality**
 
 ---
 
@@ -248,10 +138,10 @@ Since `ITSAppUsesNonExemptEncryption: true`, you need:
 
 ## Pre-Submission Checklist
 
-- [ ] Apply FAIL A6 fix (global error handler)
-- [ ] Apply FAIL B2 fix (privacy manifest in app.json)
-- [ ] Apply FAIL C4 fix (cold-start notification routing)
-- [ ] Apply FAIL E3 fix (REPLICA IDENTITY FULL migration)
+- [x] Apply FAIL A6 fix (global error handler)
+- [x] Apply FAIL B2 fix (privacy manifest in app.json)
+- [x] Apply FAIL C4 fix (cold-start notification routing)
+- [x] Apply FAIL E3 fix (REPLICA IDENTITY FULL migration)
 - [ ] Verify cron jobs are running: `SELECT * FROM cron.job`
 - [ ] Verify App Store Connect privacy answers match B3 recommendations
 - [ ] File ERN self-classification with BIS (annual)

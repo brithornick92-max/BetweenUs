@@ -348,8 +348,8 @@ const styles = StyleSheet.create({
   },
   lockedTitle: {
     fontFamily: Platform.select({
-      ios: "PlayfairDisplay_700Bold",
-      android: "PlayfairDisplay_700Bold",
+      ios: "DMSerifDisplay_400Regular",
+      android: "DMSerifDisplay_400Regular",
     }),
     fontSize: 30,
     fontWeight: "700",

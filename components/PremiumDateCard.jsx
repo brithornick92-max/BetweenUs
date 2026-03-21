@@ -78,8 +78,8 @@ const PremiumDateCard = ({
               <Text style={[styles.categoryText, { color: loadMeta.color }]}>{loadMeta.icon} {loadMeta.label.toUpperCase()}</Text>
             </View>
             {_matchLabel ? (
-              <View style={[styles.badgePill, { borderColor: '#C9A84C50' }]}>
-                <Text style={[styles.categoryText, { color: '#C9A84C' }]}>{_matchLabel}</Text>
+              <View style={[styles.badgePill, { borderColor: colors.primaryMuted + '50' }]}>
+                <Text style={[styles.categoryText, { color: colors.primaryMuted }]}>{_matchLabel}</Text>
               </View>
             ) : null}
           </View>

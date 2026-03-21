@@ -64,7 +64,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
       if (s) badges.push({ label: s.label, icon: s.icon, color: s.color });
     }
     if (date?._matchLabel) {
-      badges.unshift({ label: date._matchLabel, icon: '', color: '#C9A84C' });
+      badges.unshift({ label: date._matchLabel, icon: '', color: '#9A2E5E' });
     }
     return badges;
   }, [date?.heat, date?.load, date?.style, date?._matchLabel]);
