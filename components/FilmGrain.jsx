@@ -2,7 +2,7 @@
 // Renders a static noise pattern at very low opacity to give
 // ink-black backgrounds a tactile, warm-paper feeling.
 import React, { useMemo } from 'react';
-import { View, StyleSheet, Dimensions, Platform } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -43,10 +43,6 @@ const FilmGrain = ({ opacity = 0.035 }) => {
     }
     return result;
   }, []);
-
-  // Skip on Android for perf — the effect is subtle and Android
-  // composites many small views more slowly than iOS.
-  if (Platform.OS === 'android') return null;
 
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity }]}>

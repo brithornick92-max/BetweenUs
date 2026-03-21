@@ -344,6 +344,8 @@ export default function HomeScreen({ navigation }) {
                   activeOpacity={0.82}
                   onPress={handlePrimaryCTA}
                   onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+                  accessibilityRole="button"
+                  accessibilityLabel={primaryCTALabel}
                 >
                   <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
                   <MaterialCommunityIcons name="arrow-right" size={16} color="#F2E9E6" />
@@ -435,6 +437,8 @@ export default function HomeScreen({ navigation }) {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               }}
               activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel={`Send a quick moment to ${partnerLabel}`}
             >
               <MaterialCommunityIcons name="shimmer" size={24} color={colors.primary} />
               <Text style={[styles.momentToggleText, { color: colors.textMuted }]}>

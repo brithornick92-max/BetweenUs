@@ -11,7 +11,6 @@ import {
   Alert,
   Animated,
   RefreshControl,
-  Platform,
   KeyboardAvoidingView,
   Switch,
   Dimensions,
@@ -275,8 +274,8 @@ export default function CalendarScreen({ navigation, route }) {
   // Date/time picker state
   const [pickerDate, setPickerDate] = useState(new Date());
   const [pickerTime, setPickerTime] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios');
-  const [showTimePicker, setShowTimePicker] = useState(Platform.OS === 'ios');
+  const [showDatePicker, setShowDatePicker] = useState(true);
+  const [showTimePicker, setShowTimePicker] = useState(true);
 
   const [form, setForm] = useState({
     title: '',
@@ -642,7 +641,7 @@ export default function CalendarScreen({ navigation, route }) {
       </TouchableOpacity>
 
       <Modal visible={modalOpen} animationType="fade" transparent>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+        <KeyboardAvoidingView behavior="padding" style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>New Entry</Text>
@@ -663,59 +662,31 @@ export default function CalendarScreen({ navigation, route }) {
               {/* Date Picker */}
               <View style={styles.pickerSection}>
                 <Text style={[styles.pickerLabel, { color: colors.textMuted }]}>Date</Text>
-                {Platform.OS === 'android' && (
-                  <TouchableOpacity
-                    style={[styles.pickerTrigger, { borderColor: colors.border }]}
-                    onPress={() => setShowDatePicker(true)}
-                  >
-                    <MaterialCommunityIcons name="calendar" size={18} color={colors.primary} />
-                    <Text style={[styles.pickerTriggerText, { color: colors.text }]}>
-                      {pickerDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={pickerDate}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'spinner'}
-                    onChange={(event, date) => {
-                      if (Platform.OS === 'android') setShowDatePicker(false);
-                      if (date) setPickerDate(date);
-                    }}
-                    themeVariant={isDark ? 'dark' : 'light'}
-                    style={styles.picker}
-                  />
-                )}
+                <DateTimePicker
+                  value={pickerDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={(event, date) => {
+                    if (date) setPickerDate(date);
+                  }}
+                  themeVariant={isDark ? 'dark' : 'light'}
+                  style={styles.picker}
+                />
               </View>
 
               {/* Time Picker */}
               <View style={styles.pickerSection}>
                 <Text style={[styles.pickerLabel, { color: colors.textMuted }]}>Time</Text>
-                {Platform.OS === 'android' && (
-                  <TouchableOpacity
-                    style={[styles.pickerTrigger, { borderColor: colors.border }]}
-                    onPress={() => setShowTimePicker(true)}
-                  >
-                    <MaterialCommunityIcons name="clock-outline" size={18} color={colors.primary} />
-                    <Text style={[styles.pickerTriggerText, { color: colors.text }]}>
-                      {pickerTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {showTimePicker && (
-                  <DateTimePicker
-                    value={pickerTime}
-                    mode="time"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'spinner'}
-                    onChange={(event, time) => {
-                      if (Platform.OS === 'android') setShowTimePicker(false);
-                      if (time) setPickerTime(time);
-                    }}
-                    themeVariant={isDark ? 'dark' : 'light'}
-                    style={styles.picker}
-                  />
-                )}
+                <DateTimePicker
+                  value={pickerTime}
+                  mode="time"
+                  display="spinner"
+                  onChange={(event, time) => {
+                    if (time) setPickerTime(time);
+                  }}
+                  themeVariant={isDark ? 'dark' : 'light'}
+                  style={styles.picker}
+                />
               </View>
 
               <TextInput
@@ -804,7 +775,7 @@ const createStyles = (colors) => StyleSheet.create({
   mainPadding: { paddingHorizontal: SPACING.screen, paddingTop: 20 },
   topHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
   editorialTitle: { fontFamily: TYPOGRAPHY.h1.fontFamily, fontSize: 34, fontWeight: '400', letterSpacing: -0.3 },
-  fab: { position: 'absolute', bottom: 100, alignSelf: 'center', left: '50%', marginLeft: -28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', ...Platform.select({ ios: { shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 }, android: { elevation: 8 } }) },
+  fab: { position: 'absolute', bottom: 100, alignSelf: 'center', left: '50%', marginLeft: -28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 },
   calendarContainer: { marginBottom: 40 },
   calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 },
   monthTitle: { fontFamily: TYPOGRAPHY.h1.fontFamily, fontSize: 26, fontWeight: '400' },
@@ -843,7 +814,7 @@ const createStyles = (colors) => StyleSheet.create({
   input: { borderBottomWidth: 1, paddingVertical: 12, fontSize: 16, fontFamily: TYPOGRAPHY.body.fontFamily },
   row: { flexDirection: 'row', gap: 16 },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
-  primaryBtn: { backgroundColor: colors.primary, paddingVertical: 18, borderRadius: BORDER_RADIUS.full, alignItems: 'center', marginTop: 20, ...Platform.select({ ios: { shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 }, android: { elevation: 6 } }) },
+  primaryBtn: { backgroundColor: colors.primary, paddingVertical: 18, borderRadius: BORDER_RADIUS.full, alignItems: 'center', marginTop: 20, shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 },
   primaryBtnText: { color: '#F2E9E6', fontSize: 14, fontWeight: '600', letterSpacing: 1.5, textTransform: 'uppercase' },
   eventTypeSelector: { marginVertical: 8 },
   eventTypeSelectorLabel: { fontSize: 13, fontWeight: '600', marginBottom: 10, fontFamily: TYPOGRAPHY.body.fontFamily },
@@ -883,7 +854,7 @@ const createStyles = (colors) => StyleSheet.create({
     backgroundColor: colors.primary + '0A',
   },
   countdownLabel: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', default: 'sans-serif' }),
+    fontFamily: 'Lato-Bold',
     fontSize: 10,
     letterSpacing: 2,
     marginBottom: 4,

@@ -10,7 +10,6 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
   Animated,
-  Platform,
   Share,
   TextInput,
   ActivityIndicator,
@@ -301,7 +300,7 @@ export default function OnboardingScreen({ navigation }) {
 
   const renderYourStory = () => (
     <KeyboardAvoidingView 
-      behavior={Platform.OS === "ios" ? "padding" : "height"} 
+      behavior="padding"
       style={styles.content}
     >
       <ScrollView
@@ -375,9 +374,6 @@ export default function OnboardingScreen({ navigation }) {
             <Text style={{ color: colors.primary }}>{daysCounting}</Text> days and counting
           </Text>
 
-          {Platform.OS === 'android' && showDatePicker && (
-            <View style={styles.datePickerContainer}>
-          
           {/* Simple Celebration Animation triggered when days > 0 */}
           {daysCounting !== '0' && (
             <Animated.View 
@@ -387,26 +383,13 @@ export default function OnboardingScreen({ navigation }) {
               <MaterialCommunityIcons name="heart" size={24} color={colors.primary} />
             </Animated.View>
           )}
-              <DateTimePicker
-                value={anniversaryDate}
-                mode="date"
-                display="default"
-                onChange={(event, date) => {
-                  setShowDatePicker(false);
-                  if (date) setAnniversaryDate(date);
-                }}
-                textColor={colors.text}
-              />
-            </View>
-          )}
 
-          {Platform.OS === 'ios' && (
-            <Modal
-              visible={showDatePicker}
-              transparent
-              animationType="fade"
-              onRequestClose={() => setShowDatePicker(false)}
-            >
+          <Modal
+            visible={showDatePicker}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowDatePicker(false)}
+          >
               <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
                 <View style={styles.datePickerBackdrop}>
                   <TouchableWithoutFeedback onPress={() => {}}>
@@ -444,7 +427,6 @@ export default function OnboardingScreen({ navigation }) {
                 </View>
               </TouchableWithoutFeedback>
             </Modal>
-          )}
         </View>
 
         <TouchableOpacity 
@@ -473,10 +455,9 @@ export default function OnboardingScreen({ navigation }) {
 
   const TONE_OPTIONS = NicknameEngine.TONE_OPTIONS;
 
-  // Step 2: Preferences (season, heat, tone)
   const renderPreferences = () => (
     <KeyboardAvoidingView 
-      behavior={Platform.OS === "ios" ? "padding" : "height"} 
+      behavior="padding"
       style={styles.content}
     >
       <ScrollView
@@ -691,7 +672,7 @@ export default function OnboardingScreen({ navigation }) {
       <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
         <KeyboardAvoidingView
           style={styles.cloudAuthOverlay}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior="padding"
         >
           <View style={[styles.cloudAuthCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <MaterialCommunityIcons name="cloud-lock-outline" size={32} color={colors.primary} style={{ marginBottom: 12 }} />
@@ -767,7 +748,7 @@ const createStyles = (colors) => StyleSheet.create({
     color: colors.text,
     fontSize: 20,
     paddingVertical: 10,
-    fontFamily: Platform.OS === 'ios' ? 'Lato-Regular' : 'sans-serif',
+    fontFamily: 'Lato-Regular',
   },
   question: {
     color: colors.text,

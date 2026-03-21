@@ -3,7 +3,7 @@
 // Used across all screens for consistent premium feel
 
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -67,20 +67,14 @@ export default function GlassCard({
       )}
 
       {/* Glass card */}
-      <View style={[styles.card, v, Platform.OS === 'ios' ? styles.shadowIOS : styles.shadowAndroid]}>
-        {Platform.OS === 'ios' ? (
-          <BlurView
-            intensity={blurIntensity}
-            tint="dark"
-            style={styles.blur}
-          >
-            <View style={styles.content}>{children}</View>
-          </BlurView>
-        ) : (
-          <View style={[styles.content, { backgroundColor: v.backgroundColor }]}>
-            {children}
-          </View>
-        )}
+      <View style={[styles.card, v, styles.shadowIOS]}>
+        <BlurView
+          intensity={blurIntensity}
+          tint="dark"
+          style={styles.blur}
+        >
+          <View style={styles.content}>{children}</View>
+        </BlurView>
       </View>
     </Animated.View>
   );
@@ -112,9 +106,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
-  },
-  shadowAndroid: {
-    elevation: 8,
   },
   blur: {
     flex: 1,

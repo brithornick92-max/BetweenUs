@@ -1,5 +1,4 @@
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
-import { Platform } from 'react-native';
 
 // ✅ Matches RevenueCat dashboard entitlement identifier exactly
 const ENTITLEMENT_ID = 'Between Us Pro';
@@ -35,13 +34,10 @@ class RevenueCatService {
       // Keep SDK logs quiet to avoid noisy non-fatal offerings spam
       Purchases.setLogLevel(LOG_LEVEL.WARN);
 
-      const apiKey =
-        Platform.OS === 'ios'
-          ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY
-          : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
+      const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
 
       if (!apiKey) {
-        console.warn('⚠️ RevenueCat API key missing. Set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY / ANDROID.');
+        console.warn('⚠️ RevenueCat API key missing. Set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY.');
         return;
       }
 

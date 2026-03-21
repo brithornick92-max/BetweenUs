@@ -15,7 +15,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Switch,
-  Platform,
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -75,7 +74,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
             value={boundaries.hideSpicy}
             onValueChange={toggleSpicy}
             trackColor={{ false: colors.border, true: colors.primary + '60' }}
-            thumbColor={boundaries.hideSpicy ? colors.primary : Platform.OS === 'android' ? '#ccc' : undefined}
+            thumbColor={boundaries.hideSpicy ? colors.primary : undefined}
             ios_backgroundColor={colors.border}
           />
         </View>

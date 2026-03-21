@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Platform,
   Modal,
   Share,
   TextInput,
@@ -311,7 +310,6 @@ export default function SettingsScreen({ navigation }) {
 
   // ─── Date handlers ───
   const handleDateChange = (event, date) => {
-    if (Platform.OS === 'android') setShowDatePicker(false);
     if (date) { setSelectedDate(date); handleSaveRelationshipDate(date); }
   };
 
@@ -393,7 +391,7 @@ export default function SettingsScreen({ navigation }) {
       <GlowOrb color={withAlpha(colors.accent, 0.06)} size={140} top={300} left={SCREEN_WIDTH - 80} delay={1500} />
       <FilmGrain />
       <SafeAreaView style={s.safe} edges={['top']}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView
           style={s.scroll}
           contentContainerStyle={s.scrollContent}
@@ -743,7 +741,7 @@ export default function SettingsScreen({ navigation }) {
           <DateTimePicker
             value={selectedDate}
             mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            display="spinner"
             onChange={handleDateChange}
             maximumDate={new Date()}
             minimumDate={new Date(1950, 0, 1)}
@@ -777,7 +775,7 @@ export default function SettingsScreen({ navigation }) {
 
         {/* ─── Cloud Auth Password Modal ─── */}
         <Modal visible={showCloudAuthModal} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
-          <KeyboardAvoidingView style={s.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <KeyboardAvoidingView style={s.modalOverlay} behavior="padding">
             <View style={[s.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[s.modalIcon, { backgroundColor: colors.primary + '18' }]}>
                 <MaterialCommunityIcons name="cloud-lock-outline" size={24} color={colors.primary} />
@@ -867,7 +865,7 @@ const s = StyleSheet.create({
     gap: 8,
   },
   profileName: {
-    fontFamily: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular', default: 'serif' }),
+    fontFamily: 'DMSerifDisplay-Regular',
     fontSize: 24,
     letterSpacing: -0.3,
   },
@@ -917,15 +915,10 @@ const s = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#070509',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 14,
-      },
-      android: { elevation: 3 },
-    }),
+    shadowColor: '#070509',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
   },
 
   // ─── Row items ───
@@ -1043,7 +1036,7 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   codeText: {
-    fontFamily: Platform.select({ ios: 'Courier', android: 'monospace' }),
+    fontFamily: 'Courier',
     fontSize: 24,
     letterSpacing: 4,
   },
@@ -1174,15 +1167,10 @@ const s = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#070509',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.12,
-        shadowRadius: 28,
-      },
-      android: { elevation: 10 },
-    }),
+    shadowColor: '#070509',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 28,
   },
   modalIcon: {
     width: 52,

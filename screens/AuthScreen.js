@@ -248,6 +248,7 @@ export default function AuthScreen() {
                     activeOpacity={0.7}
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: ageConfirmed }}
+                    accessibilityLabel="I confirm I am 18 years or older"
                   >
                     <MaterialCommunityIcons
                       name={ageConfirmed ? "checkbox-marked" : "checkbox-blank-outline"}
@@ -263,6 +264,7 @@ export default function AuthScreen() {
                     activeOpacity={0.7}
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: termsAccepted }}
+                    accessibilityLabel="I agree to the Terms of Service and Privacy Policy"
                   >
                     <MaterialCommunityIcons
                       name={termsAccepted ? "checkbox-marked" : "checkbox-blank-outline"}

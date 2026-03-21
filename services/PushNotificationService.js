@@ -39,17 +39,6 @@ const PushNotificationService = {
       }),
     });
 
-    // Set up Android notification channel
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'Between Us',
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF69B4',
-        sound: 'default',
-      });
-    }
-
     // Request permission
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
