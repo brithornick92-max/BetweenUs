@@ -35,7 +35,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `Free version: Preview 3 read-only prompts (Heat levels 1-3)\n\nPremium:\n• Monthly: ${FALLBACK_PRICES.monthly} per couple\n• Yearly: ${FALLBACK_PRICES.yearly} (save 48%!)\n• Lifetime: ${FALLBACK_PRICES.lifetime} one-time payment\n\nPremium unlocks unlimited prompts, responses, love notes, calendar, partner connection, and more. One subscription covers both partners.`,
+        a: `Free version: Preview 3 read-only prompts (Heat levels 1-3)\n\nPremium:\n• Monthly: ${FALLBACK_PRICES.monthly} per couple\n• Yearly: ${FALLBACK_PRICES.yearly} (save 48%!)\n• Lifetime: ${FALLBACK_PRICES.lifetime} one-time payment\n\nPremium unlocks unlimited prompts, responses, love notes, calendar, partner connection, and more. One subscription covers both partners.\n\nData export is available to all users (free and premium) so you always have access to your own data.`,
       },
       {
         q: 'How do I get started?',
@@ -52,7 +52,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How do I link with my partner?',
-        a: '1. Both partners create accounts\n2. One partner generates a link code\n3. The other partner enters the code\n4. Both partners confirm the link\n5. You\'re connected!',
+        a: '1. Both partners create accounts\n2. One partner generates a QR code\n3. The other partner scans the QR code (or enters the code manually)\n4. Both partners confirm the link\n5. You\'re connected!',
       },
       {
         q: 'Can I unlink from my partner?',
@@ -65,7 +65,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Absolutely! Your journal entries are end-to-end encrypted, we never sell your data, we can\'t read your encrypted content, and only you and your linked partner can see shared content.',
+        a: 'Absolutely! All your content is end-to-end encrypted — not just journals, but prompts, love notes, memories, rituals, and more. We never sell your data, we can\'t read your encrypted content, and only you and your linked partner can see shared content.',
       },
       {
         q: 'Can my partner see everything I write?',
@@ -77,7 +77,15 @@ const FAQ_DATA = [
       },
       {
         q: 'Can Between Us read my journal entries?',
-        a: 'No! Your intimate content is end-to-end encrypted on your device before sending. We can\'t decrypt your content - only you and your linked partner have the keys.',
+        a: 'No! All your content (journals, prompts, love notes, memories, rituals, and more) is end-to-end encrypted on your device before sending. We can\'t decrypt your content — only you and your linked partner have the keys.',
+      },
+      {
+        q: 'Can I lock the app with Face ID or a PIN?',
+        a: 'Yes! Go to Settings > Privacy & Security to set up a PIN code and optionally enable Face ID, Touch ID, or fingerprint unlock. Your biometric data never leaves your device — we only check whether your device confirms your identity.',
+      },
+      {
+        q: 'What happens if I lose my phone?',
+        a: 'If you have cloud sync enabled, your encrypted data is backed up to the cloud and can be restored on a new device by signing in.\n\nIf you don\'t have cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable. We strongly recommend enabling cloud sync in Settings.',
       },
     ],
   },
@@ -100,6 +108,10 @@ const FAQ_DATA = [
         q: 'What if a prompt makes me uncomfortable?',
         a: 'Skip it immediately, adjust your heat level, provide feedback, or use content filtering in settings. You\'re always in control.',
       },
+      {
+        q: 'Does the app work offline?',
+        a: 'Yes! Between Us is built local-first. All your content is stored on your device and works without internet. When you\'re back online and have cloud sync enabled, your data syncs automatically with your partner.',
+      },
     ],
   },
   {
@@ -107,7 +119,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Love notes with photo attachments\n• Date night catalog with planning tools\n• Night rituals and custom routines\n• Calendar and scheduling\n• Partner connection and cloud sync\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Soft Boundaries (hide content privately)\n• Data export (journals, prompts, memories, and more)\n• Both partners get access',
+        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Love notes with photo attachments\n• Date night catalog with planning tools\n• Night rituals and custom routines\n• Calendar and scheduling\n• Partner connection and cloud sync\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Soft Boundaries (hide content privately)\n• Both partners get access',
       },
       {
         q: 'How do I subscribe?',

@@ -169,7 +169,7 @@ export function MemoryProvider({ children }) {
       const dbUpdates = {};
       if (updates.content !== undefined || updates.text !== undefined) {
         const kt = updates.isPrivate ? 'device' : 'couple';
-        const { default: E2EEncryption } = await import('../services/localfirst/E2EEncryption');
+        const { default: E2EEncryption } = await import('../services/e2ee/E2EEncryption');
         dbUpdates.body_cipher = await E2EEncryption.encryptString(
           updates.content || updates.text || '',
           kt,

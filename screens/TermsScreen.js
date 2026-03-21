@@ -86,13 +86,16 @@ const TermsScreen = ({ navigation, route }) => {
             • Any unused portion of a free trial is forfeited when you purchase a subscription{'\n'}
             • One subscription covers both partners when accounts are linked{'\n'}
             • Prices: {FALLBACK_PRICES.monthly}, {FALLBACK_PRICES.yearly}, {FALLBACK_PRICES.lifetime} lifetime{'\n'}
-            • EU/UK users may have a 14-day right of withdrawal as provided by Apple/Google store policies
+            • EU/UK users have a 14-day right of withdrawal as provided by the Consumer Rights Directive and applicable Apple/Google store policies
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>6. Privacy & Data</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             Your privacy is important to us. Please review our Privacy Policy to understand how we collect, 
-            use, and protect your data. Journal entries are end-to-end encrypted.
+            use, and protect your data. All user-created content is end-to-end encrypted.{'\n\n'}
+            Important: Your encryption keys are stored on your device. If you lose access to your device without having 
+            cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable. We cannot 
+            recover encrypted data on your behalf.
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>7. Content Guidelines</Text>
@@ -104,47 +107,67 @@ const TermsScreen = ({ navigation, route }) => {
             • Impersonate others or provide false information
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>8. Intellectual Property</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>8. User-Generated Content</Text>
+          <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
+            You retain ownership of content you create in the App. By using the App, you grant us a limited 
+            license to transmit and store your encrypted content solely for the purpose of providing the service. 
+            You are solely responsible for the content you create and share. We are not liable for any user-generated 
+            content and do not monitor encrypted content.
+          </Text>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>9. Intellectual Property</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             All content, prompts, and features in the App are owned by Between Us and protected by copyright 
             and intellectual property laws. You may not copy, modify, or distribute our content without permission.
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>9. Disclaimer of Warranties</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>10. Disclaimer of Warranties</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             The App is provided "as is" without warranties of any kind. We do not guarantee that the App will 
             be error-free, secure, or always available.
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>10. Limitation of Liability</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>11. Limitation of Liability</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             Between Us shall not be liable for any indirect, incidental, special, or consequential damages 
             arising from your use of the App.
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>11. Termination</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>12. Indemnification</Text>
+          <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
+            You agree to indemnify and hold harmless Between Us and its developers from any claims, damages, 
+            losses, or expenses (including legal fees) arising from your use of the App, your violation of 
+            these Terms, or your violation of any third-party rights.
+          </Text>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>13. Termination</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             We reserve the right to suspend or terminate your account if you violate these Terms. You may 
             delete your account at any time from the Settings screen.
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>12. Changes to Terms</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>14. Changes to Terms</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             We may update these Terms from time to time. Continued use of the App after changes constitutes 
             acceptance of the new Terms.
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>13. Contact Us</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>15. Contact Us</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             If you have questions about these Terms, please contact us at:{'\n'}
             Email: brittanyapps@outlook.com{'\n'}
             Response time: 24-48 hours
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>14. Governing Law</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>16. Governing Law & Dispute Resolution</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            These Terms are governed by the laws of the United States. Any disputes shall be resolved in 
-            accordance with applicable law.
+            These Terms are governed by the laws of the United States. Any dispute arising from these Terms 
+            or your use of the App shall be resolved through binding arbitration on an individual basis, 
+            rather than in court. You agree to waive your right to participate in a class action lawsuit or 
+            class-wide arbitration.{'\n\n'}
+            If arbitration is not enforceable in your jurisdiction, disputes shall be resolved in the courts 
+            of competent jurisdiction in the United States. Nothing in this section limits your statutory 
+            rights under applicable consumer protection law.
           </Text>
 
           <View style={{ height: 100 }} />
