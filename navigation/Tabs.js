@@ -32,7 +32,7 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
       damping: 15,
       stiffness: 150,
     });
-    opacity.value = withTiming(focused ? 1 : 0.7, { duration: 200 });
+    opacity.value = withTiming(focused ? 1 : 0.7, { duration: 300 });
   }, [focused]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: SANS_BOLD,
     fontSize: 10,
-    letterSpacing: 1.2,
+    letterSpacing: 1.5,
     marginTop: 2,
     textTransform: "uppercase",
   },

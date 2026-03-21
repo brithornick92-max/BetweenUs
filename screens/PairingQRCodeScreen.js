@@ -173,6 +173,6 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,
   },
-  primaryButtonText: { color: '#0B0B0B', fontWeight: '700' },
+  primaryButtonText: { color: '#070509', fontWeight: '700' },
   notice: { ...TYPOGRAPHY.body, marginTop: SPACING.md },
 });

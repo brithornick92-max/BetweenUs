@@ -112,16 +112,16 @@ export default function RitualRemindersScreen({ navigation }) {
           </View>
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
             <MaterialCommunityIcons name="bell-ring-outline" size={56} color={theme.colors.primary} style={{ marginBottom: 16 }} />
-            <Text style={{ color: theme.colors.text, fontSize: 20, fontWeight: '600', marginBottom: 8, textAlign: 'center' }}>Premium Feature</Text>
+            <Text style={{ color: theme.colors.text, fontSize: 20, fontWeight: '600', marginBottom: 8, textAlign: 'center' }}>Part of the deeper experience</Text>
             <Text style={{ color: theme.colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
-              Ritual reminders help you build consistent connection habits with your partner. Upgrade to schedule personalized reminders.
+              Ritual reminders help you build consistent connection habits with your partner. Part of the deeper experience — schedule personalized reminders.
             </Text>
             <TouchableOpacity
               onPress={() => showPaywall('ritualReminders')}
               style={{ backgroundColor: theme.colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 }}
               activeOpacity={0.85}
             >
-              <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Upgrade to Premium</Text>
+              <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

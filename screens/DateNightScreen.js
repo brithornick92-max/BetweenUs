@@ -235,7 +235,7 @@ const CardStack = forwardRef(function CardStack(
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.08)',
     ...Platform.select({
       ios: {
         shadowColor: '#070509',
@@ -700,7 +700,7 @@ export default function DateNightScreen({ navigation }) {
         {allSelected && !deckDone && deck.length > 0 && (
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: isDark ? colors.surface : '#F2E9E6', borderColor: colors.border }]}
+              style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
               onPress={() => stackRef.current?.swipeLeft()}
               activeOpacity={0.8}
             >
@@ -738,7 +738,7 @@ export default function DateNightScreen({ navigation }) {
         {/* Free-user teaser banner */}
         {allSelected && !isPremium && !deckDone && deck.length > 0 && (
           <TouchableOpacity
-            style={[styles.teaserBanner, { backgroundColor: isDark ? colors.primary + '14' : colors.primary + '0A', borderColor: colors.primary + '25' }]}
+            style={[styles.teaserBanner, { backgroundColor: colors.primary + '14', borderColor: colors.primary + '25' }]}
             onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
             activeOpacity={0.8}
           >
@@ -749,7 +749,7 @@ export default function DateNightScreen({ navigation }) {
               </Text>
             </View>
             <Text style={[styles.teaserBody, { color: colors.textMuted }]}>
-              From cozy nights in to adventurous outings — upgrade to unlock every idea
+              From cozy nights in to adventurous outings — discover the full collection
             </Text>
             <View style={styles.teaserChips}>
               {DIMS.heat.map(h => (
@@ -773,7 +773,7 @@ export default function DateNightScreen({ navigation }) {
                 return (
                   <TouchableOpacity
                     key={d.id || i}
-                    style={[styles.likedCard, { backgroundColor: isDark ? colors.surface : '#FAF6F2', borderColor: hm.color + '30' }]}
+                    style={[styles.likedCard, { backgroundColor: colors.surface, borderColor: hm.color + '30' }]}
                     onPress={() => openDate(d)}
                     activeOpacity={0.85}
                   >
@@ -929,7 +929,7 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.md,
@@ -946,7 +946,7 @@ const styles = StyleSheet.create({
   backPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: BORDER_RADIUS.full,

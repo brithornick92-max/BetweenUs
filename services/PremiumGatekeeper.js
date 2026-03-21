@@ -44,7 +44,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: 'Free users can preview 3 read-only prompts. Upgrade to premium for unlimited prompts and responses.'
+          message: 'Free users can preview 3 read-only prompts. Discover the full experience for unlimited prompts and responses.'
         };
       }
       
@@ -81,7 +81,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: 'Date ideas require premium. Upgrade for the full date night catalog.'
+          message: 'Date ideas require premium. Discover the full date night catalog.'
         };
       }
       

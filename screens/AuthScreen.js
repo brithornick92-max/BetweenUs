@@ -99,7 +99,7 @@ export default function AuthScreen() {
       impact(ImpactFeedbackStyle.Medium).catch(() => {});
       Alert.alert("Error", error?.message ?? "Something went wrong.");
     }
-  }, [signIn, signUp, email, password, displayName, confirmPassword, isSignUp]);
+  }, [signIn, signUp, email, password, displayName, confirmPassword, isSignUp, ageConfirmed, termsAccepted]);
 
   const toggleMode = useCallback(() => {
     selection().catch(() => {});

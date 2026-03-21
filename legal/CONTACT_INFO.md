@@ -85,7 +85,6 @@ For urgent safety concerns:
 ## App Store Support
 
 **Apple App Store:** Available on the App Store (search "Between Us")
-**Google Play Store:** Coming soon
 
 ---
 

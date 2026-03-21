@@ -1,6 +1,6 @@
 # Frequently Asked Questions (FAQ)
 
-**Last Updated: February 22, 2026**
+**Last Updated: March 21, 2026**
 
 ---
 
@@ -61,7 +61,6 @@ Premium unlocks unlimited prompts, responses, love notes, calendar, partner conn
 **Note:** Pricing is per couple, not per person. One subscription covers both partners when linked.
 
 ### How do I get started?
-1. Download the app from the App Store or Google Play
 2. Create your account
 3. Customize your partner names
 4. Link with your partner (optional)
@@ -131,9 +130,9 @@ No! You control what you share:
 
 ### Is my payment information secure?
 Yes! We never see your payment details:
-- Payments processed by Apple/Google
+- Payments processed by Apple
 - We don't store credit card information
-- Subscriptions managed through your app store account
+- Subscriptions managed through your App Store account
 
 ### Can Between Us read my journal entries?
 No! Your journal entries, prompt responses, and love notes are end-to-end encrypted:
@@ -145,7 +144,7 @@ No! Your journal entries, prompt responses, and love notes are end-to-end encryp
 **Note:** Some metadata (timestamps, mood labels, heat-level preferences) is not encrypted so the app can provide features like filtering and calendar views. This metadata is protected by access controls and standard server-side encryption.
 
 ### Does the app collect biometric data?
-No. Between Us uses your device's built-in Face ID or Touch ID for app lock, but no biometric data is ever collected, stored, or transmitted by the app. Authentication happens entirely within your device's secure hardware (Secure Enclave on iOS, StrongBox/TEE on Android).
+No. Between Us uses your device's built-in Face ID or Touch ID for app lock, but no biometric data is ever collected, stored, or transmitted by the app. Authentication happens entirely within your device's secure hardware (Secure Enclave).
 
 ### What data stays only on my device?
 Many features store data exclusively on your device:
@@ -276,20 +275,19 @@ Premium unlocks:
    - **Monthly:** $7.99/month
    - **Yearly:** $49.99/year (best value - save 48%!)
    - **Lifetime:** $69.99 one-time payment
-3. Confirm through your app store (Apple or Google)
+3. Confirm through the App Store
 4. Enjoy premium features immediately!
 5. Your linked partner automatically gets access too
 
 ### Can I cancel anytime?
-Yes! Cancel through your app store:
+Yes! Cancel through your device settings:
 - **iOS:** Settings > Apple ID > Subscriptions
-- **Android:** Google Play > Subscriptions
 
 Your premium access continues until the end of your billing period.
 
 ### Do you offer refunds?
-Refunds are handled by Apple/Google according to their policies:
-- Contact your app store for refund requests
+Refunds are handled by Apple according to their policies:
+- Contact the App Store for refund requests
 - We can't process refunds directly
 - Most stores offer a grace period for accidental purchases
 
@@ -361,9 +359,9 @@ Yes! Your account syncs across devices:
 ## Content & Prompts
 
 ### How many prompts are there?
-We have 686 professionally crafted prompts across:
+We have 697 professionally crafted prompts across:
 - 5 heat levels
-- 12 categories
+- 13 categories
 - Multiple relationship stages
 - Regular updates with new content
 
@@ -384,7 +382,7 @@ We love feedback! Send suggestions to:
 
 ### Do prompts repeat?
 Our smart system minimizes repetition:
-- 686 unique prompts
+- 697 unique prompts
 - Personalized selection
 - Tracks what you've seen
 - Fresh content regularly added
@@ -528,11 +526,11 @@ We use industry-standard security:
 ## Miscellaneous
 
 ### Does Between Us work offline?
-Limited functionality offline:
-- View previously loaded prompts
-- Write journal entries (sync later)
-- Access saved content
-- Full features require internet
+Yes! Between Us is built local-first:
+- All your content is stored on your device
+- Write journal entries, view prompts, and plan dates offline
+- Access all saved content without internet
+- When you're back online and have cloud sync enabled, your data syncs automatically
 
 ### What languages do you support?
 Currently:
@@ -541,7 +539,7 @@ Currently:
 - Request your language: brittanyapps@outlook.com
 
 ### Can I export my data?
-Yes! Premium users can export:
+Yes! You can export your data (available to both free and premium users):
 - Journal entries
 - Prompt answers
 - Memories and milestones
@@ -554,8 +552,8 @@ Yes! Premium users can export:
 All exported as JSON data you can save locally.
 
 ### Do you have a desktop version?
-Currently mobile-only:
-- iOS and Android apps
+Currently iOS only:
+- iPhone and iPad
 - Stay tuned for future updates!
 
 ### How do I contact support?

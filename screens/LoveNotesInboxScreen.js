@@ -233,9 +233,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
     <View style={styles.container}>
       <LinearGradient
         colors={
-          isDark
-            ? [colors.background, "#0F0A1A", colors.background]
-            : [colors.background, colors.surface2 || "#F3EDE8", colors.background]
+            [colors.background, "#0F0A1A", colors.background]
         }
         style={StyleSheet.absoluteFillObject}
       />
@@ -385,7 +383,7 @@ const createStyles = (colors, isDark) =>
       borderRadius: BORDER_RADIUS.full,
       borderWidth: 1,
       borderColor: colors.border,
-      backgroundColor: isDark ? "rgba(20,15,28,0.4)" : "rgba(255,255,255,0.6)",
+      backgroundColor: "rgba(20,15,28,0.4)",
     },
     filterText: {
       fontFamily: SANS_MEDIUM,
@@ -425,12 +423,12 @@ const createStyles = (colors, isDark) =>
       borderRadius: BORDER_RADIUS.lg,
       borderWidth: 1,
       borderColor: colors.border,
-      backgroundColor: isDark ? "rgba(20,15,28,0.45)" : "rgba(255,255,255,0.65)",
+      backgroundColor: "rgba(20,15,28,0.45)",
       gap: SPACING.md,
     },
     noteCardUnread: {
       borderColor: withAlpha(colors.primary, 0.3),
-      backgroundColor: isDark ? "rgba(30,20,42,0.6)" : "rgba(255,245,250,0.85)",
+      backgroundColor: "rgba(30,20,42,0.6)",
     },
     noteThumbnailWrap: {
       position: "relative",

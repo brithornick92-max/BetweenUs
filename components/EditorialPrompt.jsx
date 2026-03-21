@@ -587,7 +587,7 @@ const EditorialPrompt = ({
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={promptCategory.gradient || ['#6B2D5B', '#4A1942']}
+                colors={promptCategory.gradient || ['#5E1940', '#4C1030']}
                 style={styles.submitButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}

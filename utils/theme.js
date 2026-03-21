@@ -406,7 +406,7 @@ export const getNavigationTheme = (palette) => {
       },
       heavy: {
         fontFamily: SERIF || 'System',
-        fontWeight: '800',
+        fontWeight: '700',
       },
     },
   };

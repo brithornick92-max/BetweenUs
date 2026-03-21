@@ -110,7 +110,6 @@ This document provides an overview of all legal documents for the Between Us app
 - ✅ CCPA (California)
 - ✅ COPPA (Children's privacy)
 - ✅ App Store Guidelines
-- ✅ Google Play Policies
 
 ### Security
 - Industry-standard client-side encryption (XSalsa20-Poly1305)
@@ -167,6 +166,9 @@ All legal documents are:
 
 | Document | Version | Date | Changes |
 |----------|---------|------|---------|
+| Terms of Service | 1.3 | Mar 21, 2026 | Apple-only, accuracy audit |
+| Privacy Policy | 1.3 | Mar 21, 2026 | Apple-only, accuracy audit |
+| FAQ | 1.3 | Mar 21, 2026 | Updated prompt count (697), Apple-only, local-first offline |
 | Terms of Service | 1.2 | Feb 22, 2026 | Synced dates, accuracy review |
 | Privacy Policy | 1.2 | Feb 22, 2026 | Added Sentry disclosure, synced dates |
 | FAQ | 1.2 | Feb 22, 2026 | Updated prompt count (686), synced dates |

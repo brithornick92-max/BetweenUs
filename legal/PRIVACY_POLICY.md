@@ -276,12 +276,14 @@ Between Us is **not for children:**
 - **Supabase:** Encrypted data storage and authentication
 - **RevenueCat:** Subscription management
 - **Sentry:** Crash reporting, performance monitoring, and session replays (10% of sessions; 100% of sessions where an error occurs — replays capture screen interactions to help us reproduce and fix bugs). Also powers optional user feedback submission.
+- **Expo:** Push notification delivery and over-the-air updates
 - **Apple:** Payment processing and app distribution
 
 ### 9.2 Their Privacy Policies
 - [Supabase Privacy Policy](https://supabase.com/privacy)
 - [RevenueCat Privacy Policy](https://www.revenuecat.com/privacy)
 - [Sentry Privacy Policy](https://sentry.io/privacy/)
+- [Expo Privacy Policy](https://expo.dev/privacy)
 - [Apple Privacy Policy](https://www.apple.com/privacy/)
 
 ---

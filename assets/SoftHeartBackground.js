@@ -8,8 +8,8 @@ export default function SoftHeartBackground({ width = '100%', height = 320, styl
     <Svg width={width} height={height} style={style} viewBox="0 0 400 320">
       <Defs>
         <RadialGradient id="heartGradient" cx="50%" cy="50%" r="60%">
-          <Stop offset="0%" stopColor="#F8B6C1" stopOpacity="0.7" />
-          <Stop offset="100%" stopColor="#F8B6C1" stopOpacity="0" />
+          <Stop offset="0%" stopColor="#9A2E5E" stopOpacity="0.7" />
+          <Stop offset="100%" stopColor="#9A2E5E" stopOpacity="0" />
         </RadialGradient>
       </Defs>
       <Ellipse

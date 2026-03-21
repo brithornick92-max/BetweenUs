@@ -326,10 +326,10 @@ const VibeSignal = ({
   const renderSyncStatus = () => {
     const { syncStatus } = appState;
     const statusColor = {
-      'synced': "#4CAF50",
-      'syncing': "#FFD700",
-      'offline': "#F44336",
-    }[syncStatus] || "#F44336";
+      'synced': '#5A8B60',
+      'syncing': '#A89060',
+      'offline': '#9A2E5E',
+    }[syncStatus] || '#9A2E5E';
 
     const statusText = {
       'synced': 'Connected',

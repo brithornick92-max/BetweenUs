@@ -102,7 +102,7 @@ export default function YearReflectionScreen({ navigation }) {
             style={[styles.gateBtn, { backgroundColor: colors.primary }]}
             onPress={() => navigation.navigate('Paywall')}
           >
-            <Text style={[styles.gateBtnText, { color: '#F2E9E6' }]}>Unlock Premium</Text>
+            <Text style={[styles.gateBtnText, { color: '#F2E9E6' }]}>Discover more</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

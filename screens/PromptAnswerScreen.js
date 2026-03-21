@@ -411,7 +411,7 @@ const createStyles = (colors) => StyleSheet.create({
   chipsLabel: {
     fontSize: 10,
     fontWeight: '600',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     color: 'rgba(150,150,150,0.6)',
     marginBottom: 8,
     textTransform: 'uppercase',
@@ -478,7 +478,7 @@ const createStyles = (colors) => StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.08)',
     alignItems: "center",
     justifyContent: "center",
     marginBottom: SPACING.lg,
@@ -495,7 +495,7 @@ const createStyles = (colors) => StyleSheet.create({
   cardBackPill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: BORDER_RADIUS.full,

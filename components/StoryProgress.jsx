@@ -160,12 +160,12 @@ const createStyles = (colors) =>
       borderRadius: 4,
       backgroundColor: withAlpha(colors.text, 0.15),
       borderWidth: 1.5,
-      borderColor: withAlpha(colors.text, 0.25),
+      borderColor: withAlpha(colors.text, 0.08),
       transform: [{ translateX: -4 }],
     },
     milestoneDotReached: {
       backgroundColor: colors.primary,
-      borderColor: colors.text,
+      borderColor: withAlpha(colors.primary, 0.4),
     },
     narrative: {
       ...TYPOGRAPHY.caption,

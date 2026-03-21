@@ -81,7 +81,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can I lock the app with Face ID or a PIN?',
-        a: 'Yes! Go to Settings > Privacy & Security to set up a PIN code and optionally enable Face ID, Touch ID, or fingerprint unlock. Your biometric data never leaves your device — we only check whether your device confirms your identity.',
+        a: 'Yes! Go to Settings > Privacy & Security to set up a PIN code and optionally enable Face ID or Touch ID. Your biometric data never leaves your device — we only check whether your device confirms your identity.',
       },
       {
         q: 'What happens if I lose my phone?',
@@ -123,7 +123,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How do I subscribe?',
-        a: '1. Tap "Upgrade to Premium" in the app\n2. Choose your plan (Monthly, Yearly, or Lifetime)\n3. Confirm through your app store\n4. Enjoy premium features immediately!\n5. Your linked partner automatically gets access too',
+        a: '1. Tap "Upgrade to Premium" in the app\n2. Choose your plan (Monthly, Yearly, or Lifetime)\n3. Confirm through the App Store\n4. Enjoy premium features immediately!\n5. Your linked partner automatically gets access too',
       },
       {
         q: 'Can I cancel anytime?',

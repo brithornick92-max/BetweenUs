@@ -461,7 +461,7 @@ export default function SettingsScreen({ navigation }) {
                   activeOpacity={0.8}
                 >
                   <MaterialCommunityIcons name="crown-outline" size={16} color="#F2E9E6" style={{ marginRight: 6 }} />
-                  <Text style={s.ctaBtnText}>Upgrade to Premium</Text>
+                  <Text style={s.ctaBtnText}>Discover the full experience</Text>
                 </TouchableOpacity>
               </View>
             ) : paired ? (

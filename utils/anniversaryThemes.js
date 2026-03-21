@@ -38,7 +38,7 @@ export class AnniversaryThemeGenerator {
         name: 'Wedding Day',
         primary: COLORS.pureWhite,
         secondary: COLORS.softCream,
-        glow: 'rgba(255, 255, 255, 0.4)',
+        glow: 'rgba(255, 255, 255, 0.08)',
         gradient: [COLORS.pureWhite, COLORS.softCream],
         emotion: 'Our perfect day',
       },

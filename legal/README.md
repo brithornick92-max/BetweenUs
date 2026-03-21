@@ -339,7 +339,6 @@ Before launching Between Us:
 - [GDPR Official Site](https://gdpr.eu/)
 - [CCPA Official Site](https://oag.ca.gov/privacy/ccpa)
 - [Apple App Store Guidelines](https://developer.apple.com/app-store/review/guidelines/)
-- [Google Play Policies](https://play.google.com/about/developer-content-policy/)
 
 ### Internal Resources
 - Legal team contacts

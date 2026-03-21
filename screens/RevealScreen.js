@@ -178,7 +178,7 @@ export default function RevealScreen({ route, navigation }) {
             /* LOCKED STATE */
             <View style={styles.lockedStage}>
               <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-                <LinearGradient colors={[t.accent, "#FF9EBC"]} style={styles.lockedCircle}>
+                <LinearGradient colors={[t.accent, '#9A2E5E']} style={styles.lockedCircle}>
                   <MaterialCommunityIcons name="heart-flash" size={50} color={t.text} />
                 </LinearGradient>
               </Animated.View>
@@ -203,7 +203,7 @@ export default function RevealScreen({ route, navigation }) {
             >
               {/* My Reflection */}
               <View style={styles.answerCard}>
-                <View style={[styles.userTag, { backgroundColor: isDark ? "#151118" : t.accent + "30" }]}> 
+                <View style={[styles.userTag, { backgroundColor: "#151118" }]}> 
                   <Text style={[styles.tagText, { color: t.text }]}>YOU</Text>
                 </View>
 

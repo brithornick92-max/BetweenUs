@@ -264,11 +264,11 @@ export default function PromptLibraryScreen({ navigation }) {
 
     if (!isPremium) {
       Alert.alert(
-        "Premium Feature",
-        "Prompt refresh is available with Premium. Upgrade to explore unlimited prompts.",
+        "There's more waiting for you",
+        "There are so many more prompts waiting for you.",
         [
           { text: "Maybe Later", style: "cancel" },
-          { text: "Upgrade", onPress: () => navigation.navigate("Paywall") },
+          { text: "Discover more", onPress: () => navigation.navigate("Paywall") },
         ]
       );
       return;
@@ -392,7 +392,7 @@ export default function PromptLibraryScreen({ navigation }) {
       <TouchableOpacity
         style={[
           styles.promptCard,
-          { backgroundColor: isDark ? '#0C0810' : colors.card, borderColor: isDark ? 'rgba(196,86,122,0.06)' : colors.border },
+          { backgroundColor: '#0C0810', borderColor: 'rgba(196,86,122,0.06)' },
           item.answered && { opacity: 0.55 },
         ]}
         onPress={() => handlePromptSelect(safeItem)}
@@ -411,7 +411,7 @@ export default function PromptLibraryScreen({ navigation }) {
               </Text>
             </View>
             {item.answered && (
-              <MaterialCommunityIcons name="check-circle" size={16} color={colors.success || '#4CAF50'} />
+              <MaterialCommunityIcons name="check-circle" size={16} color={colors.success || '#5A8B60'} />
             )}
           </View>
 

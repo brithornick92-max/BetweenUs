@@ -306,7 +306,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
                   'transparent',
                   'rgba(255,255,255,0.0)',
                   'rgba(255,255,255,0.07)',
-                  'rgba(255,255,255,0.15)',
+                  'rgba(255,255,255,0.08)',
                   'rgba(255,255,255,0.07)',
                   'rgba(255,255,255,0.0)',
                   'transparent',
@@ -414,7 +414,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
               />
               {/* Chrome top edge on band */}
               <LinearGradient
-                colors={['rgba(255,255,255,0.25)', 'transparent']}
+                colors={['rgba(255,255,255,0.08)', 'transparent']}
                 style={styles.bandTopEdge}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     // Double-border metallic edge: outer chrome rim
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.08)',
     ...Platform.select({
       ios: {
         shadowColor: '#070509',

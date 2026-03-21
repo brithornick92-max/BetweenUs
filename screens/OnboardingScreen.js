@@ -376,12 +376,9 @@ export default function OnboardingScreen({ navigation }) {
 
           {/* Simple Celebration Animation triggered when days > 0 */}
           {daysCounting !== '0' && (
-            <Animated.View 
-              entering={Animated.FadeIn.duration(500)}
-              style={styles.celebrationContainer}
-            >
+            <View style={styles.celebrationContainer}>
               <MaterialCommunityIcons name="heart" size={24} color={colors.primary} />
-            </Animated.View>
+            </View>
           )}
 
           <Modal

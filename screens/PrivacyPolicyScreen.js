@@ -46,9 +46,10 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <Text style={[styles.subTitle, { color: colors.text }]}>Account Information</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             • Email address{'\n'}
-            • Partner names (customizable){'\n'}
-            • Relationship preferences (heat level, etc.){'\n'}
-            • Account creation date
+            • Display name{'\n'}
+            • Partner names (what you call each other){'\n'}
+            • Relationship start date (optional){'\n'}
+            • Heat level and energy level preferences
           </Text>
 
           <Text style={[styles.subTitle, { color: colors.text }]}>Content You Create</Text>
@@ -58,11 +59,13 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             • Prompt responses{'\n'}
             • Love notes and photo attachments{'\n'}
             • Memories{'\n'}
-            • Date night plans{'\n'}
+            • Date night plans and calendar events{'\n'}
             • Rituals and check-ins{'\n'}
             • Vibe signals and moment signals{'\n'}
-            • Inside jokes{'\n'}
+            • Inside jokes and nicknames{'\n'}
+            • Relationship climate selections{'\n'}
             • Soft boundaries preferences{'\n'}
+            • Relationship duration{'\n'}
             • Shared content with your partner
           </Text>
 
@@ -81,7 +84,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             • Camera and Photo Library: Used for QR code scanning (partner linking) and photo attachments on love notes. Photos are encrypted before upload.{'\n'}
             • Push Notifications: Your device push token is sent to our server to deliver notifications such as partner activity and reminders. You can disable notifications in your device settings at any time.{'\n'}
-            • Biometrics (Face ID / Touch ID / Fingerprint): Used optionally to lock the app. Biometric data never leaves your device — we only receive a success/failure result from your device's secure enclave. We do not collect, store, or transmit biometric data.
+            • Biometrics (Face ID / Touch ID): Used optionally to lock the app. Biometric data never leaves your device — we only receive a success/failure result from your device's secure enclave. We do not collect, store, or transmit biometric data.
           </Text>
 
           <Text style={[styles.subTitle, { color: colors.text }]}>On-Device Storage</Text>
@@ -90,6 +93,19 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             • An encrypted SQLite database containing your content{'\n'}
             • Preferences and settings in local storage{'\n'}
             • Encryption keys and credentials in your device's secure Keychain
+          </Text>
+
+          <Text style={[styles.subTitle, { color: colors.text }]}>Information We Don't Collect</Text>
+          <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
+            We never collect:{'
+
+'}
+            • Your sexual orientation{'\n'}
+            • Precise location data{'\n'}
+            • Contact lists{'\n'}
+            • Photos or media (unless you explicitly attach them){'\n'}
+            • Biometric data (authentication happens entirely within your device's secure hardware){'\n'}
+            • Financial information (handled by Apple)
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>2. How We Use Your Information</Text>
@@ -113,16 +129,20 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             • We cannot access your encrypted content{'\n'}
             • Encryption keys are stored in your device's secure hardware keychain{'\n'}
             • Even if our servers are compromised, your content remains private{'\n\n'}
-            Important: If you lose access to your device without having cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable.
+            Important: If you lose access to your device without having cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable.{'
+
+'}
+            Note: Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored without end-to-end encryption so we can provide features like filtering, sorting, and calendar scheduling. This metadata is still protected by TLS in transit and access controls at rest.
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>4. Information Sharing</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             We do NOT sell your personal information. We may share information with:{'\n\n'}
             • Your partner (when you choose to share content){'\n'}
-            • Service providers (RevenueCat) who help us operate the App{'\n'}
-            • Law enforcement if required by law{'\n'}
-            • In connection with a business transfer or acquisition
+            • Service providers who help us operate the App (see Third-Party Services below){'\n'}
+            • Law enforcement if required by law (we'll notify you unless legally prohibited){'\n'}
+            • In connection with a business transfer or acquisition{'\n\n'}
+            We never share your data with advertisers, data brokers, marketing companies, or social media platforms.
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>5. Third-Party Services</Text>
@@ -155,9 +175,12 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             • Withdraw consent at any time
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>8. GDPR Compliance (EU Users)</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>8. GDPR Compliance (EU/UK Users)</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            If you are in the European Union, you have additional rights under GDPR:{'\n\n'}
+            If you are in the European Union or UK, you have additional rights under GDPR:{'\n\n'}
+            • Right to access your personal data{'\n'}
+            • Right to rectification of inaccurate data{'\n'}
+            • Right to erasure{'\n'}
             • Right to data portability{'\n'}
             • Right to restriction of processing{'\n'}
             • Right to object to processing{'\n'}
@@ -180,8 +203,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>11. Children's Privacy</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            Between Us is not intended for users under 18. We do not knowingly collect information from 
-            children. If we learn we have collected data from a child, we will delete it immediately.
+            Between Us is not for children. You must be 18+ to use the app. We do not knowingly collect 
+            information from minors. If we discover underage use, we will delete the account immediately.
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>12. Security</Text>
@@ -196,8 +219,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>13. International Data Transfers</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            Your data may be transferred to and processed in countries other than your own. We ensure 
-            appropriate safeguards are in place to protect your data.
+            Our servers are located in the United States. Your data may be transferred internationally. 
+            We use standard contractual clauses and ensure your data receives the same protection everywhere.
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>14. Changes to This Policy</Text>
@@ -210,7 +233,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             If you have questions about this Privacy Policy or want to exercise your rights:{'\n\n'}
             Email: brittanyapps@outlook.com{'\n'}
-            Response time: 24-48 hours{'\n\n'}
+            Response time: Within 30 days for data requests{'\n\n'}
             For data deletion requests, please use the "Delete Account" option in Settings.
           </Text>
 

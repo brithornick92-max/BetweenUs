@@ -142,7 +142,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
           {/* Back button */}
           <View style={styles.envelopeTopBar}>
             <TouchableOpacity
-              style={[styles.circleButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
+              style={[styles.circleButton, { backgroundColor: 'rgba(255,255,255,0.08)' }]}
               onPress={() => navigation.goBack()}
               activeOpacity={0.8}
             >
@@ -321,7 +321,7 @@ const createStyles = (colors) =>
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: "rgba(255,255,255,0.15)",
+      backgroundColor: "rgba(255,255,255,0.08)",
       alignItems: "center",
       justifyContent: "center",
     },
@@ -338,7 +338,7 @@ const createStyles = (colors) =>
       borderRadius: BORDER_RADIUS.xl,
       overflow: "hidden",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)",
+      borderColor: "rgba(255,255,255,0.08)",
     },
     cardImage: {
       ...StyleSheet.absoluteFillObject,

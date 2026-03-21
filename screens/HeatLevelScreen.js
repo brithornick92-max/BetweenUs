@@ -81,11 +81,11 @@ export default function HeatLevelScreen({ navigation }) {
       // Check if premium required
       if (level >= 4 && !isPremium) {
         Alert.alert(
-          'Premium Required',
-          `Heat levels 4 and 5 require premium access. Upgrade to explore deeper intimacy.`,
+          'Part of the deeper experience',
+          `Heat levels 4 and 5 are part of the full experience. Discover deeper intimacy.`,
           [
             { text: 'Maybe Later', style: 'cancel' },
-            { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Paywall') }
+            { text: 'Discover more', onPress: () => navigation.navigate('Paywall') }
           ]
         );
         return;
@@ -94,11 +94,11 @@ export default function HeatLevelScreen({ navigation }) {
       // Check daily limits for free users
       if (!isPremium && usageStatus?.remaining?.prompts === 0) {
         Alert.alert(
-          'Premium Feature',
-          'Free users can preview 3 read-only prompts. Upgrade to premium for unlimited prompts and responses.',
+          'There\'s more waiting for you',
+          'Free users can preview 3 read-only prompts. Discover the full experience for unlimited prompts and responses.',
           [
             { text: 'Maybe Later', style: 'cancel' },
-            { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Paywall') }
+            { text: 'Discover more', onPress: () => navigation.navigate('Paywall') }
           ]
         );
         return;
@@ -147,7 +147,7 @@ export default function HeatLevelScreen({ navigation }) {
         activeOpacity={0.9}
       >
         <LinearGradient
-          colors={isLocked ? ['#666', '#888'] : (heatLevel.gradient || ['#6B2D5B', '#4A1942'])}
+          colors={isLocked ? ['#1C1520', '#241C28'] : (heatLevel.gradient || ['#5E1940', '#4C1030'])}
           style={styles.heatLevelGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -247,16 +247,16 @@ export default function HeatLevelScreen({ navigation }) {
               activeOpacity={0.9}
             >
               <LinearGradient
-                colors={['#A89060', '#C8A870']}
+                colors={['#A89060', '#7A1E4E']}
                 style={styles.premiumCTAGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <MaterialCommunityIcons name="crown" size={24} color="#0B0B0B" />
+                <MaterialCommunityIcons name="crown" size={24} color="#070509" />
                 <Text style={styles.premiumCTAText}>
-                  Upgrade to Premium for unlimited access
+                  Discover the full experience
                 </Text>
-                <MaterialCommunityIcons name="arrow-right" size={20} color="#0B0B0B" />
+                <MaterialCommunityIcons name="arrow-right" size={20} color="#070509" />
               </LinearGradient>
             </TouchableOpacity>
           )}
