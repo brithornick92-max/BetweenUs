@@ -16,7 +16,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
@@ -141,7 +141,7 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles }) {
     const newMonth = new Date(currentMonth);
     newMonth.setMonth(currentMonth.getMonth() + direction);
     setCurrentMonth(newMonth);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
   };
 
   const days = getDaysInMonth(currentMonth);
@@ -187,7 +187,7 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles }) {
                   key={dayIndex}
                   style={styles.dayCell}
                   onPress={() => {
-                    Haptics.selectionAsync();
+                    selection();
                     onDateSelect(date);
                   }}
                   activeOpacity={0.7}
@@ -637,7 +637,7 @@ export default function CalendarScreen({ navigation, route }) {
       </ScrollView>
 
       <TouchableOpacity onPress={() => setModalOpen(true)} style={[styles.fab, { backgroundColor: colors.primary }]} activeOpacity={0.85}>
-        <MaterialCommunityIcons name="plus" size={28} color="#fff" />
+        <MaterialCommunityIcons name="plus" size={28} color="#F2E9E6" />
       </TouchableOpacity>
 
       <Modal visible={modalOpen} animationType="fade" transparent>

@@ -17,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as ImagePicker from "expo-image-picker";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 
@@ -116,7 +116,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
       });
       if (!result.canceled && result.assets?.[0]?.uri) {
         setImageUri(result.assets[0].uri);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        impact(ImpactFeedbackStyle.Light);
       }
     } catch {
       Alert.alert("Error", "Couldn't open your photo library.");
@@ -137,7 +137,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
       });
       if (!result.canceled && result.assets?.[0]?.uri) {
         setImageUri(result.assets[0].uri);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        impact(ImpactFeedbackStyle.Light);
       }
     } catch {
       Alert.alert("Error", "Couldn't open the camera.");
@@ -154,7 +154,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
     }
 
     setIsSending(true);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    notification(NotificationFeedbackType.Success).catch(() => {});
     try {
       await DataLayer.saveLoveNote({
         text: hasText ? text.trim() : null,
@@ -182,7 +182,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   const handleTextChange = (value) => {
     setText(value);
     if (value.length > 0 && value.length % 40 === 0 && value.length !== lastHapticLen.current) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       lastHapticLen.current = value.length;
     }
   };
@@ -190,7 +190,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   const handlePickPrompt = (prompt) => {
     setText(prompt);
     setShowPrompts(false);
-    Haptics.selectionAsync();
+    selection();
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
@@ -282,7 +282,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
                       key={opt.id}
                       onPress={() => {
                         setSelectedStationery(opt);
-                        Haptics.selectionAsync();
+                        selection();
                       }}
                       activeOpacity={0.8}
                     >
@@ -310,7 +310,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
                 style={styles.promptToggle}
                 onPress={() => {
                   setShowPrompts(!showPrompts);
-                  Haptics.selectionAsync();
+                  selection();
                 }}
                 activeOpacity={0.8}
               >
@@ -379,7 +379,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
                     style={styles.photoButtonSecondary}
                     onPress={() => {
                       setImageUri(null);
-                      Haptics.selectionAsync();
+                      selection();
                     }}
                     activeOpacity={0.85}
                   >

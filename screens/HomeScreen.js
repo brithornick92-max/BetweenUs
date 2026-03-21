@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useAppContext } from '../context/AppContext';
@@ -160,7 +160,7 @@ export default function HomeScreen({ navigation }) {
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
     if (!finalText || !prompt?.id) return;
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notification(NotificationFeedbackType.Success);
     setIsSavingInline(true);
     try {
       await DataLayer.savePromptAnswer({ promptId: prompt.id, answer: finalText });
@@ -174,7 +174,7 @@ export default function HomeScreen({ navigation }) {
   }, [inlineText, prompt]);
 
   const handlePrimaryCTA = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     if (!isPremium) { showPaywall?.('promptResponses'); return; }
     if (!promptReady) { navigation.navigate('HeatLevel'); return; }
     if (!myAnswer && inlineText.trim()) { await handleInlineSave(); return; }
@@ -201,7 +201,7 @@ export default function HomeScreen({ navigation }) {
   }, [promptReady, myAnswer, bothAnswered, partnerLabel]);
 
   const handleAction = useCallback(async (key) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     if (key === 'note') {
       if (!isPremium) { showPaywall?.('loveNotes'); return; }
       navigation.navigate('LoveNotesInbox');
@@ -343,7 +343,7 @@ export default function HomeScreen({ navigation }) {
                   style={styles.cta}
                   activeOpacity={0.82}
                   onPress={handlePrimaryCTA}
-                  onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+                  onPressIn={() => impact(ImpactFeedbackStyle.Light)}
                   accessibilityRole="button"
                   accessibilityLabel={primaryCTALabel}
                 >
@@ -423,7 +423,7 @@ export default function HomeScreen({ navigation }) {
           <SurpriseTonight navigation={navigation} />
           {isPremium && (
             <YearReflectionCard onPress={async () => {
-              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              impact(ImpactFeedbackStyle.Light);
               navigation.navigate('YearReflection');
             }} />
           )}
@@ -434,7 +434,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.momentToggle}
               onPress={() => {
                 setShowMoments(!showMoments);
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                impact(ImpactFeedbackStyle.Light);
               }}
               activeOpacity={0.75}
               accessibilityRole="button"

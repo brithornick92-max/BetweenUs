@@ -346,8 +346,8 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 12, fontWeight: "700", marginLeft: 6 },
   moodBadgeText: {
     fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 1,
+    fontWeight: "600",
+    letterSpacing: 1.5,
   },
 
   scheduleFloat: { marginTop: 25, alignSelf: "flex-start" },
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 25,
   },
-  scheduleText: { fontWeight: "800", marginLeft: 8, fontSize: 14 },
+  scheduleText: { fontWeight: "600", marginLeft: 8, fontSize: 14 },
 
     timerSection: { paddingHorizontal: 30, marginTop: 20 },
   timerCard: {
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
   },
   timerDisplay: {
     fontSize: 42,
-    fontWeight: "800",
+    fontWeight: "600",
     marginVertical: 10,
     fontVariant: ["tabular-nums"],
   },
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 15,
   },
-  stepNumber: { fontSize: 14, fontWeight: "800" },
+  stepNumber: { fontSize: 14, fontWeight: "600" },
   stepText: { flex: 1, lineHeight: 22 },
   completedText: { opacity: 0.4, textDecorationLine: "line-through" },
 

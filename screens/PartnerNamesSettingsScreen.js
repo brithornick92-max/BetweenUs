@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/Input';
@@ -39,7 +39,7 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
 
     try {
       setIsSaving(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
 
       await updateProfile({
         partnerNames: {
@@ -48,7 +48,7 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
         },
       });
 
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Success);
+      impact(ImpactFeedbackStyle.Success);
       Alert.alert('Success', 'Partner names updated successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: '600',
   },

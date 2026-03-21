@@ -105,7 +105,7 @@ const createStyles = (colors) => StyleSheet.create({
     // We use shadow for extra bloom effect if needed, but the view itself pulses
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
+    shadowOpacity: 0.12,
     shadowRadius: 40,
   },
   core: {

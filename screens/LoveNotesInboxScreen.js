@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import Animated, { FadeIn, FadeInDown, FadeInUp, SlideInRight } from "react-native-reanimated";
 
 import { useTheme } from "../context/ThemeContext";
@@ -115,7 +115,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
   }, [notes]);
 
   const onRefresh = useCallback(async () => {
-    Haptics.selectionAsync();
+    selection();
     setRefreshing(true);
     await loadNotes();
     setRefreshing(false);
@@ -134,14 +134,14 @@ export default function LoveNotesInboxScreen({ navigation }) {
 
   const handleOpenNote = useCallback(
     async (noteId) => {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       navigation.navigate("LoveNoteDetail", { noteId });
     },
     [navigation]
   );
 
   const handleCompose = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     navigation.navigate("ComposeLoveNote");
   }, [navigation]);
 
@@ -287,7 +287,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
                 ]}
                 onPress={() => {
                   setFilter(f.key);
-                  Haptics.selectionAsync();
+                  selection();
                 }}
                 activeOpacity={0.8}
               >

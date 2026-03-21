@@ -36,7 +36,7 @@ import Animated, {
   SlideInRight,
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 import { PrivateLanguageVault } from '../services/ConnectionEngine';
@@ -94,7 +94,7 @@ export default function InsideJokes({ compact = false }) {
     setFormStory('');
     setSelectedType('joke');
     setModalOpen(false);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notification(NotificationFeedbackType.Success);
     loadJokes();
   };
 
@@ -180,7 +180,7 @@ export default function InsideJokes({ compact = false }) {
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: colors.surface2 }]}
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            impact(ImpactFeedbackStyle.Light);
             setModalOpen(true);
           }}
         >

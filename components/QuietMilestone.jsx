@@ -44,7 +44,7 @@ export default function QuietMilestone({
     }).start();
 
     if (achievement?.isNew && isDiscovered && Platform.OS !== 'web' && Haptics?.notificationAsync) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      notification(NotificationFeedbackType.Success).catch(() => {});
     }
   }, [isDiscovered]);
 

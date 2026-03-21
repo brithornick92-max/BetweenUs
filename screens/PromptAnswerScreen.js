@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -44,11 +44,11 @@ const MAX_LEN = 1000;
 
 // Heat-level colours, icons, and labels for card accent
 const HEAT_COLORS = {
-  1: ['#B07EFF', '#9060E0'],
-  2: ['#FF7EB8', '#E0609A'],
-  3: ['#FF7080', '#E05468'],
-  4: ['#FF8534', '#E06820'],
-  5: ['#FF2D2D', '#E01818'],
+  1: ['#7A1E4E', '#5E1940'],
+  2: ['#9A2E5E', '#7A1E4E'],
+  3: ['#B84070', '#9A2E5E'],
+  4: ['#C45060', '#A83850'],
+  5: ['#D04848', '#B03030'],
 };
 const HEAT_ICONS = {
   1: 'hand-heart',
@@ -112,7 +112,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         easing: Easing.bezier(0.4, 0.0, 0.2, 1),
       });
       setIsFlipped(true);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
     }, 500);
     return () => clearTimeout(flipTimer);
   }, []);
@@ -176,7 +176,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
       truncated.length % 50 === 0 &&
       truncated.length !== lastHapticLength.current
     ) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       lastHapticLength.current = truncated.length;
     }
   };
@@ -193,7 +193,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
       return;
     }
 
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notification(NotificationFeedbackType.Success);
     setIsSaving(true);
     try {
       const payload = {

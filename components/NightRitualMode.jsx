@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from '../context/AppContext';
 import { useRitualContext } from '../context/RitualContext';
 import { useMemoryContext } from '../context/MemoryContext';
@@ -28,7 +28,7 @@ export const NIGHT_COLORS = {
   elevated: '#241C28',        // surfaceElevated — glass cards
   moonGlow: '#F2E9E6',        // softCream — primary text
   starlight: '#E8DDC8',       // creamSubtle — secondary text
-  starlightDim: '#B5A8AD',    // tertiary / descriptions (brighter)
+  starlightDim: '#E8DDC8',    // tertiary / descriptions
   wine: '#7A1E4E',            // primary accent
   mulberry: '#9A2E5E',        // secondary accent
   wineDeep: '#4C1030',        // gradient endpoints
@@ -217,7 +217,7 @@ const NightRitualMode = ({
     
     try {
       // Gentle haptic feedback
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       
       // Update responses
       const newResponses = { ...responses, [elementId]: response.trim() };
@@ -269,7 +269,7 @@ const NightRitualMode = ({
       const completedRitual = await ritualActions.completeRitual();
       
       // Gentle completion haptic
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       
       // Show completion animation
       setShowCompletion(true);

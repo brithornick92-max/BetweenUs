@@ -19,7 +19,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as Clipboard from "expo-clipboard";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAppContext } from "../context/AppContext";
@@ -99,7 +99,7 @@ export default function OnboardingScreen({ navigation }) {
           } catch (err) {
             CrashReporting.captureException(err, { context: 'onboarding_key_upload' });
           }
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          notification(NotificationFeedbackType.Success);
           Alert.alert(
             'You\'re linked! 💕',
             `Your partner has joined. You\'re now connected on Between Us.`,
@@ -209,7 +209,7 @@ export default function OnboardingScreen({ navigation }) {
 
   const handleGenerateInvitation = async () => {
     setIsGenerating(true);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notification(NotificationFeedbackType.Success);
 
     try {
       // 1. Save Profile info
@@ -487,7 +487,7 @@ export default function OnboardingScreen({ navigation }) {
                 ]}
                 onPress={() => {
                   setSelectedHeatLevel(h.level);
-                  Haptics.selectionAsync();
+                  selection();
                 }}
               >
                 <Text style={styles.heatEmoji}>{h.emoji}</Text>
@@ -514,7 +514,7 @@ export default function OnboardingScreen({ navigation }) {
                 ]}
                 onPress={() => {
                   setSelectedTone(t.id);
-                  Haptics.selectionAsync();
+                  selection();
                 }}
               >
                 <MaterialCommunityIcons
@@ -624,7 +624,7 @@ export default function OnboardingScreen({ navigation }) {
               style={styles.inviteRow} 
               onPress={() => {
                 Clipboard.setStringAsync(inviteCode);
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                notification(NotificationFeedbackType.Success);
               }}
               accessibilityRole="button"
               accessibilityLabel={`Invite code: ${inviteCode}. Tap to copy.`}

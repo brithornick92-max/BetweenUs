@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import VibeSignal from '../components/VibeSignal';
 import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
@@ -106,12 +106,12 @@ const VibeSignalScreen = ({ navigation }) => {
   }, []);
 
   const handleVibeChange = async (vibe, isAnniversaryVibe) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     if (__DEV__) console.log('Vibe changed:', vibe.name, isAnniversaryVibe ? '(Anniversary Theme)' : '');
   };
 
   const handleBackPress = async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     navigation.goBack();
   };
 
@@ -276,7 +276,7 @@ const VibeSignalScreen = ({ navigation }) => {
           ]}
         >
           <View style={[styles.heartbeatCheckCircle, { backgroundColor: colors.primary }]}>
-            <MaterialCommunityIcons name="check" size={22} color="#fff" />
+            <MaterialCommunityIcons name="check" size={22} color="#F2E9E6" />
           </View>
           <Text style={[styles.heartbeatSentText, { color: colors.text }]}>
             Sent to {partnerLabel}
@@ -304,7 +304,7 @@ const VibeSignalScreen = ({ navigation }) => {
             setHeartbeatSending(true);
             setHeartbeatError(null);
 
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            notification(NotificationFeedbackType.Success);
 
             // Show sent state immediately (optimistic)
             setHeartbeatSent(true);
@@ -323,7 +323,7 @@ const VibeSignalScreen = ({ navigation }) => {
 
             // Second gentle haptic after a beat
             setTimeout(() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+              impact(ImpactFeedbackStyle.Medium).catch(() => {});
             }, 400);
 
             // Actually send via ConnectionEngine
@@ -478,7 +478,7 @@ const createStyles = (colors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   
   headerContent: {

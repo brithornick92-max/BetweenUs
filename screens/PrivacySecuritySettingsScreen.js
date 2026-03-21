@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -87,7 +87,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
       if (result.success) {
         setAppLockEnabled(true);
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Success);
+        impact(ImpactFeedbackStyle.Success);
       } else {
         Alert.alert('Authentication Failed', 'Please try again.');
       }
@@ -103,7 +103,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
     } else {
       setAppLockEnabled(false);
       setBiometricsEnabled(false);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
     }
   };
 
@@ -116,18 +116,18 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
       if (result.success) {
         setBiometricsEnabled(true);
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Success);
+        impact(ImpactFeedbackStyle.Success);
       }
     } else {
       setBiometricsEnabled(false);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
     }
   };
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
 
       const settings = {
         appLockEnabled,
@@ -145,7 +145,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         actions.setAppLockEnabled(appLockEnabled);
       }
 
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Success);
+      impact(ImpactFeedbackStyle.Success);
       Alert.alert('Success', 'Privacy settings updated!', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
@@ -170,7 +170,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         onValueChange={onValueChange}
         disabled={disabled}
         trackColor={{ false: colors.border, true: colors.primary + '80' }}
-        thumbColor={value ? colors.primary : '#f4f3f4'}
+        thumbColor={value ? colors.primary : '#E8DDC8'}
         ios_backgroundColor={colors.border}
       />
     </View>
@@ -258,7 +258,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
               hidePreview,
               (value) => {
                 setHidePreview(value);
-                Haptics.selectionAsync();
+                selection();
               }
             )}
           </View>
@@ -293,7 +293,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                       text: 'Sign Out',
                       onPress: async () => {
                         try {
-                          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                          impact(ImpactFeedbackStyle.Medium);
                           await signOutLocal();
                         } catch (error) {
                           Alert.alert('Error', 'Failed to sign out. Please try again.');
@@ -330,7 +330,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                       style: 'destructive',
                       onPress: async () => {
                         try {
-                          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                          notification(NotificationFeedbackType.Warning);
                           await signOutGlobal();
                         } catch (error) {
                           Alert.alert('Error', 'Failed to sign out. Please try again.');
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: '600',
   },

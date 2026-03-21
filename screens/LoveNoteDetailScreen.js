@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import Animated, { FadeIn, FadeInUp, useSharedValue, useAnimatedStyle, withTiming, withDelay } from "react-native-reanimated";
 import LottieView from "lottie-react-native";
 
@@ -106,7 +106,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
           style: "destructive",
           onPress: async () => {
             try {
-              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              impact(ImpactFeedbackStyle.Medium);
               await DataLayer.deleteLoveNote(noteId);
               navigation.goBack();
             } catch {
@@ -156,7 +156,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                impact(ImpactFeedbackStyle.Light);
                 lottieRef.current?.play();
                 setTimeout(() => setEnvelopeOpen(true), 2200);
               }}
@@ -237,7 +237,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                 <TouchableOpacity
                   style={styles.replyButton}
                   onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    impact(ImpactFeedbackStyle.Medium);
                     navigation.navigate("ComposeLoveNote");
                   }}
                   activeOpacity={0.85}

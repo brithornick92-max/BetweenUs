@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import naclUtil from 'tweetnacl-util';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -104,7 +104,7 @@ export default function JoinWithCodeScreen({ navigation }) {
         await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
       }
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      notification(NotificationFeedbackType.Success);
       setPhase('done');
       setStatusMsg('Linked successfully!');
 
@@ -114,7 +114,7 @@ export default function JoinWithCodeScreen({ navigation }) {
         [{ text: 'Let\'s go!', onPress: () => navigation.goBack() }]
       );
     } catch (error) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      notification(NotificationFeedbackType.Error);
       const msg = String(error?.message || '');
       if (msg.includes('Supabase is not configured')) {
         setStatusMsg("Sync isn't available in this build.");

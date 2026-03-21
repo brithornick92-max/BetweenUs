@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { cloudSyncStorage } from '../utils/storage';
@@ -80,7 +80,7 @@ export default function SyncSetupScreen({ navigation }) {
     try {
       setLoading(true);
       await SupabaseAuthService.sendMagicLink(email.trim());
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
       Alert.alert('Check your email', 'Open the link in your email to finish signing in.');
     } catch (error) {
       if (String(error?.message || '').includes('Supabase is not configured')) {
@@ -131,7 +131,7 @@ export default function SyncSetupScreen({ navigation }) {
           supabaseSessionPresent: true,
         });
         setSessionEmail(session.user?.email || null);
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        impact(ImpactFeedbackStyle.Medium);
         Alert.alert('Signed in', 'Your sync account is ready.');
       }
     } catch (error) {
@@ -454,12 +454,12 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   primaryButtonText: {
-    color: '#0B0B0B',
+    color: '#070509',
     fontWeight: '700',
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',
@@ -482,11 +482,11 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     marginVertical: SPACING.md,
   },
   dangerButton: {
-    backgroundColor: '#5E1B1B',
+    backgroundColor: '#4C1030',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',

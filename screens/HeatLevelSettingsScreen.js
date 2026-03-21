@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
@@ -64,7 +64,7 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
 
       await updateProfile({
         heatLevelPreference: selectedLevel,
@@ -75,7 +75,7 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
         await loadContentProfile();
       }
 
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Success);
+      impact(ImpactFeedbackStyle.Success);
       Alert.alert('Success', 'Heat level updated successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
@@ -93,7 +93,7 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
       return;
     }
     setSelectedLevel(level);
-    Haptics.selectionAsync();
+    selection();
   };
 
   return (
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: '600',
   },

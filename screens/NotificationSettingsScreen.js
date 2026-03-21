@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as Notifications from 'expo-notifications';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
@@ -54,7 +54,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status === 'granted') {
         setNotificationsEnabled(true);
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Success);
+        impact(ImpactFeedbackStyle.Success);
       } else {
         Alert.alert(
           'Permission Denied',
@@ -67,14 +67,14 @@ const NotificationSettingsScreen = ({ navigation }) => {
       }
     } else {
       setNotificationsEnabled(false);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
     }
   };
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
 
       const settings = {
         dailyPromptReminder,
@@ -85,7 +85,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
       await storage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, settings);
 
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Success);
+      impact(ImpactFeedbackStyle.Success);
       Alert.alert('Success', 'Notification settings updated!', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
@@ -110,7 +110,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
         onValueChange={onValueChange}
         disabled={disabled || !notificationsEnabled}
         trackColor={{ false: colors.border, true: colors.primary + '80' }}
-        thumbColor={value ? colors.primary : '#f4f3f4'}
+        thumbColor={value ? colors.primary : '#E8DDC8'}
         ios_backgroundColor={colors.border}
       />
     </View>
@@ -154,7 +154,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
               value={notificationsEnabled}
               onValueChange={handleToggleNotifications}
               trackColor={{ false: colors.border, true: colors.primary + '80' }}
-              thumbColor={notificationsEnabled ? colors.primary : '#f4f3f4'}
+              thumbColor={notificationsEnabled ? colors.primary : '#E8DDC8'}
               ios_backgroundColor={colors.border}
             />
           </View>
@@ -171,7 +171,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
               dailyPromptReminder,
               (value) => {
                 setDailyPromptReminder(value);
-                Haptics.selectionAsync();
+                selection();
               }
             )}
 
@@ -181,7 +181,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
               partnerActivity,
               (value) => {
                 setPartnerActivity(value);
-                Haptics.selectionAsync();
+                selection();
               }
             )}
 
@@ -191,7 +191,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
               weeklyRecap,
               (value) => {
                 setWeeklyRecap(value);
-                Haptics.selectionAsync();
+                selection();
               }
             )}
 
@@ -201,7 +201,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
               milestones,
               (value) => {
                 setMilestones(value);
-                Haptics.selectionAsync();
+                selection();
               }
             )}
           </View>
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: '600',
   },

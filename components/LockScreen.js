@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
@@ -107,22 +107,18 @@ export default function LockScreen({ onUnlock }) {
 
   const shake = () => {
     Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 10, duration: 65, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -10, duration: 65, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 10, duration: 65, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 65, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 70, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 70, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 70, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 70, useNativeDriver: true }),
     ]).start();
-    if (Platform.OS !== "web") {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    }
+          notification(NotificationFeedbackType.Error);
   };
 
   const handlePressDigit = async (digit) => {
     if (isLockedOut || pin.length >= PIN_LENGTH) return;
 
-    if (Platform.OS !== "web") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+          impact(ImpactFeedbackStyle.Light);
     const newPin = pin + digit;
     setPin(newPin);
 
@@ -161,9 +157,7 @@ export default function LockScreen({ onUnlock }) {
   const handleDelete = () => {
     if (pin.length > 0) {
       setPin(pin.slice(0, -1));
-      if (Platform.OS !== "web") {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
+              impact(ImpactFeedbackStyle.Light);
     }
   };
 

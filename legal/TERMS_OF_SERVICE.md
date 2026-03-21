@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last Updated: February 22, 2026**
+**Last Updated: March 21, 2026**
 
 Welcome to Between Us! These Terms of Service ("Terms") govern your use of the Between Us mobile application and related services (collectively, the "Service"). By using Between Us, you agree to these Terms.
 

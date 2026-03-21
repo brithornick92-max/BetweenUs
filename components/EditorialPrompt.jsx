@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from '../context/AppContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import { useTheme } from '../context/ThemeContext';
@@ -456,12 +456,12 @@ const EditorialPrompt = ({
     setIsSubmitting(true);
 
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
 
       Animated.sequence([
         Animated.timing(submitAnimation, {
           toValue: 0.95,
-          duration: 120,
+          duration: 250,
           useNativeDriver: true,
         }),
         Animated.timing(submitAnimation, {
@@ -491,7 +491,7 @@ const EditorialPrompt = ({
     try {
       await promptSyncService.revealPartnerAnswer(currentPrompt.id);
 
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
 
       Animated.parallel([
         Animated.timing(blurAnimation, {

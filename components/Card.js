@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { View, StyleSheet, TouchableOpacity, Animated, Platform } from "react-native";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { SPACING, BORDER_RADIUS } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 
@@ -44,7 +44,7 @@ export default function Card({
   const handlePress = () => {
     if (!pressable) return;
     if (useHaptics && Platform.OS !== "web") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
     }
     onPress();
   };

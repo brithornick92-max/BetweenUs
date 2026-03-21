@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from "../context/AppContext";
 import { useTheme } from "../context/ThemeContext";
 import { promptStorage } from "../utils/storage";
@@ -100,7 +100,7 @@ export default function RevealScreen({ route, navigation }) {
 
   const triggerRevealLogic = (doHaptics = true) => {
     if (doHaptics && Platform.OS !== "web") {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      notification(NotificationFeedbackType.Success);
     }
 
     setIsRevealed(true);
@@ -115,7 +115,7 @@ export default function RevealScreen({ route, navigation }) {
   const handleReveal = async () => {
     if (!prompt?.id || !prompt?.dateKey) return;
     
-    await Haptics.selectionAsync();
+    selection();
     
     try {
       // Mark revealed (local) for your current user's answer
@@ -153,7 +153,7 @@ export default function RevealScreen({ route, navigation }) {
           <View style={styles.header}>
             <TouchableOpacity 
               onPress={async () => {
-                await Haptics.selectionAsync();
+                selection();
                 navigation.goBack();
               }} 
               style={styles.backButton}
@@ -272,7 +272,7 @@ export default function RevealScreen({ route, navigation }) {
                 title="Save to Journal"
                 variant="outline"
                 onPress={async () => {
-                  await Haptics.selectionAsync();
+                  selection();
                   navigation.navigate("JournalEntry");
                 }}
                 style={{ marginTop: 24, marginBottom: 40 }}

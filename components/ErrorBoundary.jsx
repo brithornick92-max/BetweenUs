@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   devError: {
-    color: '#B85454',
+    color: '#9A2E5E',
     fontSize: 12,
     fontFamily: 'monospace',
     textAlign: 'center',

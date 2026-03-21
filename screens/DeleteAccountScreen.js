@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   deleteButtonText: {
-    color: '#fff',
+    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: '600',
   },

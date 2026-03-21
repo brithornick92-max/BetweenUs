@@ -1,6 +1,6 @@
 # Legal Documents Summary
 
-**Last Updated: February 22, 2026**
+**Last Updated: March 21, 2026**
 
 This document provides an overview of all legal documents for the Between Us app.
 

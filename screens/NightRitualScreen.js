@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import NightRitualMode from '../components/NightRitualMode';
 import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
@@ -45,7 +45,7 @@ const NightRitualScreen = ({ navigation }) => {
   }, []);
 
   const handleRitualComplete = async (ritual, responses) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     if (__DEV__) {
       console.log('Night ritual completed:', ritual?.id);
     }
@@ -54,14 +54,14 @@ const NightRitualScreen = ({ navigation }) => {
   };
 
   const handleElementComplete = async (elementId, response) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     if (__DEV__) {
       console.log(`Element ${elementId} completed`);
     }
   };
 
   const handleBackPress = async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     navigation.goBack();
   };
 

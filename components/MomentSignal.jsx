@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import { MomentSignalSender, MOMENT_TYPES } from '../services/ConnectionEngine';
@@ -52,7 +52,7 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
       if (!momentDef) return;
 
       setReceivedSignal(momentDef);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      notification(NotificationFeedbackType.Success).catch(() => {});
 
       // Fade in, hold, fade out
       Animated.sequence([
@@ -72,7 +72,7 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
   const handleSend = useCallback(async (moment) => {
     if (!canSend) return;
 
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notification(NotificationFeedbackType.Success);
     setSentType(moment.id);
     setCanSend(false);
     setSendError(null);
@@ -92,7 +92,7 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
 
     // Second gentle haptic pulse after a beat
     setTimeout(() => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      impact(ImpactFeedbackStyle.Medium).catch(() => {});
     }, 400);
 
     const result = await MomentSignalSender.send(moment.id);
@@ -129,7 +129,7 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
     return (
       <Animated.View style={[styles.sentContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
         <View style={[styles.checkCircle, { backgroundColor: colors.primary }]}>
-          <MaterialCommunityIcons name="check" size={28} color="#fff" />
+          <MaterialCommunityIcons name="check" size={28} color="#F2E9E6" />
         </View>
         <Text style={[styles.sentText, { color: colors.text }]}>
           Sent to {partnerLabel}

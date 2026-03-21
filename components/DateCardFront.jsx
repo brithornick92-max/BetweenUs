@@ -20,9 +20,9 @@ const FONTS = {
 };
 
 export const HEAT_GRADIENTS = {
-  1: ['#B07EFF', '#9060E0'],
-  2: ['#FF7EB8', '#E0609A'],
-  3: ['#FF5A5A', '#D03030'],
+  1: ['#7A1E4E', '#5E1940'],
+  2: ['#9A2E5E', '#7A1E4E'],
+  3: ['#B84070', '#9A2E5E'],
 };
 
 export const HEAT_ICONS = {
@@ -38,9 +38,9 @@ const HEAT_LABELS = {
 };
 
 const HEAT_METAL = {
-  1: { base: '#1A1230', chrome: '#C4A8FF', highlight: '#E0CCFF', mid: '#6B48B8' },
-  2: { base: '#1E0F1A', chrome: '#FFB0D6', highlight: '#FFD6EA', mid: '#B8487A' },
-  3: { base: '#1E0808', chrome: '#FF9090', highlight: '#FFB8B8', mid: '#B83030' },
+  1: { base: '#1A1230', chrome: '#9A2E5E', highlight: '#B84070', mid: '#5E1940' },
+  2: { base: '#1E0F1A', chrome: '#B84070', highlight: '#C45060', mid: '#7A1E4E' },
+  3: { base: '#1E0808', chrome: '#C45060', highlight: '#D04848', mid: '#9A2E5E' },
 };
 
 export default function DateCardFront({ date, colors, dims }) {

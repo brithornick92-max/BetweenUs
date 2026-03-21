@@ -12,7 +12,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
@@ -180,7 +180,7 @@ export default function FAQScreen({ navigation }) {
   const { colors } = useTheme();
 
   const toggleItem = (categoryIndex, questionIndex) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     const key = `${categoryIndex}-${questionIndex}`;
     setExpandedItems(prev => ({
       ...prev,
@@ -189,7 +189,7 @@ export default function FAQScreen({ navigation }) {
   };
 
   const handleContactSupport = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     Alert.alert('Contact Support', 'Email: brittanyapps@outlook.com\nResponse time: 24-48 hours');
   };
 
@@ -205,7 +205,7 @@ export default function FAQScreen({ navigation }) {
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            impact(ImpactFeedbackStyle.Light);
             navigation.goBack();
           }}
           style={styles.backButton}

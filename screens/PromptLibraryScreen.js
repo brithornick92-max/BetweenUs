@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 
 import { useTheme } from "../context/ThemeContext";
 import { useContent } from "../context/ContentContext";
@@ -42,7 +42,7 @@ const CATEGORIES = [
 ];
 
 const HEAT_LABELS = { 1: 'Emotional', 2: 'Flirty', 3: 'Sensual', 4: 'Steamy', 5: 'Explicit' };
-const HEAT_BADGE_COLORS = { 1: '#B07EFF', 2: '#FF7EB8', 3: '#FF7080', 4: '#FF8534', 5: '#FF2D2D' };
+const HEAT_BADGE_COLORS = { 1: '#7A1E4E', 2: '#9A2E5E', 3: '#B84070', 4: '#C45060', 5: '#D04848' };
 
 const DURATION_FILTERS = [
   { id: "all", label: "All Stages" },
@@ -212,7 +212,7 @@ export default function PromptLibraryScreen({ navigation }) {
         return;
       }
 
-      await Haptics.selectionAsync();
+      selection();
 
       const newFavorites = favorites.includes(promptId)
         ? favorites.filter((id) => id !== promptId)
@@ -237,7 +237,7 @@ export default function PromptLibraryScreen({ navigation }) {
   // -----------------------
   const handlePromptSelect = useCallback(
     async (prompt) => {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
 
       const safePrompt = normalizePrompt(prompt);
 
@@ -260,7 +260,7 @@ export default function PromptLibraryScreen({ navigation }) {
   // Refresh prompt (your flow)
   // -----------------------
   const handleRefreshPrompt = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
 
     if (!isPremium) {
       Alert.alert(
@@ -310,7 +310,7 @@ export default function PromptLibraryScreen({ navigation }) {
         ]}
         onPress={() => {
           setSelectedCategory(category.id);
-          Haptics.selectionAsync();
+          selection();
         }}
         activeOpacity={0.7}
       >
@@ -354,7 +354,7 @@ export default function PromptLibraryScreen({ navigation }) {
               ]}
               onPress={() => {
                 setSelectedHeat(heat);
-                Haptics.selectionAsync();
+                selection();
               }}
               activeOpacity={0.7}
             >
@@ -403,10 +403,10 @@ export default function PromptLibraryScreen({ navigation }) {
             <View
               style={[
                 styles.categoryBadge,
-                { backgroundColor: `${HEAT_BADGE_COLORS[safeItem.heat] || '#B07EFF'}20` },
+                { backgroundColor: `${HEAT_BADGE_COLORS[safeItem.heat] || '#7A1E4E'}20` },
               ]}
             >
-              <Text style={[styles.categoryBadgeText, { color: HEAT_BADGE_COLORS[safeItem.heat] || '#B07EFF' }]}>
+              <Text style={[styles.categoryBadgeText, { color: HEAT_BADGE_COLORS[safeItem.heat] || '#7A1E4E' }]}>
                 {HEAT_LABELS[safeItem.heat] || 'Emotional'}
               </Text>
             </View>
@@ -586,7 +586,7 @@ export default function PromptLibraryScreen({ navigation }) {
                   ]}
                   onPress={() => {
                     setSelectedDuration(d.id);
-                    Haptics.selectionAsync();
+                    selection();
                   }}
                   activeOpacity={0.7}
                 >

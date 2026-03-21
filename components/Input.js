@@ -155,7 +155,7 @@ export default function Input({
     setFocused(false);
     Animated.timing(focusAnim, {
       toValue: 0,
-      duration: 200,
+      duration: 250,
       useNativeDriver: false,
     }).start();
   };

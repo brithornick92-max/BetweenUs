@@ -17,7 +17,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from "../context/ThemeContext";
 import { useSubscription } from "../context/SubscriptionContext";
 import { usePremiumFeatures } from "../hooks/usePremiumFeatures";
@@ -95,7 +95,7 @@ export default function PremiumScreen({ navigation }) {
     if (!pkg || purchasing) return;
     setPurchasing(true);
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
       const result = await purchasePackage(pkg);
       if (result.success) {
         await actions?.refreshPremiumStatus?.();
@@ -134,7 +134,7 @@ export default function PremiumScreen({ navigation }) {
   };
 
   const handleDismiss = async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     hidePaywall();
     if (navigation.canGoBack()) navigation.goBack();
   };
@@ -145,7 +145,7 @@ export default function PremiumScreen({ navigation }) {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => { Haptics.selectionAsync(); setSelectedPlan(id); }}
+        onPress={() => { selection(); setSelectedPlan(id); }}
         style={[styles.planCard, isSelected && styles.planCardSelected]}
       >
         {badge ? (

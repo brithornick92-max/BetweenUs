@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from '../context/AppContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import { useTheme } from '../context/ThemeContext';
@@ -164,7 +164,7 @@ const VibeSignal = ({
         }),
         Animated.timing(partnerGlowAnimation, {
           toValue: 0.7,
-          duration: 200,
+          duration: 250,
           useNativeDriver: false,
         }),
       ]).start();
@@ -177,13 +177,13 @@ const VibeSignal = ({
     setIsAnimating(true);
     
     // Haptic feedback for selection
-    await Haptics.selectionAsync();
+    selection();
     
     // Scale animation for selection feedback
     Animated.sequence([
       Animated.timing(scaleAnimation, {
         toValue: 0.95,
-        duration: 120,
+        duration: 250,
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnimation, {

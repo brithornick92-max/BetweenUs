@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import Animated, { FadeInDown, FadeIn, FadeInUp } from "react-native-reanimated";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useNavigation } from "@react-navigation/native";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useTheme } from "../context/ThemeContext";
@@ -41,7 +41,7 @@ const PremiumPaywall = ({
     if (isSubscribing || !pkg) return;
     setIsSubscribing(true);
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
       const purchaseResult = await purchasePackage(pkg);
       if (purchaseResult.success && onSubscribe) {
         onSubscribe();
@@ -58,7 +58,7 @@ const PremiumPaywall = ({
     setIsSubscribing(true);
     try {
       await restorePurchases();
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      notification(NotificationFeedbackType.Success);
     } catch (error) {
       console.error("Restore failed:", error);
     } finally {

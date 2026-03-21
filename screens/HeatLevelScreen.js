@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
@@ -31,8 +31,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Emotional Connection',
       description: 'Emotional intimacy, non-sexual',
       icon: 'heart',
-      color: '#B07EFF',
-      gradient: ['#B07EFF', '#CCA8FF'],
+      color: '#7A1E4E',
+      gradient: ['#7A1E4E', '#5E1940'],
       free: true,
     },
     {
@@ -40,8 +40,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Flirty & Romantic',
       description: 'Flirty attraction, romantic tension',
       icon: 'heart-pulse',
-      color: '#FF7EB8',
-      gradient: ['#FF7EB8', '#FFA8D0'],
+      color: '#9A2E5E',
+      gradient: ['#9A2E5E', '#7A1E4E'],
       free: true,
     },
     {
@@ -49,8 +49,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Sensual',
       description: 'Sensual, relationship-focused intimacy',
       icon: 'fire',
-      color: '#FF7080',
-      gradient: ['#FF7080', '#FF98A8'],
+      color: '#B84070',
+      gradient: ['#B84070', '#9A2E5E'],
       free: true,
     },
     {
@@ -58,8 +58,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Steamy',
       description: 'Suggestive, adventurous, and heated',
       icon: 'fire-circle',
-      color: '#FF8534',
-      gradient: ['#FF8534', '#FFA864'],
+      color: '#C45060',
+      gradient: ['#C45060', '#A83850'],
       premium: true,
     },
     {
@@ -67,8 +67,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Explicit',
       description: 'Intensely passionate, graphic, explicit',
       icon: 'fire-alert',
-      color: '#FF2D2D',
-      gradient: ['#FF2D2D', '#FF6060'],
+      color: '#D04848',
+      gradient: ['#D04848', '#B03030'],
       premium: true,
     },
   ];
@@ -76,7 +76,7 @@ export default function HeatLevelScreen({ navigation }) {
   const handleSelectHeatLevel = async (level) => {
     try {
       setLoading(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
 
       // Check if premium required
       if (level >= 4 && !isPremium) {

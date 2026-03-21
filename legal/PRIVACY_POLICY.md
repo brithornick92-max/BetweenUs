@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last Updated: February 22, 2026**
+**Last Updated: March 21, 2026**
 
 At Between Us, your privacy is our top priority. This Privacy Policy explains how we collect, use, protect, and share your information when you use our app.
 
@@ -378,4 +378,4 @@ We believe in transparency. We'll publish an annual report on:
 
 **Your privacy matters to us. If you have any questions or concerns, please reach out.**
 
-*Last Updated: February 22, 2026*
+*Last Updated: March 21, 2026*

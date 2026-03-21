@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
@@ -75,7 +75,7 @@ export default function YearReflectionScreen({ navigation }) {
 
   const handleShare = async () => {
     if (!reflection) return;
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     const text = reflection.sections.map(s => s.text).join('\n\n');
     try {
       await Share.share({

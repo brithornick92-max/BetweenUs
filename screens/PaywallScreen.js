@@ -9,7 +9,7 @@ import {
   Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from "../context/AppContext";
 import { usePremiumFeatures } from "../hooks/usePremiumFeatures";
 import PremiumPaywall from "../components/PremiumPaywall";
@@ -46,7 +46,7 @@ export default function PaywallScreen({ navigation, route }) {
   }, [hidePaywall]);
 
   const handleClose = async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     hidePaywall();
     if (navigation.canGoBack()) {
       navigation.goBack();

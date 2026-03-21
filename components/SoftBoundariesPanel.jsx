@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { BORDER_RADIUS, SPACING } from '../utils/theme';
 import { SoftBoundaries } from '../services/PolishEngine';
@@ -35,7 +35,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
   }, []);
 
   const toggleSpicy = useCallback(async (value) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     await SoftBoundaries.setHideSpicy(value);
     const updated = await SoftBoundaries.getAll();
     setBoundaries(updated);

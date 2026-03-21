@@ -47,11 +47,11 @@ const uiPersonalization = {
       .map(([name]) => FEATURE_META[name])
       .filter(Boolean);
 
-    // Widgets: always show streak + achievements; add challenges if user engages frequently
+    // Widgets: always show connection + milestones; add invitations if user engages frequently
     const widgets = [
-      { type: 'streak_indicator', data: { streak: 0 } },
-      { type: 'achievement_badge', data: {} },
-      { type: 'challenge_card', data: {} },
+      { type: 'nights_connected', data: { streak: 0 } },
+      { type: 'quiet_milestone', data: {} },
+      { type: 'invitation_card', data: {} },
     ];
 
     if (avgSession != null && avgSession > 300) {

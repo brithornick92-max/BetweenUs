@@ -355,7 +355,8 @@ class LocalStorageService {
   // Usage Tracking
   async getDailyUsage(userId) {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       const usageData = await AsyncStorage.getItem(`usage_${userId}_${today}`);
       
       return usageData ? JSON.parse(usageData) : {
@@ -366,13 +367,14 @@ class LocalStorageService {
       };
     } catch (error) {
       console.error('Get daily usage error:', error);
-      return { date: new Date().toISOString().split('T')[0], prompts: 0, dates: 0, challenges: 0 };
+      return { date: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })(), prompts: 0, dates: 0, challenges: 0 };
     }
   }
 
   async trackDailyUsage(userId, type) {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const d2 = new Date();
+      const today = `${d2.getFullYear()}-${String(d2.getMonth()+1).padStart(2,'0')}-${String(d2.getDate()).padStart(2,'0')}`;
       const usage = await this.getDailyUsage(userId);
       
       usage[type] = (usage[type] || 0) + 1;

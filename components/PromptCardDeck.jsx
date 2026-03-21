@@ -33,7 +33,7 @@ import {
 } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 
@@ -70,11 +70,11 @@ const FONTS = {
 
 // Heat-level gradient + icon + label mapping
 const HEAT_COLORS = {
-  1: ['#B07EFF', '#9060E0'],
-  2: ['#FF7EB8', '#E0609A'],
-  3: ['#FF7080', '#E05468'],
-  4: ['#FF8534', '#E06820'],
-  5: ['#FF2D2D', '#E01818'],
+  1: ['#7A1E4E', '#5E1940'],
+  2: ['#9A2E5E', '#7A1E4E'],
+  3: ['#B84070', '#9A2E5E'],
+  4: ['#C45060', '#A83850'],
+  5: ['#D04848', '#B03030'],
 };
 // Metallic base tones per heat (dark chrome → accent)
 const HEAT_METAL = {
@@ -148,7 +148,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
   }, [isTop]);
 
   const handleSwipeComplete = useCallback((direction) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     if (direction === 'right') {
       onSwipeRight?.(item);
     } else {
@@ -157,7 +157,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
   }, [item, onSwipeRight, onSwipeLeft]);
 
   const handleFlip = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     const target = isFlipped ? 0 : 1;
     flipProgress.value = withTiming(target, {
       duration: FLIP_DURATION,
@@ -529,7 +529,7 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onDraw 
   }, [onSkip, advanceCard]);
 
   const handleDraw = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     drawScale.value = withSpring(0.92, { damping: 15, stiffness: 300 });
     setTimeout(() => {
       drawScale.value = withSpring(1, SPRING_CONFIG);
@@ -724,9 +724,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: 'rgba(255,255,255,0.25)',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
+        shadowOpacity: 0.08,
         shadowRadius: 16,
       },
       android: {},

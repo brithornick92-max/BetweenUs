@@ -1,6 +1,6 @@
 // context/RitualContext.js
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { storage, STORAGE_KEYS, makeId } from '../utils/storage';
 import { useAppContext } from './AppContext';
 import { useEntitlements } from './EntitlementsContext';
@@ -374,7 +374,7 @@ export function RitualProvider({ children }) {
       appActions.setActiveRitual(ritual);
       
       // Gentle haptic feedback for ritual start
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       
       return ritual;
     },
@@ -411,7 +411,7 @@ export function RitualProvider({ children }) {
       await storage.set(STORAGE_KEYS.RITUAL_HISTORY, updatedHistory);
       
       // Gentle haptic feedback for completion
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       
       // Note: Partner sync would happen here in production
       
@@ -474,7 +474,7 @@ export function RitualProvider({ children }) {
       appActions.setActiveRitual(ritual);
       
       // Gentle haptic feedback for ritual start
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       
       return ritual;
     },
@@ -543,7 +543,7 @@ export function RitualProvider({ children }) {
       appActions.setActiveRitual(ritual);
       
       // Gentle haptic feedback for ritual start
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       
       return ritual;
     },

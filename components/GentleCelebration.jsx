@@ -41,7 +41,7 @@ export default function GentleCelebration({
 
     // Gentle haptic
     if (Platform.OS !== 'web' && Haptics?.notificationAsync) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      notification(NotificationFeedbackType.Success).catch(() => {});
     }
 
     // Soft entrance

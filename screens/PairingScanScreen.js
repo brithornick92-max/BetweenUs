@@ -171,11 +171,11 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,
   },
-  primaryButtonText: { color: '#0B0B0B', fontWeight: '700' },
+  primaryButtonText: { color: '#070509', fontWeight: '700' },
   secondaryButton: {
     marginTop: SPACING.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,

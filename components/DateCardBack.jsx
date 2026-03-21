@@ -260,9 +260,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: 'rgba(255,255,255,0.25)',
+        shadowColor: '#070509',
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
+        shadowOpacity: 0.08,
         shadowRadius: 16,
       },
       android: {},

@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
@@ -71,11 +71,11 @@ const CAT_ICONS = {
 };
 
 const HEAT_LEVELS = [
-  { value: 1, label: 'Emotional', color: '#B07EFF' },
-  { value: 2, label: 'Flirty', color: '#FF7EB8' },
-  { value: 3, label: 'Sensual', color: '#FF7080' },
-  { value: 4, label: 'Steamy', color: '#FF8534' },
-  { value: 5, label: 'Explicit', color: '#FF2D2D' },
+  { value: 1, label: 'Emotional', color: '#7A1E4E' },
+  { value: 2, label: 'Flirty', color: '#9A2E5E' },
+  { value: 3, label: 'Sensual', color: '#B84070' },
+  { value: 4, label: 'Steamy', color: '#C45060' },
+  { value: 5, label: 'Explicit', color: '#D04848' },
 ];
 
 const CATEGORIES = [
@@ -206,7 +206,7 @@ export default function PromptsScreen({ navigation }) {
 
   const handleHeatSelect = useCallback((heat) => {
     setSelectedHeat(heat);
-    Haptics.selectionAsync();
+    selection();
   }, []);
 
   return (

@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -89,20 +89,20 @@ export default function AuthScreen() {
           return;
         }
         await signUp(email.trim(), password, displayName.trim());
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        impact(ImpactFeedbackStyle.Light).catch(() => {});
         Alert.alert("Welcome", "Your account has been created.");
       } else {
         await signIn(email.trim(), password);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        impact(ImpactFeedbackStyle.Light).catch(() => {});
       }
     } catch (error) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      impact(ImpactFeedbackStyle.Medium).catch(() => {});
       Alert.alert("Error", error?.message ?? "Something went wrong.");
     }
   }, [signIn, signUp, email, password, displayName, confirmPassword, isSignUp]);
 
   const toggleMode = useCallback(() => {
-    Haptics.selectionAsync().catch(() => {});
+    selection().catch(() => {});
     setIsSignUp((v) => !v);
     setEmail("");
     setPassword("");

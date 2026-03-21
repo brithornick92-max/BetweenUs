@@ -1,5 +1,5 @@
 // utils/premiumFeatures.js
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { storage } from './storage';
 
 const FEATURE_USAGE_KEY = '@betweenus:premiumFeatureUsage';
@@ -144,7 +144,7 @@ export class PremiumGatekeeper {
 
   async showPremiumPaywall(feature) {
     // Haptic feedback for premium feature attempt
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     
     // Focus on emotional value and memory protection
     // Use YEARLY tier (most popular) as the default paywall presentation

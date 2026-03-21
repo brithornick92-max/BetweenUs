@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import { ContentIntensityMatcher, ENERGY_LEVELS } from '../services/ConnectionEngine';
@@ -47,7 +47,7 @@ export default function EnergyMatcher({ onSelect, compact = false }) {
   }, []);
 
   const handleSelect = useCallback(async (level) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     setSelected(level);
     await ContentIntensityMatcher.setEnergyLevel(level);
     const params = ContentIntensityMatcher.getContentParams(level);

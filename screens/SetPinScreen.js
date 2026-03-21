@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import { useTheme } from '../context/ThemeContext';
@@ -66,7 +66,7 @@ const SetPinScreen = ({ navigation }) => {
         pin
       );
       await SecureStore.setItemAsync(PIN_KEY, hash, { keychainService: PIN_SERVICE });
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
       Alert.alert('PIN saved', 'Your app lock PIN is set.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
@@ -81,7 +81,7 @@ const SetPinScreen = ({ navigation }) => {
     try {
       setSaving(true);
       await SecureStore.deleteItemAsync(PIN_KEY, { keychainService: PIN_SERVICE });
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       Alert.alert('PIN cleared', 'App lock PIN removed.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);

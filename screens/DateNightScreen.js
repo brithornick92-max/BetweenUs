@@ -21,7 +21,7 @@ import Animated, {
   withSpring, withTiming, runOnJS, interpolate,
   Easing,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
@@ -92,14 +92,14 @@ const CardStack = forwardRef(function CardStack(
     const { deck: d, deckIndex: i, onSwipeRight: cb } = deckRef.current;
     reset();
     cb(d[i]);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
   }, [reset]);
 
   const doSwipeLeft = useCallback(() => {
     const { onSwipeLeft: cb } = deckRef.current;
     reset();
     cb();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
   }, [reset]);
 
   const handleFlip = useCallback(() => {
@@ -109,7 +109,7 @@ const CardStack = forwardRef(function CardStack(
       easing: Easing.bezier(0.4, 0.0, 0.2, 1),
     });
     setIsFlipped(!isFlipped);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
   }, [isFlipped, flipProgress]);
 
   // Open detail for the current top card — runs on JS thread so deckRef is fresh
@@ -254,7 +254,7 @@ const CardStack = forwardRef(function CardStack(
         <Animated.View
           style={[
             cardBase,
-            { backgroundColor: '#0E0B14', zIndex: 1 },
+            { backgroundColor: '#131016', zIndex: 1 },
             behind2Style,
           ]}
         >
@@ -267,7 +267,7 @@ const CardStack = forwardRef(function CardStack(
         <Animated.View
           style={[
             cardBase,
-            { backgroundColor: '#0E0B14', zIndex: 2 },
+            { backgroundColor: '#131016', zIndex: 2 },
             behind1Style,
           ]}
         >
@@ -291,7 +291,7 @@ const CardStack = forwardRef(function CardStack(
 
           {/* Front face */}
           <Animated.View style={[styles.flipFace, frontFaceStyle]}>
-            <View style={[styles.cardFrontWrap, { backgroundColor: '#0E0B14' }]}>
+            <View style={[styles.cardFrontWrap, { backgroundColor: '#131016' }]}>
               <CardFront date={topCard} colors={colors} />
             </View>
           </Animated.View>
@@ -411,13 +411,13 @@ export default function DateNightScreen({ navigation }) {
   }, [isPremium, showPaywall, navigation]);
 
   const handleReset = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     setDeckIndex(0);
     setLikedDates([]);
   }, []);
 
   const handleFilterPress = useCallback(async (dim, value) => {
-    await Haptics.selectionAsync();
+    selection();
     // Required selection — tapping same value again does nothing (can't deselect)
     if (dim === 'heat') setSelectedHeat(value);
     else if (dim === 'load') setSelectedLoad(value);
@@ -426,14 +426,14 @@ export default function DateNightScreen({ navigation }) {
   }, []);
 
   const clearFilters = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     setSelectedHeat(null);
     setSelectedLoad(null);
     setSelectedStyle(null);
   }, []);
 
   return (
-    <View style={[styles.root, { backgroundColor: isDark ? '#070509' : '#F7F0EB' }]}>
+    <View style={[styles.root, { backgroundColor: '#070509' }]}>
       <GlowOrb color={withAlpha(colors.primary, 0.12)} size={200} top={-40} left={-30} />
       <GlowOrb color={withAlpha(colors.accent, 0.06)} size={140} top={300} left={width - 80} delay={1500} />
       <FilmGrain />
@@ -480,7 +480,7 @@ export default function DateNightScreen({ navigation }) {
                 const activeHeat = DIMS.heat.find(h => h.level === selectedHeat);
                 return (
                   <TouchableOpacity
-                    style={[styles.dropdownBtn, { borderColor: activeHeat ? activeHeat.color + '60' : colors.border, backgroundColor: activeHeat ? activeHeat.color + '10' : isDark ? colors.surface : '#FFFAF7' }]}
+                    style={[styles.dropdownBtn, { borderColor: activeHeat ? activeHeat.color + '60' : colors.border, backgroundColor: activeHeat ? activeHeat.color + '10' : colors.surface }]}
                     onPress={() => setDropdownOpen(o => o === 'heat' ? null : 'heat')}
                     activeOpacity={0.7}
                   >
@@ -502,7 +502,7 @@ export default function DateNightScreen({ navigation }) {
                 const activeLoad = DIMS.load.find(l => l.level === selectedLoad);
                 return (
                   <TouchableOpacity
-                    style={[styles.dropdownBtn, { borderColor: activeLoad ? activeLoad.color + '60' : colors.border, backgroundColor: activeLoad ? activeLoad.color + '10' : isDark ? colors.surface : '#FFFAF7' }]}
+                    style={[styles.dropdownBtn, { borderColor: activeLoad ? activeLoad.color + '60' : colors.border, backgroundColor: activeLoad ? activeLoad.color + '10' : colors.surface }]}
                     onPress={() => setDropdownOpen(o => o === 'load' ? null : 'load')}
                     activeOpacity={0.7}
                   >
@@ -524,7 +524,7 @@ export default function DateNightScreen({ navigation }) {
                 const activeStyle = DIMS.style.find(s => s.id === selectedStyle);
                 return (
                   <TouchableOpacity
-                    style={[styles.dropdownBtn, { borderColor: activeStyle ? activeStyle.color + '60' : colors.border, backgroundColor: activeStyle ? activeStyle.color + '10' : isDark ? colors.surface : '#FFFAF7' }]}
+                    style={[styles.dropdownBtn, { borderColor: activeStyle ? activeStyle.color + '60' : colors.border, backgroundColor: activeStyle ? activeStyle.color + '10' : colors.surface }]}
                     onPress={() => setDropdownOpen(o => o === 'style' ? null : 'style')}
                     activeOpacity={0.7}
                   >
@@ -551,7 +551,7 @@ export default function DateNightScreen({ navigation }) {
 
             {/* Dropdown option panels */}
             {dropdownOpen === 'heat' && (
-              <View style={[styles.dropdownPanel, { backgroundColor: isDark ? colors.surface : '#FFFAF7', borderColor: colors.border }]}>
+              <View style={[styles.dropdownPanel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 {DIMS.heat.map((h) => {
                   const active = selectedHeat === h.level;
                   return (
@@ -573,7 +573,7 @@ export default function DateNightScreen({ navigation }) {
             )}
 
             {dropdownOpen === 'load' && (
-              <View style={[styles.dropdownPanel, { backgroundColor: isDark ? colors.surface : '#FFFAF7', borderColor: colors.border }]}>
+              <View style={[styles.dropdownPanel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 {DIMS.load.map((l) => {
                   const active = selectedLoad === l.level;
                   return (
@@ -595,7 +595,7 @@ export default function DateNightScreen({ navigation }) {
             )}
 
             {dropdownOpen === 'style' && (
-              <View style={[styles.dropdownPanel, { backgroundColor: isDark ? colors.surface : '#FFFAF7', borderColor: colors.border }]}>
+              <View style={[styles.dropdownPanel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 {DIMS.style.map((s) => {
                   const active = selectedStyle === s.id;
                   return (

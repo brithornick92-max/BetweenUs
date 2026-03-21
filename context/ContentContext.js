@@ -100,7 +100,8 @@ export const ContentProvider = ({ children }) => {
       }
 
       // Use PreferenceEngine to rank prompts by all preferences
-      const today = new Date().toISOString().split('T')[0];
+      const _d = new Date();
+      const today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
       const [curYear, curMonth] = today.split('-');
       const monthKey = `${curYear}-${curMonth}`;
       let selectedPrompt;

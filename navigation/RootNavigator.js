@@ -97,6 +97,8 @@ export default function RootNavigator() {
           }}
         >
           <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="Terms" component={TermsScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
         </Stack.Navigator>
       </>
     );

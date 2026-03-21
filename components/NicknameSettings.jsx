@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { BORDER_RADIUS, SPACING } from '../utils/theme';
 import { NicknameEngine } from '../services/PolishEngine';
@@ -41,7 +41,7 @@ export default function NicknameSettings({ onConfigChanged }) {
   }, [onConfigChanged]);
 
   const selectTone = useCallback(async (toneId) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     const updated = await NicknameEngine.setConfig({ tone: toneId });
     setConfig(updated);
     onConfigChanged?.(updated);

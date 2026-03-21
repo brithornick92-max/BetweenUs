@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { useAuth } from '../context/AuthContext';
@@ -142,7 +142,7 @@ export default function SettingsScreen({ navigation }) {
             CrashReporting.captureException(err, { context: 'settings_key_upload' });
           }
           setInviteCode(null);
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          notification(NotificationFeedbackType.Success);
           const partnerLabel = userProfile?.partnerNames?.partnerName || 'Your partner';
           Alert.alert(
             'You\'re linked! 💕',
@@ -166,7 +166,7 @@ export default function SettingsScreen({ navigation }) {
         if (user?.uid) await updateProfile?.({ coupleId: null });
       }
       setPaired(false);
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      notification(NotificationFeedbackType.Success);
     } catch {
       Alert.alert('Something went wrong', 'We couldn\'t unlink your partner right now. Please try again in a moment.');
     }
@@ -249,7 +249,7 @@ export default function SettingsScreen({ navigation }) {
       const result = await CoupleService.generateInviteCode();
       setInviteCode(result.code);
       setCodeExpiresAt(result.expiresAt);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      impact(ImpactFeedbackStyle.Medium);
     } catch (error) {
       const msg = error?.message || 'We couldn\'t generate a code right now. Give it another try in a moment.';
       Alert.alert('Something went wrong', msg);
@@ -261,7 +261,7 @@ export default function SettingsScreen({ navigation }) {
   const copyCode = async () => {
     if (!inviteCode) return;
     await Clipboard.setStringAsync(inviteCode);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     Alert.alert('Copied', 'Code copied to clipboard.');
   };
 
@@ -292,7 +292,7 @@ export default function SettingsScreen({ navigation }) {
 
       const result = await CoupleService.redeemInviteCode(enteredCode);
       if (result?.coupleId) await storage.set(STORAGE_KEYS.COUPLE_ID, result.coupleId);
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      notification(NotificationFeedbackType.Success);
       const linkedPartnerName = userProfile?.partnerNames?.partnerName || 'your partner';
       Alert.alert('Success!', `You are now linked with ${linkedPartnerName}`, [{
         text: 'OK',
@@ -316,7 +316,7 @@ export default function SettingsScreen({ navigation }) {
   const handleSaveRelationshipDate = async (date) => {
     try {
       await updateRelationshipStartDate(date.toISOString());
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      notification(NotificationFeedbackType.Success);
       Alert.alert('Saved', 'Your relationship date has been updated.');
     } catch {
       Alert.alert('Something went wrong', 'We couldn\'t save your date right now. Please try again.');
@@ -325,7 +325,7 @@ export default function SettingsScreen({ navigation }) {
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
   };
 
   // ─── Dev tools ───
@@ -355,7 +355,7 @@ export default function SettingsScreen({ navigation }) {
     devTapTimer.current = setTimeout(() => { devTapCount.current = 0; }, 2000);
     if (devTapCount.current >= 7 && DEV_TOOLS_ALLOWED) {
       setShowDevTools(prev => !prev);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      notification(NotificationFeedbackType.Success);
       devTapCount.current = 0;
     }
   };
@@ -369,7 +369,7 @@ export default function SettingsScreen({ navigation }) {
         onPress: async () => {
           try {
             await signOutGlobal();
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            impact(ImpactFeedbackStyle.Light);
           } catch { Alert.alert('Something went wrong', 'We couldn\'t sign you out. Please try again.'); }
         },
       },
@@ -625,7 +625,7 @@ export default function SettingsScreen({ navigation }) {
                       active && { backgroundColor: colors.primary + '18' },
                     ]}
                     onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      impact(ImpactFeedbackStyle.Light);
                       setThemeMode(key);
                     }}
                     activeOpacity={0.7}
@@ -689,7 +689,7 @@ export default function SettingsScreen({ navigation }) {
               title="Contact Us"
               subtitle="brittanyapps@outlook.com"
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                impact(ImpactFeedbackStyle.Medium);
                 Alert.alert('Contact Support', 'Email us at:\nbrittanyapps@outlook.com\n\nWe typically respond within 24–48 hours.', [{ text: 'OK' }]);
               }}
               colors={colors}

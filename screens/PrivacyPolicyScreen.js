@@ -33,7 +33,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
         <View style={styles.content}>
           <Text style={[styles.title, { color: colors.text }]}>Between Us - Privacy Policy</Text>
           <Text style={[styles.date, { color: colors.textSecondary }]}>
-            Last Updated: February 22, 2026
+            Last Updated: March 21, 2026
           </Text>
 
           <Text style={[styles.intro, { color: colors.textSecondary }]}>

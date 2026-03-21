@@ -68,7 +68,7 @@ export default function Button({
 
     if (haptic && Platform.OS !== "web" && Haptics?.impactAsync) {
       try {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        impact(ImpactFeedbackStyle.Light);
       } catch (e) { /* haptics non-critical */ }
     }
 

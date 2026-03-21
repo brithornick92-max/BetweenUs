@@ -12,7 +12,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import EditorialPrompt from "../components/EditorialPrompt";
 import { useAppContext } from "../context/AppContext";
 import { useEntitlements } from "../context/EntitlementsContext";
@@ -51,15 +51,15 @@ const EditorialPromptScreen = ({ route, navigation }) => {
   }, []);
 
   const handleAnswerSubmit = async (prompt, answer) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
   };
 
   const handlePartnerAnswerRevealed = async (prompt, partnerAnswer) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
   };
 
   const handleBackPress = async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Light);
     navigation.goBack();
   };
 

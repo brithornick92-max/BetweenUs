@@ -4,7 +4,7 @@ import { Platform, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -102,9 +102,7 @@ export default function Tabs() {
   const { colors, isDark } = useTheme();
 
   const handleTabPress = () => {
-    if (Platform.OS !== "web") {
-      Haptics.selectionAsync();
-    }
+          selection();
   };
 
   return (

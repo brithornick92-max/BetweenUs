@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
@@ -73,7 +73,7 @@ export default function SurpriseTonight({ onOpen, navigation }) {
   };
 
   const handleOpen = async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Medium);
     setVisible(false);
 
     // Navigate based on surprise type

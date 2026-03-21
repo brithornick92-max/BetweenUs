@@ -15,7 +15,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as ImagePicker from "expo-image-picker";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { journalStorage } from "../utils/storage";
@@ -73,7 +73,7 @@ export default function JournalEntryScreen({ navigation, route }) {
     }
 
     setIsSaving(true);
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notification(NotificationFeedbackType.Success);
 
     try {
       const entryData = {
@@ -108,7 +108,7 @@ export default function JournalEntryScreen({ navigation, route }) {
           style: "destructive",
           onPress: async () => {
             try {
-              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              impact(ImpactFeedbackStyle.Medium);
               await journalStorage.deleteEntry(entry.id);
               navigation.goBack();
             } catch (error) {
@@ -127,7 +127,7 @@ export default function JournalEntryScreen({ navigation, route }) {
       text.length % 50 === 0 &&
       text.length !== lastHapticLength.current
     ) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Light);
       lastHapticLength.current = text.length;
     }
   };
@@ -149,7 +149,7 @@ export default function JournalEntryScreen({ navigation, route }) {
 
       if (!result.canceled && result.assets?.[0]?.uri) {
         setImageUri(result.assets[0].uri);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        impact(ImpactFeedbackStyle.Light);
       }
     } catch (err) {
       Alert.alert("Error", "Couldn't open your photo library.");
@@ -240,7 +240,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                   key={m.id}
                   onPress={() => {
                     setMood(m.id);
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    impact(ImpactFeedbackStyle.Light);
                   }}
                   style={[
                     styles.moodChip,
@@ -335,7 +335,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                 <TouchableOpacity
                   onPress={() => {
                     setIsShared(!isShared);
-                    Haptics.selectionAsync();
+                    selection();
                   }}
                   style={[
                     styles.actionToggle,

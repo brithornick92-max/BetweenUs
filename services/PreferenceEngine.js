@@ -445,7 +445,9 @@ export function selectDailyPrompt(allPrompts, profile, dateKey, excludeIds) {
       : topPool; // all exhausted — allow repeats
 
   // Deterministic daily selection based on date
-  const [y, m, d] = (dateKey || new Date().toISOString().split('T')[0])
+  const _now = new Date();
+  const _localToday = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+  const [y, m, d] = (dateKey || _localToday)
     .split('-')
     .map(Number);
   const dateHash = ((y * 31 + m) * 31 + d) ^ (y * 7 + m * 13 + d * 37);
