@@ -355,6 +355,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
                 value={text}
                 onChangeText={handleTextChange}
                 multiline
+                maxLength={10000}
                 scrollEnabled={false}
                 selectionColor={colors.primary}
               />
