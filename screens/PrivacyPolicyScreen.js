@@ -229,12 +229,61 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             via email or in-app notification. Continued use after changes constitutes acceptance.
           </Text>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>15. Contact Us</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>15. Your Choices</Text>
+          <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
+            You control your privacy:{'\n\n'}
+            Minimize data collection:{'\n'}
+            • Skip optional fields (e.g., relationship start date){'\n'}
+            • Disable notifications{'\n\n'}
+            Protect your account:{'\n'}
+            • Use a strong, unique password{'\n'}
+            • Enable device security (passcode, biometrics){'\n'}
+            • Don't share your login credentials{'\n\n'}
+            Manage sharing:{'\n'}
+            • Choose what to share with your partner{'\n'}
+            • Keep entries private{'\n'}
+            • Unlink when needed
+          </Text>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>16. Contact Us</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             If you have questions about this Privacy Policy or want to exercise your rights:{'\n\n'}
             Email: brittanyapps@outlook.com{'\n'}
             Response time: Within 30 days for data requests{'\n\n'}
             For data deletion requests, please use the "Delete Account" option in Settings.
+          </Text>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>17. Transparency Report</Text>
+          <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
+            We believe in transparency. We publish an annual report on government data requests, account terminations, security incidents, and privacy improvements.
+          </Text>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>18. Privacy by Design</Text>
+          <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
+            Our principles:{'\n\n'}
+            1. Data Minimization — We only collect what's necessary{'\n'}
+            2. Purpose Limitation — Data used only for stated purposes{'\n'}
+            3. Storage Limitation — Data deleted when no longer needed{'\n'}
+            4. Accuracy — You can correct your data anytime{'\n'}
+            5. Integrity — Strong security measures protect your data{'\n'}
+            6. Confidentiality — End-to-end encryption for intimate content{'\n'}
+            7. Accountability — We're responsible for protecting your privacy
+          </Text>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Summary</Text>
+          <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
+            What we do:{'\n'}
+            ✅ Encrypt your intimate content{'\n'}
+            ✅ Process data on your device{'\n'}
+            ✅ Give you full control{'\n'}
+            ✅ Never sell your data{'\n'}
+            ✅ Respect your privacy{'\n\n'}
+            What we don't do:{'\n'}
+            ❌ Sell your data{'\n'}
+            ❌ Share with advertisers{'\n'}
+            ❌ Track you across apps{'\n'}
+            ❌ Read your encrypted content{'\n'}
+            ❌ Collect unnecessary information
           </Text>
 
           <View style={{ height: 100 }} />
