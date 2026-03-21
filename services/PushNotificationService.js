@@ -76,7 +76,7 @@ const PushNotificationService = {
         projectId,
       });
       this._token = tokenData.data;
-      if (__DEV__) console.log('[Push] Token:', this._token);
+      if (__DEV__) console.log('[Push] Token registered');
 
       // Save to Supabase
       if (supabase && this._token) {
