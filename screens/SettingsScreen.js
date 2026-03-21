@@ -41,6 +41,7 @@ import SeasonSelector from '../components/SeasonSelector';
 import SoftBoundariesPanel from '../components/SoftBoundariesPanel';
 import RelationshipClimate from '../components/RelationshipClimate';
 import { SettingRow, SettingsSection as Section } from '../components/SettingsSection';
+import ReAnimated, { FadeInDown } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -400,6 +401,7 @@ export default function SettingsScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
         >
           {/* ═══ TOP: Profile header area ═══ */}
+          <ReAnimated.View entering={FadeInDown.duration(400).delay(0)}>
           <View style={s.profileArea}>
             <TouchableOpacity
               style={s.profileCard}
@@ -437,8 +439,10 @@ export default function SettingsScreen({ navigation }) {
               </View>
             </TouchableOpacity>
           </View>
+          </ReAnimated.View>
 
           {/* ═══ PARTNER LINKING ═══ */}
+          <ReAnimated.View entering={FadeInDown.duration(400).delay(80)}>
           <Section title="Partner" colors={colors}>
             {!isPremium ? (
               <View style={s.partnerContent}>
@@ -560,8 +564,10 @@ export default function SettingsScreen({ navigation }) {
               </View>
             )}
           </Section>
+          </ReAnimated.View>
 
           {/* ═══ RELATIONSHIP ═══ */}
+          <ReAnimated.View entering={FadeInDown.duration(400).delay(160)}>
           <Section title="Relationship" colors={colors}>
             <SettingRow
               icon="calendar-heart"
@@ -579,8 +585,10 @@ export default function SettingsScreen({ navigation }) {
               isLast
             />
           </Section>
+          </ReAnimated.View>
 
           {/* ═══ PREFERENCES ═══ */}
+          <ReAnimated.View entering={FadeInDown.duration(400).delay(240)}>
           <Section title="Preferences" colors={colors}>
             <SettingRow
               icon="fire"
@@ -599,6 +607,7 @@ export default function SettingsScreen({ navigation }) {
               isLast
             />
           </Section>
+          </ReAnimated.View>
 
           {/* ═══ APPEARANCE ═══ */}
           <Section title="Appearance" colors={colors}>

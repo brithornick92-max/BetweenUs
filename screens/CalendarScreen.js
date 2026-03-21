@@ -27,6 +27,7 @@ import { calendarStorage, myDatesStorage } from '../utils/storage';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme';
 import { supabase, TABLES } from '../config/supabase';
+import ReAnimated, { FadeInDown } from 'react-native-reanimated';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 
@@ -592,8 +593,8 @@ export default function CalendarScreen({ navigation, route }) {
 
             {selectedDateEvents.length > 0 ? (
               selectedDateEvents.map((event, i) => (
+                <ReAnimated.View key={event.id} entering={FadeInDown.duration(400).delay(i * 80)}>
                 <TimelineEvent 
-                  key={event.id} 
                   item={event} 
                   index={i} 
                   styles={styles}
@@ -622,6 +623,7 @@ export default function CalendarScreen({ navigation, route }) {
                     ]);
                   }}
                 />
+                </ReAnimated.View>
               ))
             ) : (
               <View style={styles.emptyContainer}>

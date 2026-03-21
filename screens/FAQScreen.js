@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   View,
   Text,
@@ -210,7 +211,8 @@ export default function FAQScreen({ navigation }) {
 
         {/* FAQ Categories */}
         {FAQ_DATA.map((category, categoryIndex) => (
-          <View key={categoryIndex} style={[styles.category, { backgroundColor: colors.surface }]}>
+          <Animated.View key={categoryIndex} entering={FadeInDown.duration(400).delay(categoryIndex * 100)}>
+          <View style={[styles.category, { backgroundColor: colors.surface }]}>
             <Text style={[styles.categoryTitle, { color: colors.blushRose }]}>{category.category}</Text>
             
             {category.questions.map((item, questionIndex) => {
@@ -241,6 +243,7 @@ export default function FAQScreen({ navigation }) {
               );
             })}
           </View>
+          </Animated.View>
         ))}
 
         {/* Contact Support */}
