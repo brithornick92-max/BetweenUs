@@ -1,6 +1,6 @@
 /**
- * PromptsScreen — High-end card-draw experience
- * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * PromptsScreen.js — High-end card-draw experience
+ * True Red (#D2121A) & Clean Native Apple Backgrounds.
  * Swipeable deck for intimate, quiet reflection.
  */
 
@@ -32,7 +32,6 @@ import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import PreferenceEngine from "../services/PreferenceEngine";
 import PromptCardDeck from "../components/PromptCardDeck";
-import FilmGrain from "../components/FilmGrain";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -94,11 +93,11 @@ export default function PromptsScreen({ navigation }) {
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // SEXY RED THEME MAP
+  // TRUE RED THEME MAP
   const t = useMemo(() => ({
-    background: colors.background,
-    primary: colors.primary || '#D2121A',
-    surface: isDark ? '#131016' : '#FFFFFF',
+    background: isDark ? '#1D1D1F' : '#FAF7F5', // Native Apple Backgrounds
+    primary: '#D2121A',
+    surface: isDark ? '#2C2C2E' : '#FFFFFF', // Elevated surface against the flat bg
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -162,14 +161,7 @@ export default function PromptsScreen({ navigation }) {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={[styles.root, { backgroundColor: t.background }]}>
-        <StatusBar barStyle="light-content" />
-        <FilmGrain opacity={0.03} />
-
-        <LinearGradient
-          colors={[withAlpha(t.primary, 0.15), t.background]}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
         <SafeAreaView style={styles.safe} edges={["top"]}>
           {/* Editorial Header */}
@@ -224,8 +216,8 @@ export default function PromptsScreen({ navigation }) {
                     style={[
                       styles.heatChip,
                       {
-                        backgroundColor: active ? heatColor : withAlpha(heatColor, 0.12),
-                        borderColor: active ? heatColor : withAlpha(heatColor, 0.2),
+                        backgroundColor: active ? heatColor : t.surface,
+                        borderColor: active ? heatColor : t.border,
                       },
                     ]}
                     onPress={() => handleHeatSelect(value)}
@@ -302,7 +294,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
+        shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.1,
         shadowRadius: 15,
       },
@@ -362,6 +354,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+      },
+      android: { elevation: 1 }
+    })
   },
   heatLabel: {
     fontFamily: SYSTEM_FONT,

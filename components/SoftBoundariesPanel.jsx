@@ -13,6 +13,7 @@ import {
   Switch,
   Animated,
   Platform,
+  Modal,
 } from 'react-native';
 import Icon from './Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';

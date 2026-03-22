@@ -239,7 +239,7 @@ export default function HomeScreen({ navigation }) {
       {/* Deep velvet background gradient */}
       <LinearGradient
         colors={isDark
-          ? [t.background, '#100819', '#0E0617', t.background]
+          ? [t.background, '#120206', '#0A0003', t.background]
           : [t.background, t.surfaceSecondary, t.background]}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0.5, y: 0 }}
@@ -247,8 +247,8 @@ export default function HomeScreen({ navigation }) {
       />
 
       {/* Background ambience */}
-      <GlowOrb color={t.primary} size={500} top={-200} left={-150} />
-      <GlowOrb color={t.accent} size={300} top={SCREEN_H * 0.4} left={SCREEN_W - 100} delay={1500} />
+      <GlowOrb color={t.primary} size={500} top={-200} left={-150} opacity={isDark ? 0.2 : 0.08} />
+      <GlowOrb color="#FFFFFF" size={300} top={SCREEN_H * 0.4} left={SCREEN_W - 100} delay={1500} opacity={isDark ? 0.1 : 0.05} />
       <FilmGrain />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>

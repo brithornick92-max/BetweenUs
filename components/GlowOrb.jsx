@@ -131,9 +131,6 @@ const GlowOrb = ({
 const styles = StyleSheet.create({
   orb: {
     position: 'absolute',
-    // Blurred state is often handled by the style prop color + opacity
-    // but can be enhanced by an external blur wrapper if needed.
-    zIndex: -1,
   },
 });
 
