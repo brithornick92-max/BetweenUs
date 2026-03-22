@@ -1,3 +1,4 @@
+// components/Button.jsx
 import React, { useMemo, useRef } from "react";
 import {
   TouchableOpacity,
@@ -8,15 +9,9 @@ import {
   Animated,
   Platform,
 } from "react-native";
-import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
-
-let Haptics = null;
-try {
-  Haptics = require("expo-haptics");
-} catch (e) {
-  Haptics = null;
-}
+import { impact, ImpactFeedbackStyle } from "../utils/haptics";
+import { SPACING, BORDER_RADIUS } from "../utils/theme";
 
 export default function Button({
   title,
@@ -31,23 +26,35 @@ export default function Button({
   style,
   haptic = true,
 }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // STRICT Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    primary: colors.primary,
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
   const isDisabled = disabled || loading;
 
   const textColor = useMemo(() => {
-    if (isDisabled) return colors.textMuted;
-    if (variant === "primary") return '#F2E9E6'; // Needs to contrast against colors.primary (red)
-    if (variant === "glass") return colors.text;
-    if (variant === "secondary") return colors.text;
-    return colors.primary;
-  }, [isDisabled, variant, colors]);
+    if (isDisabled) return t.subtext;
+    if (variant === "primary") return t.background; // High contrast (e.g., white text on black button)
+    if (variant === "glass") return t.text;
+    if (variant === "secondary") return t.text;
+    if (variant === "outline" || variant === "ghost") return t.text;
+    return t.primary;
+  }, [isDisabled, variant, t]);
 
   const handlePressIn = () => {
     if (isDisabled) return;
     Animated.spring(scaleAnim, {
-      toValue: 0.96,
+      toValue: 0.94,
       useNativeDriver: true,
       friction: 8,
       tension: 100,
@@ -59,14 +66,14 @@ export default function Button({
       toValue: 1,
       useNativeDriver: true,
       friction: 8,
-      tension: 100,
+      tension: 60,
     }).start();
   };
 
   const handlePress = async () => {
     if (isDisabled) return;
 
-    if (haptic && Platform.OS !== "web" && Haptics?.impactAsync) {
+    if (haptic && Platform.OS !== "web") {
       try {
         impact(ImpactFeedbackStyle.Light);
       } catch (e) { /* haptics non-critical */ }
@@ -77,27 +84,58 @@ export default function Button({
 
   const variantStyle = useMemo(() => {
     switch (variant) {
+      case "primary":
+        return {
+          backgroundColor: t.text, // Solid, high contrast Apple Action Button
+          borderWidth: 0,
+          ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.15, shadowRadius: 8 },
+            android: { elevation: 3 },
+          }),
+        };
       case "outline":
-        return { ...styles.outline, borderColor: colors.border };
+        return { 
+          backgroundColor: "transparent", 
+          borderWidth: 1.5, 
+          borderColor: t.border 
+        };
       case "ghost":
-        return styles.ghost;
+        return { 
+          backgroundColor: "transparent",
+          borderWidth: 0,
+        };
       case "secondary":
-        return { ...styles.secondary, backgroundColor: colors.surface };
+        return { 
+          backgroundColor: t.surfaceSecondary,
+          borderWidth: 0,
+        };
       case "glass":
-        return { ...styles.glass, backgroundColor: colors.surface, borderColor: colors.border };
+        return { 
+          backgroundColor: t.surface, 
+          borderWidth: 1, 
+          borderColor: t.border,
+          ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 8 },
+            android: { elevation: 2 },
+          }),
+        };
       default:
-        return null;
+        return { backgroundColor: t.text };
     }
-  }, [variant, colors]);
+  }, [variant, t, isDark]);
 
   const disabledStyle = useMemo(() => {
     if (!isDisabled) return null;
-    if (variant === "primary" || variant === "glass") return { ...styles.disabledPrimary, backgroundColor: colors.surface };
-    if (variant === "outline" || variant === "ghost") return styles.disabledTransparent;
-    return styles.disabledSecondary;
-  }, [isDisabled, variant, colors]);
-
-  const primarySolidStyle = variant === "primary" && !isDisabled ? { backgroundColor: colors.primary } : null;
+    if (variant === "primary" || variant === "glass") {
+      return { 
+        backgroundColor: t.surfaceSecondary, 
+        borderColor: 'transparent',
+        shadowOpacity: 0,
+        elevation: 0,
+      };
+    }
+    return { opacity: 0.5 };
+  }, [isDisabled, variant, t]);
 
   const renderContent = () => (
     <View style={[styles.content, styles[`size_${size}_padding`]]}>
@@ -111,8 +149,8 @@ export default function Button({
               styles.text,
               styles[`text_${size}`],
               { color: textColor },
-              variant === "primary" && styles.textPrimary,
             ]}
+            numberOfLines={1}
           >
             {title}
           </Text>
@@ -136,9 +174,9 @@ export default function Button({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={isDisabled}
-        activeOpacity={1}
+        activeOpacity={0.85}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        style={[styles.buttonBase, variantStyle, disabledStyle, primarySolidStyle]}
+        style={[styles.buttonBase, variantStyle, disabledStyle]}
         accessibilityRole="button"
         accessibilityLabel={title}
         accessibilityState={{ disabled: isDisabled }}
@@ -149,19 +187,23 @@ export default function Button({
   );
 }
 
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial
+// ------------------------------------------------------------------
+const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+
 const styles = StyleSheet.create({
   container: {
-    borderRadius: BORDER_RADIUS.lg,
-    overflow: "hidden",
+    borderRadius: 999, // Apple pill-shaped fully rounded buttons
+    overflow: "visible", // Allow shadows to spill
   },
   fullWidth: {
     width: "100%",
   },
   buttonBase: {
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 0,
   },
   content: {
     flexDirection: "row",
@@ -169,46 +211,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  size_sm_padding: { paddingVertical: 10, paddingHorizontal: 16 },
-  size_md_padding: { paddingVertical: 14, paddingHorizontal: 24 },
-  size_lg_padding: { paddingVertical: 18, paddingHorizontal: 32 },
+  // ── Sizing (Tuned to Native iOS heights) ──
+  size_sm_padding: { height: 40, paddingHorizontal: 16 },
+  size_md_padding: { height: 54, paddingHorizontal: 24 },
+  size_lg_padding: { height: 64, paddingHorizontal: 32 },
 
-  outline: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-  },
-  secondary: {},
-  ghost: {
-    backgroundColor: "transparent",
-  },
-  glass: {
-    borderWidth: 1,
-  },
-
-  disabledPrimary: {
-    opacity: 0.5,
-  },
-  disabledSecondary: {
-    opacity: 0.5,
-  },
-  disabledTransparent: {
-    opacity: 0.35,
-  },
-
+  // ── Typography ──
   text: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontFamily: systemFont,
+    fontWeight: "700",
     textAlign: "center",
-    letterSpacing: 0.3,
+    letterSpacing: -0.3, // Tight tracking for modern feel
   },
-  textPrimary: {
-    fontWeight: "600",
-    letterSpacing: 0.3,
-  },
-  text_sm: { fontSize: 14 },
-  text_md: { fontSize: 16 },
-  text_lg: { fontSize: 18 },
+  text_sm: { fontSize: 15 },
+  text_md: { fontSize: 17 },
+  text_lg: { fontSize: 19 },
 
-  iconLeft: { marginRight: 10 },
-  iconRight: { marginLeft: 10 },
+  iconLeft: { marginRight: 8 },
+  iconRight: { marginLeft: 8 },
 });

@@ -1,11 +1,11 @@
-import React, { useRef } from "react";
+import React, { useRef, useMemo } from "react";
 import { View, StyleSheet, TouchableOpacity, Animated, Platform } from "react-native";
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import { SPACING, BORDER_RADIUS } from "../utils/theme";
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
+import { SPACING } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 
 /**
- * High-End Surface Component
+ * High-End Surface Component — Apple Editorial Style
  * Variants: glass, elevated, outlined
  */
 export default function Card({
@@ -14,20 +14,28 @@ export default function Card({
   onPress = null,
   padding = "md",
   style,
-  activeOpacity = 0.9,
+  activeOpacity = 0.85,
   useHaptics = true,
 }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const pressable = typeof onPress === "function";
+
+  // STRICT Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [isDark]);
 
   const handlePressIn = () => {
     if (!pressable) return;
     Animated.spring(scaleAnim, {
-      toValue: 0.98,
+      toValue: 0.96, // Deeper, more tactile press
       useNativeDriver: true,
-      friction: 12,
-      tension: 150,
+      friction: 8,
+      tension: 100,
     }).start();
   };
 
@@ -36,26 +44,58 @@ export default function Card({
     Animated.spring(scaleAnim, {
       toValue: 1,
       useNativeDriver: true,
-      friction: 12,
-      tension: 150,
+      friction: 8,
+      tension: 60,
     }).start();
   };
 
   const handlePress = () => {
     if (!pressable) return;
     if (useHaptics && Platform.OS !== "web") {
-      impact(ImpactFeedbackStyle.Light);
+      try {
+        impact(ImpactFeedbackStyle.Light);
+      } catch (e) { /* non-critical */ }
     }
     onPress();
   };
 
-  const backgroundColor = variant === "outlined" ? "transparent" : colors.surface;
-  const borderColor = colors.border;
+  // Resolve Variant Styles
+  const variantStyles = useMemo(() => {
+    switch (variant) {
+      case "elevated":
+        return {
+          backgroundColor: t.surface,
+          borderColor: t.border,
+          borderWidth: 1,
+          ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0 : 0.08, shadowRadius: 24 },
+            android: { elevation: 6 },
+          }),
+        };
+      case "outlined":
+        return {
+          backgroundColor: "transparent",
+          borderColor: t.border,
+          borderWidth: 1.5, // Slightly thicker for contrast without background
+        };
+      case "glass":
+      default:
+        return {
+          backgroundColor: t.surface,
+          borderColor: t.border,
+          borderWidth: 1,
+          ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 10 },
+            android: { elevation: 2 },
+          }),
+        };
+    }
+  }, [variant, t, isDark]);
 
   const combinedStyles = [
     styles.base,
     styles[`padding_${padding}`],
-    { backgroundColor, borderColor },
+    variantStyles,
     style,
   ];
 
@@ -80,16 +120,19 @@ export default function Card({
   );
 }
 
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial Squircle
+// ------------------------------------------------------------------
 const styles = StyleSheet.create({
   base: {
-    borderRadius: BORDER_RADIUS.xl,
-    borderWidth: 1,
-    overflow: "hidden",
+    borderRadius: 24, // Heavy iOS squircle radius
+    overflow: "hidden", // Ensures children don't bleed out of the rounded corners
   },
 
+  // Consistent Editorial Spacing
   padding_none: { padding: 0 },
-  padding_sm: { padding: SPACING.sm },
-  padding_md: { padding: SPACING.md },
-  padding_lg: { padding: SPACING.lg },
-  padding_xl: { padding: SPACING.xl },
+  padding_sm: { padding: SPACING.md },   // Mapped to feel generous
+  padding_md: { padding: SPACING.lg },   // Native widget padding
+  padding_lg: { padding: SPACING.xl },
+  padding_xl: { padding: SPACING.xxl },
 });

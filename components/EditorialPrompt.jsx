@@ -10,18 +10,16 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   ScrollView,
+  Platform,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from '../context/AppContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS, promptStorage } from '../utils/storage';
 import { supabase, TABLES } from '../config/supabase';
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import PreferenceEngine from '../services/PreferenceEngine';
-import { Platform } from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -139,37 +137,43 @@ const promptSyncService = {
   revealPartnerAnswer: async () => ({ success: true }),
 };
 
-// Editorial prompt categories and themes
+// Editorial prompt categories and themes (Mapped to Apple iOS system colors)
 const PROMPT_CATEGORIES = {
   REFLECTION: {
     id: 'reflection',
     name: 'Daily Reflection',
     icon: '💭',
+    color: '#5856D6', // iOS Purple
   },
   GRATITUDE: {
     id: 'gratitude',
     name: 'Gratitude',
     icon: '🙏',
+    color: '#FF9500', // iOS Orange
   },
   DREAMS: {
     id: 'dreams',
     name: 'Dreams & Future',
     icon: '✨',
+    color: '#AF52DE', // iOS Indigo
   },
   INTIMACY: {
     id: 'intimacy',
     name: 'Intimacy',
     icon: '💕',
+    color: '#FF2D55', // iOS Pink
   },
   PLAYFUL: {
     id: 'playful',
     name: 'Playful',
     icon: '😄',
+    color: '#34C759', // iOS Green
   },
   DAILY_LIFE: {
     id: 'daily_life',
     name: 'Daily Life',
     icon: '☀️',
+    color: '#32ADE6', // iOS Cyan
   },
 };
 
@@ -237,11 +241,22 @@ const EditorialPrompt = ({
   onPartnerAnswerRevealed,
   compact = false,
 }) => {
-  const { colors, isDark, gradients } = useTheme();
+  const { colors, isDark } = useTheme();
   const { state: appState } = useAppContext();
   const { state: memoryState } = useMemoryContext();
 
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  // STRICT Apple Editorial Theme Map 
+  const t = useMemo(() => ({
+    background: 'transparent', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    primary: colors.primary,
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const [currentPrompt, setCurrentPrompt] = useState(null);
   const [userAnswer, setUserAnswer] = useState('');
@@ -250,32 +265,19 @@ const EditorialPrompt = ({
   const [hasUserSubmitted, setHasUserSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Derived category data with dynamic colors
   const promptCategory = useMemo(() => {
     const catId = currentPrompt?.category || category;
-    const cat = Object.values(PROMPT_CATEGORIES).find(c => c.id === catId) || PROMPT_CATEGORIES.REFLECTION;
-    
-    // Map categories to dynamic gradients
-    let catGradient = gradients.primary;
-    if (catId === 'gratitude' || catId === 'daily_life') {
-      catGradient = gradients.gold || gradients.primary;
-    } else if (catId === 'playful') {
-      catGradient = gradients.champagne || gradients.primary;
-    } else if (catId === 'intimacy') {
-      catGradient = [colors.primaryMuted, colors.danger];
-    }
-    
-    return { ...cat, gradient: catGradient };
-  }, [currentPrompt?.category, category, colors, gradients]);
+    return Object.values(PROMPT_CATEGORIES).find(c => c.id === catId) || PROMPT_CATEGORIES.REFLECTION;
+  }, [currentPrompt?.category, category]);
 
   // Animation values
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const blurAnimation = useRef(new Animated.Value(20)).current;
+  const slideAnimation = useRef(new Animated.Value(20)).current;
   const revealAnimation = useRef(new Animated.Value(0)).current;
   const submitAnimation = useRef(new Animated.Value(1)).current;
 
   // ---------------------------------------------------------------------------
-  // 1) Load or generate prompt (IMPORTANT: do NOT depend on currentPrompt?.id)
+  // 1) Load or generate prompt
   // ---------------------------------------------------------------------------
   useEffect(() => {
     let isMounted = true;
@@ -289,7 +291,6 @@ const EditorialPrompt = ({
         }
 
         if (!prompt) {
-          // Respect boundaries — remap intimacy when hideSpicy is on
           let effectiveCategory = category;
           try {
             const profile = await PreferenceEngine.getContentProfile();
@@ -304,7 +305,6 @@ const EditorialPrompt = ({
 
         setCurrentPrompt(prompt);
 
-        // Load existing answers
         if (prompt.userAnswer) {
           setUserAnswer(prompt.userAnswer);
           setHasUserSubmitted(true);
@@ -324,13 +324,22 @@ const EditorialPrompt = ({
           setIsPartnerAnswerRevealed(false);
         }
 
-        // Animate in
+        // Native iOS Spring Entrance
         fadeAnimation.setValue(0);
-        Animated.timing(fadeAnimation, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }).start();
+        slideAnimation.setValue(20);
+        Animated.parallel([
+          Animated.timing(fadeAnimation, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.spring(slideAnimation, {
+            toValue: 0,
+            friction: 9,
+            tension: 60,
+            useNativeDriver: true,
+          }),
+        ]).start();
       } catch (error) {
         console.error('Failed to load prompt:', error);
       }
@@ -341,7 +350,6 @@ const EditorialPrompt = ({
     return () => {
       isMounted = false;
     };
-    // ✅ Only these — removing currentPrompt?.id prevents the focus-killing reload loop
   }, [promptId, category]);
 
   // ---------------------------------------------------------------------------
@@ -352,7 +360,6 @@ const EditorialPrompt = ({
 
     const cleanups = [];
 
-    // Local event listener
     const unsubLocal = promptSyncService.addListener((event, data) => {
       switch (event) {
         case 'partner_answer_received':
@@ -376,7 +383,6 @@ const EditorialPrompt = ({
     });
     if (typeof unsubLocal === 'function') cleanups.push(unsubLocal);
 
-    // Supabase Realtime subscription for live partner answers
     if (appState.coupleId && appState.userId) {
       const unsubRealtime = promptSyncService.subscribeToPartner(
         appState.coupleId,
@@ -385,7 +391,6 @@ const EditorialPrompt = ({
       );
       if (typeof unsubRealtime === 'function') cleanups.push(unsubRealtime);
 
-      // Also fetch any existing partner answer (in case they answered first)
       promptSyncService.fetchPartnerAnswer(currentPrompt.id, appState.coupleId, appState.userId)
         .then(answer => {
           if (answer) {
@@ -395,7 +400,7 @@ const EditorialPrompt = ({
     }
 
     return () => cleanups.forEach(fn => fn());
-  }, [currentPrompt?.id, appState.coupleId]); // re-subscribe when prompt or couple changes
+  }, [currentPrompt?.id, appState.coupleId]);
 
   const generateDailyPrompt = async (categoryId) => {
     const today = new Date().toISOString().split('T')[0];
@@ -403,7 +408,6 @@ const EditorialPrompt = ({
     const monthKey = `${curYear}-${curMonth}`;
     const prompts = EDITORIAL_PROMPTS[categoryId] || EDITORIAL_PROMPTS.reflection;
 
-    // Load this month's used indices for this category to avoid repeats
     let usedIndices = [];
     const storageKey = `editorial_month_${categoryId}`;
     try {
@@ -413,13 +417,10 @@ const EditorialPrompt = ({
       }
     } catch (e) { /* fallback to fresh start */ }
 
-    // Build list of fresh (unused this month) indices
     const allIndices = prompts.map((_, i) => i);
     let freshIndices = allIndices.filter(i => !usedIndices.includes(i));
-    // If all prompts have been shown, reset the cycle
     if (freshIndices.length === 0) freshIndices = allIndices;
 
-    // Deterministic pick from the fresh set using the day of month
     const dayOfMonth = parseInt(today.split('-')[2], 10);
     const promptIndex = freshIndices[dayOfMonth % freshIndices.length];
 
@@ -434,7 +435,6 @@ const EditorialPrompt = ({
       isRevealed: false,
     };
 
-    // Persist the updated month history
     if (!usedIndices.includes(promptIndex)) usedIndices.push(promptIndex);
     try {
       await storage.set(storageKey, { month: monthKey, indices: usedIndices });
@@ -442,7 +442,6 @@ const EditorialPrompt = ({
       console.warn('[EditorialPrompt] Failed to persist month history:', e?.message);
     }
 
-    // Store prompt
     const storedPrompts = await storage.get(STORAGE_KEYS.EDITORIAL_PROMPTS, {});
     storedPrompts[prompt.id] = prompt;
     await storage.set(STORAGE_KEYS.EDITORIAL_PROMPTS, storedPrompts);
@@ -461,12 +460,13 @@ const EditorialPrompt = ({
       Animated.sequence([
         Animated.timing(submitAnimation, {
           toValue: 0.95,
-          duration: 250,
+          duration: 150,
           useNativeDriver: true,
         }),
-        Animated.timing(submitAnimation, {
+        Animated.spring(submitAnimation, {
           toValue: 1,
-          duration: 280,
+          friction: 8,
+          tension: 60,
           useNativeDriver: true,
         }),
       ]).start();
@@ -493,18 +493,11 @@ const EditorialPrompt = ({
 
       impact(ImpactFeedbackStyle.Light);
 
-      Animated.parallel([
-        Animated.timing(blurAnimation, {
-          toValue: 0,
-          duration: 400,
-          useNativeDriver: false,
-        }),
-        Animated.timing(revealAnimation, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      Animated.timing(revealAnimation, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
 
       setIsPartnerAnswerRevealed(true);
 
@@ -519,12 +512,13 @@ const EditorialPrompt = ({
   const renderPromptHeader = () => (
     <View style={styles.header}>
       <View style={styles.categoryContainer}>
-        <Text style={styles.categoryIcon}>{promptCategory.icon}</Text>
-        <Text style={[styles.categoryName, { color: colors.primary }]}>{promptCategory.name}</Text>
+        <View style={[styles.categoryIconWrap, { backgroundColor: promptCategory.color + '15' }]}>
+          <Text style={styles.categoryIcon}>{promptCategory.icon}</Text>
+        </View>
+        <Text style={[styles.categoryName, { color: promptCategory.color }]}>{promptCategory.name}</Text>
       </View>
-
       <View style={styles.dateContainer}>
-        <Text style={[styles.dateText, { color: colors.textMuted }]}>
+        <Text style={styles.dateText}>
           {currentPrompt ? new Date(currentPrompt.createdAt).toLocaleDateString() : 'Today'}
         </Text>
       </View>
@@ -533,7 +527,7 @@ const EditorialPrompt = ({
 
   const renderPromptQuestion = () => (
     <View style={styles.questionContainer}>
-      <Text style={[styles.questionText, { color: colors.text }]}>
+      <Text style={styles.questionText}>
         {currentPrompt?.question || 'Loading your daily reflection...'}
       </Text>
     </View>
@@ -541,35 +535,32 @@ const EditorialPrompt = ({
 
   const renderUserAnswerSection = () => (
     <View style={styles.answerSection}>
-      <Text style={[styles.answerLabel, { color: colors.primary }]}>Your Reflection</Text>
+      <Text style={styles.answerLabel}>YOUR REFLECTION</Text>
 
       {hasUserSubmitted ? (
-        <View style={styles.submittedAnswer}>
-          <BlurView intensity={5} style={[styles.submittedAnswerBlur, { backgroundColor: colors.surfaceSubtle, borderColor: colors.border }]}>
-            <Text style={[styles.submittedAnswerText, { color: colors.text }]}>{userAnswer}</Text>
-            <Text style={[styles.submittedTimestamp, { color: colors.textMuted }]}>
-              Submitted{' '}
-              {currentPrompt?.userSubmittedAt
-                ? new Date(currentPrompt.userSubmittedAt).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : 'just now'}
-            </Text>
-          </BlurView>
+        <View style={styles.submittedAnswerCard}>
+          <Text style={styles.submittedAnswerText}>{userAnswer}</Text>
+          <Text style={styles.submittedTimestamp}>
+            Submitted{' '}
+            {currentPrompt?.userSubmittedAt
+              ? new Date(currentPrompt.userSubmittedAt).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : 'just now'}
+          </Text>
         </View>
       ) : (
         <View style={styles.answerInputContainer}>
           <TextInput
-            style={[styles.answerInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+            style={styles.answerInput}
             value={userAnswer}
             onChangeText={setUserAnswer}
             placeholder="Share your thoughts..."
-            placeholderTextColor={colors.textMuted + '60'}
+            placeholderTextColor={t.subtext}
             multiline
             textAlignVertical="top"
             maxLength={500}
-            // These help reduce “focus lost” weirdness on iOS
             blurOnSubmit={false}
             autoCorrect
             autoCapitalize="sentences"
@@ -586,16 +577,9 @@ const EditorialPrompt = ({
               ]}
               activeOpacity={0.8}
             >
-              <LinearGradient
-                colors={promptCategory.gradient || ['#5E1940', '#4C1030']}
-                style={styles.submitButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Text style={[styles.submitButtonText, { color: colors.text }]}> 
-                  {isSubmitting ? 'Submitting...' : 'Submit Reflection'}
-                </Text>
-              </LinearGradient>
+              <Text style={styles.submitButtonText}> 
+                {isSubmitting ? 'Submitting...' : 'Submit Reflection'}
+              </Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -607,15 +591,13 @@ const EditorialPrompt = ({
     if (!partnerAnswer) {
       return (
         <View style={styles.answerSection}>
-          <Text style={[styles.answerLabel, { color: colors.primary }]}>Partner's Reflection</Text>
-          <View style={styles.waitingForPartner}>
-            <BlurView intensity={10} style={[styles.waitingBlur, { backgroundColor: colors.surface + '40', borderColor: colors.border }]}>
-              <Text style={[styles.waitingText, { color: colors.textMuted }]}>
-                {hasUserSubmitted
-                  ? 'Waiting for your partner to reflect...'
-                  : "Submit your reflection to see your partner's response"}
-              </Text>
-            </BlurView>
+          <Text style={styles.answerLabel}>PARTNER'S REFLECTION</Text>
+          <View style={[styles.submittedAnswerCard, { backgroundColor: 'transparent', borderStyle: 'dashed' }]}>
+            <Text style={styles.waitingText}>
+              {hasUserSubmitted
+                ? 'Waiting for your partner to reflect...'
+                : "Submit your reflection to see your partner's response."}
+            </Text>
           </View>
         </View>
       );
@@ -623,37 +605,36 @@ const EditorialPrompt = ({
 
     return (
       <View style={styles.answerSection}>
-        <Text style={[styles.answerLabel, { color: colors.primary }]}>Partner's Reflection</Text>
+        <Text style={styles.answerLabel}>PARTNER'S REFLECTION</Text>
 
         <Animated.View
           style={[
-            styles.partnerAnswer,
+            styles.submittedAnswerCard,
+            !isPartnerAnswerRevealed && { backgroundColor: t.surfaceSecondary },
             {
               opacity: isPartnerAnswerRevealed ? revealAnimation : 1,
             },
           ]}
         >
-          <BlurView intensity={isPartnerAnswerRevealed ? 5 : blurAnimation} style={[styles.partnerAnswerBlur, { backgroundColor: colors.surfaceSubtle, borderColor: colors.border }]}>
-            {isPartnerAnswerRevealed ? (
-              <>
-                <Text style={[styles.partnerAnswerText, { color: colors.text }]}>{partnerAnswer}</Text>
-                <Text style={[styles.revealedTimestamp, { color: colors.textMuted }]}>
-                  Revealed{' '}
-                  {currentPrompt?.revealedAt
-                    ? new Date(currentPrompt.revealedAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : 'just now'}
-                </Text>
-              </>
-            ) : (
-              <View style={styles.blurredContent}>
-                <Text style={[styles.blurredText, { color: colors.textMuted }]}>Your partner has shared their reflection...</Text>
-                <Text style={[styles.blurredSubtext, { color: colors.textMuted + '80' }]}>Submit your answer to reveal theirs</Text>
-              </View>
-            )}
-          </BlurView>
+          {isPartnerAnswerRevealed ? (
+            <>
+              <Text style={styles.partnerAnswerText}>{partnerAnswer}</Text>
+              <Text style={styles.revealedTimestamp}>
+                Revealed{' '}
+                {currentPrompt?.revealedAt
+                  ? new Date(currentPrompt.revealedAt).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'just now'}
+              </Text>
+            </>
+          ) : (
+            <View style={styles.blurredContent}>
+              <Text style={styles.blurredText}>Your partner has shared their reflection...</Text>
+              <Text style={styles.blurredSubtext}>Submit your answer to reveal theirs.</Text>
+            </View>
+          )}
         </Animated.View>
       </View>
     );
@@ -662,7 +643,7 @@ const EditorialPrompt = ({
   if (!currentPrompt) {
     return (
       <View style={[styles.container, styles.loadingContainer, style]}>
-        <Text style={[styles.loadingText, { color: colors.textMuted }]}>Preparing your daily reflection...</Text>
+        <Text style={styles.loadingText}>Preparing your daily reflection...</Text>
       </View>
     );
   }
@@ -671,25 +652,24 @@ const EditorialPrompt = ({
     <KeyboardAvoidingView
       style={[styles.container, style]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      // If you have a header/nav bar, adjust this up (common iOS fix)
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
     >
-      <Animated.View style={[styles.content, { opacity: fadeAnimation }]}>
+      <Animated.View style={[styles.content, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          // ✅ Key keyboard props
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          bounces={true}
         >
           {renderPromptHeader()}
           {renderPromptQuestion()}
           {renderUserAnswerSection()}
           {renderPartnerAnswerSection()}
 
-          <View style={[styles.editorialFooter, { borderTopColor: colors.border }]}>
-            <Text style={[styles.editorialFooterText, { color: colors.textMuted }]}>
+          <View style={styles.editorialFooter}>
+            <Text style={styles.editorialFooterText}>
               "The unexamined life is not worth living." — Socrates
             </Text>
           </View>
@@ -699,172 +679,215 @@ const EditorialPrompt = ({
   );
 };
 
-const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    ...TYPOGRAPHY.body,
-  },
-  content: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: SPACING.lg,
-    paddingBottom: SPACING.xxxl,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.xl,
-  },
-  categoryContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  categoryIcon: {
-    fontSize: 24,
-    marginRight: SPACING.sm,
-  },
-  categoryName: {
-    ...TYPOGRAPHY.h3,
-    fontSize: 16,
-  },
-  dateContainer: {
-    alignItems: 'flex-end',
-  },
-  dateText: {
-    ...TYPOGRAPHY.caption,
-  },
-  questionContainer: {
-    marginBottom: SPACING.xxl,
-  },
-  questionText: {
-    ...TYPOGRAPHY.h1,
-    fontSize: 26,
-    lineHeight: 34,
-  },
-  answerSection: {
-    marginBottom: SPACING.xxl,
-  },
-  answerLabel: {
-    ...TYPOGRAPHY.label,
-    marginBottom: SPACING.md,
-  },
-  answerInputContainer: {
-    width: '100%',
-  },
-  answerInput: {
-    ...TYPOGRAPHY.body,
-    minHeight: 120,
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.md,
-    borderWidth: 1,
-    textAlignVertical: 'top',
-  },
-  submitButtonContainer: {
-    marginTop: SPACING.md,
-    alignSelf: 'flex-end',
-  },
-  submitButton: {
-    borderRadius: BORDER_RADIUS.full,
-    overflow: 'hidden',
-  },
-  submitButtonDisabled: {
-    opacity: 0.5,
-  },
-  submitButtonGradient: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.xl,
-  },
-  submitButtonText: {
-    ...TYPOGRAPHY.button,
-    fontSize: 14,
-  },
-  submittedAnswer: {
-    borderRadius: BORDER_RADIUS.md,
-    overflow: 'hidden',
-  },
-  submittedAnswerBlur: {
-    padding: SPACING.md,
-    borderWidth: 1,
-    borderRadius: BORDER_RADIUS.md,
-  },
-  submittedAnswerText: {
-    ...TYPOGRAPHY.body,
-  },
-  submittedTimestamp: {
-    ...TYPOGRAPHY.caption,
-    marginTop: SPACING.sm,
-    fontStyle: 'italic',
-  },
-  waitingForPartner: {
-    marginTop: SPACING.sm,
-  },
-  waitingBlur: {
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  waitingText: {
-    ...TYPOGRAPHY.bodySecondary,
-    fontSize: 14,
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  partnerAnswer: {
-    borderRadius: BORDER_RADIUS.md,
-    overflow: 'hidden',
-  },
-  partnerAnswerBlur: {
-    padding: SPACING.md,
-    borderWidth: 1,
-    borderRadius: BORDER_RADIUS.md,
-    minHeight: 80,
-    justifyContent: 'center',
-  },
-  partnerAnswerText: {
-    ...TYPOGRAPHY.body,
-  },
-  revealedTimestamp: {
-    ...TYPOGRAPHY.caption,
-    marginTop: SPACING.sm,
-    fontStyle: 'italic',
-  },
-  blurredContent: {
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-  },
-  blurredText: {
-    ...TYPOGRAPHY.bodySecondary,
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  blurredSubtext: {
-    ...TYPOGRAPHY.caption,
-    fontSize: 12,
-  },
-  editorialFooter: {
-    marginTop: SPACING.xxl,
-    paddingTop: SPACING.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-  },
-  editorialFooterText: {
-    ...TYPOGRAPHY.caption,
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-});
+// ------------------------------------------------------------------
+// STYLES - Pure Apple Editorial 
+// ------------------------------------------------------------------
+const createStyles = (t, isDark) => {
+  const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: t.background,
+    },
+    loadingContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      fontSize: 16,
+      fontStyle: 'italic',
+      color: t.subtext,
+    },
+    content: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: SPACING.xl,
+      paddingTop: SPACING.xl,
+      paddingBottom: 160, // Clear the bottom tab bar securely
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: SPACING.xl,
+    },
+    categoryContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    categoryIconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: SPACING.sm,
+    },
+    categoryIcon: {
+      fontSize: 16,
+    },
+    categoryName: {
+      fontFamily: systemFont,
+      fontSize: 16,
+      fontWeight: '800',
+      letterSpacing: -0.2,
+    },
+    dateContainer: {
+      alignItems: 'flex-end',
+    },
+    dateText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: t.subtext,
+    },
+    questionContainer: {
+      marginBottom: SPACING.xxxl,
+    },
+    questionText: {
+      fontFamily: systemFont,
+      fontSize: 32,
+      fontWeight: '800',
+      color: t.text,
+      lineHeight: 38,
+      letterSpacing: -0.5,
+    },
+
+    // ── Answers ──
+    answerSection: {
+      marginBottom: SPACING.xxl,
+    },
+    answerLabel: {
+      fontSize: 12,
+      fontWeight: '800',
+      color: t.subtext,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+      marginBottom: SPACING.md,
+      paddingLeft: 4,
+    },
+    answerInputContainer: {
+      width: '100%',
+    },
+    answerInput: {
+      backgroundColor: t.surface,
+      borderRadius: 24, // iOS Squircle
+      padding: SPACING.xl,
+      fontSize: 17,
+      color: t.text,
+      borderWidth: 1,
+      borderColor: t.border,
+      minHeight: 140,
+      textAlignVertical: 'top',
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 8 },
+        android: { elevation: 2 },
+      }),
+    },
+    submitButtonContainer: {
+      marginTop: SPACING.lg,
+      alignSelf: 'flex-end',
+    },
+    submitButton: {
+      backgroundColor: t.text, // High contrast Apple action
+      paddingVertical: 14,
+      paddingHorizontal: 24,
+      borderRadius: 24,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.15, shadowRadius: 8 },
+        android: { elevation: 3 },
+      }),
+    },
+    submitButtonDisabled: {
+      opacity: 0.5,
+    },
+    submitButtonText: {
+      color: t.surface,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    
+    // ── Submitted Answer Widget ──
+    submittedAnswerCard: {
+      backgroundColor: t.surface,
+      borderRadius: 24,
+      padding: SPACING.xl,
+      borderWidth: 1,
+      borderColor: t.border,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 8 },
+        android: { elevation: 2 },
+      }),
+    },
+    submittedAnswerText: {
+      fontSize: 17,
+      color: t.text,
+      lineHeight: 26,
+    },
+    submittedTimestamp: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: t.subtext,
+      marginTop: SPACING.md,
+    },
+
+    // ── Partner Empty / Waiting State ──
+    waitingText: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: t.subtext,
+      textAlign: 'center',
+      fontStyle: 'italic',
+      paddingVertical: SPACING.md,
+    },
+
+    // ── Partner Answer ──
+    partnerAnswerText: {
+      fontSize: 17,
+      color: t.text,
+      lineHeight: 26,
+    },
+    revealedTimestamp: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: t.subtext,
+      marginTop: SPACING.md,
+    },
+    blurredContent: {
+      alignItems: 'center',
+      paddingVertical: SPACING.md,
+    },
+    blurredText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: t.text,
+      marginBottom: 6,
+    },
+    blurredSubtext: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: t.subtext,
+    },
+
+    // ── Footer ──
+    editorialFooter: {
+      marginTop: SPACING.xxl,
+      paddingTop: SPACING.xl,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      alignItems: 'center',
+    },
+    editorialFooterText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: t.subtext,
+      fontStyle: 'italic',
+      textAlign: 'center',
+    },
+  });
+};
 
 export default EditorialPrompt;

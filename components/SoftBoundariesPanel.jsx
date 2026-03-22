@@ -1,38 +1,64 @@
 /**
  * SoftBoundariesPanel — Elegant consent controls
- * 
- * "Hide spicy prompts for now"
- * "Don't resurface this entry"
- * 
- * Trust deepens when users feel in control,
- * even if they never use it.
+ * * Velvet Glass & Apple Editorial updates integrated.
+ * Pure native iOS surface mapping with high-contrast typography.
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Switch,
+  Animated,
+  Platform,
 } from 'react-native';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { BORDER_RADIUS, SPACING } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import { SoftBoundaries } from '../services/PolishEngine';
 
 export default function SoftBoundariesPanel({ onBoundaryChange }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [boundaries, setBoundaries] = useState(null);
+
+  // STRICT Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    primary: colors.primary,
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  // Entrance Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     (async () => {
       const b = await SoftBoundaries.getAll();
       setBoundaries(b);
+
+      // Trigger native spring entrance
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          friction: 9,
+          tension: 60,
+          useNativeDriver: true,
+        }),
+      ]).start();
     })();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   const toggleSpicy = useCallback(async (value) => {
     impact(ImpactFeedbackStyle.Light);
@@ -45,27 +71,24 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
   if (!boundaries) return null;
 
   return (
-    <View style={styles.container}>
-      <Animated.Text entering={FadeIn.duration(400)} style={[styles.sectionLabel, { color: colors.textMuted }]}>
+    <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      <Text style={[styles.sectionLabel, { color: t.subtext }]}>
         YOUR BOUNDARIES
-      </Animated.Text>
-      <Animated.Text entering={FadeIn.delay(80).duration(400)} style={[styles.sectionSub, { color: colors.textMuted }]}>
-        You're always in control of what appears
-      </Animated.Text>
+      </Text>
 
-      <Animated.View
-        entering={FadeInDown.delay(180).duration(500).springify().damping(18)}
-        style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-      >
-        {/* Hide Spicy */}
+      <View style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+        
+        {/* Row 1: Hide Spicy */}
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <MaterialCommunityIcons name="fire" size={18} color={colors.primary} style={styles.rowIcon} />
+            <View style={[styles.iconWrap, { backgroundColor: t.primary + '15' }]}>
+              <MaterialCommunityIcons name="fire" size={18} color={t.primary} />
+            </View>
             <View style={styles.rowText}>
-              <Text style={[styles.rowTitle, { color: colors.text }]}>
-                Hide spicy prompts for now
+              <Text style={[styles.rowTitle, { color: t.text }]}>
+                Hide spicy prompts
               </Text>
-              <Text style={[styles.rowSub, { color: colors.textMuted }]}>
+              <Text style={[styles.rowSub, { color: t.subtext }]}>
                 Only gentle and warm content
               </Text>
             </View>
@@ -73,118 +96,134 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
           <Switch
             value={boundaries.hideSpicy}
             onValueChange={toggleSpicy}
-            trackColor={{ false: colors.border, true: colors.primary + '60' }}
-            thumbColor={boundaries.hideSpicy ? colors.primary : undefined}
-            ios_backgroundColor={colors.border}
+            trackColor={{ false: t.border, true: t.primary }}
+            thumbColor={Platform.OS === 'ios' ? undefined : (boundaries.hideSpicy ? '#FFF' : '#F4F3F4')}
+            ios_backgroundColor={isDark ? '#38383A' : '#E9E9EA'}
           />
         </View>
 
-        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+        <View style={[styles.divider, { backgroundColor: t.border }]} />
 
-        {/* Info about paused entries */}
+        {/* Row 2: Hidden Entries */}
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <MaterialCommunityIcons name="eye-off-outline" size={18} color={colors.primary} style={styles.rowIcon} />
+            <View style={[styles.iconWrap, { backgroundColor: t.subtext + '15' }]}>
+              <MaterialCommunityIcons name="eye-off-outline" size={18} color={t.subtext} />
+            </View>
             <View style={styles.rowText}>
-              <Text style={[styles.rowTitle, { color: colors.text }]}>
+              <Text style={[styles.rowTitle, { color: t.text }]}>
                 Hidden entries
               </Text>
-              <Text style={[styles.rowSub, { color: colors.textMuted }]}>
+              <Text style={[styles.rowSub, { color: t.subtext }]}>
                 {boundaries.pausedEntries.length === 0
-                  ? 'None — long-press any entry to hide it'
-                  : `${boundaries.pausedEntries.length} ${boundaries.pausedEntries.length === 1 ? 'entry' : 'entries'} hidden`}
+                  ? 'None — long-press to hide'
+                  : `${boundaries.pausedEntries.length} items currently paused`}
               </Text>
             </View>
           </View>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+        <View style={[styles.divider, { backgroundColor: t.border }]} />
 
-        {/* Hidden categories */}
+        {/* Row 3: Hidden Categories */}
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <MaterialCommunityIcons name="tag-off-outline" size={18} color={colors.primary} style={styles.rowIcon} />
+            <View style={[styles.iconWrap, { backgroundColor: t.subtext + '15' }]}>
+              <MaterialCommunityIcons name="tag-off-outline" size={18} color={t.subtext} />
+            </View>
             <View style={styles.rowText}>
-              <Text style={[styles.rowTitle, { color: colors.text }]}>
+              <Text style={[styles.rowTitle, { color: t.text }]}>
                 Hidden categories
               </Text>
-              <Text style={[styles.rowSub, { color: colors.textMuted }]}>
+              <Text style={[styles.rowSub, { color: t.subtext }]}>
                 {boundaries.hiddenCategories.length === 0
                   ? 'All categories visible'
                   : `${boundaries.hiddenCategories.join(', ')} hidden`}
               </Text>
             </View>
           </View>
+          <MaterialCommunityIcons name="chevron-right" size={20} color={t.border} />
         </View>
-      </Animated.View>
+      </View>
 
-      <Animated.Text entering={FadeIn.delay(400).duration(500)} style={[styles.footer, { color: colors.textMuted }]}>
-        These settings are private to your device and never shared.
-      </Animated.Text>
-    </View>
+      <Text style={[styles.footer, { color: t.subtext }]}>
+        Settings are private to your device and never shared.
+      </Text>
+    </Animated.View>
   );
 }
 
+const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.md,
+    width: '100%',
   },
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1.5,
+    fontFamily: systemFont,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
-    marginBottom: 4,
+    marginBottom: SPACING.sm,
+    paddingLeft: SPACING.xs,
   },
-  sectionSub: {
-    fontSize: 13,
-    fontFamily: 'Lato_400Regular',
-    marginBottom: SPACING.md,
-    opacity: 0.7,
-  },
-  card: {
-    borderRadius: BORDER_RADIUS.lg,
+  widgetCard: {
+    borderRadius: 24, // Deep Apple squircle
     borderWidth: 1,
-    padding: SPACING.md + 2,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12 },
+      android: { elevation: 2 },
+    }),
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md + 2,
   },
   rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  rowIcon: {
-    marginRight: 14,
-    width: 20,
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10, // Slight squircle for icons
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
   },
   rowText: {
     flex: 1,
   },
   rowTitle: {
-    fontSize: 15,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: systemFont,
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   rowSub: {
+    fontFamily: systemFont,
     fontSize: 13,
-    fontFamily: 'Lato_400Regular',
+    fontWeight: '500',
     marginTop: 2,
   },
   divider: {
-    height: 1,
-    marginHorizontal: -SPACING.md,
-    marginVertical: 4,
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 68, // Aligns after the icon wrap
   },
   footer: {
-    fontSize: 12,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '500',
     textAlign: 'center',
-    marginTop: SPACING.md,
-    opacity: 0.8,
-    fontStyle: 'italic',
+    marginTop: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
+    lineHeight: 18,
   },
 });

@@ -1,51 +1,152 @@
 // components/RelationshipClimate.jsx — "We're in the mood for…" picker
 // No scores. No tracking. No trends. Just a vibe.
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Platform,
-  Dimensions,
+  Animated,
 } from 'react-native';
-import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING, BORDER_RADIUS } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import { RelationshipClimateState, CLIMATE_OPTIONS } from '../services/ConnectionEngine';
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+// Note: MaterialCommunityIcons does not support setNativeProps, so we cannot use
+// Animated.createAnimatedComponent with it. Use crossfade instead.
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const GRID_GAP = SPACING.sm;
-// Screen padding in HomeScreen is typically SPACING.screen (20 or 24).
-// Let's rely on percentage or flex for robust grid sizing, or calculate assuming the parent provides 100% width.
-const CARD_WIDTH = '47%'; // Using % avoids absolute measuring issues across different paddings
+// ------------------------------------------------------------------
+// INLINE COMPONENT: Animated Climate Card
+// ------------------------------------------------------------------
+const ClimateOption = ({ option, isSelected, onPress, t, isDark, styleOverrides }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
 
-const FONTS = {
-  serif: Platform.select({
-    ios: 'DMSerifDisplay-Regular',
-    android: 'DMSerifDisplay_400Regular',
-    default: 'serif',
-  }),
-  body: Platform.select({
-    ios: 'Lato-Regular',
-    android: 'Lato_400Regular',
-    default: 'sans-serif',
-  }),
-  bodyBold: Platform.select({
-    ios: 'Lato-Bold',
-    android: 'Lato_700Bold',
-    default: 'sans-serif',
-  }),
+  // Active color resolution (uses the colors defined in ConnectionEngine)
+  const activeColor = isDark ? (option.colorDark || option.color) : (option.colorLight || option.color);
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: isSelected ? 1 : 0,
+        duration: 200,
+        useNativeDriver: false, // Required for color interpolation
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: isSelected ? 0.96 : 1,
+        friction: 8,
+        tension: 60,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, [isSelected, fadeAnim, scaleAnim]);
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.92,
+      friction: 8,
+      tension: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: isSelected ? 0.96 : 1,
+      friction: 8,
+      tension: 60,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Pure Apple Editorial Color Interpolations
+  const backgroundColor = fadeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [t.surface, activeColor] 
+  });
+
+  const iconCircleBg = fadeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [t.surfaceSecondary, 'rgba(255,255,255,0.25)']
+  });
+
+  const textColor = fadeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [t.text, '#FFFFFF']
+  });
+
+  const borderColor = isSelected ? 'transparent' : t.border;
+
+  return (
+    <Animated.View style={[styleOverrides, { transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={() => onPress(option.id)}
+        style={styles.touchableArea}
+      >
+        <Animated.View 
+          style={[
+            styles.optionCard, 
+            { backgroundColor, borderColor },
+            isSelected && {
+              shadowColor: activeColor,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.4,
+              shadowRadius: 12,
+              elevation: 6,
+            }
+          ]}
+        >
+          <Animated.View style={[styles.iconCircle, { backgroundColor: iconCircleBg }]}>
+            {/* Crossfade between two static icons to avoid setNativeProps crash */}
+            <View style={{ width: 24, height: 24 }}>
+              <MaterialCommunityIcons
+                name={option.icon}
+                size={24}
+                color={activeColor}
+                style={{ position: 'absolute' }}
+              />
+              <Animated.View style={{ opacity: fadeAnim }}>
+                <MaterialCommunityIcons
+                  name={option.icon}
+                  size={24}
+                  color="#FFFFFF"
+                />
+              </Animated.View>
+            </View>
+          </Animated.View>
+          <Animated.Text style={[styles.optionLabel, { color: textColor }]}>
+            {option.label}
+          </Animated.Text>
+        </Animated.View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
 };
 
+// ------------------------------------------------------------------
+// MAIN COMPONENT
+// ------------------------------------------------------------------
 export default function RelationshipClimate({ onClimateChange, compact = false }) {
   const { colors, isDark } = useTheme();
   const [selected, setSelected] = useState(null);
+
+  // STRICT Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    primary: colors.primary,
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
   useEffect(() => {
     RelationshipClimateState.get().then(data => {
@@ -54,7 +155,7 @@ export default function RelationshipClimate({ onClimateChange, compact = false }
   }, []);
 
   const handleSelect = useCallback(async (climateId) => {
-    impact(ImpactFeedbackStyle.Light);
+    selection();
     setSelected(climateId);
     await RelationshipClimateState.set(climateId);
     onClimateChange?.(climateId);
@@ -62,16 +163,21 @@ export default function RelationshipClimate({ onClimateChange, compact = false }
 
   if (compact && selected) {
     const current = CLIMATE_OPTIONS.find(c => c.id === selected);
-    const compactColor = isDark ? current.colorDark : current.colorLight;
+    if (!current) return null;
+    const compactColor = isDark ? (current.colorDark || current.color) : (current.colorLight || current.color);
+    
     return (
       <TouchableOpacity
-        style={[styles.compactContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}
-        onPress={() => setSelected(null)} // Tap to re-pick
+        style={[styles.compactContainer, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}
+        onPress={() => {
+          impact(ImpactFeedbackStyle.Light);
+          setSelected(null);
+        }}
         activeOpacity={0.8}
       >
         <MaterialCommunityIcons name={current.icon} size={18} color={compactColor} />
-        <Text style={[styles.compactLabel, { color: colors.textMuted }]}>
-          In the mood for <Text style={{ color: compactColor, fontWeight: '600' }}>{current.label}</Text>
+        <Text style={[styles.compactLabel, { color: t.text }]}>
+          In the mood for <Text style={{ color: compactColor, fontWeight: '700' }}>{current.label.toLowerCase()}</Text>
         </Text>
       </TouchableOpacity>
     );
@@ -79,162 +185,101 @@ export default function RelationshipClimate({ onClimateChange, compact = false }
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.question, { color: colors.text }]}>
-        We're in the mood for…
+      <Text style={[styles.sectionTitle, { color: t.text }]}>
+        Climate
+      </Text>
+      <Text style={[styles.sectionSubtitle, { color: t.subtext }]}>
+        What are we in the mood for tonight?
       </Text>
 
-      {/* Mode Toggles */}
+      {/* Mode Toggles (Top 2) */}
       <View style={styles.togglesRow}>
-        {CLIMATE_OPTIONS.slice(0, 2).map((option) => {
-          const isSelected = selected === option.id;
-          const c = isDark ? option.colorDark : option.colorLight;
-          return (
-            <AnimatedTouchable
-              key={option.id}
-              style={[
-                styles.modeToggle,
-                {
-                  backgroundColor: isSelected
-                    ? c + '30'
-                    : isDark ? c + '0A' : c + '08',
-                  borderColor: isSelected
-                    ? c + '66'
-                    : isDark ? c + '30' : c + '20',
-                },
-              ]}
-              onPress={() => handleSelect(option.id)}
-              activeOpacity={0.7}
-            >
-              <View style={[
-                styles.iconCircle,
-                {
-                  backgroundColor: isSelected ? c + '30' : c + '18',
-                  marginBottom: 8,
-                },
-              ]}>
-                <MaterialCommunityIcons
-                  name={option.icon}
-                  size={24}
-                  color={isSelected ? c : c + 'BB'}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.optionLabel,
-                  {
-                    color: isSelected ? colors.text : c,
-                    fontWeight: isSelected ? '600' : '500',
-                  },
-                ]}
-              >
-                {option.label}
-              </Text>
-            </AnimatedTouchable>
-          );
-        })}
+        {CLIMATE_OPTIONS.slice(0, 2).map((option) => (
+          <ClimateOption
+            key={option.id}
+            option={option}
+            isSelected={selected === option.id}
+            onPress={handleSelect}
+            t={t}
+            isDark={isDark}
+            styleOverrides={{ flex: 1 }}
+          />
+        ))}
       </View>
 
+      {/* Grid Options (Bottom 4) */}
       <View style={styles.optionsGrid}>
-        {CLIMATE_OPTIONS.slice(2).map((option) => {
-          const isSelected = selected === option.id;
-          const c = isDark ? option.colorDark : option.colorLight;
-          return (
-            <AnimatedTouchable
-              key={option.id}
-              style={[
-                styles.option,
-                {
-                  backgroundColor: isSelected
-                    ? c + '28'
-                    : isDark ? c + '10' : c + '0D',
-                  borderColor: isSelected
-                    ? c + '55'
-                    : isDark ? c + '20' : c + '18',
-                },
-                Platform.OS === 'ios' && styles.shadowIOS,
-              ]}
-              onPress={() => handleSelect(option.id)}
-              activeOpacity={0.7}
-            >
-              <View style={[
-                styles.iconCircle,
-                {
-                  backgroundColor: isSelected ? c + '30' : c + '18',
-                },
-              ]}>
-                <MaterialCommunityIcons
-                  name={option.icon}
-                  size={24}
-                  color={isSelected ? c : c + 'BB'}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.optionLabel,
-                  {
-                    color: isSelected ? colors.text : c,
-                    fontWeight: isSelected ? '600' : '500',
-                  },
-                ]}
-              >
-                {option.label}
-              </Text>
-            </AnimatedTouchable>
-          );
-        })}
+        {CLIMATE_OPTIONS.slice(2).map((option) => (
+          <ClimateOption
+            key={option.id}
+            option={option}
+            isSelected={selected === option.id}
+            onPress={handleSelect}
+            t={t}
+            isDark={isDark}
+            styleOverrides={{ width: '48%' }}
+          />
+        ))}
       </View>
     </View>
   );
 }
 
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial Squircle
+// ------------------------------------------------------------------
+const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
     paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl, // Match screen padding for flush layout
+    width: '100%',
   },
-  question: {
-    fontFamily: FONTS.serif,
-    fontSize: 20,
-    textAlign: 'center',
-    marginBottom: SPACING.xl,
-    fontWeight: '300',
+  sectionTitle: {
+    fontFamily: systemFont,
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontFamily: systemFont,
+    fontSize: 15,
+    fontWeight: '500',
+    marginBottom: SPACING.lg,
+  },
+  
+  // ── Grid Layouts ──
+  togglesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 12,
   },
   optionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: GRID_GAP,
+    gap: 12,
   },
-  togglesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: GRID_GAP,
-    gap: GRID_GAP,
+
+  // ── Card Styles ──
+  touchableArea: {
+    width: '100%',
   },
-  modeToggle: {
-    flex: 1,
+  optionCard: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.xl,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.md,
+    borderRadius: 24, // Deep iOS squircle
     borderWidth: 1,
-  },
-  option: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: BORDER_RADIUS.xl,
-    borderWidth: 1,
-    width: '48%',
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.lg,
-    gap: 8,
-  },
-  shadowIOS: {
-    shadowColor: '#070509',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
+    gap: 10,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8 },
+      android: { elevation: 1 },
+    }),
   },
   iconCircle: {
     width: 44,
@@ -244,23 +289,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   optionLabel: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
+    fontFamily: systemFont,
+    fontSize: 14,
+    fontWeight: '700',
     textAlign: 'center',
-    lineHeight: 16,
+    letterSpacing: -0.2,
   },
+
+  // ── Compact Mode (Pill) ──
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: BORDER_RADIUS.full,
+    paddingVertical: SPACING.sm + 4,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 999, // Perfect pill
     borderWidth: 1,
-    gap: SPACING.sm,
+    gap: 8,
     alignSelf: 'center',
+    marginTop: SPACING.sm,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 },
+      android: { elevation: 2 },
+    }),
   },
   compactLabel: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
+    fontFamily: systemFont,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 });

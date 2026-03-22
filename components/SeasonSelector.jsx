@@ -1,30 +1,119 @@
-/**
- * SeasonSelector — "Your Season"
- * 
- * Not tracking health — tracking context.
- * Slightly influences prompt ordering, date suggestions, tone.
- * Thriving couples change. The app should move with them.
- */
+// components/SeasonSelector.jsx
+// "Your Season" - Not tracking health, tracking context.
+// Shapes prompt ordering, date suggestions, tone.
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Animated,
+  Platform,
 } from 'react-native';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { BORDER_RADIUS, SPACING } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import { RelationshipSeasons, SEASONS } from '../services/PolishEngine';
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+// ------------------------------------------------------------------
+// INLINE COMPONENT: Animated Season Option
+// ------------------------------------------------------------------
+const SeasonOption = ({ season, isSelected, isLast, onPress, t }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
 
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: isSelected ? 1 : 0,
+        duration: 200,
+        useNativeDriver: false, // Required for color interpolation
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: isSelected ? 0.98 : 1,
+        friction: 8,
+        tension: 60,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, [isSelected, fadeAnim, scaleAnim]);
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      friction: 8,
+      tension: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: isSelected ? 0.98 : 1,
+      friction: 8,
+      tension: 60,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const iconBgColor = fadeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [t.surfaceSecondary, season.color + '15']
+  });
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={() => onPress(season.id)}
+        style={styles.listOptionRow}
+      >
+        <Animated.View style={[styles.iconWrap, { backgroundColor: iconBgColor }]}>
+          <MaterialCommunityIcons 
+            name={season.icon} 
+            size={20} 
+            color={isSelected ? season.color : t.subtext} 
+          />
+        </Animated.View>
+        
+        <View style={styles.optionContent}>
+          <Text style={[styles.optionName, { color: isSelected ? season.color : t.text }]}>
+            {season.label}
+          </Text>
+          <Text style={[styles.optionDesc, { color: t.subtext }]} numberOfLines={1}>
+            {season.description}
+          </Text>
+        </View>
+
+        {isSelected && (
+          <MaterialCommunityIcons name="check" size={24} color={season.color} />
+        )}
+      </TouchableOpacity>
+      {!isLast && <View style={[styles.dividerIndent, { backgroundColor: t.border }]} />}
+    </Animated.View>
+  );
+};
+
+// ------------------------------------------------------------------
+// MAIN COMPONENT
+// ------------------------------------------------------------------
 export default function SeasonSelector({ compact = false, onSeasonChange }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [currentSeason, setCurrentSeason] = useState(null);
+
+  // STRICT Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    primary: colors.primary,
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
   useEffect(() => {
     (async () => {
@@ -34,140 +123,157 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
   }, []);
 
   const handleSelect = useCallback(async (seasonId) => {
-    impact(ImpactFeedbackStyle.Light);
+    selection();
     await RelationshipSeasons.set(seasonId);
     setCurrentSeason(seasonId);
     onSeasonChange?.(seasonId);
   }, [onSeasonChange]);
 
-  // Compact: single row showing current season, tappable to cycle
+  // Compact View (Used outside of settings/onboarding)
   if (compact) {
     const season = SEASONS.find(s => s.id === currentSeason);
     if (!season) return null;
 
     return (
-      <View style={[styles.compactRow, { borderColor: colors.border }]}>
-        <MaterialCommunityIcons name={season.icon} size={14} color={season.color} />
-        <Text style={[styles.compactLabel, { color: colors.textMuted }]}>
+      <TouchableOpacity 
+        style={[styles.compactRow, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}
+        onPress={() => impact(ImpactFeedbackStyle.Light)}
+        activeOpacity={0.7}
+      >
+        <MaterialCommunityIcons name={season.icon} size={16} color={season.color} />
+        <Text style={[styles.compactLabel, { color: t.text }]}>
           {season.label}
         </Text>
-        <Text style={[styles.compactSub, { color: colors.textMuted }]}>
-          {season.description}
-        </Text>
-      </View>
+      </TouchableOpacity>
     );
   }
 
-  // Full: all seasons in a selectable list
+  // Full View (Apple Settings Widget Style)
   return (
     <View style={styles.container}>
-      <Animated.Text entering={FadeIn.duration(400)} style={[styles.title, { color: colors.textMuted }]}>
+      <Text style={[styles.sectionTitle, { color: t.subtext }]}>
         YOUR SEASON
-      </Animated.Text>
-      <Animated.Text entering={FadeIn.delay(100).duration(400)} style={[styles.subtitle, { color: colors.textMuted }]}>
-        Shapes what the app suggests
-      </Animated.Text>
-      <View style={styles.grid}>
+      </Text>
+      
+      <View style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border }, Platform.OS === 'ios' && isDark === false && styles.shadowLight]}>
         {SEASONS.map((season, index) => {
           const isActive = currentSeason === season.id;
+          const isLast = index === SEASONS.length - 1;
+          
           return (
-              <AnimatedTouchable
+            <SeasonOption
               key={season.id}
-              entering={FadeInDown.delay(150 + index * 80).duration(400).springify().damping(16)}
-              style={[
-                styles.seasonCard,
-                { 
-                  borderColor: isActive ? season.color : 'rgba(255,255,255,0.05)',
-                  backgroundColor: isActive ? season.color + '15' : 'rgba(255,255,255,0.02)',
-                    opacity: isActive ? 1 : 0.75,
-                  transform: [{ scale: isActive ? 1 : 0.98 }]
-                },
-              ]}
-              onPress={() => handleSelect(season.id)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.iconWrap, { backgroundColor: season.color + '20' }]}>
-                <MaterialCommunityIcons name={season.icon} size={20} color={season.color} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.seasonLabel, { color: isActive ? season.color : colors.text }]}>
-                  {season.label}
-                </Text>
-                <Text style={[styles.seasonDesc, { color: colors.textMuted }]} numberOfLines={1}>
-                  {season.description}
-                </Text>
-              </View>
-            </AnimatedTouchable>
+              season={season}
+              isSelected={isActive}
+              isLast={isLast}
+              onPress={handleSelect}
+              t={t}
+            />
           );
         })}
       </View>
+
+      <Text style={[styles.sectionFooter, { color: t.subtext }]}>
+        This gently shapes the tone of the app and the prompts you receive.
+      </Text>
     </View>
   );
 }
 
+// ------------------------------------------------------------------
+// STYLES - Pure Apple Editorial 
+// ------------------------------------------------------------------
+const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: SPACING.sm,
+    width: '100%',
   },
-  title: {
+  sectionTitle: {
+    fontFamily: systemFont,
     fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 2.5,
+    fontWeight: '700',
     textTransform: 'uppercase',
-    marginBottom: 8,
-    opacity: 0.8,
+    letterSpacing: 0.5,
+    marginBottom: SPACING.sm,
+    paddingLeft: SPACING.xs,
   },
-  subtitle: {
-    fontSize: 15,
-    fontFamily: 'Lato-Italic',
-    marginBottom: 20,
-    opacity: 0.7,
+  sectionFooter: {
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '500',
+    marginTop: SPACING.sm,
+    paddingLeft: SPACING.xs,
+    paddingRight: SPACING.xl,
+    lineHeight: 18,
   },
-  grid: {
-    gap: 12,
-  },
-  seasonCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 18,
+
+  // ── Apple Widget Card ──
+  widgetCard: {
     borderRadius: 20,
     borderWidth: 1,
-    gap: 16, // Matched with Onboarding choices
+    overflow: 'hidden',
+    ...Platform.select({
+      android: { elevation: 2 },
+    }),
+  },
+  shadowLight: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+  },
+
+  // ── List Items ──
+  listOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.lg,
+    gap: 16,
   },
   iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 32,
+    height: 32,
+    borderRadius: 8, // Apple standard squircle icon wrapper
     alignItems: 'center',
     justifyContent: 'center',
   },
-  seasonLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-    letterSpacing: -0.3,
+  optionContent: {
+    flex: 1,
+    justifyContent: 'center',
   },
-  seasonDesc: {
-    fontSize: 15,
-    fontStyle: 'italic',
-    lineHeight: 20,
+  optionName: {
+    fontFamily: systemFont,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+    letterSpacing: -0.2,
+  },
+  optionDesc: {
+    fontFamily: systemFont,
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  dividerIndent: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 64, // Indent past the icon
   },
 
-  // Compact
+  // ── Compact View ──
   compactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
     gap: 8,
+    alignSelf: 'flex-start',
   },
   compactLabel: {
-    fontSize: 12,
-    fontFamily: 'Lato_700Bold',
-  },
-  compactSub: {
-    fontSize: 12,
-    fontFamily: 'Lato_400Regular',
-    opacity: 0.6,
-    flex: 1,
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 });

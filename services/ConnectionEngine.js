@@ -266,15 +266,16 @@ export const MomentSignalSender = {
 
 // ═══════════════════════════════════════════════════════
 // 2. RelationshipClimateState — "We're in the mood for…"
+// Updated to native Apple Editorial system colors
 // ═══════════════════════════════════════════════════════
 
 export const CLIMATE_OPTIONS = [
-  { id: 'connected', label: 'Connecting', icon: 'link-variant', color: '#D4A843', colorDark: '#F0C45A', colorLight: '#B08820' },
-  { id: 'playful', label: 'Playing', icon: 'party-popper', color: '#C75050', colorDark: '#E86565', colorLight: '#A83838' },
-  { id: 'calm', label: 'Quiet time', icon: 'leaf', color: '#4A6B4F', colorDark: '#6CC975', colorLight: '#3A7842' },
-  { id: 'adventurous', label: 'Adventure', icon: 'compass-outline', color: '#5E7BA3', colorDark: '#7EB4E0', colorLight: '#3D6A9E' },
-  { id: 'romantic', label: 'Romance', icon: 'heart-outline', color: '#B84A6E', colorDark: '#E86090', colorLight: '#9A3058' },
-  { id: 'restful', label: 'Winding down', icon: 'weather-night', color: '#6B5B8A', colorDark: '#A48CD0', colorLight: '#5A4580' },
+  { id: 'connected', label: 'Connecting', icon: 'link-variant', color: '#FFCC00', colorDark: '#FFD60A', colorLight: '#E5B800' }, // Apple Yellow/Gold
+  { id: 'playful', label: 'Playing', icon: 'party-popper', color: '#FF2D55', colorDark: '#FF375F', colorLight: '#D9002B' }, // Apple Pink
+  { id: 'calm', label: 'Quiet time', icon: 'leaf', color: '#34C759', colorDark: '#30D158', colorLight: '#248A3D' }, // Apple Green
+  { id: 'adventurous', label: 'Adventure', icon: 'compass-outline', color: '#FF9500', colorDark: '#FF9F0A', colorLight: '#E08300' }, // Apple Orange
+  { id: 'romantic', label: 'Romance', icon: 'heart-outline', color: '#D90429', colorDark: '#FF1744', colorLight: '#9E001A' }, // Deep Velvet Crimson
+  { id: 'restful', label: 'Winding down', icon: 'weather-night', color: '#5856D6', colorDark: '#5E5CE6', colorLight: '#4A48C4' }, // Apple Indigo
 ];
 
 export const RelationshipClimateState = {

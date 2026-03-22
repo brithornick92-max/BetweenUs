@@ -1,13 +1,23 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  RefreshControl,
+  TouchableOpacity,
+  Platform,
+  StatusBar
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
-import { SPACING, TYPOGRAPHY } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import ConnectionMemory from '../utils/connectionMemory';
 import achievementEngine from '../utils/achievementEngine';
 import challengeSystem from '../utils/challengeSystem';
+import { selection } from '../utils/haptics';
 
 // Build personalized UI from real behavioral signals
 const uiPersonalization = {
@@ -21,11 +31,11 @@ const uiPersonalization = {
     const layout = {
       type: isCompact ? 'compact' : 'comfortable',
       spacing: isCompact
-        ? { padding: SPACING.md, gap: SPACING.sm }
-        : { padding: SPACING.xl, gap: SPACING.lg },
+        ? { padding: SPACING.md, gap: SPACING.lg }
+        : { padding: SPACING.xl, gap: SPACING.xl },
       fontSize: isCompact
-        ? { title: 24, heading: 16, base: 14 }
-        : { title: 28, heading: 18, base: 16 },
+        ? { title: 28, heading: 13, base: 15 }
+        : { title: 34, heading: 13, base: 16 },
     };
 
     // Smart shortcuts: surface the features the couple uses most
@@ -49,9 +59,9 @@ const uiPersonalization = {
 
     // Widgets: always show connection + milestones; add invitations if user engages frequently
     const widgets = [
-      { type: 'nights_connected', data: { streak: 0 } },
-      { type: 'quiet_milestone', data: {} },
-      { type: 'invitation_card', data: {} },
+      { type: 'streak_indicator', data: { streak: 0 } },
+      { type: 'achievement_badge', data: {} },
+      { type: 'challenge_card', data: {} },
     ];
 
     if (avgSession != null && avgSession > 300) {
@@ -65,25 +75,37 @@ const uiPersonalization = {
     await ConnectionMemory.recordFeatureUse(feature);
   },
 };
+
 import QuietMilestone from './QuietMilestone';
 import StoryProgress from './StoryProgress';
 import InvitationCard from './InvitationCard';
 import NightsConnected from './NightsConnected';
 import GentleCelebration from './GentleCelebration';
-import Card from './Card';
 import PreferenceEngine from '../services/PreferenceEngine';
 
 /**
  * Adaptive Home Screen Component
- * 
- * Dynamically adapts layout and content based on user behavior and preferences.
+ * * Dynamically adapts layout and content based on user behavior and preferences.
  * Integrates personalization systems for an intimate, curated home experience.
  */
 export default function AdaptiveHomeScreen({ navigation }) {
   const { user } = useAuth();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { data: dataLayer } = useData();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  
+  // STRICT Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    primary: colors.primary,
+    accent: colors.accent || '#FF2D55',
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const [personalizedUI, setPersonalizedUI] = useState(null);
   const [milestones, setMilestones] = useState(null);
@@ -93,7 +115,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
   const [showReward, setShowReward] = useState(false);
   const [rewardData, setRewardData] = useState(null);
   const [smartGreeting, setSmartGreeting] = useState('Welcome Back 💛');
-  const [smartSubGreeting, setSmartSubGreeting] = useState('Your evening awaits');
+  const [smartSubGreeting, setSmartSubGreeting] = useState('Your evening awaits.');
 
   useEffect(() => {
     if (user?.uid) {
@@ -138,7 +160,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
       setMilestones(milestoneData);
 
       // Check for newly discovered milestones
-      if (milestoneData.newlyUnlocked.length > 0) {
+      if (milestoneData.newlyUnlocked && milestoneData.newlyUnlocked.length > 0) {
         const newMilestone = milestoneData.newlyUnlocked[0];
         setRewardData({
           type: 'milestone',
@@ -169,6 +191,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
   };
 
   const handleShortcutPress = (shortcut) => {
+    selection();
     if (shortcut.screen && navigation) {
       navigation.navigate(shortcut.screen);
     }
@@ -185,6 +208,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
   if (loading || !personalizedUI) {
     return (
       <SafeAreaView style={styles.container}>
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Finding something meaningful…</Text>
         </View>
@@ -192,29 +216,33 @@ export default function AdaptiveHomeScreen({ navigation }) {
     );
   }
 
-  const { layout, shortcuts, widgets, theme: uiTheme } = personalizedUI;
+  const { layout, shortcuts, widgets } = personalizedUI;
   const safeShortcuts = Array.isArray(shortcuts) ? shortcuts : [];
   const safeWidgets = Array.isArray(widgets) ? widgets : [];
   const safeNewlyUnlocked = Array.isArray(milestones?.newlyUnlocked) ? milestones.newlyUnlocked : [];
   const safeInvitations = Array.isArray(invitations?.challenges) ? invitations.challenges : [];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
+      
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
           styles.content,
-          { padding: layout.spacing.padding }
+          { paddingHorizontal: layout.spacing.padding } // Apply dynamic padding
         ]}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
+            tintColor={t.primary}
           />
         }
       >
-        {/* Header */}
+        {/* Flush-Left Editorial Header */}
         <View style={styles.header}>
           <Text style={[styles.greeting, { fontSize: layout.fontSize.title }]}>
             {smartGreeting}
@@ -224,24 +252,25 @@ export default function AdaptiveHomeScreen({ navigation }) {
           </Text>
         </View>
 
-        {/* Smart Shortcuts */}
+        {/* Smart Shortcuts (Apple Widget Style) */}
         {safeShortcuts.length > 0 && (
           <View style={[styles.section, { marginBottom: layout.spacing.gap }]}>
             <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading }]}>
-              Quick Actions
+              QUICK ACTIONS
             </Text>
             <View style={styles.shortcutsGrid}>
               {safeShortcuts.map((shortcut, index) => (
-                <Card
+                <TouchableOpacity
                   key={index}
-                  variant="glass"
-                  padding="sm"
-                  onPress={() => handleShortcutPress(shortcut)}
                   style={styles.shortcutCard}
+                  onPress={() => handleShortcutPress(shortcut)}
+                  activeOpacity={0.75}
                 >
-                  <Text style={styles.shortcutIcon}>{shortcut.icon}</Text>
+                  <View style={styles.shortcutIconWrap}>
+                    <Text style={styles.shortcutIcon}>{shortcut.icon}</Text>
+                  </View>
                   <Text style={styles.shortcutLabel}>{shortcut.label}</Text>
-                </Card>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
@@ -265,7 +294,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
               return safeNewlyUnlocked.length > 0 ? (
                 <View key={index} style={[styles.section, { marginBottom: layout.spacing.gap }]}>
                   <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading }]}>
-                    Recent Milestones
+                    RECENT MILESTONES
                   </Text>
                   {safeNewlyUnlocked.slice(0, 3).map((milestone, idx) => (
                     <QuietMilestone
@@ -282,7 +311,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
               return safeInvitations.length > 0 ? (
                 <View key={index} style={[styles.section, { marginBottom: layout.spacing.gap }]}>
                   <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading }]}>
-                    Invitations to Connect
+                    INVITATIONS
                   </Text>
                   {safeInvitations.slice(0, 2).map((invitation, idx) => (
                     <InvitationCard
@@ -309,22 +338,18 @@ export default function AdaptiveHomeScreen({ navigation }) {
                 </View>
               ) : null;
 
-            case 'leaderboard':
-              // Leaderboard removed per brand guardrails — Between Us never compares couples
-              return null;
-
             default:
               return null;
           }
         })}
 
-        {/* Journey Summary */}
+        {/* Journey Summary Widget */}
         {milestones && (
           <View style={[styles.section, { marginBottom: layout.spacing.gap }]}>
-            <Card variant="glass" padding="md">
-              <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading }]}>
-                Your Journey
-              </Text>
+            <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading }]}>
+              YOUR JOURNEY
+            </Text>
+            <View style={styles.widgetCard}>
               <View style={styles.statsGrid}>
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>{milestones.stats.totalPoints}</Text>
@@ -341,7 +366,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
                   <Text style={styles.statLabel}>Discovered</Text>
                 </View>
               </View>
-            </Card>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -361,83 +386,145 @@ export default function AdaptiveHomeScreen({ navigation }) {
   );
 }
 
-const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    paddingBottom: SPACING.xl,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    ...TYPOGRAPHY.body,
-    color: colors.textMuted,
-  },
-  header: {
-    marginBottom: SPACING.xl,
-  },
-  greeting: {
-    ...TYPOGRAPHY.h1,
-    color: colors.text,
-    fontWeight: "300",
-    marginBottom: SPACING.xs,
-  },
-  subGreeting: {
-    ...TYPOGRAPHY.body,
-    color: colors.textMuted,
-  },
-  section: {
-    marginBottom: SPACING.lg,
-  },
-  sectionTitle: {
-    ...TYPOGRAPHY.h3,
-    color: colors.text,
-    fontWeight: "600",
-    marginBottom: SPACING.md,
-  },
-  shortcutsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm
-  },
-  shortcutCard: {
-    width: '48%',
-    alignItems: 'center',
-    paddingVertical: SPACING.md
-  },
-  shortcutIcon: {
-    fontSize: 32,
-    marginBottom: SPACING.xs
-  },
-  shortcutLabel: {
-    ...TYPOGRAPHY.caption,
-    color: colors.text,
-    textAlign: "center",
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: SPACING.md
-  },
-  statItem: {
-    alignItems: 'center'
-  },
-  statValue: {
-    ...TYPOGRAPHY.h2,
-    color: colors.primary,
-    fontWeight: "600",
-    marginBottom: SPACING.xs,
-  },
-  statLabel: {
-    ...TYPOGRAPHY.caption,
-    color: colors.textMuted,
-  },
-});
+// ------------------------------------------------------------------
+// STYLES - Pure Apple Editorial 
+// ------------------------------------------------------------------
+const createStyles = (t, isDark) => {
+  const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: t.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    content: {
+      paddingBottom: 160, // Critical padding to clear bottom tabs safely
+      paddingTop: SPACING.md,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: t.background,
+    },
+    loadingText: {
+      fontSize: 16,
+      fontWeight: '500',
+      fontStyle: 'italic',
+      color: t.subtext,
+    },
+
+    // ── Header ──
+    header: {
+      marginBottom: SPACING.xxl,
+      alignItems: 'flex-start',
+    },
+    greeting: {
+      fontFamily: systemFont,
+      fontWeight: "800",
+      color: t.text,
+      letterSpacing: -0.5,
+      marginBottom: 4,
+    },
+    subGreeting: {
+      fontWeight: "500",
+      color: t.subtext,
+    },
+
+    // ── Sections ──
+    section: {
+      marginBottom: SPACING.xl,
+    },
+    sectionTitle: {
+      fontFamily: systemFont,
+      fontWeight: "700",
+      color: t.subtext,
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+      marginBottom: SPACING.sm,
+      paddingLeft: 4,
+    },
+
+    // ── 2-Column Shortcut Widgets ──
+    shortcutsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    shortcutCard: {
+      width: '48%',
+      backgroundColor: t.surface,
+      borderRadius: 24,
+      paddingVertical: SPACING.xl,
+      paddingHorizontal: SPACING.lg,
+      borderWidth: 1,
+      borderColor: t.border,
+      alignItems: 'flex-start',
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 8 },
+        android: { elevation: 2 },
+      }),
+    },
+    shortcutIconWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: t.primary + '15',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    shortcutIcon: {
+      fontSize: 22,
+    },
+    shortcutLabel: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: t.text,
+      letterSpacing: -0.2,
+    },
+
+    // ── Standard Widget Card ──
+    widgetCard: {
+      backgroundColor: t.surface,
+      borderRadius: 24,
+      padding: SPACING.xl,
+      borderWidth: 1,
+      borderColor: t.border,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0 : 0.06, shadowRadius: 12 },
+        android: { elevation: 3 },
+      }),
+    },
+
+    // ── Stats Grid ──
+    statsGrid: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    statItem: {
+      alignItems: 'flex-start',
+      flex: 1,
+    },
+    statValue: {
+      fontFamily: systemFont,
+      fontSize: 28,
+      fontWeight: "800",
+      color: t.primary,
+      marginBottom: 2,
+      letterSpacing: -0.5,
+    },
+    statLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: t.subtext,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+  });
+};

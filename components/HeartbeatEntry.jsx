@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -10,19 +10,30 @@ import Animated, {
   interpolate,
   Extrapolate
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
-import { TYPOGRAPHY } from '../utils/theme';
 
 const { width } = Dimensions.get('window');
 
 const HeartbeatEntry = () => {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { colors, isDark } = useTheme();
+  
+  // STRICT Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary,
+    accent: colors.accent || '#FF2D55',
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const pulse = useSharedValue(1);
   const textOpacity = useSharedValue(0);
 
   useEffect(() => {
-    // Continuous heartbeat-like pulse
+    // Continuous heartbeat-like pulse with Apple-like spring/easing
     pulse.value = withRepeat(
       withSequence(
         withTiming(1.2, { duration: 1200, easing: Easing.bezier(0.4, 0, 0.2, 1) }),
@@ -33,12 +44,12 @@ const HeartbeatEntry = () => {
     );
 
     // Fade in text quote after mounting
-    textOpacity.value = withTiming(1, { duration: 2500, easing: Easing.out(Easing.quad) });
-  }, []);
+    textOpacity.value = withTiming(1, { duration: 2000, easing: Easing.out(Easing.cubic) });
+  }, [pulse, textOpacity]);
 
   const glowStyle = useAnimatedStyle(() => {
-    const scale = interpolate(pulse.value, [1, 1.2], [1, 1.5], Extrapolate.CLAMP);
-    const opacity = interpolate(pulse.value, [1, 1.2], [0.4, 0.15], Extrapolate.CLAMP);
+    const scale = interpolate(pulse.value, [1, 1.2], [1, 1.6], Extrapolate.CLAMP);
+    const opacity = interpolate(pulse.value, [1, 1.2], [0.3, 0.05], Extrapolate.CLAMP);
     
     return {
       transform: [{ scale }],
@@ -58,18 +69,29 @@ const HeartbeatEntry = () => {
     return {
       opacity: textOpacity.value,
       transform: [
-        { translateY: interpolate(textOpacity.value, [0, 1], [10, 0]) }
+        { translateY: interpolate(textOpacity.value, [0, 1], [15, 0], Extrapolate.CLAMP) }
       ]
     };
   });
 
   return (
     <View style={styles.container}>
+      {/* Velvet background gradient injected directly for the immersive intro */}
+      <LinearGradient
+        colors={
+          isDark 
+            ? [t.background, '#0F0A1A', '#0D081A', t.background] 
+            : [t.background, '#EBEBF5', t.background]
+        }
+        locations={[0, 0.3, 0.7, 1]}
+        style={StyleSheet.absoluteFillObject}
+      />
+
       <View style={styles.animationWrapper}>
-        {/* Rose Gold Pulsing Glow */}
+        {/* Deep Velvet Pulsing Glow */}
         <Animated.View style={[styles.glow, glowStyle]} />
         
-        {/* Champagne Core */}
+        {/* Stark Editorial Core */}
         <Animated.View style={[styles.core, coreStyle]} />
       </View>
 
@@ -83,54 +105,71 @@ const HeartbeatEntry = () => {
   );
 };
 
-const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  animationWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 380,
-    width: 380,
-  },
-  glow: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: colors.primary,
-    // We use shadow for extra bloom effect if needed, but the view itself pulses
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 40,
-  },
-  core: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.text,
-    zIndex: 2,
-    shadowColor: colors.text,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-  },
-  quoteContainer: {
-    marginTop: 60,
-    width: width * 0.8,
-  },
-  quote: {
-    ...TYPOGRAPHY.bodySecondary,
-    fontSize: 18,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    color: colors.textMuted,
-    letterSpacing: 0.5,
-  },
-});
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial / Velvet Glass
+// ------------------------------------------------------------------
+const createStyles = (t, isDark) => {
+  const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: t.background,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    animationWrapper: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 380,
+      width: 380,
+    },
+    glow: {
+      position: 'absolute',
+      width: 160,
+      height: 160,
+      borderRadius: 80,
+      backgroundColor: t.primary,
+      ...Platform.select({
+        ios: {
+          shadowColor: t.primary,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.5,
+          shadowRadius: 40,
+        },
+        android: { elevation: 10 },
+      }),
+    },
+    core: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: t.text, // High contrast crisp core
+      zIndex: 2,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: isDark ? 0.8 : 0.15,
+          shadowRadius: 20,
+        },
+        android: { elevation: 8 },
+      }),
+    },
+    quoteContainer: {
+      marginTop: 40,
+      width: width * 0.85,
+    },
+    quote: {
+      fontFamily: systemFont,
+      fontSize: 24,
+      fontWeight: '700',
+      textAlign: 'center',
+      color: t.text,
+      letterSpacing: -0.3,
+      lineHeight: 32,
+    },
+  });
+};
 
 export default HeartbeatEntry;
