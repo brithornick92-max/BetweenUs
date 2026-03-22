@@ -31,6 +31,9 @@ import Animated, {
   runOnJS,
   Easing,
   FadeIn,
+  useAnimatedSensor,
+  SensorType,
+  Extrapolation,
 } from "react-native-reanimated";
 import {
   Gesture,
@@ -161,23 +164,46 @@ function DeckCard({
   const catLabel = HEAT_LABELS[heat] || "1";
   const metal = HEAT_METAL[heat] || HEAT_METAL[1];
 
-  // Shimmer animation for metallic highlight
-  const shimmerAnim = useRef(new RNAnimated.Value(0)).current;
+  // Device rotation sensor for subtle metallic shimmer
+  const rotationSensor = useAnimatedSensor(SensorType.ROTATION, {
+    interval: 16,
+  });
+
+  // Continuous subtle loop to keep the metal "alive" even when still
+  const shimmerLoop = useSharedValue(0);
   useEffect(() => {
-    const loop = RNAnimated.loop(
-      RNAnimated.timing(shimmerAnim, {
-        toValue: 1,
-        duration: 3000,
-        easing: require("react-native").Easing.linear,
-        useNativeDriver: true,
-      })
+    shimmerLoop.value = withRepeat(
+      withTiming(1, { duration: 4000, easing: Easing.linear }),
+      -1,
+      false
     );
-    loop.start();
-    return () => loop.stop();
   }, []);
-  const shimmerTranslate = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-CARD_W * 1.5, CARD_W * 1.5],
+
+  // Compute combined shimmer transform (loop + tracking device tilt + pan gesture)
+  const shimmerAnimatedStyle = useAnimatedStyle(() => {
+    const pitch = rotationSensor.sensor.value.pitch || 0;
+    const roll = rotationSensor.sensor.value.roll || 0;
+
+    // Combine device tilt and gesture drag into a phase shift
+    // pitch & roll are in radians (up to ~1.5). Drag mapped relative to card width.
+    const interactionPhase =
+      pitch * 0.8 + roll * 0.8 + (translateX.value / CARD_W) * 0.5;
+
+    // Total raw phase: time-based loop + interaction phase
+    // Use true modulo mapping [0, 1) constantly
+    let totalPhase = (shimmerLoop.value + interactionPhase) % 1;
+    if (totalPhase < 0) totalPhase += 1;
+
+    // Map the 0..1 phase linearly across the card space (-1.5 to 1.5 lets it organically enter & exit)
+    const finalTranslate = interpolate(
+      totalPhase,
+      [0, 1],
+      [-CARD_W * 1.5, CARD_W * 1.5]
+    );
+
+    return {
+      transform: [{ translateX: finalTranslate }, { rotate: "45deg" }],
+    };
   });
 
   // Pulse animation for 'tap to reveal' text
@@ -374,25 +400,17 @@ function DeckCard({
             />
 
             {/* Animated shimmer band */}
-            <RNAnimated.View
-              style={[
-                styles.shimmerBand,
-                {
-                  transform: [
-                    { translateX: shimmerTranslate },
-                    { rotate: "25deg" },
-                  ],
-                },
-              ]}
+            <Animated.View
+              style={[styles.shimmerBand, shimmerAnimatedStyle]}
               pointerEvents="none"
             >
               <LinearGradient
                 colors={[
                   "transparent",
                   "rgba(255,255,255,0.0)",
-                  "rgba(255,255,255,0.07)",
-                  "rgba(255,255,255,0.08)",
-                  "rgba(255,255,255,0.07)",
+                  "rgba(255,255,255,0.03)",
+                  "rgba(255,255,255,0.04)",
+                  "rgba(255,255,255,0.03)",
                   "rgba(255,255,255,0.0)",
                   "transparent",
                 ]}
@@ -400,7 +418,7 @@ function DeckCard({
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
               />
-            </RNAnimated.View>
+            </Animated.View>
 
             {/* Chrome inner frame */}
             <View
@@ -510,18 +528,28 @@ function DeckCard({
             />
 
             {/* Animated shimmer on front too */}
-            <RNAnimated.View
+            <Animated.View
               style={[
                 styles.shimmerBand,
-                {
-                  transform: [
-                    { translateX: shimmerTranslate },
-                    { rotate: "25deg" },
-                  ],
-                },
+                shimmerAnimatedStyle,
               ]}
               pointerEvents="none"
-            />
+            >
+              <LinearGradient
+                colors={[
+                  "transparent",
+                  "rgba(255,255,255,0.0)",
+                  "rgba(255,255,255,0.03)",
+                  "rgba(255,255,255,0.04)",
+                  "rgba(255,255,255,0.03)",
+                  "rgba(255,255,255,0.0)",
+                  "transparent",
+                ]}
+                style={{ width: "100%", height: "100%" }}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+              />
+            </Animated.View>
 
             {/* Top band — brushed metal with heat accent */}
             <View

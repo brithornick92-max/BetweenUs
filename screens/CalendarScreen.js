@@ -576,16 +576,6 @@ export default function CalendarScreen({ navigation, route }) {
 
           <PremiumCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} events={events} styles={styles} />
 
-          {/* Color-coded topic legend */}
-          <View style={styles.legendContainer}>
-            {Object.entries(EVENT_TYPES).map(([key, config]) => (
-              <View key={key} style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: config.color }]} />
-                <Text style={[styles.legendLabel, { color: colors.textMuted }]}>{config.label}</Text>
-              </View>
-            ))}
-          </View>
-
           <View style={styles.timelineSection}>
             <Text style={[styles.timelineDate, { color: colors.textMuted }]}>
               {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase()}
@@ -697,29 +687,6 @@ export default function CalendarScreen({ navigation, route }) {
                 value={form.location}
                 onChangeText={v => setForm(p => ({ ...p, location: v }))}
               />
-              
-              {/* Event type (color-coded topics) */}
-              <View style={styles.eventTypeSelector}>
-                <Text style={[styles.eventTypeSelectorLabel, { color: colors.textMuted }]}>Topic</Text>
-                <View style={styles.eventTypeChips}>
-                  {Object.entries(EVENT_TYPES).map(([key, config]) => (
-                    <TouchableOpacity
-                      key={key}
-                      style={[
-                        styles.eventTypeChip,
-                        { borderColor: form.eventType === key ? config.color : colors.border },
-                        form.eventType === key && { backgroundColor: config.color + '20' },
-                      ]}
-                      onPress={() => setForm(p => ({ ...p, eventType: key, isDateNight: key === 'dateNight' }))}
-                    >
-                      <MaterialCommunityIcons name={config.icon} size={14} color={form.eventType === key ? config.color : colors.textMuted} />
-                      <Text style={[styles.eventTypeChipText, { color: form.eventType === key ? config.color : colors.textMuted }]}>
-                        {config.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
 
               {/* Reminder / Notification */}
               <View style={styles.reminderSection}>

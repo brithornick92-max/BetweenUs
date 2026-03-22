@@ -453,10 +453,10 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: FONTS.serif,
-    fontSize: 38,
+    fontSize: 28,
     fontWeight: "400",
     letterSpacing: -0.5,
-    lineHeight: 46,
+    lineHeight: 36,
   },
 
   upsell: {
