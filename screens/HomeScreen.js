@@ -366,8 +366,6 @@ export default function HomeScreen({ navigation }) {
             {ACTIONS.map((action, index) => {
               const locked = action.premium && !isPremium;
               const badge = action.key === 'note' && unreadNotes > 0 ? unreadNotes : 0;
-              // Stretch the final item across the bottom if there's an odd number
-              const isFullWidth = ACTIONS.length % 2 !== 0 && index === ACTIONS.length - 1;
 
               return (
                 <TouchableOpacity
@@ -376,10 +374,7 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => handleAction(action.key)}
                   accessibilityRole="button"
                   accessibilityLabel={action.label}
-                  style={[
-                    styles.actionCard,
-                    isFullWidth && { width: '100%' },
-                  ]}
+                  style={styles.actionCard}
                 >
                   {locked && (
                     <View style={styles.lockBadge}>
@@ -391,9 +386,7 @@ export default function HomeScreen({ navigation }) {
                       <Text style={styles.noteBadgeText}>{badge > 9 ? '9+' : badge}</Text>
                     </View>
                   )}
-                  <View style={[styles.actionIconWrap, { backgroundColor: action.color + '15' }]}>
-                    <MaterialCommunityIcons name={action.icon} size={28} color={action.color} />
-                  </View>
+                  <MaterialCommunityIcons name={action.icon} size={18} color={action.color} />
                   <Text style={styles.actionLabel}>{action.label}</Text>
                 </TouchableOpacity>
               );
@@ -466,9 +459,6 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-// ------------------------------------------------------------------
-// STYLES - Apple Editorial (Native Dashboard Look)
-// ------------------------------------------------------------------
 const createStyles = (t, isDark) => StyleSheet.create({
   root: { flex: 1 },
   safeArea: { flex: 1 },
@@ -521,14 +511,13 @@ const createStyles = (t, isDark) => StyleSheet.create({
     paddingBottom: SPACING.xxxl,
   },
 
-  // ── Hero Card (Solid Widget) ──
+  // ── Hero Card ──
   heroCardWrap: { 
     borderRadius: 24,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,
     padding: SPACING.xl,
-    marginBottom: 0,
     ...Platform.select({
       ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 16 },
       android: { elevation: 4 },
@@ -549,7 +538,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   promptText: {
     fontSize: 26,
-    fontWeight: '700', // Editorial bold weight instead of thin serif
+    fontWeight: '700',
     lineHeight: 34,
     letterSpacing: -0.5,
     fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
@@ -582,10 +571,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderColor: t.border,
     backgroundColor: t.surfaceSecondary,
   },
-  inputPlaceholder: { 
-    fontSize: 16, 
-    color: t.subtext 
-  },
+  inputPlaceholder: { fontSize: 16, color: t.subtext },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -603,7 +589,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     justifyContent: 'center',
     height: 56,
     borderRadius: 28,
-    backgroundColor: t.text, // High contrast
+    backgroundColor: t.text,
     gap: 8,
   },
   ctaLabel: {
@@ -613,40 +599,34 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: isDark ? '#000000' : '#FFFFFF',
   },
 
-  // ── Quick Actions (2-Column Apple Widget Layout) ──
+  // ── Quick Actions ──
   actionsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 8,
   },
   actionCard: {
-    width: '48%', // Enables the 2-column layout natively
-    alignItems: 'flex-start', // Left aligned content for Apple Widget feel
-    paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: 24,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: 999,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,
-    gap: 12,
-    position: 'relative',
+    gap: 5,
     ...Platform.select({
-      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.2 : 0.06, shadowRadius: 12 },
-      android: { elevation: 3 },
+      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 2 }, shadowOpacity: isDark ? 0.15 : 0.05, shadowRadius: 6 },
+      android: { elevation: 2 },
     }),
   },
-  actionIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   actionLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: -0.2,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: -0.1,
     color: t.text,
   },
   lockBadge: {
@@ -670,7 +650,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
-    zIndex: 2,
   },
   noteBadgeText: {
     fontSize: 10,
@@ -735,7 +714,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontSize: 18,
     lineHeight: 26,
     fontWeight: '700',
-    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
     color: t.text,
     marginBottom: SPACING.sm,
   },

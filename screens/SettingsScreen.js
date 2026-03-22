@@ -290,12 +290,9 @@ export default function SettingsScreen({ navigation }) {
                 Settings
               </ReAnimated.Text>
               <ReAnimated.View entering={FadeIn.delay(500)}>
-                <TouchableOpacity 
-                  style={[styles.headerAvatar, { backgroundColor: colors.surface2 }]}
-                  onPress={() => navigation.navigate('PartnerNamesSettings')}
-                >
+                <View style={[styles.headerAvatar, { backgroundColor: colors.surface2 }]}>
                   <Text style={[styles.avatarText, { color: colors.primary }]}>{initial}</Text>
-                </TouchableOpacity>
+                </View>
               </ReAnimated.View>
             </View>
           </RNAnimated.View>
@@ -312,10 +309,6 @@ export default function SettingsScreen({ navigation }) {
                 <Text style={[styles.cardTitle, { color: colors.text }]}>{displayName}</Text>
                 <Text style={[styles.cardEmail, { color: colors.textMuted }]}>{user?.email}</Text>
               </View>
-              <View style={[styles.chevronBadge, { backgroundColor: colors.background }]}>
-                <MaterialCommunityIcons name="chevron-right" size={20} color={colors.primary} />
-              </View>
-              
               {isPremium && (
                 <View style={[styles.premiumPill, { backgroundColor: colors.primary }]}>
                   <MaterialCommunityIcons name="crown" size={12} color="#FFF" />

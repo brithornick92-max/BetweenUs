@@ -16,27 +16,26 @@ import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } f
 import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING, BORDER_RADIUS } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
 import { MomentSignalSender } from '../services/ConnectionEngine';
-
 
 // ------------------------------------------------------------------
 // 1. VIBE CONFIGURATION (Vibrant iOS System Colors)
 // ------------------------------------------------------------------
 const VIBES = [
-  { id: 'passionate', name: 'Passionate', icon: 'fire', color: '#FF3B30' },
-  { id: 'tender', name: 'Tender', icon: 'heart-outline', color: '#FF2D55' },
-  { id: 'serene', name: 'Serene', icon: 'water', color: '#5AC8FA' },
-  { id: 'adventurous', name: 'Adventurous', icon: 'compass-outline', color: '#FF9500' },
-  { id: 'mysterious', name: 'Mysterious', icon: 'weather-night', color: '#5856D6' },
-  { id: 'luxurious', name: 'Luxurious', icon: 'diamond-stone', color: '#AF52DE' },
+  { id: 'passionate', name: 'Passionate', icon: 'fire', color: '#D90429' }, // Sexy, deep crimson red
+  { id: 'tender', name: 'Tender', icon: 'heart', color: '#FF2D55' }, // iOS Pink
+  { id: 'serene', name: 'Serene', icon: 'water', color: '#32ADE6' }, // iOS Cyan
+  { id: 'adventurous', name: 'Adventurous', icon: 'compass', color: '#FF9500' }, // iOS Orange
+  { id: 'mysterious', name: 'Mysterious', icon: 'weather-night', color: '#5856D6' }, // iOS Purple
+  { id: 'luxurious', name: 'Luxurious', icon: 'diamond-stone', color: '#AF52DE' }, // iOS Indigo
 ];
 
 // ------------------------------------------------------------------
 // 2. INLINE COMPONENTS (VibeCard & VibeSignal)
 // ------------------------------------------------------------------
-const VibeCard = ({ vibe, isSelected, onPress, styles, colors, isDark }) => {
+const VibeCard = ({ vibe, isSelected, onPress, styles, t }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
 
@@ -44,13 +43,13 @@ const VibeCard = ({ vibe, isSelected, onPress, styles, colors, isDark }) => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: isSelected ? 1 : 0,
-        duration: 250,
-        useNativeDriver: false, // Must be false for color interpolation
+        duration: 200,
+        useNativeDriver: false, // Required for color interpolation
       }),
       Animated.spring(scaleAnim, {
-        toValue: isSelected ? 0.95 : 1, // Slightly deeper press effect
+        toValue: isSelected ? 0.96 : 1,
         friction: 8,
-        tension: 50,
+        tension: 60,
         useNativeDriver: true,
       })
     ]).start();
@@ -67,41 +66,31 @@ const VibeCard = ({ vibe, isSelected, onPress, styles, colors, isDark }) => {
 
   const handlePressOut = () => {
     Animated.spring(scaleAnim, {
-      toValue: isSelected ? 0.95 : 1,
+      toValue: isSelected ? 0.96 : 1,
       friction: 8,
-      tension: 50,
+      tension: 60,
       useNativeDriver: true,
     }).start();
   };
 
-  // High-End Apple HomeKit Color Logic
+  // Pure Apple Editorial Color Interpolations
   const backgroundColor = fadeAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [isDark ? vibe.color + '1A' : vibe.color + '15', vibe.color] // 1A/15 are opacity hex codes
+    outputRange: [t.surface, vibe.color] 
   });
 
   const iconCircleBg = fadeAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [isDark ? 'rgba(0,0,0,0.2)' : '#FFFFFF', 'rgba(255,255,255,0.25)']
+    outputRange: [t.surfaceSecondary, 'rgba(255,255,255,0.25)']
   });
 
   const textColor = fadeAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [colors.text, '#FFFFFF']
+    outputRange: [t.text, '#FFFFFF']
   });
 
-  const borderColor = isSelected ? 'transparent' : (isDark ? vibe.color + '30' : vibe.color + '25');
-
   return (
-    <Animated.View 
-      style={[
-        styles.vibeCardWrapper, 
-        { 
-          transform: [{ scale: scaleAnim }],
-          shadowColor: isDark ? '#000000' : vibe.color, // Colored glow in light mode
-        }
-      ]}
-    >
+    <Animated.View style={[styles.vibeCardWrapper, { transform: [{ scale: scaleAnim }] }]}>
       <TouchableOpacity
         activeOpacity={1}
         onPressIn={handlePressIn}
@@ -109,18 +98,9 @@ const VibeCard = ({ vibe, isSelected, onPress, styles, colors, isDark }) => {
         onPress={onPress}
         style={styles.vibeTouchableArea}
       >
-        <Animated.View 
-          style={[
-            styles.vibeCard, 
-            { 
-              backgroundColor,
-              borderColor,
-              borderWidth: 1.5,
-            }
-          ]}
-        >
+        <Animated.View style={[styles.vibeCard, { backgroundColor }]}>
           <Animated.View style={[styles.vibeIconContainer, { backgroundColor: iconCircleBg }]}>
-            <MaterialCommunityIcons name={vibe.icon} size={26} color={isSelected ? '#FFFFFF' : vibe.color} />
+            <MaterialCommunityIcons name={vibe.icon} size={28} color={isSelected ? '#FFFFFF' : vibe.color} />
           </Animated.View>
           <Animated.Text style={[styles.vibeCardLabel, { color: textColor }]}>
             {vibe.name}
@@ -131,7 +111,7 @@ const VibeCard = ({ vibe, isSelected, onPress, styles, colors, isDark }) => {
   );
 };
 
-const VibeSignal = ({ onVibeChange, styles, colors, isDark }) => {
+const VibeSignal = ({ onVibeChange, styles, t }) => {
   const [activeVibeId, setActiveVibeId] = useState('serene'); 
 
   const handleSelectVibe = (vibe) => {
@@ -150,8 +130,7 @@ const VibeSignal = ({ onVibeChange, styles, colors, isDark }) => {
           isSelected={activeVibeId === vibe.id}
           onPress={() => handleSelectVibe(vibe)}
           styles={styles}
-          colors={colors}
-          isDark={isDark}
+          t={t}
         />
       ))}
     </View>
@@ -161,9 +140,22 @@ const VibeSignal = ({ onVibeChange, styles, colors, isDark }) => {
 // ------------------------------------------------------------------
 // 3. MAIN SCREEN COMPONENT
 // ------------------------------------------------------------------
-const VibeSignalScreen = ({ navigation }) => {
+export default function VibeSignalScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+  
+  // STRICT Apple Editorial Theme Map (Grouped Inset Backgrounds)
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    accent: '#FF2D55', // iOS Pink
+    primary: colors.primary,
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? '#EBEBF599' : '#3C3C4399',
+    border: isDark ? '#38383A' : '#E5E5EA',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const { state } = useAppContext();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const partnerLabel = state.partnerLabel || 'Partner';
@@ -209,7 +201,7 @@ const VibeSignalScreen = ({ navigation }) => {
     Animated.parallel([
       Animated.timing(fadeAnimation, {
         toValue: 1,
-        duration: 500,
+        duration: 400,
         useNativeDriver: true,
       }),
       Animated.spring(slideAnimation, {
@@ -269,11 +261,11 @@ const VibeSignalScreen = ({ navigation }) => {
     <Animated.View style={[styles.header, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
       <View style={styles.headerTopRow}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton} activeOpacity={0.7}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color={colors.text} />
+          <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
         </TouchableOpacity>
         {isPremium && (
           <View style={styles.premiumBadge}>
-            <MaterialCommunityIcons name="star-four-points" size={12} color={colors.primary} />
+            <MaterialCommunityIcons name="star-four-points" size={12} color={t.primary} />
             <Text style={styles.premiumBadgeText}>PREMIUM</Text>
           </View>
         )}
@@ -294,20 +286,21 @@ const VibeSignalScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Insights</Text>
         <View style={styles.gridContainer}>
           
+          {/* Live Sync Widget */}
           <View style={styles.widgetCard}>
             <View style={styles.widgetHeader}>
               <View style={styles.liveIndicator}>
-                <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
+                <View style={styles.liveDot} />
               </View>
               <Text style={styles.widgetTitle}>Live Sync</Text>
             </View>
             <View style={styles.widgetBodyCentered}>
               <View style={styles.avatarGroup}>
-                <View style={[styles.avatar, styles.avatarLeft, { backgroundColor: colors.surface, borderColor: colors.background }]}>
-                  <Text style={[styles.avatarInitial, { color: colors.text }]}>Y</Text>
+                <View style={[styles.avatar, styles.avatarLeft]}>
+                  <Text style={styles.avatarInitial}>Y</Text>
                 </View>
-                <View style={[styles.avatar, styles.avatarRight, { backgroundColor: colors.primary, borderColor: colors.background }]}>
-                  <Text style={[styles.avatarInitial, { color: '#FFFFFF' }]}>
+                <View style={[styles.avatar, styles.avatarRight]}>
+                  <Text style={[styles.avatarInitial, { color: t.surface }]}>
                     {partnerLabel.charAt(0).toUpperCase()}
                   </Text>
                 </View>
@@ -316,9 +309,10 @@ const VibeSignalScreen = ({ navigation }) => {
             </View>
           </View>
 
+          {/* Energy Flow Widget */}
           <View style={styles.widgetCard}>
             <View style={styles.widgetHeader}>
-              <MaterialCommunityIcons name="chart-bar" size={16} color={colors.text + '80'} />
+              <MaterialCommunityIcons name="chart-bar" size={16} color={t.subtext} />
               <Text style={styles.widgetTitle}>Energy Flow</Text>
             </View>
             <View style={styles.widgetBodyChart}>
@@ -334,12 +328,12 @@ const VibeSignalScreen = ({ navigation }) => {
                               styles.chartBarFill, 
                               { 
                                 height: isActive ? `${Math.max(value, 15)}%` : '0%',
-                                backgroundColor: value > 70 ? colors.primary : colors.text + '40'
+                                backgroundColor: value > 70 ? t.primary : t.surfaceSecondary
                               }
                             ]} 
                           />
                         </View>
-                        <Text style={[styles.chartDayLabel, isActive && { color: colors.text }]}>{days[index]}</Text>
+                        <Text style={[styles.chartDayLabel, isActive && { color: t.text }]}>{days[index]}</Text>
                       </View>
                     );
                   })}
@@ -361,7 +355,7 @@ const VibeSignalScreen = ({ navigation }) => {
     <Animated.View style={[styles.actionSection, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
       {heartbeatSent ? (
         <Animated.View style={[styles.successContainer, { opacity: heartbeatFadeAnim, transform: [{ scale: heartbeatScaleAnim }] }]}>
-          <MaterialCommunityIcons name="check-circle" size={24} color={colors.primary} />
+          <MaterialCommunityIcons name="check-circle" size={24} color={t.primary} />
           <View style={styles.successTextContainer}>
             <Text style={styles.successTitle}>Sent to {partnerLabel}</Text>
             <Text style={styles.successSubtitle} numberOfLines={1}>{heartbeatError || "They'll feel it momentarily"}</Text>
@@ -375,9 +369,9 @@ const VibeSignalScreen = ({ navigation }) => {
           activeOpacity={0.8}
         >
           {heartbeatSending ? (
-            <MaterialCommunityIcons name="loading" size={20} color={isDark ? '#000' : '#fff'} />
+            <MaterialCommunityIcons name="loading" size={20} color={t.surface} />
           ) : (
-            <MaterialCommunityIcons name="waveform" size={20} color={isDark ? '#000' : '#fff'} />
+            <MaterialCommunityIcons name="waveform" size={20} color={t.surface} />
           )}
           <Text style={styles.primaryButtonText}>
             {heartbeatSending ? 'Sending...' : 'Send Heartbeat'}
@@ -393,11 +387,11 @@ const VibeSignalScreen = ({ navigation }) => {
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.paywallContainer}>
           <TouchableOpacity onPress={handleBackPress} style={[styles.backButton, styles.paywallBackButton]} activeOpacity={0.7}>
-            <MaterialCommunityIcons name="chevron-left" size={32} color={colors.text} />
+            <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
           </TouchableOpacity>
           <View style={styles.paywallContent}>
             <View style={styles.paywallIconContainer}>
-              <MaterialCommunityIcons name="waveform" size={48} color={colors.primary} />
+              <MaterialCommunityIcons name="waveform" size={48} color={t.primary} />
             </View>
             <Text style={styles.paywallTitle}>Unlock Deep Sync</Text>
             <Text style={styles.paywallDescription}>
@@ -419,7 +413,7 @@ const VibeSignalScreen = ({ navigation }) => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}
+        bounces={true} // Re-enabled bounces for authentic iOS feel
       >
         {renderHeader()}
         
@@ -427,8 +421,7 @@ const VibeSignalScreen = ({ navigation }) => {
           <VibeSignal 
             onVibeChange={handleVibeChange} 
             styles={styles} 
-            colors={colors} 
-            isDark={isDark} 
+            t={t} 
           />
         </Animated.View>
         
@@ -438,22 +431,22 @@ const VibeSignalScreen = ({ navigation }) => {
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 // ------------------------------------------------------------------
-// 4. COMBINED STYLES 
+// 4. COMBINED STYLES - Pure Apple Editorial 
 // ------------------------------------------------------------------
-const createStyles = (colors, isDark) => StyleSheet.create({
+const createStyles = (t, isDark) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: t.background,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: SPACING.xl,
+    paddingBottom: 160, // Padding increased to clear bottom tab bars safely!
     justifyContent: 'flex-start',
   },
   spacer: {
@@ -464,13 +457,13 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   header: {
     paddingHorizontal: SPACING.xl,
     paddingTop: Platform.OS === 'android' ? SPACING.xl : SPACING.sm,
-    paddingBottom: SPACING.lg,
+    paddingBottom: SPACING.md,
   },
   headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.xs,
     marginLeft: -8, 
   },
   backButton: {
@@ -479,17 +472,17 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   premiumBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary + '15',
+    backgroundColor: t.primary + '15',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: BORDER_RADIUS.full,
+    borderRadius: 20,
     gap: 4,
   },
   premiumBadgeText: {
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.8,
-    color: colors.primary,
+    color: t.primary,
   },
   headerEditorial: {
     paddingRight: SPACING.xl, 
@@ -497,14 +490,14 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '800',
-    color: colors.text,
+    color: t.text,
     letterSpacing: 0.3,
     marginBottom: 4,
     fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
   },
   headerSubtitle: {
     fontSize: 15,
-    color: colors.text + '99',
+    color: t.subtext,
     fontWeight: '500',
   },
 
@@ -521,36 +514,36 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   },
   vibeCardWrapper: {
     width: '48%', 
-    marginBottom: 12,
+    marginBottom: 4,
     ...Platform.select({
       ios: {
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: isDark ? 0.3 : 0.15,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0 : 0.06,
         shadowRadius: 10,
       },
-      android: { elevation: 3 },
+      android: { elevation: 2 },
     }),
   },
   vibeTouchableArea: {
     width: '100%',
   },
   vibeCard: {
-    borderRadius: 24,
+    borderRadius: 24, // iOS Squircle
     padding: SPACING.lg,
     alignItems: 'center',
     justifyContent: 'center',
     aspectRatio: 1, 
   },
   vibeIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.md,
   },
   vibeCardLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
     letterSpacing: -0.2,
     textAlign: 'center',
@@ -561,9 +554,9 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     paddingHorizontal: SPACING.xl,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: colors.text,
+    color: t.text,
     letterSpacing: -0.5,
     marginBottom: SPACING.md,
   },
@@ -575,19 +568,17 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   widgetCard: {
     flex: 1,
     aspectRatio: 1, 
-    backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-    borderRadius: 22,
+    backgroundColor: t.surface,
+    borderRadius: 24,
     padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
     ...Platform.select({
       ios: {
-        shadowColor: isDark ? '#000' : '#8A8A8E',
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: isDark ? 0.3 : 0.08,
-        shadowRadius: 10,
+        shadowOpacity: isDark ? 0 : 0.06,
+        shadowRadius: 12,
       },
-      android: { elevation: 3 },
+      android: { elevation: 2 },
     }),
   },
   widgetHeader: {
@@ -599,14 +590,14 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   widgetTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.text + '99',
+    color: t.subtext,
     letterSpacing: -0.2,
   },
   liveIndicator: {
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: colors.success + '20',
+    backgroundColor: 'rgba(52, 199, 89, 0.2)', // Apple Green Alpha
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -614,6 +605,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
+    backgroundColor: '#34C759', // Pure Apple Green
   },
   widgetBodyCentered: {
     flex: 1,
@@ -627,20 +619,33 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     marginBottom: 10,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
   },
-  avatarLeft: { zIndex: 2 },
-  avatarRight: { marginLeft: -16, zIndex: 1 },
-  avatarInitial: { fontSize: 16, fontWeight: '700' },
+  avatarLeft: { 
+    zIndex: 2,
+    backgroundColor: t.surfaceSecondary,
+    borderColor: t.surface,
+  },
+  avatarRight: { 
+    marginLeft: -16, 
+    zIndex: 1,
+    backgroundColor: t.primary,
+    borderColor: t.surface,
+  },
+  avatarInitial: { 
+    fontSize: 16, 
+    fontWeight: '700',
+    color: t.text,
+  },
   widgetSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: colors.text,
+    color: t.text,
   },
   
   // Chart Details
@@ -656,15 +661,16 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   chartBarTrack: {
     width: 6,
     height: '100%',
-    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+    backgroundColor: t.surfaceSecondary,
     borderRadius: 3,
     justifyContent: 'flex-end',
     marginBottom: 4,
+    overflow: 'hidden',
   },
   chartBarFill: { width: '100%', borderRadius: 3 },
-  chartDayLabel: { fontSize: 9, fontWeight: '700', color: colors.text + '50' },
+  chartDayLabel: { fontSize: 10, fontWeight: '700', color: t.subtext },
   emptyChartState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyChartText: { fontSize: 11, color: colors.text + '60', fontWeight: '500' },
+  emptyChartText: { fontSize: 12, color: t.subtext, fontWeight: '500' },
 
   // Action / Bottom Bar
   actionSection: {
@@ -672,59 +678,59 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     paddingTop: SPACING.xl,
   },
   primaryButton: {
-    backgroundColor: colors.text,
+    backgroundColor: t.text, // Solid, high contrast Apple Action Button
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 54,
-    borderRadius: 27,
+    height: 56,
+    borderRadius: 28,
     gap: 8,
   },
   primaryButtonText: {
-    color: isDark ? '#000000' : '#FFFFFF',
-    fontSize: 16,
+    color: t.surface,
+    fontSize: 17,
     fontWeight: '700',
     letterSpacing: -0.3,
   },
   successContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: t.surface,
     paddingHorizontal: SPACING.lg,
-    height: 54,
-    borderRadius: 27,
+    height: 56,
+    borderRadius: 28,
     gap: 12,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
   },
   successTextContainer: { flex: 1 },
-  successTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
-  successSubtitle: { fontSize: 12, color: colors.text + '90' },
+  successTitle: { fontSize: 15, fontWeight: '600', color: t.text },
+  successSubtitle: { fontSize: 13, color: t.subtext },
 
   // Paywall
   paywallContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   paywallBackButton: { position: 'absolute', top: 60, left: 20 },
   paywallContent: { alignItems: 'center', paddingHorizontal: SPACING.xxl },
   paywallIconContainer: {
-    width: 72, height: 72, borderRadius: 36,
-    backgroundColor: colors.primary + '15',
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: t.primary + '15',
     alignItems: 'center', justifyContent: 'center',
     marginBottom: SPACING.lg,
   },
   paywallTitle: {
-    fontSize: 30, fontWeight: '800', color: colors.text,
+    fontSize: 32, fontWeight: '800', color: t.text,
     textAlign: 'center', marginBottom: SPACING.md, letterSpacing: -0.5,
   },
   paywallDescription: {
-    fontSize: 15, color: colors.text + '99', textAlign: 'center',
-    lineHeight: 22, marginBottom: SPACING.xxxl,
+    fontSize: 16, color: t.subtext, textAlign: 'center',
+    lineHeight: 24, marginBottom: SPACING.xxxl,
   },
   paywallButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 16, paddingHorizontal: 40,
+    backgroundColor: t.text,
+    paddingVertical: 18, paddingHorizontal: 40,
     borderRadius: 30, width: '100%', alignItems: 'center',
   },
-  paywallButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
+  paywallButtonText: { color: t.surface, fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
 });
-
-export default VibeSignalScreen;
