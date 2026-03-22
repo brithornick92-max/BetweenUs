@@ -80,7 +80,7 @@ const HEAT_LEVELS = [
   { value: 1, label: "1", color: "#F7A8B8" }, // Light innocent pink
   { value: 2, label: "2", color: "#F27A9B" }, // Rose pink
   { value: 3, label: "3", color: "#E84A7B" }, // Hot sensual pink
-  { value: 4, label: "4", color: "#D6285A" }, // Deep crimson/magenta
+  { value: 4, label: "4", color: "#E23A68" }, // Deep crimson/magenta
   { value: 5, label: "5", color: "#B81438" }, // Sexy dark ruby red
 ];
 

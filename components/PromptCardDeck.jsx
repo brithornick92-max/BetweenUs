@@ -85,7 +85,7 @@ const HEAT_COLORS = {
   1: ["#F7A8B8", "#D68898"], // Innocent pink gradient
   2: ["#F27A9B", "#C85A7B"], // Rose pink gradient
   3: ["#E84A7B", "#A83A5A"], // Hot pink gradient
-  4: ["#D6285A", "#9A1A3A"], // Crimson gradient
+  4: ["#E23A68", "#A42045"], // Crimson gradient
   5: ["#B81438", "#6A081A"], // Dark ruby gradient
 };
 // Metallic base tones per heat (dark chrome → accent)
@@ -112,7 +112,7 @@ const HEAT_METAL = {
     base: "#1C060A",
     chrome: "#FF5588",
     highlight: "#FF88AA",
-    mid: "#9A1A3A",
+    mid: "#A42045",
   },
   5: {
     base: "#150305",
@@ -620,7 +620,12 @@ function DeckCard({
                 <Text
                   style={[
                     styles.frontFooterText,
-                    { color: metal.chrome + "60" },
+                    {
+                      color: "#FFFFFF",
+                      textShadowColor: catGradient[0],
+                      textShadowOffset: { width: 0, height: 0 },
+                      textShadowRadius: 6,
+                    },
                   ]}
                 >
                   swipe right to reflect
@@ -628,7 +633,12 @@ function DeckCard({
                 <MaterialCommunityIcons
                   name="arrow-right"
                   size={14}
-                  color={metal.chrome + "60"}
+                  color="#FFFFFF"
+                  style={{
+                    textShadowColor: catGradient[0],
+                    textShadowOffset: { width: 0, height: 0 },
+                    textShadowRadius: 6,
+                  }}
                 />
               </View>
             </View>
@@ -744,15 +754,11 @@ export default function PromptCardDeck({
           .reverse()}
       </View>
 
-      {/* Counter + Draw button */}
+      {/* Draw button */}
       <Animated.View
         entering={FadeIn.duration(600).delay(300)}
         style={styles.controls}
       >
-        <Text style={[styles.counterText, { color: colors.textMuted }]}>
-          {remaining} {remaining === 1 ? "card" : "cards"} remaining
-        </Text>
-
         <TouchableWithoutFeedback onPress={handleDraw}>
           <Animated.View
             style={[
@@ -804,8 +810,8 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 18,
     overflow: "hidden",
-    // Double-border metallic edge: outer chrome rim
-    borderWidth: 2,
+
+    borderWidth: 3,
     borderColor: "rgba(255,255,255,0.08)",
     ...Platform.select({
       ios: {
@@ -862,7 +868,7 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 1.5,
+    borderWidth: 3,
     borderRadius: 12,
     margin: 8,
     paddingTop: 24,
@@ -878,14 +884,14 @@ const styles = StyleSheet.create({
     top: 0,
     left: 16,
     right: 16,
-    height: 1,
+    height: 4,
   },
   frameBottomLine: {
     position: "absolute",
     bottom: 46,
     left: 16,
     right: 16,
-    height: 1,
+    height: 4,
   },
 
   backTopNumber: {
@@ -912,7 +918,7 @@ const styles = StyleSheet.create({
     width: 86,
     height: 86,
     borderRadius: 43,
-    borderWidth: 2,
+    borderWidth: 3,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -930,7 +936,7 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 29,
-    borderWidth: 1,
+    borderWidth: 3,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -981,7 +987,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 1,
+    height: 4,
   },
   frontBandLeft: {
     flexDirection: "row",
@@ -1004,7 +1010,7 @@ const styles = StyleSheet.create({
 
   // Chrome divider lines
   chromeDivider: {
-    height: 1,
+    height: 4,
     marginHorizontal: 10,
   },
 
@@ -1013,7 +1019,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginTop: 6,
     marginBottom: 6,
-    borderWidth: 1,
+    borderWidth: 3,
     borderRadius: 10,
     overflow: "hidden",
   },
@@ -1063,7 +1069,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    borderWidth: 1,
+    borderWidth: 3,
     borderColor: "rgba(255,255,255,0.08)",
   },
   swipeHintRight: {
@@ -1100,7 +1106,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
+    borderWidth: 3,
     gap: 8,
   },
   drawButtonText: {
