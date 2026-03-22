@@ -278,8 +278,8 @@ export default function SettingsScreen({ navigation }) {
       />
       
       <FilmGrain />
-      <GlowOrb color={t.primary} size={500} top={-200} left={-150} opacity={isDark ? 0.2 : 0.08} />
-      <GlowOrb color={t.accent} size={300} top={SCREEN_HEIGHT * 0.4} left={SCREEN_WIDTH - 100} opacity={isDark ? 0.1 : 0.05} />
+      <GlowOrb color="#D2121A" size={500} top={-200} left={SCREEN_WIDTH - 200} opacity={isDark ? 0.2 : 0.08} />
+      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={SCREEN_HEIGHT * 0.7} left={-100} opacity={isDark ? 0.1 : 0.05} />
 
       <SafeAreaView style={styles.safe} edges={['top']}>
         <RNAnimated.ScrollView

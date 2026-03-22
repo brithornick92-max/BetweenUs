@@ -9,7 +9,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../context/ThemeContext';
@@ -182,7 +182,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Privacy & Security</Text>
         <View style={{ width: 24 }} />
@@ -192,7 +192,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         <View style={styles.content}>
           {/* Icon */}
           <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-            <Ionicons name="shield-checkmark" size={48} color={colors.primary} />
+            <Icon name="shield-checkmark" size={48} color={colors.primary} />
           </View>
 
           {/* Title */}
@@ -207,7 +207,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
               <Text style={[styles.sectionTitle, { color: colors.text }]}>App Lock</Text>
               {!isPremium && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                  <Ionicons name="lock-closed" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+                  <Icon name="lock-closed" size={12} color={colors.primary} style={{ marginRight: 4 }} />
                   <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '600' }}>PREMIUM</Text>
                 </View>
               )}
@@ -244,7 +244,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                     Optional fallback if biometrics aren’t available
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
           </View>
@@ -266,7 +266,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
           {/* Privacy Info (accurate, trust-building copy) */}
           <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="lock-closed" size={24} color={colors.primary} />
+            <Icon name="lock-closed" size={24} color={colors.primary} />
             <View style={styles.infoContent}>
               <Text style={[styles.infoTitle, { color: colors.text }]}>Your data is encrypted and private</Text>
               <Text style={[styles.infoText, { color: colors.textSecondary }]}>
@@ -315,7 +315,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                   Keep other devices signed in
                 </Text>
               </View>
-              <Ionicons name="log-out-outline" size={20} color={colors.textSecondary} />
+              <Icon name="log-out-outline" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -345,20 +345,20 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
               activeOpacity={0.7}
             >
               <View style={styles.actionInfo}>
-                <Text style={[styles.actionTitle, { color: colors.error || '#FF4444' }]}>
+                <Text style={[styles.actionTitle, { color: colors.danger || '#D2121A' }]}>
                   Sign out everywhere
                 </Text>
                 <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
                   Revokes all sessions on every device
                 </Text>
               </View>
-              <Ionicons name="shield-outline" size={20} color={colors.error || '#FF4444'} />
+              <Icon name="shield-outline" size={20} color={colors.danger || '#D2121A'} />
             </TouchableOpacity>
           </View>
 
           {/* New Phone / Lost Phone Info */}
           <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="phone-portrait-outline" size={24} color={colors.primary} />
+            <Icon name="phone-portrait-outline" size={24} color={colors.primary} />
             <View style={styles.infoContent}>
               <Text style={[styles.infoTitle, { color: colors.text }]}>New phone?</Text>
               <Text style={[styles.infoText, { color: colors.textSecondary }]}>
@@ -368,7 +368,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
           </View>
 
           <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="warning-outline" size={24} color={colors.primary} />
+            <Icon name="warning-outline" size={24} color={colors.primary} />
             <View style={styles.infoContent}>
               <Text style={[styles.infoTitle, { color: colors.text }]}>Lost your phone?</Text>
               <Text style={[styles.infoText, { color: colors.textSecondary }]}>
@@ -379,7 +379,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
           {/* Partner Linking Info */}
           <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-            <Ionicons name="heart-outline" size={24} color={colors.primary} />
+            <Icon name="heart-outline" size={24} color={colors.primary} />
             <View style={styles.infoContent}>
               <Text style={[styles.infoTitle, { color: colors.text }]}>Partner Linking</Text>
               <Text style={[styles.infoText, { color: colors.textSecondary }]}>
@@ -406,7 +406,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                   Download all your journal entries
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -415,14 +415,14 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
               activeOpacity={0.7}
             >
               <View style={styles.actionInfo}>
-                <Text style={[styles.actionTitle, { color: colors.error }]}>
+                <Text style={[styles.actionTitle, { color: colors.danger || '#D2121A' }]}>
                   Delete Account
                 </Text>
                 <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
                   Permanently delete your account and data
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
 

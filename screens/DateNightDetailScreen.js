@@ -124,7 +124,8 @@ export default function DateNightDetailScreen({ route, navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle="light-content" />
-      <GlowOrb color={t.primary} size={400} top={-100} left={-150} opacity={0.12} />
+      <GlowOrb color="#D2121A" size={400} top={-100} left={SCREEN_WIDTH - 200} opacity={0.12} />
+      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={650} left={-100} opacity={0.08} />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         

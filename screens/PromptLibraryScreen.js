@@ -408,7 +408,7 @@ export default function PromptLibraryScreen({ navigation }) {
                           </Text>
                         </View>
                         {item.answered && (
-                          <Icon name="checkmark-circle" size={16} color={colors.success || '#34C759'} />
+                          <Icon name="checkmark-circle" size={16} color={'#34C759'} />
                         )}
                       </View>
                       <TouchableOpacity onPress={() => toggleFavorite(safe.id)} style={styles.favoriteButton} activeOpacity={0.8}>

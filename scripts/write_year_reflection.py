@@ -1,4 +1,8 @@
-// screens/YearReflectionScreen.jsx — End-of-Year Narrative (Premium)
+#!/usr/bin/env python3
+"""Writes the updated YearReflectionScreen.js"""
+
+content = """\
+// screens/YearReflectionScreen.jsx \u2014 End-of-Year Narrative (Premium)
 // Sexy Red (#D2121A) & Apple Editorial White/Light Gray Edition.
 // High-end, unabridged code. Integrated Snapshot Export.
 
@@ -284,7 +288,7 @@ export default function YearReflectionScreen({ navigation }) {
                   <View style={styles.endMark}>
                     <Icon name="heart-sharp" size={18} color={PALETTE.sexyRed} />
                   </View>
-                  <Text style={[styles.footerText, { color: t.subtext }]}>Between Us • {year}</Text>
+                  <Text style={[styles.footerText, { color: t.subtext }]}>Between Us \u2022 {year}</Text>
                 </View>
               </FadeSection>
             )}
@@ -414,3 +418,9 @@ const styles = StyleSheet.create({
   premiumButton: { backgroundColor: '#FFF', paddingVertical: 20, paddingHorizontal: 36, borderRadius: 100 },
   premiumButtonText: { color: '#D2121A', fontSize: 16, fontWeight: '800', letterSpacing: -0.2 },
 });
+"""
+
+with open('/Users/brittany/BetweenUs/screens/YearReflectionScreen.js', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("YearReflectionScreen.js written successfully.")

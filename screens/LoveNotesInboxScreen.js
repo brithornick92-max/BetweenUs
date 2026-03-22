@@ -233,7 +233,8 @@ export default function LoveNotesInboxScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <FilmGrain opacity={0.15} />
-      <GlowOrb color={colors.primary} size={400} top={-150} left={-150} opacity={0.1} />
+      <GlowOrb color={colors.primary} size={400} top={-150} left={SCREEN_W - 200} opacity={0.1} />
+      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={650} left={-100} opacity={isDark ? 0.1 : 0.06} />
       
       <LinearGradient
         colors={[isDark ? "#0F0514" : "#FAF7F5", colors.background]}

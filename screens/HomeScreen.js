@@ -247,8 +247,8 @@ export default function HomeScreen({ navigation }) {
       />
 
       {/* Background ambience */}
-      <GlowOrb color={t.primary} size={500} top={-200} left={-150} opacity={isDark ? 0.2 : 0.08} />
-      <GlowOrb color="#FFFFFF" size={300} top={SCREEN_H * 0.4} left={SCREEN_W - 100} delay={1500} opacity={isDark ? 0.1 : 0.05} />
+      <GlowOrb color={t.primary} size={500} top={-200} left={SCREEN_W - 200} opacity={isDark ? 0.2 : 0.08} />
+      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={SCREEN_H * 0.7} left={-100} delay={1500} opacity={isDark ? 0.1 : 0.05} />
       <FilmGrain />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>

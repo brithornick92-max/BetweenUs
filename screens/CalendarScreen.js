@@ -483,7 +483,8 @@ export default function CalendarScreen({ navigation, route }) {
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
       />
-      <GlowOrb color={withAlpha(t.primary, 0.12)} size={300} top={-50} left={-50} />
+      <GlowOrb color="#D2121A" size={300} top={-50} left={SCREEN_W - 200} opacity={isDark ? 0.15 : 0.1} />
+      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={250} top={650} left={-80} opacity={isDark ? 0.1 : 0.06} />
       <FilmGrain opacity={0.03} />
 
       <SafeAreaView style={styles.container} edges={['top']}>

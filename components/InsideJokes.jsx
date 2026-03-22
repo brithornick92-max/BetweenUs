@@ -1,14 +1,8 @@
-/**
- * InsideJokes — Private Language Vault
- * 
- * Stores and surfaces the couple's private language:
- * nicknames, running jokes, comfort rituals, shared references.
- * 
- * This is an intimate scrapbook of "things only we understand."
- * No gamification. No scoring. Just a warm, personal archive.
- */
+// components/InsideJokes.jsx — Private Language Vault
+// Sexy Red Intimacy, Apple Editorial & Velvet Glass Updates Integrated.
+// High-end, unabridged code for the "Things only we understand" archive.
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,62 +15,72 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   withRepeat,
   withSequence,
-  withDelay,
-  withSpring,
+  Easing,
   FadeInDown,
   FadeIn,
-  Easing,
   interpolate,
-  SlideInRight,
 } from 'react-native-reanimated';
 import Icon from './Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 import { PrivateLanguageVault } from '../services/ConnectionEngine';
 
-const getJokeTypes = (colors, isDark) => [
-  { key: 'nickname', label: 'Nickname', icon: 'account-heart', color: isDark ? '#9A2E5E' : colors.primary },
-  { key: 'joke', label: 'Inside Joke', icon: 'emoticon-wink-outline', color: isDark ? '#7A1E4E' : colors.primaryMuted || colors.primary },
-  { key: 'ritual', label: 'Comfort Ritual', icon: 'candelabra', color: isDark ? '#5E1940' : colors.primaryGlow || colors.primary },
-  { key: 'reference', label: 'Shared Reference', icon: 'bookmark-outline', color: isDark ? '#9A2E5E' : colors.primary },
-  { key: 'phrase', label: 'Our Phrase', icon: 'format-quote-open', color: isDark ? '#4C1030' : colors.primaryMuted || colors.primary },
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
+
+// ─── CATEGORY COLOR MAP (Using Your Palette #1-5) ───
+const getJokeTypes = (isDark) => [
+  { key: 'nickname', label: 'Nickname', icon: 'heart-half-sharp', color: '#FF85C2' }, // #1 Soft Orchid
+  { key: 'joke', label: 'Inside Joke', icon: 'sparkles-sharp', color: '#FF1493' },    // #2 Deep Pink
+  { key: 'ritual', label: 'Comfort Ritual', icon: 'leaf-sharp', color: '#FF006E' },   // #3 Vivid Magenta
+  { key: 'reference', label: 'Shared Ref', icon: 'bookmark-sharp', color: '#F00049' }, // #4 Carmine
+  { key: 'phrase', label: 'Our Phrase', icon: 'chatbubbles-sharp', color: '#D2121A' }, // #5 Deep Red
 ];
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function InsideJokes({ compact = false }) {
-  const { colors, isDark } = useTheme();
-  const styles = createStyles(colors, isDark);
+  const { isDark } = useTheme();
   
-  const JOKE_TYPES = getJokeTypes(colors, isDark);
+  const JOKE_TYPES = useMemo(() => getJokeTypes(isDark), [isDark]);
   const [jokes, setJokes] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedType, setSelectedType] = useState('joke');
   const [formTitle, setFormTitle] = useState('');
   const [formStory, setFormStory] = useState('');
 
-  // Breathing animation for empty state icon
+  // ─── APPLE EDITORIAL THEME ───
+  const t = useMemo(() => ({
+    background: isDark ? '#1D1D1F' : '#F5F5F7', 
+    surface: isDark ? 'rgba(44, 44, 46, 0.8)' : '#FFFFFF',
+    text: isDark ? '#FFFFFF' : '#1D1D1F',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+  }), [isDark]);
+
   const breathe = useSharedValue(1);
   useEffect(() => {
     breathe.value = withRepeat(
       withSequence(
-        withTiming(1.12, { duration: 2400, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.ease) })
+        withTiming(1.08, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) })
       ),
       -1,
       true
     );
   }, []);
+
   const breatheStyle = useAnimatedStyle(() => ({
     transform: [{ scale: breathe.value }],
-    opacity: interpolate(breathe.value, [1, 1.12], [0.5, 0.8]),
+    opacity: interpolate(breathe.value, [1, 1.08], [0.4, 0.7]),
   }));
 
   const loadJokes = useCallback(async () => {
@@ -95,120 +99,84 @@ export default function InsideJokes({ compact = false }) {
     });
     setFormTitle('');
     setFormStory('');
-    setSelectedType('joke');
     setModalOpen(false);
     notification(NotificationFeedbackType.Success);
     loadJokes();
   };
 
   const handleDelete = (id) => {
-    Alert.alert('Remove this memory?', 'It will be gone forever.', [
-      { text: 'Keep', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: async () => {
+    impact(ImpactFeedbackStyle.Medium);
+    Alert.alert('Remove this memory?', 'This private moment will be deleted.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: async () => {
           await PrivateLanguageVault.remove(id);
           loadJokes();
-        },
-      },
+      }},
     ]);
   };
 
   const getTypeConfig = (type) => JOKE_TYPES.find(t => t.key === type) || JOKE_TYPES[1];
 
-  // Compact mode: show 2-3 items as a teaser
   if (compact) {
-    const preview = jokes.slice(0, 3);
+    const preview = jokes.slice(0, 2);
     if (preview.length === 0) return null;
-
     return (
-      <View style={[styles.compactContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <View style={styles.compactHeader}>
-          <Icon name="lock-outline" size={14} color={colors.textMuted} />
-          <Text style={[styles.compactTitle, { color: colors.textMuted }]}>Our Private Language</Text>
-        </View>
-        {preview.map((item) => {
-          const config = getTypeConfig(item.type);
-          return (
-            <View key={item.id} style={styles.compactItem}>
-              <Icon name={config.icon} size={14} color={config.color} />
-              <Text style={[styles.compactItemText, { color: colors.text }]} numberOfLines={1}>
-                {item.title}
-              </Text>
-            </View>
-          );
-        })}
+      <View style={[styles.compactContainer, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <Text style={[styles.compactHeader, { color: t.subtext }]}>PRIVATE LANGUAGE</Text>
+        {preview.map((item) => (
+          <View key={item.id} style={styles.compactItem}>
+            <View style={[styles.dot, { backgroundColor: getTypeConfig(item.type).color }]} />
+            <Text style={[styles.compactItemText, { color: t.text }]} numberOfLines={1}>{item.title}</Text>
+          </View>
+        ))}
       </View>
     );
   }
 
-  // Full mode: scrollable vault
   const renderItem = ({ item, index }) => {
     const config = getTypeConfig(item.type);
     return (
       <AnimatedTouchable
-        entering={FadeInDown.delay(index * 80).duration(400).springify().damping(18)}
-        style={[styles.jokeCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-        activeOpacity={0.8}
+        entering={FadeInDown.delay(index * 100).springify().damping(20)}
+        style={[styles.jokeCard, { backgroundColor: t.surface, borderColor: t.border }]}
         onLongPress={() => handleDelete(item.id)}
+        activeOpacity={0.9}
       >
-        <View style={styles.jokeCardHeader}>
-          <View style={[styles.jokeTypeTag, { backgroundColor: config.color + '15' }]}>
-            <Icon name={config.icon} size={14} color={config.color} />
-            <Text style={[styles.jokeTypeLabel, { color: config.color }]}>{config.label}</Text>
+        <View style={styles.cardTop}>
+          <View style={[styles.tag, { backgroundColor: withAlpha(config.color, 0.1) }]}>
+            <Icon name={config.icon} size={12} color={config.color} />
+            <Text style={[styles.tagText, { color: config.color }]}>{config.label.toUpperCase()}</Text>
           </View>
-          <Text style={[styles.jokeDate, { color: colors.textMuted }]}>
-            {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          </Text>
         </View>
-        <Text style={[styles.jokeTitle, { color: colors.text }]}>{item.title}</Text>
-        {item.story ? (
-          <Text style={[styles.jokeStory, { color: colors.textMuted }]} numberOfLines={3}>
-            {item.story}
-          </Text>
-        ) : null}
+        <Text style={[styles.jokeTitle, { color: t.text }]}>{item.title}</Text>
+        {item.story ? <Text style={[styles.jokeStory, { color: t.subtext }]}>{item.story}</Text> : null}
       </AnimatedTouchable>
     );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.main, { backgroundColor: t.background }]}>
       <View style={styles.header}>
         <View>
-          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-            Things only we understand
-          </Text>
+          <Text style={[styles.editorialTitle, { color: t.text }]}>Inside Jokes</Text>
+          <Text style={[styles.subtitle, { color: t.subtext }]}>The vault of us</Text>
         </View>
-        <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: colors.surface2 }]}
-          onPress={() => {
-            impact(ImpactFeedbackStyle.Light);
-            setModalOpen(true);
-          }}
+        <TouchableOpacity 
+          style={[styles.fab, { backgroundColor: t.text }]} 
+          onPress={() => { impact(ImpactFeedbackStyle.Light); setModalOpen(true); }}
         >
-          <Icon name="plus" size={20} color={colors.text} />
+          <Icon name="add" size={24} color={isDark ? '#000' : '#FFF'} />
         </TouchableOpacity>
       </View>
 
       {jokes.length === 0 ? (
-        <Animated.View entering={FadeIn.duration(800)} style={styles.emptyState}>
+        <View style={styles.empty}>
           <Animated.View style={breatheStyle}>
-            <Icon name="book-heart-outline" size={52} color={colors.textMuted + '50'} />
+            <Icon name="archive-outline" size={60} color={t.subtext} />
           </Animated.View>
-          <Animated.Text
-            entering={FadeInDown.delay(200).duration(600)}
-            style={[styles.emptyTitle, { color: colors.textMuted }]}
-          >
-            Your vault is empty
-          </Animated.Text>
-          <Animated.Text
-            entering={FadeInDown.delay(400).duration(600)}
-            style={[styles.emptySubtitle, { color: colors.textMuted + '80' }]}
-          >
-            Add the nicknames, jokes, and rituals{'\n'}that belong to just the two of you.
-          </Animated.Text>
-        </Animated.View>
+          <Text style={[styles.emptyTitle, { color: t.text }]}>Your vault is quiet</Text>
+          <Text style={[styles.emptySub, { color: t.subtext }]}>Add the nicknames and rituals that define your world.</Text>
+        </View>
       ) : (
         <FlatList
           data={jokes}
@@ -219,269 +187,152 @@ export default function InsideJokes({ compact = false }) {
         />
       )}
 
-      {/* Add New Modal */}
       <Modal visible={modalOpen} animationType="slide" transparent>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
-        >
-          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Add to Vault</Text>
-              <TouchableOpacity onPress={() => setModalOpen(false)}>
-                <Icon name="close" size={24} color={colors.textMuted} />
+        <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.modalOverlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
+            <View style={[styles.sheet, { backgroundColor: t.surface }]}>
+              <View style={styles.sheetHeader}>
+                <Text style={[styles.sheetTitle, { color: t.text }]}>Add to Vault</Text>
+                <TouchableOpacity onPress={() => setModalOpen(false)}>
+                  <Icon name="close-circle-sharp" size={28} color={t.subtext} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.typeGrid}>
+                {JOKE_TYPES.map((type) => (
+                  <TouchableOpacity
+                    key={type.key}
+                    style={[
+                      styles.typeChip,
+                      { borderColor: selectedType === type.key ? type.color : t.border },
+                      selectedType === type.key && { backgroundColor: withAlpha(type.color, 0.1) }
+                    ]}
+                    onPress={() => { selection(); setSelectedType(type.key); }}
+                  >
+                    <Icon name={type.icon} size={16} color={selectedType === type.key ? type.color : t.subtext} />
+                    <Text style={[styles.typeText, { color: selectedType === type.key ? type.color : t.subtext }]}>{type.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TextInput
+                style={[styles.input, { color: t.text, borderBottomColor: t.border }]}
+                placeholder="The secret phrase or name..."
+                placeholderTextColor={t.subtext}
+                value={formTitle}
+                onChangeText={setFormTitle}
+              />
+
+              <TextInput
+                style={[styles.inputStory, { color: t.text, borderBottomColor: t.border }]}
+                placeholder="The story behind it..."
+                placeholderTextColor={t.subtext}
+                value={formStory}
+                onChangeText={setFormStory}
+                multiline
+              />
+
+              <TouchableOpacity
+                style={[styles.saveBtn, { backgroundColor: formTitle.trim() ? '#D2121A' : t.border }]}
+                onPress={handleSave}
+                disabled={!formTitle.trim()}
+              >
+                <Text style={styles.saveBtnText}>Secure in Vault</Text>
               </TouchableOpacity>
             </View>
-
-            {/* Type Selector */}
-            <View style={styles.typeSelector}>
-              {JOKE_TYPES.map((type) => (
-                <TouchableOpacity
-                  key={type.key}
-                  style={[
-                    styles.typeChip,
-                    { borderColor: selectedType === type.key ? type.color : colors.border },
-                    selectedType === type.key && { backgroundColor: type.color + '15' },
-                  ]}
-                  onPress={() => setSelectedType(type.key)}
-                >
-                  <Icon
-                    name={type.icon}
-                    size={16}
-                    color={selectedType === type.key ? type.color : colors.textMuted}
-                  />
-                  <Text
-                    style={[
-                      styles.typeChipText,
-                      { color: selectedType === type.key ? type.color : colors.textMuted },
-                    ]}
-                  >
-                    {type.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              placeholder={
-                selectedType === 'nickname' ? 'The nickname...'
-                  : selectedType === 'ritual' ? 'The ritual...'
-                  : selectedType === 'phrase' ? 'The phrase...'
-                  : 'The joke or reference...'
-              }
-              placeholderTextColor={colors.textMuted}
-              value={formTitle}
-              onChangeText={setFormTitle}
-            />
-
-            <TextInput
-              style={[styles.storyInput, { color: colors.text, borderColor: colors.border }]}
-              placeholder="The story behind it (optional)"
-              placeholderTextColor={colors.textMuted}
-              value={formStory}
-              onChangeText={setFormStory}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-
-            <TouchableOpacity
-              style={[
-                styles.saveButton,
-                { backgroundColor: formTitle.trim() ? colors.primary : colors.border },
-              ]}
-              onPress={handleSave}
-              disabled={!formTitle.trim()}
-            >
-              <Text style={[styles.saveButtonText, { color: colors.text }]}>Save to Vault</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </BlurView>
       </Modal>
     </View>
   );
 }
 
-const createStyles = (colors, isDark) => StyleSheet.create({
-  container: { flex: 1 },
+const styles = StyleSheet.create({
+  main: { flex: 1 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 20,
-    marginBottom: 24,
+    paddingTop: 60,
+    marginBottom: 30,
   },
-  title: {
-    fontFamily: 'DMSerifDisplay_400Regular',
-    fontSize: 24,
-    letterSpacing: -0.5,
+  editorialTitle: {
+    fontFamily: SERIF_FONT,
+    fontSize: 32,
+    fontWeight: '700',
+    letterSpacing: -1,
   },
   subtitle: {
-    fontSize: 13,
-    marginTop: 4,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: '500',
+    opacity: 0.7,
   },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  fab: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  list: { paddingHorizontal: 24, paddingBottom: 40 },
+  list: { paddingHorizontal: 20, paddingBottom: 100 },
   jokeCard: {
-    borderRadius: BORDER_RADIUS.md,
+    padding: 24,
+    borderRadius: 24,
     borderWidth: 1,
-    padding: 20,
-    marginBottom: 12,
+    marginBottom: 16,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
+      android: { elevation: 2 },
+    }),
   },
-  jokeCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  jokeTypeTag: {
+  tag: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
   },
-  jokeTypeLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  jokeDate: {
-    fontSize: 11,
+  tagText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   jokeTitle: {
-    fontFamily: 'DMSerifDisplay_400Regular',
-    fontSize: 18,
+    fontFamily: SERIF_FONT,
+    fontSize: 22,
+    fontWeight: '600',
+    letterSpacing: -0.4,
     marginBottom: 6,
   },
   jokeStory: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    lineHeight: 22,
+    opacity: 0.8,
   },
-
-  // Empty state
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 80,
-    paddingHorizontal: 40,
-  },
-  emptyTitle: {
-    fontFamily: 'DMSerifDisplay_400Regular',
-    fontSize: 20,
-    marginTop: 16,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 20,
-  },
-
-  // Compact mode
-  compactContainer: {
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
-    padding: 16,
-  },
-  compactHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 12,
-  },
-  compactTitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  compactItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
-  },
-  compactItemText: {
-    fontSize: 14,
-    fontFamily: 'Lato_400Regular',
-    flex: 1,
-  },
-
-  // Modal
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(19,16,22,0.15)',
-  },
-  modalContent: {
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: 32,
-    paddingBottom: 48,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  modalTitle: {
-    fontFamily: 'DMSerifDisplay_400Regular',
-    fontSize: 22,
-  },
-  typeSelector: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 24,
-  },
-  typeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  typeChipText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  input: {
-    borderBottomWidth: 1,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: 'Lato_400Regular',
-    marginBottom: 16,
-  },
-  storyInput: {
-    borderBottomWidth: 1,
-    paddingVertical: 12,
-    fontSize: 14,
-    fontFamily: 'Lato_400Regular',
-    marginBottom: 24,
-    minHeight: 60,
-  },
-  saveButton: {
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+  emptyTitle: { fontFamily: SERIF_FONT, fontSize: 24, fontWeight: '600', marginTop: 20 },
+  emptySub: { textAlign: 'center', marginTop: 10, lineHeight: 22 },
+  compactContainer: { padding: 16, borderRadius: 20, borderWidth: 1 },
+  compactHeader: { fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginBottom: 10 },
+  compactItem: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  compactItemText: { fontSize: 14, fontWeight: '500' },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
+  modalContent: { width: '100%' },
+  sheet: { borderTopLeftRadius: 36, borderTopRightRadius: 36, padding: 30, paddingBottom: 50 },
+  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
+  sheetTitle: { fontFamily: SERIF_FONT, fontSize: 24, fontWeight: '700' },
+  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 30 },
+  typeChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 100, borderWidth: 1 },
+  typeText: { fontSize: 13, fontWeight: '600' },
+  input: { fontSize: 20, fontFamily: SERIF_FONT, paddingVertical: 15, borderBottomWidth: 1, marginBottom: 15 },
+  inputStory: { fontSize: 16, paddingVertical: 15, borderBottomWidth: 1, marginBottom: 30, minHeight: 80 },
+  saveBtn: { paddingVertical: 18, borderRadius: 20, alignItems: 'center' },
+  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
 });

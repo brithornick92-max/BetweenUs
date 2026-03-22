@@ -1,7 +1,7 @@
 /**
- * PromptsScreen.js — High-end card-draw experience
+ * PromptsScreen.js -- High-end card-draw experience
  * True Red (#D2121A) & Clean Native Apple Backgrounds.
- * Swipeable deck for intimate, quiet reflection.
+ * FIXED: "Sleeping Neon" unselected pill states.
  */
 
 import React, { useMemo, useState, useEffect, useCallback } from "react";
@@ -36,13 +36,12 @@ import PromptCardDeck from "../components/PromptCardDeck";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
-// Updated to the cohesive Neon OLED progression
 const HEAT_LEVELS = [
-  { value: 1, label: "1", color: "#FF85C2" }, // Soft orchid pink
-  { value: 2, label: "2", color: "#FF1493" }, // Deep Pink
-  { value: 3, label: "3", color: "#FF006E" }, // Vivid Magenta-Red
-  { value: 4, label: "4", color: "#F00049" }, // Carmine
-  { value: 5, label: "5", color: "#D2121A" }, // Deep Red (True Red)
+  { value: 1, label: "1", color: "#FF85C2" },
+  { value: 2, label: "2", color: "#FF1493" },
+  { value: 3, label: "3", color: "#FF006E" },
+  { value: 4, label: "4", color: "#D2121A" },
+  { value: 5, label: "5", color: "#8E0D2C" },
 ];
 
 const loadAllBundledPrompts = () => {
@@ -94,11 +93,10 @@ export default function PromptsScreen({ navigation }) {
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // TRUE RED THEME MAP
   const t = useMemo(() => ({
-    background: isDark ? '#1D1D1F' : '#FAF7F5', // Native Apple Backgrounds
+    background: isDark ? '#1D1D1F' : '#FAF7F5',
     primary: '#D2121A',
-    surface: isDark ? '#2C2C2E' : '#FFFFFF', // Elevated surface against the flat bg
+    surface: isDark ? '#2C2C2E' : '#FFFFFF',
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -136,7 +134,7 @@ export default function PromptsScreen({ navigation }) {
 
   const deckPrompts = useMemo(() => {
     const heat = selectedHeat ?? 1;
-    let byHeat = prompts.filter((p) => (p.heat || 1) === heat);
+    const byHeat = prompts.filter((p) => (p.heat || 1) === heat);
     return shuffleArray(byHeat);
   }, [prompts, selectedHeat]);
 
@@ -168,8 +166,8 @@ export default function PromptsScreen({ navigation }) {
           {/* Editorial Header */}
           <Animated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
             <Text style={[styles.headerLabel, { color: t.primary }]}>
-              {isPremium 
-                ? `${deckPrompts.length} PROMPTS READY` 
+              {isPremium
+                ? `${deckPrompts.length} PROMPTS READY`
                 : `${deckPrompts.length} OF ${TOTAL_PROMPT_COUNT} PREVIEWS`}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
@@ -189,7 +187,7 @@ export default function PromptsScreen({ navigation }) {
                   </Text>
                   <Icon name="sparkles" size={16} color={t.primary} />
                 </View>
-                
+
                 <View style={[styles.progressBar, { backgroundColor: withAlpha(t.text, 0.05) }]}>
                   <LinearGradient
                     colors={[t.primary, "#8E0D2C"]}
@@ -211,25 +209,44 @@ export default function PromptsScreen({ navigation }) {
               {HEAT_LEVELS.map(({ value, label, color: heatColor }) => {
                 const active = selectedHeat === value;
                 const locked = !isPremium && value >= 4;
+
+                // Sleeping Neon Logic: unlit glass tubes that ignite on tap
+                const bgColor = active ? heatColor : withAlpha(heatColor, 0.08);
+                const borderColor = active ? heatColor : withAlpha(heatColor, 0.25);
+                const textColor = active ? "#FFFFFF" : heatColor;
+                const textOpacity = active ? 1 : 0.6;
+
                 return (
                   <TouchableOpacity
                     key={value}
                     style={[
                       styles.heatChip,
                       {
-                        backgroundColor: active ? heatColor : t.surface,
-                        borderColor: active ? heatColor : t.border,
+                        backgroundColor: bgColor,
+                        borderColor: borderColor,
+                        ...(active && Platform.OS === 'ios' ? {
+                          shadowColor: heatColor,
+                          shadowOffset: { width: 0, height: 6 },
+                          shadowOpacity: 0.4,
+                          shadowRadius: 10,
+                        } : {})
                       },
                     ]}
                     onPress={() => handleHeatSelect(value)}
-                    activeOpacity={0.9}
+                    activeOpacity={0.8}
                   >
-                    <Text style={[styles.heatLabel, { color: active ? "#FFF" : t.text }]}>
+                    <Text style={[styles.heatLabel, { color: textColor, opacity: textOpacity }]}>
                       {label}
                     </Text>
                     {locked && (
-                      <View style={styles.lockBadge}>
-                         <Icon name="lock-closed" size={10} color="#FFF" />
+                      <View style={[
+                        styles.lockBadge,
+                        {
+                          backgroundColor: active ? '#000' : t.background,
+                          borderColor: active ? '#FFF' : withAlpha(heatColor, 0.4)
+                        }
+                      ]}>
+                        <Icon name="lock-closed" size={10} color={active ? '#FFF' : withAlpha(heatColor, 0.6)} />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -289,7 +306,7 @@ const styles = StyleSheet.create({
   progressCard: {
     marginHorizontal: 32,
     padding: 20,
-    borderRadius: 24, // Apple Squircle
+    borderRadius: 24,
     borderWidth: 1,
     marginBottom: 32,
     ...Platform.select({
@@ -350,38 +367,27 @@ const styles = StyleSheet.create({
   heatChip: {
     flex: 1,
     height: 54,
-    borderRadius: 18,
-    borderWidth: 1,
+    borderRadius: 16,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
-      },
-      android: { elevation: 1 }
-    })
   },
   heatLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "800",
   },
   lockBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#000',
+    top: -6,
+    right: -6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#FFF',
+    borderWidth: 2,
   },
   deckWrapper: {
     flex: 1,

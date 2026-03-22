@@ -389,7 +389,7 @@ const createStyles = (colors) => StyleSheet.create({
     position: 'absolute',
     top: SPACING.sm,
     right: SPACING.sm,
-    backgroundColor: colors.success,
+    backgroundColor: '#34C759',
     paddingHorizontal: SPACING.xs,
     paddingVertical: 2,
     borderRadius: 8,

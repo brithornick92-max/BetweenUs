@@ -75,7 +75,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
   if (error) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={[styles.errorText, { color: colors.error }]}>Error: {error}</Text>
+        <Text style={[styles.errorText, { color: '#D2121A' }]}>Error: {error}</Text>
         <TouchableOpacity
           style={[styles.button, { backgroundColor: colors.accent }]}
           onPress={loadDebugInfo}
@@ -94,7 +94,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
         {/* Premium Status */}
         <View style={[styles.section, { backgroundColor: colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: colors.accent }]}>Premium Status</Text>
-          <Text style={[styles.value, { color: data.isPremium ? colors.success : colors.error }]}>
+          <Text style={[styles.value, { color: data.isPremium ? '#34C759' : '#D2121A' }]}>
             {data.isPremium ? '✅ Premium Active' : '❌ Not Premium'}
           </Text>
         </View>
@@ -118,7 +118,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
           {data.activeEntitlementKeys && data.activeEntitlementKeys.length > 0 ? (
             <>
               {(data.activeEntitlementKeys || []).map((key, index) => (
-                <Text key={index} style={[styles.code, { color: colors.success }]}> 
+                <Text key={index} style={[styles.code, { color: '#34C759' }]}> 
                   '{key}'
                 </Text>
               ))}
@@ -158,7 +158,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
           <Text style={[styles.sectionTitle, { color: colors.accent }]}>Offerings</Text>
           {data.offerings && data.offerings.packages && data.offerings.packages.length > 0 ? (
             <>
-              <Text style={[styles.value, { color: colors.success }]}> 
+              <Text style={[styles.value, { color: '#34C759' }]}> 
                 ✅ {(data.offerings?.packages || []).length} package(s) available
               </Text>
               {(data.offerings?.packages || []).map((pkg, index) => (
@@ -168,7 +168,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
               ))}
             </>
           ) : (
-            <Text style={[styles.value, { color: colors.error }]}>
+            <Text style={[styles.value, { color: '#D2121A' }]}>
               ❌ No offerings available
             </Text>
           )}

@@ -1,13 +1,16 @@
-// screens/LoveNoteDetailScreen.js — View a single love note (E2EE)
-// Velvet Glass · Reveal Sequence · Apple Editorial Vertical Rhythm
+/**
+ * LoveNoteDetailScreen.js — View a single love note (E2EE)
+ * True Red (#D2121A) · Foggy Glass Wipe Reveal · Apple Editorial
+ */
 
-import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Image,
   TouchableOpacity,
+  ScrollView,
   Dimensions,
   Platform,
   Alert,
@@ -17,45 +20,51 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import Animated, { 
-  FadeIn, 
-  FadeInUp, 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming, 
+import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedProps,
+  withTiming,
   withSpring,
   interpolate,
-  Extrapolate
+  Extrapolation,
+  Easing,
+  runOnJS,
 } from "react-native-reanimated";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import Svg, { Defs, Mask, Rect, Path } from "react-native-svg";
 import LottieView from "lottie-react-native";
 
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import DataLayer from "../services/data/DataLayer";
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS, withAlpha } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
 import InvisibleInkMessage from "../components/InvisibleInkMessage";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+const SERIF_FONT = Platform.select({ ios: "DMSerifDisplay-Regular", android: "DMSerifDisplay_400Regular" });
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+
+// True Red / Neon Progression for Love Notes
 const STATIONERY_MAP = {
-  love:    { emoji: "💗", gradient: ["#7A1E4E", "#5E1940"] },
-  heart:   { emoji: "💞", gradient: ["#9A2E5E", "#7A1E4E"] },
-  sparkle: { emoji: "🫧", gradient: ["#B84070", "#9A2E5E"] },
-  rose:    { emoji: "🌷", gradient: ["#C45060", "#A83850"] },
-  sunset:  { emoji: "🧡", gradient: ["#E08860", "#C45060"] },
-  night:   { emoji: "🌌", gradient: ["#2C2C2E", "#000000"] },
+  love:    { emoji: "💗", gradient: ["#FF85C2", "#D4609A"], metal: "#160A10" },
+  heart:   { emoji: "💞", gradient: ["#FF2D55", "#C40070"], metal: "#16050A" },
+  sparkle: { emoji: "🫧", gradient: ["#FF006E", "#BB004F"], metal: "#140005" },
+  rose:    { emoji: "🌹", gradient: ["#D2121A", "#8A0B11"], metal: "#0A0000" }, // True Red
+  sunset:  { emoji: "🌅", gradient: ["#E08860", "#A83850"], metal: "#1A0A05" },
+  night:   { emoji: "🌌", gradient: ["#1C1C1E", "#000000"], metal: "#050505" },
 };
 
 function formatDate(ts) {
   return new Date(ts).toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+    weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit",
   });
 }
 
@@ -63,15 +72,27 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
   const { noteId } = route.params || {};
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [envelopeOpen, setEnvelopeOpen] = useState(false);
+  const [fogCleared, setFogCleared] = useState(false);
   const lottieRef = useRef(null);
 
-  // Animation values for reveal sequence
-  const revealProgress = useSharedValue(0);
+  // ── True Red × Apple Editorial theme map ──
+  const t = useMemo(() => ({
+    background: isDark ? '#1D1D1F' : '#FAF7F5',
+    primary: '#D2121A',
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60,60,67,0.6)',
+  }), [colors, isDark]);
 
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(t), [t]);
+
+  // ── Animation shared values ──
+  const revealProgress = useSharedValue(0);
+  const fogOpacity = useSharedValue(1);
+  const pathData = useSharedValue("M 0 0");
 
   useEffect(() => {
     if (!isPremium) {
@@ -95,269 +116,312 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
     return () => { active = false; };
   }, [noteId]);
 
-  // Reveal Animation Styles
-  const cardRevealStyle = useAnimatedStyle(() => {
-    return {
-      opacity: revealProgress.value,
-      transform: [
-        { translateY: interpolate(revealProgress.value, [0, 1], [60, 0], Extrapolate.CLAMP) },
-        { scale: interpolate(revealProgress.value, [0, 1], [0.9, 1], Extrapolate.CLAMP) },
-      ],
-    };
-  });
+  // ── Foggy Glass Wipe Gesture (runs on UI thread) ──
+  const panGesture = Gesture.Pan()
+    .onStart((e) => {
+      pathData.value = `${pathData.value} M ${e.x} ${e.y}`;
+      runOnJS(impact)(ImpactFeedbackStyle.Light);
+    })
+    .onUpdate((e) => {
+      pathData.value = `${pathData.value} L ${e.x} ${e.y}`;
+    });
 
-  const backgroundStyle = useAnimatedStyle(() => {
-    return {
-      opacity: withTiming(envelopeOpen ? 1 : 0, { duration: 1000 }),
-    };
-  });
+  const animatedMaskProps = useAnimatedProps(() => ({
+    d: pathData.value,
+  }));
 
-  const stationery = note?.stationeryId
-    ? (STATIONERY_MAP[note.stationeryId] || STATIONERY_MAP.love)
-    : STATIONERY_MAP.love;
-  const hasImage = !!note?.imageUri;
+  // ── Animated styles ──
+  const cardRevealStyle = useAnimatedStyle(() => ({
+    opacity: revealProgress.value,
+    transform: [
+      { translateY: interpolate(revealProgress.value, [0, 1], [80, 0], Extrapolation.CLAMP) },
+      { scale: interpolate(revealProgress.value, [0, 1], [0.85, 1], Extrapolation.CLAMP) },
+    ],
+  }));
 
+  const fogContainerStyle = useAnimatedStyle(() => ({
+    opacity: fogOpacity.value,
+  }));
+
+  // ── Handlers ──
   const handleOpenEnvelope = () => {
-    impact(ImpactFeedbackStyle.Medium);
+    impact(ImpactFeedbackStyle.Heavy);
     lottieRef.current?.play();
-    
-    // Sequence the reveal
     setTimeout(() => {
       setEnvelopeOpen(true);
-      revealProgress.value = withSpring(1, { damping: 15, stiffness: 100 });
+      revealProgress.value = withSpring(1, { damping: 18, stiffness: 120 });
       notification(NotificationFeedbackType.Success);
     }, 1800);
   };
 
+  const handleClearFog = () => {
+    impact(ImpactFeedbackStyle.Medium);
+    setFogCleared(true);
+    fogOpacity.value = withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) });
+  };
+
   const handleDelete = () => {
-    Alert.alert(
-      "Delete Note",
-      "Remove this memory from your vault?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              impact(ImpactFeedbackStyle.Medium);
-              await DataLayer.deleteLoveNote(noteId);
-              navigation.goBack();
-            } catch {
-              Alert.alert("Error", "Couldn't delete the note.");
-            }
-          },
+    Alert.alert("Delete Note", "Remove this memory from your vault?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            impact(ImpactFeedbackStyle.Medium);
+            await DataLayer.deleteLoveNote(noteId);
+            navigation.goBack();
+          } catch {
+            Alert.alert("Error", "Couldn't delete the note.");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   if (loading) {
     return (
-      <View style={[styles.container, { alignItems: "center", justifyContent: "center" }]}> 
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={[styles.container, { alignItems: "center", justifyContent: "center", backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   if (!note) return null;
 
+  const stationery = note?.stationeryId
+    ? (STATIONERY_MAP[note.stationeryId] || STATIONERY_MAP.love)
+    : STATIONERY_MAP.love;
+  const hasImage = !!note?.imageUri;
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="light-content" />
-      <FilmGrain opacity={0.2} />
-      
-      {/* Background Layer: Velvet Deep Plum Ambience */}
-      <Animated.View style={[StyleSheet.absoluteFill, backgroundStyle]}>
-        {hasImage ? (
-          <Image 
-            source={{ uri: note.imageUri }} 
-            style={styles.fullBg} 
-            blurRadius={Platform.OS === "ios" ? 40 : 20} 
-          />
-        ) : (
-          <LinearGradient colors={stationery.gradient} style={styles.fullBg} />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={[styles.container, { backgroundColor: t.background }]}>
+        <StatusBar barStyle="light-content" />
+        <FilmGrain opacity={0.03} />
+
+        {/* Deep Velvet Background */}
+        <Animated.View style={StyleSheet.absoluteFill}>
+          {hasImage ? (
+            <Image source={{ uri: note.imageUri }} style={styles.fullBg} blurRadius={50} />
+          ) : (
+            <LinearGradient colors={[stationery.metal, "#000"]} style={styles.fullBg} />
+          )}
+          <View style={styles.overlay} />
+          <GlowOrb color={stationery.gradient[0]} size={SCREEN_WIDTH * 1.5} top={-200} left={-100} opacity={0.15} />
+        </Animated.View>
+
+        {/* STAGE 1: The Sealed Envelope */}
+        {!envelopeOpen && (
+          <SafeAreaView style={styles.envelopeContainer}>
+            <View style={styles.envelopeTopBar}>
+              <TouchableOpacity style={styles.circleButton} onPress={() => navigation.goBack()}>
+                <Icon name="chevron-left" size={24} color={t.text} />
+              </TouchableOpacity>
+            </View>
+
+            <Animated.View entering={FadeIn.duration(800)} style={styles.envelopeCenterArea}>
+              <Text style={[styles.envelopeLabel, { color: t.primary }]}>A PRIVATE MESSAGE</Text>
+              <Text style={[styles.editorialTitle, { color: t.text }]}>For your eyes only</Text>
+
+              <TouchableOpacity activeOpacity={0.95} onPress={handleOpenEnvelope} style={styles.lottieContainer}>
+                <LottieView
+                  ref={lottieRef}
+                  source={require("../assets/envelope-love.json")}
+                  style={styles.lottieEnvelope}
+                  autoPlay={false}
+                  loop={false}
+                  speed={1.4}
+                />
+              </TouchableOpacity>
+
+              <Animated.View entering={FadeIn.delay(1000)} style={styles.hintRow}>
+                <Text style={[styles.envelopeTapHint, { color: t.subtext }]}>TAP TO OPEN</Text>
+              </Animated.View>
+            </Animated.View>
+          </SafeAreaView>
         )}
-        <View style={styles.overlay} />
-        <GlowOrb color={colors.primary} size={screenWidth * 1.5} top={-200} left={-100} opacity={0.12} />
-      </Animated.View>
 
-      {/* STAGE 1: The Sealed Envelope */}
-      {!envelopeOpen && (
-        <SafeAreaView style={styles.envelopeContainer}>
-          <View style={styles.envelopeTopBar}>
-            <TouchableOpacity
-              style={styles.circleButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Icon name="chevron-left" size={28} color={colors.text} />
-            </TouchableOpacity>
-          </View>
+        {/* STAGE 2: The Revealed Note (with Fog) */}
+        {envelopeOpen && (
+          <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+            <Animated.View entering={FadeIn.duration(600)} style={styles.topBar}>
+              <TouchableOpacity style={styles.circleButton} onPress={() => navigation.goBack()}>
+                <Icon name="chevron-left" size={24} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.circleButton} onPress={handleDelete}>
+                <Icon name="trash-outline" size={20} color="#FFF" />
+              </TouchableOpacity>
+            </Animated.View>
 
-          <ReAnimated.View entering={FadeIn.duration(800)} style={styles.envelopeCenterArea}>
-            <Text style={[styles.envelopeLabel, { color: colors.primary }]}>A PRIVATE MESSAGE</Text>
-            <Text style={[styles.editorialTitle, { color: colors.text }]}>For your eyes only</Text>
-            
-            <TouchableOpacity
-              activeOpacity={0.95}
-              onPress={handleOpenEnvelope}
-              style={styles.lottieContainer}
-            >
-              <LottieView
-                ref={lottieRef}
-                source={require("../assets/envelope-love.json")}
-                style={styles.lottieEnvelope}
-                autoPlay={false}
-                loop={false}
-                speed={1.4}
-              />
-            </TouchableOpacity>
-            
-            <ReAnimated.View entering={FadeIn.delay(1000)} style={styles.hintRow}>
-              <Icon name="gesture-tap" size={16} color={colors.textMuted} />
-              <Text style={[styles.envelopeTapHint, { color: colors.textMuted }]}>Tap to reveal</Text>
-            </ReAnimated.View>
-          </ReAnimated.View>
-        </SafeAreaView>
-      )}
+            <View style={styles.centerArea}>
+              <Animated.View style={[styles.card, cardRevealStyle]}>
 
-      {/* STAGE 2: The Revealed Note */}
-      {envelopeOpen && (
-        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-          {/* Action Bar */}
-          <Animated.View entering={FadeIn.duration(600)} style={styles.topBar}>
-            <TouchableOpacity
-              style={styles.circleButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Icon name="chevron-left" size={28} color="#FFF" />
-            </TouchableOpacity>
+                {/* ── Note Content Layer ── */}
+                <View style={StyleSheet.absoluteFill}>
+                  {hasImage ? (
+                    <Image source={{ uri: note.imageUri }} style={styles.cardImage} />
+                  ) : (
+                    <LinearGradient
+                      colors={stationery.gradient}
+                      style={styles.cardGradientBg}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Text style={styles.cardBgEmoji}>{stationery.emoji}</Text>
+                    </LinearGradient>
+                  )}
+                  <LinearGradient
+                    colors={["transparent", "rgba(0,0,0,0.6)", "#000"]}
+                    style={styles.cardOverlay}
+                  />
+                  <View style={styles.cardContent}>
+                    <View style={styles.senderHeader}>
+                      <View style={styles.senderLine} />
+                      <Text style={styles.senderLabel}>
+                        FROM {note.senderName?.toUpperCase() || 'YOUR PARTNER'}
+                      </Text>
+                    </View>
 
-            <TouchableOpacity style={styles.circleButton} onPress={handleDelete}>
-              <Icon name="trash-can-outline" size={22} color="#FFF" />
-            </TouchableOpacity>
-          </Animated.View>
+                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                      {note.invisibleInk ? (
+                        <InvisibleInkMessage text={note.text || ''} style={styles.noteText} />
+                      ) : (
+                        <Text style={styles.noteText}>{note.text}</Text>
+                      )}
+                    </ScrollView>
 
-          {/* The Stationery Card */}
-          <View style={styles.centerArea}>
-            <Animated.View style={[styles.card, cardRevealStyle]}>
-              {hasImage ? (
-                <Image source={{ uri: note.imageUri }} style={styles.cardImage} />
-              ) : (
-                <LinearGradient colors={stationery.gradient} style={styles.cardGradientBg}>
-                  <Text style={styles.cardBgEmoji}>{stationery.emoji}</Text>
-                </LinearGradient>
-              )}
-
-              <LinearGradient
-                colors={["transparent", "rgba(0,0,0,0.8)"]}
-                style={styles.cardOverlay}
-              />
-
-              <View style={styles.cardContent}>
-                <View style={styles.senderHeader}>
-                  <View style={[styles.senderLine, { backgroundColor: withAlpha('#FFF', 0.3) }]} />
-                  <Text style={styles.senderLabel}>FROM {note.senderName?.toUpperCase() || 'YOUR PARTNER'}</Text>
+                    <View style={styles.cardFooter}>
+                      <Text style={styles.dateText}>{formatDate(note.createdAt).toUpperCase()}</Text>
+                      <Icon name="shield-checkmark-outline" size={16} color="rgba(255,255,255,0.4)" />
+                    </View>
+                  </View>
                 </View>
 
-                {note.invisibleInk ? (
-                  <InvisibleInkMessage
-                    text={note.text || ''}
-                    style={styles.invisibleInkWrapper}
-                  />
-                ) : (
-                  <Text style={styles.noteText}>{note.text}</Text>
+                {/* ── Foggy Glass Overlay ── */}
+                {!fogCleared && (
+                  <GestureDetector gesture={panGesture}>
+                    <Animated.View style={[StyleSheet.absoluteFill, fogContainerStyle]}>
+                      <Svg style={StyleSheet.absoluteFill}>
+                        <Defs>
+                          <Mask id="wipeMask">
+                            {/* White = show fog, black stroke = punch a hole */}
+                            <Rect x="0" y="0" width={SCREEN_WIDTH} height={SCREEN_HEIGHT} fill="white" />
+                            <AnimatedPath
+                              animatedProps={animatedMaskProps}
+                              fill="none"
+                              stroke="black"
+                              strokeWidth={60}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </Mask>
+                        </Defs>
+                        <Rect
+                          x="0"
+                          y="0"
+                          width={SCREEN_WIDTH}
+                          height={SCREEN_HEIGHT}
+                          fill="rgba(20, 10, 15, 0.95)"
+                          mask="url(#wipeMask)"
+                        />
+                      </Svg>
+
+                      <View style={styles.fogInstructions} pointerEvents="none">
+                        <Icon name="hand-index-outline" size={32} color="rgba(255,255,255,0.6)" />
+                        <Text style={styles.fogText}>Wipe the glass</Text>
+                      </View>
+                    </Animated.View>
+                  </GestureDetector>
                 )}
 
-                <View style={styles.cardFooter}>
-                  <Text style={styles.dateText}>{formatDate(note.createdAt)}</Text>
-                  <Icon name="seal" size={20} color={withAlpha('#FFF', 0.4)} />
-                </View>
-              </View>
-            </Animated.View>
-          </View>
+              </Animated.View>
+            </View>
 
-          {/* Bottom Interaction */}
-          <Animated.View entering={FadeInUp.delay(500)} style={styles.bottomDecoration}>
-            {!note.isOwn ? (
-              <TouchableOpacity
-                style={[styles.replyButton, { backgroundColor: colors.primary }]}
-                onPress={() => {
-                  impact(ImpactFeedbackStyle.Medium);
-                  navigation.navigate("ComposeLoveNote");
-                }}
-              >
-                <Icon name="heart-plus" size={20} color="#FFF" />
-                <Text style={styles.replyButtonText}>Respond with Love</Text>
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.sentBadge}>
-                <Icon name="check-all" size={16} color={withAlpha('#FFF', 0.6)} />
-                <Text style={styles.sentText}>Delivered to their heart</Text>
-              </View>
-            )}
-          </Animated.View>
-        </SafeAreaView>
-      )}
-    </View>
+            <Animated.View entering={FadeInUp.delay(800)} style={styles.bottomDecoration}>
+              {!fogCleared ? (
+                <TouchableOpacity style={styles.clearFogBtn} onPress={handleClearFog} activeOpacity={0.8}>
+                  <Text style={styles.clearFogText}>Reveal Entirely</Text>
+                </TouchableOpacity>
+              ) : !note.isOwn ? (
+                <TouchableOpacity
+                  style={[styles.replyButton, { backgroundColor: t.primary }]}
+                  onPress={() => {
+                    impact(ImpactFeedbackStyle.Medium);
+                    navigation.navigate("ComposeLoveNote");
+                  }}
+                  activeOpacity={0.9}
+                >
+                  <Icon name="heart" size={20} color="#FFF" />
+                  <Text style={styles.replyButtonText}>Respond with Love</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.sentBadge}>
+                  <Icon name="checkmark-done" size={18} color="rgba(255,255,255,0.6)" />
+                  <Text style={styles.sentText}>DELIVERED TO THEIR HEART</Text>
+                </View>
+              )}
+            </Animated.View>
+          </SafeAreaView>
+        )}
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
-const createStyles = (colors) =>
+// ──────────────────────────────────────────────────────────
+// STYLES — Apple Editorial × Velvet Glass
+// ──────────────────────────────────────────────────────────
+const createStyles = (t) =>
   StyleSheet.create({
     container: { flex: 1 },
-    
-    // Envelope Phase
+
+    // ── Envelope Phase ──
     envelopeContainer: { flex: 1 },
-    envelopeTopBar: {
-      paddingHorizontal: 24,
-      paddingTop: 12,
-    },
+    envelopeTopBar: { paddingHorizontal: 24, paddingTop: 12 },
     envelopeCenterArea: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
       paddingBottom: 60,
     },
-    editorialTitle: {
-      fontFamily: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular' }),
-      fontSize: 32,
-      letterSpacing: -0.5,
-      marginTop: 8,
-      marginBottom: 20,
-    },
     envelopeLabel: {
-      fontFamily: 'Lato_700Bold',
+      fontFamily: SYSTEM_FONT,
       fontSize: 11,
-      letterSpacing: 3,
+      fontWeight: '900',
+      letterSpacing: 2.5,
+      marginBottom: 8,
+    },
+    editorialTitle: {
+      fontFamily: SERIF_FONT,
+      fontSize: 38,
+      letterSpacing: -1,
+      marginBottom: 20,
+      textAlign: 'center',
     },
     lottieContainer: {
-      width: screenWidth * 0.8,
-      height: screenWidth * 0.8,
+      width: SCREEN_WIDTH * 0.8,
+      height: SCREEN_WIDTH * 0.8,
       alignItems: "center",
       justifyContent: "center",
     },
-    lottieEnvelope: {
-      width: '100%',
-      height: '100%',
-    },
+    lottieEnvelope: { width: '100%', height: '100%' },
     hintRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      marginTop: 20,
+      justifyContent: 'center',
+      marginTop: 24,
     },
     envelopeTapHint: {
-      fontSize: 14,
-      fontFamily: 'Lato_400Regular',
+      fontFamily: SYSTEM_FONT,
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 2,
     },
 
-    // Reveal Phase
+    // ── Reveal Phase ──
     fullBg: { ...StyleSheet.absoluteFillObject },
-    overlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: "rgba(0,0,0,0.55)",
-    },
+    overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.7)" },
     safeArea: { flex: 1 },
     topBar: {
       flexDirection: "row",
@@ -367,10 +431,10 @@ const createStyles = (colors) =>
       paddingTop: 12,
     },
     circleButton: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: "rgba(255,255,255,0.12)",
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: "rgba(255,255,255,0.1)",
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
@@ -383,14 +447,15 @@ const createStyles = (colors) =>
       paddingHorizontal: 24,
     },
     card: {
-      width: screenWidth - 48,
-      height: screenHeight * 0.68,
+      width: SCREEN_WIDTH - 48,
+      height: SCREEN_HEIGHT * 0.65,
       borderRadius: 32,
       overflow: "hidden",
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.15)",
+      backgroundColor: "#000",
       ...Platform.select({
-        ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.4, shadowRadius: 30 },
+        ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.8, shadowRadius: 40 },
         android: { elevation: 20 },
       }),
     },
@@ -400,84 +465,121 @@ const createStyles = (colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    cardBgEmoji: { fontSize: 100, opacity: 0.1 },
+    cardBgEmoji: { fontSize: 120, opacity: 0.15 },
     cardOverlay: { ...StyleSheet.absoluteFillObject },
-    cardContent: {
-      flex: 1,
-      padding: 32,
-      justifyContent: "flex-end",
-    },
+    cardContent: { flex: 1, padding: 32, justifyContent: "flex-end" },
     senderHeader: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
-      marginBottom: 20,
+      marginBottom: 24,
     },
-    senderLine: {
-      height: 1,
-      flex: 1,
-    },
+    senderLine: { height: 1, flex: 1, backgroundColor: "rgba(255,255,255,0.3)" },
     senderLabel: {
       color: "#FFF",
+      fontFamily: SYSTEM_FONT,
       fontSize: 10,
-      fontFamily: 'Lato_700Bold',
+      fontWeight: '800',
       letterSpacing: 2,
     },
     noteText: {
       color: "#FFF",
-      fontSize: 26,
+      fontFamily: SERIF_FONT,
+      fontSize: 28,
       lineHeight: 38,
-      fontFamily: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular' }),
+      textShadowColor: 'rgba(0,0,0,0.8)',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 10,
     },
     cardFooter: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginTop: 32,
+      marginTop: 24,
       borderTopWidth: 1,
-      borderTopColor: 'rgba(255,255,255,0.1)',
+      borderTopColor: 'rgba(255,255,255,0.15)',
       paddingTop: 20,
     },
     dateText: {
-      color: "rgba(255,255,255,0.5)",
-      fontSize: 12,
-      fontFamily: 'Lato_400Regular',
+      color: "rgba(255,255,255,0.6)",
+      fontFamily: SYSTEM_FONT,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1.5,
     },
 
+    // ── Foggy Glass ──
+    fogInstructions: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+    },
+    fogText: {
+      fontFamily: SERIF_FONT,
+      fontSize: 24,
+      color: "rgba(255,255,255,0.8)",
+      letterSpacing: 1,
+    },
+    clearFogBtn: {
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.2)",
+      backgroundColor: "rgba(255,255,255,0.05)",
+    },
+    clearFogText: {
+      color: "#FFF",
+      fontFamily: SYSTEM_FONT,
+      fontSize: 12,
+      fontWeight: '800',
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+    },
+
+    // ── Bottom Interaction ──
     bottomDecoration: {
       alignItems: "center",
-      paddingBottom: 32,
+      paddingBottom: Platform.OS === 'ios' ? 20 : 32,
     },
     replyButton: {
       flexDirection: "row",
       alignItems: "center",
       gap: 10,
       paddingHorizontal: 32,
-      paddingVertical: 18,
-      borderRadius: 30,
+      height: 56,
+      borderRadius: 28,
       ...Platform.select({
-        ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 15 },
+        ios: { shadowColor: t.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16 },
         android: { elevation: 8 },
       }),
     },
     replyButtonText: {
       color: "#FFF",
+      fontFamily: SYSTEM_FONT,
       fontSize: 16,
-      fontFamily: 'Lato_700Bold',
+      fontWeight: '800',
+      letterSpacing: -0.2,
     },
     sentBadge: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 8,
       backgroundColor: 'rgba(255,255,255,0.1)',
-      paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingHorizontal: 20,
+      height: 40,
       borderRadius: 20,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.05)',
     },
     sentText: {
-      color: 'rgba(255,255,255,0.7)',
-      fontSize: 12,
-      fontFamily: 'Lato_400Regular',
-    }
+      color: 'rgba(255,255,255,0.8)',
+      fontFamily: SYSTEM_FONT,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1.5,
+    },
   });
+
   

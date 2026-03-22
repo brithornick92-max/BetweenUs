@@ -215,8 +215,8 @@ export default function FAQScreen({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle="light-content" />
-      <GlowOrb color={withAlpha(t.primary, 0.12)} size={300} top={-100} left={-50} />
-      <GlowOrb color={withAlpha(t.primary, 0.06)} size={180} top={300} left={SCREEN_W - 80} delay={1500} />
+      <GlowOrb color="#D2121A" size={300} top={-100} left={SCREEN_W - 200} opacity={isDark ? 0.15 : 0.1} />
+      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={250} top={650} left={-80} delay={1500} opacity={isDark ? 0.1 : 0.06} />
       <FilmGrain opacity={0.03} />
 
       <SafeAreaView style={styles.safeArea}>

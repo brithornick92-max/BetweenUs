@@ -217,7 +217,7 @@ export default function RitualRemindersScreen({ navigation }) {
                     <Icon name="pencil" size={18} color={theme.colors.text} />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => handleDelete(reminder)} style={styles.iconButton}>
-                    <Icon name="trash-can" size={18} color={theme.colors.error} />
+                    <Icon name="trash-can" size={18} color={theme.colors.danger || '#D2121A'} />
                   </TouchableOpacity>
                 </View>
               </View>

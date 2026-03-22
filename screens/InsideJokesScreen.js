@@ -61,7 +61,8 @@ export default function InsideJokesScreen({ navigation }) {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle="light-content" />
         <FilmGrain opacity={0.3} />
-        <GlowOrb color={colors.primary} size={400} top={-100} left={-150} opacity={0.15} />
+        <GlowOrb color={colors.primary} size={400} top={-100} left={SCREEN_W - 200} opacity={0.15} />
+        <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={650} left={-100} opacity={isDark ? 0.1 : 0.06} />
         
         <SafeAreaView style={{ flex: 1 }}>
           {headerBar}
@@ -111,7 +112,8 @@ export default function InsideJokesScreen({ navigation }) {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <FilmGrain opacity={0.1} />
-      <GlowOrb color={withAlpha(colors.primary, 0.08)} size={500} top={-200} left={-200} />
+      <GlowOrb color={colors.primary} size={500} top={-200} left={SCREEN_W - 200} opacity={isDark ? 0.15 : 0.08} />
+      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={650} left={-100} opacity={isDark ? 0.1 : 0.06} />
       
       <SafeAreaView style={{ flex: 1 }}>
         <ReAnimated.View entering={FadeInDown.duration(600)}>

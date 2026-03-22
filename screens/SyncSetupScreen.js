@@ -360,7 +360,7 @@ export default function SyncSetupScreen({ navigation }) {
             <Icon
               name={sessionEmail ? 'check-circle' : 'alert-circle'}
               size={20}
-              color={sessionEmail ? colors.success : colors.textSecondary}
+              color={sessionEmail ? '#34C759' : colors.textSecondary}
             />
             <Text style={[styles.statusText, { color: colors.textSecondary }]}>
               {sessionEmail ? `Signed in as ${sessionEmail}` : 'Not signed in'}

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue, useAnimatedStyle,
@@ -278,11 +278,11 @@ const CardStack = forwardRef(function CardStack(
           {isFlipped && (
             <>
               <Animated.View style={[styles.swipeHint, styles.swipeHintRight, rightHintStyle]}>
-                <Ionicons name="heart" size={18} color="#FFFFFF" />
+                <Icon name="heart" size={18} color="#FFFFFF" />
                 <Text style={styles.swipeHintText}>Tonight</Text>
               </Animated.View>
               <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}>
-                <Ionicons name="close-outline" size={20} color="#FFFFFF" />
+                <Icon name="close-outline" size={20} color="#FFFFFF" />
                 <Text style={styles.swipeHintText}>Skip</Text>
               </Animated.View>
             </>
@@ -430,8 +430,8 @@ export default function DateNightScreen({ navigation }) {
         colors={isDark ? [t.background, '#120206', t.background] : [t.background, '#F9F6F4', t.background]}
         style={StyleSheet.absoluteFillObject}
       />
-      <GlowOrb color={withAlpha(t.primary, 0.1)} size={300} top={-50} left={-50} />
-      <GlowOrb color={withAlpha(t.accent || t.primary, 0.06)} size={180} top={350} left={width - 80} delay={1500} />
+      <GlowOrb color="#D2121A" size={300} top={-50} left={width - 200} opacity={0.1} />
+      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={250} top={650} left={-80} opacity={0.08} />
       <FilmGrain opacity={0.03} />
       
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -457,7 +457,7 @@ export default function DateNightScreen({ navigation }) {
             onPress={() => setFiltersOpen(o => !o)}
             activeOpacity={0.7}
           >
-            <Ionicons name="options-outline" size={20} color={hasFilters ? colors.primary : colors.text} />
+            <Icon name="options-outline" size={20} color={hasFilters ? colors.primary : colors.text} />
             {hasFilters && <View style={[styles.filterDot, { backgroundColor: colors.primary }]} />}
           </TouchableOpacity>
         </View>
@@ -492,7 +492,7 @@ export default function DateNightScreen({ navigation }) {
                       ) : (
                         <Text style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
                       )}
-                      <Ionicons name={dropdownOpen === 'heat' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={colors.text + '80'} />
+                      <Icon name={dropdownOpen === 'heat' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={colors.text + '80'} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -517,7 +517,7 @@ export default function DateNightScreen({ navigation }) {
                       ) : (
                         <Text style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
                       )}
-                      <Ionicons name={dropdownOpen === 'load' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={colors.text + '80'} />
+                      <Icon name={dropdownOpen === 'load' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={colors.text + '80'} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -542,7 +542,7 @@ export default function DateNightScreen({ navigation }) {
                       ) : (
                         <Text style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
                       )}
-                      <Ionicons name={dropdownOpen === 'style' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={colors.text + '80'} />
+                      <Icon name={dropdownOpen === 'style' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={colors.text + '80'} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -551,7 +551,7 @@ export default function DateNightScreen({ navigation }) {
 
             {hasFilters && (
               <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearFilters} activeOpacity={0.7}>
-                <Ionicons name="close-circle" size={16} color={colors.textMuted} />
+                <Icon name="close-circle" size={16} color={colors.textMuted} />
                 <Text style={[styles.clearFiltersTxt, { color: colors.textMuted }]}>Clear filters</Text>
               </TouchableOpacity>
             )}
@@ -572,7 +572,7 @@ export default function DateNightScreen({ navigation }) {
                       <View style={styles.dropdownOptionContent}>
                         <Text style={[styles.dropdownOptionLabel, { color: active ? h.color : colors.text }]}>{h.label}</Text>
                       </View>
-                      {active && <Ionicons name="checkmark-circle" size={20} color={h.color} />}
+                      {active && <Icon name="checkmark-circle" size={20} color={h.color} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -589,7 +589,7 @@ export default function DateNightScreen({ navigation }) {
                       <View style={styles.dropdownOptionContent}>
                         <Text style={[styles.dropdownOptionLabel, { color: active ? l.color : colors.text }]}>{l.label}</Text>
                       </View>
-                      {active && <Ionicons name="checkmark-circle" size={20} color={l.color} />}
+                      {active && <Icon name="checkmark-circle" size={20} color={l.color} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -606,7 +606,7 @@ export default function DateNightScreen({ navigation }) {
                       <View style={styles.dropdownOptionContent}>
                         <Text style={[styles.dropdownOptionLabel, { color: active ? s.color : colors.text }]}>{s.label}</Text>
                       </View>
-                      {active && <Ionicons name="checkmark-circle" size={20} color={s.color} />}
+                      {active && <Icon name="checkmark-circle" size={20} color={s.color} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -619,7 +619,7 @@ export default function DateNightScreen({ navigation }) {
         <View style={styles.stackWrapper}>
           {!allSelected ? (
             <BlurView intensity={isDark ? 10 : 20} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-              <Ionicons name="sparkles" size={42} color={colors.primary + '80'} />
+              <Icon name="sparkles" size={42} color={colors.primary + '80'} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>Pick your vibe</Text>
               <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
                 Choose one from each category above{'\n'}to see your personalized date deck
@@ -656,7 +656,7 @@ export default function DateNightScreen({ navigation }) {
             </BlurView>
           ) : deck.length === 0 ? (
             <BlurView intensity={isDark ? 10 : 20} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-              <Ionicons name="search-outline" size={40} color={colors.textMuted} />
+              <Icon name="search-outline" size={40} color={colors.textMuted} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>No matches</Text>
               <Text style={[styles.emptyBody, { color: colors.textMuted }]}>Try a different combination</Text>
             </BlurView>
@@ -681,7 +681,7 @@ export default function DateNightScreen({ navigation }) {
                     onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
                     activeOpacity={0.85}
                   >
-                    <Ionicons name="star" size={16} color="#FFFFFF" />
+                    <Icon name="star" size={16} color="#FFFFFF" />
                     <Text style={[styles.resetTxt, { color: '#FFFFFF' }]}>Unlock all dates</Text>
                   </TouchableOpacity>
                 </>
@@ -697,7 +697,7 @@ export default function DateNightScreen({ navigation }) {
                     onPress={handleReset}
                     activeOpacity={0.85}
                   >
-                    <Ionicons name="shuffle-outline" size={18} color={colors.background} />
+                    <Icon name="shuffle-outline" size={18} color={colors.background} />
                     <Text style={[styles.resetTxt, { color: colors.background }]}>Shuffle deck</Text>
                   </TouchableOpacity>
                 </>
@@ -725,7 +725,7 @@ export default function DateNightScreen({ navigation }) {
               onPress={() => stackRef.current?.swipeLeft()}
               activeOpacity={0.8}
             >
-              <Ionicons name="close" size={28} color={colors.text + '80'} />
+              <Icon name="close" size={28} color={colors.text + '80'} />
             </TouchableOpacity>
 
             <View style={styles.actionCounterWrap}>
@@ -750,7 +750,7 @@ export default function DateNightScreen({ navigation }) {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name="heart" size={28} color="#FFFFFF" />
+                <Icon name="heart" size={28} color="#FFFFFF" />
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -764,7 +764,7 @@ export default function DateNightScreen({ navigation }) {
             activeOpacity={0.8}
           >
             <View style={styles.teaserTop}>
-              <Ionicons name="star" size={16} color={colors.primary} />
+              <Icon name="star" size={16} color={colors.primary} />
               <Text style={[styles.teaserTitle, { color: colors.text }]}>
                 Unlock {allDates.length}+ dates
               </Text>
