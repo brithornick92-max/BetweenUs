@@ -10,10 +10,14 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useEntitlements } from '../context/EntitlementsContext';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 
 /**
  * Delete Account Screen
@@ -22,12 +26,23 @@ import { useAuth } from '../context/AuthContext';
  */
 const DeleteAccountScreen = ({ navigation }) => {
   const { colors } = useTheme();
-  const { user, deleteUserAccount } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { user, deleteUserAccount, signOutLocal } = useAuth();
+  const { isPremiumEffective: isPremium } = useEntitlements();
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const dangerColor = colors.danger || '#EF4444';
+
+  const handleTextChange = (text) => {
+    setConfirmText(text);
+    if (text.trim().toLowerCase() === 'delete' && confirmText.trim().toLowerCase() !== 'delete') {
+      impact(ImpactFeedbackStyle.Light);
+    }
+  };
+
   const handleDeleteAccount = async () => {
-    if (confirmText.toLowerCase() !== 'delete') {
+    if (confirmText.trim().toLowerCase() !== 'delete') {
       Alert.alert('Confirmation Required', 'Please type DELETE to confirm');
       return;
     }
@@ -43,6 +58,7 @@ const DeleteAccountScreen = ({ navigation }) => {
           onPress: async () => {
             try {
               setIsDeleting(true);
+              impact(ImpactFeedbackStyle.Heavy);
 
               // Delete account
               await deleteUserAccount();
@@ -78,7 +94,7 @@ const DeleteAccountScreen = ({ navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Go back">
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
@@ -87,60 +103,60 @@ const DeleteAccountScreen = ({ navigation }) => {
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.content}>
           {/* Warning Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
-            <Ionicons name="warning" size={48} color={colors.error} />
+          <View style={[styles.iconContainer, { backgroundColor: dangerColor + '20' }]}>
+            <Ionicons name="warning" size={48} color={dangerColor} />
           </View>
 
           {/* Title */}
-          <Text style={[styles.title, { color: colors.error }]}>Delete Account</Text>
+          <Text style={[styles.title, { color: dangerColor }]}>Delete Account</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             This action is permanent and cannot be undone
           </Text>
 
           {/* What Will Be Deleted */}
-          <View style={[styles.card, { backgroundColor: colors.error + '10', borderColor: colors.error }]}>
-            <Text style={[styles.cardTitle, { color: colors.error }]}>What Will Be Deleted</Text>
+          <View style={[styles.card, { backgroundColor: dangerColor + '10', borderColor: dangerColor }]}>
+            <Text style={[styles.cardTitle, { color: dangerColor }]}>What Will Be Deleted</Text>
             
             <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={colors.error} />
+              <Ionicons name="close-circle" size={20} color={dangerColor} />
               <Text style={[styles.listText, { color: colors.textSecondary }]}>
                 All journal entries (cannot be recovered)
               </Text>
             </View>
 
             <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={colors.error} />
+              <Ionicons name="close-circle" size={20} color={dangerColor} />
               <Text style={[styles.listText, { color: colors.textSecondary }]}>
                 All prompt responses
               </Text>
             </View>
 
             <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={colors.error} />
+              <Ionicons name="close-circle" size={20} color={dangerColor} />
               <Text style={[styles.listText, { color: colors.textSecondary }]}>
                 Account information and preferences
               </Text>
             </View>
 
             <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={colors.error} />
+              <Ionicons name="close-circle" size={20} color={dangerColor} />
               <Text style={[styles.listText, { color: colors.textSecondary }]}>
                 Partner connection (your partner will be notified)
               </Text>
             </View>
 
             <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={colors.error} />
+              <Ionicons name="close-circle" size={20} color={dangerColor} />
               <Text style={[styles.listText, { color: colors.textSecondary }]}>
                 Premium subscription access
               </Text>
             </View>
 
             <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={colors.error} />
+              <Ionicons name="close-circle" size={20} color={dangerColor} />
               <Text style={[styles.listText, { color: colors.textSecondary }]}>
                 All custom rituals and date night plans
               </Text>
@@ -151,23 +167,79 @@ const DeleteAccountScreen = ({ navigation }) => {
           <View style={[styles.card, { backgroundColor: colors.card }]}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Before You Go</Text>
             <Text style={[styles.cardText, { color: colors.textSecondary }]}>
-              • Consider exporting your data first (Settings → Export My Data){'\n\n'}
-              • Your subscription will be cancelled, but you won't receive a refund for the current period{'\n\n'}
-              • If you're linked with a partner, they will lose premium access if you're the subscriber{'\n\n'}
-              • You can create a new account later, but your data cannot be restored
+              Your subscription will be cancelled, but you won't receive a refund for the current period. If you're linked with a partner, they will lose premium access if you're the subscriber. You can create a new account later, but your data cannot be restored.
             </Text>
+            <TouchableOpacity
+              style={[styles.actionRow, { marginTop: 16, backgroundColor: colors.background, padding: 12, borderRadius: 8 }]}
+              onPress={() => navigation.navigate('ExportData')}
+            >
+              <View style={styles.actionInfo}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>Export My Data</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
           </View>
 
           {/* Alternative Options */}
           <View style={[styles.card, { backgroundColor: colors.card }]}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Need a Break Instead?</Text>
-            <Text style={[styles.cardText, { color: colors.textSecondary }]}>
-              If you're not ready to delete everything, you can:{'\n\n'}
-              • Sign out and take a break{'\n'}
-              • Cancel your subscription but keep your account{'\n'}
-              • Unlink from your partner temporarily{'\n\n'}
-              Your data will be safe and waiting when you return.
+            <Text style={[styles.cardText, { color: colors.textSecondary, marginBottom: 12 }]}>
+              Your data will be safe and waiting when you return. Consider these alternatives to deleting:
             </Text>
+            
+            <TouchableOpacity
+              style={[styles.actionRow, { backgroundColor: colors.background, padding: 12, borderRadius: 8, marginBottom: 8 }]}
+              onPress={async () => {
+                Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Sign Out', style: 'destructive', onPress: async () => {
+                      try { await signOutLocal(); } catch (error) { Alert.alert('Error', 'Failed to sign out.'); }
+                  }},
+                ]);
+              }}
+            >
+              <View style={styles.actionInfo}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>Sign out temporarily</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            {isPremium && (
+              <TouchableOpacity
+                style={[styles.actionRow, { backgroundColor: colors.background, padding: 12, borderRadius: 8, marginBottom: 8 }]}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Linking.openURL('https://apps.apple.com/account/subscriptions');
+                  } else {
+                    Linking.openURL('https://play.google.com/store/account/subscriptions');
+                  }
+                }}
+              >
+                <View style={styles.actionInfo}>
+                  <Text style={[styles.actionTitle, { color: colors.text }]}>Cancel subscription</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+            
+            <TouchableOpacity
+              style={[styles.actionRow, { backgroundColor: colors.background, padding: 12, borderRadius: 8 }]}
+              onPress={() => {
+                Alert.alert(
+                  'Unlink Partner',
+                  'To unlink from your partner, go back to Settings and tap "Partner" under the relationship section.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Go to Settings', onPress: () => navigation.popToTop() }
+                  ]
+                );
+              }}
+            >
+              <View style={styles.actionInfo}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>Unlink from partner</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
           </View>
 
           {/* Confirmation Input */}
@@ -185,12 +257,13 @@ const DeleteAccountScreen = ({ navigation }) => {
                   backgroundColor: colors.background,
                   color: colors.text,
                   borderColor: colors.border,
+                  textAlign: 'left',
                 },
               ]}
               placeholder="Type DELETE here"
               placeholderTextColor={colors.textSecondary}
               value={confirmText}
-              onChangeText={setConfirmText}
+              onChangeText={handleTextChange}
               autoCapitalize="characters"
               autoCorrect={false}
               accessibilityLabel="Confirmation field"
@@ -198,33 +271,9 @@ const DeleteAccountScreen = ({ navigation }) => {
             />
           </View>
 
-          {/* Delete Button */}
+          {/* Cancel Button (Primary) */}
           <TouchableOpacity
-            style={[
-              styles.deleteButton,
-              {
-                backgroundColor: confirmText.toLowerCase() === 'delete' ? colors.error : colors.border,
-              },
-            ]}
-            onPress={handleDeleteAccount}
-            disabled={isDeleting || confirmText.toLowerCase() !== 'delete'}
-            accessibilityRole="button"
-            accessibilityLabel="Delete my account forever"
-            accessibilityState={{ disabled: isDeleting || confirmText.toLowerCase() !== 'delete' }}
-          >
-            {isDeleting ? (
-                <ActivityIndicator color={colors.surface} />
-              ) : (
-                <>
-                  <Ionicons name="trash" size={20} color={colors.text} />
-                  <Text style={[styles.deleteButtonText, { color: colors.text }]}>Delete My Account Forever</Text>
-                </>
-              )}
-          </TouchableOpacity>
-
-          {/* Cancel Button */}
-          <TouchableOpacity
-            style={[styles.cancelButton, { borderColor: colors.border }]}
+            style={[styles.cancelButton, { backgroundColor: colors.primary, borderColor: colors.primary }]}
             onPress={() => navigation.goBack()}
             disabled={isDeleting}
             accessibilityRole="button"
@@ -233,6 +282,31 @@ const DeleteAccountScreen = ({ navigation }) => {
             <Text style={[styles.cancelButtonText, { color: colors.text }]}>
               Cancel, Keep My Account
             </Text>
+          </TouchableOpacity>
+
+          {/* Delete Button (Secondary/Destructive) */}
+          <TouchableOpacity
+            style={[
+              styles.deleteButton,
+              {
+                borderColor: dangerColor,
+                opacity: confirmText.trim().toLowerCase() === 'delete' ? 1 : 0.4,
+              },
+            ]}
+            onPress={handleDeleteAccount}
+            disabled={isDeleting || confirmText.trim().toLowerCase() !== 'delete'}
+            accessibilityRole="button"
+            accessibilityLabel="Delete my account forever"
+            accessibilityState={{ disabled: isDeleting || confirmText.trim().toLowerCase() !== 'delete' }}
+          >
+            {isDeleting ? (
+                <ActivityIndicator color={dangerColor} />
+              ) : (
+                <>
+                  <Ionicons name="trash" size={20} color={dangerColor} />
+                  <Text style={[styles.deleteButtonText, { color: dangerColor }]}>Delete My Account Forever</Text>
+                </>
+              )}
           </TouchableOpacity>
 
           {/* Legal Text */}
@@ -320,6 +394,18 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  actionInfo: {
+    flex: 1,
+  },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
   confirmCard: {
     padding: 20,
     borderRadius: 12,
@@ -349,10 +435,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     marginBottom: 12,
+    borderWidth: 1,
     gap: 8,
   },
   deleteButtonText: {
-    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: '600',
   },

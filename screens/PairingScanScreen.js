@@ -27,7 +27,8 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
  * the inviter will derive the identical couple key when they read our public key.
  */
 export default function PairingScanScreen({ navigation }) {
-  const theme = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
   const { isPremiumEffective: isPremium } = useEntitlements();
   const { user, updateProfile } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
@@ -98,10 +99,10 @@ export default function PairingScanScreen({ navigation }) {
 
   if (!permission) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.cameraOverlay} />
         <SafeAreaView style={styles.safeArea}>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Requesting camera permission...</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Requesting camera permission...</Text>
         </SafeAreaView>
       </View>
     );
@@ -109,12 +110,12 @@ export default function PairingScanScreen({ navigation }) {
 
   if (!permission.granted) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.cameraOverlay} />
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.card}>
-            <Text style={[styles.title, { color: theme.colors.text }]}>Camera Access</Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>We need camera access to scan the QR code.</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Camera Access</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>We need camera access to scan the QR code.</Text>
             <TouchableOpacity style={styles.primaryButton} onPress={requestPermission} activeOpacity={0.9}>
               <Text style={styles.primaryButtonText}>Enable Camera</Text>
             </TouchableOpacity>
@@ -125,7 +126,7 @@ export default function PairingScanScreen({ navigation }) {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CameraView
         style={StyleSheet.absoluteFill}
         onBarcodeScanned={scanned ? undefined : handleScan}
@@ -134,11 +135,11 @@ export default function PairingScanScreen({ navigation }) {
       <View style={styles.cameraOverlay} />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.overlay}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Scan QR Code</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>{status}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Scan QR Code</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{status}</Text>
           {scanned && (
             <TouchableOpacity style={styles.secondaryButton} onPress={() => setScanned(false)}>
-              <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>Scan Again</Text>
+              <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Scan Again</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -147,7 +148,7 @@ export default function PairingScanScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1, paddingHorizontal: SPACING.xl, justifyContent: 'center' },
   card: {
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   overlay: {
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(19,16,22,0.15)',
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING.xl,
     alignItems: 'center',
@@ -166,16 +167,16 @@ const styles = StyleSheet.create({
   subtitle: { ...TYPOGRAPHY.body, marginTop: SPACING.sm, textAlign: 'center' },
   primaryButton: {
     marginTop: SPACING.lg,
-    backgroundColor: '#A89060',
+    backgroundColor: colors.accent || '#A89060',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,
   },
-  primaryButtonText: { color: '#070509', fontWeight: '700' },
+  primaryButtonText: { color: colors.surface, fontWeight: '700' },
   secondaryButton: {
     marginTop: SPACING.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.borderGlass || colors.border,
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,
@@ -183,6 +184,6 @@ const styles = StyleSheet.create({
   secondaryButtonText: { fontWeight: '600' },
   cameraOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: isDark ? 'rgba(0,0,0,0.15)' : 'rgba(19,16,22,0.05)',
   },
 });

@@ -81,7 +81,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
-            <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -257,7 +257,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
                   </LinearGradient>
                 )}
                 <LinearGradient
-                  colors={["transparent", "rgba(0,0,0,0.65)"]}
+                  colors={isDark ? ["transparent", "rgba(0,0,0,0.65)"] : ["transparent", "rgba(19,16,22,0.2)"]}
                   style={styles.previewOverlay}
                 />
                 <View style={styles.previewTextContainer}>
@@ -441,7 +441,7 @@ const createStyles = (colors) =>
       opacity: 0.4,
     },
     sendText: {
-      color: '#F2E9E6',
+      color: colors.text,
       fontSize: 14,
       fontWeight: "600",
     },
@@ -592,7 +592,7 @@ const createStyles = (colors) =>
       borderRadius: BORDER_RADIUS.sm,
     },
     photoButtonText: {
-      color: '#F2E9E6',
+      color: colors.text,
       fontSize: 13,
       fontWeight: "600",
     },

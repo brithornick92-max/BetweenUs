@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   Share,
   Platform,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -40,14 +41,15 @@ function FadeSection({ children, delay = 0 }) {
   useEffect(() => {
     Animated.timing(anim, {
       toValue: 1,
-      duration: 1000,
+      duration: 800,
       delay,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
   }, []);
 
   return (
-    <Animated.View style={{ opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }}>
+    <Animated.View style={{ opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
       {children}
     </Animated.View>
   );
@@ -102,7 +104,7 @@ export default function YearReflectionScreen({ navigation }) {
             style={[styles.gateBtn, { backgroundColor: colors.primary }]}
             onPress={() => navigation.navigate('Paywall')}
           >
-            <Text style={[styles.gateBtnText, { color: '#F2E9E6' }]}>Discover more</Text>
+            <Text style={[styles.gateBtnText, { color: colors.text }]}>Discover more</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -142,10 +144,10 @@ export default function YearReflectionScreen({ navigation }) {
         ) : reflection?.sections.map((section, i) => (
           <FadeSection key={section.type} delay={400 + i * 300}>
             <View style={styles.sectionRow}>
-              <View style={[styles.sectionDot, { backgroundColor: colors.primary + '30' }]}>
+              <View style={[styles.sectionDot, { backgroundColor: colors.primary + '15' }]}>
                 <MaterialCommunityIcons
                   name={SECTION_ICONS[section.type] || 'circle-small'}
-                  size={16}
+                  size={18}
                   color={colors.primary}
                 />
               </View>
@@ -157,12 +159,10 @@ export default function YearReflectionScreen({ navigation }) {
         ))}
 
         <FadeSection delay={reflection ? 400 + reflection.sections.length * 300 : 1000}>
-          <View style={[styles.endMark, { borderColor: colors.border }]}>
-            <MaterialCommunityIcons name="heart" size={16} color={colors.primary + '40'} />
+          <View style={[styles.endMark, { borderTopColor: colors.textMuted + '30' }]}>
+            <MaterialCommunityIcons name="heart" size={16} color={colors.primary + '80'} />
           </View>
         </FadeSection>
-
-        <View style={{ height: 60 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -193,7 +193,9 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingHorizontal: SPACING.screen + 8,
-    paddingTop: SPACING.xl,
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingBottom: SPACING.xxl,
   },
   yearLabel: {
     fontSize: 13,
@@ -201,6 +203,7 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
     textTransform: 'uppercase',
     marginBottom: SPACING.sm,
+    marginLeft: 2,
   },
   title: {
     fontFamily: Platform.select({
@@ -210,7 +213,7 @@ const styles = StyleSheet.create({
     }),
     fontSize: 32,
     fontWeight: '300',
-    letterSpacing: -0.5,
+    letterSpacing: 0,
     marginBottom: SPACING.xxl + 8,
     lineHeight: 40,
   },
@@ -222,28 +225,30 @@ const styles = StyleSheet.create({
   },
   sectionRow: {
     flexDirection: 'row',
-    marginBottom: SPACING.xl + 4,
-    gap: SPACING.md,
+    marginBottom: SPACING.xl + 6,
+    gap: SPACING.md + 4,
   },
   sectionDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
   },
   sectionText: {
     flex: 1,
-    fontSize: 17,
-    lineHeight: 28,
+    fontSize: 18,
+    lineHeight: 30,
     fontFamily: 'Lato_400Regular',
+    letterSpacing: 0.2,
   },
   endMark: {
     alignItems: 'center',
-    paddingVertical: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.xxl,
     borderTopWidth: 1,
-    marginTop: SPACING.lg,
+    marginTop: SPACING.md,
   },
 
   // Premium gate

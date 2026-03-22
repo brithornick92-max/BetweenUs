@@ -44,7 +44,7 @@ export default function InsideJokesScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
-            <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

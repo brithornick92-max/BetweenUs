@@ -82,8 +82,60 @@ export default function RelationshipClimate({ onClimateChange, compact = false }
       <Text style={[styles.question, { color: colors.text }]}>
         We're in the mood for…
       </Text>
+
+      {/* Mode Toggles */}
+      <View style={styles.togglesRow}>
+        {CLIMATE_OPTIONS.slice(0, 2).map((option) => {
+          const isSelected = selected === option.id;
+          const c = isDark ? option.colorDark : option.colorLight;
+          return (
+            <AnimatedTouchable
+              key={option.id}
+              style={[
+                styles.modeToggle,
+                {
+                  backgroundColor: isSelected
+                    ? c + '30'
+                    : isDark ? c + '0A' : c + '08',
+                  borderColor: isSelected
+                    ? c + '66'
+                    : isDark ? c + '30' : c + '20',
+                },
+              ]}
+              onPress={() => handleSelect(option.id)}
+              activeOpacity={0.7}
+            >
+              <View style={[
+                styles.iconCircle,
+                {
+                  backgroundColor: isSelected ? c + '30' : c + '18',
+                  marginBottom: 8,
+                },
+              ]}>
+                <MaterialCommunityIcons
+                  name={option.icon}
+                  size={24}
+                  color={isSelected ? c : c + 'BB'}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.optionLabel,
+                  {
+                    color: isSelected ? colors.text : c,
+                    fontWeight: isSelected ? '600' : '500',
+                  },
+                ]}
+              >
+                {option.label}
+              </Text>
+            </AnimatedTouchable>
+          );
+        })}
+      </View>
+
       <View style={styles.optionsGrid}>
-        {CLIMATE_OPTIONS.map((option) => {
+        {CLIMATE_OPTIONS.slice(2).map((option) => {
           const isSelected = selected === option.id;
           const c = isDark ? option.colorDark : option.colorLight;
           return (
@@ -144,7 +196,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.serif,
     fontSize: 20,
     textAlign: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.xl,
     fontWeight: '300',
   },
   optionsGrid: {
@@ -152,6 +204,20 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: GRID_GAP,
+  },
+  togglesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: GRID_GAP,
+    gap: GRID_GAP,
+  },
+  modeToggle: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.xl,
+    borderWidth: 1,
   },
   option: {
     flexDirection: 'column',

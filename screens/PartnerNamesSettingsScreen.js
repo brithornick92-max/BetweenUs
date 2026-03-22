@@ -19,6 +19,7 @@ import Input from '../components/Input';
  */
 const PartnerNamesSettingsScreen = ({ navigation }) => {
   const { colors } = useTheme();
+  const styles = createStyles(colors, false);
   const { userProfile, updateProfile } = useAuth();
   const [myName, setMyName] = useState('');
   const [partnerName, setPartnerName] = useState('');
@@ -113,13 +114,13 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
             <Text style={[styles.examplesTitle, { color: colors.text }]}>Examples</Text>
             <View style={styles.exampleRow}>
               <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
-              <Text style={[styles.exampleText, { color: '#F2E9E6' }]}>
+              <Text style={[styles.exampleText, { color: colors.text }]}>
                 "What does {myName || 'My Name'} love most about {partnerName || 'Partner Name'}?"
               </Text>
             </View>
             <View style={styles.exampleRow}>
               <Ionicons name="heart" size={16} color={colors.primary} />
-              <Text style={[styles.exampleText, { color: '#F2E9E6' }]}>
+              <Text style={[styles.exampleText, { color: colors.text }]}>
                 "{myName || 'My Name'} and {partnerName || 'Partner Name'}'s favorite memory"
               </Text>
             </View>
@@ -139,7 +140,7 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
             onPress={handleSave}
             disabled={isSaving}
           >
-            <Text style={[styles.saveButtonText, { color: '#F2E9E6' }]}> 
+            <Text style={[styles.saveButtonText, { color: colors.text }]}> 
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Text>
           </TouchableOpacity>
@@ -149,7 +150,7 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -243,7 +244,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#F2E9E6',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },

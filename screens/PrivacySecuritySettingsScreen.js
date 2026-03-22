@@ -20,6 +20,7 @@ import { storage, STORAGE_KEYS } from '../utils/storage';
 
 const PrivacySecuritySettingsScreen = ({ navigation }) => {
   const { colors } = useTheme();
+  const styles = createStyles(colors, false);
   const { signOutLocal, signOutGlobal, busy } = useAuth();
   const { actions } = useAppContext();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
@@ -170,7 +171,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         onValueChange={onValueChange}
         disabled={disabled}
         trackColor={{ false: colors.border, true: colors.primary + '80' }}
-        thumbColor={value ? colors.primary : '#E8DDC8'}
+        thumbColor={value ? colors.primary : colors.textMuted}
         ios_backgroundColor={colors.border}
       />
     </View>
@@ -431,7 +432,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
             onPress={handleSave}
             disabled={isSaving}
           >
-            <Text style={[styles.saveButtonText, { color: '#F2E9E6' }]}>
+            <Text style={[styles.saveButtonText, { color: colors.text }]}>
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Text>
           </TouchableOpacity>
@@ -441,7 +442,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -560,7 +561,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#F2E9E6',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },

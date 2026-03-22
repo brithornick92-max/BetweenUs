@@ -30,45 +30,45 @@ export default function HeatLevelScreen({ navigation }) {
       level: 1,
       name: 'Emotional Connection',
       description: 'Emotional intimacy, non-sexual',
-      icon: 'heart',
-      color: '#7A1E4E',
-      gradient: ['#7A1E4E', '#5E1940'],
+      icon: 'spa-outline',
+      color: '#F7A8B8',
+      gradient: ['#F7A8B8', '#D68898'],
       free: true,
     },
     {
       level: 2,
       name: 'Flirty & Romantic',
       description: 'Flirty attraction, romantic tension',
-      icon: 'heart-pulse',
-      color: '#9A2E5E',
-      gradient: ['#9A2E5E', '#7A1E4E'],
+      icon: 'star-four-points-outline',
+      color: '#F27A9B',
+      gradient: ['#F27A9B', '#C85A7B'],
       free: true,
     },
     {
       level: 3,
       name: 'Sensual',
       description: 'Sensual, relationship-focused intimacy',
-      icon: 'fire',
-      color: '#B84070',
-      gradient: ['#B84070', '#9A2E5E'],
+      icon: 'cards-heart-outline',
+      color: '#E84A7B',
+      gradient: ['#E84A7B', '#A83A5A'],
       free: true,
     },
     {
       level: 4,
       name: 'Steamy',
       description: 'Suggestive, adventurous, and heated',
-      icon: 'fire-circle',
-      color: '#C45060',
-      gradient: ['#C45060', '#A83850'],
+      icon: 'water-outline',
+      color: '#E23A68',
+      gradient: ['#E23A68', '#A42045'],
       premium: true,
     },
     {
       level: 5,
       name: 'Explicit',
       description: 'Intensely passionate, graphic, explicit',
-      icon: 'fire-alert',
-      color: '#D04848',
-      gradient: ['#D04848', '#B03030'],
+      icon: 'fire',
+      color: '#B81438',
+      gradient: ['#B81438', '#6A081A'],
       premium: true,
     },
   ];
@@ -252,11 +252,11 @@ export default function HeatLevelScreen({ navigation }) {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <MaterialCommunityIcons name="crown" size={24} color="#070509" />
+                <MaterialCommunityIcons name="crown" size={24} color={colors.surface} />
                 <Text style={[styles.premiumCTAText, { color: "#070509" }]}>
                   Discover the full experience
                 </Text>
-                <MaterialCommunityIcons name="arrow-right" size={20} color="#070509" />
+                <MaterialCommunityIcons name="arrow-right" size={20} color={colors.surface} />
               </LinearGradient>
             </TouchableOpacity>
           )}

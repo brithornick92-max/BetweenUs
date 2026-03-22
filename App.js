@@ -129,7 +129,7 @@ const navigationRef = createNavigationContainerRef();
 function AppContent() {
   const { state } = useAppContext();
   const { isPremiumEffective: isPremium, paywallVisible, paywallFeature } = useEntitlements();
-  const { navigationTheme } = useTheme();
+  const { navigationTheme, isDark } = useTheme();
 
   const [isLocked, setIsLocked] = useState(false);
   const [navReady, setNavReady] = useState(false);
@@ -315,7 +315,7 @@ function AppContent() {
         DeepLinkHandler.setNavigationRef(navigationRef);
       }}
     >
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? "light" : "dark"} />
       <RootNavigator />
     </NavigationContainer>
   );

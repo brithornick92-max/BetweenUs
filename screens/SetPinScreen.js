@@ -25,7 +25,9 @@ function sanitizePin(input) {
 }
 
 const SetPinScreen = ({ navigation }) => {
-  const { colors } = useTheme();  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { colors } = useTheme();
+  const styles = createStyles(colors, false);
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   // Raw values: don’t aggressively rewrite on every keystroke
   const [pinRaw, setPinRaw] = useState('');
   const [confirmPinRaw, setConfirmPinRaw] = useState('');
@@ -116,7 +118,7 @@ const SetPinScreen = ({ navigation }) => {
             accessibilityLabel="Discover the full experience"
           >
             <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
-            <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -209,7 +211,7 @@ const SetPinScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -251,7 +253,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryButtonText: {
-    color: '#F2E9E6',
+    color: colors.text,
     fontWeight: '700',
   },
   secondaryButton: {

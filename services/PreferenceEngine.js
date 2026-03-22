@@ -17,6 +17,31 @@ import {
 } from './ConnectionEngine';
 
 // ═══════════════════════════════════════════════════════
+// Ratings cache — loaded async so filterPrompts can read it sync
+// ═══════════════════════════════════════════════════════
+
+let _ratingsCache = {};
+
+async function warmRatingsCache() {
+  try {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const ratingKeys = allKeys.filter((k) => k.startsWith('prompt_rating_'));
+    if (ratingKeys.length === 0) {
+      _ratingsCache = {};
+      return;
+    }
+    const pairs = await AsyncStorage.multiGet(ratingKeys);
+    const fresh = {};
+    for (const [key, value] of pairs) {
+      if (value) fresh[key.replace('prompt_rating_', '')] = value;
+    }
+    _ratingsCache = fresh;
+  } catch {
+    // degrade gracefully — ratings personalization skipped
+  }
+}
+
+// ═══════════════════════════════════════════════════════
 // ContentProfile — snapshot of all active preferences
 // ═══════════════════════════════════════════════════════
 
@@ -36,7 +61,7 @@ import {
  *   relationshipDuration: string (new|developing|established|mature|long_term),
  * }
  */
-export async function getContentProfile(userProfile = {}) {
+async function getContentProfile(userProfile = {}) {
   // 1. Heat Level Preference (saved in user profile via HeatLevelSettingsScreen)
   const heatLevelPref = userProfile?.heatLevelPreference || 5;
 
@@ -154,17 +179,8 @@ function filterPrompts(allPrompts, profile, options = {}) {
   });
 
   // Phase 2: Soft scoring (boost/demote by relevance)
-  // Personalization: boost/suppress by user ratings (sync for now)
-  let ratings = {};
-  if (typeof AsyncStorage.getItemSync === 'function') {
-    try {
-      const allKeys = AsyncStorage.getAllKeysSync();
-      const ratingKeys = allKeys.filter((k) => k.startsWith('prompt_rating_'));
-      ratingKeys.forEach((k) => {
-        ratings[k.replace('prompt_rating_', '')] = AsyncStorage.getItemSync(k);
-      });
-    } catch (e) { /* fallback to no ratings */ }
-  }
+  // Personalization: boost/suppress by user ratings (warm via warmRatingsCache on login)
+  const ratings = _ratingsCache;
 
   const scored = eligible.map((prompt) => {
     let score = 0;
@@ -247,7 +263,7 @@ function filterPrompts(allPrompts, profile, options = {}) {
  * @param {object} selectedDimensions - Optional active UI selections
  *   e.g. { heat: 3, load: 1, style: 'talking' }
  */
-export function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
+function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
   if (!Array.isArray(allDates) || !profile) return allDates || [];
 
   const { maxHeat, boundaries, season, climate, preferShort } = profile;
@@ -349,7 +365,7 @@ export function filterDatesWithProfile(allDates, profile, selectedDimensions = n
  * Get the tone-appropriate sub-greeting for the home screen
  * based on the full preference profile.
  */
-export async function getSmartGreeting(profile) {
+async function getSmartGreeting(profile) {
   const tone = profile?.tone || 'warm';
   const seasonId = profile?.season?.id || 'cozy';
   const energyLevel = profile?.energy?.level || 'medium';
@@ -419,7 +435,7 @@ export async function getSmartGreeting(profile) {
  * @param {string} dateKey     – "YYYY-MM-DD"
  * @param {Set|Array} [excludeIds] – prompt IDs already shown this month (no repeats)
  */
-export function selectDailyPrompt(allPrompts, profile, dateKey, excludeIds) {
+function selectDailyPrompt(allPrompts, profile, dateKey, excludeIds) {
   // First filter by preferences
   const ranked = filterPrompts(allPrompts, profile);
 
@@ -478,7 +494,7 @@ function getDurationCategory(userProfile) {
  * Quick check: should this prompt be shown given current boundaries?
  * (Synchronous, uses cached boundary data from profile)
  */
-export function shouldShowPrompt(prompt, profile) {
+function shouldShowPrompt(prompt, profile) {
   if (!prompt || !profile) return true;
   const heat = typeof prompt.heat === 'number' ? prompt.heat : 1;
   if (heat > profile.maxHeat) return false;
@@ -490,7 +506,7 @@ export function shouldShowPrompt(prompt, profile) {
 /**
  * Quick check: should this date be shown given current boundaries?
  */
-export function shouldShowDate(date, profile) {
+function shouldShowDate(date, profile) {
   if (!date || !profile) return true;
   if (profile.boundaries?.pausedDates?.includes(date.id)) return false;
   if (profile.season?.maxDuration && date.minutes > profile.season.maxDuration) return false;
@@ -507,4 +523,5 @@ module.exports = {
   shouldShowPrompt,
   shouldShowDate,
   getDurationCategory,
+  warmRatingsCache,
 };

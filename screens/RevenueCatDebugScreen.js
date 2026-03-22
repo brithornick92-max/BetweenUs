@@ -10,6 +10,7 @@ import RevenueCatService from '../services/RevenueCatService';
  */
 export default function RevenueCatDebugScreen({ navigation }) {
   const { colors } = useTheme();
+  const styles = createStyles(colors, false);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -225,7 +226,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F2E9E6',
+    color: colors.text,
   },
   loadingText: {
     marginTop: 16,

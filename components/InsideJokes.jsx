@@ -41,18 +41,21 @@ import { useTheme } from '../context/ThemeContext';
 import { TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 import { PrivateLanguageVault } from '../services/ConnectionEngine';
 
-const JOKE_TYPES = [
-  { key: 'nickname', label: 'Nickname', icon: 'account-heart', color: '#9A2E5E' },
-  { key: 'joke', label: 'Inside Joke', icon: 'emoticon-wink-outline', color: '#7A1E4E' },
-  { key: 'ritual', label: 'Comfort Ritual', icon: 'candelabra', color: '#5E1940' },
-  { key: 'reference', label: 'Shared Reference', icon: 'bookmark-outline', color: '#9A2E5E' },
-  { key: 'phrase', label: 'Our Phrase', icon: 'format-quote-open', color: '#4C1030' },
+const getJokeTypes = (colors, isDark) => [
+  { key: 'nickname', label: 'Nickname', icon: 'account-heart', color: isDark ? '#9A2E5E' : colors.primary },
+  { key: 'joke', label: 'Inside Joke', icon: 'emoticon-wink-outline', color: isDark ? '#7A1E4E' : colors.primaryMuted || colors.primary },
+  { key: 'ritual', label: 'Comfort Ritual', icon: 'candelabra', color: isDark ? '#5E1940' : colors.primaryGlow || colors.primary },
+  { key: 'reference', label: 'Shared Reference', icon: 'bookmark-outline', color: isDark ? '#9A2E5E' : colors.primary },
+  { key: 'phrase', label: 'Our Phrase', icon: 'format-quote-open', color: isDark ? '#4C1030' : colors.primaryMuted || colors.primary },
 ];
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function InsideJokes({ compact = false }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
+  
+  const JOKE_TYPES = getJokeTypes(colors, isDark);
   const [jokes, setJokes] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedType, setSelectedType] = useState('joke');
@@ -291,7 +294,7 @@ export default function InsideJokes({ compact = false }) {
               onPress={handleSave}
               disabled={!formTitle.trim()}
             >
-              <Text style={styles.saveButtonText}>Save to Vault</Text>
+              <Text style={[styles.saveButtonText, { color: colors.text }]}>Save to Vault</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -300,7 +303,7 @@ export default function InsideJokes({ compact = false }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -419,7 +422,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(19,16,22,0.15)',
   },
   modalContent: {
     borderTopLeftRadius: 32,
@@ -477,7 +480,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.5,

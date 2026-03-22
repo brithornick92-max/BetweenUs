@@ -52,7 +52,7 @@ export const DARK_PALETTE = {
   text: "#F2E9E6",             // softCream
   textSecondary: "rgba(242,233,230,0.78)", // creamSubtle-level
   textMuted: "rgba(242,233,230,0.58)",     // readable muted text (WCAG AA)
-  textGlow: "rgba(154,46,94,0.9)",         // mulberry glow text
+  textGlow: "rgba(227,38,79,0.9)",         // sexy red glow text
 
   // Subtle glass borders — white at very low opacity
   border: "rgba(255,255,255,0.06)",
@@ -60,9 +60,9 @@ export const DARK_PALETTE = {
   divider: "rgba(255,255,255,0.04)",
 
   // Sexy red accent — deep, vibrant red
-  primary: "#C3113D",          // sexy red — primary CTAs, active states
-  primaryMuted: "#DF2{A}4B",     // muted ruby — secondary accent
-  primaryGlow: "rgba(195,17,61,0.35)",     // sexy red glow halo
+  primary: "#E3264F",          // sexy red — primary CTAs, active states
+  primaryMuted: "#DF2A4B",     // muted ruby — secondary accent
+  primaryGlow: "rgba(227,38,79,0.35)",     // sexy red glow halo
   accent: "#A89060",           // matteGold — PREMIUM ONLY
   accentMuted: "rgba(168,144,96,0.4)",
 
@@ -73,8 +73,35 @@ export const DARK_PALETTE = {
   overlay: "rgba(7,5,9,0.8)",
 };
 
-// Brand guardrails: "Dark theme only" — no light palette
-export const LIGHT_PALETTE = DARK_PALETTE;
+export const LIGHT_PALETTE = {
+  // Light background — Warm Intimacy palette
+  background: "#F9F6F0",       // softCream
+  surface: "#FFFFFF",          // pureWhite
+  surface2: "#F2EBE5",         // warmCream
+  surfaceElevated: "#EBE3DC",  // deeperCream
+  surfaceGlass: "rgba(255,255,255,0.75)",
+
+  // Dark text
+  text: "#131016",             // charcoalPlum
+  textSecondary: "rgba(19,16,22,0.78)",
+  textMuted: "rgba(19,16,22,0.58)",
+  textGlow: "rgba(227,38,79,0.9)",
+
+  border: "rgba(19,16,22,0.06)",
+  borderGlass: "rgba(19,16,22,0.08)",
+  divider: "rgba(19,16,22,0.04)",
+
+  primary: "#E3264F",
+  primaryMuted: "#DF2A4B",
+  primaryGlow: "rgba(227,38,79,0.25)",
+  accent: "#A89060",
+  accentMuted: "rgba(168,144,96,0.3)",
+
+  danger: "#B85454",
+  success: "#5A8B60",
+  shadow: "#131016",
+  overlay: "rgba(249,246,240,0.8)",
+};
 
 // Legacy: COLORS = dark palette for backward compatibility
 export const COLORS = {
@@ -121,12 +148,21 @@ export const COLORS = {
 
 export const getGradients = (palette) => {
   const p = palette || DARK_PALETTE;
+  // If the background is ink-black, we assume it's the dark palette
+  const isDark = p.background === DARK_PALETTE.background;
+
   return {
     // Screen background: deep vertical wash
-    screenBackground: [p.background, "#0A0611", p.background],
-    // Glass card fill — plum-tinted
-    glass: ["rgba(28,21,32,0.55)", "rgba(19,16,22,0.70)"],
-    glassSubtle: ["rgba(28,21,32,0.35)", "rgba(19,16,22,0.45)"],
+    screenBackground: [p.background, isDark ? "#0A0611" : "#F2EBE5", p.background],
+    // Glass card fill
+    glass: [
+      isDark ? "rgba(28,21,32,0.55)" : "rgba(255,255,255,0.75)", 
+      isDark ? "rgba(19,16,22,0.70)" : "rgba(242,235,229,0.75)"
+    ],
+    glassSubtle: [
+      isDark ? "rgba(28,21,32,0.35)" : "rgba(255,255,255,0.45)", 
+      isDark ? "rgba(19,16,22,0.45)" : "rgba(242,235,229,0.45)"
+    ],
     // Accent glow bloom (for behind cards)
     accentBloom: [p.primaryGlow, "transparent"],
     // CTA button
@@ -134,12 +170,15 @@ export const getGradients = (palette) => {
     ctaGlow: [p.primaryGlow, "transparent"],
     // Legacy compat
     wineCTA: [p.primary, p.primaryMuted],
-    plumVignette: ["#1A0D18", p.background],
+    plumVignette: [isDark ? "#1A0D18" : "#EBE3DC", p.background],
     background: [p.background, p.background],
-    surface: ["rgba(28,21,32,0.60)", "rgba(19,16,22,0.50)"],
+    surface: [
+      isDark ? "rgba(28,21,32,0.60)" : "rgba(255,255,255,0.8)", 
+      isDark ? "rgba(19,16,22,0.50)" : "rgba(242,235,229,0.8)"
+    ],
     primary: [p.primary, p.primaryMuted],
     secondary: [p.surface2, p.primary],
-    gold: [p.accent, "#8B7340"],
+    gold: [p.accent, isDark ? "#8B7340" : "#D4BE8D"],
     champagne: [p.text, p.text + "CC"],
   };
 };

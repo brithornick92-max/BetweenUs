@@ -38,7 +38,7 @@ export default function Button({
 
   const textColor = useMemo(() => {
     if (isDisabled) return colors.textMuted;
-    if (variant === "primary") return '#F2E9E6';
+    if (variant === "primary") return '#F2E9E6'; // Needs to contrast against colors.primary (red)
     if (variant === "glass") return colors.text;
     if (variant === "secondary") return colors.text;
     return colors.primary;

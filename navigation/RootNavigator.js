@@ -200,7 +200,7 @@ export default function RootNavigator() {
           }}
         />
 
-        <Stack.Screen name="HeatLevel" component={HeatLevelScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="HeatLevel" component={HeatLevelScreen} options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="JournalEntry" component={JournalEntryScreen} options={{ headerShown: false }} />
         <Stack.Screen name="VibeSignal" component={VibeSignalScreen} options={{ headerShown: false }} />
         <Stack.Screen name="EditorialPrompt" component={EditorialPromptScreen} options={{ headerShown: false }} />
@@ -215,7 +215,7 @@ export default function RootNavigator() {
         <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} options={{ headerShown: false }} />
 
         <Stack.Screen name="PartnerNamesSettings" component={PartnerNamesSettingsScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="HeatLevelSettings" component={HeatLevelSettingsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="HeatLevelSettings" component={HeatLevelSettingsScreen} options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="RitualReminders" component={RitualRemindersScreen} options={{ headerShown: false }} />
         <Stack.Screen name="PrivacySecuritySettings" component={PrivacySecuritySettingsScreen} options={{ headerShown: false }} />

@@ -1,5 +1,5 @@
 // components/NightRitualMode.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,28 +18,29 @@ import { useAppContext } from '../context/AppContext';
 import { useRitualContext } from '../context/RitualContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import { RITUAL_TYPES } from '../context/RitualContext';
+import { useTheme } from '../context/ThemeContext';
 import { COLORS, GRADIENTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../utils/theme';
 
 // Night theme colors — aligned to Between Us brand palette
-export const NIGHT_COLORS = {
-  deepNight: '#070509',       // inkBlack — screen bg
-  midnightBlue: '#131016',    // charcoalPlum — card surfaces
-  softPurple: '#1C1520',      // surfacePlum — secondary surfaces
-  elevated: '#241C28',        // surfaceElevated — glass cards
-  moonGlow: '#F2E9E6',        // softCream — primary text
-  starlight: '#E8DDC8',       // creamSubtle — secondary text
-  starlightDim: '#E8DDC8',    // tertiary / descriptions
-  wine: '#7A1E4E',            // primary accent
-  mulberry: '#9A2E5E',        // secondary accent
-  wineDeep: '#4C1030',        // gradient endpoints
-  wineMuted: '#5E1940',       // subtle accent bg
-  plumVignette: '#1A0D18',    // atmospheric gradients
-  gentleGold: '#A89060',      // premium-only highlight
-  border: 'rgba(255,255,255,0.08)',
-  borderSubtle: 'rgba(255,255,255,0.05)',
-  glassBg: 'rgba(28,21,32,0.55)',
-  glassBgLight: 'rgba(36,28,40,0.40)',
-};
+export const getNightRitualColors = (palette) => ({
+  deepNight: palette.background,       // inkBlack — screen bg
+  midnightBlue: palette.surface,    // charcoalPlum — card surfaces
+  softPurple: palette.surface2 || palette.surface,      // surfacePlum — secondary surfaces
+  elevated: palette.surfaceElevated,        // surfaceElevated — glass cards
+  moonGlow: palette.text,        // softCream — primary text
+  starlight: palette.textStatic || palette.text,       // creamSubtle — secondary text
+  starlightDim: palette.textMuted,    // tertiary / descriptions
+  wine: palette.primary,            // primary accent
+  mulberry: palette.primary,        // secondary accent
+  wineDeep: palette.primary,        // gradient endpoints
+  wineMuted: palette.primaryGlow || palette.primary,       // subtle accent bg
+  plumVignette: palette.background,    // atmospheric gradients
+  gentleGold: palette.accent || '#A89060',      // premium-only highlight
+  border: palette.borderGlass || 'rgba(255,255,255,0.08)',
+  borderSubtle: palette.borderGlass || 'rgba(255,255,255,0.05)',
+  glassBg: palette.surfaceGlass || 'rgba(28,21,32,0.55)',
+  glassBgLight: palette.surfaceElevated || 'rgba(36,28,40,0.40)',
+});
 
 // Inline fallback questions — used when context fails to provide data
 const FALLBACK_QUESTIONS = {
@@ -61,42 +62,40 @@ const NIGHT_QUOTES = [
 ];
 
 // Night ritual structure — 4 elements
-const RITUAL_ELEMENTS = {
+const getRitualElements = (colors) => ({
   PROMPT: {
     id: 'prompt',
     name: 'Tonight\'s Reflection',
     icon: '🌙',
-    color: NIGHT_COLORS.wine,
-    gradient: [NIGHT_COLORS.wine, NIGHT_COLORS.wineDeep],
+    color: colors.wine,
+    gradient: [colors.wine, colors.wineDeep],
     description: 'A gentle question to end your day',
   },
   CHECK_IN: {
     id: 'checkIn',
     name: 'How Are You?',
     icon: '💫',
-    color: NIGHT_COLORS.mulberry,
-    gradient: [NIGHT_COLORS.mulberry, NIGHT_COLORS.wine],
+    color: colors.mulberry,
+    gradient: [colors.mulberry, colors.wine],
     description: 'Share how you\'re feeling tonight',
   },
   APPRECIATION: {
     id: 'appreciation',
     name: 'Gratitude',
     icon: '✨',
-    color: NIGHT_COLORS.wineMuted,
-    gradient: [NIGHT_COLORS.wineMuted, NIGHT_COLORS.wineDeep],
+    color: colors.wineMuted,
+    gradient: [colors.wineMuted, colors.wineDeep],
     description: 'Something beautiful from today',
   },
   DATE_IDEA: {
     id: 'dateIdea',
     name: 'Tomorrow Together',
     icon: '🌟',
-    color: NIGHT_COLORS.wine,
-    gradient: [NIGHT_COLORS.wine, NIGHT_COLORS.mulberry],
+    color: colors.wine,
+    gradient: [colors.wine, colors.mulberry],
     description: 'A way to connect tomorrow',
   },
-};
-
-const ELEMENT_COUNT = Object.keys(RITUAL_ELEMENTS).length;
+});
 
 const NightRitualMode = ({
   style,
@@ -104,6 +103,11 @@ const NightRitualMode = ({
   onElementComplete,
   compact = false,
 }) => {
+  const { colors: themeColors } = useTheme();
+  const NIGHT_COLORS = useMemo(() => getNightRitualColors(themeColors), [themeColors]);
+  const styles = useMemo(() => createStyles(NIGHT_COLORS), [NIGHT_COLORS]);
+  const RITUAL_ELEMENTS = getRitualElements(NIGHT_COLORS);
+  const ELEMENT_COUNT = Object.keys(RITUAL_ELEMENTS).length;
   const { state: appState } = useAppContext();
   const { state: ritualState, actions: ritualActions } = useRitualContext();
   const { state: memoryState } = useMemoryContext();
@@ -492,6 +496,9 @@ const NightRitualMode = ({
 const MAX_CHARS = 300;
 
 const RitualInput = ({ element, onSubmit, placeholder }) => {
+  const { colors: themeColors } = useTheme();
+  const NIGHT_COLORS = useMemo(() => getNightRitualColors(themeColors), [themeColors]);
+  const styles = useMemo(() => createStyles(NIGHT_COLORS), [NIGHT_COLORS]);
   const [response, setResponse] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -558,22 +565,28 @@ const RitualInput = ({ element, onSubmit, placeholder }) => {
 };
 
 // ── Completed Response ───────────────────────────────
-const CompletedResponse = ({ response }) => (
-  <View style={styles.completedContainer}>
-    <View style={styles.completedInner}>
-      <Text style={styles.completedResponse}>{response}</Text>
-      <View style={styles.completedIndicator}>
-        <Text style={styles.completedIcon}>✓</Text>
-        <Text style={styles.completedText}>Shared</Text>
+const CompletedResponse = ({ response }) => {
+  const { colors: themeColors } = useTheme();
+  const NIGHT_COLORS = useMemo(() => getNightRitualColors(themeColors), [themeColors]);
+  const styles = useMemo(() => createStyles(NIGHT_COLORS), [NIGHT_COLORS]);
+  
+  return (
+    <View style={styles.completedContainer}>
+      <View style={styles.completedInner}>
+        <Text style={styles.completedResponse}>{response}</Text>
+        <View style={styles.completedIndicator}>
+          <Text style={styles.completedIcon}>✓</Text>
+          <Text style={styles.completedText}>Shared</Text>
+        </View>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
 // ═══════════════════════════════════════════════════════
 // Styles — Midnight-intimacy palette, gentle glass layers
 // ═══════════════════════════════════════════════════════
-const styles = StyleSheet.create({
+const createStyles = (NIGHT_COLORS) => StyleSheet.create({
   /* ── Layout ─────────────────────────────────── */
   container: {
     flex: 1,

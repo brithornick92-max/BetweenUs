@@ -18,6 +18,7 @@ import { FALLBACK_PRICES } from '../utils/premiumFeatures';
  */
 const TermsScreen = ({ navigation, route }) => {
   const { colors } = useTheme();
+  const styles = createStyles(colors, false);
   const { onAccept, showActions = false } = route.params || {};
   const [isLoading, setIsLoading] = useState(false);
 
@@ -310,7 +311,7 @@ const TermsScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -384,7 +385,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   acceptText: {
-    color: '#F2E9E6',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },

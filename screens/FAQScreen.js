@@ -178,6 +178,7 @@ const FAQ_DATA = [
 export default function FAQScreen({ navigation }) {
   const [expandedItems, setExpandedItems] = useState({});
   const { colors } = useTheme();
+  const styles = createStyles(colors, false);
 
   const toggleItem = (categoryIndex, questionIndex) => {
     impact(ImpactFeedbackStyle.Light);
@@ -275,7 +276,7 @@ export default function FAQScreen({ navigation }) {
             activeOpacity={0.8}
           >
             <Ionicons name="mail-outline" size={20} color={'#F2E9E6'} />
-            <Text style={[styles.supportButtonText, { color: '#F2E9E6' }]}>Contact Support</Text>
+            <Text style={[styles.supportButtonText, { color: colors.text }]}>Contact Support</Text>
           </TouchableOpacity>
           
           <Text style={[styles.supportEmail, { color: colors.textSecondary }]}>brittanyapps@outlook.com</Text>
@@ -288,7 +289,7 @@ export default function FAQScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
   supportButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F2E9E6',
+    color: colors.text,
     marginLeft: 8,
   },
   supportEmail: {

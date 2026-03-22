@@ -23,7 +23,8 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
 
 export default function SyncSetupScreen({ navigation }) {
   const { isPremiumEffective: isPremium } = useEntitlements();
-  const theme = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -219,14 +220,14 @@ export default function SyncSetupScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
     >
       {/* IMPORTANT: prevent background layer from stealing touches */}
       <LinearGradient
         pointerEvents="none"
-        colors={theme.gradients.secondary || theme.gradients.background || [theme.colors.background, theme.colors.background]}
+        colors={[colors.background, colors.background]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -237,21 +238,21 @@ export default function SyncSetupScreen({ navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.colors.text} />
+            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Cloud Sync</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Cloud Sync</Text>
           <View style={styles.headerSpacer} />
         </View>
 
         <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Enable Secure Sync</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+          <Text style={[styles.title, { color: colors.text }]}>Enable Secure Sync</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Sync is optional and only available to premium couples.
           </Text>
 
           {!supabaseAvailable && (
-            <Text style={[styles.notice, { color: theme.colors.warning }]}>
+            <Text style={[styles.notice, { color: colors.warning }]}>
               Sync isn’t available in this build.
             </Text>
           )}
@@ -277,9 +278,9 @@ export default function SyncSetupScreen({ navigation }) {
             </TouchableOpacity>
           </View>
           <TextInput
-            style={[styles.input, { color: theme.colors.text, borderColor: theme.colors.border }]}
+            style={[styles.input, { color: colors.text, borderColor: colors.border }]}
             placeholder="Email"
-            placeholderTextColor={theme.colors.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -294,9 +295,9 @@ export default function SyncSetupScreen({ navigation }) {
 
           {authMode === 'password' && (
             <TextInput
-              style={[styles.input, { color: theme.colors.text, borderColor: theme.colors.border }]}
+              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
               placeholder="Password (min 6 characters)"
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholderTextColor={colors.textSecondary}
               value={password}
               onChangeText={setPassword}
               autoCapitalize="none"
@@ -326,7 +327,7 @@ export default function SyncSetupScreen({ navigation }) {
                 onPress={() => setIsSignUp(!isSignUp)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.toggleLinkText, { color: theme.colors.textSecondary }]}>
+                <Text style={[styles.toggleLinkText, { color: colors.textSecondary }]}>
                   {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
                 </Text>
               </TouchableOpacity>
@@ -348,7 +349,7 @@ export default function SyncSetupScreen({ navigation }) {
                 disabled={loading || !supabaseAvailable}
                 activeOpacity={0.9}
               >
-                <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>
+                <Text style={[styles.secondaryButtonText, { color: colors.text }]}>
                   I clicked the link
                 </Text>
               </TouchableOpacity>
@@ -359,9 +360,9 @@ export default function SyncSetupScreen({ navigation }) {
             <MaterialCommunityIcons
               name={sessionEmail ? 'check-circle' : 'alert-circle'}
               size={20}
-              color={sessionEmail ? theme.colors.success : theme.colors.textSecondary}
+              color={sessionEmail ? colors.success : colors.textSecondary}
             />
-            <Text style={[styles.statusText, { color: theme.colors.textSecondary }]}>
+            <Text style={[styles.statusText, { color: colors.textSecondary }]}>
               {sessionEmail ? `Signed in as ${sessionEmail}` : 'Not signed in'}
             </Text>
           </View>
@@ -380,7 +381,7 @@ export default function SyncSetupScreen({ navigation }) {
 
           {sessionEmail && (
             <TouchableOpacity style={styles.secondaryButton} onPress={handleSignOut} activeOpacity={0.9}>
-              <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>Sign Out</Text>
+              <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Sign Out</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -390,7 +391,7 @@ export default function SyncSetupScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -447,19 +448,19 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   primaryButton: {
-    backgroundColor: '#A89060',
+    backgroundColor: colors.accent || '#A89060',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',
     marginBottom: SPACING.md,
   },
   primaryButtonText: {
-    color: '#070509',
+    color: colors.surface,
     fontWeight: '700',
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.borderGlass || colors.border,
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',
@@ -482,7 +483,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: colors.borderGlass || colors.border,
     marginVertical: SPACING.md,
   },
   dangerButton: {
@@ -505,7 +506,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.md,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.borderGlass || colors.border,
   },
   authToggle: {
     flex: 1,
@@ -518,10 +519,10 @@ const styles = StyleSheet.create({
   authToggleText: {
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textMuted,
   },
   authToggleTextActive: {
-    color: '#A89060',
+    color: colors.accent || '#A89060',
   },
   toggleLink: {
     alignItems: 'center',

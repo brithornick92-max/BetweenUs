@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import Animated, {
   useAnimatedStyle,
@@ -25,14 +25,14 @@ const Tab = createBottomTabNavigator();
 
 function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
   const scale = useSharedValue(focused ? 1.15 : 1);
-  const opacity = useSharedValue(focused ? 1 : 0.7);
+  const opacity = useSharedValue(focused ? 1 : 0.85);
 
   useEffect(() => {
     scale.value = withSpring(focused ? 1.15 : 1, {
       damping: 15,
       stiffness: 150,
     });
-    opacity.value = withTiming(focused ? 1 : 0.7, { duration: 300 });
+    opacity.value = withTiming(focused ? 1 : 0.85, { duration: 300 });
   }, [focused]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -45,21 +45,21 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
       case "Home":
         return focused ? "heart" : "heart-outline";
       case "Prompts":
-        return focused ? "chat-processing" : "chat-processing-outline";
+        return focused ? "chatbubbles" : "chatbubbles-outline";
       case "Calendar":
-        return focused ? "calendar-month" : "calendar-month-outline";
+        return focused ? "calendar" : "calendar-outline";
       case "DatePlans":
-        return focused ? "glass-wine" : "glass-wine";
+        return focused ? "wine" : "wine-outline";
       case "Settings":
-        return focused ? "tune-variant" : "tune-variant";
+        return focused ? "settings" : "settings-outline";
       default:
-        return focused ? "circle" : "circle-outline";
+        return focused ? "ellipse" : "ellipse-outline";
     }
   };
 
   return (
     <Animated.View style={[styles.iconContainer, animatedStyle]}>
-      <MaterialCommunityIcons
+      <Ionicons
         name={getIconName()}
         size={size}
         color={color}
@@ -119,8 +119,8 @@ export default function Tabs() {
           />
         ),
 
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: withAlpha(colors.textMuted, 0.56),
+        tabBarActiveTintColor: colors.primary, // Using primary for active tint
+        tabBarInactiveTintColor: withAlpha(colors.textMuted, 0.70),
 
         tabBarStyle: [styles.tabBar, { borderTopColor: colors.borderGlass || withAlpha(colors.border, 0.13) }],
         tabBarLabelStyle: styles.label,
@@ -189,8 +189,8 @@ const styles = StyleSheet.create({
 
   label: {
     fontFamily: SANS_BOLD,
-    fontSize: 10,
-    letterSpacing: 1.5,
+    fontSize: 11,
+    letterSpacing: 1.2,
     marginTop: 2,
     textTransform: "uppercase",
   },

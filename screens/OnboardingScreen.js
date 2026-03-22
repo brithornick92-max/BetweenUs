@@ -804,7 +804,7 @@ export default function OnboardingScreen({ navigation }) {
               <TouchableOpacity style={[styles.cloudAuthBtn, { backgroundColor: colors.primary }]} onPress={handleCloudAuthDone} disabled={cloudAuthBusy}>
                 {cloudAuthBusy
                   ? <ActivityIndicator size="small" color="#F2E9E6" />
-                  : <Text style={{ color: '#F2E9E6', fontWeight: '700' }}>Continue</Text>}
+                  : <Text style={{ color: colors.text, fontWeight: '700' }}>Continue</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -983,7 +983,7 @@ const createStyles = (colors) => StyleSheet.create({
     justifyContent: 'center',
   },
   generateInviteButtonText: {
-    color: '#F2E9E6',
+    color: colors.text,
     fontSize: 19,
     fontWeight: '700',
     letterSpacing: 0.5,

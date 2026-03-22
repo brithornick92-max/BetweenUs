@@ -22,7 +22,7 @@ import { cancelNotification } from '../utils/notifications';
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
 
 export default function RitualRemindersScreen({ navigation }) {
-  const theme = useTheme();
+  const theme = useTheme(); const { colors } = theme;
   const { actions } = useRitualContext();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const [reminders, setReminders] = useState([]);
@@ -122,7 +122,7 @@ export default function RitualRemindersScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
-              <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
+              <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

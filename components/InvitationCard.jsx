@@ -213,7 +213,7 @@ const createStyles = (colors) =>
     },
     acceptText: {
       ...TYPOGRAPHY.button,
-      color: '#F2E9E6',
+      color: colors.text,
     },
     // Compact
     compactCard: { marginVertical: SPACING.xs / 2 },

@@ -26,7 +26,8 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
  * 6. Store the couple symmetric key locally.
  */
 export default function PairingQRCodeScreen({ navigation }) {
-  const theme = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = createStyles(colors, isDark);
   const { isPremiumEffective: isPremium } = useEntitlements();
   const { user, updateProfile } = useAuth();
 
@@ -122,21 +123,21 @@ export default function PairingQRCodeScreen({ navigation }) {
   const handleGoToSync = () => navigation.navigate('SyncSetup');
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <LinearGradient colors={theme.gradients.secondary || theme.gradients.background || [theme.colors.background, theme.colors.background]} style={StyleSheet.absoluteFill} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient colors={[colors.background, colors.background]} style={StyleSheet.absoluteFill} />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.card}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Link Partner</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>{status}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Link Partner</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{status}</Text>
 
           {qrPayload && (
             <View style={styles.qrWrap}>
-              <QRCode value={qrPayload} size={220} backgroundColor="transparent" color={theme.colors.text} />
+              <QRCode value={qrPayload} size={220} backgroundColor="transparent" color={colors.text} />
             </View>
           )}
 
           {phase === 'waiting' && (
-            <ActivityIndicator style={{ marginTop: SPACING.lg }} color={theme.colors.primary} />
+            <ActivityIndicator style={{ marginTop: SPACING.lg }} color={colors.primary} />
           )}
 
           {phase === 'error' && (
@@ -145,7 +146,7 @@ export default function PairingQRCodeScreen({ navigation }) {
             </TouchableOpacity>
           )}
 
-          <Text style={[styles.notice, { color: theme.colors.textSecondary }]}>
+          <Text style={[styles.notice, { color: colors.textSecondary }]}>
             QR-only pairing. Your encryption keys never leave this device.
           </Text>
         </View>
@@ -154,7 +155,7 @@ export default function PairingQRCodeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1, paddingHorizontal: SPACING.xl, justifyContent: 'center' },
   card: {
@@ -168,11 +169,11 @@ const styles = StyleSheet.create({
   qrWrap: { marginTop: SPACING.lg, padding: SPACING.lg, borderRadius: BORDER_RADIUS.lg },
   primaryButton: {
     marginTop: SPACING.lg,
-    backgroundColor: '#A89060',
+    backgroundColor: colors.accent || '#A89060',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,
   },
-  primaryButtonText: { color: '#070509', fontWeight: '700' },
+  primaryButtonText: { color: colors.surface, fontWeight: '700' },
   notice: { ...TYPOGRAPHY.body, marginTop: SPACING.md },
 });

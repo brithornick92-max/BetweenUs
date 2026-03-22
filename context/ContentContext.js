@@ -431,11 +431,12 @@ export const ContentProvider = ({ children }) => {
     }
   };
 
-  // Get content (prompts or dates)
+  // Get content (prompts or dates) — delegates to the real filtered fetches
   const getPersonalizedContent = async (contentType = 'prompt', options = {}) => {
     try {
       if (!user) return [];
-      return contentType === 'prompt' ? prompts : dates;
+      if (contentType === 'date') return getDateIdeas(options);
+      return getFilteredPrompts(options);
     } catch (error) {
       console.error('Error getting content:', error);
       return [];
@@ -446,6 +447,7 @@ export const ContentProvider = ({ children }) => {
   useEffect(() => {
     if (user) {
       PromptAllocator.load(user.uid);
+      PreferenceEngine.warmRatingsCache();
       loadUsageStatus();
       loadUserResponses();
       loadContentProfile();

@@ -79,7 +79,7 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
                 { 
                   borderColor: isActive ? season.color : 'rgba(255,255,255,0.05)',
                   backgroundColor: isActive ? season.color + '15' : 'rgba(255,255,255,0.02)',
-                  opacity: isActive ? 1 : 0.5,
+                    opacity: isActive ? 1 : 0.75,
                   transform: [{ scale: isActive ? 1 : 0.98 }]
                 },
               ]}

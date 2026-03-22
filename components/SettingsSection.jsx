@@ -20,7 +20,7 @@ export function SettingRow({ icon, iconColor, title, subtitle, onPress, rightEle
       activeOpacity={0.6}
     >
       <View style={[styles.rowIcon, { backgroundColor: (iconColor || colors.primary) + '14' }]}>
-        <MaterialCommunityIcons name={icon} size={18} color={iconColor || colors.primary} />
+        <MaterialCommunityIcons name={icon} size={20} color={iconColor || colors.primary} />
       </View>
       <View style={styles.rowBody}>
         <Text style={[styles.rowTitle, { color: colors.text }]}>{title}</Text>

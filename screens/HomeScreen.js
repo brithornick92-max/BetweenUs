@@ -1,5 +1,5 @@
-// screens/HomeScreen.js — "Tonight's Moment" — Velvet Glass
-// Deep plum · Glass cards · Single glowing accent · Luxury breathing room
+// screens/HomeScreen.js — "Tonight's Moment" — Apple Editorial
+// Deep plum gradient background · Crisp solid widgets · Native typography · High contrast
 
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import {
@@ -25,9 +25,8 @@ import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { DataLayer } from '../services/localfirst';
-import { SPACING, BORDER_RADIUS, SERIF, SERIF_ACCENT, SANS, SANS_MEDIUM, SANS_BOLD, withAlpha } from '../utils/theme';
+import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
-import GlassCard from '../components/GlassCard';
 import MomentSignal from '../components/MomentSignal';
 import RelationshipClimate from '../components/RelationshipClimate';
 import SurpriseTonight from '../components/SurpriseTonight';
@@ -61,10 +60,11 @@ function normalizePrompt(p) {
   return { ...p, id, text, heat: typeof p.heat === 'number' ? p.heat : 1, category: typeof p.category === 'string' ? p.category : 'romance' };
 }
 
+// Vibrant iOS System Colors for the 2-column action widgets
 const ACTIONS = [
-  { label: 'Love Note', icon: 'email-heart-outline', key: 'note', premium: true },
-  { label: 'Ritual', icon: 'moon-waning-crescent', key: 'ritual' },
-  { label: 'Jokes', icon: 'emoticon-wink-outline', key: 'jokes', premium: true },
+  { label: 'Love Note', icon: 'email-heart-outline', key: 'note', premium: true, color: '#FF2D55' },
+  { label: 'Ritual', icon: 'candle', key: 'ritual', color: '#5856D6' },
+  { label: 'Jokes', icon: 'emoticon-wink-outline', key: 'jokes', premium: true, color: '#FF9500' },
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -73,6 +73,20 @@ export default function HomeScreen({ navigation }) {
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { todayPrompt, loadTodayPrompt } = useContent();
   const { colors, isDark } = useTheme();
+
+  // Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    accent: colors.accent || '#FF2D55',
+    primary: colors.primary,
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const todayKey = useMemo(() => dateKey(new Date()), []);
   const prompt = useMemo(() => normalizePrompt(todayPrompt), [todayPrompt]);
@@ -98,7 +112,7 @@ export default function HomeScreen({ navigation }) {
       Animated.timing(cardAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.timing(actionsAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [headerAnim, cardAnim, actionsAnim]);
 
   useEffect(() => {
     if (user && !todayPrompt && typeof loadTodayPrompt === 'function') {
@@ -117,7 +131,6 @@ export default function HomeScreen({ navigation }) {
     })();
   }, [prompt.id, promptReady]);
 
-  // Load a random past answer for Memory Lane
   useEffect(() => {
     (async () => {
       try {
@@ -131,7 +144,6 @@ export default function HomeScreen({ navigation }) {
     })();
   }, []);
 
-  // Load unread love note count
   useEffect(() => {
     if (!isPremium) return;
     (async () => {
@@ -154,7 +166,8 @@ export default function HomeScreen({ navigation }) {
     userProfile?.displayName ||
     user?.displayName ||
     null;
-  const partnerLabel = state?.partnerLabel || userProfile?.partnerNames?.partnerName || 'Partner';
+  let partnerLabel = state?.partnerLabel || userProfile?.partnerNames?.partnerName || 'your partner';
+  if (partnerLabel === 'A' || !partnerLabel.trim()) partnerLabel = 'your partner';
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
 
   const handleInlineSave = useCallback(async () => {
@@ -215,21 +228,21 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
 
       {/* Deep velvet background gradient */}
       <LinearGradient
         colors={isDark
-          ? [colors.background, '#0F0A1A', '#0D081A', colors.background]
-          : [colors.background, colors.surface2 || '#F3EDE8', colors.background]}
+          ? [t.background, '#0F0A1A', '#0D081A', t.background]
+          : [t.background, t.surfaceSecondary, t.background]}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
       />
 
-      {/* Floating glow orbs */}
-      <GlowOrb color={colors.primaryGlow || withAlpha(colors.primary, 0.15)} size={240} top={-60} left={-40} />
-      <GlowOrb color={withAlpha(colors.accentMuted || colors.accent || '#808080', 0.03)} size={160} top={220} left={SCREEN_W - 80} delay={1500} />
+      {/* Floating glow orbs for the "Velvet" touch */}
+      <GlowOrb color={withAlpha(t.primary, 0.15)} size={600} top={-200} left={-150} />
+      <GlowOrb color={withAlpha(t.accent, 0.05)} size={160} top={220} left={SCREEN_W - 80} delay={1500} />
       <FilmGrain />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -242,22 +255,22 @@ export default function HomeScreen({ navigation }) {
           }]}
         >
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerGreetingSub, { color: colors.textMuted }]}>
+            <Text style={styles.headerGreetingSub}>
               {greeting}
             </Text>
             {preferredName ? (
-              <Text style={[styles.headerName, { color: colors.text }]}>{preferredName}</Text>
+              <Text style={styles.headerName}>{preferredName}</Text>
             ) : null}
           </View>
           <TouchableOpacity
-            style={[styles.vibeButton, { borderColor: colors.borderGlass || colors.border }]}
-            onPress={() => navigation.navigate('VibeSignal')}
+            onPress={() => { selection(); navigation.navigate('VibeSignal'); }}
             activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="button"
             accessibilityLabel="Send a vibe signal"
+            style={styles.vibeButton}
           >
-            <MaterialCommunityIcons name="heart-pulse" size={32} color={colors.primary} />
+            <MaterialCommunityIcons name="heart-outline" size={24} color={t.primary} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -271,36 +284,32 @@ export default function HomeScreen({ navigation }) {
           <WelcomeBack />
           <MilestoneCard />
 
-          {/* ── Hero Prompt Card (Glass) ── */}
+          {/* ── Hero Prompt Card (Crisp Apple Widget) ── */}
           <Animated.View style={{
             opacity: cardAnim,
             transform: [{ translateY: cardAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
           }}>
-            <GlassCard glow variant="elevated" style={styles.heroCardWrap}>
+            <View style={styles.heroCardWrap}>
               <View style={styles.eyebrowRow}>
-                <MaterialCommunityIcons name="star-four-points" size={10} color={colors.primary} />
-                <Text style={[styles.eyebrow, { color: colors.primary }]}>TONIGHT'S MOMENT</Text>
+                <MaterialCommunityIcons name="star-four-points" size={12} color={t.accent} />
+                <Text style={styles.eyebrow}>TONIGHT'S MOMENT</Text>
               </View>
 
-              <Text style={[styles.promptText, { color: colors.text }]}>
+              <Text style={styles.promptText}>
                 {promptReady ? prompt.text : 'Gathering today\'s reflection…'}
               </Text>
 
               {myAnswer ? (
-                <View style={[styles.answerBubble, { backgroundColor: withAlpha(colors.primary, 0.05), borderColor: withAlpha(colors.primary, 0.12) }]}>
-                  <Text style={[styles.answerText, { color: colors.textSecondary || colors.text }]}>{myAnswer}</Text>
+                <View style={styles.answerBubble}>
+                  <Text style={styles.answerText}>{myAnswer}</Text>
                 </View>
               ) : isPremium ? (
                 <TextInput
-                  style={[styles.input, {
-                    color: colors.text,
-                    borderColor: 'rgba(255,255,255,0.15)',
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(245,240,235,0.80)',
-                  }]}
+                  style={styles.input}
+                  placeholderTextColor={t.subtext}
                   value={inlineText}
                   onChangeText={setInlineText}
                   placeholder="What comes to mind…"
-                  placeholderTextColor={withAlpha(colors.text, 0.4)}
                   multiline
                   maxLength={1000}
                   textAlignVertical="top"
@@ -309,13 +318,9 @@ export default function HomeScreen({ navigation }) {
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => showPaywall?.('promptResponses')}
-                  style={[styles.input, {
-                    borderColor: 'rgba(255,255,255,0.15)',
-                    backgroundColor: 'rgba(255,255,255,0.04)',
-                    justifyContent: 'center',
-                  }]}
+                  style={[styles.input, { justifyContent: 'center' }]}
                 >
-                  <Text style={[styles.inputPlaceholder, { color: withAlpha(colors.text, 0.4) }]}>What comes to mind…</Text>
+                  <Text style={styles.inputPlaceholder}>What comes to mind…</Text>
                 </TouchableOpacity>
               )}
 
@@ -323,35 +328,28 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.statusRow}>
                   <MaterialCommunityIcons
                     name={bothAnswered ? 'check-decagram-outline' : 'clock-outline'}
-                    size={13}
-                    color={colors.primary}
+                    size={14}
+                    color={t.primary}
                   />
-                  <Text style={[styles.statusText, { color: colors.textMuted }]}>{statusText}</Text>
+                  <Text style={styles.statusText}>{statusText}</Text>
                 </View>
               )}
 
-              <View style={[styles.cardDivider, { backgroundColor: colors.divider }]} />
+              <View style={{ height: 16 }} />
 
-              {/* Glowing CTA */}
-              <LinearGradient
-                colors={[colors.primary, colors.primaryMuted]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.ctaGradient}
+              {/* Solid High-Contrast Editorial CTA */}
+              <TouchableOpacity
+                style={styles.cta}
+                activeOpacity={0.85}
+                onPress={handlePrimaryCTA}
+                onPressIn={() => impact(ImpactFeedbackStyle.Light)}
+                accessibilityRole="button"
+                accessibilityLabel={primaryCTALabel}
               >
-                <TouchableOpacity
-                  style={styles.cta}
-                  activeOpacity={0.82}
-                  onPress={handlePrimaryCTA}
-                  onPressIn={() => impact(ImpactFeedbackStyle.Light)}
-                  accessibilityRole="button"
-                  accessibilityLabel={primaryCTALabel}
-                >
-                  <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
-                  <MaterialCommunityIcons name="arrow-right" size={16} color="#F2E9E6" />
-                </TouchableOpacity>
-              </LinearGradient>
-            </GlassCard>
+                <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
+                <MaterialCommunityIcons name="arrow-right" size={20} color={isDark ? "#000000" : "#FFFFFF"} />
+              </TouchableOpacity>
+            </View>
           </Animated.View>
 
           <View style={{ height: SPACING.section }} />
@@ -360,14 +358,17 @@ export default function HomeScreen({ navigation }) {
 
           <View style={{ height: SPACING.lg }} />
 
-          {/* ── Quick Actions (Glass cards) ── */}
+          {/* ── Quick Actions (2-Column Apple Widget Layout) ── */}
           <Animated.View style={[styles.actionsRow, {
             opacity: actionsAnim,
             transform: [{ translateY: actionsAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }],
           }]}>
-            {ACTIONS.map((action) => {
+            {ACTIONS.map((action, index) => {
               const locked = action.premium && !isPremium;
               const badge = action.key === 'note' && unreadNotes > 0 ? unreadNotes : 0;
+              // Stretch the final item across the bottom if there's an odd number
+              const isFullWidth = ACTIONS.length % 2 !== 0 && index === ACTIONS.length - 1;
+
               return (
                 <TouchableOpacity
                   key={action.key}
@@ -375,25 +376,25 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => handleAction(action.key)}
                   accessibilityRole="button"
                   accessibilityLabel={action.label}
-                  style={[styles.actionCard, {
-                    backgroundColor: 'rgba(28,21,32,0.45)',
-                    borderColor: colors.borderGlass || colors.border,
-                  }]}
+                  style={[
+                    styles.actionCard,
+                    isFullWidth && { width: '100%' },
+                  ]}
                 >
                   {locked && (
                     <View style={styles.lockBadge}>
-                      <MaterialCommunityIcons name="lock" size={12} color={withAlpha(colors.text, 0.6)} />
+                      <MaterialCommunityIcons name="lock" size={12} color={action.color} />
                     </View>
                   )}
                   {badge > 0 && (
-                    <View style={[styles.noteBadge, { backgroundColor: colors.primary }]}>
+                    <View style={[styles.noteBadge, { backgroundColor: action.color }]}>
                       <Text style={styles.noteBadgeText}>{badge > 9 ? '9+' : badge}</Text>
                     </View>
                   )}
-                  <View style={[styles.actionIconWrap, { backgroundColor: withAlpha(colors.primary, 0.08) }]}>
-                    <MaterialCommunityIcons name={action.icon} size={24} color={colors.primary} />
+                  <View style={[styles.actionIconWrap, { backgroundColor: action.color + '15' }]}>
+                    <MaterialCommunityIcons name={action.icon} size={28} color={action.color} />
                   </View>
-                  <Text style={[styles.actionLabel, { color: colors.text }]}>{action.label}</Text>
+                  <Text style={styles.actionLabel}>{action.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -403,38 +404,38 @@ export default function HomeScreen({ navigation }) {
 
           {/* ── Memory Lane Throwback ── */}
           {throwback && (
-            <GlassCard style={styles.memoryLaneCard}>
+            <View style={styles.memoryLaneCard}>
               <View style={styles.memoryLaneHeader}>
-                <MaterialCommunityIcons name="clock-outline" size={24} color={colors.primary} />
-                <Text style={[styles.memoryLaneLabel, { color: colors.textMuted }]}>MEMORY LANE</Text>
+                <MaterialCommunityIcons name="clock-outline" size={18} color={t.primary} />
+                <Text style={styles.memoryLaneLabel}>MEMORY LANE</Text>
               </View>
-              <Text style={[styles.memoryLanePrompt, { color: colors.text }]}>
+              <Text style={styles.memoryLanePrompt}>
                 {throwback.prompt_text || 'A past moment together'}
               </Text>
-              <Text style={[styles.memoryLaneAnswer, { color: colors.textSecondary || colors.text }]}>
+              <Text style={styles.memoryLaneAnswer}>
                 "{throwback.answer}"
               </Text>
-              <Text style={[styles.memoryLaneDate, { color: colors.textMuted }]}>
+              <Text style={styles.memoryLaneDate}>
                 {throwback.date_key ? new Date(throwback.date_key + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : ''}
               </Text>
-            </GlassCard>
+            </View>
           )}
 
           <View style={{ height: SPACING.lg }} />
 
           <SurpriseTonight navigation={navigation} />
           {isPremium && (
-            <YearReflectionCard onPress={async () => {
-              impact(ImpactFeedbackStyle.Light);
-              navigation.navigate('YearReflection');
-            }} />
+            <>
+              <View style={{ height: SPACING.xl }} />
+              <YearReflectionCard onPress={async () => {
+                impact(ImpactFeedbackStyle.Light);
+                navigation.navigate('YearReflection');
+              }} />
+            </>
           )}
 
           {/* ── Moment Signal ── */}
-          <View style={[styles.momentSection, { 
-            borderColor: 'rgba(255,255,255,0.08)',
-            backgroundColor: isDark ? 'rgba(30,22,44,0.3)' : 'rgba(240,230,235,0.4)',
-          }]}>
+          <View style={styles.momentSection}>
             <TouchableOpacity
               style={styles.momentToggle}
               onPress={() => {
@@ -443,20 +444,16 @@ export default function HomeScreen({ navigation }) {
               }}
               activeOpacity={0.75}
               accessibilityRole="button"
-              accessibilityLabel={`Send a quick moment to ${partnerLabel}`}
+              accessibilityLabel={`Send a moment to ${partnerLabel}`}
             >
-              <MaterialCommunityIcons name="shimmer" size={24} color={colors.primary} />
-              <Text 
-                style={[styles.momentToggleText, { color: colors.text, flexShrink: 1 }]} 
-                numberOfLines={1} 
-                ellipsizeMode="tail"
-              >
-                Send a quick moment to {partnerLabel}
+              <MaterialCommunityIcons name="shimmer" size={24} color={t.primary} />
+              <Text style={styles.momentToggleText} numberOfLines={1} ellipsizeMode="tail">
+                Send a moment to {partnerLabel}
               </Text>
               <MaterialCommunityIcons
                 name={showMoments ? 'chevron-up' : 'chevron-down'}
                 size={24}
-                color={colors.textMuted}
+                color={t.subtext}
               />
             </TouchableOpacity>
             {showMoments && <MomentSignal partnerLabel={partnerLabel} />}
@@ -469,7 +466,10 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial (Native Dashboard Look)
+// ------------------------------------------------------------------
+const createStyles = (t, isDark) => StyleSheet.create({
   root: { flex: 1 },
   safeArea: { flex: 1 },
 
@@ -484,26 +484,34 @@ const styles = StyleSheet.create({
   },
   headerLeft: { flex: 1 },
   headerGreetingSub: {
-    fontFamily: SANS_MEDIUM,
     fontSize: 14,
+    fontWeight: '700',
     letterSpacing: 0.5,
+    color: t.subtext,
     marginBottom: 4,
+    textTransform: 'uppercase',
   },
   headerName: {
-    fontFamily: SERIF,
+    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
     fontSize: 34,
-    letterSpacing: -0.5,
+    fontWeight: '800',
+    letterSpacing: 0.3,
     lineHeight: 40,
+    color: t.text,
   },
   vibeButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
+    borderColor: t.border,
+    backgroundColor: t.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: SPACING.md,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    ...Platform.select({
+      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
   },
 
   // ── Scroll ──
@@ -513,161 +521,174 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xxxl,
   },
 
-  // ── Hero Card ──
-  heroCardWrap: { marginBottom: 0 },
+  // ── Hero Card (Solid Widget) ──
+  heroCardWrap: { 
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: t.border,
+    backgroundColor: t.surface,
+    padding: SPACING.xl,
+    marginBottom: 0,
+    ...Platform.select({
+      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 16 },
+      android: { elevation: 4 },
+    }),
+  },
   eyebrowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: SPACING.lg,
-  },
-  eyebrowDot: { width: 6, height: 6, borderRadius: 3 },
-  eyebrow: {
-    fontFamily: SANS_BOLD,
-    fontSize: 10,
-    letterSpacing: 2.8,
-    textTransform: 'uppercase',
-  },
-  promptText: {
-    fontFamily: SERIF_ACCENT,
-    fontSize: 28,
-    fontWeight: '300',
-    lineHeight: 38,
-    letterSpacing: -0.4,
-    marginBottom: SPACING.xl,
-  },
-  answerBubble: {
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
-    padding: SPACING.lg,
-    marginBottom: SPACING.md,
-  },
-  answerText: {
-    fontFamily: SANS,
-    fontSize: 15,
-    lineHeight: 24,
-    fontStyle: 'italic',
-  },
-  input: {
-    minHeight: 100,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    padding: SPACING.lg,
-    fontFamily: SANS,
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: SPACING.xl,
-  },
-  inputPlaceholder: { fontFamily: SANS, fontSize: 16 },
-  statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     marginBottom: SPACING.md,
   },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    color: t.accent,
+  },
+  promptText: {
+    fontSize: 26,
+    fontWeight: '700', // Editorial bold weight instead of thin serif
+    lineHeight: 34,
+    letterSpacing: -0.5,
+    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
+    color: t.text,
+    marginBottom: SPACING.xl,
+  },
+  answerBubble: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    backgroundColor: t.surfaceSecondary,
+    borderColor: t.border,
+  },
+  answerText: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
+    color: t.text,
+  },
+  input: {
+    minHeight: 100,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: SPACING.lg,
+    fontSize: 16,
+    lineHeight: 24,
+    marginBottom: SPACING.xl,
+    color: t.text,
+    borderColor: t.border,
+    backgroundColor: t.surfaceSecondary,
+  },
+  inputPlaceholder: { 
+    fontSize: 16, 
+    color: t.subtext 
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: SPACING.lg,
+  },
   statusText: {
-    fontFamily: SANS,
     fontSize: 13,
-    fontStyle: 'italic',
-  },
-  cardDivider: {
-    height: StyleSheet.hairlineWidth,
-    marginHorizontal: -SPACING.xl,
-    marginVertical: SPACING.sm,
-  },
-  ctaGradient: {
-    borderRadius: BORDER_RADIUS.full,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: { shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 },
-      android: { elevation: 8 },
-    }),
+    fontWeight: '600',
+    color: t.subtext,
   },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: t.text, // High contrast
     gap: 8,
   },
   ctaLabel: {
-    fontFamily: SANS_BOLD,
-    fontSize: 14,
-    letterSpacing: 2.0,
-    color: '#F2E9E6',
-    textTransform: 'uppercase',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    color: isDark ? '#000000' : '#FFFFFF',
   },
 
-  // ── Quick Actions ──
+  // ── Quick Actions (2-Column Apple Widget Layout) ──
   actionsRow: {
     flexDirection: 'row',
-    gap: SPACING.gutter,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
   },
   actionCard: {
-    flex: 1,
-    alignItems: 'center',
+    width: '48%', // Enables the 2-column layout natively
+    alignItems: 'flex-start', // Left aligned content for Apple Widget feel
     paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.xs,
-    borderRadius: BORDER_RADIUS.xl,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 24,
     borderWidth: 1,
-    gap: SPACING.sm,
+    borderColor: t.border,
+    backgroundColor: t.surface,
+    gap: 12,
     position: 'relative',
     ...Platform.select({
-      ios: { shadowColor: '#070509', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 },
-      android: { elevation: 4 },
+      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.2 : 0.06, shadowRadius: 12 },
+      android: { elevation: 3 },
     }),
   },
   actionIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionLabel: {
-    fontFamily: SANS_MEDIUM,
-    fontSize: 13,
-    letterSpacing: 0.3,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    color: t.text,
   },
   lockBadge: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: 'rgba(28,21,32,0.9)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: 12,
+    right: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: t.surfaceSecondary,
   },
   noteBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
+    top: 12,
+    right: 12,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
     zIndex: 2,
   },
   noteBadgeText: {
-    fontFamily: SANS_BOLD,
     fontSize: 10,
-    color: '#F2E9E6',
-    lineHeight: 14,
+    fontWeight: '800',
+    color: '#FFFFFF', 
   },
 
   // ── Moment Signal ──
   momentSection: {
     marginTop: SPACING.xl,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: BORDER_RADIUS.xl,
+    borderRadius: 24,
     borderWidth: 1,
-    overflow: 'hidden',
+    borderColor: t.border,
+    backgroundColor: t.surface,
+    ...Platform.select({
+      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
   },
   momentToggle: {
     flexDirection: 'row',
@@ -678,44 +699,57 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   momentToggleText: {
-    fontFamily: SANS_MEDIUM,
-    fontSize: 14,
-    letterSpacing: 0.3,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    color: t.text,
   },
 
   // ── Memory Lane ──
   memoryLaneCard: {
     marginTop: SPACING.md,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: t.border,
+    backgroundColor: t.surface,
+    padding: SPACING.xl,
+    ...Platform.select({
+      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.2 : 0.06, shadowRadius: 12 },
+      android: { elevation: 3 },
+    }),
   },
   memoryLaneHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   memoryLaneLabel: {
-    fontFamily: SANS_BOLD,
-    fontSize: 10,
-    letterSpacing: 2.4,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 2,
     textTransform: 'uppercase',
+    color: t.primary,
   },
   memoryLanePrompt: {
-    fontFamily: SERIF_ACCENT,
     fontSize: 18,
     lineHeight: 26,
-    fontWeight: '300',
+    fontWeight: '700',
+    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
+    color: t.text,
     marginBottom: SPACING.sm,
   },
   memoryLaneAnswer: {
-    fontFamily: SANS,
-    fontSize: 14,
-    lineHeight: 22,
-    fontStyle: 'italic',
+    fontSize: 15,
+    lineHeight: 24,
+    fontWeight: '400',
+    color: t.subtext,
     marginBottom: SPACING.sm,
   },
   memoryLaneDate: {
-    fontFamily: SANS,
     fontSize: 12,
+    fontWeight: '700',
+    color: t.subtext,
     letterSpacing: 0.3,
   },
 });

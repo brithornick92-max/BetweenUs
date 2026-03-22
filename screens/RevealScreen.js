@@ -1,3 +1,4 @@
+// screens/RevealScreen.js
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
@@ -9,6 +10,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -17,7 +19,7 @@ import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedb
 import { useAppContext } from "../context/AppContext";
 import { useTheme } from "../context/ThemeContext";
 import { promptStorage } from "../utils/storage";
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS, getGlassStyle } from "../utils/theme";
+import { SPACING, BORDER_RADIUS, SHADOWS } from "../utils/theme";
 import Button from "../components/Button";
 
 const { width } = Dimensions.get("window");
@@ -27,98 +29,77 @@ export default function RevealScreen({ route, navigation }) {
   const { state } = useAppContext();
   const { colors, isDark } = useTheme();
 
-  // Safety check: if no prompt, go back
+  // Safety check
   useEffect(() => {
-    if (!prompt) {
-      console.warn('RevealScreen: No prompt provided in route params');
+    if (!prompt || !prompt?.text) {
+      console.warn('RevealScreen: Invalid prompt provided');
       navigation.goBack();
       return;
     }
-    
-    if (!prompt?.text) {
-      console.warn('RevealScreen: Prompt missing text property:', prompt);
-      navigation.goBack();
-      return;
-    }
-    
-    if (__DEV__) console.log('RevealScreen: Prompt loaded successfully:', { id: prompt.id, hasText: !!prompt.text });
   }, [prompt, navigation]);
 
   const [isRevealed, setIsRevealed] = useState(false);
 
-  // Handle different partner answer states
+  // Handle partner states
   const hasPartnerAnswer = !!initialPartnerAnswer;
   const isWaitingForPartner = !initialPartnerAnswer || bothAnswered === false;
-
-  const [partnerAnswer] = useState(() => {
-    if (initialPartnerAnswer) {
-      return initialPartnerAnswer;
-    }
-    return null;
-  });
+  const [partnerAnswer] = useState(() => initialPartnerAnswer || null);
 
   // High-End Animation Refs
   const revealAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.92)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const slideAnim = useRef(new Animated.Value(40)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Normalized Theme Logic
-  const t = useMemo(() => {
-    return {
-      background: colors.background,
-      surface: colors.surface,
-      surfaceSecondary: colors.surface2,
-      accent: colors.accent,
-      primary: colors.primary,
-      text: colors.text,
-      subtext: colors.textMuted,
-      border: colors.border,
-      card: colors.surface,
-    };
-  }, [colors]);
+  // Normalized Theme Logic (Velvet Glass Palette)
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: colors.surface,
+    surfaceSecondary: colors.surface2 || '#1C1C1E',
+    surfaceGlass: isDark ? 'rgba(28, 28, 30, 0.65)' : 'rgba(255, 255, 255, 0.7)',
+    accent: colors.accent || '#FF2D55',
+    primary: colors.primary,
+    text: colors.text,
+    subtext: colors.text + '99',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
   useEffect(() => {
-    // If already revealed (e.g., returning to screen), animate in
     if (userAnswer?.isRevealed) {
       triggerRevealLogic(false);
       return;
     }
 
-    // Continuous pulse for the locked icon
     if (!isRevealed) {
       const loop = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.08, duration: 1000, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1.05, duration: 1200, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
         ])
       );
       loop.start();
       return () => loop.stop();
     }
-  }, [isRevealed]);
+  }, [isRevealed, userAnswer]);
 
   const triggerRevealLogic = (doHaptics = true) => {
     if (doHaptics && Platform.OS !== "web") {
       notification(NotificationFeedbackType.Success);
     }
-
     setIsRevealed(true);
 
     Animated.parallel([
-      Animated.timing(revealAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
-      Animated.spring(scaleAnim, { toValue: 1, friction: 6, tension: 40, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 1000, useNativeDriver: true }),
+      Animated.timing(revealAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, friction: 9, tension: 50, useNativeDriver: true }),
     ]).start();
   };
 
   const handleReveal = async () => {
     if (!prompt?.id || !prompt?.dateKey) return;
-    
     selection();
     
     try {
-      // Mark revealed (local) for your current user's answer
       const existing = await promptStorage.getAnswer(prompt.dateKey, prompt.id);
       await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
         ...(existing || userAnswer || {}),
@@ -127,59 +108,62 @@ export default function RevealScreen({ route, navigation }) {
       });
       triggerRevealLogic(true);
     } catch (e) {
-      // Never block UX
       triggerRevealLogic(true);
     }
   };
 
-  if (!prompt || !prompt.text) {
-    console.warn('RevealScreen: Rendering blocked - invalid prompt');
-    return null;
-  }
+  if (!prompt || !prompt.text) return null;
 
   const partnerLabel = (state.partnerLabel || "Partner").toUpperCase();
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
-      {/* Soft background wash */}
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+
+      {/* Velvet background gradient */}
       <LinearGradient
-        colors={isDark ? [t.background, t.surface] : [t.background, t.surfaceSecondary]}
-        style={StyleSheet.absoluteFill}
+        colors={isDark 
+          ? [t.background, '#0F0A1A', '#0D081A', t.background] 
+          : [t.background, '#F3EDE8', t.background]}
+        style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
       />
 
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Custom Header */}
+          
+          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity 
-              onPress={async () => {
-                selection();
-                navigation.goBack();
-              }} 
+              onPress={() => { selection(); navigation.goBack(); }} 
               style={styles.backButton}
+              activeOpacity={0.7}
             >
               <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.headerBlur}>
-                <MaterialCommunityIcons name="chevron-left" size={24} color={t.text} />
+                <MaterialCommunityIcons name="chevron-left" size={28} color={t.text} />
               </BlurView>
             </TouchableOpacity>
-
-            <Text style={[styles.headerTitle, { color: t.text }]}>Your Reflection</Text>
-
-            <View style={{ width: 44 }} />
           </View>
 
-          {/* Question Display */}
-          <View style={[styles.promptContainer, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
-            <Text style={[styles.questionLabel, { color: t.accent }]}>THE DAILY PROMPT</Text>
-            <Text style={[styles.questionText, { color: t.text }]}>{prompt?.text || "Loading prompt..."}</Text>
+          {/* Hero Prompt Card (Glass Style) */}
+          <View style={[styles.promptContainer, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
+            <View style={styles.eyebrowRow}>
+              <MaterialCommunityIcons name="star-four-points" size={12} color={t.accent} />
+              <Text style={[styles.questionLabel, { color: t.accent }]}>THE DAILY PROMPT</Text>
+            </View>
+            <Text style={[styles.questionText, { color: t.text }]}>{prompt.text}</Text>
           </View>
 
           {!isRevealed ? (
             /* LOCKED STATE */
             <View style={styles.lockedStage}>
               <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-                <LinearGradient colors={[t.accent, '#9A2E5E']} style={styles.lockedCircle}>
-                  <MaterialCommunityIcons name="heart-flash" size={50} color={t.text} />
+                <LinearGradient 
+                  colors={[t.accent, '#7A1E4E']} 
+                  style={[styles.lockedCircle, { shadowColor: t.accent }]}
+                >
+                  <MaterialCommunityIcons name="lock-heart" size={42} color="#FFFFFF" />
                 </LinearGradient>
               </Animated.View>
 
@@ -189,9 +173,13 @@ export default function RevealScreen({ route, navigation }) {
               </Text>
 
               <Button title="Reveal Together" onPress={handleReveal} style={styles.revealAction} />
-              <Text style={[styles.miniNote, { color: t.subtext }]}>
-                Private by design {isWaitingForPartner ? '• Your answer stays sealed until both share' : '• Shared reflections are just between you two'}
-              </Text>
+              
+              <View style={styles.privacyNoteContainer}>
+                <MaterialCommunityIcons name="shield-lock-outline" size={14} color={t.subtext} />
+                <Text style={[styles.miniNote, { color: t.subtext }]}>
+                  {isWaitingForPartner ? 'Your answer stays sealed until both share' : 'Shared reflections are just between you two'}
+                </Text>
+              </View>
             </View>
           ) : (
             /* REVEALED STATE */
@@ -203,11 +191,8 @@ export default function RevealScreen({ route, navigation }) {
             >
               {/* My Reflection */}
               <View style={styles.answerCard}>
-                <View style={[styles.userTag, { backgroundColor: "#151118" }]}> 
-                  <Text style={[styles.tagText, { color: t.text }]}>YOU</Text>
-                </View>
-
-                <View style={[styles.bubble, { backgroundColor: t.surface, borderColor: t.border }]}>
+                <Text style={[styles.tagText, { color: t.subtext }]}>YOU</Text>
+                <View style={[styles.bubble, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: t.border }]}>
                   <Text style={[styles.bubbleText, { color: t.text }]}>
                     {userAnswer?.answer || "Your thought has been safely stored."}
                   </Text>
@@ -216,13 +201,10 @@ export default function RevealScreen({ route, navigation }) {
 
               {/* Partner Reflection */}
               <View style={styles.answerCard}>
-                <View style={[styles.userTag, { backgroundColor: t.accent }]}> 
-                  <Text style={[styles.tagText, { color: t.text }]}>{partnerLabel}</Text>
-                </View>
-
+                <Text style={[styles.tagText, { color: t.accent }]}>{partnerLabel}</Text>
                 {hasPartnerAnswer ? (
                   <LinearGradient
-                    colors={[t.accent + "22", t.surface]}
+                    colors={isDark ? [t.accent + "15", '#1C1C1E'] : [t.accent + "10", '#FFFFFF']}
                     style={[styles.bubble, { borderColor: t.border }]}
                   >
                     <Text style={[styles.bubbleText, { color: t.text }]}>
@@ -230,31 +212,21 @@ export default function RevealScreen({ route, navigation }) {
                     </Text>
                   </LinearGradient>
                 ) : (
-                  <View
-                    style={[
-                      styles.bubble,
-                      { backgroundColor: t.surfaceSecondary, borderColor: t.border, alignItems: 'center' },
-                    ]}
-                  >
-                    <MaterialCommunityIcons
-                      name="heart-pulse"
-                      size={32}
-                      color={t.accent}
-                      style={{ marginBottom: 12 }}
-                    />
+                  <View style={[styles.bubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border, alignItems: 'center', paddingVertical: 40 }]}>
+                    <MaterialCommunityIcons name="heart-pulse" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
                     <Text style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}>
                       {state.partnerLabel || 'Your partner'} hasn't shared their thoughts yet.
                     </Text>
-                    <Text style={[styles.miniNote, { color: t.subtext, marginTop: 8 }]}>
+                    <Text style={[styles.miniNote, { color: t.subtext, marginTop: 12 }]}>
                       They'll see yours once they answer too ✨
                     </Text>
                   </View>
                 )}
               </View>
 
-              {/* Discussion Guide */}
+              {/* Discussion Guide / Keep Going */}
               <BlurView
-                intensity={isDark ? 14 : 22}
+                intensity={isDark ? 15 : 30}
                 tint={isDark ? "dark" : "light"}
                 style={[styles.insightBox, { borderColor: t.border }]}
               >
@@ -262,7 +234,6 @@ export default function RevealScreen({ route, navigation }) {
                   <MaterialCommunityIcons name="auto-fix" size={20} color={t.accent} />
                   <Text style={[styles.insightTitle, { color: t.text }]}>Keep Going</Text>
                 </View>
-
                 <Text style={[styles.insightText, { color: t.subtext }]}>
                   What surprised you about their answer? Tell them the one thing that made you feel closer.
                 </Text>
@@ -271,11 +242,11 @@ export default function RevealScreen({ route, navigation }) {
               <Button
                 title="Save to Journal"
                 variant="outline"
-                onPress={async () => {
+                onPress={() => {
                   selection();
                   navigation.navigate("JournalEntry");
                 }}
-                style={{ marginTop: 24, marginBottom: 40 }}
+                style={styles.journalAction}
               />
             </Animated.View>
           )}
@@ -285,139 +256,168 @@ export default function RevealScreen({ route, navigation }) {
   );
 }
 
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial Velvet Glass Layout
+// ------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  scrollContent: { 
+    paddingHorizontal: SPACING.xl, 
+    paddingTop: SPACING.sm, 
+    paddingBottom: SPACING.xxxl 
+  },
 
-  scrollContent: { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 30 },
-
+  // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: SPACING.lg,
   },
   backButton: { width: 44, height: 44 },
   headerBlur: {
-    width: 44,
-    height: 44,
+    width: 44, height: 44,
     borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
     overflow: "hidden",
-  },
-  headerTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
 
+  // Hero Prompt
   promptContainer: {
-    padding: 28,
+    padding: SPACING.xl,
     borderRadius: 30,
-    marginBottom: 30,
+    marginBottom: SPACING.xxl,
     borderWidth: 1,
-    minHeight: Math.min(Dimensions.get('window').height * 0.85, 720),
-    justifyContent: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 20 },
+      android: { elevation: 6 },
+    }),
+  },
+  eyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: SPACING.md,
   },
   questionLabel: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "800",
     letterSpacing: 2,
-    marginBottom: 12,
+    textTransform: 'uppercase',
   },
   questionText: {
-    fontSize: 20,
-    fontWeight: "700",
-    lineHeight: 30,
+    fontSize: 26,
+    fontWeight: "300",
+    lineHeight: 38,
+    letterSpacing: -0.4,
+    fontFamily: Platform.select({ ios: "System", android: "serif" }),
   },
 
+  // Locked State
   lockedStage: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 50,
-    paddingHorizontal: 10,
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.md,
   },
   lockedCircle: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    alignItems: "center",
-    justifyContent: "center",
-    ...(SHADOWS?.large || {}),
+    width: 100, height: 100,
+    borderRadius: 50,
+    alignItems: "center", justifyContent: "center",
+    ...Platform.select({
+      ios: { shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 16 },
+      android: { elevation: 8 },
+    }),
   },
   lockedTitle: {
-    fontFamily: Platform.select({
-      ios: "DMSerifDisplay_400Regular",
-      android: "DMSerifDisplay_400Regular",
-    }),
-    fontSize: 30,
-    fontWeight: "700",
-    marginTop: 36,
+    fontSize: 32,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    marginTop: SPACING.xxl,
+    marginBottom: SPACING.sm,
   },
   lockedSub: {
     fontSize: 16,
     textAlign: "center",
-    marginTop: 16,
-    lineHeight: 26,
-    paddingHorizontal: 10,
+    lineHeight: 24,
+    fontWeight: "400",
+    paddingHorizontal: SPACING.lg,
   },
-  revealAction: { marginTop: 40, minWidth: 220 },
-  miniNote: { marginTop: 14, fontSize: 12, opacity: 0.7 },
+  revealAction: { 
+    marginTop: SPACING.xxl, 
+    width: '100%',
+    height: 56,
+    borderRadius: 28,
+  },
+  privacyNoteContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: SPACING.lg,
+  },
+  miniNote: { 
+    fontSize: 13, 
+    fontWeight: "500",
+  },
 
-  answerCard: { marginBottom: 30 },
-  userTag: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 10,
-    marginBottom: 10,
+  // Revealed State
+  answerCard: { 
+    marginBottom: SPACING.xl,
   },
   tagText: {
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 1.2,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    marginBottom: SPACING.sm,
+    marginLeft: SPACING.sm,
   },
-
   bubble: {
-    padding: 28,
-    borderRadius: 32,
-    borderBottomLeftRadius: 6,
+    padding: SPACING.xl,
+    borderRadius: 28,
     borderWidth: 1,
-    ...(SHADOWS?.small || {}),
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12 },
+      android: { elevation: 2 },
+    }),
   },
   bubbleText: {
     fontSize: 17,
-    lineHeight: 26,
-    fontWeight: "600",
+    lineHeight: 28,
+    fontWeight: "400",
   },
 
+  // Insights / Keep Going
   insightBox: {
-    padding: 24,
-    borderRadius: 24,
+    padding: SPACING.xl,
+    borderRadius: 28,
     overflow: "hidden",
     borderWidth: 1,
+    marginTop: SPACING.md,
   },
   insightHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: SPACING.sm,
   },
   insightTitle: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "800",
     marginLeft: 8,
+    letterSpacing: -0.2,
   },
-  insightText: { fontSize: 14, lineHeight: 22, fontWeight: "600", opacity: 0.95 },
-
-  waitingIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 6,
+  insightText: { 
+    fontSize: 15, 
+    lineHeight: 24, 
+    fontWeight: "500",
   },
 
-  waitingText: {
-    fontSize: 12,
+  journalAction: { 
+    marginTop: SPACING.xxl, 
+    marginBottom: SPACING.xl,
+    height: 56,
+    borderRadius: 28,
   },
 });

@@ -14,22 +14,16 @@ const ThemeContext = createContext(null);
 
 const THEME_MODES = ["auto", "dark", "light"];
 
-/** Auto mode: light 6 AM–8 PM, dark otherwise */
-const isNightTime = () => {
-  const h = new Date().getHours();
-  return h < 6 || h >= 20;
-};
-
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   const systemColorScheme = useColorScheme();
 
   if (!context) {
-    const fallbackPalette = DARK_PALETTE;
+    const fallbackPalette = systemColorScheme === "dark" ? DARK_PALETTE : LIGHT_PALETTE;
     return {
-      themeMode: "dark",
+      themeMode: "auto",
       setThemeMode: () => {},
-      isDark: true,
+      isDark: systemColorScheme === "dark",
       colors: fallbackPalette,
       gradients: getGradients(fallbackPalette),
       shadows: getShadows(fallbackPalette),
@@ -73,18 +67,12 @@ export const ThemeProvider = ({ children }) => {
     }
   };
 
-  // Re-evaluate auto mode every minute
-  const [autoTick, setAutoTick] = useState(0);
-  useEffect(() => {
-    if (themeMode !== "auto") return;
-    const id = setInterval(() => setAutoTick((n) => n + 1), 60_000);
-    return () => clearInterval(id);
-  }, [themeMode]);
+  // No longer polling time; uses systemColorScheme hook natively
 
   const palette = useMemo(() => {
-    if (themeMode === "auto") return isNightTime() ? DARK_PALETTE : LIGHT_PALETTE;
+    if (themeMode === "auto") return systemColorScheme === "dark" ? DARK_PALETTE : LIGHT_PALETTE;
     return themeMode === "dark" ? DARK_PALETTE : LIGHT_PALETTE;
-  }, [themeMode, autoTick]);
+  }, [themeMode, systemColorScheme]);
 
   const isDark = useMemo(() => palette === DARK_PALETTE, [palette]);
 

@@ -110,7 +110,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
         onValueChange={onValueChange}
         disabled={disabled || !notificationsEnabled}
         trackColor={{ false: colors.border, true: colors.primary + '80' }}
-        thumbColor={value ? colors.primary : '#E8DDC8'}
+        thumbColor={value ? colors.primary : colors.textMuted}
         ios_backgroundColor={colors.border}
       />
     </View>
@@ -222,7 +222,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
             onPress={handleSave}
             disabled={isSaving}
           >
-            <Text style={[styles.saveButtonText, { color: '#F2E9E6' }]}> 
+            <Text style={[styles.saveButtonText, { color: colors.text }]}> 
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Text>
           </TouchableOpacity>
@@ -335,7 +335,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#F2E9E6',
     fontSize: 16,
     fontWeight: '600',
   },

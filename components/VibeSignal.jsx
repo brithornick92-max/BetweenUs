@@ -7,16 +7,15 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
-  ScrollView,
+  Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { selection } from '../utils/haptics';
 import { useAppContext } from '../context/AppContext';
-import { useMemoryContext } from '../context/MemoryContext';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
-import { GRADIENTS, GLASS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../utils/theme';
+import { TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -25,10 +24,10 @@ export const VIBE_COLORS = {
   PASSIONATE: {
     id: 'passionate',
     name: 'Passionate',
-    primary: '#6B1414',
-    secondary: '#2D0A0A',
-    glow: 'rgba(107, 20, 20, 0.4)',
-    gradient: ['#8F2D56', '#6B1414', '#2D0A0A', '#6B1414'], // Deep wine metallic shimmer
+    primary: '#CC0020',
+    secondary: '#7A0015',
+    glow: 'rgba(204, 0, 32, 0.55)',
+    gradient: ['#FF1744', '#CC0020', '#7A0015', '#CC0020'], // Sexy crimson shimmer
     emotion: 'Intense & Romantic',
   },
   TENDER: {
@@ -56,7 +55,7 @@ export const VIBE_COLORS = {
     secondary: '#0E0B10',
     glow: 'rgba(0, 0, 0, 0.5)',
     gradient: ['#1C1620', '#151118', '#0E0B10', '#151118'], // Ink-black shimmer
-    emotion: 'Mystic & Allure',
+    emotion: 'Mystical & Alluring',
   },
   SERENE: {
     id: 'serene',
@@ -84,10 +83,9 @@ const VibeSignal = ({
   showPartnerVibe = true,
   compact = false 
 }) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { state: appState, actions: appActions } = useAppContext();
   const animTimerRef = useRef(null);
-  const { actions: memoryActions } = useMemoryContext();
   
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -234,9 +232,15 @@ const VibeSignal = ({
   }, []);
 
   const renderVibeOption = (vibe, isSelected) => {
+    // When a vibe is selected, unselected vibes should dim slightly.
+    const isMuted = selectedVibe && !isSelected;
+    
     const animatedStyle = isSelected ? {
       transform: [{ scale: scaleAnimation }],
-    } : {};
+    } : {
+      transform: [{ scale: 1 }],
+      opacity: isMuted ? 0.6 : 1,
+    };
 
     const glowStyle = isSelected ? {
       shadowColor: vibe.primary,
@@ -261,12 +265,11 @@ const VibeSignal = ({
               style={styles.vibeGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-                locations={[0, 0.3, 0.7, 1]}
               >
                 <View style={styles.vibeGradientContent}>
                   <Text style={[styles.vibeName, { color: colors.text }]}>{vibe.name}</Text>
                   {!compact && (
-                    <Text style={[styles.vibeEmotion, { color: colors.textMuted }]}> 
+                    <Text style={[styles.vibeEmotion, { color: 'rgba(255, 255, 255, 0.85)' }]}> 
                       {vibe.emotion}
                     </Text>
                   )}
@@ -274,16 +277,16 @@ const VibeSignal = ({
               </LinearGradient>
           </BlurView>
           
-          {/* Glassmorphism border */}
-              <View style={[
+          {/* Subtle active border */}
+          <Animated.View style={[
             styles.glassBorder,
             { 
-              borderColor: isSelected ? colors.text : 'rgba(255, 211, 233, 0.3)',
-              borderWidth: isSelected ? 2 : 0.5,
-              shadowColor: isSelected ? colors.text : 'transparent',
+              borderColor: isSelected ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.08)',
+              borderWidth: isSelected ? 1.5 : 0.5,
+              shadowColor: isSelected ? vibe.primary : 'transparent',
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: isSelected ? 0.8 : 0,
-              shadowRadius: isSelected ? 8 : 0,
+              shadowOpacity: isSelected ? 0.6 : 0,
+              shadowRadius: isSelected ? 12 : 0,
               elevation: isSelected ? 4 : 0,
             }
           ]} />
@@ -315,7 +318,7 @@ const VibeSignal = ({
               end={{ x: 1, y: 1 }}
             >
               <Text style={[styles.partnerVibeName, { color: colors.text }]}>{partnerVibe.name}</Text>
-              <Text style={[styles.partnerVibeEmotion, { color: colors.softCream || "#F3E5D8" }]}>{partnerVibe.emotion}</Text>
+              <Text style={[styles.partnerVibeEmotion, { color: 'rgba(255, 255, 255, 0.85)' }]}>{partnerVibe.emotion}</Text>
             </LinearGradient>
           </BlurView>
         </Animated.View>
@@ -323,41 +326,12 @@ const VibeSignal = ({
     );
   };
 
-  const renderSyncStatus = () => {
-    const { syncStatus } = appState;
-    const statusColor = {
-      'synced': '#5A8B60',
-      'syncing': '#A89060',
-      'offline': '#9A2E5E',
-    }[syncStatus] || '#9A2E5E';
-
-    const statusText = {
-      'synced': 'Connected',
-      'syncing': 'Syncing...',
-      'offline': 'Offline',
-    }[syncStatus] || 'Unknown';
-
-    return (
-      <View style={styles.syncStatusContainer}>
-        <View style={[styles.syncStatusDot, { backgroundColor: statusColor }]} />
-        <Text style={[styles.syncStatusText, { color: statusColor }]}>
-          {statusText}
-        </Text>
-      </View>
-    );
-  };
-
   return (
-    <ScrollView
-      style={[styles.container, style]}
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={[styles.container, style, styles.contentContainer]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Send a Vibe</Text>
-        <Text style={[styles.subtitle, { color: colors.textMuted }]}>Share how you're feeling right now</Text>
-        {renderSyncStatus()}
+        <Text style={[styles.title, { color: colors.text }]}>Choose Your Vibe</Text>
+        <Text style={[styles.subtitle, { color: colors.textMuted }]}>Tap to share how you're feeling</Text>
       </View>
 
       {/* Vibe Options */}
@@ -404,16 +378,24 @@ const VibeSignal = ({
           </BlurView>
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 };
 
 const createStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   contentContainer: { padding: 16, paddingBottom: 32 },
-  header: { alignItems: 'center', marginBottom: 12 },
-  title: { fontSize: 18, fontWeight: '600' },
-  subtitle: { fontSize: 14 },
+  header: { alignItems: 'center', marginBottom: 20 },
+  title: { 
+    ...TYPOGRAPHY.h2,
+    fontSize: 22,
+  },
+  subtitle: { 
+    ...TYPOGRAPHY.bodySecondary, 
+    fontSize: 14, 
+    marginTop: 6,
+    lineHeight: 20,
+  },
   syncStatusContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   syncStatusDot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   syncStatusText: { fontSize: 12 },
@@ -421,52 +403,54 @@ const createStyles = (colors) => StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
+    paddingHorizontal: 4,
   },
   vibeOption: {
-    width: (screenWidth - 64) / 2,
-    height: (screenWidth - 64) / 2,
-    marginBottom: 16,
-    marginHorizontal: 8,
+    width: (screenWidth - 56) / 2,
+    aspectRatio: 1.15,
+    marginBottom: 12,
+    marginHorizontal: 6,
   },
   vibeOptionInner: {
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.xxl,
     overflow: 'hidden',
     width: '100%',
     height: '100%',
   },
   vibeBlur: {
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.xxl,
     overflow: 'hidden',
     width: '100%',
     height: '100%',
   },
   vibeGradient: {
-    padding: 12,
-    borderRadius: 12,
+    padding: 16,
+    borderRadius: BORDER_RADIUS.xxl,
     width: '100%',
     height: '100%',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
   },
-  vibeGradientContent: { alignItems: 'center' },
-  vibeName: { fontSize: 14, fontWeight: '700' },
-  vibeEmotion: { fontSize: 12, marginTop: 6 },
-  glassBorder: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 12 },
+  vibeGradientContent: { alignItems: 'flex-start' },
+  vibeName: { fontSize: 17, fontWeight: '600', textAlign: 'left', letterSpacing: 0.3 },
+  vibeEmotion: { fontSize: 12, marginTop: 4, textAlign: 'left', fontWeight: '400', opacity: 0.7 },
+  glassBorder: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: BORDER_RADIUS.xxl },
   partnerVibeContainer: { marginTop: 16 },
   partnerVibeLabel: { fontSize: 12 },
-  partnerVibeDisplay: { borderRadius: 12, overflow: 'hidden' },
+  partnerVibeDisplay: { borderRadius: BORDER_RADIUS.xl, overflow: 'hidden' },
   partnerVibeBlur: { padding: 12 },
   partnerVibeGradient: { padding: 12 },
   partnerVibeName: { fontSize: 16, fontWeight: '700' },
   partnerVibeEmotion: { fontSize: 12 },
   anniversaryNotice: { marginTop: 16 },
-  anniversaryNoticeBlur: { padding: 12, borderRadius: 12, alignItems: 'center', flexDirection: 'row' },
+  anniversaryNoticeBlur: { padding: 12, borderRadius: BORDER_RADIUS.xl, alignItems: 'center', flexDirection: 'row' },
   anniversaryNoticeIcon: { marginRight: 8 },
   anniversaryNoticeText: { fontSize: 14 },
-  selectedVibeInfo: { marginTop: 16 },
-  selectedVibeBlur: { padding: 12, borderRadius: 12 },
-  selectedVibeText: { fontSize: 14 },
-  selectedVibeName: { fontWeight: '700' },
-  selectedVibeTime: { fontSize: 12 },
+  selectedVibeInfo: { marginTop: 20 },
+  selectedVibeBlur: { padding: 16, borderRadius: BORDER_RADIUS.xl, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.06)' },
+  selectedVibeText: { fontSize: 14, lineHeight: 20 },
+  selectedVibeName: { fontWeight: '600' },
+  selectedVibeTime: { fontSize: 12, marginTop: 4, opacity: 0.7 },
 });
 
 export default VibeSignal;

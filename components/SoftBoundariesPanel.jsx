@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Lato_400Regular',
     textAlign: 'center',
     marginTop: SPACING.md,
-    opacity: 0.5,
+    opacity: 0.8,
     fontStyle: 'italic',
   },
 });

@@ -13,6 +13,7 @@ import React, {
 import {
   View,
   Text,
+  ScrollView,
   StyleSheet,
   Dimensions,
   Platform,
@@ -159,10 +160,26 @@ function DeckCard({
   const scale = useSharedValue(1);
 
   const heat = item?.heat || 1;
-  const catGradient = HEAT_COLORS[heat] || ["#B07EFF", "#9060E0"];
+  const getCatGradient = () => {
+    if (isDark) {
+      return HEAT_COLORS[heat] || ["#B07EFF", "#9060E0"];
+    }
+    return [colors.primary, colors.primaryMuted || colors.primary];
+  };
+  const catGradient = getCatGradient();
   const catIcon = HEAT_ICONS[heat] || "heart-outline";
   const catLabel = HEAT_LABELS[heat] || "1";
-  const metal = HEAT_METAL[heat] || HEAT_METAL[1];
+  
+  const getMetal = () => {
+    if (isDark) return HEAT_METAL[heat] || HEAT_METAL[1];
+    return {
+      base: colors.surface,
+      chrome: colors.primaryGlow || colors.primary,
+      highlight: colors.primary,
+      mid: colors.border,
+    };
+  };
+  const metal = getMetal();
 
   // Device rotation sensor for subtle metallic shimmer
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, {
@@ -359,7 +376,7 @@ function DeckCard({
     <GestureDetector gesture={gesture}>
       <Animated.View style={[styles.cardContainer, containerStyle]}>
         {/* ── BACK FACE ── */}
-        <Animated.View style={[styles.card, backStyle]}>
+        <Animated.View style={[styles.card, backStyle, { borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)", shadowColor: isDark ? "#000" : "#666", shadowOpacity: isDark ? 0.6 : 0.2 } ]}>
           {/* Base dark metallic layer */}
           <LinearGradient
             colors={[metal.base, "#0A0A0F", metal.base]}
@@ -492,7 +509,7 @@ function DeckCard({
               />
 
               <Animated.Text
-                style={[styles.backHint, { color: "#FFFFFF" }, pulseStyle]}
+                style={[styles.backHint, { color: colors.text }, pulseStyle]}
               >
                 TAP TO REVEAL
               </Animated.Text>
@@ -509,7 +526,7 @@ function DeckCard({
         </Animated.View>
 
         {/* ── FRONT FACE ── */}
-        <Animated.View style={[styles.card, styles.cardFrontWrap, frontStyle]}>
+        <Animated.View style={[styles.card, styles.cardFrontWrap, frontStyle, { borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)", shadowColor: isDark ? "#000" : "#666", shadowOpacity: isDark ? 0.6 : 0.2 } ]}>
           <View style={[styles.cardFront, { backgroundColor: metal.base }]}>
             {/* Metallic base sheen */}
             <LinearGradient
@@ -552,8 +569,11 @@ function DeckCard({
             </Animated.View>
 
             {/* Top band — brushed metal with heat accent */}
-            <View
-              style={[styles.frontBand, { backgroundColor: catGradient[0] }]}
+            <LinearGradient
+              colors={[catGradient[0], catGradient[1] || catGradient[0]]}
+              style={styles.frontBand}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
             >
               {/* Chrome top edge on band */}
               <LinearGradient
@@ -566,16 +586,16 @@ function DeckCard({
                 <Text
                   style={[
                     styles.frontBandLabel,
-                    { color: "#FFFFFF", fontSize: 24, letterSpacing: 0 },
+                    { color: colors.text, fontSize: 24, letterSpacing: 0 },
                   ]}
                 >
                   {catLabel}
                 </Text>
               </View>
-              <Text style={[styles.frontBandLevel, { color: "#FFFFFF" }]}>
+              <Text style={[styles.frontBandLevel, { color: colors.text }]}>
                 {"✦".repeat(heat)}
               </Text>
-            </View>
+            </LinearGradient>
 
             {/* Chrome separator line under band */}
             <LinearGradient
@@ -607,24 +627,24 @@ function DeckCard({
                 end={{ x: 1, y: 1 }}
               />
               <View style={styles.frontBody}>
-                <Text
-                  style={[
-                    styles.frontPromptText,
-                    {
-                      color: "#FFFFFF",
-                      fontSize:
-                        (item?.text?.length || 0) > 180
-                          ? 15
-                          : (item?.text?.length || 0) > 120
-                          ? 17
-                          : 20,
-                    },
-                  ]}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.6}
-                >
-                  {item?.text || "Something beautiful awaits…"}
-                </Text>
+                <ScrollView contentContainerStyle={{flexGrow: 1, justifyContent: "center" }} showsVerticalScrollIndicator={false}>
+                  <Text
+                    style={[
+                      styles.frontPromptText,
+                      {
+                        color: colors.text,
+                        fontSize:
+                          (item?.text?.length || 0) > 180
+                            ? 15
+                            : (item?.text?.length || 0) > 120
+                            ? 17
+                            : 20,
+                      },
+                    ]}
+                  >
+                    {item?.text || "Something beautiful awaits…"}
+                  </Text>
+                </ScrollView>
               </View>
             </View>
 
@@ -649,7 +669,7 @@ function DeckCard({
                   style={[
                     styles.frontFooterText,
                     {
-                      color: "#FFFFFF",
+                      color: colors.text,
                       textShadowColor: catGradient[0],
                       textShadowOffset: { width: 0, height: 0 },
                       textShadowRadius: 6,
@@ -791,16 +811,16 @@ export default function PromptCardDeck({
           <Animated.View
             style={[
               styles.drawButton,
-              { borderColor: colors.primary + "40" },
+              { backgroundColor: colors.primary, borderColor: colors.primary },
               drawButtonStyle,
             ]}
           >
             <MaterialCommunityIcons
               name="cards-outline"
               size={18}
-              color={colors.primary}
+              color="#FFFFFF"
             />
-            <Text style={[styles.drawButtonText, { color: colors.primary }]}>
+            <Text style={[styles.drawButtonText, { color: colors.text }]}>
               Draw next
             </Text>
           </Animated.View>
@@ -895,12 +915,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: "stretch",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "space-evenly",
     borderWidth: 3,
     borderRadius: 12,
     margin: 8,
-    paddingTop: 24,
-    paddingBottom: 18,
+    paddingTop: 32,
+    paddingBottom: 32,
     paddingHorizontal: 14,
     backgroundColor: "rgba(255,255,255,0.02)",
     overflow: "hidden",
@@ -1008,6 +1028,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 18,
     paddingVertical: 14,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     overflow: "hidden",
   },
   bandTopEdge: {
@@ -1061,7 +1083,7 @@ const styles = StyleSheet.create({
   frontPromptText: {
     fontFamily: FONTS.serifAccent,
     fontSize: 22,
-    lineHeight: 30,
+    lineHeight: 28,
     fontWeight: "300",
     textAlign: "center",
     textShadowColor: "rgba(0,0,0,0.3)",
@@ -1071,7 +1093,7 @@ const styles = StyleSheet.create({
 
   frontFooter: {
     paddingHorizontal: 18,
-    paddingBottom: 14,
+    paddingBottom: 24,
     paddingTop: 6,
   },
   frontFooterContent: {
@@ -1118,7 +1140,8 @@ const styles = StyleSheet.create({
   // ── Controls ──
   controls: {
     alignItems: "center",
-    marginTop: SPACING.xl,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.xl,
     gap: SPACING.md,
   },
 

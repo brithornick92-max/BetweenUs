@@ -26,6 +26,7 @@ import Constants from 'expo-constants';
  */
 const ExportDataScreen = ({ navigation }) => {
   const { colors } = useTheme();
+  const styles = createStyles(colors, false);
   const { user, userProfile } = useAuth();
   const { state: memoryState } = useMemoryContext();
   const memories = memoryState?.memories;
@@ -284,7 +285,7 @@ const ExportDataScreen = ({ navigation }) => {
             ) : (
               <>
                 <Ionicons name="download" size={20} color={'#F2E9E6'} />
-                <Text style={[styles.exportButtonText, { color: '#F2E9E6' }]}>Export My Data</Text>
+                <Text style={[styles.exportButtonText, { color: colors.text }]}>Export My Data</Text>
               </>
             )}
           </TouchableOpacity>
@@ -335,7 +336,7 @@ const ExportDataScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -439,7 +440,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   exportButtonText: {
-    color: '#F2E9E6',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },

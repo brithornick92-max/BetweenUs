@@ -33,16 +33,16 @@ export default function GlassCard({
 
   const variants = {
     default: {
-      backgroundColor: 'rgba(28,21,32,0.55)',
-      borderColor: 'rgba(255,255,255,0.06)',
+      backgroundColor: isDark ? 'rgba(28,21,32,0.55)' : 'rgba(255,255,255,0.75)',
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(19,16,22,0.08)',
     },
     subtle: {
-      backgroundColor: 'rgba(28,21,32,0.35)',
-      borderColor: 'rgba(255,255,255,0.04)',
+      backgroundColor: isDark ? 'rgba(28,21,32,0.35)' : 'rgba(255,255,255,0.45)',
+      borderColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(19,16,22,0.04)',
     },
     elevated: {
-      backgroundColor: 'rgba(36,28,40,0.65)',
-      borderColor: 'rgba(255,255,255,0.08)',
+      backgroundColor: isDark ? 'rgba(36,28,40,0.65)' : 'rgba(255,255,255,0.90)',
+      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(19,16,22,0.12)',
     },
   };
 
@@ -70,7 +70,7 @@ export default function GlassCard({
       <View style={[styles.card, v, styles.shadowIOS]}>
         <BlurView
           intensity={blurIntensity}
-          tint="dark"
+          tint={isDark ? "dark" : "light"}
           style={styles.blur}
         >
           <View style={styles.content}>{children}</View>

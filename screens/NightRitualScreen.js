@@ -17,12 +17,13 @@ import NightRitualMode from '../components/NightRitualMode';
 import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
-import { NIGHT_COLORS } from '../components/NightRitualMode';
+import { getNightRitualColors } from '../components/NightRitualMode';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 
 const NightRitualScreen = ({ navigation }) => {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const NIGHT_COLORS = useMemo(() => getNightRitualColors(colors), [colors]);
+  const styles = useMemo(() => createStyles(NIGHT_COLORS), [NIGHT_COLORS]);
   const { state } = useAppContext();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
@@ -107,7 +108,7 @@ const NightRitualScreen = ({ navigation }) => {
   );
 };
 
-const createStyles = (colors) =>
+const createStyles = (NIGHT_COLORS) =>
   StyleSheet.create({
     container: {
       flex: 1,

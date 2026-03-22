@@ -1,3 +1,4 @@
+// screens/CalendarScreen.js
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
@@ -14,6 +15,8 @@ import {
   KeyboardAvoidingView,
   Switch,
   Dimensions,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -24,21 +27,22 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useAppContext } from '../context/AppContext';
 import { calendarStorage, myDatesStorage } from '../utils/storage';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
-import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme';
 import { supabase, TABLES } from '../config/supabase';
+import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme';
 import ReAnimated, { FadeInDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
-// Event type visual config — color-coded topics
+// Event type visual config — Apple System Colors
 const EVENT_TYPES = {
-  dateNight: { label: 'Date Plans', icon: 'heart', color: '#9A2E5E' },
-  ritual: { label: 'Ritual', icon: 'star-four-points-outline', color: '#7A1E4E' },
-  loveNote: { label: 'Love Note', icon: 'email-heart-outline', color: '#9A2E5E' },
-  anniversary: { label: 'Anniversary', icon: 'party-popper', color: '#5E1940' },
-  general: { label: 'General', icon: 'calendar-outline', color: '#4C1030' },
+  dateNight: { label: 'Date Plans', icon: 'heart', color: '#FF2D55' }, // Apple Red/Pink
+  ritual: { label: 'Ritual', icon: 'star-four-points-outline', color: '#5856D6' }, // Apple Purple
+  loveNote: { label: 'Love Note', icon: 'email-heart-outline', color: '#FF2D55' },
+  anniversary: { label: 'Anniversary', icon: 'party-popper', color: '#FF9500' }, // Apple Orange
+  general: { label: 'General', icon: 'calendar-outline', color: '#007AFF' }, // Apple Blue
 };
 
 const REMINDER_OPTIONS = [
@@ -50,7 +54,6 @@ const REMINDER_OPTIONS = [
 ];
 
 const toDisplayDate = (d) => {
-  // Always use a proper Date object and local date components to avoid timezone shifts
   const date = d instanceof Date ? d : new Date(typeof d === 'number' ? d : d);
   if (isNaN(date.getTime())) return '';
   return (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
@@ -58,48 +61,14 @@ const toDisplayDate = (d) => {
 
 const toTimeString = (d) => new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 
-const combineDateTime = (dateStr, timeStr) => {
-  const [mm, dd, yyyy] = String(dateStr || '').split('/').map(Number);
-  const time = String(timeStr || '').trim();
-  const isPM = /pm/i.test(time);
-  const isAM = /am/i.test(time);
-  const cleanTime = time.replace(/\s*(am|pm)/i, '');
-  const [rawHH, rawMin] = cleanTime.split(':').map(Number);
-  let hh = rawHH || 0;
-  if (isPM && hh < 12) hh += 12;
-  if (isAM && hh === 12) hh = 0;
-  return new Date(yyyy || new Date().getFullYear(), (mm || 1) - 1, dd || 1, hh, rawMin || 0).getTime();
-};
-
-function CountdownBanner({ nextEvent, styles, colors }) {
-  if (!nextEvent) return null;
-  
-  const diff = Math.ceil((nextEvent.whenTs - Date.now()) / (1000 * 60 * 60 * 24));
-  if (diff < 0 || diff > 14) return null; // Only show for next 2 weeks
-
-  return (
-    <View style={[styles.countdownBanner, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }]}>
-      <View>
-        <Text style={[styles.countdownLabel, { color: colors.primary }]}>UPCOMING</Text>
-        <Text style={[styles.countdownTitle, { color: colors.text }]}>{nextEvent.title}</Text>
-      </View>
-      <View style={styles.daysBadge}>
-        <Text style={[styles.daysNumber, { color: colors.primary }]}>{diff === 0 ? 'Today' : diff}</Text>
-        {diff > 0 && <Text style={[styles.daysLabel, { color: colors.primary }]}>days</Text>}
-      </View>
-    </View>
-  );
-}
-
-function PremiumCalendar({ selectedDate, onDateSelect, events, styles }) {
+function PremiumCalendar({ selectedDate, onDateSelect, events, styles, colors }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const { colors } = useTheme();
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 800,
+      duration: 500,
       useNativeDriver: true,
     }).start();
   }, []);
@@ -118,6 +87,9 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles }) {
     }
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(new Date(year, month, day));
+    }
+    while (days.length % 7 !== 0) {
+      days.push(null);
     }
     return days;
   };
@@ -149,25 +121,25 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles }) {
   const yearName = currentMonth.getFullYear();
 
   return (
-    <Animated.View style={[styles.calendarContainer, { opacity: fadeAnim }]}>
+    <Animated.View style={[styles.calendarCard, { opacity: fadeAnim }]}>
       <View style={styles.calendarHeader}>
         <View>
-          <Text style={[styles.monthTitle, { color: colors.text }]}>{monthName}</Text>
-          <Text style={[styles.yearTitle, { color: colors.textMuted }]}>{yearName}</Text>
+          <Text style={styles.monthTitle}>{monthName}</Text>
+          <Text style={styles.yearTitle}>{yearName}</Text>
         </View>
         <View style={styles.navButtons}>
-          <TouchableOpacity onPress={() => navigateMonth(-1)} style={styles.navButton}>
-            <MaterialCommunityIcons name="chevron-left" size={24} color={colors.textMuted} />
+          <TouchableOpacity onPress={() => navigateMonth(-1)} style={styles.navButton} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigateMonth(1)} style={styles.navButton}>
-            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textMuted} />
+          <TouchableOpacity onPress={() => navigateMonth(1)} style={styles.navButton} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="chevron-right" size={28} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.dayLabelsRow}>
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-          <Text key={i} style={[styles.dayLabel, { color: colors.textMuted }]}>{day}</Text>
+          <Text key={i} style={styles.dayLabel}>{day}</Text>
         ))}
       </View>
 
@@ -175,7 +147,7 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles }) {
         {Array.from({ length: Math.ceil(days.length / 7) }).map((_, weekIndex) => (
           <View key={weekIndex} style={styles.weekRow}>
             {days.slice(weekIndex * 7, (weekIndex + 1) * 7).map((date, dayIndex) => {
-              if (!date) return <View key={dayIndex} style={styles.dayCell} />;
+              if (!date) return <View key={dayIndex} style={styles.dayCellWrapper} />;
               
               const selected = isSelected(date);
               const today = isToday(date);
@@ -183,33 +155,34 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles }) {
               const hasEvents = dayEvents.length > 0;
 
               return (
-                <TouchableOpacity
-                  key={dayIndex}
-                  style={styles.dayCell}
-                  onPress={() => {
-                    selection();
-                    onDateSelect(date);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  {selected && (
-                    <View style={[styles.signatureGlow, { backgroundColor: colors.primary + '20', borderColor: colors.primary + '40' }]} />
-                  )}
-                  <Text style={[
-                    styles.dayText, 
-                    { color: selected ? colors.text : (today ? colors.primary : colors.text) },
-                    selected && { fontWeight: '600' }
-                  ]}>
-                    {date.getDate()}
-                  </Text>
-                  {hasEvents && !selected && (
-                    <View style={styles.eventDotsRow}>
-                      {dayEvents.slice(0, 3).map((evt, ei) => (
-                        <View key={ei} style={[styles.eventDot, { backgroundColor: getEventTypeColor(evt) }]} />
-                      ))}
-                    </View>
-                  )}
-                </TouchableOpacity>
+                <View key={dayIndex} style={styles.dayCellWrapper}>
+                  <TouchableOpacity
+                    style={[
+                      styles.dayCell,
+                      selected && { backgroundColor: colors.text } // High contrast selection
+                    ]}
+                    onPress={() => {
+                      selection();
+                      onDateSelect(date);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[
+                      styles.dayText, 
+                      { color: selected ? colors.background : (today ? colors.primary : colors.text) },
+                      selected && { fontWeight: '700' }
+                    ]}>
+                      {date.getDate()}
+                    </Text>
+                    {hasEvents && !selected && (
+                      <View style={styles.eventDotsRow}>
+                        {dayEvents.slice(0, 3).map((evt, ei) => (
+                          <View key={ei} style={[styles.eventDot, { backgroundColor: getEventTypeColor(evt) }]} />
+                        ))}
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
               );
             })}
           </View>
@@ -219,8 +192,7 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles }) {
   );
 }
 
-function TimelineEvent({ item, index, onLongPress, styles }) {
-  const { colors } = useTheme();
+function TimelineEvent({ item, onLongPress, styles, isDark }) {
   const dateObj = new Date(item.whenTs);
   const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const eventType = item.eventType && EVENT_TYPES[item.eventType] 
@@ -229,26 +201,33 @@ function TimelineEvent({ item, index, onLongPress, styles }) {
 
   return (
     <TouchableOpacity 
-      style={styles.timelineItem} 
+      style={[
+        styles.timelineCard, 
+        { 
+          backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+          borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+        }
+      ]} 
       onLongPress={onLongPress}
       activeOpacity={0.8}
     >
-      <View style={styles.whisperLineContainer}>
-        <View style={[styles.whisperLine, { backgroundColor: colors.border }]} />
-        <View style={[styles.whisperDot, { backgroundColor: eventType.color }]} />
-      </View>
+      <View style={[styles.timelineCardColorBar, { backgroundColor: eventType.color }]} />
+      
+      <View style={styles.timelineCardContent}>
+        <View style={styles.timelineCardHeader}>
+          <Text style={styles.eventTitleText}>{item.title}</Text>
+          <Text style={styles.eventTimeText}>{time}</Text>
+        </View>
 
-      <View style={styles.eventCardStationery}>
         <View style={styles.eventTypeRow}>
-          <MaterialCommunityIcons name={eventType.icon} size={12} color={eventType.color} />
+          <MaterialCommunityIcons name={eventType.icon} size={14} color={eventType.color} />
           <Text style={[styles.eventTypeLabel, { color: eventType.color }]}>{eventType.label}</Text>
         </View>
-        <Text style={[styles.eventTimeText, { color: colors.textMuted }]}>{time}</Text>
-        <Text style={[styles.eventTitleText, { color: colors.text }]}>{item.title}</Text>
+
         {item.location && (
           <View style={styles.locationRow}>
-            <MaterialCommunityIcons name="map-marker-outline" size={12} color={colors.textMuted} />
-            <Text style={[styles.locationText, { color: colors.textMuted }]}>{item.location}</Text>
+            <MaterialCommunityIcons name="map-marker" size={14} color={styles.subtextColor} />
+            <Text style={styles.locationText}>{item.location}</Text>
           </View>
         )}
       </View>
@@ -266,7 +245,18 @@ export default function CalendarScreen({ navigation, route }) {
   const [myDates, setMyDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    accent: colors.accent || '#FF2D55',
+    primary: colors.primary,
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const [refreshing, setRefreshing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -274,8 +264,6 @@ export default function CalendarScreen({ navigation, route }) {
   // Date/time picker state
   const [pickerDate, setPickerDate] = useState(new Date());
   const [pickerTime, setPickerTime] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(true);
-  const [showTimePicker, setShowTimePicker] = useState(true);
 
   const [form, setForm] = useState({
     title: '',
@@ -294,7 +282,6 @@ export default function CalendarScreen({ navigation, route }) {
     ]);
     let safe = Array.isArray(localList) ? localList : [];
 
-    // ── Merge with Supabase calendar_events (shared with partner) ──
     if (supabase && coupleId) {
       try {
         const { data: remoteEvents, error } = await supabase
@@ -304,7 +291,6 @@ export default function CalendarScreen({ navigation, route }) {
           .order('event_date', { ascending: true });
 
         if (!error && Array.isArray(remoteEvents)) {
-          // Convert Supabase rows → local event shape
           const mapped = remoteEvents.map(r => ({
             id: r.id,
             title: r.title,
@@ -314,18 +300,14 @@ export default function CalendarScreen({ navigation, route }) {
             isDateNight: r.event_type === 'dateNight' || r.event_type === 'date_night',
             whenTs: new Date(r.event_date).getTime(),
             createdBy: r.created_by,
-            isRemote: true, // flag so we know it came from Supabase
+            isRemote: true,
             metadata: r.metadata || {},
           }));
-          // Merge: remote events take precedence for same id
           const remoteIds = new Set(mapped.map(e => e.id));
           const localOnly = safe.filter(e => !remoteIds.has(e.id) && !e.supabaseId);
           safe = [...mapped, ...localOnly];
         }
-      } catch (err) {
-        console.warn('[Calendar] Failed to fetch remote events:', err.message);
-        // Fall back to local-only — offline-safe
-      }
+      } catch (err) {}
     }
 
     setEvents(safe.sort((a, b) => (a.whenTs || 0) - (b.whenTs || 0)));
@@ -337,22 +319,15 @@ export default function CalendarScreen({ navigation, route }) {
       loadEvents();
       const prefill = route?.params?.prefill;
       if (prefill) {
-        // ── Prefill date & time pickers from a timestamp or string ──
         let prefillDateObj = new Date();
-
-        if (prefill.prefillDate) {
-          // Preferred: numeric timestamp
-          prefillDateObj = new Date(prefill.prefillDate);
-        } else if (prefill.dateStr) {
-          // Legacy: "MM/DD/YYYY" string
+        if (prefill.prefillDate) prefillDateObj = new Date(prefill.prefillDate);
+        else if (prefill.dateStr) {
           const [mm, dd, yyyy] = prefill.dateStr.split('/').map(Number);
           prefillDateObj = new Date(yyyy || new Date().getFullYear(), (mm || 1) - 1, dd || 1);
         }
 
-        // Parse time from the same timestamp, or from a timeStr fallback
         let prefillTimeObj = new Date(prefillDateObj);
         if (!prefill.prefillDate && prefill.timeStr) {
-          // Try to parse "7:30 PM" style strings
           const timeMatch = String(prefill.timeStr).match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
           if (timeMatch) {
             let hh = parseInt(timeMatch[1], 10);
@@ -367,7 +342,7 @@ export default function CalendarScreen({ navigation, route }) {
 
         setPickerDate(prefillDateObj);
         setPickerTime(prefillTimeObj);
-        setSelectedDate(prefillDateObj);  // highlight the day on the calendar
+        setSelectedDate(prefillDateObj); 
 
         setForm(prev => ({
           ...prev,
@@ -383,30 +358,18 @@ export default function CalendarScreen({ navigation, route }) {
     }, [route?.params?.prefill])
   );
 
-  // ── Realtime: auto-refresh when partner adds/removes calendar events ──
   useEffect(() => {
     if (!supabase || !coupleId) return;
-
     const channel = supabase
       .channel(`calendar_${coupleId}`)
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: TABLES.CALENDAR_EVENTS,
-          filter: `couple_id=eq.${coupleId}`,
-        },
-        () => {
-          // Partner created/updated/deleted an event — reload
-          loadEvents();
-        }
+        { event: '*', schema: 'public', table: TABLES.CALENDAR_EVENTS, filter: `couple_id=eq.${coupleId}` },
+        () => loadEvents()
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, [coupleId]);
 
   const onRefresh = async () => {
@@ -419,14 +382,12 @@ export default function CalendarScreen({ navigation, route }) {
     if (!form.title.trim()) return Alert.alert('Required', 'Please name your event.');
 
     try {
-      // Combine picker date and time into a single timestamp
       const combined = new Date(pickerDate);
       combined.setHours(pickerTime.getHours(), pickerTime.getMinutes(), 0, 0);
       const whenTs = combined.getTime();
 
       let notificationId = null;
 
-      // Schedule notification separately — don't let failures block the save
       if (form.notify) {
         try {
           const mins = form.notifyMins || 60;
@@ -443,15 +404,12 @@ export default function CalendarScreen({ navigation, route }) {
               Alert.alert('Notifications', 'Please enable notifications in Settings to receive reminders.');
             }
           }
-        } catch (notifErr) {
-          console.warn('Notification scheduling failed:', notifErr);
-        }
+        } catch (notifErr) {}
       }
 
       const eventData = { ...form, whenTs, notificationId, eventType: form.eventType };
-
-      // ── Sync to Supabase so partner sees it ──
       let supabaseId = null;
+
       if (supabase && coupleId && userId) {
         try {
           const { data: inserted, error } = await supabase
@@ -463,29 +421,16 @@ export default function CalendarScreen({ navigation, route }) {
               event_date: new Date(whenTs).toISOString(),
               event_type: form.eventType || 'general',
               location: form.location || null,
-              metadata: {
-                isDateNight: form.isDateNight,
-                notify: form.notify,
-                notifyMins: form.notifyMins,
-                notificationId,
-              },
+              metadata: { isDateNight: form.isDateNight, notify: form.notify, notifyMins: form.notifyMins, notificationId },
               created_by: userId,
             })
             .select('id')
             .single();
 
-          if (!error && inserted) {
-            supabaseId = inserted.id;
-          } else if (error) {
-            console.warn('[Calendar] Supabase insert failed:', error.message);
-          }
-        } catch (syncErr) {
-          console.warn('[Calendar] Supabase sync error:', syncErr.message);
-          // Continue — event still saves locally
-        }
+          if (!error && inserted) supabaseId = inserted.id;
+        } catch (syncErr) {}
       }
 
-      // Save locally (with Supabase id reference for dedup)
       const savedEvent = await calendarStorage.addEvent({
         ...eventData,
         ...(supabaseId ? { id: supabaseId, supabaseId } : {}),
@@ -504,7 +449,6 @@ export default function CalendarScreen({ navigation, route }) {
       }
 
       setModalOpen(false);
-      // Navigate the calendar to the date of the newly saved event
       const savedDate = new Date(combined);
       savedDate.setHours(0, 0, 0, 0);
       setSelectedDate(savedDate);
@@ -512,47 +456,33 @@ export default function CalendarScreen({ navigation, route }) {
       const now = new Date();
       setPickerDate(now);
       setPickerTime(now);
-      setForm({
-        title: '',
-        location: '',
-        notes: '',
-        eventType: 'general',
-        isDateNight: false,
-        notify: false,
-        notifyMins: 60,
-      });
+      setForm({ title: '', location: '', notes: '', eventType: 'general', isDateNight: false, notify: false, notifyMins: 60 });
     } catch (err) {
-      console.error('Calendar save error:', err);
       Alert.alert('Error', 'Something went wrong saving your event. Please try again.');
     }
   };
 
   const selectedDateEvents = events.filter(e => toDisplayDate(new Date(e.whenTs)) === toDisplayDate(selectedDate));
 
-  // Free users: calendar is locked
   if (!isPremium) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
         <View style={styles.mainPadding}>
-          <View style={styles.topHeader}>
-            <Text style={[styles.editorialTitle, { color: colors.text }]}>Your Shared Time</Text>
-          </View>
+          <Text style={styles.editorialTitle}>Your Shared Time</Text>
         </View>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
-          <MaterialCommunityIcons name="calendar-lock-outline" size={64} color={colors.primary} style={{ marginBottom: 16 }} />
-          <Text style={{ color: colors.text, fontSize: 28, fontFamily: 'DMSerifDisplay-Regular', marginBottom: 12, textAlign: 'center' }}>
-            Calendar is Premium
-          </Text>
-          <Text style={{ color: colors.textMuted, fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 24, paddingHorizontal: 16 }}>
+        <View style={styles.paywallCenter}>
+          <MaterialCommunityIcons name="calendar-lock" size={64} color={t.primary} style={{ marginBottom: 16 }} />
+          <Text style={styles.paywallTitle}>Calendar is Premium</Text>
+          <Text style={styles.paywallDesc}>
             Plan date nights, track anniversaries, set reminders, and build a shared timeline of your relationship.
           </Text>
           <TouchableOpacity
             onPress={() => showPaywall?.('calendar')}
-            style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+            style={styles.paywallButton}
             activeOpacity={0.85}
           >
-            <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
-            <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
+            <MaterialCommunityIcons name="star" size={18} color="#FFFFFF" />
+            <Text style={styles.paywallButtonText}>Discover Premium</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -560,305 +490,374 @@ export default function CalendarScreen({ navigation, route }) {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <GlowOrb color={withAlpha(colors.primary, 0.12)} size={200} top={-40} left={-30} />
-      <GlowOrb color={withAlpha(colors.accent, 0.06)} size={140} top={300} left={SCREEN_W - 80} delay={1500} />
+    <View style={{ flex: 1, backgroundColor: t.background }}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      
+      {/* Velvet background gradient */}
+      <LinearGradient
+        colors={isDark 
+          ? [t.background, '#0F0A1A', '#0D081A', t.background] 
+          : [t.background, '#F2F2F7', t.background]}
+        style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+      <GlowOrb color={withAlpha(t.primary, 0.15)} size={250} top={-50} left={-50} />
       <FilmGrain />
-    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
-      >
-        <View style={styles.mainPadding}>
-          <View style={styles.topHeader}>
-            <Text style={[styles.editorialTitle, { color: colors.text }]}>Your Shared Time</Text>
+
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.primary} />}
+        >
+          <View style={styles.mainPadding}>
+            <Text style={styles.editorialTitle}>Timeline</Text>
           </View>
 
-          <PremiumCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} events={events} styles={styles} />
+          <PremiumCalendar 
+            selectedDate={selectedDate} 
+            onDateSelect={setSelectedDate} 
+            events={events} 
+            styles={styles} 
+            colors={t} 
+          />
 
           <View style={styles.timelineSection}>
-            <Text style={[styles.timelineDate, { color: colors.textMuted }]}>
-              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase()}
-            </Text>
+            <View style={styles.timelineHeaderRow}>
+              <Text style={styles.timelineDate}>
+                {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </Text>
+              <Text style={styles.eventCountText}>
+                {selectedDateEvents.length} {selectedDateEvents.length === 1 ? 'Event' : 'Events'}
+              </Text>
+            </View>
 
             {selectedDateEvents.length > 0 ? (
-              selectedDateEvents.map((event, i) => (
-                <ReAnimated.View key={event.id} entering={FadeInDown.duration(400).delay(i * 80)}>
-                <TimelineEvent 
-                  item={event} 
-                  index={i} 
-                  styles={styles}
-                  onLongPress={() => {
-                    Alert.alert('Remove Event', 'Are you sure you want to delete this?', [
-                      { text: 'Keep' },
-                      { text: 'Delete', style: 'destructive', onPress: async () => {
-                        if (event.notificationId) {
-                          await cancelNotification(event.notificationId);
-                        }
-                        // Delete from Supabase if it came from there
-                        if (supabase && (event.isRemote || event.supabaseId)) {
-                          try {
-                            const remoteId = event.supabaseId || event.id;
-                            await supabase
-                              .from(TABLES.CALENDAR_EVENTS)
-                              .delete()
-                              .eq('id', remoteId);
-                          } catch (err) {
-                            console.warn('[Calendar] Supabase delete failed:', err.message);
-                          }
-                        }
-                        await calendarStorage.deleteEvent(event.id);
-                        loadEvents();
+              <View style={styles.eventsList}>
+                {selectedDateEvents.map((event, i) => (
+                  <ReAnimated.View key={event.id} entering={FadeInDown.duration(300).delay(i * 50)}>
+                    <TimelineEvent 
+                      item={event} 
+                      styles={styles}
+                      isDark={isDark}
+                      onLongPress={() => {
+                        Alert.alert('Remove Event', 'Are you sure you want to delete this?', [
+                          { text: 'Cancel', style: 'cancel' },
+                          { text: 'Delete', style: 'destructive', onPress: async () => {
+                            if (event.notificationId) await cancelNotification(event.notificationId);
+                            if (supabase && (event.isRemote || event.supabaseId)) {
+                              try {
+                                await supabase.from(TABLES.CALENDAR_EVENTS).delete().eq('id', event.supabaseId || event.id);
+                              } catch (err) {}
+                            }
+                            await calendarStorage.deleteEvent(event.id);
+                            loadEvents();
+                          }}
+                        ]);
                       }}
-                    ]);
-                  }}
-                />
-                </ReAnimated.View>
-              ))
+                    />
+                  </ReAnimated.View>
+                ))}
+              </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <View style={styles.whisperLineContainer}>
-                  <View style={[styles.whisperLine, { backgroundColor: colors.border, height: 40 }]} />
-                </View>
-                <Text style={[styles.emptyText, { color: colors.textMuted }]}>No plans recorded yet.</Text>
+                <MaterialCommunityIcons name="calendar-blank" size={32} color={t.subtext} style={{ marginBottom: 12 }} />
+                <Text style={styles.emptyText}>No plans recorded for this day.</Text>
               </View>
             )}
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
 
-      <TouchableOpacity onPress={() => setModalOpen(true)} style={[styles.fab, { backgroundColor: colors.primary }]} activeOpacity={0.85}>
-        <MaterialCommunityIcons name="plus" size={28} color="#F2E9E6" />
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => setModalOpen(true)} style={styles.fab} activeOpacity={0.9}>
+          <MaterialCommunityIcons name="plus" size={32} color={isDark ? "#000" : "#FFF"} />
+        </TouchableOpacity>
 
-      <Modal visible={modalOpen} animationType="fade" transparent>
-        <KeyboardAvoidingView behavior="padding" style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>New Entry</Text>
-              <TouchableOpacity onPress={() => setModalOpen(false)}>
-                <MaterialCommunityIcons name="close" size={24} color={colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView contentContainerStyle={styles.modalForm} showsVerticalScrollIndicator={false}>
-              <TextInput
-                style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-                placeholder="Event Title"
-                placeholderTextColor={colors.textMuted}
-                value={form.title}
-                onChangeText={v => setForm(p => ({ ...p, title: v }))}
-              />
-
-              {/* Date Picker */}
-              <View style={styles.pickerSection}>
-                <Text style={[styles.pickerLabel, { color: colors.textMuted }]}>Date</Text>
-                <DateTimePicker
-                  value={pickerDate}
-                  mode="date"
-                  display="spinner"
-                  onChange={(event, date) => {
-                    if (date) setPickerDate(date);
-                  }}
-                  themeVariant={isDark ? 'dark' : 'light'}
-                  style={styles.picker}
-                />
+        {/* Create Event Modal */}
+        <Modal visible={modalOpen} animationType="slide" transparent>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>New Event</Text>
+                <TouchableOpacity onPress={() => setModalOpen(false)} style={styles.closeButton}>
+                  <MaterialCommunityIcons name="close" size={24} color={t.text} />
+                </TouchableOpacity>
               </View>
 
-              {/* Time Picker */}
-              <View style={styles.pickerSection}>
-                <Text style={[styles.pickerLabel, { color: colors.textMuted }]}>Time</Text>
-                <DateTimePicker
-                  value={pickerTime}
-                  mode="time"
-                  display="spinner"
-                  onChange={(event, time) => {
-                    if (time) setPickerTime(time);
-                  }}
-                  themeVariant={isDark ? 'dark' : 'light'}
-                  style={styles.picker}
-                />
-              </View>
-
-              <TextInput
-                style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-                placeholder="Location"
-                placeholderTextColor={colors.textMuted}
-                value={form.location}
-                onChangeText={v => setForm(p => ({ ...p, location: v }))}
-              />
-
-              {/* Reminder / Notification */}
-              <View style={styles.reminderSection}>
-                <View style={styles.reminderToggleRow}>
-                  <View style={styles.reminderToggleLabel}>
-                    <MaterialCommunityIcons name="bell-outline" size={18} color={form.notify ? colors.primary : colors.textMuted} />
-                    <Text style={[styles.reminderText, { color: colors.text }]}>Reminder</Text>
-                  </View>
-                  <Switch
-                    value={form.notify}
-                    onValueChange={v => setForm(p => ({ ...p, notify: v }))}
-                    trackColor={{ false: colors.border, true: colors.primary + '60' }}
-                    thumbColor={form.notify ? colors.primary : colors.textMuted}
+              <ScrollView contentContainerStyle={styles.modalForm} showsVerticalScrollIndicator={false}>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Title</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="e.g. Dinner at Mario's"
+                    placeholderTextColor={t.subtext}
+                    value={form.title}
+                    onChangeText={v => setForm(p => ({ ...p, title: v }))}
                   />
                 </View>
-                {form.notify && (
-                  <View style={styles.reminderOptions}>
-                    {REMINDER_OPTIONS.map(opt => (
-                      <TouchableOpacity
-                        key={opt.mins}
-                        style={[
-                          styles.reminderChip,
-                          { borderColor: form.notifyMins === opt.mins ? colors.primary : colors.border },
-                          form.notifyMins === opt.mins && { backgroundColor: colors.primary + '15' },
-                        ]}
-                        onPress={() => setForm(p => ({ ...p, notifyMins: opt.mins }))}
-                      >
-                        <Text style={[
-                          styles.reminderChipText,
-                          { color: form.notifyMins === opt.mins ? colors.primary : colors.textMuted },
-                        ]}>
-                          {opt.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
 
-              <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: colors.primary }]} onPress={handleSave}>
-                <Text style={styles.primaryBtnText}>Save</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-    </SafeAreaView>
+                {/* Event Type Grid */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Type</Text>
+                  <View style={styles.typeGrid}>
+                    {Object.entries(EVENT_TYPES).map(([key, type]) => {
+                      const isActive = form.eventType === key;
+                      return (
+                        <TouchableOpacity
+                          key={key}
+                          style={[
+                            styles.typeChip,
+                            isActive && { backgroundColor: type.color, borderColor: type.color }
+                          ]}
+                          onPress={() => setForm(p => ({ ...p, eventType: key, isDateNight: key === 'dateNight' }))}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.typeChipText, { color: isActive ? '#FFFFFF' : t.text }]}>
+                            {type.label}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </View>
+                </View>
+
+                <View style={styles.pickerRow}>
+                  <View style={styles.pickerSection}>
+                    <Text style={styles.inputLabel}>Date</Text>
+                    <View style={styles.pickerWrap}>
+                      <DateTimePicker
+                        value={pickerDate}
+                        mode="date"
+                        display="compact"
+                        onChange={(e, d) => d && setPickerDate(d)}
+                        themeVariant={isDark ? 'dark' : 'light'}
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.pickerSection}>
+                    <Text style={styles.inputLabel}>Time</Text>
+                    <View style={styles.pickerWrap}>
+                      <DateTimePicker
+                        value={pickerTime}
+                        mode="time"
+                        display="compact"
+                        onChange={(e, t) => t && setPickerTime(t)}
+                        themeVariant={isDark ? 'dark' : 'light'}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Location (Optional)</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Add location"
+                    placeholderTextColor={t.subtext}
+                    value={form.location}
+                    onChangeText={v => setForm(p => ({ ...p, location: v }))}
+                  />
+                </View>
+
+                <View style={styles.reminderSection}>
+                  <View style={styles.reminderToggleRow}>
+                    <Text style={styles.inputLabel}>Alert</Text>
+                    <Switch
+                      value={form.notify}
+                      onValueChange={v => setForm(p => ({ ...p, notify: v }))}
+                      trackColor={{ false: t.border, true: t.primary }}
+                    />
+                  </View>
+                  {form.notify && (
+                    <View style={styles.reminderOptions}>
+                      {REMINDER_OPTIONS.map(opt => {
+                        const isActive = form.notifyMins === opt.mins;
+                        return (
+                          <TouchableOpacity
+                            key={opt.mins}
+                            style={[
+                              styles.reminderChip,
+                              isActive && { backgroundColor: t.text, borderColor: t.text },
+                            ]}
+                            onPress={() => setForm(p => ({ ...p, notifyMins: opt.mins }))}
+                          >
+                            <Text style={[
+                              styles.reminderChipText,
+                              { color: isActive ? t.background : t.text },
+                            ]}>
+                              {opt.label}
+                            </Text>
+                          </TouchableOpacity>
+                        )
+                      })}
+                    </View>
+                  )}
+                </View>
+
+                <TouchableOpacity style={styles.primaryBtn} onPress={handleSave} activeOpacity={0.8}>
+                  <Text style={styles.primaryBtnText}>Add Event</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+      </SafeAreaView>
     </View>
   );
 }
 
-const createStyles = (colors) => StyleSheet.create({
-  container: { flex: 1 },
-  mainPadding: { paddingHorizontal: SPACING.screen, paddingTop: 20 },
-  topHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
-  editorialTitle: { fontFamily: TYPOGRAPHY.h1.fontFamily, fontSize: 34, fontWeight: '400', letterSpacing: -0.3 },
-  fab: { position: 'absolute', bottom: 100, alignSelf: 'center', left: '50%', marginLeft: -28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 },
-  calendarContainer: { marginBottom: 40 },
-  calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 },
-  monthTitle: { fontFamily: TYPOGRAPHY.h1.fontFamily, fontSize: 26, fontWeight: '400' },
-  yearTitle: { fontSize: 10, letterSpacing: 2.5, textTransform: 'uppercase', marginTop: 4 },
-  navButtons: { flexDirection: 'row', gap: 8 },
-  navButton: { padding: 8 },
-  dayLabelsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingHorizontal: 10 },
-  dayLabel: { fontSize: 10, fontWeight: '600', width: 30, textAlign: 'center', letterSpacing: 0.5 },
-  calendarGrid: { gap: 12 },
-  weekRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  dayCell: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  dayText: { fontSize: 14, fontFamily: TYPOGRAPHY.body.fontFamily },
-  signatureGlow: { position: 'absolute', width: 32, height: 32, borderRadius: 16, borderWidth: 1 },
-  eventDot: { width: 3, height: 3, borderRadius: 1.5, marginHorizontal: 1 },
-  eventDotsRow: { position: 'absolute', bottom: 2, flexDirection: 'row', gap: 2, alignItems: 'center' },
-  timelineSection: { marginTop: 24, paddingBottom: 100 },
-  timelineDate: { fontSize: 10, letterSpacing: 2, fontWeight: '600', marginBottom: 24 },
-  timelineItem: { flexDirection: 'row', marginBottom: 0, minHeight: 80 },
-  whisperLineContainer: { width: 20, alignItems: 'center' },
-  whisperLine: { width: 1, flex: 1, opacity: 0.3 },
-  whisperDot: { width: 6, height: 6, borderRadius: 3, position: 'absolute', top: 6 },
-  eventCardStationery: { flex: 1, paddingLeft: 20, paddingBottom: 30 },
-  eventTypeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
-  eventTypeLabel: { fontSize: 10, fontWeight: '600', letterSpacing: 1.5, textTransform: 'uppercase' },
-  eventTimeText: { fontSize: 12, fontFamily: TYPOGRAPHY.body.fontFamily, marginBottom: 4 },
-  eventTitleText: { fontSize: 18, fontFamily: TYPOGRAPHY.h1.fontFamily, fontWeight: '400', marginBottom: 4 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  locationText: { fontSize: 12 },
-  emptyContainer: { flexDirection: 'row', height: 60 },
-  emptyText: { paddingLeft: 20, fontSize: 14, fontStyle: 'italic', marginTop: 2 },
-  modalOverlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
-  modalContent: { borderTopLeftRadius: BORDER_RADIUS.xxl, borderTopRightRadius: BORDER_RADIUS.xxl, padding: 32, maxHeight: '80%', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderGlass || colors.border },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 },
-  modalTitle: { fontSize: 24, fontFamily: TYPOGRAPHY.h1.fontFamily, fontWeight: '400' },
-  modalForm: { gap: 20 },
-  input: { borderBottomWidth: 1, paddingVertical: 12, fontSize: 16, fontFamily: TYPOGRAPHY.body.fontFamily },
-  row: { flexDirection: 'row', gap: 16 },
-  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
-  primaryBtn: { backgroundColor: colors.primary, paddingVertical: 18, borderRadius: BORDER_RADIUS.full, alignItems: 'center', marginTop: 20, shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12 },
-  primaryBtnText: { color: '#F2E9E6', fontSize: 14, fontWeight: '600', letterSpacing: 1.5, textTransform: 'uppercase' },
-  eventTypeSelector: { marginVertical: 8 },
-  eventTypeSelectorLabel: { fontSize: 13, fontWeight: '600', marginBottom: 10, fontFamily: TYPOGRAPHY.body.fontFamily },
-  eventTypeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  eventTypeChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9, borderRadius: BORDER_RADIUS.full, borderWidth: 1 },
-  eventTypeChipText: { fontSize: 12, fontWeight: '500' },
-  // Legend
-  legendContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 28, paddingHorizontal: 4 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendLabel: { fontSize: 11, fontWeight: '500', letterSpacing: 0.3 },
-  // Picker
-  pickerSection: { marginBottom: 4 },
-  pickerLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8, fontFamily: TYPOGRAPHY.body.fontFamily },
-  pickerTrigger: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 14, borderBottomWidth: 1 },
-  pickerTriggerText: { fontSize: 16, fontFamily: TYPOGRAPHY.body.fontFamily },
-  picker: { height: 120 },
-  // Reminder
-  reminderSection: { marginVertical: 4 },
-  reminderToggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  reminderToggleLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  reminderText: { fontSize: 16, fontFamily: TYPOGRAPHY.body.fontFamily },
-  reminderOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  reminderChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: BORDER_RADIUS.full, borderWidth: 1 },
-  reminderChipText: { fontSize: 12, fontWeight: '500' },
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial
+// ------------------------------------------------------------------
+const createStyles = (t, isDark) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: 'transparent' },
+  scrollContent: { flexGrow: 1, paddingBottom: 160 }, // Extra padding to clear tab bar and FAB
+  mainPadding: { paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: SPACING.md },
+  
+  editorialTitle: { 
+    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
+    fontSize: 34, 
+    fontWeight: '800', 
+    letterSpacing: 0.3,
+    color: t.text,
+  },
 
-  // Countdown Banner
-  countdownBanner: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  // ── Premium Calendar Widget ──
+  calendarCard: {
+    backgroundColor: t.surface,
+    marginHorizontal: SPACING.xl,
+    borderRadius: 28,
     padding: SPACING.lg,
-    marginVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.xl,
     borderWidth: 1,
-    borderColor: colors.primaryGlow || 'rgba(154, 46, 94, 0.3)',
-    backgroundColor: colors.primary + '0A',
+    borderColor: t.border,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 16 },
+      android: { elevation: 4 },
+    }),
   },
-  countdownLabel: {
-    fontFamily: 'Lato-Bold',
-    fontSize: 10,
-    letterSpacing: 2,
-    marginBottom: 4,
-    fontWeight: '700',
+  calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING.lg, paddingHorizontal: 4 },
+  monthTitle: { fontSize: 24, fontWeight: '700', color: t.text, letterSpacing: -0.5 },
+  yearTitle: { fontSize: 14, fontWeight: '600', color: t.subtext, marginTop: 2 },
+  navButtons: { flexDirection: 'row', gap: 12 },
+  navButton: { padding: 4, backgroundColor: t.surfaceSecondary, borderRadius: 16 },
+  
+  dayLabelsRow: { flexDirection: 'row', marginBottom: 12 },
+  dayLabel: { fontSize: 11, fontWeight: '700', color: t.subtext, width: '14.28%', textAlign: 'center' },
+  calendarGrid: { gap: 8 },
+  weekRow: { flexDirection: 'row' },
+  dayCellWrapper: { width: '14.28%', alignItems: 'center', justifyContent: 'center' },
+  dayCell: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  dayText: { fontSize: 15, fontWeight: '500', textAlign: 'center', fontVariant: ['tabular-nums'] },
+  eventDotsRow: { position: 'absolute', bottom: 4, flexDirection: 'row', gap: 2, alignItems: 'center' },
+  eventDot: { width: 4, height: 4, borderRadius: 2 },
+
+  // ── Timeline Section ──
+  timelineSection: { marginTop: SPACING.xl, paddingHorizontal: SPACING.xl },
+  timelineHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: SPACING.lg },
+  timelineDate: { fontSize: 20, fontWeight: '700', color: t.text, letterSpacing: -0.3 },
+  eventCountText: { fontSize: 14, fontWeight: '500', color: t.subtext },
+  eventsList: { gap: SPACING.md },
+  
+  timelineCard: {
+    flexDirection: 'row',
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
   },
-  countdownTitle: {
-    fontFamily: TYPOGRAPHY.h1.fontFamily,
-    fontSize: 20,
-    fontWeight: '400',
-  },
-  daysBadge: {
-    alignItems: 'center',
+  timelineCardColorBar: { width: 6 },
+  timelineCardContent: { flex: 1, padding: SPACING.lg, gap: 8 },
+  timelineCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  eventTitleText: { fontSize: 17, fontWeight: '700', color: t.text, flex: 1, marginRight: 8 },
+  eventTimeText: { fontSize: 13, fontWeight: '600', color: t.subtext },
+  eventTypeRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  eventTypeLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  locationText: { fontSize: 13, fontWeight: '500', color: t.subtext },
+  subtextColor: t.subtext, // passed for the icon
+
+  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40, backgroundColor: t.surface, borderRadius: 20, borderWidth: 1, borderColor: t.border },
+  emptyText: { fontSize: 15, fontWeight: '500', color: t.subtext },
+
+  // ── FAB ──
+  fab: { 
+    position: 'absolute', 
+    bottom: 110, // Lifted above the bottom tab bar
+    right: SPACING.xl, 
+    width: 64, 
+    height: 64, 
+    borderRadius: 32, 
+    backgroundColor: t.text, 
+    alignItems: 'center', 
     justifyContent: 'center',
-    minWidth: 50,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12 },
+      android: { elevation: 8 },
+    }),
   },
-  daysNumber: {
-    fontSize: 24,
-    fontWeight: '700',
+
+  // ── Modal / Form ──
+  modalOverlay: { flex: 1, backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalContent: { 
+    backgroundColor: t.surface, 
+    borderTopLeftRadius: 32, 
+    borderTopRightRadius: 32, 
+    padding: SPACING.xl, 
+    maxHeight: '90%',
   },
-  daysLabel: {
-    fontSize: 10,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.xl },
+  modalTitle: { fontSize: 24, fontWeight: '800', color: t.text, letterSpacing: -0.5 },
+  closeButton: { padding: 4, backgroundColor: t.surfaceSecondary, borderRadius: 16 },
+  modalForm: { gap: 24, paddingBottom: 40 },
+  
+  inputGroup: { gap: 8 },
+  inputLabel: { fontSize: 13, fontWeight: '700', color: t.text, textTransform: 'uppercase', letterSpacing: 0.5 },
+  input: { 
+    backgroundColor: t.surfaceSecondary,
+    borderRadius: 16,
+    padding: SPACING.md,
+    fontSize: 16,
+    color: t.text,
+    fontWeight: '500',
   },
   
-  // Memories
-  addMemoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 12,
-    borderTopWidth: 1,
-    paddingTop: 8,
-    alignSelf: 'flex-start',
+  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  typeChip: { 
+    paddingHorizontal: 16, paddingVertical: 10, 
+    borderRadius: 20, 
+    borderWidth: 1,
+    borderColor: t.border,
+    backgroundColor: t.surfaceSecondary,
   },
-  addMemoryText: {
-    fontSize: 12,
+  typeChipText: { fontSize: 13, fontWeight: '600' },
+
+  pickerRow: { flexDirection: 'row', gap: 16 },
+  pickerSection: { flex: 1, gap: 8 },
+  pickerWrap: { backgroundColor: t.surfaceSecondary, borderRadius: 16, padding: 8, alignItems: 'flex-start' },
+
+  reminderSection: { gap: 12, marginTop: 8 },
+  reminderToggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  reminderOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  reminderChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: t.border },
+  reminderChipText: { fontSize: 13, fontWeight: '600' },
+
+  primaryBtn: { 
+    backgroundColor: t.primary, 
+    paddingVertical: 18, 
+    borderRadius: 28, 
+    alignItems: 'center', 
+    marginTop: 16,
   },
+  primaryBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
+
+  // Paywall
+  paywallCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: SPACING.xxl },
+  paywallTitle: { fontSize: 28, fontWeight: '800', color: t.text, marginBottom: SPACING.md, letterSpacing: -0.5 },
+  paywallDesc: { fontSize: 15, color: t.subtext, textAlign: 'center', lineHeight: 22, marginBottom: SPACING.xxl },
+  paywallButton: { backgroundColor: t.text, paddingHorizontal: 32, paddingVertical: 16, borderRadius: 28, width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
+  paywallButtonText: { color: t.background, fontSize: 16, fontWeight: '700' },
 });

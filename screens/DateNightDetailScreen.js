@@ -1,4 +1,6 @@
-// screens/DateNightDetailScreen.js
+// screens/DateNightDetailScreen.js — High-End Editorial Implementation
+// Velvet Glass · Atmospheric Header · Physics-based Interaction
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
@@ -9,45 +11,37 @@ import {
   Alert,
   TouchableOpacity,
   Platform,
+  Dimensions,
+  StatusBar
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
-import { TYPOGRAPHY } from "../utils/theme";
+import { impact, selection, ImpactFeedbackStyle } from "../utils/haptics";
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, withAlpha } from "../utils/theme";
 import { getDimensionMeta } from "../utils/contentLoader";
 import Button from "../components/Button";
+import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import GlowOrb from "../components/GlowOrb";
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function DateNightDetailScreen({ route, navigation }) {
   const { date } = route.params || {};
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
-  const t = useMemo(
-    () => ({
-      background: colors.background,
-      surface: colors.surface,
-      surfaceSecondary: colors.surface2,
-      text: colors.text,
-      textSecondary: colors.textMuted,
-      border: colors.border,
-      blushRose: colors.accent || colors.primary,
-      mutedGold: colors.accent || colors.primary,
-      deepPlum: colors.primaryMuted || colors.primary,
-      success: colors.success,
-    }),
-    [colors]
-  );
-
-  // Gate: date night details require premium if date is premium
+  // Integrated logic from existing structure
   useEffect(() => {
     if (!isPremium && date?.isPremium) {
       showPaywall("DATE_NIGHT_DETAILS");
     }
-  }, [isPremium, date?.isPremium, showPaywall]);
+  }, [isPremium, date?.isPremium]);
 
   const steps = useMemo(() => (Array.isArray(date?.steps) ? date.steps : []), [date?.steps]);
+  
   const dimensionBadges = useMemo(() => {
     const dims = getDimensionMeta();
     const badges = [];
@@ -64,35 +58,30 @@ export default function DateNightDetailScreen({ route, navigation }) {
       if (s) badges.push({ label: s.label, icon: s.icon, color: s.color });
     }
     if (date?._matchLabel) {
-      badges.unshift({ label: date._matchLabel, icon: '', color: '#9A2E5E' });
+      badges.unshift({ label: date._matchLabel, icon: '✨', color: colors.primary });
     }
     return badges;
-  }, [date?.heat, date?.load, date?.style, date?._matchLabel]);
+  }, [date, colors]);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
   const toggleTimer = () => {
+    impact(ImpactFeedbackStyle.Medium);
     setTimerActive((prev) => {
       const next = !prev;
-
       if (next) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        timerRef.current = setInterval(() => {
-          setTimeElapsed((s) => s + 1);
-        }, 1000);
+        timerRef.current = setInterval(() => { setTimeElapsed((s) => s + 1); }, 1000);
       } else {
-        if (timerRef.current) clearInterval(timerRef.current);
+        clearInterval(timerRef.current);
         timerRef.current = null;
       }
-
       return next;
     });
   };
@@ -104,314 +93,273 @@ export default function DateNightDetailScreen({ route, navigation }) {
   };
 
   const handleSchedule = () => {
+    selection();
     const stepsText = steps.length ? `• ${steps.join("\n• ")}` : "";
-
-    // Default to tomorrow at 7:30 PM so the user has a sensible starting point
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(19, 30, 0, 0);
 
     const prefill = {
-      __token: `${Date.now()}_${require('expo-crypto').randomUUID().slice(0, 12)}`,
       title: `Date: ${date.title || "Date Night"}`,
-      prefillDate: tomorrow.getTime(),      // timestamp — pickers understand this
+      prefillDate: tomorrow.getTime(),
       location: date?.location === "home" ? "Our Home" : "Out & About",
       notes: stepsText,
       isDateNight: true,
-      minutes: date?.minutes || null,
     };
     navigation.navigate("MainTabs", { screen: "Calendar", params: { prefill } });
   };
 
-  if (!date) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: t.background, justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: t.textMuted, fontSize: 16, marginBottom: 16 }}>This date isn't available.</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, backgroundColor: t.primary }}>
-          <Text style={{ color: t.background, fontWeight: '700' }}>Go Back</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
+  if (!date) return null;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" />
+      <GlowOrb color={colors.primary} size={400} top={-100} left={-150} opacity={0.15} />
+      
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-        <LinearGradient colors={[`${t.blushRose}40`, t.background]} style={styles.heroHeader}>
+        
+        {/* Editorial Hero Header */}
+        <LinearGradient 
+          colors={[withAlpha(colors.primary, 0.25), "transparent"]} 
+          style={styles.heroHeader}
+        >
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <MaterialCommunityIcons name="arrow-left" size={24} color={t.text} />
+            <MaterialCommunityIcons name="chevron-left" size={32} color={colors.text} />
           </TouchableOpacity>
 
-          <Text style={[TYPOGRAPHY.display, { color: t.text, fontSize: 32 }]}>{date.title}</Text>
-
-          {/* Dimension badges — heat, load, style */}
-          {dimensionBadges.length > 0 && (
+          <ReAnimated.View entering={FadeInUp.duration(800)}>
+            <Text style={[styles.editorialTitle, { color: colors.text }]}>{date.title}</Text>
+            
             <View style={styles.metaBadgeRow}>
               {dimensionBadges.map((b, i) => (
-                <View key={i} style={[styles.glassBadge, { backgroundColor: b.color + '18' }]}>
-                  {b.icon ? <Text style={{ fontSize: 14 }}>{b.icon}</Text> : null}
-                  <Text style={[styles.badgeText, { color: b.color }]}>{b.label}</Text>
+                <View key={i} style={[styles.glassBadge, { backgroundColor: withAlpha(b.color, 0.12), borderColor: withAlpha(b.color, 0.2) }]}>
+                  {b.icon ? <Text style={{ fontSize: 12 }}>{b.icon}</Text> : null}
+                  <Text style={[styles.badgeText, { color: b.color }]}>{b.label.toUpperCase()}</Text>
                 </View>
               ))}
             </View>
-          )}
 
-          {/* Duration and Place badges */}
-          <View style={{ flexDirection: 'row', gap: 10, marginTop: 10, alignSelf: 'center' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: t.surfaceSecondary, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, marginRight: 8 }}>
-              <MaterialCommunityIcons name="clock-outline" size={16} color={t.blushRose} />
-              <Text style={{ fontSize: 12, fontWeight: '700', marginLeft: 6, color: t.text }}>{date.minutes}m</Text>
+            <View style={styles.quickInfoRow}>
+              <View style={[styles.infoPill, { backgroundColor: colors.surface2 }]}>
+                <MaterialCommunityIcons name="clock-outline" size={14} color={colors.primary} />
+                <Text style={[styles.infoPillText, { color: colors.text }]}>{date.minutes}m</Text>
+              </View>
+              <View style={[styles.infoPill, { backgroundColor: colors.surface2 }]}>
+                <MaterialCommunityIcons 
+                  name={date.location === "home" ? "home-variant-outline" : "map-marker-outline"} 
+                  size={14} color={colors.primary} 
+                />
+                <Text style={[styles.infoPillText, { color: colors.text }]}>
+                  {date.location === "home" ? "At Home" : "Outdoors"}
+                </Text>
+              </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: t.surfaceSecondary, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 }}>
-              <MaterialCommunityIcons
-                name={date.location === "home" ? "home-variant" : "map-marker"}
-                size={16}
-                color={t.mutedGold}
-              />
-              <Text style={{ fontSize: 12, fontWeight: '700', marginLeft: 6, color: t.text }}>
-                {date.location === "home" ? "Home" : "Out"}
-              </Text>
-            </View>
-          </View>
-
+          </ReAnimated.View>
         </LinearGradient>
 
-        {/* Schedule Button above Presence Timer */}
-        <TouchableOpacity style={[styles.scheduleFloat, { marginTop: 0, alignSelf: 'center' }]} onPress={handleSchedule}>
-          <LinearGradient colors={[t.blushRose, t.deepPlum]} style={styles.scheduleInner}>
-            <MaterialCommunityIcons name="calendar-plus" size={20} color="#F2E9E6" />
-            <Text style={[styles.scheduleText, { color: '#F2E9E6' }]}>Schedule</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        {/* Primary Editorial Action */}
+        <ReAnimated.View entering={FadeInDown.delay(200)} style={styles.centerAction}>
+          <TouchableOpacity onPress={handleSchedule} activeOpacity={0.85}>
+            <LinearGradient colors={[colors.primary, colors.primaryMuted || colors.primary]} style={styles.scheduleBtn}>
+              <MaterialCommunityIcons name="calendar-heart" size={20} color="#FFF" />
+              <Text style={styles.scheduleBtnText}>Schedule Moment</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </ReAnimated.View>
 
-
-        <View style={styles.timerSection}>
-          <BlurView
-            intensity={20}
-            tint={isDark ? "dark" : "light"}
-            style={[styles.timerCard, { borderColor: t.border }]}
-          >
-            <Text style={[TYPOGRAPHY.caption, { letterSpacing: 2, color: t.textSecondary }]}>
-              PRESENCE TIMER
-            </Text>
-
-            <Text style={[styles.timerDisplay, { color: t.text }]}>{formatTime(timeElapsed)}</Text>
-
-            <TouchableOpacity
-              onPress={toggleTimer}
-              style={[
-                styles.playBtn,
-                {
-                  backgroundColor: timerActive ? t.surface : t.blushRose,
-                  borderColor: t.border,
-                },
-              ]}
-            >
-              <MaterialCommunityIcons name={timerActive ? "pause" : "play"} size={28} color="#F2E9E6" />
+        {/* Presence Module */}
+        <View style={styles.modulePadding}>
+          <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.timerModule, { borderColor: colors.borderGlass }]}>
+            <Text style={[styles.moduleLabel, { color: colors.textMuted }]}>PRESENCE TIMER</Text>
+            <Text style={[styles.timerValue, { color: colors.text }]}>{formatTime(timeElapsed)}</Text>
+            <TouchableOpacity onPress={toggleTimer} style={[styles.timerToggle, { backgroundColor: timerActive ? colors.surface : colors.primary }]}>
+              <MaterialCommunityIcons name={timerActive ? "pause" : "play"} size={32} color={timerActive ? colors.text : "#FFF"} />
             </TouchableOpacity>
           </BlurView>
         </View>
 
-        <View style={styles.stepsContainer}>
-          <Text style={[TYPOGRAPHY.h2, { marginBottom: 20, marginLeft: 5, color: t.text }]}>
-            The Experience
-          </Text>
+        {/* Experience Timeline */}
+        <View style={styles.experienceSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>The Experience</Text>
+          
+          {steps.map((step, index) => {
+            const isCompleted = currentStep > index;
+            const isActive = currentStep === index;
 
-          {steps.length === 0 ? (
-            <View
-              style={[
-                styles.stepCard,
-                { backgroundColor: t.surface, borderColor: t.border, borderWidth: 1 },
-              ]}
-            >
-              <Text style={[TYPOGRAPHY.body, { color: t.textSecondary }]}>
-                No steps for this date yet.
-              </Text>
-            </View>
-          ) : (
-            steps.map((step, index) => {
-              const isCompleted = currentStep > index;
-              const isActive = currentStep === index;
-
-              return (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => setCurrentStep(index)}
-                  style={[
-                    styles.stepCard,
-                    { backgroundColor: t.surface },
-                    isActive && { borderColor: t.blushRose, borderWidth: 1 },
-                    !isActive && { borderWidth: 0 },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.stepIndicator,
-                      {
-                        backgroundColor: isDark
-                          ? "rgba(255,255,255,0.06)"
-                          : "rgba(0,0,0,0.05)",
-                      },
-                      isCompleted && { backgroundColor: t.success },
-                    ]}
-                  >
-                    {isCompleted ? (
-                      <MaterialCommunityIcons name="check" size={16} color={t.text} />
-                    ) : (
-                      <Text
-                        style={[
-                          styles.stepNumber,
-                          { color: isActive ? t.blushRose : t.textSecondary },
-                        ]}
-                      >
-                        {index + 1}
-                      </Text>
-                    )}
-                  </View>
-
-                  <Text
-                    style={[
-                      TYPOGRAPHY.body,
-                      styles.stepText,
-                      { color: t.text },
-                      isCompleted && styles.completedText,
-                    ]}
-                  >
-                    {step}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })
-          )}
+            return (
+              <TouchableOpacity
+                key={index}
+                onPress={() => { selection(); setCurrentStep(index); }}
+                activeOpacity={0.7}
+                style={[
+                  styles.stepRow,
+                  isActive && { backgroundColor: withAlpha(colors.primary, 0.05), borderColor: withAlpha(colors.primary, 0.2), borderWidth: 1 }
+                ]}
+              >
+                <View style={[styles.stepIndicator, { backgroundColor: isCompleted ? colors.success : colors.surface2 }]}>
+                  {isCompleted ? (
+                    <MaterialCommunityIcons name="check" size={16} color="#FFF" />
+                  ) : (
+                    <Text style={[styles.stepNumber, { color: isActive ? colors.primary : colors.textMuted }]}>{index + 1}</Text>
+                  )}
+                </View>
+                <Text style={[
+                  styles.stepText, 
+                  { color: colors.text },
+                  isCompleted && styles.stepTextCompleted
+                ]}>
+                  {step}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <View style={styles.footer}>
           <Button
-            title={steps.length > 0 && currentStep === steps.length - 1 ? "Complete Date" : "Next Step"}
+            title={currentStep === steps.length - 1 ? "Finish Experience" : "Next Step"}
             onPress={() => {
-              if (steps.length === 0) {
-                Alert.alert("No steps", "This date doesn’t have steps yet.");
-                return;
-              }
-
               if (currentStep === steps.length - 1) {
-                Alert.alert("Date Complete! 🎉", "Memories saved to your heart (and hopefully your journal).");
+                impact(ImpactFeedbackStyle.Success);
+                Alert.alert("Date Complete! 🎉", "A new memory has been created.");
                 navigation.goBack();
               } else {
+                impact(ImpactFeedbackStyle.Light);
                 setCurrentStep((s) => s + 1);
               }
             }}
             fullWidth
           />
         </View>
+        
+        <View style={{ height: 60 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingBottom: 60 },
+  scrollContent: { paddingBottom: 40 },
 
+  // Hero Section
   heroHeader: {
-    padding: 30,
-    paddingTop: 20,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 40,
+    borderBottomLeftRadius: 48,
+    borderBottomRightRadius: 48,
   },
-  backBtn: { marginBottom: 20 },
-
-  metaBadgeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 15, justifyContent: "center" },
-  moodBadgeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 12,
+  backBtn: { width: 44, height: 44, justifyContent: 'center', marginBottom: 20 },
+  editorialTitle: {
+    fontFamily: 'DMSerifDisplay-Regular',
+    fontSize: 40,
+    textAlign: 'center',
+    lineHeight: 48,
+    letterSpacing: -0.5,
+  },
+  metaBadgeRow: { 
+    flexDirection: "row", 
+    flexWrap: "wrap", 
+    gap: 8, 
+    marginTop: 20, 
+    justifyContent: "center" 
   },
   glassBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
-  },
-  moodBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  badgeText: { fontSize: 12, fontWeight: "700", marginLeft: 6 },
-  moodBadgeText: {
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 1.5,
-  },
-
-  scheduleFloat: { marginTop: 25, alignSelf: "flex-start" },
-  scheduleInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
-  },
-  scheduleText: { fontWeight: "600", marginLeft: 8, fontSize: 14 },
-
-    timerSection: { paddingHorizontal: 30, marginTop: 20 },
-  timerCard: {
-    padding: 25,
-    borderRadius: 30,
-    alignItems: "center",
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  timerDisplay: {
-    fontSize: 42,
-    fontWeight: "600",
-    marginVertical: 10,
-    fontVariant: ["tabular-nums"],
-  },
-  playBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
+    borderRadius: 12,
     borderWidth: 1,
   },
-
-  stepsContainer: { padding: 30 },
-  stepCard: {
-    flexDirection: "row",
-    padding: 20,
-    borderRadius: 20,
-    marginBottom: 15,
-    alignItems: "center",
+  badgeText: { fontFamily: 'Lato_700Bold', fontSize: 10, letterSpacing: 1, marginLeft: 4 },
+  
+  quickInfoRow: { 
+    flexDirection: 'row', 
+    gap: 12, 
+    marginTop: 20, 
+    justifyContent: 'center' 
+  },
+  infoPill: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    borderRadius: 20, 
+    paddingHorizontal: 14, 
+    paddingVertical: 8,
     ...Platform.select({
-      ios: {
-        shadowColor: "#070509",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-      },
-      android: { elevation: 2 },
-    }),
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+      android: { elevation: 2 }
+    })
+  },
+  infoPillText: { fontSize: 13, fontFamily: 'Lato_700Bold', marginLeft: 6 },
+
+  // Module Actions
+  centerAction: { 
+    marginTop: -30, 
+    alignSelf: 'center', 
+    zIndex: 10 
+  },
+  scheduleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    borderRadius: 30,
+    ...Platform.select({
+      ios: { shadowColor: '#7A1E4E', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 20 },
+      android: { elevation: 6 }
+    })
+  },
+  scheduleBtnText: { color: '#FFF', fontFamily: 'Lato_700Bold', fontSize: 15, marginLeft: 10 },
+
+  modulePadding: { paddingHorizontal: 24, marginTop: 30 },
+  timerModule: {
+    padding: 28,
+    borderRadius: 32,
+    alignItems: 'center',
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  moduleLabel: { fontFamily: 'Lato_700Bold', fontSize: 11, letterSpacing: 2, marginBottom: 8 },
+  timerValue: { 
+    fontSize: 54, 
+    fontFamily: 'Lato_400Regular', 
+    fontVariant: ['tabular-nums'], 
+    marginVertical: 10 
+  },
+  timerToggle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+  },
+
+  // Experience Section
+  experienceSection: { paddingHorizontal: 24, marginTop: 40 },
+  sectionTitle: { fontFamily: 'DMSerifDisplay-Regular', fontSize: 28, marginBottom: 24 },
+  stepRow: {
+    flexDirection: 'row',
+    padding: 20,
+    borderRadius: 24,
+    marginBottom: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   stepIndicator: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 15,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
-  stepNumber: { fontSize: 14, fontWeight: "600" },
-  stepText: { flex: 1, lineHeight: 22 },
-  completedText: { opacity: 0.4, textDecorationLine: "line-through" },
+  stepNumber: { fontFamily: 'Lato_700Bold', fontSize: 14 },
+  stepText: { flex: 1, fontFamily: 'Lato_400Regular', fontSize: 16, lineHeight: 24 },
+  stepTextCompleted: { opacity: 0.3, textDecorationLine: 'line-through' },
 
-  footer: { paddingHorizontal: 30, marginTop: 10 },
+  footer: { paddingHorizontal: 24, marginTop: 30 },
 });
