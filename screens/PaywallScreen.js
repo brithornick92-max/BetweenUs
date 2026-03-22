@@ -1,5 +1,5 @@
 // screens/PaywallScreen.js
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Animated,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -16,28 +18,38 @@ import PremiumPaywall from "../components/PremiumPaywall";
 import { useTheme } from "../context/ThemeContext";
 
 export default function PaywallScreen({ navigation, route }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { actions } = useAppContext();
   const { handleSubscribe, hidePaywall } = usePremiumFeatures();
   const { feature } = route?.params || {};
+
+  // STRICT Apple Editorial Theme Map 
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary,
+    text: isDark ? '#FFFFFF' : '#000000',
+  }), [colors, isDark]);
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const slideAnimation = useRef(new Animated.Value(40)).current;
 
   useEffect(() => {
+    // Upgraded to native Apple spring physics for the entrance
     Animated.parallel([
       Animated.timing(fadeAnimation, {
         toValue: 1,
-        duration: 600,
+        duration: 400,
         useNativeDriver: true,
       }),
-      Animated.timing(slideAnimation, {
+      Animated.spring(slideAnimation, {
         toValue: 0,
-        duration: 600,
+        friction: 9,
+        tension: 60,
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnimation, slideAnimation]);
 
   useEffect(() => {
     return () => {
@@ -61,10 +73,18 @@ export default function PaywallScreen({ navigation, route }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
+
+      {/* Subtle Velvet Gradient underneath the native Apple surfaces */}
       <LinearGradient
-        colors={[colors.background, colors.surface, colors.background]}
-        style={StyleSheet.absoluteFill}
+        colors={
+          isDark
+            ? [t.background, "#0F0A1A", "#0D081A", t.background]
+            : [t.background, "#EBEBF5", t.background]
+        }
+        locations={[0, 0.3, 0.7, 1]}
+        style={StyleSheet.absoluteFillObject}
       />
 
       <Animated.View
@@ -91,7 +111,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
   content: {
     flex: 1,
   },

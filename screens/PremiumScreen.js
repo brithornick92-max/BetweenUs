@@ -13,6 +13,7 @@ import {
   Alert,
   ActivityIndicator,
   Dimensions,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,35 +23,35 @@ import { useTheme } from "../context/ThemeContext";
 import { useSubscription } from "../context/SubscriptionContext";
 import { usePremiumFeatures } from "../hooks/usePremiumFeatures";
 import { useAppContext } from "../context/AppContext";
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from "../utils/theme";
+import { SPACING } from "../utils/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // ─── Features checklist ───────────────────────────────────────────────────────
 const FEATURES = [
-  { icon: "chat-processing-outline", text: "Unlimited prompts across all heat levels" },
-  { icon: "email-heart-outline",     text: "Send & receive encrypted love notes" },
+  { icon: "chat-processing",         text: "Unlimited prompts across all heat levels" },
+  { icon: "email-heart",             text: "Send & receive encrypted love notes" },
   { icon: "calendar-heart",          text: "Schedule date nights with reminders" },
   { icon: "link-variant",            text: "Secure partner linking — one sub covers both" },
   { icon: "book-open-variant",       text: "Year reflection & relationship milestones" },
-  { icon: "shield-lock-outline",     text: "End-to-end encrypted local storage" },
+  { icon: "shield-lock",             text: "End-to-end encrypted local storage" },
 ];
 
 // ─── Animated section wrapper ─────────────────────────────────────────────────
 function FadeInSection({ index = 0, children, style }) {
   const opacity   = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(14)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(opacity, {
-        toValue: 1, duration: 600, delay: 150 + index * 80, useNativeDriver: true,
+        toValue: 1, duration: 500, delay: 100 + index * 80, useNativeDriver: true,
       }),
-      Animated.timing(translateY, {
-        toValue: 0, duration: 600, delay: 150 + index * 80, useNativeDriver: true,
+      Animated.spring(translateY, {
+        toValue: 0, friction: 8, tension: 50, delay: 100 + index * 80, useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [opacity, translateY, index]);
 
   return (
     <Animated.View style={[style, { opacity, transform: [{ translateY }] }]}>
@@ -70,7 +71,18 @@ export default function PremiumScreen({ navigation }) {
   const [selectedPlan, setSelectedPlan] = useState("yearly");
   const [purchasing, setPurchasing] = useState(false);
 
-  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+  // STRICT Apple Editorial Theme Map 
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    primary: colors.primary,
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const packages  = offerings?.packages || [];
   const monthlyPkg  = packages.find((p) => p.packageType === "MONTHLY");
@@ -99,15 +111,18 @@ export default function PremiumScreen({ navigation }) {
       const result = await purchasePackage(pkg);
       if (result.success) {
         await actions?.refreshPremiumStatus?.();
+        notification(NotificationFeedbackType.Success);
         Alert.alert(
           "Welcome to Premium",
           "You and your partner now have full access.",
           [{ text: "Continue", onPress: () => navigation.goBack() }]
         );
       } else if (!result.cancelled) {
+        notification(NotificationFeedbackType.Error);
         Alert.alert("Something went wrong", result.error || "Please try again.");
       }
     } catch {
+      notification(NotificationFeedbackType.Error);
       Alert.alert("Error", "Purchase could not be completed.");
     } finally {
       setPurchasing(false);
@@ -118,8 +133,10 @@ export default function PremiumScreen({ navigation }) {
     if (purchasing) return;
     setPurchasing(true);
     try {
+      impact(ImpactFeedbackStyle.Light);
       const result = await restorePurchases();
       if (result.success && result.isPremium) {
+        notification(NotificationFeedbackType.Success);
         Alert.alert("Restored", "Your premium access has been restored.", [
           { text: "Continue", onPress: () => navigation.goBack() },
         ]);
@@ -144,23 +161,29 @@ export default function PremiumScreen({ navigation }) {
     const isSelected = selectedPlan === id;
     return (
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={0.85}
         onPress={() => { selection(); setSelectedPlan(id); }}
-        style={[styles.planCard, isSelected && styles.planCardSelected]}
+        style={[
+          styles.planCard, 
+          isSelected && styles.planCardSelected,
+          isSelected && { borderColor: t.primary }
+        ]}
       >
-        {badge ? (
-          <View style={styles.planBadge}>
-            <Text style={styles.planBadgeText}>{badge}</Text>
-          </View>
-        ) : null}
         <View style={styles.planCardInner}>
           <View style={styles.planTextWrap}>
-            <Text style={[styles.planLabel, isSelected && styles.planLabelSelected]}>{label}</Text>
-            <Text style={[styles.planPrice, isSelected && styles.planPriceSelected]}>{price}</Text>
+            <View style={styles.planLabelRow}>
+              <Text style={styles.planLabel}>{label}</Text>
+              {badge && (
+                <View style={[styles.planBadge, { backgroundColor: t.primary + '15' }]}>
+                  <Text style={[styles.planBadgeText, { color: t.primary }]}>{badge}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.planPrice}>{price}</Text>
             {detail ? <Text style={styles.planDetail}>{detail}</Text> : null}
           </View>
-          <View style={[styles.planRadio, isSelected && styles.planRadioSelected]}>
-            {isSelected && <View style={styles.planRadioDot} />}
+          <View style={[styles.planRadio, isSelected && { borderColor: t.primary }]}>
+            {isSelected && <View style={[styles.planRadioDot, { backgroundColor: t.primary }]} />}
           </View>
         </View>
       </TouchableOpacity>
@@ -170,11 +193,14 @@ export default function PremiumScreen({ navigation }) {
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <View style={styles.root}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
+
+      {/* Subtle Velvet Gradient underneath the native Apple surfaces */}
       <LinearGradient
         colors={
           isDark
-            ? [colors.background, "#0E0A12", "#130E18", colors.background]
-            : [colors.background, colors.surface2, colors.background]
+            ? [t.background, "#0F0A1A", "#0D081A", t.background]
+            : [t.background, "#EBEBF5", t.background]
         }
         locations={[0, 0.3, 0.7, 1]}
         style={StyleSheet.absoluteFill}
@@ -185,38 +211,38 @@ export default function PremiumScreen({ navigation }) {
         <TouchableOpacity
           onPress={handleDismiss}
           style={styles.closeButton}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
           activeOpacity={0.7}
         >
-          <MaterialCommunityIcons name="close" size={20} color={colors.textMuted} />
+          <MaterialCommunityIcons name="close" size={24} color={t.text} />
         </TouchableOpacity>
 
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          bounces={true}
         >
           {/* ─── HERO ───────────────────────────────────────────── */}
           <FadeInSection index={0} style={styles.hero}>
-            <Text style={styles.heroOverline}>Between Us Premium</Text>
+            <Text style={[styles.heroOverline, { color: t.primary }]}>Between Us Premium</Text>
             <Text style={styles.heroHeadline}>
               Make space for{"\n"}what matters most.
             </Text>
             <Text style={styles.heroSubheadline}>
-              Unlimited prompts, love notes, shared calendar, and partner
-              connection — one subscription covers both of you.
+              Unlimited prompts, love notes, shared calendar, and partner connection — one subscription covers both of you.
             </Text>
           </FadeInSection>
 
-          {/* ─── FEATURES ───────────────────────────────────────── */}
+          {/* ─── FEATURES (Apple Native List Style) ──────────────── */}
           <FadeInSection index={1} style={styles.featuresSection}>
             {FEATURES.map((f, i) => (
-              <View key={i} style={styles.featureRow}>
-                <View style={styles.featureIconWrap}>
+              <View key={i} style={[styles.featureRow, i === FEATURES.length - 1 && styles.featureRowLast]}>
+                <View style={[styles.featureIconWrap, { backgroundColor: t.primary + "15" }]}>
                   <MaterialCommunityIcons
                     name={f.icon}
                     size={18}
-                    color={colors.primary}
+                    color={t.primary}
                   />
                 </View>
                 <Text style={styles.featureText}>{f.text}</Text>
@@ -250,23 +276,30 @@ export default function PremiumScreen({ navigation }) {
                   detail="One payment, yours forever"
                 />
 
-                <Text style={styles.coupleNote}>
-                  One subscription unlocks premium for both partners.
-                </Text>
+                <View style={styles.coupleNoteContainer}>
+                  <MaterialCommunityIcons name="heart-multiple" size={14} color={t.primary} />
+                  <Text style={styles.coupleNote}>
+                    One subscription unlocks premium for both partners.
+                  </Text>
+                </View>
               </FadeInSection>
 
               {/* ─── CTA ────────────────────────────────────────── */}
               <FadeInSection index={3} style={styles.ctaSection}>
                 <TouchableOpacity
-                  style={[styles.ctaButton, (purchasing || isLoading) && styles.ctaButtonDisabled]}
+                  style={[
+                    styles.ctaButton, 
+                    { backgroundColor: t.text },
+                    (purchasing || isLoading) && styles.ctaButtonDisabled
+                  ]}
                   activeOpacity={0.85}
                   onPress={handlePurchase}
                   disabled={purchasing || isLoading}
                 >
                   {purchasing ? (
-                    <ActivityIndicator color="#F2E9E6" size="small" />
+                    <ActivityIndicator color={t.background} size="small" />
                   ) : (
-                    <Text style={styles.ctaButtonText}>{ctaLabel}</Text>
+                    <Text style={[styles.ctaButtonText, { color: t.background }]}>{ctaLabel}</Text>
                   )}
                 </TouchableOpacity>
 
@@ -276,7 +309,6 @@ export default function PremiumScreen({ navigation }) {
                     Payment charged to your Apple ID at confirmation. Subscription renews automatically unless cancelled at least 24 hours before the end of the current period. Manage in your Apple ID subscription settings.
                   </Text>
                 )}
-
               </FadeInSection>
 
               {/* ─── SECONDARY ACTIONS ──────────────────────────── */}
@@ -288,21 +320,14 @@ export default function PremiumScreen({ navigation }) {
                 >
                   <Text style={styles.secondaryBtnText}>Restore purchases</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleDismiss}
-                  activeOpacity={0.6}
-                  style={styles.secondaryBtn}
-                >
-                  <Text style={styles.secondaryBtnText}>Maybe later</Text>
-                </TouchableOpacity>
               </View>
             </>
           )}
 
           {isPremium && (
             <FadeInSection index={2} style={styles.alreadyPremium}>
-              <MaterialCommunityIcons name="check-circle-outline" size={40} color={colors.primary} />
-              <Text style={styles.alreadyPremiumText}>You're already on Premium.</Text>
+              <MaterialCommunityIcons name="check-decagram" size={56} color={t.primary} />
+              <Text style={styles.alreadyPremiumText}>You're on Premium.</Text>
               <Text style={styles.alreadyPremiumSub}>Manage your subscription in your device settings.</Text>
             </FadeInSection>
           )}
@@ -331,259 +356,265 @@ export default function PremiumScreen({ navigation }) {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-const createStyles = (colors, isDark) => {
-  const textColor  = isDark ? "#F2E9E6" : colors.text;
-  const mutedColor = isDark ? "rgba(242,233,230,0.5)" : colors.textMuted;
-  const subtleColor = isDark ? "rgba(242,233,230,0.35)" : colors.textMuted + "99";
-
-  const serif = Platform.select({
-    ios: "DMSerifDisplay-Regular",
-    android: "DMSerifDisplay_400Regular",
-    default: "System",
-  });
-  const sans = Platform.select({
-    ios: "Lato-Regular",
-    android: "Lato_400Regular",
-    default: "System",
-  });
-  const sansBold = Platform.select({
-    ios: "Lato-Bold",
-    android: "Lato_700Bold",
-    default: "System",
-  });
+// ─── Styles - Pure Apple Editorial ─────────────────────────────────────────────
+const createStyles = (t, isDark) => {
+  const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
   return StyleSheet.create({
-    root: { flex: 1, backgroundColor: colors.background },
+    root: { flex: 1, backgroundColor: t.background },
     safeArea: { flex: 1 },
 
     closeButton: {
       position: "absolute",
-      top: Platform.OS === "ios" ? 16 : 16,
-      right: SPACING.lg,
+      top: Platform.OS === "ios" ? 16 : 32,
+      right: SPACING.xl,
       zIndex: 10,
-      width: 36,
-      height: 36,
+      width: 40,
+      height: 40,
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 18,
-      backgroundColor: colors.surface + "CC",
+      borderRadius: 20,
+      backgroundColor: t.surface,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.08, shadowRadius: 12 },
+        android: { elevation: 4 },
+      }),
     },
 
     scroll: { flex: 1 },
     scrollContent: {
       paddingHorizontal: SPACING.xl,
-      paddingTop: SPACING.xxl + 8,
-      paddingBottom: SPACING.lg,
+      paddingTop: SPACING.xxxl + 20,
+      paddingBottom: SPACING.xxxl,
     },
 
     // ── Hero ─────────────────────────────────────────────────────
     hero: {
-      alignItems: "center",
-      paddingTop: SPACING.lg,
+      alignItems: "flex-start", // Left-aligned for Editorial feel
       paddingBottom: SPACING.xl,
     },
     heroOverline: {
-      fontFamily: sansBold,
-      fontSize: 11,
+      fontFamily: systemFont,
+      fontSize: 12,
+      fontWeight: '800',
       letterSpacing: 2,
       textTransform: "uppercase",
-      color: colors.primary,
-      marginBottom: SPACING.md,
+      marginBottom: SPACING.sm,
     },
     heroHeadline: {
-      fontFamily: serif,
-      fontSize: 32,
-      lineHeight: 42,
-      fontWeight: "300",
-      color: textColor,
-      textAlign: "center",
-      letterSpacing: -0.3,
+      fontFamily: systemFont,
+      fontSize: 38,
+      fontWeight: "800",
+      color: t.text,
+      letterSpacing: -0.5,
+      lineHeight: 44,
       marginBottom: SPACING.md,
     },
     heroSubheadline: {
-      fontFamily: sans,
-      fontSize: 15,
+      fontFamily: systemFont,
+      fontSize: 16,
       lineHeight: 24,
-      color: mutedColor,
-      textAlign: "center",
-      maxWidth: 300,
+      fontWeight: "500",
+      color: t.subtext,
+      maxWidth: '90%',
     },
 
-    // ── Features ─────────────────────────────────────────────────
+    // ── Features (Solid Apple Health List Style) ─────────────────
     featuresSection: {
-      backgroundColor: colors.surface,
-      borderRadius: BORDER_RADIUS.xl,
+      backgroundColor: t.surface,
+      borderRadius: 24,
       borderWidth: 1,
-      borderColor: colors.border,
-      padding: SPACING.lg,
+      borderColor: t.border,
+      paddingHorizontal: SPACING.lg,
       marginBottom: SPACING.xl,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0 : 0.06, shadowRadius: 16 },
+        android: { elevation: 3 },
+      }),
     },
     featureRow: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: SPACING.sm + 1,
+      paddingVertical: SPACING.lg,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+    },
+    featureRowLast: {
+      borderBottomWidth: 0,
     },
     featureIconWrap: {
-      width: 32,
-      height: 32,
-      borderRadius: 8,
-      backgroundColor: colors.primary + "18",
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
       marginRight: SPACING.md,
-      flexShrink: 0,
     },
     featureText: {
-      fontFamily: sans,
-      fontSize: 14,
-      lineHeight: 20,
-      color: textColor,
+      fontFamily: systemFont,
+      fontSize: 15,
+      fontWeight: "600",
+      color: t.text,
       flex: 1,
     },
 
     // ── Pricing ───────────────────────────────────────────────────
     pricingSection: {
-      marginBottom: SPACING.lg,
+      marginBottom: SPACING.xl,
     },
     pricingTitle: {
-      fontFamily: serif,
-      fontSize: 20,
-      lineHeight: 28,
-      fontWeight: "300",
-      color: textColor,
-      textAlign: "center",
+      fontFamily: systemFont,
+      fontSize: 22,
+      fontWeight: "700",
+      color: t.text,
+      letterSpacing: -0.5,
       marginBottom: SPACING.lg,
+      paddingHorizontal: 4,
     },
     planCard: {
-      backgroundColor: colors.surface,
-      borderRadius: BORDER_RADIUS.lg,
-      borderWidth: 1.5,
-      borderColor: colors.border,
-      marginBottom: SPACING.sm,
-      overflow: "hidden",
+      backgroundColor: t.surface,
+      borderRadius: 24,
+      borderWidth: 2, // Slightly thicker border for unselected state to match Apple's crispness
+      borderColor: t.border,
+      marginBottom: SPACING.md,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 8 },
+        android: { elevation: 2 },
+      }),
     },
     planCardSelected: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primary + "0A",
-    },
-    planBadge: {
-      backgroundColor: colors.primary,
-      paddingVertical: 4,
-      alignItems: "center",
-    },
-    planBadgeText: {
-      fontFamily: sansBold,
-      fontSize: 10,
-      letterSpacing: 1.5,
-      textTransform: "uppercase",
-      color: "#F2E9E6",
+      backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0 : 0.08, shadowRadius: 16 },
+        android: { elevation: 4 },
+      }),
     },
     planCardInner: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: SPACING.md + 2,
+      paddingVertical: SPACING.lg,
       paddingHorizontal: SPACING.lg,
     },
     planTextWrap: { flex: 1 },
-    planLabel: {
-      fontFamily: sansBold,
-      fontSize: 15,
-      color: textColor,
-      marginBottom: 2,
+    planLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+      gap: 8,
     },
-    planLabelSelected: {
-      color: colors.primary,
+    planLabel: {
+      fontFamily: systemFont,
+      fontSize: 18,
+      fontWeight: "700",
+      letterSpacing: -0.2,
+      color: t.text,
+    },
+    planBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    planBadgeText: {
+      fontFamily: systemFont,
+      fontSize: 10,
+      fontWeight: "800",
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
     },
     planPrice: {
-      fontFamily: sans,
-      fontSize: 14,
-      color: mutedColor,
+      fontFamily: systemFont,
+      fontSize: 15,
+      fontWeight: "600",
+      color: t.text,
       marginBottom: 2,
     },
-    planPriceSelected: {
-      color: textColor,
-    },
     planDetail: {
-      fontFamily: sans,
-      fontSize: 12,
-      color: mutedColor,
+      fontFamily: systemFont,
+      fontSize: 13,
+      fontWeight: "500",
+      color: t.subtext,
     },
     planRadio: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      borderWidth: 1.5,
-      borderColor: colors.border,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: t.subtext,
       alignItems: "center",
       justifyContent: "center",
       marginLeft: SPACING.md,
-      flexShrink: 0,
     },
-    planRadioSelected: { borderColor: colors.primary },
     planRadioDot: {
       width: 12,
       height: 12,
       borderRadius: 6,
-      backgroundColor: colors.primary,
+    },
+    coupleNoteContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      marginTop: SPACING.md,
     },
     coupleNote: {
-      fontFamily: sans,
-      fontSize: 12,
-      color: mutedColor,
-      textAlign: "center",
-      marginTop: SPACING.md,
+      fontFamily: systemFont,
+      fontSize: 13,
+      fontWeight: "600",
+      color: t.subtext,
     },
 
     // ── CTA ───────────────────────────────────────────────────────
     ctaSection: {
       alignItems: "center",
-      marginBottom: 0,
+      marginBottom: SPACING.xl,
     },
     ctaButton: {
       width: "100%",
-      height: 54,
-      backgroundColor: colors.primary,
-      borderRadius: BORDER_RADIUS.md,
+      height: 56,
+      borderRadius: 28,
       alignItems: "center",
       justifyContent: "center",
+      marginBottom: SPACING.md,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0 : 0.15, shadowRadius: 12 },
+        android: { elevation: 4 },
+      }),
     },
-    ctaButtonDisabled: { opacity: 0.55 },
+    ctaButtonDisabled: { opacity: 0.7 },
     ctaButtonText: {
-      fontFamily: sansBold,
-      fontSize: 15,
-      letterSpacing: 0.5,
-      color: "#F2E9E6",
+      fontFamily: systemFont,
+      fontSize: 17,
+      fontWeight: "700",
+      letterSpacing: -0.3,
     },
-
-    // Required App Store renewal / cancellation disclosure
     renewalNotice: {
-      fontFamily: sans,
-      fontSize: 10,
-      lineHeight: 15,
-      color: subtleColor,
+      fontFamily: systemFont,
+      fontSize: 11,
+      lineHeight: 16,
+      fontWeight: "500",
+      color: t.subtext,
       textAlign: "center",
-      marginTop: SPACING.md,
-      paddingHorizontal: SPACING.sm,
-    },
-
-    // ── Secondary actions (Restore, then Maybe later) ────────────
-    secondaryActions: {
-      alignItems: "center",
-      marginTop: SPACING.lg,
-      marginBottom: SPACING.xl,
-      gap: SPACING.xs,
-    },
-    secondaryBtn: {
-      paddingVertical: SPACING.sm,
       paddingHorizontal: SPACING.md,
     },
+
+    // ── Secondary actions ────────────
+    secondaryActions: {
+      alignItems: "center",
+      marginBottom: SPACING.xl,
+    },
+    secondaryBtn: {
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.lg,
+      backgroundColor: t.surface,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: t.border,
+    },
     secondaryBtnText: {
-      fontFamily: sans,
-      fontSize: 13,
-      color: mutedColor,
-      textDecorationLine: "underline",
-      textAlign: "center",
+      fontFamily: systemFont,
+      fontSize: 14,
+      fontWeight: "600",
+      color: t.text,
     },
 
     // ── Already premium ───────────────────────────────────────────
@@ -591,19 +622,27 @@ const createStyles = (colors, isDark) => {
       alignItems: "center",
       paddingVertical: SPACING.xxl,
       gap: SPACING.sm,
+      backgroundColor: t.surface,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: t.border,
     },
     alreadyPremiumText: {
-      fontFamily: serif,
-      fontSize: 20,
-      fontWeight: "300",
-      color: textColor,
+      fontFamily: systemFont,
+      fontSize: 22,
+      fontWeight: "700",
+      color: t.text,
+      letterSpacing: -0.5,
       textAlign: "center",
+      marginTop: SPACING.md,
     },
     alreadyPremiumSub: {
-      fontFamily: sans,
-      fontSize: 14,
-      color: mutedColor,
+      fontFamily: systemFont,
+      fontSize: 15,
+      fontWeight: "500",
+      color: t.subtext,
       textAlign: "center",
+      paddingHorizontal: SPACING.xl,
     },
 
     // ── Legal footer ──────────────────────────────────────────────
@@ -611,22 +650,19 @@ const createStyles = (colors, isDark) => {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
-      paddingTop: SPACING.lg,
-      paddingBottom: SPACING.xl,
-      gap: SPACING.sm,
+      paddingVertical: SPACING.xl,
+      gap: SPACING.md,
     },
     legalLink: {
-      fontFamily: sans,
-      fontSize: 12,
-      color: mutedColor,
-      textDecorationLine: "underline",
+      fontFamily: systemFont,
+      fontSize: 13,
+      fontWeight: "600",
+      color: t.subtext,
     },
     legalSep: {
-      fontFamily: sans,
-      fontSize: 12,
-      color: subtleColor,
+      fontFamily: systemFont,
+      fontSize: 13,
+      color: t.border,
     },
   });
 };

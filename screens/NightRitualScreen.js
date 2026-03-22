@@ -7,23 +7,35 @@ import {
   TouchableOpacity,
   Animated,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import NightRitualMode from '../components/NightRitualMode';
+import NightRitualMode, { getNightRitualColors } from '../components/NightRitualMode';
 import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
-import { getNightRitualColors } from '../components/NightRitualMode';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 
-const NightRitualScreen = ({ navigation }) => {
-  const { colors } = useTheme();
+export default function NightRitualScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
   const NIGHT_COLORS = useMemo(() => getNightRitualColors(colors), [colors]);
-  const styles = useMemo(() => createStyles(NIGHT_COLORS), [NIGHT_COLORS]);
+  
+  // STRICT Apple Editorial Theme Map (Forced Dark for Night Ritual)
+  const t = useMemo(() => ({
+    background: '#000000', 
+    surface: '#1C1C1E',
+    surfaceSecondary: '#2C2C2E',
+    primary: colors.primary,
+    accent: NIGHT_COLORS.moonGlow || '#5856D6',
+    text: '#FFFFFF',
+    subtext: 'rgba(235, 235, 245, 0.6)',
+    border: 'rgba(255,255,255,0.08)',
+  }), [colors, NIGHT_COLORS]);
+
+  const styles = useMemo(() => createStyles(t, NIGHT_COLORS), [t, NIGHT_COLORS]);
   const { state } = useAppContext();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
@@ -34,16 +46,25 @@ const NightRitualScreen = ({ navigation }) => {
     }
   }, [isPremium, showPaywall]);
 
-  // Animation values
+  // Clean, fast Apple entrance animations
   const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const slideAnimation = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnimation, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true,
-    }).start();
-  }, []);
+    Animated.parallel([
+      Animated.timing(fadeAnimation, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnimation, {
+        toValue: 0,
+        friction: 9,
+        tension: 60,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnimation, slideAnimation]);
 
   const handleRitualComplete = async (ritual, responses) => {
     impact(ImpactFeedbackStyle.Medium);
@@ -63,42 +84,61 @@ const NightRitualScreen = ({ navigation }) => {
 
   const handleBackPress = async () => {
     impact(ImpactFeedbackStyle.Light);
+    selection();
     navigation.goBack();
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* Deep Velvet Apple Editorial Background */}
       <LinearGradient
         colors={[
-          NIGHT_COLORS.deepNight,
-          NIGHT_COLORS.plumVignette,
-          NIGHT_COLORS.deepNight,
+          t.background,
+          '#0F0A1A', // Very subtle plum vignette
+          '#0D081A',
+          t.background,
         ]}
-        style={StyleSheet.absoluteFill}
-        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFillObject}
+        locations={[0, 0.3, 0.7, 1]}
       />
 
-      {/* Floating back button */}
-      <View style={styles.backRow}>
+      {/* Floating back button (Crisp Native iOS Style) */}
+      <Animated.View 
+        style={[
+          styles.backRow, 
+          { 
+            opacity: fadeAnimation, 
+            transform: [{ translateY: slideAnimation }] 
+          }
+        ]}
+      >
         <TouchableOpacity
           onPress={handleBackPress}
           style={styles.backButton}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <BlurView intensity={20} tint="dark" style={styles.backButtonBlur}>
-            <MaterialCommunityIcons
-              name="arrow-left"
-              size={22}
-              color={NIGHT_COLORS.moonGlow}
-            />
-          </BlurView>
+          <MaterialCommunityIcons
+            name="chevron-left"
+            size={32}
+            color={t.text}
+          />
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
       {/* The ritual component owns all content: header, steps, input, footer */}
-      <Animated.View style={[styles.ritualContainer, { opacity: fadeAnimation }]}>
+      <Animated.View 
+        style={[
+          styles.ritualContainer, 
+          { 
+            opacity: fadeAnimation,
+            transform: [{ translateY: slideAnimation }]
+          }
+        ]}
+      >
         <NightRitualMode
           onRitualComplete={handleRitualComplete}
           onElementComplete={handleElementComplete}
@@ -106,38 +146,39 @@ const NightRitualScreen = ({ navigation }) => {
       </Animated.View>
     </SafeAreaView>
   );
-};
+}
 
-const createStyles = (NIGHT_COLORS) =>
+// ------------------------------------------------------------------
+// STYLES - Pure Apple Editorial 
+// ------------------------------------------------------------------
+const createStyles = (t, NIGHT_COLORS) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: NIGHT_COLORS.deepNight,
+      backgroundColor: t.background,
     },
     backRow: {
       position: 'absolute',
-      top: Platform.OS === 'ios' ? 56 : 16,
-      left: SPACING.screen,
+      top: Platform.OS === 'ios' ? 60 : 24,
+      left: SPACING.lg,
       zIndex: 20,
     },
     backButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      overflow: 'hidden',
-    },
-    backButtonBlur: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: t.surface,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
-      borderColor: NIGHT_COLORS.border,
+      borderColor: t.border,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+        android: { elevation: 4 },
+      }),
     },
     ritualContainer: {
       flex: 1,
     },
   });
-
-export default NightRitualScreen;
+  

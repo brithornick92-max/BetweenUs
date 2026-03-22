@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+// screens/HeatLevelSettingsScreen.js
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
@@ -7,65 +8,102 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Animated,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
+import { impact, selection, ImpactFeedbackStyle, NotificationFeedbackType, notification } from '../utils/haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import { useEntitlements } from '../context/EntitlementsContext';
-
-import { BlurView } from 'expo-blur';
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 
 const HEAT_LEVELS = [
   {
     level: 1,
     icon: 'spa-outline',
-    color: '#F7A8B8',
-    title: 'Emotional Connection',
-    description: 'Emotional intimacy, non-sexual — building friendship and trust',
+    color: '#5856D6', // iOS Purple
+    title: 'Emotional',
+    description: 'Intimacy & trust, non-sexual',
   },
   {
     level: 2,
     icon: 'star-four-points-outline',
-    color: '#F27A9B',
-    title: 'Flirty & Romantic',
-    description: 'Flirty attraction, romance, and deeper emotional intimacy',
+    color: '#FF2D55', // iOS Pink
+    title: 'Romantic',
+    description: 'Flirty attraction & romance',
   },
   {
     level: 3,
     icon: 'cards-heart-outline',
-    color: '#E84A7B',
+    color: '#FF9500', // iOS Orange
     title: 'Sensual',
-    description: 'Sensual, relationship-focused desire and attraction',
+    description: 'Relationship-focused desire',
   },
   {
     level: 4,
     icon: 'water-outline',
-    color: '#E23A68',
+    color: '#FF3B30', // iOS Red
     title: 'Steamy',
-    description: 'Suggestive, adventurous, and heated topics',
+    description: 'Adventurous & heated topics',
   },
   {
     level: 5,
     icon: 'fire',
-    color: '#B81438',
+    color: '#8A0021', // Deep Crimson
     title: 'Explicit',
-    description: 'Intensely passionate, graphic, explicit explorations',
+    description: 'Intensely passionate exploration',
   },
 ];
 
-const HeatLevelSettingsScreen = ({ navigation }) => {
+export default function HeatLevelSettingsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
-  const styles = createStyles(colors, false);
+  const { colors, isDark } = useTheme();
+  
+  // STRICT Apple Editorial Theme Map 
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    primary: colors.primary,
+    accent: colors.accent || '#FF2D55',
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark, insets), [t, isDark, insets]);
+  
   const { userProfile, updateProfile } = useAuth();
   const { loadContentProfile } = useContent();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  
   const [selectedLevel, setSelectedLevel] = useState(3);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Entrance animations
+  const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const slideAnimation = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnimation, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnimation, {
+        toValue: 0,
+        friction: 9,
+        tension: 60,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnimation, slideAnimation]);
 
   useEffect(() => {
     if (userProfile?.heatLevelPreference) {
@@ -75,6 +113,7 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
 
   const handleLevelSelect = (level) => {
     if (level >= 4 && !isPremium) {
+      impact(ImpactFeedbackStyle.Light);
       showPaywall('heatLevels4to5');
       return;
     }
@@ -87,6 +126,7 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
 
   const handleSave = async () => {
     setIsSaving(true);
+    impact(ImpactFeedbackStyle.Medium);
     try {
       await updateProfile({
         heatLevelPreference: selectedLevel,
@@ -96,218 +136,277 @@ const HeatLevelSettingsScreen = ({ navigation }) => {
         await loadContentProfile();
       }
       
+      notification(NotificationFeedbackType.Success);
       navigation.goBack();
     } catch (error) {
       console.error('Failed to update heat level:', error);
+      notification(NotificationFeedbackType.Error);
       Alert.alert('Error', 'Failed to update preferences. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleBack = () => {
+    impact(ImpactFeedbackStyle.Light);
+    navigation.goBack();
+  };
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={styles.root}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
+
+      {/* Velvet background gradient */}
+      <LinearGradient
+        colors={isDark 
+          ? [t.background, '#0F0A1A', '#0D081A', t.background] 
+          : [t.background, '#EBEBF5', t.background]}
+        style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 8 : 24 }]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[styles.backButton, { backgroundColor: colors.surface2 }]}
-        >
-          <Ionicons name="close" size={24} color={colors.text} />
-        </TouchableOpacity>
-      </View>
+      <Animated.View style={[styles.header, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
+        <View style={styles.headerTopRow}>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.headerEditorial}>
+          <Text style={styles.headerTitle}>Comfort</Text>
+          <Text style={styles.headerSubtitle}>Set your boundary for prompts.</Text>
+        </View>
+      </Animated.View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={[styles.content, { paddingBottom: Math.max(insets.bottom + 20, 60) }]}>
-          {/* Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: colors.primary + '15' }]}>
-            <MaterialCommunityIcons name="fire" size={36} color={colors.primary} />
-          </View>
-
-          {/* Title */}
-          <Text style={[styles.title, { color: colors.text }]}>Heat Level</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Set your comfort zone. Higher levels include all content from the levels below.
-          </Text>
-
-          {/* Heat Level Options */}
-          <View style={styles.levelsContainer}>
-            {HEAT_LEVELS.map((heatLevel) => {
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+      >
+        <Animated.View style={{ opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }}>
+          
+          <Text style={styles.sectionTitle}>LEVEL</Text>
+          <View style={styles.widgetCard}>
+            {HEAT_LEVELS.map((heatLevel, index) => {
               const isSelected = selectedLevel === heatLevel.level;
               const isLocked = heatLevel.level >= 4 && !isPremium;
+              const isLast = index === HEAT_LEVELS.length - 1;
 
               return (
-                <TouchableOpacity
-                  key={heatLevel.level}
-                  style={[
-                    styles.levelCard,
-                    {
-                      backgroundColor: isSelected ? heatLevel.color + '12' : colors.card,
-                      borderColor: isSelected ? heatLevel.color : colors.border,
-                      borderWidth: (isLocked || !isSelected) ? 1 : 1.5,
-                      opacity: isLocked ? 0.6 : 1,
-                    },
-                  ]}
-                  onPress={() => handleLevelSelect(heatLevel.level)}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.levelHeader}>
-                    <View style={[styles.levelIconWrap, { backgroundColor: heatLevel.color + (isSelected ? '25' : '15') }]}>
-                      <MaterialCommunityIcons name={heatLevel.icon} size={20} color={heatLevel.color} />
+                <View key={heatLevel.level}>
+                  <TouchableOpacity
+                    style={[
+                      styles.listOptionRow,
+                      isLocked && { opacity: 0.5 }
+                    ]}
+                    onPress={() => handleLevelSelect(heatLevel.level)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.iconWrap, { backgroundColor: isSelected ? heatLevel.color + '15' : t.surfaceSecondary }]}>
+                      <MaterialCommunityIcons 
+                        name={heatLevel.icon} 
+                        size={20} 
+                        color={isSelected ? heatLevel.color : t.subtext} 
+                      />
                     </View>
-                    <View style={styles.levelInfo}>
-                      <View style={styles.levelTitleRow}>
-                        <Text style={[styles.levelTitle, { color: isSelected ? heatLevel.color : colors.text }]}>
-                          {heatLevel.title}
-                        </Text>
-                        {(isSelected || isLocked) && (
-                          <View style={styles.rightIconContainer}>
-                            {isLocked ? (
-                              <Ionicons name="lock-closed" size={16} color={colors.textSecondary} />
-                            ) : isSelected ? (
-                              <Ionicons name="checkmark-circle" size={20} color={heatLevel.color} />
-                            ) : null}
-                          </View>
-                        )}
-                      </View>
-                      <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>
+                    <View style={styles.optionContent}>
+                      <Text style={[styles.optionName, { color: isSelected ? heatLevel.color : t.text }]}>
+                        {heatLevel.title}
+                      </Text>
+                      <Text style={styles.optionDesc} numberOfLines={1}>
                         {heatLevel.description}
                       </Text>
                     </View>
-                  </View>
-                </TouchableOpacity>
+                    {isLocked ? (
+                      <MaterialCommunityIcons name="lock" size={20} color={t.subtext} />
+                    ) : isSelected ? (
+                      <MaterialCommunityIcons name="check" size={24} color={heatLevel.color} />
+                    ) : null}
+                  </TouchableOpacity>
+                  {!isLast && <View style={styles.dividerIndent} />}
+                </View>
               );
             })}
           </View>
 
-          {/* Save Button */}
-          <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: colors.primary }]}
-            onPress={handleSave}
-            disabled={isSaving}
-          >
-            <Text style={[styles.saveButtonText, { color: colors.text }]}>
-              {isSaving ? 'Updating...' : 'Save Comfort Level'}
+          <View style={styles.infoCard}>
+            <MaterialCommunityIcons name="information" size={20} color={t.subtext} />
+            <Text style={styles.infoText}>
+              Higher levels automatically include all content from the levels below them.
             </Text>
-          </TouchableOpacity>
-        </View>
+          </View>
+
+        </Animated.View>
       </ScrollView>
+
+      {/* Sticky Save Button */}
+      <Animated.View style={[styles.actionSection, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
+        <TouchableOpacity
+          style={[styles.primaryButton, isSaving && { opacity: 0.7 }]}
+          onPress={handleSave}
+          disabled={isSaving}
+          activeOpacity={0.8}
+        >
+          {isSaving ? (
+            <MaterialCommunityIcons name="loading" size={20} color={isDark ? '#000' : '#FFF'} />
+          ) : null}
+          <Text style={styles.primaryButtonText}>
+            {isSaving ? 'Updating...' : 'Save Comfort Level'}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
-};
+}
 
-const createStyles = (colors, isDark) => StyleSheet.create({
-  container: {
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial (Native Dashboard Look)
+// ------------------------------------------------------------------
+const createStyles = (t, isDark, insets) => StyleSheet.create({
+  root: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    backgroundColor: t.background,
   },
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: 20,
+  scrollContent: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xxxl + 40,
   },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: 16,
-    marginTop: -10, // Bring content up slightly
+
+  // ── Header ──
+  header: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: Math.max(insets.top, Platform.OS === 'android' ? SPACING.xl : SPACING.sm),
+    paddingBottom: SPACING.lg,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  levelsContainer: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  levelCard: {
-    padding: 16,
-    borderRadius: 14,
-  },
-  levelHeader: {
+  headerTopRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  rightIconContainer: {
-    alignSelf: 'center',
-    width: 24,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 4,
+    marginBottom: SPACING.md,
+    marginLeft: -8, 
   },
-  levelIconWrap: {
-    width: 40,
-    height: 40,
+  backButton: {
+    padding: 8,
+  },
+  headerEditorial: {
+    paddingRight: SPACING.xl, 
+  },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: t.text,
+    letterSpacing: 0.3,
+    marginBottom: 4,
+    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
+  },
+  headerSubtitle: {
+    fontSize: 15,
+    color: t.subtext,
+    fontWeight: '500',
+  },
+
+  // ── Widgets ──
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: t.subtext,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.sm,
+    paddingLeft: SPACING.xs,
+  },
+  widgetCard: {
+    backgroundColor: t.surface,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: t.border,
+    marginBottom: SPACING.xl,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 10 },
+      android: { elevation: 2 },
+    }),
+  },
+
+  // ── List Items ──
+  listOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.lg,
+    gap: 16,
+  },
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18, 
     alignItems: 'center',
     justifyContent: 'center',
   },
-  levelInfo: {
+  optionContent: {
     flex: 1,
   },
-  levelTitle: {
+  optionName: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 2,
+    letterSpacing: -0.2,
   },
-  levelDescription: {
+  optionDesc: {
     fontSize: 14,
-    lineHeight: 20,
+    color: t.subtext,
   },
+  dividerIndent: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: t.border,
+    marginLeft: 68, // Indent past the icon
+  },
+
+  // ── Info Card ──
   infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderRadius: 12,
+    padding: SPACING.lg,
+    borderRadius: 20,
+    backgroundColor: t.surfaceSecondary,
     borderWidth: 1,
-    marginBottom: 24,
+    borderColor: t.border,
+    marginBottom: SPACING.xl,
     gap: 12,
-  },
-  infoIconParams: {
-    marginTop: 2,
   },
   infoText: {
     fontSize: 14,
     lineHeight: 20,
     flex: 1,
+    color: t.subtext,
+    fontWeight: '500',
   },
-  saveButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
+
+  // ── Action Button ──
+  actionSection: {
+    paddingHorizontal: SPACING.xl,
+    paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, SPACING.md) : SPACING.xl,
+    paddingTop: SPACING.sm,
+    backgroundColor: t.background,
+  },
+  primaryButton: {
+    backgroundColor: t.text, // Solid, high contrast Apple Action Button
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    height: 56,
+    borderRadius: 28,
+    gap: 8,
   },
-  saveButtonText: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '600',
+  primaryButtonText: {
+    color: t.surface,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
 });
-
-export default HeatLevelSettingsScreen;

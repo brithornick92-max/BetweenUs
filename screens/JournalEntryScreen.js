@@ -1,4 +1,7 @@
-import React, { useState, useRef, useMemo } from "react";
+// screens/JournalEntryScreen.js — Private Reflections
+// Velvet Glass · Apple Editorial Vertical Rhythm · Haptic Stationery Physics
+
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,13 +14,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  StatusBar,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as ImagePicker from "expo-image-picker";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { journalStorage } from "../utils/storage";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
@@ -26,7 +31,13 @@ import {
   SPACING,
   BORDER_RADIUS,
   ICON_SIZES,
+  withAlpha,
 } from "../utils/theme";
+import GlowOrb from "../components/GlowOrb";
+import FilmGrain from "../components/FilmGrain";
+
+const { width: SCREEN_W } = Dimensions.get('window');
+const MAX_LEN = 5000;
 
 const moods = [
   { id: "calm", label: "Calm", icon: "leaf" },
@@ -40,8 +51,8 @@ export default function JournalEntryScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
-  // Free users cannot create/edit journal entries
-  React.useEffect(() => {
+  // integrated premium logic
+  useEffect(() => {
     if (!isPremium) {
       showPaywall?.('unlimitedJournalHistory');
       navigation.goBack();
@@ -58,7 +69,6 @@ export default function JournalEntryScreen({ navigation, route }) {
   const [isSaving, setIsSaving] = useState(false);
 
   const lastHapticLength = useRef(0);
-
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const handleSave = async () => {
@@ -155,13 +165,16 @@ export default function JournalEntryScreen({ navigation, route }) {
       Alert.alert("Error", "Couldn't open your photo library.");
     }
   };
-    // Render UI
-    return (
-      <View style={styles.container}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <FilmGrain opacity={0.1} />
+      <GlowOrb color={colors.primary} size={400} top={-150} left={-100} opacity={0.1} />
+      
       <LinearGradient
-        colors={[colors.primary + "08", "transparent", "transparent"]}
-        style={StyleSheet.absoluteFill}
+        colors={[isDark ? "#0F0514" : "#FAF7F5", colors.background]}
+        style={StyleSheet.absoluteFillObject}
       />
 
       <SafeAreaView style={styles.safeArea}>
@@ -169,27 +182,19 @@ export default function JournalEntryScreen({ navigation, route }) {
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <Animated.View
-            entering={FadeIn.duration(600)}
-            style={styles.header}
-          >
+          {/* Editorial Header */}
+          <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
             <TouchableOpacity
-              style={styles.iconButton}
+              style={[styles.backButton, { backgroundColor: withAlpha(colors.text, 0.05) }]}
               onPress={() => navigation.goBack()}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <MaterialCommunityIcons
-                name="chevron-left"
-                size={28}
-                color={colors.text}
-              />
+              <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
             </TouchableOpacity>
 
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>
-                {entry ? "Edit Reflection" : "New Reflection"}
-              </Text>
-              <Text style={styles.headerSubtitle}>
+            <View style={styles.headerCenter}>
+              <Text style={[styles.headerSubtitle, { color: colors.primary }]}>PRIVATE REFLECTION</Text>
+              <Text style={[styles.headerDate, { color: colors.text }]}>
                 {new Date().toLocaleDateString("en-US", {
                   weekday: "short",
                   month: "long",
@@ -199,12 +204,16 @@ export default function JournalEntryScreen({ navigation, route }) {
             </View>
 
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, { backgroundColor: colors.primary }]}
               onPress={handleSave}
               disabled={isSaving}
-              activeOpacity={0.85}
+              activeOpacity={0.8}
             >
-              <Text style={styles.saveText}>{isSaving ? "..." : "Save"}</Text>
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Text style={styles.saveText}>Save</Text>
+              )}
             </TouchableOpacity>
           </Animated.View>
 
@@ -212,166 +221,133 @@ export default function JournalEntryScreen({ navigation, route }) {
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: SPACING.xxxl }}
+            contentContainerStyle={{ paddingBottom: 100 }}
           >
-            <Animated.View
-              entering={FadeInDown.springify().damping(18)}
-              style={styles.promptCardContainer}
-            >
-              <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.blurContainer}>
-                <TextInput
-                  style={styles.promptInput}
-                  placeholder="Capture your evening..."
-                  placeholderTextColor={colors.text + "40"}
-                  value={title}
-                  onChangeText={setTitle}
-                  multiline
-                  selectionColor={colors.primary}
-                />
-              </BlurView>
-            </Animated.View>
-
-            <Animated.View
-              entering={FadeInDown.delay(150).duration(600)}
-              style={styles.moodContainer}
-            >
-              {moods.map((m) => (
-                <TouchableOpacity
-                  key={m.id}
-                  onPress={() => {
-                    setMood(m.id);
-                    impact(ImpactFeedbackStyle.Light);
-                  }}
-                  style={[
-                    styles.moodChip,
-                    mood === m.id && {
-                      backgroundColor: colors.primary,
-                      borderColor: colors.primary,
-                    },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name={m.icon}
-                    size={14}
-                    color={mood === m.id ? colors.text : colors.primary}
-                  />
-                  <Text
-                    style={[
-                      styles.moodText,
-                      {
-                        color: mood === m.id ? colors.text : colors.primary,
-                      },
-                    ]}
-                  >
-                    {m.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </Animated.View>
-
-            <Animated.View
-              entering={FadeInDown.delay(225).duration(600)}
-              style={styles.imagePickerCard}
-            >
-              {imageUri ? (
-                <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-              ) : (
-                <View style={styles.imagePlaceholder}>
-                  <MaterialCommunityIcons
-                    name="image-outline"
-                    size={24}
-                    color={colors.textMuted}
-                  />
-                  <Text style={styles.imagePlaceholderText}>
-                    Use default background or add a photo
-                  </Text>
-                </View>
-              )}
-
-              <View style={styles.imagePickerActions}>
-                <TouchableOpacity
-                  style={styles.imageButton}
-                  onPress={handlePickImage}
-                  activeOpacity={0.85}
-                >
-                  <MaterialCommunityIcons name="image-plus" size={16} color={colors.text} />
-                  <Text style={[styles.imageButtonText, { color: colors.text }]}>Choose Photo</Text>
-                </TouchableOpacity>
-
-                {imageUri && (
-                  <TouchableOpacity
-                    style={styles.imageButtonSecondary}
-                    onPress={() => setImageUri(null)}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.imageButtonSecondaryText}>Use Default</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </Animated.View>
-
-            <Animated.View
-              entering={FadeInDown.delay(300).duration(800)}
-              style={styles.writingField}
-            >
+            {/* Title Block - Large Editorial Serif */}
+            <Animated.View entering={FadeInDown.delay(100).duration(800)}>
               <TextInput
-                style={styles.contentInput}
-                placeholder="Let your thoughts flow beautifully..."
-                placeholderTextColor={colors.text + "30"}
-                value={content}
-                onChangeText={handleContentChange}
+                style={[styles.titleInput, { color: colors.text }]}
+                placeholder="Title your thoughts..."
+                placeholderTextColor={withAlpha(colors.text, 0.2)}
+                value={title}
+                onChangeText={setTitle}
                 multiline
-                scrollEnabled={false}
                 selectionColor={colors.primary}
-                autoFocus={!entry}
               />
             </Animated.View>
 
-            <Animated.View
-              entering={FadeInDown.delay(450).duration(600)}
-              style={styles.footer}
-            >
+            {/* Mood Selector - Tactile Chips */}
+            <Animated.View entering={FadeInDown.delay(200).duration(600)} style={styles.moodSection}>
+              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>VIBE</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moodRow}>
+                {moods.map((m) => {
+                    const active = mood === m.id;
+                    return (
+                        <TouchableOpacity
+                            key={m.id}
+                            onPress={() => {
+                                setMood(m.id);
+                                impact(ImpactFeedbackStyle.Light);
+                            }}
+                            style={[
+                                styles.moodChip,
+                                active && { backgroundColor: colors.primary, borderColor: colors.primary },
+                                !active && { borderColor: withAlpha(colors.text, 0.1) }
+                            ]}
+                        >
+                            <MaterialCommunityIcons
+                                name={m.icon}
+                                size={14}
+                                color={active ? "#FFF" : colors.primary}
+                            />
+                            <Text style={[styles.moodText, { color: active ? "#FFF" : colors.text }]}>{m.label}</Text>
+                        </TouchableOpacity>
+                    );
+                })}
+              </ScrollView>
+            </Animated.View>
+
+            {/* Visual Anchor - Media Card */}
+            <Animated.View entering={FadeInDown.delay(300).duration(600)} style={styles.mediaContainer}>
+              {imageUri ? (
+                <View style={styles.previewWrapper}>
+                  <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                  <TouchableOpacity 
+                    style={styles.removeImageBtn} 
+                    onPress={() => { selection(); setImageUri(null); }}
+                  >
+                    <MaterialCommunityIcons name="close" size={16} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity 
+                  style={[styles.imagePlaceholder, { borderColor: withAlpha(colors.text, 0.1) }]} 
+                  onPress={handlePickImage}
+                >
+                  <MaterialCommunityIcons name="camera-plus-outline" size={24} color={colors.primary} />
+                  <Text style={[styles.placeholderText, { color: colors.textMuted }]}>Add a visual memory</Text>
+                </TouchableOpacity>
+              )}
+            </Animated.View>
+
+            {/* Writing Surface - High Contrast Stationery */}
+            <Animated.View entering={FadeInDown.delay(400).duration(800)} style={styles.writingSurface}>
+                <View style={styles.writingHeader}>
+                    <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>THE REFLECTION</Text>
+                    <Text style={[styles.charCount, { color: colors.textMuted }]}>{content.length} characters</Text>
+                </View>
+                <TextInput
+                    style={[styles.contentInput, { color: colors.text }]}
+                    placeholder="Let your story flow here..."
+                    placeholderTextColor={withAlpha(colors.text, 0.25)}
+                    value={content}
+                    onChangeText={handleContentChange}
+                    multiline
+                    scrollEnabled={false}
+                    selectionColor={colors.primary}
+                    autoFocus={!entry}
+                />
+            </Animated.View>
+
+            {/* Footer Actions */}
+            <Animated.View entering={FadeInUp.delay(600)} style={styles.footer}>
               <View style={styles.footerActions}>
                 <TouchableOpacity
                   onPress={() => {
                     setIsShared(!isShared);
                     selection();
                   }}
+                  activeOpacity={0.8}
                   style={[
-                    styles.actionToggle,
-                    isShared && styles.actionToggleActive,
+                    styles.shareToggle,
+                    { borderColor: isShared ? colors.primary : withAlpha(colors.text, 0.1) },
+                    isShared && { backgroundColor: withAlpha(colors.primary, 0.08) }
                   ]}
                 >
                   <MaterialCommunityIcons
-                    name={isShared ? "account-multiple" : "lock-outline"}
-                    size={ICON_SIZES.sm}
-                    color={isShared ? colors.text : colors.primary}
+                    name={isShared ? "account-multiple-check" : "eye-off-outline"}
+                    size={18}
+                    color={isShared ? colors.primary : colors.textMuted}
                   />
-                  <Text
-                    style={[
-                      styles.actionText,
-                      {
-                        color: isShared ? colors.text : colors.primary,
-                      },
-                    ]}
-                  >
-                    {isShared ? "Shared with Partner" : "Private Entry"}
+                  <Text style={[styles.shareText, { color: isShared ? colors.primary : colors.textMuted }]}>
+                    {isShared ? "Shared with Partner" : "Private Archive"}
                   </Text>
                 </TouchableOpacity>
 
                 {entry && (
                   <TouchableOpacity
                     onPress={handleDelete}
-                    style={styles.deleteCircle}
-                    activeOpacity={0.8}
+                    style={[styles.deleteButton, { backgroundColor: withAlpha('#FF3B30', 0.1) }]}
+                    activeOpacity={0.7}
                   >
-                    <MaterialCommunityIcons
-                      name="delete-outline"
-                      size={ICON_SIZES.md}
-                      color={colors.textMuted}
-                    />
+                    <MaterialCommunityIcons name="trash-can-outline" size={20} color="#FF3B30" />
                   </TouchableOpacity>
                 )}
+              </View>
+              
+              <View style={styles.securityBanner}>
+                <MaterialCommunityIcons name="shield-check-outline" size={12} color={colors.textMuted} />
+                <Text style={[styles.securityText, { color: colors.textMuted }]}>END-TO-END ENCRYPTED</Text>
               </View>
             </Animated.View>
           </ScrollView>
@@ -382,199 +358,151 @@ export default function JournalEntryScreen({ navigation, route }) {
 }
 
 const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 24,
   },
-  headerTitleContainer: {
-    alignItems: "center",
-  },
-  headerTitle: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-    opacity: 0.9,
-  },
-  headerSubtitle: {
-    color: colors.primary,
-    fontSize: 11,
-    marginTop: 2,
-    opacity: 0.9,
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-  },
-  saveText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  iconButton: {
+  backButton: {
     width: 44,
     height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: SPACING.xl,
+  headerCenter: { alignItems: "center" },
+  headerSubtitle: {
+    fontFamily: 'Lato_700Bold',
+    fontSize: 10,
+    letterSpacing: 2.5,
+    marginBottom: 4,
   },
-  promptCardContainer: {
-    marginTop: SPACING.lg,
-    borderRadius: BORDER_RADIUS.xl,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: colors.primary + "20",
+  headerDate: {
+    fontFamily: 'Lato_400Regular',
+    fontSize: 14,
+    opacity: 0.7,
   },
-  blurContainer: {
-    padding: SPACING.xl,
+  saveButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    minWidth: 70,
+    alignItems: 'center',
+    ...Platform.select({
+        ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+        android: { elevation: 4 }
+    })
   },
-  promptInput: {
-    color: colors.text,
-    fontSize: 24,
-    lineHeight: 32,
-    fontFamily: Platform.select({
-      ios: "DMSerifDisplay-Regular",
-      android: "DMSerifDisplay_400Regular",
-    }),
+  saveText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontFamily: 'Lato_700Bold',
+  },
+  scrollView: { flex: 1, paddingHorizontal: 28 },
+  titleInput: {
+    fontSize: 34,
+    lineHeight: 42,
+    fontFamily: Platform.select({ ios: "DMSerifDisplay-Regular", android: "DMSerifDisplay_400Regular" }),
     fontWeight: "300",
+    marginBottom: 32,
   },
-  moodContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: SPACING.xl,
-    gap: SPACING.sm,
+  sectionLabel: {
+    fontFamily: 'Lato_700Bold',
+    fontSize: 10,
+    letterSpacing: 1.5,
+    marginBottom: 12,
+    textTransform: 'uppercase',
   },
+  moodSection: { marginBottom: 32 },
+  moodRow: { gap: 10, paddingRight: 20 },
   moodChip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.primary + "40",
-    gap: 6,
+    gap: 8,
   },
-  moodText: {
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  imagePickerCard: {
-    marginTop: SPACING.lg,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: "hidden",
-  },
-  imagePreview: {
-    width: "100%",
-    height: 180,
+  moodText: { fontSize: 14, fontFamily: 'Lato_700Bold' },
+  mediaContainer: { marginBottom: 32 },
+  imagePreview: { width: "100%", height: 220, borderRadius: 24 },
+  previewWrapper: { position: 'relative' },
+  removeImageBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   imagePlaceholder: {
-    height: 140,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  imagePlaceholderText: {
-    color: colors.textMuted,
-    fontSize: 12,
-  },
-  imagePickerActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 12,
-    gap: 10,
-  },
-  imageButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: colors.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    flex: 1,
-  },
-  imageButtonText: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0.3,
-  },
-  imageButtonSecondary: {
-    alignItems: "center",
-    justifyContent: "center",
+    height: 80,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    borderStyle: 'dashed',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
   },
-  imageButtonSecondaryText: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: "600",
+  placeholderText: { fontFamily: 'Lato_400Regular', fontSize: 14 },
+  writingSurface: { marginBottom: 40 },
+  writingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  writingField: {
-    marginTop: SPACING.xxl,
-    minHeight: 360,
-  },
+  charCount: { fontSize: 10, fontFamily: 'Lato_400Regular', opacity: 0.5 },
   contentInput: {
-    color: colors.text,
-    fontSize: 17,
-    lineHeight: 28,
+    fontSize: 18,
+    lineHeight: 30,
     textAlignVertical: "top",
+    fontFamily: 'Lato_400Regular',
   },
   footer: {
-    marginTop: SPACING.xl,
-    paddingTop: SPACING.xl,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+    paddingTop: 32,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
   },
   footerActions: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginBottom: 24,
   },
-  actionToggle: {
+  shareToggle: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-    backgroundColor: colors.primary + "15",
-    gap: SPACING.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 8,
   },
-  actionToggleActive: {
-    backgroundColor: colors.primary,
-  },
-  actionText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  deleteCircle: {
+  shareText: { fontSize: 13, fontFamily: 'Lato_700Bold' },
+  deleteButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.surface2 + "60",
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
+  securityBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    opacity: 0.5,
+  },
+  securityText: { fontSize: 9, fontFamily: 'Lato_700Bold' }
 });

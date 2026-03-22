@@ -1,61 +1,131 @@
 /**
  * InsideJokesScreen — Full-page Private Language Vault
- * 
- * Accessed from HomeScreen or Settings.
+ * Integrated with Velvet Glass & Apple Editorial System
+ * * Accessed from HomeScreen or Settings.
  * Shows the full list of nicknames, jokes, rituals, and shared references.
  */
 
-import React, { useEffect } from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { 
+  SafeAreaView, 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  StatusBar,
+  Dimensions,
+  Platform
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
+import { selection, impact, ImpactFeedbackStyle } from '../utils/haptics';
+import { withAlpha, SPACING, BORDER_RADIUS } from '../utils/theme';
 import InsideJokes from '../components/InsideJokes';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
+
+const { width: SCREEN_W } = Dimensions.get('window');
 
 export default function InsideJokesScreen({ navigation }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+
+  // Integrated logic: Haptic on entry
+  useEffect(() => {
+    impact(ImpactFeedbackStyle.Light);
+  }, []);
 
   const headerBar = (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.7}>
-        <MaterialCommunityIcons name="arrow-left" size={26} color={colors.text} />
+      <TouchableOpacity 
+        onPress={() => { selection(); navigation.goBack(); }} 
+        style={[styles.backButton, { backgroundColor: withAlpha(colors.text, 0.05) }]} 
+        activeOpacity={0.7}
+      >
+        <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
       </TouchableOpacity>
-      <Text style={[styles.headerTitle, { color: colors.text }]}>Our Private Language</Text>
-      <View style={{ width: 40 }} />
+      <View style={styles.headerTextStack}>
+        <Text style={[styles.headerSubtitle, { color: colors.primary }]}>PRIVATE VAULT</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Private Language</Text>
+      </View>
+      <View style={{ width: 44 }} />
     </View>
   );
 
+  // High-End Premium Gate
   if (!isPremium) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        {headerBar}
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
-          <MaterialCommunityIcons name="lock-outline" size={56} color={colors.primary} style={{ marginBottom: 16 }} />
-          <Text style={{ color: colors.text, fontSize: 28, fontFamily: 'DMSerifDisplay-Regular', marginBottom: 12, textAlign: 'center' }}>
-            Inside Jokes is Premium
-          </Text>
-          <Text style={{ color: colors.textMuted, fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 24, paddingHorizontal: 16 }}>
-            Your private language vault — nicknames, jokes, and shared references — is a premium feature.
-          </Text>
-          <TouchableOpacity
-            onPress={() => showPaywall?.('insideJokes')}
-            style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
-            activeOpacity={0.85}
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle="light-content" />
+        <FilmGrain opacity={0.3} />
+        <GlowOrb color={colors.primary} size={400} top={-100} left={-150} opacity={0.15} />
+        
+        <SafeAreaView style={{ flex: 1 }}>
+          {headerBar}
+          <ReAnimated.View 
+            entering={FadeInUp.duration(800).springify()} 
+            style={styles.premiumGateContainer}
           >
-            <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
-            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+            <View style={[styles.gateIconFrame, { backgroundColor: withAlpha(colors.primary, 0.1), borderColor: withAlpha(colors.primary, 0.2) }]}>
+              <MaterialCommunityIcons name="comment-heart-outline" size={48} color={colors.primary} />
+              <View style={styles.lockBadge}>
+                <MaterialCommunityIcons name="lock" size={14} color="#FFF" />
+              </View>
+            </View>
+
+            <Text style={[styles.gateTitle, { color: colors.text }]}>The Secret Language of You</Text>
+            <Text style={[styles.gateSub, { color: colors.textMuted }]}>
+              A dedicated vault for the words only you two understand—nicknames, internal references, and the jokes that define your world.
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => showPaywall?.('insideJokes')}
+              style={[styles.premiumBtn, { backgroundColor: colors.primary }]}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.1)']}
+                style={StyleSheet.absoluteFill}
+              />
+              <MaterialCommunityIcons name="crown" size={20} color="#FFF" />
+              <Text style={styles.premiumBtnText}>Unlock the Vault</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()}
+              style={styles.notNowBtn}
+            >
+              <Text style={[styles.notNowText, { color: colors.textMuted }]}>Not now</Text>
+            </TouchableOpacity>
+          </ReAnimated.View>
+        </SafeAreaView>
+      </View>
     );
   }
 
+  // Premium Immersive Experience
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {headerBar}
-      <InsideJokes compact={false} />
-    </SafeAreaView>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <FilmGrain opacity={0.1} />
+      <GlowOrb color={withAlpha(colors.primary, 0.08)} size={500} top={-200} left={-200} />
+      
+      <SafeAreaView style={{ flex: 1 }}>
+        <ReAnimated.View entering={FadeInDown.duration(600)}>
+          {headerBar}
+        </ReAnimated.View>
+        
+        <ReAnimated.View 
+          entering={FadeInDown.delay(200).duration(800)} 
+          style={{ flex: 1 }}
+        >
+          <InsideJokes compact={false} />
+        </ReAnimated.View>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -64,18 +134,118 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 24,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: -8,
+  },
+  headerTextStack: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  headerSubtitle: {
+    fontFamily: 'Lato_700Bold',
+    fontSize: 10,
+    letterSpacing: 2,
+    marginBottom: 2,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'DMSerifDisplay-Regular',
+      android: 'DMSerifDisplay_400Regular',
+    }),
+    fontSize: 28,
+    letterSpacing: -0.5,
   },
+
+  // Premium Gate Aesthetic
+  premiumGateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingBottom: 60,
+  },
+  gateIconFrame: {
+    width: 100,
+    height: 100,
+    borderRadius: 32,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 32,
+    position: 'relative',
+  },
+  lockBadge: {
+    position: 'absolute',
+    bottom: -6,
+    right: -6,
+    backgroundColor: '#FF2D55',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#000',
+  },
+  gateTitle: {
+    fontFamily: Platform.select({
+      ios: 'DMSerifDisplay-Regular',
+      android: 'DMSerifDisplay_400Regular',
+    }),
+    fontSize: 32,
+    textAlign: 'center',
+    lineHeight: 38,
+    marginBottom: 16,
+  },
+  gateSub: {
+    fontFamily: 'Lato_400Regular',
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 40,
+    opacity: 0.8,
+  },
+  premiumBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 60,
+    width: '100%',
+    borderRadius: 30,
+    gap: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 15,
+      },
+      android: { elevation: 8 }
+    })
+  },
+  premiumBtnText: {
+    color: '#FFF',
+    fontFamily: 'Lato_700Bold',
+    fontSize: 16,
+    letterSpacing: 0.5,
+  },
+  notNowBtn: {
+    marginTop: 24,
+    padding: 12,
+  },
+  notNowText: {
+    fontFamily: 'Lato_700Bold',
+    fontSize: 14,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  }
 });

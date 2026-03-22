@@ -17,29 +17,24 @@ import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedb
 import { useAppContext } from '../context/AppContext';
 import { useRitualContext } from '../context/RitualContext';
 import { useMemoryContext } from '../context/MemoryContext';
-import { RITUAL_TYPES } from '../context/RitualContext';
 import { useTheme } from '../context/ThemeContext';
-import { COLORS, GRADIENTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 
-// Night theme colors — aligned to Between Us brand palette
+// STRICT Apple Editorial Dark Mode Palette (Forced Dark for Night Ritual)
 export const getNightRitualColors = (palette) => ({
-  deepNight: palette.background,       // inkBlack — screen bg
-  midnightBlue: palette.surface,    // charcoalPlum — card surfaces
-  softPurple: palette.surface2 || palette.surface,      // surfacePlum — secondary surfaces
-  elevated: palette.surfaceElevated,        // surfaceElevated — glass cards
-  moonGlow: palette.text,        // softCream — primary text
-  starlight: palette.textStatic || palette.text,       // creamSubtle — secondary text
-  starlightDim: palette.textMuted,    // tertiary / descriptions
-  wine: palette.primary,            // primary accent
-  mulberry: palette.primary,        // secondary accent
-  wineDeep: palette.primary,        // gradient endpoints
-  wineMuted: palette.primaryGlow || palette.primary,       // subtle accent bg
-  plumVignette: palette.background,    // atmospheric gradients
-  gentleGold: palette.accent || '#A89060',      // premium-only highlight
-  border: palette.borderGlass || 'rgba(255,255,255,0.08)',
-  borderSubtle: palette.borderGlass || 'rgba(255,255,255,0.05)',
-  glassBg: palette.surfaceGlass || 'rgba(28,21,32,0.55)',
-  glassBgLight: palette.surfaceElevated || 'rgba(36,28,40,0.40)',
+  deepNight: '#000000',
+  plumVignette: '#0F0A1A',
+  midnightBlue: '#0D081A',
+  surface: '#1C1C1E',
+  surfaceSecondary: '#2C2C2E',
+  text: '#FFFFFF',
+  subtext: 'rgba(235, 235, 245, 0.6)',
+  border: 'rgba(255,255,255,0.08)',
+  // Vibrant iOS System Accents
+  iosPurple: '#5856D6',
+  iosPink: '#FF2D55',
+  iosOrange: '#FF9500',
+  iosCyan: '#32ADE6',
 });
 
 // Inline fallback questions — used when context fails to provide data
@@ -67,32 +62,32 @@ const getRitualElements = (colors) => ({
     id: 'prompt',
     name: 'Tonight\'s Reflection',
     icon: '🌙',
-    color: colors.wine,
-    gradient: [colors.wine, colors.wineDeep],
+    color: colors.iosPurple,
+    gradient: [colors.iosPurple, '#3F3E9E'],
     description: 'A gentle question to end your day',
   },
   CHECK_IN: {
     id: 'checkIn',
     name: 'How Are You?',
     icon: '💫',
-    color: colors.mulberry,
-    gradient: [colors.mulberry, colors.wine],
+    color: colors.iosPink,
+    gradient: [colors.iosPink, '#D11C40'],
     description: 'Share how you\'re feeling tonight',
   },
   APPRECIATION: {
     id: 'appreciation',
     name: 'Gratitude',
     icon: '✨',
-    color: colors.wineMuted,
-    gradient: [colors.wineMuted, colors.wineDeep],
+    color: colors.iosOrange,
+    gradient: [colors.iosOrange, '#CC7700'],
     description: 'Something beautiful from today',
   },
   DATE_IDEA: {
     id: 'dateIdea',
     name: 'Tomorrow Together',
     icon: '🌟',
-    color: colors.wine,
-    gradient: [colors.wine, colors.mulberry],
+    color: colors.iosCyan,
+    gradient: [colors.iosCyan, '#208AB8'],
     description: 'A way to connect tomorrow',
   },
 });
@@ -107,7 +102,7 @@ const NightRitualMode = ({
   const NIGHT_COLORS = useMemo(() => getNightRitualColors(themeColors), [themeColors]);
   const styles = useMemo(() => createStyles(NIGHT_COLORS), [NIGHT_COLORS]);
   const RITUAL_ELEMENTS = getRitualElements(NIGHT_COLORS);
-  const ELEMENT_COUNT = Object.keys(RITUAL_ELEMENTS).length;
+  
   const { state: appState } = useAppContext();
   const { state: ritualState, actions: ritualActions } = useRitualContext();
   const { state: memoryState } = useMemoryContext();
@@ -120,7 +115,7 @@ const NightRitualMode = ({
   
   // Animation values
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const slideAnimation = useRef(new Animated.Value(50)).current;
+  const slideAnimation = useRef(new Animated.Value(40)).current;
   const progressAnimation = useRef(new Animated.Value(0)).current;
   const completionAnimation = useRef(new Animated.Value(0)).current;
   const elementTimerRef = useRef(null);
@@ -138,14 +133,12 @@ const NightRitualMode = ({
   useEffect(() => {
     const initializeRitual = async () => {
       try {
-        // Check if there's an active ritual or create new one
         let ritual = ritualState.currentRitual;
 
         if (!ritual) {
           try {
             ritual = await ritualActions.getRitualWithMemoryContext(memoryState);
           } catch (memoryErr) {
-            // Memory context unavailable — fall back to a standard ritual
             if (__DEV__) console.warn('Memory context unavailable, using standard ritual:', memoryErr);
             try {
               ritual = await ritualActions.startNightRitual();
@@ -155,7 +148,6 @@ const NightRitualMode = ({
           }
         }
 
-        // Ultimate fallback — build a fully local ritual so the UI always has data
         if (!ritual || !ritual.prompt?.question) {
           ritual = {
             id: `ritual_fallback_${Date.now()}`,
@@ -172,7 +164,6 @@ const NightRitualMode = ({
 
         setCurrentRitual(ritual);
         
-        // Load existing responses from all ritual elements
         const loadedResponses = {};
         for (const key of Object.keys(RITUAL_ELEMENTS)) {
           const id = RITUAL_ELEMENTS[key].id;
@@ -184,16 +175,17 @@ const NightRitualMode = ({
           setResponses(prev => ({ ...prev, ...loadedResponses }));
         }
         
-        // Animate in with calming timing
+        // Native Apple Spring Entrance
         Animated.parallel([
           Animated.timing(fadeAnimation, {
             toValue: 1,
-            duration: 800,
+            duration: 400,
             useNativeDriver: true,
           }),
-          Animated.timing(slideAnimation, {
+          Animated.spring(slideAnimation, {
             toValue: 0,
-            duration: 800,
+            friction: 9,
+            tension: 50,
             useNativeDriver: true,
           }),
         ]).start();
@@ -206,12 +198,13 @@ const NightRitualMode = ({
     initializeRitual();
   }, [ritualState.currentRitual]);
 
-  // Update progress animation when current element changes
+  // Update progress animation
   useEffect(() => {
     const progress = currentElement / Object.keys(RITUAL_ELEMENTS).length;
-    Animated.timing(progressAnimation, {
+    Animated.spring(progressAnimation, {
       toValue: progress,
-      duration: 600,
+      friction: 8,
+      tension: 50,
       useNativeDriver: false,
     }).start();
   }, [currentElement]);
@@ -220,43 +213,37 @@ const NightRitualMode = ({
     if (!response.trim()) return;
     
     try {
-      // Gentle haptic feedback
       impact(ImpactFeedbackStyle.Light);
       
-      // Update responses
       const newResponses = { ...responses, [elementId]: response.trim() };
       setResponses(newResponses);
       
-      // Update ritual context
       await ritualActions.updateRitualResponse(elementId, response.trim());
       
-      // Callback
       if (onElementComplete) {
         onElementComplete(elementId, response.trim());
       }
       
-      // Move to next element or complete ritual
       const elementKeys = Object.keys(RITUAL_ELEMENTS);
       const nextIndex = currentElement + 1;
       
       if (nextIndex < elementKeys.length) {
-        // Move to next element with gentle transition
         Animated.sequence([
           Animated.timing(slideAnimation, {
-            toValue: -30,
-            duration: 300,
+            toValue: -20,
+            duration: 250,
             useNativeDriver: true,
           }),
-          Animated.timing(slideAnimation, {
+          Animated.spring(slideAnimation, {
             toValue: 0,
-            duration: 400,
+            friction: 9,
+            tension: 60,
             useNativeDriver: true,
           }),
         ]).start();
         
-        elementTimerRef.current = setTimeout(() => setCurrentElement(nextIndex), 300);
+        elementTimerRef.current = setTimeout(() => setCurrentElement(nextIndex), 250);
       } else {
-        // Complete ritual
         await completeRitual(newResponses);
       }
       
@@ -269,33 +256,31 @@ const NightRitualMode = ({
     setIsCompleting(true);
     
     try {
-      // Complete ritual in context
       const completedRitual = await ritualActions.completeRitual();
-      
-      // Gentle completion haptic
       impact(ImpactFeedbackStyle.Light);
       
-      // Show completion animation
       setShowCompletion(true);
-      Animated.timing(completionAnimation, {
+      Animated.spring(completionAnimation, {
         toValue: 1,
-        duration: 800,
+        friction: 8,
+        tension: 50,
         useNativeDriver: true,
       }).start();
       
-      // Callback
       if (onRitualComplete) {
         onRitualComplete(completedRitual, finalResponses);
       }
       
-      // Auto-dismiss after showing completion
-      // Note: parent screen handles navigation via onRitualComplete.
-      // We keep the completion overlay visible and do NOT reset currentRitual
-      // to null, which would flash the loading state.
       completionTimerRef.current = setTimeout(() => {
-        setShowCompletion(false);
-        setCurrentElement(0);
-        setResponses({});
+        Animated.timing(completionAnimation, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowCompletion(false);
+          setCurrentElement(0);
+          setResponses({});
+        });
       }, 3000);
       
     } catch (error) {
@@ -311,16 +296,18 @@ const NightRitualMode = ({
 
   const renderStepDots = () => (
     <View style={styles.stepDotsRow}>
-      {Object.keys(RITUAL_ELEMENTS).map((_, i) => {
+      {Object.keys(RITUAL_ELEMENTS).map((key, i) => {
         const isActive = i === currentElement;
         const isDone = i < currentElement;
+        const color = RITUAL_ELEMENTS[key].color;
+        
         return (
           <View
             key={i}
             style={[
               styles.stepDot,
-              isDone && styles.stepDotDone,
-              isActive && styles.stepDotActive,
+              isDone && { backgroundColor: color, borderColor: color },
+              isActive && { backgroundColor: color, borderColor: color, transform: [{ scale: 1.3 }] },
             ]}
           />
         );
@@ -335,7 +322,6 @@ const NightRitualMode = ({
     
     if (!element) return null;
 
-    // Use element.id to look up data in the ritual object
     const elementId = element.id;
     const currentResponse = responses[elementId] || '';
     const isCompleted = !!currentResponse;
@@ -350,9 +336,9 @@ const NightRitualMode = ({
           },
         ]}
       >
-        {/* Element Header */}
+        {/* Editorial Flush-Left Header */}
         <View style={styles.elementHeader}>
-          <View style={styles.elementIconContainer}>
+          <View style={[styles.elementIconContainer, { backgroundColor: element.color + '20' }]}>
             <Text style={styles.elementIcon}>{element.icon}</Text>
           </View>
           <View style={styles.elementTitleContainer}>
@@ -361,7 +347,7 @@ const NightRitualMode = ({
           </View>
         </View>
 
-        {/* Element Question */}
+        {/* Heavy Flush-Left Question */}
         <View style={styles.questionContainer}>
           <Text style={styles.questionText}>
             {currentRitual?.[elementId]?.question || FALLBACK_QUESTIONS[elementId] || 'What\'s on your mind tonight?'}
@@ -374,11 +360,15 @@ const NightRitualMode = ({
             element={element}
             onSubmit={(response) => handleElementResponse(elementId, response)}
             placeholder={getPlaceholderForElement(elementId)}
+            styles={styles}
+            NIGHT_COLORS={NIGHT_COLORS}
           />
         ) : (
           <CompletedResponse
             element={element}
             response={currentResponse}
+            styles={styles}
+            NIGHT_COLORS={NIGHT_COLORS}
           />
         )}
       </Animated.View>
@@ -397,13 +387,13 @@ const NightRitualMode = ({
             transform: [{
               scale: completionAnimation.interpolate({
                 inputRange: [0, 1],
-                outputRange: [0.8, 1],
+                outputRange: [0.95, 1],
               }),
             }],
           },
         ]}
       >
-        <BlurView intensity={30} tint="dark" style={styles.completionBlur}>
+        <BlurView intensity={40} tint="dark" style={styles.completionModalCard}>
           <Text style={styles.completionIcon}>🌙</Text>
           <Text style={styles.completionTitle}>Rest well</Text>
           <Text style={styles.completionMessage}>
@@ -427,12 +417,7 @@ const NightRitualMode = ({
   if (!currentRitual) {
     return (
       <View style={[styles.container, styles.loadingContainer, style]}>
-        <Animated.Text
-          style={[
-            styles.loadingText,
-            { opacity: fadeAnimation },
-          ]}
-        >
+        <Animated.Text style={[styles.loadingText, { opacity: fadeAnimation }]}>
           Finding something meaningful…
         </Animated.Text>
       </View>
@@ -459,21 +444,22 @@ const NightRitualMode = ({
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bounces={true}
         >
-          {/* Header */}
+          {/* Flush-Left Editorial Header */}
           <View style={styles.header}>
             <Text style={styles.eyebrow}>TONIGHT</Text>
             <Text style={styles.title}>Just us now</Text>
             <Text style={styles.subtitle}>
-              A quiet moment before sleep
+              A quiet moment before sleep.
             </Text>
           </View>
 
-          {/* Step dots */}
+          {/* Left-Aligned Step dots */}
           {renderStepDots()}
 
-          {/* Current element — wrapped in a glass card */}
-          <View style={styles.glassCard}>
+          {/* Current element — Solid Editorial Squircle */}
+          <View style={styles.widgetCard}>
             {renderRitualElement()}
           </View>
 
@@ -495,10 +481,7 @@ const NightRitualMode = ({
 // ── Ritual Input ──────────────────────────────────────
 const MAX_CHARS = 300;
 
-const RitualInput = ({ element, onSubmit, placeholder }) => {
-  const { colors: themeColors } = useTheme();
-  const NIGHT_COLORS = useMemo(() => getNightRitualColors(themeColors), [themeColors]);
-  const styles = useMemo(() => createStyles(NIGHT_COLORS), [NIGHT_COLORS]);
+const RitualInput = ({ element, onSubmit, placeholder, styles, NIGHT_COLORS }) => {
   const [response, setResponse] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -519,21 +502,15 @@ const RitualInput = ({ element, onSubmit, placeholder }) => {
         value={response}
         onChangeText={setResponse}
         placeholder={placeholder}
-        placeholderTextColor={NIGHT_COLORS.starlightDim + '88'}
+        placeholderTextColor={NIGHT_COLORS.subtext}
         multiline
         textAlignVertical="top"
         maxLength={MAX_CHARS}
-        selectionColor={NIGHT_COLORS.mulberry}
+        selectionColor={element.color}
       />
 
-      {/* Character counter — only shows near limit */}
       {remaining <= 60 && (
-        <Text
-          style={[
-            styles.charCount,
-            remaining <= 20 && { color: NIGHT_COLORS.wine },
-          ]}
-        >
+        <Text style={[styles.charCount, remaining <= 20 && { color: NIGHT_COLORS.iosPink }]}>
           {remaining}
         </Text>
       )}
@@ -545,12 +522,10 @@ const RitualInput = ({ element, onSubmit, placeholder }) => {
           styles.submitButton,
           (!response.trim() || isSubmitting) && styles.submitButtonDisabled,
         ]}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel={isSubmitting ? 'Sharing your response' : 'Continue to next step'}
+        activeOpacity={0.85}
       >
         <LinearGradient
-          colors={element.gradient || [NIGHT_COLORS.wine, NIGHT_COLORS.wineDeep]}
+          colors={element.gradient}
           style={styles.submitButtonGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -565,18 +540,14 @@ const RitualInput = ({ element, onSubmit, placeholder }) => {
 };
 
 // ── Completed Response ───────────────────────────────
-const CompletedResponse = ({ response }) => {
-  const { colors: themeColors } = useTheme();
-  const NIGHT_COLORS = useMemo(() => getNightRitualColors(themeColors), [themeColors]);
-  const styles = useMemo(() => createStyles(NIGHT_COLORS), [NIGHT_COLORS]);
-  
+const CompletedResponse = ({ response, element, styles }) => {
   return (
     <View style={styles.completedContainer}>
       <View style={styles.completedInner}>
         <Text style={styles.completedResponse}>{response}</Text>
         <View style={styles.completedIndicator}>
-          <Text style={styles.completedIcon}>✓</Text>
-          <Text style={styles.completedText}>Shared</Text>
+          <Text style={[styles.completedIcon, { color: element.color }]}>✓</Text>
+          <Text style={[styles.completedText, { color: element.color }]}>Shared</Text>
         </View>
       </View>
     </View>
@@ -584,279 +555,298 @@ const CompletedResponse = ({ response }) => {
 };
 
 // ═══════════════════════════════════════════════════════
-// Styles — Midnight-intimacy palette, gentle glass layers
+// Styles — Apple Editorial Dark Mode
 // ═══════════════════════════════════════════════════════
-const createStyles = (NIGHT_COLORS) => StyleSheet.create({
-  /* ── Layout ─────────────────────────────────── */
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: NIGHT_COLORS.deepNight,
-  },
-  loadingText: {
-    ...TYPOGRAPHY.body,
-    color: NIGHT_COLORS.starlight,
-    fontStyle: 'italic',
-  },
-  backgroundGradient: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: SPACING.screen,
-    paddingTop: Platform.OS === 'ios' ? 60 : SPACING.xxl,
-    paddingBottom: SPACING.xxxl,
-  },
+const createStyles = (t) => {
+  const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
-  /* ── Header ─────────────────────────────────── */
-  header: {
-    alignItems: 'center',
-    marginBottom: SPACING.section,
-  },
-  eyebrow: {
-    ...TYPOGRAPHY.label,
-    color: NIGHT_COLORS.starlightDim,
-    letterSpacing: 2.5,
-    marginBottom: SPACING.xs,
-  },
-  title: {
-    ...TYPOGRAPHY.display,
-    color: NIGHT_COLORS.moonGlow,
-    textAlign: 'center',
-    marginBottom: SPACING.xs,
-  },
-  subtitle: {
-    ...TYPOGRAPHY.bodySecondary,
-    color: NIGHT_COLORS.starlight,
-    textAlign: 'center',
-  },
+  return StyleSheet.create({
+    /* ── Layout ─────────────────────────────────── */
+    container: {
+      flex: 1,
+    },
+    loadingContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: t.deepNight,
+    },
+    loadingText: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: t.subtext,
+      fontStyle: 'italic',
+    },
+    backgroundGradient: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: SPACING.xl,
+      paddingTop: Platform.OS === 'ios' ? 80 : SPACING.xxxl,
+      paddingBottom: SPACING.xxxl,
+    },
 
-  /* ── Step dots ──────────────────────────────── */
-  stepDotsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.section,
-    gap: 10,
-  },
-  stepDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: NIGHT_COLORS.softPurple,
-    borderWidth: 1,
-    borderColor: NIGHT_COLORS.border,
-  },
-  stepDotActive: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: NIGHT_COLORS.wine,
-    borderColor: NIGHT_COLORS.mulberry,
-  },
-  stepDotDone: {
-    backgroundColor: NIGHT_COLORS.mulberry,
-    borderColor: NIGHT_COLORS.mulberry,
-  },
+    /* ── Header (Flush Left Apple Editorial) ────── */
+    header: {
+      alignItems: 'flex-start',
+      marginBottom: SPACING.lg,
+    },
+    eyebrow: {
+      fontSize: 12,
+      fontWeight: '800',
+      color: t.subtext,
+      letterSpacing: 2,
+      marginBottom: SPACING.xs,
+      textTransform: 'uppercase',
+    },
+    title: {
+      fontFamily: systemFont,
+      fontSize: 38,
+      fontWeight: '800',
+      color: t.text,
+      letterSpacing: -0.5,
+      marginBottom: 4,
+      lineHeight: 44,
+    },
+    subtitle: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: t.subtext,
+      lineHeight: 24,
+    },
 
-  /* ── Glass card wrapping the active element ── */
-  glassCard: {
-    backgroundColor: NIGHT_COLORS.glassBg,
-    borderRadius: BORDER_RADIUS.xl,
-    borderWidth: 1,
-    borderColor: NIGHT_COLORS.border,
-    padding: SPACING.xl,
-    marginBottom: SPACING.section,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#070509',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-      },
-      android: { elevation: 4 },
-    }),
-  },
+    /* ── Step dots ──────────────────────────────── */
+    stepDotsRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      marginBottom: SPACING.xl,
+      gap: 12,
+    },
+    stepDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: t.surfaceSecondary,
+    },
 
-  /* ── Ritual element ─────────────────────────── */
-  elementContainer: {
-    // no extra margin — glassCard handles spacing
-  },
-  elementHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  elementIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: NIGHT_COLORS.glassBgLight,
-    borderWidth: 1,
-    borderColor: NIGHT_COLORS.borderSubtle,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SPACING.md,
-  },
-  elementIcon: {
-    fontSize: 22,
-  },
-  elementTitleContainer: {
-    flex: 1,
-  },
-  elementTitle: {
-    ...TYPOGRAPHY.h3,
-    color: NIGHT_COLORS.moonGlow,
-    marginBottom: 2,
-  },
-  elementDescription: {
-    ...TYPOGRAPHY.caption,
-    color: NIGHT_COLORS.starlightDim,
-  },
+    /* ── Solid Apple Widget Card ────────────────── */
+    widgetCard: {
+      backgroundColor: t.surface,
+      borderRadius: 32,
+      borderWidth: 1,
+      borderColor: t.border,
+      padding: 24,
+      marginBottom: SPACING.xl,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.15,
+          shadowRadius: 20,
+        },
+        android: { elevation: 6 },
+      }),
+    },
 
-  /* ── Question ───────────────────────────────── */
-  questionContainer: {
-    marginBottom: SPACING.lg,
-    paddingHorizontal: SPACING.sm,
-  },
-  questionText: {
-    ...TYPOGRAPHY.h2,
-    color: NIGHT_COLORS.moonGlow,
-    textAlign: 'center',
-    lineHeight: 36,
-  },
+    /* ── Ritual element ─────────────────────────── */
+    elementContainer: {
+      // spacing handled by widgetCard padding
+    },
+    elementHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: SPACING.xl,
+    },
+    elementIconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: SPACING.md,
+    },
+    elementIcon: {
+      fontSize: 24,
+    },
+    elementTitleContainer: {
+      flex: 1,
+    },
+    elementTitle: {
+      fontFamily: systemFont,
+      fontSize: 18,
+      fontWeight: '700',
+      color: t.text,
+      marginBottom: 2,
+      letterSpacing: -0.2,
+    },
+    elementDescription: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: t.subtext,
+    },
 
-  /* ── Input ──────────────────────────────────── */
-  inputContainer: {
-    position: 'relative',
-  },
-  input: {
-    backgroundColor: NIGHT_COLORS.glassBgLight,
-    borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.lg,
-    color: NIGHT_COLORS.moonGlow,
-    ...TYPOGRAPHY.body,
-    minHeight: 120,
-    borderWidth: 1,
-    borderColor: NIGHT_COLORS.border,
-    marginBottom: SPACING.sm,
-  },
-  charCount: {
-    ...TYPOGRAPHY.caption,
-    color: NIGHT_COLORS.starlightDim,
-    textAlign: 'right',
-    marginBottom: SPACING.sm,
-    marginRight: SPACING.xs,
-  },
-  submitButton: {
-    borderRadius: BORDER_RADIUS.md,
-    overflow: 'hidden',
-  },
-  submitButtonDisabled: {
-    opacity: 0.4,
-  },
-  submitButtonGradient: {
-    paddingVertical: 14,
-    paddingHorizontal: SPACING.lg,
-    alignItems: 'center',
-  },
-  submitButtonText: {
-    ...TYPOGRAPHY.button,
-    color: NIGHT_COLORS.moonGlow,
-    fontWeight: '600',
-  },
+    /* ── Question (Heavy Editorial Left) ────────── */
+    questionContainer: {
+      marginBottom: SPACING.xl,
+    },
+    questionText: {
+      fontFamily: systemFont,
+      fontSize: 28,
+      fontWeight: '700',
+      color: t.text,
+      textAlign: 'left',
+      lineHeight: 36,
+      letterSpacing: -0.5,
+    },
 
-  /* ── Completed response ─────────────────────── */
-  completedContainer: {
-    borderRadius: BORDER_RADIUS.md,
-    overflow: 'hidden',
-  },
-  completedInner: {
-    backgroundColor: NIGHT_COLORS.glassBgLight,
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.lg,
-    borderWidth: 1,
-    borderColor: NIGHT_COLORS.border,
-  },
-  completedResponse: {
-    ...TYPOGRAPHY.body,
-    color: NIGHT_COLORS.moonGlow,
-    marginBottom: SPACING.md,
-    lineHeight: 24,
-  },
-  completedIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  completedIcon: {
-    fontSize: 14,
-    marginRight: SPACING.xs,
-    color: NIGHT_COLORS.mulberry,
-  },
-  completedText: {
-    ...TYPOGRAPHY.caption,
-    color: NIGHT_COLORS.mulberry,
-    fontWeight: '600',
-  },
+    /* ── Input ──────────────────────────────────── */
+    inputContainer: {
+      position: 'relative',
+    },
+    input: {
+      backgroundColor: t.surfaceSecondary,
+      borderRadius: 16,
+      paddingHorizontal: SPACING.lg,
+      paddingTop: SPACING.lg,
+      paddingBottom: SPACING.lg,
+      color: t.text,
+      fontSize: 17,
+      fontWeight: '400',
+      minHeight: 120,
+      borderWidth: 1,
+      borderColor: t.border,
+      marginBottom: SPACING.md,
+    },
+    charCount: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: t.subtext,
+      textAlign: 'right',
+      marginBottom: SPACING.sm,
+      marginRight: SPACING.xs,
+    },
+    submitButton: {
+      borderRadius: 28,
+      overflow: 'hidden',
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 10 },
+        android: { elevation: 4 },
+      }),
+    },
+    submitButtonDisabled: {
+      opacity: 0.4,
+    },
+    submitButtonGradient: {
+      height: 56,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: SPACING.xl,
+    },
+    submitButtonText: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: '#FFFFFF',
+      letterSpacing: -0.3,
+    },
 
-  /* ── Footer ─────────────────────────────────── */
-  footer: {
-    marginTop: SPACING.xl,
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-  },
-  footerText: {
-    ...TYPOGRAPHY.bodySecondary,
-    color: NIGHT_COLORS.starlight,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    opacity: 0.75,
-    lineHeight: 22,
-  },
+    /* ── Completed response ─────────────────────── */
+    completedContainer: {
+      borderRadius: 20,
+      overflow: 'hidden',
+    },
+    completedInner: {
+      backgroundColor: t.surfaceSecondary,
+      borderRadius: 20,
+      padding: SPACING.xl,
+      borderWidth: 1,
+      borderColor: t.border,
+    },
+    completedResponse: {
+      fontSize: 17,
+      fontWeight: '400',
+      color: t.text,
+      marginBottom: SPACING.lg,
+      lineHeight: 26,
+    },
+    completedIndicator: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    completedIcon: {
+      fontSize: 14,
+      fontWeight: '800',
+      marginRight: SPACING.xs,
+    },
+    completedText: {
+      fontSize: 13,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
 
-  /* ── Completion overlay ─────────────────────── */
-  completionOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(7,5,9,0.88)',
-  },
-  completionBlur: {
-    backgroundColor: NIGHT_COLORS.glassBg,
-    borderRadius: BORDER_RADIUS.xl,
-    paddingVertical: SPACING.xxl,
-    paddingHorizontal: SPACING.xl,
-    alignItems: 'center',
-    marginHorizontal: SPACING.screen,
-    borderWidth: 1,
-    borderColor: NIGHT_COLORS.border,
-    maxWidth: 340,
-    width: '100%',
-  },
-  completionIcon: {
-    fontSize: 48,
-    marginBottom: SPACING.lg,
-  },
-  completionTitle: {
-    ...TYPOGRAPHY.h1,
-    color: NIGHT_COLORS.moonGlow,
-    textAlign: 'center',
-    marginBottom: SPACING.sm,
-  },
-  completionMessage: {
-    ...TYPOGRAPHY.bodySecondary,
-    color: NIGHT_COLORS.starlightDim,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-});
+    /* ── Footer ─────────────────────────────────── */
+    footer: {
+      marginTop: SPACING.xl,
+      alignItems: 'center',
+      paddingHorizontal: SPACING.lg,
+    },
+    footerText: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: t.subtext,
+      textAlign: 'center',
+      fontStyle: 'italic',
+      lineHeight: 22,
+    },
+
+    /* ── Completion overlay ─────────────────────── */
+    completionOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.6)',
+    },
+    completionModalCard: {
+      borderRadius: 32,
+      paddingVertical: SPACING.xxxl,
+      paddingHorizontal: SPACING.xl,
+      alignItems: 'center',
+      marginHorizontal: SPACING.xl,
+      borderWidth: 1,
+      borderColor: t.border,
+      width: '85%',
+      overflow: 'hidden',
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 30 },
+        android: { elevation: 10 },
+      }),
+    },
+    completionIcon: {
+      fontSize: 56,
+      marginBottom: SPACING.lg,
+    },
+    completionTitle: {
+      fontFamily: systemFont,
+      fontSize: 30,
+      fontWeight: '800',
+      color: t.text,
+      textAlign: 'center',
+      marginBottom: SPACING.sm,
+      letterSpacing: -0.5,
+    },
+    completionMessage: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: t.subtext,
+      textAlign: 'center',
+      lineHeight: 24,
+      paddingHorizontal: SPACING.md,
+    },
+  });
+};
 
 export default NightRitualMode;

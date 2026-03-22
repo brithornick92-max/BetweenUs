@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// screens/PartnerNamesSettingsScreen.js
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,24 +7,64 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Animated,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { SPACING } from '../utils/theme';
 import Input from '../components/Input';
 
 /**
  * Partner Names Settings Screen
  * Allows users to customize how they see themselves and their partner in the app
  */
-const PartnerNamesSettingsScreen = ({ navigation }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors, false);
+export default function PartnerNamesSettingsScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
   const { userProfile, updateProfile } = useAuth();
+  
   const [myName, setMyName] = useState('');
   const [partnerName, setPartnerName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  // STRICT Apple Editorial Theme Map 
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    primary: colors.primary,
+    accent: colors.accent || '#FF2D55',
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+
+  // Entrance animations
+  const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const slideAnimation = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnimation, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnimation, {
+        toValue: 0,
+        friction: 9,
+        tension: 60,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnimation, slideAnimation]);
 
   useEffect(() => {
     if (userProfile?.partnerNames) {
@@ -32,8 +73,14 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
     }
   }, [userProfile]);
 
+  const handleBack = () => {
+    impact(ImpactFeedbackStyle.Light);
+    navigation.goBack();
+  };
+
   const handleSave = async () => {
     if (!myName.trim() || !partnerName.trim()) {
+      notification(NotificationFeedbackType.Error);
       Alert.alert('Names Required', 'Please enter both names');
       return;
     }
@@ -49,12 +96,13 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
         },
       });
 
-      impact(ImpactFeedbackStyle.Success);
+      notification(NotificationFeedbackType.Success);
       Alert.alert('Success', 'Partner names updated successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
       console.error('Failed to update partner names:', error);
+      notification(NotificationFeedbackType.Error);
       Alert.alert('Error', 'Failed to update names. Please try again.');
     } finally {
       setIsSaving(false);
@@ -62,192 +110,298 @@ const PartnerNamesSettingsScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Partner Names</Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <View style={styles.root}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-            <Ionicons name="people" size={48} color={colors.primary} />
+      {/* Velvet background gradient */}
+      <LinearGradient
+        colors={isDark 
+          ? [t.background, '#0F0A1A', '#0D081A', t.background] 
+          : [t.background, '#EBEBF5', t.background]}
+        style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Header */}
+        <Animated.View style={[styles.header, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
+              <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
+            </TouchableOpacity>
           </View>
-
-          {/* Title */}
-          <Text style={[styles.title, { color: colors.text }]}>Customize Your Names</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            These names will appear in prompts and throughout the app
-          </Text>
-
-          {/* My Name Input */}
-          <View style={styles.inputSection}>
-            <Text style={[styles.inputLabel, { color: colors.text }]}>My Name</Text>
-            <Input
-              value={myName}
-              onChangeText={setMyName}
-              placeholder="e.g. Sarah, Alex, Me"
-              autoCorrect={false}
-              returnKeyType="next"
-            />
+          <View style={styles.headerEditorial}>
+            <Text style={styles.headerTitle}>Names</Text>
+            <Text style={styles.headerSubtitle}>Customize how you appear in prompts.</Text>
           </View>
+        </Animated.View>
 
-          {/* Partner Name Input */}
-          <View style={styles.inputSection}>
-            <Text style={[styles.inputLabel, { color: colors.text }]}>My Partner's Name</Text>
-            <Input
-              value={partnerName}
-              onChangeText={setPartnerName}
-              placeholder="e.g. John, Emma, Partner"
-              autoCorrect={false}
-              returnKeyType="done"
-            />
-          </View>
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bounces={true}
+        >
+          <Animated.View style={{ opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }}>
+            
+            {/* Input Widget */}
+            <View style={styles.widgetCard}>
+              <View style={styles.inputSection}>
+                <Text style={styles.inputLabel}>My Name</Text>
+                <Input
+                  value={myName}
+                  onChangeText={(val) => { selection(); setMyName(val); }}
+                  placeholder="e.g. Sarah, Alex, Me"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  style={styles.inputOverrides}
+                />
+              </View>
 
-          {/* Examples */}
-          <View style={[styles.examplesCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.examplesTitle, { color: colors.text }]}>Examples</Text>
-            <View style={styles.exampleRow}>
-              <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
-              <Text style={[styles.exampleText, { color: colors.text }]}>
-                "What does {myName || 'My Name'} love most about {partnerName || 'Partner Name'}?"
+              <View style={styles.divider} />
+
+              <View style={styles.inputSection}>
+                <Text style={styles.inputLabel}>My Partner's Name</Text>
+                <Input
+                  value={partnerName}
+                  onChangeText={(val) => { selection(); setPartnerName(val); }}
+                  placeholder="e.g. John, Emma, Partner"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                  style={styles.inputOverrides}
+                />
+              </View>
+            </View>
+
+            {/* Examples Widget */}
+            <Text style={styles.sectionTitle}>Preview</Text>
+            <View style={styles.widgetCard}>
+              <View style={styles.exampleRow}>
+                <View style={[styles.iconWrap, { backgroundColor: t.primary + '15' }]}>
+                  <MaterialCommunityIcons name="chat-processing" size={18} color={t.primary} />
+                </View>
+                <Text style={styles.exampleText}>
+                  "What does <Text style={styles.highlightText}>{myName || 'You'}</Text> love most about <Text style={styles.highlightText}>{partnerName || 'your partner'}</Text>?"
+                </Text>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.exampleRow}>
+                <View style={[styles.iconWrap, { backgroundColor: t.accent + '15' }]}>
+                  <MaterialCommunityIcons name="cards-heart" size={18} color={t.accent} />
+                </View>
+                <Text style={styles.exampleText}>
+                  "<Text style={styles.highlightText}>{myName || 'Your'}</Text> and <Text style={styles.highlightText}>{partnerName || 'their'}</Text> favorite memory"
+                </Text>
+              </View>
+            </View>
+
+            {/* Info Widget */}
+            <View style={styles.infoCard}>
+              <MaterialCommunityIcons name="information" size={20} color={t.subtext} />
+              <Text style={styles.infoText}>
+                You can change these names anytime. They're just for personalization and won't affect your account details.
               </Text>
             </View>
-            <View style={styles.exampleRow}>
-              <Ionicons name="heart" size={16} color={colors.primary} />
-              <Text style={[styles.exampleText, { color: colors.text }]}>
-                "{myName || 'My Name'} and {partnerName || 'Partner Name'}'s favorite memory"
-              </Text>
-            </View>
-          </View>
 
-          {/* Info Card */}
-          <View style={[styles.infoCard, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}>
-            <Ionicons name="information-circle" size={20} color={colors.primary} />
-            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-              You can change these names anytime. They're just for personalization and won't affect your account.
-            </Text>
-          </View>
+          </Animated.View>
+        </ScrollView>
 
-          {/* Save Button */}
+        {/* Sticky Save Button */}
+        <Animated.View style={[styles.actionSection, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
           <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: colors.primary }]}
+            style={[styles.primaryButton, isSaving && { opacity: 0.7 }]}
             onPress={handleSave}
             disabled={isSaving}
+            activeOpacity={0.8}
           >
-            <Text style={[styles.saveButtonText, { color: colors.text }]}> 
+            {isSaving ? (
+              <MaterialCommunityIcons name="loading" size={20} color={isDark ? '#000' : '#FFF'} />
+            ) : null}
+            <Text style={styles.primaryButtonText}>
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Text>
           </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </Animated.View>
+      </SafeAreaView>
     </View>
   );
-};
+}
 
-const createStyles = (colors, isDark) => StyleSheet.create({
-  container: {
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial (Native Dashboard Look)
+// ------------------------------------------------------------------
+const createStyles = (t, isDark) => StyleSheet.create({
+  root: {
     flex: 1,
+    backgroundColor: t.background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  safeArea: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: 20,
+  scrollContent: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xxxl + 40,
   },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+
+  // ── Header ──
+  header: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: Platform.OS === 'android' ? SPACING.xl : SPACING.sm,
+    paddingBottom: SPACING.lg,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.md,
+    marginLeft: -8, 
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 8,
+  backButton: {
+    padding: 8,
   },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 32,
+  headerEditorial: {
+    paddingRight: SPACING.xl, 
   },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: t.text,
+    letterSpacing: 0.3,
+    marginBottom: 4,
+    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
+  },
+  headerSubtitle: {
+    fontSize: 15,
+    color: t.subtext,
+    fontWeight: '500',
+  },
+
+  // ── Widgets ──
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: t.subtext,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.md,
+    paddingLeft: SPACING.xs,
+  },
+  widgetCard: {
+    backgroundColor: t.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: t.border,
+    paddingVertical: SPACING.md,
+    marginBottom: SPACING.xl,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 10 },
+      android: { elevation: 2 },
+    }),
+  },
+  divider: {
+    height: 1,
+    backgroundColor: t.border,
+    marginHorizontal: SPACING.lg,
+  },
+
+  // ── Inputs ──
   inputSection: {
-    marginBottom: 24,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
   },
   inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
+    fontSize: 13,
+    fontWeight: '700',
+    color: t.subtext,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: SPACING.sm,
   },
-  examplesCard: {
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 16,
+  inputOverrides: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    paddingHorizontal: 0,
+    paddingBottom: 0,
+    fontSize: 17,
+    fontWeight: '500',
+    color: t.text,
   },
-  examplesTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
+
+  // ── Examples ──
   exampleRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-    gap: 12,
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    gap: 16,
+  },
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   exampleText: {
-    fontSize: 14,
+    fontSize: 15,
     flex: 1,
-    lineHeight: 20,
+    lineHeight: 22,
+    color: t.text,
+    fontWeight: '400',
   },
+  highlightText: {
+    fontWeight: '700',
+    color: t.primary,
+  },
+
+  // ── Info Card ──
   infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: 16,
-    borderRadius: 12,
+    padding: SPACING.lg,
+    borderRadius: 20,
+    backgroundColor: t.surfaceSecondary,
     borderWidth: 1,
-    marginBottom: 24,
+    borderColor: t.border,
+    marginBottom: SPACING.xl,
     gap: 12,
   },
   infoText: {
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: 20,
     flex: 1,
+    color: t.subtext,
+    fontWeight: '500',
   },
-  saveButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
+
+  // ── Action Button ──
+  actionSection: {
+    paddingHorizontal: SPACING.xl,
+    paddingBottom: Platform.OS === 'ios' ? SPACING.md : SPACING.xl,
+    paddingTop: SPACING.sm,
+    backgroundColor: t.background,
+  },
+  primaryButton: {
+    backgroundColor: t.text, // Solid, high contrast Apple Action Button
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    height: 56,
+    borderRadius: 28,
+    gap: 8,
   },
-  saveButtonText: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '600',
+  primaryButtonText: {
+    color: t.surface,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
 });
-
-export default PartnerNamesSettingsScreen;

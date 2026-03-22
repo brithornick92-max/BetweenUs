@@ -465,7 +465,7 @@ export default function SettingsScreen({ navigation }) {
           {/* ═══ EDITORIAL FOOTER ═══ */}
           <View style={styles.footer}>
             <Text style={[styles.footerBrand, { color: colors.textMuted }]}>BETWEEN US</Text>
-            <Text style={[styles.footerVersion, { color: colors.textMuted }]}>Version {appVersion} Build 2026.1</Text>
+            <Text style={[styles.footerVersion, { color: colors.textMuted }]}>Version {appVersion}</Text>
             <View style={[styles.footerDivider, { backgroundColor: colors.borderGlass }]} />
             <Text style={[styles.footerLegal, { color: colors.textMuted }]}>
               Built with care for couples worldwide.

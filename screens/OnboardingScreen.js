@@ -1,3 +1,4 @@
+// screens/OnboardingScreen.js
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   View,
@@ -16,6 +17,8 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   ScrollView,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ReAnimated, { FadeInDown } from 'react-native-reanimated';
@@ -26,14 +29,12 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAppContext } from "../context/AppContext";
 import { useContent } from "../context/ContentContext";
 import { useTheme } from "../context/ThemeContext";
-import { TYPOGRAPHY, COLORS } from "../utils/theme";
+import { SPACING } from "../utils/theme";
 import HeartbeatEntry from "../components/HeartbeatEntry";
-import GlassCard from "../components/GlassCard";
 import CrashReporting from "../services/CrashReporting";
 import { useAuth } from "../context/AuthContext";
 import SeasonSelector from "../components/SeasonSelector";
-import EnergyMatcher from "../components/EnergyMatcher";
-import { NicknameEngine, SEASONS } from "../services/PolishEngine";
+import { NicknameEngine } from "../services/PolishEngine";
 import CloudEngine from "../services/storage/CloudEngine";
 import CoupleKeyService from "../services/security/CoupleKeyService";
 import CoupleService from "../services/supabase/CoupleService";
@@ -50,7 +51,19 @@ export default function OnboardingScreen({ navigation }) {
   const { updateRelationshipStartDate } = useContent();
   const { user } = useAuth();
   
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  // STRICT Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    background: isDark ? '#000000' : '#F2F2F7', 
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    primary: colors.primary,
+    accent: colors.accent || '#FF2D55',
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   // Steps: 0 (Intro), 1 (Your Story), 2 (Preferences), 3 (Pairing)
   const [step, setStep] = useState(0);
@@ -125,14 +138,14 @@ export default function OnboardingScreen({ navigation }) {
 
   const transitionTo = (nextStep) => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: -20, duration: 400, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: -20, duration: 300, useNativeDriver: true }),
     ]).start(() => {
       setStep(nextStep);
       slideAnim.setValue(20);
       Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 0, friction: 8, tension: 60, useNativeDriver: true }),
       ]).start();
     });
   };
@@ -142,8 +155,8 @@ export default function OnboardingScreen({ navigation }) {
       fadeAnim.setValue(0);
       slideAnim.setValue(20);
       Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 0, friction: 8, tension: 60, useNativeDriver: true }),
       ]).start();
     }
   }, [step]);
@@ -311,60 +324,46 @@ export default function OnboardingScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <ReAnimated.View entering={FadeInDown.delay(100).duration(600).springify()}>
-          <Text style={[TYPOGRAPHY.display, styles.title]}>Your Story</Text>
-          <Text style={styles.storySubtitle}>Tell us a little about your relationship</Text>
+          <Text style={styles.title}>Your Story</Text>
+          <Text style={styles.storySubtitle}>Tell us a little about your relationship.</Text>
         </ReAnimated.View>
 
-        {/* Names Card */}
+        {/* Names Group (Apple List Style) */}
         <ReAnimated.View entering={FadeInDown.delay(200).duration(600).springify()}>
-          <GlassCard variant="elevated" glow={false} style={styles.storyCard}>
-            <View style={styles.storyCardHeader}>
-              <View style={[styles.cardIconWrap, { backgroundColor: colors.primary + '15' }]}>
-                <MaterialCommunityIcons name="account-heart-outline" size={20} color={colors.primary} />
-              </View>
-              <Text style={styles.storyCardTitle}>Who's in this love story?</Text>
+          <Text style={styles.groupLabel}>NAMES</Text>
+          <View style={styles.groupCard}>
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>My Name</Text>
+              <TextInput
+                style={styles.inputOverrides}
+                placeholder="e.g. Alex"
+                placeholderTextColor={t.subtext}
+                value={myName}
+                onChangeText={setMyName}
+                accessibilityLabel="Your name"
+                accessibilityHint="Enter your first name"
+              />
             </View>
-
-            <View style={styles.storyFieldColumn}>
-              <View style={styles.storyFieldGroup}>
-                <Text style={styles.storyFieldLabel} numberOfLines={1}>YOUR NAME</Text>
-                <TextInput
-                  style={styles.storyInput}
-                  placeholder="e.g. Alex"
-                  placeholderTextColor={colors.text + '30'}
-                  value={myName}
-                  onChangeText={setMyName}
-                  accessibilityLabel="Your name"
-                  accessibilityHint="Enter your first name"
-                />
-              </View>
-              
-              <View style={styles.storyFieldGroup}>
-                <Text style={styles.storyFieldLabel} numberOfLines={1}>PARTNER'S NAME</Text>
-                <TextInput
-                  style={styles.storyInput}
-                  placeholder="e.g. Jordan"
-                  placeholderTextColor={colors.text + '30'}
-                  value={partnerName}
-                  onChangeText={setPartnerName}
-                  accessibilityLabel="Partner's name"
-                  accessibilityHint="Enter your partner's first name"
-                />
-              </View>
+            <View style={styles.divider} />
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>Partner</Text>
+              <TextInput
+                style={styles.inputOverrides}
+                placeholder="e.g. Jordan"
+                placeholderTextColor={t.subtext}
+                value={partnerName}
+                onChangeText={setPartnerName}
+                accessibilityLabel="Partner's name"
+                accessibilityHint="Enter your partner's first name"
+              />
             </View>
-          </GlassCard>
+          </View>
         </ReAnimated.View>
 
-        {/* Date Card */}
+        {/* Date Group */}
         <ReAnimated.View entering={FadeInDown.delay(300).duration(600).springify()}>
-          <GlassCard variant="elevated" style={styles.storyCard}>
-            <View style={styles.storyCardHeader}>
-              <View style={[styles.cardIconWrap, { backgroundColor: colors.primary + '15' }]}>
-                <MaterialCommunityIcons name="calendar-heart" size={20} color={colors.primary} />
-              </View>
-              <Text style={styles.storyCardTitle}>When did it all begin?</Text>
-            </View>
-            
+          <Text style={styles.groupLabel}>BEGINNINGS</Text>
+          <View style={styles.groupCard}>
             <TouchableOpacity 
               onPress={() => {
                 setPendingDate(anniversaryDate);
@@ -376,71 +375,68 @@ export default function OnboardingScreen({ navigation }) {
               accessibilityLabel={`Anniversary date: ${anniversaryDate.toLocaleDateString('en-US')}`}
               accessibilityHint="Tap to change your relationship start date"
             >
-              <Text style={styles.dateText}>
-                {anniversaryDate.toLocaleDateString('en-US')}
-              </Text>
-            </TouchableOpacity>
-
-            <Text style={styles.calculationText}>
-              <Text style={{ color: colors.primary, fontWeight: 'bold' }}>{daysCounting}</Text> days and counting
-            </Text>
-
-            {/* Simple Celebration Animation triggered when days > 0 */}
-            {daysCounting !== '0' && (
-              <View style={styles.celebrationContainer}>
-                <MaterialCommunityIcons name="heart" size={24} color={colors.primary} />
+              <Text style={styles.inputLabel}>Start Date</Text>
+              <View style={styles.dateValueWrap}>
+                <Text style={styles.dateText}>
+                  {anniversaryDate.toLocaleDateString('en-US')}
+                </Text>
+                <MaterialCommunityIcons name="chevron-right" size={20} color={t.subtext} />
               </View>
-            )}
+            </TouchableOpacity>
+          </View>
 
-            <Modal
-              visible={showDatePicker}
-              transparent
-              animationType="fade"
-              onRequestClose={() => setShowDatePicker(false)}
-            >
-                <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
-                  <View style={styles.datePickerBackdrop}>
-                    <TouchableWithoutFeedback onPress={() => {}}>
-                      <View style={styles.datePickerModalCard}>
-                        <DateTimePicker
-                          value={pendingDate}
-                          mode="date"
-                          display="spinner"
-                          onChange={(event, date) => {
-                            if (date) setPendingDate(date);
+          <Text style={styles.calculationText}>
+            <Text style={{ color: t.primary, fontWeight: '700' }}>{daysCounting}</Text> days and counting.
+          </Text>
+
+          <Modal
+            visible={showDatePicker}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowDatePicker(false)}
+          >
+              <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
+                <View style={styles.datePickerBackdrop}>
+                  <TouchableWithoutFeedback onPress={() => {}}>
+                    <View style={styles.datePickerModalCard}>
+                      <View style={styles.datePickerActions}>
+                        <TouchableOpacity
+                          style={styles.datePickerActionButton}
+                          onPress={() => setShowDatePicker(false)}
+                        >
+                          <Text style={[styles.datePickerActionText, { color: t.subtext }]}>Cancel</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={styles.datePickerActionButton}
+                          onPress={() => {
+                            setAnniversaryDate(pendingDate);
+                            setShowDatePicker(false);
                           }}
-                          textColor={colors.text}
-                        />
-
-                        <View style={styles.datePickerActions}>
-                          <TouchableOpacity
-                            style={styles.datePickerActionButton}
-                            onPress={() => setShowDatePicker(false)}
-                          >
-                            <Text style={[styles.datePickerActionText, { color: colors.textMuted }]}>Cancel</Text>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            style={styles.datePickerActionButton}
-                            onPress={() => {
-                              setAnniversaryDate(pendingDate);
-                              setShowDatePicker(false);
-                            }}
-                          >
-                            <Text style={[styles.datePickerActionText, { color: colors.primary }]}>Done</Text>
-                          </TouchableOpacity>
-                        </View>
+                        >
+                          <Text style={[styles.datePickerActionText, { color: t.primary }]}>Done</Text>
+                        </TouchableOpacity>
                       </View>
-                    </TouchableWithoutFeedback>
-                  </View>
-                </TouchableWithoutFeedback>
-              </Modal>
-          </GlassCard>
+                      <DateTimePicker
+                        value={pendingDate}
+                        mode="date"
+                        display="spinner"
+                        onChange={(event, date) => {
+                          if (date) setPendingDate(date);
+                        }}
+                        textColor={t.text}
+                        themeVariant={isDark ? 'dark' : 'light'}
+                      />
+                    </View>
+                  </TouchableWithoutFeedback>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
         </ReAnimated.View>
 
         <ReAnimated.View entering={FadeInDown.delay(400).duration(600).springify()}>
           <TouchableOpacity 
-            style={styles.primaryButtonTouch} 
+            style={[styles.primaryButtonTouch, { backgroundColor: t.text }]} 
             activeOpacity={0.8}
             onPress={() => {
               Keyboard.dismiss();
@@ -450,15 +446,7 @@ export default function OnboardingScreen({ navigation }) {
             accessibilityRole="button"
             accessibilityLabel="Continue to preferences"
           >
-            <LinearGradient
-              colors={[colors.primary, colors.primary + 'D0']}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 1}}
-              style={styles.primaryButtonGradient}
-            >
-              <Text style={styles.primaryButtonText}>Continue</Text>
-              <Feather name="arrow-right" size={20} color="#F2E9E6" style={{ marginLeft: 8 }} />
-            </LinearGradient>
+            <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
           </TouchableOpacity>
         </ReAnimated.View>
       </ScrollView>
@@ -466,11 +454,11 @@ export default function OnboardingScreen({ navigation }) {
   );
 
   const HEAT_LABELS = [
-    { level: 1, icon: 'heart-outline',        color: '#8B6BA0', name: 'Emotional Connection', description: 'Intimacy & trust' },
-    { level: 2, icon: 'heart-multiple-outline', color: '#C2607A', name: 'Flirty & Romantic',    description: 'Flirty & tender' },
-    { level: 3, icon: 'candle',                color: '#D4834A', name: 'Sensual',               description: 'Desire & closeness' },
-    { level: 4, icon: 'fire',                  color: '#D0504A', name: 'Steamy',                description: 'Adventurous & heated' },
-    { level: 5, icon: 'fire-alert',            color: '#B03030', name: 'Explicit',              description: 'Intensely passionate' },
+    { level: 1, icon: 'heart-outline',        color: '#5856D6', name: 'Emotional',   description: 'Intimacy & trust' },
+    { level: 2, icon: 'heart-multiple', color: '#FF2D55', name: 'Romantic',    description: 'Flirty & tender' },
+    { level: 3, icon: 'candle',                color: '#FF9500', name: 'Sensual',     description: 'Desire & closeness' },
+    { level: 4, icon: 'fire',                  color: '#FF3B30', name: 'Steamy',      description: 'Adventurous & heated' },
+    { level: 5, icon: 'fire-alert',            color: '#8A0021', name: 'Explicit',    description: 'Intensely passionate' },
   ];
 
   const TONE_OPTIONS = NicknameEngine.TONE_OPTIONS;
@@ -483,8 +471,9 @@ export default function OnboardingScreen({ navigation }) {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={[TYPOGRAPHY.display, styles.title]}>Personalize</Text>
+        <Text style={styles.title}>Personalize</Text>
         <Text style={styles.prefSubtitle}>These shape what the app suggests. Change anytime in Settings.</Text>
 
         {/* Season Selector */}
@@ -494,45 +483,35 @@ export default function OnboardingScreen({ navigation }) {
 
         {/* Heat Level */}
         <View style={styles.prefSection}>
-          <Text style={styles.prefLabel}>COMFORT LEVEL</Text>
-          <Text style={styles.prefHint}>Choose what kind of prompts you want</Text>
-          <View style={styles.heatGrid}>
+          <Text style={styles.groupLabel}>COMFORT LEVEL</Text>
+          <View style={styles.groupCard}>
             {HEAT_LABELS.map((h, index) => {
               const isActive = selectedHeatLevel === h.level;
               return (
-                <ReAnimated.View
-                  key={h.level}
-                  entering={FadeInDown.delay(100 + index * 70).duration(400).springify().damping(16)}
-                >
+                <View key={h.level}>
                   <TouchableOpacity
-                    style={[
-                      styles.heatOption,
-                      { 
-                        borderColor: isActive ? h.color : 'rgba(255,255,255,0.05)',
-                        backgroundColor: isActive ? h.color + '15' : 'rgba(255,255,255,0.02)',
-                        opacity: isActive ? 1 : 0.5,
-                        transform: [{ scale: isActive ? 1 : 0.98 }]
-                      },
-                    ]}
+                    style={styles.listOptionRow}
                     onPress={() => {
                       setSelectedHeatLevel(h.level);
                       selection();
                     }}
-                    activeOpacity={0.8}
+                    activeOpacity={0.7}
                   >
-                    <View style={[styles.heatIconWrap, { backgroundColor: isActive ? h.color + '20' : 'rgba(255,255,255,0.05)' }]}>
-                      <MaterialCommunityIcons name={h.icon} size={20} color={isActive ? h.color : colors.textMuted} />
+                    <View style={[styles.iconWrap, { backgroundColor: isActive ? h.color + '15' : t.surfaceSecondary }]}>
+                      <MaterialCommunityIcons name={h.icon} size={20} color={isActive ? h.color : t.subtext} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.heatName, { color: isActive ? h.color : colors.text }]}>
+                      <Text style={[styles.listOptionName, { color: isActive ? h.color : t.text }]}>
                         {h.name}
                       </Text>
-                      <Text style={[styles.heatDesc, { color: colors.textMuted }]} numberOfLines={1}>
+                      <Text style={styles.listOptionDesc} numberOfLines={1}>
                         {h.description}
                       </Text>
                     </View>
+                    {isActive && <MaterialCommunityIcons name="check" size={20} color={h.color} />}
                   </TouchableOpacity>
-                </ReAnimated.View>
+                  {index < HEAT_LABELS.length - 1 && <View style={styles.dividerIndent} />}
+                </View>
               );
             })}
           </View>
@@ -540,45 +519,39 @@ export default function OnboardingScreen({ navigation }) {
 
         {/* Tone */}
         <View style={styles.prefSection}>
-          <Text style={styles.prefLabel}>APP TONE</Text>
-          <Text style={styles.prefHint}>How should the app talk to you?</Text>
-          <View style={styles.toneGrid}>
-            {TONE_OPTIONS.map((t) => {
-              const isActive = selectedTone === t.id;
+          <Text style={styles.groupLabel}>APP TONE</Text>
+          <View style={styles.groupCard}>
+            {TONE_OPTIONS.map((toneItem, index) => {
+              const isActive = selectedTone === toneItem.id;
               return (
-                  <TouchableOpacity
-                  key={t.id}
-                  style={[
-                    styles.toneOption,
-                    { 
-                      borderColor: isActive ? colors.primary : 'rgba(255,255,255,0.05)',
-                      backgroundColor: isActive ? colors.primary + '15' : 'rgba(255,255,255,0.02)',
-                      opacity: isActive ? 1 : 0.5,
-                      transform: [{ scale: isActive ? 1 : 0.98 }]
-                    },
-                  ]}
-                  onPress={() => {
-                    setSelectedTone(t.id);
-                    selection();
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.heatIconWrap, { backgroundColor: isActive ? colors.primary + '20' : 'rgba(255,255,255,0.05)' }]}>
-                    <MaterialCommunityIcons
-                      name={t.icon}
-                      size={20}
-                      color={isActive ? colors.primary : colors.textMuted}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.toneName, { color: isActive ? colors.primary : colors.text }]}>
-                      {t.label}
-                    </Text>
-                    <Text style={[styles.tonePreview, { color: colors.textMuted }]} numberOfLines={1}>
-                      {t.preview.replace(/\{partner\}|\{partnerName\}/gi, partnerName || 'your partner')}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                  <View key={toneItem.id}>
+                    <TouchableOpacity
+                    style={styles.listOptionRow}
+                    onPress={() => {
+                      setSelectedTone(toneItem.id);
+                      selection();
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.iconWrap, { backgroundColor: isActive ? t.primary + '15' : t.surfaceSecondary }]}>
+                      <MaterialCommunityIcons
+                        name={toneItem.icon}
+                        size={20}
+                        color={isActive ? t.primary : t.subtext}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.listOptionName, { color: isActive ? t.primary : t.text }]}>
+                        {toneItem.label}
+                      </Text>
+                      <Text style={styles.listOptionDesc} numberOfLines={1}>
+                        {toneItem.preview.replace(/\{partner\}|\{partnerName\}/gi, partnerName || 'your partner')}
+                      </Text>
+                    </View>
+                    {isActive && <MaterialCommunityIcons name="check" size={20} color={t.primary} />}
+                  </TouchableOpacity>
+                  {index < TONE_OPTIONS.length - 1 && <View style={styles.dividerIndent} />}
+                </View>
               );
             })}
           </View>
@@ -586,13 +559,12 @@ export default function OnboardingScreen({ navigation }) {
 
         <ReAnimated.View entering={FadeInDown.delay(300).duration(600).springify()}>
           <TouchableOpacity 
-            style={styles.primaryButtonTouch} 
+            style={[styles.primaryButtonTouch, { backgroundColor: t.text }]} 
             activeOpacity={0.8}
             onPress={async () => {
               Keyboard.dismiss();
               // Save all preferences
               try {
-                // Save heat level
                 await actions.updateProfile({
                   heatLevelPreference: selectedHeatLevel,
                   partnerNames: {
@@ -600,7 +572,6 @@ export default function OnboardingScreen({ navigation }) {
                     partnerName: partnerName || 'Partner B',
                   },
                 });
-                // Save tone
                 await NicknameEngine.setConfig({
                   myNickname: myName,
                   partnerNickname: partnerName,
@@ -612,15 +583,7 @@ export default function OnboardingScreen({ navigation }) {
               transitionTo(3);
             }}
           >
-            <LinearGradient
-              colors={[colors.primary, colors.primary + 'D0']}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 1}}
-              style={styles.primaryButtonGradient}
-            >
-              <Text style={styles.primaryButtonText}>Continue</Text>
-              <Feather name="arrow-right" size={20} color="#F2E9E6" style={{ marginLeft: 8 }} />
-            </LinearGradient>
+            <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
           </TouchableOpacity>
         </ReAnimated.View>
       </ScrollView>
@@ -630,7 +593,7 @@ export default function OnboardingScreen({ navigation }) {
   const renderPairing = () => (
     <View style={styles.content}>
       <ReAnimated.View entering={FadeInDown.delay(100).duration(800).springify()}>
-        <Text style={[TYPOGRAPHY.display, styles.title]}>Pairing</Text>
+        <Text style={styles.title}>Pairing</Text>
       </ReAnimated.View>
       
       <View style={styles.pairingContainer}>
@@ -638,10 +601,10 @@ export default function OnboardingScreen({ navigation }) {
           <MaterialCommunityIcons 
             name="infinity" 
             size={48} 
-            color={colors.primary} 
-            style={{ marginBottom: 24, alignSelf: 'center', opacity: 0.8 }} 
+            color={t.primary} 
+            style={{ marginBottom: 24, alignSelf: 'center' }} 
           />
-          <Text style={[TYPOGRAPHY.h2, styles.pairingSubtitle]}>Reach across the digital void.</Text>
+          <Text style={styles.pairingSubtitle}>Reach across the digital void.</Text>
           <Text style={styles.pairingBody}>
             Invite your partner to connect their app to yours. Your shared memory starts here.
           </Text>
@@ -650,41 +613,23 @@ export default function OnboardingScreen({ navigation }) {
         {!inviteCode ? (
           <ReAnimated.View entering={FadeInDown.delay(350).duration(800).springify()} style={{ width: '100%', alignItems: 'center' }}>
             <TouchableOpacity 
-              style={styles.generateInviteButtonTouch}
+              style={[styles.primaryButtonTouch, { backgroundColor: t.text }]}
               activeOpacity={0.8}
               onPress={handleGenerateInvitation}
               disabled={isGenerating}
-              accessibilityRole="button"
-              accessibilityLabel="Generate invitation"
-              accessibilityHint="Creates a code to invite your partner"
-              accessibilityState={{ disabled: isGenerating }}
             >
-              <LinearGradient
-                colors={[colors.primary, colors.primary + 'D0']}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}
-                style={styles.generateInviteButtonGradient}
-              >
-                {isGenerating ? (
-                  <ActivityIndicator color={colors.background} />
-                ) : (
-                  <>
-                    <MaterialCommunityIcons name="creation" size={20} color="#F2E9E6" style={{ marginRight: 8 }} />
-                    <Text style={styles.generateInviteButtonText}>Generate Invitation</Text>
-                  </>
-                )}
-              </LinearGradient>
+              {isGenerating ? (
+                <ActivityIndicator color={t.surface} />
+              ) : (
+                <Text style={[styles.primaryButtonText, { color: t.surface }]}>Generate Invitation</Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.joinCodeButton}
               onPress={() => navigation.navigate('JoinWithCode')}
               activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="I have an invite code"
-              accessibilityHint="Enter an invite code from your partner"
             >
-              <MaterialCommunityIcons name="key-variant" size={20} color={colors.primary} />
               <Text style={styles.joinCodeButtonText}>I have a code</Text>
             </TouchableOpacity>
 
@@ -692,7 +637,7 @@ export default function OnboardingScreen({ navigation }) {
               onPress={async () => {
                 await actions.completeOnboarding();
               }}
-              style={{ marginTop: 32 }}
+              style={{ marginTop: 40 }}
               activeOpacity={0.6}
             >
               <Text style={styles.skipLink}>I'll link later</Text>
@@ -700,17 +645,16 @@ export default function OnboardingScreen({ navigation }) {
           </ReAnimated.View>
         ) : (
           <ReAnimated.View entering={FadeInDown.duration(600).springify()} style={{ width: '100%' }}>
-            <GlassCard variant="elevated" glow={true} style={styles.inviteCard}>
+            
+            <View style={styles.groupCard}>
               <View style={styles.previewBox}>
-                <View style={styles.previewHeaderRow}>
-                  <MaterialCommunityIcons name="message-text-outline" size={16} color={colors.primary} />
-                  <Text style={styles.previewLabel}>MESSAGE PREVIEW</Text>
-                </View>
-
+                <Text style={styles.previewLabel}>MESSAGE PREVIEW</Text>
                 <Text style={styles.previewText}>
                   "I am inviting you to connect on Between Us. Use my code to join our private space."
                 </Text>
               </View>
+
+              <View style={styles.divider} />
 
               <TouchableOpacity 
                 style={styles.inviteRow} 
@@ -719,36 +663,22 @@ export default function OnboardingScreen({ navigation }) {
                   notification(NotificationFeedbackType.Success);
                 }}
                 activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={`Invite code: ${inviteCode}. Tap to copy.`}
               >
                 <View>
                   <Text style={styles.codeLabel}>YOUR INVITE CODE</Text>
                   <Text style={styles.codeText}>{inviteCode}</Text>
                 </View>
-                <View style={styles.copyIconWrap}>
-                  <Feather name="copy" size={20} color={colors.primary} />
-                </View>
+                <MaterialCommunityIcons name="content-copy" size={24} color={t.primary} />
               </TouchableOpacity>
+            </View>
 
-              <TouchableOpacity 
-                style={styles.shareSlotTouch} 
-                activeOpacity={0.8}
-                onPress={handleShare} 
-                accessibilityRole="button" 
-                accessibilityLabel="Send invitation to partner"
-              >
-                <LinearGradient
-                  colors={[colors.primary, colors.primary + "D0"]}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 1}}
-                  style={styles.shareGradient}
-                >
-                  <Text style={styles.shareText}>Send Invitation</Text>
-                  <Feather name="share" size={18} color="#F2E9E6" />
-                </LinearGradient>
-              </TouchableOpacity>
-            </GlassCard>
+            <TouchableOpacity 
+              style={[styles.primaryButtonTouch, { backgroundColor: t.text, marginTop: SPACING.xl }]} 
+              activeOpacity={0.8}
+              onPress={handleShare} 
+            >
+              <Text style={[styles.primaryButtonText, { color: t.surface }]}>Send Invitation</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity 
               onPress={async () => {
@@ -766,45 +696,49 @@ export default function OnboardingScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
+
       {step === 0 ? renderIntro() : (
         <Animated.View style={[styles.stepWrapper, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           {step === 1 ? renderYourStory() : step === 2 ? renderPreferences() : renderPairing()}
         </Animated.View>
       )}
 
-      {/* Cloud Auth Password Modal */}
+      {/* Cloud Auth Password Modal (Apple Style) */}
       <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
         <KeyboardAvoidingView
           style={styles.cloudAuthOverlay}
           behavior="padding"
         >
-          <View style={[styles.cloudAuthCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <MaterialCommunityIcons name="cloud-lock-outline" size={32} color={colors.primary} style={{ marginBottom: 12 }} />
-            <Text style={[styles.cloudAuthTitle, { color: colors.text }]}>One more step</Text>
-            <Text style={[styles.cloudAuthBody, { color: colors.textMuted }]}>
-              Enter your password to enable partner linking.
+          <View style={styles.cloudAuthCard}>
+            <MaterialCommunityIcons name="cloud-lock" size={40} color={t.primary} style={{ marginBottom: 16 }} />
+            <Text style={styles.cloudAuthTitle}>One more step</Text>
+            <Text style={styles.cloudAuthBody}>
+              Enter your password to enable secure partner linking.
             </Text>
-            <TextInput
-              style={[styles.cloudAuthInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
-              placeholder="Password"
-              placeholderTextColor={colors.textMuted}
-              secureTextEntry
-              value={cloudAuthPw}
-              onChangeText={setCloudAuthPw}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="go"
-              onSubmitEditing={handleCloudAuthDone}
-              editable={!cloudAuthBusy}
-            />
+            <View style={styles.cloudAuthInputWrap}>
+              <TextInput
+                style={styles.cloudAuthInput}
+                placeholder="Password"
+                placeholderTextColor={t.subtext}
+                secureTextEntry
+                value={cloudAuthPw}
+                onChangeText={setCloudAuthPw}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="go"
+                onSubmitEditing={handleCloudAuthDone}
+                editable={!cloudAuthBusy}
+              />
+            </View>
             <View style={styles.cloudAuthBtns}>
-              <TouchableOpacity style={[styles.cloudAuthBtn, { backgroundColor: colors.background }]} onPress={handleCloudAuthCancel} disabled={cloudAuthBusy}>
-                <Text style={{ color: colors.text, fontWeight: '600' }}>Cancel</Text>
+              <TouchableOpacity style={styles.cloudAuthBtn} onPress={handleCloudAuthCancel} disabled={cloudAuthBusy}>
+                <Text style={styles.cloudAuthCancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.cloudAuthBtn, { backgroundColor: colors.primary }]} onPress={handleCloudAuthDone} disabled={cloudAuthBusy}>
+              <TouchableOpacity style={[styles.cloudAuthBtn, { borderLeftWidth: 1, borderLeftColor: t.border }]} onPress={handleCloudAuthDone} disabled={cloudAuthBusy}>
                 {cloudAuthBusy
-                  ? <ActivityIndicator size="small" color="#F2E9E6" />
-                  : <Text style={{ color: colors.text, fontWeight: '700' }}>Continue</Text>}
+                  ? <ActivityIndicator size="small" color={t.primary} />
+                  : <Text style={styles.cloudAuthConfirmText}>Continue</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -814,518 +748,347 @@ export default function OnboardingScreen({ navigation }) {
   );
 }
 
-const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background, 
-  },
-  stepWrapper: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 30,
-    paddingTop: 40,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-  title: {
-    color: colors.text, 
-    fontSize: 42,
-    marginBottom: 40,
-    textAlign: 'center',
-  },
-  label: {
-    color: colors.textMuted,
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
-  inputGroup: {
-    marginBottom: 30,
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    color: colors.text,
-    fontSize: 20,
-    paddingVertical: 10,
-    fontFamily: 'Lato-Regular',
-  },
-  question: {
-    color: colors.text,
-    fontSize: 24,
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 34,
-  },
-  dateSelector: {
-    alignItems: 'center',
-    marginVertical: 12,
-  },
-  dateDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginBottom: 12,
-  },
-  dateText: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '500',
-  },
-  calculationText: {
-    color: colors.textMuted,
-    fontSize: 14,
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  datePickerContainer: {
-    width: '100%',
-    marginTop: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    overflow: 'hidden',
-  },
-  datePickerBackdrop: {
-    flex: 1,
-    backgroundColor: colors.overlay || 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
-  datePickerModalCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    overflow: 'hidden',
-  },
-  datePickerActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingBottom: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-  },
-  datePickerActionButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-  },
-  datePickerActionText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  primaryButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 18,
-    borderRadius: 40,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  primaryButtonText: {
-    color: "#F2E9E6",
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 1,
-  },
-  
-  // Pairing screen elements
-  pairingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: -40,
-  },
-  pairingSubtitle: {
-    color: colors.text,
-    textAlign: 'center',
-    fontSize: 26,
-    fontFamily: 'PlayfairDisplay-Regular',
-    marginBottom: 16,
-  },
-  pairingBody: {
-    color: colors.textMuted,
-    textAlign: 'center',
-    fontSize: 16,
-    lineHeight: 24,
-    fontFamily: 'Lato-Italic',
-    marginBottom: 48,
-    paddingHorizontal: 16,
-  },
-  generateInviteButtonTouch: {
-    width: '100%',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
-    borderRadius: 999,
-  },
-  generateInviteButtonGradient: {
-    minHeight: 64,
-    paddingHorizontal: 28,
-    paddingVertical: 18,
-    borderRadius: 999,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  generateInviteButtonText: {
-    color: colors.text,
-    fontSize: 19,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  joinCodeButton: {
-    marginTop: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-    minWidth: '80%',
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-  },
-  joinCodeButtonText: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  inviteCard: {
-    width: '100%',
-    marginTop: 10,
-    padding: 24,
-  },
-  previewBox: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 32,
-  },
-  previewHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  previewLabel: {
-    color: colors.primary,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
-  previewText: {
-    color: colors.textMuted,
-    fontSize: 16,
-    fontStyle: 'italic',
-    lineHeight: 24,
-  },
-  inviteRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 32,
-    paddingHorizontal: 8,
-  },
-  codeLabel: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
-  codeText: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: '700',
-    letterSpacing: 4,
-  },
-  copyIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shareSlotTouch: {
-    width: '100%',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    borderRadius: 16,
-  },
-  shareGradient: {
-    paddingVertical: 18,
-    borderRadius: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-  },
-  shareText: {
-    color: "#F2E9E6",
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  skipLink: {
-    color: colors.textMuted,
-    textAlign: 'center',
-    fontSize: 15,
-    fontFamily: 'Lato-Italic',
-    textDecorationLine: 'underline',
-  },
-  // Preferences step styles
-  prefSubtitle: {
-    color: colors.textMuted,
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 32,
-    fontFamily: 'Lato-Italic',
-    lineHeight: 24,
-  },
-  prefSection: {
-    marginBottom: 36,
-  },
-  prefLabel: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 2.5,
-    textTransform: 'uppercase',
-    marginBottom: 6,
-    opacity: 0.8,
-  },
-  prefHint: {
-    color: colors.textMuted,
-    fontSize: 15,
-    marginBottom: 20,
-    opacity: 0.7,
-    fontFamily: 'Lato-Italic',
-  },
-  heatGrid: {
-    gap: 12,
-  },
-  heatOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 18,
-    borderRadius: 20,
-    borderWidth: 1,
-    gap: 16,
-  },
-  heatIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heatName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-    letterSpacing: -0.3,
-  },
-  heatDesc: {
-    fontSize: 15,
-    fontStyle: 'italic',
-  },
-  toneGrid: {
-    gap: 12,
-  },
-  toneOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 18,
-    borderRadius: 20,
-    borderWidth: 1,
-    gap: 16,
-  },
-  toneName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-    letterSpacing: -0.3,
-  },
-  tonePreview: {
-    fontSize: 15,
-    fontStyle: 'italic',
-    opacity: 0.6,
-  },
+// ------------------------------------------------------------------
+// STYLES - Apple Editorial
+// ------------------------------------------------------------------
+const createStyles = (t, isDark) => {
+  const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
-  // Your Story card styles
-  storySubtitle: {
-    color: colors.textMuted,
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 32,
-    fontFamily: 'Lato-Italic',
-    lineHeight: 24,
-  },
-  storyCard: {
-    marginBottom: 24,
-  },
-  storyCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 24,
-  },
-  cardIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  storyCardTitle: {
-    color: colors.text,
-    fontSize: 19,
-    fontWeight: '600',
-    letterSpacing: -0.3,
-  },
-  storyFieldColumn: {
-    gap: 22,
-  },
-  storyFieldGroup: {
-    flex: 1,
-  },
-  storyFieldLabel: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 2,
-    marginBottom: 10,
-    opacity: 0.8,
-  },
-  storyInput: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '500',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  dateDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    borderRadius: 16,
-    marginBottom: 18,
-  },
-  dateText: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  calculationText: {
-    color: colors.textMuted,
-    fontSize: 15,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginTop: 6,
-  },
-  primaryButtonTouch: {
-    marginTop: 24,
-    borderRadius: 40,
-    overflow: 'hidden',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  primaryButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 32,
-  },
-  celebrationContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 10,
-  },
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: t.background, 
+    },
+    stepWrapper: {
+      flex: 1,
+    },
+    content: {
+      flex: 1,
+      paddingTop: Platform.OS === 'android' ? 60 : 40,
+    },
+    scrollContent: {
+      paddingBottom: 40,
+      paddingHorizontal: SPACING.xl,
+    },
 
-  // Cloud auth modal
-  cloudAuthOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  cloudAuthCard: {
-    width: '100%',
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  cloudAuthTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  cloudAuthBody: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 20,
-  },
-  cloudAuthInput: {
-    width: '100%',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  cloudAuthBtns: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-  },
-  cloudAuthBtn: {
-    flex: 1,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+    // ── Typography ──
+    title: {
+      fontFamily: systemFont,
+      fontSize: 34,
+      fontWeight: '800',
+      color: t.text,
+      letterSpacing: 0.3,
+      marginBottom: SPACING.sm,
+    },
+    storySubtitle: {
+      fontSize: 16,
+      color: t.subtext,
+      marginBottom: SPACING.xxl,
+      fontWeight: '500',
+    },
 
+    // ── Grouped Apple Lists ──
+    groupLabel: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: t.subtext,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginBottom: SPACING.sm,
+      paddingLeft: SPACING.xs,
+    },
+    groupCard: {
+      backgroundColor: t.surface,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: t.border,
+      marginBottom: SPACING.xxl,
+      overflow: 'hidden',
+    },
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: 12,
+    },
+    inputLabel: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: t.text,
+      width: 100, // Fixed width for alignment
+    },
+    inputOverrides: {
+      flex: 1,
+      fontSize: 16,
+      color: t.text,
+      padding: 0,
+      textAlign: 'right', // Align input to right like iOS settings
+    },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: t.border,
+    },
+    dividerIndent: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: t.border,
+      marginLeft: 60, // Indent past the icon
+    },
+
+    // ── Date Display ──
+    dateDisplay: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: 16,
+    },
+    dateValueWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    dateText: {
+      fontSize: 16,
+      color: t.subtext,
+      fontWeight: '400',
+    },
+    calculationText: {
+      fontSize: 15,
+      color: t.subtext,
+      textAlign: 'center',
+      marginTop: -8,
+      marginBottom: SPACING.lg,
+    },
+    
+    // ── Primary Action Button ──
+    primaryButtonTouch: {
+      marginTop: SPACING.md,
+      borderRadius: 28,
+      height: 56,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0 : 0.15, shadowRadius: 12 },
+        android: { elevation: 4 },
+      }),
+    },
+    primaryButtonText: {
+      fontSize: 17,
+      fontWeight: '700',
+      letterSpacing: -0.2,
+    },
+
+    // ── Date Picker Modal ──
+    datePickerBackdrop: {
+      flex: 1,
+      backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)',
+      justifyContent: 'flex-end',
+      paddingHorizontal: 16,
+      paddingBottom: 32,
+    },
+    datePickerModalCard: {
+      borderRadius: 24,
+      backgroundColor: t.surfaceSecondary,
+      overflow: 'hidden',
+    },
+    datePickerActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: SPACING.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.border,
+      backgroundColor: t.surface,
+    },
+    datePickerActionButton: {
+      paddingVertical: 16,
+      paddingHorizontal: SPACING.sm,
+    },
+    datePickerActionText: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+
+    // ── Preferences List Items ──
+    prefSubtitle: {
+      fontSize: 16,
+      color: t.subtext,
+      marginBottom: SPACING.xl,
+      fontWeight: '500',
+    },
+    prefSection: {
+      marginBottom: SPACING.lg,
+    },
+    listOptionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: SPACING.lg,
+      gap: 16,
+    },
+    iconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 8, // Apple standard squircle icon wrapper
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    listOptionName: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 2,
+    },
+    listOptionDesc: {
+      fontSize: 14,
+      color: t.subtext,
+    },
+
+    // ── Pairing Screen ──
+    pairingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: -80, // Offset for visual center
+    },
+    pairingSubtitle: {
+      fontFamily: systemFont,
+      fontSize: 28,
+      fontWeight: '800',
+      color: t.text,
+      textAlign: 'center',
+      marginBottom: SPACING.sm,
+      letterSpacing: -0.5,
+    },
+    pairingBody: {
+      fontSize: 16,
+      color: t.subtext,
+      textAlign: 'center',
+      lineHeight: 24,
+      marginBottom: SPACING.xxxl,
+      paddingHorizontal: SPACING.md,
+    },
+    joinCodeButton: {
+      marginTop: SPACING.lg,
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+      width: '100%',
+      alignItems: 'center',
+    },
+    joinCodeButtonText: {
+      color: t.text,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    skipLink: {
+      color: t.subtext,
+      fontSize: 15,
+      fontWeight: '500',
+    },
+    
+    // ── Invite Code Preview ──
+    previewBox: {
+      padding: SPACING.lg,
+      backgroundColor: t.surfaceSecondary,
+    },
+    previewLabel: {
+      color: t.subtext,
+      fontSize: 11,
+      fontWeight: '700',
+      letterSpacing: 1.5,
+      marginBottom: 8,
+    },
+    previewText: {
+      color: t.text,
+      fontSize: 16,
+      fontWeight: '400',
+      lineHeight: 24,
+    },
+    inviteRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: SPACING.lg,
+    },
+    codeLabel: {
+      color: t.subtext,
+      fontSize: 11,
+      fontWeight: '700',
+      letterSpacing: 1.5,
+      marginBottom: 4,
+    },
+    codeText: {
+      color: t.text,
+      fontSize: 32,
+      fontWeight: '800',
+      letterSpacing: 4,
+    },
+
+    // ── Cloud Auth Modal (Apple System Alert Style) ──
+    cloudAuthOverlay: {
+      flex: 1,
+      backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 32,
+    },
+    cloudAuthCard: {
+      width: '100%',
+      backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7',
+      borderRadius: 14,
+      alignItems: 'center',
+      overflow: 'hidden',
+    },
+    cloudAuthTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: t.text,
+      marginTop: 20,
+      marginBottom: 4,
+      textAlign: 'center',
+    },
+    cloudAuthBody: {
+      fontSize: 13,
+      color: t.subtext,
+      textAlign: 'center',
+      marginBottom: 16,
+      paddingHorizontal: 16,
+    },
+    cloudAuthInputWrap: {
+      width: '100%',
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    cloudAuthInput: {
+      backgroundColor: t.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.border,
+      borderRadius: 6,
+      padding: 10,
+      fontSize: 14,
+      color: t.text,
+    },
+    cloudAuthBtns: {
+      flexDirection: 'row',
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: t.border,
+    },
+    cloudAuthBtn: {
+      flex: 1,
+      paddingVertical: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cloudAuthCancelText: {
+      fontSize: 17,
+      color: '#007AFF', // Standard iOS Blue
+      fontWeight: '400',
+    },
+    cloudAuthConfirmText: {
+      fontSize: 17,
+      color: '#007AFF',
+      fontWeight: '600', // Bold for positive action
+    },
+  });
+};
