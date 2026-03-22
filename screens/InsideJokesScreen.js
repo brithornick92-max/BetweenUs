@@ -157,12 +157,11 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   headerTitle: {
-    fontFamily: Platform.select({
-      ios: 'DMSerifDisplay-Regular',
-      android: 'DMSerifDisplay_400Regular',
-    }),
-    fontSize: 28,
-    letterSpacing: -0.5,
+    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
 
   // Premium Gate Aesthetic

@@ -883,16 +883,45 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  sender_name text;
-  notif_title text;
-  notif_body  text;
+  sender_name     text;
+  notif_title     text;
+  notif_body      text;
+  moment_type_val text;
+  notif_data      jsonb;
 BEGIN
   IF NEW.data_type = 'couple_state' THEN RETURN NEW; END IF;
 
   SELECT COALESCE(display_name, email, 'Your partner') INTO sender_name
     FROM profiles WHERE id = NEW.created_by;
 
+  -- Default notification data (overridden per type below)
+  notif_data := jsonb_build_object('type', NEW.data_type, 'couple_id', NEW.couple_id);
+
   CASE NEW.data_type
+    WHEN 'moment_signal' THEN
+      moment_type_val := NEW.value::jsonb->>'moment_type';
+      CASE moment_type_val
+        WHEN 'thinking' THEN notif_title := '💭 Thinking of You';
+                             notif_body  := sender_name || ' is thinking of you';
+        WHEN 'grateful' THEN notif_title := '🙏 Grateful for You';
+                             notif_body  := sender_name || ' is grateful for you';
+        WHEN 'missing'  THEN notif_title := '💔 Missing You';
+                             notif_body  := sender_name || ' is missing you right now';
+        WHEN 'proud'    THEN notif_title := '⭐ Proud of You';
+                             notif_body  := sender_name || ' is so proud of you';
+        WHEN 'want'     THEN notif_title := '🔥 Thinking of You';
+                             notif_body  := sender_name || ' is thinking about you';
+        WHEN 'love'     THEN notif_title := '❤️ Love You';
+                             notif_body  := sender_name || ' loves you';
+        ELSE                 notif_title := '💗 Heartbeat';
+                             notif_body  := sender_name || ' sent you a heartbeat';
+      END CASE;
+      notif_data := jsonb_build_object(
+        'type',        'moment_signal',
+        'moment_type', COALESCE(moment_type_val, 'heartbeat'),
+        'couple_id',   NEW.couple_id,
+        'route',       'vibe'
+      );
     WHEN 'vibe'          THEN notif_title := '💗 New Heartbeat';
                               notif_body  := sender_name || ' just sent a heartbeat';
     WHEN 'love_note'     THEN notif_title := '💌 Love Note';
@@ -915,7 +944,7 @@ BEGIN
     NEW.created_by,
     notif_title,
     notif_body,
-    jsonb_build_object('type', NEW.data_type, 'couple_id', NEW.couple_id)
+    notif_data
   );
 
   RETURN NEW;

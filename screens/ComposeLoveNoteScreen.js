@@ -270,10 +270,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
   headerCenter: { alignItems: "center" },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    fontWeight: "800",
-    textTransform: "uppercase",
-    letterSpacing: 2,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
     color: t.text,
   },
   headerIndicator: {

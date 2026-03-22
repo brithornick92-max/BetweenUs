@@ -296,12 +296,13 @@ const createStyles = (t, isDark, insets) => StyleSheet.create({
     paddingRight: SPACING.xl, 
   },
   headerTitle: {
-    fontSize: 34,
-    fontWeight: '800',
-    color: t.text,
-    letterSpacing: 0.3,
-    marginBottom: 4,
     fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
+    color: t.text,
+    marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 15,

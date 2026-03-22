@@ -458,8 +458,11 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     padding: 8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
   scrollView: {
     flex: 1,

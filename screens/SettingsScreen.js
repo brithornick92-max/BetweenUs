@@ -203,6 +203,12 @@ export default function SettingsScreen({ navigation }) {
   }, [inviteCode, refreshSyncStatus]);
 
   // ─── HANDLERS ───
+  const handleDatePickerDismiss = useCallback(() => {
+    setShowDatePicker(false);
+    updateRelationshipStartDate(selectedDate.toISOString());
+    notification(NotificationFeedbackType.Success);
+  }, [selectedDate, updateRelationshipStartDate]);
+
   const handleSignOut = () => {
     impact(ImpactFeedbackStyle.Medium);
     Alert.alert('Sign Out', 'Your session will be ended. Continue?', [
@@ -485,22 +491,34 @@ export default function SettingsScreen({ navigation }) {
       </SafeAreaView>
 
       {/* ─── DATE PICKER MODAL ─── */}
-      {showDatePicker && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          display="spinner"
-          onChange={(event, date) => {
-            setShowDatePicker(false);
-            if (date) {
-              setSelectedDate(date);
-              updateRelationshipStartDate(date.toISOString());
-              notification(NotificationFeedbackType.Success);
-            }
-          }}
-          textColor={t.text}
-        />
-      )}
+      <Modal visible={showDatePicker} transparent animationType="slide">
+        <TouchableOpacity
+          style={styles.datePickerOverlay}
+          activeOpacity={1}
+          onPress={handleDatePickerDismiss}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+            <View style={[styles.datePickerContainer, { backgroundColor: t.surface }]}>
+              <View style={[styles.datePickerHeader, { borderBottomColor: t.borderGlass }]}>
+                <Text style={[styles.datePickerTitle, { color: t.subtext }]}>Anniversary</Text>
+                <TouchableOpacity onPress={handleDatePickerDismiss}>
+                  <Text style={[styles.datePickerDone, { color: t.primary }]}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="spinner"
+                onChange={(event, date) => {
+                  if (date) setSelectedDate(date);
+                }}
+                textColor={t.text}
+                style={styles.datePickerWidget}
+              />
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       {/* ─── UNLINK MODAL ─── */}
       <Modal visible={showUnlinkConfirm} transparent animationType="fade">
@@ -553,9 +571,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontFamily: SERIF_FONT,
-    fontSize: 40,
-    letterSpacing: -0.5,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
   headerAvatar: {
     width: 48,
@@ -782,6 +802,39 @@ const styles = StyleSheet.create({
     fontWeight: '400', 
     fontSize: 12, 
     textAlign: 'center', 
+  },
+
+  // Date Picker Modal
+  datePickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  datePickerContainer: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 40,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  datePickerTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  datePickerDone: {
+    fontFamily: SYSTEM_FONT,
+    fontWeight: '700',
+    fontSize: 17,
+  },
+  datePickerWidget: {
+    width: '100%',
   },
 
   // Modals

@@ -1,5 +1,8 @@
-// screens/PromptsScreen.js — Card-game prompt experience
-// Swipeable card deck: draw, flip, swipe-right to reflect. Quiet & intimate.
+/**
+ * PromptsScreen — High-end card-draw experience
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * Swipeable deck for intimate, quiet reflection.
+ */
 
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
@@ -7,7 +10,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   Platform,
   StatusBar,
@@ -20,42 +22,27 @@ import {
   selection,
   ImpactFeedbackStyle,
 } from "../utils/haptics";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
-import { SPACING, BORDER_RADIUS, withAlpha } from "../utils/theme";
+import { SPACING, withAlpha } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import PreferenceEngine from "../services/PreferenceEngine";
 import PromptCardDeck from "../components/PromptCardDeck";
+import FilmGrain from "../components/FilmGrain";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-const FONTS = {
-  serif: Platform.select({
-    ios: "DMSerifDisplay-Regular",
-    android: "DMSerifDisplay_400Regular",
-    default: "serif",
-  }),
-  body: Platform.select({
-    ios: "Lato-Regular",
-    android: "Lato_400Regular",
-    default: "sans-serif",
-  }),
-  bodyBold: Platform.select({
-    ios: "Lato-Bold",
-    android: "Lato_700Bold",
-    default: "sans-serif",
-  }),
-};
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 const HEAT_LEVELS = [
   { value: 1, label: "1", color: "#F7A8B8" }, 
   { value: 2, label: "2", color: "#F27A9B" }, 
   { value: 3, label: "3", color: "#E84A7B" }, 
-  { value: 4, label: "4", color: "#E23A68" }, 
-  { value: 5, label: "5", color: "#B81438" }, 
+  { value: 4, label: "4", color: "#C3113D" }, // Signature Sexy Red
+  { value: 5, label: "5", color: "#8E0D2C" }, // Deep Crimson
 ];
 
 const loadAllBundledPrompts = () => {
@@ -98,6 +85,7 @@ function shuffleArray(arr) {
 }
 
 export default function PromptsScreen({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
@@ -105,6 +93,16 @@ export default function PromptsScreen({ navigation }) {
   const [selectedHeat, setSelectedHeat] = useState(null);
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // SEXY RED THEME MAP
+  const t = useMemo(() => ({
+    background: colors.background,
+    primary: colors.primary || '#C3113D',
+    surface: isDark ? '#131016' : '#FFFFFF',
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
   useEffect(() => {
     (async () => {
@@ -163,15 +161,12 @@ export default function PromptsScreen({ navigation }) {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={[styles.root, { backgroundColor: colors.background }]}>
-        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
+      <View style={[styles.root, { backgroundColor: t.background }]}>
+        <StatusBar barStyle="light-content" />
+        <FilmGrain opacity={0.03} />
 
-        {/* Quiet Ambient Glow spotlight */}
         <LinearGradient
-          colors={[
-            isDark ? withAlpha(colors.primary, 0.12) : withAlpha(colors.primary, 0.08), 
-            colors.background
-          ]}
+          colors={[withAlpha(t.primary, 0.15), t.background]}
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
         />
@@ -179,46 +174,46 @@ export default function PromptsScreen({ navigation }) {
         <SafeAreaView style={styles.safe} edges={["top"]}>
           {/* Editorial Header */}
           <Animated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
-            <Text style={[styles.headerLabel, { color: colors.primary }]}>
+            <Text style={[styles.headerLabel, { color: t.primary }]}>
               {isPremium 
-                ? `${deckPrompts.length} CARDS IN DECK` 
-                : `${deckPrompts.length} OF ${TOTAL_PROMPT_COUNT} CARDS`}
+                ? `${deckPrompts.length} PROMPTS READY` 
+                : `${deckPrompts.length} OF ${TOTAL_PROMPT_COUNT} PREVIEWS`}
             </Text>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Draw a card</Text>
+            <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
           </Animated.View>
 
           {/* Premium Progress / Discovery Tracker */}
           {!isPremium && (
             <Animated.View entering={FadeIn.duration(800).delay(400)}>
               <TouchableOpacity
-                style={[styles.progressCard, { backgroundColor: colors.surfaceGlass, borderColor: colors.borderGlass }]}
+                style={[styles.progressCard, { backgroundColor: t.surface, borderColor: t.border }]}
                 onPress={() => showPaywall?.("unlimitedPrompts")}
                 activeOpacity={0.9}
               >
                 <View style={styles.progressHeader}>
-                  <Text style={[styles.progressTitle, { color: colors.text }]}>
-                    {TOTAL_PROMPT_COUNT - deckPrompts.length} more to discover
+                  <Text style={[styles.progressTitle, { color: t.text }]}>
+                    {TOTAL_PROMPT_COUNT - deckPrompts.length} Intimacies Await
                   </Text>
-                  <Icon name="star-four-points-outline" size={16} color={colors.primary} />
+                  <Icon name="sparkles" size={16} color={t.primary} />
                 </View>
                 
-                <View style={[styles.progressBar, { backgroundColor: withAlpha(colors.text, 0.05) }]}>
+                <View style={[styles.progressBar, { backgroundColor: withAlpha(t.text, 0.05) }]}>
                   <LinearGradient
-                    colors={[colors.primary, '#A00D31']}
+                    colors={[t.primary, "#8E0D2C"]}
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                    style={[styles.progressFill, { width: `${Math.max(5, (deckPrompts.length / TOTAL_PROMPT_COUNT) * 100)}%` }]}
+                    style={[styles.progressFill, { width: `${Math.max(8, (deckPrompts.length / TOTAL_PROMPT_COUNT) * 100)}%` }]}
                   />
                 </View>
-                <Text style={[styles.progressSubtitle, { color: colors.textMuted }]}>
-                  Unlock the full deck across all 5 heat levels
+                <Text style={[styles.progressSubtitle, { color: t.subtext }]}>
+                  Upgrade to unlock the complete editorial library
                 </Text>
               </TouchableOpacity>
             </Animated.View>
           )}
 
-          {/* Tactile Heat Selector (Intensity) */}
+          {/* Tactile Heat Selector */}
           <Animated.View entering={FadeIn.duration(800).delay(500)} style={styles.heatSection}>
-            <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>INTENSITY</Text>
+            <Text style={[styles.sectionLabel, { color: t.subtext }]}>HEAT LEVEL</Text>
             <View style={styles.heatRow}>
               {HEAT_LEVELS.map(({ value, label, color: heatColor }) => {
                 const active = selectedHeat === value;
@@ -230,17 +225,19 @@ export default function PromptsScreen({ navigation }) {
                       styles.heatChip,
                       {
                         backgroundColor: active ? heatColor : withAlpha(heatColor, 0.12),
-                        borderColor: active ? heatColor : withAlpha(heatColor, 0.25),
+                        borderColor: active ? heatColor : withAlpha(heatColor, 0.2),
                       },
                     ]}
                     onPress={() => handleHeatSelect(value)}
-                    activeOpacity={0.8}
+                    activeOpacity={0.9}
                   >
-                    <Text style={[styles.heatLabel, { color: active ? "#FFF" : colors.text }]}>
+                    <Text style={[styles.heatLabel, { color: active ? "#FFF" : t.text }]}>
                       {label}
                     </Text>
                     {locked && (
-                      <Icon name="lock" size={10} color={colors.textMuted} style={styles.lockIcon} />
+                      <View style={styles.lockBadge}>
+                         <Icon name="lock-closed" size={10} color="#FFF" />
+                      </View>
                     )}
                   </TouchableOpacity>
                 );
@@ -248,24 +245,22 @@ export default function PromptsScreen({ navigation }) {
             </View>
           </Animated.View>
 
-          {/* Main Card Deck Content Area */}
+          {/* Interaction Area */}
           {loading ? (
             <View style={styles.centered}>
-              <ActivityIndicator size="small" color={colors.primary} />
+              <ActivityIndicator size="large" color={t.primary} />
             </View>
           ) : deckPrompts.length === 0 ? (
             <View style={styles.centered}>
-              <Icon name="cards-variant" size={48} color={withAlpha(colors.text, 0.1)} />
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>No cards match this level</Text>
+              <Icon name="copy-outline" size={48} color={withAlpha(t.text, 0.1)} />
+              <Text style={[styles.emptyText, { color: t.subtext }]}>No cards match this intensity</Text>
             </View>
           ) : (
-            <View style={styles.deckWrapper}>
+            <View style={[styles.deckWrapper, { paddingBottom: tabBarHeight }]}>
               <PromptCardDeck
                 prompts={deckPrompts}
                 onSelect={handlePromptSelect}
-                onSkip={() => {
-                  impact(ImpactFeedbackStyle.Light);
-                }}
+                onSkip={() => impact(ImpactFeedbackStyle.Light)}
               />
             </View>
           )}
@@ -278,42 +273,40 @@ export default function PromptsScreen({ navigation }) {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   safe: { flex: 1 },
-  
-  // Header Architecture
   header: {
     paddingHorizontal: 32,
-    paddingTop: 40,
+    paddingTop: 32,
     paddingBottom: 24,
   },
   headerLabel: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 10,
-    letterSpacing: 2.5,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 2,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
   headerTitle: {
-    fontFamily: FONTS.serif,
-    fontSize: 34,
-    letterSpacing: -0.8,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
     lineHeight: 42,
   },
-
-  // Discovery / Progress Card
   progressCard: {
-    marginHorizontal: 24,
+    marginHorizontal: 32,
     padding: 20,
-    borderRadius: 24,
+    borderRadius: 24, // Apple Squircle
     borderWidth: 1,
-    marginBottom: 24,
+    marginBottom: 32,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.05,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 15,
       },
-      android: { elevation: 2 }
+      android: { elevation: 3 }
     })
   },
   progressHeader: {
@@ -323,67 +316,73 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   progressTitle: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 14,
-    letterSpacing: 0.2,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: -0.2,
   },
   progressBar: {
-    height: 6,
-    borderRadius: 3,
+    height: 4,
+    borderRadius: 2,
     marginBottom: 10,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 3,
   },
   progressSubtitle: {
-    fontFamily: FONTS.body,
+    fontFamily: SYSTEM_FONT,
     fontSize: 12,
-    opacity: 0.7,
+    fontWeight: "600",
+    opacity: 0.8,
   },
-
-  // Heat Selector (Intensity Chips)
   heatSection: {
     paddingHorizontal: 32,
     marginBottom: 32,
   },
   sectionLabel: {
-    fontFamily: FONTS.bodyBold,
+    fontFamily: SYSTEM_FONT,
     fontSize: 10,
+    fontWeight: "800",
     letterSpacing: 1.5,
     textAlign: 'center',
     marginBottom: 16,
-    opacity: 0.6,
   },
   heatRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
   },
   heatChip: {
-    width: 58,
-    height: 48,
-    borderRadius: 16,
+    flex: 1,
+    height: 54,
+    borderRadius: 18,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   heatLabel: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 18,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 20,
+    fontWeight: "800",
   },
-  lockIcon: {
+  lockBadge: {
     position: 'absolute',
-    bottom: 4,
-    right: 4,
+    top: -4,
+    right: -4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFF',
   },
-
-  // Deck Interaction Area
   deckWrapper: {
     flex: 1,
-    paddingBottom: 40,
   },
   centered: {
     flex: 1,
@@ -392,8 +391,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyText: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    opacity: 0.6,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: "600",
   },
 });

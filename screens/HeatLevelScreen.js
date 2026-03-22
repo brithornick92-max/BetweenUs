@@ -15,7 +15,7 @@ import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
+import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
 
 export default function HeatLevelScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -292,8 +292,11 @@ const createStyles = (colors) => StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    ...TYPOGRAPHY.h1,
-    fontSize: 24,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
     color: colors.text,
     marginBottom: 4,
   },

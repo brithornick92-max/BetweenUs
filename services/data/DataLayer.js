@@ -523,7 +523,7 @@ const DataLayer = {
    * it is encrypted via EncryptedAttachments (file bytes never leave the
    * device in plaintext).
    */
-  async saveLoveNote({ text, stationeryId, senderName, imageUri }) {
+  async saveLoveNote({ text, stationeryId, senderName, imageUri, invisibleInk = false }) {
     const kt = keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
 
@@ -569,6 +569,7 @@ const DataLayer = {
       sender_name_cipher: senderCipher,
       media_ref: mediaRef,
       is_read: true, // sender has "read" their own note
+      is_invisible_ink: !!invisibleInk,
     });
 
     // Link the attachment to this note
@@ -678,6 +679,7 @@ const DataLayer = {
         readAt: row.read_at,
         isOwn: row.user_id === _userId,
         userId: row.user_id,
+        invisibleInk: !!row.is_invisible_ink,
         createdAt: new Date(row.created_at).getTime(),
         updatedAt: new Date(row.updated_at).getTime(),
       };
@@ -691,6 +693,7 @@ const DataLayer = {
         imageUri: null,
         isRead: !!row.is_read,
         isOwn: row.user_id === _userId,
+        invisibleInk: !!row.is_invisible_ink,
         createdAt: new Date(row.created_at).getTime(),
         locked: true,
       };

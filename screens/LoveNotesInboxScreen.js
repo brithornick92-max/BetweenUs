@@ -33,6 +33,7 @@ import {
   SANS,
   SANS_MEDIUM,
   SANS_BOLD,
+  SYSTEM_FONT,
   withAlpha,
 } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
@@ -345,9 +346,11 @@ const createStyles = (colors, isDark) =>
       alignItems: "center",
     },
     headerTitle: {
-      fontFamily: SERIF,
-      fontSize: 26,
-      letterSpacing: -0.5,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 36,
+      fontWeight: '900',
+      letterSpacing: -1,
+      lineHeight: 42,
     },
     headerSubtitle: {
       fontFamily: SANS_BOLD,

@@ -1,7 +1,22 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+/**
+ * PairingScanScreen — Secure Partner Bridge (Receiver)
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * * Handles secure QR scanning and X25519 shared secret derivation.
+ */
+
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  Platform, 
+  StatusBar,
+  ActivityIndicator
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { BlurView } from 'expo-blur';
 import naclUtil from 'tweetnacl-util';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
@@ -12,29 +27,29 @@ import StorageRouter from '../services/storage/StorageRouter';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import { parsePairingPayload } from '../services/security/PairingPayload';
 import { STORAGE_KEYS, storage, cloudSyncStorage } from '../utils/storage';
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
+import Icon from '../components/Icon';
 
-/**
- * Scanner flow (X25519 key exchange):
- *
- * 1. Scan QR code containing { coupleId, publicKey } (inviter's public key).
- * 2. Generate own X25519 keypair (or reuse existing).
- * 3. Join couple in Supabase, uploading OUR public key to couple_members.
- * 4. Derive shared secret via box.before(inviterPubKey, mySecretKey) + HKDF.
- * 5. Store the couple symmetric key locally.
- *
- * Because box.before is commutative (both sides compute the same shared secret),
- * the inviter will derive the identical couple key when they read our public key.
- */
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+
 export default function PairingScanScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const styles = createStyles(colors, isDark);
   const { isPremiumEffective: isPremium } = useEntitlements();
   const { user, updateProfile } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
-  const [status, setStatus] = useState('Scan your partner\'s QR code.');
+  const [status, setStatus] = useState("Position your partner's code in view.");
   const activeRef = useRef(true);
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    background: colors.background || '#070509', 
+    surface: isDark ? '#131016' : '#FFFFFF',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text || '#F2E9E6',
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
   useEffect(() => {
     activeRef.current = true;
@@ -49,74 +64,63 @@ export default function PairingScanScreen({ navigation }) {
     try {
       const syncStatus = await cloudSyncStorage.getSyncStatus();
       if (!isPremium || !syncStatus?.enabled) {
-        setStatus('Enable Sync to link partners.');
+        setStatus('Please enable Sync to continue.');
         return;
       }
 
       const session = await SupabaseAuthService.getSession();
       if (!session) {
-        setStatus('Sign in to enable sync.');
+        setStatus('Secure session required.');
         return;
       }
 
-      // Step 1: Parse QR payload (contains inviter's PUBLIC key, not secret)
       const parsed = parsePairingPayload(data);
       if (!parsed.ok) throw new Error(parsed.error);
       const { coupleId, publicKey: inviterPublicKeyB64 } = parsed.payload;
 
-      // Step 2: Get or create our device keypair
+      setStatus('Establishing secure bridge...');
+      
       const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-
-      // Step 3: Join couple (uploads OUR public key to couple_members)
       await CloudEngine.joinCouple(coupleId, myPublicKeyB64);
 
-      // Step 4: Derive couple key via X25519 ECDH + HKDF
       const inviterPubKey = naclUtil.decodeBase64(inviterPublicKeyB64);
       const coupleKey = await CoupleKeyService.deriveFromKeyExchange(inviterPubKey);
 
-      // Step 5: Store the couple key
       await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
-
       await StorageRouter.setActiveCoupleId(coupleId);
+      
       if (user?.uid) {
         await StorageRouter.updateUserDocument(user.uid, { coupleId });
         await updateProfile?.({ coupleId });
       }
       await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
 
-      setStatus('Paired successfully!');
+      setStatus('Successfully paired.');
       setTimeout(() => {
         if (activeRef.current) navigation.navigate('SyncSetup');
-      }, 500);
+      }, 1000);
     } catch (error) {
-      if (String(error?.message || '').includes('Supabase is not configured')) {
-        setStatus("Sync isn't available in this build.");
-      } else {
-        setStatus(error?.message || 'Unable to pair. Try again.');
-      }
+      setStatus('Unable to read link. Try again.');
+      setScanned(false);
     }
   };
 
-  if (!permission) {
+  if (!permission?.granted) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.cameraOverlay} />
+      <View style={[styles.container, { backgroundColor: t.background }]}>
         <SafeAreaView style={styles.safeArea}>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Requesting camera permission...</Text>
-        </SafeAreaView>
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.cameraOverlay} />
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.card}>
-            <Text style={[styles.title, { color: colors.text }]}>Camera Access</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>We need camera access to scan the QR code.</Text>
-            <TouchableOpacity style={styles.primaryButton} onPress={requestPermission} activeOpacity={0.9}>
+          <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+            <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+              <Icon name="camera-outline" size={32} color={t.primary} />
+            </View>
+            <Text style={[styles.title, { color: t.text }]}>Camera Access</Text>
+            <Text style={[styles.subtitle, { color: t.subtext }]}>
+              We need permission to scan the secure QR link from your partner.
+            </Text>
+            <TouchableOpacity 
+              style={[styles.primaryButton, { backgroundColor: t.primary }]} 
+              onPress={requestPermission}
+            >
               <Text style={styles.primaryButtonText}>Enable Camera</Text>
             </TouchableOpacity>
           </View>
@@ -126,64 +130,185 @@ export default function PairingScanScreen({ navigation }) {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: '#000' }]}>
+      <StatusBar barStyle="light-content" />
+      
       <CameraView
         style={StyleSheet.absoluteFill}
         onBarcodeScanned={scanned ? undefined : handleScan}
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       />
-      <View style={styles.cameraOverlay} />
+
+      {/* Editorial Viewfinder Overlay */}
+      <View style={styles.viewfinderOverlay}>
+        <View style={styles.vignetteTop} />
+        <View style={styles.viewfinderRow}>
+          <View style={styles.vignetteSide} />
+          <View style={[styles.viewfinder, { borderColor: scanned ? t.primary : '#FFF' }]}>
+            {scanned && <ActivityIndicator color={t.primary} size="large" />}
+          </View>
+          <View style={styles.vignetteSide} />
+        </View>
+        <View style={styles.vignetteBottom} />
+      </View>
+
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.overlay}>
-          <Text style={[styles.title, { color: colors.text }]}>Scan QR Code</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{status}</Text>
-          {scanned && (
-            <TouchableOpacity style={styles.secondaryButton} onPress={() => setScanned(false)}>
-              <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Scan Again</Text>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <BlurView intensity={20} tint="dark" style={styles.blurBack}>
+            <Icon name="chevron-back" size={28} color="#FFF" />
+          </BlurView>
+        </TouchableOpacity>
+
+        <View style={styles.statusContainer}>
+          <BlurView intensity={30} tint="dark" style={styles.statusBlur}>
+            <Icon 
+              name={scanned ? "sync-outline" : "scan-outline"} 
+              size={18} 
+              color={scanned ? t.primary : "#FFF"} 
+            />
+            <Text style={styles.statusText}>{status}</Text>
+          </BlurView>
+          
+          {scanned && !status.includes('Success') && (
+            <TouchableOpacity 
+              style={styles.retryBtn} 
+              onPress={() => setScanned(false)}
+            >
+              <Text style={{ color: t.primary, fontWeight: '800' }}>RETRY</Text>
             </TouchableOpacity>
           )}
+        </View>
+
+        <View style={styles.footerBranding}>
+          <Icon name="shield-checkmark" size={12} color="rgba(255,255,255,0.4)" />
+          <Text style={styles.brandingText}>SECURE KEY EXCHANGE</Text>
         </View>
       </SafeAreaView>
     </View>
   );
 }
 
-const createStyles = (colors, isDark) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1 },
-  safeArea: { flex: 1, paddingHorizontal: SPACING.xl, justifyContent: 'center' },
+  safeArea: { flex: 1 },
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    left: 24,
+    zIndex: 20,
+  },
+  blurBack: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
   card: {
-    backgroundColor: '#151118',
-    borderRadius: BORDER_RADIUS.xl,
-    padding: SPACING.xl,
+    marginHorizontal: 32,
+    marginTop: '40%',
+    borderRadius: 32,
+    padding: 32,
     alignItems: 'center',
-  },
-  overlay: {
-    backgroundColor: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(19,16,22,0.15)',
-    borderRadius: BORDER_RADIUS.xl,
-    padding: SPACING.xl,
-    alignItems: 'center',
-  },
-  title: { ...TYPOGRAPHY.h2, fontSize: 20, fontWeight: '700' },
-  subtitle: { ...TYPOGRAPHY.body, marginTop: SPACING.sm, textAlign: 'center' },
-  primaryButton: {
-    marginTop: SPACING.lg,
-    backgroundColor: colors.accent || '#A89060',
-    borderRadius: BORDER_RADIUS.md,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xl,
-  },
-  primaryButtonText: { color: colors.surface, fontWeight: '700' },
-  secondaryButton: {
-    marginTop: SPACING.lg,
     borderWidth: 1,
-    borderColor: colors.borderGlass || colors.border,
-    borderRadius: BORDER_RADIUS.md,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xl,
   },
-  secondaryButtonText: { fontWeight: '600' },
-  cameraOverlay: {
+  iconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  title: { 
+    fontFamily: SYSTEM_FONT,
+    fontSize: 24, 
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginBottom: 8,
+  },
+  subtitle: { 
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16, 
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  primaryButton: {
+    height: 56,
+    borderRadius: 28,
+    paddingHorizontal: 32,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  primaryButtonText: { 
+    color: '#FFFFFF', 
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16, 
+    fontWeight: '800',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
+  viewfinderOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: isDark ? 'rgba(0,0,0,0.15)' : 'rgba(19,16,22,0.05)',
   },
+  vignetteTop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
+  viewfinderRow: { flexDirection: 'row', height: 260 },
+  vignetteSide: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
+  viewfinder: {
+    width: 260,
+    borderWidth: 2,
+    borderRadius: 40,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vignetteBottom: { flex: 2, backgroundColor: 'rgba(0,0,0,0.6)' },
+  statusContainer: {
+    position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    gap: 16,
+  },
+  statusBlur: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+    gap: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  statusText: {
+    color: '#FFF',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  retryBtn: {
+    padding: 10,
+  },
+  footerBranding: {
+    position: 'absolute',
+    bottom: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    gap: 6,
+  },
+  brandingText: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 2,
+  }
 });

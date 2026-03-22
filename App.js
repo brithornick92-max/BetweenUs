@@ -34,6 +34,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import CrashReporting from "./services/CrashReporting";
 import AnalyticsService from "./services/AnalyticsService";
 import DeepLinkHandler from "./services/DeepLinkHandler";
+import { impact, ImpactFeedbackStyle } from "./utils/haptics";
 import { addNotificationResponseListener } from "./utils/notifications";
 import revenueCatService from "./services/RevenueCatService";
 import PushNotificationService from "./services/PushNotificationService";
@@ -236,6 +237,12 @@ function AppContent() {
   // Wire up notification tap → deep link routing
   useEffect(() => {
     const sub = addNotificationResponseListener((response) => {
+      // Fire a haptic burst when the partner taps a heartbeat notification
+      // (covers the background/killed-app case where Realtime isn't running)
+      const notifData = response?.notification?.request?.content?.data;
+      if (notifData?.type === 'moment_signal') {
+        impact(ImpactFeedbackStyle.Heavy).catch(() => {});
+      }
       DeepLinkHandler.handleNotificationResponse(response);
     });
     return () => sub?.remove();

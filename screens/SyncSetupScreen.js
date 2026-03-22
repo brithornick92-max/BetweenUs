@@ -19,7 +19,7 @@ import { useTheme } from '../context/ThemeContext';
 import { cloudSyncStorage } from '../utils/storage';
 import StorageRouter from '../services/storage/StorageRouter';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
 
 export default function SyncSetupScreen({ navigation }) {
   const { isPremiumEffective: isPremium } = useEntitlements();
@@ -415,9 +415,11 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    ...TYPOGRAPHY.h1,
-    fontSize: 22,
-    fontWeight: '700',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
     flex: 1,
     textAlign: 'center',
   },

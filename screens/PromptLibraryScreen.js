@@ -1,4 +1,8 @@
-// File: screens/PromptLibraryScreen.js
+/**
+ * PromptLibraryScreen — Editorial Catalog of Closeness
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * High-fidelity browsing for curated reflections.
+ */
 
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
@@ -8,41 +12,44 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  FlatList,
   Alert,
   ActivityIndicator,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 
 import { useTheme } from "../context/ThemeContext";
 import { useContent } from "../context/ContentContext";
 import { useEntitlements } from '../context/EntitlementsContext';
 import { promptStorage } from "../utils/storage";
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from "../utils/theme";
+import { withAlpha } from "../utils/theme";
 import PreferenceEngine from '../services/PreferenceEngine';
 import PromptAllocator from '../services/PromptAllocator';
+import FilmGrain from '../components/FilmGrain';
+
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 const CATEGORIES = [
-  { id: "all", label: "All", icon: "view-grid" },
-  { id: "romance", label: "Romance", icon: "heart" },
-  { id: "emotional", label: "Emotional", icon: "hand-heart" },
-  { id: "playful", label: "Playful", icon: "party-popper" },
-  { id: "physical", label: "Physical", icon: "hand-wave" },
-  { id: "fantasy", label: "Fantasy", icon: "star" },
-  { id: "memory", label: "Memory", icon: "camera" },
-  { id: "future", label: "Future", icon: "crystal-ball" },
-  { id: "sensory", label: "Sensory", icon: "eye" },
-  { id: "visual", label: "Visual", icon: "palette" },
-  { id: "kinky", label: "Kinky", icon: "drama-masks" },
-  { id: "location", label: "Location", icon: "map-marker" },
-  { id: "seasonal", label: "Seasonal", icon: "weather-sunny" },
+  { id: "all", label: "All", icon: "grid-outline" },
+  { id: "romance", label: "Romance", icon: "heart-outline" },
+  { id: "emotional", label: "Emotional", icon: "leaf-outline" },
+  { id: "playful", label: "Playful", icon: "sparkles-outline" },
+  { id: "physical", label: "Physical", icon: "hand-right-outline" },
+  { id: "fantasy", label: "Fantasy", icon: "moon-outline" },
+  { id: "memory", label: "Memory", icon: "camera-outline" },
+  { id: "future", label: "Future", icon: "planet-outline" },
+  { id: "sensory", label: "Sensory", icon: "eye-outline" },
+  { id: "visual", label: "Visual", icon: "color-palette-outline" },
+  { id: "kinky", label: "Kinky", icon: "flame-outline" },
+  { id: "location", label: "Location", icon: "map-outline" },
+  { id: "seasonal", label: "Seasonal", icon: "sunny-outline" },
 ];
 
 const HEAT_LABELS = { 1: 'Emotional', 2: 'Flirty', 3: 'Sensual', 4: 'Steamy', 5: 'Explicit' };
-const HEAT_BADGE_COLORS = { 1: '#7A1E4E', 2: '#9A2E5E', 3: '#B84070', 4: '#C45060', 5: '#D04848' };
+const HEAT_BADGE_COLORS = { 1: '#5856D6', 2: '#FF9F0A', 3: '#FF2D55', 4: '#C3113D', 5: '#8E0D2C' };
 
 const DURATION_FILTERS = [
   { id: "all", label: "All Stages" },
@@ -87,27 +94,30 @@ export default function PromptLibraryScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
-  // ContentContext could expose different methods in your app.
-  // We’ll safely support whichever exists.
   const content = useContent?.() || {};
-  const loadTodayPrompt = content?.loadTodayPrompt; // used for refresh flow (your existing)
-  const getFilteredPrompts =
-    content?.getFilteredPrompts || content?.contentLoader?.getFilteredPrompts;
+  const loadTodayPrompt = content?.loadTodayPrompt;
 
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedHeat, setSelectedHeat] = useState(1);
   const [selectedDuration, setSelectedDuration] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [prompts, setPrompts] = useState([]); // raw loaded list
+  const [prompts, setPrompts] = useState([]);
   const [allPromptsCount, setAllPromptsCount] = useState(0);
   const [favorites, setFavorites] = useState([]);
-
   const [loading, setLoading] = useState(false);
 
-  // -----------------------
-  // Load favorites
-  // -----------------------
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D',
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
   const loadFavorites = useCallback(async () => {
     try {
       const saved = await promptStorage.getAnswer("favorites", "list");
@@ -118,7 +128,6 @@ export default function PromptLibraryScreen({ navigation }) {
     }
   }, []);
 
-  // Load user's preferred heat level as default
   useEffect(() => {
     (async () => {
       try {
@@ -128,13 +137,9 @@ export default function PromptLibraryScreen({ navigation }) {
     })();
   }, []);
 
-  // -----------------------
-  // Load prompts (local + fallback)
-  // -----------------------
   const loadPrompts = useCallback(async () => {
     setLoading(true);
     try {
-      // Always load ALL prompts — heat gating handled in filteredPrompts
       const allPrompts = loadAllBundledPrompts();
       setAllPromptsCount(allPrompts.length);
       setPrompts(allPrompts.map(normalizePrompt));
@@ -144,21 +149,17 @@ export default function PromptLibraryScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [isPremium]);
+  }, []);
 
   useEffect(() => {
     loadPrompts();
     loadFavorites();
   }, [loadPrompts, loadFavorites]);
 
-  // -----------------------
-  // Derived filtered list (extra safety in case prompts are preloaded)
-  // -----------------------
   const filteredPrompts = useMemo(() => {
     const list = Array.isArray(prompts) ? prompts : [];
     const isLocked = !isPremium && selectedHeat >= 4;
 
-    // For locked levels, show exactly 1 preview prompt
     if (isLocked) {
       const match = list.map(normalizePrompt).find(p => (typeof p.heat === 'number' ? p.heat : 1) === selectedHeat);
       return match ? [{ ...match, isPreview: true }] : [];
@@ -168,100 +169,62 @@ export default function PromptLibraryScreen({ navigation }) {
       .map(normalizePrompt)
       .filter((p) => {
         if (!p) return false;
-
         const heat = typeof p.heat === "number" ? p.heat : 1;
         if (heat !== selectedHeat) return false;
-
         if (selectedCategory !== "all") {
           const cat = typeof p.category === "string" ? p.category : "general";
           if (cat !== selectedCategory) return false;
         }
-
-        // Relationship duration filter (premium only)
         if (isPremium && selectedDuration !== "all") {
           const durations = Array.isArray(p.relationshipDuration) ? p.relationshipDuration : [];
-          if (!durations.includes(selectedDuration) && !durations.includes("universal")) {
-            return false;
-          }
+          if (!durations.includes(selectedDuration) && !durations.includes("universal")) return false;
         }
-
-        // Search filter
         if (searchQuery.trim()) {
           const query = searchQuery.toLowerCase().trim();
           const text = (p.text || "").toLowerCase();
           const cat = (p.category || "").toLowerCase();
-          if (!text.includes(query) && !cat.includes(query)) {
-            return false;
-          }
+          if (!text.includes(query) && !cat.includes(query)) return false;
         }
-
         return true;
       });
-    // Remove today's daily prompt + already-answered, then tag the rest
     return PromptAllocator.tagAnswered(PromptAllocator.excludeUsed(base));
   }, [prompts, selectedCategory, selectedHeat, selectedDuration, searchQuery, isPremium]);
 
-  // -----------------------
-  // Favorite toggle
-  // -----------------------
-  const toggleFavorite = useCallback(
-    async (promptId) => {
-      if (!promptId) return;
-      if (!isPremium) {
-        showPaywall?.('unlimitedPrompts');
-        return;
-      }
-
-      selection();
-
-      const newFavorites = favorites.includes(promptId)
-        ? favorites.filter((id) => id !== promptId)
-        : [...favorites, promptId];
-
-      setFavorites(newFavorites);
-
-      try {
-        await promptStorage.setAnswer("favorites", "list", {
-          favorites: newFavorites,
-          timestamp: Date.now(),
-        });
-      } catch (error) {
-        console.error("Error saving favorites:", error);
-      }
-    },
-    [favorites]
-  );
-
-  // -----------------------
-  // Select prompt
-  // -----------------------
-  const handlePromptSelect = useCallback(
-    async (prompt) => {
-      impact(ImpactFeedbackStyle.Light);
-
-      const safePrompt = normalizePrompt(prompt);
-
-      // Block heat 4-5 for non-premium (preview prompts trigger paywall)
-      if (!isPremium && (safePrompt.isPreview || (safePrompt.heat || 1) >= 4)) {
-        showPaywall?.('unlimitedPrompts');
-        return;
-      }
-
-      const today = new Date().toISOString().split("T")[0];
-
-      navigation.navigate("PromptAnswer", {
-        prompt: { ...safePrompt, dateKey: today },
+  const toggleFavorite = useCallback(async (promptId) => {
+    if (!promptId) return;
+    if (!isPremium) {
+      showPaywall?.('unlimitedPrompts');
+      return;
+    }
+    selection();
+    const newFavorites = favorites.includes(promptId)
+      ? favorites.filter((id) => id !== promptId)
+      : [...favorites, promptId];
+    setFavorites(newFavorites);
+    try {
+      await promptStorage.setAnswer("favorites", "list", {
+        favorites: newFavorites,
+        timestamp: Date.now(),
       });
-    },
-    [isPremium, navigation]
-  );
+    } catch (error) {
+      console.error("Error saving favorites:", error);
+    }
+  }, [favorites, isPremium, showPaywall]);
 
-  // -----------------------
-  // Refresh prompt (your flow)
-  // -----------------------
+  const handlePromptSelect = useCallback((prompt) => {
+    const safePrompt = normalizePrompt(prompt);
+    if (!isPremium && (safePrompt.isPreview || (safePrompt.heat || 1) >= 4)) {
+      showPaywall?.('unlimitedPrompts');
+      return;
+    }
+    impact(ImpactFeedbackStyle.Light);
+    navigation.navigate("PromptAnswer", {
+      prompt: { ...safePrompt, dateKey: new Date().toISOString().split("T")[0] },
+    });
+  }, [isPremium, navigation, showPaywall]);
+
   const handleRefreshPrompt = useCallback(async () => {
     impact(ImpactFeedbackStyle.Medium);
-
     if (!isPremium) {
       Alert.alert(
         "There's more waiting for you",
@@ -273,15 +236,10 @@ export default function PromptLibraryScreen({ navigation }) {
       );
       return;
     }
-
     if (typeof loadTodayPrompt !== "function") {
-      Alert.alert(
-        "Not Available",
-        "Prompt refresh isn’t wired up yet in ContentContext."
-      );
+      await loadPrompts();
       return;
     }
-
     try {
       await loadTodayPrompt(selectedHeat);
       Alert.alert("Success", "New prompt loaded!");
@@ -290,332 +248,215 @@ export default function PromptLibraryScreen({ navigation }) {
       console.error(error);
       Alert.alert("Error", "Failed to load new prompt. Please try again.");
     }
-  }, [isPremium, loadTodayPrompt, navigation, selectedHeat]);
+  }, [isPremium, loadTodayPrompt, loadPrompts, navigation, selectedHeat]);
 
-  // -----------------------
-  // UI pieces
-  // -----------------------
-  const renderCategoryChip = (category) => {
-    const isSelected = selectedCategory === category.id;
-
+  const renderCategoryChip = (cat) => {
+    const active = selectedCategory === cat.id;
     return (
       <TouchableOpacity
-        key={category.id}
-        style={[
-          styles.categoryChip,
-          {
-            backgroundColor: isSelected ? colors.primary : colors.card,
-            borderColor: isSelected ? colors.primary : colors.border,
-          },
-        ]}
-        onPress={() => {
-          setSelectedCategory(category.id);
-          selection();
-        }}
+        key={cat.id}
+        style={[styles.categoryChip, { backgroundColor: active ? t.primary : t.surface, borderColor: active ? t.primary : t.border }]}
+        onPress={() => { setSelectedCategory(cat.id); selection(); }}
         activeOpacity={0.7}
       >
-        <Icon
-          name={category.icon}
-          size={18}
-          color={isSelected ? colors.surface : colors.text}
-        />
-        <Text
-          style={[
-            styles.categoryLabel,
-            { color: isSelected ? colors.surface : colors.text },
-          ]}
-        >
-          {category.label}
-        </Text>
+        <Icon name={cat.icon} size={16} color={active ? "#FFF" : t.text} />
+        <Text style={[styles.categoryLabel, { color: active ? "#FFF" : t.text }]}>{cat.label}</Text>
       </TouchableOpacity>
     );
   };
-
-  const renderHeatSelector = () => (
-    <View style={styles.heatSelector}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        Heat Level
-      </Text>
-
-      <View style={styles.heatButtons}>
-        {[1, 2, 3, 4, 5].map((heat) => {
-          const isSelected = selectedHeat === heat;
-          const locked = !isPremium && heat >= 4;
-
-          return (
-            <TouchableOpacity
-              key={heat}
-              style={[
-                styles.heatButton,
-                {
-                  backgroundColor: isSelected ? (HEAT_BADGE_COLORS[heat] || colors.primary) : colors.card,
-                  borderColor: isSelected ? (HEAT_BADGE_COLORS[heat] || colors.primary) : locked ? (HEAT_BADGE_COLORS[heat] || colors.primary) + '60' : colors.border,
-                },
-              ]}
-              onPress={() => {
-                setSelectedHeat(heat);
-                selection();
-              }}
-              activeOpacity={0.7}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Text
-                  style={[
-                    styles.heatButtonText,
-                    { color: isSelected ? colors.surface : locked ? (HEAT_BADGE_COLORS[heat] || colors.text) : colors.text },
-                  ]}
-                >
-                  {HEAT_LABELS[heat]}
-                </Text>
-                {locked ? (
-                  <Icon
-                    name="lock"
-                    size={14}
-                    color={isSelected ? colors.surface : (HEAT_BADGE_COLORS[heat] || colors.textSecondary)}
-                  />
-                ) : null}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
-
-  const renderPromptCard = ({ item }) => {
-    // ✅ prevents crash if FlatList passes undefined
-    const safeItem = normalizePrompt(item);
-
-    const isFavorite = favorites.includes(safeItem.id);
-
-    return (
-      <TouchableOpacity
-        style={[
-          styles.promptCard,
-          { backgroundColor: '#0C0810', borderColor: 'rgba(196,86,122,0.06)' },
-          item.answered && { opacity: 0.55 },
-        ]}
-        onPress={() => handlePromptSelect(safeItem)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.promptCardHeader}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View
-              style={[
-                styles.categoryBadge,
-                { backgroundColor: `${HEAT_BADGE_COLORS[safeItem.heat] || '#7A1E4E'}20` },
-              ]}
-            >
-              <Text style={[styles.categoryBadgeText, { color: HEAT_BADGE_COLORS[safeItem.heat] || '#7A1E4E' }]}>
-                {HEAT_LABELS[safeItem.heat] || 'Emotional'}
-              </Text>
-            </View>
-            {item.answered && (
-              <Icon name="check-circle" size={16} color={colors.success || '#5A8B60'} />
-            )}
-          </View>
-
-          <TouchableOpacity
-            onPress={() => toggleFavorite(safeItem.id)}
-            style={styles.favoriteButton}
-            activeOpacity={0.8}
-          >
-            <Icon
-              name={isFavorite ? "heart" : "heart-outline"}
-              size={24}
-              color={isFavorite ? colors.primary : colors.textSecondary}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={[styles.promptText, { color: colors.text }]}>
-          {safeItem.text}
-        </Text>
-
-        <View style={styles.promptCardFooter}>
-          <View style={styles.heatIndicator}>
-            <Text style={{ fontSize: 12, color: HEAT_BADGE_COLORS[safeItem.heat] || colors.textSecondary, fontWeight: '600' }}>
-              {HEAT_LABELS[safeItem.heat] || 'Emotional'}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  const EmptyState = () => (
-    <View style={styles.emptyState}>
-      {loading ? (
-        <>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            Loading prompts...
-          </Text>
-        </>
-      ) : (
-        <>
-          <Icon
-            name="text-box-search"
-            size={64}
-            color={colors.textSecondary}
-          />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No prompts match that — try a different heat level
-          </Text>
-        </>
-      )}
-    </View>
-  );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={colors.gradients?.secondary || [colors.background, colors.background]}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={[styles.container, { backgroundColor: t.background }]}>
+      <StatusBar barStyle="light-content" />
+      <FilmGrain opacity={0.03} />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
 
-      <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
+        {/* Editorial Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-            activeOpacity={0.8}
-          >
-            <Icon name="arrow-left" size={24} color={colors.text} />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.8}>
+            <Icon name="chevron-back" size={28} color={t.text} />
           </TouchableOpacity>
-
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Prompt Library
-          </Text>
-
-          <TouchableOpacity
-            onPress={handleRefreshPrompt}
-            style={styles.refreshButton}
-            activeOpacity={0.8}
-          >
-            <Icon name="refresh" size={24} color={colors.primary} />
+          <Text style={[styles.headerTitle, { color: t.text }]}>Library</Text>
+          <TouchableOpacity onPress={handleRefreshPrompt} style={styles.refreshButton} activeOpacity={0.8}>
+            <Icon name="sync-outline" size={22} color={t.primary} />
           </TouchableOpacity>
         </View>
 
-        {/* Premium prompt count badge */}
-        {isPremium && allPromptsCount > 0 && (
-          <View style={[styles.premiumBadgeBanner, { backgroundColor: `${colors.primary}15` }]}>
-            <Icon name="diamond-stone" size={18} color={colors.primary} />
-            <Text style={[styles.premiumBadgeText, { color: colors.primary }]}>
-              {allPromptsCount} prompts unlocked
-            </Text>
-            <Text style={[styles.premiumBadgeSubtext, { color: colors.textSecondary }]}>
-              {filteredPrompts.length} matching filters
-            </Text>
-          </View>
-        )}
+        <ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[2]}>
 
-        {/* Free user upsell banner */}
+          {/* Search Bar (premium) */}
+          {isPremium && (
+            <View style={[styles.searchWrapper, { backgroundColor: t.surface, borderColor: t.border }]}>
+              <Icon name="search-outline" size={18} color={t.subtext} />
+              <TextInput
+                style={[styles.searchInput, { color: t.text }]}
+                placeholder="Search reflections..."
+                placeholderTextColor={t.subtext}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                selectionColor={t.primary}
+                returnKeyType="search"
+                autoCorrect={false}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7}>
+                  <Icon name="close-circle" size={18} color={t.subtext} />
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+          {/* Premium Counts */}
+          {isPremium && allPromptsCount > 0 && (
+            <View style={styles.statsRow}>
+              <View style={[styles.statBadge, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
+                <Text style={[styles.statText, { color: t.primary }]}>{allPromptsCount} UNLOCKED</Text>
+              </View>
+              <Text style={[styles.statMatch, { color: t.subtext }]}>{filteredPrompts.length} MATCHES</Text>
+            </View>
+          )}
+
+          {/* Filter Sticky Header */}
+          <View style={{ backgroundColor: t.background, paddingBottom: 16 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+              {CATEGORIES.map(renderCategoryChip)}
+            </ScrollView>
+          </View>
+
+          {/* Relationship Duration Filter (premium only) */}
+          {isPremium && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.filterScroll, { marginBottom: 8 }]}>
+              {DURATION_FILTERS.map((d) => {
+                const isSelected = selectedDuration === d.id;
+                return (
+                  <TouchableOpacity
+                    key={d.id}
+                    style={[styles.categoryChip, { backgroundColor: isSelected ? (colors.accent || t.primary) : t.surface, borderColor: isSelected ? (colors.accent || t.primary) : t.border }]}
+                    onPress={() => { setSelectedDuration(d.id); selection(); }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.categoryLabel, { color: isSelected ? "#FFF" : t.text }]}>{d.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
+
+          {/* Heat Selector */}
+          <View style={styles.heatSection}>
+            <Text style={[styles.sectionTitle, { color: t.subtext }]}>HEAT INTENSITY</Text>
+            <View style={styles.heatRow}>
+              {[1, 2, 3, 4, 5].map((h) => {
+                const active = selectedHeat === h;
+                const locked = !isPremium && h >= 4;
+                return (
+                  <TouchableOpacity
+                    key={h}
+                    style={[styles.heatBtn, {
+                      backgroundColor: active ? HEAT_BADGE_COLORS[h] : t.surface,
+                      borderColor: active ? HEAT_BADGE_COLORS[h] : locked ? `${HEAT_BADGE_COLORS[h]}60` : t.border,
+                    }]}
+                    onPress={() => { setSelectedHeat(h); selection(); }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.heatBtnText, { color: active ? "#FFF" : locked ? HEAT_BADGE_COLORS[h] : t.text }]}>
+                      {HEAT_LABELS[h]}
+                    </Text>
+                    {locked && <Icon name="lock-closed" size={10} color={active ? "#FFF" : t.subtext} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Free upsell banner */}
+          {!isPremium && (
+            <TouchableOpacity
+              style={[styles.upsellBanner, { backgroundColor: withAlpha(t.primary, 0.08), borderColor: withAlpha(t.primary, 0.25) }]}
+              onPress={() => showPaywall?.('unlimitedPrompts')}
+              activeOpacity={0.8}
+            >
+              <Icon name="lock-open-outline" size={20} color={t.primary} />
+              <View style={styles.upsellBannerText}>
+                <Text style={[styles.upsellTitle, { color: t.text }]}>Unlock All 600+ Prompts</Text>
+                <Text style={[styles.upsellSubtitle, { color: t.subtext }]}>All heat levels, categories & search — go Premium</Text>
+              </View>
+              <Icon name="chevron-forward" size={20} color={t.primary} />
+            </TouchableOpacity>
+          )}
+
+          {/* Prompt Feed */}
+          {loading ? (
+            <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
+          ) : (
+            <View style={styles.promptList}>
+              {filteredPrompts.map((item, index) => {
+                const safe = normalizePrompt(item);
+                const isFav = favorites.includes(safe.id);
+                return (
+                  <TouchableOpacity
+                    key={safe.id || `prompt_${index}`}
+                    style={[styles.promptCard, { backgroundColor: t.surface, borderColor: t.border }, item.answered && { opacity: 0.5 }]}
+                    onPress={() => handlePromptSelect(safe)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.cardHeader}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View style={[styles.cardHeatBadge, { backgroundColor: withAlpha(HEAT_BADGE_COLORS[safe.heat], 0.12) }]}>
+                          <Text style={[styles.cardHeatText, { color: HEAT_BADGE_COLORS[safe.heat] }]}>
+                            {(HEAT_LABELS[safe.heat] || 'Emotional').toUpperCase()}
+                          </Text>
+                        </View>
+                        {item.answered && (
+                          <Icon name="checkmark-circle" size={16} color={colors.success || '#34C759'} />
+                        )}
+                      </View>
+                      <TouchableOpacity onPress={() => toggleFavorite(safe.id)} style={styles.favoriteButton} activeOpacity={0.8}>
+                        <Icon name={isFav ? "heart" : "heart-outline"} size={22} color={isFav ? t.primary : t.subtext} />
+                      </TouchableOpacity>
+                    </View>
+
+                    <Text style={[styles.cardText, { color: t.text }]}>{safe.text}</Text>
+
+                    {item.answered && (
+                      <View style={styles.answeredTag}>
+                        <Icon name="checkmark-circle" size={14} color={t.primary} />
+                        <Text style={[styles.answeredText, { color: t.primary }]}>REFLECTED</Text>
+                      </View>
+                    )}
+
+                    {safe.isPreview && (
+                      <View style={[styles.previewOverlay, { backgroundColor: withAlpha(t.background, 0.85) }]}>
+                        <Icon name="lock-closed" size={20} color={t.primary} />
+                        <Text style={[styles.previewText, { color: t.primary }]}>PREMIUM</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+
+              {!filteredPrompts.length && !loading && (
+                <View style={styles.emptyState}>
+                  <Icon name="search-outline" size={48} color={t.border} />
+                  <Text style={[styles.emptyText, { color: t.subtext }]}>No matching prompts — try a different heat level</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
+
         {!isPremium && (
           <TouchableOpacity
-            style={[styles.upsellBanner, { backgroundColor: `${colors.primary}12`, borderColor: `${colors.primary}30` }]}
+            style={[styles.premiumFab, { backgroundColor: t.primary }]}
             onPress={() => showPaywall?.('unlimitedPrompts')}
             activeOpacity={0.8}
           >
-            <View style={styles.upsellBannerContent}>
-              <Icon name="lock-open-variant" size={22} color={colors.primary} />
-              <View style={styles.upsellBannerText}>
-                <Text style={[styles.upsellTitle, { color: colors.text }]}>
-                  Unlock All 632 Prompts
-                </Text>
-                <Text style={[styles.upsellSubtitle, { color: colors.textSecondary }]}>
-                  All heat levels, categories & search — go Premium
-                </Text>
-              </View>
-              <Icon name="chevron-right" size={22} color={colors.primary} />
-            </View>
+            <Icon name="sparkles" size={18} color="#FFF" />
+            <Text style={styles.premiumFabText}>UNLOCK 600+ PROMPTS</Text>
           </TouchableOpacity>
         )}
-
-        {/* Search bar (premium) */}
-        {isPremium && (
-          <View style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Icon name="magnify" size={20} color={colors.textSecondary} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Search prompts…"
-              placeholderTextColor={colors.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              returnKeyType="search"
-              autoCorrect={false}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7}>
-                <Icon name="close-circle" size={18} color={colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-
-        {/* Category Filter */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoryScroll}
-          contentContainerStyle={styles.categoryScrollContent}
-        >
-          {CATEGORIES.map(renderCategoryChip)}
-        </ScrollView>
-
-        {/* Relationship Duration Filter (premium only) */}
-        {isPremium && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoryScroll}
-            contentContainerStyle={styles.categoryScrollContent}
-          >
-            {DURATION_FILTERS.map((d) => {
-              const isSelected = selectedDuration === d.id;
-              return (
-                <TouchableOpacity
-                  key={d.id}
-                  style={[
-                    styles.categoryChip,
-                    {
-                      backgroundColor: isSelected ? colors.accent || colors.primary : colors.card,
-                      borderColor: isSelected ? colors.accent || colors.primary : colors.border,
-                    },
-                  ]}
-                  onPress={() => {
-                    setSelectedDuration(d.id);
-                    selection();
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.categoryLabel,
-                      { color: isSelected ? colors.surface : colors.text },
-                    ]}
-                  >
-                    {d.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        )}
-
-        {/* Heat Level Selector */}
-        {renderHeatSelector()}
-
-        {/* Prompts List */}
-        <FlatList
-          data={filteredPrompts}
-          renderItem={renderPromptCard}
-          keyExtractor={(item, index) => item?.id?.toString?.() || `prompt_${index}`}
-          contentContainerStyle={styles.promptsList}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={<EmptyState />}
-        />
       </SafeAreaView>
     </View>
   );
@@ -626,186 +467,148 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
 
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    height: 60,
   },
-  backButton: { padding: SPACING.sm },
   headerTitle: {
-    ...TYPOGRAPHY.h1,
-    fontSize: 20,
-    fontWeight: "700",
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
-  refreshButton: { padding: SPACING.sm },
+  backButton: { width: 44, height: 44, justifyContent: 'center' },
+  refreshButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 
-  categoryScroll: {
-    maxHeight: 50,
-    marginBottom: SPACING.lg,
-  },
-  categoryScrollContent: {
-    paddingHorizontal: SPACING.lg,
-    gap: SPACING.sm,
-  },
-  categoryChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 24,
+    height: 50,
+    borderRadius: 14,
     borderWidth: 1,
-    gap: SPACING.xs,
-  },
-  categoryLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  heatSelector: {
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.lg,
-  },
-  sectionTitle: {
-    ...TYPOGRAPHY.h2,
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: SPACING.sm,
-  },
-  heatButtons: {
-    flexDirection: "row",
-    gap: SPACING.sm,
-  },
-  heatButton: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heatButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  promptsList: {
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.xl,
-  },
-
-  promptCard: {
-    padding: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    marginBottom: SPACING.md,
-  },
-  promptCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SPACING.md,
-  },
-  categoryBadge: {
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
-    borderRadius: BORDER_RADIUS.sm,
-  },
-  categoryBadgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "capitalize",
-  },
-  favoriteButton: {
-    padding: SPACING.xs,
-  },
-  promptText: {
-    ...TYPOGRAPHY.body,
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: SPACING.md,
-  },
-  promptCardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  heatIndicator: {
-    flexDirection: "row",
-    gap: 2,
-  },
-
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: SPACING.xxl * 2,
-  },
-  emptyText: {
-    ...TYPOGRAPHY.body,
-    fontSize: 16,
-    marginTop: SPACING.md,
-  },
-
-  // Premium badge banner
-  premiumBadgeBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    gap: SPACING.xs,
-  },
-  premiumBadgeText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  premiumBadgeSubtext: {
-    fontSize: 12,
-    marginLeft: "auto",
-  },
-
-  // Upsell banner
-  upsellBanner: {
-    marginHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    padding: SPACING.md,
-  },
-  upsellBannerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACING.sm,
-  },
-  upsellBannerText: {
-    flex: 1,
-  },
-  upsellTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  upsellSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-
-  // Search bar
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    gap: SPACING.sm,
+    paddingHorizontal: 16,
+    marginBottom: 24,
+    gap: 12,
   },
   searchInput: {
     flex: 1,
+    fontFamily: SYSTEM_FONT,
     fontSize: 15,
-    paddingVertical: 4,
+    fontWeight: '500',
   },
+
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  statBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  statText: { fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  statMatch: { fontSize: 11, fontWeight: '700' },
+
+  filterScroll: { paddingHorizontal: 24, gap: 8 },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 38,
+    paddingHorizontal: 16,
+    borderRadius: 19,
+    borderWidth: 1,
+    gap: 8,
+  },
+  categoryLabel: { fontSize: 14, fontWeight: '700', letterSpacing: -0.2 },
+
+  heatSection: { paddingHorizontal: 24, marginVertical: 24 },
+  sectionTitle: { fontSize: 10, fontWeight: '900', letterSpacing: 2, marginBottom: 16 },
+  heatRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  heatBtn: {
+    flex: 1,
+    minWidth: '30%',
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  heatBtnText: { fontSize: 12, fontWeight: '800' },
+
+  upsellBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 24,
+    marginBottom: 20,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 12,
+  },
+  upsellBannerText: { flex: 1 },
+  upsellTitle: { fontSize: 15, fontWeight: '700' },
+  upsellSubtitle: { fontSize: 13, marginTop: 2 },
+
+  promptList: { paddingHorizontal: 24, gap: 16 },
+  promptCard: {
+    padding: 24,
+    borderRadius: 24,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  cardHeatBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  cardHeatText: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  cardText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 18,
+    fontWeight: '700',
+    lineHeight: 26,
+    letterSpacing: -0.3,
+  },
+  favoriteButton: { padding: 4 },
+  answeredTag: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16 },
+  answeredText: { fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  previewOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  previewText: { fontSize: 11, fontWeight: '900', letterSpacing: 1.5 },
+
+  emptyState: { alignItems: 'center', paddingTop: 60 },
+  emptyText: { marginTop: 16, fontWeight: '600', fontSize: 15 },
+
+  premiumFab: {
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+    paddingHorizontal: 24,
+    borderRadius: 28,
+    gap: 12,
+    shadowColor: '#C3113D',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+  },
+  premiumFabText: { color: '#FFF', fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
 });

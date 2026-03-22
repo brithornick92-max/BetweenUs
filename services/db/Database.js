@@ -291,7 +291,20 @@ async function migrate(db) {
     await db.execAsync('PRAGMA user_version = 5;');
   }
 
-  // Future migrations: if (user_version < 6) { ... PRAGMA user_version = 6; }
+  // v6: Invisible Ink flag on love notes
+  if (user_version < 6) {
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      await db.execAsync(
+        `ALTER TABLE love_notes ADD COLUMN is_invisible_ink INTEGER DEFAULT 0;`
+      );
+      await db.execAsync('PRAGMA user_version = 6;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  }
 }
 
 // ─── Generic CRUD ───────────────────────────────────────────────────
@@ -677,12 +690,14 @@ const Database = {
       `INSERT INTO love_notes
          (id, user_id, couple_id, text_cipher, stationery_id,
           sender_name_cipher, media_ref, is_read, read_at,
+          is_invisible_ink,
           created_at, updated_at, sync_status, sync_version, sync_source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, 'local')`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, 'local')`,
       [id, entry.user_id, entry.couple_id ?? null,
        entry.text_cipher ?? null, entry.stationery_id ?? null,
        entry.sender_name_cipher ?? null, entry.media_ref ?? null,
        entry.is_read ? 1 : 0, entry.read_at ?? null,
+       entry.is_invisible_ink ? 1 : 0,
        entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };

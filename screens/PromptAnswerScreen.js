@@ -1,5 +1,8 @@
-// screens/PromptAnswerScreen.js — Full Editorial Implementation
-// Velvet Glass · Hand-drawn reflection · Physics-based Card-flip
+/**
+ * PromptAnswerScreen — Full Editorial Implementation
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * Velvet Glass · Hand-drawn reflection · Physics-based Card-flip
+ */
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
@@ -13,6 +16,8 @@ import {
   TouchableOpacity,
   TextInput,
   Dimensions,
+  StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from '../components/Icon';
@@ -27,44 +32,42 @@ import {
 } from "../utils/haptics";
 import Animated, {
   FadeIn,
-  FadeInDown,
   FadeInUp,
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withDelay,
-  withSequence,
   withSpring,
   Easing,
   interpolate,
 } from "react-native-reanimated";
-import { useAppContext } from "../context/AppContext";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { promptStorage } from "../utils/storage";
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS, ICON_SIZES } from "../utils/theme";
+import { SPACING, withAlpha } from "../utils/theme";
 
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const MAX_LEN = 1000;
 
-// Heat-level colours, icons, and labels for card accent
+// ─── Editorial Heat Mapping ───────────────────────────────────────────────────
 const HEAT_COLORS = {
-  1: ["#7A1E4E", "#5E1940"],
-  2: ["#9A2E5E", "#7A1E4E"],
-  3: ["#B84070", "#9A2E5E"],
-  4: ["#C45060", "#A83850"],
-  5: ["#D04848", "#B03030"],
+  1: ["#5856D6", "#2E2C7E"], // Reflection
+  2: ["#FF9F0A", "#9E6200"], // Warmth
+  3: ["#FF2D55", "#A00D31"], // Romance
+  4: ["#C3113D", "#5E081D"], // Sexy Red Signature
+  5: ["#8E0D2C", "#2D030E"], // Deep Crimson
 };
 const HEAT_ICONS = {
-  1: "spa-outline",
-  2: "star-four-points-outline",
-  3: "cards-heart-outline",
-  4: "water-outline",
-  5: "fire",
+  1: "leaf-outline",
+  2: "sparkles-outline",
+  3: "heart-outline",
+  4: "flame-outline",
+  5: "infinite-outline",
 };
 const HEAT_LABELS = {
   1: "Emotional",
-  2: "Flirty",
-  3: "Sensual",
+  2: "Warmth",
+  3: "Romance",
   4: "Steamy",
   5: "Explicit",
 };
@@ -80,67 +83,55 @@ const INSPIRATION_CHIPS = [
 
 export default function PromptAnswerScreen({ route, navigation }) {
   const { prompt } = route.params || {};
-  const { state } = useAppContext();
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
   const [answer, setAnswer] = useState("");
   const [existingAnswer, setExistingAnswer] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false);
   const lastHapticLength = useRef(0);
 
-  // Card-flip animation: card arrives face-down, then flips to reveal the prompt
-  const flipProgress = useSharedValue(0); // 0 = back, 1 = front
-  const dealY = useSharedValue(-100);
-  const dealScale = useSharedValue(0.85);
+  // Card Physics
+  const flipProgress = useSharedValue(0);
+  const dealY = useSharedValue(-60);
+  const dealScale = useSharedValue(0.92);
   const dealOpacity = useSharedValue(0);
 
-  const heat = prompt?.heat || 1;
-  const isDarkRef = isDark;
-  
-  const getHeatColors = (heatLvl) => {
-    if (isDarkRef) {
-      const darkColors = {
-        1: ["#7A1E4E", "#5E1940"],
-        2: ["#9A2E5E", "#7A1E4E"],
-        3: ["#B84070", "#9A2E5E"],
-        4: ["#C45060", "#A83850"],
-        5: ["#D04848", "#B03030"],
-      };
-      return darkColors[heatLvl] || darkColors[1];
-    }
-    
-    // Light mode colors (warmer, readable tones on light backgrounds)
-    return [colors.primary, colors.primaryMuted || colors.primary];
-  };
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ────────────────────────────────
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D',
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
-  const catGradient = getHeatColors(heat);
-  const catIcon = HEAT_ICONS[heat] || "hand-heart";
+  const heat = prompt?.heat || 1;
+  const catGradient = HEAT_COLORS[heat] || HEAT_COLORS[1];
+  const catIcon = HEAT_ICONS[heat] || "heart-outline";
   const catLabel = HEAT_LABELS[heat] || "Emotional";
 
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   // Deal-in + flip on mount
   useEffect(() => {
-    // Stage 1: Deal the card in face-down
-    dealOpacity.value = withTiming(1, { duration: 450 });
-    dealY.value = withSpring(0, { damping: 18, stiffness: 120, mass: 1 });
-    dealScale.value = withSpring(1, { damping: 18, stiffness: 120, mass: 1 });
+    dealOpacity.value = withTiming(1, { duration: 500 });
+    dealY.value = withSpring(0, { damping: 15, stiffness: 100 });
+    dealScale.value = withSpring(1, { damping: 15, stiffness: 100 });
 
-    // Stage 2: Automatic flip to reveal the prompt text
+    // Auto-reveal flip
     const flipTimer = setTimeout(() => {
       flipProgress.value = withTiming(1, {
-        duration: 800,
-        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+        duration: 700,
+        easing: Easing.bezier(0.33, 1, 0.68, 1),
       });
-      setIsFlipped(true);
       impact(ImpactFeedbackStyle.Medium);
-    }, 650);
+    }, 600);
     return () => clearTimeout(flipTimer);
   }, []);
 
-  // Animated styles for the card container (deal-in)
   const dealStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: dealY.value }, { scale: dealScale.value }],
     opacity: dealOpacity.value,
@@ -166,17 +157,13 @@ export default function PromptAnswerScreen({ route, navigation }) {
     };
   });
 
-  // Free users cannot respond to prompts
   useEffect(() => {
     if (!isPremium) {
       showPaywall?.("promptResponses");
       navigation.goBack();
     }
-  }, [isPremium]);
-
-  useEffect(() => {
     if (prompt) loadExistingAnswer();
-  }, [prompt]);
+  }, [isPremium, prompt]);
 
   const loadExistingAnswer = async () => {
     if (!prompt?.id || !prompt?.dateKey) return;
@@ -190,13 +177,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const handleTextChange = (text) => {
     const truncated = text.slice(0, MAX_LEN);
     setAnswer(truncated);
-
-    // Haptic punctuation: Subtle "tick" every 50 characters to provide tactile feedback
-    if (
-      truncated.length > 0 &&
-      truncated.length % 50 === 0 &&
-      truncated.length !== lastHapticLength.current
-    ) {
+    if (truncated.length > 0 && truncated.length % 40 === 0 && truncated.length !== lastHapticLength.current) {
       impact(ImpactFeedbackStyle.Light);
       lastHapticLength.current = truncated.length;
     }
@@ -214,15 +195,14 @@ export default function PromptAnswerScreen({ route, navigation }) {
       return;
     }
 
-    notification(NotificationFeedbackType.Success);
     setIsSaving(true);
     try {
-      const payload = {
+      await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
         answer: finalText,
         timestamp: Date.now(),
         isRevealed: existingAnswer?.isRevealed || false,
-      };
-      await promptStorage.setAnswer(prompt.dateKey, prompt.id, payload);
+      });
+      notification(NotificationFeedbackType.Success);
       navigation.goBack();
     } catch (error) {
       Alert.alert("Moment Paused", "We couldn't lock in your reflection. Please try again.");
@@ -234,15 +214,10 @@ export default function PromptAnswerScreen({ route, navigation }) {
   if (!prompt) return null;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: colors.background },
-        ]}
-      />
+    <View style={[styles.container, { backgroundColor: t.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <LinearGradient
-        colors={[catGradient[0] + "18", "transparent", "transparent"]}
+        colors={[withAlpha(catGradient[0], 0.1), "transparent"]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -256,21 +231,12 @@ export default function PromptAnswerScreen({ route, navigation }) {
             style={styles.closeBtn}
             activeOpacity={0.8}
           >
-            <Icon
-              name="close"
-              size={ICON_SIZES.lg}
-              color={colors.text}
-            />
+            <Icon name="close-outline" size={30} color={t.text} />
           </TouchableOpacity>
 
-          <View style={styles.headerStatus}>
-            <Icon
-              name="shield-lock"
-              size={12}
-              color={colors.primary}
-              style={{ opacity: 0.9 }}
-            />
-            <Text style={styles.statusText}>PRIVATE SPACE</Text>
+          <View style={[styles.headerStatus, { backgroundColor: withAlpha(t.primary, 0.1), borderColor: withAlpha(t.primary, 0.2) }]}>
+            <Icon name="shield-checkmark" size={12} color={t.primary} />
+            <Text style={[styles.statusText, { color: t.primary }]}>SECURE SPACE</Text>
           </View>
 
           <View style={{ width: 44 }} />
@@ -285,7 +251,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Flipping prompt card — high-end editorial physics */}
+            {/* Flipping Prompt Card — high-end editorial physics */}
             <Animated.View style={[styles.glassCardContainer, dealStyle]}>
               {/* BACK FACE — category brand identity */}
               <Animated.View style={[styles.cardFace, backFaceStyle]}>
@@ -297,22 +263,16 @@ export default function PromptAnswerScreen({ route, navigation }) {
                 >
                   <View style={styles.cardBackPattern}>
                     <View style={styles.cardBackPatternInner}>
-                      <Icon
-                        name={catIcon}
-                        size={36}
-                        color="rgba(255,255,255,0.25)"
-                      />
+                      <Icon name={catIcon} size={36} color="rgba(255,255,255,0.25)" />
                     </View>
                   </View>
                   <View style={styles.cardBackPill}>
-                    <Icon
-                      name={catIcon}
-                      size={14}
-                      color="rgba(255,255,255,0.9)"
-                    />
-                    <Text style={styles.cardBackPillText}>{catLabel.toUpperCase()}</Text>
+                    <Icon name={catIcon} size={14} color="rgba(255,255,255,0.9)" />
+                    <Text style={styles.cardBackPillText}>
+                      {prompt?.category?.toUpperCase() || catLabel.toUpperCase()}
+                    </Text>
                   </View>
-                  
+
                   {/* Luxury corner marks */}
                   <Text style={[styles.cornerMark, { top: 20, left: 20 }]}>✦</Text>
                   <Text style={[styles.cornerMark, { top: 20, right: 20 }]}>✦</Text>
@@ -321,71 +281,61 @@ export default function PromptAnswerScreen({ route, navigation }) {
                 </LinearGradient>
               </Animated.View>
 
-              {/* FRONT FACE — the drawn prompt text */}
+              {/* FRONT FACE — Velvet glass prompt reveal */}
               <Animated.View style={[styles.cardFace, frontFaceStyle]}>
                 <BlurView
                   intensity={30}
                   tint={isDark ? "dark" : "light"}
-                  style={styles.blurCard}
+                  style={[styles.blurCard, { borderColor: t.border }]}
                 >
-                  {/* Category Accent Band */}
                   <LinearGradient
                     colors={catGradient}
                     style={styles.cardFrontBand}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                   >
-                    <Icon
-                      name={catIcon}
-                      size={14}
-                      color="rgba(255,255,255,0.9)"
-                    />
+                    <Icon name={catIcon} size={14} color="rgba(255,255,255,0.9)" />
                     <Text style={styles.cardFrontBandText}>{catLabel}</Text>
                   </LinearGradient>
 
                   <View style={styles.promptContent}>
-                    <Text style={styles.promptText}>{prompt?.text}</Text>
+                    <Text style={[styles.promptText, { color: t.text }]}>{prompt?.text}</Text>
                   </View>
                 </BlurView>
               </Animated.View>
             </Animated.View>
 
-            {/* Inspiration Chips Section */}
+            {/* Starting Lines / Inspiration Chips */}
             <View style={styles.chipsContainer}>
-                <Text style={styles.chipsLabel}>Starting lines</Text>
-                <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false} 
-                    contentContainerStyle={styles.chipsScroll}
-                >
-                    {INSPIRATION_CHIPS.map((chip, idx) => (
-                        <TouchableOpacity 
-                            key={idx} 
-                            style={[styles.chip, { backgroundColor: withAlpha(colors.primary, 0.05), borderColor: withAlpha(colors.primary, 0.2) }]}
-                            onPress={() => {
-                                impact(ImpactFeedbackStyle.Light);
-                                setAnswer(prev => prev + (prev.length > 0 ? ' ' : '') + chip);
-                            }}
-                        >
-                            <Text style={[styles.chipText, { color: colors.text }]}>{chip}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
+              <Text style={[styles.sectionLabel, { color: t.subtext }]}>Spark your thoughts</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipsScroll}
+              >
+                {INSPIRATION_CHIPS.map((chip, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[styles.chip, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}
+                    onPress={() => {
+                      selection();
+                      setAnswer(prev => prev + (prev.length > 0 ? ' ' : '') + chip);
+                    }}
+                  >
+                    <Text style={[styles.chipText, { color: t.text }]}>{chip}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
 
-            {/* Private Reflection Input Section */}
+            {/* Private Reflection Input */}
             <Animated.View
               entering={FadeIn.duration(800).delay(800)}
               style={styles.inputWrapper}
             >
               <View style={styles.charCountRow}>
-                <Text style={styles.inputLabel}>YOUR THOUGHTS</Text>
-                <Text
-                  style={[
-                    styles.charCount,
-                    answer.length >= MAX_LEN && { color: colors.primary },
-                  ]}
-                >
+                <Text style={[styles.inputLabel, { color: t.primary }]}>YOUR REFLECTION</Text>
+                <Text style={[styles.charCount, { color: answer.length >= MAX_LEN ? t.primary : t.subtext }]}>
                   {answer.length}/{MAX_LEN}
                 </Text>
               </View>
@@ -394,11 +344,11 @@ export default function PromptAnswerScreen({ route, navigation }) {
                 value={answer}
                 onChangeText={handleTextChange}
                 placeholder="Share your heart privately..."
-                placeholderTextColor={colors.text + "40"}
+                placeholderTextColor={withAlpha(t.text, 0.3)}
                 multiline
                 autoFocus
-                selectionColor={colors.primary}
-                style={[styles.textInput, { color: colors.text }]}
+                selectionColor={t.primary}
+                style={[styles.textInput, { color: t.text }]}
                 maxLength={MAX_LEN}
               />
             </Animated.View>
@@ -409,34 +359,29 @@ export default function PromptAnswerScreen({ route, navigation }) {
               style={styles.footer}
             >
               <View style={styles.privacyHint}>
-                <Icon
-                  name="eye-off-outline"
-                  size={14}
-                  color={colors.primary}
-                  style={{ opacity: 0.7 }}
-                />
-                <Text style={styles.privacyText}>
-                  This reflection is locked until you both choose to reveal.
+                <Icon name="lock-closed-outline" size={14} color={t.subtext} />
+                <Text style={[styles.privacyText, { color: t.subtext }]}>
+                  Encrypted. Locked until you both choose to reveal.
                 </Text>
               </View>
 
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={!answer.trim() || isSaving}
-                activeOpacity={0.85}
+                activeOpacity={0.9}
                 style={[
                   styles.saveButton,
-                  { backgroundColor: colors.primary },
+                  { backgroundColor: t.primary },
                   (!answer.trim() || isSaving) && styles.saveButtonDisabled,
                 ]}
               >
-                <Text style={[styles.saveButtonText, { color: "#FFF" }]}>
-                  {isSaving
-                    ? "LOCKING IN..."
-                    : existingAnswer
-                    ? "UPDATE REFLECTION"
-                    : "SHARE MY HEART"}
-                </Text>
+                {isSaving ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.saveButtonText}>
+                    {existingAnswer ? "UPDATE REFLECTION" : "LOCK IN REFLECTION"}
+                  </Text>
+                )}
               </TouchableOpacity>
             </Animated.View>
           </ScrollView>
@@ -446,7 +391,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   );
 }
 
-const createStyles = (colors) =>
+const createStyles = (t, isDark) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -455,8 +400,8 @@ const createStyles = (colors) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.md,
+      paddingHorizontal: 16,
+      height: 60,
     },
     closeBtn: {
       width: 44,
@@ -467,74 +412,39 @@ const createStyles = (colors) =>
     headerStatus: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: colors.primary + "15",
-      paddingHorizontal: SPACING.md,
-      paddingVertical: 6,
-      borderRadius: BORDER_RADIUS.full,
+      paddingHorizontal: 12,
+      height: 28,
+      borderRadius: 14,
       borderWidth: 1,
-      borderColor: colors.primary + "30",
-    },
-    // Inspiration Chips
-    chipsContainer: {
-      marginBottom: SPACING.xl,
-    },
-    chipsLabel: {
-      fontSize: 10,
-      fontFamily: 'Lato_700Bold',
-      letterSpacing: 1.5,
-      color: colors.textMuted,
-      marginBottom: 12,
-      textTransform: "uppercase",
-      marginLeft: 4,
-    },
-    chipsScroll: {
-      gap: 8,
-      paddingRight: SPACING.xl,
-      paddingLeft: 4,
-    },
-    chip: {
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: BORDER_RADIUS.full,
-      borderWidth: 1,
-    },
-    chipText: {
-      fontSize: 13,
-      fontFamily: 'Lato_400Regular',
+      gap: 6,
     },
     statusText: {
-      fontFamily: 'Lato_700Bold',
-      color: colors.primary,
-      marginLeft: 6,
-      letterSpacing: 1.5,
-      fontSize: 10,
+      fontFamily: SYSTEM_FONT,
+      fontWeight: "800",
+      letterSpacing: 1,
+      fontSize: 9,
     },
     scrollContent: {
-      padding: SPACING.lg,
+      paddingHorizontal: 24,
       paddingTop: SPACING.sm,
       paddingBottom: 100,
     },
     glassCardContainer: {
-      marginBottom: SPACING.xl,
+      marginVertical: 32,
+      height: SCREEN_HEIGHT * 0.35,
       borderRadius: 32,
-      overflow: "hidden",
-      height: Dimensions.get("window").height * 0.38,
       ...Platform.select({
         ios: {
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 12 },
-          shadowOpacity: 0.15,
+          shadowOpacity: 0.2,
           shadowRadius: 16,
         },
-        android: { elevation: 8 }
-      })
+        android: { elevation: 8 },
+      }),
     },
     cardFace: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      ...StyleSheet.absoluteFillObject,
       borderRadius: 32,
       overflow: "hidden",
       backfaceVisibility: "hidden",
@@ -570,11 +480,12 @@ const createStyles = (colors) =>
       backgroundColor: "rgba(255,255,255,0.12)",
       paddingHorizontal: 16,
       paddingVertical: 8,
-      borderRadius: BORDER_RADIUS.full,
+      borderRadius: 100,
       gap: 8,
     },
     cardBackPillText: {
-      fontFamily: 'Lato_700Bold',
+      fontFamily: SYSTEM_FONT,
+      fontWeight: "900",
       fontSize: 11,
       color: "rgba(255,255,255,0.9)",
       letterSpacing: 2,
@@ -588,11 +499,12 @@ const createStyles = (colors) =>
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 20,
-      paddingVertical: 14,
+      height: 44,
       gap: 8,
     },
     cardFrontBandText: {
-      fontFamily: 'Lato_700Bold',
+      fontFamily: SYSTEM_FONT,
+      fontWeight: "800",
       fontSize: 11,
       color: "rgba(255,255,255,0.9)",
       letterSpacing: 1.5,
@@ -600,16 +512,16 @@ const createStyles = (colors) =>
     },
     blurCard: {
       flex: 1,
-      padding: SPACING.lg,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.1)",
       borderRadius: 32,
+      overflow: "hidden",
     },
     promptContent: {
       alignItems: "center",
       justifyContent: "center",
       flex: 1,
       paddingHorizontal: 20,
+      paddingVertical: SPACING.lg,
     },
     promptText: {
       fontFamily: Platform.select({
@@ -618,12 +530,40 @@ const createStyles = (colors) =>
       }),
       fontSize: 24,
       lineHeight: 34,
-      color: colors.text,
       textAlign: "center",
+      letterSpacing: -0.5,
+    },
+    // Inspiration Chips
+    chipsContainer: {
+      marginBottom: 32,
+    },
+    sectionLabel: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 11,
+      fontWeight: "800",
+      letterSpacing: 1.5,
+      textTransform: "uppercase",
+      marginBottom: 16,
+    },
+    chipsScroll: {
+      gap: 10,
+      paddingRight: 40,
+    },
+    chip: {
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 20,
+      borderWidth: 1,
+    },
+    chipText: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 14,
+      fontWeight: "600",
     },
     inputWrapper: {
       flex: 1,
       minHeight: 280,
+      marginBottom: 40,
     },
     charCountRow: {
       flexDirection: "row",
@@ -633,22 +573,24 @@ const createStyles = (colors) =>
       paddingHorizontal: 4,
     },
     inputLabel: {
-      fontFamily: 'Lato_700Bold',
+      fontFamily: SYSTEM_FONT,
       fontSize: 11,
-      letterSpacing: 1.2,
-      color: colors.textMuted,
+      fontWeight: "900",
+      letterSpacing: 1.5,
     },
     charCount: {
       fontSize: 11,
+      fontWeight: "700",
       fontVariant: ["tabular-nums"],
     },
     textInput: {
+      fontFamily: SYSTEM_FONT,
       fontSize: 20,
+      fontWeight: "500",
       lineHeight: 30,
       textAlignVertical: "top",
       paddingTop: 0,
       minHeight: 220,
-      fontFamily: 'Lato_400Regular',
     },
     footer: {
       marginTop: 24,
@@ -663,31 +605,32 @@ const createStyles = (colors) =>
     },
     privacyText: {
       fontSize: 12,
-      color: colors.textMuted,
+      fontWeight: "600",
       textAlign: "center",
     },
     saveButton: {
-      borderRadius: 20,
+      borderRadius: 30,
       height: 60,
       alignItems: "center",
       justifyContent: "center",
       ...Platform.select({
         ios: {
-          shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 6 },
+          shadowColor: "#C3113D",
+          shadowOffset: { width: 0, height: 8 },
           shadowOpacity: 0.3,
-          shadowRadius: 10,
+          shadowRadius: 12,
         },
-        android: { elevation: 4 }
-      })
+        android: { elevation: 4 },
+      }),
     },
     saveButtonDisabled: {
       opacity: 0.4,
     },
     saveButtonText: {
+      color: "#FFF",
       fontSize: 15,
-      fontFamily: 'Lato_700Bold',
-      letterSpacing: 2,
+      fontFamily: SYSTEM_FONT,
+      fontWeight: "900",
+      letterSpacing: 1,
     },
   });
-  

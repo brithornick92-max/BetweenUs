@@ -24,7 +24,7 @@ import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import { STORAGE_KEYS, storage, cloudSyncStorage } from '../utils/storage';
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
 
 /**
  * JoinWithCodeScreen — lets the receiving partner enter an invite code
@@ -270,9 +270,11 @@ const createStyles = (colors) =>
       justifyContent: 'center',
     },
     headerTitle: {
-      ...TYPOGRAPHY.h1,
-      fontSize: 22,
-      fontWeight: '700',
+      fontFamily: SYSTEM_FONT,
+      fontSize: 36,
+      fontWeight: '900',
+      letterSpacing: -1,
+      lineHeight: 42,
       flex: 1,
       textAlign: 'center',
       color: colors.text,

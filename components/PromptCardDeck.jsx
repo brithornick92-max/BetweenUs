@@ -802,30 +802,7 @@ export default function PromptCardDeck({
           .reverse()}
       </View>
 
-      {/* Draw button */}
-      <Animated.View
-        entering={FadeIn.duration(600).delay(300)}
-        style={styles.controls}
-      >
-        <TouchableWithoutFeedback onPress={handleDraw}>
-          <Animated.View
-            style={[
-              styles.drawButton,
-              { backgroundColor: colors.primary, borderColor: colors.primary },
-              drawButtonStyle,
-            ]}
-          >
-            <Icon
-              name="cards-outline"
-              size={18}
-              color="#FFFFFF"
-            />
-            <Text style={[styles.drawButtonText, { color: colors.text }]}>
-              Draw next
-            </Text>
-          </Animated.View>
-        </TouchableWithoutFeedback>
-      </Animated.View>
+
     </View>
   );
 }

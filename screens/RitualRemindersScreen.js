@@ -19,7 +19,7 @@ import { useRitualContext } from '../context/RitualContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 import { cancelNotification } from '../utils/notifications';
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
 
 export default function RitualRemindersScreen({ navigation }) {
   const theme = useTheme(); const { colors } = theme;
@@ -262,7 +262,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    ...TYPOGRAPHY.h2,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
     flex: 1,
     textAlign: 'center',
   },

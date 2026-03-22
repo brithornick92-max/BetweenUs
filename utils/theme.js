@@ -283,6 +283,15 @@ export const TYPOGRAPHY = {
   label: { ...typographyBase.label, color: COLORS.textSecondary },
 };
 
+// Consistent screen-level title style used across all screens
+export const SCREEN_TITLE_STYLE = {
+  fontFamily: SYSTEM_FONT,
+  fontSize: 36,
+  fontWeight: '900',
+  letterSpacing: -1,
+  lineHeight: 42,
+};
+
 // ═══════════════════════════════════════════════════════
 // SPACING — Generous Breathing Room
 // ═══════════════════════════════════════════════════════

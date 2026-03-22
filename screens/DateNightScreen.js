@@ -56,6 +56,7 @@ const CardStack = forwardRef(function CardStack(
   { deck, deckIndex, colors, isDark, onSwipeLeft, onSwipeRight, onPress },
   ref,
 ) {
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const topX = useSharedValue(0);
   const topY = useSharedValue(0);
   const flipProgress = useSharedValue(0);

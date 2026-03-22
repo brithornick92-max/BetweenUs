@@ -267,11 +267,12 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 28,
-    fontWeight: "800",
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
     textAlign: "center",
     marginBottom: 8,
-    letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontFamily: SYSTEM_FONT,
