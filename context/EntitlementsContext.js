@@ -194,7 +194,7 @@ export const EntitlementsProvider = ({ children }) => {
   // ─── Derived State ──────────────────────────────────────────────────────────
 
   // 🔧 DEV ONLY: Temporary premium override — set to true to force premium in dev
-  const DEV_FORCE_PREMIUM = false;
+  const DEV_FORCE_PREMIUM = true;
 
   const isPremiumEffective = DEV_FORCE_PREMIUM || !!(isPremiumSelf || isPremiumCouple);
 

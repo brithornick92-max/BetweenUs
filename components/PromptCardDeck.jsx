@@ -122,10 +122,10 @@ const HEAT_METAL = {
   },
 };
 const HEAT_ICONS = {
-  1: "hand-heart",
-  2: "heart-multiple",
-  3: "heart-pulse",
-  4: "water",
+  1: "spa-outline",
+  2: "star-four-points-outline",
+  3: "cards-heart-outline",
+  4: "water-outline",
   5: "fire",
 };
 const HEAT_LABELS = {
@@ -474,7 +474,7 @@ function DeckCard({
               />
 
               <Animated.Text
-                style={[styles.backHint, { color: catGradient[0] }, pulseStyle]}
+                style={[styles.backHint, { color: "#FFFFFF" }, pulseStyle]}
               >
                 TAP TO REVEAL
               </Animated.Text>
@@ -524,17 +524,9 @@ function DeckCard({
             />
 
             {/* Top band — brushed metal with heat accent */}
-            <View style={styles.frontBand}>
-              <LinearGradient
-                colors={[
-                  metal.mid + "90",
-                  catGradient[0] + "70",
-                  metal.mid + "90",
-                ]}
-                style={StyleSheet.absoluteFill}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              />
+            <View
+              style={[styles.frontBand, { backgroundColor: catGradient[0] }]}
+            >
               {/* Chrome top edge on band */}
               <LinearGradient
                 colors={["rgba(255,255,255,0.08)", "transparent"]}
@@ -546,15 +538,13 @@ function DeckCard({
                 <Text
                   style={[
                     styles.frontBandLabel,
-                    { color: catGradient[0], fontSize: 24, letterSpacing: 0 },
+                    { color: "#FFFFFF", fontSize: 24, letterSpacing: 0 },
                   ]}
                 >
                   {catLabel}
                 </Text>
               </View>
-              <Text
-                style={[styles.frontBandLevel, { color: metal.chrome + "AA" }]}
-              >
+              <Text style={[styles.frontBandLevel, { color: "#FFFFFF" }]}>
                 {"✦".repeat(heat)}
               </Text>
             </View>
@@ -593,7 +583,7 @@ function DeckCard({
                   style={[
                     styles.frontPromptText,
                     {
-                      color: metal.highlight,
+                      color: "#FFFFFF",
                       fontSize:
                         (item?.text?.length || 0) > 180
                           ? 15

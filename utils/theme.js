@@ -59,10 +59,10 @@ export const DARK_PALETTE = {
   borderGlass: "rgba(255,255,255,0.08)",   // glass card borders
   divider: "rgba(255,255,255,0.04)",
 
-  // Wine accent — deep, not bright
-  primary: "#7A1E4E",          // wine — primary CTAs, active states
-  primaryMuted: "#9A2E5E",     // mulberry — secondary accent
-  primaryGlow: "rgba(122,30,78,0.35)",     // wine glow halo
+  // Sexy red accent — deep, vibrant red
+  primary: "#C3113D",          // sexy red — primary CTAs, active states
+  primaryMuted: "#DF2{A}4B",     // muted ruby — secondary accent
+  primaryGlow: "rgba(195,17,61,0.35)",     // sexy red glow halo
   accent: "#A89060",           // matteGold — PREMIUM ONLY
   accentMuted: "rgba(168,144,96,0.4)",
 
@@ -345,7 +345,7 @@ export const getShadows = (palette) => {
     }),
     glow: Platform.select({
       ios: {
-        shadowColor: palette?.primary || "#7A1E4E",
+        shadowColor: palette?.primary || "#C3113D",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.12,
         shadowRadius: 12,

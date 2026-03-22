@@ -382,13 +382,7 @@ export default function PromptsScreen({ navigation }) {
                           style={[
                             styles.heatLabel,
                             {
-                              color: active
-                                ? value >= 4
-                                  ? "#FFE8EE"
-                                  : "#2A1820"
-                                : locked
-                                ? colors.textMuted
-                                : heatColor,
+                              color: "#FFFFFF",
                             },
                           ]}
                         >

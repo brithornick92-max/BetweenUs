@@ -15,7 +15,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import {
+  impact,
+  notification,
+  selection,
+  ImpactFeedbackStyle,
+  NotificationFeedbackType,
+} from "../utils/haptics";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -33,36 +39,31 @@ import { useAppContext } from "../context/AppContext";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { promptStorage } from "../utils/storage";
-import {
-  TYPOGRAPHY,
-  SPACING,
-  BORDER_RADIUS,
-  ICON_SIZES,
-} from "../utils/theme";
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, ICON_SIZES } from "../utils/theme";
 
 const MAX_LEN = 1000;
 
 // Heat-level colours, icons, and labels for card accent
 const HEAT_COLORS = {
-  1: ['#7A1E4E', '#5E1940'],
-  2: ['#9A2E5E', '#7A1E4E'],
-  3: ['#B84070', '#9A2E5E'],
-  4: ['#C45060', '#A83850'],
-  5: ['#D04848', '#B03030'],
+  1: ["#7A1E4E", "#5E1940"],
+  2: ["#9A2E5E", "#7A1E4E"],
+  3: ["#B84070", "#9A2E5E"],
+  4: ["#C45060", "#A83850"],
+  5: ["#D04848", "#B03030"],
 };
 const HEAT_ICONS = {
-  1: 'hand-heart',
-  2: 'heart-multiple',
-  3: 'heart-pulse',
-  4: 'water',
-  5: 'fire',
+  1: "spa-outline",
+  2: "star-four-points-outline",
+  3: "cards-heart-outline",
+  4: "water-outline",
+  5: "fire",
 };
 const HEAT_LABELS = {
-  1: 'Emotional',
-  2: 'Flirty',
-  3: 'Sensual',
-  4: 'Steamy',
-  5: 'Explicit',
+  1: "Emotional",
+  2: "Flirty",
+  3: "Sensual",
+  4: "Steamy",
+  5: "Explicit",
 };
 
 const INSPIRATION_CHIPS = [
@@ -71,7 +72,7 @@ const INSPIRATION_CHIPS = [
   "I dream of...",
   "It makes me smile when...",
   "I feel safest when...",
-  "One thing I've learned..."
+  "One thing I've learned...",
 ];
 
 export default function PromptAnswerScreen({ route, navigation }) {
@@ -93,9 +94,9 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const dealOpacity = useSharedValue(0);
 
   const heat = prompt?.heat || 1;
-  const catGradient = HEAT_COLORS[heat] || ['#7A1E4E', '#5E1940'];
-  const catIcon = HEAT_ICONS[heat] || 'hand-heart';
-  const catLabel = HEAT_LABELS[heat] || 'Emotional';
+  const catGradient = HEAT_COLORS[heat] || ["#7A1E4E", "#5E1940"];
+  const catIcon = HEAT_ICONS[heat] || "hand-heart";
+  const catLabel = HEAT_LABELS[heat] || "Emotional";
 
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -119,10 +120,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   // Animated styles for the card container (deal-in)
   const dealStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: dealY.value },
-      { scale: dealScale.value },
-    ],
+    transform: [{ translateY: dealY.value }, { scale: dealScale.value }],
     opacity: dealOpacity.value,
   }));
 
@@ -131,7 +129,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [0, 90, 180]);
     return {
       transform: [{ perspective: 1200 }, { rotateY: `${rotateY}deg` }],
-      backfaceVisibility: 'hidden',
+      backfaceVisibility: "hidden",
       opacity: flipProgress.value < 0.5 ? 1 : 0,
     };
   });
@@ -141,7 +139,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [180, 90, 0]);
     return {
       transform: [{ perspective: 1200 }, { rotateY: `${rotateY}deg` }],
-      backfaceVisibility: 'hidden',
+      backfaceVisibility: "hidden",
       opacity: flipProgress.value > 0.5 ? 1 : 0,
     };
   });
@@ -149,7 +147,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   // Free users cannot respond to prompts
   useEffect(() => {
     if (!isPremium) {
-      showPaywall?.('promptResponses');
+      showPaywall?.("promptResponses");
       navigation.goBack();
     }
   }, [isPremium]);
@@ -214,7 +212,12 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: colors.background },
+        ]}
+      />
       <LinearGradient
         colors={[colors.primary + "12", "transparent", "transparent"]}
         style={StyleSheet.absoluteFill}
@@ -271,34 +274,58 @@ export default function PromptAnswerScreen({ route, navigation }) {
                 >
                   <View style={styles.cardBackPattern}>
                     <View style={styles.cardBackPatternInner}>
-                      <MaterialCommunityIcons name={catIcon} size={36} color="rgba(255,255,255,0.25)" />
+                      <MaterialCommunityIcons
+                        name={catIcon}
+                        size={36}
+                        color="rgba(255,255,255,0.25)"
+                      />
                     </View>
                   </View>
                   <View style={styles.cardBackPill}>
-                    <MaterialCommunityIcons name={catIcon} size={14} color="rgba(255,255,255,0.9)" />
+                    <MaterialCommunityIcons
+                      name={catIcon}
+                      size={14}
+                      color="rgba(255,255,255,0.9)"
+                    />
                     <Text style={styles.cardBackPillText}>{catLabel}</Text>
                   </View>
                   {/* Corner flourishes */}
-                  <Text style={[styles.cornerMark, { top: 14, left: 14 }]}>✦</Text>
-                  <Text style={[styles.cornerMark, { top: 14, right: 14 }]}>✦</Text>
-                  <Text style={[styles.cornerMark, { bottom: 14, left: 14 }]}>✦</Text>
-                  <Text style={[styles.cornerMark, { bottom: 14, right: 14 }]}>✦</Text>
+                  <Text style={[styles.cornerMark, { top: 14, left: 14 }]}>
+                    ✦
+                  </Text>
+                  <Text style={[styles.cornerMark, { top: 14, right: 14 }]}>
+                    ✦
+                  </Text>
+                  <Text style={[styles.cornerMark, { bottom: 14, left: 14 }]}>
+                    ✦
+                  </Text>
+                  <Text style={[styles.cornerMark, { bottom: 14, right: 14 }]}>
+                    ✦
+                  </Text>
                 </LinearGradient>
               </Animated.View>
 
               {/* FRONT FACE — prompt text */}
               <Animated.View style={[styles.cardFace, frontFaceStyle]}>
-                <BlurView intensity={25} tint={isDark ? "dark" : "light"} style={styles.blurCard}>
-                    {/* Category band */}
-                    <LinearGradient
-                      colors={catGradient}
-                      style={styles.cardFrontBand}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                    >
-                      <MaterialCommunityIcons name={catIcon} size={14} color="rgba(255,255,255,0.9)" />
-                      <Text style={styles.cardFrontBandText}>{catLabel}</Text>
-                    </LinearGradient>
+                <BlurView
+                  intensity={25}
+                  tint={isDark ? "dark" : "light"}
+                  style={styles.blurCard}
+                >
+                  {/* Category band */}
+                  <LinearGradient
+                    colors={catGradient}
+                    style={styles.cardFrontBand}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <MaterialCommunityIcons
+                      name={catIcon}
+                      size={14}
+                      color="rgba(255,255,255,0.9)"
+                    />
+                    <Text style={styles.cardFrontBandText}>{catLabel}</Text>
+                  </LinearGradient>
 
                   <View style={styles.promptContent}>
                     <Text style={styles.promptText}>{prompt?.text}</Text>
@@ -361,12 +388,12 @@ export default function PromptAnswerScreen({ route, navigation }) {
                   (!answer.trim() || isSaving) && styles.saveButtonDisabled,
                 ]}
               >
-                  <Text style={[styles.saveButtonText, { color: '#F2E9E6' }]}> 
+                <Text style={[styles.saveButtonText, { color: "#F2E9E6" }]}>
                   {isSaving
                     ? "Saving..."
                     : existingAnswer
-                      ? "Update Reflection"
-                      : "Share My Heart"}
+                    ? "Update Reflection"
+                    : "Share My Heart"}
                 </Text>
               </TouchableOpacity>
             </Animated.View>
@@ -377,251 +404,252 @@ export default function PromptAnswerScreen({ route, navigation }) {
   );
 }
 
-const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
-  },
-  closeBtn: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerStatus: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.primary + "15",
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 6,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: colors.primary + "30",
-  },
-  // Inspiration Chips
-  chipsContainer: {
-    marginBottom: SPACING.lg,
-  },
-  chipsLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 1.5,
-    color: 'rgba(150,150,150,0.6)',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  chipsScroll: {
-    gap: 8,
-    paddingRight: SPACING.xl,
-  },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-  },
-  chipText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  statusText: {
-    ...TYPOGRAPHY.caption,
-    color: colors.primary,
-    marginLeft: 6,
-    letterSpacing: 1.5,
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  scrollContent: {
-    padding: SPACING.lg,
-    paddingTop: SPACING.sm,
-    paddingBottom: SPACING.xxxl,
-  },
-  glassCardContainer: {
-    marginBottom: SPACING.xl,
-    borderRadius: BORDER_RADIUS.xl,
-    overflow: "hidden",
-    minHeight: Math.min(Dimensions.get('window').height * 0.85, 720),
-  },
-  cardFace: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: BORDER_RADIUS.xl,
-    overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowColor: '#070509',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 20,
-      },
-      android: { elevation: 6 },
-    }),
-  },
-  cardBackGradient: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: SPACING.xl,
-  },
-  cardBackPattern: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.08)',
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: SPACING.lg,
-  },
-  cardBackPatternInner: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cardBackPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: BORDER_RADIUS.full,
-    gap: 6,
-  },
-  cardBackPillText: {
-    fontWeight: "600",
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.9)',
-    letterSpacing: 0.5,
-  },
-  cornerMark: {
-    position: "absolute",
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.18)',
-  },
-  cardFrontBand: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 6,
-    borderTopLeftRadius: BORDER_RADIUS.xl,
-    borderTopRightRadius: BORDER_RADIUS.xl,
-  },
-  cardFrontBandText: {
-    fontWeight: "600",
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.9)',
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-  },
-  blurCard: {
-    flex: 1,
-    padding: SPACING.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: BORDER_RADIUS.xl,
-    backgroundColor: (colors.surface2 || colors.surface) + "80",
-  },
-  promptContent: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-  },
-  promptLabel: {
-    ...TYPOGRAPHY.label,
-    color: colors.primary,
-    marginBottom: SPACING.lg,
-    opacity: 0.9,
-  },
-  promptText: {
-    fontFamily: Platform.select({
-      ios: "DMSerifDisplay-Regular",
-      android: "DMSerifDisplay_400Regular",
-    }),
-    fontSize: 18,
-    lineHeight: 26,
-    color: colors.text,
-    textAlign: "center",
-    fontWeight: "300",
-    marginBottom: SPACING.md,
-  },
-  inputWrapper: {
-    flex: 1,
-    minHeight: 280,
-  },
-  charCountRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SPACING.md,
-    paddingHorizontal: 4,
-  },
-  inputLabel: {
-    ...TYPOGRAPHY.label,
-    color: colors.text + "CC", // textSecondary approx
-  },
-  charCount: {
-    fontSize: 12,
-    color: colors.textMuted,
-    fontVariant: ["tabular-nums"],
-  },
-  textInput: {
-    fontSize: 18,
-    lineHeight: 28,
-    color: colors.text,
-    textAlignVertical: "top",
-    paddingTop: 0,
-    minHeight: 220,
-    fontFamily: Platform.select({
-      ios: "Lato-Regular",
-      android: "Lato_400Regular",
-    }),
-  },
-  footer: {
-    marginTop: SPACING.lg,
-  },
-  privacyHint: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-  },
-  privacyText: {
-    fontSize: 12,
-    color: colors.textMuted,
-    textAlign: "center",
-    marginLeft: SPACING.sm,
-    lineHeight: 18,
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-    borderRadius: BORDER_RADIUS.lg,
-    height: 52,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  saveButtonDisabled: {
-    opacity: 0.5,
-  },
-  saveButtonText: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.md,
+    },
+    closeBtn: {
+      width: 44,
+      height: 44,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerStatus: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.primary + "15",
+      paddingHorizontal: SPACING.md,
+      paddingVertical: 6,
+      borderRadius: BORDER_RADIUS.full,
+      borderWidth: 1,
+      borderColor: colors.primary + "30",
+    },
+    // Inspiration Chips
+    chipsContainer: {
+      marginBottom: SPACING.lg,
+    },
+    chipsLabel: {
+      fontSize: 10,
+      fontWeight: "600",
+      letterSpacing: 1.5,
+      color: "rgba(150,150,150,0.6)",
+      marginBottom: 8,
+      textTransform: "uppercase",
+    },
+    chipsScroll: {
+      gap: 8,
+      paddingRight: SPACING.xl,
+    },
+    chip: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: BORDER_RADIUS.full,
+      borderWidth: 1,
+    },
+    chipText: {
+      fontSize: 12,
+      fontWeight: "500",
+    },
+    statusText: {
+      ...TYPOGRAPHY.caption,
+      color: colors.primary,
+      marginLeft: 6,
+      letterSpacing: 1.5,
+      fontSize: 10,
+      fontWeight: "600",
+    },
+    scrollContent: {
+      padding: SPACING.lg,
+      paddingTop: SPACING.sm,
+      paddingBottom: SPACING.xxxl,
+    },
+    glassCardContainer: {
+      marginBottom: SPACING.xl,
+      borderRadius: BORDER_RADIUS.xl,
+      overflow: "hidden",
+      minHeight: Math.min(Dimensions.get("window").height * 0.85, 720),
+    },
+    cardFace: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: BORDER_RADIUS.xl,
+      overflow: "hidden",
+      ...Platform.select({
+        ios: {
+          shadowColor: "#070509",
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.12,
+          shadowRadius: 20,
+        },
+        android: { elevation: 6 },
+      }),
+    },
+    cardBackGradient: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: SPACING.xl,
+    },
+    cardBackPattern: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      borderWidth: 1.5,
+      borderColor: "rgba(255,255,255,0.08)",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: SPACING.lg,
+    },
+    cardBackPatternInner: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.08)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cardBackPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: BORDER_RADIUS.full,
+      gap: 6,
+    },
+    cardBackPillText: {
+      fontWeight: "600",
+      fontSize: 12,
+      color: "rgba(255,255,255,0.9)",
+      letterSpacing: 0.5,
+    },
+    cornerMark: {
+      position: "absolute",
+      fontSize: 13,
+      color: "rgba(255,255,255,0.18)",
+    },
+    cardFrontBand: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      gap: 6,
+      borderTopLeftRadius: BORDER_RADIUS.xl,
+      borderTopRightRadius: BORDER_RADIUS.xl,
+    },
+    cardFrontBandText: {
+      fontWeight: "600",
+      fontSize: 11,
+      color: "rgba(255,255,255,0.9)",
+      letterSpacing: 1.5,
+      textTransform: "uppercase",
+    },
+    blurCard: {
+      flex: 1,
+      padding: SPACING.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: BORDER_RADIUS.xl,
+      backgroundColor: (colors.surface2 || colors.surface) + "80",
+    },
+    promptContent: {
+      alignItems: "center",
+      justifyContent: "center",
+      flex: 1,
+    },
+    promptLabel: {
+      ...TYPOGRAPHY.label,
+      color: colors.primary,
+      marginBottom: SPACING.lg,
+      opacity: 0.9,
+    },
+    promptText: {
+      fontFamily: Platform.select({
+        ios: "DMSerifDisplay-Regular",
+        android: "DMSerifDisplay_400Regular",
+      }),
+      fontSize: 18,
+      lineHeight: 26,
+      color: colors.text,
+      textAlign: "center",
+      fontWeight: "300",
+      marginBottom: SPACING.md,
+    },
+    inputWrapper: {
+      flex: 1,
+      minHeight: 280,
+    },
+    charCountRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: SPACING.md,
+      paddingHorizontal: 4,
+    },
+    inputLabel: {
+      ...TYPOGRAPHY.label,
+      color: colors.text + "CC", // textSecondary approx
+    },
+    charCount: {
+      fontSize: 12,
+      color: colors.textMuted,
+      fontVariant: ["tabular-nums"],
+    },
+    textInput: {
+      fontSize: 18,
+      lineHeight: 28,
+      color: colors.text,
+      textAlignVertical: "top",
+      paddingTop: 0,
+      minHeight: 220,
+      fontFamily: Platform.select({
+        ios: "Lato-Regular",
+        android: "Lato_400Regular",
+      }),
+    },
+    footer: {
+      marginTop: SPACING.lg,
+    },
+    privacyHint: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: SPACING.lg,
+      paddingHorizontal: SPACING.lg,
+    },
+    privacyText: {
+      fontSize: 12,
+      color: colors.textMuted,
+      textAlign: "center",
+      marginLeft: SPACING.sm,
+      lineHeight: 18,
+    },
+    saveButton: {
+      backgroundColor: colors.primary,
+      borderRadius: BORDER_RADIUS.lg,
+      height: 52,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    saveButtonDisabled: {
+      opacity: 0.5,
+    },
+    saveButtonText: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "600",
+      letterSpacing: 0.5,
+    },
+  });
