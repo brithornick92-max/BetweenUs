@@ -456,13 +456,11 @@ function DeckCard({
                     <MaterialCommunityIcons
                       name={catIcon}
                       size={32}
-                      color={metal.chrome + "CC"}
+                      color={catGradient[0]}
                     />
                   </View>
                 </View>
-                <Text
-                  style={[styles.backLevelText, { color: metal.chrome + "80" }]}
-                >
+                <Text style={[styles.backLevelText, { color: catGradient[0] }]}>
                   {"✦ ".repeat(heat).trim()}
                 </Text>
               </View>
@@ -476,11 +474,7 @@ function DeckCard({
               />
 
               <Animated.Text
-                style={[
-                  styles.backHint,
-                  { color: metal.highlight },
-                  pulseStyle,
-                ]}
+                style={[styles.backHint, { color: catGradient[0] }, pulseStyle]}
               >
                 TAP TO REVEAL
               </Animated.Text>
