@@ -90,7 +90,7 @@ export default function InvisibleInkMessage({ text, style }) {
   const t = useMemo(() => ({
     text:     '#FFFFFF',
     inkPanel: isDark ? '#030002' : '#050003',
-    shimmer:  '#C3113D',
+    shimmer:  '#D2121A',
     hint:     'rgba(255,255,255,0.32)',
     glow:     'rgba(195,17,61,0.18)',
   }), [isDark]);

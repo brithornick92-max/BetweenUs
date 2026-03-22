@@ -52,6 +52,12 @@ const FALLBACK_PROMPT = {
   heat: 1,
 };
 
+function getMomentLabel() {
+  const hour = new Date().getHours(); // uses device locale time automatically
+  if (hour >= 5 && hour < 17) return "TODAY'S MOMENT";
+  return "TONIGHT'S MOMENT";
+}
+
 function normalizePrompt(p) {
   if (!p || typeof p !== 'object') return FALLBACK_PROMPT;
   const id = p.id ? String(p.id) : FALLBACK_PROMPT.id;
@@ -62,7 +68,7 @@ function normalizePrompt(p) {
 
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
-  { label: 'Love Note', icon: 'email-heart-outline', key: 'note', premium: true, color: '#C3113D' }, // Sexy red
+  { label: 'Love Note', icon: 'email-heart-outline', key: 'note', premium: true, color: '#D2121A' }, // Sexy red
   { label: 'Ritual', icon: 'candle', key: 'ritual', color: '#7E4FA3' }, // Velvet plum
   { label: 'Jokes', icon: 'emoticon-wink-outline', key: 'jokes', premium: true, color: '#D4AA7E' }, // Champagne gold
 ];
@@ -80,7 +86,7 @@ export default function HomeScreen({ navigation }) {
     surface: colors.surface,
     surfaceSecondary: colors.surface2,
     accent: colors.accent || '#D4AA7E',
-    primary: colors.primary || '#C3113D',
+    primary: colors.primary || '#D2121A',
     text: colors.text,
     subtext: colors.textMuted,
     border: colors.border,
@@ -292,7 +298,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.heroCardWrap}>
               <View style={styles.eyebrowRow}>
                 <Icon name="star-outline" size={14} color={t.accent} />
-                <Text style={styles.eyebrow}>TONIGHT'S MOMENT</Text>
+                <Text style={styles.eyebrow}>{getMomentLabel()}</Text>
               </View>
 
               <Text style={styles.promptText}>
@@ -541,9 +547,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   promptText: {
     fontFamily: systemFont,
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '800',
-    lineHeight: 36,
+    lineHeight: 30,
     letterSpacing: -0.5,
     color: t.text,
     marginBottom: SPACING.xl,

@@ -455,7 +455,7 @@ export default function OnboardingScreen({ navigation }) {
 
   const HEAT_LABELS = [
     { level: 1, icon: 'heart-outline',        color: '#5856D6', name: 'Emotional',   description: 'Intimacy & trust' },
-    { level: 2, icon: 'heart-multiple', color: '#C3113D', name: 'Romantic',    description: 'Flirty & tender' },
+    { level: 2, icon: 'heart-multiple', color: '#D2121A', name: 'Romantic',    description: 'Flirty & tender' },
     { level: 3, icon: 'candle',                color: '#FF9500', name: 'Sensual',     description: 'Desire & closeness' },
     { level: 4, icon: 'fire',                  color: '#A84848', name: 'Steamy',      description: 'Adventurous & heated' },
     { level: 5, icon: 'fire-alert',            color: '#8A0021', name: 'Explicit',    description: 'Intensely passionate' },

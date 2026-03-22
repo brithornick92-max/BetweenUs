@@ -33,7 +33,7 @@ const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 // 1. VIBE CONFIGURATION (Sexy Red & iOS Systems)
 // ------------------------------------------------------------------
 const VIBES = [
-  { id: 'passionate',  name: 'Passionate', icon: 'flame-outline',    color: '#C3113D' }, // Primary sexy red
+  { id: 'passionate',  name: 'Passionate', icon: 'flame-outline',    color: '#D2121A' }, // Primary sexy red
   { id: 'tender',      name: 'Tender',     icon: 'heart-outline',    color: '#FF6B98' },
   { id: 'serene',      name: 'Serene',     icon: 'leaf-outline',     color: '#32ADE6' },
   { id: 'adventurous', name: 'Playful',    icon: 'sparkles-outline', color: '#FF9500' },
@@ -111,7 +111,7 @@ export default function VibeSignalScreen({ navigation }) {
     background:       colors.background,
     surface:          isDark ? '#131016' : '#FFFFFF',
     surfaceSecondary: isDark ? '#1C1520'  : '#F2F2F7',
-    primary:          colors.primary || '#C3113D',
+    primary:          colors.primary || '#D2121A',
     text:             colors.text,
     subtext:          isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60,60,67,0.6)',
     border:           isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -510,7 +510,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     gap:            10,
     width:          '100%',
     ...Platform.select({
-      ios:     { shadowColor: '#C3113D', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12 },
+      ios:     { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12 },
       android: { elevation: 4 },
     }),
   },

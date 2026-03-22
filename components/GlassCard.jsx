@@ -36,8 +36,8 @@ export default function GlassCard({
     surfaceGlassElevated: isDark ? 'rgba(28, 21, 32, 0.85)' : 'rgba(255, 255, 255, 0.9)',
     border: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
     borderSubtle: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
-    primary: colors.primary || '#C3113D',
-    primaryGlow: withAlpha(colors.primary || '#C3113D', 0.25),
+    primary: colors.primary || '#D2121A',
+    primaryGlow: withAlpha(colors.primary || '#D2121A', 0.25),
   }), [colors, isDark]);
 
   const blurIntensity = intensity ?? (isDark ? 25 : 45);

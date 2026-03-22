@@ -39,7 +39,7 @@ export default function Button({
     background: colors.background, 
     surface: isDark ? '#131016' : '#FFFFFF',
     surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#C3113D', // Sexy Red
+    primary: colors.primary || '#D2121A', // Sexy Red
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',

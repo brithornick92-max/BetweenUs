@@ -28,7 +28,7 @@ export default function Card({
     background: colors.background, 
     surface: isDark ? '#131016' : '#FFFFFF',
     surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#C3113D', // Sexy Red
+    primary: colors.primary || '#D2121A', // Sexy Red
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 

@@ -337,10 +337,10 @@ export default function JournalEntryScreen({ navigation, route }) {
                 {entry && (
                   <TouchableOpacity
                     onPress={handleDelete}
-                    style={[styles.deleteButton, { backgroundColor: withAlpha('#C3113D', 0.1) }]}
+                    style={[styles.deleteButton, { backgroundColor: withAlpha('#D2121A', 0.1) }]}
                     activeOpacity={0.7}
                   >
-                    <Icon name="trash-can-outline" size={20} color="#C3113D" />
+                    <Icon name="trash-can-outline" size={20} color="#D2121A" />
                   </TouchableOpacity>
                 )}
               </View>

@@ -1,6 +1,6 @@
 /**
  * BETWEEN US - SETTINGS ENGINE (EDITORIAL V3)
- * High-End Apple Editorial Layout + Sexy Red (#C3113D) Intimacy
+ * High-End Apple Editorial Layout + Sexy Red (#D2121A) Intimacy
  */
 
 import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
@@ -130,12 +130,12 @@ export default function SettingsScreen({ navigation }) {
     surface: isDark ? '#1C1C1E' : '#FFFFFF', // Apple pure surfaces
     surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
     accent: colors.accent || '#D4AF37', // Premium Gold
-    primary: colors.primary || '#C3113D', // SEXY RED
+    primary: colors.primary || '#D2121A', // SEXY RED
     text: colors.text,
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
     borderGlass: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-    danger: colors.primary || '#C3113D', // Sexy red
+    danger: colors.primary || '#D2121A', // Sexy red
   }), [colors, isDark]);
 
   // ─── STATE ───
@@ -875,5 +875,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  btnDestructive: { backgroundColor: '#C3113D' },
+  btnDestructive: { backgroundColor: '#D2121A' },
 });

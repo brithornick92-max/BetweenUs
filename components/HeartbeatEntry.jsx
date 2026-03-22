@@ -28,7 +28,7 @@ const HeartbeatEntry = () => {
   const t = useMemo(() => ({
     background: colors.background, 
     surface: isDark ? '#131016' : '#FFFFFF',
-    primary: colors.primary || '#C3113D', // Sexy Red
+    primary: colors.primary || '#D2121A', // Sexy Red
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
   }), [colors, isDark]);

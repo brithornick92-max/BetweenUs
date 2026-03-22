@@ -110,7 +110,7 @@ function TapDot({ active, color }) {
 // ─────────────────────────────────────────────────────────────
 function SecretKnock({ mode = 'record', rhythm, onSend, style }) {
   const { colors } = useTheme();
-  const primary = colors.primary; // Sexy Red #C3113D
+  const primary = colors.primary; // Sexy Red #D2121A
 
   const [phase, setPhase] = useState('idle'); // idle | recording | sealed | playing
   const [tapCount, setTapCount] = useState(0);

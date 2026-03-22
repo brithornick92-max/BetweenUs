@@ -54,7 +54,7 @@ const HEAT_COLORS = {
   1: ["#5856D6", "#2E2C7E"], // Reflection
   2: ["#FF9F0A", "#9E6200"], // Warmth
   3: ["#FF2D55", "#A00D31"], // Romance
-  4: ["#C3113D", "#5E081D"], // Sexy Red Signature
+  4: ["#D2121A", "#5E081D"], // Sexy Red Signature
   5: ["#8E0D2C", "#2D030E"], // Deep Crimson
 };
 const HEAT_ICONS = {
@@ -102,7 +102,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     background: colors.background,
     surface: isDark ? '#131016' : '#FFFFFF',
     surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#C3113D',
+    primary: colors.primary || '#D2121A',
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -615,7 +615,7 @@ const createStyles = (t, isDark) =>
       justifyContent: "center",
       ...Platform.select({
         ios: {
-          shadowColor: "#C3113D",
+          shadowColor: "#D2121A",
           shadowOffset: { width: 0, height: 8 },
           shadowOpacity: 0.3,
           shadowRadius: 12,

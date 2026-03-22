@@ -49,7 +49,7 @@ const CATEGORIES = [
 ];
 
 const HEAT_LABELS = { 1: 'Emotional', 2: 'Flirty', 3: 'Sensual', 4: 'Steamy', 5: 'Explicit' };
-const HEAT_BADGE_COLORS = { 1: '#5856D6', 2: '#FF9F0A', 3: '#FF2D55', 4: '#C3113D', 5: '#8E0D2C' };
+const HEAT_BADGE_COLORS = { 1: '#5856D6', 2: '#FF9F0A', 3: '#FF2D55', 4: '#D2121A', 5: '#8E0D2C' };
 
 const DURATION_FILTERS = [
   { id: "all", label: "All Stages" },
@@ -112,7 +112,7 @@ export default function PromptLibraryScreen({ navigation }) {
     background: colors.background,
     surface: isDark ? '#131016' : '#FFFFFF',
     surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#C3113D',
+    primary: colors.primary || '#D2121A',
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 28,
     gap: 12,
-    shadowColor: '#C3113D',
+    shadowColor: '#D2121A',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 12,

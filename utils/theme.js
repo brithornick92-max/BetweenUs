@@ -59,14 +59,14 @@ export const DARK_PALETTE = {
   divider: "rgba(255,255,255,0.045)",
 
   // Sexy Red & Champagne Gold — passionate, desire-forward
-  primary: "#C3113D",          // sexy red — primary CTAs, active states, desire
-  primaryMuted: "#A00D31",     // deep berry-red — secondary states, pressed
-  primaryGlow: "rgba(195,17,61,0.35)",
+  primary: "#D2121A",          // sexy red — primary CTAs, active states, desire
+  primaryMuted: "#AC0E15",     // deep berry-red — secondary states, pressed
+  primaryGlow: "rgba(210,18,26,0.35)",
   accent: "#D4AA7E",           // warm champagne gold — glowing, sensual
   accentMuted: "rgba(212,170,126,0.40)",
 
   // Semantic
-  danger: "#C3113D",
+  danger: "#D2121A",
   success: "#4E7A55",
   shadow: "#09060B",
   overlay: "rgba(9,6,11,0.82)",
@@ -84,19 +84,19 @@ export const LIGHT_PALETTE = {
   text: "#1C1019",
   textSecondary: "rgba(28,16,25,0.75)",
   textMuted: "rgba(28,16,25,0.47)",
-  textGlow: "rgba(195,17,61,0.9)",
+  textGlow: "rgba(210,18,26,0.9)",
 
   border: "rgba(28,16,25,0.07)",
   borderGlass: "rgba(28,16,25,0.048)",
   divider: "rgba(28,16,25,0.044)",
 
-  primary: "#C3113D",
-  primaryMuted: "#A00D31",
-  primaryGlow: "rgba(195,17,61,0.25)",
+  primary: "#D2121A",
+  primaryMuted: "#AC0E15",
+  primaryGlow: "rgba(210,18,26,0.25)",
   accent: "#D4AA7E",
   accentMuted: "rgba(212,170,126,0.28)",
 
-  danger: "#C3113D",
+  danger: "#D2121A",
   success: "#4E7A55",
   shadow: "#1C1019",
   overlay: "rgba(250,244,238,0.65)",
@@ -386,7 +386,7 @@ export const getShadows = (palette) => {
     }),
     glow: Platform.select({
       ios: {
-        shadowColor: palette?.primary || "#C3113D",
+        shadowColor: palette?.primary || "#D2121A",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 16,

@@ -301,7 +301,7 @@ export default function DateNightScreen({ navigation }) {
 
   const t = useMemo(() => ({
     background: colors.background,
-    primary: colors.primary || '#C3113D',
+    primary: colors.primary || '#D2121A',
     text: colors.text,
     textMuted: colors.textMuted,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
@@ -1133,7 +1133,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   likeBtn: { 
     width: 64, height: 64, borderRadius: 32, overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#C3113D', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16 },
+      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16 },
       android: { elevation: 8 },
     }),
   },

@@ -1,7 +1,7 @@
 /**
  * EditorialPrompt — Daily reflection bridge
  * * Velvet Glass & Apple Editorial updates integrated.
- * Pure native iOS surface mapping with Sexy Red (#C3113D) accents.
+ * Pure native iOS surface mapping with Sexy Red (#D2121A) accents.
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -139,7 +139,7 @@ const PROMPT_CATEGORIES = {
   REFLECTION: { id: 'reflection', name: 'Reflection', icon: 'chatbox-outline', color: '#5856D6' },
   GRATITUDE: { id: 'gratitude', name: 'Gratitude', icon: 'sparkles-outline', color: '#FF9F0A' },
   DREAMS: { id: 'dreams', name: 'Dreams', icon: 'moon-outline', color: '#AF52DE' },
-  INTIMACY: { id: 'intimacy', name: 'Intimacy', icon: 'flame-outline', color: '#C3113D' },
+  INTIMACY: { id: 'intimacy', name: 'Intimacy', icon: 'flame-outline', color: '#D2121A' },
   PLAYFUL: { id: 'playful', name: 'Playful', icon: 'happy-outline', color: '#34C759' },
   DAILY_LIFE: { id: 'daily_life', name: 'Daily Life', icon: 'sunny-outline', color: '#64D2FF' },
 };
@@ -177,7 +177,7 @@ const EditorialPrompt = ({
     background: 'transparent', 
     surface: isDark ? '#131016' : '#FFFFFF',
     surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#C3113D',
+    primary: colors.primary || '#D2121A',
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',

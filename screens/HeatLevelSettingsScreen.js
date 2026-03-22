@@ -1,4 +1,10 @@
-// screens/HeatLevelSettingsScreen.js
+/**
+ * HeatLevelSettingsScreen.js
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * Allows users to set boundaries on intimacy prompts.
+ * ✅ Full original logic preserved.
+ */
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -11,6 +17,7 @@ import {
   Animated,
   Platform,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle, NotificationFeedbackType, notification } from '../utils/haptics';
@@ -19,41 +26,44 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import { useEntitlements } from '../context/EntitlementsContext';
-import { SPACING } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+
+// Editorial Heat Mapping
 const HEAT_LEVELS = [
   {
     level: 1,
-    icon: 'spa-outline',
+    icon: 'leaf-outline',
     color: '#5856D6', // iOS Purple
     title: 'Emotional',
     description: 'Intimacy & trust, non-sexual',
   },
   {
     level: 2,
-    icon: 'star-four-points-outline',
-    color: '#C3113D',
+    icon: 'sparkles-outline',
+    color: '#FF9F0A', // iOS Orange
     title: 'Romantic',
     description: 'Flirty attraction & romance',
   },
   {
     level: 3,
-    icon: 'cards-heart-outline',
-    color: '#FF9500', // iOS Orange
+    icon: 'heart-outline',
+    color: '#FF2D55', // iOS Pink
     title: 'Sensual',
     description: 'Relationship-focused desire',
   },
   {
     level: 4,
-    icon: 'water-outline',
-    color: '#A84848',
+    icon: 'flame-outline',
+    color: '#D2121A', // Sexy Red
     title: 'Steamy',
     description: 'Adventurous & heated topics',
   },
   {
     level: 5,
-    icon: 'fire',
-    color: '#8A0021', // Deep Crimson
+    icon: 'infinite-outline',
+    color: '#8E0D2C', // Deep Crimson
     title: 'Explicit',
     description: 'Intensely passionate exploration',
   },
@@ -63,15 +73,14 @@ export default function HeatLevelSettingsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   
-  // STRICT Apple Editorial Theme Map 
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
-    background: isDark ? '#000000' : '#F2F2F7', 
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
-    primary: colors.primary,
-    accent: colors.accent || '#D4AA7E',
-    text: isDark ? '#FFFFFF' : '#000000',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    background: colors.background, 
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#D2121A', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
@@ -92,7 +101,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
     Animated.parallel([
       Animated.timing(fadeAnimation, {
         toValue: 1,
-        duration: 400,
+        duration: 500,
         useNativeDriver: true,
       }),
       Animated.spring(slideAnimation, {
@@ -140,7 +149,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
     } catch (error) {
       console.error('Failed to update heat level:', error);
       notification(NotificationFeedbackType.Error);
-      Alert.alert('Error', 'Failed to update preferences. Please try again.');
+      Alert.alert('Update Failed', 'We could not save your comfort level. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -153,28 +162,22 @@ export default function HeatLevelSettingsScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
+      <StatusBar barStyle="light-content" />
 
       {/* Velvet background gradient */}
       <LinearGradient
-        colors={isDark 
-          ? [t.background, '#0F0A1A', '#0D081A', t.background] 
-          : [t.background, '#EBEBF5', t.background]}
+        colors={[t.background, isDark ? '#120206' : '#F9F6F4', t.background]}
         style={StyleSheet.absoluteFillObject}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
       />
 
-      {/* Header */}
+      {/* Editorial Header */}
       <Animated.View style={[styles.header, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
-        <View style={styles.headerTopRow}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
-            <Icon name="chevron-left" size={32} color={t.text} />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+          <Icon name="chevron-back" size={28} color={t.text} />
+        </TouchableOpacity>
         <View style={styles.headerEditorial}>
-          <Text style={styles.headerTitle}>Comfort</Text>
-          <Text style={styles.headerSubtitle}>Set your boundary for prompts.</Text>
+          <Text style={styles.headerTitle}>Intensity</Text>
+          <Text style={styles.headerSubtitle}>Set your boundary for closeness.</Text>
         </View>
       </Animated.View>
 
@@ -186,7 +189,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
       >
         <Animated.View style={{ opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }}>
           
-          <Text style={styles.sectionTitle}>LEVEL</Text>
+          <Text style={styles.sectionTitle}>SELECT LEVEL</Text>
           <View style={styles.widgetCard}>
             {HEAT_LEVELS.map((heatLevel, index) => {
               const isSelected = selectedLevel === heatLevel.level;
@@ -201,9 +204,9 @@ export default function HeatLevelSettingsScreen({ navigation }) {
                       isLocked && { opacity: 0.5 }
                     ]}
                     onPress={() => handleLevelSelect(heatLevel.level)}
-                    activeOpacity={0.7}
+                    activeOpacity={0.9}
                   >
-                    <View style={[styles.iconWrap, { backgroundColor: isSelected ? heatLevel.color + '15' : t.surfaceSecondary }]}>
+                    <View style={[styles.iconWrap, { backgroundColor: isSelected ? withAlpha(heatLevel.color, 0.15) : t.surfaceSecondary }]}>
                       <Icon 
                         name={heatLevel.icon} 
                         size={20} 
@@ -219,9 +222,9 @@ export default function HeatLevelSettingsScreen({ navigation }) {
                       </Text>
                     </View>
                     {isLocked ? (
-                      <Icon name="lock" size={20} color={t.subtext} />
+                      <Icon name="lock-closed" size={18} color={t.subtext} />
                     ) : isSelected ? (
-                      <Icon name="check" size={24} color={heatLevel.color} />
+                      <Icon name="checkmark-circle" size={24} color={heatLevel.color} />
                     ) : null}
                   </TouchableOpacity>
                   {!isLast && <View style={styles.dividerIndent} />}
@@ -231,9 +234,9 @@ export default function HeatLevelSettingsScreen({ navigation }) {
           </View>
 
           <View style={styles.infoCard}>
-            <Icon name="information" size={20} color={t.subtext} />
+            <Icon name="information-circle-outline" size={24} color={t.subtext} />
             <Text style={styles.infoText}>
-              Higher levels automatically include all content from the levels below them.
+              Higher intensity levels automatically unlock all intimate prompts from the levels beneath them.
             </Text>
           </View>
 
@@ -246,14 +249,13 @@ export default function HeatLevelSettingsScreen({ navigation }) {
           style={[styles.primaryButton, isSaving && { opacity: 0.7 }]}
           onPress={handleSave}
           disabled={isSaving}
-          activeOpacity={0.8}
+          activeOpacity={0.9}
         >
           {isSaving ? (
-            <Icon name="loading" size={20} color={isDark ? '#000' : '#FFF'} />
-          ) : null}
-          <Text style={styles.primaryButtonText}>
-            {isSaving ? 'Updating...' : 'Save Comfort Level'}
-          </Text>
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Apply Changes</Text>
+          )}
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -272,31 +274,26 @@ const createStyles = (t, isDark, insets) => StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: SPACING.xl,
+    paddingHorizontal: 24,
     paddingTop: SPACING.sm,
-    paddingBottom: SPACING.xxxl + 40,
+    paddingBottom: 100,
   },
 
   // ── Header ──
   header: {
-    paddingHorizontal: SPACING.xl,
-    paddingTop: Math.max(insets.top, Platform.OS === 'android' ? SPACING.xl : SPACING.sm),
-    paddingBottom: SPACING.lg,
-  },
-  headerTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-    marginLeft: -8, 
+    paddingHorizontal: 16,
+    paddingTop: Math.max(insets.top, Platform.OS === 'android' ? 40 : 20),
+    paddingBottom: 24,
   },
   backButton: {
     padding: 8,
+    marginBottom: 8,
   },
   headerEditorial: {
-    paddingRight: SPACING.xl, 
+    paddingHorizontal: 8, 
   },
   headerTitle: {
-    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
+    fontFamily: SYSTEM_FONT,
     fontSize: 36,
     fontWeight: '900',
     letterSpacing: -1,
@@ -305,29 +302,31 @@ const createStyles = (t, isDark, insets) => StyleSheet.create({
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 15,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
     color: t.subtext,
     fontWeight: '500',
+    lineHeight: 22,
   },
 
   // ── Widgets ──
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11,
+    fontWeight: '900',
     color: t.subtext,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: SPACING.sm,
-    marginTop: SPACING.sm,
-    paddingLeft: SPACING.xs,
+    letterSpacing: 1.5,
+    marginBottom: 12,
+    marginTop: 32,
+    paddingLeft: 4,
   },
   widgetCard: {
     backgroundColor: t.surface,
-    borderRadius: 20,
+    borderRadius: 24, // Deep Apple Squircle
     borderWidth: 1,
     borderColor: t.border,
-    marginBottom: SPACING.xl,
-    overflow: 'hidden',
+    paddingVertical: 8,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 10 },
       android: { elevation: 2 },
@@ -338,13 +337,13 @@ const createStyles = (t, isDark, insets) => StyleSheet.create({
   listOptionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.lg,
+    padding: 20,
     gap: 16,
   },
   iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18, 
+    width: 40,
+    height: 40,
+    borderRadius: 20, 
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -352,34 +351,38 @@ const createStyles = (t, isDark, insets) => StyleSheet.create({
     flex: 1,
   },
   optionName: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
+    fontWeight: '700',
+    marginBottom: 4,
     letterSpacing: -0.2,
   },
   optionDesc: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 14,
     color: t.subtext,
+    fontWeight: '500',
   },
   dividerIndent: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: t.border,
-    marginLeft: 68, // Indent past the icon
+    marginLeft: 76, 
   },
 
   // ── Info Card ──
   infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: SPACING.lg,
+    padding: 20,
     borderRadius: 20,
-    backgroundColor: t.surfaceSecondary,
+    backgroundColor: withAlpha(t.text, 0.03),
     borderWidth: 1,
     borderColor: t.border,
-    marginBottom: SPACING.xl,
+    marginTop: 32,
     gap: 12,
   },
   infoText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 14,
     lineHeight: 20,
     flex: 1,
@@ -389,24 +392,33 @@ const createStyles = (t, isDark, insets) => StyleSheet.create({
 
   // ── Action Button ──
   actionSection: {
-    paddingHorizontal: SPACING.xl,
-    paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, SPACING.md) : SPACING.xl,
-    paddingTop: SPACING.sm,
-    backgroundColor: t.background,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 24,
+    paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 40) : 24,
+    paddingTop: 16,
   },
   primaryButton: {
-    backgroundColor: t.text, // Solid, high contrast Apple Action Button
+    backgroundColor: t.primary, // Sexy Red Call to Action
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: 56,
     borderRadius: 28,
     gap: 8,
+    ...Platform.select({
+      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
+      android: { elevation: 6 },
+    }),
   },
   primaryButtonText: {
-    color: t.surface,
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.3,
+    color: '#FFFFFF',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+    textTransform: 'uppercase',
   },
 });

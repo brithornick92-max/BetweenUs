@@ -41,7 +41,7 @@ const HEAT_LEVELS = [
   { value: 1, label: "1", color: "#F7A8B8" }, 
   { value: 2, label: "2", color: "#F27A9B" }, 
   { value: 3, label: "3", color: "#E84A7B" }, 
-  { value: 4, label: "4", color: "#C3113D" }, // Signature Sexy Red
+  { value: 4, label: "4", color: "#D2121A" }, // Signature Sexy Red
   { value: 5, label: "5", color: "#8E0D2C" }, // Deep Crimson
 ];
 
@@ -97,7 +97,7 @@ export default function PromptsScreen({ navigation }) {
   // SEXY RED THEME MAP
   const t = useMemo(() => ({
     background: colors.background,
-    primary: colors.primary || '#C3113D',
+    primary: colors.primary || '#D2121A',
     surface: isDark ? '#131016' : '#FFFFFF',
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',

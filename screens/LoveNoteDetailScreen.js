@@ -36,6 +36,7 @@ import DataLayer from "../services/data/DataLayer";
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS, withAlpha } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
+import InvisibleInkMessage from "../components/InvisibleInkMessage";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -258,9 +259,16 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                   <View style={[styles.senderLine, { backgroundColor: withAlpha('#FFF', 0.3) }]} />
                   <Text style={styles.senderLabel}>FROM {note.senderName?.toUpperCase() || 'YOUR PARTNER'}</Text>
                 </View>
-                
-                <Text style={styles.noteText}>{note.text}</Text>
-                
+
+                {note.invisibleInk ? (
+                  <InvisibleInkMessage
+                    text={note.text || ''}
+                    style={styles.invisibleInkWrapper}
+                  />
+                ) : (
+                  <Text style={styles.noteText}>{note.text}</Text>
+                )}
+
                 <View style={styles.cardFooter}>
                   <Text style={styles.dateText}>{formatDate(note.createdAt)}</Text>
                   <Icon name="seal" size={20} color={withAlpha('#FFF', 0.4)} />

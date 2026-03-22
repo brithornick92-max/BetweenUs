@@ -38,7 +38,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
     background: colors.background, 
     surface: isDark ? '#131016' : '#FFFFFF',
     surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#C3113D', // Sexy Red
+    primary: colors.primary || '#D2121A', // Sexy Red
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     ...Platform.select({
-      ios: { shadowColor: '#C3113D', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 15 },
+      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 15 },
       android: { elevation: 6 }
     })
   },

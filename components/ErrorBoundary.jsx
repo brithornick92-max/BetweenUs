@@ -86,7 +86,7 @@ export default class ErrorBoundary extends React.Component {
     // SEXY RED x APPLE EDITORIAL THEME CONSTANTS
     const t = {
       background: '#070509',
-      primary: '#C3113D', // Sexy Red
+      primary: '#D2121A', // Sexy Red
       text: '#F2E9E6',
       subtext: 'rgba(242,233,230,0.55)',
       surface: 'rgba(255,255,255,0.04)',
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     gap: 10,
     ...Platform.select({
       ios: {
-        shadowColor: '#C3113D',
+        shadowColor: '#D2121A',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.3,
         shadowRadius: 15,

@@ -15,7 +15,7 @@ import Icon from "../components/Icon";
  */
 const FALLBACK_COLORS = {
   background: "#070509",
-  primary: "#C3113D",
+  primary: "#D2121A",
   text: "#F2E9E6",
 };
 
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 32,
-    shadowColor: "#C3113D",
+    shadowColor: "#D2121A",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 15,

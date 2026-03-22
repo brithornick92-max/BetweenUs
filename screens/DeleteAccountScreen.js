@@ -40,11 +40,11 @@ export default function DeleteAccountScreen({ navigation }) {
     background: colors.background,
     surface: colors.surface,
     surfaceSecondary: colors.surface2,
-    primary: colors.primary || '#C3113D',
+    primary: colors.primary || '#D2121A',
     text: colors.text,
     subtext: colors.textMuted,
     border: colors.border,
-    danger: colors.primary || '#C3113D',
+    danger: colors.primary || '#D2121A',
   }), [colors]);
 
   const styles = useMemo(() => createStyles(t, isDark, insets), [t, isDark, insets]);

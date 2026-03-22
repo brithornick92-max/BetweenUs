@@ -49,7 +49,7 @@ export default function AuthScreen() {
     background: colors.background,
     surface: isDark ? '#1C1C1E' : '#FFFFFF',
     surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
-    primary: colors.primary || '#C3113D', // Sexy Red
+    primary: colors.primary || '#D2121A', // Sexy Red
     text: colors.text,
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',

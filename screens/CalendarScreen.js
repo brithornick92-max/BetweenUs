@@ -46,9 +46,9 @@ const SERIF_FONT  = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 // Event type visual config — Apple System Colors & Sexy Red
 const EVENT_TYPES = {
-  dateNight:   { label: 'Date Plans', icon: 'heart-outline',    color: '#C3113D' },
+  dateNight:   { label: 'Date Plans', icon: 'heart-outline',    color: '#D2121A' },
   ritual:      { label: 'Ritual',     icon: 'moon-outline',     color: '#AF52DE' },
-  loveNote:    { label: 'Love Note',  icon: 'mail-outline',     color: '#C3113D' },
+  loveNote:    { label: 'Love Note',  icon: 'mail-outline',     color: '#D2121A' },
   anniversary: { label: 'Special',    icon: 'sparkles-outline', color: '#FF9F0A' },
   general:     { label: 'Event',      icon: 'calendar-outline', color: '#007AFF' },
 };
@@ -249,7 +249,7 @@ export default function CalendarScreen({ navigation, route }) {
     background:       colors.background,
     surface:          isDark ? '#131016' : '#FFFFFF',
     surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary:          colors.primary || '#C3113D',
+    primary:          colors.primary || '#D2121A',
     text:             colors.text,
     subtext:          isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60,60,67,0.6)',
     border:           isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -795,7 +795,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderRadius:   32,
     alignItems:     'center',
     justifyContent: 'center',
-    shadowColor:    '#C3113D',
+    shadowColor:    '#D2121A',
     shadowOffset:   { width: 0, height: 8 },
     shadowOpacity:  0.3,
     shadowRadius:   12,

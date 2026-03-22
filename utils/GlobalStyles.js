@@ -77,7 +77,7 @@ export const GlobalStyles = StyleSheet.create({
   },
 
   accent: {
-    color: COLORS.primary, // Sexy red #C3113D — desire, warmth, intimacy
+    color: COLORS.primary, // Sexy red #D2121A — desire, warmth, intimacy
   },
 
   /* ----------------------------- Cards / Surfaces ----------------------------- */
@@ -130,7 +130,7 @@ export const GlobalStyles = StyleSheet.create({
 
   /* ----------------------------- Buttons ----------------------------- */
   buttonPrimary: {
-    backgroundColor: COLORS.primary, // Sexy red #C3113D — primary CTA
+    backgroundColor: COLORS.primary, // Sexy red #D2121A — primary CTA
     borderRadius: BORDER_RADIUS.full, // Perfect pill shape
     overflow: "hidden",
     height: 56, // Taller native touch target
@@ -194,7 +194,7 @@ export const GlobalStyles = StyleSheet.create({
 
   tagText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.primary, // #C3113D
+    color: COLORS.primary, // #D2121A
     fontWeight: "700",
   },
 });

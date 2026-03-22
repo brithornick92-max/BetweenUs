@@ -12,10 +12,10 @@ export class AnniversaryThemeGenerator {
     this.themeTemplates = {
       'first_date': {
         name: 'First Date',
-        primary: '#C3113D', // Sexy Red (Primary App Brand)
+        primary: '#D2121A', // Sexy Red (Primary App Brand)
         secondary: '#9A0D30',
         glow: 'rgba(195, 17, 61, 0.4)',
-        gradient: ['#C3113D', '#9A0D30'],
+        gradient: ['#D2121A', '#9A0D30'],
         emotion: 'Where it all began',
       },
       'first_kiss': {
@@ -44,10 +44,10 @@ export class AnniversaryThemeGenerator {
       },
       'anniversary': {
         name: 'Anniversary',
-        primary: '#C3113D', // Sexy Red
+        primary: '#D2121A', // Sexy Red
         secondary: '#9A0D30',
         glow: 'rgba(195, 17, 61, 0.4)',
-        gradient: ['#C3113D', '#9A0D30'],
+        gradient: ['#D2121A', '#9A0D30'],
         emotion: 'Celebrating our love',
       },
       'first_trip': {

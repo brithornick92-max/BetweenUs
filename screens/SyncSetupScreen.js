@@ -489,7 +489,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     marginVertical: SPACING.md,
   },
   dangerButton: {
-    backgroundColor: '#C3113D',
+    backgroundColor: '#D2121A',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',

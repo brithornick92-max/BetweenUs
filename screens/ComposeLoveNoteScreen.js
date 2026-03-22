@@ -35,7 +35,7 @@ const { width: screenWidth } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 const STATIONERY_OPTIONS = [
-  { id: "sexy",    icon: "flame-outline", gradient: ["#C3113D", "#5E081D"], label: "Intimate" },
+  { id: "sexy",    icon: "flame-outline", gradient: ["#D2121A", "#5E081D"], label: "Intimate" },
   { id: "love",    icon: "heart-outline", gradient: ["#E8A0BF", "#BA6B8F"], label: "Sweet" },
   { id: "dreamy",  icon: "moon-outline",  gradient: ["#1C1C1E", "#0A0003"], label: "Midnight" },
   { id: "playful", icon: "happy-outline", gradient: ["#FFD966", "#F5A623"], label: "Playful" },
@@ -61,7 +61,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
     background: colors.background, 
     surface: isDark ? '#131016' : '#FFFFFF',
     surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#C3113D', 
+    primary: colors.primary || '#D2121A', 
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -72,6 +72,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   const [selectedStationery, setSelectedStationery] = useState(STATIONERY_OPTIONS[0]);
   const [isSending, setIsSending] = useState(false);
   const [showPrompts, setShowPrompts] = useState(false);
+  const [invisibleInk, setInvisibleInk] = useState(false);
 
   const inputRef = useRef(null);
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
@@ -131,6 +132,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
         imageUri: imageUri || null,
         stationeryId: selectedStationery.id,
         senderName: userProfile?.displayName || userProfile?.name || state?.partnerLabel || null,
+        invisibleInk,
       });
       navigation.goBack();
     } catch (err) {
@@ -248,6 +250,43 @@ export default function ComposeLoveNoteScreen({ navigation }) {
                 </TouchableOpacity>
               )}
             </View>
+
+            {/* Invisible Ink Toggle */}
+            <TouchableOpacity
+              style={[
+                styles.inkToggle,
+                invisibleInk && { borderColor: t.primary, backgroundColor: `${t.primary}18` },
+              ]}
+              onPress={() => { setInvisibleInk(v => !v); selection(); }}
+              activeOpacity={0.85}
+            >
+              <Icon
+                name={invisibleInk ? 'eye-off' : 'eye-off-outline'}
+                size={18}
+                color={invisibleInk ? t.primary : t.subtext}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.inkToggleTitle, { color: invisibleInk ? t.primary : t.text }]}>
+                  Invisible Ink
+                </Text>
+                <Text style={[styles.inkToggleSubtitle, { color: t.subtext }]}>
+                  {invisibleInk
+                    ? 'Partner must tilt their phone 45° to reveal'
+                    : 'Hide message — tilt to reveal'}
+                </Text>
+              </View>
+              <View style={[
+                styles.inkTogglePill,
+                { backgroundColor: invisibleInk ? t.primary : t.surfaceSecondary },
+              ]}>
+                <Text style={[
+                  styles.inkTogglePillText,
+                  { color: invisibleInk ? '#FFF' : t.subtext },
+                ]}>
+                  {invisibleInk ? 'ON' : 'OFF'}
+                </Text>
+              </View>
+            </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -355,7 +394,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
   promptItemText: { fontSize: 14, fontWeight: '600', fontStyle: 'italic' },
   
   // Media
-  mediaRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingBottom: 60 },
+  mediaRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingBottom: 24 },
   mediaBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -366,6 +405,39 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   mediaBtnText: { fontSize: 14, fontWeight: '700' },
   removeBtn: { marginLeft: 'auto' },
+
+  // Invisible Ink toggle
+  inkToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    marginBottom: 60,
+  },
+  inkToggleTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  inkToggleSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  inkTogglePill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  inkTogglePillText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
 
   // Lock Screen Updates
   lockIconContainer: { 

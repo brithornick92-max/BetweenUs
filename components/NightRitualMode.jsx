@@ -33,7 +33,7 @@ export const getNightRitualColors = (palette) => ({
   subtext: 'rgba(242,233,230,0.6)',
   border: 'rgba(255,255,255,0.08)',
   // Vibrant Intimate Accents
-  primary: '#C3113D', // Sexy Red
+  primary: '#D2121A', // Sexy Red
   iosPurple: '#5E5CE6',
   iosOrange: '#FF9F0A',
   iosCyan: '#64D2FF',

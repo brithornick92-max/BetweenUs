@@ -98,7 +98,7 @@ like it belongs in that space.
 - **Midnight velvet surfaces** (#130D17) — cards, inputs, elevated UI elements
 - **Dark aubergine** (#1B1221) — secondary surfaces, subtle elevation
 - **Elevated velvet** (#231929) — tertiary surfaces, modal overlays
-- **Sexy red accent** (#C3113D) — primary CTAs, active states, key interactions
+- **Sexy red accent** (#D2121A) — primary CTAs, active states, key interactions
 - **Deep berry-red accent** (#A00D31) — secondary accent, links, subtle highlights
 - **Wine-deep** (#4E0820) — gradient endpoints, deep accent
 - **Antique amber gold** (#C49A6A) — **premium-only**, never in main UI. Reserved for Pro badge, paywall, milestones.
