@@ -26,6 +26,11 @@ const ICON_DICTIONARY = {
   'dots-vertical': 'ellipsis-vertical',
   'dots-horizontal': 'ellipsis-horizontal',
 
+  // ── Heat Levels (old MaterialCommunity names) ──
+  'spa-outline': 'chatbubble-outline',
+  'cards-heart-outline': 'heart-outline',
+  'cards-heart': 'heart',
+
   // ── Relationship & Emotional ──
   'heart': 'heart',
   'heart-outline': 'heart-outline',
@@ -41,6 +46,7 @@ const ICON_DICTIONARY = {
   'water': 'water-outline',
   'leaf': 'leaf-outline',
   'fire': 'flame-outline',
+  'fire-alert': 'flame-outline',
   'candle': 'flame', // Ionicons doesn't have a candle, flame works perfectly for romance
   'shimmer': 'sparkles-outline',
   'star-four-points': 'sparkles-outline',
@@ -87,6 +93,10 @@ const ICON_DICTIONARY = {
 
   // ── More actions ──
   'content-copy': 'copy-outline',
+  'check-all': 'checkmark-done',
+  'heart-plus': 'heart',
+  'gesture-tap': 'hand-index-outline',
+  'library-outline': 'library-outline',
   'star-four-points-outline': 'sparkles-outline',
   'calendar-range': 'calendar-outline',
 

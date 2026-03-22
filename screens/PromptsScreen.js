@@ -36,12 +36,13 @@ import PromptCardDeck from "../components/PromptCardDeck";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
+// Updated to the cohesive Neon OLED progression
 const HEAT_LEVELS = [
-  { value: 1, label: "1", color: "#F7A8B8" }, 
-  { value: 2, label: "2", color: "#F27A9B" }, 
-  { value: 3, label: "3", color: "#E84A7B" }, 
-  { value: 4, label: "4", color: "#D2121A" }, // Signature Sexy Red
-  { value: 5, label: "5", color: "#8E0D2C" }, // Deep Crimson
+  { value: 1, label: "1", color: "#FF85C2" }, // Soft orchid pink
+  { value: 2, label: "2", color: "#FF1493" }, // Deep Pink
+  { value: 3, label: "3", color: "#FF006E" }, // Vivid Magenta-Red
+  { value: 4, label: "4", color: "#F00049" }, // Carmine
+  { value: 5, label: "5", color: "#D2121A" }, // Deep Red (True Red)
 ];
 
 const loadAllBundledPrompts = () => {
