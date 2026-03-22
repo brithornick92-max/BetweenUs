@@ -253,7 +253,7 @@ export default function HeatLevelScreen({ navigation }) {
                 end={{ x: 1, y: 1 }}
               >
                 <MaterialCommunityIcons name="crown" size={24} color="#070509" />
-                <Text style={styles.premiumCTAText}>
+                <Text style={[styles.premiumCTAText, { color: "#070509" }]}>
                   Discover the full experience
                 </Text>
                 <MaterialCommunityIcons name="arrow-right" size={20} color="#070509" />
@@ -400,6 +400,7 @@ const createStyles = (colors) => StyleSheet.create({
     marginTop: SPACING.lg,
     borderRadius: BORDER_RADIUS.xl,
     overflow: 'hidden',
+    width: '100%',
   },
   premiumCTAGradient: {
     flexDirection: 'row',

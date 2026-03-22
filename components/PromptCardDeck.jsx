@@ -38,8 +38,8 @@ import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const CARD_W = SCREEN_W - 32;
-const CARD_H = Math.min(SCREEN_H * 0.65, 580);
+const CARD_W = SCREEN_W - 72; // Increased margins to make the card smaller
+const CARD_H = Math.min(SCREEN_H * 0.55, 460); // Reduced height constraint
 const SWIPE_THRESHOLD = SCREEN_W * 0.28;
 
 const SPRING_CONFIG = { damping: 22, stiffness: 180, mass: 0.8 };
@@ -70,19 +70,19 @@ const FONTS = {
 
 // Heat-level gradient + icon + label mapping
 const HEAT_COLORS = {
-  1: ['#7A1E4E', '#5E1940'],
-  2: ['#9A2E5E', '#7A1E4E'],
-  3: ['#B84070', '#9A2E5E'],
-  4: ['#C45060', '#A83850'],
-  5: ['#D04848', '#B03030'],
+  1: ['#F7A8B8', '#D68898'], // Innocent pink gradient
+  2: ['#F27A9B', '#C85A7B'], // Rose pink gradient
+  3: ['#E84A7B', '#A83A5A'], // Hot pink gradient
+  4: ['#D6285A', '#9A1A3A'], // Crimson gradient
+  5: ['#B81438', '#6A081A'], // Dark ruby gradient
 };
 // Metallic base tones per heat (dark chrome → accent)
 const HEAT_METAL = {
-  1: { base: '#1A1230', chrome: '#C4A8FF', highlight: '#E0CCFF', mid: '#6B48B8' },
-  2: { base: '#1E0F1A', chrome: '#FFB0D6', highlight: '#FFD6EA', mid: '#B8487A' },
-  3: { base: '#1E0F12', chrome: '#FFB0B8', highlight: '#FFD0D6', mid: '#B84858' },
-  4: { base: '#1E1408', chrome: '#FFC080', highlight: '#FFE0B8', mid: '#B86820' },
-  5: { base: '#1E0808', chrome: '#FF8080', highlight: '#FFB0B0', mid: '#B82020' },
+  1: { base: '#2A1820', chrome: '#FFD6E0', highlight: '#FFE8EE', mid: '#D68898' },
+  2: { base: '#251218', chrome: '#FFB8C8', highlight: '#FFD6E0', mid: '#C85A7B' },
+  3: { base: '#200A10', chrome: '#FF88AA', highlight: '#FFB8C8', mid: '#A83A5A' },
+  4: { base: '#1C060A', chrome: '#FF5588', highlight: '#FF88AA', mid: '#9A1A3A' },
+  5: { base: '#150305', chrome: '#FF3355', highlight: '#FF5588', mid: '#6A081A' },
 };
 const HEAT_ICONS = {
   1: 'hand-heart',
@@ -92,11 +92,11 @@ const HEAT_ICONS = {
   5: 'fire',
 };
 const HEAT_LABELS = {
-  1: 'Emotional',
-  2: 'Flirty',
-  3: 'Sensual',
-  4: 'Steamy',
-  5: 'Explicit',
+  1: '1',
+  2: '2',
+  3: '3',
+  4: '4',
+  5: '5',
 };
 
 // ────────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
   const heat = item?.heat || 1;
   const catGradient = HEAT_COLORS[heat] || ['#B07EFF', '#9060E0'];
   const catIcon = HEAT_ICONS[heat] || 'heart-outline';
-  const catLabel = HEAT_LABELS[heat] || 'Emotional';
+  const catLabel = HEAT_LABELS[heat] || '1';
   const metal = HEAT_METAL[heat] || HEAT_METAL[1];
 
   // Shimmer animation for metallic highlight
@@ -134,6 +134,20 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
     inputRange: [0, 1],
     outputRange: [-CARD_W * 1.5, CARD_W * 1.5],
   });
+
+  // Pulse animation for 'tap to reveal' text
+  const pulseAnim = useSharedValue(0.4);
+  useEffect(() => {
+    pulseAnim.value = withRepeat(
+      withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, []);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: pulseAnim.value,
+  }));
 
   // Reset when card becomes top
   useEffect(() => {
@@ -349,7 +363,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
                       start={{ x: 0.5, y: 0 }}
                       end={{ x: 0.5, y: 1 }}
                     />
-                    <MaterialCommunityIcons name={catIcon} size={38} color={metal.chrome + 'CC'} />
+                    <MaterialCommunityIcons name={catIcon} size={32} color={metal.chrome + 'CC'} />
                   </View>
                 </View>
                 <Text style={[styles.backLevelText, { color: metal.chrome + '80' }]}>{'✦ '.repeat(heat).trim()}</Text>
@@ -363,7 +377,9 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
                 end={{ x: 1, y: 0.5 }}
               />
 
-              <Text style={[styles.backHint, { color: metal.chrome + '50' }]}>tap to reveal</Text>
+              <Animated.Text style={[styles.backHint, { color: metal.highlight }, pulseStyle]}>
+                TAP TO REVEAL
+              </Animated.Text>
             </View>
 
             {/* Bottom edge shine */}
@@ -445,7 +461,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
               />
               <View style={styles.frontBody}>
                 <Text
-                  style={[styles.frontPromptText, { color: metal.highlight, fontSize: (item?.text?.length || 0) > 180 ? 16 : (item?.text?.length || 0) > 120 ? 18 : 22 }]}
+                  style={[styles.frontPromptText, { color: metal.highlight, fontSize: (item?.text?.length || 0) > 180 ? 15 : (item?.text?.length || 0) > 120 ? 17 : 20 }]}
                   adjustsFontSizeToFit
                   minimumFontScale={0.6}
                 >
@@ -612,12 +628,12 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.08)',
     ...Platform.select({
       ios: {
-        shadowColor: '#070509',
-        shadowOffset: { width: 0, height: 16 },
-        shadowOpacity: 0.12,
-        shadowRadius: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 20 },
+        shadowOpacity: 0.6,
+        shadowRadius: 35,
       },
-      android: { elevation: 16 },
+      android: { elevation: 20 },
     }),
   },
 
@@ -668,7 +684,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderRadius: 12,
     margin: 8,
-    paddingVertical: 22,
+    paddingTop: 24,
+    paddingBottom: 18,
     paddingHorizontal: 14,
     backgroundColor: 'rgba(255,255,255,0.02)',
     overflow: 'hidden',
@@ -684,7 +701,7 @@ const styles = StyleSheet.create({
   },
   frameBottomLine: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 46,
     left: 16,
     right: 16,
     height: 1,
@@ -712,12 +729,12 @@ const styles = StyleSheet.create({
 
   backEmblem: {
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
   backEmblemOuter: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 86,
+    height: 86,
+    borderRadius: 43,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -733,9 +750,9 @@ const styles = StyleSheet.create({
     }),
   },
   backEmblemInner: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',

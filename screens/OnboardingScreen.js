@@ -669,7 +669,7 @@ export default function OnboardingScreen({ navigation }) {
                   <ActivityIndicator color={colors.background} />
                 ) : (
                   <>
-                    <MaterialCommunityIcons name="sparkles" size={20} color="#F2E9E6" style={{ marginRight: 8 }} />
+                    <MaterialCommunityIcons name="creation" size={20} color="#F2E9E6" style={{ marginRight: 8 }} />
                     <Text style={styles.generateInviteButtonText}>Generate Invitation</Text>
                   </>
                 )}

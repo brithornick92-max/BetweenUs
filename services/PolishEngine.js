@@ -352,7 +352,7 @@ export const SEASONS = [
   { id: 'busy', label: 'Busy Season', icon: 'clock-fast', color: '#7B9EBC', description: 'Short & sweet' },
   { id: 'cozy', label: 'Cozy Season', icon: 'sofa-outline', color: '#C9A84C', description: 'Warmth & comfort' },
   { id: 'growth', label: 'Growth Season', icon: 'sprout', color: '#4A6B4F', description: 'Going deeper' },
-  { id: 'adventure', label: 'Adventure Season', icon: 'compass-outline', color: '#D4839A', description: 'Explore' },
+  { id: 'adventure', label: 'Adventure Season', icon: 'compass', color: '#D4839A', description: 'Explore' },
   { id: 'rest', label: 'Rest Season', icon: 'weather-night', color: '#6B5B8A', description: 'Slow & gentle' },
 ];
 

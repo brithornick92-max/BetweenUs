@@ -1,6 +1,6 @@
 // File: context/ContentContext.js
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageRouter from '../services/storage/StorageRouter';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
@@ -29,6 +29,7 @@ export const ContentProvider = ({ children }) => {
   const [todayPrompt, setTodayPrompt] = useState(null);
   const [userResponses, setUserResponses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const loadingPromptRef = useRef(false);
   const [usageStatus, setUsageStatus] = useState(null);
   const [contentProfile, setContentProfile] = useState(null);
 
@@ -59,12 +60,14 @@ export const ContentProvider = ({ children }) => {
   // If heatLevel is explicitly passed (e.g. from HeatLevelScreen), use it.
   // Otherwise, use the user's full content profile (season, energy, boundaries, etc.)
   const loadTodayPrompt = async (heatLevel = null) => {
-    try {
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      if (loadingPromptRef.current) return todayPrompt;
 
-      setLoading(true);
+      try {
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        loadingPromptRef.current = true;
 
       // Load (or refresh) the content profile
       const profile = await loadContentProfile();
@@ -172,21 +175,28 @@ export const ContentProvider = ({ children }) => {
 
       return selectedPrompt;
     } catch (error) {
-      console.error("Error loading today's prompt:", error);
+        // Don't log as an error if it's just the expected free user limit
+        const errorString = String(error?.message || error);
+        if (errorString.includes('Free users can preview 3') || errorString.includes('Heat levels 4 and 5 require premium access')) {
+          console.log("[ContentContext] Setting fallback daily prompt for free user.");
+        } else {
+          console.error("Error loading today's prompt:", error);
+        }
 
-      const fallbackPrompt = {
-        id: 'fallback_1',
-        text: "What's one thing you love about our relationship?",
-        category: 'emotional',
-        heat: 1,
-        relationshipDuration: ['universal'],
-      };
+        const fallbackPrompt = {
+          id: 'fallback_1',
+          text: "What's one thing you love about our relationship?",
+          category: 'emotional',
+          heat: 1,
+          relationshipDuration: ['universal'],
+        };
 
-      setTodayPrompt(await personalizePrompt(fallbackPrompt));
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+        const personalizedFallback = await personalizePrompt(fallbackPrompt);
+        setTodayPrompt(personalizedFallback);
+        return personalizedFallback;
+      } finally {
+        loadingPromptRef.current = false;
+      }
   };
 
   // Get filtered prompts based on user preferences and premium status

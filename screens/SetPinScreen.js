@@ -104,17 +104,18 @@ const SetPinScreen = ({ navigation }) => {
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
           <Ionicons name="lock-closed" size={56} color={colors.primary} style={{ marginBottom: 16 }} />
-          <Text style={{ color: colors.text, fontSize: 20, fontWeight: '600', marginBottom: 8, textAlign: 'center' }}>Part of the deeper experience</Text>
-          <Text style={{ color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
+          <Text style={{ color: colors.text, fontSize: 28, fontFamily: 'DMSerifDisplay-Regular', marginBottom: 12, textAlign: 'center' }}>Part of the deeper experience</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 24, lineHeight: 22, paddingHorizontal: 16 }}>
             App Lock PIN is a premium security feature. This is part of the deeper experience — protect your private space with biometric and PIN authentication.
           </Text>
           <TouchableOpacity
             onPress={() => showPaywall('vaultAndBiometric')}
-            style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 }}
+            style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Discover the full experience"
           >
+            <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
             <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
           </TouchableOpacity>
         </View>

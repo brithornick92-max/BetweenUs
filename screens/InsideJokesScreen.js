@@ -32,17 +32,18 @@ export default function InsideJokesScreen({ navigation }) {
         {headerBar}
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
           <MaterialCommunityIcons name="lock-outline" size={56} color={colors.primary} style={{ marginBottom: 16 }} />
-          <Text style={{ color: colors.text, fontSize: 20, fontWeight: '600', marginBottom: 8, textAlign: 'center' }}>
+          <Text style={{ color: colors.text, fontSize: 28, fontFamily: 'DMSerifDisplay-Regular', marginBottom: 12, textAlign: 'center' }}>
             Inside Jokes is Premium
           </Text>
-          <Text style={{ color: colors.textMuted, fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 24 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 24, paddingHorizontal: 16 }}>
             Your private language vault — nicknames, jokes, and shared references — is a premium feature.
           </Text>
           <TouchableOpacity
             onPress={() => showPaywall?.('insideJokes')}
-            style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 }}
+            style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
             activeOpacity={0.85}
           >
+            <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
             <Text style={{ color: '#F2E9E6', fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
           </TouchableOpacity>
         </View>

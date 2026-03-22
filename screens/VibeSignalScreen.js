@@ -394,7 +394,7 @@ const VibeSignalScreen = ({ navigation }) => {
                 end={{ x: 1, y: 1 }}
               >
                 <MaterialCommunityIcons name="crown" size={20} color={colors.background} />
-                <Text style={[styles.upgradeButtonText, { color: '#F2E9E6' }]}>Discover the full experience</Text>
+                <Text style={styles.upgradeButtonText}>Discover the full experience</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -687,7 +687,7 @@ const createStyles = (colors) => StyleSheet.create({
   
   paywallContent: {
     alignItems: 'center',
-    maxWidth: 300,
+    maxWidth: 350,
   },
   
   paywallTitle: {
@@ -713,11 +713,13 @@ const createStyles = (colors) => StyleSheet.create({
   upgradeButton: {
     borderRadius: BORDER_RADIUS.lg,
     overflow: 'hidden',
+    width: '100%',
   },
   
   upgradeButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.xl,
     gap: SPACING.sm,

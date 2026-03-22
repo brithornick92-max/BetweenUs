@@ -71,11 +71,11 @@ const CAT_ICONS = {
 };
 
 const HEAT_LEVELS = [
-  { value: 1, label: 'Emotional', color: '#7A1E4E' },
-  { value: 2, label: 'Flirty', color: '#9A2E5E' },
-  { value: 3, label: 'Sensual', color: '#B84070' },
-  { value: 4, label: 'Steamy', color: '#C45060' },
-  { value: 5, label: 'Explicit', color: '#D04848' },
+  { value: 1, label: '1', color: '#F7A8B8' },   // Light innocent pink
+  { value: 2, label: '2', color: '#F27A9B' },   // Rose pink
+  { value: 3, label: '3', color: '#E84A7B' },   // Hot sensual pink
+  { value: 4, label: '4', color: '#D6285A' },   // Deep crimson/magenta
+  { value: 5, label: '5', color: '#B81438' },   // Sexy dark ruby red
 ];
 
 const CATEGORIES = [
@@ -104,10 +104,6 @@ const loadAllBundledPrompts = () => {
 
 // Pre-compute prompt counts per heat level for teaser display
 const ALL_BUNDLED = loadAllBundledPrompts();
-const HEAT_COUNTS = HEAT_LEVELS.reduce((acc, { value }) => {
-  acc[value] = ALL_BUNDLED.filter(p => (p.heat || 1) === value).length;
-  return acc;
-}, {});
 const TOTAL_PROMPT_COUNT = ALL_BUNDLED.length;
 
 const FALLBACK_PROMPT = {
@@ -117,12 +113,7 @@ const FALLBACK_PROMPT = {
   heat: 1,
 };
 
-// One teaser prompt per locked heat level so free users can preview what's behind the paywall
-const getPreviewPrompt = (allPrompts, heat) => {
-  const match = allPrompts.find(p => (p.heat || 1) === heat);
-  return match ? { ...match, isPreview: true } : null;
-};
-
+// Normalization for prompt objects
 const normalizePrompt = (p) => {
   if (!p || typeof p !== 'object') return FALLBACK_PROMPT;
   const text = typeof p.text === 'string' ? p.text : '';
@@ -158,12 +149,17 @@ export default function PromptsScreen({ navigation }) {
       try {
         const profile = await PreferenceEngine.getContentProfile(userProfile || {});
         setContentProfile(profile);
-        setSelectedHeat(profile?.heatLevel || userProfile?.heatLevelPreference || 5);
+        let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
+        // Downgrade to highest free tier if not premium
+        if (!isPremium && heat >= 4) {
+          heat = 3;
+        }
+        setSelectedHeat(heat);
       } catch {
         setSelectedHeat(1);
       }
     })();
-  }, [userProfile]);
+  }, [userProfile, isPremium]);
 
   const loadPrompts = useCallback(async () => {
     if (selectedHeat === null) return;
@@ -183,13 +179,6 @@ export default function PromptsScreen({ navigation }) {
 
   const deckPrompts = useMemo(() => {
     const heat = selectedHeat ?? 1;
-    const isLocked = !isPremium && heat >= 4;
-
-    if (isLocked) {
-      // Free users see one preview prompt for locked levels
-      const preview = getPreviewPrompt(prompts, heat);
-      return preview ? [preview] : [];
-    }
 
     // Exact heat-level match
     let byHeat = prompts.filter((p) => (p.heat || 1) === heat);
@@ -197,7 +186,7 @@ export default function PromptsScreen({ navigation }) {
   }, [prompts, selectedHeat, isPremium]);
 
   const handlePromptSelect = useCallback((prompt) => {
-    if (!isPremium && (prompt.isPreview || (prompt.heat || 1) >= 4)) {
+    if (!isPremium && (prompt.heat || 1) >= 4) {
       showPaywall?.('unlimitedPrompts');
       return;
     }
@@ -205,18 +194,30 @@ export default function PromptsScreen({ navigation }) {
   }, [isPremium, showPaywall, navigation]);
 
   const handleHeatSelect = useCallback((heat) => {
+    if (!isPremium && heat >= 4) {
+      showPaywall?.('premiumHeatLevel');
+      return;
+    }
     setSelectedHeat(heat);
     selection();
-  }, []);
+  }, [isPremium, showPaywall]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
 
+        {/* Ambient top glow */}
+        <LinearGradient
+          colors={[isDark ? '#3D1520' : '#FFD9D9', colors.background]}
+          locations={[0, 0.6]}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+
         <SafeAreaView style={styles.safe} edges={['top']}>
           <Animated.View entering={FadeInDown.duration(600)} style={styles.header}>
-            <Text style={[styles.headerEye, { color: colors.primary + 'AA' }]}>
+            <Text style={[styles.headerEye, { color: isDark ? '#FFAFC2' : colors.primary, opacity: 0.9 }]}>
               {isPremium ? deckPrompts.length + ' cards in your deck' : deckPrompts.length + ' of ' + TOTAL_PROMPT_COUNT + ' cards'}
             </Text>
             <Text style={[styles.headerTitle, { color: colors.text }]}>
@@ -231,32 +232,39 @@ export default function PromptsScreen({ navigation }) {
                 onPress={() => showPaywall?.('unlimitedPrompts')}
                 activeOpacity={0.85}
               >
-                <View style={styles.upsellLeft}>
+                <View style={styles.upsellContent}>
                   <View style={styles.upsellHeaderRow}>
-                    <Text style={[styles.upsellTitle, { color: colors.text }]}>
-                      {TOTAL_PROMPT_COUNT - deckPrompts.length} more to explore
-                    </Text>
-                    <MaterialCommunityIcons name="star-outline" size={14} color={colors.primary} />
+                    <View style={styles.upsellTitleWrap}>
+                      <Text style={[styles.upsellTitle, { color: colors.text }]}>
+                        {TOTAL_PROMPT_COUNT - deckPrompts.length} more to explore
+                      </Text>
+                      <MaterialCommunityIcons name="star-outline" size={14} color={colors.primary} style={{ marginTop: 1 }} />
+                    </View>
+                    <LinearGradient
+                      colors={[colors.primary, colors.primary + 'BB']}
+                      style={styles.upsellBtn}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <MaterialCommunityIcons name="lock-open-variant-outline" size={14} color="#F2E9E6" />
+                    </LinearGradient>
                   </View>
                   {/* Progress bar */}
                   <View style={[styles.progressBar, { backgroundColor: colors.border + '40' }]}>
-                    <View style={[
-                      styles.progressFill,
-                      { width: Math.max(4, (deckPrompts.length / TOTAL_PROMPT_COUNT) * 100) + '%', backgroundColor: colors.primary },
-                    ]} />
+                    <LinearGradient
+                      colors={[colors.primary, colors.primary + 'EE', '#FF6B6B']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={[
+                        styles.progressFill,
+                        { width: Math.max(4, (deckPrompts.length / TOTAL_PROMPT_COUNT) * 100) + '%' },
+                      ]}
+                    />
                   </View>
                   <Text style={[styles.upsellBody, { color: colors.textMuted }]}>
                     You've seen {deckPrompts.length} out of {TOTAL_PROMPT_COUNT} prompts across 5 heat levels
                   </Text>
                 </View>
-                <LinearGradient
-                  colors={[colors.primary, colors.primary + 'BB']}
-                  style={styles.upsellBtn}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <MaterialCommunityIcons name="lock-open-variant-outline" size={16} color="#F2E9E6" />
-                </LinearGradient>
               </TouchableOpacity>
             </Animated.View>
           )}
@@ -273,31 +281,25 @@ export default function PromptsScreen({ navigation }) {
                 {HEAT_LEVELS.map(({ value, label, color: heatColor }) => {
                   const active = selectedHeat === value;
                   const locked = !isPremium && value >= 4;
-                  const count = HEAT_COUNTS[value] || 0;
                   return (
                     <TouchableOpacity
                       key={value}
                       style={[
                         styles.heatChip,
                         {
-                          backgroundColor: active ? heatColor : 'transparent',
-                          borderColor: active ? heatColor : locked ? heatColor + '60' : colors.border,
+                          backgroundColor: active ? heatColor : locked ? 'transparent' : heatColor + '20',
+                          borderColor: active ? heatColor : locked ? colors.border : heatColor + '50',
                         },
                       ]}
                       onPress={() => handleHeatSelect(value)}
                       activeOpacity={0.75}
                     >
                       <View style={styles.heatChipInner}>
-                        <Text style={[styles.heatLabel, { color: active ? '#F2E9E6' : locked ? heatColor : colors.text }]}>
+                        <Text style={[styles.heatLabel, { color: active ? (value >= 4 ? '#FFE8EE' : '#2A1820') : locked ? colors.textMuted : heatColor }]}>
                           {label}
                         </Text>
-                        {locked && <MaterialCommunityIcons name="lock-outline" size={11} color={locked && active ? '#F2E9E6' : heatColor} style={{ marginLeft: 3 }} />}
+                        {locked && <MaterialCommunityIcons name="lock-outline" size={13} color={colors.textMuted} style={{ marginLeft: 4 }} />}
                       </View>
-                      {!isPremium && (
-                        <Text style={[styles.heatCount, { color: active ? '#F2E9E699' : colors.textMuted + '80' }]}>
-                          {count} cards
-                        </Text>
-                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -319,11 +321,13 @@ export default function PromptsScreen({ navigation }) {
               </Text>
             </View>
           ) : (
-            <PromptCardDeck
-              prompts={deckPrompts}
-              onSelect={handlePromptSelect}
-              onSkip={() => {}}
-            />
+            <View style={{ flex: 1, paddingBottom: SPACING.xl }}>
+              <PromptCardDeck
+                prompts={deckPrompts}
+                onSelect={handlePromptSelect}
+                onSkip={() => {}}
+              />
+            </View>
           )}
         </SafeAreaView>
       </View>
@@ -343,40 +347,43 @@ const styles = StyleSheet.create({
   },
   headerEye: {
     fontFamily: FONTS.bodyBold,
-    fontSize: 10,
-    letterSpacing: 2.5,
+    fontSize: 11,
+    letterSpacing: 3.5,
     textTransform: 'uppercase',
+    marginBottom: 2,
   },
   headerTitle: {
     fontFamily: FONTS.serif,
-    fontSize: 34,
+    fontSize: 38,
     fontWeight: '400',
-    letterSpacing: -0.3,
-    lineHeight: 42,
+    letterSpacing: -0.5,
+    lineHeight: 46,
   },
 
   upsell: {
-    flexDirection: 'row',
-    alignItems: 'center',
     borderRadius: BORDER_RADIUS.xl,
     borderWidth: 1,
     padding: SPACING.lg,
     marginHorizontal: SPACING.screen,
     marginBottom: SPACING.md,
-    gap: SPACING.md,
   },
-  upsellLeft: { flex: 1, gap: 6 },
+  upsellContent: { gap: 10 },
   upsellHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  upsellTitleWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  upsellTitle: { fontFamily: FONTS.bodyBold, fontSize: 15 },
+  upsellTitle: { fontFamily: FONTS.bodyBold, fontSize: 16 },
   upsellBody: { fontFamily: FONTS.body, fontSize: 12, lineHeight: 17 },
   upsellBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -399,33 +406,33 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodyBold,
     fontSize: 10,
     letterSpacing: 2,
+    textAlign: 'center',
   },
   chipRow: {
     gap: SPACING.xs,
-    paddingVertical: 2,
+    paddingVertical: 4,
+    marginBottom: SPACING.md,
+    justifyContent: 'center',
+    flexGrow: 1,
   },
 
   heatChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    width: 64,
+    height: 40,
     borderRadius: BORDER_RADIUS.full,
     borderWidth: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   heatChipInner: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   heatLabel: {
     fontFamily: FONTS.bodyBold,
-    fontSize: 12,
+    fontSize: 16,
     letterSpacing: 0.2,
-  },
-  heatCount: {
-    fontFamily: FONTS.body,
-    fontSize: 9,
-    letterSpacing: 0.3,
-    marginTop: 1,
   },
 
   catChip: {

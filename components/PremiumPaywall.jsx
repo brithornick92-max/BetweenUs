@@ -21,7 +21,6 @@ import {
   ICON_SIZES,
 } from "../utils/theme";
 import { getPaywallFeatures, PremiumFeature } from "../utils/featureFlags";
-import { FALLBACK_PRICES } from "../utils/premiumFeatures";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config/supabase";
 
 const PremiumPaywall = ({
@@ -92,8 +91,18 @@ const PremiumPaywall = ({
     </Animated.View>
   );
 
-  const PricingCard = ({ pkg, title, priceText, subtext, isPopular, index = 0 }) => {
+  const PricingCard = ({ pkg, title, priceValue, durationText, subtext, isPopular, index = 0 }) => {
     const isPlanAvailable = !!pkg;
+    
+    let displayPrice = "-";
+    if (isLoading) {
+      displayPrice = "-";
+    } else if (!isPlanAvailable) {
+      displayPrice = "Unavailable";
+    } else {
+      displayPrice = priceValue;
+    }
+
     return (
     <Animated.View
       entering={FadeInUp.delay(100 + index * 120).duration(500).springify().damping(16)}
@@ -110,7 +119,12 @@ const PremiumPaywall = ({
       )}
       <View style={styles.pricingCardContent}>
         <Text style={styles.pricingCardTitle}>{title}</Text>
-        <Text style={styles.pricingCardPrice}>{priceText}</Text>
+        <View style={styles.pricingPriceRow}>
+          <Text style={styles.pricingCardPrice}>{displayPrice}</Text>
+          {isPlanAvailable && !isLoading && durationText ? (
+            <Text style={styles.pricingCardDuration}>{durationText}</Text>
+          ) : null}
+        </View>
         <Text style={styles.pricingCardSubtext}>{subtext}</Text>
         <TouchableOpacity
           style={[styles.subscribeButton, (!isPlanAvailable || isLoading) && styles.subscribeButtonDisabled]}
@@ -118,7 +132,7 @@ const PremiumPaywall = ({
           activeOpacity={0.85}
           disabled={isSubscribing || !isPlanAvailable || isLoading}
           accessibilityRole="button"
-          accessibilityLabel={`Subscribe to ${title} plan at ${priceText}`}
+          accessibilityLabel={`Subscribe to ${title} plan at ${displayPrice}`}
         >
           <Text style={styles.subscribeButtonText}>
             {isLoading
@@ -187,7 +201,8 @@ const PremiumPaywall = ({
           <PricingCard
             pkg={monthlyPkg}
             title="Monthly"
-            priceText={monthlyPkg?.product?.priceString || FALLBACK_PRICES.monthly}
+            priceValue={monthlyPkg?.product?.priceString}
+            durationText="/month"
             subtext="Per couple · both partners included"
             index={0}
           />
@@ -195,7 +210,8 @@ const PremiumPaywall = ({
           <PricingCard
             pkg={yearlyPkg}
             title="Yearly"
-            priceText={yearlyPkg?.product?.priceString || FALLBACK_PRICES.yearly}
+            priceValue={yearlyPkg?.product?.priceString}
+            durationText="/year"
             subtext="Most popular · per couple · both partners included"
             isPopular={true}
             index={1}
@@ -204,9 +220,8 @@ const PremiumPaywall = ({
           <PricingCard
             pkg={lifetimePkg}
             title="Lifetime"
-            priceText={
-              lifetimePkg?.product?.priceString || `${FALLBACK_PRICES.lifetime} one-time`
-            }
+            priceValue={lifetimePkg?.product?.priceString}
+            durationText=" one-time"
             subtext="Per couple · both partners included"
             index={2}
           />
@@ -226,7 +241,7 @@ const PremiumPaywall = ({
             style={styles.restoreButton}
             activeOpacity={0.8}
           >
-            <Text style={styles.restoreButtonText}>Restore purchases</Text>
+            <Text style={styles.restoreButtonText}>Restore Purchases</Text>
           </TouchableOpacity>
 
           {/* App Store Required Subscription Disclosure */}
@@ -297,7 +312,7 @@ const createStyles = (colors) => StyleSheet.create({
     zIndex: 10,
   },
   benefitEmoji: {
-    fontSize: 22,
+    fontSize: 26,
   },
   title: {
     fontFamily: Platform.select({
@@ -320,7 +335,7 @@ const createStyles = (colors) => StyleSheet.create({
   },
   section: {
     paddingHorizontal: SPACING.xl,
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xxxl,
   },
   sectionTitle: {
     ...TYPOGRAPHY.label,
@@ -332,9 +347,10 @@ const createStyles = (colors) => StyleSheet.create({
   },
   planStatusText: {
     ...TYPOGRAPHY.caption,
-    fontSize: 12,
-    color: colors.textMuted,
-    marginBottom: SPACING.md,
+    fontSize: 13,
+    color: colors.text + "CC",
+    marginBottom: SPACING.xl,
+    textAlign: "center",
   },
   benefitItem: {
     flexDirection: "row",
@@ -383,7 +399,7 @@ const createStyles = (colors) => StyleSheet.create({
   },
   popularBadge: {
     backgroundColor: colors.primary + "18",
-    paddingVertical: 8,
+    paddingVertical: 10,
     alignItems: "center",
   },
   popularBadgeText: {
@@ -402,12 +418,24 @@ const createStyles = (colors) => StyleSheet.create({
     color: colors.text,
     marginBottom: 6,
   },
+  pricingPriceRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
   pricingCardPrice: {
     fontSize: 26,
     fontWeight: "700",
     color: colors.text,
-    marginBottom: 4,
     letterSpacing: -0.3,
+  },
+  pricingCardDuration: {
+    ...TYPOGRAPHY.caption,
+    fontSize: 15,
+    fontWeight: "500",
+    color: colors.textMuted,
+    marginLeft: 2,
   },
   pricingCardSubtext: {
     ...TYPOGRAPHY.caption,

@@ -229,7 +229,7 @@ export default function HomeScreen({ navigation }) {
 
       {/* Floating glow orbs */}
       <GlowOrb color={colors.primaryGlow || withAlpha(colors.primary, 0.15)} size={240} top={-60} left={-40} />
-      <GlowOrb color={colors.accentMuted || withAlpha(colors.accent, 0.08)} size={160} top={220} left={SCREEN_W - 100} delay={1500} />
+      <GlowOrb color={withAlpha(colors.accentMuted || colors.accent || '#808080', 0.03)} size={160} top={220} left={SCREEN_W - 80} delay={1500} />
       <FilmGrain />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -278,8 +278,8 @@ export default function HomeScreen({ navigation }) {
           }}>
             <GlassCard glow variant="elevated" style={styles.heroCardWrap}>
               <View style={styles.eyebrowRow}>
-                <View style={[styles.eyebrowDot, { backgroundColor: colors.primary }]} />
-                <Text style={[styles.eyebrow, { color: colors.textMuted }]}>TONIGHT'S MOMENT</Text>
+                <MaterialCommunityIcons name="star-four-points" size={10} color={colors.primary} />
+                <Text style={[styles.eyebrow, { color: colors.primary }]}>TONIGHT'S MOMENT</Text>
               </View>
 
               <Text style={[styles.promptText, { color: colors.text }]}>
@@ -294,13 +294,13 @@ export default function HomeScreen({ navigation }) {
                 <TextInput
                   style={[styles.input, {
                     color: colors.text,
-                    borderColor: colors.borderGlass || colors.border,
-                    backgroundColor: isDark ? 'rgba(30,22,44,0.50)' : 'rgba(245,240,235,0.60)',
+                    borderColor: 'rgba(255,255,255,0.15)',
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(245,240,235,0.80)',
                   }]}
                   value={inlineText}
                   onChangeText={setInlineText}
                   placeholder="What comes to mind…"
-                  placeholderTextColor={colors.textMuted}
+                  placeholderTextColor={withAlpha(colors.text, 0.4)}
                   multiline
                   maxLength={1000}
                   textAlignVertical="top"
@@ -310,12 +310,12 @@ export default function HomeScreen({ navigation }) {
                   activeOpacity={0.7}
                   onPress={() => showPaywall?.('promptResponses')}
                   style={[styles.input, {
-                    borderColor: colors.borderGlass || colors.border,
-                    backgroundColor: 'rgba(28,21,32,0.50)',
+                    borderColor: 'rgba(255,255,255,0.15)',
+                    backgroundColor: 'rgba(255,255,255,0.04)',
                     justifyContent: 'center',
                   }]}
                 >
-                  <Text style={[styles.inputPlaceholder, { color: colors.textMuted }]}>What comes to mind…</Text>
+                  <Text style={[styles.inputPlaceholder, { color: withAlpha(colors.text, 0.4) }]}>What comes to mind…</Text>
                 </TouchableOpacity>
               )}
 
@@ -381,7 +381,9 @@ export default function HomeScreen({ navigation }) {
                   }]}
                 >
                   {locked && (
-                    <MaterialCommunityIcons name="lock" size={10} color={colors.textMuted} style={styles.lockBadge} />
+                    <View style={styles.lockBadge}>
+                      <MaterialCommunityIcons name="lock" size={12} color={withAlpha(colors.text, 0.6)} />
+                    </View>
                   )}
                   {badge > 0 && (
                     <View style={[styles.noteBadge, { backgroundColor: colors.primary }]}>
@@ -429,7 +431,10 @@ export default function HomeScreen({ navigation }) {
           )}
 
           {/* ── Moment Signal ── */}
-          <View style={[styles.momentSection, { borderTopColor: colors.divider }]}>
+          <View style={[styles.momentSection, { 
+            borderColor: 'rgba(255,255,255,0.08)',
+            backgroundColor: isDark ? 'rgba(30,22,44,0.3)' : 'rgba(240,230,235,0.4)',
+          }]}>
             <TouchableOpacity
               style={styles.momentToggle}
               onPress={() => {
@@ -441,7 +446,11 @@ export default function HomeScreen({ navigation }) {
               accessibilityLabel={`Send a quick moment to ${partnerLabel}`}
             >
               <MaterialCommunityIcons name="shimmer" size={24} color={colors.primary} />
-              <Text style={[styles.momentToggleText, { color: colors.textMuted }]}>
+              <Text 
+                style={[styles.momentToggleText, { color: colors.text, flexShrink: 1 }]} 
+                numberOfLines={1} 
+                ellipsizeMode="tail"
+              >
                 Send a quick moment to {partnerLabel}
               </Text>
               <MaterialCommunityIcons
@@ -521,11 +530,11 @@ const styles = StyleSheet.create({
   },
   promptText: {
     fontFamily: SERIF_ACCENT,
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '300',
-    lineHeight: 36,
-    letterSpacing: -0.3,
-    marginBottom: SPACING.lg,
+    lineHeight: 38,
+    letterSpacing: -0.4,
+    marginBottom: SPACING.xl,
   },
   answerBubble: {
     borderRadius: BORDER_RADIUS.md,
@@ -541,15 +550,15 @@ const styles = StyleSheet.create({
   },
   input: {
     minHeight: 100,
-    borderRadius: BORDER_RADIUS.md,
+    borderRadius: BORDER_RADIUS.lg,
     borderWidth: 1,
     padding: SPACING.lg,
     fontFamily: SANS,
-    fontSize: 15,
+    fontSize: 16,
     lineHeight: 24,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.xl,
   },
-  inputPlaceholder: { fontFamily: SANS, fontSize: 15 },
+  inputPlaceholder: { fontFamily: SANS, fontSize: 16 },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -578,13 +587,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 18,
     gap: 8,
   },
   ctaLabel: {
     fontFamily: SANS_BOLD,
-    fontSize: 13,
-    letterSpacing: 1.5,
+    fontSize: 14,
+    letterSpacing: 2.0,
     color: '#F2E9E6',
     textTransform: 'uppercase',
   },
@@ -598,7 +607,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
     borderRadius: BORDER_RADIUS.xl,
     borderWidth: 1,
     gap: SPACING.sm,
@@ -622,9 +631,16 @@ const styles = StyleSheet.create({
   },
   lockBadge: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    opacity: 0.4,
+    top: -8,
+    right: -8,
+    backgroundColor: 'rgba(28,21,32,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   noteBadge: {
     position: 'absolute',
@@ -648,19 +664,23 @@ const styles = StyleSheet.create({
   // ── Moment Signal ──
   momentSection: {
     marginTop: SPACING.xl,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: BORDER_RADIUS.xl,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
   momentToggle: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: SPACING.lg,
-    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    gap: SPACING.sm,
   },
   momentToggleText: {
-    fontFamily: SANS,
-    fontSize: 13,
-    letterSpacing: 0.2,
+    fontFamily: SANS_MEDIUM,
+    fontSize: 14,
+    letterSpacing: 0.3,
   },
 
   // ── Memory Lane ──

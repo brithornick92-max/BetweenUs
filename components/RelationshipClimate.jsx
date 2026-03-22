@@ -21,7 +21,9 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_GAP = SPACING.sm;
-const CARD_WIDTH = (SCREEN_WIDTH - SPACING.md * 2 - GRID_GAP) / 2;
+// Screen padding in HomeScreen is typically SPACING.screen (20 or 24).
+// Let's rely on percentage or flex for robust grid sizing, or calculate assuming the parent provides 100% width.
+const CARD_WIDTH = '47%'; // Using % avoids absolute measuring issues across different paddings
 
 const FONTS = {
   serif: Platform.select({
@@ -148,9 +150,8 @@ const styles = StyleSheet.create({
   optionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     gap: GRID_GAP,
-    paddingHorizontal: SPACING.md,
   },
   option: {
     flexDirection: 'column',
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: BORDER_RADIUS.xl,
     borderWidth: 1,
-    width: CARD_WIDTH,
+    width: '48%',
     paddingTop: SPACING.md,
     paddingBottom: SPACING.lg,
     gap: 8,
