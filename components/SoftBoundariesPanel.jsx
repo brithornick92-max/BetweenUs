@@ -20,9 +20,13 @@ import { useTheme } from '../context/ThemeContext';
 import { SPACING, withAlpha } from '../utils/theme';
 import { SoftBoundaries } from '../services/PolishEngine';
 
+const ALL_PROMPTS = require('../content/prompts.json').items || [];
+const PROMPTS_BY_ID = ALL_PROMPTS.reduce((acc, p) => { acc[p.id] = p; return acc; }, {});
+
 export default function SoftBoundariesPanel({ onBoundaryChange }) {
   const { colors, isDark } = useTheme();
   const [boundaries, setBoundaries] = useState(null);
+  const [showHiddenModal, setShowHiddenModal] = useState(false);
 
   // STRICT Midnight Intimacy x Apple Editorial Theme Map
   const t = useMemo(() => ({
@@ -68,7 +72,21 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
     onBoundaryChange?.();
   }, [onBoundaryChange]);
 
+  const unhideEntry = useCallback(async (entryId) => {
+    impact(ImpactFeedbackStyle.Light);
+    await SoftBoundaries.unpauseEntry(entryId);
+    const updated = await SoftBoundaries.getAll();
+    setBoundaries(updated);
+    onBoundaryChange?.();
+  }, [onBoundaryChange]);
+
   if (!boundaries) return null;
+
+  const pausedItems = (boundaries.pausedEntries || []).map(id => ({
+    id,
+    text: PROMPTS_BY_ID[id]?.text || id,
+    category: PROMPTS_BY_ID[id]?.category,
+  }));
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
@@ -105,7 +123,11 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
         <View style={[styles.divider, { backgroundColor: t.border }]} />
 
         {/* Row 2: Hidden Entries */}
-        <View style={styles.row}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => { impact(ImpactFeedbackStyle.Light); setShowHiddenModal(true); }}
+          activeOpacity={0.7}
+        >
           <View style={styles.rowLeft}>
             <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.subtext, 0.1) }]}>
               <Icon name="eye-off-outline" size={18} color={t.subtext} />
@@ -121,7 +143,61 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
               </Text>
             </View>
           </View>
-        </View>
+          <Icon name="chevron-forward" size={20} color={t.border} />
+        </TouchableOpacity>
+
+        {/* Hidden Entries Modal */}
+        <Modal
+          visible={showHiddenModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowHiddenModal(false)}
+        >
+          <View style={[styles.modalContainer, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.modalTitle, { color: t.text }]}>Hidden Entries</Text>
+              <TouchableOpacity onPress={() => setShowHiddenModal(false)} style={styles.modalClose}>
+                <Icon name="close" size={24} color={t.subtext} />
+              </TouchableOpacity>
+            </View>
+
+            {pausedItems.length === 0 ? (
+              <View style={styles.modalEmpty}>
+                <Icon name="eye-off-outline" size={40} color={t.subtext} />
+                <Text style={[styles.modalEmptyText, { color: t.subtext }]}>
+                  No hidden entries yet.{`\n`}Long-press any prompt to hide it.
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={pausedItems}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.modalList}
+                renderItem={({ item }) => (
+                  <View style={[styles.hiddenItemRow, { borderBottomColor: t.border }]}>
+                    <View style={styles.hiddenItemText}>
+                      <Text style={[styles.hiddenItemBody, { color: t.text }]} numberOfLines={3}>
+                        {item.text}
+                      </Text>
+                      {item.category ? (
+                        <Text style={[styles.hiddenItemCategory, { color: t.subtext }]}>
+                          {item.category}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <TouchableOpacity
+                      style={[styles.unhideBtn, { borderColor: t.primary }]}
+                      onPress={() => unhideEntry(item.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.unhideBtnText, { color: t.primary }]}>Unhide</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+            )}
+          </View>
+        </Modal>
 
         <View style={[styles.divider, { backgroundColor: t.border }]} />
 
@@ -225,5 +301,79 @@ const styles = StyleSheet.create({
     marginTop: SPACING.lg,
     paddingHorizontal: SPACING.xl,
     lineHeight: 18,
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  modalTitle: {
+    fontFamily: systemFont,
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+  },
+  modalClose: {
+    padding: SPACING.xs,
+  },
+  modalEmpty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.md,
+    paddingHorizontal: SPACING.xl,
+  },
+  modalEmptyText: {
+    fontFamily: systemFont,
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  modalList: {
+    padding: SPACING.lg,
+    gap: 0,
+  },
+  hiddenItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: SPACING.md,
+  },
+  hiddenItemText: {
+    flex: 1,
+  },
+  hiddenItemBody: {
+    fontFamily: systemFont,
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 21,
+  },
+  hiddenItemCategory: {
+    fontFamily: systemFont,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginTop: 4,
+  },
+  unhideBtn: {
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  unhideBtnText: {
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
