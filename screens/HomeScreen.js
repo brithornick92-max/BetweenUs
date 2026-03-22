@@ -38,7 +38,7 @@ import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { RelationshipMilestones } from '../services/PolishEngine';
 
-const { width: SCREEN_W } = Dimensions.get('window');
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 function dateKey(date) {
   const d = date instanceof Date ? date : new Date();
@@ -240,9 +240,9 @@ export default function HomeScreen({ navigation }) {
         end={{ x: 0.5, y: 1 }}
       />
 
-      {/* Floating glow orbs for the "Velvet" touch */}
-      <GlowOrb color={withAlpha(t.primary, 0.15)} size={600} top={-200} left={-150} />
-      <GlowOrb color={withAlpha(t.accent, 0.05)} size={160} top={220} left={SCREEN_W - 80} delay={1500} />
+      {/* Background ambience */}
+      <GlowOrb color={t.primary} size={500} top={-200} left={-150} />
+      <GlowOrb color={t.accent} size={300} top={SCREEN_H * 0.4} left={SCREEN_W - 100} delay={1500} />
       <FilmGrain />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
