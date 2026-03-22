@@ -117,7 +117,7 @@ const SetPinScreen = ({ navigation }) => {
             accessibilityRole="button"
             accessibilityLabel="Discover the full experience"
           >
-            <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
+            <Icon name="crown" size={18} color="#F2E9E6" />
             <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
           </TouchableOpacity>
         </View>

@@ -1,14 +1,16 @@
 // components/GentleCelebration.jsx — Soft acknowledgment animation
 // Brand-aligned replacement for RewardAnimation
-// No confetti, no points, no full-screen takeover — just a warm glow.
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
 
 import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING, TYPOGRAPHY, withAlpha } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
+import Icon from './Icon';
+import { notification, NotificationFeedbackType } from '../utils/haptics';
 
-let Haptics = null;
-try { Haptics = require('expo-haptics'); } catch { Haptics = null; }
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 /**
  * GentleCelebration — A soft, momentary acknowledgment.
@@ -16,10 +18,8 @@ try { Haptics = require('expo-haptics'); } catch { Haptics = null; }
  * Replaces RewardAnimation:
  * - No confetti / particle system
  * - No points counter
- * - No full-screen dark overlay
- * - Gentle fade-in/out with a single warm glow
- *
- * Props are backward-compatible with RewardAnimation.
+ * - Deep Sexy Red ambient glow
+ * - Heavy Apple Editorial typography
  */
 export default function GentleCelebration({
   visible = false,
@@ -27,42 +27,53 @@ export default function GentleCelebration({
   title = 'A quiet milestone',
   message = '',
   points = 0,        // ignored — kept for backward compat
-  icon = '✨',
+  icon = 'sparkles-outline',
   onComplete = null,
-  duration = 3000,
+  duration = 3500,
 }) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { colors, isDark } = useTheme();
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.92)).current;
+  const scaleAnim = useRef(new Animated.Value(0.85)).current;
 
   useEffect(() => {
     if (!visible) return;
 
-    // Gentle haptic
-    if (Platform.OS !== 'web' && Haptics?.notificationAsync) {
-      notification(NotificationFeedbackType.Success).catch(() => {});
-    }
+    // High-end Success Haptic
+    notification(NotificationFeedbackType.Success).catch(() => {});
 
-    // Soft entrance
+    // Sophisticated Apple entrance
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 500,
+        duration: 600,
         useNativeDriver: true,
       }),
-      Animated.timing(scaleAnim, {
+      Animated.spring(scaleAnim, {
         toValue: 1,
-        duration: 500,
+        friction: 8,
+        tension: 40,
         useNativeDriver: true,
       }),
     ]).start();
 
-    // Auto-dismiss
+    // Auto-dismiss with smooth decay
     const timer = setTimeout(() => {
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 600,
+        duration: 800,
         useNativeDriver: true,
       }).start(() => onComplete?.());
     }, duration);
@@ -76,60 +87,94 @@ export default function GentleCelebration({
     <Animated.View
       style={[styles.container, { opacity: fadeAnim }]}
       pointerEvents="none"
-      accessibilityRole="alert"
-      accessibilityLabel={`${title}. ${message}`}
     >
+      {/* Ambient Red Glow Background */}
+      <View style={styles.glowOverlay} />
+
       <Animated.View
         style={[styles.card, { transform: [{ scale: scaleAnim }] }]}
       >
-        <Text style={styles.icon}>{icon}</Text>
-        <Text style={styles.title}>{title}</Text>
-        {message ? <Text style={styles.message}>{message}</Text> : null}
+        <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+          <Icon name={icon} size={42} color={t.primary} />
+        </View>
+
+        <Text style={[styles.title, { color: t.text }]}>{title}</Text>
+        
+        {message ? (
+          <Text style={[styles.message, { color: t.subtext }]}>{message}</Text>
+        ) : null}
+
+        <View style={[styles.indicator, { backgroundColor: t.primary }]} />
       </Animated.View>
     </Animated.View>
   );
 }
 
-// Backward-compatible alias
 export { GentleCelebration as RewardAnimation };
 
-const createStyles = (colors) =>
+const createStyles = (t, isDark) =>
   StyleSheet.create({
     container: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: withAlpha(colors.background, 0.6),
-      zIndex: 9999,
+      zIndex: 99999,
+    },
+    glowOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: isDark ? 'rgba(10, 0, 3, 0.85)' : 'rgba(255, 255, 255, 0.8)',
     },
     card: {
-      width: Dimensions.get('window').width * 0.75,
-      maxWidth: 340,
-      backgroundColor: withAlpha(colors.surface2, 0.95),
-      borderRadius: 24,
-      padding: SPACING.xl,
+      width: SCREEN_WIDTH * 0.8,
+      maxWidth: 360,
+      backgroundColor: t.surface,
+      borderRadius: 32, // Deep Apple Squircle
+      padding: SPACING.xxl,
       alignItems: 'center',
       borderWidth: 1,
-      borderColor: withAlpha(colors.primary, 0.15),
+      borderColor: t.border,
+      ...Platform.select({
+        ios: {
+          shadowColor: isDark ? '#000' : t.primary,
+          shadowOffset: { width: 0, height: 20 },
+          shadowOpacity: isDark ? 0.5 : 0.15,
+          shadowRadius: 40,
+        },
+        android: { elevation: 12 },
+      }),
     },
-    icon: {
-      fontSize: 48,
-      marginBottom: SPACING.md,
+    iconWrap: {
+      width: 80,
+      height: 80,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: SPACING.xl,
     },
     title: {
-      ...TYPOGRAPHY.h2,
-      color: colors.text,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 26,
+      fontWeight: '800',
       textAlign: 'center',
-      marginBottom: SPACING.xs,
+      letterSpacing: -0.5,
+      marginBottom: SPACING.sm,
+      lineHeight: 32,
     },
     message: {
-      ...TYPOGRAPHY.body,
-      color: colors.textMuted,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 16,
+      fontWeight: '500',
       textAlign: 'center',
       fontStyle: 'italic',
+      lineHeight: 22,
+      paddingHorizontal: SPACING.md,
     },
+    indicator: {
+      marginTop: 32,
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      opacity: 0.6,
+    }
   });
+  

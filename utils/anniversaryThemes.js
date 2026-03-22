@@ -1,10 +1,10 @@
 // utils/anniversaryThemes.js
 import { storage, STORAGE_KEYS } from './storage';
-import { COLORS, GRADIENTS } from './theme';
 
 /**
  * Anniversary Theme Generator
  * Creates special vibe themes based on relationship memories
+ * Updated to utilize Sexy Red Intimacy & Apple Editorial System Colors
  */
 
 export class AnniversaryThemeGenerator {
@@ -12,58 +12,58 @@ export class AnniversaryThemeGenerator {
     this.themeTemplates = {
       'first_date': {
         name: 'First Date',
-        primary: COLORS.blushRose,
-        secondary: COLORS.blushRoseLight,
-        glow: 'rgba(247, 190, 239, 0.4)',
-        gradient: [COLORS.blushRose, COLORS.blushRoseLight],
+        primary: '#C3113D', // Sexy Red (Primary App Brand)
+        secondary: '#9A0D30',
+        glow: 'rgba(195, 17, 61, 0.4)',
+        gradient: ['#C3113D', '#9A0D30'],
         emotion: 'Where it all began',
       },
       'first_kiss': {
         name: 'First Kiss',
-        primary: COLORS.deepRed,
-        secondary: COLORS.beetroot,
-        glow: 'rgba(178, 34, 34, 0.4)',
-        gradient: [COLORS.deepRed, COLORS.beetroot],
+        primary: '#FF3B30', // iOS Red
+        secondary: '#D70015',
+        glow: 'rgba(255, 59, 48, 0.4)',
+        gradient: ['#FF3B30', '#D70015'],
         emotion: 'That magical moment',
       },
       'engagement': {
         name: 'Engagement',
-        primary: COLORS.mutedGold,
-        secondary: COLORS.champagneGold,
+        primary: '#D4AF37', // Premium Gold
+        secondary: '#B5952F',
         glow: 'rgba(212, 175, 55, 0.4)',
-        gradient: GRADIENTS.gold,
+        gradient: ['#D4AF37', '#B5952F'],
         emotion: 'Forever together',
       },
       'wedding': {
         name: 'Wedding Day',
-        primary: COLORS.pureWhite,
-        secondary: COLORS.softCream,
-        glow: 'rgba(255, 255, 255, 0.08)',
-        gradient: [COLORS.pureWhite, COLORS.softCream],
+        primary: '#AF52DE', // iOS Purple / Indigo
+        secondary: '#8944AB',
+        glow: 'rgba(175, 82, 222, 0.4)',
+        gradient: ['#AF52DE', '#8944AB'],
         emotion: 'Our perfect day',
       },
       'anniversary': {
         name: 'Anniversary',
-        primary: COLORS.roseGold,
-        secondary: COLORS.champagneGold,
-        glow: 'rgba(183, 110, 121, 0.4)',
-        gradient: [COLORS.roseGold, COLORS.champagneGold],
+        primary: '#C3113D', // Sexy Red
+        secondary: '#9A0D30',
+        glow: 'rgba(195, 17, 61, 0.4)',
+        gradient: ['#C3113D', '#9A0D30'],
         emotion: 'Celebrating our love',
       },
       'first_trip': {
         name: 'First Trip',
-        primary: COLORS.platinum,
-        secondary: COLORS.softCream,
-        glow: 'rgba(229, 228, 226, 0.4)',
-        gradient: [COLORS.platinum, COLORS.softCream],
+        primary: '#32ADE6', // iOS Cyan
+        secondary: '#208AB8',
+        glow: 'rgba(50, 173, 230, 0.4)',
+        gradient: ['#32ADE6', '#208AB8'],
         emotion: 'Adventures together',
       },
       'moving_in': {
         name: 'Moving In',
-        primary: COLORS.deepPlum,
-        secondary: COLORS.charcoal,
-        glow: 'rgba(43, 15, 30, 0.4)',
-        gradient: [COLORS.deepPlum, COLORS.charcoal],
+        primary: '#34C759', // iOS Green
+        secondary: '#248A3D',
+        glow: 'rgba(52, 199, 89, 0.4)',
+        gradient: ['#34C759', '#248A3D'],
         emotion: 'Home is with you',
       },
     };

@@ -1,40 +1,58 @@
-// components/FilmGrain.jsx — Subtle analog texture overlay
-// Renders a static noise pattern at very low opacity to give
-// ink-black backgrounds a tactile, warm-paper feeling.
+/**
+ * FilmGrain — Subtle analog texture overlay
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * * Renders a deterministic noise pattern at very low opacity.
+ * Gives ink-black backgrounds a tactile, high-end paper feeling.
+ */
+
 import React, { useMemo } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 
 const { width: W, height: H } = Dimensions.get('window');
 
-// Generate a deterministic grid of tiny dots to simulate film grain.
-// Keeping it pure-View avoids extra dependencies (no SVG/Canvas needed).
-const CELL = 6;       // grid spacing in px
-const DOT  = 1.5;     // dot size
+/**
+ * Deterministic grid of tiny "ink" dots to simulate film grain.
+ * Keeping it pure-View avoids extra dependencies like SVG or Canvas.
+ */
+const CELL = 8;       // Slightly wider grid for cleaner editorial feel
+const DOT  = 1.2;     // Smaller, sharper dots for Retina clarity
 const COLS = Math.ceil(W / CELL);
 const ROWS = Math.ceil(H / CELL);
 
-// Simple seeded PRNG for consistent output across renders
-const seed = (s) => () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; };
+// Simple deterministic PRNG for consistent texture across renders
+const seed = (s) => () => { 
+  s = (s * 16807 + 0) % 2147483647; 
+  return s / 2147483647; 
+};
 
-const FilmGrain = ({ opacity = 0.035 }) => {
+const FilmGrain = ({ opacity = 0.04 }) => {
   const dots = useMemo(() => {
-    const rng = seed(42);
+    const rng = seed(77); // New seed for updated distribution
     const result = [];
+    
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
-        // Only render ~30% of cells for organic feel
-        if (rng() > 0.3) continue;
-        const o = 0.15 + rng() * 0.55; // per-dot opacity variation
+        // Render ~25% of cells for a more sparse, premium texture
+        if (rng() > 0.25) continue;
+        
+        // Per-dot opacity variation for organic "paper" depth
+        const o = 0.2 + rng() * 0.6; 
+        
+        // Jitter positioning to break the digital grid
+        const jitterX = rng() * (CELL - DOT);
+        const jitterY = rng() * (CELL - DOT);
+
         result.push(
           <View
             key={`${r}-${c}`}
             style={{
               position: 'absolute',
-              left: c * CELL + rng() * 3,
-              top:  r * CELL + rng() * 3,
+              left: c * CELL + jitterX,
+              top:  r * CELL + jitterY,
               width: DOT,
               height: DOT,
               borderRadius: DOT / 2,
+              // Warm linen-bone tint for tactile intimacy
               backgroundColor: `rgba(242,233,230,${o})`,
             }}
           />
@@ -45,7 +63,17 @@ const FilmGrain = ({ opacity = 0.035 }) => {
   }, []);
 
   return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity }]}>
+    <View 
+      pointerEvents="none" 
+      style={[
+        StyleSheet.absoluteFill, 
+        { 
+          opacity,
+          backgroundColor: 'transparent',
+          zIndex: 9999, // Ensure texture sits atop surfaces for tactile feel
+        }
+      ]}
+    >
       {dots}
     </View>
   );

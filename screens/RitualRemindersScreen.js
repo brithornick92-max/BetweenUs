@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { useRitualContext } from '../context/RitualContext';
 import { useEntitlements } from '../context/EntitlementsContext';
@@ -105,13 +105,13 @@ export default function RitualRemindersScreen({ navigation }) {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-              <MaterialCommunityIcons name="arrow-left" size={24} color={theme.colors.text} />
+              <Icon name="arrow-left" size={24} color={theme.colors.text} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Ritual Reminders</Text>
             <View style={styles.headerSpacer} />
           </View>
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
-            <MaterialCommunityIcons name="bell-ring-outline" size={56} color={theme.colors.primary} style={{ marginBottom: 16 }} />
+            <Icon name="bell-ring-outline" size={56} color={theme.colors.primary} style={{ marginBottom: 16 }} />
           <Text style={{ color: theme.colors.text, fontSize: 28, fontFamily: 'DMSerifDisplay-Regular', marginBottom: 12, textAlign: 'center' }}>Part of the deeper experience</Text>
           <Text style={{ color: theme.colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 24, lineHeight: 22, paddingHorizontal: 16 }}>
             Ritual reminders help you build consistent connection habits with your partner. Part of the deeper experience — schedule personalized reminders.
@@ -121,7 +121,7 @@ export default function RitualRemindersScreen({ navigation }) {
             style={{ backgroundColor: theme.colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
             activeOpacity={0.85}
           >
-            <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
+            <Icon name="crown" size={18} color="#F2E9E6" />
               <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
             </TouchableOpacity>
           </View>
@@ -136,7 +136,7 @@ export default function RitualRemindersScreen({ navigation }) {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.colors.text} />
+            <Icon name="arrow-left" size={24} color={theme.colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Ritual Reminders</Text>
           <View style={styles.headerSpacer} />
@@ -171,7 +171,7 @@ export default function RitualRemindersScreen({ navigation }) {
               onPress={() => setShowPicker(true)}
               activeOpacity={0.9}
             >
-              <MaterialCommunityIcons name="clock-outline" size={18} color={theme.colors.text} />
+              <Icon name="clock-outline" size={18} color={theme.colors.text} />
               <Text style={[styles.timeText, { color: theme.colors.text }]}>
                 {when.toLocaleString()}
               </Text>
@@ -214,10 +214,10 @@ export default function RitualRemindersScreen({ navigation }) {
                 </View>
                 <View style={styles.reminderActions}>
                   <TouchableOpacity onPress={() => handleEdit(reminder)} style={styles.iconButton}>
-                    <MaterialCommunityIcons name="pencil" size={18} color={theme.colors.text} />
+                    <Icon name="pencil" size={18} color={theme.colors.text} />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => handleDelete(reminder)} style={styles.iconButton}>
-                    <MaterialCommunityIcons name="trash-can" size={18} color={theme.colors.error} />
+                    <Icon name="trash-can" size={18} color={theme.colors.error} />
                   </TouchableOpacity>
                 </View>
               </View>

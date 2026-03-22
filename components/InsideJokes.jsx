@@ -35,7 +35,7 @@ import Animated, {
   interpolate,
   SlideInRight,
 } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
@@ -125,14 +125,14 @@ export default function InsideJokes({ compact = false }) {
     return (
       <View style={[styles.compactContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.compactHeader}>
-          <MaterialCommunityIcons name="lock-outline" size={14} color={colors.textMuted} />
+          <Icon name="lock-outline" size={14} color={colors.textMuted} />
           <Text style={[styles.compactTitle, { color: colors.textMuted }]}>Our Private Language</Text>
         </View>
         {preview.map((item) => {
           const config = getTypeConfig(item.type);
           return (
             <View key={item.id} style={styles.compactItem}>
-              <MaterialCommunityIcons name={config.icon} size={14} color={config.color} />
+              <Icon name={config.icon} size={14} color={config.color} />
               <Text style={[styles.compactItemText, { color: colors.text }]} numberOfLines={1}>
                 {item.title}
               </Text>
@@ -155,7 +155,7 @@ export default function InsideJokes({ compact = false }) {
       >
         <View style={styles.jokeCardHeader}>
           <View style={[styles.jokeTypeTag, { backgroundColor: config.color + '15' }]}>
-            <MaterialCommunityIcons name={config.icon} size={14} color={config.color} />
+            <Icon name={config.icon} size={14} color={config.color} />
             <Text style={[styles.jokeTypeLabel, { color: config.color }]}>{config.label}</Text>
           </View>
           <Text style={[styles.jokeDate, { color: colors.textMuted }]}>
@@ -187,14 +187,14 @@ export default function InsideJokes({ compact = false }) {
             setModalOpen(true);
           }}
         >
-          <MaterialCommunityIcons name="plus" size={20} color={colors.text} />
+          <Icon name="plus" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
 
       {jokes.length === 0 ? (
         <Animated.View entering={FadeIn.duration(800)} style={styles.emptyState}>
           <Animated.View style={breatheStyle}>
-            <MaterialCommunityIcons name="book-heart-outline" size={52} color={colors.textMuted + '50'} />
+            <Icon name="book-heart-outline" size={52} color={colors.textMuted + '50'} />
           </Animated.View>
           <Animated.Text
             entering={FadeInDown.delay(200).duration(600)}
@@ -229,7 +229,7 @@ export default function InsideJokes({ compact = false }) {
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>Add to Vault</Text>
               <TouchableOpacity onPress={() => setModalOpen(false)}>
-                <MaterialCommunityIcons name="close" size={24} color={colors.textMuted} />
+                <Icon name="close" size={24} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 
@@ -245,7 +245,7 @@ export default function InsideJokes({ compact = false }) {
                   ]}
                   onPress={() => setSelectedType(type.key)}
                 >
-                  <MaterialCommunityIcons
+                  <Icon
                     name={type.icon}
                     size={16}
                     color={selectedType === type.key ? type.color : colors.textMuted}

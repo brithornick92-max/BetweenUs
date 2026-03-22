@@ -9,7 +9,7 @@ import {
   Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
@@ -175,7 +175,7 @@ export default function LockScreen({ onUnlock }) {
       <SafeAreaView style={styles.safeArea}>
         <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
           <View style={styles.header}>
-            <MaterialCommunityIcons name="heart-lock" size={60} color={colors.primary} />
+            <Icon name="heart-lock" size={60} color={colors.primary} />
             <Text style={[TYPOGRAPHY.h1, { color: colors.text, marginTop: SPACING.lg, textAlign: "center" }]}>
               Between Us
             </Text>
@@ -229,7 +229,7 @@ export default function LockScreen({ onUnlock }) {
                 accessibilityState={{ disabled: !biometricType || isLockedOut }}
               >
                 {biometricType && (
-                  <MaterialCommunityIcons
+                  <Icon
                     name={biometricType === "face-recognition" ? "face-recognition" : "fingerprint"}
                     size={32}
                     color={colors.primary}
@@ -252,7 +252,7 @@ export default function LockScreen({ onUnlock }) {
                 accessibilityLabel="Delete last digit"
                 accessibilityState={{ disabled: isLockedOut }}
               >
-                <MaterialCommunityIcons
+                <Icon
                   name="backspace-outline"
                   size={28}
                   color={colors.textMuted}

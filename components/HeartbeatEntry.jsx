@@ -12,20 +12,25 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
+import { SPACING } from '../utils/theme';
 
 const { width } = Dimensions.get('window');
 
+/**
+ * HeartbeatEntry
+ * Sexy Red Intimacy & Apple Editorial Intro Animation.
+ * Establishes the high-end "Velvet Glass" atmosphere upon app entry.
+ */
 const HeartbeatEntry = () => {
   const { colors, isDark } = useTheme();
   
-  // STRICT Apple Editorial Theme Map
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
-    background: isDark ? '#000000' : '#F2F2F7', 
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    primary: colors.primary,
-    accent: colors.accent || '#FF2D55',
-    text: isDark ? '#FFFFFF' : '#000000',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    background: colors.background, 
+    surface: isDark ? '#131016' : '#FFFFFF',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
@@ -33,23 +38,26 @@ const HeartbeatEntry = () => {
   const textOpacity = useSharedValue(0);
 
   useEffect(() => {
-    // Continuous heartbeat-like pulse with Apple-like spring/easing
+    // Continuous high-end heartbeat pulse
     pulse.value = withRepeat(
       withSequence(
-        withTiming(1.2, { duration: 1200, easing: Easing.bezier(0.4, 0, 0.2, 1) }),
-        withTiming(1, { duration: 1200, easing: Easing.bezier(0.4, 0, 0.2, 1) })
+        withTiming(1.15, { duration: 1500, easing: Easing.bezier(0.33, 1, 0.68, 1) }),
+        withTiming(1, { duration: 1500, easing: Easing.bezier(0.33, 1, 0.68, 1) })
       ),
       -1,
       true
     );
 
-    // Fade in text quote after mounting
-    textOpacity.value = withTiming(1, { duration: 2000, easing: Easing.out(Easing.cubic) });
+    // Elegant text entrance
+    textOpacity.value = withTiming(1, { 
+      duration: 2500, 
+      easing: Easing.out(Easing.exp) 
+    });
   }, [pulse, textOpacity]);
 
   const glowStyle = useAnimatedStyle(() => {
-    const scale = interpolate(pulse.value, [1, 1.2], [1, 1.6], Extrapolate.CLAMP);
-    const opacity = interpolate(pulse.value, [1, 1.2], [0.3, 0.05], Extrapolate.CLAMP);
+    const scale = interpolate(pulse.value, [1, 1.15], [1, 1.8], Extrapolate.CLAMP);
+    const opacity = interpolate(pulse.value, [1, 1.15], [0.4, 0.02], Extrapolate.CLAMP);
     
     return {
       transform: [{ scale }],
@@ -58,7 +66,7 @@ const HeartbeatEntry = () => {
   });
 
   const coreStyle = useAnimatedStyle(() => {
-    const scale = interpolate(pulse.value, [1, 1.2], [1, 1.05], Extrapolate.CLAMP);
+    const scale = interpolate(pulse.value, [1, 1.15], [1, 1.04], Extrapolate.CLAMP);
     
     return {
       transform: [{ scale }],
@@ -69,47 +77,46 @@ const HeartbeatEntry = () => {
     return {
       opacity: textOpacity.value,
       transform: [
-        { translateY: interpolate(textOpacity.value, [0, 1], [15, 0], Extrapolate.CLAMP) }
+        { translateY: interpolate(textOpacity.value, [0, 1], [20, 0], Extrapolate.CLAMP) }
       ]
     };
   });
 
   return (
     <View style={styles.container}>
-      {/* Velvet background gradient injected directly for the immersive intro */}
+      {/* Immersive background with Sexy Red vignette */}
       <LinearGradient
         colors={
           isDark 
-            ? [t.background, '#0F0A1A', '#0D081A', t.background] 
-            : [t.background, '#EBEBF5', t.background]
+            ? [t.background, '#120206', '#0A0003', t.background] 
+            : [t.background, '#F2F2F7', t.background]
         }
-        locations={[0, 0.3, 0.7, 1]}
+        locations={[0, 0.4, 0.6, 1]}
         style={StyleSheet.absoluteFillObject}
       />
 
       <View style={styles.animationWrapper}>
-        {/* Deep Velvet Pulsing Glow */}
+        {/* Intimate Sexy Red Glow */}
         <Animated.View style={[styles.glow, glowStyle]} />
         
-        {/* Stark Editorial Core */}
+        {/* High-End Editorial Core */}
         <Animated.View style={[styles.core, coreStyle]} />
       </View>
 
-      {/* Fade-in Quote */}
+      {/* Narrative Entry Text */}
       <Animated.View style={[styles.quoteContainer, animatedTextStyle]}>
         <Text style={styles.quote}>
           "A space for just the two of you."
         </Text>
+        <View style={[styles.indicator, { backgroundColor: t.primary }]} />
       </Animated.View>
     </View>
   );
 };
 
-// ------------------------------------------------------------------
-// STYLES - Apple Editorial / Velvet Glass
-// ------------------------------------------------------------------
 const createStyles = (t, isDark) => {
   const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+  const serifFont = Platform.select({ ios: "Georgia", android: "serif" });
 
   return StyleSheet.create({
     container: {
@@ -121,54 +128,63 @@ const createStyles = (t, isDark) => {
     animationWrapper: {
       alignItems: 'center',
       justifyContent: 'center',
-      height: 380,
-      width: 380,
+      height: 300,
+      width: 300,
     },
     glow: {
       position: 'absolute',
-      width: 160,
-      height: 160,
-      borderRadius: 80,
+      width: 140,
+      height: 140,
+      borderRadius: 70,
       backgroundColor: t.primary,
       ...Platform.select({
         ios: {
           shadowColor: t.primary,
           shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.5,
-          shadowRadius: 40,
+          shadowOpacity: 0.6,
+          shadowRadius: 50,
         },
-        android: { elevation: 10 },
+        android: { elevation: 12 },
       }),
     },
     core: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      backgroundColor: t.text, // High contrast crisp core
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      backgroundColor: t.text,
       zIndex: 2,
       ...Platform.select({
         ios: {
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: isDark ? 0.8 : 0.15,
-          shadowRadius: 20,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 12 },
+          shadowOpacity: isDark ? 0.9 : 0.1,
+          shadowRadius: 24,
         },
         android: { elevation: 8 },
       }),
     },
     quoteContainer: {
-      marginTop: 40,
-      width: width * 0.85,
+      marginTop: 60,
+      width: width * 0.8,
+      alignItems: 'center',
     },
     quote: {
-      fontFamily: systemFont,
-      fontSize: 24,
-      fontWeight: '700',
+      fontFamily: serifFont,
+      fontSize: 22,
+      fontWeight: '600',
       textAlign: 'center',
       color: t.text,
-      letterSpacing: -0.3,
-      lineHeight: 32,
+      fontStyle: 'italic',
+      lineHeight: 30,
+      letterSpacing: -0.2,
     },
+    indicator: {
+      marginTop: 24,
+      width: 3,
+      height: 3,
+      borderRadius: 1.5,
+      opacity: 0.8,
+    }
   });
 };
 

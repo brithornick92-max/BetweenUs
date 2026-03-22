@@ -6,62 +6,61 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Platform,
 } from "react-native";
-import { Platform } from "react-native";
 import { BlurView } from "expo-blur";
 import { useTheme } from "../context/ThemeContext";
-import { BORDER_RADIUS } from "../utils/theme";
+import { SPACING, withAlpha } from "../utils/theme";
 
 /**
- * High-End Animated Input Component
- * ✅ Theme-aware
- * ✅ FIX: BlurView + Animated stacking on iOS (KEYBOARD / FOCUS ISSUE)
+ * High-End Apple Editorial Input Component
+ * Sexy Red Intimacy & Velvet Glass Updates Integrated.
  */
 
-const createStyles = (colors) => StyleSheet.create({
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+
+const createStyles = (t, isDark) => StyleSheet.create({
   wrapper: {
-    marginVertical: 10,
+    marginVertical: 12,
     width: "100%",
   },
   label: {
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 8,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: 10,
     marginLeft: 4,
     textTransform: "uppercase",
     letterSpacing: 1.5,
   },
-
-  // ✅ must be relative for blur zIndex to behave reliably on iOS
   container: {
     position: "relative",
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: 20, // Deep Apple Squircle
     borderWidth: 1.5,
     paddingHorizontal: 16,
     overflow: "hidden",
-    minHeight: 56,
+    minHeight: 56, // Apple Standard touch target
   },
-
-  // ✅ true background layer
   blurLayer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: -1,
   },
-
   containerMultiline: {
     alignItems: "flex-start",
-    paddingVertical: 12,
+    paddingVertical: 16,
   },
   containerDisabled: {
     opacity: 0.5,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 17, // Native iOS Body Size
     fontWeight: "500",
-    paddingVertical: Platform.OS === "ios" ? 12 : 8,
+    letterSpacing: -0.2,
+    paddingVertical: Platform.OS === "ios" ? 14 : 10,
   },
   inputMultiline: {
     minHeight: 120,
@@ -69,7 +68,6 @@ const createStyles = (colors) => StyleSheet.create({
   },
   icon: {
     marginRight: 12,
-    opacity: 0.8,
   },
   rightIcon: {
     marginLeft: 12,
@@ -79,17 +77,21 @@ const createStyles = (colors) => StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 6,
-    paddingHorizontal: 4,
+    marginTop: 8,
+    paddingHorizontal: 6,
   },
   helper: {
-    fontSize: 12,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
     fontWeight: "500",
+    letterSpacing: -0.1,
   },
   counter: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: "700",
     fontVariant: ["tabular-nums"],
+    opacity: 0.6,
   },
 });
 
@@ -111,36 +113,30 @@ export default function Input({
   onRightIconPress,
   maxLength,
   style,
-
   onSubmitEditing,
   returnKeyType,
   autoFocus = false,
   blur = true,
-
-  // handy defaults (safe)
   autoCorrect = false,
   keyboardAppearance,
 }) {
   const { colors, isDark } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    surface: isDark ? "#131016" : "#FFFFFF",
+    surfaceSecondary: isDark ? "#1C1520" : "#F2F2F7",
+    primary: colors.primary || "#C3113D", // Sexy Red
+    text: colors.text,
+    subtext: isDark ? "rgba(242,233,230,0.6)" : "rgba(60, 60, 67, 0.6)",
+    border: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+    danger: "#FF3B30",
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const [focused, setFocused] = useState(false);
   const focusAnim = useRef(new Animated.Value(0)).current;
-
-  const palette = useMemo(() => {
-    return {
-      baseText: colors.text,
-      secondaryText: colors.textMuted,
-      border: colors.border,
-      surface: colors.surface,
-      surfaceFocused: colors.surface2,
-      accent: colors.primary,
-      err: colors.danger,
-      placeholderColor: colors.textMuted,
-      helperColor: colors.textMuted,
-      counterColor: colors.textMuted,
-    };
-  }, [colors]);
 
   const handleFocus = () => {
     setFocused(true);
@@ -162,26 +158,31 @@ export default function Input({
 
   const borderColor = focusAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [error ? palette.err : palette.border, error ? palette.err : palette.accent],
+    outputRange: [
+      error ? t.danger : t.border, 
+      error ? t.danger : t.primary
+    ],
   });
 
   const backgroundColor = focusAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [palette.surface, palette.surfaceFocused],
+    outputRange: [
+      isDark ? "rgba(28,21,32,0.6)" : "#FFFFFF", 
+      t.surfaceSecondary
+    ],
   });
 
   const labelColor = error
-    ? palette.err
+    ? t.danger
     : focused
-      ? palette.accent
-      : palette.secondaryText;
+      ? t.primary
+      : t.subtext;
 
   return (
     <View style={[styles.wrapper, style]}>
       {label && <Text style={[styles.label, { color: labelColor }]}>{label}</Text>}
 
       <Animated.View
-        // ✅ "box-none" prevents wrapper from blocking touch/focus
         pointerEvents="box-none"
         style={[
           styles.container,
@@ -190,27 +191,29 @@ export default function Input({
           !editable && styles.containerDisabled,
         ]}
       >
-        {/* ✅ Most reliable fix:
-            1) pointerEvents="none" so blur never captures touches
-            2) zIndex:-1 so blur is truly BEHIND the TextInput on iOS
-            3) container is position:"relative" so zIndex works consistently
-        */}
         {blur && Platform.OS === "ios" && (
           <BlurView
             pointerEvents="none"
-            intensity={focused ? 15 : 6}
+            intensity={focused ? 25 : 10}
             tint={isDark ? "dark" : "light"}
             style={styles.blurLayer}
           />
         )}
 
-        {icon && <View style={styles.icon}>{icon}</View>}
+        {icon && (
+          <View style={styles.icon}>
+            {React.cloneElement(icon, { 
+              color: focused ? t.primary : t.subtext,
+              size: 20 
+            })}
+          </View>
+        )}
 
         <TextInput
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={palette.placeholderColor}
+          placeholderTextColor={t.subtext}
           multiline={multiline}
           numberOfLines={multiline ? numberOfLines : 1}
           secureTextEntry={secureTextEntry}
@@ -224,15 +227,14 @@ export default function Input({
           onSubmitEditing={onSubmitEditing}
           returnKeyType={returnKeyType}
           autoFocus={autoFocus}
-          selectionColor={palette.accent}
+          selectionColor={t.primary}
           keyboardAppearance={keyboardAppearance ?? (isDark ? "dark" : "light")}
           accessibilityLabel={label || placeholder}
-          accessibilityState={{ disabled: !editable }}
           style={[
             styles.input,
             multiline && styles.inputMultiline,
             {
-              color: palette.baseText,
+              color: t.text,
               textAlignVertical: multiline ? "top" : "center",
             },
           ]}
@@ -245,14 +247,17 @@ export default function Input({
             disabled={!onRightIconPress}
             activeOpacity={0.7}
           >
-            {rightIcon}
+            {React.cloneElement(rightIcon, { 
+              color: t.subtext,
+              size: 20 
+            })}
           </TouchableOpacity>
         )}
       </Animated.View>
 
       <View style={styles.footer}>
         {error || helper ? (
-          <Text style={[styles.helper, { color: error ? palette.err : palette.helperColor }]}>
+          <Text style={[styles.helper, { color: error ? t.danger : t.subtext }]}>
             {error || helper}
           </Text>
         ) : (
@@ -260,7 +265,7 @@ export default function Input({
         )}
 
         {typeof maxLength === "number" && (
-          <Text style={[styles.counter, { color: palette.counterColor }]}>
+          <Text style={[styles.counter, { color: t.subtext }]}>
             {(value?.length || 0)}/{maxLength}
           </Text>
         )}

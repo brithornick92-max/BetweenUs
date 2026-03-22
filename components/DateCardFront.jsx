@@ -6,7 +6,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Platform, Animated as RNAnimated, Dimensions } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Easing } from 'react-native-reanimated';
 
@@ -112,7 +112,7 @@ export default function DateCardFront({ date, colors, dims }) {
           end={{ x: 1, y: 0.5 }}
         />
         <View style={styles.bandContent}>
-          <MaterialCommunityIcons name={icon} size={16} color={metal.highlight} />
+          <Icon name={icon} size={16} color={metal.highlight} />
           <Text style={[styles.bandLabel, { color: metal.highlight }]}>{label}</Text>
         </View>
       </View>
@@ -144,7 +144,7 @@ export default function DateCardFront({ date, colors, dims }) {
             )}
             {date.minutes ? (
               <View style={[styles.tag, { borderColor: metal.chrome + '30' }]}>
-                <MaterialCommunityIcons name="clock-outline" size={11} color={metal.chrome} />
+                <Icon name="clock-outline" size={11} color={metal.chrome} />
                 <Text style={[styles.tagText, { color: metal.chrome }]}> {date.minutes} min</Text>
               </View>
             ) : null}
@@ -189,7 +189,7 @@ export default function DateCardFront({ date, colors, dims }) {
       <View style={styles.footer}>
         <View style={styles.footerContent}>
           <Text style={[styles.footerText, { color: metal.chrome + '60' }]}>swipe right for tonight</Text>
-          <MaterialCommunityIcons name="arrow-right" size={14} color={metal.chrome + '60'} />
+          <Icon name="arrow-right" size={14} color={metal.chrome + '60'} />
         </View>
       </View>
     </View>

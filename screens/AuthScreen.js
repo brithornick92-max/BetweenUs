@@ -9,14 +9,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { LinearGradient } from "expo-linear-gradient";
+import Icon from '../components/Icon';
+import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { BORDER_RADIUS } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
+
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 
 export default function AuthScreen() {
   const auth = useAuth();
@@ -39,23 +44,18 @@ export default function AuthScreen() {
   const passwordRef = useRef(null);
   const confirmRef = useRef(null);
 
-  // Canonical luxury palette
-  const C = useMemo(() => ({
-    bg: colors.background,
-    card: colors.surface,
-    accent: colors.primary,
-    accentHover: colors.primary,
-    accentMuted: colors.primary + "CC",
-    cream: colors.text,
-    creamSoft: colors.text + "CC",
-    creamFaint: colors.textMuted,
-    inputBg: colors.surface,
-    inputBorder: colors.border,
-    inputBorderFocus: colors.primary,
-    sectionLabel: colors.textMuted,
-  }), [colors]);
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
-  const styles = useMemo(() => createStyles(C, colors), [C, colors]);
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const handleAuth = useCallback(async () => {
     try {
@@ -64,39 +64,45 @@ export default function AuthScreen() {
         return;
       }
       if (!email.trim() || !password.trim()) {
+        impact(ImpactFeedbackStyle.Light);
         Alert.alert("Missing fields", "Please enter your email and password.");
         return;
       }
       if (isSignUp) {
         if (!displayName.trim()) {
+          impact(ImpactFeedbackStyle.Light);
           Alert.alert("Missing name", "Please enter your name.");
           return;
         }
         if (password !== confirmPassword) {
+          impact(ImpactFeedbackStyle.Light);
           Alert.alert("Mismatch", "Passwords do not match.");
           return;
         }
         if (password.length < 6) {
+          impact(ImpactFeedbackStyle.Light);
           Alert.alert("Too short", "Password must be at least 6 characters.");
           return;
         }
         if (!ageConfirmed) {
+          impact(ImpactFeedbackStyle.Light);
           Alert.alert("Age Confirmation Required", "You must confirm you are 18 or older to use Between Us.");
           return;
         }
         if (!termsAccepted) {
+          impact(ImpactFeedbackStyle.Light);
           Alert.alert("Terms Required", "Please accept the Terms of Service and Privacy Policy to continue.");
           return;
         }
+        impact(ImpactFeedbackStyle.Medium);
         await signUp(email.trim(), password, displayName.trim());
-        impact(ImpactFeedbackStyle.Light).catch(() => {});
         Alert.alert("Welcome", "Your account has been created.");
       } else {
+        impact(ImpactFeedbackStyle.Medium);
         await signIn(email.trim(), password);
-        impact(ImpactFeedbackStyle.Light).catch(() => {});
       }
     } catch (error) {
-      impact(ImpactFeedbackStyle.Medium).catch(() => {});
+      impact(ImpactFeedbackStyle.Heavy);
       Alert.alert("Error", error?.message ?? "Something went wrong.");
     }
   }, [signIn, signUp, email, password, displayName, confirmPassword, isSignUp, ageConfirmed, termsAccepted]);
@@ -113,9 +119,19 @@ export default function AuthScreen() {
   }, []);
 
   return (
-    <View
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
+      
+      {/* Deep velvet background gradient with a hint of dark crimson in dark mode */}
+      <LinearGradient
+        colors={isDark 
+          ? [t.background, '#120206', '#0A0003', t.background] 
+          : [t.background, t.surfaceSecondary, t.background]}
+        style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <KeyboardAvoidingView
           style={styles.kav}
@@ -128,10 +144,10 @@ export default function AuthScreen() {
             keyboardDismissMode="on-drag"
             bounces={false}
           >
-            {/* Header */}
+            {/* ─── Header ─── */}
             <View style={styles.header}>
-              <View style={styles.heartGlow}>
-                <MaterialCommunityIcons name="heart" size={40} color={C.accent} />
+              <View style={[styles.heartGlow, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
+                <Icon name="heart" size={32} color={t.primary} />
               </View>
               <Text style={styles.title}>Between Us</Text>
               <View style={styles.divider} />
@@ -140,44 +156,42 @@ export default function AuthScreen() {
               </Text>
             </View>
 
-            {/* Form */}
+            {/* ─── Form ─── */}
             <View style={styles.form}>
               {isSignUp && (
                 <View style={styles.inputContainer}>
-                  <MaterialCommunityIcons
-                    name="account-outline"
+                  <Icon
+                    name="person-outline"
                     size={20}
-                    color={C.creamFaint}
+                    color={t.subtext}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder="Your name"
-                    placeholderTextColor={C.creamFaint}
+                    placeholderTextColor={t.subtext}
                     value={displayName}
                     onChangeText={setDisplayName}
                     autoCapitalize="words"
                     returnKeyType="next"
                     onSubmitEditing={() => emailRef.current?.focus()}
                     blurOnSubmit={false}
-                    accessibilityLabel="Your name"
-                    accessibilityHint="Enter your display name"
                   />
                 </View>
               )}
 
               <View style={styles.inputContainer}>
-                <MaterialCommunityIcons
-                  name="email-outline"
+                <Icon
+                  name="mail-outline"
                   size={20}
-                  color={C.creamFaint}
+                  color={t.subtext}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   ref={emailRef}
                   style={styles.input}
                   placeholder="Email address"
-                  placeholderTextColor={C.creamFaint}
+                  placeholderTextColor={t.subtext}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -188,23 +202,21 @@ export default function AuthScreen() {
                   returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   blurOnSubmit={false}
-                  accessibilityLabel="Email address"
-                  accessibilityHint="Enter your email to sign in or create an account"
                 />
               </View>
 
               <View style={styles.inputContainer}>
-                <MaterialCommunityIcons
-                  name="lock-outline"
+                <Icon
+                  name="lock-closed-outline"
                   size={20}
-                  color={C.creamFaint}
+                  color={t.subtext}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   ref={passwordRef}
                   style={styles.input}
                   placeholder="Password"
-                  placeholderTextColor={C.creamFaint}
+                  placeholderTextColor={t.subtext}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
@@ -213,63 +225,58 @@ export default function AuthScreen() {
                   returnKeyType={isSignUp ? "next" : "done"}
                   onSubmitEditing={isSignUp ? () => confirmRef.current?.focus() : handleAuth}
                   blurOnSubmit={!isSignUp}
-                  accessibilityLabel="Password"
                 />
               </View>
 
               {isSignUp && (
                 <View style={styles.inputContainer}>
-                  <MaterialCommunityIcons
-                    name="lock-check-outline"
+                  <Icon
+                    name="shield-checkmark-outline"
                     size={20}
-                    color={C.creamFaint}
+                    color={t.subtext}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     ref={confirmRef}
                     style={styles.input}
                     placeholder="Confirm password"
-                    placeholderTextColor={C.creamFaint}
+                    placeholderTextColor={t.subtext}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     secureTextEntry
                     textContentType="oneTimeCode"
                     autoComplete="off"
                     returnKeyType="done"
-                    onSubmitEditing={handleAuth}                    accessibilityLabel="Confirm password"                  />
+                    onSubmitEditing={handleAuth}
+                  />
                 </View>
               )}
 
+              {/* ─── Legal Checks ─── */}
               {isSignUp && (
                 <View style={styles.legalChecks}>
                   <TouchableOpacity
                     style={styles.checkRow}
-                    onPress={() => setAgeConfirmed(v => !v)}
+                    onPress={() => { selection(); setAgeConfirmed(v => !v); }}
                     activeOpacity={0.7}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: ageConfirmed }}
-                    accessibilityLabel="I confirm I am 18 years or older"
                   >
-                    <MaterialCommunityIcons
-                      name={ageConfirmed ? "checkbox-marked" : "checkbox-blank-outline"}
+                    <Icon
+                      name={ageConfirmed ? "checkmark-circle" : "ellipse-outline"}
                       size={22}
-                      color={ageConfirmed ? C.accent : C.creamFaint}
+                      color={ageConfirmed ? t.primary : t.subtext}
                     />
                     <Text style={styles.checkText}>I confirm I am 18 years or older</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.checkRow}
-                    onPress={() => setTermsAccepted(v => !v)}
+                    onPress={() => { selection(); setTermsAccepted(v => !v); }}
                     activeOpacity={0.7}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: termsAccepted }}
-                    accessibilityLabel="I agree to the Terms of Service and Privacy Policy"
                   >
-                    <MaterialCommunityIcons
-                      name={termsAccepted ? "checkbox-marked" : "checkbox-blank-outline"}
+                    <Icon
+                      name={termsAccepted ? "checkmark-circle" : "ellipse-outline"}
                       size={22}
-                      color={termsAccepted ? C.accent : C.creamFaint}
+                      color={termsAccepted ? t.primary : t.subtext}
                     />
                     <Text style={styles.checkText}>
                       I agree to the{" "}
@@ -281,23 +288,16 @@ export default function AuthScreen() {
                 </View>
               )}
 
-              {/* CTA Button */}
+              {/* ─── CTA Button ─── */}
               <TouchableOpacity
-                style={styles.authButton}
+                style={[styles.authButton, { backgroundColor: t.primary }]}
                 onPress={handleAuth}
                 disabled={loading}
                 activeOpacity={0.85}
-                accessibilityRole="button"
-                accessibilityLabel={loading ? "Please wait" : isSignUp ? "Create Account" : "Sign In"}
-                accessibilityState={{ disabled: loading }}
               >
-                <View
-                  style={styles.authButtonGradient}
-                >
-                  <Text style={styles.authButtonText}>
-                    {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
-                  </Text>
-                </View>
+                <Text style={styles.authButtonText}>
+                  {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -305,10 +305,8 @@ export default function AuthScreen() {
                 onPress={toggleMode}
                 disabled={loading}
                 activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={isSignUp ? "Switch to sign in" : "Switch to sign up"}
               >
-                <Text style={styles.toggleText}>
+                <Text style={[styles.toggleText, { color: t.primary }]}>
                   {isSignUp
                     ? "Already have an account? Sign in"
                     : "Don't have an account? Sign up"}
@@ -316,72 +314,72 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Security badge */}
+            {/* ─── Security Badge ─── */}
             <View style={styles.securityBadge}>
-              <MaterialCommunityIcons name="shield-check" size={14} color={C.sectionLabel} />
+              <Icon name="lock-closed-outline" size={14} color={t.subtext} />
               <Text style={styles.securityText}>
                 Your intimate responses are encrypted and private
               </Text>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-        </SafeAreaView>
-      </View>
-    );
+      </SafeAreaView>
+    </View>
+  );
 }
 
-const createStyles = (C, colors) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+const createStyles = (t, isDark) => StyleSheet.create({
+  container: { 
+    flex: 1, 
+    backgroundColor: t.background 
+  },
   safeArea: { flex: 1 },
   kav: { flex: 1 },
 
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: 28,
-    paddingVertical: 32,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xxxl,
   },
 
   header: {
     alignItems: "center",
-    marginBottom: 36,
+    marginBottom: SPACING.xxxl,
   },
 
   heartGlow: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.border,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
 
   title: {
-    fontFamily: Platform.select({
-      ios: "DMSerifDisplay-Regular",
-      android: "DMSerifDisplay_400Regular",
-    }),
-    fontSize: 38,
-    color: C.cream,
+    fontFamily: SERIF_FONT,
+    fontSize: 44,
+    color: t.text,
     letterSpacing: -0.5,
   },
 
   divider: {
     width: 40,
-    height: 1.5,
-    backgroundColor: C.accent,
-    marginVertical: 14,
+    height: 2,
+    backgroundColor: t.primary,
+    marginVertical: SPACING.md,
     borderRadius: 1,
-    opacity: 0.6,
+    opacity: 0.8,
   },
 
   subtitle: {
-    fontSize: 15,
-    color: C.creamSoft,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
+    color: t.subtext,
     textAlign: "center",
-    fontWeight: "400",
-    letterSpacing: 0.3,
+    fontWeight: "500",
+    letterSpacing: -0.2,
   },
 
   form: {
@@ -391,13 +389,13 @@ const createStyles = (C, colors) => StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: C.inputBg,
-    borderRadius: 14,
-    marginBottom: 14,
-    paddingHorizontal: 16,
-    height: 56,
+    backgroundColor: t.surfaceSecondary,
+    borderRadius: 16,
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    height: 56, // Tall Apple touch target
     borderWidth: 1,
-    borderColor: C.inputBorder,
+    borderColor: t.border,
   },
 
   inputIcon: {
@@ -406,94 +404,91 @@ const createStyles = (C, colors) => StyleSheet.create({
 
   input: {
     flex: 1,
-    color: C.cream,
-    fontSize: 16,
+    color: t.text,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 17, // Native iOS size
+    fontWeight: "500",
     paddingVertical: 0,
   },
 
   authButton: {
-    marginTop: 20,
-    borderRadius: 14,
-    overflow: "hidden",
+    marginTop: SPACING.lg,
+    height: 56,
+    borderRadius: 28, // Perfect Pill
+    alignItems: "center",
+    justifyContent: "center",
     ...Platform.select({
       ios: {
-        shadowColor: C.accent,
+        shadowColor: t.primary,
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0,
+        shadowOpacity: isDark ? 0.4 : 0.2,
         shadowRadius: 12,
       },
-      android: { elevation: 8 },
+      android: { elevation: 6 },
     }),
   },
 
-  authButtonGradient: {
-    height: 52,
-    borderRadius: BORDER_RADIUS.lg,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: C.accent,
-  },
-
   authButtonText: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.3,
+    color: '#FFFFFF', // High contrast over primary red
+    fontFamily: SYSTEM_FONT,
+    fontSize: 17,
+    fontWeight: "700",
+    letterSpacing: -0.2,
   },
 
   toggleButton: {
-    marginTop: 20,
+    marginTop: SPACING.xl,
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: SPACING.sm,
   },
 
   toggleText: {
-    color: C.accent,
-    paddingVertical: 8,
-  },
-
-  toggleText: {
-    color: C.accentHover,
-    fontSize: 14,
-    fontWeight: "500",
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: "600",
+    letterSpacing: -0.2,
   },
 
   securityBadge: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 32,
-    opacity: 0.7,
+    marginTop: 40,
   },
 
   securityText: {
-    color: C.creamSoft,
-    fontSize: 11,
+    fontFamily: SYSTEM_FONT,
+    color: t.subtext,
+    fontSize: 13,
+    fontWeight: "500",
     marginLeft: 6,
     textAlign: "center",
   },
 
   legalChecks: {
-    marginTop: 16,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.sm,
     gap: 12,
   },
 
   checkRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    paddingRight: SPACING.xl,
     gap: 10,
   },
 
   checkText: {
     flex: 1,
-    color: C.creamSoft,
-    fontSize: 13,
-    lineHeight: 18,
-    marginTop: 2,
+    fontFamily: SYSTEM_FONT,
+    color: t.subtext,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 1,
   },
 
   linkText: {
-    color: C.accent,
-    textDecorationLine: "underline",
+    color: t.primary,
+    fontWeight: "600",
   },
 });

@@ -1,28 +1,55 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import Animated, { FadeInRight } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { useTheme } from '../context/ThemeContext';
+import { SPACING, withAlpha } from '../utils/theme';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
+/**
+ * YearReflectionCard
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * A premium-only card that invites users into their annual narrative.
+ */
 export default function YearReflectionCard({ onPress }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
   return (
     <AnimatedTouchable
-      entering={FadeInRight.duration(500).springify().damping(16)}
-      style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-      activeOpacity={0.85}
+      entering={FadeInRight.duration(600).springify().damping(18)}
+      style={[
+        styles.card, 
+        { 
+          backgroundColor: t.surface, 
+          borderColor: t.border 
+        }
+      ]}
+      activeOpacity={0.9}
       onPress={onPress}
     >
-      <View style={[styles.iconCircle, { backgroundColor: colors.primary + '15' }]}> 
-        <MaterialCommunityIcons name="book-open-variant" size={20} color={colors.primary} />
+      <View style={[styles.iconCircle, { backgroundColor: withAlpha(t.primary, 0.12) }]}> 
+        <Icon name="book-outline" size={20} color={t.primary} />
       </View>
-      <View style={{ flex: 1 }}>
-        <Text style={[styles.title, { color: colors.text }]}>Year Reflection</Text>
-        <Text style={[styles.subtitle, { color: colors.textMuted }]}>A warm, written look back at your year together.</Text>
+
+      <View style={styles.textWrap}>
+        <Text style={[styles.title, { color: t.text }]}>Year Reflection</Text>
+        <Text style={[styles.subtitle, { color: t.subtext }]}>
+          A warm, written look back at your year together.
+        </Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textMuted} />
+
+      <Icon name="chevron-forward" size={18} color={t.border} />
     </AnimatedTouchable>
   );
 }
@@ -31,27 +58,43 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
+    padding: SPACING.lg,
+    borderRadius: 24, // Deep Apple Squircle
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     gap: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+      },
+      android: { elevation: 2 },
+    }),
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 12, // iOS rounded icon style
     alignItems: 'center',
     justifyContent: 'center',
   },
+  textWrap: {
+    flex: 1,
+    gap: 2,
+  },
   title: {
-    fontSize: 15,
-    fontFamily: 'Lato_700Bold',
-    marginBottom: 2,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 12,
-    fontFamily: 'Lato_400Regular',
-    lineHeight: 16,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 18,
+    letterSpacing: -0.1,
   },
 });

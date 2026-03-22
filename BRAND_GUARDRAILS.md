@@ -92,20 +92,20 @@ like it belongs in that space.
 
 ---
 
-## Visual Tone — Midnight Intimacy Palette
+## Visual Tone — Velvet Intimacy Palette
 
-- **Dark theme only** — Ink-black (#070509) background, soft cream text (#F2E9E6)
-- **Charcoal-plum surfaces** (#131016) — cards, inputs, elevated UI elements
-- **Surface-plum** (#1C1520) — secondary surfaces, subtle elevation
-- **Surface-elevated** (#241C28) — tertiary surfaces, modal overlays
-- **Wine accent** (#7A1E4E) — primary CTAs, active states, key interactions
-- **Mulberry accent** (#9A2E5E) — secondary accent, links, subtle highlights
-- **Wine-deep** (#4C1030) — gradient endpoints, deep accent
-- **Matte gold** (#A89060) — **premium-only**, never in main UI. Reserved for Pro badge, paywall, milestones.
-- **Plum vignette** (#1A0D18) — atmospheric gradient backgrounds
-- **No teal, no green, no bright pink** — the palette is plum, wine, and cream only
-- **Glass/blur effects** — plum-tinted glass `rgba(28,21,32,...)`, everything feels layered and soft
-- **Borders** — white at very low opacity: `rgba(255,255,255,0.06)` — never raw white, never colored
+- **Dark theme only** — Near-black (#080508) background, warm candlelight cream text (#F5EAE6)
+- **Midnight velvet surfaces** (#130D17) — cards, inputs, elevated UI elements
+- **Dark aubergine** (#1B1221) — secondary surfaces, subtle elevation
+- **Elevated velvet** (#231929) — tertiary surfaces, modal overlays
+- **Sexy red accent** (#C3113D) — primary CTAs, active states, key interactions
+- **Deep berry-red accent** (#A00D31) — secondary accent, links, subtle highlights
+- **Wine-deep** (#4E0820) — gradient endpoints, deep accent
+- **Antique amber gold** (#C49A6A) — **premium-only**, never in main UI. Reserved for Pro badge, paywall, milestones.
+- **Plum vignette** (#1A0C1E) — atmospheric gradient backgrounds
+- **No teal, no green, no bright pink** — the palette is velvet plum, deep rose-wine, and candlelight cream only
+- **Glass/blur effects** — plum-tinted velvet glass `rgba(27,18,33,...)`, everything feels layered and warm
+- **Borders** — white at very low opacity: `rgba(255,255,255,0.04–0.07)` — never raw white, never colored
 - **No hard borders** — rounded corners (cards: 20, buttons: 16, pills: 999), subtle gradients, breathing space
 - **Shadows**: Dramatically reduced — max opacity 0.12, mostly 0.04–0.08
 - **Animations**: Gentle. Slow fades (250–1000ms), soft springs (damping 20–25). Never bouncy or attention-seeking.

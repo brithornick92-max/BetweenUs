@@ -1,10 +1,12 @@
 // File: navigation/Tabs.js - Premium Tab Navigation
-import React, { useEffect } from "react";
+// Fully integrated with Apple Editorial & Velvet Glass aesthetic
+
+import React, { useEffect, useMemo } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
-import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { Ionicons } from "@expo/vector-icons";
+import { selection } from '../utils/haptics';
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -12,7 +14,7 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { useTheme } from "../context/ThemeContext";
-import { TYPOGRAPHY, withAlpha, SANS_BOLD } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 
 // Tab screens
 import HomeScreen from "../screens/HomeScreen";
@@ -23,21 +25,29 @@ import SettingsScreen from "../screens/SettingsScreen";
 
 const Tab = createBottomTabNavigator();
 
+// ------------------------------------------------------------------
+// ANIMATED TAB ICON
+// ------------------------------------------------------------------
 function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
-  const scale = useSharedValue(focused ? 1.15 : 1);
-  const opacity = useSharedValue(focused ? 1 : 0.85);
+  const scale = useSharedValue(focused ? 1.1 : 1);
+  const translateY = useSharedValue(focused ? -2 : 0);
 
   useEffect(() => {
-    scale.value = withSpring(focused ? 1.15 : 1, {
-      damping: 15,
-      stiffness: 150,
+    scale.value = withSpring(focused ? 1.12 : 1, {
+      damping: 12,
+      stiffness: 200,
     });
-    opacity.value = withTiming(focused ? 1 : 0.85, { duration: 300 });
+    translateY.value = withSpring(focused ? -1 : 0, {
+      damping: 12,
+      stiffness: 200,
+    });
   }, [focused]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
+    transform: [
+      { scale: scale.value },
+      { translateY: translateY.value }
+    ],
   }));
 
   const getIconName = () => {
@@ -63,22 +73,24 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
         name={getIconName()}
         size={size}
         color={color}
-        style={styles.icon}
       />
     </Animated.View>
   );
 }
 
-function PremiumTabBarBackground({ colors, isDark }) {
+// ------------------------------------------------------------------
+// PREMIUM TAB BAR BACKGROUND (Apple Velvet Glass)
+// ------------------------------------------------------------------
+function PremiumTabBarBackground({ isDark }) {
   if (Platform.OS === "web") {
     return (
       <View
         style={[
           StyleSheet.absoluteFillObject,
           {
-            backgroundColor: withAlpha(colors.background, 0.94),
+            backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF",
             borderTopWidth: StyleSheet.hairlineWidth,
-            borderTopColor: colors.borderGlass || colors.border,
+            borderTopColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
           },
         ]}
       />
@@ -87,22 +99,30 @@ function PremiumTabBarBackground({ colors, isDark }) {
 
   return (
     <BlurView
-      pointerEvents="none"
-      intensity={60}
+      intensity={isDark ? 80 : 95}
       tint={isDark ? 'dark' : 'light'}
-      style={[
-        StyleSheet.absoluteFill,
-        { backgroundColor: withAlpha(colors.background, 0.72) },
-      ]}
+      style={StyleSheet.absoluteFill}
     />
   );
 }
 
+// ------------------------------------------------------------------
+// MAIN TABS COMPONENT
+// ------------------------------------------------------------------
 export default function Tabs() {
   const { colors, isDark } = useTheme();
 
+  // STRICT Apple Editorial Theme Map
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary,
+    text: isDark ? '#FFFFFF' : '#000000',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+  }), [colors, isDark]);
+
   const handleTabPress = () => {
-          selection();
+    selection(); // Precise high-end tactile feedback on every tab tap
   };
 
   return (
@@ -110,29 +130,29 @@ export default function Tabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarIcon: ({ focused, color, size }) => (
+        tabBarIcon: ({ focused, color }) => (
           <AnimatedTabIcon
             routeName={route.name}
             focused={focused}
             color={color}
-            size={size}
+            size={24}
           />
         ),
 
-        tabBarActiveTintColor: colors.primary, // Using primary for active tint
-        tabBarInactiveTintColor: withAlpha(colors.textMuted, 0.70),
+        // Native iOS Active/Inactive Colors
+        tabBarActiveTintColor: t.primary,
+        tabBarInactiveTintColor: t.subtext,
 
-        tabBarStyle: [styles.tabBar, { borderTopColor: colors.borderGlass || withAlpha(colors.border, 0.13) }],
+        tabBarStyle: [
+          styles.tabBar, 
+          { borderTopColor: t.border }
+        ],
         tabBarLabelStyle: styles.label,
         tabBarItemStyle: styles.tabItem,
 
-        tabBarBackground: () => <PremiumTabBarBackground colors={colors} isDark={isDark} />,
+        tabBarBackground: () => <PremiumTabBarBackground isDark={isDark} />,
 
         tabBarHideOnKeyboard: true,
-        tabBarVisibilityAnimationConfig: {
-          show: { animation: "timing", config: { duration: 400 } },
-          hide: { animation: "timing", config: { duration: 400 } },
-        },
       })}
       screenListeners={{
         tabPress: handleTabPress,
@@ -167,40 +187,42 @@ export default function Tabs() {
   );
 }
 
+// ------------------------------------------------------------------
+// STYLES - Pure Apple Native Layout
+// ------------------------------------------------------------------
+const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+
 const styles = StyleSheet.create({
   tabBar: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === "ios" ? 82 : 68,
-    paddingBottom: Platform.OS === "ios" ? 12 : 8,
+    height: Platform.OS === "ios" ? 88 : 72,
+    paddingBottom: Platform.OS === "ios" ? 28 : 12,
     paddingTop: 10,
-    paddingHorizontal: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     elevation: 0,
     shadowOpacity: 0,
+    backgroundColor: "transparent", // Managed by BlurView background
   },
 
   tabItem: {
     paddingVertical: 4,
-    marginHorizontal: 2,
   },
 
   label: {
-    fontFamily: SANS_BOLD,
-    fontSize: 11,
-    letterSpacing: 1.2,
+    fontFamily: systemFont,
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.2,
     marginTop: 2,
-    textTransform: "uppercase",
+    textTransform: "none", // Apple doesn't typically uppercase tab labels
   },
 
   iconContainer: {
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
     paddingVertical: 2,
   },
-
-  icon: {},
 });

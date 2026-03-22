@@ -1,5 +1,6 @@
 // components/RelationshipClimate.jsx — "We're in the mood for…" picker
 // No scores. No tracking. No trends. Just a vibe.
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
@@ -10,14 +11,11 @@ import {
   Platform,
   Animated,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 import { RelationshipClimateState, CLIMATE_OPTIONS } from '../services/ConnectionEngine';
-
-// Note: MaterialCommunityIcons does not support setNativeProps, so we cannot use
-// Animated.createAnimatedComponent with it. Use crossfade instead.
 
 // ------------------------------------------------------------------
 // INLINE COMPONENT: Animated Climate Card
@@ -26,19 +24,22 @@ const ClimateOption = ({ option, isSelected, onPress, t, isDark, styleOverrides 
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
 
-  // Active color resolution (uses the colors defined in ConnectionEngine)
-  const activeColor = isDark ? (option.colorDark || option.color) : (option.colorLight || option.color);
+  // Active color resolution (uses Sexy Red for romantic options or native iOS palettes)
+  const activeColor = useMemo(() => {
+    if (option.id === 'romance' || option.id === 'intimacy') return t.primary;
+    return isDark ? (option.colorDark || option.color) : (option.colorLight || option.color);
+  }, [option, isDark, t.primary]);
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: isSelected ? 1 : 0,
-        duration: 200,
-        useNativeDriver: false, // Required for color interpolation
+        duration: 240,
+        useNativeDriver: false, // Color interpolation
       }),
       Animated.spring(scaleAnim, {
         toValue: isSelected ? 0.96 : 1,
-        friction: 8,
+        friction: 9,
         tension: 60,
         useNativeDriver: true,
       })
@@ -57,13 +58,12 @@ const ClimateOption = ({ option, isSelected, onPress, t, isDark, styleOverrides 
   const handlePressOut = () => {
     Animated.spring(scaleAnim, {
       toValue: isSelected ? 0.96 : 1,
-      friction: 8,
+      friction: 9,
       tension: 60,
       useNativeDriver: true,
     }).start();
   };
 
-  // Pure Apple Editorial Color Interpolations
   const backgroundColor = fadeAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [t.surface, activeColor] 
@@ -96,24 +96,23 @@ const ClimateOption = ({ option, isSelected, onPress, t, isDark, styleOverrides 
             { backgroundColor, borderColor },
             isSelected && {
               shadowColor: activeColor,
-              shadowOffset: { width: 0, height: 4 },
+              shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.4,
-              shadowRadius: 12,
+              shadowRadius: 16,
               elevation: 6,
             }
           ]}
         >
           <Animated.View style={[styles.iconCircle, { backgroundColor: iconCircleBg }]}>
-            {/* Crossfade between two static icons to avoid setNativeProps crash */}
             <View style={{ width: 24, height: 24 }}>
-              <MaterialCommunityIcons
+              <Icon
                 name={option.icon}
                 size={24}
                 color={activeColor}
                 style={{ position: 'absolute' }}
               />
               <Animated.View style={{ opacity: fadeAnim }}>
-                <MaterialCommunityIcons
+                <Icon
                   name={option.icon}
                   size={24}
                   color="#FFFFFF"
@@ -137,14 +136,14 @@ export default function RelationshipClimate({ onClimateChange, compact = false }
   const { colors, isDark } = useTheme();
   const [selected, setSelected] = useState(null);
 
-  // STRICT Apple Editorial Theme Map
+  // Midnight Intimacy x Apple Editorial Theme Map
   const t = useMemo(() => ({
-    background: isDark ? '#000000' : '#F2F2F7', 
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
-    primary: colors.primary,
-    text: isDark ? '#FFFFFF' : '#000000',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    background: colors.background, 
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D', // SEXY RED
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
@@ -164,7 +163,9 @@ export default function RelationshipClimate({ onClimateChange, compact = false }
   if (compact && selected) {
     const current = CLIMATE_OPTIONS.find(c => c.id === selected);
     if (!current) return null;
-    const compactColor = isDark ? (current.colorDark || current.color) : (current.colorLight || current.color);
+    const compactColor = (current.id === 'romance' || current.id === 'intimacy') 
+      ? t.primary 
+      : (isDark ? (current.colorDark || current.color) : (current.colorLight || current.color));
     
     return (
       <TouchableOpacity
@@ -175,9 +176,9 @@ export default function RelationshipClimate({ onClimateChange, compact = false }
         }}
         activeOpacity={0.8}
       >
-        <MaterialCommunityIcons name={current.icon} size={18} color={compactColor} />
+        <Icon name={current.icon} size={18} color={compactColor} />
         <Text style={[styles.compactLabel, { color: t.text }]}>
-          In the mood for <Text style={{ color: compactColor, fontWeight: '700' }}>{current.label.toLowerCase()}</Text>
+          In the mood for <Text style={{ color: compactColor, fontWeight: '800' }}>{current.label.toLowerCase()}</Text>
         </Text>
       </TouchableOpacity>
     );
@@ -233,15 +234,15 @@ const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 const styles = StyleSheet.create({
   container: {
     paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xl, // Match screen padding for flush layout
+    paddingHorizontal: 4,
     width: '100%',
   },
   sectionTitle: {
     fontFamily: systemFont,
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '800',
     letterSpacing: -0.5,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   sectionSubtitle: {
     fontFamily: systemFont,
@@ -250,7 +251,6 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   
-  // ── Grid Layouts ──
   togglesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -264,57 +264,55 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  // ── Card Styles ──
   touchableArea: {
     width: '100%',
   },
   optionCard: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.lg,
+    paddingVertical: SPACING.xl,
     paddingHorizontal: SPACING.md,
-    borderRadius: 24, // Deep iOS squircle
+    borderRadius: 24, // Deep Apple squircle
     borderWidth: 1,
-    gap: 10,
+    gap: 12,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8 },
-      android: { elevation: 1 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
+      android: { elevation: 2 },
     }),
   },
   iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   optionLabel: {
     fontFamily: systemFont,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     textAlign: 'center',
     letterSpacing: -0.2,
   },
 
-  // ── Compact Mode (Pill) ──
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.sm + 4,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: 999, // Perfect pill
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 999, // Pill shape
     borderWidth: 1,
-    gap: 8,
+    gap: 10,
     alignSelf: 'center',
     marginTop: SPACING.sm,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 },
-      android: { elevation: 2 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8 },
+      android: { elevation: 3 },
     }),
   },
   compactLabel: {
     fontFamily: systemFont,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     letterSpacing: -0.2,
   },

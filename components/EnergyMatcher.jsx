@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
@@ -74,7 +74,7 @@ export default function EnergyMatcher({ onSelect, compact = false }) {
               onPress={() => handleSelect(level.id)}
               activeOpacity={0.7}
             >
-              <MaterialCommunityIcons
+              <Icon
                 name={level.icon}
                 size={18}
                 color={isSelected ? colors.primary : colors.textMuted}
@@ -116,7 +116,7 @@ export default function EnergyMatcher({ onSelect, compact = false }) {
               onPress={() => handleSelect(level.id)}
               activeOpacity={0.7}
             >
-              <MaterialCommunityIcons
+              <Icon
                 name={level.icon}
                 size={28}
                 color={isSelected ? colors.primary : colors.textMuted}

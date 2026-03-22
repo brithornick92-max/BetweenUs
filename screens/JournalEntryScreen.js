@@ -18,7 +18,7 @@ import {
   Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as ImagePicker from "expo-image-picker";
@@ -189,7 +189,7 @@ export default function JournalEntryScreen({ navigation, route }) {
               onPress={() => navigation.goBack()}
               activeOpacity={0.7}
             >
-              <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
+              <Icon name="chevron-left" size={28} color={colors.text} />
             </TouchableOpacity>
 
             <View style={styles.headerCenter}>
@@ -255,7 +255,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                                 !active && { borderColor: withAlpha(colors.text, 0.1) }
                             ]}
                         >
-                            <MaterialCommunityIcons
+                            <Icon
                                 name={m.icon}
                                 size={14}
                                 color={active ? "#FFF" : colors.primary}
@@ -276,7 +276,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                     style={styles.removeImageBtn} 
                     onPress={() => { selection(); setImageUri(null); }}
                   >
-                    <MaterialCommunityIcons name="close" size={16} color="#FFF" />
+                    <Icon name="close" size={16} color="#FFF" />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -284,7 +284,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                   style={[styles.imagePlaceholder, { borderColor: withAlpha(colors.text, 0.1) }]} 
                   onPress={handlePickImage}
                 >
-                  <MaterialCommunityIcons name="camera-plus-outline" size={24} color={colors.primary} />
+                  <Icon name="camera-plus-outline" size={24} color={colors.primary} />
                   <Text style={[styles.placeholderText, { color: colors.textMuted }]}>Add a visual memory</Text>
                 </TouchableOpacity>
               )}
@@ -324,7 +324,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                     isShared && { backgroundColor: withAlpha(colors.primary, 0.08) }
                   ]}
                 >
-                  <MaterialCommunityIcons
+                  <Icon
                     name={isShared ? "account-multiple-check" : "eye-off-outline"}
                     size={18}
                     color={isShared ? colors.primary : colors.textMuted}
@@ -337,16 +337,16 @@ export default function JournalEntryScreen({ navigation, route }) {
                 {entry && (
                   <TouchableOpacity
                     onPress={handleDelete}
-                    style={[styles.deleteButton, { backgroundColor: withAlpha('#FF3B30', 0.1) }]}
+                    style={[styles.deleteButton, { backgroundColor: withAlpha('#C3113D', 0.1) }]}
                     activeOpacity={0.7}
                   >
-                    <MaterialCommunityIcons name="trash-can-outline" size={20} color="#FF3B30" />
+                    <Icon name="trash-can-outline" size={20} color="#C3113D" />
                   </TouchableOpacity>
                 )}
               </View>
               
               <View style={styles.securityBanner}>
-                <MaterialCommunityIcons name="shield-check-outline" size={12} color={colors.textMuted} />
+                <Icon name="shield-check-outline" size={12} color={colors.textMuted} />
                 <Text style={[styles.securityText, { color: colors.textMuted }]}>END-TO-END ENCRYPTED</Text>
               </View>
             </Animated.View>

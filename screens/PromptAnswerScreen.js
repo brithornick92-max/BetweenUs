@@ -15,7 +15,7 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -256,7 +256,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
             style={styles.closeBtn}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons
+            <Icon
               name="close"
               size={ICON_SIZES.lg}
               color={colors.text}
@@ -264,7 +264,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <View style={styles.headerStatus}>
-            <MaterialCommunityIcons
+            <Icon
               name="shield-lock"
               size={12}
               color={colors.primary}
@@ -297,7 +297,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
                 >
                   <View style={styles.cardBackPattern}>
                     <View style={styles.cardBackPatternInner}>
-                      <MaterialCommunityIcons
+                      <Icon
                         name={catIcon}
                         size={36}
                         color="rgba(255,255,255,0.25)"
@@ -305,7 +305,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
                     </View>
                   </View>
                   <View style={styles.cardBackPill}>
-                    <MaterialCommunityIcons
+                    <Icon
                       name={catIcon}
                       size={14}
                       color="rgba(255,255,255,0.9)"
@@ -335,7 +335,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                   >
-                    <MaterialCommunityIcons
+                    <Icon
                       name={catIcon}
                       size={14}
                       color="rgba(255,255,255,0.9)"
@@ -409,7 +409,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
               style={styles.footer}
             >
               <View style={styles.privacyHint}>
-                <MaterialCommunityIcons
+                <Icon
                   name="eye-off-outline"
                   size={14}
                   color={colors.primary}

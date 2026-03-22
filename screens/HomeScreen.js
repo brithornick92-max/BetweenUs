@@ -16,7 +16,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -25,7 +25,7 @@ import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { DataLayer } from '../services/localfirst';
-import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import MomentSignal from '../components/MomentSignal';
 import RelationshipClimate from '../components/RelationshipClimate';
@@ -60,11 +60,11 @@ function normalizePrompt(p) {
   return { ...p, id, text, heat: typeof p.heat === 'number' ? p.heat : 1, category: typeof p.category === 'string' ? p.category : 'romance' };
 }
 
-// Vibrant iOS System Colors for the 2-column action widgets
+// Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
-  { label: 'Love Note', icon: 'email-heart-outline', key: 'note', premium: true, color: '#FF2D55' },
-  { label: 'Ritual', icon: 'candle', key: 'ritual', color: '#5856D6' },
-  { label: 'Jokes', icon: 'emoticon-wink-outline', key: 'jokes', premium: true, color: '#FF9500' },
+  { label: 'Love Note', icon: 'email-heart-outline', key: 'note', premium: true, color: '#C3113D' }, // Sexy red
+  { label: 'Ritual', icon: 'candle', key: 'ritual', color: '#7E4FA3' }, // Velvet plum
+  { label: 'Jokes', icon: 'emoticon-wink-outline', key: 'jokes', premium: true, color: '#D4AA7E' }, // Champagne gold
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -74,16 +74,16 @@ export default function HomeScreen({ navigation }) {
   const { todayPrompt, loadTodayPrompt } = useContent();
   const { colors, isDark } = useTheme();
 
-  // Apple Editorial Theme Map
+  // Apple Editorial & Velvet Glass Theme Map
   const t = useMemo(() => ({
     background: colors.background,
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
-    accent: colors.accent || '#FF2D55',
-    primary: colors.primary,
+    surface: colors.surface,
+    surfaceSecondary: colors.surface2,
+    accent: colors.accent || '#D4AA7E',
+    primary: colors.primary || '#C3113D',
     text: colors.text,
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+    subtext: colors.textMuted,
+    border: colors.border,
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
@@ -108,9 +108,9 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     RelationshipMilestones.initFirstOpen().catch(() => {});
     Animated.stagger(80, [
-      Animated.timing(headerAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.timing(cardAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(actionsAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.timing(headerAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.spring(cardAnim, { toValue: 1, friction: 9, tension: 60, useNativeDriver: true }),
+      Animated.spring(actionsAnim, { toValue: 1, friction: 9, tension: 60, useNativeDriver: true }),
     ]).start();
   }, [headerAnim, cardAnim, actionsAnim]);
 
@@ -233,7 +233,7 @@ export default function HomeScreen({ navigation }) {
       {/* Deep velvet background gradient */}
       <LinearGradient
         colors={isDark
-          ? [t.background, '#0F0A1A', '#0D081A', t.background]
+          ? [t.background, '#100819', '#0E0617', t.background]
           : [t.background, t.surfaceSecondary, t.background]}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0.5, y: 0 }}
@@ -270,7 +270,7 @@ export default function HomeScreen({ navigation }) {
             accessibilityLabel="Send a vibe signal"
             style={styles.vibeButton}
           >
-            <MaterialCommunityIcons name="heart-outline" size={24} color={t.primary} />
+            <Icon name="heart-outline" size={22} color={t.primary} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -291,7 +291,7 @@ export default function HomeScreen({ navigation }) {
           }}>
             <View style={styles.heroCardWrap}>
               <View style={styles.eyebrowRow}>
-                <MaterialCommunityIcons name="star-four-points" size={12} color={t.accent} />
+                <Icon name="star-outline" size={14} color={t.accent} />
                 <Text style={styles.eyebrow}>TONIGHT'S MOMENT</Text>
               </View>
 
@@ -326,9 +326,9 @@ export default function HomeScreen({ navigation }) {
 
               {statusText && (
                 <View style={styles.statusRow}>
-                  <MaterialCommunityIcons
-                    name={bothAnswered ? 'check-decagram-outline' : 'clock-outline'}
-                    size={14}
+                  <Icon
+                    name={bothAnswered ? 'check' : 'time-outline'}
+                    size={16}
                     color={t.primary}
                   />
                   <Text style={styles.statusText}>{statusText}</Text>
@@ -347,7 +347,7 @@ export default function HomeScreen({ navigation }) {
                 accessibilityLabel={primaryCTALabel}
               >
                 <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
-                <MaterialCommunityIcons name="arrow-right" size={20} color={isDark ? "#000000" : "#FFFFFF"} />
+                <Icon name="arrow-forward" size={20} color={isDark ? "#000000" : "#FFFFFF"} />
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -358,7 +358,7 @@ export default function HomeScreen({ navigation }) {
 
           <View style={{ height: SPACING.lg }} />
 
-          {/* ── Quick Actions (2-Column Apple Widget Layout) ── */}
+          {/* ── Quick Actions (3-Column Apple Widget Layout) ── */}
           <Animated.View style={[styles.actionsRow, {
             opacity: actionsAnim,
             transform: [{ translateY: actionsAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }],
@@ -378,7 +378,7 @@ export default function HomeScreen({ navigation }) {
                 >
                   {locked && (
                     <View style={styles.lockBadge}>
-                      <MaterialCommunityIcons name="lock" size={12} color={action.color} />
+                      <Icon name="lock" size={12} color={action.color} />
                     </View>
                   )}
                   {badge > 0 && (
@@ -386,7 +386,7 @@ export default function HomeScreen({ navigation }) {
                       <Text style={styles.noteBadgeText}>{badge > 9 ? '9+' : badge}</Text>
                     </View>
                   )}
-                  <MaterialCommunityIcons name={action.icon} size={18} color={action.color} />
+                  <Icon name={action.icon} size={20} color={action.color} />
                   <Text style={styles.actionLabel}>{action.label}</Text>
                 </TouchableOpacity>
               );
@@ -399,7 +399,7 @@ export default function HomeScreen({ navigation }) {
           {throwback && (
             <View style={styles.memoryLaneCard}>
               <View style={styles.memoryLaneHeader}>
-                <MaterialCommunityIcons name="clock-outline" size={18} color={t.primary} />
+                <Icon name="time-outline" size={16} color={t.primary} />
                 <Text style={styles.memoryLaneLabel}>MEMORY LANE</Text>
               </View>
               <Text style={styles.memoryLanePrompt}>
@@ -439,25 +439,26 @@ export default function HomeScreen({ navigation }) {
               accessibilityRole="button"
               accessibilityLabel={`Send a moment to ${partnerLabel}`}
             >
-              <MaterialCommunityIcons name="shimmer" size={24} color={t.primary} />
+              <Icon name="color-wand-outline" size={24} color={t.primary} />
               <Text style={styles.momentToggleText} numberOfLines={1} ellipsizeMode="tail">
                 Send a moment to {partnerLabel}
               </Text>
-              <MaterialCommunityIcons
+              <Icon
                 name={showMoments ? 'chevron-up' : 'chevron-down'}
-                size={24}
+                size={22}
                 color={t.subtext}
               />
             </TouchableOpacity>
             {showMoments && <MomentSignal partnerLabel={partnerLabel} />}
           </View>
 
-          <View style={{ height: SPACING.xxxl + 20 }} />
         </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
+
+const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
 const createStyles = (t, isDark) => StyleSheet.create({
   root: { flex: 1 },
@@ -474,18 +475,19 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   headerLeft: { flex: 1 },
   headerGreetingSub: {
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1.5,
     color: t.subtext,
     marginBottom: 4,
     textTransform: 'uppercase',
   },
   headerName: {
-    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
+    fontFamily: systemFont,
     fontSize: 34,
     fontWeight: '800',
-    letterSpacing: 0.3,
+    letterSpacing: -0.5,
     lineHeight: 40,
     color: t.text,
   },
@@ -499,7 +501,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
-      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 8 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 8 },
       android: { elevation: 2 },
     }),
   },
@@ -508,45 +510,46 @@ const createStyles = (t, isDark) => StyleSheet.create({
   scroll: {
     paddingHorizontal: SPACING.screen,
     paddingTop: SPACING.sm,
-    paddingBottom: SPACING.xxxl,
+    paddingBottom: 160, // Clear the bottom tab bar securely
   },
 
   // ── Hero Card ──
   heroCardWrap: { 
-    borderRadius: 24,
+    borderRadius: 24, // Deep Apple squircle
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,
     padding: SPACING.xl,
     ...Platform.select({
-      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 16 },
-      android: { elevation: 4 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
+      android: { elevation: 6 },
     }),
   },
   eyebrowRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   eyebrow: {
-    fontSize: 11,
+    fontFamily: systemFont,
+    fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
     color: t.accent,
   },
   promptText: {
-    fontSize: 26,
-    fontWeight: '700',
-    lineHeight: 34,
+    fontFamily: systemFont,
+    fontSize: 28,
+    fontWeight: '800',
+    lineHeight: 36,
     letterSpacing: -0.5,
-    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
     color: t.text,
     marginBottom: SPACING.xl,
   },
   answerBubble: {
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     padding: SPACING.lg,
     marginBottom: SPACING.md,
@@ -554,32 +557,39 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderColor: t.border,
   },
   answerText: {
-    fontSize: 16,
+    fontFamily: systemFont,
+    fontSize: 17,
     lineHeight: 24,
     fontWeight: '400',
     color: t.text,
   },
   input: {
-    minHeight: 100,
-    borderRadius: 16,
+    minHeight: 120,
+    borderRadius: 20,
     borderWidth: 1,
     padding: SPACING.lg,
-    fontSize: 16,
+    fontSize: 17,
     lineHeight: 24,
+    fontFamily: systemFont,
     marginBottom: SPACING.xl,
     color: t.text,
     borderColor: t.border,
     backgroundColor: t.surfaceSecondary,
   },
-  inputPlaceholder: { fontSize: 16, color: t.subtext },
+  inputPlaceholder: { 
+    fontFamily: systemFont,
+    fontSize: 17, 
+    color: t.subtext 
+  },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     marginBottom: SPACING.lg,
   },
   statusText: {
-    fontSize: 13,
+    fontFamily: systemFont,
+    fontSize: 14,
     fontWeight: '600',
     color: t.subtext,
   },
@@ -587,13 +597,14 @@ const createStyles = (t, isDark) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 56,
+    height: 56, // Tall Apple Action Button
     borderRadius: 28,
     backgroundColor: t.text,
     gap: 8,
   },
   ctaLabel: {
-    fontSize: 16,
+    fontFamily: systemFont,
+    fontSize: 17,
     fontWeight: '700',
     letterSpacing: -0.3,
     color: isDark ? '#000000' : '#FFFFFF',
@@ -604,35 +615,36 @@ const createStyles = (t, isDark) => StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'nowrap',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 12,
   },
   actionCard: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'column', // Stack icon and label vertically
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.sm,
-    borderRadius: 999,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,
-    gap: 5,
+    gap: 8,
     ...Platform.select({
-      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 2 }, shadowOpacity: isDark ? 0.15 : 0.05, shadowRadius: 6 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.05, shadowRadius: 12 },
       android: { elevation: 2 },
     }),
   },
   actionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: -0.1,
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: -0.2,
     color: t.text,
   },
   lockBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 8,
+    right: 8,
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -642,8 +654,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   noteBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 8,
+    right: 8,
     minWidth: 20,
     height: 20,
     borderRadius: 10,
@@ -652,6 +664,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     paddingHorizontal: 4,
   },
   noteBadgeText: {
+    fontFamily: systemFont,
     fontSize: 10,
     fontWeight: '800',
     color: '#FFFFFF', 
@@ -665,7 +678,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderColor: t.border,
     backgroundColor: t.surface,
     ...Platform.select({
-      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 8 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 16 },
       android: { elevation: 2 },
     }),
   },
@@ -675,10 +688,11 @@ const createStyles = (t, isDark) => StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.md,
-    gap: SPACING.sm,
+    gap: 12,
   },
   momentToggleText: {
-    fontSize: 15,
+    fontFamily: systemFont,
+    fontSize: 16,
     fontWeight: '700',
     letterSpacing: -0.2,
     color: t.text,
@@ -693,7 +707,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     backgroundColor: t.surface,
     padding: SPACING.xl,
     ...Platform.select({
-      ios: { shadowColor: isDark ? '#000' : '#8A8A8E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.2 : 0.06, shadowRadius: 12 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 16 },
       android: { elevation: 3 },
     }),
   },
@@ -701,32 +715,37 @@ const createStyles = (t, isDark) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   memoryLaneLabel: {
-    fontSize: 11,
+    fontFamily: systemFont,
+    fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
     color: t.primary,
   },
   memoryLanePrompt: {
-    fontSize: 18,
-    lineHeight: 26,
+    fontFamily: systemFont,
+    fontSize: 20,
+    lineHeight: 28,
     fontWeight: '700',
+    letterSpacing: -0.3,
     color: t.text,
     marginBottom: SPACING.sm,
   },
   memoryLaneAnswer: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontFamily: systemFont,
+    fontSize: 17,
+    lineHeight: 26,
     fontWeight: '400',
     color: t.subtext,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   memoryLaneDate: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '600',
     color: t.subtext,
     letterSpacing: 0.3,
   },

@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { BORDER_RADIUS, SPACING } from '../utils/theme';
@@ -111,7 +111,7 @@ export default function NicknameSettings({ onConfigChanged }) {
                 accessibilityLabel={`${tone.label} tone`}
                 accessibilityState={{ selected: isActive }}
               >
-                <MaterialCommunityIcons
+                <Icon
                   name={tone.icon}
                   size={18}
                   color={isActive ? colors.primary : colors.textMuted}

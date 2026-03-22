@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import NightRitualMode, { getNightRitualColors } from '../components/NightRitualMode';
 import { useAppContext } from '../context/AppContext';
@@ -121,7 +121,7 @@ export default function NightRitualScreen({ navigation }) {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <MaterialCommunityIcons
+          <Icon
             name="chevron-left"
             size={32}
             color={t.text}

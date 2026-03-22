@@ -119,48 +119,49 @@ export const RelationshipMilestones = {
     );
 
     // Candidate milestones — checked in order, first unshown wins
+    // Icons updated to native Apple Ionicons
     const candidates = [
       {
         id: 'join_30d',
         check: daysSinceJoin >= 30,
         message: '1 month since you started this space together.',
-        icon: 'calendar-heart',
+        icon: 'calendar-outline',
       },
       {
         id: 'moments_10',
         check: stats.totalMoments >= 10,
         message: '10 moments shared between you — small things that matter.',
-        icon: 'thought-bubble-outline',
+        icon: 'chatbubble-ellipses-outline',
       },
       {
         id: 'join_90d',
         check: daysSinceJoin >= 90,
         message: '3 months of choosing closeness.',
-        icon: 'leaf',
+        icon: 'leaf-outline',
       },
       {
         id: 'moments_50',
         check: stats.totalMoments >= 50,
         message: '50 shared moments. You keep showing up for each other.',
-        icon: 'heart-multiple',
+        icon: 'heart-half-outline',
       },
       {
         id: 'join_180d',
         check: daysSinceJoin >= 180,
         message: '6 months since you joined — still here, still choosing us.',
-        icon: 'star-four-points-outline',
+        icon: 'sparkles-outline',
       },
       {
         id: 'prompts_25',
         check: stats.totalPrompts >= 25,
         message: '25 conversations started. That\'s a lot of honesty.',
-        icon: 'chat-outline',
+        icon: 'chatbox-outline',
       },
       {
         id: 'join_365d',
         check: daysSinceJoin >= 365,
         message: 'One year since your first day here. That means something.',
-        icon: 'party-popper',
+        icon: 'star-outline',
       },
       {
         id: 'moments_100',
@@ -172,7 +173,7 @@ export const RelationshipMilestones = {
         id: 'dates_10',
         check: stats.totalDates >= 10,
         message: '10 date nights planned together. May the next 10 be even better.',
-        icon: 'heart-multiple-outline',
+        icon: 'heart-circle-outline',
       },
     ];
 
@@ -334,11 +335,12 @@ export const NicknameEngine = {
     return phrases[config.tone]?.[type] || phrases.warm[type];
   },
 
+  // Icons updated to native Apple Ionicons
   TONE_OPTIONS: [
-    { id: 'warm', label: 'Warm', preview: 'Something for you and {partner}', icon: 'white-balance-sunny' },
-    { id: 'playful', label: 'Playful', preview: 'Ready for this one?', icon: 'emoticon-wink-outline' },
-    { id: 'intimate', label: 'Intimate', preview: 'Between the two of you', icon: 'candle' },
-    { id: 'minimal', label: 'Minimal', preview: 'Tonight\'s prompt', icon: 'minus' },
+    { id: 'warm', label: 'Warm', preview: 'Something for you and {partner}', icon: 'sunny-outline' },
+    { id: 'playful', label: 'Playful', preview: 'Ready for this one?', icon: 'happy-outline' },
+    { id: 'intimate', label: 'Intimate', preview: 'Between the two of you', icon: 'flame' },
+    { id: 'minimal', label: 'Minimal', preview: 'Tonight\'s prompt', icon: 'remove' },
   ],
 };
 
@@ -348,12 +350,13 @@ export const NicknameEngine = {
 //    Slightly influences prompt ordering, date suggestions, tone
 // ═══════════════════════════════════════════════════════
 
+// Icons mapped to native Ionicons. Colors mapped to vibrant iOS System Colors & Premium Gold.
 export const SEASONS = [
-  { id: 'busy', label: 'Busy Season', icon: 'clock-fast', color: '#7B9EBC', description: 'Short & sweet' },
-  { id: 'cozy', label: 'Cozy Season', icon: 'sofa-outline', color: '#C9A84C', description: 'Warmth & comfort' },
-  { id: 'growth', label: 'Growth Season', icon: 'sprout', color: '#4A6B4F', description: 'Going deeper' },
-  { id: 'adventure', label: 'Adventure Season', icon: 'compass', color: '#D4839A', description: 'Explore' },
-  { id: 'rest', label: 'Rest Season', icon: 'weather-night', color: '#6B5B8A', description: 'Slow & gentle' },
+  { id: 'busy', label: 'Busy Season', icon: 'time-outline', color: '#FF9500', description: 'Short & sweet' }, // iOS Orange
+  { id: 'cozy', label: 'Cozy Season', icon: 'cafe-outline', color: '#D4AF37', description: 'Warmth & comfort' }, // Premium Gold
+  { id: 'growth', label: 'Growth Season', icon: 'leaf-outline', color: '#34C759', description: 'Going deeper' }, // iOS Green
+  { id: 'adventure', label: 'Adventure Season', icon: 'compass-outline', color: '#32ADE6', description: 'Explore' }, // iOS Cyan
+  { id: 'rest', label: 'Rest Season', icon: 'moon-outline', color: '#5856D6', description: 'Slow & gentle' }, // iOS Indigo
 ];
 
 export const RelationshipSeasons = {

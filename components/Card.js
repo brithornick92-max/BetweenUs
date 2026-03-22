@@ -1,41 +1,44 @@
+/**
+ * High-End Surface Component — Apple Editorial Style
+ * Velvet Glass & Sexy Red updates integrated directly.
+ * Variants: glass, elevated, outlined
+ */
+
 import React, { useRef, useMemo } from "react";
 import { View, StyleSheet, TouchableOpacity, Animated, Platform } from "react-native";
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
-import { SPACING } from "../utils/theme";
+import { SPACING, withAlpha } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 
-/**
- * High-End Surface Component — Apple Editorial Style
- * Variants: glass, elevated, outlined
- */
 export default function Card({
   children,
   variant = "glass",
   onPress = null,
   padding = "md",
   style,
-  activeOpacity = 0.85,
+  activeOpacity = 0.9,
   useHaptics = true,
 }) {
   const { colors, isDark } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const pressable = typeof onPress === "function";
 
-  // STRICT Apple Editorial Theme Map
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
-    background: isDark ? '#000000' : '#F2F2F7', 
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    background: colors.background, 
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D', // Sexy Red
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-  }), [isDark]);
+  }), [colors, isDark]);
 
   const handlePressIn = () => {
     if (!pressable) return;
     Animated.spring(scaleAnim, {
-      toValue: 0.96, // Deeper, more tactile press
+      toValue: 0.96, // Tactile Apple-style compression
       useNativeDriver: true,
-      friction: 8,
-      tension: 100,
+      friction: 9,
+      tension: 80,
     }).start();
   };
 
@@ -44,7 +47,7 @@ export default function Card({
     Animated.spring(scaleAnim, {
       toValue: 1,
       useNativeDriver: true,
-      friction: 8,
+      friction: 9,
       tension: 60,
     }).start();
   };
@@ -59,7 +62,7 @@ export default function Card({
     onPress();
   };
 
-  // Resolve Variant Styles
+  // Resolve Variant Styles with Sexy Red accents
   const variantStyles = useMemo(() => {
     switch (variant) {
       case "elevated":
@@ -68,24 +71,34 @@ export default function Card({
           borderColor: t.border,
           borderWidth: 1,
           ...Platform.select({
-            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0 : 0.08, shadowRadius: 24 },
+            ios: { 
+              shadowColor: isDark ? '#000' : t.primary, 
+              shadowOffset: { width: 0, height: 12 }, 
+              shadowOpacity: isDark ? 0.3 : 0.08, 
+              shadowRadius: 24 
+            },
             android: { elevation: 6 },
           }),
         };
       case "outlined":
         return {
           backgroundColor: "transparent",
-          borderColor: t.border,
-          borderWidth: 1.5, // Slightly thicker for contrast without background
+          borderColor: isDark ? withAlpha(t.primary, 0.2) : t.border,
+          borderWidth: 1.5,
         };
       case "glass":
       default:
         return {
-          backgroundColor: t.surface,
+          backgroundColor: isDark ? withAlpha(t.surfaceSecondary, 0.8) : t.surface,
           borderColor: t.border,
           borderWidth: 1,
           ...Platform.select({
-            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 10 },
+            ios: { 
+              shadowColor: '#000', 
+              shadowOffset: { width: 0, height: 4 }, 
+              shadowOpacity: isDark ? 0.2 : 0.04, 
+              shadowRadius: 12 
+            },
             android: { elevation: 2 },
           }),
         };
@@ -125,14 +138,12 @@ export default function Card({
 // ------------------------------------------------------------------
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 24, // Heavy iOS squircle radius
-    overflow: "hidden", // Ensures children don't bleed out of the rounded corners
+    borderRadius: 24, // Deep Apple squircle radius
+    overflow: "hidden",
   },
-
-  // Consistent Editorial Spacing
   padding_none: { padding: 0 },
-  padding_sm: { padding: SPACING.md },   // Mapped to feel generous
-  padding_md: { padding: SPACING.lg },   // Native widget padding
+  padding_sm: { padding: SPACING.md },
+  padding_md: { padding: SPACING.lg },
   padding_lg: { padding: SPACING.xl },
   padding_xl: { padding: SPACING.xxl },
 });

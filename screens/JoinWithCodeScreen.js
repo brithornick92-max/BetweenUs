@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import naclUtil from 'tweetnacl-util';
 import { useTheme } from '../context/ThemeContext';
@@ -145,7 +145,7 @@ export default function JoinWithCodeScreen({ navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
+            <Icon name="arrow-left" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Join Partner</Text>
           <View style={styles.headerSpacer} />
@@ -158,7 +158,7 @@ export default function JoinWithCodeScreen({ navigation }) {
           <View style={styles.card}>
             {/* Icon */}
             <View style={styles.iconWrap}>
-              <MaterialCommunityIcons
+              <Icon
                 name={phase === 'done' ? 'heart-multiple' : 'link-variant'}
                 size={36}
                 color={phase === 'done' ? colors.primary : colors.textMuted}
@@ -194,7 +194,7 @@ export default function JoinWithCodeScreen({ navigation }) {
 
             {statusMsg ? (
               <View style={styles.statusRow}>
-                <MaterialCommunityIcons
+                <Icon
                   name={
                     phase === 'done'
                       ? 'check-circle'

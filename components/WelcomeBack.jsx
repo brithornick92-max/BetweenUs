@@ -1,64 +1,97 @@
 /**
  * WelcomeBack — Gentle re-entry after absence
- * 
- * No guilt. No "you missed X days."
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * * No guilt. No "you missed X days."
  * Just a warm, one-sentence message that fades after a moment.
- * Builds psychological safety and trust.
+ * Builds luxury psychological safety and trust.
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Animated,
+  Platform,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING, BORDER_RADIUS, SANS, withAlpha } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 import { GentleReEntry } from '../services/PolishEngine';
+import Icon from './Icon';
+
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 export default function WelcomeBack() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [state, setState] = useState(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(-10)).current;
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const result = await GentleReEntry.getReEntryState();
       if (cancelled) return;
+      
       if (result.isReturning && result.greeting) {
         setState(result);
+        
+        // Sophisticated Apple-style entrance and exit
         Animated.sequence([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 800,
-            delay: 300,
-            useNativeDriver: true,
-          }),
-          Animated.delay(6000),
+          Animated.parallel([
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 1000,
+              delay: 500,
+              useNativeDriver: true,
+            }),
+            Animated.spring(slideAnim, {
+              toValue: 0,
+              friction: 8,
+              tension: 40,
+              useNativeDriver: true,
+            })
+          ]),
+          Animated.delay(6500),
           Animated.timing(fadeAnim, {
             toValue: 0,
-            duration: 1200,
+            duration: 1500,
             useNativeDriver: true,
           }),
         ]).start();
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   if (!state) return null;
 
   return (
     <Animated.View
-      style={[styles.container, { opacity: fadeAnim }]}
+      style={[
+        styles.container, 
+        { 
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }
+      ]}
       accessibilityRole="alert"
-      accessibilityLiveRegion="polite"
-      accessibilityLabel={state.greeting}
     >
-      <View style={[styles.card, { backgroundColor: withAlpha(colors.primary, 0.04), borderColor: withAlpha(colors.primary, 0.1) }]}>
-        <Text style={[styles.greeting, { color: colors.text }]}>
+      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
+          <Icon name="heart-outline" size={16} color={t.primary} />
+        </View>
+        
+        <Text style={[styles.greeting, { color: t.text }]}>
           {state.greeting}
         </Text>
       </View>
@@ -68,19 +101,41 @@ export default function WelcomeBack() {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
+    paddingHorizontal: 4,
   },
   card: {
-    padding: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 24, // Deep Apple Squircle
+    borderWidth: 1,
+    gap: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+      },
+      android: { elevation: 2 },
+    }),
+  },
+  iconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   greeting: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
     fontSize: 15,
-    fontFamily: SANS,
+    fontWeight: '600',
     fontStyle: 'italic',
-    textAlign: 'center',
-    lineHeight: 22,
+    letterSpacing: -0.1,
+    lineHeight: 20,
   },
 });

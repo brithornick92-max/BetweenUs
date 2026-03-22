@@ -1,7 +1,8 @@
 // components/SurpriseTonight.jsx — Low-frequency serendipity card
 // Max 1-2x per month. Only evenings. Never pushy.
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,38 +11,33 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import Icon from './Icon';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
-import { SPACING, BORDER_RADIUS } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 import { SerendipityTrigger } from '../services/ConnectionEngine';
 import PreferenceEngine from '../services/PreferenceEngine';
 
-const FONTS = {
-  serif: Platform.select({
-    ios: 'DMSerifDisplay-Regular',
-    android: 'DMSerifDisplay_400Regular',
-    default: 'serif',
-  }),
-  body: Platform.select({
-    ios: 'Lato-Regular',
-    android: 'Lato_400Regular',
-    default: 'sans-serif',
-  }),
-  bodyBold: Platform.select({
-    ios: 'Lato-Bold',
-    android: 'Lato_700Bold',
-    default: 'sans-serif',
-  }),
-};
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 
 export default function SurpriseTonight({ onOpen, navigation }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium } = useEntitlements();
   const [visible, setVisible] = useState(false);
   const [surpriseType, setSurpriseType] = useState(null);
-  const glowAnim = useRef(new Animated.Value(0.6)).current;
+  
+  const glowAnim = useRef(new Animated.Value(0.7)).current;
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
   useEffect(() => {
     checkSurprise();
@@ -50,7 +46,6 @@ export default function SurpriseTonight({ onOpen, navigation }) {
   const checkSurprise = async () => {
     const shouldShow = await SerendipityTrigger.shouldShow();
     if (shouldShow) {
-      // Bias surprise type by season/energy preferences
       let type;
       try {
         const profile = await PreferenceEngine.getContentProfile();
@@ -62,11 +57,19 @@ export default function SurpriseTonight({ onOpen, navigation }) {
       setVisible(true);
       await SerendipityTrigger.recordShown();
 
-      // Gentle glow animation
+      // High-end breathing animation
       Animated.loop(
         Animated.sequence([
-          Animated.timing(glowAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
-          Animated.timing(glowAnim, { toValue: 0.6, duration: 2000, useNativeDriver: true }),
+          Animated.timing(glowAnim, { 
+            toValue: 1, 
+            duration: 2500, 
+            useNativeDriver: true 
+          }),
+          Animated.timing(glowAnim, { 
+            toValue: 0.7, 
+            duration: 2500, 
+            useNativeDriver: true 
+          }),
         ])
       ).start();
     }
@@ -76,7 +79,6 @@ export default function SurpriseTonight({ onOpen, navigation }) {
     impact(ImpactFeedbackStyle.Medium);
     setVisible(false);
 
-    // Navigate based on surprise type
     switch (surpriseType) {
       case 'prompt':
         navigation?.navigate('PromptLibrary');
@@ -88,7 +90,6 @@ export default function SurpriseTonight({ onOpen, navigation }) {
         navigation?.navigate('ComposeLoveNote');
         break;
       case 'memory':
-        // Navigate to Memory Vault / Journal
         navigation?.navigate('JournalEntry');
         break;
       default:
@@ -106,25 +107,30 @@ export default function SurpriseTonight({ onOpen, navigation }) {
         style={[
           styles.card,
           {
-            backgroundColor: colors.primary + '12',
-            borderColor: colors.primary + '30',
+            backgroundColor: isDark ? withAlpha(t.primary, 0.08) : '#FFFFFF',
+            borderColor: withAlpha(t.primary, 0.2),
           },
         ]}
         onPress={handleOpen}
-        activeOpacity={0.85}
+        activeOpacity={0.9}
       >
         <View style={styles.content}>
-          <Text style={[styles.sparkle]}>✨</Text>
-          <Text style={[styles.title, { color: colors.text }]}>
-            Something for tonight
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-            A little surprise, just for you two
-          </Text>
+          <View style={[styles.iconContainer, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+            <Icon name="sparkles-outline" size={20} color={t.primary} />
+          </View>
+          <View style={styles.textWrap}>
+            <Text style={[styles.title, { color: t.text }]}>
+              Something for tonight
+            </Text>
+            <Text style={[styles.subtitle, { color: t.subtext }]}>
+              A little surprise, just for you two
+            </Text>
+          </View>
         </View>
-        <View style={[styles.openButton, { backgroundColor: colors.primary + '20' }]}>
-          <Text style={[styles.openText, { color: colors.primary }]}>Open</Text>
-          <MaterialCommunityIcons name="arrow-right" size={16} color={colors.primary} />
+
+        <View style={[styles.openButton, { backgroundColor: t.primary }]}>
+          <Text style={styles.openText}>Open</Text>
+          <Icon name="arrow-forward" size={14} color="#FFFFFF" />
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -134,44 +140,69 @@ export default function SurpriseTonight({ onOpen, navigation }) {
 const styles = StyleSheet.create({
   container: {
     marginVertical: SPACING.md,
+    paddingHorizontal: 4,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: SPACING.lg,
-    borderRadius: BORDER_RADIUS.xl,
+    borderRadius: 24, // Deep Apple Squircle
     borderWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+      },
+      android: { elevation: 2 },
+    }),
   },
   content: {
     flex: 1,
-    gap: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  sparkle: {
-    fontSize: 20,
-    marginBottom: 4,
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textWrap: {
+    flex: 1,
+    gap: 2,
   },
   title: {
-    fontFamily: FONTS.serif,
+    fontFamily: SERIF_FONT,
     fontSize: 18,
-    fontWeight: '300',
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   subtitle: {
-    fontFamily: FONTS.body,
+    fontFamily: SYSTEM_FONT,
     fontSize: 13,
-    fontStyle: 'italic',
+    fontWeight: '500',
+    letterSpacing: -0.1,
   },
   openButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: BORDER_RADIUS.full,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20, // Pill shape
     gap: 6,
     marginLeft: SPACING.md,
   },
   openText: {
-    fontFamily: FONTS.bodyBold,
+    fontFamily: SYSTEM_FONT,
     fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+    textTransform: 'uppercase',
   },
 });

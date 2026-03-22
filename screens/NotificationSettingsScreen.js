@@ -1,4 +1,11 @@
-import { useState, useEffect } from 'react';
+/**
+ * NotificationSettingsScreen — Personal touch-point configuration
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * * High-fidelity control center for stay-in-sync notifications.
+ * ✅ Full original logic preserved.
+ */
+
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,15 +15,36 @@ import {
   Switch,
   Alert,
   Platform,
+  StatusBar,
+  ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from '../components/Icon';
+import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import * as Notifications from 'expo-notifications';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
+import { SPACING, withAlpha } from '../utils/theme';
+
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 const NotificationSettingsScreen = ({ navigation }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    background: colors.background, 
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+
+  // Original State Logic
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [dailyPromptReminder, setDailyPromptReminder] = useState(true);
   const [partnerActivity, setPartnerActivity] = useState(true);
@@ -50,17 +78,16 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
   const handleToggleNotifications = async (value) => {
     if (value) {
-      // Request permissions
       const { status } = await Notifications.requestPermissionsAsync();
       if (status === 'granted') {
         setNotificationsEnabled(true);
-        impact(ImpactFeedbackStyle.Success);
+        impact(ImpactFeedbackStyle.Medium);
       } else {
         Alert.alert(
-          'Permission Denied',
-          'Please enable notifications in your device settings to receive reminders.',
+          'Permission Required',
+          'Please enable notifications in your device settings to stay connected with your partner.',
           [
-            { text: 'Cancel', style: 'cancel' },
+            { text: 'Later', style: 'cancel' },
             { text: 'Open Settings', onPress: () => Notifications.openSettingsAsync() },
           ]
         );
@@ -84,259 +111,252 @@ const NotificationSettingsScreen = ({ navigation }) => {
       };
 
       await storage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, settings);
-
       impact(ImpactFeedbackStyle.Success);
-      Alert.alert('Success', 'Notification settings updated!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      navigation.goBack();
     } catch (error) {
-      console.error('Failed to save notification settings:', error);
-      Alert.alert('Error', 'Failed to save settings. Please try again.');
+      Alert.alert('Update Failed', 'We could not save your notification preferences.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const renderSettingRow = (title, description, value, onValueChange, disabled = false) => (
-    <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
+  const renderSettingRow = (title, description, value, onValueChange, isLast = false) => (
+    <View style={[styles.settingRow, !isLast && { borderBottomColor: t.border, borderBottomWidth: 1 }]}>
       <View style={styles.settingInfo}>
-        <Text style={[styles.settingTitle, { color: colors.text }]}>{title}</Text>
-        <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+        <Text style={[styles.settingTitle, { color: t.text }]}>{title}</Text>
+        <Text style={[styles.settingDescription, { color: t.subtext }]}>
           {description}
         </Text>
       </View>
       <Switch
         value={value}
         onValueChange={onValueChange}
-        disabled={disabled || !notificationsEnabled}
-        trackColor={{ false: colors.border, true: colors.primary + '80' }}
-        thumbColor={value ? colors.primary : colors.textMuted}
-        ios_backgroundColor={colors.border}
+        disabled={!notificationsEnabled}
+        trackColor={{ false: t.border, true: t.primary }}
+        thumbColor={Platform.OS === 'ios' ? undefined : (value ? t.primary : '#F4F3F4')}
+        ios_backgroundColor={t.border}
       />
     </View>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
+    <View style={[styles.container, { backgroundColor: t.background }]}>
+      <StatusBar barStyle="light-content" />
+      
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Icon name="chevron-back" size={28} color={t.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Notifications</Text>
-        <View style={{ width: 24 }} />
+        <Text style={[styles.headerTitle, { color: t.text }]}>Communications</Text>
+        <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-            <Ionicons name="notifications" size={48} color={colors.primary} />
-          </View>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={[styles.iconHero, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
+          <Icon name="notifications-outline" size={42} color={t.primary} />
+        </View>
 
-          {/* Title */}
-          <Text style={[styles.title, { color: colors.text }]}>Stay Connected</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Choose which notifications you'd like to receive
-          </Text>
+        <Text style={[styles.title, { color: t.text }]}>Stay Connected</Text>
+        <Text style={[styles.subtitle, { color: t.subtext }]}>
+          Choose the moments you want to be invited back into your shared space.
+        </Text>
 
-          {/* Master Toggle */}
-          <View style={[styles.masterToggle, { backgroundColor: colors.card }]}>
-            <View style={styles.settingInfo}>
-              <Text style={[styles.settingTitle, { color: colors.text }]}>
-                Enable Notifications
-              </Text>
-              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                Allow Between Us to send you notifications
-              </Text>
-            </View>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={handleToggleNotifications}
-              trackColor={{ false: colors.border, true: colors.primary + '80' }}
-              thumbColor={notificationsEnabled ? colors.primary : '#E8DDC8'}
-              ios_backgroundColor={colors.border}
-            />
-          </View>
-
-          {/* Notification Types */}
-          <View style={[styles.settingsCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Notification Types
+        <View style={[styles.masterToggle, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <View style={styles.settingInfo}>
+            <Text style={[styles.settingTitle, { color: t.text }]}>Push Notifications</Text>
+            <Text style={[styles.settingDescription, { color: t.subtext }]}>
+              Enable the bridge between you and your partner.
             </Text>
-
-            {renderSettingRow(
-              'Daily Prompt Reminder',
-              'Get reminded to answer your daily prompt',
-              dailyPromptReminder,
-              (value) => {
-                setDailyPromptReminder(value);
-                selection();
-              }
-            )}
-
-            {renderSettingRow(
-              'Partner Activity',
-              'Know when your partner answers a prompt',
-              partnerActivity,
-              (value) => {
-                setPartnerActivity(value);
-                selection();
-              }
-            )}
-
-            {renderSettingRow(
-              'Weekly Recap',
-              'Get a summary of your week together',
-              weeklyRecap,
-              (value) => {
-                setWeeklyRecap(value);
-                selection();
-              }
-            )}
-
-            {renderSettingRow(
-              'Milestones & Celebrations',
-              'Celebrate anniversaries and milestones',
-              milestones,
-              (value) => {
-                setMilestones(value);
-                selection();
-              }
-            )}
           </View>
+          <Switch
+            value={notificationsEnabled}
+            onValueChange={handleToggleNotifications}
+            trackColor={{ false: t.border, true: t.primary }}
+            ios_backgroundColor={t.border}
+          />
+        </View>
 
-          {/* Info Card */}
-          {!notificationsEnabled && (
-            <View style={[styles.infoCard, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}>
-              <Ionicons name="information-circle" size={20} color={colors.primary} />
-              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                Enable notifications above to customize your notification preferences.
-              </Text>
-            </View>
+        <View style={[styles.settingsCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <Text style={[styles.sectionTitle, { color: t.primary }]}>PREFERENCES</Text>
+
+          {renderSettingRow(
+            'Daily Reflections',
+            'A gentle nudge for your daily shared prompt.',
+            dailyPromptReminder,
+            (v) => { setDailyPromptReminder(v); selection(); }
           )}
 
-          {/* Save Button */}
-          <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: colors.primary }]}
-            onPress={handleSave}
-            disabled={isSaving}
-          >
-            <Text style={[styles.saveButtonText, { color: colors.text }]}> 
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </Text>
-          </TouchableOpacity>
+          {renderSettingRow(
+            'Partner Activity',
+            'Know the moment your partner shares a thought.',
+            partnerActivity,
+            (v) => { setPartnerActivity(v); selection(); }
+          )}
+
+          {renderSettingRow(
+            'Weekly Highlights',
+            'A curated summary of your connection growth.',
+            weeklyRecap,
+            (v) => { setWeeklyRecap(v); selection(); }
+          )}
+
+          {renderSettingRow(
+            'Shared Milestones',
+            'Celebrate anniversaries and new discoveries.',
+            milestones,
+            (v) => { setMilestones(v); selection(); },
+            true
+          )}
         </View>
+
+        {!notificationsEnabled && (
+          <View style={[styles.infoCard, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}>
+            <Icon name="information-circle-outline" size={20} color={t.primary} />
+            <Text style={[styles.infoText, { color: t.subtext }]}>
+              Enable global notifications above to customize these intimate touchpoints.
+            </Text>
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={[styles.saveButton, { backgroundColor: t.primary }]}
+          onPress={handleSave}
+          disabled={isSaving}
+          activeOpacity={0.9}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={[styles.saveButtonText, { color: "#FFFFFF" }]}>Apply Changes</Text>
+          )}
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+const createStyles = (t, isDark) => StyleSheet.create({
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 20,
   },
-  backButton: {
-    padding: 8,
-  },
+  backButton: { width: 44, height: 44, justifyContent: 'center' },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
   },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  iconContainer: {
+  scrollView: { flex: 1 },
+  scrollContent: { padding: 24, paddingBottom: 60 },
+  iconHero: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
     marginBottom: 24,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 32,
+    fontWeight: '800',
     textAlign: 'center',
     marginBottom: 8,
+    letterSpacing: -0.8,
   },
   subtitle: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
+    fontWeight: '500',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
+    lineHeight: 24,
   },
   masterToggle: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
-    borderRadius: 12,
+    padding: 24,
+    borderRadius: 24,
     marginBottom: 16,
+    borderWidth: 1,
   },
   settingsCard: {
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
+    borderWidth: 1,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    marginBottom: 12,
   },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
+    paddingVertical: 20,
   },
   settingInfo: {
     flex: 1,
-    marginRight: 16,
+    marginRight: 24,
   },
   settingTitle: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '700',
     marginBottom: 4,
+    letterSpacing: -0.2,
   },
   settingDescription: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 14,
     lineHeight: 20,
+    fontWeight: '500',
   },
   infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: 16,
-    borderRadius: 12,
+    padding: 20,
+    borderRadius: 20,
     borderWidth: 1,
-    marginBottom: 24,
+    marginBottom: 32,
     gap: 12,
   },
   infoText: {
-    fontSize: 13,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
     lineHeight: 20,
     flex: 1,
+    fontWeight: '500',
   },
   saveButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#C3113D', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
+      android: { elevation: 6 },
+    }),
   },
   saveButtonText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: -0.2,
   },
 });
 

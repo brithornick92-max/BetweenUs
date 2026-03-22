@@ -1,14 +1,17 @@
 // components/InvitationCard.jsx — Gentle connection invitation
 // Brand-aligned replacement for ChallengeCard
-// No difficulty levels, no points, no score — just an invitation to connect.
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
 
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import Card from './Card';
-import { SPACING, BORDER_RADIUS, TYPOGRAPHY, withAlpha } from '../utils/theme';
+import Icon from './Icon';
+import { SPACING, withAlpha } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
+
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 /**
  * InvitationCard — A warm invitation for couples to connect.
@@ -16,10 +19,7 @@ import { useTheme } from '../context/ThemeContext';
  * Replaces ChallengeCard with brand-aligned design:
  * - No difficulty levels
  * - No points / rewards
- * - No competitive progress tracking
- * - Warm, present language
- *
- * Props are backward-compatible with ChallengeCard.
+ * - Warm, editorial system typography
  */
 export default function InvitationCard({
   challenge,
@@ -28,18 +28,29 @@ export default function InvitationCard({
   compact = false,
   style,
 }) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { colors, isDark } = useTheme();
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const getTypeIcon = (type) => {
     const icons = {
-      daily: '🌙',
-      weekly: '✨',
-      monthly: '💛',
-      special: '🕯️',
-      exploration: '🌿',
+      daily: 'moon-outline',
+      weekly: 'sparkles-outline',
+      monthly: 'heart-outline',
+      special: 'flame-outline',
+      exploration: 'compass-outline',
     };
-    return icons[type] || '💛';
+    return icons[type] || 'heart-outline';
   };
 
   const getTimeRemaining = (expiresAt) => {
@@ -53,7 +64,7 @@ export default function InvitationCard({
     return 'soon';
   };
 
-  const typeIcon = getTypeIcon(challenge?.type);
+  const typeIconName = getTypeIcon(challenge?.type);
   const isComplete = challenge?.status === 'completed';
   const isExpired = challenge?.expiresAt < Date.now();
   const timeLeft = getTimeRemaining(challenge?.expiresAt);
@@ -69,8 +80,8 @@ export default function InvitationCard({
         accessibilityLabel={challenge?.name || 'Connection invitation'}
       >
         <View style={styles.compactContent}>
-          <Text style={styles.compactIcon}>{typeIcon}</Text>
-          <Text style={styles.compactTitle} numberOfLines={1}>
+          <Icon name={typeIconName} size={20} color={t.primary} />
+          <Text style={[styles.compactTitle, { color: t.text }]} numberOfLines={1}>
             {challenge?.name}
           </Text>
         </View>
@@ -85,60 +96,54 @@ export default function InvitationCard({
       onPress={onPress}
       style={[styles.card, isExpired && styles.expiredCard, style]}
       accessibilityRole="button"
-      accessibilityLabel={`${challenge?.name || 'Invitation'}${isComplete ? ', completed' : ''}${isExpired ? ', passed' : ''}`}
     >
-      <Animated.View entering={FadeInDown.duration(500).springify().damping(16)} style={styles.content}>
+      <Animated.View entering={FadeInDown.duration(600).springify().damping(18)} style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.typeIcon}>{typeIcon}</Text>
+          <View style={[styles.iconBox, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+            <Icon name={typeIconName} size={22} color={t.primary} />
+          </View>
           <View style={styles.headerInfo}>
-            <Text style={styles.title} numberOfLines={1}>
+            <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
               {challenge?.name}
             </Text>
             {timeLeft && !isComplete && !isExpired && (
-              <Text style={styles.timeHint}>{timeLeft} remaining</Text>
+              <Text style={[styles.timeHint, { color: t.subtext }]}>{timeLeft} remaining</Text>
             )}
           </View>
-          {isComplete && <Text style={styles.completeIcon}>✨</Text>}
+          {isComplete && <Icon name="checkmark-circle" size={22} color={t.primary} />}
         </View>
 
         {/* Description */}
         {challenge?.description && (
-          <Text style={styles.description} numberOfLines={2}>
+          <Text style={[styles.description, { color: t.subtext }]} numberOfLines={2}>
             {challenge.description}
           </Text>
         )}
 
-        {/* Accept / Complete states */}
+        {/* State Banners */}
         {isComplete && (
-          <View style={styles.completeBanner}>
-            <Text style={styles.completeText}>Beautifully done</Text>
+          <View style={[styles.completeBanner, { backgroundColor: withAlpha(t.primary, 0.08) }]}>
+            <Text style={[styles.completeText, { color: t.primary }]}>Beautifully done</Text>
           </View>
         )}
 
         {isExpired && !isComplete && (
-          <View style={styles.expiredBanner}>
-            <Text style={styles.expiredText}>This invitation has passed</Text>
+          <View style={[styles.expiredBanner, { backgroundColor: withAlpha(t.text, 0.05) }]}>
+            <Text style={[styles.expiredText, { color: t.subtext }]}>This invitation has passed</Text>
           </View>
         )}
 
+        {/* Action Button */}
         {onAccept && challenge?.status === 'available' && !isExpired && (
           <Animated.View entering={FadeIn.delay(300).duration(400)}>
             <TouchableOpacity
-              style={styles.acceptButton}
+              style={[styles.acceptButton, { backgroundColor: t.primary }]}
               onPress={onAccept}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={`Begin ${challenge?.name || 'invitation'}`}
+              activeOpacity={0.9}
             >
-              <LinearGradient
-                colors={[colors.primary, colors.primaryMuted]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.acceptGradient}
-              >
-                <Text style={styles.acceptText}>Begin</Text>
-              </LinearGradient>
+              <Text style={styles.acceptText}>Begin</Text>
+              <Icon name="arrow-forward" size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -147,81 +152,109 @@ export default function InvitationCard({
   );
 }
 
-// Backward-compatible alias
 export { InvitationCard as ChallengeCard };
 
-const createStyles = (colors) =>
+const createStyles = (t, isDark) =>
   StyleSheet.create({
-    card: { marginVertical: SPACING.xs },
-    expiredCard: { opacity: 0.55 },
-    content: { width: '100%' },
+    card: { 
+      marginVertical: SPACING.sm,
+      borderRadius: 24, // Deep Apple Squircle
+      borderWidth: 1,
+      borderColor: t.border,
+    },
+    expiredCard: { opacity: 0.5 },
+    content: { width: '100%', paddingVertical: 4 },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: SPACING.sm,
-    },
-    typeIcon: { fontSize: 28, marginRight: SPACING.sm },
-    headerInfo: { flex: 1 },
-    title: {
-      ...TYPOGRAPHY.h3,
-      color: colors.text,
-    },
-    timeHint: {
-      ...TYPOGRAPHY.caption,
-      color: colors.textMuted,
-      marginTop: 2,
-    },
-    completeIcon: { fontSize: 22 },
-    description: {
-      ...TYPOGRAPHY.body,
-      color: colors.textMuted,
       marginBottom: SPACING.md,
     },
+    iconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    },
+    headerInfo: { flex: 1 },
+    title: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 18,
+      fontWeight: '800',
+      letterSpacing: -0.3,
+    },
+    timeHint: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 12,
+      fontWeight: '600',
+      marginTop: 2,
+    },
+    description: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: '400',
+      marginBottom: SPACING.lg,
+      paddingHorizontal: 2,
+    },
     completeBanner: {
-      paddingVertical: SPACING.sm,
-      paddingHorizontal: SPACING.md,
-      backgroundColor: withAlpha(colors.primary, 0.08),
-      borderRadius: BORDER_RADIUS.md,
+      paddingVertical: 10,
+      borderRadius: 16,
       alignItems: 'center',
     },
     completeText: {
-      ...TYPOGRAPHY.body,
-      color: colors.primary,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 14,
+      fontWeight: '700',
       fontStyle: 'italic',
     },
     expiredBanner: {
-      paddingVertical: SPACING.sm,
-      paddingHorizontal: SPACING.md,
-      backgroundColor: withAlpha(colors.text, 0.04),
-      borderRadius: BORDER_RADIUS.md,
+      paddingVertical: 10,
+      borderRadius: 16,
       alignItems: 'center',
     },
     expiredText: {
-      ...TYPOGRAPHY.caption,
-      color: colors.textMuted,
-      fontStyle: 'italic',
+      fontFamily: SYSTEM_FONT,
+      fontSize: 13,
+      fontWeight: '600',
     },
     acceptButton: {
-      borderRadius: BORDER_RADIUS.md,
-      overflow: 'hidden',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 44,
+      borderRadius: 22, // Pill shape
+      paddingHorizontal: 20,
       alignSelf: 'flex-end',
       marginTop: SPACING.sm,
-    },
-    acceptGradient: {
-      paddingHorizontal: SPACING.lg,
-      paddingVertical: SPACING.sm,
+      gap: 6,
     },
     acceptText: {
-      ...TYPOGRAPHY.button,
-      color: colors.text,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 15,
+      fontWeight: '800',
+      color: '#FFFFFF',
+      letterSpacing: -0.2,
+      textTransform: 'uppercase',
     },
-    // Compact
-    compactCard: { marginVertical: SPACING.xs / 2 },
-    compactContent: { flexDirection: 'row', alignItems: 'center' },
-    compactIcon: { fontSize: 22, marginRight: SPACING.sm },
+    // Compact View
+    compactCard: { 
+      marginVertical: SPACING.xs,
+      borderRadius: 16,
+    },
+    compactContent: { 
+      flexDirection: 'row', 
+      alignItems: 'center',
+      paddingHorizontal: SPACING.sm,
+      gap: 12,
+    },
     compactTitle: {
-      ...TYPOGRAPHY.body,
-      color: colors.text,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 15,
+      fontWeight: '700',
+      letterSpacing: -0.2,
       flex: 1,
     },
   });
+  

@@ -9,59 +9,57 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { selection } from '../utils/haptics';
 import { useAppContext } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
-import { SPACING } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 
-// Note: MaterialCommunityIcons does not support setNativeProps, so we cannot use
-// Animated.createAnimatedComponent with it. Use crossfade instead.
 const { width: screenWidth } = Dimensions.get('window');
 
-// Vibe Color Definitions — Pure Apple System Colors
+// Vibe Color Definitions — Sexy Red & Midnight Intimacy Palette
 export const VIBE_COLORS = {
   PASSIONATE: {
     id: 'passionate',
     name: 'Passionate',
-    primary: '#FF3B30', // iOS Red
-    icon: 'fire',
+    primary: '#C3113D', // Sexy Red
+    icon: 'flame-outline',
     emotion: 'Intense & Romantic',
   },
   TENDER: {
     id: 'tender',
     name: 'Tender',
-    primary: '#FF2D55', // iOS Pink
-    icon: 'heart',
+    primary: '#FF2D55', // iOS Pink (Intimate variant)
+    icon: 'heart-outline',
     emotion: 'Gentle & Loving',
   },
   LUXURIOUS: {
     id: 'luxurious',
     name: 'Luxurious',
-    primary: '#D4AF37', // Crisp Gold
-    icon: 'diamond-stone',
+    primary: '#A89060', // Matte Gold
+    icon: 'diamond-outline',
     emotion: 'Elegant & Refined',
   },
   MYSTERIOUS: {
     id: 'mysterious',
     name: 'Mysterious',
-    primary: '#5856D6', // iOS Purple
-    icon: 'weather-night',
+    primary: '#5E5CE6', // iOS Indigo
+    icon: 'moon-outline',
     emotion: 'Mystical & Alluring',
   },
   SERENE: {
     id: 'serene',
     name: 'Serene',
-    primary: '#32ADE6', // iOS Cyan
-    icon: 'water',
+    primary: '#64D2FF', // iOS Cyan
+    icon: 'water-outline',
     emotion: 'Peaceful & Bonded',
   },
   ADVENTUROUS: {
     id: 'adventurous',
     name: 'Adventurous',
-    primary: '#FF9500', // iOS Orange
-    icon: 'compass',
+    primary: '#FF9F0A', // iOS Orange
+    icon: 'compass-outline',
     emotion: 'Bold & Daring',
   },
 };
@@ -76,14 +74,14 @@ const VibeSignal = ({
   const { state: appState, actions: appActions } = useAppContext();
   const animTimerRef = useRef(null);
 
-  // STRICT Apple Editorial Theme Map
+  // Midnight Intimacy x Apple Editorial Theme Map
   const t = useMemo(() => ({
-    background: isDark ? '#000000' : '#F2F2F7', 
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
-    primary: colors.primary,
-    text: isDark ? '#FFFFFF' : '#000000',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    background: colors.background, 
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D',
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
   
@@ -124,7 +122,7 @@ const VibeSignal = ({
           id: theme.id,
           name: theme.name,
           primary: theme.primary || t.primary,
-          icon: 'party-popper',
+          icon: 'sparkles-outline',
           emotion: `Anniversary: ${theme.name}`,
           isAnniversaryTheme: true,
           anniversaryDate: theme.anniversaryDate,
@@ -197,7 +195,6 @@ const VibeSignal = ({
       (typeof selectedVibe === 'object' && selectedVibe.id === vibe.id)
     );
 
-    // Individual animations for each card
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const fadeAnim = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
 
@@ -205,12 +202,12 @@ const VibeSignal = ({
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: isSelected ? 1 : 0,
-          duration: 200,
+          duration: 240,
           useNativeDriver: false,
         }),
         Animated.spring(scaleAnim, {
           toValue: isSelected ? 0.96 : 1,
-          friction: 8,
+          friction: 9,
           tension: 60,
           useNativeDriver: true,
         })
@@ -235,7 +232,6 @@ const VibeSignal = ({
       }).start();
     };
 
-    // Pure Apple Editorial Color Interpolations
     const backgroundColor = fadeAnim.interpolate({
       inputRange: [0, 1],
       outputRange: [t.surface, vibe.primary] 
@@ -269,18 +265,17 @@ const VibeSignal = ({
         >
           <Animated.View style={[styles.vibeCard, { backgroundColor }]}>
             <Animated.View style={[styles.vibeIconContainer, { backgroundColor: iconCircleBg }]}>
-              {/* Crossfade between two static icons to avoid setNativeProps crash */}
-              <View style={{ width: compact ? 24 : 28, height: compact ? 24 : 28 }}>
-                <MaterialCommunityIcons
-                  name={vibe.icon || 'star'}
-                  size={compact ? 24 : 28}
+              <View style={{ width: compact ? 22 : 26, height: compact ? 22 : 26 }}>
+                <Icon
+                  name={vibe.icon}
+                  size={compact ? 22 : 26}
                   color={vibe.primary}
                   style={{ position: 'absolute' }}
                 />
                 <Animated.View style={{ opacity: fadeAnim }}>
-                  <MaterialCommunityIcons
-                    name={vibe.icon || 'star'}
-                    size={compact ? 24 : 28}
+                  <Icon
+                    name={vibe.icon}
+                    size={compact ? 22 : 26}
                     color="#FFFFFF"
                   />
                 </Animated.View>
@@ -290,7 +285,7 @@ const VibeSignal = ({
               {vibe.name}
             </Animated.Text>
             {!compact && (
-              <Animated.Text style={[styles.vibeEmotion, { color: textColor, opacity: 0.8 }]} numberOfLines={1}>
+              <Animated.Text style={[styles.vibeEmotion, { color: textColor, opacity: 0.7 }]} numberOfLines={1}>
                 {vibe.emotion}
               </Animated.Text>
             )}
@@ -302,16 +297,14 @@ const VibeSignal = ({
 
   const renderPartnerVibeDisplay = () => {
     if (!showPartnerVibe || !partnerVibe) return null;
-
-    // Use fallback colors if full object isn't available
     const pColor = partnerVibe.primary || t.primary;
 
     return (
       <View style={styles.partnerVibeContainer}>
         <Text style={styles.sectionLabel}>PARTNER'S VIBE</Text>
         <View style={styles.partnerVibeCard}>
-          <View style={[styles.partnerIconWrap, { backgroundColor: pColor + '20' }]}>
-            <MaterialCommunityIcons name={partnerVibe.icon || 'heart'} size={24} color={pColor} />
+          <View style={[styles.partnerIconWrap, { backgroundColor: withAlpha(pColor, 0.15) }]}>
+            <Icon name={partnerVibe.icon || 'heart'} size={24} color={pColor} />
           </View>
           <View style={styles.partnerTextWrap}>
             <Text style={styles.partnerVibeName}>{partnerVibe.name}</Text>
@@ -324,7 +317,7 @@ const VibeSignal = ({
 
   return (
     <View style={[styles.container, style]}>
-      {/* Flush-Left Editorial Header */}
+      {/* Editorial Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Choose Your Vibe</Text>
         <Text style={styles.subtitle}>Tap to share how you're feeling.</Text>
@@ -337,7 +330,7 @@ const VibeSignal = ({
 
       {/* Anniversary Theme Notice */}
       {anniversaryThemes.length > 0 && (
-        <View style={styles.anniversaryNotice}>
+        <View style={[styles.anniversaryNotice, { backgroundColor: withAlpha(t.primary, 0.08) }]}>
           <Text style={styles.anniversaryIcon}>🎉</Text>
           <Text style={[styles.anniversaryText, { color: t.primary }]}>
             Special anniversary themes available today!
@@ -368,9 +361,6 @@ const VibeSignal = ({
   );
 };
 
-// ------------------------------------------------------------------
-// STYLES - Pure Apple Editorial 
-// ------------------------------------------------------------------
 const createStyles = (t, isDark, compact) => {
   const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -378,8 +368,6 @@ const createStyles = (t, isDark, compact) => {
     container: {
       width: '100%',
     },
-    
-    // ── Header ──
     header: {
       alignItems: 'flex-start',
       marginBottom: SPACING.xl,
@@ -394,12 +382,11 @@ const createStyles = (t, isDark, compact) => {
       marginBottom: 4,
     },
     subtitle: { 
+      fontFamily: systemFont,
       fontSize: 15,
       fontWeight: '500',
       color: t.subtext,
     },
-
-    // ── Vibe Grid ──
     vibeGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -407,34 +394,34 @@ const createStyles = (t, isDark, compact) => {
       gap: 12,
     },
     vibeCardWrapper: {
-      width: compact ? '31%' : '48%', // 3 columns if compact, 2 if normal
+      width: compact ? '31%' : '48%',
       marginBottom: 4,
-      ...Platform.select({
-        ios: {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: isDark ? 0 : 0.06,
-          shadowRadius: 10,
-        },
-        android: { elevation: 2 },
-      }),
     },
     vibeTouchableArea: {
       width: '100%',
     },
     vibeCard: {
-      borderRadius: 24, // iOS Squircle
+      borderRadius: 24, // Deep Apple Squircle
       padding: compact ? SPACING.md : SPACING.lg,
-      alignItems: 'flex-start', // Editorial flush-left inside cards
+      alignItems: 'flex-start',
       justifyContent: 'center',
       aspectRatio: compact ? 1 : 1.1, 
       borderWidth: 1,
       borderColor: t.border,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: isDark ? 0.3 : 0.05,
+          shadowRadius: 12,
+        },
+        android: { elevation: 2 },
+      }),
     },
     vibeIconContainer: {
-      width: compact ? 40 : 48,
-      height: compact ? 40 : 48,
-      borderRadius: compact ? 20 : 24,
+      width: compact ? 38 : 46,
+      height: compact ? 38 : 46,
+      borderRadius: compact ? 19 : 23,
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: SPACING.md,
@@ -446,21 +433,21 @@ const createStyles = (t, isDark, compact) => {
       letterSpacing: -0.2,
     },
     vibeEmotion: {
+      fontFamily: systemFont,
       fontSize: 12,
       fontWeight: '500',
-      marginTop: 4,
+      marginTop: 2,
     },
-
-    // ── Partner Vibe ──
     partnerVibeContainer: {
       marginTop: SPACING.xxl,
     },
     sectionLabel: {
+      fontFamily: systemFont,
       fontSize: 12,
-      fontWeight: '700',
+      fontWeight: '800',
       color: t.subtext,
       textTransform: 'uppercase',
-      letterSpacing: 0.5,
+      letterSpacing: 1.5,
       marginBottom: SPACING.sm,
       paddingLeft: 4,
     },
@@ -468,13 +455,13 @@ const createStyles = (t, isDark, compact) => {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: t.surface,
-      borderRadius: 20,
+      borderRadius: 24,
       padding: SPACING.lg,
       borderWidth: 1,
       borderColor: t.border,
       gap: 16,
       ...Platform.select({
-        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 8 },
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.2 : 0.04, shadowRadius: 8 },
         android: { elevation: 2 },
       }),
     },
@@ -489,6 +476,7 @@ const createStyles = (t, isDark, compact) => {
       flex: 1,
     },
     partnerVibeName: {
+      fontFamily: systemFont,
       fontSize: 16,
       fontWeight: '700',
       color: t.text,
@@ -496,51 +484,52 @@ const createStyles = (t, isDark, compact) => {
       letterSpacing: -0.2,
     },
     partnerVibeEmotion: {
+      fontFamily: systemFont,
       fontSize: 14,
       fontWeight: '500',
       color: t.subtext,
     },
-
-    // ── Special Notices ──
     anniversaryNotice: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: t.surfaceSecondary,
       padding: SPACING.lg,
       borderRadius: 16,
       marginTop: SPACING.xl,
+      borderWidth: 1,
+      borderColor: t.border,
       gap: 12,
     },
     anniversaryIcon: {
       fontSize: 20,
     },
     anniversaryText: {
+      fontFamily: systemFont,
       fontSize: 14,
-      fontWeight: '600',
+      fontWeight: '700',
       flex: 1,
     },
-
-    // ── Selected Vibe Info ──
     selectedVibeInfo: {
       marginTop: SPACING.xl,
       backgroundColor: t.surfaceSecondary,
       padding: SPACING.lg,
-      borderRadius: 20,
+      borderRadius: 24,
       borderWidth: 1,
       borderColor: t.border,
     },
     selectedVibeText: {
-      fontSize: 15,
+      fontFamily: systemFont,
+      fontSize: 16,
       fontWeight: '500',
       color: t.text,
       marginBottom: 4,
     },
     selectedVibeName: {
-      fontWeight: '700',
+      fontWeight: '800',
     },
     selectedVibeTime: {
+      fontFamily: systemFont,
       fontSize: 13,
-      fontWeight: '500',
+      fontWeight: '600',
       color: t.subtext,
     },
   });

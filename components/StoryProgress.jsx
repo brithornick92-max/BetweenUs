@@ -1,24 +1,23 @@
 // components/StoryProgress.jsx — "Your story so far"
 // Brand-aligned replacement for ProgressTracker
-// Gentle narrative visualization, not a metrics dashboard.
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
 
 import React, { useEffect, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Card from './Card';
-import { SPACING, BORDER_RADIUS, TYPOGRAPHY, withAlpha } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
+
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 /**
  * StoryProgress — A gentle "your story so far" visualization.
  *
  * Replaces ProgressTracker with brand-aligned design:
- * - No "Goal Achieved!" celebration
- * - No pulsing attention-grab
- * - No percentage display by default
- * - Warm, narrative framing
- *
- * Props are backward-compatible with ProgressTracker.
+ * - No gamification pressure
+ * - Sexy Red primary accents
+ * - Editorial system typography
  */
 export default function StoryProgress({
   title = 'Your story so far',
@@ -32,15 +31,26 @@ export default function StoryProgress({
   animated = true,
   style,
 }) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { colors, isDark } = useTheme();
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (animated) {
-      Animated.timing(progressAnim, {
+      Animated.spring(progressAnim, {
         toValue: progress,
-        duration: 800,
+        friction: 8,
+        tension: 40,
         useNativeDriver: false,
       }).start();
     } else {
@@ -64,33 +74,36 @@ export default function StoryProgress({
       style={[styles.container, style]}
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: target, now: current }}
-      accessibilityLabel={`${title}: ${current} of ${target} ${unit}`}
     >
-      <Card variant={variant === 'elevated' ? 'elevated' : 'glass'} padding="md">
+      <Card 
+        variant={variant === 'elevated' ? 'elevated' : 'glass'} 
+        padding="md"
+        style={styles.card}
+      >
         <View style={styles.content}>
-          {/* Title */}
+          {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={[styles.title, { color: t.text }]}>{title}</Text>
             {showPercentage && (
-              <Text style={styles.percentage}>
+              <Text style={[styles.percentage, { color: t.subtext }]}>
                 {Math.round(progress * 100)}%
               </Text>
             )}
           </View>
 
-          {/* Progress bar */}
+          {/* Editorial Progress Bar */}
           <View style={styles.barContainer}>
-            <View style={styles.barBackground}>
+            <View style={[styles.barBackground, { backgroundColor: withAlpha(t.text, 0.06) }]}>
               <Animated.View style={[styles.barFill, { width: progressWidth }]}>
                 <LinearGradient
-                  colors={[colors.primary, colors.primaryMuted || colors.primary]}
+                  colors={[t.primary, withAlpha(t.primary, 0.8)]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.barGradient}
                 />
               </Animated.View>
 
-              {/* Milestone dots */}
+              {/* Milestone markers */}
               {safeMilestones.map((ms, i) => {
                 const pos = (ms.value / target) * 100;
                 const reached = current >= ms.value;
@@ -99,8 +112,7 @@ export default function StoryProgress({
                     key={i}
                     style={[
                       styles.milestoneDot,
-                      { left: `${pos}%` },
-                      reached && styles.milestoneDotReached,
+                      { left: `${pos}%`, backgroundColor: t.surface, borderColor: reached ? t.primary : t.border },
                     ]}
                   />
                 );
@@ -108,68 +120,78 @@ export default function StoryProgress({
             </View>
           </View>
 
-          {/* Narrative stat */}
-          <Text style={styles.narrative}>{displayText}</Text>
+          {/* Narrative Info */}
+          <Text style={[styles.narrative, { color: t.subtext }]}>{displayText}</Text>
         </View>
       </Card>
     </View>
   );
 }
 
-// Backward-compatible alias
-export { StoryProgress as ProgressTracker };
-
-const createStyles = (colors) =>
+const createStyles = (t, isDark) =>
   StyleSheet.create({
-    container: { marginVertical: SPACING.xs },
-    content: { width: '100%' },
+    container: { 
+      marginVertical: SPACING.sm,
+      paddingHorizontal: 4,
+    },
+    card: {
+      borderRadius: 24, // Deep Apple Squircle
+      borderWidth: 1,
+      borderColor: t.border,
+    },
+    content: { width: '100%', paddingVertical: 4 },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: SPACING.md,
+      marginBottom: SPACING.lg,
     },
     title: {
-      ...TYPOGRAPHY.h3,
-      color: colors.text,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 17,
+      fontWeight: '800',
+      letterSpacing: -0.4,
       flex: 1,
     },
     percentage: {
-      ...TYPOGRAPHY.caption,
-      color: colors.textMuted,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 13,
+      fontWeight: '700',
+      letterSpacing: 0.5,
     },
-    barContainer: { marginBottom: SPACING.md },
+    barContainer: { 
+      marginBottom: SPACING.md,
+      paddingHorizontal: 2,
+    },
     barBackground: {
-      height: 6,
-      backgroundColor: withAlpha(colors.text, 0.06),
-      borderRadius: BORDER_RADIUS.sm,
+      height: 8,
+      borderRadius: 4,
       overflow: 'visible',
       position: 'relative',
     },
     barFill: {
       height: '100%',
-      borderRadius: BORDER_RADIUS.sm,
+      borderRadius: 4,
       overflow: 'hidden',
     },
     barGradient: { width: '100%', height: '100%' },
     milestoneDot: {
       position: 'absolute',
-      top: -3,
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: withAlpha(colors.text, 0.15),
-      borderWidth: 1.5,
-      borderColor: withAlpha(colors.text, 0.08),
-      transform: [{ translateX: -4 }],
-    },
-    milestoneDotReached: {
-      backgroundColor: colors.primary,
-      borderColor: withAlpha(colors.primary, 0.4),
+      top: -2,
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      borderWidth: 2,
+      transform: [{ translateX: -6 }],
+      zIndex: 2,
     },
     narrative: {
-      ...TYPOGRAPHY.caption,
-      color: colors.textMuted,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 13,
+      fontWeight: '600',
       fontStyle: 'italic',
+      letterSpacing: -0.1,
+      marginTop: 4,
     },
   });
+  

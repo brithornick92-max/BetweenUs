@@ -13,7 +13,7 @@ import {
   StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from "../context/AppContext";
@@ -57,7 +57,7 @@ export default function RevealScreen({ route, navigation }) {
     surface: colors.surface,
     surfaceSecondary: colors.surface2 || '#1C1C1E',
     surfaceGlass: isDark ? 'rgba(28, 28, 30, 0.65)' : 'rgba(255, 255, 255, 0.7)',
-    accent: colors.accent || '#FF2D55',
+    accent: colors.accent || '#D4AA7E',
     primary: colors.primary,
     text: colors.text,
     subtext: colors.text + '99',
@@ -141,7 +141,7 @@ export default function RevealScreen({ route, navigation }) {
               activeOpacity={0.7}
             >
               <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.headerBlur}>
-                <MaterialCommunityIcons name="chevron-left" size={28} color={t.text} />
+                <Icon name="chevron-left" size={28} color={t.text} />
               </BlurView>
             </TouchableOpacity>
           </View>
@@ -149,7 +149,7 @@ export default function RevealScreen({ route, navigation }) {
           {/* Hero Prompt Card (Glass Style) */}
           <View style={[styles.promptContainer, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
             <View style={styles.eyebrowRow}>
-              <MaterialCommunityIcons name="star-four-points" size={12} color={t.accent} />
+              <Icon name="star-four-points" size={12} color={t.accent} />
               <Text style={[styles.questionLabel, { color: t.accent }]}>THE DAILY PROMPT</Text>
             </View>
             <Text style={[styles.questionText, { color: t.text }]}>{prompt.text}</Text>
@@ -163,7 +163,7 @@ export default function RevealScreen({ route, navigation }) {
                   colors={[t.accent, '#7A1E4E']} 
                   style={[styles.lockedCircle, { shadowColor: t.accent }]}
                 >
-                  <MaterialCommunityIcons name="lock-heart" size={42} color="#FFFFFF" />
+                  <Icon name="lock-heart" size={42} color="#FFFFFF" />
                 </LinearGradient>
               </Animated.View>
 
@@ -175,7 +175,7 @@ export default function RevealScreen({ route, navigation }) {
               <Button title="Reveal Together" onPress={handleReveal} style={styles.revealAction} />
               
               <View style={styles.privacyNoteContainer}>
-                <MaterialCommunityIcons name="shield-lock-outline" size={14} color={t.subtext} />
+                <Icon name="shield-lock-outline" size={14} color={t.subtext} />
                 <Text style={[styles.miniNote, { color: t.subtext }]}>
                   {isWaitingForPartner ? 'Your answer stays sealed until both share' : 'Shared reflections are just between you two'}
                 </Text>
@@ -213,7 +213,7 @@ export default function RevealScreen({ route, navigation }) {
                   </LinearGradient>
                 ) : (
                   <View style={[styles.bubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border, alignItems: 'center', paddingVertical: 40 }]}>
-                    <MaterialCommunityIcons name="heart-pulse" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
+                    <Icon name="heart-pulse" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
                     <Text style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}>
                       {state.partnerLabel || 'Your partner'} hasn't shared their thoughts yet.
                     </Text>
@@ -231,7 +231,7 @@ export default function RevealScreen({ route, navigation }) {
                 style={[styles.insightBox, { borderColor: t.border }]}
               >
                 <View style={styles.insightHeader}>
-                  <MaterialCommunityIcons name="auto-fix" size={20} color={t.accent} />
+                  <Icon name="auto-fix" size={20} color={t.accent} />
                   <Text style={[styles.insightTitle, { color: t.text }]}>Keep Going</Text>
                 </View>
                 <Text style={[styles.insightText, { color: t.subtext }]}>

@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import Animated, { 
   FadeIn, 
@@ -189,7 +189,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
               style={styles.circleButton}
               onPress={() => navigation.goBack()}
             >
-              <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
+              <Icon name="chevron-left" size={28} color={colors.text} />
             </TouchableOpacity>
           </View>
 
@@ -213,7 +213,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
             </TouchableOpacity>
             
             <ReAnimated.View entering={FadeIn.delay(1000)} style={styles.hintRow}>
-              <MaterialCommunityIcons name="gesture-tap" size={16} color={colors.textMuted} />
+              <Icon name="gesture-tap" size={16} color={colors.textMuted} />
               <Text style={[styles.envelopeTapHint, { color: colors.textMuted }]}>Tap to reveal</Text>
             </ReAnimated.View>
           </ReAnimated.View>
@@ -229,11 +229,11 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
               style={styles.circleButton}
               onPress={() => navigation.goBack()}
             >
-              <MaterialCommunityIcons name="chevron-left" size={28} color="#FFF" />
+              <Icon name="chevron-left" size={28} color="#FFF" />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.circleButton} onPress={handleDelete}>
-              <MaterialCommunityIcons name="trash-can-outline" size={22} color="#FFF" />
+              <Icon name="trash-can-outline" size={22} color="#FFF" />
             </TouchableOpacity>
           </Animated.View>
 
@@ -263,7 +263,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                 
                 <View style={styles.cardFooter}>
                   <Text style={styles.dateText}>{formatDate(note.createdAt)}</Text>
-                  <MaterialCommunityIcons name="seal" size={20} color={withAlpha('#FFF', 0.4)} />
+                  <Icon name="seal" size={20} color={withAlpha('#FFF', 0.4)} />
                 </View>
               </View>
             </Animated.View>
@@ -279,12 +279,12 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                   navigation.navigate("ComposeLoveNote");
                 }}
               >
-                <MaterialCommunityIcons name="heart-plus" size={20} color="#FFF" />
+                <Icon name="heart-plus" size={20} color="#FFF" />
                 <Text style={styles.replyButtonText}>Respond with Love</Text>
               </TouchableOpacity>
             ) : (
               <View style={styles.sentBadge}>
-                <MaterialCommunityIcons name="check-all" size={16} color={withAlpha('#FFF', 0.6)} />
+                <Icon name="check-all" size={16} color={withAlpha('#FFF', 0.6)} />
                 <Text style={styles.sentText}>Delivered to their heart</Text>
               </View>
             )}

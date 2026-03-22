@@ -1,6 +1,6 @@
 // components/GlassCard.jsx — Magnetic Glass card component
-// Frosted glass effect with subtle border glow and deep shadow
-// Velvet Glass & Apple Editorial updates integrated
+// Frosted glass effect with subtle Sexy Red glow and deep shadow
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
 
 import React, { useMemo } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
@@ -8,16 +8,15 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 
 /**
- * GlassCard — frosted glass surface
+ * GlassCard — High-end frosted glass surface
  *
  * @param {object}  style      - extra style overrides
- * @param {boolean} glow       - show a subtle accent glow behind the card
- * @param {number}  intensity  - blur intensity (default 30/20 dark/light)
+ * @param {boolean} glow       - show a subtle Sexy Red bloom behind the card
+ * @param {number}  intensity  - blur intensity (default 25/45 dark/light)
  * @param {string}  variant    - 'default' | 'subtle' | 'elevated'
- * @param {object}  children
  */
 export default function GlassCard({
   children,
@@ -29,17 +28,19 @@ export default function GlassCard({
 }) {
   const { colors, isDark } = useTheme();
 
-  // STRICT Apple Editorial & Velvet Glass Theme Map
+  // ─── SEXY RED x VELVET GLASS THEME MAP ───
   const t = useMemo(() => ({
-    surfaceGlass: isDark ? 'rgba(28, 28, 30, 0.65)' : 'rgba(255, 255, 255, 0.7)',
-    surfaceGlassSubtle: isDark ? 'rgba(28, 28, 30, 0.4)' : 'rgba(255, 255, 255, 0.5)',
-    surfaceGlassElevated: isDark ? 'rgba(44, 44, 46, 0.75)' : 'rgba(255, 255, 255, 0.9)',
-    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-    borderSubtle: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-    primaryGlow: colors.primaryGlow || colors.primary + '40',
+    // Midnight Intimacy Plum-tinted glass for dark mode
+    surfaceGlass: isDark ? 'rgba(19, 16, 22, 0.75)' : 'rgba(255, 255, 255, 0.7)',
+    surfaceGlassSubtle: isDark ? 'rgba(19, 16, 22, 0.45)' : 'rgba(255, 255, 255, 0.5)',
+    surfaceGlassElevated: isDark ? 'rgba(28, 21, 32, 0.85)' : 'rgba(255, 255, 255, 0.9)',
+    border: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+    borderSubtle: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+    primary: colors.primary || '#C3113D',
+    primaryGlow: withAlpha(colors.primary || '#C3113D', 0.25),
   }), [colors, isDark]);
 
-  const blurIntensity = intensity ?? (isDark ? 20 : 40);
+  const blurIntensity = intensity ?? (isDark ? 25 : 45);
 
   const variants = {
     default: {
@@ -60,11 +61,11 @@ export default function GlassCard({
 
   return (
     <Animated.View
-      entering={FadeIn.duration(400)}
+      entering={FadeIn.duration(600)}
       style={[styles.wrapper, style]}
       {...rest}
     >
-      {/* Optional accent glow bloom behind card */}
+      {/* Editorial Accent Glow — Sexy Red Bloom */}
       {glow && (
         <View style={styles.glowWrap} pointerEvents="none">
           <LinearGradient
@@ -76,8 +77,15 @@ export default function GlassCard({
         </View>
       )}
 
-      {/* Glass card */}
-      <View style={[styles.card, { backgroundColor: v.backgroundColor, borderColor: v.borderColor }, styles.shadowIOS]}>
+      {/* Glass Surface */}
+      <View style={[
+        styles.card, 
+        { 
+          backgroundColor: v.backgroundColor, 
+          borderColor: v.borderColor 
+        }, 
+        styles.shadowNative
+      ]}>
         <BlurView
           intensity={blurIntensity}
           tint={isDark ? "dark" : "light"}
@@ -90,9 +98,6 @@ export default function GlassCard({
   );
 }
 
-// ------------------------------------------------------------------
-// STYLES - Apple Editorial Squircle & Diffused Shadow
-// ------------------------------------------------------------------
 const styles = StyleSheet.create({
   wrapper: {
     position: 'relative',
@@ -100,30 +105,31 @@ const styles = StyleSheet.create({
   },
   glowWrap: {
     position: 'absolute',
-    top: -24,
-    left: '15%',
-    right: '15%',
-    height: 100,
+    top: -30,
+    left: '10%',
+    right: '10%',
+    height: 120,
     zIndex: -1,
+    opacity: 0.8,
   },
   glowGradient: {
     flex: 1,
     borderRadius: 100,
   },
   card: {
-    borderRadius: 28, // Deep Apple squircle radius
+    borderRadius: 28, // Deep Apple Squircle
     borderWidth: 1,
     overflow: 'hidden',
   },
-  shadowIOS: {
+  shadowNative: {
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.12,
         shadowRadius: 24,
       },
-      android: { elevation: 4 },
+      android: { elevation: 6 },
     }),
   },
   blur: {

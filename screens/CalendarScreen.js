@@ -18,7 +18,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
@@ -38,9 +38,9 @@ const { width: SCREEN_W } = Dimensions.get('window');
 
 // Event type visual config — Apple System Colors
 const EVENT_TYPES = {
-  dateNight: { label: 'Date Plans', icon: 'heart', color: '#FF2D55' }, // Apple Red/Pink
-  ritual: { label: 'Ritual', icon: 'star-four-points-outline', color: '#5856D6' }, // Apple Purple
-  loveNote: { label: 'Love Note', icon: 'email-heart-outline', color: '#FF2D55' },
+  dateNight: { label: 'Date Plans', icon: 'heart', color: '#C3113D' },
+  ritual: { label: 'Ritual', icon: 'star-four-points-outline', color: '#7E4FA3' }, // Velvet plum
+  loveNote: { label: 'Love Note', icon: 'email-heart-outline', color: '#C3113D' },
   anniversary: { label: 'Anniversary', icon: 'party-popper', color: '#FF9500' }, // Apple Orange
   general: { label: 'General', icon: 'calendar-outline', color: '#007AFF' }, // Apple Blue
 };
@@ -129,10 +129,10 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles, colors })
         </View>
         <View style={styles.navButtons}>
           <TouchableOpacity onPress={() => navigateMonth(-1)} style={styles.navButton} activeOpacity={0.7}>
-            <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
+            <Icon name="chevron-left" size={28} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigateMonth(1)} style={styles.navButton} activeOpacity={0.7}>
-            <MaterialCommunityIcons name="chevron-right" size={28} color={colors.text} />
+            <Icon name="chevron-right" size={28} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -220,13 +220,13 @@ function TimelineEvent({ item, onLongPress, styles, isDark }) {
         </View>
 
         <View style={styles.eventTypeRow}>
-          <MaterialCommunityIcons name={eventType.icon} size={14} color={eventType.color} />
+          <Icon name={eventType.icon} size={14} color={eventType.color} />
           <Text style={[styles.eventTypeLabel, { color: eventType.color }]}>{eventType.label}</Text>
         </View>
 
         {item.location && (
           <View style={styles.locationRow}>
-            <MaterialCommunityIcons name="map-marker" size={14} color={styles.subtextColor} />
+            <Icon name="map-marker" size={14} color={styles.subtextColor} />
             <Text style={styles.locationText}>{item.location}</Text>
           </View>
         )}
@@ -249,7 +249,7 @@ export default function CalendarScreen({ navigation, route }) {
     background: colors.background,
     surface: isDark ? '#1C1C1E' : '#FFFFFF',
     surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
-    accent: colors.accent || '#FF2D55',
+    accent: colors.accent || '#D4AA7E',
     primary: colors.primary,
     text: colors.text,
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
@@ -471,7 +471,7 @@ export default function CalendarScreen({ navigation, route }) {
           <Text style={styles.editorialTitle}>Your Shared Time</Text>
         </View>
         <View style={styles.paywallCenter}>
-          <MaterialCommunityIcons name="calendar-lock" size={64} color={t.primary} style={{ marginBottom: 16 }} />
+          <Icon name="calendar-lock" size={64} color={t.primary} style={{ marginBottom: 16 }} />
           <Text style={styles.paywallTitle}>Calendar is Premium</Text>
           <Text style={styles.paywallDesc}>
             Plan date nights, track anniversaries, set reminders, and build a shared timeline of your relationship.
@@ -481,7 +481,7 @@ export default function CalendarScreen({ navigation, route }) {
             style={styles.paywallButton}
             activeOpacity={0.85}
           >
-            <MaterialCommunityIcons name="star" size={18} color="#FFFFFF" />
+            <Icon name="star" size={18} color="#FFFFFF" />
             <Text style={styles.paywallButtonText}>Discover Premium</Text>
           </TouchableOpacity>
         </View>
@@ -562,7 +562,7 @@ export default function CalendarScreen({ navigation, route }) {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <MaterialCommunityIcons name="calendar-blank" size={32} color={t.subtext} style={{ marginBottom: 12 }} />
+                <Icon name="calendar-blank" size={32} color={t.subtext} style={{ marginBottom: 12 }} />
                 <Text style={styles.emptyText}>No plans recorded for this day.</Text>
               </View>
             )}
@@ -570,7 +570,7 @@ export default function CalendarScreen({ navigation, route }) {
         </ScrollView>
 
         <TouchableOpacity onPress={() => setModalOpen(true)} style={styles.fab} activeOpacity={0.9}>
-          <MaterialCommunityIcons name="plus" size={32} color={isDark ? "#000" : "#FFF"} />
+          <Icon name="plus" size={32} color={isDark ? "#000" : "#FFF"} />
         </TouchableOpacity>
 
         {/* Create Event Modal */}
@@ -580,7 +580,7 @@ export default function CalendarScreen({ navigation, route }) {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>New Event</Text>
                 <TouchableOpacity onPress={() => setModalOpen(false)} style={styles.closeButton}>
-                  <MaterialCommunityIcons name="close" size={24} color={t.text} />
+                  <Icon name="close" size={24} color={t.text} />
                 </TouchableOpacity>
               </View>
 

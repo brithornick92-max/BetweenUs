@@ -42,7 +42,7 @@ import {
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from './Icon';
 import {
   impact,
   notification,
@@ -488,7 +488,7 @@ function DeckCard({
                       start={{ x: 0.5, y: 0 }}
                       end={{ x: 0.5, y: 1 }}
                     />
-                    <MaterialCommunityIcons
+                    <Icon
                       name={catIcon}
                       size={32}
                       color={catGradient[0]}
@@ -678,7 +678,7 @@ function DeckCard({
                 >
                   swipe right to reflect
                 </Text>
-                <MaterialCommunityIcons
+                <Icon
                   name="arrow-right"
                   size={14}
                   color="#FFFFFF"
@@ -699,7 +699,7 @@ function DeckCard({
             <Animated.View
               style={[styles.swipeHint, styles.swipeHintRight, rightHintStyle]}
             >
-              <MaterialCommunityIcons
+              <Icon
                 name="pencil-outline"
                 size={28}
                 color="#F2E9E6"
@@ -709,7 +709,7 @@ function DeckCard({
             <Animated.View
               style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}
             >
-              <MaterialCommunityIcons
+              <Icon
                 name="arrow-right"
                 size={28}
                 color="#F2E9E6"
@@ -815,7 +815,7 @@ export default function PromptCardDeck({
               drawButtonStyle,
             ]}
           >
-            <MaterialCommunityIcons
+            <Icon
               name="cards-outline"
               size={18}
               color="#FFFFFF"

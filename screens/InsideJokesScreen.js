@@ -16,7 +16,7 @@ import {
   Dimensions,
   Platform
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
@@ -45,7 +45,7 @@ export default function InsideJokesScreen({ navigation }) {
         style={[styles.backButton, { backgroundColor: withAlpha(colors.text, 0.05) }]} 
         activeOpacity={0.7}
       >
-        <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
+        <Icon name="chevron-left" size={28} color={colors.text} />
       </TouchableOpacity>
       <View style={styles.headerTextStack}>
         <Text style={[styles.headerSubtitle, { color: colors.primary }]}>PRIVATE VAULT</Text>
@@ -70,9 +70,9 @@ export default function InsideJokesScreen({ navigation }) {
             style={styles.premiumGateContainer}
           >
             <View style={[styles.gateIconFrame, { backgroundColor: withAlpha(colors.primary, 0.1), borderColor: withAlpha(colors.primary, 0.2) }]}>
-              <MaterialCommunityIcons name="comment-heart-outline" size={48} color={colors.primary} />
+              <Icon name="comment-heart-outline" size={48} color={colors.primary} />
               <View style={styles.lockBadge}>
-                <MaterialCommunityIcons name="lock" size={14} color="#FFF" />
+                <Icon name="lock" size={14} color="#FFF" />
               </View>
             </View>
 
@@ -90,7 +90,7 @@ export default function InsideJokesScreen({ navigation }) {
                 colors={['transparent', 'rgba(0,0,0,0.1)']}
                 style={StyleSheet.absoluteFill}
               />
-              <MaterialCommunityIcons name="crown" size={20} color="#FFF" />
+              <Icon name="crown" size={20} color="#FFF" />
               <Text style={styles.premiumBtnText}>Unlock the Vault</Text>
             </TouchableOpacity>
 
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -6,
     right: -6,
-    backgroundColor: '#FF2D55',
+    backgroundColor: '#C3113D',
     width: 28,
     height: 28,
     borderRadius: 14,

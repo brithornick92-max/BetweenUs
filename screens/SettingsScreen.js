@@ -1,7 +1,6 @@
 /**
  * BETWEEN US - SETTINGS ENGINE (EDITORIAL V3)
- * High-End Apple Editorial Implementation
- * Length: 1000+ Lines equivalent architectural depth
+ * High-End Apple Editorial Layout + Sexy Red (#C3113D) Intimacy
  */
 
 import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
@@ -10,24 +9,20 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Alert,
   Modal,
-  Share,
-  TextInput,
-  ActivityIndicator,
   Dimensions,
-  KeyboardAvoidingView,
   Linking,
   Platform,
   StatusBar,
   Animated as RNAnimated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
+import { LinearGradient } from 'expo-linear-gradient';
 import ReAnimated, { 
   FadeInDown, 
   FadeInRight, 
@@ -35,8 +30,6 @@ import ReAnimated, {
   useSharedValue, 
   useAnimatedStyle, 
   withSpring,
-  interpolate,
-  Extrapolate
 } from 'react-native-reanimated';
 
 // Context & Services
@@ -45,15 +38,13 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
-import { useSubscription } from '../context/SubscriptionContext';
 
 // Utilities & Components
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import CrashReporting from '../services/CrashReporting';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
@@ -63,39 +54,34 @@ import SoftBoundariesPanel from '../components/SoftBoundariesPanel';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" }); // Elegant editorial fallback
+
 // ════════════════════════════════════════════════════════
 //  INTERNAL HIGH-END COMPONENTS (The "Editorial" Toolkit)
 // ════════════════════════════════════════════════════════
 
-/**
- * EditorialSection
- * Mimics the iOS Inset Grouped List style with generous vertical rhythm.
- */
-const EditorialSection = ({ title, children, colors, delay = 0 }) => (
+const EditorialSection = ({ title, children, t, delay = 0 }) => (
   <ReAnimated.View 
     entering={FadeInDown.delay(delay).duration(700).springify().damping(15)}
     style={styles.sectionContainer}
   >
-    {title && <Text style={[styles.sectionLabel, { color: colors.primary }]}>{title.toUpperCase()}</Text>}
-    <View style={[styles.sectionCard, { backgroundColor: colors.surface, borderColor: colors.borderGlass }]}>
+    {title && <Text style={[styles.sectionLabel, { color: t.primary }]}>{title.toUpperCase()}</Text>}
+    <View style={[styles.sectionCard, { backgroundColor: t.surface, borderColor: t.borderGlass }]}>
       {children}
     </View>
   </ReAnimated.View>
 );
 
-/**
- * EditorialRow
- * A high-fidelity row component with haptic feedback and dynamic scaling.
- */
-const EditorialRow = ({ icon, title, subtitle, onPress, colors, isLast, iconColor, rightElement }) => {
+const EditorialRow = ({ icon, title, subtitle, onPress, t, isLast, iconColor, rightElement }) => {
   const scale = useSharedValue(1);
   
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }]
   }));
 
-  const handlePressIn = () => { scale.value = withSpring(0.98); };
-  const handlePressOut = () => { scale.value = withSpring(1); };
+  const handlePressIn = () => { scale.value = withSpring(0.96, { damping: 12 }); };
+  const handlePressOut = () => { scale.value = withSpring(1, { damping: 12 }); };
 
   return (
     <TouchableOpacity
@@ -109,18 +95,18 @@ const EditorialRow = ({ icon, title, subtitle, onPress, colors, isLast, iconColo
     >
       <ReAnimated.View style={[styles.rowWrapper, animatedStyle]}>
         <View style={styles.rowMain}>
-          <View style={[styles.iconContainer, { backgroundColor: withAlpha(iconColor || colors.primary, 0.1) }]}>
-            <MaterialCommunityIcons name={icon} size={22} color={iconColor || colors.primary} />
+          <View style={[styles.iconContainer, { backgroundColor: withAlpha(iconColor || t.primary, 0.12) }]}>
+            <Icon name={icon} size={22} color={iconColor || t.primary} />
           </View>
           <View style={styles.rowTextContent}>
-            <Text style={[styles.rowTitle, { color: colors.text }]}>{title}</Text>
-            {subtitle && <Text style={[styles.rowSubtitle, { color: colors.textMuted }]}>{subtitle}</Text>}
+            <Text style={[styles.rowTitle, { color: t.text }]}>{title}</Text>
+            {subtitle && <Text style={[styles.rowSubtitle, { color: t.subtext }]}>{subtitle}</Text>}
           </View>
           {rightElement ? rightElement : (
-            <MaterialCommunityIcons name="chevron-right" size={20} color={colors.border} />
+            <Icon name="chevron-forward" size={20} color={t.border} />
           )}
         </View>
-        {!isLast && <View style={[styles.rowDivider, { backgroundColor: colors.borderGlass }]} />}
+        {!isLast && <View style={[styles.rowDivider, { backgroundColor: t.borderGlass }]} />}
       </ReAnimated.View>
     </TouchableOpacity>
   );
@@ -133,10 +119,24 @@ const EditorialRow = ({ icon, title, subtitle, onPress, colors, isLast, iconColo
 export default function SettingsScreen({ navigation }) {
   // ─── HOOKS & CONTEXT ───
   const { user, userProfile, signOutGlobal, updateProfile } = useAuth();
-  const { isPremiumEffective: isPremium, premiumSource, showPaywall } = useEntitlements();
-  const { colors, themeMode, setThemeMode } = useTheme();
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { colors, themeMode, setThemeMode, isDark } = useTheme();
   const { getRelationshipDurationText, updateRelationshipStartDate, loadContentProfile } = useContent();
   const scrollY = useRef(new RNAnimated.Value(0)).current;
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: isDark ? '#1C1C1E' : '#FFFFFF', // Apple pure surfaces
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    accent: colors.accent || '#D4AF37', // Premium Gold
+    primary: colors.primary || '#C3113D', // SEXY RED
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+    borderGlass: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+    danger: colors.primary || '#C3113D', // Sexy red
+  }), [colors, isDark]);
 
   // ─── STATE ───
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -145,12 +145,7 @@ export default function SettingsScreen({ navigation }) {
   const [inviteCode, setInviteCode] = useState(null);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [showCodeEntry, setShowCodeEntry] = useState(false);
-  const [enteredCode, setEnteredCode] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
-  const [showCloudAuthModal, setShowCloudAuthModal] = useState(false);
-  const [cloudAuthPassword, setCloudAuthPassword] = useState('');
-  const [cloudAuthLoading, setCloudAuthLoading] = useState(false);
-  const cloudAuthResolveRef = useRef(null);
 
   const [selectedDate, setSelectedDate] = useState(
     userProfile?.relationshipStartDate ? new Date(userProfile.relationshipStartDate) : new Date()
@@ -209,6 +204,7 @@ export default function SettingsScreen({ navigation }) {
 
   // ─── HANDLERS ───
   const handleSignOut = () => {
+    impact(ImpactFeedbackStyle.Medium);
     Alert.alert('Sign Out', 'Your session will be ended. Continue?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign Out', style: 'destructive', onPress: () => signOutGlobal() },
@@ -254,7 +250,7 @@ export default function SettingsScreen({ navigation }) {
 
   const headerScale = scrollY.interpolate({
     inputRange: [-100, 0],
-    outputRange: [1.2, 1],
+    outputRange: [1.1, 1],
     extrapolate: 'clamp',
   });
 
@@ -262,13 +258,22 @@ export default function SettingsScreen({ navigation }) {
   //  RENDER ENGINE
   // ════════════════════════════════════
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'} />
-      <FilmGrain />
+    <View style={[styles.root, { backgroundColor: t.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
       
-      {/* Background Ambience */}
-      <GlowOrb color={colors.primary} size={500} top={-200} left={-150} opacity={0.08} />
-      <GlowOrb color={colors.accent} size={300} top={SCREEN_HEIGHT * 0.4} left={SCREEN_WIDTH - 100} opacity={0.05} />
+      {/* Deep velvet background gradient with a hint of dark crimson in dark mode */}
+      <LinearGradient
+        colors={isDark 
+          ? [t.background, '#120206', '#0A0003', t.background] 
+          : [t.background, t.surfaceSecondary, t.background]}
+        style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+      
+      <FilmGrain />
+      <GlowOrb color={t.primary} size={500} top={-200} left={-150} opacity={isDark ? 0.2 : 0.08} />
+      <GlowOrb color={t.accent} size={300} top={SCREEN_HEIGHT * 0.4} left={SCREEN_WIDTH - 100} opacity={isDark ? 0.1 : 0.05} />
 
       <SafeAreaView style={styles.safe} edges={['top']}>
         <RNAnimated.ScrollView
@@ -282,16 +287,16 @@ export default function SettingsScreen({ navigation }) {
         >
           {/* ═══ EDITORIAL HEADER ═══ */}
           <RNAnimated.View style={[styles.header, { opacity: headerOpacity, transform: [{ scale: headerScale }] }]}>
-            <ReAnimated.Text entering={FadeInRight.delay(200)} style={[styles.headerSubtitle, { color: colors.primary }]}>
+            <ReAnimated.Text entering={FadeInRight.delay(200)} style={[styles.headerSubtitle, { color: t.primary }]}>
               PREFERENCES & ACCOUNT
             </ReAnimated.Text>
             <View style={styles.headerRow}>
-              <ReAnimated.Text entering={FadeInDown.delay(300)} style={[styles.headerTitle, { color: colors.text }]}>
+              <ReAnimated.Text entering={FadeInDown.delay(300)} style={[styles.headerTitle, { color: t.text }]}>
                 Settings
               </ReAnimated.Text>
               <ReAnimated.View entering={FadeIn.delay(500)}>
-                <View style={[styles.headerAvatar, { backgroundColor: colors.surface2 }]}>
-                  <Text style={[styles.avatarText, { color: colors.primary }]}>{initial}</Text>
+                <View style={[styles.headerAvatar, { backgroundColor: t.surfaceSecondary, borderColor: t.borderGlass }]}>
+                  <Text style={[styles.avatarText, { color: t.primary }]}>{initial}</Text>
                 </View>
               </ReAnimated.View>
             </View>
@@ -301,17 +306,21 @@ export default function SettingsScreen({ navigation }) {
           <ReAnimated.View entering={FadeInDown.delay(400).duration(800)} style={styles.cardContainer}>
             <TouchableOpacity 
               activeOpacity={0.9}
-              style={[styles.editorialCard, { backgroundColor: colors.surface, borderColor: colors.borderGlass }]}
+              style={[
+                styles.editorialCard, 
+                { backgroundColor: t.surface, borderColor: t.borderGlass },
+                !isDark && styles.lightShadow
+              ]}
               onPress={() => navigation.navigate('PartnerNamesSettings')}
             >
               <View style={styles.cardContent}>
-                <Text style={[styles.cardTag, { color: colors.textMuted }]}>ACTIVE PROFILE</Text>
-                <Text style={[styles.cardTitle, { color: colors.text }]}>{displayName}</Text>
-                <Text style={[styles.cardEmail, { color: colors.textMuted }]}>{user?.email}</Text>
+                <Text style={[styles.cardTag, { color: t.subtext }]}>ACTIVE PROFILE</Text>
+                <Text style={[styles.cardTitle, { color: t.text }]}>{displayName}</Text>
+                <Text style={[styles.cardEmail, { color: t.subtext }]}>{user?.email}</Text>
               </View>
               {isPremium && (
-                <View style={[styles.premiumPill, { backgroundColor: colors.primary }]}>
-                  <MaterialCommunityIcons name="crown" size={12} color="#FFF" />
+                <View style={[styles.premiumPill, { backgroundColor: t.primary }]}>
+                  <Icon name="sparkles" size={10} color="#FFF" />
                   <Text style={styles.premiumText}>PRO</Text>
                 </View>
               )}
@@ -319,28 +328,28 @@ export default function SettingsScreen({ navigation }) {
           </ReAnimated.View>
 
           {/* ═══ PARTNER CONNECTION ═══ */}
-          <EditorialSection title="Connection" colors={colors} delay={500}>
+          <EditorialSection title="Connection" t={t} delay={500}>
             {!paired ? (
               <View style={styles.promoContent}>
-                <View style={styles.promoIconFrame}>
-                  <MaterialCommunityIcons name="heart-flash" size={32} color={colors.primary} />
+                <View style={[styles.promoIconFrame, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+                  <Icon name="heart" size={32} color={t.primary} />
                 </View>
-                <Text style={[styles.promoTitle, { color: colors.text }]}>Unlock Shared Rituals</Text>
-                <Text style={[styles.promoBody, { color: colors.textMuted }]}>
+                <Text style={[styles.promoTitle, { color: t.text }]}>Unlock Shared Rituals</Text>
+                <Text style={[styles.promoBody, { color: t.subtext }]}>
                   Pair with your partner to sync journals, shared memories, and relationship climate data in real-time.
                 </Text>
                 
                 {inviteCode ? (
-                  <ReAnimated.View entering={FadeIn.duration(400)} style={styles.codeDisplay}>
-                    <Text style={[styles.codeText, { color: colors.text }]}>{inviteCode}</Text>
+                  <ReAnimated.View entering={FadeIn.duration(400)} style={[styles.codeDisplay, { backgroundColor: t.surfaceSecondary }]}>
+                    <Text style={[styles.codeText, { color: t.text }]}>{inviteCode}</Text>
                     <TouchableOpacity onPress={() => Clipboard.setStringAsync(inviteCode)} style={styles.copyBtn}>
-                      <MaterialCommunityIcons name="content-copy" size={16} color={colors.primary} />
+                      <Icon name="copy-outline" size={20} color={t.primary} />
                     </TouchableOpacity>
                   </ReAnimated.View>
                 ) : (
                   <TouchableOpacity 
-                    style={[styles.actionBtn, { backgroundColor: colors.primary }]}
-                    onPress={() => isPremium ? generateInviteCode() : showPaywall?.('partner')}
+                    style={[styles.actionBtn, { backgroundColor: t.primary }]}
+                    onPress={() => isPremium ? generateInviteCode() : showPaywall?.('partnerLinking')}
                   >
                     <Text style={styles.actionBtnText}>{isPremium ? 'Generate Invite Code' : 'Upgrade to Pair'}</Text>
                   </TouchableOpacity>
@@ -349,62 +358,62 @@ export default function SettingsScreen({ navigation }) {
                 {!inviteCode && (
                   <TouchableOpacity 
                     style={styles.secondaryBtn}
-                    onPress={() => setShowCodeEntry(true)}
+                    onPress={() => setShowCodeEntry(true)} 
                   >
-                    <Text style={[styles.secondaryBtnText, { color: colors.textMuted }]}>I have a code</Text>
+                    <Text style={[styles.secondaryBtnText, { color: t.subtext }]}>I have a code</Text>
                   </TouchableOpacity>
                 )}
               </View>
             ) : (
               <EditorialRow 
-                icon="link-variant" 
+                icon="infinite-outline" 
                 title="Partner Linked" 
                 subtitle={`Connected to ${userProfile?.partnerNames?.partnerName || 'Partner'}`}
                 onPress={() => setShowUnlinkConfirm(true)}
-                colors={colors}
+                t={t}
                 isLast
               />
             )}
           </EditorialSection>
 
           {/* ═══ RELATIONSHIP ENGINE ═══ */}
-          <EditorialSection title="Relationship" colors={colors} delay={600}>
+          <EditorialSection title="Relationship" t={t} delay={600}>
             <EditorialRow 
-              icon="calendar-heart" 
+              icon="calendar-outline" 
               title="Anniversary" 
               subtitle={getRelationshipDurationText()}
               onPress={() => setShowDatePicker(true)}
-              colors={colors}
+              t={t}
             />
             <EditorialRow 
-              icon="account-edit-outline" 
+              icon="person-circle-outline" 
               title="Identity" 
               subtitle="How you appear to each other"
               onPress={() => navigation.navigate('PartnerNamesSettings')}
-              colors={colors}
+              t={t}
               isLast
             />
           </EditorialSection>
 
           {/* ═══ EXPERIENCE CUSTOMIZATION ═══ */}
-          <EditorialSection title="Experience" colors={colors} delay={700}>
+          <EditorialSection title="Experience" t={t} delay={700}>
             <EditorialRow 
-              icon="fire" 
+              icon="flame-outline" 
               title="Heat Level" 
               subtitle="Content intensity preferences"
-              iconColor="#FF6B6B"
+              iconColor={t.primary}
               onPress={() => navigation.navigate('HeatLevelSettings')}
-              colors={colors}
+              t={t}
             />
             <EditorialRow 
-              icon="bell-badge-outline" 
+              icon="notifications-outline" 
               title="Notifications" 
               subtitle="Ritual & prompt reminders"
               onPress={() => navigation.navigate('NotificationSettings')}
-              colors={colors}
+              t={t}
             />
             <EditorialRow 
-              icon="palette-outline" 
+              icon="color-palette-outline" 
               title="Appearance" 
               subtitle={`${themeMode.charAt(0).toUpperCase() + themeMode.slice(1)} Mode`}
               onPress={() => {
@@ -413,7 +422,7 @@ export default function SettingsScreen({ navigation }) {
                 setThemeMode(next);
                 notification(NotificationFeedbackType.Success);
               }}
-              colors={colors}
+              t={t}
               isLast
             />
           </EditorialSection>
@@ -428,51 +437,50 @@ export default function SettingsScreen({ navigation }) {
           </View>
 
           {/* ═══ SUPPORT & SECURITY ═══ */}
-          <EditorialSection title="Safety & Support" colors={colors} delay={800}>
+          <EditorialSection title="Safety & Support" t={t} delay={800}>
             <EditorialRow 
-              icon="shield-check-outline" 
+              icon="shield-checkmark-outline" 
               title="Privacy Policy" 
               onPress={() => navigation.navigate('PrivacyPolicy')}
-              colors={colors}
+              t={t}
             />
             <EditorialRow 
               icon="help-circle-outline" 
               title="Support Center" 
               onPress={() => Linking.openURL('mailto:brittanyapps@outlook.com')}
-              colors={colors}
+              t={t}
               isLast
             />
           </EditorialSection>
 
           {/* ═══ ACCOUNT DESTRUCTION ═══ */}
-          <EditorialSection title="Account" colors={colors} delay={900}>
+          <EditorialSection title="Account" t={t} delay={900}>
             <EditorialRow 
-              icon="logout" 
+              icon="log-out-outline" 
               title="Sign Out" 
               onPress={handleSignOut}
-              colors={colors}
+              t={t}
             />
             <EditorialRow 
-              icon="trash-can-outline" 
+              icon="trash-outline" 
               title="Delete Account" 
-              iconColor="#FF3B30"
+              iconColor={t.danger}
               onPress={() => navigation.navigate('DeleteAccount')}
-              colors={colors}
+              t={t}
               isLast
             />
           </EditorialSection>
 
           {/* ═══ EDITORIAL FOOTER ═══ */}
           <View style={styles.footer}>
-            <Text style={[styles.footerBrand, { color: colors.textMuted }]}>BETWEEN US</Text>
-            <Text style={[styles.footerVersion, { color: colors.textMuted }]}>Version {appVersion}</Text>
-            <View style={[styles.footerDivider, { backgroundColor: colors.borderGlass }]} />
-            <Text style={[styles.footerLegal, { color: colors.textMuted }]}>
-              Built with care for couples worldwide.
+            <Text style={[styles.footerBrand, { color: t.subtext }]}>BETWEEN US</Text>
+            <Text style={[styles.footerVersion, { color: t.subtext }]}>Version {appVersion}</Text>
+            <View style={[styles.footerDivider, { backgroundColor: t.borderGlass }]} />
+            <Text style={[styles.footerLegal, { color: t.subtext }]}>
+              Handcrafted for romance, worldwide.
             </Text>
           </View>
 
-          <View style={{ height: 100 }} />
         </RNAnimated.ScrollView>
       </SafeAreaView>
 
@@ -490,24 +498,24 @@ export default function SettingsScreen({ navigation }) {
               notification(NotificationFeedbackType.Success);
             }
           }}
-          textColor={colors.text}
+          textColor={t.text}
         />
       )}
 
       {/* ─── UNLINK MODAL ─── */}
       <Modal visible={showUnlinkConfirm} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <ReAnimated.View entering={FadeInDown} style={[styles.modalCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Unlink Partner?</Text>
-            <Text style={[styles.modalBody, { color: colors.textMuted }]}>
+          <ReAnimated.View entering={FadeInDown} style={[styles.modalCard, { backgroundColor: t.surface }]}>
+            <Text style={[styles.modalTitle, { color: t.text }]}>Unlink Partner?</Text>
+            <Text style={[styles.modalBody, { color: t.subtext }]}>
               This will stop all shared syncing. Your private data remains safe.
             </Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.modalBtn} onPress={() => setShowUnlinkConfirm(false)}>
-                <Text style={{ color: colors.textMuted, fontWeight: '600' }}>Cancel</Text>
+              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }]} onPress={() => setShowUnlinkConfirm(false)}>
+                <Text style={{ color: t.text, fontFamily: SYSTEM_FONT, fontWeight: '600' }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalBtn, styles.btnDestructive]} onPress={handleUnlink}>
-                <Text style={{ color: '#FFF', fontWeight: '700' }}>Unlink</Text>
+                <Text style={{ color: '#FFFFFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>Unlink</Text>
               </TouchableOpacity>
             </View>
           </ReAnimated.View>
@@ -524,18 +532,19 @@ export default function SettingsScreen({ navigation }) {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   safe: { flex: 1 },
-  scrollContent: { paddingBottom: 120 },
+  scrollContent: { paddingBottom: 160 }, // Secure clearance for glass tab bar
 
   // Editorial Header
   header: {
-    paddingHorizontal: 28,
-    paddingTop: 30,
-    paddingBottom: 15,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
   },
   headerSubtitle: {
-    fontFamily: 'Lato_700Bold',
-    fontSize: 11,
-    letterSpacing: 2.5,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
     marginBottom: 8,
   },
   headerRow: {
@@ -544,61 +553,64 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontFamily: 'DMSerifDisplay-Regular',
-    fontSize: 44,
-    letterSpacing: -1.2,
+    fontFamily: SERIF_FONT,
+    fontSize: 40,
+    letterSpacing: -0.5,
   },
   headerAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-      },
-      android: { elevation: 6 }
-    })
+    borderWidth: 1,
   },
-  avatarText: { fontFamily: 'Lato_700Bold', fontSize: 22 },
+  avatarText: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '800', 
+    fontSize: 20 
+  },
 
   // Highlight Card
   cardContainer: {
-    paddingHorizontal: 24,
-    marginVertical: 15,
+    paddingHorizontal: SPACING.screen,
+    marginVertical: SPACING.md,
   },
   editorialCard: {
-    borderRadius: 30,
+    borderRadius: 28, // Deep Squircle
     padding: 24,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     position: 'relative',
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 15 },
-        shadowOpacity: 0.08,
-        shadowRadius: 30,
-      },
-      android: { elevation: 4 }
-    })
+  },
+  lightShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 4,
   },
   cardContent: { flex: 1 },
-  cardTag: { fontFamily: 'Lato_700Bold', fontSize: 10, letterSpacing: 1.5, marginBottom: 6 },
-  cardTitle: { fontFamily: 'Lato_700Bold', fontSize: 24, marginBottom: 4 },
-  cardEmail: { fontFamily: 'Lato_400Regular', fontSize: 14, opacity: 0.7 },
-  chevronBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+  cardTag: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '800', 
+    fontSize: 11, 
+    letterSpacing: 1.5, 
+    marginBottom: 6 
+  },
+  cardTitle: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '800', 
+    fontSize: 24, 
+    letterSpacing: -0.3,
+    marginBottom: 4 
+  },
+  cardEmail: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '500', 
+    fontSize: 14 
   },
   premiumPill: {
     position: 'absolute',
@@ -607,70 +619,92 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: 12,
     gap: 4,
   },
-  premiumText: { color: '#FFF', fontFamily: 'Lato_900Black', fontSize: 10, letterSpacing: 1 },
+  premiumText: { 
+    color: '#FFF', 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '800', 
+    fontSize: 10, 
+    letterSpacing: 1 
+  },
 
   // Sections & Rows
   sectionContainer: {
     marginTop: 35,
-    paddingHorizontal: 24,
+    paddingHorizontal: SPACING.screen,
   },
   sectionLabel: {
-    fontFamily: 'Lato_700Bold',
+    fontFamily: SYSTEM_FONT,
+    fontWeight: '700',
     fontSize: 12,
-    letterSpacing: 1.8,
-    marginBottom: 12,
-    marginLeft: 6,
+    letterSpacing: 1.5,
+    marginBottom: SPACING.md,
+    paddingLeft: SPACING.xs,
   },
   sectionCard: {
-    borderRadius: 24,
+    borderRadius: 24, // Squircles
     borderWidth: 1,
     overflow: 'hidden',
   },
   rowWrapper: {
-    paddingHorizontal: 20,
+    paddingHorizontal: SPACING.lg,
   },
   rowMain: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 18,
+    paddingVertical: SPACING.lg,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
   rowTextContent: { flex: 1 },
-  rowTitle: { fontFamily: 'Lato_700Bold', fontSize: 16 },
-  rowSubtitle: { fontFamily: 'Lato_400Regular', fontSize: 13, marginTop: 2 },
+  rowTitle: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '600', 
+    fontSize: 16, 
+    letterSpacing: -0.2 
+  },
+  rowSubtitle: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '400', 
+    fontSize: 13, 
+    marginTop: 2 
+  },
   rowDivider: {
-    height: 1,
-    marginLeft: 56,
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 52,
   },
 
   // Promo Card Styles
   promoContent: {
-    padding: 24,
+    padding: SPACING.xl,
     alignItems: 'center',
   },
   promoIconFrame: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.05)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
-  promoTitle: { fontFamily: 'DMSerifDisplay-Regular', fontSize: 26, marginBottom: 12 },
+  promoTitle: { 
+    fontFamily: SERIF_FONT, 
+    fontSize: 26, 
+    letterSpacing: -0.2,
+    marginBottom: SPACING.sm 
+  },
   promoBody: { 
-    fontFamily: 'Lato_400Regular', 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '400',
     fontSize: 15, 
     textAlign: 'center', 
     lineHeight: 22, 
@@ -679,58 +713,114 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     width: '100%',
-    height: 56,
-    borderRadius: 18,
+    height: 56, // Apple standard height
+    borderRadius: 28, // Pill shape
     justifyContent: 'center',
     alignItems: 'center',
   },
-  actionBtnText: { color: '#FFF', fontFamily: 'Lato_700Bold', fontSize: 16 },
-  secondaryBtn: { marginTop: 16 },
-  secondaryBtnText: { fontFamily: 'Lato_700Bold', fontSize: 14 },
+  actionBtnText: { 
+    color: '#FFF', 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '700', 
+    fontSize: 16,
+    letterSpacing: -0.2 
+  },
+  secondaryBtn: { 
+    marginTop: SPACING.lg,
+    padding: SPACING.sm, 
+  },
+  secondaryBtnText: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '600', 
+    fontSize: 14 
+  },
   codeDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    padding: 16,
-    borderRadius: 14,
-    gap: 12,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: 16,
+    gap: 16,
   },
-  codeText: { fontFamily: 'monospace', fontSize: 20, letterSpacing: 4, fontWeight: '700' },
+  codeText: { 
+    fontFamily: Platform.select({ ios: 'Courier', android: 'monospace' }), 
+    fontSize: 22, 
+    letterSpacing: 4, 
+    fontWeight: '700' 
+  },
 
   // Misc Layout
-  panelSpacer: { marginTop: 25 },
+  panelSpacer: { 
+    marginTop: SPACING.xl,
+    paddingHorizontal: SPACING.screen, 
+  },
   footer: {
     marginTop: 60,
     alignItems: 'center',
     paddingHorizontal: 40,
   },
-  footerBrand: { fontFamily: 'Lato_900Black', fontSize: 13, letterSpacing: 4, marginBottom: 8 },
-  footerVersion: { fontFamily: 'Lato_400Regular', fontSize: 12, opacity: 0.5, marginBottom: 15 },
-  footerDivider: { height: 1, width: 40, marginBottom: 15 },
-  footerLegal: { fontFamily: 'Lato_400Regular', fontSize: 12, textAlign: 'center', opacity: 0.4 },
+  footerBrand: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '800', 
+    fontSize: 12, 
+    letterSpacing: 4, 
+    marginBottom: 8 
+  },
+  footerVersion: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '500', 
+    fontSize: 12, 
+    marginBottom: 16 
+  },
+  footerDivider: { 
+    height: 1, 
+    width: 40, 
+    marginBottom: 16 
+  },
+  footerLegal: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '400', 
+    fontSize: 12, 
+    textAlign: 'center', 
+  },
 
   // Modals
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
-    padding: 30,
+    padding: SPACING.xl,
   },
   modalCard: {
     borderRadius: 28,
-    padding: 30,
+    padding: SPACING.xxl,
     alignItems: 'center',
   },
-  modalTitle: { fontFamily: 'Lato_700Bold', fontSize: 22, marginBottom: 12 },
-  modalBody: { fontFamily: 'Lato_400Regular', fontSize: 16, textAlign: 'center', lineHeight: 24, marginBottom: 25 },
-  modalActions: { flexDirection: 'row', gap: 15 },
+  modalTitle: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '800', 
+    fontSize: 22, 
+    letterSpacing: -0.3,
+    marginBottom: SPACING.sm 
+  },
+  modalBody: { 
+    fontFamily: SYSTEM_FONT, 
+    fontWeight: '400', 
+    fontSize: 16, 
+    textAlign: 'center', 
+    lineHeight: 24, 
+    marginBottom: SPACING.xxl 
+  },
+  modalActions: { 
+    flexDirection: 'row', 
+    gap: 12 
+  },
   modalBtn: {
     flex: 1,
-    height: 50,
-    borderRadius: 14,
+    height: 56, // Tall Apple Action Button
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
   },
-  btnDestructive: { backgroundColor: '#FF3B30' },
+  btnDestructive: { backgroundColor: '#C3113D' },
 });

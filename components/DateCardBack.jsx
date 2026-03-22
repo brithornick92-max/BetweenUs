@@ -14,7 +14,7 @@ import Animated, {
   Easing,
   interpolate,
 } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -146,7 +146,7 @@ export default function DateCardBack({ date, dims }) {
 
         {/* Top badge */}
         <View style={[styles.topBadge, { borderColor: metal.chrome + '25' }]}>
-          <MaterialCommunityIcons name="cards-heart" size={12} color={metal.chrome} />
+          <Icon name="cards-heart" size={12} color={metal.chrome} />
           <Text style={[styles.badgeText, { color: metal.chrome }]}>DATE NIGHT</Text>
         </View>
 
@@ -165,7 +165,7 @@ export default function DateCardBack({ date, dims }) {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             />
-            <MaterialCommunityIcons name={icon} size={36} color={metal.chrome + '60'} />
+            <Icon name={icon} size={36} color={metal.chrome + '60'} />
           </View>
         </Animated.View>
 

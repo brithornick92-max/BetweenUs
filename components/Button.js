@@ -1,4 +1,9 @@
-// components/Button.jsx
+/**
+ * Button — Editorial Action Component
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * Pure native iOS surface mapping with high-contrast pill styling.
+ */
+
 import React, { useMemo, useRef } from "react";
 import {
   TouchableOpacity,
@@ -11,7 +16,7 @@ import {
 } from "react-native";
 import { useTheme } from "../context/ThemeContext";
 import { impact, ImpactFeedbackStyle } from "../utils/haptics";
-import { SPACING, BORDER_RADIUS } from "../utils/theme";
+import { SPACING, withAlpha } from "../utils/theme";
 
 export default function Button({
   title,
@@ -29,14 +34,14 @@ export default function Button({
   const { colors, isDark } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  // STRICT Apple Editorial Theme Map
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
-    background: isDark ? '#000000' : '#F2F2F7', 
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
-    primary: colors.primary,
-    text: isDark ? '#FFFFFF' : '#000000',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    background: colors.background, 
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
@@ -44,9 +49,8 @@ export default function Button({
 
   const textColor = useMemo(() => {
     if (isDisabled) return t.subtext;
-    if (variant === "primary") return t.background; // High contrast (e.g., white text on black button)
-    if (variant === "glass") return t.text;
-    if (variant === "secondary") return t.text;
+    if (variant === "primary") return "#FFFFFF"; 
+    if (variant === "glass" || variant === "secondary") return t.text;
     if (variant === "outline" || variant === "ghost") return t.text;
     return t.primary;
   }, [isDisabled, variant, t]);
@@ -54,10 +58,10 @@ export default function Button({
   const handlePressIn = () => {
     if (isDisabled) return;
     Animated.spring(scaleAnim, {
-      toValue: 0.94,
+      toValue: 0.95, // Tactile Apple-style compression
       useNativeDriver: true,
-      friction: 8,
-      tension: 100,
+      friction: 9,
+      tension: 80,
     }).start();
   };
 
@@ -65,7 +69,7 @@ export default function Button({
     Animated.spring(scaleAnim, {
       toValue: 1,
       useNativeDriver: true,
-      friction: 8,
+      friction: 9,
       tension: 60,
     }).start();
   };
@@ -75,8 +79,8 @@ export default function Button({
 
     if (haptic && Platform.OS !== "web") {
       try {
-        impact(ImpactFeedbackStyle.Light);
-      } catch (e) { /* haptics non-critical */ }
+        impact(ImpactFeedbackStyle.Medium);
+      } catch (e) { /* non-critical */ }
     }
 
     onPress?.();
@@ -86,18 +90,23 @@ export default function Button({
     switch (variant) {
       case "primary":
         return {
-          backgroundColor: t.text, // Solid, high contrast Apple Action Button
+          backgroundColor: t.primary,
           borderWidth: 0,
           ...Platform.select({
-            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.15, shadowRadius: 8 },
-            android: { elevation: 3 },
+            ios: { 
+              shadowColor: t.primary, 
+              shadowOffset: { width: 0, height: 8 }, 
+              shadowOpacity: 0.25, 
+              shadowRadius: 12 
+            },
+            android: { elevation: 4 },
           }),
         };
       case "outline":
         return { 
           backgroundColor: "transparent", 
           borderWidth: 1.5, 
-          borderColor: t.border 
+          borderColor: isDark ? withAlpha(t.primary, 0.3) : t.border 
         };
       case "ghost":
         return { 
@@ -111,30 +120,25 @@ export default function Button({
         };
       case "glass":
         return { 
-          backgroundColor: t.surface, 
+          backgroundColor: withAlpha(t.surface, 0.8), 
           borderWidth: 1, 
           borderColor: t.border,
           ...Platform.select({
-            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 8 },
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8 },
             android: { elevation: 2 },
           }),
         };
       default:
-        return { backgroundColor: t.text };
+        return { backgroundColor: t.primary };
     }
   }, [variant, t, isDark]);
 
   const disabledStyle = useMemo(() => {
     if (!isDisabled) return null;
-    if (variant === "primary" || variant === "glass") {
-      return { 
-        backgroundColor: t.surfaceSecondary, 
-        borderColor: 'transparent',
-        shadowOpacity: 0,
-        elevation: 0,
-      };
-    }
-    return { opacity: 0.5 };
+    return { 
+      opacity: 0.4,
+      backgroundColor: variant === "primary" ? t.primary : t.surfaceSecondary,
+    };
   }, [isDisabled, variant, t]);
 
   const renderContent = () => (
@@ -143,7 +147,11 @@ export default function Button({
         <ActivityIndicator color={textColor} size="small" />
       ) : (
         <>
-          {icon && iconPosition === "left" && <View style={styles.iconLeft}>{icon}</View>}
+          {icon && iconPosition === "left" && (
+            <View style={styles.iconLeft}>
+              {React.cloneElement(icon, { color: textColor, size: size === 'lg' ? 22 : 18 })}
+            </View>
+          )}
           <Text
             style={[
               styles.text,
@@ -154,7 +162,11 @@ export default function Button({
           >
             {title}
           </Text>
-          {icon && iconPosition === "right" && <View style={styles.iconRight}>{icon}</View>}
+          {icon && iconPosition === "right" && (
+            <View style={styles.iconRight}>
+              {React.cloneElement(icon, { color: textColor, size: size === 'lg' ? 22 : 18 })}
+            </View>
+          )}
         </>
       )}
     </View>
@@ -174,12 +186,11 @@ export default function Button({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={isDisabled}
-        activeOpacity={0.85}
+        activeOpacity={0.9}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         style={[styles.buttonBase, variantStyle, disabledStyle]}
         accessibilityRole="button"
         accessibilityLabel={title}
-        accessibilityState={{ disabled: isDisabled }}
       >
         {renderContent()}
       </TouchableOpacity>
@@ -187,15 +198,12 @@ export default function Button({
   );
 }
 
-// ------------------------------------------------------------------
-// STYLES - Apple Editorial
-// ------------------------------------------------------------------
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 999, // Apple pill-shaped fully rounded buttons
-    overflow: "visible", // Allow shadows to spill
+    borderRadius: 999, // Perfect Editorial Pill
+    overflow: "visible",
   },
   fullWidth: {
     width: "100%",
@@ -210,23 +218,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
-  // ── Sizing (Tuned to Native iOS heights) ──
-  size_sm_padding: { height: 40, paddingHorizontal: 16 },
-  size_md_padding: { height: 54, paddingHorizontal: 24 },
-  size_lg_padding: { height: 64, paddingHorizontal: 32 },
-
-  // ── Typography ──
+  size_sm_padding: { height: 42, paddingHorizontal: 16 },
+  size_md_padding: { height: 56, paddingHorizontal: 28 },
+  size_lg_padding: { height: 68, paddingHorizontal: 36 },
   text: {
     fontFamily: systemFont,
-    fontWeight: "700",
+    fontWeight: "800",
     textAlign: "center",
-    letterSpacing: -0.3, // Tight tracking for modern feel
+    letterSpacing: -0.4,
+    textTransform: "uppercase",
   },
-  text_sm: { fontSize: 15 },
-  text_md: { fontSize: 17 },
-  text_lg: { fontSize: 19 },
-
-  iconLeft: { marginRight: 8 },
-  iconRight: { marginLeft: 8 },
+  text_sm: { fontSize: 13 },
+  text_md: { fontSize: 15 },
+  text_lg: { fontSize: 17 },
+  iconLeft: { marginRight: 10 },
+  iconRight: { marginLeft: 10 },
 });

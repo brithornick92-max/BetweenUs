@@ -355,16 +355,16 @@ export class MemoryManager {
 
   /**
    * Create anniversary-themed vibe colors
+   * Updated to Apple Editorial iOS Pink System Colors
    */
   async createAnniversaryVibeTheme(memory) {
-    // Generate special vibe theme for anniversaries
     const anniversaryTheme = {
       id: `anniversary_${memory.id}`,
       name: memory.title,
-      primary: '#B22222', // Deep red from theme
-      secondary: '#FFD3E9', // Blush pink
-      glow: '#F7BEEF', // Blush rose
-      gradient: ['#B22222', '#FFD3E9'],
+      primary: '#FF2D55', // iOS Pink
+      secondary: '#FF375F',
+      glow: 'rgba(255, 45, 85, 0.4)',
+      gradient: ['#FF2D55', '#FF375F'],
       isAnniversaryTheme: true,
       anniversaryDate: memory.date,
       memoryId: memory.id,
@@ -864,9 +864,10 @@ export class MemoryManager {
   
   getPDFStyles(template) {
     // Return CSS styles for PDF template
+    // Uses Apple Editorial Theme red
     return `
       body { 
-        font-family: 'Georgia', serif; 
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
         line-height: 1.6; 
         color: #333; 
         margin: 0; 
@@ -882,14 +883,14 @@ export class MemoryManager {
         margin-bottom: 40px; 
       }
       .memory-item { 
-        border-left: 3px solid #B22222; 
+        border-left: 3px solid #FF2D55; 
         padding-left: 20px; 
         margin-bottom: 30px; 
       }
       .memory-title { 
         font-size: 18px; 
         font-weight: bold; 
-        color: #B22222; 
+        color: #FF2D55; 
         margin-bottom: 5px; 
       }
       .memory-date { 
@@ -907,9 +908,9 @@ export class MemoryManager {
   renderCoverPage(coverPage) {
     return `
       <div class="cover-page">
-        <h1 style="font-size: 48px; color: #B22222; margin-bottom: 20px;">${coverPage.title}</h1>
-        <h2 style="font-size: 24px; color: #666; margin-bottom: 40px;">${coverPage.subtitle}</h2>
-        <p style="font-size: 18px; color: #888;">${coverPage.dateRange}</p>
+        <h1 style="font-size: 48px; color: #FF2D55; margin-bottom: 20px; font-weight: 800;">${coverPage.title}</h1>
+        <h2 style="font-size: 24px; color: #666; margin-bottom: 40px; font-weight: 600;">${coverPage.subtitle}</h2>
+        <p style="font-size: 18px; color: #888; font-weight: 500;">${coverPage.dateRange}</p>
       </div>
     `;
   }
@@ -927,7 +928,7 @@ export class MemoryManager {
   renderMilestonePages(milestones) {
     return `
       <div style="page-break-before: always;">
-        <h2 style="color: #B22222; border-bottom: 2px solid #B22222; padding-bottom: 10px;">Our Milestones</h2>
+        <h2 style="color: #FF2D55; border-bottom: 2px solid #FF2D55; padding-bottom: 10px; font-weight: 800;">Our Milestones</h2>
         ${milestones.map(milestone => `
           <div class="memory-item">
             <div class="memory-title">${milestone.title}</div>
@@ -942,7 +943,7 @@ export class MemoryManager {
   renderAnniversaryPages(anniversaries) {
     return `
       <div style="page-break-before: always;">
-        <h2 style="color: #B22222; border-bottom: 2px solid #B22222; padding-bottom: 10px;">Our Anniversaries</h2>
+        <h2 style="color: #FF2D55; border-bottom: 2px solid #FF2D55; padding-bottom: 10px; font-weight: 800;">Our Anniversaries</h2>
         ${anniversaries.map(anniversary => `
           <div class="memory-item">
             <div class="memory-title">${anniversary.title}</div>
@@ -957,14 +958,14 @@ export class MemoryManager {
   renderPhotoPages(photos) {
     return `
       <div style="page-break-before: always;">
-        <h2 style="color: #B22222; border-bottom: 2px solid #B22222; padding-bottom: 10px;">Our Photos</h2>
+        <h2 style="color: #FF2D55; border-bottom: 2px solid #FF2D55; padding-bottom: 10px; font-weight: 800;">Our Photos</h2>
         ${photos.map(photoGroup => `
           <div style="margin-bottom: 30px;">
             <h3>${photoGroup.memoryTitle}</h3>
-            <p style="color: #666; font-size: 12px;">${new Date(photoGroup.date).toLocaleDateString()}</p>
+            <p style="color: #666; font-size: 12px; font-weight: 500;">${new Date(photoGroup.date).toLocaleDateString()}</p>
             <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
               ${(photoGroup.photos || []).map(photo => `
-                <img src="${photo.uri || photo}" style="max-width: 300px; max-height: 300px; border-radius: 8px; object-fit: cover;" />
+                <img src="${photo.uri || photo}" style="max-width: 300px; max-height: 300px; border-radius: 16px; object-fit: cover;" />
               `).join('')}
             </div>
           </div>
@@ -976,10 +977,10 @@ export class MemoryManager {
   renderBackCover(backCover) {
     return `
       <div style="page-break-before: always; text-align: center; padding: 100px 0;">
-        <h3 style="color: #B22222; margin-bottom: 30px;">Our Journey in Numbers</h3>
-        <p style="font-size: 18px; margin-bottom: 10px;">${backCover.totalMemories} precious memories</p>
-        <p style="font-size: 18px; margin-bottom: 30px;">${backCover.timeSpan} together</p>
-        <p style="font-style: italic; color: #666; margin-bottom: 30px;">"${backCover.favoriteQuote}"</p>
+        <h3 style="color: #FF2D55; margin-bottom: 30px; font-weight: 800;">Our Journey in Numbers</h3>
+        <p style="font-size: 18px; margin-bottom: 10px; font-weight: 600;">${backCover.totalMemories} precious memories</p>
+        <p style="font-size: 18px; margin-bottom: 30px; font-weight: 600;">${backCover.timeSpan} together</p>
+        <p style="font-style: italic; color: #666; margin-bottom: 30px; font-weight: 500;">"${backCover.favoriteQuote}"</p>
         <p style="font-size: 12px; color: #888;">Generated on ${backCover.generatedDate}</p>
       </div>
     `;

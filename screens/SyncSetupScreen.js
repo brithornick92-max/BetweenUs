@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
@@ -238,7 +238,7 @@ export default function SyncSetupScreen({ navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
+            <Icon name="arrow-left" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Cloud Sync</Text>
           <View style={styles.headerSpacer} />
@@ -357,7 +357,7 @@ export default function SyncSetupScreen({ navigation }) {
           )}
 
           <View style={styles.statusRow}>
-            <MaterialCommunityIcons
+            <Icon
               name={sessionEmail ? 'check-circle' : 'alert-circle'}
               size={20}
               color={sessionEmail ? colors.success : colors.textSecondary}
@@ -487,14 +487,14 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     marginVertical: SPACING.md,
   },
   dangerButton: {
-    backgroundColor: '#4C1030',
+    backgroundColor: '#C3113D',
     borderRadius: BORDER_RADIUS.md,
     paddingVertical: SPACING.md,
     alignItems: 'center',
     marginBottom: SPACING.md,
   },
   dangerButtonText: {
-    color: '#C8A870',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   buttonDisabled: {

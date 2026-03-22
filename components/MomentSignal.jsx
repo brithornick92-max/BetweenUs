@@ -10,7 +10,7 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
@@ -118,7 +118,7 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
     return (
       <Animated.View style={[styles.sentContainer, { opacity: receiveFadeAnim }]}>
         <View style={styles.receivedIconContainer}>
-          <MaterialCommunityIcons name={receivedSignal.icon} size={32} color={t.primary} />
+          <Icon name={receivedSignal.icon} size={32} color={t.primary} />
         </View>
         <Text style={styles.sentText}>
           {partnerLabel} says...
@@ -135,7 +135,7 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
     return (
       <Animated.View style={[styles.sentContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
         <View style={styles.checkCircle}>
-          <MaterialCommunityIcons name="check" size={28} color={t.surface} />
+          <Icon name="check" size={28} color={t.surface} />
         </View>
         <Text style={styles.sentText}>
           Sent to {partnerLabel}
@@ -169,7 +169,7 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
             activeOpacity={0.7}
           >
             <View style={styles.iconWrap}>
-              <MaterialCommunityIcons
+              <Icon
                 name={moment.icon}
                 size={22}
                 color={t.primary}

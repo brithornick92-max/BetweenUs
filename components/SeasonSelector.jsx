@@ -11,7 +11,7 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING } from '../utils/theme';
@@ -73,7 +73,7 @@ const SeasonOption = ({ season, isSelected, isLast, onPress, t }) => {
         style={styles.listOptionRow}
       >
         <Animated.View style={[styles.iconWrap, { backgroundColor: iconBgColor }]}>
-          <MaterialCommunityIcons 
+          <Icon 
             name={season.icon} 
             size={20} 
             color={isSelected ? season.color : t.subtext} 
@@ -90,7 +90,7 @@ const SeasonOption = ({ season, isSelected, isLast, onPress, t }) => {
         </View>
 
         {isSelected && (
-          <MaterialCommunityIcons name="check" size={24} color={season.color} />
+          <Icon name="check" size={24} color={season.color} />
         )}
       </TouchableOpacity>
       {!isLast && <View style={[styles.dividerIndent, { backgroundColor: t.border }]} />}
@@ -105,13 +105,13 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
   const { colors, isDark } = useTheme();
   const [currentSeason, setCurrentSeason] = useState(null);
 
-  // STRICT Apple Editorial Theme Map
+  // STRICT Midnight Intimacy x Apple Editorial Theme Map
   const t = useMemo(() => ({
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
-    primary: colors.primary,
-    text: isDark ? '#FFFFFF' : '#000000',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D',
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
@@ -140,7 +140,7 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
         onPress={() => impact(ImpactFeedbackStyle.Light)}
         activeOpacity={0.7}
       >
-        <MaterialCommunityIcons name={season.icon} size={16} color={season.color} />
+        <Icon name={season.icon} size={16} color={season.color} />
         <Text style={[styles.compactLabel, { color: t.text }]}>
           {season.label}
         </Text>
@@ -155,7 +155,7 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
         YOUR SEASON
       </Text>
       
-      <View style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border }, Platform.OS === 'ios' && isDark === false && styles.shadowLight]}>
+      <View style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border }]}>
         {SEASONS.map((season, index) => {
           const isActive = currentSeason === season.id;
           const isLast = index === SEASONS.length - 1;
@@ -181,7 +181,7 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
 }
 
 // ------------------------------------------------------------------
-// STYLES - Pure Apple Editorial 
+// STYLES - Midnight Intimacy Editorial 
 // ------------------------------------------------------------------
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -210,18 +210,13 @@ const styles = StyleSheet.create({
 
   // ── Apple Widget Card ──
   widgetCard: {
-    borderRadius: 20,
+    borderRadius: 24, // Deep Apple squircle
     borderWidth: 1,
     overflow: 'hidden',
     ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 12 },
       android: { elevation: 2 },
     }),
-  },
-  shadowLight: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
   },
 
   // ── List Items ──
@@ -265,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     gap: 8,
     alignSelf: 'flex-start',

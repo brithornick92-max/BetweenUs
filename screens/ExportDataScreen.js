@@ -1,4 +1,10 @@
-import React, { useState } from 'react';
+/**
+ * ExportDataScreen — Privacy-first data portability
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * Allows users to export all journal entries and shared data in a premium UI.
+ */
+
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,8 +15,10 @@ import {
   ActivityIndicator,
   Modal,
   Switch,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { useTheme } from '../context/ThemeContext';
@@ -18,18 +26,46 @@ import { useAuth } from '../context/AuthContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import DataLayer from '../services/data/DataLayer';
 import Constants from 'expo-constants';
+import Icon from '../components/Icon';
+import { SPACING, withAlpha, SYSTEM_FONT } from '../utils/theme';
 
-/**
- * Export Data Screen
- * Allows users to export all their journal entries and data
- * GDPR/CCPA compliance feature
- */
+// ─── Sub-component ───────────────────────────────────────────────────────────
+
+const FeatureRow = ({ icon, text, color, textColor }) => (
+  <View style={featureRowStyle.row}>
+    <Icon name={icon} size={18} color={color} />
+    <Text style={[featureRowStyle.text, { color: textColor }]}>{text}</Text>
+  </View>
+);
+
+const featureRowStyle = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  text: { fontFamily: SYSTEM_FONT, fontSize: 15, fontWeight: '600', flex: 1 },
+});
+
+// ─── Main Screen ──────────────────────────────────────────────────────────────
+
 const ExportDataScreen = ({ navigation }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors, false);
+  const { colors, isDark } = useTheme();
   const { user, userProfile } = useAuth();
   const { state: memoryState } = useMemoryContext();
   const memories = memoryState?.memories;
+
+  // ─── Sexy Red x Apple Editorial Theme Map ───
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D',
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+    warning: '#FF9F0A',
+    success: '#34C759',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+
   const [isExporting, setIsExporting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [includeSharedEntries, setIncludeSharedEntries] = useState(false);
@@ -130,7 +166,7 @@ const ExportDataScreen = ({ navigation }) => {
 
       // Check if sharing is available
       const isAvailable = await Sharing.isAvailableAsync();
-      
+
       if (isAvailable) {
         // Share the file
         await Sharing.shareAsync(fileUri, {
@@ -144,7 +180,11 @@ const ExportDataScreen = ({ navigation }) => {
           await FileSystem.deleteAsync(fileUri, { idempotent: true });
         } catch (e) { /* cleanup non-critical */ }
 
-        Alert.alert('Export Successful', 'Your data has been exported. The temporary file has been removed from this device.', [{ text: 'OK' }]);
+        Alert.alert(
+          'Export Successful',
+          'Your digital history has been securely exported. The temporary file has been removed from this device.',
+          [{ text: 'OK' }]
+        );
       } else {
         // Sharing not available — clean up the plaintext file immediately
         try {
@@ -169,297 +209,325 @@ const ExportDataScreen = ({ navigation }) => {
     }
   };
 
-  const handleExport = () => {
-    setShowConfirm(true);
-  };
-
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Icon name="chevron-back" size={28} color={t.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Export My Data</Text>
-        <View style={{ width: 24 }} />
+        <Text style={[styles.headerTitle, { color: t.text }]}>Data Portability</Text>
+        <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-            <Ionicons name="download" size={48} color={colors.primary} />
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Icon Hero */}
+        <View style={[styles.iconHero, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
+          <Icon name="download-outline" size={42} color={t.primary} />
+        </View>
+
+        {/* Title */}
+        <Text style={[styles.title, { color: t.text }]}>Export Your Story</Text>
+        <Text style={[styles.subtitle, { color: t.subtext }]}>
+          Download a complete archive of your shared moments and personal reflections.
+        </Text>
+
+        {/* Archive Contents */}
+        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <Text style={[styles.cardTitle, { color: t.text }]}>Archive Contents</Text>
+          <View style={styles.list}>
+            <FeatureRow icon="book-outline" text="All Journal Entries" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="chatbubbles-outline" text="Reflection & Prompt Answers" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="heart-outline" text="Love Notes & Rituals" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="calendar-outline" text="Check-ins, Vibes & Date Night Plans" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="person-outline" text="Account & Relationship Preferences" color={t.primary} textColor={t.text} />
           </View>
+        </View>
 
-          {/* Title */}
-          <Text style={[styles.title, { color: colors.text }]}>Export Your Data</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Download all your journal entries and account information
-          </Text>
-
-          {/* What's Included */}
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>What's Included</Text>
-            
-            <View style={styles.listItem}>
-              <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                All journal entries
-              </Text>
-            </View>
-
-            <View style={styles.listItem}>
-              <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                Prompt responses
-              </Text>
-            </View>
-
-            <View style={styles.listItem}>
-              <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                Account information
-              </Text>
-            </View>
-
-            <View style={styles.listItem}>
-              <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                Relationship preferences
-              </Text>
-            </View>
-
-            <View style={styles.listItem}>
-              <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                Date night plans
-              </Text>
-            </View>
-          </View>
-
-          {/* Format Info */}
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Export Format</Text>
-            <Text style={[styles.cardText, { color: colors.textSecondary }]}>
-              Your data will be exported as a JSON file that you can save to your device or share. 
-              The file is human-readable and can be opened with any text editor.
-            </Text>
-          </View>
-
-          {/* Privacy Note */}
-          <View style={[styles.card, { backgroundColor: colors.warning + '20', borderColor: colors.warning }]}>
-            <View style={styles.warningHeader}>
-              <Ionicons name="shield-checkmark" size={24} color={colors.warning} />
-              <Text style={[styles.cardTitle, { color: colors.warning }]}>Privacy Note</Text>
-            </View>
-            <Text style={[styles.cardText, { color: colors.textSecondary }]}>
-              Your exported data contains sensitive information. Please store it securely and only 
-              share it with trusted parties. We recommend encrypting the file if you plan to store 
-              it long-term.
-            </Text>
-          </View>
-
-          {/* Stats */}
-          <View style={[styles.statsCard, { backgroundColor: colors.card }]}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: colors.primary }]}>
-                {(memories?.length || 0)}
-              </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Memories
-              </Text>
-            </View>
-          </View>
-          <Text style={[styles.cardText, { color: colors.textSecondary, textAlign: 'center', marginBottom: 16 }]}>
-            Journal entries, prompt responses, rituals, check-ins, vibes, and love notes will also be included.
-          </Text>
-
-          {/* Export Button */}
-          <TouchableOpacity
-            style={[styles.exportButton, { backgroundColor: colors.primary }]}
-            onPress={handleExport}
-            disabled={isExporting}
-          >
-            {isExporting ? (
-              <ActivityIndicator color={colors.surface} />
-            ) : (
-              <>
-                <Ionicons name="download" size={20} color={'#F2E9E6'} />
-                <Text style={[styles.exportButtonText, { color: colors.text }]}>Export My Data</Text>
-              </>
-            )}
-          </TouchableOpacity>
-
-          {/* Export confirmation modal with toggles */}
-          <Modal visible={showConfirm} transparent animationType="slide">
-            <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}> 
-              <View style={[styles.modalCard, { backgroundColor: colors.card }]}> 
-                <Text style={[styles.cardTitle, { color: colors.text }]}>Export your data?</Text>
-                <Text style={[styles.cardText, { color: colors.textSecondary, marginBottom: 12 }]}>Your export may include personal and shared entries. Shared entries may contain your partner’s words. Choose what to include before continuing.</Text>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <Text style={[styles.listText, { color: colors.text }]}>Include shared entries</Text>
-                  <Switch value={includeSharedEntries} onValueChange={setIncludeSharedEntries} />
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <Text style={[styles.listText, { color: colors.text }]}>Include account details</Text>
-                  <Switch value={includeAccountDetails} onValueChange={setIncludeAccountDetails} />
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
-                  <TouchableOpacity onPress={() => setShowConfirm(false)} style={{ padding: 10 }}>
-                    <Text style={{ color: colors.textSecondary }}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setShowConfirm(false);
-                      exportData({ includeSharedEntries, includeAccountDetails });
-                    }}
-                    style={[styles.exportButton, { backgroundColor: colors.primary, marginBottom: 0 }]}
-                  >
-                    <Text style={styles.exportButtonText}>Export</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
-
-          {/* GDPR/CCPA Info */}
-          <Text style={[styles.legalText, { color: colors.textSecondary }]}>
-            This feature is provided in compliance with GDPR and CCPA data portability rights. 
-            You have the right to receive your personal data in a structured, commonly used format.
+        {/* Export Format */}
+        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <Text style={[styles.cardTitle, { color: t.text }]}>Export Format</Text>
+          <Text style={[styles.cardText, { color: t.subtext }]}>
+            Your archive is exported as a JSON file — human-readable and openable in any text editor.
+            Each section is clearly labeled and includes all entries in full.
           </Text>
         </View>
+
+        {/* Privacy Notice */}
+        <View style={[styles.warningCard, { borderColor: withAlpha(t.warning, 0.3) }]}>
+          <View style={styles.warningHeader}>
+            <Icon name="shield-checkmark-outline" size={20} color={t.warning} />
+            <Text style={[styles.warningTitle, { color: t.warning }]}>Privacy Notice</Text>
+          </View>
+          <Text style={[styles.warningText, { color: t.subtext }]}>
+            This file will contain sensitive plaintext information. Share it only with those you trust
+            and store it in a secure, encrypted location.
+          </Text>
+        </View>
+
+        {/* Stats */}
+        <View style={[styles.statsCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <Text style={[styles.statNumber, { color: t.primary }]}>{memories?.length || 0}</Text>
+          <Text style={[styles.statLabel, { color: t.subtext }]}>Captured Memories</Text>
+        </View>
+        <Text style={[styles.cardText, { color: t.subtext, textAlign: 'center', marginBottom: 32, paddingHorizontal: 16 }]}>
+          Journal entries, prompt responses, rituals, check-ins, vibes, and love notes will also be included.
+        </Text>
+
+        {/* Export Button */}
+        <TouchableOpacity
+          style={[styles.exportButton, { backgroundColor: t.primary }]}
+          onPress={() => setShowConfirm(true)}
+          disabled={isExporting}
+        >
+          {isExporting ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <>
+              <Text style={styles.exportButtonText}>Generate Archive</Text>
+              <Icon name="arrow-forward" size={18} color="#FFFFFF" />
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* GDPR/CCPA Info */}
+        <Text style={[styles.legalText, { color: t.subtext }]}>
+          Archive generated in compliance with GDPR and CCPA data portability standards.
+          You have the right to receive your personal data in a structured, commonly used format.
+        </Text>
       </ScrollView>
+
+      {/* Confirm Modal */}
+      <Modal visible={showConfirm} transparent animationType="fade">
+        <BlurView intensity={30} tint={isDark ? 'dark' : 'light'} style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+            <Text style={[styles.cardTitle, { color: t.text, textAlign: 'center' }]}>Configure Export</Text>
+            <Text style={[styles.modalSub, { color: t.subtext }]}>
+              Your export may include personal and shared entries. Shared entries may contain your
+              partner's words. Choose what to include before continuing.
+            </Text>
+
+            <View style={styles.switchRow}>
+              <Text style={[styles.switchLabel, { color: t.text }]}>Include shared partner data</Text>
+              <Switch
+                value={includeSharedEntries}
+                onValueChange={setIncludeSharedEntries}
+                trackColor={{ true: t.primary }}
+              />
+            </View>
+
+            <View style={styles.switchRow}>
+              <Text style={[styles.switchLabel, { color: t.text }]}>Include account metadata</Text>
+              <Switch
+                value={includeAccountDetails}
+                onValueChange={setIncludeAccountDetails}
+                trackColor={{ true: t.primary }}
+              />
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={() => setShowConfirm(false)} style={styles.cancelBtn}>
+                <Text style={[styles.cancelText, { color: t.subtext }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowConfirm(false);
+                  exportData({ includeSharedEntries, includeAccountDetails });
+                }}
+                style={[styles.confirmBtn, { backgroundColor: t.primary }]}
+              >
+                <Text style={styles.confirmText}>Export</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </BlurView>
+      </Modal>
     </View>
   );
 };
 
-const createStyles = (colors, isDark) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+const createStyles = (t, isDark) => StyleSheet.create({
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 20,
   },
-  backButton: {
-    padding: 8,
-  },
+  backButton: { width: 44, height: 44, justifyContent: 'center' },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
   },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  iconContainer: {
+  scrollView: { flex: 1 },
+  scrollContent: { padding: 24, paddingBottom: 60 },
+  iconHero: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
     marginBottom: 24,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 32,
+    fontWeight: '800',
     textAlign: 'center',
     marginBottom: 8,
+    letterSpacing: -0.8,
   },
   subtitle: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
+    fontWeight: '500',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
+    lineHeight: 24,
   },
   card: {
-    padding: 20,
-    borderRadius: 12,
+    padding: 24,
+    borderRadius: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'transparent',
   },
   cardTitle: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontWeight: '800',
+    marginBottom: 16,
+    letterSpacing: -0.3,
   },
   cardText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 14,
     lineHeight: 20,
+    fontWeight: '500',
   },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
-  },
-  listText: {
-    fontSize: 14,
-    flex: 1,
+  list: { gap: 12 },
+  warningCard: {
+    padding: 20,
+    borderRadius: 24,
+    marginBottom: 16,
+    borderWidth: 1,
+    backgroundColor: withAlpha('#FF9F0A', 0.05),
   },
   warningHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 8,
+  },
+  warningTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  warningText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
   },
   statsCard: {
-    padding: 24,
-    borderRadius: 12,
-    marginBottom: 24,
+    padding: 32,
+    borderRadius: 24,
+    marginBottom: 16,
     alignItems: 'center',
-  },
-  statItem: {
-    alignItems: 'center',
+    borderWidth: 1,
   },
   statNumber: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 48,
-    fontWeight: '600',
+    fontWeight: '800',
     marginBottom: 4,
+    letterSpacing: -1,
   },
   statLabel: {
-    fontSize: 14,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   exportButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    gap: 8,
+    height: 56,
+    borderRadius: 28,
+    gap: 10,
+    marginBottom: 24,
   },
   exportButtonText: {
-    color: colors.text,
+    color: '#FFFFFF',
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: -0.2,
   },
   legalText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
+    fontWeight: '500',
+    paddingHorizontal: 20,
   },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
   },
   modalCard: {
     width: '100%',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
   },
+  modalSub: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  switchLabel: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: '700',
+    flex: 1,
+    paddingRight: 12,
+  },
+  modalActions: { flexDirection: 'row', gap: 12, marginTop: 12 },
+  cancelBtn: { flex: 1, height: 56, alignItems: 'center', justifyContent: 'center' },
+  cancelText: { fontFamily: SYSTEM_FONT, fontSize: 16, fontWeight: '700' },
+  confirmBtn: { flex: 2, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  confirmText: { color: '#FFFFFF', fontFamily: SYSTEM_FONT, fontSize: 16, fontWeight: '800' },
 });
 
 export default ExportDataScreen;

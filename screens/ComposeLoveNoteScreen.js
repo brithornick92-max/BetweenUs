@@ -1,4 +1,6 @@
 // screens/ComposeLoveNoteScreen.js — Write a love note with optional photo
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
+
 import React, { useState, useRef, useMemo } from "react";
 import {
   View,
@@ -12,10 +14,11 @@ import {
   Platform,
   Alert,
   Dimensions,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as ImagePicker from "expo-image-picker";
@@ -26,19 +29,17 @@ import { useAppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import DataLayer from "../services/data/DataLayer";
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS, ICON_SIZES } from "../utils/theme";
+import { SPACING, withAlpha } from "../utils/theme";
 
 const { width: screenWidth } = Dimensions.get("window");
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 const STATIONERY_OPTIONS = [
-  { id: "love",    emoji: "💗", gradient: ["#E8A0BF", "#BA6B8F"], label: "Intimate" },
-  { id: "fun",     emoji: "🎉", gradient: ["#FFD966", "#F5A623"], label: "Fun" },
-  { id: "sexy",    emoji: "🔥", gradient: ["#E74C3C", "#8E2323"], label: "Sexy" },
-  { id: "spicy",   emoji: "🌶️", gradient: ["#FF8C42", "#C0392B"], label: "Spicy" },
-  { id: "sweet",   emoji: "🍬", gradient: ["#F8C8DC", "#E891B2"], label: "Sweet" },
-  { id: "flirty",  emoji: "😘", gradient: ["#C39BD3", "#8E44AD"], label: "Flirty" },
-  { id: "classic", emoji: "✉️", gradient: ["#AEB6BF", "#5D6D7E"], label: "Classic" },
-  { id: "dreamy",  emoji: "☁️", gradient: ["#A8C0E8", "#6C7EBB"], label: "Dreamy" },
+  { id: "sexy",    icon: "flame-outline", gradient: ["#C3113D", "#5E081D"], label: "Intimate" },
+  { id: "love",    icon: "heart-outline", gradient: ["#E8A0BF", "#BA6B8F"], label: "Sweet" },
+  { id: "dreamy",  icon: "moon-outline",  gradient: ["#1C1C1E", "#0A0003"], label: "Midnight" },
+  { id: "playful", icon: "happy-outline", gradient: ["#FFD966", "#F5A623"], label: "Playful" },
+  { id: "classic", icon: "mail-outline",  gradient: ["#AEB6BF", "#5D6D7E"], label: "Classic" },
 ];
 
 const PROMPTS = [
@@ -47,9 +48,6 @@ const PROMPTS = [
   "You make me feel…",
   "I can't stop thinking about…",
   "Tonight I want to…",
-  "You looked so good when…",
-  "Remember that time we…",
-  "Something I'll never get tired of…",
 ];
 
 export default function ComposeLoveNoteScreen({ navigation }) {
@@ -58,35 +56,16 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   const { userProfile } = useAuth();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
-  // Free users: love notes are locked
-  if (!isPremium) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 }}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-            <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
-          <MaterialCommunityIcons name="email-lock-outline" size={64} color={colors.primary} style={{ marginBottom: 16 }} />
-          <Text style={{ color: colors.text, fontSize: 28, fontFamily: 'DMSerifDisplay-Regular', marginBottom: 12, textAlign: 'center' }}>
-            Love Notes are Premium
-          </Text>
-          <Text style={{ color: colors.textMuted, fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 24, paddingHorizontal: 16 }}>
-            Write heartfelt notes, choose stationery, add photos — and send them to your partner.
-          </Text>
-          <TouchableOpacity
-            onPress={() => showPaywall?.('loveNotes')}
-            style={{ backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
-            activeOpacity={0.85}
-          >
-            <MaterialCommunityIcons name="crown" size={18} color="#F2E9E6" />
-            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    background: colors.background, 
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D', 
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
 
   const [text, setText] = useState("");
   const [imageUri, setImageUri] = useState(null);
@@ -95,302 +74,180 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   const [showPrompts, setShowPrompts] = useState(false);
 
   const inputRef = useRef(null);
-  const lastHapticLen = useRef(0);
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
-  const senderName =
-    userProfile?.displayName || userProfile?.name || state?.partnerLabel || null;
-
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  if (!isPremium) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: t.background }}>
+        <StatusBar barStyle="light-content" />
+        <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={15}>
+            <Icon name="chevron-back" size={28} color={t.text} />
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 }}>
+          <View style={styles.lockIconContainer}>
+            <Icon name="lock-closed-outline" size={32} color={t.primary} />
+          </View>
+          <Text style={styles.lockTitle}>Love Notes</Text>
+          <Text style={styles.lockSubtitle}>
+            Write heartfelt notes, choose high-end stationery, and share private moments with your partner.
+          </Text>
+          <TouchableOpacity
+            onPress={() => showPaywall?.('loveNotes')}
+            style={styles.lockButton}
+            activeOpacity={0.9}
+          >
+            <Icon name="sparkles" size={18} color="#FFF" />
+            <Text style={styles.lockButtonText}>Unlock Pro Experience</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const handlePickImage = async () => {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission needed", "Allow photo access to add a picture to your note.");
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.85,
-        allowsEditing: true,
-        aspect: [4, 5],
-      });
-      if (!result.canceled && result.assets?.[0]?.uri) {
-        setImageUri(result.assets[0].uri);
-        impact(ImpactFeedbackStyle.Light);
-      }
-    } catch {
-      Alert.alert("Error", "Couldn't open your photo library.");
-    }
-  };
-
-  const handleTakePhoto = async () => {
-    try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission needed", "Allow camera access to take a photo for your note.");
-        return;
-      }
-      const result = await ImagePicker.launchCameraAsync({
-        quality: 0.85,
-        allowsEditing: true,
-        aspect: [4, 5],
-      });
-      if (!result.canceled && result.assets?.[0]?.uri) {
-        setImageUri(result.assets[0].uri);
-        impact(ImpactFeedbackStyle.Light);
-      }
-    } catch {
-      Alert.alert("Error", "Couldn't open the camera.");
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      allowsEditing: true,
+      aspect: [4, 5],
+    });
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      setImageUri(result.assets[0].uri);
+      impact(ImpactFeedbackStyle.Light);
     }
   };
 
   const handleSend = async () => {
-    const hasText = text.trim().length > 0;
-    const hasImg = !!imageUri;
-
-    if (!hasText && !hasImg) {
-      Alert.alert("Add something", "Write a message or add a photo to send. 💕");
-      return;
-    }
-
+    if (!text.trim() && !imageUri) return;
     setIsSending(true);
     notification(NotificationFeedbackType.Success).catch(() => {});
     try {
       await DataLayer.saveLoveNote({
-        text: hasText ? text.trim() : null,
+        text: text.trim() || null,
         imageUri: imageUri || null,
         stationeryId: selectedStationery.id,
-        senderName: senderName || null,
+        senderName: userProfile?.displayName || userProfile?.name || state?.partnerLabel || null,
       });
-      // Navigate back — the Inbox focus listener will auto-reload to show the sent note
-      if (navigation.canGoBack()) {
-        navigation.goBack();
-      } else {
-        navigation.navigate('LoveNotesInbox');
-      }
+      navigation.goBack();
     } catch (err) {
-      console.error('[ComposeLoveNote] Send failed:', err);
-      const message = err?.message?.startsWith('COUPLE_KEY_MISSING')
-        ? 'Your partner encryption key isn\'t ready yet. Make sure both of you have completed pairing.'
-        : "Couldn't save your love note. Please try again.";
-      Alert.alert("Error", message);
+      Alert.alert("Error", "Your partner key isn't ready. Ensure both are paired.");
     } finally {
       setIsSending(false);
     }
   };
 
-  const handleTextChange = (value) => {
-    setText(value);
-    if (value.length > 0 && value.length % 40 === 0 && value.length !== lastHapticLen.current) {
-      impact(ImpactFeedbackStyle.Light);
-      lastHapticLen.current = value.length;
-    }
-  };
-
-  const handlePickPrompt = (prompt) => {
-    setText(prompt);
-    setShowPrompts(false);
-    selection();
-    setTimeout(() => inputRef.current?.focus(), 100);
-  };
-
-  // ── Preview ──────────────────────────────────
-  const previewBg = imageUri
-    ? null
-    : selectedStationery.gradient;
-
   return (
     <View style={styles.container}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
-      <LinearGradient
-        colors={[colors.primary + "08", "transparent", "transparent"]}
-        style={StyleSheet.absoluteFill}
-      />
+      <StatusBar barStyle="light-content" />
+      <LinearGradient colors={[t.background, "#0A0003"]} style={StyleSheet.absoluteFill} />
 
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
-          {/* Header */}
-          <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => navigation.goBack()}
-              activeOpacity={0.8}
-            >
-              <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+          {/* Editorial Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+              <Icon name="close-outline" size={28} color={t.text} />
             </TouchableOpacity>
 
             <View style={styles.headerCenter}>
-              <Text style={styles.headerTitle}>New Love Note</Text>
-              <Text style={styles.headerSubtitle}>
-                {text.length > 0 ? `${text.length} characters` : "Express yourself"}
-              </Text>
+              <Text style={styles.headerTitle}>Compose</Text>
+              <View style={styles.headerIndicator} />
             </View>
 
             <TouchableOpacity
               style={[styles.sendButton, (!text.trim() && !imageUri) && styles.sendButtonDisabled]}
               onPress={handleSend}
               disabled={isSending || (!text.trim() && !imageUri)}
-              activeOpacity={0.85}
             >
-              <Text style={styles.sendText}>{isSending ? "…" : "Send"}</Text>
+              <Text style={styles.sendText}>{isSending ? "..." : "Send"}</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
 
-          <ScrollView
-            style={styles.scroll}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: SPACING.xxxl }}
-          >
+          <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            
             {/* Live Preview Card */}
-            <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.previewWrapper}>
-              <View style={styles.previewCard}>
+            <Animated.View entering={FadeInDown.springify()} style={styles.previewWrapper}>
+              <View style={[styles.previewCard, { borderColor: t.border }]}>
                 {imageUri ? (
                   <Image source={{ uri: imageUri }} style={styles.previewImage} />
                 ) : (
-                  <LinearGradient colors={previewBg} style={styles.previewGradientFill}>
-                    <Text style={styles.previewBgEmoji}>{selectedStationery.emoji}</Text>
+                  <LinearGradient colors={selectedStationery.gradient} style={styles.previewGradientFill}>
+                    <Icon name={selectedStationery.icon} size={80} color={withAlpha('#FFF', 0.1)} />
                   </LinearGradient>
                 )}
-                <LinearGradient
-                  colors={isDark ? ["transparent", "rgba(0,0,0,0.65)"] : ["transparent", "rgba(19,16,22,0.2)"]}
-                  style={styles.previewOverlay}
-                />
+                <LinearGradient colors={["transparent", "rgba(0,0,0,0.8)"]} style={styles.previewOverlay} />
                 <View style={styles.previewTextContainer}>
-                  <Text style={styles.previewText} numberOfLines={5}>
-                    {text || "Your words will appear here…"}
+                  <Text style={styles.previewText} numberOfLines={6}>
+                    {text || "Your heartbeat, in words..."}
                   </Text>
                 </View>
               </View>
             </Animated.View>
 
             {/* Stationery Picker */}
-            <Animated.View entering={FadeInDown.delay(100).duration(600)}>
-              <Text style={styles.sectionLabel}>STATIONERY</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.stationeryRow}
-              >
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Select Vibe</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stationeryRow}>
                 {STATIONERY_OPTIONS.map((opt) => {
                   const isActive = selectedStationery.id === opt.id;
                   return (
-                    <TouchableOpacity
-                      key={opt.id}
-                      onPress={() => {
-                        setSelectedStationery(opt);
-                        selection();
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <LinearGradient
-                        colors={opt.gradient}
-                        style={[
-                          styles.stationeryChip,
-                          isActive && { borderColor: colors.text, borderWidth: 2 },
-                        ]}
-                      >
-                        <Text style={styles.stationeryEmoji}>{opt.emoji}</Text>
+                    <TouchableOpacity key={opt.id} onPress={() => { setSelectedStationery(opt); selection(); }} style={styles.optContainer}>
+                      <LinearGradient colors={opt.gradient} style={[styles.stationeryChip, isActive && { borderWidth: 2, borderColor: '#FFF' }]}>
+                        <Icon name={opt.icon} size={20} color="#FFF" />
                       </LinearGradient>
-                      <Text style={[styles.stationeryLabel, isActive && { color: colors.text }]}>
-                        {opt.label}
-                      </Text>
+                      <Text style={[styles.stationeryLabel, { color: isActive ? t.text : t.subtext }]}>{opt.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </ScrollView>
-            </Animated.View>
+            </View>
 
-            {/* Inspiration Prompts */}
-            <Animated.View entering={FadeInDown.delay(150).duration(600)}>
-              <TouchableOpacity
-                style={styles.promptToggle}
-                onPress={() => {
-                  setShowPrompts(!showPrompts);
-                  selection();
-                }}
-                activeOpacity={0.8}
-              >
-                <MaterialCommunityIcons
-                  name="lightbulb-outline"
-                  size={16}
-                  color={colors.primary}
-                />
-                <Text style={styles.promptToggleText}>
-                  {showPrompts ? "Hide ideas" : "Need inspiration?"}
-                </Text>
-                <MaterialCommunityIcons
-                  name={showPrompts ? "chevron-up" : "chevron-down"}
-                  size={16}
-                  color={colors.textMuted}
-                />
+            {/* Text Input Area */}
+            <View style={styles.inputArea}>
+              <TextInput
+                ref={inputRef}
+                style={styles.textInput}
+                placeholder="Write something intimate..."
+                placeholderTextColor={withAlpha(t.text, 0.3)}
+                value={text}
+                onChangeText={setText}
+                multiline
+                selectionColor={t.primary}
+              />
+              
+              <TouchableOpacity style={styles.promptBtn} onPress={() => { setShowPrompts(!showPrompts); selection(); }}>
+                <Icon name="bulb-outline" size={16} color={t.primary} />
+                <Text style={styles.promptBtnText}>Need a spark?</Text>
               </TouchableOpacity>
 
               {showPrompts && (
                 <View style={styles.promptList}>
                   {PROMPTS.map((p, i) => (
-                    <TouchableOpacity
-                      key={i}
-                      style={styles.promptItem}
-                      onPress={() => handlePickPrompt(p)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.promptItemText}>{p}</Text>
+                    <TouchableOpacity key={i} style={[styles.promptItem, { backgroundColor: t.surfaceSecondary }]} onPress={() => { setText(p); setShowPrompts(false); }}>
+                      <Text style={[styles.promptItemText, { color: t.text }]}>{p}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               )}
-            </Animated.View>
+            </View>
 
-            {/* Text Input */}
-            <Animated.View entering={FadeInDown.delay(200).duration(700)} style={styles.inputContainer}>
-              <TextInput
-                ref={inputRef}
-                style={styles.textInput}
-                placeholder="Add a message (optional)…"
-                placeholderTextColor={colors.text + "40"}
-                value={text}
-                onChangeText={handleTextChange}
-                multiline
-                maxLength={10000}
-                scrollEnabled={false}
-                selectionColor={colors.primary}
-              />
-            </Animated.View>
-
-            {/* Photo Actions */}
-            <Animated.View entering={FadeInDown.delay(250).duration(600)} style={styles.photoSection}>
-              <Text style={styles.sectionLabel}>ADD A PICTURE</Text>
-              <View style={styles.photoActions}>
-                <TouchableOpacity style={styles.photoButton} onPress={handlePickImage} activeOpacity={0.85}>
-                  <MaterialCommunityIcons name="image-plus" size={20} color={colors.text} />
-                  <Text style={styles.photoButtonText}>Gallery</Text>
+            {/* Media Actions */}
+            <View style={styles.mediaRow}>
+              <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: t.surfaceSecondary }]} onPress={handlePickImage}>
+                <Icon name="image-outline" size={20} color={t.text} />
+                <Text style={[styles.mediaBtnText, { color: t.text }]}>Add Photo</Text>
+              </TouchableOpacity>
+              
+              {imageUri && (
+                <TouchableOpacity onPress={() => setImageUri(null)} style={styles.removeBtn}>
+                  <Text style={{ color: t.primary, fontWeight: '700' }}>Remove Image</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity style={styles.photoButton} onPress={handleTakePhoto} activeOpacity={0.85}>
-                  <MaterialCommunityIcons name="camera-outline" size={20} color={colors.text} />
-                  <Text style={styles.photoButtonText}>Camera</Text>
-                </TouchableOpacity>
-
-                {imageUri && (
-                  <TouchableOpacity
-                    style={styles.photoButtonSecondary}
-                    onPress={() => {
-                      setImageUri(null);
-                      selection();
-                    }}
-                    activeOpacity={0.85}
-                  >
-                    <MaterialCommunityIcons name="close" size={18} color={colors.textMuted} />
-                    <Text style={styles.photoButtonSecondaryText}>Remove</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </Animated.View>
+              )}
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -398,217 +255,159 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   );
 }
 
-const createStyles = (colors) =>
-  StyleSheet.create({
-    container: { flex: 1 },
-    safeArea: { flex: 1 },
+const createStyles = (t, isDark) => StyleSheet.create({
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  
+  // Header
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    height: 60,
+  },
+  headerCenter: { alignItems: "center" },
+  headerTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 2,
+    color: t.text,
+  },
+  headerIndicator: {
+    width: 12,
+    height: 2,
+    backgroundColor: t.primary,
+    marginTop: 4,
+    borderRadius: 1,
+  },
+  sendButton: {
+    backgroundColor: t.primary,
+    paddingHorizontal: 20,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+  },
+  sendButtonDisabled: { opacity: 0.3 },
+  sendText: { color: "#FFF", fontSize: 14, fontWeight: "800" },
+  
+  // Content
+  scroll: { flex: 1, paddingHorizontal: 24 },
+  previewWrapper: { alignItems: "center", marginVertical: 32 },
+  previewCard: {
+    width: screenWidth * 0.75,
+    height: screenWidth * 0.95,
+    borderRadius: 32,
+    overflow: "hidden",
+    borderWidth: 1,
+  },
+  previewImage: { ...StyleSheet.absoluteFillObject },
+  previewGradientFill: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center" },
+  previewOverlay: { ...StyleSheet.absoluteFillObject },
+  previewTextContainer: { position: "absolute", bottom: 0, padding: 24 },
+  previewText: { 
+    color: "#FFF", 
+    fontSize: 18, 
+    fontWeight: "600", 
+    fontStyle: "italic", 
+    lineHeight: 26,
+    letterSpacing: -0.4
+  },
+  
+  // Stationery
+  section: { marginBottom: 32 },
+  sectionLabel: { 
+    fontSize: 12, 
+    fontWeight: "800", 
+    textTransform: "uppercase", 
+    letterSpacing: 1.5, 
+    color: t.subtext, 
+    marginBottom: 16 
+  },
+  stationeryRow: { gap: 16 },
+  optContainer: { alignItems: 'center' },
+  stationeryChip: { 
+    width: 56, 
+    height: 56, 
+    borderRadius: 16, 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  stationeryLabel: { fontSize: 11, fontWeight: "700", marginTop: 8 },
+  
+  // Input
+  inputArea: { marginBottom: 32 },
+  textInput: { 
+    fontFamily: SYSTEM_FONT, 
+    fontSize: 20, 
+    color: t.text, 
+    minHeight: 120, 
+    textAlignVertical: "top", 
+    fontWeight: "500",
+    letterSpacing: -0.5
+  },
+  promptBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16 },
+  promptBtnText: { fontSize: 14, fontWeight: '700', color: t.primary },
+  promptList: { marginTop: 12, gap: 8 },
+  promptItem: { padding: 12, borderRadius: 12 },
+  promptItemText: { fontSize: 14, fontWeight: '600', fontStyle: 'italic' },
+  
+  // Media
+  mediaRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingBottom: 60 },
+  mediaBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 10, 
+    height: 48, 
+    paddingHorizontal: 20, 
+    borderRadius: 24 
+  },
+  mediaBtnText: { fontSize: 14, fontWeight: '700' },
+  removeBtn: { marginLeft: 'auto' },
 
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: SPACING.lg,
-      paddingVertical: SPACING.md,
-    },
-    headerCenter: { alignItems: "center" },
-    headerTitle: {
-      color: colors.text,
-      fontSize: 12,
-      fontWeight: "600",
-      letterSpacing: 1.5,
-      textTransform: "uppercase",
-      opacity: 0.9,
-    },
-    headerSubtitle: {
-      color: colors.primary,
-      fontSize: 11,
-      marginTop: 2,
-      opacity: 0.9,
-    },
-    iconButton: {
-      width: 44,
-      height: 44,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    sendButton: {
-      backgroundColor: colors.primary,
-      paddingHorizontal: SPACING.lg,
-      paddingVertical: SPACING.sm,
-      borderRadius: BORDER_RADIUS.full,
-    },
-    sendButtonDisabled: {
-      opacity: 0.4,
-    },
-    sendText: {
-      color: colors.text,
-      fontSize: 14,
-      fontWeight: "600",
-    },
-
-    scroll: {
-      flex: 1,
-      paddingHorizontal: SPACING.xl,
-    },
-
-    // Preview
-    previewWrapper: {
-      alignItems: "center",
-      marginTop: SPACING.md,
-    },
-    previewCard: {
-      width: screenWidth * 0.7,
-      height: screenWidth * 0.85,
-      borderRadius: BORDER_RADIUS.xl,
-      overflow: "hidden",
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    previewImage: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    previewGradientFill: {
-      ...StyleSheet.absoluteFillObject,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    previewBgEmoji: {
-      fontSize: 72,
-      opacity: 0.15,
-    },
-    previewOverlay: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    previewTextContainer: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      padding: SPACING.lg,
-    },
-    previewText: {
-      color: "#F2E9E6",
-      fontSize: 16,
-      lineHeight: 24,
-      fontWeight: "500",
-      fontStyle: "italic",
-    },
-
-    // Stationery
-    sectionLabel: {
-      ...TYPOGRAPHY.label,
-      color: colors.textMuted,
-      marginTop: SPACING.xl,
-      marginBottom: SPACING.sm,
-    },
-    stationeryRow: {
-      gap: SPACING.md,
-      paddingVertical: SPACING.xs,
-    },
-    stationeryChip: {
-      width: 52,
-      height: 52,
-      borderRadius: BORDER_RADIUS.md,
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      borderColor: "transparent",
-    },
-    stationeryEmoji: {
-      fontSize: 22,
-    },
-    stationeryLabel: {
-      color: colors.textMuted,
-      fontSize: 10,
-      textAlign: "center",
-      marginTop: 4,
-    },
-
-    // Prompts
-    promptToggle: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      marginTop: SPACING.xl,
-      paddingVertical: SPACING.sm,
-    },
-    promptToggleText: {
-      color: colors.primary,
-      fontSize: 13,
-      fontWeight: "500",
-      flex: 1,
-    },
-    promptList: {
-      marginTop: SPACING.sm,
-      gap: SPACING.xs,
-    },
-    promptItem: {
-      backgroundColor: colors.surface,
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.sm,
-      borderRadius: BORDER_RADIUS.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    promptItemText: {
-      color: colors.text,
-      fontSize: 14,
-      fontStyle: "italic",
-    },
-
-    // Text Input
-    inputContainer: {
-      marginTop: SPACING.xl,
-      minHeight: 160,
-    },
-    textInput: {
-      color: colors.text,
-      fontSize: 18,
-      lineHeight: 28,
-      textAlignVertical: "top",
-      fontFamily: Platform.select({
-        ios: "DMSerifDisplay-Regular",
-        android: "DMSerifDisplay_400Regular",
-        default: "serif",
-      }),
-      fontWeight: "400",
-    },
-
-    // Photo
-    photoSection: {
-      marginTop: SPACING.lg,
-    },
-    photoActions: {
-      flexDirection: "row",
-      gap: SPACING.sm,
-    },
-    photoButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      backgroundColor: colors.primary,
-      paddingVertical: SPACING.sm,
-      paddingHorizontal: SPACING.md,
-      borderRadius: BORDER_RADIUS.sm,
-    },
-    photoButtonText: {
-      color: colors.text,
-      fontSize: 13,
-      fontWeight: "600",
-    },
-    photoButtonSecondary: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      borderWidth: 1,
-      borderColor: colors.border,
-      paddingVertical: SPACING.sm,
-      paddingHorizontal: SPACING.md,
-      borderRadius: BORDER_RADIUS.sm,
-    },
-    photoButtonSecondaryText: {
-      color: colors.textMuted,
-      fontSize: 13,
-      fontWeight: "600",
-    },
-  });
+  // Lock Screen Updates
+  lockIconContainer: { 
+    width: 80, 
+    height: 80, 
+    borderRadius: 24, 
+    backgroundColor: withAlpha(t.primary, 0.12), 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginBottom: 32 
+  },
+  lockTitle: { 
+    color: t.text, 
+    fontSize: 32, 
+    fontWeight: '800', 
+    letterSpacing: -1, 
+    marginBottom: 12, 
+    textAlign: 'center' 
+  },
+  lockSubtitle: { 
+    color: t.subtext, 
+    fontSize: 16, 
+    textAlign: 'center', 
+    lineHeight: 24, 
+    marginBottom: 40, 
+    fontWeight: '500' 
+  },
+  lockButton: { 
+    backgroundColor: t.primary, 
+    height: 56, 
+    borderRadius: 28, 
+    width: '100%', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    flexDirection: 'row', 
+    gap: 10 
+  },
+  lockButtonText: { 
+    color: '#FFF', 
+    fontSize: 16, 
+    fontWeight: '800', 
+    textTransform: 'uppercase', 
+    letterSpacing: -0.2 
+  },
+});

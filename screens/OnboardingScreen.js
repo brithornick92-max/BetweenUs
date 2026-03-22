@@ -25,7 +25,7 @@ import ReAnimated, { FadeInDown } from 'react-native-reanimated';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as Clipboard from "expo-clipboard";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import { useAppContext } from "../context/AppContext";
 import { useContent } from "../context/ContentContext";
 import { useTheme } from "../context/ThemeContext";
@@ -57,7 +57,7 @@ export default function OnboardingScreen({ navigation }) {
     surface: isDark ? '#1C1C1E' : '#FFFFFF',
     surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
     primary: colors.primary,
-    accent: colors.accent || '#FF2D55',
+    accent: colors.accent || '#D4AA7E',
     text: isDark ? '#FFFFFF' : '#000000',
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
@@ -380,7 +380,7 @@ export default function OnboardingScreen({ navigation }) {
                 <Text style={styles.dateText}>
                   {anniversaryDate.toLocaleDateString('en-US')}
                 </Text>
-                <MaterialCommunityIcons name="chevron-right" size={20} color={t.subtext} />
+                <Icon name="chevron-right" size={20} color={t.subtext} />
               </View>
             </TouchableOpacity>
           </View>
@@ -455,9 +455,9 @@ export default function OnboardingScreen({ navigation }) {
 
   const HEAT_LABELS = [
     { level: 1, icon: 'heart-outline',        color: '#5856D6', name: 'Emotional',   description: 'Intimacy & trust' },
-    { level: 2, icon: 'heart-multiple', color: '#FF2D55', name: 'Romantic',    description: 'Flirty & tender' },
+    { level: 2, icon: 'heart-multiple', color: '#C3113D', name: 'Romantic',    description: 'Flirty & tender' },
     { level: 3, icon: 'candle',                color: '#FF9500', name: 'Sensual',     description: 'Desire & closeness' },
-    { level: 4, icon: 'fire',                  color: '#FF3B30', name: 'Steamy',      description: 'Adventurous & heated' },
+    { level: 4, icon: 'fire',                  color: '#A84848', name: 'Steamy',      description: 'Adventurous & heated' },
     { level: 5, icon: 'fire-alert',            color: '#8A0021', name: 'Explicit',    description: 'Intensely passionate' },
   ];
 
@@ -498,7 +498,7 @@ export default function OnboardingScreen({ navigation }) {
                     activeOpacity={0.7}
                   >
                     <View style={[styles.iconWrap, { backgroundColor: isActive ? h.color + '15' : t.surfaceSecondary }]}>
-                      <MaterialCommunityIcons name={h.icon} size={20} color={isActive ? h.color : t.subtext} />
+                      <Icon name={h.icon} size={20} color={isActive ? h.color : t.subtext} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.listOptionName, { color: isActive ? h.color : t.text }]}>
@@ -508,7 +508,7 @@ export default function OnboardingScreen({ navigation }) {
                         {h.description}
                       </Text>
                     </View>
-                    {isActive && <MaterialCommunityIcons name="check" size={20} color={h.color} />}
+                    {isActive && <Icon name="check" size={20} color={h.color} />}
                   </TouchableOpacity>
                   {index < HEAT_LABELS.length - 1 && <View style={styles.dividerIndent} />}
                 </View>
@@ -534,7 +534,7 @@ export default function OnboardingScreen({ navigation }) {
                     activeOpacity={0.7}
                   >
                     <View style={[styles.iconWrap, { backgroundColor: isActive ? t.primary + '15' : t.surfaceSecondary }]}>
-                      <MaterialCommunityIcons
+                      <Icon
                         name={toneItem.icon}
                         size={20}
                         color={isActive ? t.primary : t.subtext}
@@ -548,7 +548,7 @@ export default function OnboardingScreen({ navigation }) {
                         {toneItem.preview.replace(/\{partner\}|\{partnerName\}/gi, partnerName || 'your partner')}
                       </Text>
                     </View>
-                    {isActive && <MaterialCommunityIcons name="check" size={20} color={t.primary} />}
+                    {isActive && <Icon name="check" size={20} color={t.primary} />}
                   </TouchableOpacity>
                   {index < TONE_OPTIONS.length - 1 && <View style={styles.dividerIndent} />}
                 </View>
@@ -598,7 +598,7 @@ export default function OnboardingScreen({ navigation }) {
       
       <View style={styles.pairingContainer}>
         <ReAnimated.View entering={FadeInDown.delay(200).duration(800).springify()}>
-          <MaterialCommunityIcons 
+          <Icon 
             name="infinity" 
             size={48} 
             color={t.primary} 
@@ -668,7 +668,7 @@ export default function OnboardingScreen({ navigation }) {
                   <Text style={styles.codeLabel}>YOUR INVITE CODE</Text>
                   <Text style={styles.codeText}>{inviteCode}</Text>
                 </View>
-                <MaterialCommunityIcons name="content-copy" size={24} color={t.primary} />
+                <Icon name="content-copy" size={24} color={t.primary} />
               </TouchableOpacity>
             </View>
 
@@ -711,7 +711,7 @@ export default function OnboardingScreen({ navigation }) {
           behavior="padding"
         >
           <View style={styles.cloudAuthCard}>
-            <MaterialCommunityIcons name="cloud-lock" size={40} color={t.primary} style={{ marginBottom: 16 }} />
+            <Icon name="cloud-lock" size={40} color={t.primary} style={{ marginBottom: 16 }} />
             <Text style={styles.cloudAuthTitle}>One more step</Text>
             <Text style={styles.cloudAuthBody}>
               Enter your password to enable secure partner linking.

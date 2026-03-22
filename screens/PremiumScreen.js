@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from "../context/ThemeContext";
 import { useSubscription } from "../context/SubscriptionContext";
@@ -214,7 +214,7 @@ export default function PremiumScreen({ navigation }) {
           hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
           activeOpacity={0.7}
         >
-          <MaterialCommunityIcons name="close" size={24} color={t.text} />
+          <Icon name="close" size={24} color={t.text} />
         </TouchableOpacity>
 
         <ScrollView
@@ -239,7 +239,7 @@ export default function PremiumScreen({ navigation }) {
             {FEATURES.map((f, i) => (
               <View key={i} style={[styles.featureRow, i === FEATURES.length - 1 && styles.featureRowLast]}>
                 <View style={[styles.featureIconWrap, { backgroundColor: t.primary + "15" }]}>
-                  <MaterialCommunityIcons
+                  <Icon
                     name={f.icon}
                     size={18}
                     color={t.primary}
@@ -277,7 +277,7 @@ export default function PremiumScreen({ navigation }) {
                 />
 
                 <View style={styles.coupleNoteContainer}>
-                  <MaterialCommunityIcons name="heart-multiple" size={14} color={t.primary} />
+                  <Icon name="heart-multiple" size={14} color={t.primary} />
                   <Text style={styles.coupleNote}>
                     One subscription unlocks premium for both partners.
                   </Text>
@@ -326,7 +326,7 @@ export default function PremiumScreen({ navigation }) {
 
           {isPremium && (
             <FadeInSection index={2} style={styles.alreadyPremium}>
-              <MaterialCommunityIcons name="check-decagram" size={56} color={t.primary} />
+              <Icon name="check-decagram" size={56} color={t.primary} />
               <Text style={styles.alreadyPremiumText}>You're on Premium.</Text>
               <Text style={styles.alreadyPremiumSub}>Manage your subscription in your device settings.</Text>
             </FadeInSection>

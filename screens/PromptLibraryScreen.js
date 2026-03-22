@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 
 import { useTheme } from "../context/ThemeContext";
@@ -314,7 +314,7 @@ export default function PromptLibraryScreen({ navigation }) {
         }}
         activeOpacity={0.7}
       >
-        <MaterialCommunityIcons
+        <Icon
           name={category.icon}
           size={18}
           color={isSelected ? colors.surface : colors.text}
@@ -368,7 +368,7 @@ export default function PromptLibraryScreen({ navigation }) {
                   {HEAT_LABELS[heat]}
                 </Text>
                 {locked ? (
-                  <MaterialCommunityIcons
+                  <Icon
                     name="lock"
                     size={14}
                     color={isSelected ? colors.surface : (HEAT_BADGE_COLORS[heat] || colors.textSecondary)}
@@ -411,7 +411,7 @@ export default function PromptLibraryScreen({ navigation }) {
               </Text>
             </View>
             {item.answered && (
-              <MaterialCommunityIcons name="check-circle" size={16} color={colors.success || '#5A8B60'} />
+              <Icon name="check-circle" size={16} color={colors.success || '#5A8B60'} />
             )}
           </View>
 
@@ -420,7 +420,7 @@ export default function PromptLibraryScreen({ navigation }) {
             style={styles.favoriteButton}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons
+            <Icon
               name={isFavorite ? "heart" : "heart-outline"}
               size={24}
               color={isFavorite ? colors.primary : colors.textSecondary}
@@ -454,7 +454,7 @@ export default function PromptLibraryScreen({ navigation }) {
         </>
       ) : (
         <>
-          <MaterialCommunityIcons
+          <Icon
             name="text-box-search"
             size={64}
             color={colors.textSecondary}
@@ -482,7 +482,7 @@ export default function PromptLibraryScreen({ navigation }) {
             style={styles.backButton}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
+            <Icon name="arrow-left" size={24} color={colors.text} />
           </TouchableOpacity>
 
           <Text style={[styles.headerTitle, { color: colors.text }]}>
@@ -494,14 +494,14 @@ export default function PromptLibraryScreen({ navigation }) {
             style={styles.refreshButton}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="refresh" size={24} color={colors.primary} />
+            <Icon name="refresh" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         {/* Premium prompt count badge */}
         {isPremium && allPromptsCount > 0 && (
           <View style={[styles.premiumBadgeBanner, { backgroundColor: `${colors.primary}15` }]}>
-            <MaterialCommunityIcons name="diamond-stone" size={18} color={colors.primary} />
+            <Icon name="diamond-stone" size={18} color={colors.primary} />
             <Text style={[styles.premiumBadgeText, { color: colors.primary }]}>
               {allPromptsCount} prompts unlocked
             </Text>
@@ -519,7 +519,7 @@ export default function PromptLibraryScreen({ navigation }) {
             activeOpacity={0.8}
           >
             <View style={styles.upsellBannerContent}>
-              <MaterialCommunityIcons name="lock-open-variant" size={22} color={colors.primary} />
+              <Icon name="lock-open-variant" size={22} color={colors.primary} />
               <View style={styles.upsellBannerText}>
                 <Text style={[styles.upsellTitle, { color: colors.text }]}>
                   Unlock All 632 Prompts
@@ -528,7 +528,7 @@ export default function PromptLibraryScreen({ navigation }) {
                   All heat levels, categories & search — go Premium
                 </Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={22} color={colors.primary} />
+              <Icon name="chevron-right" size={22} color={colors.primary} />
             </View>
           </TouchableOpacity>
         )}
@@ -536,7 +536,7 @@ export default function PromptLibraryScreen({ navigation }) {
         {/* Search bar (premium) */}
         {isPremium && (
           <View style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
+            <Icon name="magnify" size={20} color={colors.textSecondary} />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
               placeholder="Search prompts…"
@@ -548,7 +548,7 @@ export default function PromptLibraryScreen({ navigation }) {
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7}>
-                <MaterialCommunityIcons name="close-circle" size={18} color={colors.textSecondary} />
+                <Icon name="close-circle" size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
           </View>

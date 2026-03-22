@@ -9,7 +9,7 @@ import {
   Platform,
 } from "react-native";
 import Animated, { FadeInDown, FadeIn, FadeInUp } from "react-native-reanimated";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useNavigation } from "@react-navigation/native";
 import { useSubscription } from "../context/SubscriptionContext";
@@ -161,7 +161,7 @@ const PremiumPaywall = ({
               accessibilityRole="button"
               accessibilityLabel="Close"
             >
-              <MaterialCommunityIcons
+              <Icon
                 name="close"
                 size={ICON_SIZES.lg}
                 color={colors.text}

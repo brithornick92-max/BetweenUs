@@ -1,9 +1,9 @@
 // components/NightsConnected.jsx — Gentle nights-connected counter
 // Quiet, warm, brand-aligned replacement for StreakIndicator
-// No gamification language. No levels. No fire. Just quiet connection.
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
 
 import React, { useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,11 +13,13 @@ import Animated, {
   FadeInDown,
   FadeIn,
   Easing,
-  interpolate,
 } from 'react-native-reanimated';
 import Card from './Card';
-import { SPACING, BORDER_RADIUS, TYPOGRAPHY, withAlpha, SANS } from '../utils/theme';
+import { SPACING, TYPOGRAPHY, withAlpha } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
+import Icon from './Icon';
+
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 /**
  * NightsConnected — A quiet, intimate counter
@@ -33,24 +35,36 @@ export default function NightsConnected({
   onPress = null,
   style,
 }) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { colors, isDark } = useTheme();
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const safeHistory = Array.isArray(streakHistory) ? streakHistory : [];
 
-  // Gentle heartbeat / pulse animation on the heart emoji
+  // High-end heart "breathing" animation
   const pulse = useSharedValue(1);
   useEffect(() => {
     pulse.value = withRepeat(
       withSequence(
-        withTiming(1.15, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.ease) })
+        withTiming(1.12, { duration: 1800, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.quad) })
       ),
       -1,
       true
     );
   }, []);
+
   const heartPulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
+    opacity: pulse.value === 1 ? 0.9 : 1,
   }));
 
   const getMessage = (count) => {
@@ -77,7 +91,9 @@ export default function NightsConnected({
         accessibilityLabel={`${currentStreak} nights connected`}
       >
         <View style={styles.compactContent}>
-          <Text style={styles.compactEmoji}>❤️</Text>
+          <Animated.View style={heartPulseStyle}>
+            <Icon name="heart" size={20} color={t.primary} />
+          </Animated.View>
           <View style={styles.compactInfo}>
             <Text style={styles.compactNumber}>{currentStreak}</Text>
             <Text style={styles.compactLabel}>nights connected</Text>
@@ -98,29 +114,37 @@ export default function NightsConnected({
     >
       <View style={styles.content}>
         {/* Gentle count */}
-        <Animated.View entering={FadeIn.duration(600)} style={styles.countSection}>
-          <Animated.Text style={[styles.heartEmoji, heartPulseStyle]}>❤️</Animated.Text>
-          <Animated.Text entering={FadeInDown.delay(200).duration(500)} style={styles.count}>{currentStreak}</Animated.Text>
-          <Animated.Text entering={FadeInDown.delay(350).duration(500)} style={styles.label}>nights connected</Animated.Text>
+        <Animated.View entering={FadeIn.duration(800)} style={styles.countSection}>
+          <Animated.View style={[styles.heartContainer, heartPulseStyle]}>
+            <Icon name="heart" size={42} color={t.primary} />
+          </Animated.View>
+          <Animated.Text entering={FadeInDown.delay(200).duration(600)} style={styles.count}>
+            {currentStreak}
+          </Animated.Text>
+          <Animated.Text entering={FadeInDown.delay(350).duration(600)} style={styles.label}>
+            nights connected
+          </Animated.Text>
         </Animated.View>
 
         {/* Warm message */}
-        <Animated.Text entering={FadeInDown.delay(450).duration(500)} style={styles.message}>{message}</Animated.Text>
+        <Animated.Text entering={FadeInDown.delay(450).duration(600)} style={styles.message}>
+          {message}
+        </Animated.Text>
 
-        {/* Quiet stats */}
-        <Animated.View entering={FadeInDown.delay(550).duration(500)} style={styles.stats}>
+        {/* Editorial Stats Row */}
+        <Animated.View entering={FadeInDown.delay(550).duration(600)} style={styles.stats}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{longestStreak}</Text>
             <Text style={styles.statLabel}>longest run</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: t.border }]} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{safeHistory.length}</Text>
             <Text style={styles.statLabel}>total evenings</Text>
           </View>
         </Animated.View>
 
-        {/* Last 7 days — soft dots */}
+        {/* Progress Dots — Subtle editorial accents */}
         {safeHistory.length > 0 && (
           <View style={styles.recentDays}>
             {safeHistory.slice(-7).map((day, index) => (
@@ -129,7 +153,7 @@ export default function NightsConnected({
                 entering={FadeIn.delay(650 + index * 80).duration(400)}
                 style={[
                   styles.dayDot,
-                  day.completed && styles.dayDotFilled,
+                  day.completed && { backgroundColor: t.primary },
                 ]}
               />
             ))}
@@ -140,83 +164,113 @@ export default function NightsConnected({
   );
 }
 
-const createStyles = (colors) =>
+const createStyles = (t, isDark) =>
   StyleSheet.create({
-    card: { marginVertical: SPACING.xs },
-    content: { alignItems: 'center' },
+    card: { 
+      marginVertical: SPACING.sm,
+      borderRadius: 28, // Deep Apple Squircle
+      borderWidth: 1,
+      borderColor: t.border,
+    },
+    content: { alignItems: 'center', paddingVertical: SPACING.md },
     countSection: { alignItems: 'center', marginBottom: SPACING.lg },
-    heartEmoji: {
-      fontSize: 48,
-      marginBottom: SPACING.sm,
+    heartContainer: {
+      marginBottom: SPACING.md,
+      shadowColor: t.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 10,
     },
     count: {
-      ...TYPOGRAPHY.display,
-      color: colors.text,
-      fontSize: 42,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 48,
+      fontWeight: '800',
+      color: t.text,
+      letterSpacing: -1,
     },
     label: {
-      ...TYPOGRAPHY.caption,
-      color: colors.textMuted,
-      marginTop: SPACING.xs,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 13,
+      fontWeight: '700',
+      color: t.subtext,
+      textTransform: 'uppercase',
+      letterSpacing: 1.2,
+      marginTop: 4,
     },
     message: {
-      ...TYPOGRAPHY.body,
-      color: colors.text,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 16,
+      fontWeight: '500',
+      color: t.text,
       textAlign: 'center',
       fontStyle: 'italic',
-      marginBottom: SPACING.lg,
-      opacity: 0.85,
+      marginBottom: SPACING.xl,
+      paddingHorizontal: SPACING.xl,
     },
     stats: {
       flexDirection: 'row',
       alignItems: 'center',
       width: '100%',
-      marginBottom: SPACING.lg,
+      marginBottom: SPACING.xl,
     },
     statItem: { flex: 1, alignItems: 'center' },
     statValue: {
-      ...TYPOGRAPHY.h3,
-      color: colors.primary,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 20,
+      fontWeight: '800',
+      color: t.text,
     },
     statLabel: {
-      ...TYPOGRAPHY.caption,
-      color: colors.textMuted,
-      marginTop: SPACING.xs,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 12,
+      fontWeight: '600',
+      color: t.subtext,
+      textTransform: 'lowercase',
+      marginTop: 2,
     },
     statDivider: {
       width: 1,
-      height: 32,
-      backgroundColor: withAlpha(colors.text, 0.08),
+      height: 24,
+      opacity: 0.5,
     },
     recentDays: {
       flexDirection: 'row',
       justifyContent: 'center',
-      gap: SPACING.sm,
+      gap: 10,
     },
     dayDot: {
-      width: 8,
-      height: 8,
+      width: 7,
+      height: 7,
       borderRadius: 4,
-      backgroundColor: withAlpha(colors.text, 0.08),
+      backgroundColor: t.border,
     },
-    dayDotFilled: {
-      backgroundColor: withAlpha(colors.primary, 0.6),
+    // Compact View
+    compactCard: { 
+      marginVertical: SPACING.xs,
+      borderRadius: 20,
     },
-    // Compact
-    compactCard: { marginVertical: SPACING.xs / 2 },
-    compactContent: { flexDirection: 'row', alignItems: 'center' },
-    compactEmoji: { fontSize: 36, marginRight: SPACING.sm },
+    compactContent: { 
+      flexDirection: 'row', 
+      alignItems: 'center',
+      paddingHorizontal: SPACING.sm,
+    },
     compactInfo: {
       flexDirection: 'row',
       alignItems: 'baseline',
-      gap: SPACING.xs,
+      gap: 6,
+      marginLeft: 10,
     },
     compactNumber: {
-      ...TYPOGRAPHY.h2,
-      color: colors.text,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 18,
+      fontWeight: '800',
+      color: t.text,
     },
     compactLabel: {
-      ...TYPOGRAPHY.caption,
-      color: colors.textMuted,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 12,
+      fontWeight: '600',
+      color: t.subtext,
     },
   });
+  

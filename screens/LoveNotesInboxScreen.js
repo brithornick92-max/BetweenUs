@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import Animated, { FadeIn, FadeInDown, FadeInUp, SlideInRight } from "react-native-reanimated";
 
@@ -152,7 +152,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
   const renderEmpty = () => (
     <Animated.View entering={FadeIn.duration(800)} style={styles.emptyContainer}>
       <View style={styles.emptyIconCircle}>
-        <MaterialCommunityIcons
+        <Icon
           name="email-heart-outline"
           size={48}
           color={colors.primary}
@@ -163,7 +163,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
         Begin your shared anthology. Send a private note that only you two can ever decrypt.
       </Text>
       <TouchableOpacity style={[styles.emptyButton, { backgroundColor: colors.primary }]} onPress={handleCompose} activeOpacity={0.85}>
-        <MaterialCommunityIcons name="pencil-outline" size={18} color="#FFF" />
+        <Icon name="pencil-outline" size={18} color="#FFF" />
         <Text style={styles.emptyButtonText}>Write First Note</Text>
       </TouchableOpacity>
     </Animated.View>
@@ -194,7 +194,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
               <Image source={{ uri: item.imageUri }} style={styles.noteThumbnail} />
             ) : (
               <LinearGradient colors={gradient} style={styles.noteThumbnail}>
-                <MaterialCommunityIcons
+                <Icon
                   name="seal"
                   size={24}
                   color="rgba(255,255,255,0.25)"
@@ -220,7 +220,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
             </Text>
           </View>
 
-          <MaterialCommunityIcons name="chevron-right" size={20} color={withAlpha(colors.text, 0.2)} />
+          <Icon name="chevron-right" size={20} color={withAlpha(colors.text, 0.2)} />
         </TouchableOpacity>
       </Animated.View>
     );
@@ -247,7 +247,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
+            <Icon name="chevron-left" size={28} color={colors.text} />
           </TouchableOpacity>
 
           <View style={styles.headerCenter}>
@@ -264,7 +264,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
             onPress={handleCompose}
             activeOpacity={0.85}
           >
-            <MaterialCommunityIcons name="plus" size={24} color="#FFF" />
+            <Icon name="plus" size={24} color="#FFF" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -310,7 +310,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
           }
           ListHeaderComponent={
             <View style={styles.securityHeader}>
-                <MaterialCommunityIcons name="shield-check" size={12} color={colors.textMuted} />
+                <Icon name="shield-check" size={12} color={colors.textMuted} />
                 <Text style={[styles.securityText, { color: colors.textMuted }]}>SECURE PRIVATE CHANNEL</Text>
             </View>
           }

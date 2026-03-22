@@ -1,15 +1,16 @@
 // components/QuietMilestone.jsx — Gentle milestone acknowledgment
 // Brand-aligned replacement for AchievementBadge
-// No tiers, no points, no "unlocked" — just a quiet moment of recognition.
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
 
 import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import Card from './Card';
-import { SPACING, BORDER_RADIUS, TYPOGRAPHY, withAlpha } from '../utils/theme';
+import Icon from './Icon';
+import { SPACING, withAlpha } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
+import { notification, NotificationFeedbackType } from '../utils/haptics';
 
-let Haptics = null;
-try { Haptics = require('expo-haptics'); } catch { Haptics = null; }
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 /**
  * QuietMilestone — A gentle acknowledgement of something meaningful.
@@ -18,10 +19,7 @@ try { Haptics = require('expo-haptics'); } catch { Haptics = null; }
  * - No tier system (bronze/silver/gold)
  * - No points
  * - No "achievement unlocked" language
- * - Soft fade-in instead of bouncy animation
- *
- * Props are intentionally backward-compatible with AchievementBadge
- * so existing call sites work without changes.
+ * - Sexy Red primary accents with Midnight Intimacy surfaces
  */
 export default function QuietMilestone({
   achievement,
@@ -30,8 +28,18 @@ export default function QuietMilestone({
   onPress = null,
   style,
 }) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { colors, isDark } = useTheme();
+  
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const isDiscovered = achievement?.unlocked;
@@ -39,20 +47,20 @@ export default function QuietMilestone({
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 600,
+      duration: 800,
       useNativeDriver: true,
     }).start();
 
-    if (achievement?.isNew && isDiscovered && Platform.OS !== 'web' && Haptics?.notificationAsync) {
+    if (achievement?.isNew && isDiscovered) {
       notification(NotificationFeedbackType.Success).catch(() => {});
     }
   }, [isDiscovered]);
 
   const getSizeConfig = () => {
     const sizes = {
-      small: { icon: 24, nameSize: 12 },
-      medium: { icon: 32, nameSize: 14 },
-      large: { icon: 40, nameSize: 16 },
+      small: { icon: 18, nameSize: 13, wrap: 40 },
+      medium: { icon: 22, nameSize: 15, wrap: 48 },
+      large: { icon: 26, nameSize: 17, wrap: 56 },
     };
     return sizes[size] || sizes.medium;
   };
@@ -65,15 +73,27 @@ export default function QuietMilestone({
         variant={isDiscovered ? 'glass' : 'outlined'}
         padding="sm"
         onPress={onPress}
+        style={{ borderRadius: 20 }}
         accessibilityRole="button"
-        accessibilityLabel={`${achievement?.name || 'Milestone'}${isDiscovered ? '' : ', not yet discovered'}`}
       >
         <View style={styles.content}>
-          {/* Icon */}
-          <View style={[styles.iconContainer, !isDiscovered && styles.iconLocked]}>
-            <Text style={[styles.icon, { fontSize: sizeConfig.icon }]}>
-              {isDiscovered ? (achievement?.icon || '✨') : '🌙'}
-            </Text>
+          {/* Icon Container */}
+          <View 
+            style={[
+              styles.iconContainer, 
+              { 
+                width: sizeConfig.wrap, 
+                height: sizeConfig.wrap, 
+                borderRadius: sizeConfig.wrap / 4,
+                backgroundColor: isDiscovered ? withAlpha(t.primary, 0.12) : withAlpha(t.text, 0.05)
+              }
+            ]}
+          >
+            <Icon 
+              name={isDiscovered ? (achievement?.icon || 'sparkles-outline') : 'moon-outline'} 
+              size={sizeConfig.icon} 
+              color={isDiscovered ? t.primary : t.subtext} 
+            />
           </View>
 
           {/* Info */}
@@ -81,7 +101,7 @@ export default function QuietMilestone({
             <Text
               style={[
                 styles.name,
-                { fontSize: sizeConfig.nameSize },
+                { fontSize: sizeConfig.nameSize, color: t.text },
                 !isDiscovered && styles.muted,
               ]}
               numberOfLines={1}
@@ -91,21 +111,24 @@ export default function QuietMilestone({
 
             {size !== 'small' && achievement?.description && (
               <Text
-                style={[styles.description, !isDiscovered && styles.muted]}
+                style={[styles.description, { color: t.subtext }, !isDiscovered && styles.muted]}
                 numberOfLines={2}
               >
                 {achievement.description}
               </Text>
             )}
 
-            {/* Gentle progress hint */}
+            {/* Subtle progress track */}
             {showProgress && !isDiscovered && achievement?.progress !== undefined && (
               <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
+                <View style={[styles.progressBar, { backgroundColor: t.border }]}>
                   <View
                     style={[
                       styles.progressFill,
-                      { width: `${Math.round(achievement.progress * 100)}%` },
+                      { 
+                        width: `${Math.round(achievement.progress * 100)}%`,
+                        backgroundColor: withAlpha(t.primary, 0.4) 
+                      },
                     ]}
                   />
                 </View>
@@ -113,9 +136,9 @@ export default function QuietMilestone({
             )}
           </View>
 
-          {/* New indicator */}
+          {/* New Status Dot */}
           {achievement?.isNew && isDiscovered && (
-            <View style={styles.newDot} />
+            <View style={[styles.newDot, { backgroundColor: t.primary }]} />
           )}
         </View>
       </Card>
@@ -126,57 +149,54 @@ export default function QuietMilestone({
 // Backward-compatible alias
 export { QuietMilestone as AchievementBadge };
 
-const createStyles = (colors) =>
+const createStyles = (t, isDark) =>
   StyleSheet.create({
     container: { marginVertical: SPACING.xs },
     content: {
       flexDirection: 'row',
       alignItems: 'center',
       position: 'relative',
+      paddingVertical: 4,
     },
     iconContainer: {
-      width: 52,
-      height: 52,
-      borderRadius: 26,
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: SPACING.md,
-      backgroundColor: withAlpha(colors.primary, 0.08),
     },
-    iconLocked: {
-      backgroundColor: withAlpha(colors.text, 0.04),
-    },
-    icon: { textAlign: 'center' },
     info: { flex: 1, justifyContent: 'center' },
     name: {
-      ...TYPOGRAPHY.h3,
-      color: colors.text,
+      fontFamily: SYSTEM_FONT,
+      fontWeight: '800',
+      letterSpacing: -0.3,
       marginBottom: 2,
     },
     description: {
-      ...TYPOGRAPHY.caption,
-      color: colors.textMuted,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 13,
+      fontWeight: '500',
+      letterSpacing: -0.1,
+      lineHeight: 18,
     },
-    muted: { opacity: 0.4 },
-    progressContainer: { marginTop: SPACING.xs },
+    muted: { opacity: 0.5 },
+    progressContainer: { marginTop: 8 },
     progressBar: {
-      height: 3,
-      backgroundColor: withAlpha(colors.text, 0.06),
-      borderRadius: BORDER_RADIUS.sm,
+      height: 4,
+      borderRadius: 2,
       overflow: 'hidden',
     },
     progressFill: {
       height: '100%',
-      backgroundColor: withAlpha(colors.primary, 0.4),
-      borderRadius: BORDER_RADIUS.sm,
+      borderRadius: 2,
     },
     newDot: {
       width: 8,
       height: 8,
       borderRadius: 4,
-      backgroundColor: colors.primary,
       position: 'absolute',
-      top: 0,
-      right: 0,
+      top: -2,
+      right: -2,
+      borderWidth: 1.5,
+      borderColor: t.surface,
     },
   });
+  

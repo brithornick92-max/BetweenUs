@@ -12,8 +12,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle, NotificationFeedbackType, notification } from '../utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
@@ -33,7 +32,7 @@ const HEAT_LEVELS = [
   {
     level: 2,
     icon: 'star-four-points-outline',
-    color: '#FF2D55', // iOS Pink
+    color: '#C3113D',
     title: 'Romantic',
     description: 'Flirty attraction & romance',
   },
@@ -47,7 +46,7 @@ const HEAT_LEVELS = [
   {
     level: 4,
     icon: 'water-outline',
-    color: '#FF3B30', // iOS Red
+    color: '#A84848',
     title: 'Steamy',
     description: 'Adventurous & heated topics',
   },
@@ -70,7 +69,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
     surface: isDark ? '#1C1C1E' : '#FFFFFF',
     surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
     primary: colors.primary,
-    accent: colors.accent || '#FF2D55',
+    accent: colors.accent || '#D4AA7E',
     text: isDark ? '#FFFFFF' : '#000000',
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -170,7 +169,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
       <Animated.View style={[styles.header, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
         <View style={styles.headerTopRow}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
-            <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
+            <Icon name="chevron-left" size={32} color={t.text} />
           </TouchableOpacity>
         </View>
         <View style={styles.headerEditorial}>
@@ -205,7 +204,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
                     activeOpacity={0.7}
                   >
                     <View style={[styles.iconWrap, { backgroundColor: isSelected ? heatLevel.color + '15' : t.surfaceSecondary }]}>
-                      <MaterialCommunityIcons 
+                      <Icon 
                         name={heatLevel.icon} 
                         size={20} 
                         color={isSelected ? heatLevel.color : t.subtext} 
@@ -220,9 +219,9 @@ export default function HeatLevelSettingsScreen({ navigation }) {
                       </Text>
                     </View>
                     {isLocked ? (
-                      <MaterialCommunityIcons name="lock" size={20} color={t.subtext} />
+                      <Icon name="lock" size={20} color={t.subtext} />
                     ) : isSelected ? (
-                      <MaterialCommunityIcons name="check" size={24} color={heatLevel.color} />
+                      <Icon name="check" size={24} color={heatLevel.color} />
                     ) : null}
                   </TouchableOpacity>
                   {!isLast && <View style={styles.dividerIndent} />}
@@ -232,7 +231,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
           </View>
 
           <View style={styles.infoCard}>
-            <MaterialCommunityIcons name="information" size={20} color={t.subtext} />
+            <Icon name="information" size={20} color={t.subtext} />
             <Text style={styles.infoText}>
               Higher levels automatically include all content from the levels below them.
             </Text>
@@ -250,7 +249,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
           activeOpacity={0.8}
         >
           {isSaving ? (
-            <MaterialCommunityIcons name="loading" size={20} color={isDark ? '#000' : '#FFF'} />
+            <Icon name="loading" size={20} color={isDark ? '#000' : '#FFF'} />
           ) : null}
           <Text style={styles.primaryButtonText}>
             {isSaving ? 'Updating...' : 'Save Comfort Level'}

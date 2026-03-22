@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
 
 /**
@@ -20,14 +20,14 @@ export function SettingRow({ icon, iconColor, title, subtitle, onPress, rightEle
       activeOpacity={0.6}
     >
       <View style={[styles.rowIcon, { backgroundColor: (iconColor || colors.primary) + '14' }]}>
-        <MaterialCommunityIcons name={icon} size={20} color={iconColor || colors.primary} />
+        <Icon name={icon} size={20} color={iconColor || colors.primary} />
       </View>
       <View style={styles.rowBody}>
         <Text style={[styles.rowTitle, { color: colors.text }]}>{title}</Text>
         {subtitle ? <Text style={[styles.rowSub, { color: colors.textMuted }]} numberOfLines={1}>{subtitle}</Text> : null}
       </View>
       {rightElement || (
-        <MaterialCommunityIcons name="chevron-right" size={18} color={colors.textMuted} style={{ opacity: 0.35 }} />
+        <Icon name="chevron-right" size={18} color={colors.textMuted} style={{ opacity: 0.35 }} />
       )}
       {!isLast && <View style={[styles.rowDivider, { backgroundColor: colors.divider }]} />}
     </TouchableOpacity>

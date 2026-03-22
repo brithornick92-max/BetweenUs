@@ -1,7 +1,7 @@
 /**
  * SoftBoundariesPanel — Elegant consent controls
  * * Velvet Glass & Apple Editorial updates integrated.
- * Pure native iOS surface mapping with high-contrast typography.
+ * Pure native iOS surface mapping with Sexy Red (#C3113D) accents.
  */
 
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
@@ -14,23 +14,23 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from './Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 import { SoftBoundaries } from '../services/PolishEngine';
 
 export default function SoftBoundariesPanel({ onBoundaryChange }) {
   const { colors, isDark } = useTheme();
   const [boundaries, setBoundaries] = useState(null);
 
-  // STRICT Apple Editorial Theme Map
+  // STRICT Midnight Intimacy x Apple Editorial Theme Map
   const t = useMemo(() => ({
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
-    primary: colors.primary,
-    text: isDark ? '#FFFFFF' : '#000000',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D', // Sexy Red
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
@@ -81,8 +81,8 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
         {/* Row 1: Hide Spicy */}
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <View style={[styles.iconWrap, { backgroundColor: t.primary + '15' }]}>
-              <MaterialCommunityIcons name="fire" size={18} color={t.primary} />
+            <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+              <Icon name="flame-outline" size={18} color={t.primary} />
             </View>
             <View style={styles.rowText}>
               <Text style={[styles.rowTitle, { color: t.text }]}>
@@ -96,8 +96,8 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
           <Switch
             value={boundaries.hideSpicy}
             onValueChange={toggleSpicy}
-            trackColor={{ false: t.border, true: t.primary }}
-            thumbColor={Platform.OS === 'ios' ? undefined : (boundaries.hideSpicy ? '#FFF' : '#F4F3F4')}
+            trackColor={{ false: isDark ? '#38383A' : '#E9E9EA', true: t.primary }}
+            thumbColor={Platform.OS === 'ios' ? undefined : '#FFFFFF'}
             ios_backgroundColor={isDark ? '#38383A' : '#E9E9EA'}
           />
         </View>
@@ -107,8 +107,8 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
         {/* Row 2: Hidden Entries */}
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <View style={[styles.iconWrap, { backgroundColor: t.subtext + '15' }]}>
-              <MaterialCommunityIcons name="eye-off-outline" size={18} color={t.subtext} />
+            <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.subtext, 0.1) }]}>
+              <Icon name="eye-off-outline" size={18} color={t.subtext} />
             </View>
             <View style={styles.rowText}>
               <Text style={[styles.rowTitle, { color: t.text }]}>
@@ -128,8 +128,8 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
         {/* Row 3: Hidden Categories */}
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <View style={[styles.iconWrap, { backgroundColor: t.subtext + '15' }]}>
-              <MaterialCommunityIcons name="tag-off-outline" size={18} color={t.subtext} />
+            <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.subtext, 0.1) }]}>
+              <Icon name="pricetag-outline" size={18} color={t.subtext} />
             </View>
             <View style={styles.rowText}>
               <Text style={[styles.rowTitle, { color: t.text }]}>
@@ -142,7 +142,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
               </Text>
             </View>
           </View>
-          <MaterialCommunityIcons name="chevron-right" size={20} color={t.border} />
+          <Icon name="chevron-forward" size={20} color={t.border} />
         </View>
       </View>
 
@@ -163,8 +163,8 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontFamily: systemFont,
     fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.2,
+    fontWeight: '800',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: SPACING.sm,
     paddingLeft: SPACING.xs,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 12 },
       android: { elevation: 2 },
     }),
   },
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md + 2,
+    paddingVertical: SPACING.lg,
   },
   rowLeft: {
     flexDirection: 'row',
@@ -203,13 +203,13 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     fontFamily: systemFont,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   rowSub: {
     fontFamily: systemFont,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
     marginTop: 2,
   },

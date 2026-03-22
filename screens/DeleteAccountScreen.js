@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,42 +11,59 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
+  StatusBar,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
+import Icon from '../components/Icon';
+import { SPACING, withAlpha } from '../utils/theme';
 
 /**
  * Delete Account Screen
- * Allows users to permanently delete their account and all data
- * GDPR/CCPA compliance feature
+ * Apple Editorial & Velvet Glass Design Implementation
+ * Guides users carefully through the destructive GDPR/CCPA process.
  */
-const DeleteAccountScreen = ({ navigation }) => {
-  const { colors } = useTheme();
+export default function DeleteAccountScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const { user, deleteUserAccount, signOutLocal } = useAuth();
+  const { deleteUserAccount, signOutLocal } = useAuth();
   const { isPremiumEffective: isPremium } = useEntitlements();
+  
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const dangerColor = colors.danger || '#EF4444';
+  // ─── APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: colors.surface,
+    surfaceSecondary: colors.surface2,
+    primary: colors.primary || '#C3113D',
+    text: colors.text,
+    subtext: colors.textMuted,
+    border: colors.border,
+    danger: colors.primary || '#C3113D',
+  }), [colors]);
+
+  const styles = useMemo(() => createStyles(t, isDark, insets), [t, isDark, insets]);
 
   const handleTextChange = (text) => {
     setConfirmText(text);
     if (text.trim().toLowerCase() === 'delete' && confirmText.trim().toLowerCase() !== 'delete') {
-      impact(ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Heavy);
     }
   };
 
   const handleDeleteAccount = async () => {
     if (confirmText.trim().toLowerCase() !== 'delete') {
+      impact(ImpactFeedbackStyle.Light);
       Alert.alert('Confirmation Required', 'Please type DELETE to confirm');
       return;
     }
 
+    impact(ImpactFeedbackStyle.Heavy);
     Alert.alert(
       'Final Confirmation',
       'This action cannot be undone. All your data will be permanently deleted within 30 days.\n\nAre you absolutely sure?',
@@ -59,21 +76,11 @@ const DeleteAccountScreen = ({ navigation }) => {
             try {
               setIsDeleting(true);
               impact(ImpactFeedbackStyle.Heavy);
-
-              // Delete account
               await deleteUserAccount();
-
               Alert.alert(
                 'Account Deleted',
                 'Your account and all data have been scheduled for deletion. You will be signed out now.',
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => {
-                      // Navigation will be handled by auth state change
-                    },
-                  },
-                ]
+                [{ text: 'OK' }]
               );
             } catch (error) {
               console.error('Delete account error:', error);
@@ -92,103 +99,89 @@ const DeleteAccountScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} accessibilityRole="button" accessibilityLabel="Go back">
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+    <View style={styles.root}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+
+      {/* ─── Header ─── */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          onPress={() => {
+            impact(ImpactFeedbackStyle.Light);
+            navigation.goBack();
+          }} 
+          style={styles.backButton}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+        >
+          <Icon name="arrow-back" size={24} color={t.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Delete Account</Text>
-        <View style={{ width: 24 }} />
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <View style={styles.content}>
-          {/* Warning Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: dangerColor + '20' }]}>
-            <Ionicons name="warning" size={48} color={dangerColor} />
+      <KeyboardAvoidingView style={styles.keyboardAvoid} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false} 
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* ─── Title & Warning Icon ─── */}
+          <View style={styles.heroSection}>
+            <View style={[styles.iconContainer, { backgroundColor: withAlpha(t.danger, 0.15) }]}>
+              <Icon name="warning-outline" size={42} color={t.danger} />
+            </View>
+            <Text style={[styles.title, { color: t.danger }]}>Delete Account</Text>
+            <Text style={[styles.subtitle, { color: t.subtext }]}>
+              This action is permanent and cannot be undone.
+            </Text>
           </View>
 
-          {/* Title */}
-          <Text style={[styles.title, { color: dangerColor }]}>Delete Account</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            This action is permanent and cannot be undone
-          </Text>
-
-          {/* What Will Be Deleted */}
-          <View style={[styles.card, { backgroundColor: dangerColor + '10', borderColor: dangerColor }]}>
-            <Text style={[styles.cardTitle, { color: dangerColor }]}>What Will Be Deleted</Text>
+          {/* ─── What Will Be Deleted (Danger Card) ─── */}
+          <View style={[styles.card, { backgroundColor: withAlpha(t.danger, 0.05), borderColor: withAlpha(t.danger, 0.2) }]}>
+            <Text style={[styles.cardTitle, { color: t.danger }]}>What Will Be Deleted</Text>
             
-            <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={dangerColor} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                All journal entries (cannot be recovered)
-              </Text>
-            </View>
-
-            <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={dangerColor} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                All prompt responses
-              </Text>
-            </View>
-
-            <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={dangerColor} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                Account information and preferences
-              </Text>
-            </View>
-
-            <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={dangerColor} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                Partner connection (your partner will be notified)
-              </Text>
-            </View>
-
-            <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={dangerColor} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                Premium subscription access
-              </Text>
-            </View>
-
-            <View style={styles.listItem}>
-              <Ionicons name="close-circle" size={20} color={dangerColor} />
-              <Text style={[styles.listText, { color: colors.textSecondary }]}>
-                All custom rituals and date night plans
-              </Text>
-            </View>
+            {[
+              'All journal entries (cannot be recovered)',
+              'All prompt responses',
+              'Account information and preferences',
+              'Partner connection (your partner will be notified)',
+              'Premium subscription access',
+              'All custom rituals and date night plans'
+            ].map((item, idx) => (
+              <View key={idx} style={styles.listItem}>
+                <Icon name="close-circle" size={18} color={t.danger} />
+                <Text style={[styles.listText, { color: t.text }]}>{item}</Text>
+              </View>
+            ))}
           </View>
 
-          {/* Before You Go */}
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Before You Go</Text>
-            <Text style={[styles.cardText, { color: colors.textSecondary }]}>
+          {/* ─── Before You Go ─── */}
+          <View style={styles.card}>
+            <Text style={[styles.cardTitle, { color: t.text }]}>Before You Go</Text>
+            <Text style={[styles.cardText, { color: t.subtext }]}>
               Your subscription will be cancelled, but you won't receive a refund for the current period. If you're linked with a partner, they will lose premium access if you're the subscriber. You can create a new account later, but your data cannot be restored.
             </Text>
+            
             <TouchableOpacity
-              style={[styles.actionRow, { marginTop: 16, backgroundColor: colors.background, padding: 12, borderRadius: 8 }]}
+              style={[styles.actionRow, { backgroundColor: t.surfaceSecondary }]}
+              activeOpacity={0.7}
               onPress={() => navigation.navigate('ExportData')}
             >
               <View style={styles.actionInfo}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>Export My Data</Text>
+                <Text style={[styles.actionTitle, { color: t.text }]}>Export My Data</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              <Icon name="chevron-forward" size={20} color={t.border} />
             </TouchableOpacity>
           </View>
 
-          {/* Alternative Options */}
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Need a Break Instead?</Text>
-            <Text style={[styles.cardText, { color: colors.textSecondary, marginBottom: 12 }]}>
-              Your data will be safe and waiting when you return. Consider these alternatives to deleting:
+          {/* ─── Alternative Options ─── */}
+          <View style={styles.card}>
+            <Text style={[styles.cardTitle, { color: t.text }]}>Need a Break Instead?</Text>
+            <Text style={[styles.cardText, { color: t.subtext, marginBottom: SPACING.md }]}>
+              Your data will be safe and waiting when you return. Consider these alternatives:
             </Text>
             
             <TouchableOpacity
-              style={[styles.actionRow, { backgroundColor: colors.background, padding: 12, borderRadius: 8, marginBottom: 8 }]}
+              style={[styles.actionRow, { backgroundColor: t.surfaceSecondary, marginBottom: 8 }]}
+              activeOpacity={0.7}
               onPress={async () => {
                 Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
                   { text: 'Cancel', style: 'cancel' },
@@ -199,14 +192,15 @@ const DeleteAccountScreen = ({ navigation }) => {
               }}
             >
               <View style={styles.actionInfo}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>Sign out temporarily</Text>
+                <Text style={[styles.actionTitle, { color: t.text }]}>Sign out temporarily</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              <Icon name="chevron-forward" size={20} color={t.border} />
             </TouchableOpacity>
 
             {isPremium && (
               <TouchableOpacity
-                style={[styles.actionRow, { backgroundColor: colors.background, padding: 12, borderRadius: 8, marginBottom: 8 }]}
+                style={[styles.actionRow, { backgroundColor: t.surfaceSecondary, marginBottom: 8 }]}
+                activeOpacity={0.7}
                 onPress={() => {
                   if (Platform.OS === 'ios') {
                     Linking.openURL('https://apps.apple.com/account/subscriptions');
@@ -216,18 +210,19 @@ const DeleteAccountScreen = ({ navigation }) => {
                 }}
               >
                 <View style={styles.actionInfo}>
-                  <Text style={[styles.actionTitle, { color: colors.text }]}>Cancel subscription</Text>
+                  <Text style={[styles.actionTitle, { color: t.text }]}>Cancel subscription</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                <Icon name="chevron-forward" size={20} color={t.border} />
               </TouchableOpacity>
             )}
             
             <TouchableOpacity
-              style={[styles.actionRow, { backgroundColor: colors.background, padding: 12, borderRadius: 8 }]}
+              style={[styles.actionRow, { backgroundColor: t.surfaceSecondary }]}
+              activeOpacity={0.7}
               onPress={() => {
                 Alert.alert(
                   'Unlink Partner',
-                  'To unlink from your partner, go back to Settings and tap "Partner" under the relationship section.',
+                  'To unlink from your partner, go back to Settings and tap "Partner" under the connection section.',
                   [
                     { text: 'Cancel', style: 'cancel' },
                     { text: 'Go to Settings', onPress: () => navigation.popToTop() }
@@ -236,116 +231,120 @@ const DeleteAccountScreen = ({ navigation }) => {
               }}
             >
               <View style={styles.actionInfo}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>Unlink from partner</Text>
+                <Text style={[styles.actionTitle, { color: t.text }]}>Unlink from partner</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              <Icon name="chevron-forward" size={20} color={t.border} />
             </TouchableOpacity>
           </View>
 
-          {/* Confirmation Input */}
-          <View style={[styles.confirmCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.confirmTitle, { color: colors.text }]}>
+          {/* ─── Confirmation Input ─── */}
+          <View style={[styles.card, styles.confirmCard]}>
+            <Text style={[styles.confirmTitle, { color: t.text }]}>
               Type DELETE to confirm
             </Text>
-            <Text style={[styles.confirmSubtitle, { color: colors.textSecondary }]}>
-              This helps prevent accidental deletions
+            <Text style={[styles.confirmSubtitle, { color: t.subtext }]}>
+              This helps prevent accidental deletions.
             </Text>
             <TextInput
               style={[
-                styles.confirmInput,
+                styles.input,
                 {
-                  backgroundColor: colors.background,
-                  color: colors.text,
-                  borderColor: colors.border,
-                  textAlign: 'left',
+                  backgroundColor: t.surfaceSecondary,
+                  color: t.text,
+                  borderColor: confirmText.trim().toLowerCase() === 'delete' ? t.danger : t.border,
                 },
               ]}
               placeholder="Type DELETE here"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={t.subtext}
               value={confirmText}
               onChangeText={handleTextChange}
               autoCapitalize="characters"
               autoCorrect={false}
               accessibilityLabel="Confirmation field"
-              accessibilityHint="Type DELETE in capital letters to confirm account deletion"
             />
           </View>
 
-          {/* Cancel Button (Primary) */}
+          {/* ─── Actions ─── */}
+          
+          {/* Primary Action (Save them!) -> Uses Sexy Red */}
           <TouchableOpacity
-            style={[styles.cancelButton, { backgroundColor: colors.primary, borderColor: colors.primary }]}
+            style={[styles.btnPrimary, { backgroundColor: t.primary }]}
+            activeOpacity={0.8}
             onPress={() => navigation.goBack()}
             disabled={isDeleting}
-            accessibilityRole="button"
-            accessibilityLabel="Cancel, keep my account"
           >
-            <Text style={[styles.cancelButtonText, { color: colors.text }]}>
+            <Text style={styles.btnPrimaryText}>
               Cancel, Keep My Account
             </Text>
           </TouchableOpacity>
 
-          {/* Delete Button (Secondary/Destructive) */}
+          {/* Destructive Action -> Uses native iOS Danger Red */}
           <TouchableOpacity
             style={[
-              styles.deleteButton,
+              styles.btnDestructive,
               {
-                borderColor: dangerColor,
+                borderColor: t.danger,
                 opacity: confirmText.trim().toLowerCase() === 'delete' ? 1 : 0.4,
               },
             ]}
+            activeOpacity={0.7}
             onPress={handleDeleteAccount}
             disabled={isDeleting || confirmText.trim().toLowerCase() !== 'delete'}
-            accessibilityRole="button"
-            accessibilityLabel="Delete my account forever"
-            accessibilityState={{ disabled: isDeleting || confirmText.trim().toLowerCase() !== 'delete' }}
           >
             {isDeleting ? (
-                <ActivityIndicator color={dangerColor} />
+                <ActivityIndicator color={t.danger} />
               ) : (
                 <>
-                  <Ionicons name="trash" size={20} color={dangerColor} />
-                  <Text style={[styles.deleteButtonText, { color: dangerColor }]}>Delete My Account Forever</Text>
+                  <Icon name="trash-outline" size={20} color={t.danger} />
+                  <Text style={[styles.btnDestructiveText, { color: t.danger }]}>Delete My Account Forever</Text>
                 </>
               )}
           </TouchableOpacity>
 
-          {/* Legal Text */}
-          <Text style={[styles.legalText, { color: colors.textSecondary }]}>
+          <Text style={[styles.legalText, { color: t.subtext }]}>
             Account deletion is permanent and complies with GDPR and CCPA right to erasure. 
             All data will be permanently deleted within 30 days. Some anonymized usage data may 
             be retained for legal and security purposes.
           </Text>
-        </View>
-      </ScrollView>
+
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
-};
+}
 
-const styles = StyleSheet.create({
-  container: {
+const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+
+const createStyles = (t, isDark, insets) => StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: t.background,
+  },
+  keyboardAvoid: {
     flex: 1,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: insets.top + SPACING.sm,
+    paddingBottom: SPACING.md,
   },
   backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    padding: SPACING.xs,
   },
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: 20,
+  scrollContent: {
+    paddingHorizontal: SPACING.screen,
+    paddingBottom: 120,
+  },
+
+  // Hero Section
+  heroSection: {
+    alignItems: 'center',
+    marginVertical: SPACING.xl,
   },
   iconContainer: {
     width: 80,
@@ -353,111 +352,143 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 8,
+    fontFamily: systemFont,
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginBottom: SPACING.xs,
   },
   subtitle: {
-    fontSize: 16,
+    fontFamily: systemFont,
+    fontSize: 15,
+    fontWeight: '500',
     textAlign: 'center',
-    marginBottom: 32,
+    paddingHorizontal: SPACING.xl,
   },
+
+  // Cards
   card: {
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 16,
+    backgroundColor: t.surface,
+    borderRadius: 24,
+    padding: SPACING.xl,
+    marginBottom: SPACING.lg,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: t.border,
   },
   cardTitle: {
+    fontFamily: systemFont,
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    marginBottom: SPACING.md,
   },
   cardText: {
-    fontSize: 14,
+    fontFamily: systemFont,
+    fontSize: 15,
     lineHeight: 22,
+    fontWeight: '400',
   },
+
+  // Lists
   listItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: SPACING.sm,
     gap: 12,
   },
   listText: {
-    fontSize: 14,
+    fontFamily: systemFont,
+    fontSize: 15,
+    lineHeight: 22,
     flex: 1,
-    lineHeight: 20,
+    fontWeight: '500',
   },
+
+  // Action Rows
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    padding: SPACING.lg,
+    borderRadius: 16,
+    marginTop: SPACING.md,
   },
   actionInfo: {
     flex: 1,
   },
   actionTitle: {
+    fontFamily: systemFont,
     fontSize: 16,
     fontWeight: '600',
+    letterSpacing: -0.2,
   },
+
+  // Confirm Card
   confirmCard: {
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 24,
+    marginTop: SPACING.sm,
   },
   confirmTitle: {
+    fontFamily: systemFont,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 4,
   },
   confirmSubtitle: {
+    fontFamily: systemFont,
     fontSize: 14,
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
-  confirmInput: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+  input: {
+    fontFamily: systemFont,
+    paddingVertical: 16,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 16,
     borderWidth: 1,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
-  deleteButton: {
-    flexDirection: 'row',
+
+  // Buttons
+  btnPrimary: {
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
+    marginBottom: SPACING.md,
+  },
+  btnPrimaryText: {
+    fontFamily: systemFont,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+  btnDestructive: {
+    flexDirection: 'row',
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    marginBottom: SPACING.xl,
     gap: 8,
   },
-  deleteButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+  btnDestructiveText: {
+    fontFamily: systemFont,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
-  cancelButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
+
+  // Legal
   legalText: {
+    fontFamily: systemFont,
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
+    paddingHorizontal: SPACING.md,
   },
 });
-
-export default DeleteAccountScreen;

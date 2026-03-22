@@ -1,16 +1,14 @@
 // screens/DateNightScreen.js — Date night card game
-// Swipe right to save for tonight, swipe left to skip.
-// Cards start face-down with heat-themed gradient back, tap to flip and reveal.
-// Behind cards animate outward as the top card is dragged.
+// Sexy Red Intimacy & Apple Editorial Updates Integrated.
 
 import React, {
   useState, useMemo, useCallback, useRef,
   useImperativeHandle, forwardRef, useEffect,
 } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback,
+  View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Platform, Dimensions, StatusBar, InteractionManager,
-  ActivityIndicator, Modal, Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -21,29 +19,30 @@ import Animated, {
   withSpring, withTiming, runOnJS, interpolate,
   Easing,
 } from 'react-native-reanimated';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { getAllDates, filterDates, getDimensionMeta } from '../utils/contentLoader';
 import { FREE_LIMITS } from '../utils/featureFlags';
-import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme';
+import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme'; // BORDER_RADIUS kept for styles
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import PreferenceEngine from '../services/PreferenceEngine';
 import { useAuth } from '../context/AuthContext';
-import DateCardFront, { HEAT_GRADIENTS, HEAT_ICONS } from '../components/DateCardFront';
+import DateCardFront from '../components/DateCardFront';
 import DateCardBack from '../components/DateCardBack';
 
 const { width, height } = Dimensions.get('window');
-const CARD_W = width - 48;
-const CARD_H = Math.min(height * 0.45, 420); // Slightly taller for more breathing room
-const SWIPE_THRESHOLD = 85;
-const FLIP_DURATION = 500;
+const CARD_W = width - 40;
+const CARD_H = Math.min(height * 0.5, 460);
+const SWIPE_THRESHOLD = 90;
+const FLIP_DURATION = 600;
 const DIMS = getDimensionMeta();
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
-const SPRING = { damping: 22, stiffness: 180, mass: 0.8 };
+const SPRING = { damping: 20, stiffness: 150, mass: 0.8 };
 
 const FONTS = {
   serif: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular', default: 'serif' }),
@@ -51,13 +50,6 @@ const FONTS = {
   bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
 };
 
-// HEAT_GRADIENTS and HEAT_ICONS now imported from components/DateCardFront
-
-// CardFront = DateCardFront (imported from components/DateCardFront)
-const CardFront = ({ date, colors }) => <DateCardFront date={date} colors={colors} dims={DIMS} />;
-
-// CardBack = DateCardBack (imported from components/DateCardBack)
-const CardBack = ({ date }) => <DateCardBack date={date} dims={DIMS} />;
 
 // ── Card stack with flip + swipe ─────────────────────────────────────────────────
 const CardStack = forwardRef(function CardStack(
@@ -107,10 +99,10 @@ const CardStack = forwardRef(function CardStack(
     const target = isFlipped ? 0 : 1;
     flipProgress.value = withTiming(target, {
       duration: FLIP_DURATION,
-      easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+      easing: Easing.bezier(0.33, 1, 0.68, 1),
     });
     setIsFlipped(!isFlipped);
-    impact(ImpactFeedbackStyle.Light);
+    impact(ImpactFeedbackStyle.Medium);
   }, [isFlipped, flipProgress]);
 
   // Open detail for the current top card — runs on JS thread so deckRef is fresh
@@ -121,10 +113,10 @@ const CardStack = forwardRef(function CardStack(
 
   useImperativeHandle(ref, () => ({
     swipeRight: () => {
-      topX.value = withTiming(width + 120, { duration: 320 }, () => runOnJS(doSwipeRight)());
+      topX.value = withTiming(width + 150, { duration: 400 }, () => runOnJS(doSwipeRight)());
     },
     swipeLeft: () => {
-      topX.value = withTiming(-(width + 120), { duration: 320 }, () => runOnJS(doSwipeLeft)());
+      topX.value = withTiming(-(width + 150), { duration: 400 }, () => runOnJS(doSwipeLeft)());
     },
   }), [doSwipeRight, doSwipeLeft]);
 
@@ -132,17 +124,16 @@ const CardStack = forwardRef(function CardStack(
   // activeOffsetX prevents conflict with parent ScrollView's vertical scroll
   const gesture = Gesture.Pan()
     .enabled(isFlipped)
-    .activeOffsetX([-15, 15])
-    .failOffsetY([-20, 20])
+    .activeOffsetX([-10, 10])
     .onUpdate((e) => {
       topX.value = e.translationX;
-      topY.value = e.translationY * 0.25;
+      topY.value = e.translationY * 0.2;
     })
     .onEnd((e) => {
       if (e.translationX > SWIPE_THRESHOLD) {
-        topX.value = withTiming(width + 120, { duration: 320 }, () => runOnJS(doSwipeRight)());
+        topX.value = withTiming(width + 150, { duration: 350 }, () => runOnJS(doSwipeRight)());
       } else if (e.translationX < -SWIPE_THRESHOLD) {
-        topX.value = withTiming(-(width + 120), { duration: 320 }, () => runOnJS(doSwipeLeft)());
+        topX.value = withTiming(-(width + 150), { duration: 350 }, () => runOnJS(doSwipeLeft)());
       } else {
         topX.value = withSpring(0, SPRING);
         topY.value = withSpring(0, SPRING);
@@ -162,7 +153,7 @@ const CardStack = forwardRef(function CardStack(
 
   // Top card drag animation
   const topStyle = useAnimatedStyle(() => {
-    const rotate = interpolate(topX.value, [-width / 2, 0, width / 2], [-10, 0, 10]);
+    const rotate = interpolate(topX.value, [-width, 0, width], [-15, 0, 15]);
     return {
       transform: [
         { translateX: topX.value },
@@ -175,30 +166,19 @@ const CardStack = forwardRef(function CardStack(
   // Behind cards animate outward as top moves
   const behind1Style = useAnimatedStyle(() => {
     const p = Math.min(Math.abs(topX.value) / SWIPE_THRESHOLD, 1);
-    return {
-      transform: [
-        { scale: 0.95 + p * 0.05 },
-        { translateY: 12 - p * 12 },
-      ],
-    };
+    return { transform: [{ scale: 0.94 + p * 0.06 }, { translateY: 15 - p * 15 }] };
   });
 
   const behind2Style = useAnimatedStyle(() => {
     const p = Math.min(Math.abs(topX.value) / SWIPE_THRESHOLD, 1);
-    return {
-      transform: [
-        { scale: 0.90 + p * 0.05 },
-        { translateY: 24 - p * 12 },
-      ],
-    };
+    return { transform: [{ scale: 0.88 + p * 0.06 }, { translateY: 30 - p * 15 }] };
   });
 
   // Flip faces
   const backFaceStyle = useAnimatedStyle(() => {
     const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [0, 90, 180]);
     return {
-      transform: [{ perspective: 1200 }, { rotateY: rotateY + 'deg' }],
-      backfaceVisibility: 'hidden',
+      transform: [{ perspective: 1500 }, { rotateY: rotateY + 'deg' }],
       opacity: flipProgress.value < 0.5 ? 1 : 0,
     };
   });
@@ -206,8 +186,7 @@ const CardStack = forwardRef(function CardStack(
   const frontFaceStyle = useAnimatedStyle(() => {
     const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [180, 90, 0]);
     return {
-      transform: [{ perspective: 1200 }, { rotateY: rotateY + 'deg' }],
-      backfaceVisibility: 'hidden',
+      transform: [{ perspective: 1500 }, { rotateY: rotateY + 'deg' }],
       opacity: flipProgress.value > 0.5 ? 1 : 0,
     };
   });
@@ -230,23 +209,23 @@ const CardStack = forwardRef(function CardStack(
     height: CARD_H,
     position: 'absolute',
     width: CARD_W,
-    borderRadius: 28, // More editorial, iOS squircle feel
+    borderRadius: 32,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
     ...Platform.select({
       ios: {
-        shadowColor: isDark ? '#000000' : '#8A8A8E',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: isDark ? 0.3 : 0.15,
-        shadowRadius: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 15 },
+        shadowOpacity: isDark ? 0.4 : 0.1,
+        shadowRadius: 25,
       },
-      android: { elevation: 12 },
+      android: { elevation: 10 },
     }),
   };
 
   return (
-    <View style={[styles.stackContainer, { height: CARD_H + 32 }]}>
+    <View style={[styles.stackContainer, { height: CARD_H + 40 }]}>
       {/* Card 3 — furthest back */}
       {nextNextCard && (
         <Animated.View
@@ -256,7 +235,7 @@ const CardStack = forwardRef(function CardStack(
             behind2Style,
           ]}
         >
-          <CardBack date={nextNextCard} />
+          <DateCardBack date={nextNextCard} dims={DIMS} />
         </Animated.View>
       )}
 
@@ -269,7 +248,7 @@ const CardStack = forwardRef(function CardStack(
             behind1Style,
           ]}
         >
-          <CardBack date={nextCard} />
+          <DateCardBack date={nextCard} dims={DIMS} />
         </Animated.View>
       )}
 
@@ -284,13 +263,13 @@ const CardStack = forwardRef(function CardStack(
         >
           {/* Back face */}
           <Animated.View style={[styles.flipFace, backFaceStyle]}>
-            <CardBack date={topCard} />
+            <DateCardBack date={topCard} dims={DIMS} />
           </Animated.View>
 
           {/* Front face */}
           <Animated.View style={[styles.flipFace, frontFaceStyle]}>
-            <View style={[styles.cardFrontWrap, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
-              <CardFront date={topCard} colors={colors} />
+            <View style={[styles.cardFrontWrap, { backgroundColor: isDark ? '#131016' : '#FFFFFF' }]}>
+              <DateCardFront date={topCard} colors={colors} dims={DIMS} />
             </View>
           </Animated.View>
 
@@ -316,9 +295,22 @@ const CardStack = forwardRef(function CardStack(
 // ── Main screen ─────────────────────────────────────────────────────────────
 export default function DateNightScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const styles = createStyles(colors, isDark);
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
+
+  const t = useMemo(() => ({
+    background: colors.background,
+    primary: colors.primary || '#C3113D',
+    text: colors.text,
+    textMuted: colors.textMuted,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    surface: isDark ? '#1C1C1E' : '#FFFFFF',
+    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+    accent: colors.accent,
+    surfaceGlass: colors.surfaceGlass,
+  }), [colors, isDark]);
+
+  const styles = createStyles(colors, isDark);
 
   const [ready, setReady] = useState(false);
   const [allDates, setAllDates] = useState([]);
@@ -432,21 +424,16 @@ export default function DateNightScreen({ navigation }) {
   }, []);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Deep velvet background gradient for that premium glass look */}
+    <View style={[styles.root, { backgroundColor: t.background }]}>
       <LinearGradient
-        colors={isDark 
-          ? [colors.background, '#0F0A1A', '#0D081A', colors.background] 
-          : [colors.background, colors.surface2 || '#F3EDE8', colors.background]}
+        colors={isDark ? [t.background, '#120206', t.background] : [t.background, '#F9F6F4', t.background]}
         style={StyleSheet.absoluteFillObject}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
       />
-      <GlowOrb color={withAlpha(colors.primary, 0.12)} size={240} top={-40} left={-40} />
-      <GlowOrb color={withAlpha(colors.accent, 0.08)} size={180} top={350} left={width - 80} delay={1500} />
-      <FilmGrain />
+      <GlowOrb color={withAlpha(t.primary, 0.1)} size={300} top={-50} left={-50} />
+      <GlowOrb color={withAlpha(t.accent || t.primary, 0.06)} size={180} top={350} left={width - 80} delay={1500} />
+      <FilmGrain opacity={0.03} />
       
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
@@ -459,10 +446,10 @@ export default function DateNightScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={[styles.headerEye, { color: colors.textMuted }]}>
-              {!ready ? 'Shuffling your deck\u2026' : !allSelected ? allDates.length + '+ date ideas' : !isPremium && remaining > 0 ? remaining + ' free previews left' : remaining > 0 ? remaining + ' cards in your deck' : deck.length > 0 ? 'All drawn!' : allDates.length + '+ date ideas'}
+            <Text style={[styles.headerEye, { color: t.subtext }]}>
+              {!ready ? 'Preparing Decks...' : !allSelected ? allDates.length + '+ date ideas' : !isPremium && remaining > 0 ? remaining + ' free previews left' : remaining > 0 ? remaining + ' cards in your deck' : deck.length > 0 ? 'All drawn!' : allDates.length + '+ date ideas'}
             </Text>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Draw a date</Text>
+            <Text style={[styles.headerTitle, { color: t.text }]}>The Deck</Text>
           </View>
           <TouchableOpacity
             style={[styles.filterToggle, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)', backgroundColor: filtersOpen ? colors.primary + '15' : colors.surface }]}
@@ -849,16 +836,16 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     marginBottom: 4,
   },
   headerTitle: {
-    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-    lineHeight: 40,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
   filterToggle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1145,7 +1132,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   likeBtn: { 
     width: 64, height: 64, borderRadius: 32, overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#FF2D55', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16 },
+      ios: { shadowColor: '#C3113D', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16 },
       android: { elevation: 8 },
     }),
   },

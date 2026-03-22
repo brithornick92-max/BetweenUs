@@ -1,17 +1,17 @@
 // File: utils/GlobalStyles.js
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from "./theme";
 
 /**
- * GLOBAL STYLES — Between Us · Midnight Intimacy
- * Charcoal-plum surfaces · wine accents · 8pt grid · minimal shadows
+ * GLOBAL STYLES — Apple Editorial structure + Midnight Intimacy palette
+ * Romantic, moody contrast · Heavy system typography · Squircles · Flush layouts
  */
 
 export const GlobalStyles = StyleSheet.create({
   /* ----------------------------- Layout ----------------------------- */
   screen: {
     flex: 1,
-    backgroundColor: COLORS.inkBlack,
+    backgroundColor: COLORS.background, // Deep ink-black / warm cream
   },
 
   safeArea: {
@@ -20,7 +20,7 @@ export const GlobalStyles = StyleSheet.create({
 
   scrollContent: {
     paddingHorizontal: SPACING.screen,
-    paddingBottom: SPACING.xxxl,
+    paddingBottom: 160, // Critical padding to clear the bottom Velvet Glass tab bar
   },
 
   center: {
@@ -39,7 +39,7 @@ export const GlobalStyles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  /* ----- Sections with generous 8pt-grid spacing ----- */
+  /* ----- Sections with generous spacing ----- */
   section: {
     paddingHorizontal: SPACING.screen,
     paddingVertical: SPACING.section,
@@ -54,90 +54,97 @@ export const GlobalStyles = StyleSheet.create({
   /* ----------------------------- Text ----------------------------- */
   h1: {
     ...TYPOGRAPHY.display,
-    color: COLORS.softCream,
+    color: COLORS.text,
   },
 
   h2: {
     ...TYPOGRAPHY.h2,
-    color: COLORS.softCream,
+    color: COLORS.text,
   },
 
   body: {
     ...TYPOGRAPHY.body,
-    color: COLORS.creamSubtle,
+    color: COLORS.textSecondary,
   },
 
   caption: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.creamSubtle,
+    color: COLORS.textTertiary,
   },
 
   muted: {
-    color: "rgba(242,233,230,0.4)",
+    color: COLORS.textMuted,
   },
 
   accent: {
-    color: COLORS.mulberry,
+    color: COLORS.primary, // Sexy red #C3113D — desire, warmth, intimacy
   },
 
   /* ----------------------------- Cards / Surfaces ----------------------------- */
   card: {
-    backgroundColor: COLORS.charcoalPlum,
-    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: COLORS.surface, // Charcoal Plum
+    borderRadius: 24, // Deep iOS Squircle
     padding: SPACING.xl,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
+    borderColor: COLORS.border,
     ...SHADOWS.small,
   },
 
   glassCard: {
-    backgroundColor: "rgba(28,21,32,0.5)",
-    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: COLORS.surfaceGlass, // Translucent plum glass
+    borderRadius: 24,
     padding: SPACING.xl,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
-    ...SHADOWS.small,
+    borderColor: COLORS.borderGlass,
+    ...SHADOWS.medium,
   },
 
   elevatedCard: {
-    backgroundColor: COLORS.surfacePlum,
-    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: COLORS.surfaceElevated,
+    borderRadius: 24,
     padding: SPACING.xl,
-    ...SHADOWS.medium,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...SHADOWS.large,
   },
 
   /* ----------------------------- Inputs ----------------------------- */
   input: {
-    backgroundColor: "rgba(28,21,32,0.6)",
-    borderRadius: BORDER_RADIUS.lg,
+    backgroundColor: COLORS.surface2, // Slightly elevated plum for inputs
+    borderRadius: 16,
     paddingHorizontal: SPACING.lg,
-    paddingVertical: Platform.OS === "ios" ? 14 : SPACING.sm,
-    color: COLORS.softCream,
+    paddingVertical: Platform.OS === "ios" ? 16 : SPACING.md,
+    color: COLORS.text,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    fontSize: 15,
-    ...TYPOGRAPHY.bodySecondary,
+    borderColor: COLORS.border,
+    fontSize: 17, // Native iOS Body Size
+    ...TYPOGRAPHY.body,
   },
 
   inputLabel: {
     ...TYPOGRAPHY.label,
     marginBottom: SPACING.sm,
-    color: COLORS.mulberry,
+    color: COLORS.textSecondary,
+    paddingLeft: 4, // Align visually with input padding
   },
 
   /* ----------------------------- Buttons ----------------------------- */
   buttonPrimary: {
-    borderRadius: BORDER_RADIUS.lg,
+    backgroundColor: COLORS.primary, // Sexy red #C3113D — primary CTA
+    borderRadius: BORDER_RADIUS.full, // Perfect pill shape
     overflow: "hidden",
-    height: 52,
+    height: 56, // Taller native touch target
+    alignItems: "center",
+    justifyContent: "center",
+    ...SHADOWS.glow, // Subtle romantic bloom behind the primary button
   },
 
   buttonOutline: {
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.wineMuted,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1.5,
+    borderColor: COLORS.primaryMuted, // Muted wine border
     backgroundColor: "transparent",
-    height: 52,
+    height: 56,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -145,7 +152,7 @@ export const GlobalStyles = StyleSheet.create({
   /* ----------------------------- Separators ----------------------------- */
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: COLORS.divider,
     marginVertical: SPACING.lg,
   },
 
@@ -159,34 +166,36 @@ export const GlobalStyles = StyleSheet.create({
     paddingHorizontal: SPACING.screen,
     paddingTop: SPACING.xl,
     paddingBottom: SPACING.lg,
-    alignItems: "center",
+    alignItems: "flex-start", // Editorial flush-left preference
   },
 
   headerTitle: {
     ...TYPOGRAPHY.h1,
-    color: COLORS.softCream,
-    textAlign: "center",
+    color: COLORS.text,
+    textAlign: "left",
   },
 
   headerSubtitle: {
-    ...TYPOGRAPHY.caption,
-    color: COLORS.mulberry,
-    marginTop: 8,
-    textAlign: "center",
+    ...TYPOGRAPHY.bodySecondary,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+    textAlign: "left",
   },
 
   /* ----------------------------- Pills / Tags ----------------------------- */
   tag: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.wine + "15",
+    backgroundColor: COLORS.primary + "15", // Sexy red wash — rgba(195,17,61,0.08)
+    borderWidth: 1,
+    borderColor: COLORS.primaryMuted + "30",
   },
 
   tagText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.mulberry,
-    fontWeight: "600",
+    color: COLORS.primary, // #C3113D
+    fontWeight: "700",
   },
 });
 

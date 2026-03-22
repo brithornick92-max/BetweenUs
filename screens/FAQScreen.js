@@ -1,4 +1,10 @@
-import React, { useState } from 'react';
+/**
+ * FAQScreen — Knowledge & Support Hub
+ * Sexy Red Intimacy & Apple Editorial Updates Integrated.
+ * High-end editorial typography with Velvet Glass surfaces.
+ */
+
+import React, { useState, useMemo } from 'react';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   View,
@@ -10,16 +16,19 @@ import {
   StatusBar,
   Alert,
   Dimensions,
+  Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { BlurView } from 'expo-blur';
+import Icon from '../components/Icon';
+import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { withAlpha } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { FALLBACK_PRICES } from '../utils/premiumFeatures';
 
 const { width: SCREEN_W } = Dimensions.get('window');
+const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
 const FAQ_DATA = [
   {
@@ -27,7 +36,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What is Between Us?',
-        a: 'Between Us is a couples app built around one idea: where closeness deepens. Through daily prompts, shared journaling, and intimate rituals, it gives you and your partner a private space to connect more meaningfully.\n\nBetween Us is designed for couples who already have a loving foundation — it\'s for those who want to explore even deeper intimacy and connection together.',
+        a: 'Between Us is a private digital sanctuary built for couples to deepen their closeness. Through daily prompts, shared journaling, and intimate rituals, it provides a safe space to connect meaningfully beyond the noise of everyday life.',
       },
       {
         q: 'Who is Between Us for?',
@@ -35,7 +44,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `Free version: Preview 3 read-only prompts (Heat levels 1-3)\n\nPremium:\n• Monthly: ${FALLBACK_PRICES.monthly} per couple\n• Yearly: ${FALLBACK_PRICES.yearly} (save 48%!)\n• Lifetime: ${FALLBACK_PRICES.lifetime} one-time payment\n\nPremium unlocks unlimited prompts, responses, love notes, calendar, partner connection, and more. One subscription covers both partners.\n\nData export is available to all users (free and premium) so you always have access to your own data.`,
+        a: `Pro membership includes:\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly} (Best Value)\n• Lifetime: ${FALLBACK_PRICES.lifetime}\n\nOne subscription covers both you and your partner. Access to data export is always free for all users.`,
       },
       {
         q: 'How do I get started?',
@@ -65,7 +74,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Absolutely! All your content is end-to-end encrypted — not just journals, but prompts, love notes, memories, rituals, and more. We never sell your data, we can\'t read your encrypted content, and only you and your linked partner can see shared content.',
+        a: 'Absolutely. Every reflection, love note, and ritual is end-to-end encrypted. We cannot read your content, and we never sell your data. Only you and your linked partner hold the keys to your shared world.',
       },
       {
         q: 'Can my partner see everything I write?',
@@ -76,8 +85,8 @@ const FAQ_DATA = [
         a: 'You can unlink from your partner, your data remains yours, shared content is removed, and you can delete your account if desired. Your ex-partner cannot access your new content.',
       },
       {
-        q: 'Can Between Us read my journal entries?',
-        a: 'No! All your content (journals, prompts, love notes, memories, rituals, and more) is end-to-end encrypted on your device before sending. We can\'t decrypt your content — only you and your linked partner have the keys.',
+        q: 'Can Between Us read my journal?',
+        a: 'No. Encryption happens on your device before any data reaches our servers. Your intimacy is yours alone.',
       },
       {
         q: 'Can I lock the app with Face ID or a PIN?',
@@ -93,8 +102,8 @@ const FAQ_DATA = [
     category: 'Features & Usage',
     questions: [
       {
-        q: 'What are heat levels?',
-        a: 'Heat 1: Pure emotional connection (non-sexual)\nHeat 2: Flirty and romantic\nHeat 3: Intimate and moderately sexual\nHeat 4: Playfully sexual and adventurous\nHeat 5: Intensely passionate\n\nYou can adjust your heat level anytime based on your mood.',
+        q: 'What are Heat Levels?',
+        a: 'Heat levels range from Level 1 (Pure Emotional Connection) to Level 5 (Intense Passion). You can adjust this setting anytime to match your current relationship vibe.',
       },
       {
         q: 'How do prompts work?',
@@ -109,8 +118,8 @@ const FAQ_DATA = [
         a: 'Skip it immediately, adjust your heat level, provide feedback, or use content filtering in settings. You\'re always in control.',
       },
       {
-        q: 'Does the app work offline?',
-        a: 'Yes! Between Us is built local-first. All your content is stored on your device and works without internet. When you\'re back online and have cloud sync enabled, your data syncs automatically with your partner.',
+        q: 'Does it work offline?',
+        a: 'Yes. Between Us is built local-first. You can reflect and write anytime; your data will sync securely the next time you are online.',
       },
     ],
   },
@@ -169,7 +178,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Where can I find help if I\'m in an unsafe situation?',
-        a: 'If you or someone you know is experiencing abuse or feels unsafe:\\n\\n• National Domestic Violence Hotline: 1-800-799-7233 (call or text)\\n• Crisis Text Line: Text HOME to 741741\\n• RAINN (sexual assault): 1-800-656-4673\\n• International Association for Suicide Prevention: https://www.iasp.info/resources/Crisis_Centres/\\n\\nYou are not alone, and help is available 24/7.',
+        a: 'If you or someone you know is experiencing abuse or feels unsafe:\n\n• National Domestic Violence Hotline: 1-800-799-7233 (call or text)\n• Crisis Text Line: Text HOME to 741741\n• RAINN (sexual assault): 1-800-656-4673\n• International Association for Suicide Prevention: https://www.iasp.info/resources/Crisis_Centres/\n\nYou are not alone, and help is available 24/7.',
       },
     ],
   },
@@ -177,227 +186,263 @@ const FAQ_DATA = [
 
 export default function FAQScreen({ navigation }) {
   const [expandedItems, setExpandedItems] = useState({});
-  const { colors } = useTheme();
-  const styles = createStyles(colors, false);
+  const { colors, isDark } = useTheme();
+
+  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  const t = useMemo(() => ({
+    background: colors.background,
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
+    primary: colors.primary || '#C3113D',
+    text: colors.text,
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+  }), [colors, isDark]);
+
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const toggleItem = (categoryIndex, questionIndex) => {
-    impact(ImpactFeedbackStyle.Light);
+    selection();
     const key = `${categoryIndex}-${questionIndex}`;
-    setExpandedItems(prev => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setExpandedItems(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleContactSupport = () => {
     impact(ImpactFeedbackStyle.Medium);
-    Alert.alert('Contact Support', 'Email: brittanyapps@outlook.com\nResponse time: 24-48 hours');
+    Alert.alert('Concierge Support', 'Email: brittanyapps@outlook.com\nTypical response: 24h');
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <GlowOrb color={withAlpha(colors.primary, 0.12)} size={200} top={-40} left={-30} />
-      <GlowOrb color={withAlpha(colors.accent, 0.06)} size={140} top={300} left={SCREEN_W - 80} delay={1500} />
-      <FilmGrain />
-    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle="light-content" />
-      
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <TouchableOpacity
-          onPress={() => {
-            impact(ImpactFeedbackStyle.Light);
-            navigation.goBack();
-          }}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>FAQ</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <GlowOrb color={withAlpha(t.primary, 0.12)} size={300} top={-100} left={-50} />
+      <GlowOrb color={withAlpha(t.primary, 0.06)} size={180} top={300} left={SCREEN_W - 80} delay={1500} />
+      <FilmGrain opacity={0.03} />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Introduction */}
-        <View style={[styles.intro, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.introTitle, { color: colors.text }]}>Frequently Asked Questions</Text>
-          <Text style={[styles.introText, { color: colors.textSecondary }]}>
-            Find answers to common questions about Between Us. Can't find what you're looking for? Contact support below.
-          </Text>
-        </View>
-
-        {/* FAQ Categories */}
-        {FAQ_DATA.map((category, categoryIndex) => (
-          <Animated.View key={categoryIndex} entering={FadeInDown.duration(400).delay(categoryIndex * 100)}>
-          <View style={[styles.category, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.categoryTitle, { color: colors.blushRose }]}>{category.category}</Text>
-            
-            {category.questions.map((item, questionIndex) => {
-              const key = `${categoryIndex}-${questionIndex}`;
-              const isExpanded = expandedItems[key];
-              
-              return (
-                <TouchableOpacity
-                  key={questionIndex}
-                  style={[styles.faqItem, { borderTopColor: colors.border }]}
-                  onPress={() => toggleItem(categoryIndex, questionIndex)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.questionRow}>
-                    <Text style={[styles.question, { color: colors.text }]}>{item.q}</Text>
-                    <Ionicons
-                      name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                      size={20}
-                      color={colors.textSecondary}
-                      style={styles.chevron}
-                    />
-                  </View>
-                  
-                  {isExpanded && (
-                    <Text style={[styles.answer, { color: colors.textSecondary }]}>{item.a}</Text>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          </Animated.View>
-        ))}
-
-        {/* Contact Support */}
-        <View style={[styles.supportSection, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.supportTitle, { color: colors.text }]}>Still have questions?</Text>
-          <Text style={[styles.supportText, { color: colors.textSecondary }]}>
-            We're here to help! Contact our support team and we'll get back to you within 24-48 hours.
-          </Text>
-          
+      <SafeAreaView style={styles.safeArea}>
+        {/* Editorial Header */}
+        <View style={styles.header}>
           <TouchableOpacity
-            style={[styles.supportButton, { backgroundColor: colors.primary }]}
-            onPress={handleContactSupport}
-            activeOpacity={0.8}
+            onPress={() => {
+              selection();
+              navigation.goBack();
+            }}
+            style={styles.backButton}
           >
-            <Ionicons name="mail-outline" size={20} color={'#F2E9E6'} />
-            <Text style={[styles.supportButtonText, { color: colors.text }]}>Contact Support</Text>
+            <Icon name="chevron-back" size={28} color={t.text} />
           </TouchableOpacity>
-          
-          <Text style={[styles.supportEmail, { color: colors.textSecondary }]}>brittanyapps@outlook.com</Text>
+          <Text style={[styles.headerTitle, { color: t.text }]}>Assistance</Text>
+          <View style={{ width: 44 }} />
         </View>
 
-        <View style={styles.bottomPadding} />
-      </ScrollView>
-    </SafeAreaView>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* Intro Text */}
+          <View style={styles.introSection}>
+            <Text style={[styles.introTitle, { color: t.text }]}>Frequently Asked Questions</Text>
+            <Text style={[styles.introText, { color: t.subtext }]}>
+              Explore how to make the most of your shared sanctuary. If you need further help, our support team is available.
+            </Text>
+          </View>
+
+          {/* FAQ Categories */}
+          {FAQ_DATA.map((category, catIdx) => (
+            <Animated.View
+              key={catIdx}
+              entering={FadeInDown.delay(catIdx * 100).duration(600)}
+              style={styles.categoryContainer}
+            >
+              <Text style={[styles.categoryTitle, { color: t.primary }]}>{category.category}</Text>
+
+              <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+                {category.questions.map((item, qIdx) => {
+                  const key = `${catIdx}-${qIdx}`;
+                  const isExpanded = expandedItems[key];
+                  const isLast = qIdx === category.questions.length - 1;
+
+                  return (
+                    <TouchableOpacity
+                      key={qIdx}
+                      style={[
+                        styles.faqItem,
+                        !isLast && { borderBottomWidth: 1, borderBottomColor: t.border },
+                      ]}
+                      onPress={() => toggleItem(catIdx, qIdx)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.questionRow}>
+                        <Text style={[styles.questionText, { color: t.text }]}>{item.q}</Text>
+                        <Icon
+                          name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                          size={18}
+                          color={t.subtext}
+                        />
+                      </View>
+
+                      {isExpanded && (
+                        <Animated.View entering={FadeInDown.duration(300)}>
+                          <Text style={[styles.answerText, { color: t.subtext }]}>{item.a}</Text>
+                        </Animated.View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </Animated.View>
+          ))}
+
+          {/* Support Section */}
+          <View style={[styles.supportCard, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+            <View style={[styles.supportIcon, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
+              <Icon name="mail-outline" size={24} color={t.primary} />
+            </View>
+            <Text style={[styles.supportTitle, { color: t.text }]}>Still have questions?</Text>
+            <Text style={[styles.supportSub, { color: t.subtext }]}>We usually respond within 24 hours.</Text>
+
+            <TouchableOpacity
+              style={[styles.supportButton, { backgroundColor: t.primary }]}
+              onPress={handleContactSupport}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.supportButtonText}>Contact Concierge</Text>
+            </TouchableOpacity>
+
+            <Text style={[styles.supportEmail, { color: t.subtext }]}>brittanyapps@outlook.com</Text>
+          </View>
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 }
 
-const createStyles = (colors, isDark) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+const createStyles = (t, isDark) => StyleSheet.create({
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 10 : 20,
+    paddingBottom: 20,
   },
-  backButton: {
-    padding: 4,
-  },
+  backButton: { width: 44, height: 44, justifyContent: 'center' },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
   },
-  placeholder: {
-    width: 32,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  intro: {
-    padding: 20,
-    marginBottom: 12,
-  },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 20 },
+  introSection: { marginBottom: 40 },
   introTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -0.8,
     marginBottom: 12,
   },
   introText: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  category: {
-    marginBottom: 12,
-    paddingTop: 20,
-  },
-  categoryTitle: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    fontWeight: '600',
+    lineHeight: 24,
+    fontWeight: '500',
+  },
+  categoryContainer: { marginBottom: 32 },
+  categoryTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    paddingHorizontal: 20,
-    marginBottom: 12,
+    marginBottom: 16,
+    marginLeft: 4,
   },
-  faqItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-  },
+  card: { borderRadius: 24, borderWidth: 1, overflow: 'hidden' },
+  faqItem: { padding: 20 },
   questionRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
-  question: {
+  questionText: {
     flex: 1,
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    fontWeight: '600',
-    lineHeight: 22,
-    marginRight: 12,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    marginRight: 16,
   },
-  chevron: {
-    marginTop: 2,
-  },
-  answer: {
+  answerText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 15,
     lineHeight: 22,
     marginTop: 12,
+    fontWeight: '500',
   },
-  supportSection: {
-    padding: 20,
-    marginBottom: 16,
+  supportCard: {
+    padding: 32,
+    borderRadius: 32,
     alignItems: 'center',
+    borderWidth: 1,
+    marginTop: 20,
   },
-  supportTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  supportText: {
-    fontSize: 15,
-    lineHeight: 22,
-    textAlign: 'center',
+  supportIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
   },
+  supportTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 20,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  supportSub: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 24,
+  },
   supportButton: {
-    flexDirection: 'row',
+    height: 56,
+    paddingHorizontal: 32,
+    borderRadius: 28,
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 12,
+    justifyContent: 'center',
+    width: '100%',
+    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#C3113D',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      android: { elevation: 6 },
+    }),
   },
   supportButtonText: {
+    color: '#FFFFFF',
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginLeft: 8,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: -0.2,
   },
   supportEmail: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 14,
-  },
-  bottomPadding: {
-    height: 40,
+    fontWeight: '500',
   },
 });

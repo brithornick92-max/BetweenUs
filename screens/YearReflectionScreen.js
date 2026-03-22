@@ -18,7 +18,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
@@ -81,7 +81,7 @@ export default function YearReflectionScreen({ navigation }) {
     surface: isDark ? '#1C1C1E' : '#FFFFFF',
     surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
     primary: colors.primary,
-    accent: colors.accent || '#FF2D55',
+    accent: colors.accent || '#D4AA7E',
     text: isDark ? '#FFFFFF' : '#000000',
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -129,13 +129,13 @@ export default function YearReflectionScreen({ navigation }) {
 
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.navButton} activeOpacity={0.7}>
-            <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
+            <Icon name="chevron-left" size={32} color={t.text} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.premiumGate}>
           <View style={styles.paywallIconContainer}>
-            <MaterialCommunityIcons name="book-open-variant" size={48} color={t.primary} />
+            <Icon name="book-open-variant" size={48} color={t.primary} />
           </View>
           <Text style={styles.gateTitle}>Year Reflection</Text>
           <Text style={styles.gateSub}>
@@ -171,10 +171,10 @@ export default function YearReflectionScreen({ navigation }) {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.navButton} activeOpacity={0.7}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
+          <Icon name="chevron-left" size={32} color={t.text} />
         </TouchableOpacity>
         <TouchableOpacity onPress={handleShare} style={styles.navButton} activeOpacity={0.7}>
-          <MaterialCommunityIcons name="export-variant" size={24} color={t.text} />
+          <Icon name="export-variant" size={24} color={t.text} />
         </TouchableOpacity>
       </View>
 
@@ -199,7 +199,7 @@ export default function YearReflectionScreen({ navigation }) {
               <View style={styles.sectionRow}>
                 <View style={styles.sectionIconColumn}>
                   <View style={[styles.sectionDot, { backgroundColor: t.primary + '15' }]}>
-                    <MaterialCommunityIcons
+                    <Icon
                       name={SECTION_ICONS[section.type] || 'circle-small'}
                       size={20}
                       color={t.primary}
@@ -215,7 +215,7 @@ export default function YearReflectionScreen({ navigation }) {
 
           <FadeSection delay={reflection ? 300 + reflection.sections.length * 150 : 1000}>
             <View style={styles.endMark}>
-              <MaterialCommunityIcons name="heart" size={16} color={t.primary} />
+              <Icon name="heart" size={16} color={t.primary} />
             </View>
           </FadeSection>
         </View>

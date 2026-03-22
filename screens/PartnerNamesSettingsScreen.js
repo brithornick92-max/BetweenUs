@@ -12,7 +12,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
@@ -38,7 +38,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
     surface: isDark ? '#1C1C1E' : '#FFFFFF',
     surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
     primary: colors.primary,
-    accent: colors.accent || '#FF2D55',
+    accent: colors.accent || '#D4AA7E',
     text: isDark ? '#FFFFFF' : '#000000',
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
@@ -128,7 +128,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
         <Animated.View style={[styles.header, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
           <View style={styles.headerTopRow}>
             <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
-              <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
+              <Icon name="chevron-left" size={32} color={t.text} />
             </TouchableOpacity>
           </View>
           <View style={styles.headerEditorial}>
@@ -180,7 +180,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
             <View style={styles.widgetCard}>
               <View style={styles.exampleRow}>
                 <View style={[styles.iconWrap, { backgroundColor: t.primary + '15' }]}>
-                  <MaterialCommunityIcons name="chat-processing" size={18} color={t.primary} />
+                  <Icon name="chat-processing" size={18} color={t.primary} />
                 </View>
                 <Text style={styles.exampleText}>
                   "What does <Text style={styles.highlightText}>{myName || 'You'}</Text> love most about <Text style={styles.highlightText}>{partnerName || 'your partner'}</Text>?"
@@ -191,7 +191,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
 
               <View style={styles.exampleRow}>
                 <View style={[styles.iconWrap, { backgroundColor: t.accent + '15' }]}>
-                  <MaterialCommunityIcons name="cards-heart" size={18} color={t.accent} />
+                  <Icon name="cards-heart" size={18} color={t.accent} />
                 </View>
                 <Text style={styles.exampleText}>
                   "<Text style={styles.highlightText}>{myName || 'Your'}</Text> and <Text style={styles.highlightText}>{partnerName || 'their'}</Text> favorite memory"
@@ -201,7 +201,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
 
             {/* Info Widget */}
             <View style={styles.infoCard}>
-              <MaterialCommunityIcons name="information" size={20} color={t.subtext} />
+              <Icon name="information" size={20} color={t.subtext} />
               <Text style={styles.infoText}>
                 You can change these names anytime. They're just for personalization and won't affect your account details.
               </Text>
@@ -219,7 +219,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
             activeOpacity={0.8}
           >
             {isSaving ? (
-              <MaterialCommunityIcons name="loading" size={20} color={isDark ? '#000' : '#FFF'} />
+              <Icon name="loading" size={20} color={isDark ? '#000' : '#FFF'} />
             ) : null}
             <Text style={styles.primaryButtonText}>
               {isSaving ? 'Saving...' : 'Save Changes'}

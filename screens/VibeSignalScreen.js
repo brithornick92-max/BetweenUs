@@ -11,7 +11,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
@@ -25,7 +25,7 @@ import { MomentSignalSender } from '../services/ConnectionEngine';
 // ------------------------------------------------------------------
 const VIBES = [
   { id: 'passionate', name: 'Passionate', icon: 'fire', color: '#D90429' }, // Sexy, deep crimson red
-  { id: 'tender', name: 'Tender', icon: 'heart', color: '#FF2D55' }, // iOS Pink
+  { id: 'tender', name: 'Tender', icon: 'heart', color: '#C3113D' },
   { id: 'serene', name: 'Serene', icon: 'water', color: '#32ADE6' }, // iOS Cyan
   { id: 'adventurous', name: 'Adventurous', icon: 'compass', color: '#FF9500' }, // iOS Orange
   { id: 'mysterious', name: 'Mysterious', icon: 'weather-night', color: '#5856D6' }, // iOS Purple
@@ -100,7 +100,7 @@ const VibeCard = ({ vibe, isSelected, onPress, styles, t }) => {
       >
         <Animated.View style={[styles.vibeCard, { backgroundColor }]}>
           <Animated.View style={[styles.vibeIconContainer, { backgroundColor: iconCircleBg }]}>
-            <MaterialCommunityIcons name={vibe.icon} size={28} color={isSelected ? '#FFFFFF' : vibe.color} />
+            <Icon name={vibe.icon} size={28} color={isSelected ? '#FFFFFF' : vibe.color} />
           </Animated.View>
           <Animated.Text style={[styles.vibeCardLabel, { color: textColor }]}>
             {vibe.name}
@@ -148,7 +148,7 @@ export default function VibeSignalScreen({ navigation }) {
     background: isDark ? '#000000' : '#F2F2F7', 
     surface: isDark ? '#1C1C1E' : '#FFFFFF',
     surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
-    accent: '#FF2D55', // iOS Pink
+    accent: colors.primary || '#C3113D',
     primary: colors.primary,
     text: isDark ? '#FFFFFF' : '#000000',
     subtext: isDark ? '#EBEBF599' : '#3C3C4399',
@@ -261,11 +261,11 @@ export default function VibeSignalScreen({ navigation }) {
     <Animated.View style={[styles.header, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
       <View style={styles.headerTopRow}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton} activeOpacity={0.7}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
+          <Icon name="chevron-left" size={32} color={t.text} />
         </TouchableOpacity>
         {isPremium && (
           <View style={styles.premiumBadge}>
-            <MaterialCommunityIcons name="star-four-points" size={12} color={t.primary} />
+            <Icon name="star-four-points" size={12} color={t.primary} />
             <Text style={styles.premiumBadgeText}>PREMIUM</Text>
           </View>
         )}
@@ -312,7 +312,7 @@ export default function VibeSignalScreen({ navigation }) {
           {/* Energy Flow Widget */}
           <View style={styles.widgetCard}>
             <View style={styles.widgetHeader}>
-              <MaterialCommunityIcons name="chart-bar" size={16} color={t.subtext} />
+              <Icon name="chart-bar" size={16} color={t.subtext} />
               <Text style={styles.widgetTitle}>Energy Flow</Text>
             </View>
             <View style={styles.widgetBodyChart}>
@@ -355,7 +355,7 @@ export default function VibeSignalScreen({ navigation }) {
     <Animated.View style={[styles.actionSection, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
       {heartbeatSent ? (
         <Animated.View style={[styles.successContainer, { opacity: heartbeatFadeAnim, transform: [{ scale: heartbeatScaleAnim }] }]}>
-          <MaterialCommunityIcons name="check-circle" size={24} color={t.primary} />
+          <Icon name="check-circle" size={24} color={t.primary} />
           <View style={styles.successTextContainer}>
             <Text style={styles.successTitle}>Sent to {partnerLabel}</Text>
             <Text style={styles.successSubtitle} numberOfLines={1}>{heartbeatError || "They'll feel it momentarily"}</Text>
@@ -369,9 +369,9 @@ export default function VibeSignalScreen({ navigation }) {
           activeOpacity={0.8}
         >
           {heartbeatSending ? (
-            <MaterialCommunityIcons name="loading" size={20} color={t.surface} />
+            <Icon name="loading" size={20} color={t.surface} />
           ) : (
-            <MaterialCommunityIcons name="waveform" size={20} color={t.surface} />
+            <Icon name="waveform" size={20} color={t.surface} />
           )}
           <Text style={styles.primaryButtonText}>
             {heartbeatSending ? 'Sending...' : 'Send Heartbeat'}
@@ -387,11 +387,11 @@ export default function VibeSignalScreen({ navigation }) {
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.paywallContainer}>
           <TouchableOpacity onPress={handleBackPress} style={[styles.backButton, styles.paywallBackButton]} activeOpacity={0.7}>
-            <MaterialCommunityIcons name="chevron-left" size={32} color={t.text} />
+            <Icon name="chevron-left" size={32} color={t.text} />
           </TouchableOpacity>
           <View style={styles.paywallContent}>
             <View style={styles.paywallIconContainer}>
-              <MaterialCommunityIcons name="waveform" size={48} color={t.primary} />
+              <Icon name="waveform" size={48} color={t.primary} />
             </View>
             <Text style={styles.paywallTitle}>Unlock Deep Sync</Text>
             <Text style={styles.paywallDescription}>

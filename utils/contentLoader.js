@@ -1,6 +1,7 @@
 // utils/contentLoader.js
 // ✅ ULTRA SAFE VERSION - Cannot crash during module loading
 // ✅ Guarantees prompt-returning functions always return an object with .text (never undefined)
+// Apple Editorial System Colors Integrated
 
 if (__DEV__) console.log("🔵 ContentLoader: Module loading started");
 
@@ -410,23 +411,23 @@ export function getHeatLevels() {
 
 export function getDimensionMeta() {
   return {
-    // � Mood — What kind of date? (1-3)
+    // 🧠 Mood — What kind of date? (1-3)
     heat: [
-      { level: 1, label: "Heart",  icon: "💜",  color: "#B07EFF", darkColor: "#1C1030" },
-      { level: 2, label: "Play",   icon: "🎉",  color: "#FF7EB8", darkColor: "#2C1020" },
-      { level: 3, label: "Heat",   icon: "🔥",  color: "#FF5A5A", darkColor: "#2C0808" },
+      { level: 1, label: "Heart",  icon: "💜",  color: "#5856D6", darkColor: "#5E5CE6" }, // iOS Indigo
+      { level: 2, label: "Play",   icon: "🎉",  color: "#FF2D55", darkColor: "#FF375F" }, // iOS Pink
+      { level: 3, label: "Heat",   icon: "🔥",  color: "#FF3B30", darkColor: "#FF453A" }, // iOS Red
     ],
     // ⚡ Energy — How much effort? (1-3)
     load: [
-      { level: 1, label: "Chill",    icon: "🌙", color: "#4D7A50", darkColor: "#121E14" },
-      { level: 2, label: "Moderate", icon: "☀️", color: "#B8863A", darkColor: "#1E160A" },
-      { level: 3, label: "Active",   icon: "⚡", color: "#C05228", darkColor: "#1E0E06" },
+      { level: 1, label: "Chill",    icon: "🌙", color: "#34C759", darkColor: "#30D158" }, // iOS Green
+      { level: 2, label: "Moderate", icon: "☀️", color: "#FF9500", darkColor: "#FF9F0A" }, // iOS Orange
+      { level: 3, label: "Active",   icon: "⚡", color: "#FF3B30", darkColor: "#FF453A" }, // iOS Red
     ],
     // 🤝 Style — How do you want to connect? (talking/doing/mixed)
     style: [
-      { id: "talking", label: "Talking", icon: "💬", color: "#4A82B0", darkColor: "#0E1A24" },
-      { id: "doing",   label: "Doing",   icon: "🎯", color: "#6B4E96", darkColor: "#14101E" },
-      { id: "mixed",   label: "Mixed",   icon: "✨", color: "#A84468", darkColor: "#1E0C16" },
+      { id: "talking", label: "Talking", icon: "💬", color: "#32ADE6", darkColor: "#64D2FF" }, // iOS Cyan
+      { id: "doing",   label: "Doing",   icon: "🎯", color: "#AF52DE", darkColor: "#BF5AF2" }, // iOS Purple
+      { id: "mixed",   label: "Mixed",   icon: "✨", color: "#FF2D55", darkColor: "#FF375F" }, // iOS Pink
     ],
   };
 }

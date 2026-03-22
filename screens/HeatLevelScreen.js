@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
@@ -155,7 +155,7 @@ export default function HeatLevelScreen({ navigation }) {
           <View style={styles.heatLevelContent}>
             <View style={styles.heatLevelHeader}>
               <View style={styles.heatLevelIcon}>
-                <MaterialCommunityIcons
+                <Icon
                   name={isLocked ? 'lock' : heatLevel.icon}
                   size={32}
                   color={colors.text}
@@ -164,7 +164,7 @@ export default function HeatLevelScreen({ navigation }) {
               
               {isLocked && (
                 <View style={styles.premiumBadge}>
-                  <MaterialCommunityIcons name="crown" size={16} color={colors.text} />
+                  <Icon name="crown" size={16} color={colors.text} />
                 </View>
               )}
             </View>
@@ -202,7 +202,7 @@ export default function HeatLevelScreen({ navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons
+            <Icon
               name="arrow-left"
               size={24}
               color={colors.text}
@@ -220,7 +220,7 @@ export default function HeatLevelScreen({ navigation }) {
         {/* Usage Status */}
         {usageStatus && !isPremium && (
           <View style={styles.usageStatus}>
-            <MaterialCommunityIcons
+            <Icon
               name="information"
               size={16}
               color={colors.primary}
@@ -252,11 +252,11 @@ export default function HeatLevelScreen({ navigation }) {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <MaterialCommunityIcons name="crown" size={24} color={colors.surface} />
+                <Icon name="crown" size={24} color={colors.surface} />
                 <Text style={[styles.premiumCTAText, { color: "#070509" }]}>
                   Discover the full experience
                 </Text>
-                <MaterialCommunityIcons name="arrow-right" size={20} color={colors.surface} />
+                <Icon name="arrow-right" size={20} color={colors.surface} />
               </LinearGradient>
             </TouchableOpacity>
           )}

@@ -14,7 +14,7 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from '../components/Icon';
 import {
   impact,
   selection,
@@ -199,12 +199,12 @@ export default function PromptsScreen({ navigation }) {
                   <Text style={[styles.progressTitle, { color: colors.text }]}>
                     {TOTAL_PROMPT_COUNT - deckPrompts.length} more to discover
                   </Text>
-                  <MaterialCommunityIcons name="star-four-points-outline" size={16} color={colors.primary} />
+                  <Icon name="star-four-points-outline" size={16} color={colors.primary} />
                 </View>
                 
                 <View style={[styles.progressBar, { backgroundColor: withAlpha(colors.text, 0.05) }]}>
                   <LinearGradient
-                    colors={[colors.primary, "#FF6B6B"]}
+                    colors={[colors.primary, '#A00D31']}
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                     style={[styles.progressFill, { width: `${Math.max(5, (deckPrompts.length / TOTAL_PROMPT_COUNT) * 100)}%` }]}
                   />
@@ -240,7 +240,7 @@ export default function PromptsScreen({ navigation }) {
                       {label}
                     </Text>
                     {locked && (
-                      <MaterialCommunityIcons name="lock" size={10} color={colors.textMuted} style={styles.lockIcon} />
+                      <Icon name="lock" size={10} color={colors.textMuted} style={styles.lockIcon} />
                     )}
                   </TouchableOpacity>
                 );
@@ -255,7 +255,7 @@ export default function PromptsScreen({ navigation }) {
             </View>
           ) : deckPrompts.length === 0 ? (
             <View style={styles.centered}>
-              <MaterialCommunityIcons name="cards-variant" size={48} color={withAlpha(colors.text, 0.1)} />
+              <Icon name="cards-variant" size={48} color={withAlpha(colors.text, 0.1)} />
               <Text style={[styles.emptyText, { color: colors.textMuted }]}>No cards match this level</Text>
             </View>
           ) : (
