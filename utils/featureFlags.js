@@ -294,18 +294,10 @@ export const FEATURE_META = Object.freeze({
 export const PAYWALL_FEATURE_IDS = Object.freeze([
   PremiumFeature.PARTNER_LINKING,
   PremiumFeature.UNLIMITED_PROMPTS,
-  PremiumFeature.PROMPT_RESPONSES,
-  PremiumFeature.HEAT_LEVELS_4_5,
-  PremiumFeature.LOVE_NOTES,
-  PremiumFeature.CALENDAR,
-  PremiumFeature.CLOUD_SYNC,
   PremiumFeature.UNLIMITED_DATE_IDEAS,
+  PremiumFeature.LOVE_NOTES,
   PremiumFeature.NIGHT_RITUAL_MODE,
-  PremiumFeature.VIBE_SIGNAL,
-  PremiumFeature.EDITORIAL_PROMPTS,
-  PremiumFeature.UNLIMITED_JOURNAL_HISTORY,
-  PremiumFeature.INSIDE_JOKES,
-  PremiumFeature.YEAR_REFLECTION,
+  PremiumFeature.CLOUD_SYNC,
 ]);
 
 /**

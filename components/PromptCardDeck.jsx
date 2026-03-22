@@ -3,7 +3,13 @@
 // Swipe right → open/answer · Swipe left → skip · Tap → flip to reveal.
 // Quiet, intimate animations aligned with Brand Guardrails.
 
-import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -12,7 +18,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Animated as RNAnimated,
-} from 'react-native';
+} from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -25,19 +31,25 @@ import Animated, {
   runOnJS,
   Easing,
   FadeIn,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
-} from 'react-native-gesture-handler';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
-import { SPACING, BORDER_RADIUS } from '../utils/theme';
+} from "react-native-gesture-handler";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  impact,
+  notification,
+  selection,
+  ImpactFeedbackStyle,
+  NotificationFeedbackType,
+} from "../utils/haptics";
+import { useTheme } from "../context/ThemeContext";
+import { SPACING, BORDER_RADIUS } from "../utils/theme";
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const CARD_W = SCREEN_W - 72; // Increased margins to make the card smaller
 const CARD_H = Math.min(SCREEN_H * 0.55, 460); // Reduced height constraint
 const SWIPE_THRESHOLD = SCREEN_W * 0.28;
@@ -47,62 +59,95 @@ const FLIP_DURATION = 500;
 
 const FONTS = {
   serif: Platform.select({
-    ios: 'DMSerifDisplay-Regular',
-    android: 'DMSerifDisplay_400Regular',
-    default: 'serif',
+    ios: "DMSerifDisplay-Regular",
+    android: "DMSerifDisplay_400Regular",
+    default: "serif",
   }),
   serifAccent: Platform.select({
-    ios: 'DMSerifDisplay-Regular',
-    android: 'DMSerifDisplay_400Regular',
-    default: 'serif',
+    ios: "DMSerifDisplay-Regular",
+    android: "DMSerifDisplay_400Regular",
+    default: "serif",
   }),
   body: Platform.select({
-    ios: 'Lato-Regular',
-    android: 'Lato_400Regular',
-    default: 'sans-serif',
+    ios: "Lato-Regular",
+    android: "Lato_400Regular",
+    default: "sans-serif",
   }),
   bodyBold: Platform.select({
-    ios: 'Lato-Bold',
-    android: 'Lato_700Bold',
-    default: 'sans-serif',
+    ios: "Lato-Bold",
+    android: "Lato_700Bold",
+    default: "sans-serif",
   }),
 };
 
 // Heat-level gradient + icon + label mapping
 const HEAT_COLORS = {
-  1: ['#F7A8B8', '#D68898'], // Innocent pink gradient
-  2: ['#F27A9B', '#C85A7B'], // Rose pink gradient
-  3: ['#E84A7B', '#A83A5A'], // Hot pink gradient
-  4: ['#D6285A', '#9A1A3A'], // Crimson gradient
-  5: ['#B81438', '#6A081A'], // Dark ruby gradient
+  1: ["#F7A8B8", "#D68898"], // Innocent pink gradient
+  2: ["#F27A9B", "#C85A7B"], // Rose pink gradient
+  3: ["#E84A7B", "#A83A5A"], // Hot pink gradient
+  4: ["#D6285A", "#9A1A3A"], // Crimson gradient
+  5: ["#B81438", "#6A081A"], // Dark ruby gradient
 };
 // Metallic base tones per heat (dark chrome → accent)
 const HEAT_METAL = {
-  1: { base: '#2A1820', chrome: '#FFD6E0', highlight: '#FFE8EE', mid: '#D68898' },
-  2: { base: '#251218', chrome: '#FFB8C8', highlight: '#FFD6E0', mid: '#C85A7B' },
-  3: { base: '#200A10', chrome: '#FF88AA', highlight: '#FFB8C8', mid: '#A83A5A' },
-  4: { base: '#1C060A', chrome: '#FF5588', highlight: '#FF88AA', mid: '#9A1A3A' },
-  5: { base: '#150305', chrome: '#FF3355', highlight: '#FF5588', mid: '#6A081A' },
+  1: {
+    base: "#2A1820",
+    chrome: "#FFD6E0",
+    highlight: "#FFE8EE",
+    mid: "#D68898",
+  },
+  2: {
+    base: "#251218",
+    chrome: "#FFB8C8",
+    highlight: "#FFD6E0",
+    mid: "#C85A7B",
+  },
+  3: {
+    base: "#200A10",
+    chrome: "#FF88AA",
+    highlight: "#FFB8C8",
+    mid: "#A83A5A",
+  },
+  4: {
+    base: "#1C060A",
+    chrome: "#FF5588",
+    highlight: "#FF88AA",
+    mid: "#9A1A3A",
+  },
+  5: {
+    base: "#150305",
+    chrome: "#FF3355",
+    highlight: "#FF5588",
+    mid: "#6A081A",
+  },
 };
 const HEAT_ICONS = {
-  1: 'hand-heart',
-  2: 'heart-multiple',
-  3: 'heart-pulse',
-  4: 'water',
-  5: 'fire',
+  1: "hand-heart",
+  2: "heart-multiple",
+  3: "heart-pulse",
+  4: "water",
+  5: "fire",
 };
 const HEAT_LABELS = {
-  1: '1',
-  2: '2',
-  3: '3',
-  4: '4',
-  5: '5',
+  1: "1",
+  2: "2",
+  3: "3",
+  4: "4",
+  5: "5",
 };
 
 // ────────────────────────────────────────────────────────
 // Single card — handles flip + swipe
 // ────────────────────────────────────────────────────────
-function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDark }) {
+function DeckCard({
+  item,
+  index,
+  isTop,
+  onSwipeRight,
+  onSwipeLeft,
+  colors,
+  isDark,
+}) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const rotateZ = useSharedValue(0);
@@ -111,9 +156,9 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
   const scale = useSharedValue(1);
 
   const heat = item?.heat || 1;
-  const catGradient = HEAT_COLORS[heat] || ['#B07EFF', '#9060E0'];
-  const catIcon = HEAT_ICONS[heat] || 'heart-outline';
-  const catLabel = HEAT_LABELS[heat] || '1';
+  const catGradient = HEAT_COLORS[heat] || ["#B07EFF", "#9060E0"];
+  const catIcon = HEAT_ICONS[heat] || "heart-outline";
+  const catLabel = HEAT_LABELS[heat] || "1";
   const metal = HEAT_METAL[heat] || HEAT_METAL[1];
 
   // Shimmer animation for metallic highlight
@@ -123,7 +168,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
       RNAnimated.timing(shimmerAnim, {
         toValue: 1,
         duration: 3000,
-        easing: require('react-native').Easing.linear,
+        easing: require("react-native").Easing.linear,
         useNativeDriver: true,
       })
     );
@@ -161,14 +206,17 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
     }
   }, [isTop]);
 
-  const handleSwipeComplete = useCallback((direction) => {
-    impact(ImpactFeedbackStyle.Medium);
-    if (direction === 'right') {
-      onSwipeRight?.(item);
-    } else {
-      onSwipeLeft?.(item);
-    }
-  }, [item, onSwipeRight, onSwipeLeft]);
+  const handleSwipeComplete = useCallback(
+    (direction) => {
+      impact(ImpactFeedbackStyle.Medium);
+      if (direction === "right") {
+        onSwipeRight?.(item);
+      } else {
+        onSwipeLeft?.(item);
+      }
+    },
+    [item, onSwipeRight, onSwipeLeft]
+  );
 
   const handleFlip = useCallback(() => {
     impact(ImpactFeedbackStyle.Light);
@@ -195,11 +243,16 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
       scale.value = withSpring(1, SPRING_CONFIG);
 
       if (Math.abs(e.translationX) > SWIPE_THRESHOLD) {
-        const direction = e.translationX > 0 ? 'right' : 'left';
-        const flyX = direction === 'right' ? SCREEN_W * 1.5 : -SCREEN_W * 1.5;
-        translateX.value = withTiming(flyX, { duration: 350, easing: Easing.out(Easing.cubic) });
+        const direction = e.translationX > 0 ? "right" : "left";
+        const flyX = direction === "right" ? SCREEN_W * 1.5 : -SCREEN_W * 1.5;
+        translateX.value = withTiming(flyX, {
+          duration: 350,
+          easing: Easing.out(Easing.cubic),
+        });
         translateY.value = withTiming(e.translationY * 0.5, { duration: 350 });
-        rotateZ.value = withTiming(e.translationX > 0 ? 15 : -15, { duration: 350 });
+        rotateZ.value = withTiming(e.translationX > 0 ? 15 : -15, {
+          duration: 350,
+        });
         runOnJS(handleSwipeComplete)(direction);
       } else {
         translateX.value = withSpring(0, SPRING_CONFIG);
@@ -222,7 +275,9 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
 
   // Animated container (position + rotate)
   const containerStyle = useAnimatedStyle(() => {
-    const baseScale = isTop ? scale.value : interpolate(stackOffset, [0, 1, 2], [1, 0.95, 0.9]);
+    const baseScale = isTop
+      ? scale.value
+      : interpolate(stackOffset, [0, 1, 2], [1, 0.95, 0.9]);
     return {
       transform: [
         { translateX: isTop ? translateX.value : 0 },
@@ -231,7 +286,8 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
         { scale: baseScale },
       ],
       zIndex: isTop ? 100 : 50 - index,
-      opacity: index > 3 ? 0 : interpolate(index, [0, 1, 2, 3], [1, 0.7, 0.45, 0.2]),
+      opacity:
+        index > 3 ? 0 : interpolate(index, [0, 1, 2, 3], [1, 0.7, 0.45, 0.2]),
     };
   });
 
@@ -240,7 +296,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
     const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [0, 90, 180]);
     return {
       transform: [{ perspective: 1200 }, { rotateY: `${rotateY}deg` }],
-      backfaceVisibility: 'hidden',
+      backfaceVisibility: "hidden",
       opacity: flipProgress.value < 0.5 ? 1 : 0,
     };
   });
@@ -250,17 +306,27 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
     const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [180, 90, 0]);
     return {
       transform: [{ perspective: 1200 }, { rotateY: `${rotateY}deg` }],
-      backfaceVisibility: 'hidden',
+      backfaceVisibility: "hidden",
       opacity: flipProgress.value > 0.5 ? 1 : 0,
     };
   });
 
   // Swipe hint overlays
   const rightHintStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 0.85], 'clamp'),
+    opacity: interpolate(
+      translateX.value,
+      [0, SWIPE_THRESHOLD],
+      [0, 0.85],
+      "clamp"
+    ),
   }));
   const leftHintStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [-SWIPE_THRESHOLD, 0], [0.85, 0], 'clamp'),
+    opacity: interpolate(
+      translateX.value,
+      [-SWIPE_THRESHOLD, 0],
+      [0.85, 0],
+      "clamp"
+    ),
   }));
 
   return (
@@ -270,7 +336,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
         <Animated.View style={[styles.card, backStyle]}>
           {/* Base dark metallic layer */}
           <LinearGradient
-            colors={[metal.base, '#0A0A0F', metal.base]}
+            colors={[metal.base, "#0A0A0F", metal.base]}
             style={styles.cardBack}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -278,13 +344,13 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
             {/* Metallic sheen overlay — diagonal color band */}
             <LinearGradient
               colors={[
-                'transparent',
-                metal.chrome + '08',
-                metal.chrome + '18',
-                metal.highlight + '22',
-                metal.chrome + '18',
-                metal.chrome + '08',
-                'transparent',
+                "transparent",
+                metal.chrome + "08",
+                metal.chrome + "18",
+                metal.highlight + "22",
+                metal.chrome + "18",
+                metal.chrome + "08",
+                "transparent",
               ]}
               style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }}
@@ -293,7 +359,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
 
             {/* Chrome edge highlights — top edge */}
             <LinearGradient
-              colors={[metal.chrome + '30', 'transparent']}
+              colors={[metal.chrome + "30", "transparent"]}
               style={styles.topEdgeShine}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
@@ -301,7 +367,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
 
             {/* Chrome edge highlights — left edge */}
             <LinearGradient
-              colors={[metal.chrome + '20', 'transparent']}
+              colors={[metal.chrome + "20", "transparent"]}
               style={styles.leftEdgeShine}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
@@ -311,80 +377,118 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
             <RNAnimated.View
               style={[
                 styles.shimmerBand,
-                { transform: [{ translateX: shimmerTranslate }, { rotate: '25deg' }] },
+                {
+                  transform: [
+                    { translateX: shimmerTranslate },
+                    { rotate: "25deg" },
+                  ],
+                },
               ]}
               pointerEvents="none"
             >
               <LinearGradient
                 colors={[
-                  'transparent',
-                  'rgba(255,255,255,0.0)',
-                  'rgba(255,255,255,0.07)',
-                  'rgba(255,255,255,0.08)',
-                  'rgba(255,255,255,0.07)',
-                  'rgba(255,255,255,0.0)',
-                  'transparent',
+                  "transparent",
+                  "rgba(255,255,255,0.0)",
+                  "rgba(255,255,255,0.07)",
+                  "rgba(255,255,255,0.08)",
+                  "rgba(255,255,255,0.07)",
+                  "rgba(255,255,255,0.0)",
+                  "transparent",
                 ]}
-                style={{ width: '100%', height: '100%' }}
+                style={{ width: "100%", height: "100%" }}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
               />
             </RNAnimated.View>
 
             {/* Chrome inner frame */}
-            <View style={[styles.backFrame, { borderColor: metal.chrome + '35' }]}>
+            <View
+              style={[styles.backFrame, { borderColor: metal.chrome + "35" }]}
+            >
               {/* Metallic inner top line */}
               <LinearGradient
-                colors={['transparent', metal.chrome + '40', 'transparent']}
+                colors={["transparent", metal.chrome + "40", "transparent"]}
                 style={styles.frameTopLine}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
               />
 
-              {/* Top heat badge — brushed metal style */}
-              <View style={[styles.backTopBadge, { borderColor: metal.chrome + '30' }]}>
-                <MaterialCommunityIcons name={catIcon} size={14} color={metal.chrome} />
-                <Text style={[styles.backBadgeText, { color: metal.chrome }]}>{catLabel}</Text>
+              {/* Top heat number (no pill, no icon) */}
+              <View style={styles.backTopNumber}>
+                <Text
+                  style={[styles.backTopNumberText, { color: catGradient[0] }]}
+                >
+                  {catLabel}
+                </Text>
               </View>
 
               {/* Center emblem — chrome rings */}
               <View style={styles.backEmblem}>
-                <View style={[styles.backEmblemOuter, { borderColor: metal.chrome + '40' }]}>
+                <View
+                  style={[
+                    styles.backEmblemOuter,
+                    { borderColor: metal.chrome + "40" },
+                  ]}
+                >
                   <LinearGradient
-                    colors={[metal.chrome + '15', 'transparent', metal.chrome + '10']}
+                    colors={[
+                      metal.chrome + "15",
+                      "transparent",
+                      metal.chrome + "10",
+                    ]}
                     style={StyleSheet.absoluteFill}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   />
-                  <View style={[styles.backEmblemInner, { borderColor: metal.chrome + '25' }]}>
+                  <View
+                    style={[
+                      styles.backEmblemInner,
+                      { borderColor: metal.chrome + "25" },
+                    ]}
+                  >
                     <LinearGradient
-                      colors={[catGradient[0] + '30', 'transparent']}
+                      colors={[catGradient[0] + "30", "transparent"]}
                       style={StyleSheet.absoluteFill}
                       start={{ x: 0.5, y: 0 }}
                       end={{ x: 0.5, y: 1 }}
                     />
-                    <MaterialCommunityIcons name={catIcon} size={32} color={metal.chrome + 'CC'} />
+                    <MaterialCommunityIcons
+                      name={catIcon}
+                      size={32}
+                      color={metal.chrome + "CC"}
+                    />
                   </View>
                 </View>
-                <Text style={[styles.backLevelText, { color: metal.chrome + '80' }]}>{'✦ '.repeat(heat).trim()}</Text>
+                <Text
+                  style={[styles.backLevelText, { color: metal.chrome + "80" }]}
+                >
+                  {"✦ ".repeat(heat).trim()}
+                </Text>
               </View>
 
               {/* Metallic inner bottom line */}
               <LinearGradient
-                colors={['transparent', metal.chrome + '30', 'transparent']}
+                colors={["transparent", metal.chrome + "30", "transparent"]}
                 style={styles.frameBottomLine}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
               />
 
-              <Animated.Text style={[styles.backHint, { color: metal.highlight }, pulseStyle]}>
+              <Animated.Text
+                style={[
+                  styles.backHint,
+                  { color: metal.highlight },
+                  pulseStyle,
+                ]}
+              >
                 TAP TO REVEAL
               </Animated.Text>
             </View>
 
             {/* Bottom edge shine */}
             <LinearGradient
-              colors={['transparent', metal.chrome + '15']}
+              colors={["transparent", metal.chrome + "15"]}
               style={styles.bottomEdgeShine}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
@@ -397,7 +501,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
           <View style={[styles.cardFront, { backgroundColor: metal.base }]}>
             {/* Metallic base sheen */}
             <LinearGradient
-              colors={[metal.chrome + '08', 'transparent', metal.chrome + '06']}
+              colors={[metal.chrome + "08", "transparent", metal.chrome + "06"]}
               style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -405,7 +509,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
 
             {/* Top edge chrome highlight */}
             <LinearGradient
-              colors={[metal.chrome + '25', 'transparent']}
+              colors={[metal.chrome + "25", "transparent"]}
               style={styles.frontTopShine}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
@@ -415,7 +519,12 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
             <RNAnimated.View
               style={[
                 styles.shimmerBand,
-                { transform: [{ translateX: shimmerTranslate }, { rotate: '25deg' }] },
+                {
+                  transform: [
+                    { translateX: shimmerTranslate },
+                    { rotate: "25deg" },
+                  ],
+                },
               ]}
               pointerEvents="none"
             />
@@ -423,56 +532,99 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
             {/* Top band — brushed metal with heat accent */}
             <View style={styles.frontBand}>
               <LinearGradient
-                colors={[metal.mid + '90', catGradient[0] + '70', metal.mid + '90']}
+                colors={[
+                  metal.mid + "90",
+                  catGradient[0] + "70",
+                  metal.mid + "90",
+                ]}
                 style={StyleSheet.absoluteFill}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               />
               {/* Chrome top edge on band */}
               <LinearGradient
-                colors={['rgba(255,255,255,0.08)', 'transparent']}
+                colors={["rgba(255,255,255,0.08)", "transparent"]}
                 style={styles.bandTopEdge}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
               />
               <View style={styles.frontBandLeft}>
-                <MaterialCommunityIcons name={catIcon} size={16} color={metal.highlight} />
-                <Text style={[styles.frontBandLabel, { color: metal.highlight }]}>{catLabel}</Text>
+                <Text
+                  style={[
+                    styles.frontBandLabel,
+                    { color: catGradient[0], fontSize: 24, letterSpacing: 0 },
+                  ]}
+                >
+                  {catLabel}
+                </Text>
               </View>
-              <Text style={[styles.frontBandLevel, { color: metal.chrome + 'AA' }]}>{'✦'.repeat(heat)}</Text>
+              <Text
+                style={[styles.frontBandLevel, { color: metal.chrome + "AA" }]}
+              >
+                {"✦".repeat(heat)}
+              </Text>
             </View>
 
             {/* Chrome separator line under band */}
             <LinearGradient
-              colors={['transparent', metal.chrome + '40', metal.highlight + '50', metal.chrome + '40', 'transparent']}
+              colors={[
+                "transparent",
+                metal.chrome + "40",
+                metal.highlight + "50",
+                metal.chrome + "40",
+                "transparent",
+              ]}
               style={styles.chromeDivider}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
             />
 
             {/* Inner card frame — metallic border */}
-            <View style={[styles.frontFrame, { borderColor: metal.chrome + '18' }]}>
+            <View
+              style={[styles.frontFrame, { borderColor: metal.chrome + "18" }]}
+            >
               {/* Subtle inner gradient */}
               <LinearGradient
-                colors={[metal.chrome + '06', 'transparent', metal.chrome + '04']}
+                colors={[
+                  metal.chrome + "06",
+                  "transparent",
+                  metal.chrome + "04",
+                ]}
                 style={StyleSheet.absoluteFill}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               />
               <View style={styles.frontBody}>
                 <Text
-                  style={[styles.frontPromptText, { color: metal.highlight, fontSize: (item?.text?.length || 0) > 180 ? 15 : (item?.text?.length || 0) > 120 ? 17 : 20 }]}
+                  style={[
+                    styles.frontPromptText,
+                    {
+                      color: metal.highlight,
+                      fontSize:
+                        (item?.text?.length || 0) > 180
+                          ? 15
+                          : (item?.text?.length || 0) > 120
+                          ? 17
+                          : 20,
+                    },
+                  ]}
                   adjustsFontSizeToFit
                   minimumFontScale={0.6}
                 >
-                  {item?.text || 'Something beautiful awaits…'}
+                  {item?.text || "Something beautiful awaits…"}
                 </Text>
               </View>
             </View>
 
             {/* Chrome separator above footer */}
             <LinearGradient
-              colors={['transparent', metal.chrome + '30', metal.highlight + '40', metal.chrome + '30', 'transparent']}
+              colors={[
+                "transparent",
+                metal.chrome + "30",
+                metal.highlight + "40",
+                metal.chrome + "30",
+                "transparent",
+              ]}
               style={styles.chromeDivider}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
@@ -481,13 +633,18 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
             {/* Bottom bar */}
             <View style={styles.frontFooter}>
               <View style={styles.frontFooterContent}>
-                <Text style={[styles.frontFooterText, { color: metal.chrome + '60' }]}>
+                <Text
+                  style={[
+                    styles.frontFooterText,
+                    { color: metal.chrome + "60" },
+                  ]}
+                >
                   swipe right to reflect
                 </Text>
                 <MaterialCommunityIcons
                   name="arrow-right"
                   size={14}
-                  color={metal.chrome + '60'}
+                  color={metal.chrome + "60"}
                 />
               </View>
             </View>
@@ -497,12 +654,24 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
         {/* ── Swipe hint overlays (only for top card) ── */}
         {isTop && (
           <>
-            <Animated.View style={[styles.swipeHint, styles.swipeHintRight, rightHintStyle]}>
-              <MaterialCommunityIcons name="pencil-outline" size={28} color="#F2E9E6" />
+            <Animated.View
+              style={[styles.swipeHint, styles.swipeHintRight, rightHintStyle]}
+            >
+              <MaterialCommunityIcons
+                name="pencil-outline"
+                size={28}
+                color="#F2E9E6"
+              />
               <Text style={styles.swipeHintText}>Reflect</Text>
             </Animated.View>
-            <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}>
-              <MaterialCommunityIcons name="arrow-right" size={28} color="#F2E9E6" />
+            <Animated.View
+              style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}
+            >
+              <MaterialCommunityIcons
+                name="arrow-right"
+                size={28}
+                color="#F2E9E6"
+              />
               <Text style={styles.swipeHintText}>Next</Text>
             </Animated.View>
           </>
@@ -515,7 +684,12 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, colors, isDar
 // ────────────────────────────────────────────────────────
 // Full deck component
 // ────────────────────────────────────────────────────────
-export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onDraw }) {
+export default function PromptCardDeck({
+  prompts = [],
+  onSelect,
+  onSkip,
+  onDraw,
+}) {
   const { colors, isDark } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const drawScale = useSharedValue(1);
@@ -533,16 +707,22 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onDraw 
     });
   }, [prompts.length]);
 
-  const handleSwipeRight = useCallback((item) => {
-    onSelect?.(item);
-    // Brief delay so the fly-out animation finishes
-    setTimeout(advanceCard, 200);
-  }, [onSelect, advanceCard]);
+  const handleSwipeRight = useCallback(
+    (item) => {
+      onSelect?.(item);
+      // Brief delay so the fly-out animation finishes
+      setTimeout(advanceCard, 200);
+    },
+    [onSelect, advanceCard]
+  );
 
-  const handleSwipeLeft = useCallback((item) => {
-    onSkip?.(item);
-    setTimeout(advanceCard, 200);
-  }, [onSkip, advanceCard]);
+  const handleSwipeLeft = useCallback(
+    (item) => {
+      onSkip?.(item);
+      setTimeout(advanceCard, 200);
+    },
+    [onSkip, advanceCard]
+  );
 
   const handleDraw = useCallback(() => {
     impact(ImpactFeedbackStyle.Medium);
@@ -564,30 +744,47 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onDraw 
     <View style={styles.deck}>
       {/* Card stack */}
       <View style={styles.stackArea}>
-        {visibleCards.map((item, i) => (
-          <DeckCard
-            key={`${item?.id || i}_${currentIndex + i}`}
-            item={item}
-            index={i}
-            isTop={i === 0}
-            onSwipeRight={handleSwipeRight}
-            onSwipeLeft={handleSwipeLeft}
-            colors={colors}
-            isDark={isDark}
-          />
-        )).reverse()}
+        {visibleCards
+          .map((item, i) => (
+            <DeckCard
+              key={`${item?.id || i}_${currentIndex + i}`}
+              item={item}
+              index={i}
+              isTop={i === 0}
+              onSwipeRight={handleSwipeRight}
+              onSwipeLeft={handleSwipeLeft}
+              colors={colors}
+              isDark={isDark}
+            />
+          ))
+          .reverse()}
       </View>
 
       {/* Counter + Draw button */}
-      <Animated.View entering={FadeIn.duration(600).delay(300)} style={styles.controls}>
+      <Animated.View
+        entering={FadeIn.duration(600).delay(300)}
+        style={styles.controls}
+      >
         <Text style={[styles.counterText, { color: colors.textMuted }]}>
-          {remaining} {remaining === 1 ? 'card' : 'cards'} remaining
+          {remaining} {remaining === 1 ? "card" : "cards"} remaining
         </Text>
 
         <TouchableWithoutFeedback onPress={handleDraw}>
-          <Animated.View style={[styles.drawButton, { borderColor: colors.primary + '40' }, drawButtonStyle]}>
-            <MaterialCommunityIcons name="cards-outline" size={18} color={colors.primary} />
-            <Text style={[styles.drawButtonText, { color: colors.primary }]}>Draw next</Text>
+          <Animated.View
+            style={[
+              styles.drawButton,
+              { borderColor: colors.primary + "40" },
+              drawButtonStyle,
+            ]}
+          >
+            <MaterialCommunityIcons
+              name="cards-outline"
+              size={18}
+              color={colors.primary}
+            />
+            <Text style={[styles.drawButtonText, { color: colors.primary }]}>
+              Draw next
+            </Text>
           </Animated.View>
         </TouchableWithoutFeedback>
       </Animated.View>
@@ -599,36 +796,36 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onDraw 
 const styles = StyleSheet.create({
   deck: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   stackArea: {
     width: CARD_W,
     height: CARD_H,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   // ── Shared card shell ──
   cardContainer: {
-    position: 'absolute',
+    position: "absolute",
     width: CARD_W,
     height: CARD_H,
   },
 
   card: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+    position: "absolute",
+    width: "100%",
+    height: "100%",
     borderRadius: 18,
-    overflow: 'hidden',
+    overflow: "hidden",
     // Double-border metallic edge: outer chrome rim
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: "rgba(255,255,255,0.08)",
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 20 },
         shadowOpacity: 0.6,
         shadowRadius: 35,
@@ -640,28 +837,28 @@ const styles = StyleSheet.create({
   // ── Back face ──
   cardBack: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 12,
   },
 
   // Chrome edge shine overlays
   topEdgeShine: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     height: 60,
   },
   leftEdgeShine: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     bottom: 0,
     width: 40,
   },
   bottomEdgeShine: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
@@ -670,7 +867,7 @@ const styles = StyleSheet.create({
 
   // Animated shimmer band
   shimmerBand: {
-    position: 'absolute',
+    position: "absolute",
     top: -CARD_H * 0.3,
     width: CARD_W * 0.35,
     height: CARD_H * 1.8,
@@ -678,57 +875,53 @@ const styles = StyleSheet.create({
 
   backFrame: {
     flex: 1,
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignSelf: "stretch",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderWidth: 1.5,
     borderRadius: 12,
     margin: 8,
     paddingTop: 24,
     paddingBottom: 18,
     paddingHorizontal: 14,
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    overflow: 'hidden',
+    backgroundColor: "rgba(255,255,255,0.02)",
+    overflow: "hidden",
   },
 
   // Fine metallic lines inside frame
   frameTopLine: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 16,
     right: 16,
     height: 1,
   },
   frameBottomLine: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 46,
     left: 16,
     right: 16,
     height: 1,
   },
 
-  backTopBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 20,
-    gap: 7,
+  backTopNumber: {
+    alignItems: "center",
+    justifyContent: "center",
+    // Constrain height so the big number doesn't push other elements down
+    height: 60,
   },
-  backBadgeText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 11,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    textShadowColor: 'rgba(0,0,0,0.6)',
+  backTopNumberText: {
+    fontFamily: FONTS.serifAccent,
+    fontSize: 56,
+    lineHeight: 60,
+    fontWeight: "600",
+    textShadowColor: "rgba(0,0,0,0.5)",
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    textShadowRadius: 4,
   },
 
   backEmblem: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 12,
   },
   backEmblemOuter: {
@@ -736,12 +929,12 @@ const styles = StyleSheet.create({
     height: 86,
     borderRadius: 43,
     borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
     ...Platform.select({
       ios: {
-        shadowColor: '#070509',
+        shadowColor: "#070509",
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.08,
         shadowRadius: 16,
@@ -754,9 +947,9 @@ const styles = StyleSheet.create({
     height: 58,
     borderRadius: 29,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
   },
   backLevelText: {
     fontFamily: FONTS.body,
@@ -770,7 +963,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
     fontSize: 10,
     letterSpacing: 2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
 
   // ── Front face ──
@@ -779,11 +972,11 @@ const styles = StyleSheet.create({
   cardFront: {
     flex: 1,
     borderRadius: 18,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 
   frontTopShine: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -792,31 +985,31 @@ const styles = StyleSheet.create({
   },
 
   frontBand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 18,
     paddingVertical: 14,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   bandTopEdge: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     height: 1,
   },
   frontBandLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   frontBandLabel: {
     fontFamily: FONTS.bodyBold,
     fontSize: 12,
     letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    textTransform: "uppercase",
+    textShadowColor: "rgba(0,0,0,0.5)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
@@ -838,12 +1031,12 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     borderWidth: 1,
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 
   frontBody: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingHorizontal: 24,
     paddingVertical: 20,
   },
@@ -851,9 +1044,9 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.serifAccent,
     fontSize: 22,
     lineHeight: 30,
-    fontWeight: '300',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.3)',
+    fontWeight: "300",
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.3)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
@@ -864,49 +1057,49 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   frontFooterContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
   },
   frontFooterText: {
     fontFamily: FONTS.body,
     fontSize: 10,
     letterSpacing: 1.5,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
 
   // ── Swipe hints ──
   swipeHint: {
-    position: 'absolute',
+    position: "absolute",
     top: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: "rgba(255,255,255,0.08)",
   },
   swipeHintRight: {
     left: 16,
-    backgroundColor: 'rgba(122, 30, 78, 0.9)',
+    backgroundColor: "rgba(122, 30, 78, 0.9)",
   },
   swipeHintLeft: {
     right: 16,
-    backgroundColor: 'rgba(60, 50, 80, 0.9)',
+    backgroundColor: "rgba(60, 50, 80, 0.9)",
   },
   swipeHintText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 13,
-    color: '#F2E9E6',
+    color: "#F2E9E6",
     letterSpacing: 0.3,
   },
 
   // ── Controls ──
   controls: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: SPACING.xl,
     gap: SPACING.md,
   },
@@ -918,8 +1111,8 @@ const styles = StyleSheet.create({
   },
 
   drawButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: BORDER_RADIUS.full,
