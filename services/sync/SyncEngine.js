@@ -41,6 +41,8 @@ const SYNC_TABLES = [
   'love_notes',
 ];
 
+const PULL_TABLES = [...SYNC_TABLES, 'attachments'];
+
 const PULL_PAGE_SIZE = 200;
 const MIN_SYNC_INTERVAL_MS = 10_000; // 10 seconds between full cycles
 const MAX_PUSH_RETRIES = 3;
@@ -55,6 +57,7 @@ const TABLE_TO_TYPE = {
   check_ins: 'check_in',
   vibes: 'vibe',
   love_notes: 'love_note',
+  attachments: 'attachment_meta',
 };
 
 /** Columns that contain ciphertext (don't re-encrypt; pass through). */
@@ -347,7 +350,7 @@ const SyncEngine = {
       }
 
       // 2. Pull remote changes
-      for (const table of SYNC_TABLES) {
+      for (const table of PULL_TABLES) {
         const r = await pullTable(table);
         results.pulled += r.pulled;
       }
@@ -392,7 +395,7 @@ const SyncEngine = {
    */
   async pullNow() {
     if (!canSync()) return;
-    for (const table of SYNC_TABLES) {
+    for (const table of PULL_TABLES) {
       await pullTable(table);
     }
   },

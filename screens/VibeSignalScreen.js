@@ -15,18 +15,18 @@ import {
   Animated,
   Platform,
   StatusBar,
-  ActivityIndicator,
 } from 'react-native';
 import Icon from '../components/Icon';
-import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
+import LiveVibeSync from '../components/LiveVibeSync';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, withAlpha } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
-import { MomentSignalSender } from '../services/ConnectionEngine';
 import { NicknameEngine } from '../services/PolishEngine';
+import { getPartnerDisplayName } from '../utils/profileNames';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
@@ -122,7 +122,7 @@ export default function VibeSignalScreen({ navigation }) {
   const { state } = useAppContext();
   const { userProfile } = useAuth();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
-  const partnerLabel = userProfile?.partnerNames?.partnerName || state.partnerLabel || 'Partner';
+  const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'Partner');
 
   const [activeVibeId,      setActiveVibeId]      = useState('passionate');
   const handleVibeSelect = (vibe) => {
@@ -132,14 +132,9 @@ export default function VibeSignalScreen({ navigation }) {
   };
   const [userInitial,       setUserInitial]        = useState('');
   const [weeklyData,        setWeeklyData]         = useState(null);
-  const [heartbeatSending,  setHeartbeatSending]   = useState(false);
-  const [heartbeatSent,     setHeartbeatSent]      = useState(false);
-  const [heartbeatError,    setHeartbeatError]     = useState(null);
 
   const entranceFade       = useRef(new Animated.Value(0)).current;
   const entranceSlide      = useRef(new Animated.Value(20)).current;
-  const heartbeatFadeAnim  = useRef(new Animated.Value(0)).current;
-  const heartbeatScaleAnim = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -170,43 +165,6 @@ export default function VibeSignalScreen({ navigation }) {
       setWeeklyData(data);
     }).catch(() => setWeeklyData(null));
   }, []);
-
-  const handleSendHeartbeat = async () => {
-    if (heartbeatSending) return;
-    setHeartbeatSending(true);
-    setHeartbeatError(null);
-
-    impact(ImpactFeedbackStyle.Heavy);
-    notification(NotificationFeedbackType.Success);
-    setHeartbeatSent(true);
-    heartbeatScaleAnim.setValue(0.95);
-
-    Animated.parallel([
-      Animated.sequence([
-        Animated.timing(heartbeatFadeAnim,  { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.delay(2500),
-        Animated.timing(heartbeatFadeAnim,  { toValue: 0, duration: 400, useNativeDriver: true }),
-      ]),
-      Animated.spring(heartbeatScaleAnim, { toValue: 1, friction: 6, tension: 40, useNativeDriver: true }),
-    ]).start(() => {
-      setHeartbeatSent(false);
-      setHeartbeatSending(false);
-    });
-
-    // Double haptic for high-end feel
-    setTimeout(() => impact(ImpactFeedbackStyle.Heavy).catch?.(() => {}), 300);
-
-    try {
-      const result = await MomentSignalSender.send('thinking');
-      if (!result.sent) {
-        setHeartbeatError(result.error || 'Wait before sending again');
-      } else if (result.error) {
-        setHeartbeatError('Sent locally — syncing soon');
-      }
-    } catch (err) {
-      setHeartbeatError('Sent locally — syncing soon');
-    }
-  };
 
   // ── Paywall Gate ──────────────────────────────────────────────────
   if (!isPremium) {
@@ -338,49 +296,7 @@ export default function VibeSignalScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Core Action */}
-          <View style={styles.actionContainer}>
-            {heartbeatSent ? (
-              <Animated.View
-                style={[
-                  styles.successContainer,
-                  {
-                    opacity:   heartbeatFadeAnim,
-                    transform: [{ scale: heartbeatScaleAnim }],
-                    backgroundColor: t.surface,
-                    borderColor:     t.border,
-                  },
-                ]}
-              >
-                <Icon name="check-circle" size={24} color={t.primary} />
-                <View style={styles.successTextContainer}>
-                  <Text style={[styles.successTitle, { color: t.text }]}>Sent to {partnerLabel}</Text>
-                  <Text style={[styles.successSubtitle, { color: t.subtext }]} numberOfLines={1}>
-                    {heartbeatError || "They'll feel it momentarily"}
-                  </Text>
-                </View>
-              </Animated.View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: t.primary, opacity: heartbeatSending ? 0.7 : 1 }]}
-                onPress={handleSendHeartbeat}
-                disabled={heartbeatSending}
-                activeOpacity={0.9}
-              >
-                {heartbeatSending ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <>
-                    <Icon name="heart" size={20} color="#FFF" />
-                    <Text style={styles.primaryButtonText}>Send Heartbeat</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-            <Text style={[styles.actionHint, { color: t.subtext }]}>
-              Sends a high-end tactile pulse to {partnerLabel}.
-            </Text>
-          </View>
+          <LiveVibeSync partnerLabel={partnerLabel} />
 
         </Animated.View>
       </ScrollView>
@@ -495,54 +411,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
   chartTrack:       { height: 56, justifyContent: 'flex-end' },
   chartBar:         { width: 5, borderRadius: 3 },
   chartDayLabel:    { fontSize: 9, fontWeight: '700', marginTop: 4 },
-
-  // Action
-  actionContainer: {
-    paddingHorizontal: 24,
-    alignItems:        'center',
-    paddingTop:        SPACING.xl,
-    paddingBottom:     16,
-  },
-  primaryButton: {
-    height:         56,
-    borderRadius:   28,
-    flexDirection:  'row',
-    alignItems:     'center',
-    justifyContent: 'center',
-    gap:            10,
-    width:          '100%',
-    ...Platform.select({
-      ios:     { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12 },
-      android: { elevation: 4 },
-    }),
-  },
-  primaryButtonText: {
-    color:         '#FFF',
-    fontFamily:    SYSTEM_FONT,
-    fontSize:      16,
-    fontWeight:    '800',
-    textTransform: 'uppercase',
-    letterSpacing: -0.2,
-  },
-  successContainer: {
-    flexDirection:  'row',
-    alignItems:     'center',
-    paddingHorizontal: SPACING.lg,
-    height:         56,
-    borderRadius:   28,
-    gap:            12,
-    width:          '100%',
-    borderWidth:    1,
-    ...Platform.select({
-      ios:     { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 8 },
-      android: { elevation: 2 },
-    }),
-  },
-  successTextContainer: { flex: 1 },
-  successTitle:         { fontSize: 15, fontWeight: '600' },
-  successSubtitle:      { fontSize: 13 },
-  actionHint:           { fontSize: 12, fontWeight: '600', marginTop: 12, textAlign: 'center' },
-
   // Paywall
   paywallContent:  { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   paywallBack:     { position: 'absolute', top: 20, left: 20 },

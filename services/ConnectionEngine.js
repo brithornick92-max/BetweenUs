@@ -65,6 +65,12 @@ export const MOMENT_TYPES = [
   { id: 'love', label: 'Love you', icon: 'heart' },
 ];
 
+export const HEARTBEAT_SIGNAL = {
+  id: 'heartbeat',
+  label: 'Heartbeat',
+  icon: 'pulse',
+};
+
 const COOLDOWN_MS = 5 * 60 * 1000; // 5 min cooldown
 
 export const MomentSignalSender = {
@@ -153,6 +159,15 @@ export const MomentSignalSender = {
 
     // ── Local-only fallback (no Supabase / not linked) ──
     return { sent: true, remote: false, type: momentType, timestamp: now };
+  },
+
+  /**
+   * Dedicated heartbeat action used by LiveVibeSync.
+   * This writes a moment_signal row so the existing DB trigger can fan out
+   * the partner push notification immediately.
+   */
+  async sendHeartbeat() {
+    return this.send(HEARTBEAT_SIGNAL.id);
   },
 
   /**

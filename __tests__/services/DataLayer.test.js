@@ -34,6 +34,19 @@ jest.mock('../../services/db/Database', () => ({
     markLoveNoteRead: jest.fn().mockResolvedValue(undefined),
     softDeleteLoveNote: jest.fn().mockResolvedValue(undefined),
     getUnreadLoveNoteCount: jest.fn().mockResolvedValue(0),
+    upsertCalendarEvent: jest.fn().mockResolvedValue({ id: 'cal-1', created_at: '2024-01-01', updated_at: '2024-01-01' }),
+    getCalendarEvents: jest.fn().mockResolvedValue([]),
+    getCalendarEventById: jest.fn().mockResolvedValue(null),
+    getPendingCalendarEvents: jest.fn().mockResolvedValue([]),
+    markCalendarEventSynced: jest.fn().mockResolvedValue(undefined),
+    replaceCalendarEventId: jest.fn().mockResolvedValue(undefined),
+    softDeleteCalendarEvent: jest.fn().mockResolvedValue(undefined),
+    upsertDatePlan: jest.fn().mockResolvedValue({ id: 'dp-1', created_at: '2024-01-01', updated_at: '2024-01-01' }),
+    getDatePlans: jest.fn().mockResolvedValue([]),
+    getDatePlansBySourceEvent: jest.fn().mockResolvedValue([]),
+    getDatePlanById: jest.fn().mockResolvedValue(null),
+    softDeleteDatePlan: jest.fn().mockResolvedValue(undefined),
+    markDatePlansSyncedBySourceEvent: jest.fn().mockResolvedValue(undefined),
     purgeDeleted: jest.fn().mockResolvedValue(undefined),
     wipeAll: jest.fn().mockResolvedValue(undefined),
   },
@@ -75,6 +88,39 @@ jest.mock('../../services/sync/SyncEngine', () => ({
   },
 }));
 
+const mockRemoveChannel = jest.fn();
+const mockSubscribe = jest.fn(() => ({ unsubscribe: jest.fn() }));
+const mockChannelOn = jest.fn(() => ({ subscribe: mockSubscribe }));
+const mockChannel = jest.fn(() => ({ on: mockChannelOn }));
+const mockSingle = jest.fn();
+const mockSelect = jest.fn(() => ({ single: mockSingle }));
+const mockInsert = jest.fn(() => ({ select: mockSelect }));
+const mockUpdateEq = jest.fn();
+const mockUpdate = jest.fn(() => ({ eq: mockUpdateEq }));
+const mockDeleteEq = jest.fn();
+const mockDelete = jest.fn(() => ({ eq: mockDeleteEq }));
+const mockOrder = jest.fn();
+const mockEq = jest.fn(() => ({ order: mockOrder }));
+const mockRemoteSelect = jest.fn(() => ({ eq: mockEq }));
+const mockFrom = jest.fn(() => ({
+  insert: mockInsert,
+  update: mockUpdate,
+  delete: mockDelete,
+  select: mockRemoteSelect,
+}));
+
+jest.mock('../../config/supabase', () => ({
+  __esModule: true,
+  supabase: {
+    from: mockFrom,
+    channel: mockChannel,
+    removeChannel: mockRemoveChannel,
+  },
+  TABLES: {
+    CALENDAR_EVENTS: 'calendar_events',
+  },
+}));
+
 const DataLayer = require('../../services/data/DataLayer').default;
 const Database = require('../../services/db/Database').default;
 const E2EEncryption = require('../../services/e2ee/E2EEncryption').default;
@@ -83,6 +129,10 @@ describe('DataLayer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockSingle.mockResolvedValue({ data: { id: '11111111-1111-4111-8111-111111111111' }, error: null });
+    mockUpdateEq.mockResolvedValue({ error: null });
+    mockDeleteEq.mockResolvedValue({ error: null });
+    mockOrder.mockResolvedValue({ data: [], error: null });
     DataLayer.init({
       userId: 'user-1',
       coupleId: 'couple-1',
@@ -195,6 +245,145 @@ describe('DataLayer', () => {
       Database.getUnreadLoveNoteCount.mockResolvedValueOnce(5);
       const count = await DataLayer.getUnreadLoveNoteCount();
       expect(count).toBe(5);
+    });
+  });
+
+  describe('Calendar', () => {
+    it('createCalendarEvent writes remote-backed events as synced when Supabase insert succeeds', async () => {
+      Database.upsertCalendarEvent.mockResolvedValueOnce({
+        id: '11111111-1111-4111-8111-111111111111',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
+      });
+
+      const result = await DataLayer.createCalendarEvent({
+        title: 'Dinner',
+        notes: 'At 7',
+        location: 'Downtown',
+        whenTs: new Date('2024-01-15T19:00:00Z').getTime(),
+        eventType: 'dateNight',
+        isDateNight: true,
+        notify: true,
+        notifyMins: 30,
+      });
+
+      expect(mockFrom).toHaveBeenCalledWith('calendar_events');
+      expect(Database.upsertCalendarEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ id: '11111111-1111-4111-8111-111111111111' }),
+        expect.objectContaining({ syncStatus: 'synced', syncSource: 'remote' })
+      );
+      expect(Database.upsertDatePlan).toHaveBeenCalled();
+      expect(result.remoteSynced).toBe(true);
+    });
+
+    it('pushPendingCalendarEvents promotes offline local events to remote UUIDs', async () => {
+      Database.getPendingCalendarEvents.mockResolvedValueOnce([
+        {
+          id: 'cal_local_1',
+          title_cipher: 'enc:Dinner',
+          location_cipher: 'enc:Downtown',
+          notes_cipher: 'enc:At 7',
+          event_type: 'dateNight',
+          when_ts: new Date('2024-01-15T19:00:00Z').getTime(),
+          is_date_night: 1,
+          notify: 1,
+          notify_mins: 30,
+          notification_id: 'notif-1',
+          metadata_cipher: 'enc:{}',
+          created_at: '2024-01-01T00:00:00.000Z',
+          updated_at: '2024-01-01T00:00:00.000Z',
+          deleted_at: null,
+        },
+      ]);
+      Database.getDatePlansBySourceEvent.mockResolvedValueOnce([]);
+      mockSingle.mockResolvedValueOnce({ data: { id: '22222222-2222-4222-8222-222222222222' }, error: null });
+
+      const result = await DataLayer.pushPendingCalendarEvents();
+
+      expect(Database.replaceCalendarEventId).toHaveBeenCalledWith(
+        'cal_local_1',
+        '22222222-2222-4222-8222-222222222222'
+      );
+      expect(result).toEqual({ pushed: 1, deleted: 0, failed: 0 });
+    });
+
+    it('refreshCalendarEventsFromRemote removes stale remote-backed local events', async () => {
+      Database.getPendingCalendarEvents.mockResolvedValueOnce([]);
+      mockOrder.mockResolvedValueOnce({
+        data: [
+          {
+            id: '33333333-3333-4333-8333-333333333333',
+            title: 'Remote dinner',
+            description: 'Remote notes',
+            event_date: '2024-01-15T19:00:00.000Z',
+            event_type: 'general',
+            location: 'Remote spot',
+            metadata: {},
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+        error: null,
+      });
+      Database.getCalendarEvents
+        .mockResolvedValueOnce([
+          {
+            id: '33333333-3333-4333-8333-333333333333',
+            title_cipher: 'enc:Existing remote',
+            location_cipher: 'enc:Somewhere',
+            notes_cipher: 'enc:Notes',
+            event_type: 'general',
+            when_ts: 1705345200000,
+            is_date_night: 0,
+            notify: 0,
+            notify_mins: 60,
+            notification_id: null,
+            metadata_cipher: 'enc:{}',
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+            sync_source: 'remote',
+          },
+          {
+            id: '44444444-4444-4444-8444-444444444444',
+            title_cipher: 'enc:Stale remote',
+            location_cipher: 'enc:Old',
+            notes_cipher: 'enc:Old notes',
+            event_type: 'general',
+            when_ts: 1705345200000,
+            is_date_night: 0,
+            notify: 0,
+            notify_mins: 60,
+            notification_id: null,
+            metadata_cipher: 'enc:{}',
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+            sync_source: 'remote',
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            id: '33333333-3333-4333-8333-333333333333',
+            title_cipher: 'enc:Existing remote',
+            location_cipher: 'enc:Somewhere',
+            notes_cipher: 'enc:Notes',
+            event_type: 'general',
+            when_ts: 1705345200000,
+            is_date_night: 0,
+            notify: 0,
+            notify_mins: 60,
+            notification_id: null,
+            metadata_cipher: 'enc:{}',
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+            sync_source: 'remote',
+          },
+        ]);
+      Database.getDatePlansBySourceEvent.mockResolvedValue([]);
+
+      const result = await DataLayer.refreshCalendarEventsFromRemote({ limit: 50 });
+
+      expect(Database.softDeleteCalendarEvent).toHaveBeenCalledWith('44444444-4444-4444-8444-444444444444');
+      expect(result).toHaveLength(1);
     });
   });
 

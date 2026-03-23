@@ -25,7 +25,6 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import DataLayer from '../services/data/DataLayer';
-import { calendarStorage, myDatesStorage } from '../utils/storage';
 import Constants from 'expo-constants';
 import Icon from '../components/Icon';
 import { SPACING, withAlpha, SYSTEM_FONT } from '../utils/theme';
@@ -94,8 +93,8 @@ const ExportDataScreen = ({ navigation }) => {
         DataLayer.getCheckIns({ limit: 10000 }).catch(() => []),
         DataLayer.getVibes({ limit: 10000 }).catch(() => []),
         DataLayer.getLoveNotes({ limit: 10000 }).catch(() => []),
-        calendarStorage.getEvents().catch(() => []),
-        myDatesStorage.getMyDates().catch(() => []),
+        DataLayer.getCalendarEvents({ limit: 10000 }).catch(() => []),
+        DataLayer.getDatePlans({ limit: 10000 }).catch(() => []),
       ]);
 
     // Strip cipher columns and internal sync metadata from output

@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
  * data in SQLite with E2EEncryption (v3, couple-aware) and syncs via
  * SyncEngine → Supabase.
  *
- * ✅ Includes: promptStorage, journalStorage, checkInStorage, myDatesStorage, calendarStorage,
+ * ✅ Includes: promptStorage, journalStorage, checkInStorage,
  *             userStorage, coupleStorage, settingsStorage
  */
 
@@ -507,110 +507,6 @@ export const checkInStorage = {
 };
 
 /**
- * DOMAIN: My Dates
- * Compatible with your screens:
- * - getMyDates()
- * - addMyDate(date)
- * - updateMyDate(date)
- * - deleteMyDate(id)
- */
-export const myDatesStorage = {
-  async getMyDates() {
-    try {
-      const raw = await storage.get(STORAGE_KEYS.MY_DATES, null);
-      if (!raw) return [];
-      // Migration: if raw is an Array, it's unencrypted legacy data
-      if (Array.isArray(raw)) return raw.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      const { default: EncryptionService } = await import('../services/EncryptionService');
-      const decrypted = await EncryptionService.decryptJson(raw);
-      const list = ensureArray(decrypted);
-      return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    } catch { return []; }
-  },
-
-  async _save(list) {
-    const { default: EncryptionService } = await import('../services/EncryptionService');
-    const encrypted = await EncryptionService.encryptJson(list);
-    await storage.set(STORAGE_KEYS.MY_DATES, encrypted);
-  },
-
-  async addMyDate(date) {
-    const list = await this.getMyDates();
-    const processed = {
-      ...date,
-      id: date.id || makeId('date'),
-      createdAt: date.createdAt || Date.now(),
-      updatedAt: Date.now(),
-    };
-    await this._save([processed, ...list.filter((d) => d.id !== processed.id)]);
-    return processed;
-  },
-
-  async updateMyDate(date) {
-    if (!date?.id) return null;
-    const list = await this.getMyDates();
-    const processed = { ...date, updatedAt: Date.now() };
-    await this._save([processed, ...list.filter((d) => d.id !== processed.id)]);
-    return processed;
-  },
-
-  async deleteMyDate(id) {
-    const list = await this.getMyDates();
-    return this._save(list.filter((d) => d.id !== id));
-  },
-};
-
-/**
- * DOMAIN: Calendar
- * Compatible with your CalendarScreen:
- * - getEvents()
- * - addEvent(event)
- * - deleteEvent(id)
- * Also keeps upsertEvent()
- */
-export const calendarStorage = {
-  async getEvents() {
-    try {
-      const raw = await storage.get(STORAGE_KEYS.CALENDAR_EVENTS, null);
-      if (!raw) return [];
-      // Migration: if raw is an Array, it's unencrypted legacy data — return as-is
-      if (Array.isArray(raw)) return raw;
-      // Encrypted format (object with ciphertext fields)
-      const { default: EncryptionService } = await import('../services/EncryptionService');
-      const decrypted = await EncryptionService.decryptJson(raw);
-      return ensureArray(decrypted);
-    } catch { return []; }
-  },
-
-  async _save(events) {
-    const { default: EncryptionService } = await import('../services/EncryptionService');
-    const encrypted = await EncryptionService.encryptJson(events);
-    await storage.set(STORAGE_KEYS.CALENDAR_EVENTS, encrypted);
-  },
-
-  async upsertEvent(event) {
-    const events = await this.getEvents();
-    const id = event.id || makeId('evt');
-    const newEvent = { ...event, id, updatedAt: Date.now() };
-
-    const filtered = events.filter((e) => e.id !== id);
-    await this._save([newEvent, ...filtered]);
-    return newEvent;
-  },
-
-  // Alias used in some screens
-  async addEvent(event) {
-    return this.upsertEvent(event);
-  },
-
-  async deleteEvent(eventId) {
-    const events = await this.getEvents();
-    await this._save(events.filter((e) => e.id !== eventId));
-    return true;
-  },
-};
-
-/**
  * DOMAIN: User
  * Matches what AppContext expects.
  */
@@ -629,14 +525,6 @@ export const userStorage = {
 
   async setProfile(profile) {
     return (await import('./encryptedStorage')).encryptedStorage.set(STORAGE_KEYS.USER_PROFILE, profile);
-  },
-
-  async getPartnerLabel() {
-    return await (await import('./encryptedStorage')).encryptedStorage.get(STORAGE_KEYS.PARTNER_LABEL, null);
-  },
-
-  async setPartnerLabel(label) {
-    return (await import('./encryptedStorage')).encryptedStorage.set(STORAGE_KEYS.PARTNER_LABEL, label);
   },
 };
 

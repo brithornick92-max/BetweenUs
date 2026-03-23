@@ -9,7 +9,6 @@ import CoupleService from '../services/supabase/CoupleService';
 const initialState = {
   userId: null,
   onboardingCompleted: false,
-  partnerLabel: 'Partner',
   coupleId: null,
   isLinked: false,
   isLocked: false,
@@ -42,7 +41,6 @@ const ACTIONS = {
   COMPLETE_ONBOARDING: 'COMPLETE_ONBOARDING',
   UPDATE_PROFILE: 'UPDATE_PROFILE',
   LEAVE_COUPLE: 'LEAVE_COUPLE',
-  SET_PARTNER_LABEL: 'SET_PARTNER_LABEL',
   SET_APP_LOCK: 'SET_APP_LOCK',
   UPDATE_PARTNER_ACTIVITY: 'UPDATE_PARTNER_ACTIVITY',
 };
@@ -81,15 +79,27 @@ function reducer(state, action) {
     case ACTIONS.COMPLETE_ONBOARDING:
       return { ...state, onboardingCompleted: true };
     case ACTIONS.UPDATE_PROFILE:
-      return { ...state, userProfile: { ...state.userProfile, ...action.payload } };
+      return {
+        ...state,
+        userProfile: {
+          ...state.userProfile,
+          ...action.payload,
+          ...(action.payload?.partnerNames
+            ? {
+                partnerNames: {
+                  ...(state.userProfile?.partnerNames || {}),
+                  ...action.payload.partnerNames,
+                },
+              }
+            : {}),
+        },
+      };
     case ACTIONS.LEAVE_COUPLE:
       return { 
         ...state, 
         coupleId: null,
         isLinked: false 
       };
-    case ACTIONS.SET_PARTNER_LABEL:
-      return { ...state, partnerLabel: action.payload };
     case ACTIONS.SET_APP_LOCK:
       return { ...state, appLockEnabled: action.payload };
     case ACTIONS.UPDATE_PARTNER_ACTIVITY:
@@ -124,7 +134,7 @@ export function AppProvider({ children }) {
       const [
         onboardingCompleted,
         userProfile,
-        partnerLabel,
+        legacyPartnerLabel,
         coupleId,
         appLockEnabled,
         lastPartnerActivity
@@ -136,6 +146,45 @@ export function AppProvider({ children }) {
           storage.get(STORAGE_KEYS.APP_LOCK_ENABLED, false),
           storage.get(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, null),
         ]);
+
+      let hydratedUserProfile = userProfile && typeof userProfile === 'object' ? { ...userProfile } : {};
+
+      try {
+        const nicknameConfig = await NicknameEngine.getConfig();
+        const legacyPartnerName = typeof legacyPartnerLabel === 'string' ? legacyPartnerLabel.trim() : '';
+        const nicknamePartnerName = nicknameConfig?.partnerNickname?.trim() || '';
+        const nicknameMyName = nicknameConfig?.myNickname?.trim() || '';
+        const profilePartnerName = hydratedUserProfile?.partnerNames?.partnerName?.trim() || '';
+        const profileMyName = hydratedUserProfile?.partnerNames?.myName?.trim() || '';
+
+        const nextPartnerName = profilePartnerName || legacyPartnerName || nicknamePartnerName;
+        const nextMyName = profileMyName || nicknameMyName;
+
+        if ((nextPartnerName && nextPartnerName !== profilePartnerName) || (nextMyName && nextMyName !== profileMyName)) {
+          hydratedUserProfile = {
+            ...hydratedUserProfile,
+            partnerNames: {
+              ...(hydratedUserProfile.partnerNames || {}),
+              ...(nextMyName ? { myName: nextMyName } : {}),
+              ...(nextPartnerName ? { partnerName: nextPartnerName } : {}),
+            },
+          };
+          await storage.set(STORAGE_KEYS.USER_PROFILE, hydratedUserProfile);
+        }
+
+        if (legacyPartnerName) {
+          await storage.remove(STORAGE_KEYS.PARTNER_LABEL);
+        }
+
+        if ((nextPartnerName && nicknamePartnerName !== nextPartnerName) || (nextMyName && nicknameMyName !== nextMyName)) {
+          await NicknameEngine.setConfig({
+            ...(nextMyName ? { myNickname: nextMyName } : {}),
+            ...(nextPartnerName ? { partnerNickname: nextPartnerName } : {}),
+          });
+        }
+      } catch (e) {
+        // Non-critical — keep boot resilient if nickname migration fails.
+      }
 
       // QR pairing does not use invite codes, so coupleId alone marks linkage.
       const now = Date.now();
@@ -151,8 +200,7 @@ export function AppProvider({ children }) {
         payload: { 
           userId, 
           onboardingCompleted: !!onboardingCompleted,
-          userProfile,
-          partnerLabel: partnerLabel || 'Partner',
+          userProfile: hydratedUserProfile,
           coupleId: isActuallyLinked ? coupleId : null,
           isLinked: isActuallyLinked,
           appLockEnabled: !!appLockEnabled,
@@ -161,26 +209,6 @@ export function AppProvider({ children }) {
           lastPartnerActivity: isActuallyLinked ? lastPartnerActivity : null,
         } 
       });
-      
-      // ── Sync partnerLabel ↔ NicknameEngine on boot ──
-      // If one system has a name and the other doesn't, propagate.
-      try {
-        const nicknameConfig = await NicknameEngine.getConfig();
-        const effectiveLabel = partnerLabel || 'Partner';
-        const hasNicknamePartner = !!nicknameConfig.partnerNickname?.trim();
-        const hasContextLabel = effectiveLabel !== 'Partner';
-
-        if (hasNicknamePartner && !hasContextLabel) {
-          // NicknameEngine has a name → push to AppContext storage
-          await storage.set(STORAGE_KEYS.PARTNER_LABEL, nicknameConfig.partnerNickname.trim());
-          dispatch({ type: ACTIONS.SET_PARTNER_LABEL, payload: nicknameConfig.partnerNickname.trim() });
-        } else if (hasContextLabel && !hasNicknamePartner) {
-          // AppContext has a name → seed NicknameEngine
-          await NicknameEngine.setConfig({ partnerNickname: effectiveLabel });
-        }
-      } catch (e) {
-        // Non-critical — swallow
-      }
 
       // Setup Supabase Realtime listener for partner vibe/data changes
       // (replaces the old local-only vibeSyncService which never actually synced)
@@ -302,13 +330,21 @@ export function AppProvider({ children }) {
     },
     
     updateProfile: async (profileData) => {
-      await storage.set(STORAGE_KEYS.USER_PROFILE, profileData);
+      const currentProfile = stateRef.current.userProfile || {};
+      const mergedProfile = {
+        ...currentProfile,
+        ...profileData,
+        ...(profileData?.partnerNames
+          ? {
+              partnerNames: {
+                ...(currentProfile.partnerNames || {}),
+                ...profileData.partnerNames,
+              },
+            }
+          : {}),
+      };
+      await storage.set(STORAGE_KEYS.USER_PROFILE, mergedProfile);
       dispatch({ type: ACTIONS.UPDATE_PROFILE, payload: profileData });
-    },
-    
-    setPartnerLabel: async (label) => {
-      await storage.set(STORAGE_KEYS.PARTNER_LABEL, label);
-      dispatch({ type: ACTIONS.SET_PARTNER_LABEL, payload: label });
     },
     
     setAppLockEnabled: async (enabled) => {

@@ -206,8 +206,11 @@ export default function OnboardingScreen({ navigation }) {
       }
       if (session) {
         await StorageRouter.setSupabaseSession(session);
-        await cloudSyncStorage.setSyncStatus({ enabled: true, email: session.user?.email || email });
-        await StorageRouter.configureSync({ isPremium: true, syncEnabled: true, supabaseSessionPresent: true });
+        const syncStatus = await cloudSyncStorage.getSyncStatus();
+        await cloudSyncStorage.setSyncStatus({
+          ...syncStatus,
+          email: session.user?.email || email,
+        });
       }
       setShowCloudAuth(false);
       cloudAuthResolve.current?.(session);

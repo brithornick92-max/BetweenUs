@@ -104,13 +104,18 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
           partnerName: partnerName.trim(),
         },
       });
+      await actions.updateProfile({
+        partnerNames: {
+          myName: myName.trim(),
+          partnerName: partnerName.trim(),
+        },
+      });
 
       // Propagate immediately so the rest of the session reflects the new names
       await NicknameEngine.setConfig({
         myNickname: myName.trim(),
         partnerNickname: partnerName.trim(),
       });
-      await actions.setPartnerLabel(partnerName.trim());
 
       notification(NotificationFeedbackType.Success);
       navigation.goBack();

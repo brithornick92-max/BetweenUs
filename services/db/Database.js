@@ -305,6 +305,56 @@ async function migrate(db) {
       throw err;
     }
   }
+
+  // v7: Calendar events + date plans tables
+  if (user_version < 7) {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS calendar_events_local (
+        id                TEXT PRIMARY KEY,
+        user_id           TEXT NOT NULL,
+        couple_id         TEXT,
+        title_cipher      TEXT,
+        location_cipher   TEXT,
+        notes_cipher      TEXT,
+        event_type        TEXT DEFAULT 'general',
+        when_ts           INTEGER NOT NULL,
+        is_date_night     INTEGER DEFAULT 0,
+        notify            INTEGER DEFAULT 0,
+        notify_mins       INTEGER DEFAULT 60,
+        notification_id   TEXT,
+        metadata_cipher   TEXT,
+        created_at        TEXT NOT NULL,
+        updated_at        TEXT NOT NULL,
+        deleted_at        TEXT,
+        sync_status       TEXT DEFAULT 'pending',
+        sync_version      INTEGER DEFAULT 0,
+        sync_source       TEXT DEFAULT 'local'
+      );
+      CREATE INDEX IF NOT EXISTS idx_calendar_local_user ON calendar_events_local(user_id);
+      CREATE INDEX IF NOT EXISTS idx_calendar_local_when ON calendar_events_local(when_ts);
+      CREATE INDEX IF NOT EXISTS idx_calendar_local_sync ON calendar_events_local(sync_status);
+
+      CREATE TABLE IF NOT EXISTS date_plans (
+        id                TEXT PRIMARY KEY,
+        user_id           TEXT NOT NULL,
+        couple_id         TEXT,
+        source_event_id   TEXT,
+        title_cipher      TEXT,
+        body_cipher       TEXT,
+        created_at        TEXT NOT NULL,
+        updated_at        TEXT NOT NULL,
+        deleted_at        TEXT,
+        sync_status       TEXT DEFAULT 'pending',
+        sync_version      INTEGER DEFAULT 0,
+        sync_source       TEXT DEFAULT 'local'
+      );
+      CREATE INDEX IF NOT EXISTS idx_date_plans_user ON date_plans(user_id);
+      CREATE INDEX IF NOT EXISTS idx_date_plans_source_event ON date_plans(source_event_id);
+      CREATE INDEX IF NOT EXISTS idx_date_plans_sync ON date_plans(sync_status);
+
+      PRAGMA user_version = 7;
+    `);
+  }
 }
 
 // ─── Generic CRUD ───────────────────────────────────────────────────
@@ -752,6 +802,203 @@ const Database = {
       [coupleId, userId]
     );
     return row?.count || 0;
+  },
+
+  // ─── Calendar Events ───────────────────────────────────────────
+
+  async upsertCalendarEvent(entry, { syncStatus = 'pending', syncSource = 'local' } = {}) {
+    const db = await getDb();
+    const existing = entry.id ? await this.getCalendarEventById(entry.id) : null;
+    const id = entry.id || makeId('cal');
+    const ts = entry.updated_at || now();
+    const createdAt = existing?.created_at || entry.created_at || ts;
+
+    await db.runAsync(
+      `INSERT OR REPLACE INTO calendar_events_local
+         (id, user_id, couple_id, title_cipher, location_cipher, notes_cipher,
+          event_type, when_ts, is_date_night, notify, notify_mins, notification_id,
+          metadata_cipher, created_at, updated_at, deleted_at,
+          sync_status, sync_version, sync_source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        entry.user_id,
+        entry.couple_id ?? null,
+        entry.title_cipher ?? null,
+        entry.location_cipher ?? null,
+        entry.notes_cipher ?? null,
+        entry.event_type ?? 'general',
+        entry.when_ts,
+        entry.is_date_night ? 1 : 0,
+        entry.notify ? 1 : 0,
+        entry.notify_mins ?? 60,
+        entry.notification_id ?? null,
+        entry.metadata_cipher ?? null,
+        createdAt,
+        ts,
+        entry.deleted_at ?? null,
+        syncStatus,
+        entry.sync_version ?? (existing?.sync_version ?? 0),
+        syncSource,
+      ]
+    );
+
+    return { id, created_at: createdAt, updated_at: ts };
+  },
+
+  async getCalendarEvents(userId, { limit = 1000 } = {}) {
+    const db = await getDb();
+    return db.getAllAsync(
+      `SELECT * FROM calendar_events_local
+       WHERE user_id = ? AND deleted_at IS NULL
+       ORDER BY when_ts ASC LIMIT ?`,
+      [userId, limit]
+    );
+  },
+
+  async getPendingCalendarEvents(userId, { limit = 200 } = {}) {
+    const db = await getDb();
+    return db.getAllAsync(
+      `SELECT * FROM calendar_events_local
+       WHERE user_id = ?
+         AND sync_status = 'pending'
+       ORDER BY updated_at ASC LIMIT ?`,
+      [userId, limit]
+    );
+  },
+
+  async getCalendarEventById(id) {
+    const db = await getDb();
+    return db.getFirstAsync(
+      'SELECT * FROM calendar_events_local WHERE id = ? AND deleted_at IS NULL',
+      [id]
+    );
+  },
+
+  async softDeleteCalendarEvent(id) {
+    const db = await getDb();
+    const ts = now();
+    await db.runAsync(
+      `UPDATE calendar_events_local
+       SET deleted_at = ?, updated_at = ?, sync_status = 'pending', sync_version = sync_version + 1
+       WHERE id = ?`,
+      [ts, ts, id]
+    );
+  },
+
+  async markCalendarEventSynced(id, { syncSource = 'remote' } = {}) {
+    const db = await getDb();
+    await db.runAsync(
+      `UPDATE calendar_events_local
+       SET sync_status = 'synced', sync_source = ?
+       WHERE id = ?`,
+      [syncSource, id]
+    );
+  },
+
+  async replaceCalendarEventId(oldId, newId) {
+    const db = await getDb();
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      await db.runAsync(
+        `UPDATE calendar_events_local
+         SET id = ?, sync_source = 'remote', sync_status = 'synced'
+         WHERE id = ?`,
+        [newId, oldId]
+      );
+      await db.runAsync(
+        `UPDATE date_plans
+         SET source_event_id = ?, sync_source = 'remote', sync_status = 'synced'
+         WHERE source_event_id = ?`,
+        [newId, oldId]
+      );
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  },
+
+  // ─── Date Plans ────────────────────────────────────────────────
+
+  async upsertDatePlan(entry, { syncStatus = 'pending', syncSource = 'local' } = {}) {
+    const db = await getDb();
+    const existing = entry.id ? await this.getDatePlanById(entry.id) : null;
+    const id = entry.id || makeId('dp');
+    const ts = entry.updated_at || now();
+    const createdAt = existing?.created_at || entry.created_at || ts;
+
+    await db.runAsync(
+      `INSERT OR REPLACE INTO date_plans
+         (id, user_id, couple_id, source_event_id, title_cipher, body_cipher,
+          created_at, updated_at, deleted_at, sync_status, sync_version, sync_source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        entry.user_id,
+        entry.couple_id ?? null,
+        entry.source_event_id ?? null,
+        entry.title_cipher ?? null,
+        entry.body_cipher ?? null,
+        createdAt,
+        ts,
+        entry.deleted_at ?? null,
+        syncStatus,
+        entry.sync_version ?? (existing?.sync_version ?? 0),
+        syncSource,
+      ]
+    );
+
+    return { id, created_at: createdAt, updated_at: ts };
+  },
+
+  async getDatePlans(userId, { limit = 1000 } = {}) {
+    const db = await getDb();
+    return db.getAllAsync(
+      `SELECT * FROM date_plans
+       WHERE user_id = ? AND deleted_at IS NULL
+       ORDER BY created_at DESC LIMIT ?`,
+      [userId, limit]
+    );
+  },
+
+  async getDatePlansBySourceEvent(userId, sourceEventId) {
+    const db = await getDb();
+    return db.getAllAsync(
+      `SELECT * FROM date_plans
+       WHERE user_id = ? AND source_event_id = ? AND deleted_at IS NULL
+       ORDER BY created_at DESC`,
+      [userId, sourceEventId]
+    );
+  },
+
+  async getDatePlanById(id) {
+    const db = await getDb();
+    return db.getFirstAsync(
+      'SELECT * FROM date_plans WHERE id = ? AND deleted_at IS NULL',
+      [id]
+    );
+  },
+
+  async softDeleteDatePlan(id) {
+    const db = await getDb();
+    const ts = now();
+    await db.runAsync(
+      `UPDATE date_plans
+       SET deleted_at = ?, updated_at = ?, sync_status = 'pending', sync_version = sync_version + 1
+       WHERE id = ?`,
+      [ts, ts, id]
+    );
+  },
+
+  async markDatePlansSyncedBySourceEvent(sourceEventId, { syncSource = 'remote' } = {}) {
+    const db = await getDb();
+    await db.runAsync(
+      `UPDATE date_plans
+       SET sync_status = 'synced', sync_source = ?
+       WHERE source_event_id = ?`,
+      [syncSource, sourceEventId]
+    );
   },
 
   // ─── Sync helpers ───────────────────────────────────────────────

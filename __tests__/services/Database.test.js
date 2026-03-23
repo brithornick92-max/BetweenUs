@@ -218,4 +218,25 @@ describe('Database', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('Calendar helpers', () => {
+    beforeEach(async () => {
+      await Database.init();
+      jest.clearAllMocks();
+    });
+
+    it('getPendingCalendarEvents queries pending calendar rows for a user', async () => {
+      mockAllAsync.mockResolvedValueOnce([{ id: 'cal_1', sync_status: 'pending' }]);
+      const result = await Database.getPendingCalendarEvents('user-1', { limit: 25 });
+      expect(mockAllAsync).toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+    });
+
+    it('replaceCalendarEventId updates calendar and linked date plans in one transaction', async () => {
+      await Database.replaceCalendarEventId('cal_local_1', '55555555-5555-4555-8555-555555555555');
+      expect(mockExecAsync).toHaveBeenCalledWith('BEGIN TRANSACTION;');
+      expect(mockRunAsync).toHaveBeenCalledTimes(2);
+      expect(mockExecAsync).toHaveBeenCalledWith('COMMIT;');
+    });
+  });
 });

@@ -31,9 +31,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useAppContext } from '../context/AppContext';
-import { calendarStorage, myDatesStorage } from '../utils/storage';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
-import { supabase, TABLES } from '../config/supabase';
+import DataLayer from '../services/data/DataLayer';
 import { SPACING, withAlpha } from '../utils/theme';
 import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -222,10 +221,9 @@ export default function CalendarScreen({ navigation, route }) {
   const { colors, isDark }                            = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { state: appState }                           = useAppContext();
-  const { coupleId, userId }                          = appState;
+  const { coupleId }                                  = appState;
 
   const [events,       setEvents]       = useState([]);
-  const [myDates,      setMyDates]      = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [refreshing,   setRefreshing]   = useState(false);
   const [modalOpen,    setModalOpen]    = useState(false);
@@ -258,57 +256,9 @@ export default function CalendarScreen({ navigation, route }) {
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const loadEvents = async () => {
-    const [localList, dates] = await Promise.all([
-      calendarStorage.getEvents(),
-      myDatesStorage.getMyDates(),
-    ]);
-    let safe = Array.isArray(localList) ? localList : [];
-
-    if (supabase && coupleId) {
-      try {
-        const { data: remoteEvents, error } = await supabase
-          .from(TABLES.CALENDAR_EVENTS)
-          .select('*')
-          .eq('couple_id', coupleId)
-          .order('event_date', { ascending: true });
-
-        if (!error && Array.isArray(remoteEvents)) {
-          const mapped = remoteEvents.map(r => ({
-            id: r.id,
-            title: r.title,
-            location: r.location || '',
-            notes: r.description || '',
-            eventType: r.event_type || 'general',
-            isDateNight: r.event_type === 'dateNight' || r.event_type === 'date_night',
-            whenTs: new Date(r.event_date).getTime(),
-            createdBy: r.created_by,
-            isRemote: true,
-            metadata: r.metadata || {},
-          }));
-          const remoteIds = new Set(mapped.map(e => e.id));
-          const localOnly = safe.filter(e => !remoteIds.has(e.id) && !e.supabaseId);
-          safe = [...mapped, ...localOnly];
-
-          // Restore myDates that live in Supabase metadata but not in local storage
-          const localMyDates = await myDatesStorage.getMyDates();
-          const localMyDateSourceIds = new Set(localMyDates.map(d => d.sourceEventId));
-          for (const r of remoteEvents) {
-            const myDateData = r.metadata?.myDateData;
-            if (myDateData && !localMyDateSourceIds.has(r.id)) {
-              await myDatesStorage.addMyDate({
-                ...myDateData,
-                title: r.title,
-                sourceEventId: r.id,
-                id: `md_${r.id}`,
-              });
-            }
-          }
-        }
-      } catch (err) {}
-    }
+    const safe = await DataLayer.refreshCalendarEventsFromRemote({ limit: 5000 }).catch(() => []);
 
     setEvents(safe.sort((a, b) => (a.whenTs || 0) - (b.whenTs || 0)));
-    setMyDates(Array.isArray(dates) ? dates : []);
   };
 
   useFocusEffect(
@@ -356,17 +306,8 @@ export default function CalendarScreen({ navigation, route }) {
   );
 
   useEffect(() => {
-    if (!supabase || !coupleId) return;
-    const channel = supabase
-      .channel(`calendar_${coupleId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: TABLES.CALENDAR_EVENTS, filter: `couple_id=eq.${coupleId}` },
-        () => loadEvents()
-      )
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
+    if (!coupleId) return;
+    return DataLayer.subscribeCalendarEvents(() => loadEvents());
   }, [coupleId]);
 
   const onRefresh = async () => {
@@ -404,62 +345,13 @@ export default function CalendarScreen({ navigation, route }) {
         } catch (notifErr) {}
       }
 
-      const eventData = { ...form, whenTs, notificationId, eventType: form.eventType };
-      let supabaseId = null;
-
-      if (supabase && coupleId && userId) {
-        try {
-          const { data: inserted, error } = await supabase
-            .from(TABLES.CALENDAR_EVENTS)
-            .insert({
-              couple_id: coupleId,
-              title: form.title.trim(),
-              description: form.notes || null,
-              event_date: new Date(whenTs).toISOString(),
-              event_type: form.eventType || 'general',
-              location: form.location || null,
-              metadata: {
-                isDateNight: form.isDateNight,
-                notify: form.notify,
-                notifyMins: form.notifyMins,
-                notificationId,
-                // Persist date-night activity data in Supabase for cross-device access
-                ...(form.isDateNight || form.eventType === 'dateNight' ? {
-                  myDateData: {
-                    locationType: form.location ? 'out' : 'home',
-                    heat: 2,
-                    load: 2,
-                    style: 'mixed',
-                    steps: form.notes ? [form.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
-                  },
-                } : {}),
-              },
-              created_by: userId,
-            })
-            .select('id')
-            .single();
-
-          if (!error && inserted) supabaseId = inserted.id;
-        } catch (syncErr) {}
-      }
-
-      const savedEvent = await calendarStorage.addEvent({
-        ...eventData,
-        ...(supabaseId ? { id: supabaseId, supabaseId } : {}),
+      await DataLayer.createCalendarEvent({
+        ...form,
+        title: form.title.trim(),
+        whenTs,
+        notificationId,
+        eventType: form.eventType,
       });
-
-      if (form.isDateNight || form.eventType === 'dateNight') {
-        const myDateEntry = {
-          title: form.title,
-          locationType: form.location ? 'out' : 'home',
-          heat: 2,
-          load: 2,
-          style: 'mixed',
-          steps: form.notes ? [form.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
-          sourceEventId: savedEvent?.id,
-        };
-        await myDatesStorage.addMyDate(myDateEntry);
-      }
 
       notification(NotificationFeedbackType.Success);
       setModalOpen(false);
@@ -569,15 +461,10 @@ export default function CalendarScreen({ navigation, route }) {
                             style: 'destructive',
                             onPress: async () => {
                               if (event.notificationId) await cancelNotification(event.notificationId);
-                              if (supabase && (event.isRemote || event.supabaseId)) {
-                                try {
-                                  await supabase
-                                    .from(TABLES.CALENDAR_EVENTS)
-                                    .delete()
-                                    .eq('id', event.supabaseId || event.id);
-                                } catch (err) {}
-                              }
-                              await calendarStorage.deleteEvent(event.id);
+                              await DataLayer.deleteCalendarEvent(event.id, {
+                                deleteRemote: !!(event.isRemote || event.supabaseId),
+                                remoteId: event.supabaseId || event.id,
+                              });
                               loadEvents();
                             },
                           },

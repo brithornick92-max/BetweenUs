@@ -27,6 +27,12 @@ jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => 'mock-uuid-' + Math.random().toString(36).slice(2)),
 }));
 
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn().mockResolvedValue(null),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock Supabase
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => ({

@@ -30,6 +30,7 @@ import { useAuth } from "../context/AuthContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import DataLayer from "../services/data/DataLayer";
 import { SPACING, withAlpha } from "../utils/theme";
+import { getMyDisplayName } from '../utils/profileNames';
 
 const { width: screenWidth } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -131,7 +132,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
         text: text.trim() || null,
         imageUri: imageUri || null,
         stationeryId: selectedStationery.id,
-        senderName: userProfile?.partnerNames?.myName || userProfile?.displayName || userProfile?.name || null,
+        senderName: getMyDisplayName(userProfile, state?.userProfile, null),
         invisibleInk,
       });
       navigation.goBack();

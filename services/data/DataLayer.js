@@ -24,14 +24,101 @@ import Database from '../db/Database';
 import E2EEncryption from '../e2ee/E2EEncryption';
 import EncryptedAttachments from '../e2ee/EncryptedAttachments';
 import SyncEngine from '../sync/SyncEngine';
-import { storage, promptStorage, journalStorage } from '../../utils/storage';
+import { storage, promptStorage, journalStorage, STORAGE_KEYS } from '../../utils/storage';
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
 let _userId = null;
 let _coupleId = null;
 let _coupleKeyAvailable = false;
+let _calendarChannel = null;
 const legacyMigrationKey = (userId) => `@betweenus:legacyDataMigrated:${userId}`;
+const legacyCalendarMigrationKey = (userId) => `@betweenus:legacyCalendarMigrated:${userId}`;
+
+function getSupabaseConfigSync() {
+  try {
+    return require('../../config/supabase');
+  } catch {
+    return { supabase: null, TABLES: {} };
+  }
+}
+
+function buildCalendarMetadata(event) {
+  return {
+    ...(event?.metadata || {}),
+    isDateNight: !!(event?.isDateNight || event?.eventType === 'dateNight'),
+    notify: !!event?.notify,
+    notifyMins: Number(event?.notifyMins ?? 60) || 60,
+    notificationId: event?.notificationId || null,
+  };
+}
+
+function buildDatePlanFromEvent(event, sourceEventId) {
+  if (!(event?.isDateNight || event?.eventType === 'dateNight')) {
+    return null;
+  }
+
+  return {
+    title: event?.title || '',
+    locationType: event?.location ? 'out' : 'home',
+    heat: 2,
+    load: 2,
+    style: 'mixed',
+    steps: event?.notes ? [event.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
+    sourceEventId,
+  };
+}
+
+function mapRemoteCalendarRow(remoteRow) {
+  return {
+    id: remoteRow.id,
+    title: remoteRow.title,
+    location: remoteRow.location || '',
+    notes: remoteRow.description || '',
+    eventType: remoteRow.event_type || 'general',
+    isDateNight: remoteRow.event_type === 'dateNight' || remoteRow.event_type === 'date_night' || !!remoteRow.metadata?.isDateNight,
+    whenTs: new Date(remoteRow.event_date).getTime(),
+    notify: !!remoteRow.metadata?.notify,
+    notifyMins: Number(remoteRow.metadata?.notifyMins ?? 60) || 60,
+    notificationId: remoteRow.metadata?.notificationId || null,
+    metadata: remoteRow.metadata || {},
+    createdAt: remoteRow.created_at || Date.now(),
+    updatedAt: remoteRow.updated_at || remoteRow.created_at || Date.now(),
+  };
+}
+
+function isUuid(value) {
+  return typeof value === 'string'
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function serializeDatePlanForMetadata(plan) {
+  if (!plan) return null;
+  return {
+    locationType: plan.locationType || 'home',
+    heat: plan.heat ?? 2,
+    load: plan.load ?? 2,
+    style: plan.style || 'mixed',
+    steps: Array.isArray(plan.steps) ? plan.steps : [],
+  };
+}
+
+async function readLegacyEncryptedList(storageKey, sortFn) {
+  try {
+    const raw = await storage.get(storageKey, null);
+    if (!raw) return [];
+    if (Array.isArray(raw)) {
+      return sortFn ? [...raw].sort(sortFn) : raw;
+    }
+
+    const { default: EncryptionService } = await import('../../services/EncryptionService');
+    const decrypted = await EncryptionService.decryptJson(raw);
+    const list = Array.isArray(decrypted) ? decrypted : [];
+    return sortFn ? list.sort(sortFn) : list;
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Determine the key tier for encryption.
@@ -127,103 +214,183 @@ const DataLayer = {
    * export/read flows that now use DataLayer exclusively.
    */
   async migrateLegacyStorage() {
-    if (!_userId) return { migratedPrompts: 0, migratedJournals: 0, skipped: true };
+    if (!_userId) {
+      return {
+        migratedPrompts: 0,
+        migratedJournals: 0,
+        migratedCalendarEvents: 0,
+        migratedDatePlans: 0,
+        skipped: true,
+      };
+    }
 
     const markerKey = legacyMigrationKey(_userId);
-    const alreadyMigrated = await storage.get(markerKey, false);
-    if (alreadyMigrated) {
-      return { migratedPrompts: 0, migratedJournals: 0, skipped: true };
+    const calendarMarkerKey = legacyCalendarMigrationKey(_userId);
+    const [alreadyMigrated, alreadyMigratedCalendar] = await Promise.all([
+      storage.get(markerKey, false),
+      storage.get(calendarMarkerKey, false),
+    ]);
+    if (alreadyMigrated && alreadyMigratedCalendar) {
+      return {
+        migratedPrompts: 0,
+        migratedJournals: 0,
+        migratedCalendarEvents: 0,
+        migratedDatePlans: 0,
+        skipped: true,
+      };
     }
 
     let migratedPrompts = 0;
     let migratedJournals = 0;
+    let migratedCalendarEvents = 0;
+    let migratedDatePlans = 0;
 
     try {
       const kt = keyTier();
       const cid = kt === 'couple' ? _coupleId : null;
 
-      const legacyPrompts = await promptStorage.getAll();
-      for (const [dk, byDate] of Object.entries(legacyPrompts || {})) {
-        for (const [promptId, payload] of Object.entries(byDate || {})) {
-          const answer = payload?.answer || payload?.content;
-          if (!answer || !String(answer).trim()) continue;
+      if (!alreadyMigrated) {
+        const legacyPrompts = await promptStorage.getAll();
+        for (const [dk, byDate] of Object.entries(legacyPrompts || {})) {
+          for (const [promptId, payload] of Object.entries(byDate || {})) {
+            const answer = payload?.answer || payload?.content;
+            if (!answer || !String(answer).trim()) continue;
 
-          const existing = await Database.getPromptAnswerByPromptAndDate(_userId, String(promptId), dk);
+            const existing = await Database.getPromptAnswerByPromptAndDate(_userId, String(promptId), dk);
+            if (existing) continue;
+
+            const heatLevel = Number(payload?.heatLevel ?? payload?.heat_level ?? 1) || 1;
+            const answerCipher = await E2EEncryption.encryptString(answer, kt, cid);
+            const heatCipher = await E2EEncryption.encryptString(String(heatLevel), kt, cid);
+
+            await Database.insertPromptAnswer({
+              id: payload?.id,
+              user_id: _userId,
+              couple_id: _coupleId,
+              prompt_id: String(promptId),
+              date_key: dk,
+              answer_cipher: answerCipher,
+              heat_level: heatLevel,
+              heat_level_cipher: heatCipher,
+              is_revealed: !!(payload?.isRevealed ?? payload?.is_revealed),
+              reveal_at: payload?.revealAt
+                ? new Date(payload.revealAt).toISOString()
+                : (payload?.reveal_at ?? null),
+              created_at: payload?.timestamp
+                ? new Date(payload.timestamp).toISOString()
+                : undefined,
+            });
+            migratedPrompts += 1;
+          }
+        }
+
+        const legacyJournals = await journalStorage.getEntries();
+        for (const entry of legacyJournals || []) {
+          if (!entry?.id) continue;
+
+          const existing = await Database.getJournalById(entry.id);
           if (existing) continue;
 
-          const heatLevel = Number(payload?.heatLevel ?? payload?.heat_level ?? 1) || 1;
-          const answerCipher = await E2EEncryption.encryptString(answer, kt, cid);
-          const heatCipher = await E2EEncryption.encryptString(String(heatLevel), kt, cid);
+          const title = entry?.title || '';
+          const body = entry?.body || entry?.content || '';
+          if (!title.trim() && !body.trim()) continue;
 
-          await Database.insertPromptAnswer({
-            id: payload?.id,
+          const isPrivate = entry?.isPrivate === true
+            ? true
+            : entry?.isShared === true
+              ? false
+              : true;
+          const journalKt = isPrivate ? deviceTier() : keyTier();
+          const journalCid = journalKt === 'couple' ? _coupleId : null;
+
+          const titleCipher = await E2EEncryption.encryptString(title, journalKt, journalCid);
+          const bodyCipher = await E2EEncryption.encryptString(body, journalKt, journalCid);
+          const moodCipher = entry?.mood
+            ? await E2EEncryption.encryptString(entry.mood, journalKt, journalCid)
+            : null;
+
+          await Database.insertJournal({
+            id: entry.id,
             user_id: _userId,
-            couple_id: _coupleId,
-            prompt_id: String(promptId),
-            date_key: dk,
-            answer_cipher: answerCipher,
-            heat_level: heatLevel,
-            heat_level_cipher: heatCipher,
-            is_revealed: !!(payload?.isRevealed ?? payload?.is_revealed),
-            reveal_at: payload?.revealAt
-              ? new Date(payload.revealAt).toISOString()
-              : (payload?.reveal_at ?? null),
-            created_at: payload?.timestamp
-              ? new Date(payload.timestamp).toISOString()
-              : undefined,
+            title_cipher: titleCipher,
+            body_cipher: bodyCipher,
+            mood: entry?.mood ?? null,
+            mood_cipher: moodCipher,
+            is_private: isPrivate,
+            created_at: entry?.createdAt ? new Date(entry.createdAt).toISOString() : undefined,
           });
-          migratedPrompts += 1;
+          migratedJournals += 1;
         }
+
+        await storage.set(markerKey, true);
       }
 
-      const legacyJournals = await journalStorage.getEntries();
-      for (const entry of legacyJournals || []) {
-        if (!entry?.id) continue;
+      if (!alreadyMigratedCalendar) {
+        const [legacyCalendarEvents, legacyDatePlans] = await Promise.all([
+          readLegacyEncryptedList(STORAGE_KEYS.CALENDAR_EVENTS),
+          readLegacyEncryptedList(STORAGE_KEYS.MY_DATES, (a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
+        ]);
 
-        const existing = await Database.getJournalById(entry.id);
-        if (existing) continue;
+        for (const event of legacyCalendarEvents || []) {
+          if (!event?.id || !event?.whenTs) continue;
+          const existing = await Database.getCalendarEventById(event.id);
+          if (existing) continue;
 
-        const title = entry?.title || '';
-        const body = entry?.body || entry?.content || '';
-        if (!title.trim() && !body.trim()) continue;
+          await this.saveCalendarEvent({
+            id: event.id,
+            title: event.title || '',
+            location: event.location || '',
+            notes: event.notes || '',
+            whenTs: event.whenTs,
+            eventType: event.eventType || (event.isDateNight ? 'dateNight' : 'general'),
+            isDateNight: !!event.isDateNight,
+            notify: !!event.notify,
+            notifyMins: Number(event.notifyMins ?? 60) || 60,
+            notificationId: event.notificationId || null,
+            metadata: event.metadata || {},
+            createdAt: event.createdAt || event.updatedAt || Date.now(),
+            updatedAt: event.updatedAt || event.createdAt || Date.now(),
+          }, { syncSource: event.isRemote ? 'remote' : 'local', markSynced: !!event.isRemote || !!event.supabaseId });
+          migratedCalendarEvents += 1;
+        }
 
-        const isPrivate = entry?.isPrivate === true
-          ? true
-          : entry?.isShared === true
-            ? false
-            : true;
-        const journalKt = isPrivate ? deviceTier() : keyTier();
-        const journalCid = journalKt === 'couple' ? _coupleId : null;
+        for (const plan of legacyDatePlans || []) {
+          if (!plan?.id) continue;
+          const existing = await Database.getDatePlanById(plan.id);
+          if (existing) continue;
 
-        const titleCipher = await E2EEncryption.encryptString(title, journalKt, journalCid);
-        const bodyCipher = await E2EEncryption.encryptString(body, journalKt, journalCid);
-        const moodCipher = entry?.mood
-          ? await E2EEncryption.encryptString(entry.mood, journalKt, journalCid)
-          : null;
+          await this.saveDatePlan({
+            ...plan,
+            createdAt: plan.createdAt || Date.now(),
+            updatedAt: plan.updatedAt || plan.createdAt || Date.now(),
+          }, { syncSource: plan.sourceEventId ? 'remote' : 'local', markSynced: !!plan.sourceEventId });
+          migratedDatePlans += 1;
+        }
 
-        await Database.insertJournal({
-          id: entry.id,
-          user_id: _userId,
-          title_cipher: titleCipher,
-          body_cipher: bodyCipher,
-          mood: entry?.mood ?? null,
-          mood_cipher: moodCipher,
-          is_private: isPrivate,
-          created_at: entry?.createdAt ? new Date(entry.createdAt).toISOString() : undefined,
-        });
-        migratedJournals += 1;
+        await storage.set(calendarMarkerKey, true);
       }
 
-      await storage.set(markerKey, true);
-
-      if (migratedPrompts || migratedJournals) {
+      if (migratedPrompts || migratedJournals || migratedCalendarEvents || migratedDatePlans) {
         debouncedPush();
       }
 
-      return { migratedPrompts, migratedJournals, skipped: false };
+      return {
+        migratedPrompts,
+        migratedJournals,
+        migratedCalendarEvents,
+        migratedDatePlans,
+        skipped: false,
+      };
     } catch (error) {
       console.warn('[DataLayer] Legacy migration failed:', error?.message);
-      return { migratedPrompts, migratedJournals, skipped: false, error: error?.message };
+      return {
+        migratedPrompts,
+        migratedJournals,
+        migratedCalendarEvents,
+        migratedDatePlans,
+        skipped: false,
+        error: error?.message,
+      };
     }
   },
 
@@ -250,6 +417,13 @@ const DataLayer = {
     _userId = null;
     _coupleId = null;
     _coupleKeyAvailable = false;
+    const { supabase } = getSupabaseConfigSync();
+    if (_calendarChannel && supabase) {
+      try {
+        supabase.removeChannel(_calendarChannel);
+      } catch {}
+    }
+    _calendarChannel = null;
     E2EEncryption.clearCache();
     await SyncEngine.reset();
   },
@@ -620,6 +794,405 @@ const DataLayer = {
       };
     } catch {
       return { ...row, note: null, locked: true };
+    }
+  },
+
+  // ─── Calendar Events ──────────────────────────────────────────
+
+  async saveCalendarEvent(event, { syncSource = 'local', markSynced = false } = {}) {
+    const kt = keyTier();
+    const cid = kt === 'couple' ? _coupleId : null;
+    const titleCipher = await E2EEncryption.encryptString(event?.title || '', kt, cid);
+    const locationCipher = await E2EEncryption.encryptString(event?.location || '', kt, cid);
+    const notesCipher = await E2EEncryption.encryptString(event?.notes || '', kt, cid);
+    const metadataCipher = await E2EEncryption.encryptJson(event?.metadata || {}, kt, cid);
+    const createdAtIso = new Date(event?.createdAt || Date.now()).toISOString();
+    const updatedAtIso = new Date(event?.updatedAt || Date.now()).toISOString();
+
+    const row = await Database.upsertCalendarEvent({
+      id: event?.id,
+      user_id: _userId,
+      couple_id: _coupleId,
+      title_cipher: titleCipher,
+      location_cipher: locationCipher,
+      notes_cipher: notesCipher,
+      event_type: event?.eventType || 'general',
+      when_ts: event?.whenTs,
+      is_date_night: !!(event?.isDateNight || event?.eventType === 'dateNight'),
+      notify: !!event?.notify,
+      notify_mins: Number(event?.notifyMins ?? 60) || 60,
+      notification_id: event?.notificationId || null,
+      metadata_cipher: metadataCipher,
+      created_at: createdAtIso,
+      updated_at: updatedAtIso,
+    }, {
+      syncStatus: markSynced ? 'synced' : 'pending',
+      syncSource,
+    });
+
+    return row;
+  },
+
+  async refreshCalendarEventsFromRemote({ limit = 5000 } = {}) {
+    await this.pushPendingCalendarEvents();
+
+    const { supabase, TABLES } = getSupabaseConfigSync();
+
+    if (supabase && _coupleId) {
+      try {
+        const { data: remoteEvents, error } = await supabase
+          .from(TABLES.CALENDAR_EVENTS)
+          .select('*')
+          .eq('couple_id', _coupleId)
+          .order('event_date', { ascending: true });
+
+        if (!error && Array.isArray(remoteEvents)) {
+          for (const remoteRow of remoteEvents) {
+            const mappedEvent = mapRemoteCalendarRow(remoteRow);
+            await this.saveCalendarEvent(mappedEvent, { syncSource: 'remote', markSynced: true });
+
+            const myDateData = remoteRow.metadata?.myDateData;
+            if (myDateData) {
+              const existingPlans = await Database.getDatePlansBySourceEvent(_userId, remoteRow.id);
+              await this.saveDatePlan({
+                ...myDateData,
+                title: remoteRow.title,
+                sourceEventId: remoteRow.id,
+                id: existingPlans?.[0]?.id || `md_${remoteRow.id}`,
+                createdAt: remoteRow.created_at || Date.now(),
+                updatedAt: remoteRow.updated_at || remoteRow.created_at || Date.now(),
+              }, { syncSource: 'remote', markSynced: true });
+            }
+          }
+
+          const remoteIds = new Set(remoteEvents.map((row) => row.id));
+          const existingEvents = await this.getCalendarEvents({ limit });
+          for (const event of existingEvents || []) {
+            if (event?.isRemote && !remoteIds.has(event.id)) {
+              await this.deleteCalendarEvent(event.id);
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('[DataLayer] Calendar remote refresh failed:', error?.message);
+      }
+    }
+
+    return this.getCalendarEvents({ limit });
+  },
+
+  async pushPendingCalendarEvents({ limit = 200 } = {}) {
+    const { supabase, TABLES } = getSupabaseConfigSync();
+    if (!supabase || !_coupleId || !_userId) {
+      return { pushed: 0, deleted: 0, failed: 0 };
+    }
+
+    const pendingRows = await Database.getPendingCalendarEvents(_userId, { limit });
+    let pushed = 0;
+    let deleted = 0;
+    let failed = 0;
+
+    for (const row of pendingRows || []) {
+      try {
+        if (row.deleted_at) {
+          if (isUuid(row.id)) {
+            const { error } = await supabase
+              .from(TABLES.CALENDAR_EVENTS)
+              .delete()
+              .eq('id', row.id);
+            if (error) throw error;
+          }
+          await Database.markCalendarEventSynced(row.id, { syncSource: isUuid(row.id) ? 'remote' : 'local' });
+          await Database.markDatePlansSyncedBySourceEvent(row.id, { syncSource: isUuid(row.id) ? 'remote' : 'local' });
+          deleted += 1;
+          continue;
+        }
+
+        const event = await this._decryptCalendarEvent(row);
+        const linkedPlans = await Database.getDatePlansBySourceEvent(_userId, row.id);
+        const primaryPlan = linkedPlans?.[0] ? await this._decryptDatePlan(linkedPlans[0]) : null;
+        const metadata = {
+          ...buildCalendarMetadata(event),
+          ...(primaryPlan ? { myDateData: serializeDatePlanForMetadata(primaryPlan) } : {}),
+        };
+
+        if (isUuid(row.id)) {
+          const { error } = await supabase
+            .from(TABLES.CALENDAR_EVENTS)
+            .update({
+              title: event.title,
+              description: event.notes || null,
+              event_date: new Date(event.whenTs).toISOString(),
+              event_type: event.eventType || 'general',
+              location: event.location || null,
+              metadata,
+            })
+            .eq('id', row.id);
+          if (error) throw error;
+
+          await Database.markCalendarEventSynced(row.id, { syncSource: 'remote' });
+          await Database.markDatePlansSyncedBySourceEvent(row.id, { syncSource: 'remote' });
+          pushed += 1;
+          continue;
+        }
+
+        const { data: inserted, error } = await supabase
+          .from(TABLES.CALENDAR_EVENTS)
+          .insert({
+            couple_id: _coupleId,
+            title: event.title,
+            description: event.notes || null,
+            event_date: new Date(event.whenTs).toISOString(),
+            event_type: event.eventType || 'general',
+            location: event.location || null,
+            metadata,
+            created_by: _userId,
+          })
+          .select('id')
+          .single();
+        if (error || !inserted?.id) throw error || new Error('Calendar remote insert failed');
+
+        await Database.replaceCalendarEventId(row.id, inserted.id);
+        pushed += 1;
+      } catch (error) {
+        console.warn('[DataLayer] Pending calendar push failed:', error?.message);
+        failed += 1;
+      }
+    }
+
+    return { pushed, deleted, failed };
+  },
+
+  async createCalendarEvent(event) {
+    const { supabase, TABLES } = getSupabaseConfigSync();
+    const metadata = buildCalendarMetadata(event);
+    let remoteId = event?.id || null;
+    let remoteSynced = false;
+
+    if (supabase && _coupleId && _userId) {
+      try {
+        const { data: inserted, error } = await supabase
+          .from(TABLES.CALENDAR_EVENTS)
+          .insert({
+            couple_id: _coupleId,
+            title: event?.title?.trim(),
+            description: event?.notes || null,
+            event_date: new Date(event.whenTs).toISOString(),
+            event_type: event?.eventType || 'general',
+            location: event?.location || null,
+            metadata: {
+              ...metadata,
+              ...(buildDatePlanFromEvent(event, null)
+                ? { myDateData: buildDatePlanFromEvent(event, null) }
+                : {}),
+            },
+            created_by: _userId,
+          })
+          .select('id')
+          .single();
+
+        if (!error && inserted?.id) {
+          remoteId = inserted.id;
+          remoteSynced = true;
+        }
+      } catch (error) {
+        console.warn('[DataLayer] Calendar remote create failed:', error?.message);
+      }
+    }
+
+    const savedEvent = await this.saveCalendarEvent({
+      ...event,
+      id: remoteId || undefined,
+      metadata,
+    }, {
+      syncSource: remoteSynced ? 'remote' : 'local',
+      markSynced: remoteSynced,
+    });
+
+    const datePlan = buildDatePlanFromEvent(event, savedEvent?.id);
+    if (datePlan) {
+      await this.saveDatePlan(datePlan, {
+        syncSource: remoteSynced ? 'remote' : 'local',
+        markSynced: remoteSynced,
+      });
+    }
+
+    return { ...savedEvent, remoteSynced };
+  },
+
+  async getCalendarEvents({ limit = 1000 } = {}) {
+    const rows = await Database.getCalendarEvents(_userId, { limit });
+    return Promise.all((rows || []).map(r => this._decryptCalendarEvent(r)));
+  },
+
+  async deleteCalendarEvent(id, { deleteRemote = false, remoteId } = {}) {
+    const { supabase, TABLES } = getSupabaseConfigSync();
+    const linkedPlans = await Database.getDatePlansBySourceEvent(_userId, id);
+
+    if (deleteRemote && supabase) {
+      try {
+        const { error } = await supabase
+          .from(TABLES.CALENDAR_EVENTS)
+          .delete()
+          .eq('id', remoteId || id);
+        if (error) {
+          throw error;
+        }
+      } catch (error) {
+        console.warn('[DataLayer] Calendar remote delete failed:', error?.message);
+        throw error;
+      }
+    }
+
+    await Database.softDeleteCalendarEvent(id);
+    for (const plan of linkedPlans || []) {
+      await Database.softDeleteDatePlan(plan.id);
+    }
+
+    if (deleteRemote && isUuid(remoteId || id)) {
+      await Database.markCalendarEventSynced(id, { syncSource: 'remote' });
+      await Database.markDatePlansSyncedBySourceEvent(id, { syncSource: 'remote' });
+    }
+  },
+
+  subscribeCalendarEvents(onChange) {
+    const { supabase, TABLES } = getSupabaseConfigSync();
+    if (!supabase || !_coupleId) {
+      return () => {};
+    }
+
+    if (_calendarChannel) {
+      try {
+        supabase.removeChannel(_calendarChannel);
+      } catch {}
+      _calendarChannel = null;
+    }
+
+    _calendarChannel = supabase
+      .channel(`calendar_${_coupleId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: TABLES.CALENDAR_EVENTS, filter: `couple_id=eq.${_coupleId}` },
+        async () => {
+          await this.refreshCalendarEventsFromRemote();
+          onChange?.();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (_calendarChannel && supabase) {
+        try {
+          supabase.removeChannel(_calendarChannel);
+        } catch {}
+        _calendarChannel = null;
+      }
+    };
+  },
+
+  async _decryptCalendarEvent(row) {
+    if (!row) return null;
+    const info = E2EEncryption.inspect(row.title_cipher);
+    const kt = info?.keyTier || keyTier();
+    const cid = kt === 'couple' ? _coupleId : null;
+    try {
+      const metadata = row.metadata_cipher
+        ? await E2EEncryption.decryptJson(row.metadata_cipher, kt, cid)
+        : {};
+      return {
+        id: row.id,
+        title: await E2EEncryption.decryptString(row.title_cipher, kt, cid),
+        location: row.location_cipher
+          ? await E2EEncryption.decryptString(row.location_cipher, kt, cid)
+          : '',
+        notes: row.notes_cipher
+          ? await E2EEncryption.decryptString(row.notes_cipher, kt, cid)
+          : '',
+        eventType: row.event_type || 'general',
+        isDateNight: !!row.is_date_night,
+        whenTs: Number(row.when_ts),
+        notify: !!row.notify,
+        notifyMins: Number(row.notify_mins ?? 60) || 60,
+        notificationId: row.notification_id || null,
+        metadata: metadata || {},
+        createdAt: row.created_at ? new Date(row.created_at).getTime() : null,
+        updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : null,
+        isRemote: row.sync_source === 'remote',
+        supabaseId: row.sync_source === 'remote' ? row.id : null,
+      };
+    } catch (err) {
+      console.warn('[DataLayer] Calendar event decryption failed:', err?.message);
+      return { ...row, title: null, location: '', notes: '', metadata: {}, locked: true };
+    }
+  },
+
+  // ─── Date Plans ───────────────────────────────────────────────
+
+  async saveDatePlan(plan, { syncSource = 'local', markSynced = false } = {}) {
+    const kt = keyTier();
+    const cid = kt === 'couple' ? _coupleId : null;
+    const titleCipher = await E2EEncryption.encryptString(plan?.title || '', kt, cid);
+    const bodyCipher = await E2EEncryption.encryptJson({
+      locationType: plan?.locationType || 'home',
+      heat: plan?.heat ?? 2,
+      load: plan?.load ?? 2,
+      style: plan?.style || 'mixed',
+      steps: Array.isArray(plan?.steps) ? plan.steps : [],
+    }, kt, cid);
+    const createdAtIso = new Date(plan?.createdAt || Date.now()).toISOString();
+    const updatedAtIso = new Date(plan?.updatedAt || Date.now()).toISOString();
+
+    const row = await Database.upsertDatePlan({
+      id: plan?.id,
+      user_id: _userId,
+      couple_id: _coupleId,
+      source_event_id: plan?.sourceEventId || null,
+      title_cipher: titleCipher,
+      body_cipher: bodyCipher,
+      created_at: createdAtIso,
+      updated_at: updatedAtIso,
+    }, {
+      syncStatus: markSynced ? 'synced' : 'pending',
+      syncSource,
+    });
+
+    return row;
+  },
+
+  async getDatePlans({ limit = 1000 } = {}) {
+    const rows = await Database.getDatePlans(_userId, { limit });
+    return Promise.all((rows || []).map(r => this._decryptDatePlan(r)));
+  },
+
+  async deleteDatePlan(id) {
+    await Database.softDeleteDatePlan(id);
+  },
+
+  async _decryptDatePlan(row) {
+    if (!row) return null;
+    const info = E2EEncryption.inspect(row.title_cipher);
+    const kt = info?.keyTier || keyTier();
+    const cid = kt === 'couple' ? _coupleId : null;
+    try {
+      const body = row.body_cipher
+        ? await E2EEncryption.decryptJson(row.body_cipher, kt, cid)
+        : {};
+      return {
+        id: row.id,
+        title: await E2EEncryption.decryptString(row.title_cipher, kt, cid),
+        sourceEventId: row.source_event_id || null,
+        locationType: body?.locationType || 'home',
+        heat: body?.heat ?? 2,
+        load: body?.load ?? 2,
+        style: body?.style || 'mixed',
+        steps: Array.isArray(body?.steps) ? body.steps : [],
+        createdAt: row.created_at ? new Date(row.created_at).getTime() : null,
+        updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : null,
+        isRemote: row.sync_source === 'remote',
+      };
+    } catch (err) {
+      console.warn('[DataLayer] Date plan decryption failed:', err?.message);
+      return { ...row, title: null, steps: [], locked: true };
     }
   },
 

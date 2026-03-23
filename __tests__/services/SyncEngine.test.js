@@ -31,7 +31,7 @@ jest.mock('../../services/e2ee/E2EEncryption', () => ({
 jest.mock('../../services/e2ee/EncryptedAttachments', () => ({
   __esModule: true,
   default: {
-    uploadPending: jest.fn().mockResolvedValue(undefined),
+    uploadAllPending: jest.fn().mockResolvedValue({ uploaded: 0, failed: 0 }),
   },
 }));
 
@@ -77,6 +77,7 @@ jest.mock('../../config/supabase', () => ({
 const SyncEngine = require('../../services/sync/SyncEngine').default;
 const Database = require('../../services/db/Database').default;
 const CrashReporting = require('../../services/CrashReporting').default;
+const EncryptedAttachments = require('../../services/e2ee/EncryptedAttachments').default;
 
 describe('SyncEngine', () => {
   beforeEach(() => {
@@ -121,6 +122,17 @@ describe('SyncEngine', () => {
 
       // The implementation throttles, so the second call should not push again
       // We just verify it doesn't throw
+    });
+
+    it('uploads pending attachments during a sync cycle', async () => {
+      SyncEngine.configure({
+        userId: 'user-1',
+        coupleId: 'couple-1',
+        isPremium: true,
+      });
+
+      await SyncEngine.sync();
+      expect(EncryptedAttachments.uploadAllPending).toHaveBeenCalled();
     });
   });
 

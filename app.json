@@ -62,6 +62,9 @@
         ]
       }
     },
+    "android": {
+      "package": "com.brittany.betweenus"
+    },
     "web": {
       "favicon": "./assets/icon.png"
     },

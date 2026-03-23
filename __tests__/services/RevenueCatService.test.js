@@ -78,6 +78,8 @@ process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY = 'test_android_key';
 const RevenueCatService = require('../../services/RevenueCatService').default;
 
 describe('RevenueCatService', () => {
+  const { Platform } = require('react-native');
+
   beforeEach(() => {
     jest.clearAllMocks();
     // Reset service state
@@ -86,6 +88,7 @@ describe('RevenueCatService', () => {
     RevenueCatService.currentUserId = null;
     RevenueCatService._offeringsUnavailable = false;
     RevenueCatService._offeringsUnavailableWarned = false;
+    Platform.OS = 'ios';
   });
 
   describe('init', () => {
@@ -118,6 +121,14 @@ describe('RevenueCatService', () => {
       }
       expect(caught).toBe(true);
       expect(RevenueCatService._configured).toBe(false);
+    });
+
+    it('selects the Android API key on Android', async () => {
+      Platform.OS = 'android';
+      await RevenueCatService.init();
+      expect(mockConfigure).toHaveBeenCalledWith(
+        expect.objectContaining({ apiKey: 'test_android_key' })
+      );
     });
   });
 

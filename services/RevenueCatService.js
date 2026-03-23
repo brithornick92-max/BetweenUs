@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 
 // ✅ Matches RevenueCat dashboard entitlement identifier exactly
@@ -29,15 +30,25 @@ class RevenueCatService {
     }
   }
 
+  getApiKey() {
+    const key = Platform.OS === 'android'
+      ? process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY
+      : process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
+    return key || null;
+  }
+
   async _doInit() {
     try {
       // Keep SDK logs quiet to avoid noisy non-fatal offerings spam
       Purchases.setLogLevel(LOG_LEVEL.WARN);
 
-      const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
+      const apiKey = this.getApiKey();
+      const missingKeyName = Platform.OS === 'android'
+        ? 'EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY'
+        : 'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY';
 
       if (!apiKey) {
-        console.warn('⚠️ RevenueCat API key missing. Set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY.');
+        console.warn(`⚠️ RevenueCat API key missing. Set ${missingKeyName}.`);
         return;
       }
 

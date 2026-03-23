@@ -38,6 +38,7 @@ import OfflineIndicator from '../components/OfflineIndicator';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { NicknameEngine, RelationshipMilestones } from '../services/PolishEngine';
+import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
@@ -218,13 +219,8 @@ export default function HomeScreen({ navigation }) {
     return 'Evening';
   }, []);
 
-  const preferredName =
-    userProfile?.partnerNames?.myName ||
-    userProfile?.displayName ||
-    user?.displayName ||
-    null;
-  let partnerLabel = userProfile?.partnerNames?.partnerName || state?.partnerLabel || 'your partner';
-  if (partnerLabel === 'A' || !partnerLabel.trim()) partnerLabel = 'your partner';
+  const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
+  const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
   const toneCopy = TONE_HOME_COPY[selectedTone] || TONE_HOME_COPY.warm;
 

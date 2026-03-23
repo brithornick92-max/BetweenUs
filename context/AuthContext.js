@@ -94,11 +94,10 @@ export const AuthProvider = ({ children }) => {
       }
       if (session) {
         await StorageRouter.setSupabaseSession(session);
-        await cloudSyncStorage.setSyncStatus({ enabled: true, email: session.user?.email || email });
-        await StorageRouter.configureSync({
-          isPremium: true,
-          syncEnabled: true,
-          supabaseSessionPresent: true,
+        const syncStatus = await cloudSyncStorage.getSyncStatus();
+        await cloudSyncStorage.setSyncStatus({
+          ...syncStatus,
+          email: session.user?.email || email,
         });
         if (__DEV__) console.log('✅ Supabase session bridged for', email);
       }
@@ -109,11 +108,10 @@ export const AuthProvider = ({ children }) => {
           const session = await SupabaseAuthService.signInWithPassword(email, password);
           if (session) {
             await StorageRouter.setSupabaseSession(session);
-            await cloudSyncStorage.setSyncStatus({ enabled: true, email: session.user?.email || email });
-            await StorageRouter.configureSync({
-              isPremium: true,
-              syncEnabled: true,
-              supabaseSessionPresent: true,
+            const syncStatus = await cloudSyncStorage.getSyncStatus();
+            await cloudSyncStorage.setSyncStatus({
+              ...syncStatus,
+              email: session.user?.email || email,
             });
           }
         } catch (_) { /* swallow — non-fatal */ }

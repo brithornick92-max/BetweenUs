@@ -63,17 +63,6 @@ export default function JoinWithCodeScreen({ navigation }) {
         return;
       }
 
-      // Enable sync if not already enabled
-      const syncStatus = await cloudSyncStorage.getSyncStatus();
-      if (!syncStatus?.enabled) {
-        await cloudSyncStorage.setSyncStatus({ enabled: true, email: session?.user?.email || null });
-        await StorageRouter.configureSync({
-          isPremium: true,
-          syncEnabled: true,
-          supabaseSessionPresent: true,
-        });
-      }
-
       await CloudEngine.initialize({ supabaseSessionPresent: true });
       await StorageRouter.setSupabaseSession(session);
 

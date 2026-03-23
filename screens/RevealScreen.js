@@ -24,6 +24,7 @@ import { promptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import { NicknameEngine } from "../services/PolishEngine";
 import { SPACING, BORDER_RADIUS, SHADOWS } from "../utils/theme";
+import { getPartnerDisplayName } from '../utils/profileNames';
 import Button from "../components/Button";
 
 const { width } = Dimensions.get("window");
@@ -165,7 +166,7 @@ export default function RevealScreen({ route, navigation }) {
 
   if (!prompt || !prompt.text) return null;
 
-  const partnerName = userProfile?.partnerNames?.partnerName || state.partnerLabel || 'your partner';
+  const partnerName = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const partnerLabel = partnerName.toUpperCase();
   const toneCopy = TONE_REVEAL_COPY[selectedTone] || TONE_REVEAL_COPY.warm;
 
