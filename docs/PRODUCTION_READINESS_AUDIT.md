@@ -19,8 +19,8 @@
 | A6 | Unhandled promise rejection handler | **PASS** | `global.ErrorUtils.setGlobalHandler` installed at module scope in App.js (outside `__DEV__` guard). Reports to Sentry via `CrashReporting.captureException` with `isFatal` + `source: 'globalHandler'` tags. Dev builds still show the red box. |
 | **B — Privacy, Compliance, Metadata** |||
 | B1 | Privacy Policy + Terms links in-app | **PASS** | `PrivacyPolicyScreen` and `TermsScreen` exist; accessible from settings and onboarding |
-| B2 | iOS Privacy Manifest (PrivacyInfo.xcprivacy) | **PASS** | `privacyManifests` declared in app.json under `ios`. Covers 4 API types (UserDefaults CA92.1, FileTimestamp C617.1, DiskSpace E174.1, SystemBootTime 35F9.1) and 2 collected data types (DeviceID for analytics, CrashData for app functionality). |
-| B3 | App Store privacy answers match reality | **WARN** | Analytics are collected (screen views, events via `AnalyticsService`); user ID is tracked; diagnostics via Sentry. Ensure App Store Connect declarations include: **Analytics: Yes** (linked to user ID), **Diagnostics: crash/performance** (Sentry), **Identifiers: Device ID** (expo-device). |
+| B2 | iOS Privacy Manifest (PrivacyInfo.xcprivacy) | **PASS** | `privacyManifests` declared in app.json under `ios`. Covers 4 API types (UserDefaults CA92.1, FileTimestamp C617.1, DiskSpace E174.1, SystemBootTime 35F9.1) and 2 collected data types (DeviceID for analytics, marked linked because analytics events are attached to signed-in user IDs; CrashData for app functionality). |
+| B3 | App Store privacy answers match reality | **WARN** | Repo metadata now reflects linked analytics identifiers, but App Store Connect still needs to match reality. Declare: **Analytics: Yes** (linked to user ID), **Diagnostics: crash/performance** (Sentry), **Identifiers: Device ID** (linked, not used for tracking). |
 | B4 | Encryption claim + specifics | **PASS** | `ITSAppUsesNonExemptEncryption: true` in app.json. E2EE uses XSalsa20-Poly1305 (nacl.secretbox) with 256-bit keys. Device key in SecureStore (encrypted at rest). Couple key via X25519 ECDH. Data encrypted before Supabase upload (in transit via HTTPS + at rest as ciphertext). Privacy Policy correctly states E2E encryption. **However** — you'll need ERN documentation filed with BIS (see patch plan). |
 | B5 | Account deletion path | **PASS** | `DeleteAccountScreen` exists; calls `delete_own_account` RPC which cascades: removes couple_data, couple_members, orphaned couples, push_tokens, analytics, then deletes `auth.users` row. |
 | **C — Notification UX + Deep Links** |||
@@ -77,7 +77,7 @@ All four FAIL items from the original audit have been fixed. Details below for r
 
 | # | Item | Action |
 |---|------|--------|
-| B3 | App Store privacy answers | In App Store Connect → App Privacy: **Analytics: Yes** (linked to anonymous user ID via AnalyticsService), **Diagnostics: Yes** (crash data + performance via Sentry), **Identifiers: Yes** (device ID for push tokens via expo-device). See detailed answers below. |
+| B3 | App Store privacy answers | In App Store Connect → App Privacy: **Analytics: Yes** (linked to signed-in user ID via AnalyticsService), **Diagnostics: Yes** (crash data + performance via Sentry), **Identifiers: Yes** (device ID, linked, not used for tracking). See detailed answers below. |
 
 ### B3 — App Store Connect Privacy Answers (step-by-step)
 
@@ -85,10 +85,10 @@ In **App Store Connect → Your App → App Privacy**, answer:
 
 1. **Do you or your third-party partners collect data?** → **Yes**
 2. **Data types collected:**
-   - **Identifiers → Device ID** — Used for push notification token registration. **Not linked** to identity. **Not used for tracking.**
+   - **Identifiers → Device ID** — Collected for analytics/service operations. **Linked** to the account because analytics events are associated with signed-in user IDs. **Not used for tracking.**
    - **Diagnostics → Crash Data** — Sentry collects anonymous crash reports. `sendDefaultPii: false`, email/IP stripped in `beforeSend`. **Not linked** to identity.
    - **Diagnostics → Performance Data** — Sentry tracing (10% session sample). **Not linked.**
-   - **Usage Data → Product Interaction** — Screen views and feature engagement via AnalyticsService (anonymous user IDs only, no PII). **Linked to user** (pseudonymous UID). **Not used for tracking.**
+   - **Usage Data → Product Interaction** — Screen views and feature engagement via AnalyticsService. **Linked to user** because events are attached to the signed-in user ID. **Not used for tracking.**
 3. **Do you or your third-party partners use data for tracking?** → **No**
 4. **Contact Info / Email** → Collected for authentication only → **Linked to identity** → Purpose: **App Functionality**
 

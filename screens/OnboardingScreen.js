@@ -31,6 +31,7 @@ import { useContent } from "../context/ContentContext";
 import { useTheme } from "../context/ThemeContext";
 import { SPACING } from "../utils/theme";
 import HeartbeatEntry from "../components/HeartbeatEntry";
+import EnergyMatcher from "../components/EnergyMatcher";
 import CrashReporting from "../services/CrashReporting";
 import { useAuth } from "../context/AuthContext";
 import SeasonSelector from "../components/SeasonSelector";
@@ -325,7 +326,7 @@ export default function OnboardingScreen({ navigation }) {
       >
         <ReAnimated.View entering={FadeInDown.delay(100).duration(600).springify()}>
           <Text style={styles.title}>Your Story</Text>
-          <Text style={styles.storySubtitle}>Tell us a little about your relationship.</Text>
+          <Text style={styles.storySubtitle}>Tell us a little about the connection you're building together.</Text>
         </ReAnimated.View>
 
         {/* Names Group (Apple List Style) */}
@@ -373,7 +374,7 @@ export default function OnboardingScreen({ navigation }) {
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={`Anniversary date: ${anniversaryDate.toLocaleDateString('en-US')}`}
-              accessibilityHint="Tap to change your relationship start date"
+              accessibilityHint="Tap to change your start date"
             >
               <Text style={styles.inputLabel}>Start Date</Text>
               <View style={styles.dateValueWrap}>
@@ -466,6 +467,28 @@ export default function OnboardingScreen({ navigation }) {
   ];
 
   const TONE_OPTIONS = NicknameEngine.TONE_OPTIONS;
+  const tonePreview = useMemo(() => {
+    const partner = partnerName || 'your partner';
+    const map = {
+      warm: {
+        title: 'Warm Preview',
+        body: `Something for you and ${partner}. A softer invitation, a little more tenderness.`,
+      },
+      playful: {
+        title: 'Playful Preview',
+        body: `Ready for this one, ${partner}? Lighter energy, more spark, less pressure.`,
+      },
+      intimate: {
+        title: 'Intimate Preview',
+        body: `Between you and ${partner}. Quieter words, deeper tension, closer moments.`,
+      },
+      minimal: {
+        title: 'Minimal Preview',
+        body: 'Tonight\'s prompt. Cleaner language, less noise, straight to the feeling.',
+      },
+    };
+    return map[selectedTone] || map.warm;
+  }, [selectedTone, partnerName]);
 
   const renderPreferences = () => (
     <KeyboardAvoidingView 
@@ -558,6 +581,20 @@ export default function OnboardingScreen({ navigation }) {
                 </View>
               );
             })}
+          </View>
+          <View style={[styles.groupCard, { marginTop: 12, padding: 16 }]}> 
+            <Text style={[styles.groupLabel, { marginBottom: 8 }]}>{tonePreview.title}</Text>
+            <Text style={[styles.prefSubtitle, { marginBottom: 0 }]}>{tonePreview.body}</Text>
+          </View>
+        </View>
+
+        {/* Energy */}
+        <View style={styles.prefSection}>
+          <Text style={styles.groupLabel}>ENERGY</Text>
+          <View style={styles.groupCard}>
+            <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
+              <EnergyMatcher />
+            </View>
           </View>
         </View>
 

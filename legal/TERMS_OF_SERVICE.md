@@ -32,9 +32,9 @@ Between Us is a couples app — where closeness deepens. It helps couples deepen
 - Calendar and event scheduling
 - Biometric app lock (Face ID / Touch ID)
 
-**Important:** Between Us is designed for thriving couples who want to deepen their connection and bond. It is **not** a relationship repair or counseling tool, and is not appropriate for couples navigating serious concerns, trust breakdowns, or considering separation. If your relationship needs professional support, please seek qualified counseling or therapy.
+**Important:** Between Us is designed for thriving couples only. It is **not** a relationship repair or counseling tool, and is not appropriate for couples navigating serious concerns, trust breakdowns, or considering separation. If your relationship needs professional support, please seek qualified counseling or therapy.
 
-The Service is for thriving couples who want to deepen their connection and bond.
+The Service is for thriving couples only.
 
 ---
 
@@ -169,7 +169,7 @@ You agree to use Between Us only for its intended purpose: deepening your connec
 - Between Us is not a substitute for professional counseling
 - We don't provide medical, therapeutic, or legal advice
 - Prompts are for entertainment and connection purposes
-- **The app is designed for couples who already have a loving foundation — it deepens intimacy and connection**
+- **The app is designed for thriving couples only — it deepens intimacy, connection, and bond**
 - If your relationship needs professional support, please seek qualified counseling
 - A licensed therapist or counselor is the right resource for serious relationship concerns
 

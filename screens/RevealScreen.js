@@ -1,5 +1,5 @@
 // screens/RevealScreen.js
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,22 +12,45 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { promptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
+import { NicknameEngine } from "../services/PolishEngine";
 import { SPACING, BORDER_RADIUS, SHADOWS } from "../utils/theme";
 import Button from "../components/Button";
 
 const { width } = Dimensions.get("window");
 
+const TONE_REVEAL_COPY = {
+  warm: {
+    locked: (partner) => `This is your moment. When you reveal, you’ll see how ${partner} answered with their whole heart.`,
+    insight: 'Start with what felt tender. Then tell them the line that stayed with you.',
+  },
+  playful: {
+    locked: (partner) => `This is where the spark lands. Reveal and see how ${partner} played it back.`,
+    insight: 'Start with what surprised you. Then say the part that made you grin.',
+  },
+  intimate: {
+    locked: (partner) => `This is your moment. When you reveal, you’ll step into the answer ${partner} kept closest.`,
+    insight: 'Start with what opened you. Then say the part that pulled you closer.',
+  },
+  minimal: {
+    locked: (partner) => `Reveal when you're ready. ${partner}'s answer will meet you there.`,
+    insight: 'Keep it simple. Say what surprised you, then what mattered most.',
+  },
+};
+
 export default function RevealScreen({ route, navigation }) {
   const { prompt, userAnswer, partnerAnswer: initialPartnerAnswer, bothAnswered } = route?.params || {};
   const { state } = useAppContext();
+  const { userProfile } = useAuth();
   const { colors, isDark } = useTheme();
 
   // Safety check
@@ -40,11 +63,30 @@ export default function RevealScreen({ route, navigation }) {
   }, [prompt, navigation]);
 
   const [isRevealed, setIsRevealed] = useState(false);
+  const [selectedTone, setSelectedTone] = useState('warm');
 
   // Handle partner states
   const hasPartnerAnswer = !!initialPartnerAnswer;
   const isWaitingForPartner = !initialPartnerAnswer || bothAnswered === false;
   const [partnerAnswer] = useState(() => initialPartnerAnswer || null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      NicknameEngine.getConfig()
+        .then((config) => {
+          if (active) setSelectedTone(config?.tone || 'warm');
+        })
+        .catch(() => {
+          if (active) setSelectedTone('warm');
+        });
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
 
   // High-End Animation Refs
   const revealAnim = useRef(new Animated.Value(0)).current;
@@ -123,7 +165,9 @@ export default function RevealScreen({ route, navigation }) {
 
   if (!prompt || !prompt.text) return null;
 
-  const partnerLabel = (state.partnerLabel || "Partner").toUpperCase();
+  const partnerName = userProfile?.partnerNames?.partnerName || state.partnerLabel || 'your partner';
+  const partnerLabel = partnerName.toUpperCase();
+  const toneCopy = TONE_REVEAL_COPY[selectedTone] || TONE_REVEAL_COPY.warm;
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
@@ -178,7 +222,7 @@ export default function RevealScreen({ route, navigation }) {
 
               <Text style={[styles.lockedTitle, { color: t.text }]}>Ready to connect?</Text>
               <Text style={[styles.lockedSub, { color: t.subtext }]}>
-                This is your moment. When you reveal, you’ll see how {state.partnerLabel || "your partner"}’s heart answered the same question.
+                {toneCopy.locked(partnerName)}
               </Text>
 
               <Button title="Reveal Together" onPress={handleReveal} style={styles.revealAction} />
@@ -224,7 +268,7 @@ export default function RevealScreen({ route, navigation }) {
                   <View style={[styles.bubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border, alignItems: 'center', paddingVertical: 40 }]}>
                     <Icon name="heart-pulse" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
                     <Text style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}>
-                      {state.partnerLabel || 'Your partner'} hasn't shared their thoughts yet.
+                      {partnerName || 'Your partner'} hasn't shared their thoughts yet.
                     </Text>
                     <Text style={[styles.miniNote, { color: t.subtext, marginTop: 12 }]}>
                       They'll see yours once they answer too ✨
@@ -244,7 +288,7 @@ export default function RevealScreen({ route, navigation }) {
                   <Text style={[styles.insightTitle, { color: t.text }]}>Keep Going</Text>
                 </View>
                 <Text style={[styles.insightText, { color: t.subtext }]}>
-                  What surprised you about their answer? Tell them the one thing that made you feel closer.
+                  {toneCopy.insight}
                 </Text>
               </BlurView>
 

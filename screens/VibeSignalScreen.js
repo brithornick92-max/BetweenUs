@@ -20,6 +20,7 @@ import {
 import Icon from '../components/Icon';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, withAlpha } from '../utils/theme';
@@ -119,8 +120,9 @@ export default function VibeSignalScreen({ navigation }) {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const { state } = useAppContext();
+  const { userProfile } = useAuth();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
-  const partnerLabel = state.partnerLabel || 'Partner';
+  const partnerLabel = userProfile?.partnerNames?.partnerName || state.partnerLabel || 'Partner';
 
   const [activeVibeId,      setActiveVibeId]      = useState('passionate');
   const handleVibeSelect = (vibe) => {

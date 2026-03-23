@@ -18,7 +18,7 @@ export const PREMIUM_FEATURES = {
   MEMORY_EXPORT: {
     id: 'memory_export',
     name: 'Memory Export',
-    description: 'Export your complete relationship timeline as PDF',
+    description: 'Export your complete shared timeline as PDF',
     category: 'memory',
     emotionalValue: 'Preserve your love story forever',
     icon: '🏛️',
@@ -52,7 +52,7 @@ export const PREMIUM_FEATURES = {
     name: 'Cloud Backup',
     description: 'Never lose your precious memories',
     category: 'sync',
-    emotionalValue: 'Peace of mind for your relationship history',
+    emotionalValue: 'Peace of mind for your shared history',
     icon: '☁️',
   },
 };
@@ -151,7 +151,7 @@ export class PremiumGatekeeper {
     const defaultTier = SUBSCRIPTION_TIERS.YEARLY;
     const paywallContent = {
       title: "Protect Your Love Story",
-      subtitle: "Premium features help preserve and enhance your relationship memories",
+      subtitle: "Premium features help preserve and deepen your shared memories",
       feature: feature,
       tier: defaultTier,
       emotionalBenefits: defaultTier.emotionalBenefits,

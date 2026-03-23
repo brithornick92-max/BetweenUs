@@ -17,6 +17,7 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
@@ -24,6 +25,7 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from "../context/ThemeContext";
 import { useContent } from "../context/ContentContext";
 import { useEntitlements } from '../context/EntitlementsContext';
+import { useAuth } from '../context/AuthContext';
 import { promptStorage } from "../utils/storage";
 import { withAlpha } from "../utils/theme";
 import PreferenceEngine from '../services/PreferenceEngine';
@@ -90,9 +92,29 @@ const normalizePrompt = (p) => {
   };
 };
 
+const TONE_LIBRARY_COPY = {
+  warm: {
+    subtitle: 'A softer catalog for closeness and comfort.',
+    empty: 'No warm matches here yet. Try another category or soften the heat.',
+  },
+  playful: {
+    subtitle: 'Bolder prompts, lighter energy, more spark.',
+    empty: 'Nothing playful matched. Switch categories or turn the heat a notch.',
+  },
+  intimate: {
+    subtitle: 'Curated for deeper tension and honest closeness.',
+    empty: 'No intimate matches here. Try a neighboring heat level or category.',
+  },
+  minimal: {
+    subtitle: 'Cleaner prompts with less noise and more directness.',
+    empty: 'No minimal matches found. Try a simpler filter mix.',
+  },
+};
+
 export default function PromptLibraryScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { userProfile } = useAuth();
 
   const content = useContent?.() || {};
   const loadTodayPrompt = content?.loadTodayPrompt;
@@ -101,6 +123,8 @@ export default function PromptLibraryScreen({ navigation }) {
   const [selectedHeat, setSelectedHeat] = useState(1);
   const [selectedDuration, setSelectedDuration] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTone, setSelectedTone] = useState('warm');
+  const [contentProfile, setContentProfile] = useState(null);
 
   const [prompts, setPrompts] = useState([]);
   const [allPromptsCount, setAllPromptsCount] = useState(0);
@@ -127,14 +151,31 @@ export default function PromptLibraryScreen({ navigation }) {
     }
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const profile = await PreferenceEngine.getContentProfile();
-        if (profile?.heatLevel) setSelectedHeat(profile.heatLevel);
-      } catch (e) { /* fallback to default heat */ }
-    })();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      (async () => {
+        try {
+          const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+          if (!active) return;
+          setContentProfile(profile);
+          if (profile?.heatLevel) setSelectedHeat(profile.heatLevel);
+          setSelectedTone(profile?.tone || 'warm');
+        } catch {
+          if (!active) return;
+          setContentProfile(null);
+          setSelectedTone('warm');
+        }
+      })();
+
+      return () => {
+        active = false;
+      };
+    }, [userProfile])
+  );
+
+  const toneCopy = TONE_LIBRARY_COPY[selectedTone] || TONE_LIBRARY_COPY.warm;
 
   const loadPrompts = useCallback(async () => {
     setLoading(true);
@@ -186,8 +227,15 @@ export default function PromptLibraryScreen({ navigation }) {
         }
         return true;
       });
-    return PromptAllocator.tagAnswered(PromptAllocator.excludeUsed(base));
-  }, [prompts, selectedCategory, selectedHeat, selectedDuration, searchQuery, isPremium]);
+    const browsable = PromptAllocator.excludeUsed(base);
+    const rankingProfile = contentProfile
+      ? { ...contentProfile, maxHeat: Math.min(contentProfile.maxHeat || selectedHeat, selectedHeat) }
+      : null;
+    const ranked = rankingProfile
+      ? PreferenceEngine.filterPrompts(browsable, rankingProfile)
+      : browsable;
+    return PromptAllocator.tagAnswered(ranked);
+  }, [prompts, selectedCategory, selectedHeat, selectedDuration, searchQuery, isPremium, contentProfile]);
 
   const toggleFavorite = useCallback(async (promptId) => {
     if (!promptId) return;
@@ -278,6 +326,7 @@ export default function PromptLibraryScreen({ navigation }) {
           <View style={styles.headerCenter}>
             <Text style={[styles.headerSub, { color: HEAT_BADGE_COLORS[selectedHeat] }]}>CATALOG</Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Library</Text>
+            <Text style={[styles.headerTone, { color: t.subtext }]}>{toneCopy.subtitle}</Text>
           </View>
           <TouchableOpacity onPress={handleRefreshPrompt} style={styles.refreshButton} activeOpacity={0.8}>
             <Icon name="sync-outline" size={22} color={t.subtext} />
@@ -366,7 +415,14 @@ export default function PromptLibraryScreen({ navigation }) {
                         elevation: 8,
                       } : {}),
                     }]}
-                    onPress={() => { setSelectedHeat(h); selection(); }}
+                    onPress={() => {
+                      if (!isPremium && h >= 4) {
+                        showPaywall?.('premiumHeatLevel');
+                        return;
+                      }
+                      setSelectedHeat(h);
+                      selection();
+                    }}
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.heatBtnText, { color: active ? '#FFF' : withAlpha(heatColor, 0.5) }]}>
@@ -448,7 +504,7 @@ export default function PromptLibraryScreen({ navigation }) {
               {!filteredPrompts.length && !loading && (
                 <View style={styles.emptyState}>
                   <Icon name="search-outline" size={48} color={t.border} />
-                  <Text style={[styles.emptyText, { color: t.subtext }]}>No matching prompts — try a different heat level</Text>
+                  <Text style={[styles.emptyText, { color: t.subtext }]}>{toneCopy.empty}</Text>
                 </View>
               )}
             </View>
@@ -497,6 +553,12 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '800',
     letterSpacing: -1,
+  },
+  headerTone: {
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   backButton: { width: 44, height: 44, justifyContent: 'center' },
   refreshButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },

@@ -113,7 +113,7 @@ const TermsScreen = ({ navigation, route }) => {
             </Text>
             <View style={[styles.importantNote, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}>
               <Text style={[styles.paragraph, { color: t.text, fontWeight: '700', marginBottom: 0 }]}>
-                Important: Between Us is designed for couples who already have a loving foundation. It is not appropriate
+                Important: Between Us is designed for thriving couples only. It is not appropriate
                 for couples navigating serious concerns, trust breakdowns, or considering separation. If your relationship
                 needs professional support, please seek qualified counseling or therapy.
               </Text>

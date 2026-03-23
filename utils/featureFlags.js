@@ -149,7 +149,7 @@ export const FEATURE_META = Object.freeze({
     icon: '🎲',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Add spontaneity to your relationship',
+    emotionalValue: 'Add spontaneity to your connection',
   },
   [PremiumFeature.UNLIMITED_JOURNAL_HISTORY]: {
     name: 'Full Journal History',
@@ -161,7 +161,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.PDF_EXPORT]: {
     name: 'Memory Export',
-    description: 'Export your relationship timeline as PDF',
+    description: 'Export your shared timeline as PDF',
     icon: '🏛️',
     category: 'memory',
     guardBehavior: GuardBehavior.BLOCK,
@@ -281,7 +281,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.YEAR_REFLECTION]: {
     name: 'Year in Review',
-    description: 'A personalized recap of your relationship milestones, memories, and growth over the year',
+    description: 'A personalized recap of your milestones, memories, and growth together over the year',
     icon: '📆',
     category: 'memory',
     guardBehavior: GuardBehavior.HIDE,

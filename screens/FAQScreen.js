@@ -40,7 +40,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Who is Between Us for?',
-        a: 'Between Us is for thriving couples who want to deepen their connection and bond. If your relationship is in a beautiful place and you want to make it even richer, this app was made for you.\n\nBetween Us is not a therapy app or relationship repair tool — it\'s designed for couples who are already in a loving place and want to go even deeper.',
+        a: 'Between Us is for thriving couples only. If your relationship is already thriving and you want to make it even richer, this app was made for you.\n\nBetween Us is not a therapy app or relationship repair tool.',
       },
       {
         q: 'How much does it cost?',
@@ -166,7 +166,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is Between Us a substitute for therapy?',
-        a: 'No. Between Us is a private space for thriving couples to deepen their connection — not therapy, counseling, or a relationship repair tool. It\'s designed for couples who are already in a loving place and want to go even deeper.\n\nIf your relationship needs professional support, please reach out to a licensed therapist.',
+        a: 'No. Between Us is a private space for thriving couples only — not therapy, counseling, or a relationship repair tool.\n\nIf your relationship needs professional support, please reach out to a licensed therapist.',
       },
       {
         q: 'When should we NOT use Between Us?',
@@ -174,7 +174,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Is Between Us right for every couple?',
-        a: 'Between Us is designed specifically for thriving couples — it deepens what\'s already beautiful. It is not a relationship repair tool and is not designed for couples working through serious concerns.\n\nIf your relationship is in a good place and you want to go deeper, Between Us was made for you.',
+        a: 'Between Us is designed specifically for thriving couples — it deepens what\'s already beautiful. It is not a relationship repair tool and is not designed for couples working through serious concerns.\n\nIf your relationship is already thriving and you want to go deeper, Between Us was made for you.',
       },
       {
         q: 'Where can I find help if I\'m in an unsafe situation?',

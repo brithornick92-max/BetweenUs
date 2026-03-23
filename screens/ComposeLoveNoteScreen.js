@@ -131,7 +131,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
         text: text.trim() || null,
         imageUri: imageUri || null,
         stationeryId: selectedStationery.id,
-        senderName: userProfile?.displayName || userProfile?.name || state?.partnerLabel || null,
+        senderName: userProfile?.partnerNames?.myName || userProfile?.displayName || userProfile?.name || null,
         invisibleInk,
       });
       navigation.goBack();

@@ -15,6 +15,7 @@ import {
   StatusBar,
   Dimensions,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -36,7 +37,7 @@ import WelcomeBack from '../components/WelcomeBack';
 import OfflineIndicator from '../components/OfflineIndicator';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
-import { RelationshipMilestones } from '../services/PolishEngine';
+import { NicknameEngine, RelationshipMilestones } from '../services/PolishEngine';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
@@ -57,6 +58,37 @@ function getMomentLabel() {
   if (hour >= 5 && hour < 17) return "TODAY'S MOMENT";
   return "TONIGHT'S MOMENT";
 }
+
+const TONE_HOME_COPY = {
+  warm: {
+    subheadline: (partner) => `A softer place for you and ${partner}.`,
+    ctaDraft: 'Share My Heart',
+    ctaEmpty: 'Share Your Thoughts',
+    ctaDone: 'Reveal Connection',
+    waiting: (partner) => `Waiting gently on ${partner}`,
+  },
+  playful: {
+    subheadline: (partner) => `A little spark for you and ${partner}.`,
+    ctaDraft: 'Send the Spark',
+    ctaEmpty: 'Start the Spark',
+    ctaDone: 'See the Spark',
+    waiting: (partner) => `${partner} is up next`,
+  },
+  intimate: {
+    subheadline: (partner) => `A closer space for you and ${partner}.`,
+    ctaDraft: 'Open My Heart',
+    ctaEmpty: 'Open Up',
+    ctaDone: 'Reveal Closeness',
+    waiting: (partner) => `Holding for ${partner}`,
+  },
+  minimal: {
+    subheadline: () => 'A quieter space for what matters.',
+    ctaDraft: 'Save Reflection',
+    ctaEmpty: 'Write Reflection',
+    ctaDone: 'Open Reflection',
+    waiting: (partner) => `Waiting on ${partner}`,
+  },
+};
 
 function normalizePrompt(p) {
   if (!p || typeof p !== 'object') return FALLBACK_PROMPT;
@@ -105,6 +137,7 @@ export default function HomeScreen({ navigation }) {
   const [isSavingInline, setIsSavingInline] = useState(false);
   const [throwback, setThrowback] = useState(null);
   const [unreadNotes, setUnreadNotes] = useState(0);
+  const [selectedTone, setSelectedTone] = useState('warm');
 
   // Entrance animations
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -160,6 +193,24 @@ export default function HomeScreen({ navigation }) {
     })();
   }, [isPremium]);
 
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      NicknameEngine.getConfig()
+        .then((config) => {
+          if (active) setSelectedTone(config?.tone || 'warm');
+        })
+        .catch(() => {
+          if (active) setSelectedTone('warm');
+        });
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
   const greeting = useMemo(() => {
     const h = new Date().getHours();
     if (h < 12) return 'Morning';
@@ -172,9 +223,10 @@ export default function HomeScreen({ navigation }) {
     userProfile?.displayName ||
     user?.displayName ||
     null;
-  let partnerLabel = state?.partnerLabel || userProfile?.partnerNames?.partnerName || 'your partner';
+  let partnerLabel = userProfile?.partnerNames?.partnerName || state?.partnerLabel || 'your partner';
   if (partnerLabel === 'A' || !partnerLabel.trim()) partnerLabel = 'your partner';
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
+  const toneCopy = TONE_HOME_COPY[selectedTone] || TONE_HOME_COPY.warm;
 
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
@@ -208,16 +260,16 @@ export default function HomeScreen({ navigation }) {
 
   const primaryCTALabel = useMemo(() => {
     if (!promptReady) return 'Customize Content';
-    if (!myAnswer && inlineText.trim()) return isSavingInline ? 'Saving…' : 'Share My Heart';
-    if (!myAnswer) return 'Share Your Thoughts';
-    if (bothAnswered) return 'Reveal Connection';
+    if (!myAnswer && inlineText.trim()) return isSavingInline ? 'Saving…' : toneCopy.ctaDraft;
+    if (!myAnswer) return toneCopy.ctaEmpty;
+    if (bothAnswered) return toneCopy.ctaDone;
     return 'See Your Response';
-  }, [promptReady, myAnswer, bothAnswered, inlineText, isSavingInline]);
+  }, [promptReady, myAnswer, bothAnswered, inlineText, isSavingInline, toneCopy]);
 
   const statusText = useMemo(() => {
     if (!promptReady || !myAnswer) return null;
-    return bothAnswered ? 'Both of you have shared' : `Waiting on ${partnerLabel}`;
-  }, [promptReady, myAnswer, bothAnswered, partnerLabel]);
+    return bothAnswered ? 'Both of you have shared' : toneCopy.waiting(partnerLabel);
+  }, [promptReady, myAnswer, bothAnswered, partnerLabel, toneCopy]);
 
   const handleAction = useCallback(async (key) => {
     impact(ImpactFeedbackStyle.Light);
@@ -267,6 +319,7 @@ export default function HomeScreen({ navigation }) {
             {preferredName ? (
               <Text style={styles.headerName}>{preferredName}</Text>
             ) : null}
+            <Text style={styles.headerToneLine}>{toneCopy.subheadline(partnerLabel)}</Text>
           </View>
           <TouchableOpacity
             onPress={() => { selection(); navigation.navigate('VibeSignal'); }}
@@ -496,6 +549,14 @@ const createStyles = (t, isDark) => StyleSheet.create({
     letterSpacing: -0.5,
     lineHeight: 40,
     color: t.text,
+  },
+  headerToneLine: {
+    fontFamily: systemFont,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+    color: t.subtext,
+    marginTop: 4,
   },
   vibeButton: {
     width: 56,

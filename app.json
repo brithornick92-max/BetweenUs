@@ -23,7 +23,10 @@
       "deploymentTarget": "17.1",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing.",
-        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes, journal entries, and memories.",        "NSFaceIDUsageDescription": "Between Us uses Face ID to protect your private content with biometric authentication.",        "ITSAppUsesNonExemptEncryption": true      },
+        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes, journal entries, and memories.",
+        "NSFaceIDUsageDescription": "Between Us uses Face ID to protect your private content with biometric authentication.",
+        "ITSAppUsesNonExemptEncryption": true
+      },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
@@ -46,7 +49,7 @@
         "NSPrivacyCollectedDataTypes": [
           {
             "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeDeviceID",
-            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeLinked": true,
             "NSPrivacyCollectedDataTypeTracking": false,
             "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAnalytics"]
           },
@@ -56,12 +59,13 @@
             "NSPrivacyCollectedDataTypeTracking": false,
             "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
           }
-        ]      }
+        ]
+      }
     },
     "web": {
       "favicon": "./assets/icon.png"
     },
-    "description": "Between Us — Where closeness deepens. A couples app for intimacy, connection, and meaningful moments.",
+    "description": "Between Us — Where closeness deepens. A private space for thriving couples to deepen connection, intimacy, and meaningful moments.",
     "extra": {
       "appName": "Between Us",
       "tagline": "Where closeness deepens.",

@@ -12,7 +12,7 @@ Between Us is a couples app built around one idea: where closeness deepens. Thro
 Between Us is for thriving couples who want to deepen their connection and bond.
 
 ### Who is Between Us for?
-Between Us is for thriving couples who want to deepen their connection and bond. If your relationship is in a beautiful place and you want to make it even richer, this app was made for you.
+Between Us is for thriving couples only. If your relationship is already thriving and you want to make it even richer, this app was made for you.
 
 Between Us is not a relationship repair tool. It is not designed for couples navigating serious concerns, trust breakdowns, or considering separation. If your relationship needs professional support, please seek qualified counseling or therapy.
 
@@ -382,7 +382,7 @@ Our smart system minimizes repetition:
 ## About Between Us & Your Relationship
 
 ### Is Between Us a substitute for therapy?
-No. Between Us is a private space for thriving couples to deepen their connection — it is not therapy, counseling, or a relationship repair tool. It is designed for couples who are already in a loving place and want to go even deeper.
+No. Between Us is a private space for thriving couples only. It is not therapy, counseling, or a relationship repair tool.
 
 If your relationship needs professional support, please reach out to a licensed therapist. Between Us is not the right tool for serious relationship concerns.
 
@@ -404,7 +404,7 @@ If any of these apply, please seek support from a licensed therapist or counselo
 ### Is Between Us right for every couple?
 Between Us is designed specifically for thriving couples — it deepens what’s already beautiful. It is not a relationship repair tool and is not designed for couples working through serious concerns.
 
-If your relationship is in a good place and you want to go deeper, Between Us was made for you.
+If your relationship is already thriving and you want to go deeper, Between Us was made for you.
 
 ### Is Between Us only for romantic relationships?
 While designed for romantic couples, the prompts can work for:

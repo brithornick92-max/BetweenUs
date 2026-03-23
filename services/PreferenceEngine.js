@@ -133,6 +133,119 @@ async function getContentProfile(userProfile = {}) {
   };
 }
 
+const CATEGORY_TONE_MAP = {
+  romance: ['warm', 'soft', 'reflective'],
+  emotional: ['deep', 'honest', 'reflective', 'gentle'],
+  playful: ['playful', 'light', 'spontaneous', 'bold'],
+  physical: ['sensual', 'bold'],
+  fantasy: ['bold', 'sensual', 'playful'],
+  memory: ['warm', 'reflective', 'appreciative'],
+  future: ['deep', 'future', 'honest'],
+  sensory: ['soft', 'gentle', 'cozy', 'sensual'],
+  visual: ['playful', 'bold'],
+  kinky: ['bold', 'sensual'],
+  location: ['spontaneous', 'bold', 'playful'],
+  seasonal: ['warm', 'soft', 'reflective'],
+};
+
+const TONE_PROMPT_PREFERENCES = {
+  warm: {
+    categories: ['romance', 'emotional', 'memory', 'seasonal'],
+    tones: ['warm', 'soft', 'reflective', 'gentle', 'appreciative'],
+    preferShort: false,
+  },
+  playful: {
+    categories: ['playful', 'fantasy', 'visual', 'location'],
+    tones: ['playful', 'light', 'spontaneous', 'bold'],
+    preferShort: true,
+  },
+  intimate: {
+    categories: ['physical', 'sensory', 'romance', 'kinky'],
+    tones: ['sensual', 'deep', 'soft', 'honest'],
+    preferShort: false,
+  },
+  minimal: {
+    categories: ['emotional', 'memory', 'future'],
+    tones: ['reflective', 'gentle', 'honest'],
+    preferShort: true,
+  },
+};
+
+function scorePromptForTone(prompt, tone) {
+  const pref = TONE_PROMPT_PREFERENCES[tone];
+  if (!pref || !prompt) return 0;
+
+  let score = 0;
+  const category = prompt.category || '';
+  const heat = prompt.heat || 1;
+  const textLength = (prompt.text || '').length;
+  const categoryTones = CATEGORY_TONE_MAP[category] || [];
+
+  if (pref.categories.includes(category)) score += 1.4;
+  score += categoryTones.filter((tag) => pref.tones.includes(tag)).length * 0.45;
+
+  if (tone === 'intimate') {
+    if (heat >= 3) score += 0.6;
+    if (heat <= 1) score -= 0.2;
+  }
+
+  if (tone === 'playful') {
+    if (textLength <= 110) score += 0.3;
+    if (heat >= 4) score += 0.2;
+  }
+
+  if (tone === 'minimal') {
+    if (textLength <= 100) score += 0.7;
+    if (textLength > 170) score -= 0.6;
+    if (heat >= 4) score -= 0.3;
+  }
+
+  if (tone === 'warm') {
+    if (heat <= 3) score += 0.3;
+  }
+
+  return score;
+}
+
+function scoreDateForTone(date, tone) {
+  if (!date || !tone) return 0;
+
+  let score = 0;
+  const heat = date.heat || 1;
+  const load = date.load || 2;
+  const minutes = date.minutes || 0;
+  const style = date.style || 'mixed';
+  const location = date.location || date.locationType || null;
+
+  if (tone === 'warm') {
+    if (location === 'home') score += 0.8;
+    if (style === 'talking' || style === 'mixed') score += 0.7;
+    if (load <= 2) score += 0.4;
+  }
+
+  if (tone === 'playful') {
+    if (style === 'doing' || style === 'mixed') score += 0.9;
+    if (location === 'out') score += 0.6;
+    if (load >= 2) score += 0.3;
+  }
+
+  if (tone === 'intimate') {
+    if (heat >= 3) score += 0.9;
+    if (minutes >= 45) score += 0.5;
+    if (style === 'mixed' || style === 'talking') score += 0.4;
+    if (location === 'home') score += 0.3;
+  }
+
+  if (tone === 'minimal') {
+    if (minutes <= 45) score += 0.9;
+    if (load <= 2) score += 0.6;
+    if (style === 'talking' || style === 'mixed') score += 0.3;
+    if (heat >= 3) score -= 0.3;
+  }
+
+  return score;
+}
+
 // Score and filter prompts based on user profile and ratings
 function filterPrompts(allPrompts, profile, options = {}) {
   if (!Array.isArray(allPrompts) || !profile) return allPrompts || [];
@@ -144,6 +257,7 @@ function filterPrompts(allPrompts, profile, options = {}) {
     climate,
     preferShort,
     energy,
+    tone,
     relationshipDuration,
   } = profile;
 
@@ -194,21 +308,7 @@ function filterPrompts(allPrompts, profile, options = {}) {
     // +1 if prompt tone tags overlap with season prompt tones
     // (We match category names to season promptTones loosely)
     const seasonTones = season?.promptTones || [];
-    const categoryToneMap = {
-      romance: ['warm', 'soft', 'reflective'],
-      emotional: ['deep', 'honest', 'reflective', 'gentle'],
-      playful: ['playful', 'light', 'spontaneous', 'bold'],
-      physical: ['sensual', 'bold'],
-      fantasy: ['bold', 'sensual', 'playful'],
-      memory: ['warm', 'reflective', 'appreciative'],
-      future: ['deep', 'future', 'honest'],
-      sensory: ['soft', 'gentle', 'cozy', 'sensual'],
-      visual: ['playful', 'bold'],
-      kinky: ['bold', 'sensual'],
-      location: ['spontaneous', 'bold', 'playful'],
-      seasonal: ['warm', 'soft', 'reflective'],
-    };
-    const catTones = categoryToneMap[cat] || [];
+    const catTones = CATEGORY_TONE_MAP[cat] || [];
     const toneOverlap = catTones.filter((t) => seasonTones.includes(t)).length;
     score += toneOverlap * 0.5;
 
@@ -216,6 +316,9 @@ function filterPrompts(allPrompts, profile, options = {}) {
     const energyTones = energy?.tones || [];
     const energyOverlap = catTones.filter((t) => energyTones.includes(t)).length;
     score += energyOverlap * 0.3;
+
+    // Tone preference should materially influence prompt ordering
+    score += scorePromptForTone(prompt, tone);
 
     // -0.5 if preferShort and prompt text is long (>120 chars)
     if (preferShort && prompt.text.length > 120) {
@@ -266,7 +369,7 @@ function filterPrompts(allPrompts, profile, options = {}) {
 function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
   if (!Array.isArray(allDates) || !profile) return allDates || [];
 
-  const { maxHeat, boundaries, season, climate, preferShort } = profile;
+  const { maxHeat, boundaries, season, climate, preferShort, tone } = profile;
 
   // Phase 1: Hard filters
   const eligible = allDates.filter((date) => {
@@ -338,6 +441,9 @@ function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
     if (preferShort && date.minutes > 60) {
       score -= 0.5;
     }
+
+    // Tone preference should influence what kinds of dates surface first
+    score += scoreDateForTone(date, tone);
 
     // Deterministic tie-breaker based on date id (no random jitter —
     // random made the deck order change on every recomputation)

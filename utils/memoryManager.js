@@ -824,7 +824,7 @@ export class MemoryManager {
   
   getMilestoneSignificance(milestone) {
     // Generate significance description based on milestone type and content
-    return `A significant moment in your relationship journey`;
+    return `A significant moment in your shared journey`;
   }
   
   getRelatedMemories(milestone) {

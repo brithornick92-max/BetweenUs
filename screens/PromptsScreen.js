@@ -15,6 +15,7 @@ import {
   StatusBar,
   Dimensions,
 } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from '../components/Icon';
 import {
@@ -74,6 +75,25 @@ const normalizePrompt = (p) => {
   };
 };
 
+const TONE_PROMPT_COPY = {
+  warm: {
+    subtitle: 'Gentle reflections for the two of you.',
+    empty: 'Nothing here fits this intensity right now. Try something softer or switch the mood.',
+  },
+  playful: {
+    subtitle: 'Light sparks, bold questions, and a little mischief.',
+    empty: 'No sparks in this lane yet. Try another heat level and keep it moving.',
+  },
+  intimate: {
+    subtitle: 'Closer questions for quieter, deeper moments.',
+    empty: 'Nothing matching this intensity surfaced. Try a softer or more sensual lane.',
+  },
+  minimal: {
+    subtitle: 'Clean prompts, less noise, direct connection.',
+    empty: 'No clean matches at this intensity. Try another level.',
+  },
+};
+
 function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -90,6 +110,8 @@ export default function PromptsScreen({ navigation }) {
   const { userProfile } = useAuth();
 
   const [selectedHeat, setSelectedHeat] = useState(null);
+  const [selectedTone, setSelectedTone] = useState('warm');
+  const [contentProfile, setContentProfile] = useState(null);
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -102,18 +124,34 @@ export default function PromptsScreen({ navigation }) {
     border: 'rgba(255,255,255,0.1)',
   }), []);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const profile = await PreferenceEngine.getContentProfile(userProfile || {});
-        let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 1;
-        if (!isPremium && heat >= 4) heat = 3;
-        setSelectedHeat(heat);
-      } catch {
-        setSelectedHeat(1);
-      }
-    })();
-  }, [userProfile, isPremium]);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      (async () => {
+        try {
+          const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+          if (!active) return;
+          let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 1;
+          if (!isPremium && heat >= 4) heat = 3;
+          setContentProfile(profile);
+          setSelectedHeat(heat);
+          setSelectedTone(profile?.tone || 'warm');
+        } catch {
+          if (!active) return;
+          setContentProfile(null);
+          setSelectedHeat(1);
+          setSelectedTone('warm');
+        }
+      })();
+
+      return () => {
+        active = false;
+      };
+    }, [userProfile, isPremium])
+  );
+
+  const toneCopy = TONE_PROMPT_COPY[selectedTone] || TONE_PROMPT_COPY.warm;
 
   const loadPrompts = useCallback(async () => {
     if (selectedHeat === null) return;
@@ -135,8 +173,12 @@ export default function PromptsScreen({ navigation }) {
   const deckPrompts = useMemo(() => {
     const heat = selectedHeat ?? 1;
     const byHeat = prompts.filter((p) => (p.heat || 1) === heat);
-    return shuffleArray(byHeat);
-  }, [prompts, selectedHeat]);
+    if (!contentProfile) return shuffleArray(byHeat);
+    return PreferenceEngine.filterPrompts(byHeat, {
+      ...contentProfile,
+      maxHeat: Math.min(contentProfile.maxHeat || heat, heat),
+    });
+  }, [prompts, selectedHeat, contentProfile]);
 
   const handlePromptSelect = useCallback((prompt) => {
     if (!isPremium && (prompt.heat || 1) >= 4) {
@@ -171,6 +213,7 @@ export default function PromptsScreen({ navigation }) {
                 : `${deckPrompts.length} OF ${TOTAL_PROMPT_COUNT} PREVIEWS`}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
+            <Text style={[styles.headerSubtitle, { color: t.subtext }]}>{toneCopy.subtitle}</Text>
           </Animated.View>
 
           {/* Premium Progress / Discovery Tracker */}
@@ -264,7 +307,7 @@ export default function PromptsScreen({ navigation }) {
           ) : deckPrompts.length === 0 ? (
             <View style={styles.centered}>
               <Icon name="copy-outline" size={48} color={withAlpha(t.text, 0.1)} />
-              <Text style={[styles.emptyText, { color: t.subtext }]}>No cards match this intensity</Text>
+              <Text style={[styles.emptyText, { color: t.subtext }]}>{toneCopy.empty}</Text>
             </View>
           ) : (
             <View style={[styles.deckWrapper, { paddingBottom: tabBarHeight }]}>
@@ -302,6 +345,13 @@ const styles = StyleSheet.create({
     fontSize: 42,
     fontWeight: '800',
     letterSpacing: -1.5,
+  },
+  headerSubtitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 8,
+    opacity: 0.9,
   },
   progressCard: {
     marginHorizontal: 32,

@@ -50,6 +50,7 @@ import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
 import StorageRouter from '../services/storage/StorageRouter';
 import SeasonSelector from '../components/SeasonSelector';
+import EnergyMatcher from '../components/EnergyMatcher';
 import SoftBoundariesPanel from '../components/SoftBoundariesPanel';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -435,6 +436,10 @@ export default function SettingsScreen({ navigation }) {
           {/* ═══ SEASONAL & BOUNDARY PANELS ═══ */}
           <View style={styles.panelSpacer}>
             <SeasonSelector onSeasonChange={() => loadContentProfile?.()} />
+          </View>
+
+          <View style={styles.panelSpacer}>
+            <EnergyMatcher />
           </View>
           
           <View style={styles.panelSpacer}>

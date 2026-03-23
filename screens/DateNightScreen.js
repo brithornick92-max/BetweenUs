@@ -50,6 +50,29 @@ const FONTS = {
   bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
 };
 
+const TONE_DATE_COPY = {
+  warm: {
+    subtitle: 'Tender plans with softness, comfort, and room to land.',
+    emptySetup: 'Choose the mood above to reveal warm plans shaped around your night.',
+    emptyResults: 'No warm matches surfaced. Try easing the filters or choosing a gentler lane.',
+  },
+  playful: {
+    subtitle: 'Lighter plans with movement, spark, and surprise.',
+    emptySetup: 'Choose the mood above to reveal playful plans shaped around your night.',
+    emptyResults: 'Nothing playful matched that mix. Shift the filters and see what opens up.',
+  },
+  intimate: {
+    subtitle: 'Closer plans for slower tension and deeper connection.',
+    emptySetup: 'Choose the mood above to reveal intimate plans shaped around your night.',
+    emptyResults: 'No intimate matches yet. Try a neighboring mood or a softer effort level.',
+  },
+  minimal: {
+    subtitle: 'Clean plans with less friction and more clarity.',
+    emptySetup: 'Choose the mood above to reveal simple plans shaped around your night.',
+    emptyResults: 'No minimal matches appeared. Reset or simplify the filter mix.',
+  },
+};
+
 
 // ── Card stack with flip + swipe ─────────────────────────────────────────────────
 const CardStack = forwardRef(function CardStack(
@@ -325,15 +348,12 @@ export default function DateNightScreen({ navigation }) {
   const [dropdownOpen, setDropdownOpen] = useState(null); // 'heat' | 'load' | 'style' | null
 
   const stackRef = useRef(null);
-  const loadedProfileRef = useRef(null);
 
-  // Defer heavy work until the tab transition animation finishes
-  // Only reload when userProfile actually changes (not on every focus event)
+  // Defer heavy work until the tab transition animation finishes.
+  // Reload on focus so season, tone, energy, and boundaries changes take effect.
   useFocusEffect(
     useCallback(() => {
-      const profileKey = JSON.stringify(userProfile || {});
-      if (loadedProfileRef.current === profileKey) return; // already loaded for this profile
-      loadedProfileRef.current = profileKey;
+      setReady(false);
       const task = InteractionManager.runAfterInteractions(() => {
         setAllDates(getAllDates());
         PreferenceEngine.getContentProfile(userProfile || {})
@@ -380,6 +400,7 @@ export default function DateNightScreen({ navigation }) {
   const hasFilters = selectedHeat || selectedLoad || selectedStyle;
   const remaining = deck.length - deckIndex;
   const deckDone = deckIndex >= deck.length && deck.length > 0;
+  const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
 
   const handleSwipeRight = useCallback((date) => {
     if (!isPremium && likedDates.length >= 1) {
@@ -451,6 +472,7 @@ export default function DateNightScreen({ navigation }) {
               {!ready ? 'Preparing Decks...' : !allSelected ? allDates.length + '+ Curated Ideas' : !isPremium && remaining > 0 ? remaining + ' Previews Remaining' : remaining > 0 ? remaining + ' Potential Plans' : deck.length > 0 ? 'All Cards Drawn' : allDates.length + '+ Curated Ideas'}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>The Deck</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>{toneCopy.subtitle}</Text>
           </View>
           <TouchableOpacity
             style={[styles.filterToggle, { 
@@ -595,14 +617,14 @@ export default function DateNightScreen({ navigation }) {
               </View>
               <Text style={[styles.emptyTitle, { color: colors.text }]}>Craft Your Night</Text>
               <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                Define the mood and energy above{'\n'}to reveal your personalized date deck.
+                {toneCopy.emptySetup}
               </Text>
             </BlurView>
           ) : deck.length === 0 ? (
             <View style={styles.emptyStack}>
               <Icon name="search-outline" size={40} color={colors.textMuted} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>No Matches</Text>
-              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>Try adjusting your energy or mood filters.</Text>
+              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>{toneCopy.emptyResults}</Text>
             </View>
           ) : deckDone ? (
             <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.emptyStack}>
@@ -773,6 +795,13 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     fontWeight: '900',
     letterSpacing: -1.5,
     lineHeight: 46,
+  },
+  headerSubtitle: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 6,
+    maxWidth: 260,
   },
   filterToggle: {
     width: 44,

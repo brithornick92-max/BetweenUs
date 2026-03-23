@@ -55,19 +55,12 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
           <Text style={[styles.subTitle, { color: colors.text }]}>Content You Create</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            All user-created content is end-to-end encrypted before leaving your device:{'\n\n'}
-            • Journal entries{'\n'}
-            • Prompt responses{'\n'}
-            • Love notes and photo attachments{'\n'}
-            • Memories{'\n'}
-            • Date night plans and calendar events{'\n'}
-            • Rituals and check-ins{'\n'}
-            • Vibe signals and moment signals{'\n'}
-            • Inside jokes and nicknames{'\n'}
-            • Relationship climate selections{'\n'}
-            • Soft boundaries preferences{'\n'}
-            • Relationship duration{'\n'}
-            • Shared content with your partner
+            We protect different categories of content in different ways:{'\n\n'}
+            • Journal entries, prompt responses, love notes, and memories are encrypted before sync{'\n'}
+            • Photo attachments are encrypted before upload{'\n'}
+            • Some preferences and sensitive controls stay only on your device{'\n'}
+            • Some metadata used for filtering, sorting, and scheduling is protected but not end-to-end encrypted{'\n'}
+            • Shared content is only visible to your linked partner when you choose to share it
           </Text>
 
           <Text style={[styles.subTitle, { color: colors.text }]}>Usage Information</Text>
@@ -78,7 +71,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             • Performance data{'\n'}
             • Device information (type, OS version){'\n'}
             • Aggregated analytics events (screen views, feature usage) stored server-side{'\n'}
-            • Session replays on error (screen interactions to help fix bugs)
+            • Session replays on a limited sample of sessions (10%) and on sessions where an error occurs to help fix bugs
           </Text>
 
           <Text style={[styles.subTitle, { color: colors.text }]}>Device Permissions</Text>
@@ -168,7 +161,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             • Correct inaccurate data{'\n'}
             • Delete your account and data{'\n'}
             • Export your data{'\n'}
-            • Opt out of marketing communications{'\n'}
+            • Disable optional notifications{'\n'}
             • Withdraw consent at any time
           </Text>
 

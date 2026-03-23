@@ -4,7 +4,7 @@
  * Velvet Glass · Hand-drawn reflection · Physics-based Card-flip
  */
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {
   StatusBar,
   ActivityIndicator,
 } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
@@ -44,6 +45,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { promptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
+import { NicknameEngine } from "../services/PolishEngine";
 import { SPACING, withAlpha } from "../utils/theme";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -83,6 +85,13 @@ const INSPIRATION_CHIPS = [
   "One thing I've learned...",
 ];
 
+const TONE_PROMPT_ANSWER_COPY = {
+  warm: 'Let the answer arrive softly. There is no rush here.',
+  playful: 'Start loose, follow the spark, and let it surprise you.',
+  intimate: 'Say the quiet part. The deeper truth is usually the one worth keeping.',
+  minimal: 'Keep it direct. One honest sentence is enough to begin.',
+};
+
 export default function PromptAnswerScreen({ route, navigation }) {
   const { prompt } = route.params || {};
   const { colors, isDark } = useTheme();
@@ -91,6 +100,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const [answer, setAnswer] = useState("");
   const [existingAnswer, setExistingAnswer] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedTone, setSelectedTone] = useState('warm');
   const lastHapticLength = useRef(0);
 
   // Card Physics
@@ -165,6 +175,26 @@ export default function PromptAnswerScreen({ route, navigation }) {
     }
     if (prompt) loadExistingAnswer();
   }, [isPremium, prompt]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      NicknameEngine.getConfig()
+        .then((config) => {
+          if (active) setSelectedTone(config?.tone || 'warm');
+        })
+        .catch(() => {
+          if (active) setSelectedTone('warm');
+        });
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
+  const toneCopy = TONE_PROMPT_ANSWER_COPY[selectedTone] || TONE_PROMPT_ANSWER_COPY.warm;
 
   const loadExistingAnswer = async () => {
     if (!prompt?.id) return;
@@ -325,6 +355,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
                 </BlurView>
               </Animated.View>
             </Animated.View>
+
+            <Text style={[styles.toneLead, { color: t.subtext }]}>{toneCopy}</Text>
 
             {/* Starting Lines / Inspiration Chips */}
             <View style={styles.chipsContainer}>
@@ -553,6 +585,15 @@ const createStyles = (t, isDark) =>
       lineHeight: 34,
       textAlign: "center",
       letterSpacing: -0.5,
+    },
+    toneLead: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 14,
+      lineHeight: 20,
+      textAlign: "center",
+      marginTop: -8,
+      marginBottom: 20,
+      paddingHorizontal: 12,
     },
     // Inspiration Chips
     chipsContainer: {

@@ -89,9 +89,8 @@ We **never** collect:
 ### 2.3 To Communicate With You
 - Send important service updates
 - Respond to your support requests
-- Notify you of new features
 - Send subscription reminders
-- Share tips for using the app
+- Send account, billing, and support-related messages
 
 ### 2.4 For Security and Compliance
 - Prevent fraud and abuse
