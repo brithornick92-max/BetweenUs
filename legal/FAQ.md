@@ -9,7 +9,7 @@
 ### What is Between Us?
 Between Us is a couples app built around one idea: where closeness deepens. Through daily prompts, shared journaling, and intimate rituals, it gives you and your partner a private space to connect more meaningfully.
 
-Between Us is for thriving couples who want to deepen their connection and bond.
+Between Us is for thriving couples only.
 
 ### Who is Between Us for?
 Between Us is for thriving couples only. If your relationship is already thriving and you want to make it even richer, this app was made for you.
