@@ -1,5 +1,5 @@
 // screens/DateNightScreen.js — Date night card game
-// Sexy Red Intimacy & Apple Editorial Updates Integrated.
+// Velvet Glass & Apple Editorial High-End Updates Integrated.
 
 import React, {
   useState, useMemo, useCallback, useRef,
@@ -36,9 +36,9 @@ import DateCardBack from '../components/DateCardBack';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
-const CARD_H = Math.min(height * 0.5, 460);
+const CARD_H = Math.min(height * 0.52, 480);
 const SWIPE_THRESHOLD = 90;
-const FLIP_DURATION = 600;
+const FLIP_DURATION = 650;
 const DIMS = getDimensionMeta();
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -210,18 +210,18 @@ const CardStack = forwardRef(function CardStack(
     height: CARD_H,
     position: 'absolute',
     width: CARD_W,
-    borderRadius: 32,
+    borderRadius: 36,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+    borderWidth: 1.5,
+    borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 15 },
-        shadowOpacity: isDark ? 0.4 : 0.1,
-        shadowRadius: 25,
+        shadowOffset: { width: 0, height: 20 },
+        shadowOpacity: isDark ? 0.5 : 0.12,
+        shadowRadius: 30,
       },
-      android: { elevation: 10 },
+      android: { elevation: 12 },
     }),
   };
 
@@ -427,12 +427,12 @@ export default function DateNightScreen({ navigation }) {
   return (
     <View style={[styles.root, { backgroundColor: t.background }]}>
       <LinearGradient
-        colors={isDark ? [t.background, '#120206', t.background] : [t.background, '#F9F6F4', t.background]}
+        colors={isDark ? ['#0A0A0C', '#120206', '#0A0A0C'] : ['#FFFFFF', '#F9F6F4', '#FFFFFF']}
         style={StyleSheet.absoluteFillObject}
       />
-      <GlowOrb color="#D2121A" size={300} top={-50} left={width - 200} opacity={0.1} />
-      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={250} top={650} left={-80} opacity={0.08} />
-      <FilmGrain opacity={0.03} />
+      <GlowOrb color="#D2121A" size={400} top={-100} left={width - 250} opacity={0.12} />
+      <GlowOrb color={isDark ? '#4A1010' : '#F2F2F7'} size={300} top={650} left={-100} opacity={0.1} />
+      <FilmGrain opacity={0.035} />
       
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       
@@ -440,20 +440,23 @@ export default function DateNightScreen({ navigation }) {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          bounces={false}
+          bounces={true}
           keyboardShouldPersistTaps="handled"
         >
 
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={[styles.headerEye, { color: t.subtext }]}>
-              {!ready ? 'Preparing Decks...' : !allSelected ? allDates.length + '+ date ideas' : !isPremium && remaining > 0 ? remaining + ' free previews left' : remaining > 0 ? remaining + ' cards in your deck' : deck.length > 0 ? 'All drawn!' : allDates.length + '+ date ideas'}
+            <Text style={[styles.headerEye, { color: t.primary }]}>
+              {!ready ? 'Preparing Decks...' : !allSelected ? allDates.length + '+ Curated Ideas' : !isPremium && remaining > 0 ? remaining + ' Previews Remaining' : remaining > 0 ? remaining + ' Potential Plans' : deck.length > 0 ? 'All Cards Drawn' : allDates.length + '+ Curated Ideas'}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>The Deck</Text>
           </View>
           <TouchableOpacity
-            style={[styles.filterToggle, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)', backgroundColor: filtersOpen ? colors.primary + '15' : colors.surface }]}
+            style={[styles.filterToggle, { 
+              borderColor: hasFilters ? colors.primary + '40' : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'), 
+              backgroundColor: filtersOpen ? colors.primary + '15' : 'transparent' 
+            }]}
             onPress={() => setFiltersOpen(o => !o)}
             activeOpacity={0.7}
           >
@@ -465,7 +468,7 @@ export default function DateNightScreen({ navigation }) {
         {/* Show lightweight placeholder until data is ready */}
         {!ready ? (
           <View style={styles.stackWrapper}>
-            <ActivityIndicator size="small" color={colors.primary} style={{ opacity: 0.5 }} />
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 100 }} />
           </View>
         ) : (
         <>
@@ -549,148 +552,81 @@ export default function DateNightScreen({ navigation }) {
               })()}
             </View>
 
-            {hasFilters && (
-              <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearFilters} activeOpacity={0.7}>
-                <Icon name="close-circle" size={16} color={colors.textMuted} />
-                <Text style={[styles.clearFiltersTxt, { color: colors.textMuted }]}>Clear filters</Text>
-              </TouchableOpacity>
-            )}
-
-            {/* Dropdown option panels (Frosted Glass) */}
+            {/* Dropdown Options (Velvet Glass Layer) */}
             {dropdownOpen && (
-              <BlurView intensity={isDark ? 20 : 40} tint={isDark ? "dark" : "light"} style={[styles.dropdownPanel, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
-                {dropdownOpen === 'heat' && DIMS.heat.map((h) => {
-                  const active = selectedHeat === h.level;
+              <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={[styles.dropdownPanel, { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' }]}>
+                {(dropdownOpen === 'heat' ? DIMS.heat : dropdownOpen === 'load' ? DIMS.load : DIMS.style).map((opt) => {
+                  const val = dropdownOpen === 'style' ? opt.id : opt.level;
+                  const current = dropdownOpen === 'heat' ? selectedHeat : dropdownOpen === 'load' ? selectedLoad : selectedStyle;
+                  const active = current === val;
                   return (
                     <TouchableOpacity
-                      key={h.level}
-                      style={[styles.dropdownOption, active && { backgroundColor: h.color + '15' }]}
-                      onPress={() => handleFilterPress('heat', h.level)}
+                      key={val}
+                      style={[styles.dropdownOption, active && { backgroundColor: opt.color + '15' }]}
+                      onPress={() => handleFilterPress(dropdownOpen, val)}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.dropdownOptionEmoji}>{h.icon}</Text>
+                      <Text style={styles.dropdownOptionEmoji}>{opt.icon}</Text>
                       <View style={styles.dropdownOptionContent}>
-                        <Text style={[styles.dropdownOptionLabel, { color: active ? h.color : colors.text }]}>{h.label}</Text>
+                        <Text style={[styles.dropdownOptionLabel, { color: active ? opt.color : colors.text }]}>{opt.label}</Text>
+                        <Text style={[styles.dropdownOptionSub, { color: colors.textMuted }]}>{opt.description || 'Curated category'}</Text>
                       </View>
-                      {active && <Icon name="checkmark-circle" size={20} color={h.color} />}
-                    </TouchableOpacity>
-                  );
-                })}
-                {dropdownOpen === 'load' && DIMS.load.map((l) => {
-                  const active = selectedLoad === l.level;
-                  return (
-                    <TouchableOpacity
-                      key={l.level}
-                      style={[styles.dropdownOption, active && { backgroundColor: l.color + '15' }]}
-                      onPress={() => handleFilterPress('load', l.level)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.dropdownOptionEmoji}>{l.icon}</Text>
-                      <View style={styles.dropdownOptionContent}>
-                        <Text style={[styles.dropdownOptionLabel, { color: active ? l.color : colors.text }]}>{l.label}</Text>
-                      </View>
-                      {active && <Icon name="checkmark-circle" size={20} color={l.color} />}
-                    </TouchableOpacity>
-                  );
-                })}
-                {dropdownOpen === 'style' && DIMS.style.map((s) => {
-                  const active = selectedStyle === s.id;
-                  return (
-                    <TouchableOpacity
-                      key={s.id}
-                      style={[styles.dropdownOption, active && { backgroundColor: s.color + '15' }]}
-                      onPress={() => handleFilterPress('style', s.id)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.dropdownOptionEmoji}>{s.icon}</Text>
-                      <View style={styles.dropdownOptionContent}>
-                        <Text style={[styles.dropdownOptionLabel, { color: active ? s.color : colors.text }]}>{s.label}</Text>
-                      </View>
-                      {active && <Icon name="checkmark-circle" size={20} color={s.color} />}
+                      {active && <Icon name="checkmark-circle" size={20} color={opt.color} />}
                     </TouchableOpacity>
                   );
                 })}
               </BlurView>
             )}
+
+            {hasFilters && (
+              <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearFilters} activeOpacity={0.7}>
+                <Text style={[styles.clearFiltersTxt, { color: colors.textMuted }]}>Reset Filters</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
-        {/* Card stack */}
+        {/* Card Stack Content */}
         <View style={styles.stackWrapper}>
           {!allSelected ? (
-            <BlurView intensity={isDark ? 10 : 20} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
-              <Icon name="sparkles" size={42} color={colors.primary + '80'} />
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>Pick your vibe</Text>
-              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                Choose one from each category above{'\n'}to see your personalized date deck
-              </Text>
-              <View style={[styles.teaserChips, { marginTop: 16 }]}>
-                {!selectedHeat && (
-                  <TouchableOpacity 
-                    style={[styles.teaserChip, { borderColor: colors.primary + '30', backgroundColor: colors.primary + '10' }]}
-                    onPress={() => { selection(); setFiltersOpen(true); setDropdownOpen('heat'); }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.teaserChipTxt, { color: colors.primary }]}>MOOD</Text>
-                  </TouchableOpacity>
-                )}
-                {!selectedLoad && (
-                  <TouchableOpacity 
-                    style={[styles.teaserChip, { borderColor: colors.primary + '30', backgroundColor: colors.primary + '10' }]}
-                    onPress={() => { selection(); setFiltersOpen(true); setDropdownOpen('load'); }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.teaserChipTxt, { color: colors.primary }]}>ENERGY</Text>
-                  </TouchableOpacity>
-                )}
-                {!selectedStyle && (
-                  <TouchableOpacity 
-                    style={[styles.teaserChip, { borderColor: colors.primary + '30', backgroundColor: colors.primary + '10' }]}
-                    onPress={() => { selection(); setFiltersOpen(true); setDropdownOpen('style'); }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.teaserChipTxt, { color: colors.primary }]}>STYLE</Text>
-                  </TouchableOpacity>
-                )}
+            <BlurView intensity={isDark ? 15 : 25} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
+              <View style={styles.emptyIconCircle}>
+                <Icon name="sparkles" size={32} color={colors.primary} />
               </View>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>Craft Your Night</Text>
+              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
+                Define the mood and energy above{'\n'}to reveal your personalized date deck.
+              </Text>
             </BlurView>
           ) : deck.length === 0 ? (
-            <BlurView intensity={isDark ? 10 : 20} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+            <View style={styles.emptyStack}>
               <Icon name="search-outline" size={40} color={colors.textMuted} />
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>No matches</Text>
-              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>Try a different combination</Text>
-            </BlurView>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>No Matches</Text>
+              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>Try adjusting your energy or mood filters.</Text>
+            </View>
           ) : deckDone ? (
-            <BlurView intensity={isDark ? 10 : 20} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.emptyStack}>
               {!isPremium ? (
                 <>
-                  <Text style={{ fontSize: 42, marginBottom: 8 }}>🔒</Text>
-                  <Text style={[styles.emptyTitle, { color: colors.text }]}>Out of free previews</Text>
+                  <Icon name="lock-closed" size={42} color={colors.primary} />
+                  <Text style={[styles.emptyTitle, { color: colors.text }]}>Explore More</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                    Unlock {allDates.length}+ highly-curated date ideas.
+                    Unlock {allDates.length}+ high-end date nights and curated intimacy exercises.
                   </Text>
-                  <View style={styles.teaserChips}>
-                    {DIMS.heat.map(h => (
-                      <View key={h.level} style={[styles.teaserChipSm, { borderColor: h.color + '25', backgroundColor: h.color + '10' }]}>
-                        <Text style={[styles.teaserChipSmTxt, { color: h.color }]}>{h.icon} {h.label}</Text>
-                      </View>
-                    ))}
-                  </View>
                   <TouchableOpacity
                     style={[styles.resetBtn, { backgroundColor: colors.primary }]}
                     onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
                     activeOpacity={0.85}
                   >
-                    <Icon name="star" size={16} color="#FFFFFF" />
-                    <Text style={[styles.resetTxt, { color: '#FFFFFF' }]}>Unlock all dates</Text>
+                    <Text style={[styles.resetTxt, { color: '#FFFFFF' }]}>Unlock Everything</Text>
                   </TouchableOpacity>
                 </>
               ) : (
                 <>
                   <Text style={{ fontSize: 42, marginBottom: 8 }}>✨</Text>
-                  <Text style={[styles.emptyTitle, { color: colors.text }]}>All cards drawn</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.text }]}>Deck Complete</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                    {likedDates.length > 0 ? likedDates.length + ' saved for tonight' : 'Shuffle and draw again'}
+                    {likedDates.length > 0 ? `You've selected ${likedDates.length} ideas for tonight.` : 'Ready to shuffle and go again?'}
                   </Text>
                   <TouchableOpacity
                     style={[styles.resetBtn, { backgroundColor: colors.text }]}
@@ -698,7 +634,7 @@ export default function DateNightScreen({ navigation }) {
                     activeOpacity={0.85}
                   >
                     <Icon name="shuffle-outline" size={18} color={colors.background} />
-                    <Text style={[styles.resetTxt, { color: colors.background }]}>Shuffle deck</Text>
+                    <Text style={[styles.resetTxt, { color: colors.background }]}>Shuffle Deck</Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -717,26 +653,21 @@ export default function DateNightScreen({ navigation }) {
           )}
         </View>
 
-        {/* Action buttons */}
+        {/* Interaction Controls */}
         {allSelected && !deckDone && deck.length > 0 && (
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
+              style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF' }]}
               onPress={() => stackRef.current?.swipeLeft()}
               activeOpacity={0.8}
             >
               <Icon name="close" size={28} color={colors.text + '80'} />
             </TouchableOpacity>
 
-            <View style={styles.actionCounterWrap}>
-              <Text style={[styles.actionCounter, { color: colors.textMuted }]}>
-                {deckIndex + 1} / {deck.length}
-              </Text>
-              {!isPremium && (
-                <Text style={[styles.actionCounterSub, { color: colors.primary + '90' }]}>
-                  of {allDates.length}+
-                </Text>
-              )}
+            <View style={styles.counterGroup}>
+              <Text style={[styles.counterMain, { color: colors.text }]}>{deckIndex + 1}</Text>
+              <View style={[styles.counterLine, { backgroundColor: colors.text + '20' }]} />
+              <Text style={[styles.counterSub, { color: colors.textMuted }]}>{deck.length}</Text>
             </View>
 
             <TouchableOpacity
@@ -745,10 +676,8 @@ export default function DateNightScreen({ navigation }) {
               activeOpacity={0.85}
             >
               <LinearGradient
-                colors={[colors.primary, colors.accent || colors.primary + 'BB']}
+                colors={[colors.primary, '#9A0F14']}
                 style={styles.likeBtnGrad}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
               >
                 <Icon name="heart" size={28} color="#FFFFFF" />
               </LinearGradient>
@@ -756,42 +685,45 @@ export default function DateNightScreen({ navigation }) {
           </View>
         )}
 
-        {/* Free-user teaser banner (Apple Editorial Style) */}
+        {/* Premium Teaser (Editorial Style) */}
         {allSelected && !isPremium && !deckDone && deck.length > 0 && (
           <TouchableOpacity
-            style={[styles.teaserBanner, { backgroundColor: colors.surfaceGlass || 'rgba(255,255,255,0.05)', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
+            style={[styles.editorialBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}
             onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
             activeOpacity={0.8}
           >
-            <View style={styles.teaserTop}>
-              <Icon name="star" size={16} color={colors.primary} />
-              <Text style={[styles.teaserTitle, { color: colors.text }]}>
-                Unlock {allDates.length}+ dates
-              </Text>
+            <View style={styles.editorialTag}>
+              <Text style={[styles.editorialTagText, { color: colors.primary }]}>PREMIUM ACCESS</Text>
             </View>
-            <Text style={[styles.teaserBody, { color: colors.textMuted }]}>
-              From cozy nights in to adventurous outings — discover the full collection.
+            <Text style={[styles.editorialTitle, { color: colors.text }]}>Unlock {allDates.length}+ Hidden Gems</Text>
+            <Text style={[styles.editorialBody, { color: colors.textMuted }]}>
+              Get full access to high-heat intimacy prompts and exclusive date plans.
             </Text>
           </TouchableOpacity>
         )}
 
-        {/* Tonight's list */}
+        {/* Horizontal Liked List */}
         {likedDates.length > 0 && (
           <View style={styles.likedSection}>
-            <Text style={[styles.likedTitle, { color: colors.text }]}>
-              Tonight's picks <Text style={{ color: colors.primary }}>({likedDates.length})</Text>
-            </Text>
+            <View style={styles.likedHeader}>
+              <Text style={[styles.likedTitle, { color: colors.text }]}>Shortlist</Text>
+              <View style={[styles.likedBadge, { backgroundColor: colors.primary + '20' }]}>
+                <Text style={[styles.likedBadgeText, { color: colors.primary }]}>{likedDates.length}</Text>
+              </View>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.likedRow}>
               {likedDates.map((d, i) => {
                 const hm = DIMS.heat.find(h => h.level === d.heat) || DIMS.heat[0];
                 return (
                   <TouchableOpacity
                     key={d.id || i}
-                    style={[styles.likedCard, { backgroundColor: colors.surface, borderColor: hm.color + '20' }]}
+                    style={[styles.likedCard, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
                     onPress={() => openDate(d)}
                     activeOpacity={0.85}
                   >
-                    <Text style={{ fontSize: 18 }}>{hm.icon}</Text>
+                    <View style={[styles.likedCardEmoji, { backgroundColor: hm.color + '15' }]}>
+                      <Text style={{ fontSize: 16 }}>{hm.icon}</Text>
+                    </View>
                     <Text style={[styles.likedCardTitle, { color: colors.text }]} numberOfLines={2}>
                       {d.title}
                     </Text>
@@ -805,7 +737,7 @@ export default function DateNightScreen({ navigation }) {
         </>
         )}
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: 120 }} />
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -817,72 +749,69 @@ export default function DateNightScreen({ navigation }) {
 // ------------------------------------------------------------------
 const createStyles = (colors, isDark) => StyleSheet.create({
   root: { flex: 1 },
-  safe: { flex: 1, paddingHorizontal: 16 },
-  scrollContent: { flexGrow: 1, paddingBottom: 4 },
+  safe: { flex: 1, paddingHorizontal: 20 },
+  scrollContent: { flexGrow: 1, paddingTop: 10 },
 
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: SPACING.xl,
-    paddingBottom: SPACING.lg,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.xl,
   },
   headerEye: {
     fontFamily: FONTS.bodyBold,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.5,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 36,
+    fontSize: 40,
     fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
+    letterSpacing: -1.5,
+    lineHeight: 46,
   },
   filterToggle: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 14,
-    borderWidth: 1,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   filterDot: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 1,
+    top: -2,
+    right: -2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
     borderColor: colors.background,
   },
 
-  // Filter dropdowns
   filterSection: {
-    marginBottom: SPACING.lg,
-    gap: 12,
+    marginBottom: 24,
   },
   filterDropdowns: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   dropdownBtn: {
     flex: 1,
-    borderRadius: 24, // Editorial squircle pills
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   dropdownLabel: {
     fontFamily: FONTS.bodyBold,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1.2,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: 4,
   },
@@ -893,360 +822,197 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   },
   dropdownValueText: {
     fontFamily: FONTS.bodyBold,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    letterSpacing: 0.2,
   },
   dropdownPanel: {
     borderRadius: 24,
-    borderWidth: 1,
+    borderWidth: 1.5,
     overflow: 'hidden',
-    marginTop: 4,
+    marginTop: 12,
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    zIndex: 100,
   },
   dropdownOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
     paddingVertical: 16,
-    gap: 12,
+    gap: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(150,150,150,0.1)',
+    borderBottomColor: 'rgba(150,150,150,0.15)',
   },
-  dropdownOptionEmoji: { fontSize: 18 },
+  dropdownOptionEmoji: { fontSize: 20 },
   dropdownOptionContent: { flex: 1 },
   dropdownOptionLabel: {
     fontFamily: FONTS.bodyBold,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    letterSpacing: 0.1,
+  },
+  dropdownOptionSub: {
+    fontSize: 12,
+    marginTop: 2,
+    opacity: 0.8,
   },
   clearFiltersBtn: {
-    flexDirection: 'row',
     alignSelf: 'center',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
+    marginTop: 16,
+    paddingVertical: 6,
     paddingHorizontal: 16,
     borderRadius: 20,
     backgroundColor: 'rgba(150,150,150,0.08)',
   },
-  clearFiltersTxt: { fontFamily: FONTS.bodyBold, fontSize: 13, fontWeight: '600', letterSpacing: 0.2 },
+  clearFiltersTxt: { fontFamily: FONTS.bodyBold, fontSize: 12, fontWeight: '700', opacity: 0.6 },
 
-  // Stack
-  stackWrapper: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  stackWrapper: { alignItems: 'center', justifyContent: 'center', marginVertical: 10 },
   stackContainer: { width: CARD_W, alignItems: 'center', justifyContent: 'flex-end' },
 
-  // Flip face (absolute overlay for back/front)
   flipFace: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    borderRadius: 28, // Matches CardBase
+    borderRadius: 36,
     overflow: 'hidden',
   },
-
-  // Card back
-  cardBackGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: SPACING.xl,
-  },
-  backRing: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.md,
-  },
-  backRingInner: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: BORDER_RADIUS.full,
-    gap: 7,
-    marginBottom: SPACING.sm,
-  },
-  backPillEmoji: { fontSize: 15 },
-  backPillText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.88)',
-    letterSpacing: 0.8,
-  },
-  backHint: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.35)',
-    letterSpacing: 0.8,
-    fontStyle: 'italic',
-  },
-  cornerMark: {
-    position: 'absolute',
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.10)',
-  },
-
-  // Card front
   cardFrontWrap: {
     flex: 1,
-    borderRadius: 28,
-    overflow: 'hidden',
-  },
-  cardFrontInner: { flex: 1 },
-  cardFrontBand: {
-    height: 6,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
-  cardFrontBandTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 8,
-  },
-  cardFrontBandTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-  },
-  cardFrontBandTagText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  cardFrontBody: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 22,
-    paddingBottom: 24,
-    gap: 10,
-  },
-  cardFrontTitle: {
-    fontFamily: FONTS.serif,
-    fontSize: 26,
-    fontWeight: '400',
-    lineHeight: 34,
-    letterSpacing: -0.2,
-  },
-  cardFrontDesc: {
-    fontFamily: FONTS.body,
-    fontSize: 15,
-    lineHeight: 24,
-    opacity: 0.85,
-  },
-  cardFrontFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 8,
-  },
-  cardFrontMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  cardFrontMetaTxt: { fontFamily: FONTS.bodyBold, fontWeight: '600', fontSize: 13 },
-  cardFrontFooterRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  cardFrontHint: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    letterSpacing: 0.3,
-    fontStyle: 'italic',
   },
 
-  // Swipe hint pills
   swipeHint: {
     position: 'absolute',
-    top: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    top: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     zIndex: 10,
   },
   swipeHintRight: {
-    left: 16,
-    backgroundColor: 'rgba(255, 45, 85, 0.9)', // Apple Red/Pink
+    left: 20,
+    backgroundColor: 'rgba(210, 18, 26, 0.95)',
   },
   swipeHintLeft: {
-    right: 16,
-    backgroundColor: 'rgba(40, 40, 45, 0.95)',
+    right: 20,
+    backgroundColor: 'rgba(30, 30, 35, 0.9)',
   },
   swipeHintText: {
     fontFamily: FONTS.bodyBold,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     color: '#FFFFFF',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
 
-  // Actions
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 32,
-    paddingVertical: SPACING.xl,
+    gap: 36,
+    paddingVertical: 24,
   },
   actionBtn: {
-    width: 64, // Larger, more premium buttons
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 1,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 12 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 10 },
       android: { elevation: 4 },
     }),
   },
-  actionCounter: {
-    fontFamily: FONTS.bodyBold,
-    fontWeight: '700',
-    fontSize: 15,
-    letterSpacing: 0.5,
-    minWidth: 52,
-    textAlign: 'center',
+  counterGroup: {
+    alignItems: 'center',
+    width: 40,
   },
+  counterMain: { fontFamily: FONTS.bodyBold, fontSize: 18, fontWeight: '800' },
+  counterLine: { width: 20, height: 2, marginVertical: 2, borderRadius: 1 },
+  counterSub: { fontFamily: FONTS.bodyBold, fontSize: 12, fontWeight: '600', opacity: 0.5 },
   likeBtn: { 
-    width: 64, height: 64, borderRadius: 32, overflow: 'hidden',
+    width: 68, height: 68, borderRadius: 34, overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16 },
-      android: { elevation: 8 },
+      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 18 },
+      android: { elevation: 10 },
     }),
   },
   likeBtnGrad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
-  // Empty / end states
   emptyStack: {
     width: CARD_W,
     height: CARD_H,
-    borderRadius: 28,
-    borderWidth: 1,
+    borderRadius: 36,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 32,
     gap: 16,
-    paddingHorizontal: 28,
-    paddingBottom: 20,
   },
-  emptyTitle: { fontFamily: Platform.select({ ios: "System", android: "Roboto" }), fontSize: 26, fontWeight: '800', letterSpacing: -0.3 },
-  emptyBody: { fontFamily: FONTS.body, fontSize: 15, textAlign: 'center', lineHeight: 24, fontWeight: '500', opacity: 0.9 },
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  emptyTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' },
+  emptyBody: { fontSize: 16, textAlign: 'center', lineHeight: 24, opacity: 0.7 },
   resetBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 24,
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    borderRadius: 25,
     marginTop: 12,
   },
-  resetTxt: { fontFamily: FONTS.bodyBold, fontSize: 15, fontWeight: '700' },
+  resetTxt: { fontFamily: FONTS.bodyBold, fontSize: 16, fontWeight: '800' },
 
-  // Free-user teaser
-  teaserBanner: {
+  editorialBanner: {
     borderRadius: 24,
+    padding: 24,
+    marginVertical: 10,
     borderWidth: 1,
-    padding: 20,
-    marginBottom: SPACING.lg,
-    gap: 10,
+    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
   },
-  teaserTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  editorialTag: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: colors.primary + '10',
+    marginBottom: 12,
   },
-  teaserTitle: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-  teaserBody: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  teaserChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 6,
-  },
-  teaserChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  teaserChipTxt: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  teaserChipSm: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    gap: 4,
-  },
-  teaserChipSmTxt: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  actionCounterWrap: {
-    alignItems: 'center',
-    minWidth: 52,
-  },
-  actionCounterSub: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-    marginTop: 2,
-  },
+  editorialTagText: { fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  editorialTitle: { fontSize: 20, fontWeight: '800', marginBottom: 6 },
+  editorialBody: { fontSize: 14, lineHeight: 20, opacity: 0.6 },
 
-  // Tonight's list
-  likedSection: { paddingTop: SPACING.md, paddingBottom: 16 },
-  likedTitle: { fontFamily: FONTS.bodyBold, fontSize: 15, fontWeight: '700', letterSpacing: 0.3, marginBottom: 12 },
-  likedRow: { gap: 12 },
+  likedSection: { marginTop: 10 },
+  likedHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
+  likedTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+  likedBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+  likedBadgeText: { fontSize: 12, fontWeight: '800' },
+  likedRow: { gap: 14, paddingRight: 20 },
   likedCard: {
-    width: 140,
-    padding: 16,
-    borderRadius: 22, // Widget squircle
-    borderWidth: 1,
-    gap: 8,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8 },
-      android: { elevation: 2 },
-    }),
+    width: 150,
+    padding: 18,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    gap: 12,
   },
-  likedCardTitle: { fontFamily: FONTS.bodyBold, fontWeight: '600', fontSize: 14, lineHeight: 20 },
+  likedCardEmoji: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  likedCardTitle: { fontSize: 15, fontWeight: '700', lineHeight: 20 },
 });
