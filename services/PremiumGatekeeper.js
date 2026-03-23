@@ -4,8 +4,8 @@ import StorageRouter from './storage/StorageRouter';
 class PremiumGatekeeper {
   constructor() {
     this.DAILY_LIMITS = {
-      FREE_PROMPTS: 0, // Free users get 3 fixed read-only preview prompts only
-      FREE_DATES: 0,   // Date browsing is preview-only for free users
+      FREE_PROMPTS: 3, // Free users get 3 preview prompts per day
+      FREE_DATES: 3,   // Free users can browse 3 date ideas per day
       FREE_HEAT_LEVELS: [1, 2, 3], // Free preview prompts cover levels 1-3
       PREMIUM_HEAT_LEVELS: [1, 2, 3, 4, 5] // Premium gets all levels
     };

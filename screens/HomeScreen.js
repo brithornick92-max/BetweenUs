@@ -276,7 +276,7 @@ export default function HomeScreen({ navigation }) {
             accessibilityLabel="Send a vibe signal"
             style={styles.vibeButton}
           >
-            <Icon name="heart-outline" size={22} color={t.primary} />
+            <Icon name="heart-outline" size={30} color={t.primary} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -498,9 +498,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.text,
   },
   vibeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,

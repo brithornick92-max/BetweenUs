@@ -516,22 +516,33 @@ export const checkInStorage = {
  */
 export const myDatesStorage = {
   async getMyDates() {
-    const data = await storage.get(STORAGE_KEYS.MY_DATES, []);
-    return ensureArray(data).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    try {
+      const raw = await storage.get(STORAGE_KEYS.MY_DATES, null);
+      if (!raw) return [];
+      // Migration: if raw is an Array, it's unencrypted legacy data
+      if (Array.isArray(raw)) return raw.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const decrypted = await EncryptionService.decryptJson(raw);
+      const list = ensureArray(decrypted);
+      return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } catch { return []; }
+  },
+
+  async _save(list) {
+    const { default: EncryptionService } = await import('../services/EncryptionService');
+    const encrypted = await EncryptionService.encryptJson(list);
+    await storage.set(STORAGE_KEYS.MY_DATES, encrypted);
   },
 
   async addMyDate(date) {
     const list = await this.getMyDates();
     const processed = {
       ...date,
-      id: date.id || makeId("date"),
+      id: date.id || makeId('date'),
       createdAt: date.createdAt || Date.now(),
       updatedAt: Date.now(),
     };
-    await storage.set(
-      STORAGE_KEYS.MY_DATES,
-      [processed, ...list.filter((d) => d.id !== processed.id)]
-    );
+    await this._save([processed, ...list.filter((d) => d.id !== processed.id)]);
     return processed;
   },
 
@@ -539,16 +550,13 @@ export const myDatesStorage = {
     if (!date?.id) return null;
     const list = await this.getMyDates();
     const processed = { ...date, updatedAt: Date.now() };
-    await storage.set(
-      STORAGE_KEYS.MY_DATES,
-      [processed, ...list.filter((d) => d.id !== processed.id)]
-    );
+    await this._save([processed, ...list.filter((d) => d.id !== processed.id)]);
     return processed;
   },
 
   async deleteMyDate(id) {
     const list = await this.getMyDates();
-    return storage.set(STORAGE_KEYS.MY_DATES, list.filter((d) => d.id !== id));
+    return this._save(list.filter((d) => d.id !== id));
   },
 };
 
@@ -562,16 +570,31 @@ export const myDatesStorage = {
  */
 export const calendarStorage = {
   async getEvents() {
-    return ensureArray(await storage.get(STORAGE_KEYS.CALENDAR_EVENTS, []));
+    try {
+      const raw = await storage.get(STORAGE_KEYS.CALENDAR_EVENTS, null);
+      if (!raw) return [];
+      // Migration: if raw is an Array, it's unencrypted legacy data — return as-is
+      if (Array.isArray(raw)) return raw;
+      // Encrypted format (object with ciphertext fields)
+      const { default: EncryptionService } = await import('../services/EncryptionService');
+      const decrypted = await EncryptionService.decryptJson(raw);
+      return ensureArray(decrypted);
+    } catch { return []; }
+  },
+
+  async _save(events) {
+    const { default: EncryptionService } = await import('../services/EncryptionService');
+    const encrypted = await EncryptionService.encryptJson(events);
+    await storage.set(STORAGE_KEYS.CALENDAR_EVENTS, encrypted);
   },
 
   async upsertEvent(event) {
     const events = await this.getEvents();
-    const id = event.id || makeId("evt");
+    const id = event.id || makeId('evt');
     const newEvent = { ...event, id, updatedAt: Date.now() };
 
     const filtered = events.filter((e) => e.id !== id);
-    await storage.set(STORAGE_KEYS.CALENDAR_EVENTS, [newEvent, ...filtered]);
+    await this._save([newEvent, ...filtered]);
     return newEvent;
   },
 
@@ -582,10 +605,7 @@ export const calendarStorage = {
 
   async deleteEvent(eventId) {
     const events = await this.getEvents();
-    await storage.set(
-      STORAGE_KEYS.CALENDAR_EVENTS,
-      events.filter((e) => e.id !== eventId)
-    );
+    await this._save(events.filter((e) => e.id !== eventId));
     return true;
   },
 };

@@ -91,7 +91,9 @@ const VibeSignal = ({
   const [partnerVibe, setPartnerVibe] = useState(appState.partnerVibe);
   const [isAnimating, setIsAnimating] = useState(false);
   const [anniversaryThemes, setAnniversaryThemes] = useState([]);
-  const [availableVibes, setAvailableVibes] = useState(Object.values(VIBE_COLORS));
+  const [availableVibes, setAvailableVibes] = useState(
+    Object.values(VIBE_COLORS).map(v => v.id === 'passionate' ? { ...v, primary: t.primary } : v)
+  );
   
   const partnerGlowAnimation = useRef(new Animated.Value(0)).current;
 
@@ -128,7 +130,10 @@ const VibeSignal = ({
           anniversaryDate: theme.anniversaryDate,
         }));
         
-        setAvailableVibes([...Object.values(VIBE_COLORS), ...anniversaryVibes]);
+        setAvailableVibes([
+          ...Object.values(VIBE_COLORS).map(v => v.id === 'passionate' ? { ...v, primary: t.primary } : v),
+          ...anniversaryVibes
+        ]);
       } catch (error) {
         console.error('Failed to load anniversary themes:', error);
       }
@@ -265,17 +270,17 @@ const VibeSignal = ({
         >
           <Animated.View style={[styles.vibeCard, { backgroundColor }]}>
             <Animated.View style={[styles.vibeIconContainer, { backgroundColor: iconCircleBg }]}>
-              <View style={{ width: compact ? 22 : 26, height: compact ? 22 : 26 }}>
+              <View style={{ width: compact ? 28 : 34, height: compact ? 28 : 34 }}>
                 <Icon
                   name={vibe.icon}
-                  size={compact ? 22 : 26}
+                  size={compact ? 28 : 34}
                   color={vibe.primary}
                   style={{ position: 'absolute' }}
                 />
                 <Animated.View style={{ opacity: fadeAnim }}>
                   <Icon
                     name={vibe.icon}
-                    size={compact ? 22 : 26}
+                    size={compact ? 28 : 34}
                     color="#FFFFFF"
                   />
                 </Animated.View>
@@ -419,9 +424,9 @@ const createStyles = (t, isDark, compact) => {
       }),
     },
     vibeIconContainer: {
-      width: compact ? 38 : 46,
-      height: compact ? 38 : 46,
-      borderRadius: compact ? 19 : 23,
+      width: compact ? 48 : 58,
+      height: compact ? 48 : 58,
+      borderRadius: compact ? 24 : 29,
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: SPACING.md,

@@ -24,6 +24,7 @@ import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedb
 import * as ImagePicker from "expo-image-picker";
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { journalStorage } from "../utils/storage";
+import { DataLayer } from "../services/localfirst";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import {
@@ -87,18 +88,17 @@ export default function JournalEntryScreen({ navigation, route }) {
 
     try {
       const entryData = {
-        id: entry?.id,
         title: title.trim(),
-        content: content.trim(),
+        body: content.trim(),
         mood,
-        imageUri: imageUri || null,
-        isShared,
-        date: entry?.date || new Date().toISOString(),
-        createdAt: entry?.createdAt || Date.now(),
-        updatedAt: Date.now(),
+        isPrivate: !isShared,
       };
 
-      await journalStorage.saveEntry(entryData);
+      if (entry?.id) {
+        await DataLayer.updateJournalEntry(entry.id, entryData);
+      } else {
+        await DataLayer.saveJournalEntry(entryData);
+      }
       navigation.goBack();
     } catch (error) {
       Alert.alert("Error", "Failed to save journal entry. Please try again.");
@@ -119,7 +119,7 @@ export default function JournalEntryScreen({ navigation, route }) {
           onPress: async () => {
             try {
               impact(ImpactFeedbackStyle.Medium);
-              await journalStorage.deleteEntry(entry.id);
+              await DataLayer.deleteJournalEntry(entry.id);
               navigation.goBack();
             } catch (error) {
               Alert.alert("Error", "Failed to delete entry. Please try again.");

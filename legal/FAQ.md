@@ -9,23 +9,15 @@
 ### What is Between Us?
 Between Us is a couples app built around one idea: where closeness deepens. Through daily prompts, shared journaling, and intimate rituals, it gives you and your partner a private space to connect more meaningfully.
 
-**Important:** Between Us is designed for couples who already have a loving foundation and want to deepen their intimacy and connection.
+Between Us is for thriving couples who want to deepen their connection and bond.
 
 ### Who is Between Us for?
-Between Us is for couples who are already in a good place and want to deepen their intimacy and connection. If your relationship has a strong foundation and you want to make it even richer, this app is for you.
+Between Us is for thriving couples who want to deepen their connection and bond. If your relationship is in a beautiful place and you want to make it even richer, this app was made for you.
 
-**Important:** Between Us is designed for couples who already have a **loving foundation**. It is **not appropriate** for couples experiencing:
-- Serious relationship concerns
-- Trust breakdowns or infidelity
-- Communication breakdowns
-- Considering separation or divorce
-- Abuse or safety concerns
-- Mental health crises
-
-If your relationship needs professional support, please seek qualified counseling or therapy. Between Us deepens what's already beautiful — it's not a substitute for professional care.
+Between Us is not a relationship repair tool. It is not designed for couples navigating serious concerns, trust breakdowns, or considering separation. If your relationship needs professional support, please seek qualified counseling or therapy.
 
 ### Is Between Us for all couples?
-Between Us works for couples of all orientations and identities — our prompts are universally designed. It's specifically for couples who already have a **loving foundation** and want to deepen their intimacy and connection.
+Between Us is for couples of all orientations and identities — our prompts are universally designed and inclusive. It's specifically for couples who are thriving and want to deepen their intimacy and connection.
 
 **All couples welcome (by orientation/identity):**
 - All sexual orientations
@@ -34,21 +26,13 @@ Between Us works for couples of all orientations and identities — our prompts 
 - All backgrounds and cultures
 - Any length of relationship
 
-**But designed for couples who are:**
-- Already in a loving, safe place
-- Wanting to deepen their intimacy and connection
+**Designed for couples who are:**
+- Already in a loving, thriving place
+- Excited to go deeper in their connection
 - Feeling safe and respected
-- Excited to explore together
-- Looking to grow closer and go deeper
+- Ready to explore together
 
-**Not appropriate for couples experiencing:**
-- Serious relationship concerns
-- Trust breakdowns or infidelity
-- Communication breakdowns
-- Considering separation
-- Abuse or safety concerns
-
-So yes, all couples are welcome in terms of who you are — but the app is specifically designed for couples who already have a loving foundation and want to deepen their intimacy and connection.
+Between Us is for thriving couples — it deepens what's already beautiful.
 
 ### How much does it cost?
 - **Free version:** Preview 3 read-only prompts (Heat levels 1-3)
@@ -61,10 +45,10 @@ Premium unlocks unlimited prompts, responses, love notes, calendar, partner conn
 **Note:** Pricing is per couple, not per person. One subscription covers both partners when linked.
 
 ### How do I get started?
-2. Create your account
-3. Customize your partner names
-4. Link with your partner (optional)
-5. Start exploring prompts!
+1. Create your account
+2. Customize your partner names
+3. Link with your partner (optional)
+4. Start exploring prompts!
 
 ---
 
@@ -398,87 +382,29 @@ Our smart system minimizes repetition:
 ## About Between Us & Your Relationship
 
 ### Is Between Us a substitute for therapy?
-No. Between Us is a connection experience, not therapy:
-- We provide prompts, not counseling
-- **The app is designed for couples who already have a loving foundation — it deepens intimacy and closeness**
-- Serious concerns need professional support
-- We encourage open, loving communication
-- A licensed therapist is the right resource for serious concerns
+No. Between Us is a private space for thriving couples to deepen their connection — it is not therapy, counseling, or a relationship repair tool. It is designed for couples who are already in a loving place and want to go even deeper.
 
-**When to seek professional help instead:**
-- You're navigating ongoing relationship concerns
-- There are trust breakdowns or infidelity
-- You're considering separation
-- There's abuse or safety concerns
-- Communication has broken down
-- You feel stuck or uncertain about your relationship
+If your relationship needs professional support, please reach out to a licensed therapist. Between Us is not the right tool for serious relationship concerns.
 
-Between Us works best when your relationship is fundamentally healthy and you want to make it even better.
+### What if prompts surface something unexpected?
+That's part of the depth Between Us offers. Prompts are designed to open meaningful conversations — some may touch on things you haven't explored together in a while. That's intentional. Use them as an invitation to go deeper. Between Us is a space for curiosity, honesty, and closeness.
 
-### What if prompts surface something tender?
-Prompts can surface important topics:
-- Use them as conversation starters
-- Approach with openness and honesty
-- **If serious concerns emerge, seek professional support**
-- Remember: Communication is key
-
-**Red flags that indicate you need professional help:**
-- Prompts consistently lead to arguments
-- You're avoiding certain prompts due to discomfort
-- Responses reveal deep-seated resentment
-- You feel unsafe sharing honestly
-- Something feels too big to navigate alone
-
-Between Us deepens what's already beautiful — it's not a substitute for professional care. If using the app surfaces something important, that's valuable — and a sign to seek professional support.
-
-### What if my partner and I disagree on prompts?
-Healthy disagreement is normal! However:
-- **Minor differences:** Great opportunity for discussion
-- **Repeated tension:** May suggest something deeper to explore with a professional
-- **Feeling unsafe:** Seek professional help immediately
-
-Between Us works best when both partners feel safe, respected, and excited to connect. If the app is creating tension rather than closeness, it may not be the right time.
+### What if my partner and I have different answers?
+Different answers can spark your best conversations. Between Us is a space to explore what you each think and feel — not a test with right answers. Lean into the differences with curiosity and openness.
 
 ### When should we NOT use Between Us?
-Don't use Between Us if you're:
-- Navigating a relationship crisis
-- Working through infidelity or trust breakdowns
-- Experiencing abuse (emotional, physical, or sexual)
+Between Us is specifically designed for thriving couples — not for couples navigating serious concerns. The app is not appropriate if you’re:
+- Working through trust breakdowns or infidelity
+- Experiencing abuse of any kind
 - Considering separation or divorce
-- In couples therapy for serious concerns (ask your therapist first)
 - Feeling unsafe with your partner
-- Using it to avoid what needs professional attention
 
-**Use Between Us when:**
-- Your relationship is fundamentally healthy
-- You want to deepen your connection
-- You're excited to explore together
-- You feel safe and respected
-- You want to maintain relationship vitality
-- You're looking for fun ways to connect
+If any of these apply, please seek support from a licensed therapist or counselor.
 
 ### Is Between Us right for every couple?
-**Between Us is designed for couples who are in a good place.** It's not for every situation:
-- It’s for couples who already have a loving foundation and want to deepen their intimacy and connection
-- It's not a substitute for professional support
-- It's not a substitute for therapy or counseling
-- Professional support is the right path for serious concerns
+Between Us is designed specifically for thriving couples — it deepens what’s already beautiful. It is not a relationship repair tool and is not designed for couples working through serious concerns.
 
-**If you're experiencing:**
-- Ongoing tension or frequent disagreements
-- Trust breakdowns or betrayal
-- Communication breakdowns
-- Emotional distance or disconnection
-- Considering separation
-- Abuse or safety concerns
-
-**Please seek professional help from:**
-- Licensed couples therapist
-- Marriage counselor
-- Relationship coach
-- Mental health professional
-
-Between Us can complement therapy for couples who are already in a good place, but it should not replace professional support when serious concerns are present.
+If your relationship is in a good place and you want to go deeper, Between Us was made for you.
 
 ### Is Between Us only for romantic relationships?
 While designed for romantic couples, the prompts can work for:
@@ -579,6 +505,6 @@ We're here to help!
 
 ---
 
-**Thank you for choosing Between Us to strengthen your relationship!**
+**Thank you for choosing Between Us to deepen your connection.**
 
 *We're constantly improving. Check back for updates to this FAQ.*

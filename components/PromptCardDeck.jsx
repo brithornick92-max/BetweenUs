@@ -37,22 +37,22 @@ const FLIP_DURATION = 600;
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 
-// Core: Almost white. Bloom: Highly saturated hex.
+// Core: Almost white tint. Bloom: Pink-to-red heat progression.
 const HEAT_NEON = {
-  1: { core: "#FFF0F5", bloom: "#FF7EB3" },
-  2: { core: "#FFEBF0", bloom: "#FF2D55" },
-  3: { core: "#FFE5EE", bloom: "#BF5AF2" },
-  4: { core: "#FFEBEC", bloom: "#64D2FF" },
-  5: { core: "#FFE5EA", bloom: "#FFFFFF" },
+  1: { core: "#FFF0F7", bloom: "#FF85C2" }, // Soft Orchid Pink
+  2: { core: "#FFEBF4", bloom: "#FF1493" }, // Deep Pink
+  3: { core: "#FFE8F0", bloom: "#FF006E" }, // Vivid Magenta-Red
+  4: { core: "#FFE8EE", bloom: "#F00049" }, // Carmine
+  5: { core: "#FFEBEB", bloom: "#D2121A" }, // Deep Red
 };
 
 // Deep Onyx tones — light-refracting Velvet Glass palette.
 const HEAT_METAL = {
-  1: { base: ["#0F0F0F", "#050505"], chrome: "#FF7EB3" },
-  2: { base: ["#12080A", "#050102"], chrome: "#FF2D55" },
-  3: { base: ["#0E0812", "#050002"], chrome: "#BF5AF2" },
-  4: { base: ["#080E12", "#030000"], chrome: "#64D2FF" },
-  5: { base: ["#121212", "#000000"], chrome: "#FFFFFF" },
+  1: { base: ["#120A0E", "#050204"], chrome: "#FF85C2" }, // Soft Orchid Pink
+  2: { base: ["#12080C", "#050103"], chrome: "#FF1493" }, // Deep Pink
+  3: { base: ["#120809", "#050102"], chrome: "#FF006E" }, // Vivid Magenta-Red
+  4: { base: ["#120406", "#050001"], chrome: "#F00049" }, // Carmine
+  5: { base: ["#120202", "#050000"], chrome: "#D2121A" }, // Deep Red
 };
 
 const HEAT_ICONS = {
@@ -194,7 +194,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
                   color: neon.core,
                   textShadowColor: neon.bloom,
                   textShadowRadius: 25,
-                  textShadowOffset: { width: 0, height: 0 }
+                  textShadowOffset: { width: 0, height: 0 },
                 }]}>
                   {heat}
                 </Text>
@@ -310,8 +310,8 @@ const styles = StyleSheet.create({
   },
   cornerSuit: { position: 'absolute', opacity: 0.8 },
   cardCenterLockup: { alignItems: 'center', justifyContent: 'center' },
-  heroNumber: { fontFamily: SERIF_FONT, fontSize: 110, lineHeight: 120, fontWeight: "400" },
-  levelSubtext: { fontFamily: SYSTEM_FONT, fontSize: 12, fontWeight: '800', letterSpacing: 8, marginTop: -10, opacity: 0.9 },
+  heroNumber: { fontFamily: SYSTEM_FONT, fontSize: 96, lineHeight: 104, fontWeight: "200" },
+  levelSubtext: { fontFamily: SYSTEM_FONT, fontSize: 12, fontWeight: '800', letterSpacing: 8, marginTop: 6, opacity: 0.9 },
   backHint: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 2, textTransform: "uppercase" },
 
   cardFront: { flex: 1, borderRadius: 28, overflow: "hidden" },

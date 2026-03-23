@@ -197,7 +197,7 @@ const TermsScreen = ({ navigation, route }) => {
           <View style={[styles.section, { borderTopColor: t.border }]}>
             <Text style={[styles.sectionTitle, { color: t.text }]}>6. Acceptable Use</Text>
             <Text style={[styles.paragraph, { color: t.subtext }]}>
-              You agree to use Between Us only for its intended purpose: strengthening your relationship with your partner.{'\n\n'}
+              You agree to use Between Us only for its intended purpose: deepening your connection and bond with your partner.{'\n\n'}
               You may not:{'\n'}
               • Use the Service for any illegal purpose{'\n'}
               • Attempt to access other users' accounts or data{'\n'}
@@ -347,7 +347,7 @@ const TermsScreen = ({ navigation, route }) => {
           <Text style={[styles.paragraph, { color: t.subtext, marginTop: 40, fontStyle: 'italic', textAlign: 'center' }]}>
             By using Between Us, you acknowledge that you've read and understood these Terms, you agree to
             be bound by them, you're at least 18 years old, and you'll use the Service responsibly and legally.{'\n\n'}
-            Thank you for choosing Between Us to strengthen your relationship.
+            Thank you for choosing Between Us to deepen your connection.
           </Text>
 
           <View style={{ height: 120 }} />

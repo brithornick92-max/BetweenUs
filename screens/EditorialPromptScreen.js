@@ -117,7 +117,7 @@ const EditorialPromptScreen = ({ route, navigation }) => {
   const renderCategoryInfo = () => {
     const info = {
       reflection: { icon: "eye-outline", name: "Reflection", description: "Deep questions about your inner world" },
-      connection: { icon: "heart-outline", name: "Connection", description: "Prompts to strengthen your bond" },
+      connection: { icon: "heart-outline", name: "Connection", description: "Prompts to deepen your bond" },
       growth: { icon: "trending-up-outline", name: "Growth", description: "Questions about development and aspirations" },
       intimacy: { icon: "heart-circle-outline", name: "Intimacy", description: "Vulnerable prompts for deeper connection" },
       dreams: { icon: "star-outline", name: "Dreams", description: "Explore hopes and future together" },

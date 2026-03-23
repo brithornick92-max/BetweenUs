@@ -288,6 +288,21 @@ export default function CalendarScreen({ navigation, route }) {
           const remoteIds = new Set(mapped.map(e => e.id));
           const localOnly = safe.filter(e => !remoteIds.has(e.id) && !e.supabaseId);
           safe = [...mapped, ...localOnly];
+
+          // Restore myDates that live in Supabase metadata but not in local storage
+          const localMyDates = await myDatesStorage.getMyDates();
+          const localMyDateSourceIds = new Set(localMyDates.map(d => d.sourceEventId));
+          for (const r of remoteEvents) {
+            const myDateData = r.metadata?.myDateData;
+            if (myDateData && !localMyDateSourceIds.has(r.id)) {
+              await myDatesStorage.addMyDate({
+                ...myDateData,
+                title: r.title,
+                sourceEventId: r.id,
+                id: `md_${r.id}`,
+              });
+            }
+          }
         }
       } catch (err) {}
     }
@@ -403,7 +418,22 @@ export default function CalendarScreen({ navigation, route }) {
               event_date: new Date(whenTs).toISOString(),
               event_type: form.eventType || 'general',
               location: form.location || null,
-              metadata: { isDateNight: form.isDateNight, notify: form.notify, notifyMins: form.notifyMins, notificationId },
+              metadata: {
+                isDateNight: form.isDateNight,
+                notify: form.notify,
+                notifyMins: form.notifyMins,
+                notificationId,
+                // Persist date-night activity data in Supabase for cross-device access
+                ...(form.isDateNight || form.eventType === 'dateNight' ? {
+                  myDateData: {
+                    locationType: form.location ? 'out' : 'home',
+                    heat: 2,
+                    load: 2,
+                    style: 'mixed',
+                    steps: form.notes ? [form.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
+                  },
+                } : {}),
+              },
               created_by: userId,
             })
             .select('id')
@@ -419,7 +449,7 @@ export default function CalendarScreen({ navigation, route }) {
       });
 
       if (form.isDateNight || form.eventType === 'dateNight') {
-        await myDatesStorage.addMyDate({
+        const myDateEntry = {
           title: form.title,
           locationType: form.location ? 'out' : 'home',
           heat: 2,
@@ -427,7 +457,8 @@ export default function CalendarScreen({ navigation, route }) {
           style: 'mixed',
           steps: form.notes ? [form.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
           sourceEventId: savedEvent?.id,
-        });
+        };
+        await myDatesStorage.addMyDate(myDateEntry);
       }
 
       notification(NotificationFeedbackType.Success);

@@ -144,7 +144,6 @@ export default function SettingsScreen({ navigation }) {
   const [paired, setPaired] = useState(false);
   const [inviteCode, setInviteCode] = useState(null);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
-  const [showCodeEntry, setShowCodeEntry] = useState(false);
   const [codeLoading, setCodeLoading] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState(
@@ -364,7 +363,7 @@ export default function SettingsScreen({ navigation }) {
                 {!inviteCode && (
                   <TouchableOpacity 
                     style={styles.secondaryBtn}
-                    onPress={() => setShowCodeEntry(true)} 
+                    onPress={() => navigation.navigate('JoinWithCode')} 
                   >
                     <Text style={[styles.secondaryBtnText, { color: t.subtext }]}>I have a code</Text>
                   </TouchableOpacity>

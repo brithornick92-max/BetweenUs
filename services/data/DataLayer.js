@@ -24,12 +24,14 @@ import Database from '../db/Database';
 import E2EEncryption from '../e2ee/E2EEncryption';
 import EncryptedAttachments from '../e2ee/EncryptedAttachments';
 import SyncEngine from '../sync/SyncEngine';
+import { storage, promptStorage, journalStorage } from '../../utils/storage';
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
 let _userId = null;
 let _coupleId = null;
 let _coupleKeyAvailable = false;
+const legacyMigrationKey = (userId) => `@betweenus:legacyDataMigrated:${userId}`;
 
 /**
  * Determine the key tier for encryption.
@@ -120,6 +122,112 @@ const DataLayer = {
   },
 
   /**
+
+    /**
+     * Backfill legacy AsyncStorage records into SQLite + E2EE once per user.
+     * This rescues older prompt answers and journal entries so they appear in
+     * export/read flows that now use DataLayer exclusively.
+     */
+    async migrateLegacyStorage() {
+      if (!_userId) return { migratedPrompts: 0, migratedJournals: 0, skipped: true };
+
+      const markerKey = legacyMigrationKey(_userId);
+      const alreadyMigrated = await storage.get(markerKey, false);
+      if (alreadyMigrated) {
+        return { migratedPrompts: 0, migratedJournals: 0, skipped: true };
+      }
+
+      let migratedPrompts = 0;
+      let migratedJournals = 0;
+
+      try {
+        const kt = keyTier();
+        const cid = kt === 'couple' ? _coupleId : null;
+
+        const legacyPrompts = await promptStorage.getAll();
+        for (const [dk, byDate] of Object.entries(legacyPrompts || {})) {
+          for (const [promptId, payload] of Object.entries(byDate || {})) {
+            const answer = payload?.answer || payload?.content;
+            if (!answer || !String(answer).trim()) continue;
+
+            const existing = await Database.getPromptAnswerByPromptAndDate(_userId, String(promptId), dk);
+            if (existing) continue;
+
+            const heatLevel = Number(payload?.heatLevel ?? payload?.heat_level ?? 1) || 1;
+            const answerCipher = await E2EEncryption.encryptString(answer, kt, cid);
+            const heatCipher = await E2EEncryption.encryptString(String(heatLevel), kt, cid);
+
+            await Database.insertPromptAnswer({
+              id: payload?.id,
+              user_id: _userId,
+              couple_id: _coupleId,
+              prompt_id: String(promptId),
+              date_key: dk,
+              answer_cipher: answerCipher,
+              heat_level: heatLevel,
+              heat_level_cipher: heatCipher,
+              is_revealed: !!(payload?.isRevealed ?? payload?.is_revealed),
+              reveal_at: payload?.revealAt
+                ? new Date(payload.revealAt).toISOString()
+                : (payload?.reveal_at ?? null),
+              created_at: payload?.timestamp
+                ? new Date(payload.timestamp).toISOString()
+                : undefined,
+            });
+            migratedPrompts += 1;
+          }
+        }
+
+        const legacyJournals = await journalStorage.getEntries();
+        for (const entry of legacyJournals || []) {
+          if (!entry?.id) continue;
+
+          const existing = await Database.getJournalById(entry.id);
+          if (existing) continue;
+
+          const title = entry?.title || '';
+          const body = entry?.body || entry?.content || '';
+          if (!title.trim() && !body.trim()) continue;
+
+          const isPrivate = entry?.isPrivate === true
+            ? true
+            : entry?.isShared === true
+              ? false
+              : true;
+          const journalKt = isPrivate ? deviceTier() : keyTier();
+          const journalCid = journalKt === 'couple' ? _coupleId : null;
+
+          const titleCipher = await E2EEncryption.encryptString(title, journalKt, journalCid);
+          const bodyCipher = await E2EEncryption.encryptString(body, journalKt, journalCid);
+          const moodCipher = entry?.mood
+            ? await E2EEncryption.encryptString(entry.mood, journalKt, journalCid)
+            : null;
+
+          await Database.insertJournal({
+            id: entry.id,
+            user_id: _userId,
+            title_cipher: titleCipher,
+            body_cipher: bodyCipher,
+            mood: entry?.mood ?? null,
+            mood_cipher: moodCipher,
+            is_private: isPrivate,
+            created_at: entry?.createdAt ? new Date(entry.createdAt).toISOString() : undefined,
+          });
+          migratedJournals += 1;
+        }
+
+        await storage.set(markerKey, true);
+
+        if (migratedPrompts || migratedJournals) {
+          debouncedPush();
+        }
+
+        return { migratedPrompts, migratedJournals, skipped: false };
+      } catch (error) {
+        console.warn('[DataLayer] Legacy migration failed:', error?.message);
+        return { migratedPrompts, migratedJournals, skipped: false, error: error?.message };
+      }
+    },
    * Check if we can encrypt/decrypt for the couple.
    * If false, the UI should show "Reconnect" and disable shared writes.
    */

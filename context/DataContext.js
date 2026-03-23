@@ -72,6 +72,8 @@ export function DataProvider({ children }) {
           isPremium: !!isPremium,
         });
 
+        await DataLayer.migrateLegacyStorage();
+
         // Configure MomentSignalSender with user context
         MomentSignalSender.configure({ userId, coupleId: coupleId || null });
 

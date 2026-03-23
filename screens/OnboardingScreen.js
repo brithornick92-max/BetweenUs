@@ -231,8 +231,8 @@ export default function OnboardingScreen({ navigation }) {
       if (__DEV__) console.log("🔑 [invite] Step 1: updateProfile");
       await actions.updateProfile({
         partnerNames: {
-          myName: myName || "Partner A",
-          partnerName: partnerName || "Partner B",
+          myName: myName.trim(),
+          partnerName: partnerName.trim(),
         },
       });
       if (__DEV__) console.log("🔑 [invite] Step 1b: updateRelationshipStartDate");
@@ -439,6 +439,10 @@ export default function OnboardingScreen({ navigation }) {
             style={[styles.primaryButtonTouch, { backgroundColor: t.text }]} 
             activeOpacity={0.8}
             onPress={() => {
+              if (!myName.trim() || !partnerName.trim()) {
+                Alert.alert('One more thing', "Please enter both your name and your partner's name to continue.");
+                return;
+              }
               Keyboard.dismiss();
               transitionTo(2);
             }}
@@ -568,8 +572,8 @@ export default function OnboardingScreen({ navigation }) {
                 await actions.updateProfile({
                   heatLevelPreference: selectedHeatLevel,
                   partnerNames: {
-                    myName: myName || 'Partner A',
-                    partnerName: partnerName || 'Partner B',
+                    myName: myName.trim(),
+                    partnerName: partnerName.trim(),
                   },
                 });
                 await NicknameEngine.setConfig({

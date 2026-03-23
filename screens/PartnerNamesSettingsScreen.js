@@ -25,6 +25,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
+import { NicknameEngine } from '../services/PolishEngine';
 import { SPACING, withAlpha } from '../utils/theme';
 import Input from '../components/Input';
 
@@ -33,6 +35,7 @@ const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 export default function PartnerNamesSettingsScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { userProfile, updateProfile } = useAuth();
+  const { actions } = useAppContext();
   
   const [myName, setMyName] = useState('');
   const [partnerName, setPartnerName] = useState('');
@@ -101,6 +104,13 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
           partnerName: partnerName.trim(),
         },
       });
+
+      // Propagate immediately so the rest of the session reflects the new names
+      await NicknameEngine.setConfig({
+        myNickname: myName.trim(),
+        partnerNickname: partnerName.trim(),
+      });
+      await actions.setPartnerLabel(partnerName.trim());
 
       notification(NotificationFeedbackType.Success);
       navigation.goBack();

@@ -37,11 +37,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 const HEAT_LEVELS = [
-  { value: 1, label: "1", color: "#FF7EB3" },
-  { value: 2, label: "2", color: "#FF2D55" },
-  { value: 3, label: "3", color: "#BF5AF2" },
-  { value: 4, label: "4", color: "#64D2FF" },
-  { value: 5, label: "5", color: "#FFFFFF" },
+  { value: 1, label: "1", color: "#FF85C2" }, // Soft Orchid Pink
+  { value: 2, label: "2", color: "#FF1493" }, // Deep Pink
+  { value: 3, label: "3", color: "#FF006E" }, // Vivid Magenta-Red
+  { value: 4, label: "4", color: "#F00049" }, // Carmine
+  { value: 5, label: "5", color: "#D2121A" }, // Deep Red
 ];
 
 const loadAllBundledPrompts = () => {
@@ -216,28 +216,29 @@ export default function PromptsScreen({ navigation }) {
                 const textOpacity = 1;
 
                 return (
-                  <TouchableOpacity
-                    key={value}
-                    style={[
-                      styles.heatChip,
-                      {
-                        backgroundColor: bgColor,
-                        borderColor: borderColor,
-                        ...(active && Platform.OS === 'ios' ? {
-                          shadowColor: heatColor,
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: 0.6,
-                          shadowRadius: 12,
-                          elevation: 10,
-                        } : {})
-                      },
-                    ]}
-                    onPress={() => handleHeatSelect(value)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.heatLabel, { color: textColor, opacity: textOpacity }]}>
-                      {label}
-                    </Text>
+                  <View key={value} style={styles.chipWrapper}>
+                    <TouchableOpacity
+                      style={[
+                        styles.heatChip,
+                        {
+                          backgroundColor: bgColor,
+                          borderColor: borderColor,
+                          ...(active && Platform.OS === 'ios' ? {
+                            shadowColor: heatColor,
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.6,
+                            shadowRadius: 12,
+                            elevation: 10,
+                          } : {})
+                        },
+                      ]}
+                      onPress={() => handleHeatSelect(value)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.heatLabel, { color: textColor, opacity: textOpacity }]}>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
                     {locked && (
                       <View style={[
                         styles.lockBadge,
@@ -249,7 +250,7 @@ export default function PromptsScreen({ navigation }) {
                         <Icon name="lock-closed" size={10} color={active ? '#FFF' : withAlpha(heatColor, 0.6)} />
                       </View>
                     )}
-                  </TouchableOpacity>
+                  </View>
                 );
               })}
             </View>
@@ -363,14 +364,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  heatChip: {
+  chipWrapper: {
     flex: 1,
+    position: 'relative',
+  },
+  heatChip: {
     height: 54,
     borderRadius: 16,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
   },
   heatLabel: {
     fontFamily: SYSTEM_FONT,

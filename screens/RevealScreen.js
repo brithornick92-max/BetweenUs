@@ -19,6 +19,7 @@ import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedb
 import { useAppContext } from "../context/AppContext";
 import { useTheme } from "../context/ThemeContext";
 import { promptStorage } from "../utils/storage";
+import { DataLayer } from "../services/localfirst";
 import { SPACING, BORDER_RADIUS, SHADOWS } from "../utils/theme";
 import Button from "../components/Button";
 
@@ -96,16 +97,24 @@ export default function RevealScreen({ route, navigation }) {
   };
 
   const handleReveal = async () => {
-    if (!prompt?.id || !prompt?.dateKey) return;
+    if (!prompt?.id) return;
     selection();
     
     try {
-      const existing = await promptStorage.getAnswer(prompt.dateKey, prompt.id);
-      await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
-        ...(existing || userAnswer || {}),
-        isRevealed: true,
-        revealAt: Date.now(),
-      });
+      // Mark as revealed in DataLayer (primary E2EE store)
+      const row = await DataLayer.getPromptAnswerForToday(prompt.id);
+      if (row?.id) {
+        await DataLayer.revealPromptAnswer(row.id);
+      }
+      // Also mark in legacy promptStorage for backward compat
+      if (prompt.dateKey) {
+        const existing = await promptStorage.getAnswer(prompt.dateKey, prompt.id);
+        await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
+          ...(existing || userAnswer || {}),
+          isRevealed: true,
+          revealAt: Date.now(),
+        });
+      }
       triggerRevealLogic(true);
     } catch (e) {
       triggerRevealLogic(true);

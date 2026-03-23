@@ -25,6 +25,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import DataLayer from '../services/data/DataLayer';
+import { calendarStorage, myDatesStorage } from '../utils/storage';
 import Constants from 'expo-constants';
 import Icon from '../components/Icon';
 import { SPACING, withAlpha, SYSTEM_FONT } from '../utils/theme';
@@ -84,7 +85,7 @@ const ExportDataScreen = ({ navigation }) => {
     };
 
     // Fetch from each data type via DataLayer (handles decryption)
-    const [journalEntries, promptAnswers, memoryRows, rituals, checkIns, vibes, loveNotes] =
+    const [journalEntries, promptAnswers, memoryRows, rituals, checkIns, vibes, loveNotes, calendarEvents, myDates] =
       await Promise.all([
         DataLayer.getJournalEntries({ limit: 10000 }).catch(() => []),
         DataLayer.getPromptAnswers({ limit: 10000 }).catch(() => []),
@@ -93,6 +94,8 @@ const ExportDataScreen = ({ navigation }) => {
         DataLayer.getCheckIns({ limit: 10000 }).catch(() => []),
         DataLayer.getVibes({ limit: 10000 }).catch(() => []),
         DataLayer.getLoveNotes({ limit: 10000 }).catch(() => []),
+        calendarStorage.getEvents().catch(() => []),
+        myDatesStorage.getMyDates().catch(() => []),
       ]);
 
     // Strip cipher columns and internal sync metadata from output
@@ -117,6 +120,8 @@ const ExportDataScreen = ({ navigation }) => {
       checkIns: sanitize(checkIns),
       vibes: sanitize(vibes),
       loveNotes: sanitize(filterPrivate(loveNotes)),
+      calendarEvents: sanitize(calendarEvents),
+      myDates: sanitize(myDates),
     };
   };
 
@@ -150,6 +155,8 @@ const ExportDataScreen = ({ navigation }) => {
           checkIns: allData.checkIns.length,
           vibes: allData.vibes.length,
           loveNotes: allData.loveNotes.length,
+          calendarEvents: allData.calendarEvents.length,
+          myDates: allData.myDates.length,
         },
       };
 
@@ -277,7 +284,7 @@ const ExportDataScreen = ({ navigation }) => {
           <Text style={[styles.statLabel, { color: t.subtext }]}>Captured Memories</Text>
         </View>
         <Text style={[styles.cardText, { color: t.subtext, textAlign: 'center', marginBottom: 32, paddingHorizontal: 16 }]}>
-          Journal entries, prompt responses, rituals, check-ins, vibes, and love notes will also be included.
+          Journal entries, prompt responses, rituals, check-ins, vibes, love notes, calendar events, and date-night plans will also be included.
         </Text>
 
         {/* Export Button */}

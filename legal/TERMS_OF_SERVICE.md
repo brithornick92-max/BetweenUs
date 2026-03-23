@@ -32,9 +32,9 @@ Between Us is a couples app — where closeness deepens. It helps couples deepen
 - Calendar and event scheduling
 - Biometric app lock (Face ID / Touch ID)
 
-**Important:** Between Us is designed for couples who already have a loving foundation and want to deepen their intimacy and connection. It is **not appropriate** for couples navigating serious relationship concerns, trust breakdowns, or considering separation. If your relationship needs professional support, please seek qualified counseling or therapy.
+**Important:** Between Us is designed for thriving couples who want to deepen their connection and bond. It is **not** a relationship repair or counseling tool, and is not appropriate for couples navigating serious concerns, trust breakdowns, or considering separation. If your relationship needs professional support, please seek qualified counseling or therapy.
 
-The Service is intended for couples in healthy, committed relationships who want to grow closer.
+The Service is for thriving couples who want to deepen their connection and bond.
 
 ---
 
@@ -115,7 +115,7 @@ You agree not to post content that:
 
 ## 6. Acceptable Use
 
-You agree to use Between Us only for its intended purpose: strengthening your relationship with your partner.
+You agree to use Between Us only for its intended purpose: deepening your connection and bond with your partner.
 
 **You may not:**
 - Use the Service for any illegal purpose
@@ -258,7 +258,6 @@ We're not liable for delays or failures due to circumstances beyond our control.
 If you have questions about these Terms:
 
 **Email:** brittanyapps@outlook.com  
-**Mail:** brittanyapps@outlook.com  
 **Support:** brittanyapps@outlook.com
 
 ---
@@ -273,6 +272,6 @@ By using Between Us, you acknowledge that:
 
 ---
 
-**Thank you for choosing Between Us to strengthen your relationship!**
+**Thank you for choosing Between Us to deepen your connection.**
 
 *These Terms are effective as of the date you first use the Service.*

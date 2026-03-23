@@ -40,7 +40,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Who is Between Us for?',
-        a: 'Between Us is for couples who are already in a good place and want to go deeper. If your relationship has a strong foundation and you want to make it even richer, this app is for you.\n\nIt\'s not a therapy app and isn\'t designed for couples navigating serious relationship concerns. If that\'s where you are, we\'d gently encourage professional counseling.',
+        a: 'Between Us is for thriving couples who want to deepen their connection and bond. If your relationship is in a beautiful place and you want to make it even richer, this app was made for you.\n\nBetween Us is not a therapy app or relationship repair tool — it\'s designed for couples who are already in a loving place and want to go even deeper.',
       },
       {
         q: 'How much does it cost?',
@@ -166,15 +166,15 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is Between Us a substitute for therapy?',
-        a: 'No. Between Us is a connection experience, not therapy. It\'s designed for couples who already have a loving foundation and want to go deeper — it\'s not a space for navigating serious relationship concerns.\n\nIf you\'re in a place that needs professional support, we\'d always encourage reaching out to a licensed therapist.',
+        a: 'No. Between Us is a private space for thriving couples to deepen their connection — not therapy, counseling, or a relationship repair tool. It\'s designed for couples who are already in a loving place and want to go even deeper.\n\nIf your relationship needs professional support, please reach out to a licensed therapist.',
       },
       {
         q: 'When should we NOT use Between Us?',
-        a: 'Between Us may not be the right fit if you\'re:\n• Navigating a relationship crisis\n• Working through trust concerns\n• Experiencing abuse of any kind\n• Considering separation or divorce\n• Feeling unsafe with your partner\n\nThis app is for couples who are in a good place — it\'s built to deepen what\'s already beautiful. For serious concerns, please reach out to a licensed therapist.',
+        a: 'Between Us is specifically designed for thriving couples — not for couples navigating serious concerns. The app is not appropriate if you\'re:\n• Working through trust breakdowns or infidelity\n• Experiencing abuse of any kind\n• Considering separation or divorce\n• Feeling unsafe with your partner\n\nIf any of these apply, please seek support from a licensed therapist or counselor.',
       },
       {
         q: 'Is Between Us right for every couple?',
-        a: 'Between Us is designed for couples who are already in a loving place and want to explore deeper intimacy and connection. It\'s not a substitute for professional support. If your relationship needs that kind of care, a licensed therapist or counselor is the right next step.',
+        a: 'Between Us is designed specifically for thriving couples — it deepens what\'s already beautiful. It is not a relationship repair tool and is not designed for couples working through serious concerns.\n\nIf your relationship is in a good place and you want to go deeper, Between Us was made for you.',
       },
       {
         q: 'Where can I find help if I\'m in an unsafe situation?',

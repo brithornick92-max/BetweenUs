@@ -23,6 +23,7 @@ import { useAppContext } from '../context/AppContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS, promptStorage } from '../utils/storage';
+import { DataLayer } from '../services/localfirst';
 import { supabase, TABLES } from '../config/supabase';
 import { SPACING, withAlpha } from '../utils/theme';
 import PreferenceEngine from '../services/PreferenceEngine';
@@ -90,6 +91,11 @@ const promptSyncService = {
 
   submitAnswer: async (promptId, answer, userId, coupleId) => {
     const today = new Date().toISOString().split('T')[0];
+    // Write to DataLayer (E2EE, synced, exported) — primary store
+    try {
+      await DataLayer.savePromptAnswer({ promptId, answer, heatLevel: 1 });
+    } catch { /* DataLayer not initialized (unauthenticated flow) — skip */ }
+    // Write to legacy promptStorage for backward compat
     await promptStorage.setAnswer(today, promptId, { answer, userId });
 
     if (supabase && coupleId && userId) {

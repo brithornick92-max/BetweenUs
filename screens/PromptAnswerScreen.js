@@ -43,6 +43,7 @@ import Animated, {
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { promptStorage } from "../utils/storage";
+import { DataLayer } from "../services/localfirst";
 import { SPACING, withAlpha } from "../utils/theme";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -166,11 +167,22 @@ export default function PromptAnswerScreen({ route, navigation }) {
   }, [isPremium, prompt]);
 
   const loadExistingAnswer = async () => {
-    if (!prompt?.id || !prompt?.dateKey) return;
-    const saved = await promptStorage.getAnswer(prompt.dateKey, prompt.id);
-    if (saved?.answer) {
-      setExistingAnswer(saved);
-      setAnswer(saved.answer);
+    if (!prompt?.id) return;
+    // Try DataLayer first (E2EE, synced); fall back to legacy AsyncStorage
+    try {
+      const row = await DataLayer.getPromptAnswerForToday(prompt.id);
+      if (row?.answer) {
+        setExistingAnswer(row);
+        setAnswer(row.answer);
+        return;
+      }
+    } catch { /* DataLayer not yet initialized — fall through */ }
+    if (prompt.dateKey) {
+      const saved = await promptStorage.getAnswer(prompt.dateKey, prompt.id);
+      if (saved?.answer) {
+        setExistingAnswer(saved);
+        setAnswer(saved.answer);
+      }
     }
   };
 
@@ -197,11 +209,20 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
     setIsSaving(true);
     try {
-      await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
+      // Write to DataLayer (E2EE, synced, exported) — primary store
+      await DataLayer.savePromptAnswer({
+        promptId: prompt.id,
         answer: finalText,
-        timestamp: Date.now(),
-        isRevealed: existingAnswer?.isRevealed || false,
+        heatLevel: prompt?.heat || 1,
       });
+      // Also write to legacy promptStorage for backward compatibility
+      if (prompt?.dateKey) {
+        await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
+          answer: finalText,
+          timestamp: Date.now(),
+          isRevealed: existingAnswer?.isRevealed || false,
+        });
+      }
       notification(NotificationFeedbackType.Success);
       navigation.goBack();
     } catch (error) {

@@ -176,8 +176,8 @@ export default function YearReflectionScreen({ navigation }) {
 
       {/* CHROMATIC LUME BACKGROUND */}
       <View style={styles.orbContainer}>
-        <GlowOrb color={PALETTE.sexyRed} size={500} top={-150} right={-100} opacity={isDark ? 0.2 : 0.12} />
-        <GlowOrb color={isDark ? '#FFFFFF' : PALETTE.lightGray} size={400} bottom={-100} left={-100} opacity={isDark ? 0.1 : 0.08} />
+        <GlowOrb color={PALETTE.sexyRed} size={500} top={-150} left={SCREEN_WIDTH - 200} opacity={isDark ? 0.2 : 0.12} />
+        <GlowOrb color={isDark ? '#FFFFFF' : PALETTE.lightGray} size={400} top={SCREEN_HEIGHT * 0.7} left={-100} opacity={isDark ? 0.1 : 0.08} />
       </View>
 
       <FilmGrain opacity={0.2} />
