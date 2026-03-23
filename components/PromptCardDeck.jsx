@@ -21,37 +21,38 @@ import Animated, {
 } from "react-native-reanimated";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from 'expo-blur';
 import Icon from './Icon';
 import { impact, ImpactFeedbackStyle } from "../utils/haptics";
 import { useTheme } from "../context/ThemeContext";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
-const CARD_W = SCREEN_W - 64;
-const CARD_H = Math.min(SCREEN_H * 0.55, 480);
-const SWIPE_THRESHOLD = SCREEN_W * 0.28;
+const CARD_W = SCREEN_W - 56;
+const CARD_H = Math.min(SCREEN_H * 0.62, 520);
+const SWIPE_THRESHOLD = SCREEN_W * 0.32;
 
-const SPRING_CONFIG = { damping: 22, stiffness: 180, mass: 0.8 };
-const FLIP_DURATION = 500;
+const SPRING_CONFIG = { damping: 20, stiffness: 150, mass: 1 };
+const FLIP_DURATION = 600;
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-const SERIF_FONT = Platform.select({ ios: "DMSerifDisplay-Regular", android: "DMSerifDisplay_400Regular" });
+const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 
 // Core: Almost white. Bloom: Highly saturated hex.
 const HEAT_NEON = {
-  1: { core: "#FFF0F5", bloom: "#FF85C2" },
-  2: { core: "#FFEBF0", bloom: "#FF1493" },
-  3: { core: "#FFE5EE", bloom: "#FF006E" },
-  4: { core: "#FFEBEC", bloom: "#D2121A" },
-  5: { core: "#FFE5EA", bloom: "#8E0D2C" },
+  1: { core: "#FFF0F5", bloom: "#FF7EB3" },
+  2: { core: "#FFEBF0", bloom: "#FF2D55" },
+  3: { core: "#FFE5EE", bloom: "#BF5AF2" },
+  4: { core: "#FFEBEC", bloom: "#64D2FF" },
+  5: { core: "#FFE5EA", bloom: "#FFFFFF" },
 };
 
-// Pure OLED bases. No purple/grey mud.
+// Deep Onyx tones — light-refracting Velvet Glass palette.
 const HEAT_METAL = {
-  1: { base: "#050203", chrome: "#FF85C2" },
-  2: { base: "#050102", chrome: "#FF2D55" },
-  3: { base: "#050002", chrome: "#FF006E" },
-  4: { base: "#030000", chrome: "#D2121A" },
-  5: { base: "#020000", chrome: "#8E0D2C" },
+  1: { base: ["#0F0F0F", "#050505"], chrome: "#FF7EB3" },
+  2: { base: ["#12080A", "#050102"], chrome: "#FF2D55" },
+  3: { base: ["#0E0812", "#050002"], chrome: "#BF5AF2" },
+  4: { base: ["#080E12", "#030000"], chrome: "#64D2FF" },
+  5: { base: ["#121212", "#000000"], chrome: "#FFFFFF" },
 };
 
 const HEAT_ICONS = {
@@ -79,17 +80,14 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
 
   const shimmerLoop = useSharedValue(0);
   useEffect(() => {
-    shimmerLoop.value = withRepeat(withTiming(1, { duration: 4000, easing: Easing.linear }), -1, false);
+    shimmerLoop.value = withRepeat(withTiming(1, { duration: 5000, easing: Easing.linear }), -1, false);
   }, []);
 
   const shimmerAnimatedStyle = useAnimatedStyle(() => {
-    const pitch = rotationSensor.sensor.value.pitch || 0;
     const roll = rotationSensor.sensor.value.roll || 0;
-    const interactionPhase = pitch * 0.8 + roll * 0.8 + (translateX.value / CARD_W) * 0.5;
-    let totalPhase = (shimmerLoop.value + interactionPhase) % 1;
-    if (totalPhase < 0) totalPhase += 1;
-    const finalTranslate = interpolate(totalPhase, [0, 1], [-CARD_W * 1.5, CARD_W * 1.5]);
-    return { transform: [{ translateX: finalTranslate }, { rotate: "45deg" }] };
+    const sensorOffset = interpolate(roll, [-0.5, 0.5], [-CARD_W, CARD_W]);
+    const finalTranslate = sensorOffset + (shimmerLoop.value * CARD_W * 2) - CARD_W;
+    return { transform: [{ translateX: finalTranslate }, { rotate: "25deg" }] };
   });
 
   const pulseAnim = useSharedValue(0.3);
@@ -116,7 +114,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
   const handleFlip = useCallback(() => {
     impact(ImpactFeedbackStyle.Light);
     const target = isFlipped ? 0 : 1;
-    flipProgress.value = withTiming(target, { duration: FLIP_DURATION, easing: Easing.bezier(0.4, 0.0, 0.2, 1) });
+        flipProgress.value = withTiming(target, { duration: FLIP_DURATION, easing: Easing.bezier(0.2, 0.8, 0.2, 1) });
     setIsFlipped(!isFlipped);
   }, [isFlipped, flipProgress]);
 
@@ -141,7 +139,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
     });
 
   const tapGesture = Gesture.Tap().enabled(isTop).onEnd(() => { runOnJS(handleFlip)(); });
-  const gesture = Gesture.Race(panGesture, tapGesture);
+  const gesture = Gesture.Exclusive(panGesture, tapGesture);
 
   const stackOffset = isTop ? 0 : Math.min(index, 2);
 
@@ -176,7 +174,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
 
         {/* BACK FACE (The Cover) */}
         <Animated.View style={[styles.card, backStyle, { borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }]}>
-          <LinearGradient colors={[metal.base, "#000000"]} style={styles.cardBack} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+          <LinearGradient colors={metal.base} style={styles.cardBack} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
 
             {/* Metallic Shimmer Band */}
             <Animated.View style={[styles.shimmerBand, shimmerAnimatedStyle]} pointerEvents="none">
@@ -213,7 +211,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
 
         {/* FRONT FACE (The Prompt) */}
         <Animated.View style={[styles.card, frontStyle, { borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }]}>
-          <View style={[styles.cardFront, { backgroundColor: metal.base }]}>
+          <View style={[styles.cardFront, { backgroundColor: metal.base[0] }]}>
 
             {/* Metallic Shimmer Band */}
             <Animated.View style={[styles.shimmerBand, shimmerAnimatedStyle]} pointerEvents="none">
@@ -241,10 +239,10 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
             <LinearGradient colors={["transparent", metal.chrome + "50", "transparent"]} style={styles.chromeDivider} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
 
             <View style={styles.frontFooter}>
-              <View style={styles.frontFooterContent}>
+              <BlurView intensity={20} tint="dark" style={styles.footerBlur}>
                 <Text style={[styles.frontFooterText, { color: neon.bloom }]}>SWIPE RIGHT TO REFLECT</Text>
                 <Icon name="arrow-forward" size={14} color={neon.bloom} />
-              </View>
+              </BlurView>
             </View>
           </View>
         </Animated.View>
@@ -304,7 +302,7 @@ const styles = StyleSheet.create({
     position: "absolute", width: "100%", height: "100%", borderRadius: 28, borderWidth: 1, overflow: "hidden", backgroundColor: "#000",
     shadowColor: "#000", shadowOffset: { width: 0, height: 25 }, shadowOpacity: 0.9, shadowRadius: 35, elevation: 20
   },
-  shimmerBand: { position: "absolute", top: -CARD_H * 0.3, width: CARD_W * 0.45, height: CARD_H * 1.8, zIndex: 10 },
+  shimmerBand: { position: "absolute", top: -CARD_H / 2, width: CARD_W, height: CARD_H * 2, zIndex: 10 },
   cardBack: { flex: 1, padding: 12 },
   backFrame: {
     flex: 1, alignItems: "center", justifyContent: "space-between",
@@ -324,7 +322,7 @@ const styles = StyleSheet.create({
   frontBody: { flex: 1, justifyContent: "center", paddingHorizontal: 28, paddingVertical: 24 },
   frontPromptText: { fontFamily: SERIF_FONT, lineHeight: 36, fontWeight: "400", textAlign: "center" },
   frontFooter: { paddingHorizontal: 20, paddingBottom: 24, paddingTop: 16 },
-  frontFooterContent: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  footerBlur: { flex: 1, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   frontFooterText: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 1.5, textTransform: "uppercase" },
 
   swipeHint: { position: "absolute", top: 20, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 2, borderColor: "rgba(255,255,255,0.15)" },

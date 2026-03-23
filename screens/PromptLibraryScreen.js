@@ -49,7 +49,7 @@ const CATEGORIES = [
 ];
 
 const HEAT_LABELS = { 1: 'Emotional', 2: 'Flirty', 3: 'Sensual', 4: 'Steamy', 5: 'Explicit' };
-const HEAT_BADGE_COLORS = { 1: '#5856D6', 2: '#FF9F0A', 3: '#FF2D55', 4: '#D2121A', 5: '#8E0D2C' };
+const HEAT_BADGE_COLORS = { 1: '#FF7EB3', 2: '#FF2D55', 3: '#BF5AF2', 4: '#64D2FF', 5: '#FFFFFF' };
 
 const DURATION_FILTERS = [
   { id: "all", label: "All Stages" },
@@ -107,16 +107,15 @@ export default function PromptLibraryScreen({ navigation }) {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  // ─── OLED Editorial Palette ───
   const t = useMemo(() => ({
-    background: colors.background,
-    surface: isDark ? '#131016' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#D2121A',
-    text: colors.text,
-    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-  }), [colors, isDark]);
+    background: '#0A0A0A',
+    surface: '#1C1C1E',
+    primary: '#FF2D55',
+    text: '#FFFFFF',
+    subtext: 'rgba(255,255,255,0.4)',
+    border: 'rgba(255,255,255,0.1)',
+  }), []);
 
   const loadFavorites = useCallback(async () => {
     try {
@@ -276,9 +275,12 @@ export default function PromptLibraryScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.8}>
             <Icon name="chevron-back" size={28} color={t.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: t.text }]}>Library</Text>
+          <View style={styles.headerCenter}>
+            <Text style={[styles.headerSub, { color: HEAT_BADGE_COLORS[selectedHeat] }]}>CATALOG</Text>
+            <Text style={[styles.headerTitle, { color: t.text }]}>Library</Text>
+          </View>
           <TouchableOpacity onPress={handleRefreshPrompt} style={styles.refreshButton} activeOpacity={0.8}>
-            <Icon name="sync-outline" size={22} color={t.primary} />
+            <Icon name="sync-outline" size={22} color={t.subtext} />
           </TouchableOpacity>
         </View>
 
@@ -349,20 +351,28 @@ export default function PromptLibraryScreen({ navigation }) {
               {[1, 2, 3, 4, 5].map((h) => {
                 const active = selectedHeat === h;
                 const locked = !isPremium && h >= 4;
+                const heatColor = HEAT_BADGE_COLORS[h];
                 return (
                   <TouchableOpacity
                     key={h}
                     style={[styles.heatBtn, {
-                      backgroundColor: active ? HEAT_BADGE_COLORS[h] : t.surface,
-                      borderColor: active ? HEAT_BADGE_COLORS[h] : locked ? `${HEAT_BADGE_COLORS[h]}60` : t.border,
+                      backgroundColor: active ? heatColor : 'rgba(255,255,255,0.03)',
+                      borderColor: active ? heatColor : 'rgba(255,255,255,0.1)',
+                      ...(active ? {
+                        shadowColor: heatColor,
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.5,
+                        shadowRadius: 10,
+                        elevation: 8,
+                      } : {}),
                     }]}
                     onPress={() => { setSelectedHeat(h); selection(); }}
                     activeOpacity={0.7}
                   >
-                    <Text style={[styles.heatBtnText, { color: active ? "#FFF" : locked ? HEAT_BADGE_COLORS[h] : t.text }]}>
-                      {HEAT_LABELS[h]}
+                    <Text style={[styles.heatBtnText, { color: active ? '#FFF' : withAlpha(heatColor, 0.5) }]}>
+                      {HEAT_LABELS[h].toUpperCase()}
                     </Text>
-                    {locked && <Icon name="lock-closed" size={10} color={active ? "#FFF" : t.subtext} />}
+                    {locked && <Icon name="lock-closed" size={10} color={active ? '#FFF' : withAlpha(heatColor, 0.4)} />}
                   </TouchableOpacity>
                 );
               })}
@@ -471,14 +481,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    height: 60,
+    height: 80,
+  },
+  headerCenter: { alignItems: 'center' },
+  headerSub: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 3,
+    marginBottom: 2,
+    textTransform: 'uppercase',
   },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
+    fontSize: 32,
+    fontWeight: '800',
     letterSpacing: -1,
-    lineHeight: 42,
   },
   backButton: { width: 44, height: 44, justifyContent: 'center' },
   refreshButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },

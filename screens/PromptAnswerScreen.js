@@ -47,15 +47,16 @@ import { SPACING, withAlpha } from "../utils/theme";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 const MAX_LEN = 1000;
 
-// ─── Editorial Heat Mapping ───────────────────────────────────────────────────
+// ─── Editorial Heat Mapping (Integrated Velvet Glass) ─────────────────────
 const HEAT_COLORS = {
-  1: ["#5856D6", "#2E2C7E"], // Reflection
-  2: ["#FF9F0A", "#9E6200"], // Warmth
-  3: ["#FF2D55", "#A00D31"], // Romance
-  4: ["#D2121A", "#5E081D"], // Sexy Red Signature
-  5: ["#8E0D2C", "#2D030E"], // Deep Crimson
+  1: ["#FF7EB3", "#7A1B43"],
+  2: ["#FF2D55", "#8E0D2C"],
+  3: ["#BF5AF2", "#4C1C63"],
+  4: ["#D2121A", "#4A0000"],
+  5: ["#000000", "#1A1A1A"],
 };
 const HEAT_ICONS = {
   1: "leaf-outline",
@@ -97,16 +98,15 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const dealScale = useSharedValue(0.92);
   const dealOpacity = useSharedValue(0);
 
-  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ────────────────────────────────
+  // Editorial Palette — fixed OLED black for maximum contrast
   const t = useMemo(() => ({
-    background: colors.background,
-    surface: isDark ? '#131016' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#D2121A',
-    text: colors.text,
-    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-  }), [colors, isDark]);
+    background: '#0A0A0A',
+    surface: '#1C1C1E',
+    primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
+    text: '#FFFFFF',
+    subtext: 'rgba(255,255,255,0.4)',
+    border: 'rgba(255,255,255,0.1)',
+  }), [prompt?.heat]);
 
   const heat = prompt?.heat || 1;
   const catGradient = HEAT_COLORS[heat] || HEAT_COLORS[1];
@@ -215,7 +215,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <StatusBar barStyle="light-content" />
       <LinearGradient
         colors={[withAlpha(catGradient[0], 0.1), "transparent"]}
         style={StyleSheet.absoluteFill}

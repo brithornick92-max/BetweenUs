@@ -37,11 +37,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 const HEAT_LEVELS = [
-  { value: 1, label: "1", color: "#FF85C2" },
-  { value: 2, label: "2", color: "#FF1493" },
-  { value: 3, label: "3", color: "#FF006E" },
-  { value: 4, label: "4", color: "#D2121A" },
-  { value: 5, label: "5", color: "#8E0D2C" },
+  { value: 1, label: "1", color: "#FF7EB3" },
+  { value: 2, label: "2", color: "#FF2D55" },
+  { value: 3, label: "3", color: "#BF5AF2" },
+  { value: 4, label: "4", color: "#64D2FF" },
+  { value: 5, label: "5", color: "#FFFFFF" },
 ];
 
 const loadAllBundledPrompts = () => {
@@ -94,13 +94,13 @@ export default function PromptsScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const t = useMemo(() => ({
-    background: isDark ? '#1D1D1F' : '#FAF7F5',
-    primary: '#D2121A',
-    surface: isDark ? '#2C2C2E' : '#FFFFFF',
-    text: colors.text,
-    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-  }), [colors, isDark]);
+    background: '#0A0A0A',
+    primary: '#FF2D55',
+    surface: '#1C1C1E',
+    text: '#FFFFFF',
+    subtext: 'rgba(255,255,255,0.4)',
+    border: 'rgba(255,255,255,0.1)',
+  }), []);
 
   useEffect(() => {
     (async () => {
@@ -160,12 +160,12 @@ export default function PromptsScreen({ navigation }) {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={[styles.root, { backgroundColor: t.background }]}>
-        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+        <StatusBar barStyle="light-content" />
 
         <SafeAreaView style={styles.safe} edges={["top"]}>
           {/* Editorial Header */}
           <Animated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
-            <Text style={[styles.headerLabel, { color: t.primary }]}>
+            <Text style={[styles.headerLabel, { color: HEAT_LEVELS[(selectedHeat || 1) - 1].color }]}>
               {isPremium
                 ? `${deckPrompts.length} PROMPTS READY`
                 : `${deckPrompts.length} OF ${TOTAL_PROMPT_COUNT} PREVIEWS`}
@@ -210,11 +210,10 @@ export default function PromptsScreen({ navigation }) {
                 const active = selectedHeat === value;
                 const locked = !isPremium && value >= 4;
 
-                // Sleeping Neon Logic: unlit glass tubes that ignite on tap
-                const bgColor = active ? heatColor : withAlpha(heatColor, 0.08);
-                const borderColor = active ? heatColor : withAlpha(heatColor, 0.25);
-                const textColor = active ? "#FFFFFF" : heatColor;
-                const textOpacity = active ? 1 : 0.6;
+                const bgColor = active ? heatColor : 'rgba(255,255,255,0.03)';
+                const borderColor = active ? heatColor : 'rgba(255,255,255,0.1)';
+                const textColor = active ? '#FFFFFF' : withAlpha(heatColor, 0.4);
+                const textOpacity = 1;
 
                 return (
                   <TouchableOpacity
@@ -226,9 +225,10 @@ export default function PromptsScreen({ navigation }) {
                         borderColor: borderColor,
                         ...(active && Platform.OS === 'ios' ? {
                           shadowColor: heatColor,
-                          shadowOffset: { width: 0, height: 6 },
-                          shadowOpacity: 0.4,
-                          shadowRadius: 10,
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: 0.6,
+                          shadowRadius: 12,
+                          elevation: 10,
                         } : {})
                       },
                     ]}
@@ -290,18 +290,17 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: "800",
+    fontSize: 12,
+    fontWeight: "900",
     letterSpacing: 2,
-    marginBottom: 8,
+    marginBottom: 4,
     textTransform: 'uppercase',
   },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
+    fontSize: 42,
+    fontWeight: '800',
+    letterSpacing: -1.5,
   },
   progressCard: {
     marginHorizontal: 32,
@@ -348,15 +347,15 @@ const styles = StyleSheet.create({
   },
   heatSection: {
     paddingHorizontal: 32,
-    marginBottom: 32,
+    marginBottom: 40,
   },
   sectionLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "800",
-    letterSpacing: 1.5,
+    letterSpacing: 2.5,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   heatRow: {
     flexDirection: 'row',

@@ -18,7 +18,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import ViewShot from 'react-native-view-shot';
+// react-native-view-shot requires a native build — load lazily so a stale dev
+// client doesn't crash the entire app if the native module is missing yet.
+let ViewShot = null;
+try {
+  ViewShot = require('react-native-view-shot').default;
+} catch (_) {
+  // Native module not compiled into this build — export feature will be disabled.
+}
 import Icon from '../components/Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { impact, selection, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -182,13 +189,19 @@ export default function YearReflectionScreen({ navigation }) {
 
       {/* OFF-SCREEN SNAPSHOT: always mounted, invisible, positioned below the fold */}
       <View pointerEvents="none" style={styles.hiddenSnapshotContainer}>
-        <ViewShot
-          ref={snapshotRef}
-          options={{ format: 'jpg', quality: 0.95, result: 'tmpfile' }}
-          collapsable={false}
-        >
-          <SnapshotView text={snapshotText} year={year} isDark={isDark} />
-        </ViewShot>
+        {ViewShot ? (
+          <ViewShot
+            ref={snapshotRef}
+            options={{ format: 'jpg', quality: 0.95, result: 'tmpfile' }}
+            collapsable={false}
+          >
+            <SnapshotView text={snapshotText} year={year} isDark={isDark} />
+          </ViewShot>
+        ) : (
+          <View ref={snapshotRef}>
+            <SnapshotView text={snapshotText} year={year} isDark={isDark} />
+          </View>
+        )}
       </View>
 
       <SafeAreaView style={{ flex: 1 }}>
