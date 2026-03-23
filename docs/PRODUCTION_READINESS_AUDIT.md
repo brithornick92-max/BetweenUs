@@ -1,8 +1,24 @@
 # Between Us — Production Readiness Audit
 
-**Date:** February 25, 2026 (updated March 20, 2026)  
-**Scope:** Full codebase + database SQL  
-**Status:** 33 PASS / 0 FAIL / 1 WARN
+**Date:** February 25, 2026 (updated March 22, 2026)  
+**Scope:** iOS App Store submission, full codebase + database SQL review  
+**Status:** Repo green for iOS submission; remaining items are external App Store / production-environment follow-ups
+
+## March 22, 2026 Addendum
+
+- Release scope confirmed as **iOS App Store only**. Android signing is therefore **out of scope** for this submission and should not be treated as an iOS blocker.
+- Repo-side fixes completed since the March 20 audit:
+   - Premium cloud-sync gating no longer enables sync implicitly before entitlements resolve.
+   - Attachment sync now pulls remote attachment metadata instead of being upload-only.
+   - RevenueCat selects the correct platform API key at runtime.
+   - Startup no longer triggers the push notification permission prompt automatically; permission is requested from explicit user action in notification settings.
+   - Deep-link parsing for custom scheme URLs was fixed for paths like `betweenus://love-note/:id`.
+   - Push token persistence and partner notification RPC calls now surface Supabase write failures instead of silently succeeding.
+   - Jest coverage was repaired for SecureStore-backed auth/session storage and expanded for deep-link and push flows.
+- Validation after these fixes:
+   - `npm test -- --runInBand` → **13/13 suites passing, 183 tests passing**
+   - `node scripts/validateDeployment.cjs` with required env vars present → **passes**
+- Remaining risk is now concentrated in manual release/compliance steps and live-environment verification, not in known repo-side blockers.
 
 ---
 
@@ -24,7 +40,7 @@
 | B4 | Encryption claim + specifics | **PASS** | `ITSAppUsesNonExemptEncryption: true` in app.json. E2EE uses XSalsa20-Poly1305 (nacl.secretbox) with 256-bit keys. Device key in SecureStore (encrypted at rest). Couple key via X25519 ECDH. Data encrypted before Supabase upload (in transit via HTTPS + at rest as ciphertext). Privacy Policy correctly states E2E encryption. **However** — you'll need ERN documentation filed with BIS (see patch plan). |
 | B5 | Account deletion path | **PASS** | `DeleteAccountScreen` exists; calls `delete_own_account` RPC which cascades: removes couple_data, couple_members, orphaned couples, push_tokens, analytics, then deletes `auth.users` row. |
 | **C — Notification UX + Deep Links** |||
-| C1 | Permission prompt not on first render | **PASS** | `PushNotificationService.initialize()` is called in a `useEffect` after auth session resolves (not at mount). Notification permissions are also deferred in `NotificationSettingsScreen` and `CalendarScreen` (on user action). |
+| C1 | Permission prompt not on first render | **PASS** | Startup push registration is now silent-only and exits if permission has not already been granted. Notification permissions are requested from explicit user actions in `NotificationSettingsScreen` and `CalendarScreen`. |
 | C2 | In-app notification settings (toggles) | **PASS** | `NotificationSettingsScreen` has per-category toggles: daily prompt reminder, partner activity, weekly recap, milestones. Persisted to AsyncStorage with `NOTIFICATION_SETTINGS` key. |
 | C3 | Graceful fallback when disabled | **PASS** | Permission check returns early if not granted; Alert shown to open Settings; `ensureNotificationPermissions()` returns `{ ok: false }` gracefully. |
 | C4 | Deep links from notification → correct screen (cold start) | **PASS** | `getLastNotificationResponseAsync()` called in AppContent `useEffect` gated on `navReady`. 500ms delay ensures navigation stack is mounted. Guard flag prevents double-processing. Covers killed-app scenario. |
@@ -142,9 +158,23 @@ Since `ITSAppUsesNonExemptEncryption: true`, you need:
 - [x] Apply FAIL B2 fix (privacy manifest in app.json)
 - [x] Apply FAIL C4 fix (cold-start notification routing)
 - [x] Apply FAIL E3 fix (REPLICA IDENTITY FULL migration)
+- [x] Fix premium cloud-sync gating and attachment sync completeness
+- [x] Fix RevenueCat platform key selection
+- [x] Defer push permission prompt to explicit user action
+- [x] Repair Jest coverage for SecureStore-backed auth/session path
+- [x] Run full automated validation (`13/13` test suites passing; deployment validator passing)
 - [ ] Verify cron jobs are running: `SELECT * FROM cron.job`
 - [ ] Verify App Store Connect privacy answers match B3 recommendations
 - [ ] File ERN self-classification with BIS (annual)
 - [ ] Build → inspect PrivacyInfo.xcprivacy in .app bundle
 - [ ] Test: kill app → send notification → tap → verify correct screen opens
 - [ ] Test: airplane mode → create content → restore network → verify sync
+
+## Final iOS Release Assessment
+
+For **App Store submission only**, there are no known repo-side blockers remaining from this audit. The remaining work is:
+
+1. App Store Connect privacy declarations
+2. ERN / encryption filing
+3. Production Supabase verification (cron jobs / migrations / RPC availability)
+4. Real-device notification and offline-sync verification on an iOS release build

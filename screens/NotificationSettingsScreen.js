@@ -24,6 +24,8 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import * as Notifications from 'expo-notifications';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
+import PushNotificationService from '../services/PushNotificationService';
+import { supabase } from '../config/supabase';
 import { SPACING, withAlpha } from '../utils/theme';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -80,6 +82,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
     if (value) {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status === 'granted') {
+        await PushNotificationService.initialize(supabase, { requestPermissions: false });
         setNotificationsEnabled(true);
         impact(ImpactFeedbackStyle.Medium);
       } else {

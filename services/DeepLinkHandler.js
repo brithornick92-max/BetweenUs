@@ -73,9 +73,12 @@ const DeepLinkHandler = {
 
     try {
       const parsed = new URL(url);
-      const pathParts = parsed.pathname.replace(/^\/+/, '').split('/');
-      const route = pathParts[0];
-      const id = pathParts[1] || parsed.searchParams?.get('id') || null;
+      const hostRoute = parsed.host || null;
+      const pathParts = parsed.pathname.replace(/^\/+/, '').split('/').filter(Boolean);
+      const route = hostRoute || pathParts[0];
+      const id = hostRoute
+        ? (pathParts[0] || parsed.searchParams?.get('id') || null)
+        : (pathParts[1] || parsed.searchParams?.get('id') || null);
 
       const handler = ROUTE_MAP[route];
       if (!handler) return false;

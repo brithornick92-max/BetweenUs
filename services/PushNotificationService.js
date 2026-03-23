@@ -24,7 +24,7 @@ const PushNotificationService = {
    * request permission, get Expo push token, and save it to Supabase.
    * Call this once from App.js after auth is ready.
    */
-  async initialize(supabase) {
+  async initialize(supabase, { requestPermissions = false } = {}) {
     if (!Notifications) {
       if (__DEV__) console.log('[Push] expo-notifications not available');
       return null;
@@ -43,7 +43,7 @@ const PushNotificationService = {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
-    if (existingStatus !== 'granted') {
+    if (existingStatus !== 'granted' && requestPermissions) {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
@@ -87,7 +87,7 @@ const PushNotificationService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase
+      const { error } = await supabase
         .from('push_tokens')
         .upsert(
           {
@@ -99,6 +99,8 @@ const PushNotificationService = {
           },
           { onConflict: 'user_id,token' }
         );
+
+      if (error) throw error;
 
       if (__DEV__) console.log('[Push] Token saved to Supabase');
     } catch (error) {
@@ -115,11 +117,13 @@ const PushNotificationService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase
+      const { error } = await supabase
         .from('push_tokens')
         .delete()
         .eq('user_id', user.id)
         .eq('token', this._token);
+
+      if (error) throw error;
 
       if (__DEV__) console.log('[Push] Token removed');
       this._token = null;
@@ -138,12 +142,14 @@ const PushNotificationService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.rpc('notify_partner', {
+      const { error } = await supabase.rpc('notify_partner', {
         sender_id: user.id,
         notification_title: title,
         notification_body: body,
         notification_data: data,
       });
+
+      if (error) throw error;
 
       if (__DEV__) console.log('[Push] Partner notification sent');
     } catch (error) {

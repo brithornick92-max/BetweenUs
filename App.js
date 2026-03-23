@@ -216,7 +216,7 @@ function AppContent() {
         if (!supabase || !active) return;
         const { data: { session } } = await supabase.auth.getSession();
         if (session && active) {
-          await PushNotificationService.initialize(supabase);
+          await PushNotificationService.initialize(supabase, { requestPermissions: false });
         }
       } catch {
         // Push registration is non-critical
