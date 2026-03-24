@@ -72,9 +72,9 @@ export default function InsideJokesScreen({ navigation }) {
             style={styles.premiumGateContainer}
           >
             <View style={[styles.gateIconFrame, { backgroundColor: withAlpha(colors.primary, 0.1), borderColor: withAlpha(colors.primary, 0.2) }]}>
-              <Icon name="comment-heart-outline" size={48} color={colors.primary} />
+              <Icon name="chatbubble-ellipses-outline" size={48} color={colors.primary} />
               <View style={styles.lockBadge}>
-                <Icon name="lock" size={14} color="#FFF" />
+                <Icon name="lock-closed-outline" size={14} color="#FFF" />
               </View>
             </View>
 
@@ -92,7 +92,7 @@ export default function InsideJokesScreen({ navigation }) {
                 colors={['transparent', 'rgba(0,0,0,0.1)']}
                 style={StyleSheet.absoluteFill}
               />
-              <Icon name="crown" size={20} color="#FFF" />
+              <Icon name="ribbon-outline" size={20} color="#FFF" />
               <Text style={styles.premiumBtnText}>Unlock the Vault</Text>
             </TouchableOpacity>
 

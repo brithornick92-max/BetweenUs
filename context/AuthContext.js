@@ -47,13 +47,24 @@ export const AuthProvider = ({ children }) => {
           setUserProfile(null);
           await EncryptionService.clearKey();
           E2EEncryption.clearCache();
+          await StorageRouter.initialize({ user: null, supabaseSessionPresent: false });
         } else {
           AnalyticsService.setUser(localUser.uid);
           const profile = await StorageRouter.getUserDocument(localUser.uid);
           if (!active) return;
           setUserProfile(profile);
 
-          await StorageRouter.initialize({ user: localUser });
+          let supabaseSession = null;
+          try {
+            supabaseSession = await SupabaseAuthService.getSession();
+          } catch (_) {
+            supabaseSession = null;
+          }
+
+          await StorageRouter.initialize({
+            user: localUser,
+            supabaseSessionPresent: !!supabaseSession,
+          });
 
         }
       } catch (error) {

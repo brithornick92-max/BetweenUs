@@ -38,11 +38,11 @@ const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 
 // ─── CATEGORY COLOR MAP (Using Your Palette #1-5) ───
 const getJokeTypes = (isDark) => [
-  { key: 'nickname', label: 'Nickname', icon: 'heart-half-sharp', color: '#FF85C2' }, // #1 Soft Orchid
-  { key: 'joke', label: 'Inside Joke', icon: 'sparkles-sharp', color: '#FF1493' },    // #2 Deep Pink
-  { key: 'ritual', label: 'Comfort Ritual', icon: 'leaf-sharp', color: '#FF006E' },   // #3 Vivid Magenta
-  { key: 'reference', label: 'Shared Ref', icon: 'bookmark-sharp', color: '#F00049' }, // #4 Carmine
-  { key: 'phrase', label: 'Our Phrase', icon: 'chatbubbles-sharp', color: '#D2121A' }, // #5 Deep Red
+  { key: 'nickname', label: 'Nickname', icon: 'heart-half-outline', color: '#FF85C2' }, // #1 Soft Orchid
+  { key: 'joke', label: 'Inside Joke', icon: 'sparkles-outline', color: '#FF1493' },    // #2 Deep Pink
+  { key: 'ritual', label: 'Comfort Ritual', icon: 'leaf-outline', color: '#FF006E' },   // #3 Vivid Magenta
+  { key: 'reference', label: 'Shared Ref', icon: 'bookmark-outline', color: '#F00049' }, // #4 Carmine
+  { key: 'phrase', label: 'Our Phrase', icon: 'chatbubbles-outline', color: '#D2121A' }, // #5 Deep Red
 ];
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -165,7 +165,7 @@ export default function InsideJokes({ compact = false }) {
           style={[styles.fab, { backgroundColor: t.text }]} 
           onPress={() => { impact(ImpactFeedbackStyle.Light); setModalOpen(true); }}
         >
-          <Icon name="add" size={24} color={isDark ? '#000' : '#FFF'} />
+          <Icon name="add-outline" size={24} color={isDark ? '#000' : '#FFF'} />
         </TouchableOpacity>
       </View>
 
@@ -194,7 +194,7 @@ export default function InsideJokes({ compact = false }) {
               <View style={styles.sheetHeader}>
                 <Text style={[styles.sheetTitle, { color: t.text }]}>Add to Vault</Text>
                 <TouchableOpacity onPress={() => setModalOpen(false)}>
-                  <Icon name="close-circle-sharp" size={28} color={t.subtext} />
+                  <Icon name="close-circle-outline" size={28} color={t.subtext} />
                 </TouchableOpacity>
               </View>
 

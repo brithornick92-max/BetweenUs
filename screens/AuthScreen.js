@@ -147,7 +147,7 @@ export default function AuthScreen() {
             {/* ─── Header ─── */}
             <View style={styles.header}>
               <View style={[styles.heartGlow, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
-                <Icon name="heart" size={32} color={t.primary} />
+                <Icon name="heart-outline" size={32} color={t.primary} />
               </View>
               <Text style={styles.title}>Between Us</Text>
               <View style={styles.divider} />

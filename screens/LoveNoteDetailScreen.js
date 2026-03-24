@@ -353,12 +353,12 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                   }}
                   activeOpacity={0.9}
                 >
-                  <Icon name="heart" size={20} color="#FFF" />
+                  <Icon name="heart-outline" size={20} color="#FFF" />
                   <Text style={styles.replyButtonText}>Respond with Love</Text>
                 </TouchableOpacity>
               ) : (
                 <View style={styles.sentBadge}>
-                  <Icon name="checkmark-done" size={18} color="rgba(255,255,255,0.6)" />
+                  <Icon name="checkmark-done-outline" size={18} color="rgba(255,255,255,0.6)" />
                   <Text style={styles.sentText}>DELIVERED TO THEIR HEART</Text>
                 </View>
               )}

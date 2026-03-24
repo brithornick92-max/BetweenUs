@@ -29,12 +29,12 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // ─── Features checklist ───────────────────────────────────────────────────────
 const FEATURES = [
-  { icon: "chat-processing",         text: "Unlimited prompts across all heat levels" },
-  { icon: "email-heart",             text: "Send & receive encrypted love notes" },
-  { icon: "calendar-heart",          text: "Schedule date nights with reminders" },
-  { icon: "link-variant",            text: "One subscription can extend premium to your linked partner" },
-  { icon: "book-open-variant",       text: "Year reflection & relationship milestones" },
-  { icon: "shield-lock",             text: "Encrypted storage for sensitive content" },
+  { icon: "chatbubble-ellipses-outline", text: "Unlimited prompts across all heat levels" },
+  { icon: "mail-outline",                text: "Send & receive encrypted love notes" },
+  { icon: "calendar-outline",            text: "Schedule date nights with reminders" },
+  { icon: "infinite-outline",            text: "One subscription can extend premium to your linked partner" },
+  { icon: "book-outline",                text: "Year reflection & relationship milestones" },
+  { icon: "shield-checkmark-outline",    text: "Encrypted storage for sensitive content" },
 ];
 
 // ─── Animated section wrapper ─────────────────────────────────────────────────
@@ -214,7 +214,7 @@ export default function PremiumScreen({ navigation }) {
           hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
           activeOpacity={0.7}
         >
-          <Icon name="close" size={24} color={t.text} />
+          <Icon name="close-outline" size={24} color={t.text} />
         </TouchableOpacity>
 
         <ScrollView
@@ -277,7 +277,7 @@ export default function PremiumScreen({ navigation }) {
                 />
 
                 <View style={styles.coupleNoteContainer}>
-                  <Icon name="heart-multiple" size={14} color={t.primary} />
+                  <Icon name="heart-outline" size={14} color={t.primary} />
                   <Text style={styles.coupleNote}>
                     One subscription can share premium access with your linked partner.
                   </Text>

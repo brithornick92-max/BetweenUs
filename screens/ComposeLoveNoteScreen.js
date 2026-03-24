@@ -101,7 +101,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
             style={styles.lockButton}
             activeOpacity={0.9}
           >
-            <Icon name="sparkles" size={18} color="#FFF" />
+            <Icon name="sparkles-outline" size={18} color="#FFF" />
             <Text style={styles.lockButtonText}>Unlock Pro Experience</Text>
           </TouchableOpacity>
         </View>

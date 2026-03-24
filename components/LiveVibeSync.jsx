@@ -168,7 +168,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
                 buttonStyle,
               ]}
             >
-              <Icon name="pulse" size={34} color={t.primary} />
+              <Icon name="pulse-outline" size={34} color={t.primary} />
               <Text style={[styles.buttonText, { color: t.primary }]}>
                 {isSending ? 'Sending...' : 'Send Pulse'}
               </Text>
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 1,

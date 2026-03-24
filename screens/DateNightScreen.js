@@ -40,7 +40,7 @@ import { SoftBoundaries } from '../services/PolishEngine';
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
 const CARD_H = Math.min(height * 0.52, 480);
-const CARD_STACK_LIFT = height < 760 ? 30 : height < 850 ? 24 : 18;
+const CARD_STACK_LIFT = height < 760 ? 56 : height < 850 ? 46 : 38;
 const SWIPE_THRESHOLD = 90;
 const FLIP_DURATION = 650;
 const DIMS = getDimensionMeta();
@@ -354,7 +354,7 @@ const CardStack = forwardRef(function CardStack(
           {isFlipped && (
             <>
               <Animated.View style={[styles.swipeHint, styles.swipeHintRight, rightHintStyle]}>
-                <Icon name="heart" size={18} color="#FFFFFF" />
+                <Icon name="heart-outline" size={18} color="#FFFFFF" />
                 <Text style={styles.swipeHintText}>Tonight</Text>
               </Animated.View>
               <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}>
@@ -434,15 +434,33 @@ export default function DateNightScreen({ navigation }) {
   }, [selectedHeat, selectedLoad, selectedStyle]);
 
   const deck = useMemo(() => {
-    const profileBase = contentProfile ? getFilteredDatesWithProfile(contentProfile) : allDates;
-    let base = filterDates(profileBase, activeFilters);
+    const strictProfileBase = contentProfile ? getFilteredDatesWithProfile(contentProfile) : allDates;
+    const fallbackProfileBase = contentProfile
+      ? allDates.filter((date) => {
+          if (contentProfile.boundaries?.pausedDates?.includes(date.id)) return false;
+          if (typeof contentProfile.maxHeat === 'number' && date.heat > contentProfile.maxHeat) return false;
+          return true;
+        })
+      : allDates;
+
+    const dims = {};
+    if (selectedHeat) dims.heat = selectedHeat;
+    if (selectedLoad) dims.load = selectedLoad;
+    if (selectedStyle) dims.style = selectedStyle;
+
+    let base = filterDates(strictProfileBase, activeFilters);
+
     if (contentProfile && base.length > 0) {
-      const dims = {};
-      if (selectedHeat) dims.heat = selectedHeat;
-      if (selectedLoad) dims.load = selectedLoad;
-      if (selectedStyle) dims.style = selectedStyle;
-      base = PreferenceEngine.filterDatesWithProfile(base, contentProfile, dims);
+      const personalized = PreferenceEngine.filterDatesWithProfile(base, contentProfile, dims);
+      if (personalized.length > 0) {
+        base = personalized;
+      }
     }
+
+    if (base.length === 0) {
+      base = filterDates(fallbackProfileBase, activeFilters);
+    }
+
     // Free users only see a small preview of dates
     if (!isPremium && base.length > FREE_LIMITS.VISIBLE_DATE_IDEAS) {
       base = base.slice(0, FREE_LIMITS.VISIBLE_DATE_IDEAS);
@@ -553,7 +571,7 @@ export default function DateNightScreen({ navigation }) {
             onPress={() => setFiltersOpen(o => !o)}
             activeOpacity={0.7}
           >
-            <Icon name="options-outline" size={20} color={hasFilters ? colors.primary : colors.text} />
+            <Icon name="funnel-outline" size={20} color={hasFilters ? colors.primary : colors.text} />
             {hasFilters && <View style={[styles.filterDot, { backgroundColor: colors.primary }]} />}
           </TouchableOpacity>
         </View>
@@ -685,7 +703,7 @@ export default function DateNightScreen({ navigation }) {
                         <Text style={[styles.dropdownOptionLabel, { color: active ? tone.highlight : colors.text }]}>{opt.label}</Text>
                         <Text style={[styles.dropdownOptionSub, { color: active ? withAlpha(tone.body, 0.9) : colors.textMuted }]}>{opt.description || 'Curated category'}</Text>
                       </View>
-                      {active && <Icon name="checkmark-circle" size={20} color={tone.highlight} />}
+                      {active && <Icon name="checkmark-circle-outline" size={20} color={tone.highlight} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -703,9 +721,9 @@ export default function DateNightScreen({ navigation }) {
         {/* Card Stack Content */}
         <View style={styles.stackWrapper}>
           {!allSelected ? (
-            <BlurView intensity={isDark ? 15 : 25} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
+            <BlurView intensity={isDark ? 15 : 25} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, styles.setupEmptyStack, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
               <View style={styles.emptyIconCircle}>
-                <Icon name="sparkles" size={32} color={colors.primary} />
+                <Icon name="sparkles-outline" size={32} color={colors.primary} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.text }]}>Craft Your Night</Text>
               <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
@@ -722,7 +740,7 @@ export default function DateNightScreen({ navigation }) {
             <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.emptyStack}>
               {!isPremium ? (
                 <>
-                  <Icon name="lock-closed" size={42} color={colors.primary} />
+                  <Icon name="lock-closed-outline" size={42} color={colors.primary} />
                   <Text style={[styles.emptyTitle, { color: colors.text }]}>Explore More</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
                     Unlock {allDates.length}+ high-end date nights and curated intimacy exercises.
@@ -782,7 +800,7 @@ export default function DateNightScreen({ navigation }) {
               onPress={() => stackRef.current?.swipeLeft()}
               activeOpacity={0.8}
             >
-              <Icon name="close" size={28} color={colors.text + '80'} />
+              <Icon name="close-outline" size={28} color={colors.text + '80'} />
             </TouchableOpacity>
 
             <View style={styles.counterGroup}>
@@ -800,7 +818,7 @@ export default function DateNightScreen({ navigation }) {
                 colors={[colors.primary, '#9A0F14']}
                 style={styles.likeBtnGrad}
               >
-                <Icon name="heart" size={28} color="#FFFFFF" />
+                <Icon name="heart-outline" size={28} color="#FFFFFF" />
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -1120,6 +1138,9 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'center',
     padding: 32,
     gap: 16,
+  },
+  setupEmptyStack: {
+    marginTop: 32,
   },
   emptyIconCircle: {
     width: 80,

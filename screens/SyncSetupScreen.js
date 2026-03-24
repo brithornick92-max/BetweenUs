@@ -1,4 +1,8 @@
-import React, { useEffect, useState } from 'react';
+// screens/SyncSetupScreen.js — Cloud Sync
+// Velvet Glass & Apple Editorial High-End Updates Integrated.
+// Palette: Deep Crimson, Obsidian, Liquid Silver (Strictly No Gold).
+
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,22 +13,45 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  StatusBar,
+  ActivityIndicator,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
+import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { cloudSyncStorage } from '../utils/storage';
 import StorageRouter from '../services/storage/StorageRouter';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
+
+const { width } = Dimensions.get('window');
+
+const FONTS = {
+  bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
+};
+
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 export default function SyncSetupScreen({ navigation }) {
   const { isPremiumEffective: isPremium } = useEntitlements();
   const { colors, isDark } = useTheme();
-  const styles = createStyles(colors, isDark);
+  
+  // ── High-End Color Logic (No Gold) ──────────────────────────────────────────
+  const theme = useMemo(() => ({
+    crimson: '#D2121A',
+    silver: isDark ? '#E5E5E7' : '#8E8E93',
+    obsidian: '#0A0A0C',
+    glass: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+    inputBg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+  }), [isDark]);
+
+  const styles = useMemo(() => createStyles(colors, isDark, theme), [colors, isDark, theme]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -51,30 +78,31 @@ export default function SyncSetupScreen({ navigation }) {
     let active = true;
     const load = async () => {
       const status = await cloudSyncStorage.getSyncStatus();
-      const session = await SupabaseAuthService.getSession().catch((error) => {
-        if (String(error?.message || '').includes('Supabase is not configured')) {
-          setSupabaseAvailable(false);
-          return null;
-        }
-        return null;
-      });
+      const session = await refreshSession();
       if (!active) return;
       setSyncEnabled(!!status?.enabled);
       setSessionEmail(session?.user?.email || null);
     };
     load();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
+
+  const handleAuthAction = async () => {
+    selection();
+    if (authMode === 'magic') {
+      await handleSendMagicLink();
+    } else {
+      await handlePasswordAuth();
+    }
+  };
 
   const handleSendMagicLink = async () => {
     if (!supabaseAvailable) {
-      Alert.alert('Sync unavailable', "Sync isn’t available in this build.");
+      Alert.alert('Sync Unavailable', "Sync isn’t enabled in this build.");
       return;
     }
     if (!email || !email.includes('@')) {
-      Alert.alert('Enter email', 'Please enter a valid email to continue.');
+      Alert.alert('Email Required', 'Please enter a valid email address.');
       return;
     }
 
@@ -82,30 +110,22 @@ export default function SyncSetupScreen({ navigation }) {
       setLoading(true);
       await SupabaseAuthService.sendMagicLink(email.trim());
       impact(ImpactFeedbackStyle.Medium);
-      Alert.alert('Check your email', 'Open the link in your email to finish signing in.');
+      Alert.alert('Check Your Inbox', 'We sent a secure link to your email.');
     } catch (error) {
-      if (String(error?.message || '').includes('Supabase is not configured')) {
-        setSupabaseAvailable(false);
-        Alert.alert('Sync unavailable', "Sync isn’t available in this build.");
-      } else {
-        Alert.alert('Sign-in failed', error?.message || 'Unable to send magic link.');
-      }
+      Alert.alert('Request Failed', error?.message || 'Unable to send magic link.');
     } finally {
       setLoading(false);
     }
   };
 
   const handlePasswordAuth = async () => {
-    if (!supabaseAvailable) {
-      Alert.alert('Sync unavailable', "Sync isn't available in this build.");
-      return;
-    }
+    if (!supabaseAvailable) return;
     if (!email || !email.includes('@')) {
-      Alert.alert('Enter email', 'Please enter a valid email to continue.');
+      Alert.alert('Email Required', 'Please enter a valid email address.');
       return;
     }
     if (!password || password.length < 6) {
-      Alert.alert('Password required', 'Please enter a password (at least 6 characters).');
+      Alert.alert('Security Check', 'Password must be at least 6 characters.');
       return;
     }
 
@@ -115,8 +135,7 @@ export default function SyncSetupScreen({ navigation }) {
       if (isSignUp) {
         session = await SupabaseAuthService.signUp(email.trim(), password);
         if (!session) {
-          // Some Supabase projects require email confirmation even for password sign-up
-          Alert.alert('Check your email', 'Please confirm your email address, then come back and sign in.');
+          Alert.alert('Verify Email', 'Please check your email to confirm your account.');
           setIsSignUp(false);
           return;
         }
@@ -133,39 +152,9 @@ export default function SyncSetupScreen({ navigation }) {
         });
         setSessionEmail(session.user?.email || null);
         impact(ImpactFeedbackStyle.Medium);
-        Alert.alert('Signed in', 'Your sync account is ready.');
       }
     } catch (error) {
-      const msg = error?.message || 'Unable to sign in.';
-      if (msg.includes('Invalid login credentials')) {
-        Alert.alert('Sign-in failed', 'Incorrect email or password. If you don\'t have an account yet, tap "Create account" below.');
-      } else if (msg.includes('User already registered')) {
-        Alert.alert('Account exists', 'This email already has an account. Switch to sign-in mode.');
-        setIsSignUp(false);
-      } else {
-        Alert.alert('Sign-in failed', msg);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCheckSession = async () => {
-    try {
-      setLoading(true);
-      const session = await refreshSession();
-      if (session) {
-        Alert.alert('Signed in', 'Your sync account is ready.');
-      } else {
-        Alert.alert('Not signed in', 'We could not find an active session yet.');
-      }
-    } catch (error) {
-      if (String(error?.message || '').includes('Supabase is not configured')) {
-        setSupabaseAvailable(false);
-        Alert.alert('Sync unavailable', "Sync isn’t available in this build.");
-      } else {
-        Alert.alert('Error', 'Unable to refresh session.');
-      }
+      Alert.alert('Authentication Error', error?.message || 'Unable to sign in.');
     } finally {
       setLoading(false);
     }
@@ -173,364 +162,340 @@ export default function SyncSetupScreen({ navigation }) {
 
   const handleEnableSync = async () => {
     if (!isPremium) {
-      Alert.alert('Premium required', 'Cloud sync is available for premium couples.');
+      Alert.alert('Premium Feature', 'Cloud sync is exclusive to our premium members.');
       return;
     }
-    if (!supabaseAvailable) {
-      Alert.alert('Sync unavailable', "Sync isn’t available in this build.");
-      return;
-    }
-
     const session = await refreshSession();
     if (!session) {
-      Alert.alert('Sign in first', 'Please sign in with your email before enabling sync.');
+      Alert.alert('Sign In Required', 'Please sign in to your account before enabling sync.');
       return;
     }
 
     await cloudSyncStorage.setSyncStatus({ enabled: true, email: session?.user?.email || null });
-    await StorageRouter.configureSync({
-      isPremium,
-      syncEnabled: true,
-      supabaseSessionPresent: true,
-    });
+    await StorageRouter.configureSync({ isPremium, syncEnabled: true, supabaseSessionPresent: true });
     setSyncEnabled(true);
-    Alert.alert('Sync enabled', 'Your data will sync when you are connected.');
+    impact(ImpactFeedbackStyle.Heavy);
   };
 
   const handleDisableSync = async () => {
     await cloudSyncStorage.setSyncStatus({ enabled: false });
-    await StorageRouter.configureSync({
-      isPremium,
-      syncEnabled: false,
-      supabaseSessionPresent: false,
-    });
+    await StorageRouter.configureSync({ isPremium, syncEnabled: false, supabaseSessionPresent: false });
     setSyncEnabled(false);
-    Alert.alert('Sync disabled', 'Cloud sync is now turned off.');
+    impact(ImpactFeedbackStyle.Light);
   };
 
   const handleSignOut = async () => {
     try {
       await SupabaseAuthService.signOut();
-    } catch (error) {
-      // ignore sign out errors
-    }
+    } catch (e) {}
     await handleDisableSync();
     setSessionEmail(null);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
-      {/* IMPORTANT: prevent background layer from stealing touches */}
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       <LinearGradient
-        pointerEvents="none"
-        colors={[colors.background, colors.background]}
-        style={StyleSheet.absoluteFill}
+        colors={isDark ? [theme.obsidian, '#1A0205', theme.obsidian] : ['#FFFFFF', '#F9F4F4', '#FFFFFF']}
+        style={StyleSheet.absoluteFillObject}
       />
+      {/* Crimson Ambient Glow */}
+      <GlowOrb color={theme.crimson} size={450} top={-150} left={width - 200} opacity={0.08} />
+      <FilmGrain opacity={0.035} />
 
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {/* Apple Editorial Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
+          <TouchableOpacity 
+            style={styles.backButton} 
             onPress={() => navigation.goBack()}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <Icon name="arrow-left" size={24} color={colors.text} />
+            <Icon name="chevron-back" size={26} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Cloud Sync</Text>
-          <View style={styles.headerSpacer} />
+          <View>
+            <Text style={[styles.headerEye, { color: theme.crimson }]}>Security & Continuity</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Cloud Sync</Text>
+          </View>
         </View>
 
-        <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <View style={styles.card}>
-          <Text style={[styles.title, { color: colors.text }]}>Enable Secure Sync</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Partner linking is free. Encrypted cloud sync is optional and available to linked premium couples.
-          </Text>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+        >
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Sync Status Card (Velvet Glass) */}
+            <BlurView intensity={isDark ? 20 : 40} tint={isDark ? "dark" : "light"} style={styles.statusCard}>
+              <View style={styles.statusHeader}>
+                <View style={[styles.statusIconCircle, { backgroundColor: syncEnabled ? '#D2121A20' : '#8E8E9320' }]}>
+                  <Icon 
+                    name={syncEnabled ? "cloud-done" : "cloud-offline"} 
+                    size={24} 
+                    color={syncEnabled ? theme.crimson : colors.textMuted} 
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.statusLabel, { color: colors.text }]}>
+                    {syncEnabled ? 'Vault Synchronized' : 'Local Storage'}
+                  </Text>
+                  <Text style={[styles.statusSubtext, { color: colors.textMuted }]}>
+                    {sessionEmail ? `Linked to ${sessionEmail}` : 'Sign in to enable encrypted backup'}
+                  </Text>
+                </View>
+                <TouchableOpacity 
+                  onPress={syncEnabled ? handleDisableSync : handleEnableSync}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={syncEnabled ? [theme.crimson, '#900C0F'] : ['#444', '#222']}
+                    style={styles.statusToggle}
+                  >
+                    <Text style={styles.statusToggleText}>{syncEnabled ? 'ON' : 'OFF'}</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </BlurView>
 
-          {!supabaseAvailable && (
-            <Text style={[styles.notice, { color: colors.warning }]}>
-              Sync isn’t available in this build.
-            </Text>
-          )}
-          {/* Auth mode toggle */}
-          <View style={styles.authToggleRow}>
-            <TouchableOpacity
-              style={[styles.authToggle, authMode === 'password' && styles.authToggleActive]}
-              onPress={() => setAuthMode('password')}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.authToggleText, authMode === 'password' && styles.authToggleTextActive]}>
-                Email & Password
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.authToggle, authMode === 'magic' && styles.authToggleActive]}
-              onPress={() => setAuthMode('magic')}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.authToggleText, authMode === 'magic' && styles.authToggleTextActive]}>
-                Magic Link
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-            placeholder="Email"
-            placeholderTextColor={colors.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            editable={!loading && supabaseAvailable}
-            autoCorrect={false}
-            blurOnSubmit={false}
-            returnKeyType={authMode === 'password' ? 'next' : 'done'}
-            textContentType="emailAddress"
-            autoComplete="email"
-          />
+            {/* Auth Access Card */}
+            <View style={styles.formCard}>
+              <Text style={[styles.formTitle, { color: colors.text }]}>Account Access</Text>
+              
+              {/* Apple Segmented Control Style Toggle */}
+              <View style={styles.segmentedWrapper}>
+                <TouchableOpacity 
+                  style={[styles.segment, authMode === 'password' && styles.segmentActive]} 
+                  onPress={() => { selection(); setAuthMode('password'); }}
+                >
+                  <Text style={[styles.segmentText, authMode === 'password' && styles.segmentTextActive]}>Password</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.segment, authMode === 'magic' && styles.segmentActive]} 
+                  onPress={() => { selection(); setAuthMode('magic'); }}
+                >
+                  <Text style={[styles.segmentText, authMode === 'magic' && styles.segmentTextActive]}>Magic Link</Text>
+                </TouchableOpacity>
+              </View>
 
-          {authMode === 'password' && (
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              placeholder="Password (min 6 characters)"
-              placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              autoCapitalize="none"
-              secureTextEntry
-              editable={!loading && supabaseAvailable}
-              autoCorrect={false}
-              blurOnSubmit
-              returnKeyType="done"
-              textContentType="password"
-              autoComplete="password"
-            />
-          )}
+              <View style={styles.inputGroup}>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  placeholder="Email Address"
+                  placeholderTextColor={colors.textMuted}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
 
-          {authMode === 'password' ? (
-            <>
-              <TouchableOpacity
-                style={[styles.primaryButton, loading && styles.buttonDisabled]}
-                onPress={handlePasswordAuth}
-                disabled={loading || !supabaseAvailable}
-                activeOpacity={0.9}
+                {authMode === 'password' && (
+                  <TextInput
+                    style={[styles.input, { color: colors.text }]}
+                    placeholder="Password"
+                    placeholderTextColor={colors.textMuted}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                  />
+                )}
+              </View>
+
+              <TouchableOpacity 
+                style={styles.mainActionBtn} 
+                onPress={handleAuthAction}
+                disabled={loading}
               >
-                <Text style={styles.primaryButtonText}>{isSignUp ? 'Create Account' : 'Sign In'}</Text>
+                <LinearGradient
+                  colors={[theme.crimson, '#900C0F']}
+                  style={styles.mainActionGrad}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <Text style={styles.mainActionText}>
+                      {authMode === 'magic' ? 'Send Secure Link' : (isSignUp ? 'Create Account' : 'Sign In')}
+                    </Text>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.toggleLink}
+              <TouchableOpacity 
+                style={styles.textLink} 
                 onPress={() => setIsSignUp(!isSignUp)}
-                activeOpacity={0.8}
               >
-                <Text style={[styles.toggleLinkText, { color: colors.textSecondary }]}>
-                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
+                <Text style={[styles.textLinkTxt, { color: colors.textMuted }]}>
+                  {isSignUp ? 'Back to secure sign in' : "New here? Establish a vault account"}
                 </Text>
               </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <TouchableOpacity
-                style={[styles.primaryButton, loading && styles.buttonDisabled]}
-                onPress={handleSendMagicLink}
-                disabled={loading || !supabaseAvailable}
-                activeOpacity={0.9}
+            </View>
+
+            {sessionEmail && (
+              <TouchableOpacity 
+                style={styles.signOutBtn} 
+                onPress={handleSignOut}
+                activeOpacity={0.7}
               >
-                <Text style={styles.primaryButtonText}>Send Magic Link</Text>
+                <Icon name="log-out-outline" size={18} color={theme.crimson} />
+                <Text style={styles.signOutText}>Sign Out of Vault</Text>
               </TouchableOpacity>
+            )}
 
-              <TouchableOpacity
-                style={[styles.secondaryButton, loading && styles.buttonDisabled]}
-                onPress={handleCheckSession}
-                disabled={loading || !supabaseAvailable}
-                activeOpacity={0.9}
-              >
-                <Text style={[styles.secondaryButtonText, { color: colors.text }]}>
-                  I clicked the link
-                </Text>
-              </TouchableOpacity>
-            </>
-          )}
-
-          <View style={styles.statusRow}>
-            <Icon
-              name={sessionEmail ? 'check-circle' : 'alert-circle'}
-              size={20}
-              color={sessionEmail ? '#34C759' : colors.textSecondary}
-            />
-            <Text style={[styles.statusText, { color: colors.textSecondary }]}>
-              {sessionEmail ? `Signed in as ${sessionEmail}` : 'Not signed in'}
-            </Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          {syncEnabled ? (
-            <TouchableOpacity style={styles.dangerButton} onPress={handleDisableSync} activeOpacity={0.9}>
-              <Text style={styles.dangerButtonText}>Disable Sync</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.primaryButton} onPress={handleEnableSync} activeOpacity={0.9}>
-              <Text style={styles.primaryButtonText}>Enable Sync</Text>
-            </TouchableOpacity>
-          )}
-
-          {sessionEmail && (
-            <TouchableOpacity style={styles.secondaryButton} onPress={handleSignOut} activeOpacity={0.9}>
-              <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Sign Out</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        </ScrollView>
+            {/* Security Guarantee Footer */}
+            <View style={styles.footerTeaser}>
+              <Icon name="shield-checkmark" size={26} color={theme.crimson} />
+              <Text style={[styles.footerTitle, { color: colors.text }]}>Zero-Knowledge Architecture</Text>
+              <Text style={[styles.footerBody, { color: colors.textMuted }]}>
+                Only your linked devices hold the keys to your data. We never see your private notes, plans, or history.
+              </Text>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
-const createStyles = (colors, isDark) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: SPACING.xl,
-  },
-  scrollContent: {
-    flex: 1,
-  },
+const createStyles = (colors, isDark, theme) => StyleSheet.create({
+  root: { flex: 1 },
+  container: { flex: 1 },
+  scrollContent: { paddingHorizontal: 24, paddingBottom: 60 },
+  
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.lg,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 24,
+    gap: 16,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.glass,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerEye: {
+    fontFamily: FONTS.bodyBold || SYSTEM_FONT,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.8,
+    textTransform: 'uppercase',
   },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
     fontSize: 36,
     fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
-    flex: 1,
-    textAlign: 'center',
+    letterSpacing: -1.2,
   },
-  headerSpacer: {
-    width: 40,
-  },
-  card: {
-    backgroundColor: '#151118',
-    borderRadius: BORDER_RADIUS.xl,
-    padding: SPACING.xl,
-  },
-  title: {
-    ...TYPOGRAPHY.h2,
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: SPACING.sm,
-  },
-  subtitle: {
-    ...TYPOGRAPHY.body,
-    fontSize: 14,
-    marginBottom: SPACING.lg,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    marginBottom: SPACING.md,
-  },
-  primaryButton: {
-    backgroundColor: colors.accent || '#A89060',
-    borderRadius: BORDER_RADIUS.md,
-    paddingVertical: SPACING.md,
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  primaryButtonText: {
-    color: colors.surface,
-    fontWeight: '700',
-  },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: colors.borderGlass || colors.border,
-    borderRadius: BORDER_RADIUS.md,
-    paddingVertical: SPACING.md,
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  secondaryButtonText: {
-    fontWeight: '600',
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  notice: {
-    ...TYPOGRAPHY.body,
-    marginBottom: SPACING.md,
-  },
-  statusText: {
-    marginLeft: SPACING.sm,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.borderGlass || colors.border,
-    marginVertical: SPACING.md,
-  },
-  dangerButton: {
-    backgroundColor: '#D2121A',
-    borderRadius: BORDER_RADIUS.md,
-    paddingVertical: SPACING.md,
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  dangerButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  authToggleRow: {
-    flexDirection: 'row',
-    marginBottom: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
+
+  // Status Card (Velvet Glass)
+  statusCard: {
+    borderRadius: 30,
+    borderWidth: 1.5,
+    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+    padding: 22,
+    marginBottom: 28,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.borderGlass || colors.border,
   },
-  authToggle: {
+  statusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  statusIconCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusLabel: { fontSize: 18, fontWeight: '800', letterSpacing: -0.4 },
+  statusSubtext: { fontSize: 13, marginTop: 2, opacity: 0.8 },
+  statusToggle: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 14,
+    minWidth: 54,
+    alignItems: 'center',
+  },
+  statusToggleText: { color: '#FFF', fontSize: 10, fontWeight: '900' },
+
+  // Form Card
+  formCard: { gap: 20 },
+  formTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.6 },
+  segmentedWrapper: {
+    flexDirection: 'row',
+    padding: 5,
+    borderRadius: 16,
+    height: 48,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+  },
+  segment: {
     flex: 1,
-    paddingVertical: SPACING.sm,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
   },
-  authToggleActive: {
-    backgroundColor: 'rgba(168,144,96,0.25)',
+  segmentActive: {
+    backgroundColor: isDark ? '#FFF' : '#000',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
   },
-  authToggleText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textMuted,
+  segmentText: { fontSize: 13, fontWeight: '700', color: colors.textMuted },
+  segmentTextActive: { color: isDark ? '#000' : '#FFF' },
+
+  inputGroup: { gap: 14 },
+  input: {
+    height: 58,
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    fontSize: 16,
+    fontFamily: SYSTEM_FONT,
+    backgroundColor: theme.inputBg,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
   },
-  authToggleTextActive: {
-    color: colors.accent || '#A89060',
+
+  mainActionBtn: {
+    borderRadius: 22,
+    height: 60,
+    overflow: 'hidden',
+    marginTop: 10,
+    ...Platform.select({
+      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 15 },
+      android: { elevation: 8 },
+    }),
   },
-  toggleLink: {
+  mainActionGrad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  mainActionText: { color: '#FFF', fontSize: 17, fontWeight: '800', letterSpacing: -0.2 },
+
+  textLink: { alignSelf: 'center', padding: 10 },
+  textLinkTxt: { fontSize: 14, fontWeight: '600' },
+
+  signOutBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.md,
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 30,
+    padding: 12,
   },
-  toggleLinkText: {
-    fontSize: 13,
+  signOutText: { color: '#D2121A', fontSize: 15, fontWeight: '700' },
+
+  footerTeaser: {
+    marginTop: 45,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    gap: 14,
   },
+  footerTitle: { fontSize: 17, fontWeight: '800' },
+  footerBody: { textAlign: 'center', fontSize: 14, lineHeight: 22, opacity: 0.6 },
 });

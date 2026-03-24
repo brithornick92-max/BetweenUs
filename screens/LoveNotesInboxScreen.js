@@ -155,7 +155,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
     <Animated.View entering={FadeIn.duration(800)} style={styles.emptyContainer}>
       <View style={styles.emptyIconCircle}>
         <Icon
-          name="email-heart-outline"
+          name="mail-outline"
           size={48}
           color={colors.primary}
         />
@@ -197,7 +197,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
             ) : (
               <LinearGradient colors={gradient} style={styles.noteThumbnail}>
                 <Icon
-                  name="seal"
+                  name="checkmark-seal-outline"
                   size={24}
                   color="rgba(255,255,255,0.25)"
                 />
@@ -267,7 +267,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
             onPress={handleCompose}
             activeOpacity={0.85}
           >
-            <Icon name="plus" size={24} color="#FFF" />
+            <Icon name="add-outline" size={24} color="#FFF" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -313,7 +313,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
           }
           ListHeaderComponent={
             <View style={styles.securityHeader}>
-                <Icon name="shield-check" size={12} color={colors.textMuted} />
+                <Icon name="shield-checkmark-outline" size={12} color={colors.textMuted} />
                 <Text style={[styles.securityText, { color: colors.textMuted }]}>SECURE PRIVATE CHANNEL</Text>
             </View>
           }

@@ -122,7 +122,7 @@ export default function RitualRemindersScreen({ navigation }) {
             style={{ backgroundColor: theme.colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
             activeOpacity={0.85}
           >
-            <Icon name="crown" size={18} color="#F2E9E6" />
+            <Icon name="ribbon-outline" size={18} color="#F2E9E6" />
               <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>Discover the full experience</Text>
             </TouchableOpacity>
           </View>
@@ -137,7 +137,7 @@ export default function RitualRemindersScreen({ navigation }) {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Icon name="arrow-left" size={24} color={theme.colors.text} />
+            <Icon name="arrow-back-outline" size={24} color={theme.colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Ritual Reminders</Text>
           <View style={styles.headerSpacer} />
@@ -172,7 +172,7 @@ export default function RitualRemindersScreen({ navigation }) {
               onPress={() => setShowPicker(true)}
               activeOpacity={0.9}
             >
-              <Icon name="clock-outline" size={18} color={theme.colors.text} />
+              <Icon name="time-outline" size={18} color={theme.colors.text} />
               <Text style={[styles.timeText, { color: theme.colors.text }]}>
                 {when.toLocaleString()}
               </Text>

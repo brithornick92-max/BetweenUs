@@ -146,7 +146,7 @@ export default function YearReflectionScreen({ navigation }) {
       <View style={[styles.container, { backgroundColor: t.background }]}>
         <LinearGradient colors={[PALETTE.sexyRed, '#9A0D12']} style={styles.premiumHeaderGrad} />
         <SafeAreaView style={styles.premiumGate}>
-          <Icon name="sparkles-sharp" size={48} color="#FFF" />
+          <Icon name="sparkles-outline" size={48} color="#FFF" />
           <Text style={[styles.gateTitle, { color: '#FFF' }]}>The Year in Review</Text>
           <Text style={[styles.gateSub, { color: 'rgba(255,255,255,0.8)' }]}>
             Experience a curated journey of your love. Unlock your private narrative with Pro.
@@ -286,7 +286,7 @@ export default function YearReflectionScreen({ navigation }) {
               <FadeSection delay={1500}>
                 <View style={styles.footer}>
                   <View style={styles.endMark}>
-                    <Icon name="heart-sharp" size={18} color={PALETTE.sexyRed} />
+                    <Icon name="heart-outline" size={18} color={PALETTE.sexyRed} />
                   </View>
                   <Text style={[styles.footerText, { color: t.subtext }]}>Between Us \u2022 {year}</Text>
                 </View>

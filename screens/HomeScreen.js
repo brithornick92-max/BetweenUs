@@ -103,9 +103,9 @@ function normalizePrompt(p) {
 
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
-  { label: 'Love Note', icon: 'email-heart-outline', key: 'note', premium: true, color: '#D2121A' }, // Sexy red
-  { label: 'Ritual', icon: 'candle', key: 'ritual', color: '#7E4FA3' }, // Velvet plum
-  { label: 'Jokes', icon: 'emoticon-wink-outline', key: 'jokes', premium: true, color: '#D4AA7E' }, // Champagne gold
+  { label: 'Love Note', icon: 'mail-outline', key: 'note', premium: true, color: '#D2121A' }, // Sexy red
+  { label: 'Ritual', icon: 'flame-outline', key: 'ritual', color: '#7E4FA3' }, // Velvet plum
+  { label: 'Jokes', icon: 'happy-outline', key: 'jokes', premium: true, color: '#D4AA7E' }, // Champagne gold
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -419,7 +419,7 @@ export default function HomeScreen({ navigation }) {
               {statusText && (
                 <View style={styles.statusRow}>
                   <Icon
-                    name={bothAnswered ? 'check' : 'time-outline'}
+                    name={bothAnswered ? 'checkmark-outline' : 'time-outline'}
                     size={16}
                     color={t.primary}
                   />
@@ -439,7 +439,7 @@ export default function HomeScreen({ navigation }) {
                 accessibilityLabel={primaryCTALabel}
               >
                 <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
-                <Icon name="arrow-forward" size={20} color={isDark ? "#000000" : "#FFFFFF"} />
+                <Icon name="arrow-forward-outline" size={20} color={isDark ? "#000000" : "#FFFFFF"} />
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -470,7 +470,7 @@ export default function HomeScreen({ navigation }) {
                 >
                   {locked && (
                     <View style={styles.lockBadge}>
-                      <Icon name="lock" size={12} color={action.color} />
+                      <Icon name="lock-closed-outline" size={12} color={action.color} />
                     </View>
                   )}
                   {badge > 0 && (

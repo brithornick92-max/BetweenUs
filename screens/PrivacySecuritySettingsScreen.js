@@ -183,7 +183,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color={colors.text} />
+          <Icon name="arrow-back-outline" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Privacy & Security</Text>
         <View style={{ width: 24 }} />

@@ -210,7 +210,7 @@ const EditorialPromptScreen = ({ route, navigation }) => {
               style={[styles.upgradeButton, { backgroundColor: t.primary }]}
               activeOpacity={0.9}
             >
-              <Icon name="sparkles" size={18} color="#FFFFFF" />
+              <Icon name="sparkles-outline" size={18} color="#FFFFFF" />
               <Text style={styles.upgradeButtonText}>Unlock Pro Reflection</Text>
             </TouchableOpacity>
           </View>
@@ -253,7 +253,7 @@ const EditorialPromptScreen = ({ route, navigation }) => {
 function PaywallFeatureRow({ text, color, textColor }) {
   return (
     <View style={styles.paywallFeature}>
-      <Icon name="checkmark-circle" size={20} color={color} />
+      <Icon name="checkmark-circle-outline" size={20} color={color} />
       <Text style={[styles.paywallFeatureText, { color: textColor }]}>{text}</Text>
     </View>
   );

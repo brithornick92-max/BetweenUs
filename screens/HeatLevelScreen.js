@@ -40,7 +40,7 @@ export default function HeatLevelScreen({ navigation }) {
       level: 2,
       name: 'Flirty & Romantic',
       description: 'Flirty attraction, romantic tension',
-      icon: 'star-four-points-outline',
+      icon: 'sparkles-outline',
       color: '#F27A9B',
       gradient: ['#F27A9B', '#C85A7B'],
       free: true,
@@ -49,7 +49,7 @@ export default function HeatLevelScreen({ navigation }) {
       level: 3,
       name: 'Sensual',
       description: 'Sensual, relationship-focused intimacy',
-      icon: 'cards-heart-outline',
+      icon: 'heart-outline',
       color: '#E84A7B',
       gradient: ['#E84A7B', '#A83A5A'],
       free: true,
@@ -67,7 +67,7 @@ export default function HeatLevelScreen({ navigation }) {
       level: 5,
       name: 'Explicit',
       description: 'Intensely passionate, graphic, explicit',
-      icon: 'fire',
+      icon: 'flame-outline',
       color: '#B81438',
       gradient: ['#B81438', '#6A081A'],
       premium: true,
@@ -157,7 +157,7 @@ export default function HeatLevelScreen({ navigation }) {
             <View style={styles.heatLevelHeader}>
               <View style={styles.heatLevelIcon}>
                 <Icon
-                  name={isLocked ? 'lock' : heatLevel.icon}
+                  name={isLocked ? 'lock-closed-outline' : heatLevel.icon}
                   size={32}
                   color={colors.text}
                 />
@@ -165,7 +165,7 @@ export default function HeatLevelScreen({ navigation }) {
               
               {isLocked && (
                 <View style={styles.premiumBadge}>
-                  <Icon name="crown" size={16} color={colors.text} />
+                  <Icon name="ribbon-outline" size={16} color={colors.text} />
                 </View>
               )}
             </View>
@@ -204,7 +204,7 @@ export default function HeatLevelScreen({ navigation }) {
             activeOpacity={0.8}
           >
             <Icon
-              name="arrow-left"
+              name="arrow-back-outline"
               size={24}
               color={colors.text}
             />
@@ -222,7 +222,7 @@ export default function HeatLevelScreen({ navigation }) {
         {usageStatus && !isPremium && (
           <View style={styles.usageStatus}>
             <Icon
-              name="information"
+              name="information-circle-outline"
               size={16}
               color={colors.primary}
             />
@@ -253,11 +253,11 @@ export default function HeatLevelScreen({ navigation }) {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Icon name="crown" size={24} color={colors.surface} />
+                <Icon name="ribbon-outline" size={24} color={colors.surface} />
                 <Text style={[styles.premiumCTAText, { color: "#070509" }]}>
                   Discover the full experience
                 </Text>
-                <Icon name="arrow-right" size={20} color={colors.surface} />
+                <Icon name="arrow-forward-outline" size={20} color={colors.surface} />
               </LinearGradient>
             </TouchableOpacity>
           )}

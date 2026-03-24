@@ -61,7 +61,7 @@ export default function SnapshotView({ text, year, isDark }) {
         {/* FOOTER */}
         <View style={styles.footer}>
           <View style={[styles.endMark, { borderColor: subtextColor }]}>
-            <Icon name="heart-sharp" size={20} color={PALETTE.sexyRed} />
+            <Icon name="heart-outline" size={20} color={PALETTE.sexyRed} />
           </View>
           <Text style={[styles.brandLabel, { color: subtextColor }]}>BETWEEN US</Text>
         </View>

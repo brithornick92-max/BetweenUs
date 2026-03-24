@@ -463,10 +463,10 @@ export default function OnboardingScreen({ navigation }) {
 
   const HEAT_LABELS = [
     { level: 1, icon: 'heart-outline',        color: '#5856D6', name: 'Emotional',   description: 'Intimacy & trust' },
-    { level: 2, icon: 'heart-multiple', color: '#D2121A', name: 'Romantic',    description: 'Flirty & tender' },
-    { level: 3, icon: 'candle',                color: '#FF9500', name: 'Sensual',     description: 'Desire & closeness' },
-    { level: 4, icon: 'fire',                  color: '#A84848', name: 'Steamy',      description: 'Adventurous & heated' },
-    { level: 5, icon: 'fire-alert',            color: '#8A0021', name: 'Explicit',    description: 'Intensely passionate' },
+    { level: 2, icon: 'heart-outline',        color: '#D2121A', name: 'Romantic',    description: 'Flirty & tender' },
+    { level: 3, icon: 'flame-outline',         color: '#FF9500', name: 'Sensual',     description: 'Desire & closeness' },
+    { level: 4, icon: 'flame-outline',         color: '#A84848', name: 'Steamy',      description: 'Adventurous & heated' },
+    { level: 5, icon: 'flame-outline',         color: '#8A0021', name: 'Explicit',    description: 'Intensely passionate' },
   ];
 
   const TONE_OPTIONS = NicknameEngine.TONE_OPTIONS;
@@ -538,7 +538,7 @@ export default function OnboardingScreen({ navigation }) {
                         {h.description}
                       </Text>
                     </View>
-                    {isActive && <Icon name="check" size={20} color={h.color} />}
+                    {isActive && <Icon name="checkmark-outline" size={20} color={h.color} />}
                   </TouchableOpacity>
                   {index < HEAT_LABELS.length - 1 && <View style={styles.dividerIndent} />}
                 </View>
@@ -578,7 +578,7 @@ export default function OnboardingScreen({ navigation }) {
                         {toneItem.preview.replace(/\{partner\}|\{partnerName\}/gi, partnerName || 'your partner')}
                       </Text>
                     </View>
-                    {isActive && <Icon name="check" size={20} color={t.primary} />}
+                    {isActive && <Icon name="checkmark-outline" size={20} color={t.primary} />}
                   </TouchableOpacity>
                   {index < TONE_OPTIONS.length - 1 && <View style={styles.dividerIndent} />}
                 </View>
@@ -643,7 +643,7 @@ export default function OnboardingScreen({ navigation }) {
       <View style={styles.pairingContainer}>
         <ReAnimated.View entering={FadeInDown.delay(200).duration(800).springify()}>
           <Icon 
-            name="infinity" 
+            name="infinite-outline" 
             size={48} 
             color={t.primary} 
             style={{ marginBottom: 24, alignSelf: 'center' }} 
@@ -712,7 +712,7 @@ export default function OnboardingScreen({ navigation }) {
                   <Text style={styles.codeLabel}>YOUR INVITE CODE</Text>
                   <Text style={styles.codeText}>{inviteCode}</Text>
                 </View>
-                <Icon name="content-copy" size={24} color={t.primary} />
+                <Icon name="copy-outline" size={24} color={t.primary} />
               </TouchableOpacity>
             </View>
 
@@ -755,7 +755,7 @@ export default function OnboardingScreen({ navigation }) {
           behavior="padding"
         >
           <View style={styles.cloudAuthCard}>
-            <Icon name="cloud-lock" size={40} color={t.primary} style={{ marginBottom: 16 }} />
+            <Icon name="cloud-outline" size={40} color={t.primary} style={{ marginBottom: 16 }} />
             <Text style={styles.cloudAuthTitle}>One more step</Text>
             <Text style={styles.cloudAuthBody}>
               Enter your password to sign in securely before linking your partner.

@@ -15,6 +15,8 @@ import {
   Linking,
   Platform,
   StatusBar,
+  TextInput,
+  ActivityIndicator,
   Animated as RNAnimated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -49,6 +51,7 @@ import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
 import CrashReporting from '../services/CrashReporting';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
+import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import StorageRouter from '../services/storage/StorageRouter';
 import SeasonSelector from '../components/SeasonSelector';
 import EnergyMatcher from '../components/EnergyMatcher';
@@ -147,6 +150,10 @@ export default function SettingsScreen({ navigation }) {
   const [inviteCode, setInviteCode] = useState(null);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [codeLoading, setCodeLoading] = useState(false);
+  const [showCloudAuth, setShowCloudAuth] = useState(false);
+  const [cloudAuthPw, setCloudAuthPw] = useState('');
+  const [cloudAuthBusy, setCloudAuthBusy] = useState(false);
+  const cloudAuthResolve = useRef(null);
 
   const [selectedDate, setSelectedDate] = useState(
     userProfile?.relationshipStartDate ? new Date(userProfile.relationshipStartDate) : new Date()
@@ -218,15 +225,127 @@ export default function SettingsScreen({ navigation }) {
     ]);
   };
 
+  const ensureInviteSession = useCallback(async () => {
+    const session = await SupabaseAuthService.getSession().catch((error) => {
+      if (String(error?.message || '').includes('Supabase is not configured')) {
+        Alert.alert('Sync unavailable', "Invite codes aren't available in this build.");
+        return null;
+      }
+      throw error;
+    });
+
+    if (session) {
+      await StorageRouter.setSupabaseSession(session);
+      return session;
+    }
+
+    const email = user?.email;
+    if (!email) {
+      Alert.alert(
+        'Sign in required',
+        'Invite codes use your secure cloud account. We could not find an email for this account, so finish setup in Cloud Sync.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Cloud Sync', onPress: () => navigation.navigate('SyncSetup') },
+        ]
+      );
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      cloudAuthResolve.current = resolve;
+      setCloudAuthPw('');
+      setShowCloudAuth(true);
+    });
+  }, [navigation, user?.email]);
+
+  const handleCloudAuthDone = useCallback(async () => {
+    const email = user?.email;
+    const password = cloudAuthPw;
+
+    if (!email) {
+      setShowCloudAuth(false);
+      cloudAuthResolve.current?.(null);
+      cloudAuthResolve.current = null;
+      navigation.navigate('SyncSetup');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
+      return;
+    }
+
+    setCloudAuthBusy(true);
+    try {
+      let session = null;
+
+      try {
+        session = await SupabaseAuthService.signInWithPassword(email, password);
+      } catch (_) {
+        session = null;
+      }
+
+      if (!session) {
+        session = await SupabaseAuthService.signUp(email, password);
+        if (!session) {
+          try {
+            session = await SupabaseAuthService.signInWithPassword(email, password);
+          } catch (_) {
+            session = null;
+          }
+        }
+      }
+
+      if (session) {
+        await StorageRouter.setSupabaseSession(session);
+        const syncStatus = await cloudSyncStorage.getSyncStatus();
+        await cloudSyncStorage.setSyncStatus({
+          ...syncStatus,
+          email: session.user?.email || email,
+        });
+      }
+
+      setShowCloudAuth(false);
+      cloudAuthResolve.current?.(session);
+      cloudAuthResolve.current = null;
+    } catch (error) {
+      Alert.alert('Sign-in failed', error?.message || 'Please try again.');
+    } finally {
+      setCloudAuthBusy(false);
+    }
+  }, [cloudAuthPw, navigation, user?.email]);
+
+  const handleCloudAuthCancel = useCallback(() => {
+    setShowCloudAuth(false);
+    cloudAuthResolve.current?.(null);
+    cloudAuthResolve.current = null;
+  }, []);
+
   const generateInviteCode = async () => {
     if (codeLoading) return;
     setCodeLoading(true);
     try {
+      const session = await ensureInviteSession();
+      if (!session) return;
+
       const result = await CoupleService.generateInviteCode();
       setInviteCode(result.code);
       impact(ImpactFeedbackStyle.Medium);
     } catch (error) {
-      Alert.alert('Error', error.message);
+      const message = String(error?.message || 'Unable to generate an invite code.');
+      if (message.includes('Not authenticated')) {
+        Alert.alert(
+          'Sign in required',
+          'Your cloud session has expired. Open Cloud Sync to sign in again, then try again.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Cloud Sync', onPress: () => navigation.navigate('SyncSetup') },
+          ]
+        );
+      } else {
+        Alert.alert('Error', message);
+      }
     } finally {
       setCodeLoading(false);
     }
@@ -327,7 +446,7 @@ export default function SettingsScreen({ navigation }) {
               </View>
               {isPremium && (
                 <View style={[styles.premiumPill, { backgroundColor: t.primary }]}>
-                  <Icon name="sparkles" size={10} color="#FFF" />
+                  <Icon name="sparkles-outline" size={10} color="#FFF" />
                   <Text style={styles.premiumText}>PRO</Text>
                 </View>
               )}
@@ -339,7 +458,7 @@ export default function SettingsScreen({ navigation }) {
             {!paired ? (
               <View style={styles.promoContent}>
                 <View style={[styles.promoIconFrame, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
-                  <Icon name="heart" size={32} color={t.primary} />
+                  <Icon name="heart-outline" size={32} color={t.primary} />
                 </View>
                 <Text style={[styles.promoTitle, { color: t.text }]}>Connect With Your Partner</Text>
                 <Text style={[styles.promoBody, { color: t.subtext }]}>
@@ -355,10 +474,15 @@ export default function SettingsScreen({ navigation }) {
                   </ReAnimated.View>
                 ) : (
                   <TouchableOpacity 
-                    style={[styles.actionBtn, { backgroundColor: t.primary }]}
+                    style={[styles.actionBtn, { backgroundColor: t.primary }, codeLoading && styles.actionBtnDisabled]}
                     onPress={generateInviteCode}
+                    disabled={codeLoading}
                   >
-                    <Text style={styles.actionBtnText}>Generate Invite Code</Text>
+                    {codeLoading ? (
+                      <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.actionBtnText}>Generate Invite Code</Text>
+                    )}
                   </TouchableOpacity>
                 )}
                 
@@ -523,6 +647,52 @@ export default function SettingsScreen({ navigation }) {
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
+      </Modal>
+
+      {/* ─── CLOUD AUTH MODAL ─── */}
+      <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
+        <View style={styles.modalOverlay}>
+          <ReAnimated.View entering={FadeInDown} style={[styles.modalCard, styles.cloudAuthCard, { backgroundColor: t.surface }]}>
+            <View style={[styles.cloudAuthBadge, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+              <Icon name="shield-checkmark-outline" size={22} color={t.primary} />
+            </View>
+            <Text style={[styles.modalTitle, { color: t.text }]}>Secure Cloud Sign-In</Text>
+            <Text style={[styles.modalBody, styles.cloudAuthBody, { color: t.subtext }]}>Enter the password for {user?.email || 'your account'} to generate an invite code without leaving Settings.</Text>
+            <TextInput
+              value={cloudAuthPw}
+              onChangeText={setCloudAuthPw}
+              placeholder="Password"
+              placeholderTextColor={t.subtext}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!cloudAuthBusy}
+              returnKeyType="done"
+              onSubmitEditing={handleCloudAuthDone}
+              style={[styles.cloudAuthInput, { color: t.text, borderColor: t.borderGlass, backgroundColor: t.surfaceSecondary }]}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }]}
+                onPress={handleCloudAuthCancel}
+                disabled={cloudAuthBusy}
+              >
+                <Text style={{ color: t.text, fontFamily: SYSTEM_FONT, fontWeight: '600' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.cloudAuthSubmit, cloudAuthBusy && styles.modalBtnDisabled]}
+                onPress={handleCloudAuthDone}
+                disabled={cloudAuthBusy}
+              >
+                {cloudAuthBusy ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={{ color: '#FFFFFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>Continue</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </ReAnimated.View>
+        </View>
       </Modal>
 
       {/* ─── UNLINK MODAL ─── */}
@@ -743,6 +913,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  actionBtnDisabled: {
+    opacity: 0.75,
+  },
   actionBtnText: { 
     color: '#FFF', 
     fontFamily: SYSTEM_FONT, 
@@ -854,6 +1027,17 @@ const styles = StyleSheet.create({
     padding: SPACING.xxl,
     alignItems: 'center',
   },
+  cloudAuthCard: {
+    maxWidth: 420,
+  },
+  cloudAuthBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
   modalTitle: { 
     fontFamily: SYSTEM_FONT, 
     fontWeight: '800', 
@@ -869,9 +1053,23 @@ const styles = StyleSheet.create({
     lineHeight: 24, 
     marginBottom: SPACING.xxl 
   },
+  cloudAuthBody: {
+    marginBottom: SPACING.lg,
+  },
+  cloudAuthInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
+    marginBottom: SPACING.xl,
+  },
   modalActions: { 
     flexDirection: 'row', 
-    gap: 12 
+    gap: 12,
+    width: '100%',
   },
   modalBtn: {
     flex: 1,
@@ -879,6 +1077,12 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalBtnDisabled: {
+    opacity: 0.72,
+  },
+  cloudAuthSubmit: {
+    backgroundColor: '#D2121A',
   },
   btnDestructive: { backgroundColor: '#D2121A' },
 });

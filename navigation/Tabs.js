@@ -5,7 +5,6 @@ import React, { useEffect, useMemo } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
-import { Ionicons } from "@expo/vector-icons";
 import { selection } from '../utils/haptics';
 import Animated, {
   useAnimatedStyle,
@@ -15,6 +14,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "../context/ThemeContext";
 import { SPACING } from '../utils/theme';
+import Icon from "../components/Icon";
 
 // Tab screens
 import HomeScreen from "../screens/HomeScreen";
@@ -53,23 +53,23 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
   const getIconName = () => {
     switch (routeName) {
       case "Home":
-        return focused ? "heart" : "heart-outline";
+        return "heart-outline";
       case "Prompts":
-        return focused ? "chatbubbles" : "chatbubbles-outline";
+        return "chatbubbles-outline";
       case "Calendar":
-        return focused ? "calendar" : "calendar-outline";
+        return "calendar-outline";
       case "DatePlans":
-        return focused ? "wine" : "wine-outline";
+        return "wine-outline";
       case "Settings":
-        return focused ? "settings" : "settings-outline";
+        return "settings-outline";
       default:
-        return focused ? "ellipse" : "ellipse-outline";
+        return "ellipse-outline";
     }
   };
 
   return (
     <Animated.View style={[styles.iconContainer, animatedStyle]}>
-      <Ionicons
+      <Icon
         name={getIconName()}
         size={size}
         color={color}

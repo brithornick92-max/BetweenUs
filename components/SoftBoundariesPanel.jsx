@@ -189,7 +189,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
             <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
               <Text style={[styles.modalTitle, { color: t.text }]}>Hidden Entries</Text>
               <TouchableOpacity onPress={() => setShowHiddenModal(false)} style={styles.modalClose}>
-                <Icon name="close" size={24} color={t.subtext} />
+                <Icon name="close-outline" size={24} color={t.subtext} />
               </TouchableOpacity>
             </View>
 
@@ -240,7 +240,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
         >
           <View style={styles.rowLeft}>
             <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.subtext, 0.1) }]}> 
-              <Icon name="calendar-clear-outline" size={18} color={t.subtext} />
+              <Icon name="calendar-outline" size={18} color={t.subtext} />
             </View>
             <View style={styles.rowText}>
               <Text style={[styles.rowTitle, { color: t.text }]}>Paused date ideas</Text>
@@ -264,13 +264,13 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
             <View style={[styles.modalHeader, { borderBottomColor: t.border }]}> 
               <Text style={[styles.modalTitle, { color: t.text }]}>Paused Dates</Text>
               <TouchableOpacity onPress={() => setShowDatesModal(false)} style={styles.modalClose}>
-                <Icon name="close" size={24} color={t.subtext} />
+                <Icon name="close-outline" size={24} color={t.subtext} />
               </TouchableOpacity>
             </View>
 
             {pausedDates.length === 0 ? (
               <View style={styles.modalEmpty}>
-                <Icon name="calendar-clear-outline" size={40} color={t.subtext} />
+                <Icon name="calendar-outline" size={40} color={t.subtext} />
                 <Text style={[styles.modalEmptyText, { color: t.subtext }]}>No paused dates yet.</Text>
               </View>
             ) : (
@@ -332,7 +332,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
             <View style={[styles.modalHeader, { borderBottomColor: t.border }]}> 
               <Text style={[styles.modalTitle, { color: t.text }]}>Hidden Categories</Text>
               <TouchableOpacity onPress={() => setShowCategoriesModal(false)} style={styles.modalClose}>
-                <Icon name="close" size={24} color={t.subtext} />
+                <Icon name="close-outline" size={24} color={t.subtext} />
               </TouchableOpacity>
             </View>
 

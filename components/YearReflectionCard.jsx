@@ -91,7 +91,7 @@ export default function YearReflectionCard({ onPress }) {
 
           <View style={styles.content}>
             <View style={[styles.iconBox, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
-              <Icon name="book-sharp" size={24} color={t.primary} />
+              <Icon name="book-outline" size={24} color={t.primary} />
             </View>
 
             <View style={styles.textWrap}>

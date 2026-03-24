@@ -217,7 +217,7 @@ export default function RevealScreen({ route, navigation }) {
                   colors={[t.accent, '#7A1E4E']} 
                   style={[styles.lockedCircle, { shadowColor: t.accent }]}
                 >
-                  <Icon name="lock-heart" size={42} color="#FFFFFF" />
+                  <Icon name="lock-closed-outline" size={42} color="#FFFFFF" />
                 </LinearGradient>
               </Animated.View>
 
@@ -229,7 +229,7 @@ export default function RevealScreen({ route, navigation }) {
               <Button title="Reveal Together" onPress={handleReveal} style={styles.revealAction} />
               
               <View style={styles.privacyNoteContainer}>
-                <Icon name="shield-lock-outline" size={14} color={t.subtext} />
+                <Icon name="shield-outline" size={14} color={t.subtext} />
                 <Text style={[styles.miniNote, { color: t.subtext }]}>
                   {isWaitingForPartner ? 'Your answer stays sealed until both share' : 'Shared reflections are just between you two'}
                 </Text>
@@ -267,7 +267,7 @@ export default function RevealScreen({ route, navigation }) {
                   </LinearGradient>
                 ) : (
                   <View style={[styles.bubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border, alignItems: 'center', paddingVertical: 40 }]}>
-                    <Icon name="heart-pulse" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
+                    <Icon name="pulse-outline" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
                     <Text style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}>
                       {partnerName || 'Your partner'} hasn't shared their thoughts yet.
                     </Text>
@@ -285,7 +285,7 @@ export default function RevealScreen({ route, navigation }) {
                 style={[styles.insightBox, { borderColor: t.border }]}
               >
                 <View style={styles.insightHeader}>
-                  <Icon name="auto-fix" size={20} color={t.accent} />
+                  <Icon name="color-wand-outline" size={20} color={t.accent} />
                   <Text style={[styles.insightTitle, { color: t.text }]}>Keep Going</Text>
                 </View>
                 <Text style={[styles.insightText, { color: t.subtext }]}>

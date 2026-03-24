@@ -265,7 +265,7 @@ export default function VibeSignalScreen({ navigation }) {
               {/* Energy / Flux History Widget */}
               <View style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                 <View style={styles.widgetHeader}>
-                  <Icon name="analytics-outline" size={14} color={t.subtext} />
+                  <Icon name="bar-chart-outline" size={14} color={t.subtext} />
                   <Text style={[styles.widgetTitle, { color: t.subtext }]}>Flux History</Text>
                 </View>
                 <View style={styles.chartArea}>

@@ -135,7 +135,7 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
     return (
       <Animated.View style={[styles.sentContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
         <View style={styles.checkCircle}>
-          <Icon name="check" size={28} color={t.surface} />
+          <Icon name="checkmark-outline" size={28} color={t.surface} />
         </View>
         <Text style={styles.sentText}>
           Sent to {partnerLabel}

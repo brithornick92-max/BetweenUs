@@ -297,7 +297,7 @@ const ExportDataScreen = ({ navigation }) => {
           ) : (
             <>
               <Text style={styles.exportButtonText}>Generate Archive</Text>
-              <Icon name="arrow-forward" size={18} color="#FFFFFF" />
+              <Icon name="arrow-forward-outline" size={18} color="#FFFFFF" />
             </>
           )}
         </TouchableOpacity>

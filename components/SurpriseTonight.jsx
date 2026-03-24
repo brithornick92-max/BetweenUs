@@ -140,7 +140,7 @@ export default function SurpriseTonight() {
           {!isRevealed ? (
             <View style={styles.initialContent}>
               <View style={[styles.iconBox, { backgroundColor: withAlpha(t.p5, 0.1) }]}>
-                <Icon name="gift-sharp" size={24} color={t.p5} />
+                <Icon name="gift-outline" size={24} color={t.p5} />
               </View>
               <View style={styles.textWrap}>
                 <Text style={[styles.title, { color: t.text }]}>Tonight's Surprise</Text>

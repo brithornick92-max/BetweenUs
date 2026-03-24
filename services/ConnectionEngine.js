@@ -38,6 +38,21 @@ const _decrypt = async (raw) => {
   return raw; // Legacy plaintext
 };
 
+const _persistWithoutThrow = (operation) => {
+  try {
+    return Promise.resolve(operation()).catch(() => {});
+  } catch {
+    return Promise.resolve();
+  }
+};
+
+const _setStoredContextValue = (key, value) => {
+  if (value === null || value === undefined || value === '') {
+    return _persistWithoutThrow(() => AsyncStorage.removeItem(key));
+  }
+  return _persistWithoutThrow(() => AsyncStorage.setItem(key, String(value)));
+};
+
 const KEYS = {
   MOMENT_COOLDOWN: '@bu_moment_cooldown',
   MOMENT_USER_ID: '@bu_moment_user_id',
@@ -57,12 +72,12 @@ const KEYS = {
 // ═══════════════════════════════════════════════════════
 
 export const MOMENT_TYPES = [
-  { id: 'thinking', label: 'Thinking of you', icon: 'thought-bubble-outline' },
-  { id: 'grateful', label: 'Grateful for you', icon: 'hand-heart' },
-  { id: 'missing', label: 'Missing you', icon: 'heart-half-full' },
+  { id: 'thinking', label: 'Thinking of you', icon: 'chatbubble-ellipses-outline' },
+  { id: 'grateful', label: 'Grateful for you', icon: 'heart-circle-outline' },
+  { id: 'missing', label: 'Missing you', icon: 'heart-half-outline' },
   { id: 'proud', label: 'Proud of you', icon: 'star-outline' },
-  { id: 'want', label: 'Want you', icon: 'fire' },
-  { id: 'love', label: 'Love you', icon: 'heart' },
+  { id: 'want', label: 'Want you', icon: 'flame-outline' },
+  { id: 'love', label: 'Love you', icon: 'heart-outline' },
 ];
 
 export const HEARTBEAT_SIGNAL = {
@@ -79,8 +94,8 @@ export const MomentSignalSender = {
    * Call this when auth/couple state changes.
    */
   configure({ userId, coupleId }) {
-    if (userId) AsyncStorage.setItem(KEYS.MOMENT_USER_ID, userId).catch(() => {});
-    if (coupleId) AsyncStorage.setItem(KEYS.MOMENT_COUPLE_ID, coupleId).catch(() => {});
+    _setStoredContextValue(KEYS.MOMENT_USER_ID, userId);
+    _setStoredContextValue(KEYS.MOMENT_COUPLE_ID, coupleId);
   },
 
   /** Check if cooldown has passed (prevent spam) */
@@ -101,9 +116,11 @@ export const MomentSignalSender = {
    * Falls back to local-only if Supabase is unavailable.
    *
    * @param {string} momentType — one of MOMENT_TYPES[].id
+   * @param {{ requireRemote?: boolean }} options
    * @returns {{ sent: boolean, remote: boolean, type: string, timestamp: number, error?: string }}
    */
-  async send(momentType) {
+  async send(momentType, options = {}) {
+    const { requireRemote = false } = options;
     const now = Date.now();
     const timestamp = new Date(now).toISOString();
 
@@ -120,6 +137,17 @@ export const MomentSignalSender = {
     const userId = await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
     const coupleId = await AsyncStorage.getItem(KEYS.MOMENT_COUPLE_ID);
     const sb = _getSupabase();
+
+    const rollbackCooldown = async () => {
+      await _persistWithoutThrow(() => AsyncStorage.removeItem(KEYS.MOMENT_COOLDOWN));
+    };
+
+    const getUnavailableError = () => {
+      if (!userId) return 'Sign in again to send a pulse.';
+      if (!coupleId) return 'Link with your partner before sending a pulse.';
+      if (!sb) return 'Sync is not configured on this device.';
+      return 'Pulse is unavailable right now.';
+    };
 
     // ── Remote send via Supabase ──
     if (sb && coupleId && userId) {
@@ -146,6 +174,10 @@ export const MomentSignalSender = {
 
         if (error) {
           console.warn('[MomentSignal] Supabase insert failed:', error.message);
+          if (requireRemote) {
+            await rollbackCooldown();
+            return { sent: false, remote: false, type: momentType, timestamp: now, error: error.message };
+          }
           // Still counts as "sent" locally — the user saw the confirmation
           return { sent: true, remote: false, type: momentType, timestamp: now, error: error.message };
         }
@@ -153,8 +185,23 @@ export const MomentSignalSender = {
         return { sent: true, remote: true, type: momentType, timestamp: now };
       } catch (err) {
         console.warn('[MomentSignal] Send failed:', err.message);
+        if (requireRemote) {
+          await rollbackCooldown();
+          return { sent: false, remote: false, type: momentType, timestamp: now, error: err.message };
+        }
         return { sent: true, remote: false, type: momentType, timestamp: now, error: err.message };
       }
+    }
+
+    if (requireRemote) {
+      await rollbackCooldown();
+      return {
+        sent: false,
+        remote: false,
+        type: momentType,
+        timestamp: now,
+        error: getUnavailableError(),
+      };
     }
 
     // ── Local-only fallback (no Supabase / not linked) ──
@@ -167,7 +214,7 @@ export const MomentSignalSender = {
    * the partner push notification immediately.
    */
   async sendHeartbeat() {
-    return this.send(HEARTBEAT_SIGNAL.id);
+    return this.send(HEARTBEAT_SIGNAL.id, { requireRemote: true });
   },
 
   /**
@@ -285,12 +332,12 @@ export const MomentSignalSender = {
 // ═══════════════════════════════════════════════════════
 
 export const CLIMATE_OPTIONS = [
-  { id: 'connected', label: 'Connecting', icon: 'link-variant', color: '#FFCC00', colorDark: '#FFD60A', colorLight: '#E5B800' }, // Apple Yellow/Gold
-  { id: 'playful', label: 'Playing', icon: 'party-popper', color: '#FF2D55', colorDark: '#FF375F', colorLight: '#D9002B' }, // Apple Pink
-  { id: 'calm', label: 'Quiet time', icon: 'leaf', color: '#34C759', colorDark: '#30D158', colorLight: '#248A3D' }, // Apple Green
+  { id: 'connected', label: 'Connecting', icon: 'infinite-outline', color: '#FFCC00', colorDark: '#FFD60A', colorLight: '#E5B800' }, // Apple Yellow/Gold
+  { id: 'playful', label: 'Playing', icon: 'sparkles-outline', color: '#FF2D55', colorDark: '#FF375F', colorLight: '#D9002B' }, // Apple Pink
+  { id: 'calm', label: 'Quiet time', icon: 'leaf-outline', color: '#34C759', colorDark: '#30D158', colorLight: '#248A3D' }, // Apple Green
   { id: 'adventurous', label: 'Adventure', icon: 'compass-outline', color: '#FF9500', colorDark: '#FF9F0A', colorLight: '#E08300' }, // Apple Orange
   { id: 'romantic', label: 'Romance', icon: 'heart-outline', color: '#D90429', colorDark: '#FF1744', colorLight: '#9E001A' }, // Deep Velvet Crimson
-  { id: 'restful', label: 'Winding down', icon: 'weather-night', color: '#5856D6', colorDark: '#5E5CE6', colorLight: '#4A48C4' }, // Apple Indigo
+  { id: 'restful', label: 'Winding down', icon: 'moon-outline', color: '#5856D6', colorDark: '#5E5CE6', colorLight: '#4A48C4' }, // Apple Indigo
 ];
 
 export const RelationshipClimateState = {
@@ -356,9 +403,9 @@ export const ClimateInfluenceRouter = {
 // ═══════════════════════════════════════════════════════
 
 export const ENERGY_LEVELS = [
-  { id: 'low', label: 'Low', description: 'Cozy, short, gentle', icon: 'candle' },
-  { id: 'medium', label: 'Medium', description: 'Balanced, warm', icon: 'white-balance-sunny' },
-  { id: 'open', label: 'Open', description: 'Deeper, longer, more sensual', icon: 'creation' },
+  { id: 'low', label: 'Low', description: 'Cozy, short, gentle', icon: 'flame-outline' },
+  { id: 'medium', label: 'Medium', description: 'Balanced, warm', icon: 'sunny-outline' },
+  { id: 'open', label: 'Open', description: 'Deeper, longer, more sensual', icon: 'color-wand-outline' },
 ];
 
 export const ContentIntensityMatcher = {
@@ -713,13 +760,13 @@ export const RitualCycleManager = {
 // ═══════════════════════════════════════════════════════
 
 export const SOFT_INTENTIONS = [
-  { id: 'laughter', label: 'More laughter', icon: 'emoticon-happy-outline' },
-  { id: 'touch', label: 'More touch', icon: 'hand-wave' },
+  { id: 'laughter', label: 'More laughter', icon: 'happy-outline' },
+  { id: 'touch', label: 'More touch', icon: 'hand-left-outline' },
   { id: 'adventure', label: 'More adventure', icon: 'compass-outline' },
   { id: 'rest', label: 'More rest together', icon: 'bed-outline' },
-  { id: 'conversation', label: 'Deeper conversations', icon: 'chat-outline' },
-  { id: 'play', label: 'More play', icon: 'gamepad-variant-outline' },
-  { id: 'romance', label: 'More romance', icon: 'candle' },
+  { id: 'conversation', label: 'Deeper conversations', icon: 'chatbox-outline' },
+  { id: 'play', label: 'More play', icon: 'game-controller-outline' },
+  { id: 'romance', label: 'More romance', icon: 'flame-outline' },
   { id: 'presence', label: 'More presence', icon: 'eye-outline' },
 ];
 

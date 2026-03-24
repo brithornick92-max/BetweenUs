@@ -90,7 +90,7 @@ const SeasonOption = ({ season, isSelected, isLast, onPress, t }) => {
         </View>
 
         {isSelected && (
-          <Icon name="check" size={24} color={season.color} />
+          <Icon name="checkmark-outline" size={24} color={season.color} />
         )}
       </TouchableOpacity>
       {!isLast && <View style={[styles.dividerIndent, { backgroundColor: t.border }]} />}

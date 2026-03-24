@@ -175,7 +175,7 @@ export default function LockScreen({ onUnlock }) {
       <SafeAreaView style={styles.safeArea}>
         <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
           <View style={styles.header}>
-            <Icon name="heart-lock" size={60} color={colors.primary} />
+            <Icon name="lock-closed-outline" size={60} color={colors.primary} />
             <Text style={[TYPOGRAPHY.h1, { color: colors.text, marginTop: SPACING.lg, textAlign: "center" }]}>
               Between Us
             </Text>

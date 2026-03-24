@@ -4,7 +4,7 @@
  * * Handles secure QR scanning and X25519 shared secret derivation.
  */
 
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -12,7 +12,10 @@ import {
   TouchableOpacity, 
   Platform, 
   StatusBar,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -38,7 +41,11 @@ export default function PairingScanScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [status, setStatus] = useState("Position your partner's code in view.");
+  const [showCloudAuth, setShowCloudAuth] = useState(false);
+  const [cloudAuthPw, setCloudAuthPw] = useState('');
+  const [cloudAuthBusy, setCloudAuthBusy] = useState(false);
   const activeRef = useRef(true);
+  const cloudAuthResolve = useRef(null);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -56,14 +63,101 @@ export default function PairingScanScreen({ navigation }) {
     return () => { activeRef.current = false; };
   }, [permission, requestPermission]);
 
+  const ensureCloudSession = useCallback(async () => {
+    const session = await SupabaseAuthService.getSession().catch((error) => {
+      if (String(error?.message || '').includes('Supabase is not configured')) {
+        setStatus("Sync isn't available in this build.");
+        return null;
+      }
+      return null;
+    });
+
+    if (session) {
+      await StorageRouter.setSupabaseSession(session);
+      return session;
+    }
+
+    const email = user?.email;
+    if (!email) {
+      setStatus('Cloud sign-in required before scanning.');
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      cloudAuthResolve.current = resolve;
+      setCloudAuthPw('');
+      setShowCloudAuth(true);
+    });
+  }, [user?.email]);
+
+  const handleCloudAuthDone = useCallback(async () => {
+    const email = user?.email;
+    const password = cloudAuthPw;
+
+    if (!email) {
+      setShowCloudAuth(false);
+      cloudAuthResolve.current?.(null);
+      cloudAuthResolve.current = null;
+      navigation.navigate('SyncSetup');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
+      return;
+    }
+
+    setCloudAuthBusy(true);
+    try {
+      let session = null;
+
+      try {
+        session = await SupabaseAuthService.signInWithPassword(email, password);
+      } catch (_) {
+        session = null;
+      }
+
+      if (!session) {
+        session = await SupabaseAuthService.signUp(email, password);
+        if (!session) {
+          try {
+            session = await SupabaseAuthService.signInWithPassword(email, password);
+          } catch (_) {
+            session = null;
+          }
+        }
+      }
+
+      if (session) {
+        await StorageRouter.setSupabaseSession(session);
+      }
+
+      setShowCloudAuth(false);
+      cloudAuthResolve.current?.(session);
+      cloudAuthResolve.current = null;
+    } catch (error) {
+      Alert.alert('Sign-in failed', error?.message || 'Please try again.');
+    } finally {
+      setCloudAuthBusy(false);
+    }
+  }, [cloudAuthPw, navigation, user?.email]);
+
+  const handleCloudAuthCancel = useCallback(() => {
+    setShowCloudAuth(false);
+    cloudAuthResolve.current?.(null);
+    cloudAuthResolve.current = null;
+    setStatus('Cloud sign-in required before scanning.');
+    setScanned(false);
+  }, []);
+
   const handleScan = async ({ data }) => {
     if (scanned) return;
     setScanned(true);
 
     try {
-      const session = await SupabaseAuthService.getSession();
+      const session = await ensureCloudSession();
       if (!session) {
-        setStatus('Sign in before scanning.');
+        setScanned(false);
         return;
       }
 
@@ -187,6 +281,51 @@ export default function PairingScanScreen({ navigation }) {
           <Text style={styles.brandingText}>SECURE KEY EXCHANGE</Text>
         </View>
       </SafeAreaView>
+
+      <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalBadge}>
+              <Icon name="shield-checkmark-outline" size={22} color={t.primary} />
+            </View>
+            <Text style={styles.modalTitle}>Secure Cloud Sign-In</Text>
+            <Text style={styles.modalBody}>Enter the password for {user?.email || 'your account'} before scanning your partner's QR code.</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={cloudAuthPw}
+              onChangeText={setCloudAuthPw}
+              placeholder="Password"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!cloudAuthBusy}
+              returnKeyType="done"
+              onSubmitEditing={handleCloudAuthDone}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSecondary]}
+                onPress={handleCloudAuthCancel}
+                disabled={cloudAuthBusy}
+              >
+                <Text style={styles.modalButtonSecondaryText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary, cloudAuthBusy && styles.modalButtonDisabled]}
+                onPress={handleCloudAuthDone}
+                disabled={cloudAuthBusy}
+              >
+                {cloudAuthBusy ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.modalButtonPrimaryText}>Continue</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -310,5 +449,94 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    padding: SPACING.xl,
+  },
+  modalCard: {
+    backgroundColor: '#131016',
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: SPACING.xl,
+    alignItems: 'center',
+  },
+  modalBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(210,18,26,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
+  },
+  modalTitle: {
+    color: '#F2E9E6',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 20,
+    fontWeight: '800',
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  modalBody: {
+    color: 'rgba(242,233,230,0.7)',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+  },
+  modalInput: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: '#F2E9E6',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
+    marginBottom: SPACING.lg,
+  },
+  modalActions: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  modalButton: {
+    flex: 1,
+    minHeight: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonPrimary: {
+    backgroundColor: '#D2121A',
+  },
+  modalButtonSecondary: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  modalButtonDisabled: {
+    opacity: 0.72,
+  },
+  modalButtonPrimaryText: {
+    color: '#FFFFFF',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  modalButtonSecondaryText: {
+    color: '#F2E9E6',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: '700',
   }
 });

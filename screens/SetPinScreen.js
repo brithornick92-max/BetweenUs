@@ -138,7 +138,7 @@ const SetPinScreen = ({ navigation }) => {
             style={[styles.primaryButton, { backgroundColor: t.primary }]}
             activeOpacity={0.9}
           >
-            <Icon name="sparkles" size={18} color="#FFF" />
+            <Icon name="sparkles-outline" size={18} color="#FFF" />
             <Text style={styles.primaryButtonText}>Unlock Pro Experience</Text>
           </TouchableOpacity>
         </View>

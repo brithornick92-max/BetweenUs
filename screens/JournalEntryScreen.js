@@ -42,9 +42,9 @@ const { width: SCREEN_W } = Dimensions.get('window');
 const MAX_LEN = 5000;
 
 const moods = [
-  { id: "calm", label: "Calm", icon: "leaf" },
+  { id: "calm", label: "Calm", icon: "leaf-outline" },
   { id: "connected", label: "Connected", icon: "heart-outline" },
-  { id: "reflective", label: "Reflective", icon: "book-open-outline" },
+  { id: "reflective", label: "Reflective", icon: "book-outline" },
   { id: "energized", label: "Energized", icon: "lightning-bolt-outline" },
 ];
 
@@ -278,7 +278,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                     style={styles.removeImageBtn} 
                     onPress={() => { selection(); setImageUri(null); }}
                   >
-                    <Icon name="close" size={16} color="#FFF" />
+                    <Icon name="close-outline" size={16} color="#FFF" />
                   </TouchableOpacity>
                 </View>
               ) : (

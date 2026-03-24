@@ -309,7 +309,7 @@ const VibeSignal = ({
         <Text style={styles.sectionLabel}>PARTNER'S VIBE</Text>
         <View style={styles.partnerVibeCard}>
           <View style={[styles.partnerIconWrap, { backgroundColor: withAlpha(pColor, 0.15) }]}>
-            <Icon name={partnerVibe.icon || 'heart'} size={24} color={pColor} />
+            <Icon name={partnerVibe.icon || 'heart-outline'} size={24} color={pColor} />
           </View>
           <View style={styles.partnerTextWrap}>
             <Text style={styles.partnerVibeName}>{partnerVibe.name}</Text>

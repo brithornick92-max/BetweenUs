@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Modal,
   Platform,
   KeyboardAvoidingView,
   Keyboard,
@@ -36,11 +37,105 @@ export default function JoinWithCodeScreen({ navigation }) {
   const { user, updateProfile } = useAuth();
 
   const [code, setCode] = useState('');
+  const [showCloudAuth, setShowCloudAuth] = useState(false);
+  const [cloudAuthPw, setCloudAuthPw] = useState('');
+  const [cloudAuthBusy, setCloudAuthBusy] = useState(false);
   const [phase, setPhase] = useState('input'); // input | joining | done | error
   const [statusMsg, setStatusMsg] = useState('');
   const inputRef = useRef(null);
+  const cloudAuthResolve = useRef(null);
 
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const ensureCloudSession = async () => {
+    const session = await SupabaseAuthService.getSession().catch((error) => {
+      if (String(error?.message || '').includes('Supabase is not configured')) {
+        setStatusMsg("Sync isn't available in this build.");
+        return null;
+      }
+      return null;
+    });
+
+    if (session) {
+      await StorageRouter.setSupabaseSession(session);
+      return session;
+    }
+
+    const email = user?.email;
+    if (!email) {
+      setStatusMsg('Account sign-in required. Open Cloud Sync to finish setup.');
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      cloudAuthResolve.current = resolve;
+      setCloudAuthPw('');
+      setShowCloudAuth(true);
+    });
+  };
+
+  const handleCloudAuthDone = async () => {
+    const email = user?.email;
+    const password = cloudAuthPw;
+
+    if (!email) {
+      setShowCloudAuth(false);
+      cloudAuthResolve.current?.(null);
+      cloudAuthResolve.current = null;
+      navigation.navigate('SyncSetup');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
+      return;
+    }
+
+    setCloudAuthBusy(true);
+    try {
+      let session = null;
+
+      try {
+        session = await SupabaseAuthService.signInWithPassword(email, password);
+      } catch (_) {
+        session = null;
+      }
+
+      if (!session) {
+        session = await SupabaseAuthService.signUp(email, password);
+        if (!session) {
+          try {
+            session = await SupabaseAuthService.signInWithPassword(email, password);
+          } catch (_) {
+            session = null;
+          }
+        }
+      }
+
+      if (session) {
+        await StorageRouter.setSupabaseSession(session);
+        const syncStatus = await cloudSyncStorage.getSyncStatus();
+        await cloudSyncStorage.setSyncStatus({
+          ...syncStatus,
+          email: session.user?.email || email,
+        });
+      }
+
+      setShowCloudAuth(false);
+      cloudAuthResolve.current?.(session);
+      cloudAuthResolve.current = null;
+    } catch (error) {
+      Alert.alert('Sign-in failed', error?.message || 'Please try again.');
+    } finally {
+      setCloudAuthBusy(false);
+    }
+  };
+
+  const handleCloudAuthCancel = () => {
+    setShowCloudAuth(false);
+    cloudAuthResolve.current?.(null);
+    cloudAuthResolve.current = null;
+  };
 
   const handleJoin = async () => {
     Keyboard.dismiss();
@@ -54,12 +149,10 @@ export default function JoinWithCodeScreen({ navigation }) {
     setStatusMsg('Connecting...');
 
     try {
-      // Ensure Supabase session is available (bridged at sign-up from AuthScreen)
-      let session = await SupabaseAuthService.getSession().catch(() => null);
+      const session = await ensureCloudSession();
 
       if (!session) {
         setPhase('error');
-        setStatusMsg('Account sign-in required. Go to Settings → Cloud Sync to sign in.');
         return;
       }
 
@@ -148,7 +241,7 @@ export default function JoinWithCodeScreen({ navigation }) {
             {/* Icon */}
             <View style={styles.iconWrap}>
               <Icon
-                name={phase === 'done' ? 'heart-multiple' : 'link-variant'}
+                name={phase === 'done' ? 'heart-outline' : 'infinite-outline'}
                 size={36}
                 color={phase === 'done' ? colors.primary : colors.textMuted}
               />
@@ -237,6 +330,51 @@ export default function JoinWithCodeScreen({ navigation }) {
           </Text>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalBadge}>
+              <Icon name="shield-checkmark-outline" size={22} color={colors.primary} />
+            </View>
+            <Text style={styles.modalTitle}>Secure Cloud Sign-In</Text>
+            <Text style={styles.modalBody}>Enter the password for {user?.email || 'your account'} to join with this invite code.</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={cloudAuthPw}
+              onChangeText={setCloudAuthPw}
+              placeholder="Password"
+              placeholderTextColor={colors.textMuted}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!cloudAuthBusy}
+              returnKeyType="done"
+              onSubmitEditing={handleCloudAuthDone}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSecondary]}
+                onPress={handleCloudAuthCancel}
+                disabled={cloudAuthBusy}
+              >
+                <Text style={styles.modalButtonSecondaryText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary, cloudAuthBusy && styles.joinButtonDisabled]}
+                onPress={handleCloudAuthDone}
+                disabled={cloudAuthBusy}
+              >
+                {cloudAuthBusy ? (
+                  <ActivityIndicator color={colors.text} />
+                ) : (
+                  <Text style={styles.modalButtonPrimaryText}>Continue</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -355,5 +493,85 @@ const createStyles = (colors) =>
       marginTop: SPACING.lg,
       fontSize: 13,
       opacity: 0.6,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'center',
+      padding: SPACING.xl,
+    },
+    modalCard: {
+      backgroundColor: colors.surface,
+      borderRadius: BORDER_RADIUS.xl,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: SPACING.xl,
+      alignItems: 'center',
+    },
+    modalBadge: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.primary + '15',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: SPACING.md,
+    },
+    modalTitle: {
+      ...TYPOGRAPHY.h2,
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: '700',
+      textAlign: 'center',
+      marginBottom: SPACING.sm,
+    },
+    modalBody: {
+      ...TYPOGRAPHY.body,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginBottom: SPACING.lg,
+      lineHeight: 22,
+    },
+    modalInput: {
+      width: '100%',
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: BORDER_RADIUS.md,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.md,
+      color: colors.text,
+      fontSize: 16,
+      marginBottom: SPACING.lg,
+    },
+    modalActions: {
+      width: '100%',
+      flexDirection: 'row',
+      gap: SPACING.sm,
+    },
+    modalButton: {
+      flex: 1,
+      borderRadius: 40,
+      minHeight: 52,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    modalButtonPrimary: {
+      backgroundColor: colors.primary,
+    },
+    modalButtonSecondary: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    modalButtonPrimaryText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    modalButtonSecondaryText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '600',
     },
   });

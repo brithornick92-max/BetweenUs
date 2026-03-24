@@ -143,7 +143,7 @@ export default function InvitationCard({
               activeOpacity={0.9}
             >
               <Text style={styles.acceptText}>Begin</Text>
-              <Icon name="arrow-forward" size={16} color="#FFFFFF" />
+              <Icon name="arrow-forward-outline" size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </Animated.View>
         )}

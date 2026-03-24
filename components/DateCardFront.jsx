@@ -3,12 +3,21 @@
  * Metallic chrome design matching PromptCardDeck style.
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Platform, Animated as RNAnimated, Dimensions } from 'react-native';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Platform, Dimensions } from 'react-native';
+import Animated, {
+  FadeInDown,
+  useAnimatedSensor,
+  SensorType,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  Easing,
+  interpolate,
+} from 'react-native-reanimated';
 import Icon from './Icon';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Easing } from 'react-native-reanimated';
 import { getDateCardPalette } from './dateCardPalette';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -21,9 +30,9 @@ const FONTS = {
 };
 
 export const HEAT_ICONS = {
-  1: 'hand-heart',
-  2: 'party-popper',
-  3: 'fire',
+  1: 'heart-circle-outline',
+  2: 'sparkles-outline',
+  3: 'flame-outline',
 };
 
 const HEAT_LABELS = {
@@ -38,21 +47,30 @@ export default function DateCardFront({ date, colors, dims }) {
   const icon = HEAT_ICONS[heat] || 'hand-heart';
   const label = HEAT_LABELS[heat] || 'Emotional';
   const loadMeta = dims.load.find(l => l.level === date.load) || dims.load[1];
+  const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
 
   // Animated shimmer band
-  const shimmerX = useRef(new RNAnimated.Value(-SCREEN_W * 0.5)).current;
+  const shimmerLoop = useSharedValue(0);
   useEffect(() => {
-    const loop = RNAnimated.loop(
-      RNAnimated.timing(shimmerX, {
-        toValue: SCREEN_W * 1.2,
+    shimmerLoop.value = withRepeat(
+      withTiming(1, {
         duration: 3500,
-        useNativeDriver: true,
         easing: Easing.inOut(Easing.ease),
-      })
+      }),
+      -1,
+      false
     );
-    loop.start();
-    return () => loop.stop();
   }, []);
+
+  const shimmerStyle = useAnimatedStyle(() => {
+    const roll = rotationSensor.sensor.value.roll || 0;
+    const sensorOffset = interpolate(roll, [-0.5, 0.5], [-SCREEN_W, SCREEN_W]);
+    const loopOffset = (shimmerLoop.value * SCREEN_W * 2) - SCREEN_W;
+
+    return {
+      transform: [{ translateX: sensorOffset + loopOffset }, { rotate: '25deg' }],
+    };
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: palette.base }]}> 
@@ -73,16 +91,14 @@ export default function DateCardFront({ date, colors, dims }) {
       />
 
       {/* Animated shimmer band */}
-      <RNAnimated.View
-        style={[styles.shimmerBand, { transform: [{ translateX: shimmerX }, { rotate: '25deg' }] }]}
-      >
+      <Animated.View style={[styles.shimmerBand, shimmerStyle]}>
         <LinearGradient
           colors={['transparent', palette.chrome + '10', palette.highlight + '1C', palette.chrome + '10', 'transparent']}
           style={{ width: '100%', height: '100%' }}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
         />
-      </RNAnimated.View>
+      </Animated.View>
 
       {/* Top band with heat level accent */}
       <View style={styles.topBand}>
@@ -132,7 +148,7 @@ export default function DateCardFront({ date, colors, dims }) {
             )}
             {date.minutes ? (
               <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
-                <Icon name="clock-outline" size={11} color={palette.body} />
+                <Icon name="time-outline" size={11} color={palette.body} />
                 <Text style={[styles.tagText, { color: palette.body }]}> {date.minutes} min</Text>
               </View>
             ) : null}

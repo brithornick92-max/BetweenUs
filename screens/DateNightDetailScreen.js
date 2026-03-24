@@ -30,9 +30,34 @@ import { useContent } from '../context/ContentContext';
 import PreferenceEngine from '../services/PreferenceEngine';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { getDateById } from '../utils/contentLoader';
+import { getDateCardPalette } from '../components/dateCardPalette';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+
+const DETAIL_DECK_ICONS = {
+  heat: {
+    1: 'heart-outline',
+    2: 'sparkles-outline',
+    3: 'flame-outline',
+  },
+  load: {
+    1: 'moon-outline',
+    2: 'sunny-outline',
+    3: 'flash-outline',
+  },
+  style: {
+    talking: 'chatbubble-outline',
+    doing: 'compass-outline',
+    mixed: 'shuffle-outline',
+  },
+};
+
+const DETAIL_STYLE_TONE_MAP = {
+  talking: 1,
+  doing: 2,
+  mixed: 3,
+};
 
 export default function DateNightDetailScreen({ route, navigation }) {
   const { date: routeDate, dateId } = route.params || {};
@@ -113,27 +138,46 @@ export default function DateNightDetailScreen({ route, navigation }) {
   }, [routeDate, dateId, navigation, userProfile]);
 
   const steps = useMemo(() => (Array.isArray(date?.steps) ? date.steps : []), [date?.steps]);
+  const dateTone = useMemo(() => getDateCardPalette(date?.heat || 1), [date?.heat]);
   
   const dimensionBadges = useMemo(() => {
     const dims = getDimensionMeta();
     const badges = [];
     if (typeof date?.heat === 'number') {
       const h = dims.heat.find(x => x.level === date.heat);
-      if (h) badges.push({ label: h.label, icon: h.icon, color: h.color });
+      if (h) {
+        badges.push({
+          label: h.label,
+          icon: DETAIL_DECK_ICONS.heat[h.level],
+        });
+      }
     }
     if (typeof date?.load === 'number') {
       const l = dims.load.find(x => x.level === date.load);
-      if (l) badges.push({ label: l.label, icon: l.icon, color: l.color });
+      if (l) {
+        badges.push({
+          label: l.label,
+          icon: DETAIL_DECK_ICONS.load[l.level],
+        });
+      }
     }
     if (date?.style) {
       const s = dims.style.find(x => x.id === date.style);
-      if (s) badges.push({ label: s.label, icon: s.icon, color: s.color });
+      if (s) {
+        badges.push({
+          label: s.label,
+          icon: DETAIL_DECK_ICONS.style[s.id],
+        });
+      }
     }
     if (date?._matchLabel) {
-      badges.unshift({ label: date._matchLabel, icon: '✨', color: t.primary });
+      badges.unshift({
+        label: date._matchLabel,
+        icon: 'sparkles-outline',
+      });
     }
     return badges;
-  }, [date, t]);
+  }, [date]);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
@@ -220,24 +264,26 @@ export default function DateNightDetailScreen({ route, navigation }) {
             
             <View style={styles.metaBadgeRow}>
               {dimensionBadges.map((b, i) => (
-                <View key={i} style={[styles.glassBadge, { backgroundColor: withAlpha(b.color, 0.1), borderColor: withAlpha(b.color, 0.15) }]}>
-                  {b.icon ? <Text style={{ fontSize: 10 }}>{b.icon}</Text> : null}
-                  <Text style={[styles.badgeText, { color: b.color }]}>{b.label.toUpperCase()}</Text>
+                <View key={i} style={[styles.glassBadge, { backgroundColor: withAlpha(dateTone.base, 0.92), borderColor: withAlpha(dateTone.chrome, 0.22) }]}>
+                  {b.icon ? (
+                    <Icon name={b.icon} size={12} color={dateTone.highlight} />
+                  ) : null}
+                  <Text style={[styles.badgeText, { color: dateTone.highlight }]}>{b.label.toUpperCase()}</Text>
                 </View>
               ))}
             </View>
 
             <View style={styles.quickInfoRow}>
-              <View style={[styles.infoPill, { backgroundColor: t.surfaceSecondary }]}>
-                <Icon name="time-outline" size={14} color={t.primary} />
-                <Text style={[styles.infoPillText, { color: t.text }]}>{date.minutes}m</Text>
+              <View style={[styles.infoPill, { backgroundColor: withAlpha(dateTone.base, 0.92), borderColor: withAlpha(dateTone.chrome, 0.22) }]}> 
+                <Icon name="time-outline" size={14} color={dateTone.highlight} />
+                <Text style={[styles.infoPillText, { color: dateTone.text }]}>{date.minutes}m</Text>
               </View>
-              <View style={[styles.infoPill, { backgroundColor: t.surfaceSecondary }]}>
+              <View style={[styles.infoPill, { backgroundColor: withAlpha(dateTone.base, 0.92), borderColor: withAlpha(dateTone.chrome, 0.22) }]}> 
                 <Icon 
                   name={date.location === "home" ? "home-outline" : "map-outline"} 
-                  size={14} color={t.primary} 
+                  size={14} color={dateTone.highlight} 
                 />
-                <Text style={[styles.infoPillText, { color: t.text }]}>
+                <Text style={[styles.infoPillText, { color: dateTone.text }]}> 
                   {date.location === "home" ? "At Home" : "Outdoors"}
                 </Text>
               </View>
@@ -266,7 +312,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
             <Text style={[styles.moduleLabel, { color: t.subtext }]}>PRESENCE TIMER</Text>
             <Text style={[styles.timerValue, { color: t.text }]}>{formatTime(timeElapsed)}</Text>
             <TouchableOpacity onPress={toggleTimer} style={[styles.timerToggle, { backgroundColor: timerActive ? t.surfaceSecondary : t.primary }]}>
-              <Icon name={timerActive ? "pause" : "play"} size={32} color={timerActive ? t.text : "#FFF"} />
+              <Icon name={timerActive ? "pause-outline" : "play-outline"} size={32} color={timerActive ? dateTone.highlight : "#FFF"} />
             </TouchableOpacity>
           </BlurView>
         </View>
@@ -292,7 +338,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
               >
                 <View style={[styles.stepIndicator, { backgroundColor: isCompleted ? "#34C759" : t.surfaceSecondary }]}>
                   {isCompleted ? (
-                    <Icon name="checkmark" size={16} color="#FFF" />
+                    <Icon name="checkmark-outline" size={16} color="#FFF" />
                   ) : (
                     <Text style={[styles.stepNumber, { color: isActive ? t.primary : t.subtext }]}>{index + 1}</Text>
                   )}
@@ -382,6 +428,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, 
     paddingHorizontal: 14, 
     paddingVertical: 8,
+    borderWidth: 1,
   },
   infoPillText: { fontSize: 13, fontWeight: '700', marginLeft: 6 },
 

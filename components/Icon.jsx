@@ -4,6 +4,7 @@ import { Platform, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
+const IONICON_GLYPHS = Ionicons?.glyphMap || {};
 
 /**
  * Apple Editorial Icon Bridge
@@ -12,15 +13,15 @@ const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
  */
 const ICON_DICTIONARY = {
   // ── Actions & Navigation ──
-  'arrow-right': 'arrow-forward',
-  'arrow-left': 'arrow-back',
+  'arrow-right': 'arrow-forward-outline',
+  'arrow-left': 'arrow-back-outline',
   'chevron-right': 'chevron-forward',
   'chevron-left': 'chevron-back',
-  'close': 'close',
-  'check': 'checkmark',
+  'close': 'close-outline',
+  'check': 'checkmark-outline',
   'check-decagram-outline': 'checkmark-circle-outline',
-  'plus': 'add',
-  'minus': 'remove',
+  'plus': 'add-outline',
+  'minus': 'remove-outline',
   'pencil': 'pencil-outline',
   'cog': 'settings-outline',
   'dots-vertical': 'ellipsis-vertical',
@@ -29,10 +30,10 @@ const ICON_DICTIONARY = {
   // ── Heat Levels (old MaterialCommunity names) ──
   'spa-outline': 'chatbubble-outline',
   'cards-heart-outline': 'heart-outline',
-  'cards-heart': 'heart',
+  'cards-heart': 'heart-outline',
 
   // ── Relationship & Emotional ──
-  'heart': 'heart',
+  'heart': 'heart-outline',
   'heart-outline': 'heart-outline',
   'heart-half-full': 'heart-half-outline',
   'hand-heart': 'heart-circle-outline',
@@ -47,7 +48,7 @@ const ICON_DICTIONARY = {
   'leaf': 'leaf-outline',
   'fire': 'flame-outline',
   'fire-alert': 'flame-outline',
-  'candle': 'flame', // Ionicons doesn't have a candle, flame works perfectly for romance
+  'candle': 'flame-outline',
   'shimmer': 'sparkles-outline',
   'star-four-points': 'sparkles-outline',
   'party-popper': 'sparkles-outline',
@@ -93,21 +94,53 @@ const ICON_DICTIONARY = {
 
   // ── More actions ──
   'content-copy': 'copy-outline',
-  'check-all': 'checkmark-done',
-  'heart-plus': 'heart',
+  'check-all': 'checkmark-done-outline',
+  'heart-plus': 'heart-outline',
   'gesture-tap': 'hand-index-outline',
+  'hand-wave': 'hand-left-outline',
+  'heart-multiple': 'heart-outline',
   'library-outline': 'library-outline',
   'star-four-points-outline': 'sparkles-outline',
   'calendar-range': 'calendar-outline',
 
   // ── Passthroughs (For safety if we pass Ionicons directly) ──
   'time-outline': 'time-outline',
+  'play': 'play-outline',
+  'pause': 'pause-outline',
+  'play-circle': 'play-circle-outline',
+  'pause-circle': 'pause-circle-outline',
+  'refresh': 'refresh-outline',
+  'search': 'search-outline',
+  'share': 'share-outline',
+  'information': 'information-circle-outline',
+  'warning': 'warning-outline',
+  'seal': 'checkmark-seal-outline',
+  'close-circle': 'close-circle-outline',
+  'checkmark-circle': 'checkmark-circle-outline',
+  'lock-closed': 'lock-closed-outline',
+  'shield-check': 'shield-checkmark-outline',
+  'sparkles': 'sparkles-outline',
+  'add': 'add-outline',
+  'archive': 'archive-outline',
+  'pulse': 'pulse-outline',
+  'book': 'book-outline',
+  'gift': 'gift-outline',
   'arrow-forward': 'arrow-forward',
+  'arrow-forward-outline': 'arrow-forward-outline',
+  'arrow-back': 'arrow-back-outline',
+  'arrow-back-outline': 'arrow-back-outline',
+  'chevron-back': 'chevron-back',
+  'chevron-forward': 'chevron-forward',
   'chevron-up': 'chevron-up',
   'chevron-down': 'chevron-down',
   'color-wand-outline': 'color-wand-outline',
   'sparkles-outline': 'sparkles-outline',
+  'heart-half-outline': 'heart-half-outline',
+  'bookmark-outline': 'bookmark-outline',
+  'chatbubbles-outline': 'chatbubbles-outline',
+  'hand-left-outline': 'hand-left-outline',
   'checkmark': 'checkmark',
+  'checkmark-outline': 'checkmark-outline',
   'star-outline': 'star-outline',
   'help-circle-outline': 'help-circle-outline',
   'log-out-outline': 'log-out-outline',
@@ -120,7 +153,33 @@ const ICON_DICTIONARY = {
   'timer-outline': 'timer-outline',
   'leaf-outline': 'leaf-outline',
   'cafe-outline': 'cafe-outline',
+  'wifi-outline': 'wifi-outline',
+  'cloud-offline-outline': 'cloud-offline-outline',
+  'fingerprint': 'finger-print-outline',
+  'face-recognition': 'scan-outline',
+  'heart-lock': 'lock-closed-outline',
+  'lock-heart': 'lock-closed-outline',
+  'heart-pulse': 'pulse-outline',
+  'auto-fix': 'color-wand-outline',
 };
+
+function normalizeIoniconName(name) {
+  const mappedName = ICON_DICTIONARY[name] || (name ? name : 'ellipse-outline');
+
+  if (IONICON_GLYPHS[mappedName]) {
+    return mappedName;
+  }
+
+  if (!mappedName.endsWith('-outline') && IONICON_GLYPHS[`${mappedName}-outline`]) {
+    return `${mappedName}-outline`;
+  }
+
+  if (mappedName.endsWith('-circle') && IONICON_GLYPHS[`${mappedName}-outline`]) {
+    return `${mappedName}-outline`;
+  }
+
+  return IONICON_GLYPHS[mappedName] ? mappedName : 'ellipse-outline';
+}
 
 export default function Icon({ 
   name, 
@@ -129,10 +188,7 @@ export default function Icon({
   style, 
   animated = false 
 }) {
-  // 1. Try to find a direct translation in our dictionary
-  // 2. If it's not in the dictionary, assume it might already be a valid Ionicon string and pass it through
-  // 3. If it is completely missing, fallback to 'ellipse-outline' to avoid crashing the view
-  const mappedName = ICON_DICTIONARY[name] || (name ? name : 'ellipse-outline');
+  const mappedName = normalizeIoniconName(name);
 
   // Automatically thin out the weight slightly on iOS to perfectly match Apple SF Symbols
   const editorialStyle = [

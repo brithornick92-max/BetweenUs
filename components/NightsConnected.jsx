@@ -92,7 +92,7 @@ export default function NightsConnected({
       >
         <View style={styles.compactContent}>
           <Animated.View style={heartPulseStyle}>
-            <Icon name="heart" size={20} color={t.primary} />
+            <Icon name="heart-outline" size={20} color={t.primary} />
           </Animated.View>
           <View style={styles.compactInfo}>
             <Text style={styles.compactNumber}>{currentStreak}</Text>
@@ -116,7 +116,7 @@ export default function NightsConnected({
         {/* Gentle count */}
         <Animated.View entering={FadeIn.duration(800)} style={styles.countSection}>
           <Animated.View style={[styles.heartContainer, heartPulseStyle]}>
-            <Icon name="heart" size={42} color={t.primary} />
+            <Icon name="heart-outline" size={42} color={t.primary} />
           </Animated.View>
           <Animated.Text entering={FadeInDown.delay(200).duration(600)} style={styles.count}>
             {currentStreak}

@@ -162,7 +162,7 @@ const PremiumPaywall = ({
               accessibilityLabel="Close"
             >
               <Icon
-                name="close"
+                name="close-outline"
                 size={ICON_SIZES.lg}
                 color={colors.text}
               />

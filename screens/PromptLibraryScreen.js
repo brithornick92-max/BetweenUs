@@ -534,11 +534,11 @@ export default function PromptLibraryScreen({ navigation }) {
                           </Text>
                         </View>
                         {item.answered && (
-                          <Icon name="checkmark-circle" size={16} color={'#34C759'} />
+                          <Icon name="checkmark-circle-outline" size={16} color={'#34C759'} />
                         )}
                       </View>
                       <TouchableOpacity onPress={() => toggleFavorite(safe.id)} style={styles.favoriteButton} activeOpacity={0.8}>
-                        <Icon name={isFav ? "heart" : "heart-outline"} size={22} color={isFav ? t.primary : t.subtext} />
+                        <Icon name="heart-outline" size={22} color={isFav ? t.primary : t.subtext} />
                       </TouchableOpacity>
                     </View>
 
@@ -546,14 +546,14 @@ export default function PromptLibraryScreen({ navigation }) {
 
                     {item.answered && (
                       <View style={styles.answeredTag}>
-                        <Icon name="checkmark-circle" size={14} color={t.primary} />
+                        <Icon name="checkmark-circle-outline" size={14} color={t.primary} />
                         <Text style={[styles.answeredText, { color: t.primary }]}>REFLECTED</Text>
                       </View>
                     )}
 
                     {safe.isPreview && (
                       <View style={[styles.previewOverlay, { backgroundColor: withAlpha(t.background, 0.85) }]}>
-                        <Icon name="lock-closed" size={20} color={t.primary} />
+                        <Icon name="lock-closed-outline" size={20} color={t.primary} />
                         <Text style={[styles.previewText, { color: t.primary }]}>PREMIUM</Text>
                       </View>
                     )}
@@ -579,7 +579,7 @@ export default function PromptLibraryScreen({ navigation }) {
             onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
             activeOpacity={0.8}
           >
-            <Icon name="sparkles" size={18} color="#FFF" />
+            <Icon name="sparkles-outline" size={18} color="#FFF" />
             <Text style={styles.premiumFabText}>UNLOCK 600+ PROMPTS</Text>
           </TouchableOpacity>
         )}

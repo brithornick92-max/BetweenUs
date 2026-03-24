@@ -112,7 +112,7 @@ export default function DeleteAccountScreen({ navigation }) {
           style={styles.backButton}
           hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
         >
-          <Icon name="arrow-back" size={24} color={t.text} />
+          <Icon name="arrow-back-outline" size={24} color={t.text} />
         </TouchableOpacity>
       </View>
 

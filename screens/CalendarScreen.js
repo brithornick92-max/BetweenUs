@@ -490,7 +490,7 @@ export default function CalendarScreen({ navigation, route }) {
           style={[styles.fab, { backgroundColor: t.primary }]}
           activeOpacity={0.9}
         >
-          <Icon name="plus" size={32} color="#FFF" />
+          <Icon name="add-outline" size={32} color="#FFF" />
         </TouchableOpacity>
 
         {/* ── Create Event Modal ─────────────────────────────── */}
@@ -505,7 +505,7 @@ export default function CalendarScreen({ navigation, route }) {
                 <View style={styles.modalHeader}>
                   <Text style={[styles.modalTitle, { color: t.text }]}>New Event</Text>
                   <TouchableOpacity onPress={() => setModalOpen(false)} style={styles.closeButton}>
-                    <Icon name="close" size={24} color={t.text} />
+                    <Icon name="close-outline" size={24} color={t.text} />
                   </TouchableOpacity>
                 </View>
 
