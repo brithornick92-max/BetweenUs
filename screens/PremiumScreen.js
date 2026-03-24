@@ -326,7 +326,7 @@ export default function PremiumScreen({ navigation }) {
 
           {isPremium && (
             <FadeInSection index={2} style={styles.alreadyPremium}>
-              <Icon name="check-decagram" size={56} color={t.primary} />
+              <Icon name="checkmark-circle-outline" size={56} color={t.primary} />
               <Text style={styles.alreadyPremiumText}>You're on Premium.</Text>
               <Text style={styles.alreadyPremiumSub}>Manage your subscription in your device settings.</Text>
             </FadeInSection>

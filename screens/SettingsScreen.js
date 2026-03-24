@@ -150,10 +150,6 @@ export default function SettingsScreen({ navigation }) {
   const [inviteCode, setInviteCode] = useState(null);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [codeLoading, setCodeLoading] = useState(false);
-  const [showCloudAuth, setShowCloudAuth] = useState(false);
-  const [cloudAuthPw, setCloudAuthPw] = useState('');
-  const [cloudAuthBusy, setCloudAuthBusy] = useState(false);
-  const cloudAuthResolve = useRef(null);
 
   const [selectedDate, setSelectedDate] = useState(
     userProfile?.relationshipStartDate ? new Date(userProfile.relationshipStartDate) : new Date()
@@ -239,88 +235,23 @@ export default function SettingsScreen({ navigation }) {
       return session;
     }
 
-    const email = user?.email;
-    if (!email) {
-      Alert.alert(
-        'Sign in required',
-        'Invite codes use your secure cloud account. We could not find an email for this account, so finish setup in Cloud Sync.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Open Cloud Sync', onPress: () => navigation.navigate('SyncSetup') },
-        ]
-      );
-      return null;
+    // Fall back to anonymous sign-in
+    const retrySession = await SupabaseAuthService.signInAnonymously().catch(() => null);
+    if (retrySession) {
+      await StorageRouter.setSupabaseSession(retrySession);
+      return retrySession;
     }
 
-    return new Promise((resolve) => {
-      cloudAuthResolve.current = resolve;
-      setCloudAuthPw('');
-      setShowCloudAuth(true);
-    });
-  }, [navigation, user?.email]);
-
-  const handleCloudAuthDone = useCallback(async () => {
-    const email = user?.email;
-    const password = cloudAuthPw;
-
-    if (!email) {
-      setShowCloudAuth(false);
-      cloudAuthResolve.current?.(null);
-      cloudAuthResolve.current = null;
-      navigation.navigate('SyncSetup');
-      return;
-    }
-
-    if (!password || password.length < 6) {
-      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
-      return;
-    }
-
-    setCloudAuthBusy(true);
-    try {
-      let session = null;
-
-      try {
-        session = await SupabaseAuthService.signInWithPassword(email, password);
-      } catch (_) {
-        session = null;
-      }
-
-      if (!session) {
-        session = await SupabaseAuthService.signUp(email, password);
-        if (!session) {
-          try {
-            session = await SupabaseAuthService.signInWithPassword(email, password);
-          } catch (_) {
-            session = null;
-          }
-        }
-      }
-
-      if (session) {
-        await StorageRouter.setSupabaseSession(session);
-        const syncStatus = await cloudSyncStorage.getSyncStatus();
-        await cloudSyncStorage.setSyncStatus({
-          ...syncStatus,
-          email: session.user?.email || email,
-        });
-      }
-
-      setShowCloudAuth(false);
-      cloudAuthResolve.current?.(session);
-      cloudAuthResolve.current = null;
-    } catch (error) {
-      Alert.alert('Sign-in failed', error?.message || 'Please try again.');
-    } finally {
-      setCloudAuthBusy(false);
-    }
-  }, [cloudAuthPw, navigation, user?.email]);
-
-  const handleCloudAuthCancel = useCallback(() => {
-    setShowCloudAuth(false);
-    cloudAuthResolve.current?.(null);
-    cloudAuthResolve.current = null;
-  }, []);
+    Alert.alert(
+      'Sign in required',
+      'Your cloud session has expired. Open Cloud Sync to sign in again.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open Cloud Sync', onPress: () => navigation.navigate('SyncSetup') },
+      ]
+    );
+    return null;
+  }, [navigation]);
 
   const generateInviteCode = async () => {
     if (codeLoading) return;
@@ -353,15 +284,49 @@ export default function SettingsScreen({ navigation }) {
 
   const handleUnlink = async () => {
     try {
+      // Remove server-side membership so a new invite code can be generated
+      try {
+        await CoupleService.unlinkFromCouple();
+      } catch (serverErr) {
+        console.warn('Server unlink failed (continuing):', serverErr.message);
+      }
+
       const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
       if (coupleId) {
         await CoupleKeyService.clearCoupleKey(coupleId);
         await storage.remove(STORAGE_KEYS.COUPLE_ID);
         await updateProfile?.({ coupleId: null });
       }
+      await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
+      await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
       setPaired(false);
       setShowUnlinkConfirm(false);
       notification(NotificationFeedbackType.Success);
+    } catch (err) {
+      Alert.alert('Error', 'Could not unlink at this time.');
+    }
+  };
+
+  const handleUnlinkAndReconnect = async () => {
+    try {
+      try {
+        await CoupleService.unlinkFromCouple();
+      } catch (serverErr) {
+        console.warn('Server unlink failed (continuing):', serverErr.message);
+      }
+
+      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+      if (coupleId) {
+        await CoupleKeyService.clearCoupleKey(coupleId);
+        await storage.remove(STORAGE_KEYS.COUPLE_ID);
+        await updateProfile?.({ coupleId: null });
+      }
+      await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
+      await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
+      setPaired(false);
+      setShowUnlinkConfirm(false);
+      notification(NotificationFeedbackType.Success);
+      navigation.navigate('PairingQRCode');
     } catch (err) {
       Alert.alert('Error', 'Could not unlink at this time.');
     }
@@ -487,12 +452,36 @@ export default function SettingsScreen({ navigation }) {
                 )}
                 
                 {!inviteCode && (
-                  <TouchableOpacity 
-                    style={styles.secondaryBtn}
-                    onPress={() => navigation.navigate('JoinWithCode')} 
-                  >
-                    <Text style={[styles.secondaryBtnText, { color: t.subtext }]}>I have a code</Text>
-                  </TouchableOpacity>
+                  <>
+                    <TouchableOpacity 
+                      style={[styles.actionBtn, styles.qrActionBtn, { borderColor: t.primary }]}
+                      onPress={() => navigation.navigate('PairingQRCode')}
+                    >
+                      <Icon name="qr-code-outline" size={18} color={t.primary} />
+                      <Text style={[styles.actionBtnText, { color: t.primary }]}>Generate QR Code</Text>
+                    </TouchableOpacity>
+                    <View style={styles.orDividerRow}>
+                      <View style={[styles.orDividerLine, { backgroundColor: t.border }]} />
+                      <Text style={[styles.orDividerText, { color: t.subtext }]}>OR</Text>
+                      <View style={[styles.orDividerLine, { backgroundColor: t.border }]} />
+                    </View>
+                    <View style={styles.scanOptionsRow}>
+                      <TouchableOpacity
+                        style={[styles.scanOptionBtn, { borderColor: t.border }]}
+                        onPress={() => navigation.navigate('PairingScan')}
+                      >
+                        <Icon name="scan-outline" size={16} color={t.subtext} />
+                        <Text style={[styles.scanOptionText, { color: t.subtext }]}>Scan Their QR</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.scanOptionBtn, { borderColor: t.border }]}
+                        onPress={() => navigation.navigate('JoinWithCode')}
+                      >
+                        <Icon name="keypad-outline" size={16} color={t.subtext} />
+                        <Text style={[styles.scanOptionText, { color: t.subtext }]}>I Have a Code</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
                 )}
               </View>
             ) : (
@@ -649,52 +638,6 @@ export default function SettingsScreen({ navigation }) {
         </TouchableOpacity>
       </Modal>
 
-      {/* ─── CLOUD AUTH MODAL ─── */}
-      <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
-        <View style={styles.modalOverlay}>
-          <ReAnimated.View entering={FadeInDown} style={[styles.modalCard, styles.cloudAuthCard, { backgroundColor: t.surface }]}>
-            <View style={[styles.cloudAuthBadge, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
-              <Icon name="shield-checkmark-outline" size={22} color={t.primary} />
-            </View>
-            <Text style={[styles.modalTitle, { color: t.text }]}>Secure Cloud Sign-In</Text>
-            <Text style={[styles.modalBody, styles.cloudAuthBody, { color: t.subtext }]}>Enter the password for {user?.email || 'your account'} to generate an invite code without leaving Settings.</Text>
-            <TextInput
-              value={cloudAuthPw}
-              onChangeText={setCloudAuthPw}
-              placeholder="Password"
-              placeholderTextColor={t.subtext}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!cloudAuthBusy}
-              returnKeyType="done"
-              onSubmitEditing={handleCloudAuthDone}
-              style={[styles.cloudAuthInput, { color: t.text, borderColor: t.borderGlass, backgroundColor: t.surfaceSecondary }]}
-            />
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }]}
-                onPress={handleCloudAuthCancel}
-                disabled={cloudAuthBusy}
-              >
-                <Text style={{ color: t.text, fontFamily: SYSTEM_FONT, fontWeight: '600' }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalBtn, styles.cloudAuthSubmit, cloudAuthBusy && styles.modalBtnDisabled]}
-                onPress={handleCloudAuthDone}
-                disabled={cloudAuthBusy}
-              >
-                {cloudAuthBusy ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={{ color: '#FFFFFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>Continue</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </ReAnimated.View>
-        </View>
-      </Modal>
-
       {/* ─── UNLINK MODAL ─── */}
       <Modal visible={showUnlinkConfirm} transparent animationType="fade">
         <View style={styles.modalOverlay}>
@@ -711,6 +654,13 @@ export default function SettingsScreen({ navigation }) {
                 <Text style={{ color: '#FFFFFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>Unlink</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              style={[styles.reconnectBtn, { backgroundColor: t.primary }]}
+              onPress={handleUnlinkAndReconnect}
+            >
+              <Icon name="qr-code-outline" size={16} color="#FFFFFF" />
+              <Text style={styles.reconnectBtnText}>{'Unlink & Invite New Partner'}</Text>
+            </TouchableOpacity>
           </ReAnimated.View>
         </View>
       </Modal>
@@ -931,6 +881,66 @@ const styles = StyleSheet.create({
     fontFamily: SYSTEM_FONT, 
     fontWeight: '600', 
     fontSize: 14 
+  },
+  qrActionBtn: {
+    marginTop: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    backgroundColor: 'transparent',
+  },
+  orDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: SPACING.md,
+    width: '100%',
+  },
+  orDividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  orDividerText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginHorizontal: 10,
+  },
+  scanOptionsRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    width: '100%',
+  },
+  scanOptionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  scanOptionText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  reconnectBtn: {
+    marginTop: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    borderRadius: 24,
+    gap: 8,
+  },
+  reconnectBtnText: {
+    color: '#FFFFFF',
+    fontFamily: SYSTEM_FONT,
+    fontWeight: '700',
+    fontSize: 14,
   },
   codeDisplay: {
     flexDirection: 'row',

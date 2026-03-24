@@ -132,7 +132,7 @@ export default function NightRitualScreen({ navigation }) {
           accessibilityLabel="Go back"
         >
           <Icon
-            name="chevron-left"
+            name="chevron-back"
             size={32}
             color={t.text}
           />

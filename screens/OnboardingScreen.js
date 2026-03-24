@@ -41,7 +41,7 @@ import CoupleKeyService from "../services/security/CoupleKeyService";
 import CoupleService from "../services/supabase/CoupleService";
 import StorageRouter from "../services/storage/StorageRouter";
 import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
-import { cloudSyncStorage, STORAGE_KEYS, storage } from "../utils/storage";
+import { STORAGE_KEYS, storage } from "../utils/storage";
 import { getSupabaseOrThrow } from "../config/supabase";
 
 const { width } = Dimensions.get("window");
@@ -79,18 +79,12 @@ export default function OnboardingScreen({ navigation }) {
   
   // Preference state (collected in step 2)
   const [selectedSeason, setSelectedSeason] = useState(null);
-  const [selectedHeatLevel, setSelectedHeatLevel] = useState(2);
+  const [selectedHeatLevel, setSelectedHeatLevel] = useState(5);
   const [selectedTone, setSelectedTone] = useState('warm');
   
   // Invitation state
   const [inviteCode, setInviteCode] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
-
-  // Cloud auth modal state (for inline Supabase session bridging)
-  const [showCloudAuth, setShowCloudAuth] = useState(false);
-  const [cloudAuthPw, setCloudAuthPw] = useState('');
-  const [cloudAuthBusy, setCloudAuthBusy] = useState(false);
-  const cloudAuthResolve = useRef(null);
 
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -116,10 +110,19 @@ export default function OnboardingScreen({ navigation }) {
             CrashReporting.captureException(err, { context: 'onboarding_key_upload' });
           }
           notification(NotificationFeedbackType.Success);
+          // Complete onboarding immediately — don't wait for Alert button
+          try {
+            await actions.completeOnboarding();
+          } catch (err) {
+            if (__DEV__) console.error('completeOnboarding failed:', err);
+            // Retry dispatch directly as fallback
+            try {
+              await storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, true);
+            } catch (_) {}
+          }
           Alert.alert(
             'You\'re linked! 💕',
-            `Your partner has joined. You\'re now connected on Between Us.`,
-            [{ text: 'Let\'s go!', onPress: () => actions.completeOnboarding() }]
+            'Your partner has joined. You\'re now connected on Between Us.'
           );
         }
       } catch (_) {}
@@ -169,61 +172,21 @@ export default function OnboardingScreen({ navigation }) {
   }, [anniversaryDate]);
 
   /**
-   * Ensure a Supabase session exists. If not, show an inline password
-   * modal so the user can set up their cloud account without leaving onboarding.
+   * Ensure a Supabase session exists, using anonymous sign-in as fallback.
    */
   const ensureSupabaseSession = async () => {
     const supabase = getSupabaseOrThrow();
     const { data: { session: existing } } = await supabase.auth.getSession();
     if (existing) return existing;
 
-    const email = user?.email;
-    if (!email) return null;
-
-    return new Promise((resolve) => {
-      cloudAuthResolve.current = resolve;
-      setCloudAuthPw('');
-      setShowCloudAuth(true);
-    });
-  };
-
-  const handleCloudAuthDone = async () => {
-    const email = user?.email;
-    const pw = cloudAuthPw;
-    if (!pw || pw.length < 6) {
-      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
-      return;
+    // Fall back to anonymous sign-in
+    const session = await SupabaseAuthService.signInAnonymously();
+    if (session) {
+      await StorageRouter.setSupabaseSession(session);
+      return session;
     }
-    setCloudAuthBusy(true);
-    try {
-      let session = null;
-      try { session = await SupabaseAuthService.signInWithPassword(email, pw); } catch (_) {}
-      if (!session) {
-        session = await SupabaseAuthService.signUp(email, pw);
-        if (!session) {
-          try { session = await SupabaseAuthService.signInWithPassword(email, pw); } catch (_) {}
-        }
-      }
-      if (session) {
-        await StorageRouter.setSupabaseSession(session);
-        const syncStatus = await cloudSyncStorage.getSyncStatus();
-        await cloudSyncStorage.setSyncStatus({
-          ...syncStatus,
-          email: session.user?.email || email,
-        });
-      }
-      setShowCloudAuth(false);
-      cloudAuthResolve.current?.(session);
-    } catch (err) {
-      Alert.alert('Sign-in failed', err?.message || 'Please try again.');
-    } finally {
-      setCloudAuthBusy(false);
-    }
-  };
 
-  const handleCloudAuthCancel = () => {
-    setShowCloudAuth(false);
-    cloudAuthResolve.current?.(null);
+    return null;
   };
 
   const handleGenerateInvitation = async () => {
@@ -384,7 +347,7 @@ export default function OnboardingScreen({ navigation }) {
                 <Text style={styles.dateText}>
                   {anniversaryDate.toLocaleDateString('en-US')}
                 </Text>
-                <Icon name="chevron-right" size={20} color={t.subtext} />
+                <Icon name="chevron-forward" size={20} color={t.subtext} />
               </View>
             </TouchableOpacity>
           </View>
@@ -462,11 +425,11 @@ export default function OnboardingScreen({ navigation }) {
   );
 
   const HEAT_LABELS = [
-    { level: 1, icon: 'heart-outline',        color: '#5856D6', name: 'Emotional',   description: 'Intimacy & trust' },
-    { level: 2, icon: 'heart-outline',        color: '#D2121A', name: 'Romantic',    description: 'Flirty & tender' },
-    { level: 3, icon: 'flame-outline',         color: '#FF9500', name: 'Sensual',     description: 'Desire & closeness' },
-    { level: 4, icon: 'flame-outline',         color: '#A84848', name: 'Steamy',      description: 'Adventurous & heated' },
-    { level: 5, icon: 'flame-outline',         color: '#8A0021', name: 'Explicit',    description: 'Intensely passionate' },
+    { level: 1, icon: 'heart-outline',        color: '#FF85C2', name: 'Emotional',   description: 'Intimacy & trust' },
+    { level: 2, icon: 'heart-outline',        color: '#FF1493', name: 'Romantic',    description: 'Flirty & tender' },
+    { level: 3, icon: 'flame-outline',         color: '#FF006E', name: 'Sensual',     description: 'Desire & closeness' },
+    { level: 4, icon: 'flame-outline',         color: '#F00049', name: 'Steamy',      description: 'Adventurous & heated' },
+    { level: 5, icon: 'flame-outline',         color: '#D2121A', name: 'Explicit',    description: 'Intensely passionate' },
   ];
 
   const TONE_OPTIONS = NicknameEngine.TONE_OPTIONS;
@@ -748,46 +711,6 @@ export default function OnboardingScreen({ navigation }) {
         </Animated.View>
       )}
 
-      {/* Cloud Auth Password Modal (Apple Style) */}
-      <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
-        <KeyboardAvoidingView
-          style={styles.cloudAuthOverlay}
-          behavior="padding"
-        >
-          <View style={styles.cloudAuthCard}>
-            <Icon name="cloud-outline" size={40} color={t.primary} style={{ marginBottom: 16 }} />
-            <Text style={styles.cloudAuthTitle}>One more step</Text>
-            <Text style={styles.cloudAuthBody}>
-              Enter your password to sign in securely before linking your partner.
-            </Text>
-            <View style={styles.cloudAuthInputWrap}>
-              <TextInput
-                style={styles.cloudAuthInput}
-                placeholder="Password"
-                placeholderTextColor={t.subtext}
-                secureTextEntry
-                value={cloudAuthPw}
-                onChangeText={setCloudAuthPw}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="go"
-                onSubmitEditing={handleCloudAuthDone}
-                editable={!cloudAuthBusy}
-              />
-            </View>
-            <View style={styles.cloudAuthBtns}>
-              <TouchableOpacity style={styles.cloudAuthBtn} onPress={handleCloudAuthCancel} disabled={cloudAuthBusy}>
-                <Text style={styles.cloudAuthCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.cloudAuthBtn, { borderLeftWidth: 1, borderLeftColor: t.border }]} onPress={handleCloudAuthDone} disabled={cloudAuthBusy}>
-                {cloudAuthBusy
-                  ? <ActivityIndicator size="small" color={t.primary} />
-                  : <Text style={styles.cloudAuthConfirmText}>Continue</Text>}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </SafeAreaView>
   );
 }

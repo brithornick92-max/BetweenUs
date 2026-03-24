@@ -143,6 +143,20 @@ describe('PreferenceEngine', () => {
       expect(PreferenceEngine.shouldShowPrompt({ id: 'prompt-hot', category: 'playful', heat: 5 }, profile)).toBe(false);
       expect(PreferenceEngine.shouldShowPrompt({ id: 'prompt-ok', category: 'romance', heat: 2 }, profile)).toBe(true);
     });
+
+    it('reports a non-boundary reason when heat is capped by energy instead', async () => {
+      currentEnergyLevel = 'low';
+
+      const profile = await PreferenceEngine.getContentProfile({ heatLevelPreference: 5 });
+      const visibility = PreferenceEngine.getPromptVisibilityState(
+        { id: 'prompt-hot', category: 'playful', heat: 5 },
+        profile,
+      );
+
+      expect(visibility.visible).toBe(false);
+      expect(visibility.reason).toBe('energy-heat');
+      expect(visibility.title).toBe('Outside your current settings');
+    });
   });
 
   describe('filterDatesWithProfile', () => {
@@ -248,6 +262,26 @@ describe('PreferenceEngine', () => {
       expect(PreferenceEngine.shouldShowDate({ id: 'date-paused', heat: 2, minutes: 30 }, profile)).toBe(false);
       expect(PreferenceEngine.shouldShowDate({ id: 'date-over-cap', heat: 3, minutes: 30 }, profile)).toBe(false);
       expect(PreferenceEngine.shouldShowDate({ id: 'date-ok', heat: 2, minutes: 30 }, profile)).toBe(true);
+    });
+
+    it('reports a season reason when a date exceeds the current max duration', async () => {
+      RelationshipSeasons.getContentInfluence.mockReturnValue({
+        preferShort: false,
+        promptTones: [],
+        preferLoad: 2,
+        preferStyle: 'mixed',
+        maxDuration: 45,
+      });
+
+      const profile = await PreferenceEngine.getContentProfile({ heatLevelPreference: 5 });
+      const visibility = PreferenceEngine.getDateVisibilityState(
+        { id: 'date-long', heat: 2, minutes: 60 },
+        profile,
+      );
+
+      expect(visibility.visible).toBe(false);
+      expect(visibility.reason).toBe('season-duration');
+      expect(visibility.title).toBe('Outside your current settings');
     });
   });
 });

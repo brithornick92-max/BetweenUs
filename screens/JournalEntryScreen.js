@@ -45,7 +45,7 @@ const moods = [
   { id: "calm", label: "Calm", icon: "leaf-outline" },
   { id: "connected", label: "Connected", icon: "heart-outline" },
   { id: "reflective", label: "Reflective", icon: "book-outline" },
-  { id: "energized", label: "Energized", icon: "lightning-bolt-outline" },
+  { id: "energized", label: "Energized", icon: "flash-outline" },
 ];
 
 export default function JournalEntryScreen({ navigation, route }) {
@@ -191,7 +191,7 @@ export default function JournalEntryScreen({ navigation, route }) {
               onPress={() => navigation.goBack()}
               activeOpacity={0.7}
             >
-              <Icon name="chevron-left" size={28} color={colors.text} />
+              <Icon name="chevron-back" size={28} color={colors.text} />
             </TouchableOpacity>
 
             <View style={styles.headerCenter}>
@@ -327,7 +327,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                   ]}
                 >
                   <Icon
-                    name={isShared ? "account-multiple-check" : "eye-off-outline"}
+                    name={isShared ? "people-outline" : "eye-off-outline"}
                     size={18}
                     color={isShared ? colors.primary : colors.textMuted}
                   />
@@ -342,13 +342,13 @@ export default function JournalEntryScreen({ navigation, route }) {
                     style={[styles.deleteButton, { backgroundColor: withAlpha('#D2121A', 0.1) }]}
                     activeOpacity={0.7}
                   >
-                    <Icon name="trash-can-outline" size={20} color="#D2121A" />
+                    <Icon name="trash-outline" size={20} color="#D2121A" />
                   </TouchableOpacity>
                 )}
               </View>
               
               <View style={styles.securityBanner}>
-                <Icon name="shield-check-outline" size={12} color={colors.textMuted} />
+                <Icon name="shield-checkmark-outline" size={12} color={colors.textMuted} />
                 <Text style={[styles.securityText, { color: colors.textMuted }]}>END-TO-END ENCRYPTED</Text>
               </View>
             </Animated.View>

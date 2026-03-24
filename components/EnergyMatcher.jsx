@@ -1,7 +1,7 @@
 // components/EnergyMatcher.jsx — "How much energy do you have right now?"
 // Subtle, Premium. Adjusts content intensity.
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -40,13 +40,19 @@ const FONTS = {
 export default function EnergyMatcher({ onSelect, compact = false }) {
   const { colors } = useTheme();
   const { loadContentProfile } = useContent() || {};
-  const [selected, setSelected] = useState('medium');
+  const [selected, setSelected] = useState('open');
+  const hasInteracted = useRef(false);
 
   useEffect(() => {
-    ContentIntensityMatcher.getEnergyLevel().then(setSelected);
+    ContentIntensityMatcher.getEnergyLevel().then((level) => {
+      if (!hasInteracted.current) {
+        setSelected(level);
+      }
+    });
   }, []);
 
   const handleSelect = useCallback(async (level) => {
+    hasInteracted.current = true;
     impact(ImpactFeedbackStyle.Light);
     setSelected(level);
     await ContentIntensityMatcher.setEnergyLevel(level);

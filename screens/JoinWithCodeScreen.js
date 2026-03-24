@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  Modal,
   Platform,
   KeyboardAvoidingView,
   Keyboard,
@@ -24,7 +23,7 @@ import StorageRouter from '../services/storage/StorageRouter';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import { STORAGE_KEYS, storage, cloudSyncStorage } from '../utils/storage';
+import { STORAGE_KEYS, storage } from '../utils/storage';
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
 
 /**
@@ -37,13 +36,9 @@ export default function JoinWithCodeScreen({ navigation }) {
   const { user, updateProfile } = useAuth();
 
   const [code, setCode] = useState('');
-  const [showCloudAuth, setShowCloudAuth] = useState(false);
-  const [cloudAuthPw, setCloudAuthPw] = useState('');
-  const [cloudAuthBusy, setCloudAuthBusy] = useState(false);
   const [phase, setPhase] = useState('input'); // input | joining | done | error
   const [statusMsg, setStatusMsg] = useState('');
   const inputRef = useRef(null);
-  const cloudAuthResolve = useRef(null);
 
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -61,80 +56,15 @@ export default function JoinWithCodeScreen({ navigation }) {
       return session;
     }
 
-    const email = user?.email;
-    if (!email) {
-      setStatusMsg('Account sign-in required. Open Cloud Sync to finish setup.');
-      return null;
+    // Fall back to anonymous sign-in
+    const retrySession = await SupabaseAuthService.signInAnonymously().catch(() => null);
+    if (retrySession) {
+      await StorageRouter.setSupabaseSession(retrySession);
+      return retrySession;
     }
 
-    return new Promise((resolve) => {
-      cloudAuthResolve.current = resolve;
-      setCloudAuthPw('');
-      setShowCloudAuth(true);
-    });
-  };
-
-  const handleCloudAuthDone = async () => {
-    const email = user?.email;
-    const password = cloudAuthPw;
-
-    if (!email) {
-      setShowCloudAuth(false);
-      cloudAuthResolve.current?.(null);
-      cloudAuthResolve.current = null;
-      navigation.navigate('SyncSetup');
-      return;
-    }
-
-    if (!password || password.length < 6) {
-      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
-      return;
-    }
-
-    setCloudAuthBusy(true);
-    try {
-      let session = null;
-
-      try {
-        session = await SupabaseAuthService.signInWithPassword(email, password);
-      } catch (_) {
-        session = null;
-      }
-
-      if (!session) {
-        session = await SupabaseAuthService.signUp(email, password);
-        if (!session) {
-          try {
-            session = await SupabaseAuthService.signInWithPassword(email, password);
-          } catch (_) {
-            session = null;
-          }
-        }
-      }
-
-      if (session) {
-        await StorageRouter.setSupabaseSession(session);
-        const syncStatus = await cloudSyncStorage.getSyncStatus();
-        await cloudSyncStorage.setSyncStatus({
-          ...syncStatus,
-          email: session.user?.email || email,
-        });
-      }
-
-      setShowCloudAuth(false);
-      cloudAuthResolve.current?.(session);
-      cloudAuthResolve.current = null;
-    } catch (error) {
-      Alert.alert('Sign-in failed', error?.message || 'Please try again.');
-    } finally {
-      setCloudAuthBusy(false);
-    }
-  };
-
-  const handleCloudAuthCancel = () => {
-    setShowCloudAuth(false);
-    cloudAuthResolve.current?.(null);
-    cloudAuthResolve.current = null;
+    setStatusMsg('Cloud session expired. Please sign in again via Cloud Sync.');
+    return null;
   };
 
   const handleJoin = async () => {
@@ -227,7 +157,7 @@ export default function JoinWithCodeScreen({ navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <Icon name="arrow-left" size={24} color={colors.text} />
+            <Icon name="arrow-back-outline" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Join Partner</Text>
           <View style={styles.headerSpacer} />
@@ -331,50 +261,6 @@ export default function JoinWithCodeScreen({ navigation }) {
         </KeyboardAvoidingView>
       </SafeAreaView>
 
-      <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalBadge}>
-              <Icon name="shield-checkmark-outline" size={22} color={colors.primary} />
-            </View>
-            <Text style={styles.modalTitle}>Secure Cloud Sign-In</Text>
-            <Text style={styles.modalBody}>Enter the password for {user?.email || 'your account'} to join with this invite code.</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={cloudAuthPw}
-              onChangeText={setCloudAuthPw}
-              placeholder="Password"
-              placeholderTextColor={colors.textMuted}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!cloudAuthBusy}
-              returnKeyType="done"
-              onSubmitEditing={handleCloudAuthDone}
-            />
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonSecondary]}
-                onPress={handleCloudAuthCancel}
-                disabled={cloudAuthBusy}
-              >
-                <Text style={styles.modalButtonSecondaryText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary, cloudAuthBusy && styles.joinButtonDisabled]}
-                onPress={handleCloudAuthDone}
-                disabled={cloudAuthBusy}
-              >
-                {cloudAuthBusy ? (
-                  <ActivityIndicator color={colors.text} />
-                ) : (
-                  <Text style={styles.modalButtonPrimaryText}>Continue</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

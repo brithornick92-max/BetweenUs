@@ -85,7 +85,7 @@ if (__DEV__ && global?.ErrorUtils?.setGlobalHandler) {
     try {
       const msg = String(error?.message || '');
       console.error('[global_error]', error?.name, msg.slice(0, 200), { isFatal });
-      if (msg.includes("map") || msg.includes("undefined")) {
+      if (msg.includes("map") || msg.includes("undefined") || msg.includes("doesn't exist") || isFatal) {
         console.log('🔴 GLOBAL CRASH — full stack:');
         console.log(error?.stack);
         console.log('🔴 Component stack (if any):', error?.componentStack || '(none)');

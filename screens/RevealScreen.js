@@ -195,7 +195,7 @@ export default function RevealScreen({ route, navigation }) {
               activeOpacity={0.7}
             >
               <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.headerBlur}>
-                <Icon name="chevron-left" size={28} color={t.text} />
+                <Icon name="chevron-back" size={28} color={t.text} />
               </BlurView>
             </TouchableOpacity>
           </View>
@@ -203,7 +203,7 @@ export default function RevealScreen({ route, navigation }) {
           {/* Hero Prompt Card (Glass Style) */}
           <View style={[styles.promptContainer, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
             <View style={styles.eyebrowRow}>
-              <Icon name="star-four-points" size={12} color={t.accent} />
+              <Icon name="sparkles-outline" size={12} color={t.accent} />
               <Text style={[styles.questionLabel, { color: t.accent }]}>THE DAILY PROMPT</Text>
             </View>
             <Text style={[styles.questionText, { color: t.text }]}>{prompt.text}</Text>

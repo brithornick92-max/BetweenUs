@@ -28,7 +28,7 @@ const FONTS = {
 };
 
 const HEAT_ICONS = {
-  1: 'heart-circle-outline',
+  1: 'heart-outline',
   2: 'sparkles-outline',
   3: 'flame-outline',
 };
@@ -42,7 +42,7 @@ const HEAT_LABELS = {
 export default function DateCardBack({ date, dims }) {
   const heat = date?.heat || 1;
   const palette = getDateCardPalette(heat);
-  const icon = HEAT_ICONS[heat] || 'hand-heart';
+  const icon = HEAT_ICONS[heat] || 'heart-outline';
   const label = HEAT_LABELS[heat] || 'Emotional';
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
 

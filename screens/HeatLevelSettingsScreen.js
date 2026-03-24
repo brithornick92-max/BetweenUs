@@ -36,35 +36,35 @@ const HEAT_LEVELS = [
   {
     level: 1,
     icon: 'leaf-outline',
-    color: '#5856D6', // iOS Purple
+    color: '#FF85C2', // Soft Orchid Pink
     title: 'Emotional',
     description: 'Intimacy & trust, non-sexual',
   },
   {
     level: 2,
     icon: 'sparkles-outline',
-    color: '#FF9F0A', // iOS Orange
+    color: '#FF1493', // Deep Pink
     title: 'Romantic',
     description: 'Flirty attraction & romance',
   },
   {
     level: 3,
     icon: 'heart-outline',
-    color: '#FF2D55', // iOS Pink
+    color: '#FF006E', // Vivid Magenta-Red
     title: 'Sensual',
     description: 'Relationship-focused desire',
   },
   {
     level: 4,
     icon: 'flame-outline',
-    color: '#D2121A', // Sexy Red
+    color: '#F00049', // Carmine
     title: 'Steamy',
     description: 'Adventurous & heated topics',
   },
   {
     level: 5,
     icon: 'infinite-outline',
-    color: '#8E0D2C', // Deep Crimson
+    color: '#D2121A', // Deep Red (primary)
     title: 'Explicit',
     description: 'Intensely passionate exploration',
   },

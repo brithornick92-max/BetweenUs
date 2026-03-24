@@ -1,4 +1,7 @@
 import { getSupabaseOrThrow } from "../../config/supabase";
+import * as SecureStore from 'expo-secure-store';
+
+const SUPABASE_CRED_KEY = 'betweenus_supabase_cred';
 
 export const SupabaseAuthService = {
   /**
@@ -36,6 +39,44 @@ export const SupabaseAuthService = {
     });
     if (error) throw error;
     return true;
+  },
+
+  /**
+   * Sign in anonymously (no email/password required).
+   * Creates a temporary Supabase session for device-keyed operations like pairing.
+   */
+  async signInAnonymously() {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) throw error;
+    return data?.session || null;
+  },
+
+  /**
+   * Store Supabase credentials in SecureStore for silent re-auth.
+   */
+  async storeCredentials(email, password) {
+    await SecureStore.setItemAsync(SUPABASE_CRED_KEY, JSON.stringify({ email, password }), {
+      keychainService: 'betweenus',
+    });
+  },
+
+  /**
+   * Silently re-authenticate using stored credentials.
+   * Returns a session or null if no stored creds / auth fails.
+   */
+  async signInWithStoredCredentials() {
+    const raw = await SecureStore.getItemAsync(SUPABASE_CRED_KEY, {
+      keychainService: 'betweenus',
+    });
+    if (!raw) return null;
+    try {
+      const { email, password } = JSON.parse(raw);
+      if (!email || !password) return null;
+      return await this.signInWithPassword(email, password);
+    } catch {
+      return null;
+    }
   },
 
   async getSession() {

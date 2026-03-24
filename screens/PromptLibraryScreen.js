@@ -54,7 +54,7 @@ const CATEGORIES = [
 ];
 
 const HEAT_LABELS = { 1: 'Emotional', 2: 'Flirty', 3: 'Sensual', 4: 'Steamy', 5: 'Explicit' };
-const HEAT_BADGE_COLORS = { 1: '#FF7EB3', 2: '#FF2D55', 3: '#BF5AF2', 4: '#64D2FF', 5: '#FFFFFF' };
+const HEAT_BADGE_COLORS = { 1: '#FF85C2', 2: '#FF1493', 3: '#FF006E', 4: '#F00049', 5: '#D2121A' };
 
 const DURATION_FILTERS = [
   { id: "all", label: "All Stages" },

@@ -12,10 +12,8 @@ import {
   TouchableOpacity, 
   ActivityIndicator, 
   Alert,
-  Modal,
   Platform, 
   StatusBar,
-  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,7 +27,7 @@ import CloudEngine from '../services/storage/CloudEngine';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import { makePairingPayload } from '../services/security/PairingPayload';
 import CoupleService from '../services/supabase/CoupleService';
-import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
+import { STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, withAlpha } from '../utils/theme';
 import Icon from '../components/Icon';
 
@@ -42,11 +40,8 @@ export default function PairingQRCodeScreen({ navigation }) {
   const [qrPayload, setQrPayload] = useState(null);
   const [status, setStatus] = useState('Preparing secure link...');
   const [phase, setPhase] = useState('init'); 
-  const [showCloudAuth, setShowCloudAuth] = useState(false);
-  const [cloudAuthPw, setCloudAuthPw] = useState('');
-  const [cloudAuthBusy, setCloudAuthBusy] = useState(false);
   const activeRef = useRef(true);
-  const cloudAuthResolve = useRef(null);
+  const preparingRef = useRef(false);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -60,7 +55,8 @@ export default function PairingQRCodeScreen({ navigation }) {
   }), [colors, isDark]);
 
   const ensureCloudSession = useCallback(async () => {
-    const session = await SupabaseAuthService.getSession().catch((error) => {
+    // 1. Use existing session if available
+    const existing = await SupabaseAuthService.getSession().catch((error) => {
       if (String(error?.message || '').includes('Supabase is not configured')) {
         setStatus("Sync isn't available in this build.");
         setPhase('error');
@@ -69,91 +65,23 @@ export default function PairingQRCodeScreen({ navigation }) {
       throw error;
     });
 
+    if (existing) {
+      await StorageRouter.setSupabaseSession(existing);
+      return existing;
+    }
+
+    // 2. Fall back to anonymous sign-in
+    setStatus('Creating secure session...');
+    const session = await SupabaseAuthService.signInAnonymously();
     if (session) {
       await StorageRouter.setSupabaseSession(session);
-      return session;
     }
-
-    const email = user?.email;
-    if (!email) {
-      setStatus('Cloud sign-in required to create an invite.');
-      setPhase('error');
-      return null;
-    }
-
-    return new Promise((resolve) => {
-      cloudAuthResolve.current = resolve;
-      setCloudAuthPw('');
-      setShowCloudAuth(true);
-    });
-  }, [user?.email]);
-
-  const handleCloudAuthDone = useCallback(async () => {
-    const email = user?.email;
-    const password = cloudAuthPw;
-
-    if (!email) {
-      setShowCloudAuth(false);
-      cloudAuthResolve.current?.(null);
-      cloudAuthResolve.current = null;
-      navigation.navigate('SyncSetup');
-      return;
-    }
-
-    if (!password || password.length < 6) {
-      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
-      return;
-    }
-
-    setCloudAuthBusy(true);
-    try {
-      let session = null;
-
-      try {
-        session = await SupabaseAuthService.signInWithPassword(email, password);
-      } catch (_) {
-        session = null;
-      }
-
-      if (!session) {
-        session = await SupabaseAuthService.signUp(email, password);
-        if (!session) {
-          try {
-            session = await SupabaseAuthService.signInWithPassword(email, password);
-          } catch (_) {
-            session = null;
-          }
-        }
-      }
-
-      if (session) {
-        await StorageRouter.setSupabaseSession(session);
-        const syncStatus = await cloudSyncStorage.getSyncStatus();
-        await cloudSyncStorage.setSyncStatus({
-          ...syncStatus,
-          email: session.user?.email || email,
-        });
-      }
-
-      setShowCloudAuth(false);
-      cloudAuthResolve.current?.(session);
-      cloudAuthResolve.current = null;
-    } catch (error) {
-      Alert.alert('Sign-in failed', error?.message || 'Please try again.');
-    } finally {
-      setCloudAuthBusy(false);
-    }
-  }, [cloudAuthPw, navigation, user?.email]);
-
-  const handleCloudAuthCancel = useCallback(() => {
-    setShowCloudAuth(false);
-    cloudAuthResolve.current?.(null);
-    cloudAuthResolve.current = null;
-    setStatus('Cloud sign-in required to create an invite.');
-    setPhase('error');
+    return session;
   }, []);
 
   const prepare = useCallback(async () => {
+    if (preparingRef.current) return;
+    preparingRef.current = true;
     try {
       if (!activeRef.current) return;
       setQrPayload(null);
@@ -211,8 +139,22 @@ export default function PairingQRCodeScreen({ navigation }) {
       }, 1200);
     } catch (error) {
       if (!activeRef.current) return;
-      setStatus('Connection failed.');
+      if (error?.message?.includes('already linked')) {
+        // Stale server record — silently remove it so the next attempt can proceed
+        try {
+          await CoupleService.unlinkFromCouple();
+          await storage.remove(STORAGE_KEYS.COUPLE_ID);
+        } catch (_) {
+          // best-effort
+        }
+        setStatus('Previous link cleared — tap "Try Again" to generate your code.');
+        setPhase('error');
+        return;
+      }
+      setStatus(error?.message || 'Connection failed. Please try again.');
       setPhase('error');
+    } finally {
+      preparingRef.current = false;
     }
   }, [ensureCloudSession, navigation, updateProfile, user?.uid]);
 
@@ -303,51 +245,6 @@ export default function PairingQRCodeScreen({ navigation }) {
           Phase: {phase.toUpperCase()}
         </Text>
       </SafeAreaView>
-
-      <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: t.surface, borderColor: t.border }]}> 
-            <View style={[styles.modalBadge, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
-              <Icon name="shield-checkmark-outline" size={22} color={t.primary} />
-            </View>
-            <Text style={[styles.modalTitle, { color: t.text }]}>Secure Cloud Sign-In</Text>
-            <Text style={[styles.modalBody, { color: t.subtext }]}>Enter the password for {user?.email || 'your account'} to create a pairing invite without leaving this screen.</Text>
-            <TextInput
-              value={cloudAuthPw}
-              onChangeText={setCloudAuthPw}
-              placeholder="Password"
-              placeholderTextColor={t.subtext}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!cloudAuthBusy}
-              returnKeyType="done"
-              onSubmitEditing={handleCloudAuthDone}
-              style={[styles.modalInput, { color: t.text, borderColor: t.border, backgroundColor: t.surfaceSecondary }]}
-            />
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: t.surfaceSecondary }]}
-                onPress={handleCloudAuthCancel}
-                disabled={cloudAuthBusy}
-              >
-                <Text style={[styles.modalButtonSecondaryText, { color: t.text }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary, cloudAuthBusy && styles.modalButtonDisabled]}
-                onPress={handleCloudAuthDone}
-                disabled={cloudAuthBusy}
-              >
-                {cloudAuthBusy ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.modalButtonPrimaryText}>Continue</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -450,83 +347,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     marginTop: 24,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    padding: SPACING.xl,
-  },
-  modalCard: {
-    borderRadius: 28,
-    borderWidth: 1,
-    padding: SPACING.xxl,
-    alignItems: 'center',
-  },
-  modalBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-    marginBottom: SPACING.sm,
-    textAlign: 'center',
-  },
-  modalBody: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '500',
-    lineHeight: 22,
-    textAlign: 'center',
-    marginBottom: SPACING.xl,
-  },
-  modalInput: {
-    width: '100%',
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    marginBottom: SPACING.lg,
-  },
-  modalActions: {
-    width: '100%',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalButtonPrimary: {
-    backgroundColor: '#D2121A',
-  },
-  modalButtonDisabled: {
-    opacity: 0.72,
-  },
-  modalButtonPrimaryText: {
-    color: '#FFFFFF',
-    fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: -0.2,
-  },
-  modalButtonSecondaryText: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    fontWeight: '700',
   },
   noticeText: { 
     fontFamily: SYSTEM_FONT,

@@ -106,7 +106,7 @@ export default function RitualRemindersScreen({ navigation }) {
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-              <Icon name="arrow-left" size={24} color={theme.colors.text} />
+              <Icon name="arrow-back-outline" size={24} color={theme.colors.text} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Ritual Reminders</Text>
             <View style={styles.headerSpacer} />
@@ -215,10 +215,10 @@ export default function RitualRemindersScreen({ navigation }) {
                 </View>
                 <View style={styles.reminderActions}>
                   <TouchableOpacity onPress={() => handleEdit(reminder)} style={styles.iconButton}>
-                    <Icon name="pencil" size={18} color={theme.colors.text} />
+                    <Icon name="pencil-outline" size={18} color={theme.colors.text} />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => handleDelete(reminder)} style={styles.iconButton}>
-                    <Icon name="trash-can" size={18} color={theme.colors.danger || '#D2121A'} />
+                    <Icon name="trash-outline" size={18} color={theme.colors.danger || '#D2121A'} />
                   </TouchableOpacity>
                 </View>
               </View>

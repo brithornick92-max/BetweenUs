@@ -116,8 +116,9 @@ export default function DateNightDetailScreen({ route, navigation }) {
       const profile = await PreferenceEngine.getContentProfile(userProfile || {});
       if (!active) return;
 
-      if (!PreferenceEngine.shouldShowDate(resolvedDate, profile)) {
-        Alert.alert('Hidden by your boundaries', 'This date idea is currently hidden based on your boundary settings.', [
+      const visibility = PreferenceEngine.getDateVisibilityState(resolvedDate, profile);
+      if (!visibility.visible) {
+        Alert.alert(visibility.title, visibility.message, [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
         return;

@@ -27,7 +27,7 @@ export function SettingRow({ icon, iconColor, title, subtitle, onPress, rightEle
         {subtitle ? <Text style={[styles.rowSub, { color: colors.textMuted }]} numberOfLines={1}>{subtitle}</Text> : null}
       </View>
       {rightElement || (
-        <Icon name="chevron-right" size={18} color={colors.textMuted} style={{ opacity: 0.35 }} />
+        <Icon name="chevron-forward" size={18} color={colors.textMuted} style={{ opacity: 0.35 }} />
       )}
       {!isLast && <View style={[styles.rowDivider, { backgroundColor: colors.divider }]} />}
     </TouchableOpacity>

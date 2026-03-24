@@ -211,7 +211,7 @@ export default function VibeSignalScreen({ navigation }) {
               </TouchableOpacity>
               {isPremium && (
                 <View style={[styles.premiumBadge, { backgroundColor: withAlpha(t.primary, 0.15) }]}>
-                  <Icon name="star-four-points" size={12} color={t.primary} />
+                  <Icon name="sparkles-outline" size={12} color={t.primary} />
                   <Text style={[styles.premiumBadgeText, { color: t.primary }]}>PREMIUM</Text>
                 </View>
               )}

@@ -46,7 +46,7 @@ export default function InsideJokesScreen({ navigation }) {
         style={[styles.backButton, { backgroundColor: withAlpha(colors.text, 0.05) }]} 
         activeOpacity={0.7}
       >
-        <Icon name="chevron-left" size={28} color={colors.text} />
+        <Icon name="chevron-back" size={28} color={colors.text} />
       </TouchableOpacity>
       <View style={styles.headerTextStack}>
         <Text style={[styles.headerSubtitle, { color: colors.primary }]}>PRIVATE VAULT</Text>

@@ -120,14 +120,14 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles, colors, i
             style={[styles.navButton, { backgroundColor: colors.surfaceSecondary }]}
             activeOpacity={0.7}
           >
-            <Icon name="chevron-left" size={20} color={colors.text} />
+            <Icon name="chevron-back" size={20} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigateMonth(1)}
             style={[styles.navButton, { backgroundColor: colors.surfaceSecondary }]}
             activeOpacity={0.7}
           >
-            <Icon name="chevron-right" size={20} color={colors.text} />
+            <Icon name="chevron-forward" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>

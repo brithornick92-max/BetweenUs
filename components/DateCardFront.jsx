@@ -30,9 +30,15 @@ const FONTS = {
 };
 
 export const HEAT_ICONS = {
-  1: 'heart-circle-outline',
+  1: 'heart-outline',
   2: 'sparkles-outline',
   3: 'flame-outline',
+};
+
+const LOAD_ICONS = {
+  1: 'moon-outline',
+  2: 'sunny-outline',
+  3: 'flash-outline',
 };
 
 const HEAT_LABELS = {
@@ -44,7 +50,7 @@ const HEAT_LABELS = {
 export default function DateCardFront({ date, colors, dims }) {
   const heat = date?.heat || 1;
   const palette = getDateCardPalette(heat);
-  const icon = HEAT_ICONS[heat] || 'hand-heart';
+  const icon = HEAT_ICONS[heat] || 'heart-outline';
   const label = HEAT_LABELS[heat] || 'Emotional';
   const loadMeta = dims.load.find(l => l.level === date.load) || dims.load[1];
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
@@ -143,7 +149,8 @@ export default function DateCardFront({ date, colors, dims }) {
           <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.tagsRow}>
             {loadMeta && (
               <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
-                <Text style={[styles.tagText, { color: palette.body }]}>{loadMeta.icon} {loadMeta.label}</Text>
+                <Icon name={LOAD_ICONS[date?.load] || 'ellipse-outline'} size={11} color={palette.body} />
+                <Text style={[styles.tagText, { color: palette.body }]}> {loadMeta.label}</Text>
               </View>
             )}
             {date.minutes ? (
@@ -153,8 +160,8 @@ export default function DateCardFront({ date, colors, dims }) {
               </View>
             ) : null}
             {date._matchLabel ? (
-              <View style={[styles.tag, { borderColor: colors.primaryMuted + '50', backgroundColor: palette.tagBackground }]}> 
-                <Text style={[styles.tagText, { color: colors.primaryMuted }]}>{date._matchLabel}</Text>
+              <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
+                <Icon name="star-outline" size={11} color={palette.body} />
               </View>
             ) : null}
           </Animated.View>
@@ -193,7 +200,7 @@ export default function DateCardFront({ date, colors, dims }) {
       <View style={styles.footer}>
         <View style={styles.footerContent}>
           <Text style={[styles.footerText, { color: palette.body }]}>swipe right for tonight</Text>
-          <Icon name="arrow-right" size={14} color={palette.body} />
+          <Icon name="arrow-forward-outline" size={14} color={palette.body} />
         </View>
       </View>
     </View>

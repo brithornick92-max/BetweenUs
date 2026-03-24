@@ -83,10 +83,18 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
 
       if (!result.sent) {
         notification(NotificationFeedbackType.Error);
+        // Use friendly messages — never expose raw error strings to the user
+        const friendlyError = result.error?.includes('cooldown')
+          ? result.error
+          : result.error?.includes('partner') || result.error?.includes('Link')
+            ? 'Link with your partner to send a pulse.'
+            : result.error?.includes('Sign in')
+              ? 'Sign in to send a pulse.'
+              : 'Pulse unavailable right now. Try again soon.';
         setStatus({
           tone: 'error',
           title: 'Hold for a beat',
-          subtitle: result.error || 'Pulse cooldown is still active.',
+          subtitle: friendlyError,
         });
         return;
       }
@@ -97,7 +105,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
         title: `Sent to ${partnerLabel}`,
         subtitle: result.remote
           ? (isTogetherNow ? 'Their device should pulse now.' : 'Push is on the way.')
-          : (result.error || 'Saved locally and will sync when connected.'),
+          : 'Saved locally and will sync when connected.',
       });
     } catch {
       notification(NotificationFeedbackType.Error);

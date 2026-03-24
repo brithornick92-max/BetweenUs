@@ -14,8 +14,6 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
-  Modal,
-  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -41,11 +39,7 @@ export default function PairingScanScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [status, setStatus] = useState("Position your partner's code in view.");
-  const [showCloudAuth, setShowCloudAuth] = useState(false);
-  const [cloudAuthPw, setCloudAuthPw] = useState('');
-  const [cloudAuthBusy, setCloudAuthBusy] = useState(false);
   const activeRef = useRef(true);
-  const cloudAuthResolve = useRef(null);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -77,77 +71,15 @@ export default function PairingScanScreen({ navigation }) {
       return session;
     }
 
-    const email = user?.email;
-    if (!email) {
-      setStatus('Cloud sign-in required before scanning.');
-      return null;
+    // Fall back to anonymous sign-in
+    const retrySession = await SupabaseAuthService.signInAnonymously().catch(() => null);
+    if (retrySession) {
+      await StorageRouter.setSupabaseSession(retrySession);
+      return retrySession;
     }
 
-    return new Promise((resolve) => {
-      cloudAuthResolve.current = resolve;
-      setCloudAuthPw('');
-      setShowCloudAuth(true);
-    });
-  }, [user?.email]);
-
-  const handleCloudAuthDone = useCallback(async () => {
-    const email = user?.email;
-    const password = cloudAuthPw;
-
-    if (!email) {
-      setShowCloudAuth(false);
-      cloudAuthResolve.current?.(null);
-      cloudAuthResolve.current = null;
-      navigation.navigate('SyncSetup');
-      return;
-    }
-
-    if (!password || password.length < 6) {
-      Alert.alert('Invalid password', 'Password must be at least 6 characters.');
-      return;
-    }
-
-    setCloudAuthBusy(true);
-    try {
-      let session = null;
-
-      try {
-        session = await SupabaseAuthService.signInWithPassword(email, password);
-      } catch (_) {
-        session = null;
-      }
-
-      if (!session) {
-        session = await SupabaseAuthService.signUp(email, password);
-        if (!session) {
-          try {
-            session = await SupabaseAuthService.signInWithPassword(email, password);
-          } catch (_) {
-            session = null;
-          }
-        }
-      }
-
-      if (session) {
-        await StorageRouter.setSupabaseSession(session);
-      }
-
-      setShowCloudAuth(false);
-      cloudAuthResolve.current?.(session);
-      cloudAuthResolve.current = null;
-    } catch (error) {
-      Alert.alert('Sign-in failed', error?.message || 'Please try again.');
-    } finally {
-      setCloudAuthBusy(false);
-    }
-  }, [cloudAuthPw, navigation, user?.email]);
-
-  const handleCloudAuthCancel = useCallback(() => {
-    setShowCloudAuth(false);
-    cloudAuthResolve.current?.(null);
-    cloudAuthResolve.current = null;
-    setStatus('Cloud sign-in required before scanning.');
-    setScanned(false);
+    setStatus('Cloud session expired. Please sign in again via Cloud Sync.');
+    return null;
   }, []);
 
   const handleScan = async ({ data }) => {
@@ -282,50 +214,6 @@ export default function PairingScanScreen({ navigation }) {
         </View>
       </SafeAreaView>
 
-      <Modal visible={showCloudAuth} transparent animationType="fade" onRequestClose={handleCloudAuthCancel}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalBadge}>
-              <Icon name="shield-checkmark-outline" size={22} color={t.primary} />
-            </View>
-            <Text style={styles.modalTitle}>Secure Cloud Sign-In</Text>
-            <Text style={styles.modalBody}>Enter the password for {user?.email || 'your account'} before scanning your partner's QR code.</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={cloudAuthPw}
-              onChangeText={setCloudAuthPw}
-              placeholder="Password"
-              placeholderTextColor="rgba(255,255,255,0.5)"
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!cloudAuthBusy}
-              returnKeyType="done"
-              onSubmitEditing={handleCloudAuthDone}
-            />
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonSecondary]}
-                onPress={handleCloudAuthCancel}
-                disabled={cloudAuthBusy}
-              >
-                <Text style={styles.modalButtonSecondaryText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary, cloudAuthBusy && styles.modalButtonDisabled]}
-                onPress={handleCloudAuthDone}
-                disabled={cloudAuthBusy}
-              >
-                {cloudAuthBusy ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.modalButtonPrimaryText}>Continue</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

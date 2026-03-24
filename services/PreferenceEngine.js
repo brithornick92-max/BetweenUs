@@ -460,9 +460,9 @@ function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
 
     // Match label
     const baseScore = score - ((Math.abs(idHash) % 100) * 0.003); // strip tie-breaker for label
-    let matchLabel = '🔄';
-    if (baseScore >= 7) matchLabel = '🌟';
-    else if (baseScore >= 5) matchLabel = '👍';
+    let matchLabel = null;
+    if (baseScore >= 7) matchLabel = 'Top Pick';
+    else if (baseScore >= 5) matchLabel = 'Great Match';
 
     return { date: { ...date, _matchLabel: matchLabel, _matchScore: Math.round(baseScore) }, score };
   });
@@ -604,28 +604,178 @@ function getDurationCategory(userProfile) {
   return 'long_term';
 }
 
+function getBoundaryHeatCap(boundaries = {}) {
+  if (boundaries?.hideSpicy) return 3;
+  if (typeof boundaries?.maxHeatOverride === 'number') return boundaries.maxHeatOverride;
+  return null;
+}
+
+function resolveHeatLimitSource(profile = {}) {
+  const limits = [];
+
+  if (typeof profile?.heatLevel === 'number') {
+    limits.push({ source: 'preference', value: profile.heatLevel });
+  }
+
+  if (typeof profile?.energy?.maxHeat === 'number') {
+    limits.push({ source: 'energy', value: profile.energy.maxHeat });
+  }
+
+  const boundaryHeatCap = getBoundaryHeatCap(profile?.boundaries);
+  if (typeof boundaryHeatCap === 'number') {
+    limits.push({ source: 'boundary', value: boundaryHeatCap });
+  }
+
+  if (limits.length === 0) return 'settings';
+
+  const lowest = Math.min(...limits.map((limit) => limit.value));
+  const matching = limits.filter((limit) => limit.value === lowest);
+
+  return matching.length === 1 ? matching[0].source : 'settings';
+}
+
+function getPromptVisibilityState(prompt, profile) {
+  if (!prompt || !profile) {
+    return { visible: true, reason: null, title: null, message: null };
+  }
+
+  if (profile.boundaries?.hiddenCategories?.includes(prompt.category)) {
+    return {
+      visible: false,
+      reason: 'boundary-category',
+      title: 'Hidden by your boundaries',
+      message: 'This prompt is hidden because that category is turned off in your Soft Boundaries.',
+    };
+  }
+
+  if (profile.boundaries?.pausedEntries?.includes(prompt.id)) {
+    return {
+      visible: false,
+      reason: 'boundary-paused',
+      title: 'Hidden by your boundaries',
+      message: 'This prompt is hidden because you paused it in your Soft Boundaries.',
+    };
+  }
+
+  const heat = typeof prompt.heat === 'number' ? prompt.heat : 1;
+  if (typeof profile.maxHeat === 'number' && heat > profile.maxHeat) {
+    const source = resolveHeatLimitSource(profile);
+
+    if (source === 'boundary') {
+      return {
+        visible: false,
+        reason: 'boundary-heat',
+        title: 'Hidden by your boundaries',
+        message: 'This prompt is above the heat level allowed by your Soft Boundaries.',
+      };
+    }
+
+    if (source === 'energy') {
+      return {
+        visible: false,
+        reason: 'energy-heat',
+        title: 'Outside your current settings',
+        message: 'This prompt is being held back to match your current energy setting.',
+      };
+    }
+
+    if (source === 'preference') {
+      return {
+        visible: false,
+        reason: 'preference-heat',
+        title: 'Outside your current settings',
+        message: 'This prompt is above your current heat setting.',
+      };
+    }
+
+    return {
+      visible: false,
+      reason: 'settings-heat',
+      title: 'Outside your current settings',
+      message: 'This prompt is currently hidden by your active content settings.',
+    };
+  }
+
+  return { visible: true, reason: null, title: null, message: null };
+}
+
+function getDateVisibilityState(date, profile) {
+  if (!date || !profile) {
+    return { visible: true, reason: null, title: null, message: null };
+  }
+
+  if (profile.boundaries?.pausedDates?.includes(date.id)) {
+    return {
+      visible: false,
+      reason: 'boundary-paused',
+      title: 'Hidden by your boundaries',
+      message: 'This date idea is hidden because you paused it in your Soft Boundaries.',
+    };
+  }
+
+  if (profile.season?.maxDuration && date.minutes > profile.season.maxDuration) {
+    return {
+      visible: false,
+      reason: 'season-duration',
+      title: 'Outside your current settings',
+      message: 'This date idea runs longer than your current season settings allow.',
+    };
+  }
+
+  if (typeof date.heat === 'number' && typeof profile.maxHeat === 'number' && date.heat > profile.maxHeat) {
+    const source = resolveHeatLimitSource(profile);
+
+    if (source === 'boundary') {
+      return {
+        visible: false,
+        reason: 'boundary-heat',
+        title: 'Hidden by your boundaries',
+        message: 'This date idea is above the heat level allowed by your Soft Boundaries.',
+      };
+    }
+
+    if (source === 'energy') {
+      return {
+        visible: false,
+        reason: 'energy-heat',
+        title: 'Outside your current settings',
+        message: 'This date idea is being held back to match your current energy setting.',
+      };
+    }
+
+    if (source === 'preference') {
+      return {
+        visible: false,
+        reason: 'preference-heat',
+        title: 'Outside your current settings',
+        message: 'This date idea is above your current heat setting.',
+      };
+    }
+
+    return {
+      visible: false,
+      reason: 'settings-heat',
+      title: 'Outside your current settings',
+      message: 'This date idea is currently hidden by your active content settings.',
+    };
+  }
+
+  return { visible: true, reason: null, title: null, message: null };
+}
+
 /**
  * Quick check: should this prompt be shown given current boundaries?
  * (Synchronous, uses cached boundary data from profile)
  */
 function shouldShowPrompt(prompt, profile) {
-  if (!prompt || !profile) return true;
-  const heat = typeof prompt.heat === 'number' ? prompt.heat : 1;
-  if (heat > profile.maxHeat) return false;
-  if (profile.boundaries?.hiddenCategories?.includes(prompt.category)) return false;
-  if (profile.boundaries?.pausedEntries?.includes(prompt.id)) return false;
-  return true;
+  return getPromptVisibilityState(prompt, profile).visible;
 }
 
 /**
  * Quick check: should this date be shown given current boundaries?
  */
 function shouldShowDate(date, profile) {
-  if (!date || !profile) return true;
-  if (profile.boundaries?.pausedDates?.includes(date.id)) return false;
-  if (profile.season?.maxDuration && date.minutes > profile.season.maxDuration) return false;
-  if (typeof date.heat === 'number' && date.heat > profile.maxHeat) return false;
-  return true;
+  return getDateVisibilityState(date, profile).visible;
 }
 
 module.exports = {
@@ -634,6 +784,8 @@ module.exports = {
   filterDatesWithProfile,
   getSmartGreeting,
   selectDailyPrompt,
+  getPromptVisibilityState,
+  getDateVisibilityState,
   shouldShowPrompt,
   shouldShowDate,
   getDurationCategory,

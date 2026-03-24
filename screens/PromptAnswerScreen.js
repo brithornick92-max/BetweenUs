@@ -194,8 +194,9 @@ export default function PromptAnswerScreen({ route, navigation }) {
       const profile = await PreferenceEngine.getContentProfile(userProfile || {});
       if (!active) return;
 
-      if (!PreferenceEngine.shouldShowPrompt(resolvedPrompt, profile)) {
-        Alert.alert("Hidden by your boundaries", "This prompt is currently hidden based on your boundary settings.", [
+      const visibility = PreferenceEngine.getPromptVisibilityState(resolvedPrompt, profile);
+      if (!visibility.visible) {
+        Alert.alert(visibility.title, visibility.message, [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
         return;

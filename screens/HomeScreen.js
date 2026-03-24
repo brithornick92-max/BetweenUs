@@ -773,6 +773,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
   // ── Moment Signal ──
   momentSection: {
     marginTop: SPACING.xl,
+    marginHorizontal: -4,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: t.border,

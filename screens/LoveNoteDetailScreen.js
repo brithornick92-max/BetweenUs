@@ -217,7 +217,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
           <SafeAreaView style={styles.envelopeContainer}>
             <View style={styles.envelopeTopBar}>
               <TouchableOpacity style={styles.circleButton} onPress={() => navigation.goBack()}>
-                <Icon name="chevron-left" size={24} color={t.text} />
+                <Icon name="chevron-back" size={24} color={t.text} />
               </TouchableOpacity>
             </View>
 
@@ -248,7 +248,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
           <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
             <Animated.View entering={FadeIn.duration(600)} style={styles.topBar}>
               <TouchableOpacity style={styles.circleButton} onPress={() => navigation.goBack()}>
-                <Icon name="chevron-left" size={24} color="#FFF" />
+                <Icon name="chevron-back" size={24} color="#FFF" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.circleButton} onPress={handleDelete}>
                 <Icon name="trash-outline" size={20} color="#FFF" />

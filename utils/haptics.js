@@ -1,14 +1,40 @@
 import * as Haptics from 'expo-haptics';
 
 // Safe wrappers — silently swallow errors on devices without Taptic Engine (older iPads)
-export const impact = (style = Haptics.ImpactFeedbackStyle.Light) =>
-  Haptics.impactAsync(style).catch(() => {});
+// Try/catch guards against synchronous JSI throws in the new architecture in addition
+// to the .catch() which guards against async (Promise) rejections.
+export const impact = (style = Haptics.ImpactFeedbackStyle.Light) => {
+  try {
+    return Haptics.impactAsync(style).catch(() => {});
+  } catch {
+    return Promise.resolve();
+  }
+};
 
-export const notification = (type = Haptics.NotificationFeedbackType.Success) =>
-  Haptics.notificationAsync(type).catch(() => {});
+export const notification = (type = Haptics.NotificationFeedbackType.Success) => {
+  try {
+    return Haptics.notificationAsync(type).catch(() => {});
+  } catch {
+    return Promise.resolve();
+  }
+};
 
-export const selection = () =>
-  Haptics.selectionAsync().catch(() => {});
+export const selection = () => {
+  try {
+    const result = Haptics.selectionAsync();
+    return result && typeof result.catch === 'function'
+      ? result.catch(() => {})
+      : Promise.resolve();
+  } catch {
+    // selectionAsync unavailable — fall back to a light impact so the call site
+    // still gets tactile feedback without crashing.
+    try {
+      return Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    } catch {
+      return Promise.resolve();
+    }
+  }
+};
 
 // Re-export the enums for convenience
 export const ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle;

@@ -105,6 +105,7 @@ export const AuthProvider = ({ children }) => {
       }
       if (session) {
         await StorageRouter.setSupabaseSession(session);
+        await SupabaseAuthService.storeCredentials(email, password);
         const syncStatus = await cloudSyncStorage.getSyncStatus();
         await cloudSyncStorage.setSyncStatus({
           ...syncStatus,
@@ -119,6 +120,7 @@ export const AuthProvider = ({ children }) => {
           const session = await SupabaseAuthService.signInWithPassword(email, password);
           if (session) {
             await StorageRouter.setSupabaseSession(session);
+            await SupabaseAuthService.storeCredentials(email, password);
             const syncStatus = await cloudSyncStorage.getSyncStatus();
             await cloudSyncStorage.setSyncStatus({
               ...syncStatus,

@@ -222,7 +222,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
             </Text>
           </View>
 
-          <Icon name="chevron-right" size={20} color={withAlpha(colors.text, 0.2)} />
+          <Icon name="chevron-forward" size={20} color={withAlpha(colors.text, 0.2)} />
         </TouchableOpacity>
       </Animated.View>
     );
@@ -250,7 +250,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <Icon name="chevron-left" size={28} color={colors.text} />
+            <Icon name="chevron-back" size={28} color={colors.text} />
           </TouchableOpacity>
 
           <View style={styles.headerCenter}>

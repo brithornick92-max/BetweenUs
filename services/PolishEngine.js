@@ -167,7 +167,7 @@ export const RelationshipMilestones = {
         id: 'moments_100',
         check: stats.totalMoments >= 100,
         message: '100 moments. Most of them probably made someone smile.',
-        icon: 'heart',
+        icon: 'heart-outline',
       },
       {
         id: 'dates_10',
@@ -339,8 +339,8 @@ export const NicknameEngine = {
   TONE_OPTIONS: [
     { id: 'warm', label: 'Warm', preview: 'Something for you and {partner}', icon: 'sunny-outline' },
     { id: 'playful', label: 'Playful', preview: 'Ready for this one?', icon: 'happy-outline' },
-    { id: 'intimate', label: 'Intimate', preview: 'Between the two of you', icon: 'flame' },
-    { id: 'minimal', label: 'Minimal', preview: 'Tonight\'s prompt', icon: 'remove' },
+    { id: 'intimate', label: 'Intimate', preview: 'Between the two of you', icon: 'flame-outline' },
+    { id: 'minimal', label: 'Minimal', preview: 'Tonight\'s prompt', icon: 'close-outline' },
   ],
 };
 

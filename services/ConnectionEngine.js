@@ -19,6 +19,11 @@ const _getSupabase = () => {
   return _supabase || null;
 };
 
+// ── UUID validation — locally-generated IDs have a "user_" prefix and are not
+//    valid Supabase auth UUIDs. Skip remote ops when the ID fails this check. ──
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const _isValidUUID = (str) => typeof str === 'string' && UUID_RE.test(str);
+
 // ── Shared encrypt/decrypt helpers (device-local key via EncryptionService) ──
 const _encrypt = async (data) => {
   const { default: EncryptionService } = await import('./EncryptionService');
@@ -83,7 +88,7 @@ export const MOMENT_TYPES = [
 export const HEARTBEAT_SIGNAL = {
   id: 'heartbeat',
   label: 'Heartbeat',
-  icon: 'pulse',
+  icon: 'pulse-outline',
 };
 
 const COOLDOWN_MS = 5 * 60 * 1000; // 5 min cooldown
@@ -144,13 +149,15 @@ export const MomentSignalSender = {
 
     const getUnavailableError = () => {
       if (!userId) return 'Sign in again to send a pulse.';
+      if (!_isValidUUID(userId)) return 'Sign in again to send a pulse.';
       if (!coupleId) return 'Link with your partner before sending a pulse.';
       if (!sb) return 'Sync is not configured on this device.';
       return 'Pulse is unavailable right now.';
     };
 
     // ── Remote send via Supabase ──
-    if (sb && coupleId && userId) {
+    // Guard: locally-generated IDs ("user_" prefix) are not Supabase auth UUIDs
+    if (sb && coupleId && userId && _isValidUUID(userId)) {
       try {
         const tableName = (_supabaseTables && _supabaseTables.COUPLE_DATA) || 'couple_data';
         const signalKey = `moment_signal_${userId}_${now}`;
@@ -226,7 +233,7 @@ export const MomentSignalSender = {
     const sb = _getSupabase();
     const coupleId = await AsyncStorage.getItem(KEYS.MOMENT_COUPLE_ID);
     const userId = await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
-    if (!sb || !coupleId || !userId) return [];
+    if (!sb || !coupleId || !userId || !_isValidUUID(userId)) return [];
 
     try {
       const tableName = (_supabaseTables && _supabaseTables.COUPLE_DATA) || 'couple_data';
@@ -412,7 +419,7 @@ export const ContentIntensityMatcher = {
   async getEnergyLevel() {
     try {
       const raw = await AsyncStorage.getItem(KEYS.ENERGY_LEVEL);
-      return raw || 'medium';
+      return raw || 'open';
     } catch {
       return 'medium';
     }
