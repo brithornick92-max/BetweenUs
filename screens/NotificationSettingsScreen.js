@@ -88,7 +88,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
       } else {
         Alert.alert(
           'Permission Required',
-          'Please enable notifications in your device settings to stay connected with your partner.',
+          'Please enable notifications in your device settings if you want reminders and partner activity alerts on this device.',
           [
             { text: 'Later', style: 'cancel' },
             { text: 'Open Settings', onPress: () => Notifications.openSettingsAsync() },
@@ -168,7 +168,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
           <View style={styles.settingInfo}>
             <Text style={[styles.settingTitle, { color: t.text }]}>Push Notifications</Text>
             <Text style={[styles.settingDescription, { color: t.subtext }]}>
-              Enable the bridge between you and your partner.
+              Allow reminders and partner activity alerts on this device.
             </Text>
           </View>
           <Switch
@@ -191,14 +191,14 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
           {renderSettingRow(
             'Partner Activity',
-            'Know the moment your partner shares a thought.',
+            'Get notified when your partner shares something, when delivery is available.',
             partnerActivity,
             (v) => { setPartnerActivity(v); selection(); }
           )}
 
           {renderSettingRow(
             'Weekly Highlights',
-            'A curated summary of your connection growth.',
+            'A weekly recap of recent shared activity.',
             weeklyRecap,
             (v) => { setWeeklyRecap(v); selection(); }
           )}
@@ -216,7 +216,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
           <View style={[styles.infoCard, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}>
             <Icon name="information-circle-outline" size={20} color={t.primary} />
             <Text style={[styles.infoText, { color: t.subtext }]}>
-              Enable global notifications above to customize these intimate touchpoints.
+              Enable notifications above to manage reminders and partner activity alerts.
             </Text>
           </View>
         )}

@@ -7,6 +7,7 @@ import StorageRouter from "../services/storage/StorageRouter";
 import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
 
 const SubscriptionContext = createContext(null);
+const DEV_FORCE_PREMIUM = __DEV__;
 
 export const useSubscription = () => {
   const context = useContext(SubscriptionContext);
@@ -27,6 +28,7 @@ export const SubscriptionProvider = ({ children }) => {
   const listenerRef = useRef(null);
   const initInFlightRef = useRef(false);
   const premiumListenersRef = useRef(new Set());
+  const effectiveIsPremium = DEV_FORCE_PREMIUM || isPremium;
 
   useEffect(() => {
     let active = true;
@@ -54,7 +56,7 @@ export const SubscriptionProvider = ({ children }) => {
       try {
         if (!user) {
           await StorageRouter.configureSync({
-            isPremium: false,
+            isPremium: effectiveIsPremium,
             syncEnabled: false,
             supabaseSessionPresent: false,
           });
@@ -73,7 +75,7 @@ export const SubscriptionProvider = ({ children }) => {
 
         if (active) {
           await StorageRouter.configureSync({
-            isPremium,
+            isPremium: effectiveIsPremium,
             syncEnabled,
             supabaseSessionPresent: sessionPresent,
           });
@@ -87,7 +89,7 @@ export const SubscriptionProvider = ({ children }) => {
     return () => {
       active = false;
     };
-  }, [user, isPremium]);
+  }, [user, effectiveIsPremium]);
 
   const updateSubscriptionDetails = useCallback((info) => {
     try {
@@ -126,20 +128,23 @@ export const SubscriptionProvider = ({ children }) => {
   const checkSubscriptionStatus = useCallback(async () => {
     try {
       const { isPremium: premium, customerInfo: info } = await RevenueCatService.getCustomerInfo();
+      const resolvedPremium = DEV_FORCE_PREMIUM || premium;
       setIsPremium(premium);
-      notifyPremiumListeners(premium);
+      notifyPremiumListeners(resolvedPremium);
       setCustomerInfo(info);
-      if (premium) updateSubscriptionDetails(info);
+      if (resolvedPremium) updateSubscriptionDetails(info);
       else setSubscriptionDetails(null);
 
-      if (__DEV__) console.log("✅ Subscription status checked:", premium ? "Premium" : "Free");
+      if (__DEV__) console.log("✅ Subscription status checked:", resolvedPremium ? "Premium" : "Free");
     } catch (error) {
       console.error("❌ Failed to check subscription status:", error);
       setIsPremium(false);
-      notifyPremiumListeners(false);
-      setSubscriptionDetails(null);
+      notifyPremiumListeners(effectiveIsPremium);
+      if (!DEV_FORCE_PREMIUM) {
+        setSubscriptionDetails(null);
+      }
     }
-  }, [updateSubscriptionDetails]);
+  }, [effectiveIsPremium, notifyPremiumListeners, updateSubscriptionDetails]);
 
   const loadOfferings = useCallback(async () => {
     try {
@@ -205,10 +210,11 @@ export const SubscriptionProvider = ({ children }) => {
         // ✅ listener: keep state in sync
         const remove = Purchases.addCustomerInfoUpdateListener((info) => {
           const premium = RevenueCatService.checkPremiumStatus(info);
+          const resolvedPremium = DEV_FORCE_PREMIUM || premium;
           setIsPremium(premium);
-          notifyPremiumListeners(premium);
+          notifyPremiumListeners(resolvedPremium);
           setCustomerInfo(info);
-          if (premium) updateSubscriptionDetails(info);
+          if (resolvedPremium) updateSubscriptionDetails(info);
           else setSubscriptionDetails(null);
         });
 
@@ -216,8 +222,10 @@ export const SubscriptionProvider = ({ children }) => {
       } catch (error) {
         console.error("❌ Failed to initialize subscription:", error);
         setIsPremium(false);
-        notifyPremiumListeners(false);
-        setSubscriptionDetails(null);
+        notifyPremiumListeners(effectiveIsPremium);
+        if (!DEV_FORCE_PREMIUM) {
+          setSubscriptionDetails(null);
+        }
       } finally {
         initInFlightRef.current = false;
         if (!cancelled) setIsLoading(false);
@@ -240,7 +248,7 @@ export const SubscriptionProvider = ({ children }) => {
       }
       initInFlightRef.current = false;
     };
-  }, [user, coupleId, storedCoupleId, checkSubscriptionStatus, loadOfferings, updateSubscriptionDetails]);
+  }, [user, coupleId, storedCoupleId, checkSubscriptionStatus, effectiveIsPremium, loadOfferings, updateSubscriptionDetails]);
 
   const purchasePackage = async (packageToPurchase) => {
     try {
@@ -271,7 +279,7 @@ export const SubscriptionProvider = ({ children }) => {
   };
 
   const value = {
-    isPremium,
+    isPremium: effectiveIsPremium,
     isLoading,
     offerings,
     subscriptionDetails,

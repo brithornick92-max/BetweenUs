@@ -22,6 +22,12 @@ import {
 
 let _ratingsCache = {};
 
+const ENERGY_PREFERRED_LOAD = {
+  low: 1,
+  medium: 2,
+  open: 3,
+};
+
 async function warmRatingsCache() {
   try {
     const allKeys = await AsyncStorage.getAllKeys();
@@ -73,6 +79,7 @@ async function getContentProfile(userProfile = {}) {
   // 3. Energy Level
   const energyLevel = await ContentIntensityMatcher.getEnergyLevel();
   const energyParams = ContentIntensityMatcher.getContentParams(energyLevel);
+  const energyPreferredLoad = ENERGY_PREFERRED_LOAD[energyLevel] || ENERGY_PREFERRED_LOAD.medium;
 
   // 4. Relationship Climate
   const climateData = await RelationshipClimateState.get();
@@ -118,6 +125,7 @@ async function getContentProfile(userProfile = {}) {
       level: energyLevel,
       maxHeat: energyParams.maxHeat,
       preferShort: energyParams.preferShort || false,
+      preferLoad: energyPreferredLoad,
       tones: energyParams.tones || [],
     },
     climate: {
@@ -369,7 +377,7 @@ function filterPrompts(allPrompts, profile, options = {}) {
 function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
   if (!Array.isArray(allDates) || !profile) return allDates || [];
 
-  const { maxHeat, boundaries, season, climate, preferShort, tone } = profile;
+  const { maxHeat, boundaries, season, climate, preferShort, tone, energy } = profile;
 
   // Phase 1: Hard filters
   const eligible = allDates.filter((date) => {
@@ -398,7 +406,7 @@ function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
 
   // Phase 2: Smart matching score
   const userHeat = selectedDimensions?.heat || profile.heatLevel || 3;
-  const userLoad = selectedDimensions?.load || (season?.preferLoad ?? 2);
+  const userLoad = selectedDimensions?.load || energy?.preferLoad || (season?.preferLoad ?? 2);
   const userStyle = selectedDimensions?.style || climate?.preferStyle || 'mixed';
 
   const scored = eligible.map((date) => {

@@ -1,9 +1,7 @@
 // screens/NightRitualScreen.js
 import React, { useRef, useEffect, useMemo } from 'react';
 import {
-  View,
   StyleSheet,
-  Text,
   TouchableOpacity,
   Animated,
   Platform,
@@ -12,16 +10,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import NightRitualMode, { getNightRitualColors } from '../components/NightRitualMode';
-import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 
 export default function NightRitualScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const NIGHT_COLORS = useMemo(() => getNightRitualColors(colors), [colors]);
+  const blockedAccessHandledRef = useRef(false);
   
   // STRICT Apple Editorial Theme Map (Forced Dark for Night Ritual)
   const t = useMemo(() => ({
@@ -36,15 +35,26 @@ export default function NightRitualScreen({ navigation }) {
   }), [colors, NIGHT_COLORS]);
 
   const styles = useMemo(() => createStyles(t, NIGHT_COLORS), [t, NIGHT_COLORS]);
-  const { state } = useAppContext();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const {
+    isPremiumEffective: isPremium,
+    isLoading: entitlementsLoading,
+    showPaywall,
+  } = useEntitlements();
 
-  // Gate: Night Ritual is a premium-only feature
+  // Wait for entitlements to resolve before gating to avoid false paywall flashes.
   useEffect(() => {
-    if (!isPremium) {
-      showPaywall('NIGHT_RITUAL_MODE');
+    if (entitlementsLoading || isPremium || blockedAccessHandledRef.current) {
+      return;
     }
-  }, [isPremium, showPaywall]);
+
+    blockedAccessHandledRef.current = true;
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.replace('MainTabs');
+    }
+    showPaywall(PremiumFeature.NIGHT_RITUAL_MODE);
+  }, [entitlementsLoading, isPremium, navigation, showPaywall]);
 
   // Clean, fast Apple entrance animations
   const fadeAnimation = useRef(new Animated.Value(0)).current;

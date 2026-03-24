@@ -25,7 +25,7 @@ This document provides an overview of all legal documents for the Between Us app
 ### 2. Privacy Policy
 **Purpose:** Explains how we collect, use, and protect your data  
 **Key Points:**
-- End-to-end encryption for intimate content
+- Encryption for shared synced intimate content
 - We never sell your data
 - Client-side ML processing
 - Your privacy rights (GDPR, CCPA compliant)
@@ -75,7 +75,7 @@ This document provides an overview of all legal documents for the Between Us app
 🔞 **18+ Only** - Between Us is for adults only
 
 ### Data Protection
-🔒 **End-to-End Encrypted** - Your intimate content is protected  
+🔒 **Encrypted Sync** - Shared synced intimate content is protected before upload  
 🔒 **Client-Side Processing** - Personalization happens on your device  
 🔒 **No Third-Party Sharing** - We never sell your data  
 
@@ -96,7 +96,7 @@ This document provides an overview of all legal documents for the Between Us app
 
 ### Safety Concerns
 **Email:** brittanyapps@outlook.com  
-**Urgent:** Contact immediately for harassment or abuse
+**Urgent:** Contact as soon as possible for harassment or abuse
 
 ### Feedback
 **Email:** brittanyapps@outlook.com

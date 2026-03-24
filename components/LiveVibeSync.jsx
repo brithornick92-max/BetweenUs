@@ -86,7 +86,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
         setStatus({
           tone: 'error',
           title: 'Hold for a beat',
-          subtitle: result.error || 'Heartbeat cooldown is still active.',
+          subtitle: result.error || 'Pulse cooldown is still active.',
         });
         return;
       }
@@ -96,7 +96,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
         tone: result.remote ? 'success' : 'pending',
         title: `Sent to ${partnerLabel}`,
         subtitle: result.remote
-          ? (isTogetherNow ? 'They should feel it now.' : 'Push is on the way.')
+          ? (isTogetherNow ? 'Their device should pulse now.' : 'Push is on the way.')
           : (result.error || 'Saved locally and will sync when connected.'),
       });
     } catch {
@@ -104,7 +104,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
       setStatus({
         tone: 'pending',
         title: `Saved for ${partnerLabel}`,
-        subtitle: 'Heartbeat will sync when the connection returns.',
+        subtitle: 'Pulse will sync when the connection returns.',
       });
     } finally {
       setIsSending(false);
@@ -183,7 +183,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
           <Text style={[styles.statusSubtitle, { color: t.subtext }]}>
             {status?.subtitle || (isTogetherNow
               ? 'Your partner is active right now, so realtime and push can both carry it.'
-              : 'The app writes a heartbeat signal and the backend fans out the push immediately.')}
+              : 'The app writes a heartbeat signal and sends a push when the connection path is available.')}
           </Text>
         </View>
       </View>

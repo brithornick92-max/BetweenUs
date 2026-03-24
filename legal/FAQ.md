@@ -42,7 +42,7 @@ Between Us is for thriving couples — it deepens what's already beautiful.
 
 Premium unlocks unlimited prompts, responses, love notes, calendar, partner connection, cloud sync, and more.
 
-**Note:** Pricing is per couple, not per person. One subscription covers both partners when linked.
+**Note:** Pricing is per couple, not per person. One subscription can support shared premium access for linked partners.
 
 ### How do I get started?
 1. Create your account
@@ -73,7 +73,7 @@ However, linking with your partner unlocks shared features and makes the experie
 ### Can I unlink from my partner?
 Yes, either partner can unlink at any time:
 - Your individual data remains private
-- Shared content is removed from both accounts
+- Couple sharing stops
 - You can relink later if desired
 - No judgment, no questions asked
 
@@ -108,7 +108,7 @@ No! You control what you share:
 ### What happens if we break up?
 - You can unlink from your partner
 - Your data remains yours
-- Shared content is removed
+- Couple sharing stops
 - You can delete your account if desired
 - Your ex-partner cannot access your new content
 
@@ -195,7 +195,7 @@ Premium users can:
 - Save and revisit favorite prompts
 
 ### What are Vibe Signals?
-Vibe Signals let you share your current mood or energy with your partner in real time. Choose from vibes like passionate, tender, luxurious, mysterious, serene, or adventurous. Your partner sees your vibe and it helps personalize your shared experience. (Premium)
+Vibe Signals let you share your current mood or energy with your partner quickly when both of you are connected. Choose from vibes like passionate, tender, luxurious, mysterious, serene, or adventurous. Your partner sees your vibe and it helps personalize your shared experience. (Premium)
 
 ### What are Moment Signals?
 Moment Signals are quick one-tap "thinking of you" messages you can send to your partner — like thinking, grateful, missing, proud, wanting, or loving. They're a simple way to stay connected throughout the day. (Premium)
@@ -213,7 +213,7 @@ The Energy Matcher lets you set your current energy level (low, medium, or high)
 This or That presents you with fun binary choices that help the app learn your preferences and spark playful conversation with your partner.
 
 ### What is the Inside Jokes vault?
-The Inside Jokes vault is a private space where you and your partner can save your shared nicknames, jokes, comfort rituals, and special phrases — all the little things that make your relationship uniquely yours. (Premium)
+The Inside Jokes vault is a private space on your device where you can save nicknames, jokes, comfort rituals, and special phrases that define your relationship. (Premium)
 
 ### What is Year Reflection?
 Year Reflection generates a personalized narrative of your year together based on your journals, dates, and love notes. It's a beautiful way to look back on your relationship journey. (Premium)
@@ -238,7 +238,7 @@ Premium unlocks:
 - **Night rituals** - Custom evening routines together
 - **Calendar and scheduling** - Plan dates and set reminders
 - **Partner connection and cloud sync** - Sync with your linked partner
-- **Vibe Signals** - Share your mood with your partner in real time
+- **Vibe Signals** - Share your mood with your partner when connected
 - **Moment Signals** - Send "thinking of you" taps throughout the day
 - **Energy Matcher** - Get content matched to your current energy
 - **Inside Jokes vault** - Save your shared nicknames, jokes, and rituals
@@ -260,8 +260,8 @@ Premium unlocks:
    - **Yearly:** $49.99/year (best value - save 48%!)
    - **Lifetime:** $69.99 one-time payment
 3. Confirm through the App Store
-4. Enjoy premium features immediately!
-5. Your linked partner automatically gets access too
+4. Premium activates after purchase confirmation
+5. If your accounts are linked, your partner can receive shared access too
 
 ### Can I cancel anytime?
 Yes! Cancel through your device settings:

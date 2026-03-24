@@ -23,7 +23,7 @@ Between Us is a couples app — where closeness deepens. It helps couples deepen
 - Love notes with optional photo attachments
 - Night rituals and shared routines
 - Relationship memories and milestones
-- Vibe Signals and Moment Signals (real-time mood sharing)
+- Vibe Signals and Moment Signals (connectivity-dependent mood sharing)
 - Inside Jokes vault (shared nicknames, jokes, and rituals)
 - Reveal Together (simultaneous answer sharing)
 - Energy Matcher and Relationship Climate (personalized content)

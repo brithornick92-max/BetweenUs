@@ -19,13 +19,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import naclUtil from 'tweetnacl-util';
 import { useTheme } from '../context/ThemeContext';
-import { useEntitlements } from '../context/EntitlementsContext';
 import { useAuth } from '../context/AuthContext';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import StorageRouter from '../services/storage/StorageRouter';
 import CloudEngine from '../services/storage/CloudEngine';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import { makePairingPayload } from '../services/security/PairingPayload';
+import CoupleService from '../services/supabase/CoupleService';
 import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, withAlpha } from '../utils/theme';
 import Icon from '../components/Icon';
@@ -34,7 +34,6 @@ const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 export default function PairingQRCodeScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective: isPremium } = useEntitlements();
   const { user, updateProfile } = useAuth();
 
   const [qrPayload, setQrPayload] = useState(null);
@@ -58,19 +57,14 @@ export default function PairingQRCodeScreen({ navigation }) {
 
     const prepare = async () => {
       try {
-        const syncStatus = await cloudSyncStorage.getSyncStatus();
-        if (!isPremium || !syncStatus?.enabled) {
-          setStatus('Enable Sync to link partners.');
+        const session = await SupabaseAuthService.getSession();
+        if (!session) {
+          setStatus('Sign in to create an invite.');
           setPhase('error');
           return;
         }
 
-        const session = await SupabaseAuthService.getSession();
-        if (!session) {
-          setStatus('Sign in to enable sync.');
-          setPhase('error');
-          return;
-        }
+        await CloudEngine.initialize({ supabaseSessionPresent: true });
 
         const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
         const coupleId = await CloudEngine.createCouple(myPublicKeyB64);
@@ -82,7 +76,8 @@ export default function PairingQRCodeScreen({ navigation }) {
         }
         await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
 
-        const payload = makePairingPayload({ coupleId, publicKey: myPublicKeyB64 });
+        const { code: pairingCode } = await CoupleService.generatePairingCode(coupleId);
+        const payload = makePairingPayload({ pairingCode, publicKey: myPublicKeyB64 });
 
         if (!activeRef.current) return;
         setQrPayload(JSON.stringify(payload));
@@ -106,7 +101,12 @@ export default function PairingQRCodeScreen({ navigation }) {
         setStatus('Connected successfully!');
         setPhase('done');
         setTimeout(() => {
-          if (activeRef.current) navigation.navigate('SyncSetup');
+          if (!activeRef.current) return;
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            navigation.navigate('Settings');
+          }
         }, 1200);
       } catch (error) {
         if (!activeRef.current) return;
@@ -117,7 +117,7 @@ export default function PairingQRCodeScreen({ navigation }) {
 
     prepare();
     return () => { activeRef.current = false; };
-  }, [isPremium]);
+  }, [navigation, updateProfile, user?.uid]);
 
   const handleGoToSync = () => navigation.navigate('SyncSetup');
 
@@ -185,7 +185,7 @@ export default function PairingQRCodeScreen({ navigation }) {
           <View style={styles.securityNotice}>
             <Icon name="shield-checkmark-outline" size={14} color={t.subtext} />
             <Text style={[styles.noticeText, { color: t.subtext }]}>
-              E2EE pairing. Keys stay on-device.
+              Encrypted pairing. Keys are created on-device.
             </Text>
           </View>
         </View>

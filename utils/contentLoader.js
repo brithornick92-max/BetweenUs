@@ -212,6 +212,12 @@ export function getAllPrompts() {
   return safeArray(promptsData?.items).filter(Boolean);
 }
 
+export function getPromptById(id) {
+  const items = safeArray(promptsData?.items);
+  const match = items.find((prompt) => prompt && prompt.id === id);
+  return match ? normalizePrompt(match) : null;
+}
+
 export function getPromptsByHeatLevel(heatLevel) {
   const level = typeof heatLevel === "number" ? heatLevel : Number(heatLevel) || 5;
   const items = safeArray(promptsData?.items);

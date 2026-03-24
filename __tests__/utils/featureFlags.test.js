@@ -63,8 +63,16 @@ describe('GuardBehavior enum', () => {
 // ─── Limits ──────────────────────────────────────────────────────────────────
 
 describe('FREE_LIMITS', () => {
-  it('allows zero daily prompts', () => {
-    expect(FREE_LIMITS.PROMPTS_PER_DAY).toBe(0);
+  it('allows one daily prompt response', () => {
+    expect(FREE_LIMITS.PROMPTS_PER_DAY).toBe(1);
+  });
+
+  it('allows three date idea previews per day', () => {
+    expect(FREE_LIMITS.DATE_IDEAS_PER_DAY).toBe(3);
+  });
+
+  it('allows one fully planned date flow per week', () => {
+    expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(1);
   });
 
   it('has exactly 3 preview prompts', () => {
@@ -79,8 +87,12 @@ describe('FREE_LIMITS', () => {
     expect(FREE_LIMITS.SURPRISE_ME_ENABLED).toBe(false);
     expect(FREE_LIMITS.LOVE_NOTES_ENABLED).toBe(false);
     expect(FREE_LIMITS.CALENDAR_ENABLED).toBe(false);
-    expect(FREE_LIMITS.PARTNER_LINKING_ENABLED).toBe(false);
+    expect(FREE_LIMITS.PARTNER_LINKING_ENABLED).toBe(true);
     expect(FREE_LIMITS.CLOUD_SYNC_ENABLED).toBe(false);
+  });
+
+  it('keeps prompt responses available on the free tier', () => {
+    expect(FREE_LIMITS.PROMPT_RESPONSES_ENABLED).toBe(true);
   });
 
   it('is frozen', () => {

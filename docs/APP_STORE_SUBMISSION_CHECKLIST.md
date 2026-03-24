@@ -90,7 +90,7 @@ NOTIFICATIONS:
 - Push notification permission is requested only from explicit user action in-app
 
 ENCRYPTION:
-ITSAppUsesNonExemptEncryption is set to YES. The app uses end-to-end style content encryption for private synced data.
+ITSAppUsesNonExemptEncryption is set to YES. The app uses client-side encryption for private synced data before upload.
 ```
 
 ## Encryption / ERN Checklist

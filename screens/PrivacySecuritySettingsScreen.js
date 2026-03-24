@@ -16,6 +16,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
+import { PremiumFeature } from '../utils/featureFlags';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 
 const PrivacySecuritySettingsScreen = ({ navigation }) => {
@@ -76,7 +77,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
   const handleToggleAppLock = async (value) => {
     if (value && !isPremium) {
-      showPaywall('vaultAndBiometric');
+      showPaywall(PremiumFeature.VAULT_AND_BIOMETRIC);
       return;
     }
     if (value && biometricsAvailable) {
@@ -270,8 +271,8 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
             <View style={styles.infoContent}>
               <Text style={[styles.infoTitle, { color: colors.text }]}>Your data is encrypted and private</Text>
               <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                Only you and your partner can see your shared space.{"\n\n"}
-                All data is encrypted in transit (HTTPS/TLS) and at rest on our servers. Access is controlled by row-level security — even with a valid login, users can only see data from their own couple.{"\n\n"}
+                Shared content stays inside your couple space, and private settings like soft boundaries stay on your device.{"\n\n"}
+                Synced data is encrypted in transit (HTTPS/TLS) and protected at rest on our servers. Sensitive shared content is also encrypted before sync, and access is limited by row-level security to the correct account or couple.{"\n\n"}
                 Photos are stored in a private bucket. Viewing requires a short-lived signed URL that expires automatically.{"\n\n"}
                 One shared space. Nothing public. Ever.
               </Text>
@@ -362,7 +363,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
             <View style={styles.infoContent}>
               <Text style={[styles.infoTitle, { color: colors.text }]}>New phone?</Text>
               <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                Just sign in with your email and password to restore your shared space — your couple link, calendar events, shared moments, and premium access will all be there.
+                Sign in with your email and password to restore your account. Your couple link and premium access will return automatically. Shared content and planning data restore across devices when cloud sync is enabled.
               </Text>
             </View>
           </View>
@@ -384,7 +385,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
               <Text style={[styles.infoTitle, { color: colors.text }]}>Partner Linking</Text>
               <Text style={[styles.infoText, { color: colors.textSecondary }]}>
                 Invite-only. Temporary code. Only your partner can join.{"\n\n"}
-                Codes expire in 15 minutes, are single-use, and are never stored in plain text. Your couple container is created securely on the server and survives new phones automatically.
+                Codes expire in 15 minutes, are single-use, and are never stored in plain text. Your couple link is created securely on the server. Shared content and planning data restore on new phones when cloud sync is enabled.
               </Text>
             </View>
           </View>

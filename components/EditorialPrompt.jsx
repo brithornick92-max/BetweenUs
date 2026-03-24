@@ -22,6 +22,7 @@ import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useAppContext } from '../context/AppContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { storage, STORAGE_KEYS, promptStorage } from '../utils/storage';
 import { DataLayer } from '../services/localfirst';
 import { supabase, TABLES } from '../config/supabase';
@@ -150,22 +151,133 @@ const PROMPT_CATEGORIES = {
   DAILY_LIFE: { id: 'daily_life', name: 'Daily Life', icon: 'sunny-outline', color: '#64D2FF' },
 };
 
+const CATEGORY_TO_PROFILE_TAGS = {
+  reflection: ['emotional', 'memory'],
+  gratitude: ['romance', 'memory'],
+  dreams: ['future'],
+  intimacy: ['physical', 'sensory', 'kinky'],
+  playful: ['playful'],
+  daily_life: [],
+};
+
 const EDITORIAL_PROMPTS = {
   [PROMPT_CATEGORIES.REFLECTION.id]: [
-    "What moment today made you feel most connected to yourself?",
-    "If you could relive one conversation from this week, which would it be?",
-    "What's something you've learned about love recently?",
+    { id: 'reflection_1', question: "What moment today made you feel most connected to yourself?" },
+    { id: 'reflection_2', question: "If you could relive one conversation from this week, which would it be?" },
+    { id: 'reflection_3', question: "What's something you've learned about love recently?" },
+  ],
+  [PROMPT_CATEGORIES.GRATITUDE.id]: [
+    { id: 'gratitude_1', question: "What is one small thing your partner did recently that still lingers with you in a good way?" },
+    { id: 'gratitude_2', question: "What part of your relationship feels easiest to appreciate right now?" },
+    { id: 'gratitude_3', question: "What tenderness from today do you want to remember longer?" },
+  ],
+  [PROMPT_CATEGORIES.DREAMS.id]: [
+    { id: 'dreams_1', question: "What kind of life do you hope you are quietly building together right now?" },
+    { id: 'dreams_2', question: "What future moment with your partner feels especially vivid to you lately?" },
+    { id: 'dreams_3', question: "What dream feels safer to say out loud when you're with them?" },
   ],
   [PROMPT_CATEGORIES.DAILY_LIFE.id]: [
-    "What was the highlight of your day today?",
-    "What's something that happened today that you want to share?",
-    "How did you feel most like yourself today?",
+    { id: 'daily_life_1', question: "What was the highlight of your day today?" },
+    { id: 'daily_life_2', question: "What's something that happened today that you want to share?" },
+    { id: 'daily_life_3', question: "How did you feel most like yourself today?" },
   ],
   [PROMPT_CATEGORIES.INTIMACY.id]: [
-    "What makes you feel most loved by your partner?",
-    "What's your favorite way to show affection?",
-    "How do you like to be comforted when you're upset?",
+    { id: 'intimacy_1', question: "What makes you feel most loved by your partner?" },
+    { id: 'intimacy_2', question: "What's your favorite way to show affection?" },
+    { id: 'intimacy_3', question: "How do you like to be comforted when you're upset?" },
   ],
+  [PROMPT_CATEGORIES.PLAYFUL.id]: [
+    { id: 'playful_1', question: "What is one silly moment with your partner that always resets your mood?" },
+    { id: 'playful_2', question: "What kind of mischief or spontaneity sounds good for the two of you this week?" },
+    { id: 'playful_3', question: "What playful side of your connection do you want more room for lately?" },
+  ],
+};
+
+const getEditorialPromptBank = (categoryId) => EDITORIAL_PROMPTS[categoryId] || EDITORIAL_PROMPTS[PROMPT_CATEGORIES.REFLECTION.id];
+
+const hashString = (value) => {
+  const input = String(value || '');
+  let hash = 0;
+  for (let index = 0; index < input.length; index += 1) {
+    hash = ((hash << 5) - hash + input.charCodeAt(index)) | 0;
+  }
+  return Math.abs(hash);
+};
+
+const isEditorialCategoryAllowed = (categoryId, profile) => {
+  if (!profile) return true;
+  const blockedTags = profile.boundaries?.hiddenCategories || [];
+  const mappedTags = CATEGORY_TO_PROFILE_TAGS[categoryId] || [];
+
+  if (mappedTags.some((tag) => blockedTags.includes(tag))) return false;
+  if (categoryId === PROMPT_CATEGORIES.INTIMACY.id && (profile.maxHeat || 5) <= 2) return false;
+  return true;
+};
+
+export const resolveEditorialCategory = (profile, requestedCategory = null) => {
+  if (requestedCategory && isEditorialCategoryAllowed(requestedCategory, profile)) {
+    return requestedCategory;
+  }
+
+  const ordered = [];
+  const pushIfAllowed = (categoryId) => {
+    if (!categoryId) return;
+    if (ordered.includes(categoryId)) return;
+    if (!isEditorialCategoryAllowed(categoryId, profile)) return;
+    ordered.push(categoryId);
+  };
+
+  const tone = profile?.tone || 'warm';
+  const seasonId = profile?.season?.id || 'cozy';
+  const energyLevel = profile?.energy?.level || 'medium';
+  const climateCategories = profile?.climate?.preferredCategories || [];
+
+  if (climateCategories.includes('playful')) pushIfAllowed(PROMPT_CATEGORIES.PLAYFUL.id);
+  if (climateCategories.includes('future')) pushIfAllowed(PROMPT_CATEGORIES.DREAMS.id);
+  if (climateCategories.some((tag) => ['emotional', 'memory'].includes(tag))) pushIfAllowed(PROMPT_CATEGORIES.REFLECTION.id);
+  if (climateCategories.some((tag) => ['romance'].includes(tag))) pushIfAllowed(PROMPT_CATEGORIES.GRATITUDE.id);
+  if (climateCategories.some((tag) => ['physical', 'sensory', 'kinky'].includes(tag))) pushIfAllowed(PROMPT_CATEGORIES.INTIMACY.id);
+
+  if (tone === 'playful') pushIfAllowed(PROMPT_CATEGORIES.PLAYFUL.id);
+  if (tone === 'intimate') pushIfAllowed(PROMPT_CATEGORIES.INTIMACY.id);
+  if (tone === 'minimal') pushIfAllowed(PROMPT_CATEGORIES.DAILY_LIFE.id);
+  if (tone === 'warm') pushIfAllowed(PROMPT_CATEGORIES.GRATITUDE.id);
+
+  if (seasonId === 'growth') pushIfAllowed(PROMPT_CATEGORIES.REFLECTION.id);
+  if (seasonId === 'adventure') pushIfAllowed(PROMPT_CATEGORIES.DREAMS.id);
+  if (seasonId === 'busy' || seasonId === 'rest') pushIfAllowed(PROMPT_CATEGORIES.DAILY_LIFE.id);
+  if (seasonId === 'cozy') pushIfAllowed(PROMPT_CATEGORIES.GRATITUDE.id);
+
+  if (energyLevel === 'low') pushIfAllowed(PROMPT_CATEGORIES.DAILY_LIFE.id);
+  if (energyLevel === 'open') pushIfAllowed(PROMPT_CATEGORIES.INTIMACY.id);
+
+  pushIfAllowed(PROMPT_CATEGORIES.REFLECTION.id);
+  pushIfAllowed(PROMPT_CATEGORIES.GRATITUDE.id);
+  pushIfAllowed(PROMPT_CATEGORIES.DAILY_LIFE.id);
+
+  return ordered[0] || PROMPT_CATEGORIES.REFLECTION.id;
+};
+
+const buildEditorialPrompt = ({ profile, requestedCategory, promptId = null, savedPrompt = null }) => {
+  const today = new Date().toISOString().split('T')[0];
+  const resolvedCategory = resolveEditorialCategory(profile, requestedCategory);
+  const promptBank = getEditorialPromptBank(resolvedCategory);
+
+  let selected = promptBank.find((item) => item.id === promptId) || null;
+  if (!selected) {
+    const seed = `${today}:${resolvedCategory}:${profile?.tone || 'warm'}:${profile?.energy?.level || 'medium'}:${profile?.season?.id || 'cozy'}`;
+    const index = hashString(seed) % promptBank.length;
+    selected = promptBank[index];
+  }
+
+  return {
+    id: selected.id,
+    date: today,
+    category: resolvedCategory,
+    question: selected.question,
+    userAnswer: savedPrompt?.userAnswer || null,
+    createdAt: new Date(),
+  };
 };
 
 const EditorialPrompt = ({
@@ -176,6 +288,7 @@ const EditorialPrompt = ({
   onPartnerAnswerRevealed,
 }) => {
   const { colors, isDark } = useTheme();
+  const { userProfile } = useAuth();
   const { state: appState } = useAppContext();
   const { state: memoryState } = useMemoryContext();
 
@@ -210,9 +323,15 @@ const EditorialPrompt = ({
     let isMounted = true;
     const loadPrompt = async () => {
       try {
-        let prompt;
-        if (promptId) prompt = await promptSyncService.getPromptWithPrivacy(promptId);
-        if (!prompt) prompt = await generateDailyPrompt(category);
+        const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+        let savedPrompt = null;
+        if (promptId) savedPrompt = await promptSyncService.getPromptWithPrivacy(promptId);
+        const prompt = buildEditorialPrompt({
+          profile,
+          requestedCategory: category,
+          promptId,
+          savedPrompt,
+        });
         if (!isMounted) return;
 
         setCurrentPrompt(prompt);
@@ -231,7 +350,7 @@ const EditorialPrompt = ({
     };
     loadPrompt();
     return () => { isMounted = false; };
-  }, [promptId, category]);
+  }, [promptId, category, userProfile]);
 
   useEffect(() => {
     if (!currentPrompt?.id) return;
@@ -243,22 +362,6 @@ const EditorialPrompt = ({
     });
     return () => unsubLocal();
   }, [currentPrompt?.id, hasUserSubmitted]);
-
-  const generateDailyPrompt = async (categoryId) => {
-    const today = new Date().toISOString().split('T')[0];
-    const prompts = EDITORIAL_PROMPTS[categoryId] || EDITORIAL_PROMPTS.reflection;
-    const dayOfMonth = parseInt(today.split('-')[2], 10);
-    const promptIndex = dayOfMonth % prompts.length;
-
-    return {
-      id: `prompt_${today}_${categoryId}`,
-      date: today,
-      category: categoryId,
-      question: prompts[promptIndex],
-      userAnswer: null,
-      createdAt: new Date(),
-    };
-  };
 
   const handleAnswerSubmit = async () => {
     if (!userAnswer.trim() || isSubmitting) return;

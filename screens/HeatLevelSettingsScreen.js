@@ -26,6 +26,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import { useEntitlements } from '../context/EntitlementsContext';
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -122,7 +123,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
   const handleLevelSelect = (level) => {
     if (level >= 4 && !isPremium) {
       impact(ImpactFeedbackStyle.Light);
-      showPaywall('heatLevels4to5');
+      showPaywall(PremiumFeature.HEAT_LEVELS_4_5);
       return;
     }
     

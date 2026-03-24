@@ -56,7 +56,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <Text style={[styles.subTitle, { color: colors.text }]}>Content You Create</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             We protect different categories of content in different ways:{'\n\n'}
-            • Journal entries, prompt responses, love notes, and memories are encrypted before sync{'\n'}
+            • Journal entries, prompt responses, love notes, and memories are encrypted before any premium cloud sync{'\n'}
             • Photo attachments are encrypted before upload{'\n'}
             • Some preferences and sensitive controls stay only on your device{'\n'}
             • Some metadata used for filtering, sorting, and scheduling is protected but not end-to-end encrypted{'\n'}
@@ -105,7 +105,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             We use your information to:{'\n\n'}
             • Provide and improve the App{'\n'}
             • Personalize your experience{'\n'}
-            • Enable partner linking and sharing{'\n'}
+            • Enable free partner linking and optional couple sharing{'\n'}
             • Process subscription payments{'\n'}
             • Send important updates and notifications{'\n'}
             • Provide customer support{'\n'}
@@ -115,14 +115,14 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>3. End-to-End Encryption</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
-            All user-created content (journals, prompts, love notes, memories, rituals, check-ins, vibes, inside jokes, and more) is protected with end-to-end encryption using industry-standard cryptography (XSalsa20-Poly1305 with X25519 key exchange).{'\n\n'}
-            • Private entries are encrypted with a key only you hold — not even your partner can read them{'\n'}
-            • Shared entries are encrypted with a couple key derived between both partners' devices — only you and your partner can decrypt them{'\n'}
-            • We cannot access your encrypted content{'\n'}
-            • Encryption keys are stored in your device's secure hardware keychain{'\n'}
-            • Even if our servers are compromised, your content remains private{'\n\n'}
+            Between Us protects different kinds of content in different ways. Shared synced content uses client-side encryption with your couple key, while device-only content stays encrypted locally on your phone.{'\n\n'}
+            • Private entries use a key only your device holds unless you explicitly share or sync them{'\n'}
+            • Shared entries such as synced journals, prompt responses, memories, and love notes are encrypted with a couple key derived between both partners' devices{'\n'}
+            • Device-only features such as soft boundaries, inside jokes, relationship climate, and year reflections stay local unless the feature explicitly says otherwise{'\n'}
+            • We cannot read content protected by your device-only or couple encryption keys{'\n'}
+            • Encryption keys are stored in your device's secure hardware keychain when available{'\n\n'}
             Important: If you lose access to your device without having cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable.{'\n\n'}
-            Note: Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored without end-to-end encryption so we can provide features like filtering, sorting, and calendar scheduling. This metadata is still protected by TLS in transit and access controls at rest.
+            Note: Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored without end-to-end encryption so we can provide features like filtering, sorting, scheduling, and delivery. This metadata is still protected by TLS in transit and access controls at rest.
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>4. Information Sharing</Text>
@@ -138,7 +138,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>5. Third-Party Services</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             We use the following third-party services:{'\n\n'}
-            • Supabase - Cloud data storage and authentication{'\n'}
+            • Supabase - Authentication, partner linking, and optional premium cloud sync{'\n'}
             • RevenueCat - Subscription management{'\n'}
             • Sentry - Crash reporting, performance monitoring, and session replays (10% of sessions; 100% on error) to help fix bugs. Also powers optional user feedback.{'\n'}
             • Expo - Push notification delivery and over-the-air updates{'\n'}
@@ -149,9 +149,9 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>6. Data Retention</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             • Account data: Retained while your account is active{'\n'}
-            • Journal entries: Retained until you delete them{'\n'}
+            • Journal entries and linked-partner metadata: Retained until you delete them or remove access through unlinking or account deletion{'\n'}
             • Usage data: Retained for up to 2 years{'\n'}
-            • Deleted data: Permanently removed within 30 days
+            • Deleted data: Removed from active systems promptly; backup purge may take longer
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>7. Your Rights</Text>

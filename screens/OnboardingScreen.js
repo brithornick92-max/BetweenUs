@@ -758,7 +758,7 @@ export default function OnboardingScreen({ navigation }) {
             <Icon name="cloud-lock" size={40} color={t.primary} style={{ marginBottom: 16 }} />
             <Text style={styles.cloudAuthTitle}>One more step</Text>
             <Text style={styles.cloudAuthBody}>
-              Enter your password to enable secure partner linking.
+              Enter your password to sign in securely before linking your partner.
             </Text>
             <View style={styles.cloudAuthInputWrap}>
               <TextInput

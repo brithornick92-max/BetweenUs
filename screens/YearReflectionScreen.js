@@ -31,6 +31,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { impact, selection, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import { YearReflection } from '../services/PolishEngine';
 import GlowOrb from '../components/GlowOrb';
@@ -76,7 +77,7 @@ function FadeSection({ children, delay = 0 }) {
 // ------------------------------------------------------------------
 export default function YearReflectionScreen({ navigation }) {
   const { isDark } = useTheme();
-  const { isPremiumEffective: isPremium } = useEntitlements();
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const [reflection, setReflection] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -156,7 +157,7 @@ export default function YearReflectionScreen({ navigation }) {
           </Text>
           <TouchableOpacity
             style={styles.premiumButton}
-            onPress={() => { selection(); navigation.navigate('Paywall'); }}
+            onPress={() => { selection(); showPaywall(PremiumFeature.YEAR_REFLECTION); }}
           >
             <Text style={styles.premiumButtonText}>Unlock Your Story</Text>
           </TouchableOpacity>

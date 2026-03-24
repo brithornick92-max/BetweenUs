@@ -490,18 +490,35 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  active_premium_user uuid;
+  should_be_premium boolean;
 BEGIN
   IF NOT is_couple_member(input_couple_id, auth.uid()) THEN
     RAISE EXCEPTION 'Access denied: not a member of this couple';
   END IF;
+
+  -- Backward-compatible signature: ignore caller-provided premium flags and
+  -- recompute shared premium solely from server-side entitlement truth.
+  SELECT cm.user_id INTO active_premium_user
+    FROM couple_members cm
+    JOIN user_entitlements ue ON ue.user_id = cm.user_id
+   WHERE cm.couple_id = input_couple_id
+     AND ue.is_premium = true
+     AND (ue.expires_at IS NULL OR ue.expires_at > now())
+   ORDER BY CASE WHEN cm.user_id = auth.uid() THEN 0 ELSE 1 END, ue.updated_at DESC NULLS LAST
+   LIMIT 1;
+
+  should_be_premium := active_premium_user IS NOT NULL;
+
   UPDATE couples SET
-    is_premium = input_is_premium,
+    is_premium = should_be_premium,
     premium_since = CASE
-      WHEN input_is_premium AND premium_since IS NULL THEN now()
-      WHEN NOT input_is_premium THEN NULL
+      WHEN should_be_premium AND premium_since IS NULL THEN now()
+      WHEN NOT should_be_premium THEN NULL
       ELSE premium_since
     END,
-    premium_source = input_source,
+    premium_source = COALESCE(active_premium_user::text, 'none'),
     updated_at = now()
   WHERE id = input_couple_id;
 END;
@@ -604,6 +621,7 @@ $$;
 
 DROP FUNCTION IF EXISTS redeem_partner_code(text, uuid);
 DROP FUNCTION IF EXISTS redeem_partner_code(text);
+DROP FUNCTION IF EXISTS redeem_pairing_code(text, text);
 
 CREATE OR REPLACE FUNCTION redeem_partner_code(input_code_hash text)
 RETURNS jsonb
@@ -690,6 +708,77 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION redeem_partner_code(text) TO authenticated;
+
+CREATE OR REPLACE FUNCTION redeem_pairing_code(input_code_hash text, input_public_key text)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+SET row_security = off
+AS $$
+DECLARE
+  code_row partner_link_codes%ROWTYPE;
+  creator_id uuid;
+  redeemer_id uuid;
+BEGIN
+  redeemer_id := auth.uid();
+  IF redeemer_id IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+  END IF;
+
+  IF input_public_key IS NULL OR length(input_public_key) < 40 THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Missing or invalid public key');
+  END IF;
+
+  IF NOT check_sensitive_rate_limit(redeemer_id) THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Too many attempts. Try again in a minute.');
+  END IF;
+
+  SELECT * INTO code_row
+    FROM partner_link_codes
+   WHERE code_hash = input_code_hash
+     AND used_at IS NULL
+     AND expires_at > now()
+     AND couple_id IS NOT NULL
+   FOR UPDATE;
+
+  IF code_row IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Invalid, expired, or already-used pairing code');
+  END IF;
+
+  creator_id := code_row.created_by;
+
+  IF creator_id = redeemer_id THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Cannot pair with yourself');
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM couple_members
+    WHERE couple_id = code_row.couple_id AND user_id = creator_id
+  ) THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Pairing code is no longer valid');
+  END IF;
+  IF EXISTS (SELECT 1 FROM couple_members WHERE user_id = redeemer_id) THEN
+    RETURN jsonb_build_object('success', false, 'error', 'You are already in a couple');
+  END IF;
+
+  INSERT INTO couple_members (couple_id, user_id, role, public_key)
+  VALUES (code_row.couple_id, redeemer_id, 'member', input_public_key);
+
+  UPDATE partner_link_codes
+     SET used_at = now(),
+         used_by = redeemer_id
+   WHERE id = code_row.id;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'couple_id', code_row.couple_id,
+    'creator_id', creator_id,
+    'redeemer_id', redeemer_id
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION redeem_pairing_code(text, text) TO authenticated;
 
 
 -- ############################################################################
@@ -1146,7 +1235,14 @@ DROP POLICY IF EXISTS "Users can join couple" ON couple_members;
 DROP POLICY IF EXISTS "member_insert" ON couple_members;
 DROP POLICY IF EXISTS "member_insert_v2" ON couple_members;
 CREATE POLICY "Users can join couple" ON couple_members
-  FOR INSERT WITH CHECK (user_id = auth.uid());
+  FOR INSERT WITH CHECK (
+    user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM couples c
+      WHERE c.id = couple_members.couple_id
+        AND c.created_by = auth.uid()
+    )
+  );
 
 DROP POLICY IF EXISTS "member_update" ON couple_members;
 DROP POLICY IF EXISTS "member_update_v2" ON couple_members;
@@ -1277,7 +1373,18 @@ DROP POLICY IF EXISTS "Authenticated users can create link codes" ON partner_lin
 CREATE POLICY "Authenticated users can create link codes" ON partner_link_codes
   FOR INSERT WITH CHECK (
     created_by = auth.uid()
-    AND NOT EXISTS (SELECT 1 FROM couple_members WHERE user_id = auth.uid())
+    AND (
+      couple_id IS NULL
+      OR EXISTS (
+        SELECT 1 FROM couple_members cm
+        WHERE cm.couple_id = partner_link_codes.couple_id
+          AND cm.user_id = auth.uid()
+      )
+    )
+    AND (
+      couple_id IS NOT NULL
+      OR NOT EXISTS (SELECT 1 FROM couple_members WHERE user_id = auth.uid())
+    )
   );
 
 -- ─── USER_ENTITLEMENTS ────────────────────────────────────────────
@@ -1471,7 +1578,8 @@ GRANT EXECUTE ON FUNCTION get_daily_usage_count(uuid, uuid, text, text) TO authe
 GRANT EXECUTE ON FUNCTION set_couple_premium(uuid, boolean, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION check_rate_limit(uuid, int)           TO authenticated;
 GRANT EXECUTE ON FUNCTION check_sensitive_rate_limit(uuid)      TO authenticated;
-GRANT EXECUTE ON FUNCTION send_expo_push(text, text, text, jsonb) TO authenticated;
+REVOKE EXECUTE ON FUNCTION send_expo_push(text, text, text, jsonb) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION send_expo_push(text, text, text, jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION redeem_partner_code(text)             TO authenticated;
 GRANT EXECUTE ON FUNCTION delete_own_account()                  TO authenticated;
 GRANT EXECUTE ON FUNCTION notify_partner(uuid, text, text, jsonb) TO authenticated;

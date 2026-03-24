@@ -8,6 +8,49 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 
+function parseEnvValue(rawValue) {
+  const trimmed = rawValue.trim();
+  if (!trimmed) return '';
+
+  const quote = trimmed[0];
+  if ((quote === '"' || quote === "'") && trimmed.endsWith(quote)) {
+    const inner = trimmed.slice(1, -1);
+    return quote === '"'
+      ? inner
+          .replace(/\\n/g, '\n')
+          .replace(/\\r/g, '\r')
+          .replace(/\\t/g, '\t')
+          .replace(/\\\\/g, '\\')
+      : inner;
+  }
+
+  return trimmed.replace(/\s+#.*$/, '').trim();
+}
+
+function loadEnvFile(relativePath) {
+  const envPath = path.join(ROOT, relativePath);
+  if (!fs.existsSync(envPath)) return false;
+
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const match = trimmed.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (!match) continue;
+
+    const [, key, rawValue] = match;
+    if (process.env[key] === undefined) {
+      process.env[key] = parseEnvValue(rawValue);
+    }
+  }
+
+  return true;
+}
+
+loadEnvFile('.env');
+loadEnvFile('.env.local');
+
 // ─── 1. Required environment variables ────────────────────────────
 const requiredEnvVars = [
   'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY',

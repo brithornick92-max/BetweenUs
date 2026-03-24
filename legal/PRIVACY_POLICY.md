@@ -104,18 +104,17 @@ We **never** collect:
 ## 3. Data Security and Encryption
 
 ### 3.1 End-to-End Encryption (Couple Key)
-**Your intimate content is protected with E2EE:**
-- Journal entries, prompt responses, and love notes are encrypted on your device before upload
-- Only you and your linked partner can decrypt encrypted content
-- We cannot read your encrypted journal entries, prompt responses, or love notes
+**Shared synced content is protected with E2EE:**
+- Shared journal entries, prompt responses, memories, and love notes are encrypted on your device before upload
+- Only you and your linked partner can decrypt couple-encrypted content
+- We cannot read content protected by your couple encryption key
 - Encryption keys are derived via X25519 key exchange during partner pairing and never stored on our servers
-- Partner pairing uses QR codes containing only a couple ID and a public key — no personal data
+- Partner pairing uses a one-time linking payload and device public keys rather than personal profile data
 
 ### 3.2 Device-Level Encryption
 **Additional local data is encrypted with a device-specific key:**
-- Love notes and photo attachments
 - Daily check-ins (mood, closeness, and notes)
-- Relationship memories and milestones
+- Local-only memories and milestones
 - Inside jokes and shared references
 - Relationship climate selections
 
@@ -155,11 +154,11 @@ We implement industry-standard security:
 
 ### 4.1 With Your Partner
 - Content you choose to share is visible to your linked partner
-- Vibe signals and moment signals are shared with your linked partner in real time
+- Vibe signals and moment signals are sent to your linked partner as connectivity allows
 - Prompt responses can be shared via the Reveal Together feature (both partners must opt in)
 - You control what you share and when
 - Your partner cannot access your private entries or soft boundary settings
-- Unlinking stops all data sharing
+- Unlinking stops new data sharing and removes access to the shared couple space
 
 ### 4.2 With Service Providers
 We work with trusted partners who help us operate:
@@ -207,7 +206,7 @@ We'll notify you unless legally prohibited.
 - Delete individual entries
 - Delete your entire account
 - Request complete data deletion
-- Deletion is permanent and immediate
+- Deletion is permanent, but backup removal may take up to 90 days
 
 ### 5.4 Opt-Out Rights
 - Disable notifications
@@ -235,18 +234,18 @@ We'll notify you unless legally prohibited.
 ### 6.1 Active Accounts
 - We retain your data while your account is active
 - You can delete data anytime
-- Deleted data is removed within 30 days
+- Deleted data is removed from active systems promptly; backup purge may take up to 90 days
 
 ### 6.2 Deleted Accounts
 - Account deletion is permanent
-- Most data deleted immediately
+- Most active data is deleted promptly
 - Some data retained for legal compliance (30-90 days)
 - Backups purged within 90 days
 
 ### 6.3 Partner Data
 - Your partner's data remains separate
 - Deleting your account doesn't affect their data
-- Shared content is removed from both accounts
+- Account deletion removes your access and ends future sharing from your account
 
 ---
 

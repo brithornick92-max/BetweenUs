@@ -44,7 +44,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `Pro membership includes:\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly} (Best Value)\n• Lifetime: ${FALLBACK_PRICES.lifetime}\n\nOne subscription covers both you and your partner. Access to data export is always free for all users.`,
+        a: `Pro membership includes:\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly} (Best Value)\n• Lifetime: ${FALLBACK_PRICES.lifetime}\n\nFree users can still link with a partner, answer 1 prompt per day, and fully plan 1 date per week. One subscription covers both you and your linked partner. Access to data export is always free for all users.`,
       },
       {
         q: 'How do I get started?',
@@ -61,11 +61,11 @@ const FAQ_DATA = [
       },
       {
         q: 'How do I link with my partner?',
-        a: '1. Both partners create accounts\n2. One partner generates a QR code\n3. The other partner scans the QR code (or enters the code manually)\n4. Both partners confirm the link\n5. You\'re connected!',
+        a: '1. Both partners create accounts\n2. One partner generates an invite code or QR code\n3. The other partner scans the QR code or enters the code manually\n4. Both partners confirm the link\n5. You\'re connected!\n\nPartner linking is free. Premium adds encrypted sync and more shared features.',
       },
       {
         q: 'Can I unlink from my partner?',
-        a: 'Yes, either partner can unlink at any time. Your individual data remains private, shared content is removed from both accounts, and you can relink later if desired.',
+        a: 'Yes, either partner can unlink at any time. Your individual data remains private, couple sharing stops, and you can relink later if desired.',
       },
     ],
   },
@@ -74,7 +74,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Absolutely. Every reflection, love note, and ritual is end-to-end encrypted. We cannot read your content, and we never sell your data. Only you and your linked partner hold the keys to your shared world.',
+        a: 'Absolutely. Shared content such as synced journal entries, prompt responses, memories, and love notes is encrypted before sync, and some private preferences stay only on your device. We do not sell your data, and we cannot read content protected by your device-only or couple encryption keys.',
       },
       {
         q: 'Can my partner see everything I write?',
@@ -82,7 +82,7 @@ const FAQ_DATA = [
       },
       {
         q: 'What happens if we break up?',
-        a: 'You can unlink from your partner, your data remains yours, shared content is removed, and you can delete your account if desired. Your ex-partner cannot access your new content.',
+        a: 'You can unlink from your partner, your data remains yours, couple sharing stops, and you can delete your account if desired. Your ex-partner cannot access content you create after unlinking.',
       },
       {
         q: 'Can Between Us read my journal?',
@@ -128,11 +128,11 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Love notes with photo attachments\n• Date night catalog with planning tools\n• Night rituals and custom routines\n• Calendar and scheduling\n• Partner connection and cloud sync\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Soft Boundaries (hide content privately)\n• Both partners get access',
+        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Love notes with photo attachments\n• Unlimited date planning tools\n• Night rituals and custom routines\n• Calendar and scheduling\n• Encrypted sync for linked premium couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Soft Boundaries (hide content privately)\n• Shared premium access for linked partners',
       },
       {
         q: 'How do I subscribe?',
-        a: '1. Tap "Upgrade to Premium" in the app\n2. Choose your plan (Monthly, Yearly, or Lifetime)\n3. Confirm through the App Store\n4. Enjoy premium features immediately!\n5. Your linked partner automatically gets access too',
+        a: '1. Tap "Upgrade to Premium" in the app\n2. Choose your plan (Monthly, Yearly, or Lifetime)\n3. Confirm through the App Store\n4. Premium activates after purchase confirmation\n5. If you\'re linked, your partner can receive shared access too',
       },
       {
         q: 'Can I cancel anytime?',
@@ -140,7 +140,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can I share Premium with my partner?',
-        a: 'Yes! Premium is per couple. When one partner subscribes, both get premium features when linked. No need for both to pay separately.',
+        a: 'Yes. Premium is priced per couple. When one partner subscribes, linked partners can share premium access. Linking itself is free, so one subscription supports the shared premium experience for the linked couple.',
       },
     ],
   },

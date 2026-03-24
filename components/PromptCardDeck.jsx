@@ -27,9 +27,10 @@ import { impact, ImpactFeedbackStyle } from "../utils/haptics";
 import { useTheme } from "../context/ThemeContext";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
-const CARD_W = SCREEN_W - 56;
-const CARD_H = Math.min(SCREEN_H * 0.62, 520);
-const SWIPE_THRESHOLD = SCREEN_W * 0.32;
+const DEFAULT_CARD_W = SCREEN_W - 56;
+const DEFAULT_CARD_H = Math.min(SCREEN_H * 0.62, 520);
+const CARD_HORIZONTAL_MARGIN = 28;
+const CARD_VERTICAL_MARGIN = 16;
 
 const SPRING_CONFIG = { damping: 20, stiffness: 150, mass: 1 };
 const FLIP_DURATION = 600;
@@ -63,13 +64,14 @@ const HEAT_ICONS = {
   5: "flame-outline",
 };
 
-function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
+function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, isDark, cardWidth, cardHeight, shimmerBandStyle }) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const rotateZ = useSharedValue(0);
   const flipProgress = useSharedValue(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const scale = useSharedValue(1);
+  const swipeThreshold = cardWidth * 0.32;
 
   const heat = item?.heat || 1;
   const neon = HEAT_NEON[heat] || HEAT_NEON[1];
@@ -85,10 +87,10 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
 
   const shimmerAnimatedStyle = useAnimatedStyle(() => {
     const roll = rotationSensor.sensor.value.roll || 0;
-    const sensorOffset = interpolate(roll, [-0.5, 0.5], [-CARD_W, CARD_W]);
-    const finalTranslate = sensorOffset + (shimmerLoop.value * CARD_W * 2) - CARD_W;
+    const sensorOffset = interpolate(roll, [-0.5, 0.5], [-cardWidth, cardWidth]);
+    const finalTranslate = sensorOffset + (shimmerLoop.value * cardWidth * 2) - cardWidth;
     return { transform: [{ translateX: finalTranslate }, { rotate: "25deg" }] };
-  });
+  }, [cardWidth]);
 
   const pulseAnim = useSharedValue(0.3);
   useEffect(() => {
@@ -111,10 +113,15 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
     else onSwipeLeft?.(item);
   }, [item, onSwipeRight, onSwipeLeft]);
 
+  const handleLongPress = useCallback(() => {
+    impact(ImpactFeedbackStyle.Light);
+    onLongPress?.(item);
+  }, [item, onLongPress]);
+
   const handleFlip = useCallback(() => {
     impact(ImpactFeedbackStyle.Light);
     const target = isFlipped ? 0 : 1;
-        flipProgress.value = withTiming(target, { duration: FLIP_DURATION, easing: Easing.bezier(0.2, 0.8, 0.2, 1) });
+    flipProgress.value = withTiming(target, { duration: FLIP_DURATION, easing: Easing.bezier(0.2, 0.8, 0.2, 1) });
     setIsFlipped(!isFlipped);
   }, [isFlipped, flipProgress]);
 
@@ -126,7 +133,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
     })
     .onEnd((e) => {
       scale.value = withSpring(1, SPRING_CONFIG);
-      if (Math.abs(e.translationX) > SWIPE_THRESHOLD) {
+      if (Math.abs(e.translationX) > swipeThreshold) {
         const direction = e.translationX > 0 ? "right" : "left";
         const flyX = direction === "right" ? SCREEN_W * 1.5 : -SCREEN_W * 1.5;
         translateX.value = withTiming(flyX, { duration: 350, easing: Easing.out(Easing.cubic) });
@@ -139,7 +146,11 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
     });
 
   const tapGesture = Gesture.Tap().enabled(isTop).onEnd(() => { runOnJS(handleFlip)(); });
-  const gesture = Gesture.Exclusive(panGesture, tapGesture);
+  const longPressGesture = Gesture.LongPress()
+    .enabled(isTop)
+    .minDuration(500)
+    .onStart(() => { runOnJS(handleLongPress)(); });
+  const gesture = Gesture.Exclusive(longPressGesture, panGesture, tapGesture);
 
   const stackOffset = isTop ? 0 : Math.min(index, 2);
 
@@ -165,19 +176,19 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
     return { transform: [{ perspective: 1200 }, { rotateY: `${rotateY}deg` }], backfaceVisibility: "hidden", opacity: flipProgress.value > 0.5 ? 1 : 0 };
   });
 
-  const rightHintStyle = useAnimatedStyle(() => ({ opacity: interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 0.9], "clamp") }));
-  const leftHintStyle = useAnimatedStyle(() => ({ opacity: interpolate(translateX.value, [-SWIPE_THRESHOLD, 0], [0.9, 0], "clamp") }));
+  const rightHintStyle = useAnimatedStyle(() => ({ opacity: interpolate(translateX.value, [0, swipeThreshold], [0, 0.9], "clamp") }), [swipeThreshold]);
+  const leftHintStyle = useAnimatedStyle(() => ({ opacity: interpolate(translateX.value, [-swipeThreshold, 0], [0.9, 0], "clamp") }), [swipeThreshold]);
 
   return (
     <GestureDetector gesture={gesture}>
-      <Animated.View style={[styles.cardContainer, containerStyle]}>
+      <Animated.View style={[styles.cardContainer, { width: cardWidth, height: cardHeight }, containerStyle]}>
 
         {/* BACK FACE (The Cover) */}
         <Animated.View style={[styles.card, backStyle, { borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }]}>
           <LinearGradient colors={metal.base} style={styles.cardBack} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
 
             {/* Metallic Shimmer Band */}
-            <Animated.View style={[styles.shimmerBand, shimmerAnimatedStyle]} pointerEvents="none">
+            <Animated.View style={[styles.shimmerBand, shimmerBandStyle, shimmerAnimatedStyle]} pointerEvents="none">
               <LinearGradient colors={["transparent", metal.chrome + "00", metal.chrome + "12", metal.chrome + "25", metal.chrome + "12", "transparent"]} style={{ width: "100%", height: "100%" }} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
             </Animated.View>
 
@@ -214,7 +225,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
           <View style={[styles.cardFront, { backgroundColor: metal.base[0] }]}>
 
             {/* Metallic Shimmer Band */}
-            <Animated.View style={[styles.shimmerBand, shimmerAnimatedStyle]} pointerEvents="none">
+            <Animated.View style={[styles.shimmerBand, shimmerBandStyle, shimmerAnimatedStyle]} pointerEvents="none">
               <LinearGradient colors={["transparent", metal.chrome + "00", metal.chrome + "10", metal.chrome + "20", metal.chrome + "10", "transparent"]} style={{ width: "100%", height: "100%" }} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
             </Animated.View>
 
@@ -265,10 +276,38 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, isDark }) {
   );
 }
 
-export default function PromptCardDeck({ prompts = [], onSelect, onSkip }) {
+export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [deckLayout, setDeckLayout] = useState({ width: DEFAULT_CARD_W + (CARD_HORIZONTAL_MARGIN * 2), height: DEFAULT_CARD_H + (CARD_VERTICAL_MARGIN * 2) });
   const visibleCards = useMemo(() => prompts.slice(currentIndex, currentIndex + 4), [prompts, currentIndex]);
   const advanceCard = useCallback(() => setCurrentIndex((prev) => (prev >= prompts.length - 1 ? 0 : prev + 1)), [prompts.length]);
+
+  const cardWidth = useMemo(() => {
+    if (!deckLayout.width) return DEFAULT_CARD_W;
+    const availableWidth = Math.max(deckLayout.width - (CARD_HORIZONTAL_MARGIN * 2), 220);
+    return Math.min(DEFAULT_CARD_W, availableWidth);
+  }, [deckLayout.width]);
+
+  const cardHeight = useMemo(() => {
+    if (!deckLayout.height) return DEFAULT_CARD_H;
+    const availableHeight = Math.max(deckLayout.height - (CARD_VERTICAL_MARGIN * 2), 220);
+    return Math.min(DEFAULT_CARD_H, availableHeight);
+  }, [deckLayout.height]);
+
+  const shimmerBandStyle = useMemo(() => ({
+    top: -cardHeight / 2,
+    width: cardWidth,
+    height: cardHeight * 2,
+  }), [cardHeight, cardWidth]);
+
+  const handleDeckLayout = useCallback((event) => {
+    const { width, height } = event.nativeEvent.layout;
+    if (!width || !height) return;
+    setDeckLayout((prev) => {
+      if (prev.width === width && prev.height === height) return prev;
+      return { width, height };
+    });
+  }, []);
 
   const handleSwipeRight = useCallback((item) => { onSelect?.(item); setTimeout(advanceCard, 200); }, [onSelect, advanceCard]);
   const handleSwipeLeft = useCallback((item) => { onSkip?.(item); setTimeout(advanceCard, 200); }, [onSkip, advanceCard]);
@@ -276,8 +315,8 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip }) {
   if (!prompts.length) return null;
 
   return (
-    <View style={styles.deck}>
-      <View style={styles.stackArea}>
+    <View style={styles.deck} onLayout={handleDeckLayout}>
+      <View style={[styles.stackArea, { width: cardWidth, height: cardHeight }] }>
         {visibleCards.map((item, i) => (
           <DeckCard
             key={`${item?.id || i}_${currentIndex + i}`}
@@ -286,7 +325,11 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip }) {
             isTop={i === 0}
             onSwipeRight={handleSwipeRight}
             onSwipeLeft={handleSwipeLeft}
+            onLongPress={onLongPress}
             isDark={true}
+            cardWidth={cardWidth}
+            cardHeight={cardHeight}
+            shimmerBandStyle={shimmerBandStyle}
           />
         )).reverse()}
       </View>
@@ -295,14 +338,14 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip }) {
 }
 
 const styles = StyleSheet.create({
-  deck: { flex: 1, alignItems: "center", justifyContent: "center" },
-  stackArea: { width: CARD_W, height: CARD_H, alignItems: "center", justifyContent: "center" },
-  cardContainer: { position: "absolute", width: CARD_W, height: CARD_H },
+  deck: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: CARD_HORIZONTAL_MARGIN, paddingVertical: CARD_VERTICAL_MARGIN },
+  stackArea: { alignItems: "center", justifyContent: "center" },
+  cardContainer: { position: "absolute" },
   card: {
     position: "absolute", width: "100%", height: "100%", borderRadius: 28, borderWidth: 1, overflow: "hidden", backgroundColor: "#000",
     shadowColor: "#000", shadowOffset: { width: 0, height: 25 }, shadowOpacity: 0.9, shadowRadius: 35, elevation: 20
   },
-  shimmerBand: { position: "absolute", top: -CARD_H / 2, width: CARD_W, height: CARD_H * 2, zIndex: 10 },
+  shimmerBand: { position: "absolute", zIndex: 10 },
   cardBack: { flex: 1, padding: 12 },
   backFrame: {
     flex: 1, alignItems: "center", justifyContent: "space-between",

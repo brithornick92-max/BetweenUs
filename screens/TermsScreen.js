@@ -102,7 +102,7 @@ const TermsScreen = ({ navigation, route }) => {
               • Love notes with optional photo attachments{'\n'}
               • Night rituals and shared routines{'\n'}
               • Relationship memories and milestones{'\n'}
-              • Vibe Signals and Moment Signals (real-time mood sharing){'\n'}
+              • Vibe Signals and Moment Signals (mood sharing when connected){'\n'}
               • Inside Jokes vault (shared nicknames, jokes, and rituals){'\n'}
               • Reveal Together (simultaneous answer sharing){'\n'}
               • Energy Matcher and Relationship Climate (personalized content){'\n'}
@@ -164,8 +164,9 @@ const TermsScreen = ({ navigation, route }) => {
             <Text style={[styles.sectionTitle, { color: t.text }]}>5. Subscription & Payment</Text>
             <Text style={[styles.paragraph, { color: t.subtext }]}>
               Free and Premium Features:{'\n'}
-              • Free users may preview a limited selection of read-only prompts (Heat levels 1–3){'\n'}
-              • All other features (responding, love notes, calendar, partner connection, cloud sync) require a paid subscription{'\n'}
+              • Free users can answer 1 guided prompt per day at Heat levels 1–3{'\n'}
+              • Free users can link with a partner and fully plan 1 date per week{'\n'}
+              • Premium adds unlimited date planning, love notes, calendar features, and secure cloud sync{'\n'}
               • Premium subscription is per couple (both partners get access when linked){'\n\n'}
               Current pricing:{'\n'}
               • Monthly: {FALLBACK_PRICES.monthly}/month{'\n'}
@@ -230,7 +231,7 @@ const TermsScreen = ({ navigation, route }) => {
             <Text style={[styles.paragraph, { color: t.subtext }]}>
               Data Protection:{'\n'}
               • We use industry-standard client-side encryption{'\n'}
-              • Your sensitive content is encrypted end-to-end{'\n'}
+              • Shared sensitive content is encrypted before sync, and some private content remains encrypted only on your device{'\n'}
               • We implement security measures to protect your data{'\n'}
               • See our Privacy Policy for complete details{'\n\n'}
               Important: Your encryption keys are stored on your device. If you lose access to your device without

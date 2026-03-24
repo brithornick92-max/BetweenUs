@@ -4,10 +4,13 @@ import StorageRouter from './storage/StorageRouter';
 class PremiumGatekeeper {
   constructor() {
     this.DAILY_LIMITS = {
-      FREE_PROMPTS: 3, // Free users get 3 preview prompts per day
+      FREE_PROMPTS: 1, // Free users get 1 guided prompt response per day
       FREE_DATES: 3,   // Free users can browse 3 date ideas per day
       FREE_HEAT_LEVELS: [1, 2, 3], // Free preview prompts cover levels 1-3
       PREMIUM_HEAT_LEVELS: [1, 2, 3, 4, 5] // Premium gets all levels
+    };
+    this.WEEKLY_LIMITS = {
+      FREE_FULL_DATE_FLOWS: 1,
     };
   }
 
@@ -44,7 +47,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: 'Free users can preview 3 read-only prompts. Discover the full experience for unlimited prompts and responses.'
+          message: 'Free users can answer 1 guided prompt per day. Discover the full experience for unlimited prompts and deeper connection.'
         };
       }
       
@@ -81,7 +84,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: 'Date ideas require premium. Discover the full date night catalog.'
+          message: 'Free users can explore 3 date ideas per day. Discover the full date night catalog for unlimited inspiration.'
         };
       }
       
@@ -168,11 +171,73 @@ class PremiumGatekeeper {
     }
   }
 
+  async canAccessDateFlow(userId, dateId, isPremiumFlag = false) {
+    try {
+      const isPremium = this.isPremiumUser(isPremiumFlag);
+
+      if (isPremium) {
+        return {
+          canAccess: true,
+          reason: 'premium_access'
+        };
+      }
+
+      const weeklyUsage = await LocalUsageService.getWeeklyUsage(userId);
+      const unlockedDateId = weeklyUsage.unlockedDateId || null;
+      const usedFlows = weeklyUsage.dateFlows || 0;
+
+      if (usedFlows < this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS || unlockedDateId === dateId) {
+        return {
+          canAccess: true,
+          reason: unlockedDateId === dateId ? 'existing_weekly_unlock' : 'within_free_limits'
+        };
+      }
+
+      return {
+        canAccess: false,
+        reason: 'weekly_limit_reached',
+        message: 'Free users can fully plan 1 date per week. Discover premium for unlimited date nights.'
+      };
+    } catch (error) {
+      console.error('Error checking date flow access:', error);
+      return {
+        canAccess: false,
+        reason: 'error',
+        message: 'Unable to verify access. Please try again.'
+      };
+    }
+  }
+
+  async trackDateFlowUsage(userId, dateId, isPremiumFlag = false) {
+    try {
+      const accessCheck = await this.canAccessDateFlow(userId, dateId, isPremiumFlag);
+
+      if (!accessCheck.canAccess) {
+        return accessCheck;
+      }
+
+      if (!this.isPremiumUser(isPremiumFlag)) {
+        const weeklyUsage = await LocalUsageService.getWeeklyUsage(userId);
+        if (weeklyUsage.unlockedDateId !== dateId) {
+          await LocalUsageService.incrementWeeklyUsage(userId, 'dateFlows', { unlockedDateId: dateId });
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Weekly date flow tracked successfully'
+      };
+    } catch (error) {
+      throw new Error(`Failed to track date flow usage: ${error.message}`);
+    }
+  }
+
   // Get user's current usage status
   async getUserUsageStatus(userId, isPremiumFlag = false) {
     try {
       const isPremium = this.isPremiumUser(isPremiumFlag);
       const usage = await LocalUsageService.getDailyUsage(userId);
+      const weeklyUsage = await LocalUsageService.getWeeklyUsage(userId);
       
       return {
         isPremium,
@@ -180,13 +245,19 @@ class PremiumGatekeeper {
           prompts: usage.prompts || 0,
           dates: usage.dates || 0
         },
+        weeklyUsage: {
+          dateFlows: weeklyUsage.dateFlows || 0,
+          unlockedDateId: weeklyUsage.unlockedDateId || null
+        },
         limits: {
           prompts: isPremium ? 'unlimited' : this.DAILY_LIMITS.FREE_PROMPTS,
-          dates: isPremium ? 'unlimited' : this.DAILY_LIMITS.FREE_DATES
+          dates: isPremium ? 'unlimited' : this.DAILY_LIMITS.FREE_DATES,
+          dateFlowsPerWeek: isPremium ? 'unlimited' : this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS
         },
         remaining: {
           prompts: isPremium ? 'unlimited' : Math.max(0, this.DAILY_LIMITS.FREE_PROMPTS - (usage.prompts || 0)),
-          dates: isPremium ? 'unlimited' : Math.max(0, this.DAILY_LIMITS.FREE_DATES - (usage.dates || 0))
+          dates: isPremium ? 'unlimited' : Math.max(0, this.DAILY_LIMITS.FREE_DATES - (usage.dates || 0)),
+          dateFlowsPerWeek: isPremium ? 'unlimited' : Math.max(0, this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS - (weeklyUsage.dateFlows || 0))
         },
         accessibleHeatLevels: isPremium ? 
           this.DAILY_LIMITS.PREMIUM_HEAT_LEVELS : 

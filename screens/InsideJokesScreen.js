@@ -22,6 +22,7 @@ import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { selection, impact, ImpactFeedbackStyle } from '../utils/haptics';
+import { PremiumFeature } from '../utils/featureFlags';
 import { withAlpha, SPACING, BORDER_RADIUS } from '../utils/theme';
 import InsideJokes from '../components/InsideJokes';
 import GlowOrb from '../components/GlowOrb';
@@ -83,7 +84,7 @@ export default function InsideJokesScreen({ navigation }) {
             </Text>
 
             <TouchableOpacity
-              onPress={() => showPaywall?.('insideJokes')}
+              onPress={() => showPaywall?.(PremiumFeature.INSIDE_JOKES)}
               style={[styles.premiumBtn, { backgroundColor: colors.primary }]}
               activeOpacity={0.9}
             >

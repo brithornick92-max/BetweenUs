@@ -23,6 +23,7 @@ import Animated, { FadeIn, FadeInDown, FadeInUp, SlideInRight } from "react-nati
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { useEntitlements } from "../context/EntitlementsContext";
+import { PremiumFeature } from '../utils/featureFlags';
 import DataLayer from "../services/data/DataLayer";
 import {
   SPACING,
@@ -84,10 +85,10 @@ export default function LoveNotesInboxScreen({ navigation }) {
   // integrated premium logic
   useEffect(() => {
     if (!isPremium) {
-      showPaywall?.("loveNotes");
+      showPaywall?.(PremiumFeature.LOVE_NOTES);
       navigation.goBack();
     }
-  }, [isPremium]);
+  }, [isPremium, navigation, showPaywall]);
 
   const loadNotes = useCallback(async () => {
     try {

@@ -26,6 +26,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 
 const PIN_KEY = 'betweenus_app_lock_pin_v1';
@@ -133,7 +134,7 @@ const SetPinScreen = ({ navigation }) => {
             App Lock is a pro security feature. Protect your intimacy with localized PIN and biometric authentication.
           </Text>
           <TouchableOpacity
-            onPress={() => showPaywall('vaultAndBiometric')}
+            onPress={() => showPaywall(PremiumFeature.VAULT_AND_BIOMETRIC)}
             style={[styles.primaryButton, { backgroundColor: t.primary }]}
             activeOpacity={0.9}
           >

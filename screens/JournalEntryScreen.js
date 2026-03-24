@@ -27,6 +27,7 @@ import { journalStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
+import { PremiumFeature } from '../utils/featureFlags';
 import {
   TYPOGRAPHY,
   SPACING,
@@ -55,10 +56,10 @@ export default function JournalEntryScreen({ navigation, route }) {
   // integrated premium logic
   useEffect(() => {
     if (!isPremium) {
-      showPaywall?.('unlimitedJournalHistory');
+      showPaywall?.(PremiumFeature.UNLIMITED_JOURNAL_HISTORY);
       navigation.goBack();
     }
-  }, [isPremium]);
+  }, [isPremium, navigation, showPaywall]);
 
   const [title, setTitle] = useState(entry?.title || "");
   const [content, setContent] = useState(entry?.content || "");

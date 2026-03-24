@@ -44,17 +44,18 @@ export const GuardBehavior = Object.freeze({
 
 // ─── Free-Tier Limits ───────────────────────────────────────────────────────────
 export const FREE_LIMITS = Object.freeze({
-  PROMPTS_PER_DAY: 0,           // No daily prompts — only 3 fixed preview prompts total
+  PROMPTS_PER_DAY: 1,           // One guided prompt response per day
   PREVIEW_PROMPTS_TOTAL: 3,     // Exactly 3 fixed preview prompts (1 per heat 1-3)
-  DATE_IDEAS_PER_DAY: 0,        // No date ideas for free users
+  DATE_IDEAS_PER_DAY: 3,        // 3 preview date ideas per day
+  FULL_DATE_FLOWS_PER_WEEK: 1,  // One fully planned date flow per week
   VISIBLE_DATE_IDEAS: 3,        // 3 preview date ideas visible for free users
   JOURNAL_ENTRIES_VISIBLE: 0,   // No journal access
   FREE_HEAT_LEVELS: [1, 2, 3],
   SURPRISE_ME_ENABLED: false,
   LOVE_NOTES_ENABLED: false,
   CALENDAR_ENABLED: false,
-  PARTNER_LINKING_ENABLED: false,
-  PROMPT_RESPONSES_ENABLED: false,
+  PARTNER_LINKING_ENABLED: true,
+  PROMPT_RESPONSES_ENABLED: true,
   CLOUD_SYNC_ENABLED: false,
 });
 
@@ -63,6 +64,7 @@ export const PREMIUM_LIMITS = Object.freeze({
   PROMPTS_PER_DAY: Infinity,
   PREVIEW_PROMPTS_TOTAL: Infinity,
   DATE_IDEAS_PER_DAY: Infinity,
+  FULL_DATE_FLOWS_PER_WEEK: Infinity,
   VISIBLE_DATE_IDEAS: Infinity,
   JOURNAL_ENTRIES_VISIBLE: Infinity,
   ALL_HEAT_LEVELS: [1, 2, 3, 4, 5],
@@ -193,7 +195,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.CLOUD_SYNC]: {
     name: 'Privacy & Cloud Sync',
-    description: 'End-to-end encrypted storage, secure cloud sync with row-level security, encrypted backups and restore',
+    description: 'Encrypted storage for synced content, premium cloud sync for linked couples, and backup-based recovery for synced data',
     icon: '🔐',
     category: 'sync',
     guardBehavior: GuardBehavior.BLOCK,
@@ -241,7 +243,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.LOVE_NOTES]: {
     name: 'Love Notes',
-    description: 'Send and receive private love notes with end-to-end encrypted delivery, optional notifications, and notes that persist across devices',
+    description: 'Send and receive private love notes with encrypted sync, optional notifications, and access across linked devices',
     icon: '💌',
     category: 'connection',
     guardBehavior: GuardBehavior.BLOCK,
@@ -257,7 +259,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.PARTNER_LINKING]: {
     name: 'Partner Connection',
-    description: 'Secure partner linking with a private couple code, shared access to all premium features, and encrypted syncing',
+    description: 'Partner linking with a private code and shared premium access for linked accounts when one partner upgrades',
     icon: '💞',
     category: 'connection',
     guardBehavior: GuardBehavior.BLOCK,
@@ -273,7 +275,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.INSIDE_JOKES]: {
     name: 'Inside Jokes Vault',
-    description: 'A private vault for your nicknames, inside jokes, and shared references',
+    description: 'A private vault for your nicknames, inside jokes, and personal references',
     icon: '🤫',
     category: 'memory',
     guardBehavior: GuardBehavior.BLOCK,
@@ -292,13 +294,23 @@ export const FEATURE_META = Object.freeze({
 // ─── Paywall Feature List (live + premium-gated) ─────────────────────────────
 // Only include features that are currently premium AND fully available in-app.
 export const PAYWALL_FEATURE_IDS = Object.freeze([
-  PremiumFeature.PARTNER_LINKING,
   PremiumFeature.UNLIMITED_PROMPTS,
   PremiumFeature.UNLIMITED_DATE_IDEAS,
   PremiumFeature.LOVE_NOTES,
   PremiumFeature.NIGHT_RITUAL_MODE,
   PremiumFeature.CLOUD_SYNC,
 ]);
+
+const LEGACY_PREMIUM_FEATURE_ALIASES = Object.freeze({
+  GENERAL_UPGRADE: null,
+  DATE_NIGHT_BROWSE: PremiumFeature.UNLIMITED_DATE_IDEAS,
+  DATE_NIGHT_DETAILS: PremiumFeature.UNLIMITED_DATE_IDEAS,
+  UNLIMITED_DATE_IDEAS: PremiumFeature.UNLIMITED_DATE_IDEAS,
+  NIGHT_RITUAL_MODE: PremiumFeature.NIGHT_RITUAL_MODE,
+  heatLevels4to5: PremiumFeature.HEAT_LEVELS_4_5,
+  ritualReminders: PremiumFeature.RITUAL_REMINDERS,
+  vaultAndBiometric: PremiumFeature.VAULT_AND_BIOMETRIC,
+});
 
 /**
  * Helper: get the limit object for a given premium state
@@ -337,6 +349,28 @@ export function getPaywallFeatures() {
   return PAYWALL_FEATURE_IDS
     .map((id) => ({ id, ...(FEATURE_META[id] || {}) }))
     .filter((item) => item?.name && item?.description);
+}
+
+/**
+ * Helper: normalize legacy or mixed-case feature ids to canonical PremiumFeature values.
+ * Returns null for generic upgrade flows and unknown values for invalid ids.
+ */
+export function normalizePremiumFeatureId(featureId) {
+  if (featureId == null) return null;
+  if (Object.values(PremiumFeature).includes(featureId)) {
+    return featureId;
+  }
+  if (Object.prototype.hasOwnProperty.call(LEGACY_PREMIUM_FEATURE_ALIASES, featureId)) {
+    return LEGACY_PREMIUM_FEATURE_ALIASES[featureId];
+  }
+  return undefined;
+}
+
+/**
+ * Helper: validate whether a value maps to a known premium feature.
+ */
+export function isKnownPremiumFeatureId(featureId) {
+  return normalizePremiumFeatureId(featureId) !== undefined;
 }
 
 /**

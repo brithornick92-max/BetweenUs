@@ -28,6 +28,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useAppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { useEntitlements } from "../context/EntitlementsContext";
+import { PremiumFeature } from '../utils/featureFlags';
 import DataLayer from "../services/data/DataLayer";
 import { SPACING, withAlpha } from "../utils/theme";
 import { getMyDisplayName } from '../utils/profileNames';
@@ -96,7 +97,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
             Write heartfelt notes, choose high-end stationery, and share private moments with your partner.
           </Text>
           <TouchableOpacity
-            onPress={() => showPaywall?.('loveNotes')}
+            onPress={() => showPaywall?.(PremiumFeature.LOVE_NOTES)}
             style={styles.lockButton}
             activeOpacity={0.9}
           >

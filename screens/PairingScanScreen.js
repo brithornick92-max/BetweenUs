@@ -19,14 +19,14 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { BlurView } from 'expo-blur';
 import naclUtil from 'tweetnacl-util';
 import { useTheme } from '../context/ThemeContext';
-import { useEntitlements } from '../context/EntitlementsContext';
 import { useAuth } from '../context/AuthContext';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import CloudEngine from '../services/storage/CloudEngine';
 import StorageRouter from '../services/storage/StorageRouter';
+import CloudEngine from '../services/storage/CloudEngine';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import { parsePairingPayload } from '../services/security/PairingPayload';
-import { STORAGE_KEYS, storage, cloudSyncStorage } from '../utils/storage';
+import CoupleService from '../services/supabase/CoupleService';
+import { STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, withAlpha } from '../utils/theme';
 import Icon from '../components/Icon';
 
@@ -34,7 +34,6 @@ const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 export default function PairingScanScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective: isPremium } = useEntitlements();
   const { user, updateProfile } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -62,26 +61,22 @@ export default function PairingScanScreen({ navigation }) {
     setScanned(true);
 
     try {
-      const syncStatus = await cloudSyncStorage.getSyncStatus();
-      if (!isPremium || !syncStatus?.enabled) {
-        setStatus('Please enable Sync to continue.');
+      const session = await SupabaseAuthService.getSession();
+      if (!session) {
+        setStatus('Sign in before scanning.');
         return;
       }
 
-      const session = await SupabaseAuthService.getSession();
-      if (!session) {
-        setStatus('Secure session required.');
-        return;
-      }
+      await CloudEngine.initialize({ supabaseSessionPresent: true });
 
       const parsed = parsePairingPayload(data);
       if (!parsed.ok) throw new Error(parsed.error);
-      const { coupleId, publicKey: inviterPublicKeyB64 } = parsed.payload;
+      const { pairingCode, publicKey: inviterPublicKeyB64 } = parsed.payload;
 
       setStatus('Establishing secure bridge...');
       
       const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-      await CloudEngine.joinCouple(coupleId, myPublicKeyB64);
+      const { coupleId } = await CoupleService.redeemPairingCode(pairingCode, myPublicKeyB64);
 
       const inviterPubKey = naclUtil.decodeBase64(inviterPublicKeyB64);
       const coupleKey = await CoupleKeyService.deriveFromKeyExchange(inviterPubKey);
@@ -97,7 +92,12 @@ export default function PairingScanScreen({ navigation }) {
 
       setStatus('Successfully paired.');
       setTimeout(() => {
-        if (activeRef.current) navigation.navigate('SyncSetup');
+        if (!activeRef.current) return;
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          navigation.navigate('Settings');
+        }
       }, 1000);
     } catch (error) {
       setStatus('Unable to read link. Try again.');

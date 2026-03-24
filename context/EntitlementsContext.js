@@ -43,6 +43,7 @@ import {
   GuardBehavior,
   getLimitsForTier,
   getAccessibleHeatLevels,
+  normalizePremiumFeatureId,
 } from '../utils/featureFlags';
 
 // ─── Local cache keys for couple premium ─────────────────────────────────────
@@ -117,7 +118,7 @@ export const EntitlementsProvider = ({ children }) => {
     }
   }, [coupleId]);
 
-  // ─── Write couple premium to Supabase on purchase ───────────────────────────
+  // ─── Request server-side premium recomputation ──────────────────────────────
 
   const syncSelfPremiumToCouple = useCallback(async () => {
     if (!coupleId || !supabase || !user) return;
@@ -128,7 +129,7 @@ export const EntitlementsProvider = ({ children }) => {
         input_is_premium: !!isPremiumSelf,
         input_source: isPremiumSelf ? user.uid : 'none',
       });
-      if (__DEV__) console.log('[Entitlements] Synced self premium to couple:', isPremiumSelf);
+      if (__DEV__) console.log('[Entitlements] Requested premium recompute for couple:', coupleId);
     } catch (err) {
       console.warn('[Entitlements] Failed to sync premium to couple:', err.message);
     }
@@ -193,10 +194,7 @@ export const EntitlementsProvider = ({ children }) => {
 
   // ─── Derived State ──────────────────────────────────────────────────────────
 
-  // 🔧 DEV ONLY: Temporary premium override — set to true to force premium in dev
-  const DEV_FORCE_PREMIUM = false;
-
-  const isPremiumEffective = DEV_FORCE_PREMIUM || !!(isPremiumSelf || isPremiumCouple);
+  const isPremiumEffective = !!(isPremiumSelf || isPremiumCouple);
 
   // Determine source
   useEffect(() => {
@@ -281,7 +279,15 @@ export const EntitlementsProvider = ({ children }) => {
   // ─── Paywall Control ────────────────────────────────────────────────────────
 
   const showPaywall = useCallback((featureId = null) => {
-    setPaywallState({ visible: true, feature: featureId });
+    const normalizedFeatureId = normalizePremiumFeatureId(featureId);
+
+    if (normalizedFeatureId === undefined) {
+      console.warn('[Entitlements] Ignoring unknown premium feature:', featureId);
+      return false;
+    }
+
+    setPaywallState({ visible: true, feature: normalizedFeatureId });
+    return true;
   }, []);
 
   const hidePaywall = useCallback(() => {
@@ -294,9 +300,16 @@ export const EntitlementsProvider = ({ children }) => {
    */
   const requireFeature = useCallback(
     (featureId, autoPaywall = true) => {
+      const normalizedFeatureId = normalizePremiumFeatureId(featureId);
+
+      if (normalizedFeatureId === undefined) {
+        console.warn('[Entitlements] Cannot require unknown premium feature:', featureId);
+        return false;
+      }
+
       if (isPremiumEffective) return true;
       if (autoPaywall) {
-        showPaywall(featureId);
+        showPaywall(normalizedFeatureId);
       }
       return false;
     },
@@ -307,7 +320,7 @@ export const EntitlementsProvider = ({ children }) => {
    * Silent check: does the user have access to a feature? No paywall shown.
    */
   const hasFeature = useCallback(
-    (featureId) => isPremiumEffective,
+    (featureId) => normalizePremiumFeatureId(featureId) !== undefined && isPremiumEffective,
     [isPremiumEffective]
   );
 

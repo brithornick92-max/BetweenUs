@@ -16,24 +16,13 @@ import Animated, {
 } from 'react-native-reanimated';
 import Icon from './Icon';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getDateCardPalette } from './dateCardPalette';
 
 const SCREEN_W = Dimensions.get('window').width;
 
 const FONTS = {
   body: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
   bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
-};
-
-const HEAT_METAL = {
-  1: { base: '#1A1230', chrome: '#9A2E5E', highlight: '#B84070', mid: '#5E1940' },
-  2: { base: '#1E0F1A', chrome: '#B84070', highlight: '#C45060', mid: '#7A1E4E' },
-  3: { base: '#1E0808', chrome: '#C45060', highlight: '#D04848', mid: '#9A2E5E' },
-};
-
-const HEAT_COLORS = {
-  1: ['#7A1E4E', '#5E1940'],
-  2: ['#9A2E5E', '#7A1E4E'],
-  3: ['#B84070', '#9A2E5E'],
 };
 
 const HEAT_ICONS = {
@@ -50,8 +39,7 @@ const HEAT_LABELS = {
 
 export default function DateCardBack({ date, dims }) {
   const heat = date?.heat || 1;
-  const metal = HEAT_METAL[heat] || HEAT_METAL[1];
-  const gradient = HEAT_COLORS[heat] || HEAT_COLORS[1];
+  const palette = getDateCardPalette(heat);
   const icon = HEAT_ICONS[heat] || 'hand-heart';
   const label = HEAT_LABELS[heat] || 'Emotional';
 
@@ -88,10 +76,10 @@ export default function DateCardBack({ date, dims }) {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: metal.base }]}>
+    <View style={[styles.container, { backgroundColor: palette.base }]}> 
       {/* Base dark chrome gradient */}
       <LinearGradient
-        colors={[metal.base, metal.mid + '30', metal.base]}
+        colors={[palette.base, palette.mid + 'A6', palette.base]}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -99,19 +87,19 @@ export default function DateCardBack({ date, dims }) {
 
       {/* Chrome edge shines */}
       <LinearGradient
-        colors={[metal.chrome + '18', 'transparent']}
+        colors={[palette.highlight + '1F', 'transparent']}
         style={styles.topEdgeShine}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
       />
       <LinearGradient
-        colors={[metal.chrome + '10', 'transparent']}
+        colors={[palette.chrome + '14', 'transparent']}
         style={styles.leftEdgeShine}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
       />
       <LinearGradient
-        colors={['transparent', metal.chrome + '08']}
+        colors={['transparent', palette.chrome + '12']}
         style={styles.bottomEdgeShine}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
@@ -122,7 +110,7 @@ export default function DateCardBack({ date, dims }) {
         style={[styles.shimmerBand, { transform: [{ translateX: shimmerX }, { rotate: '25deg' }] }]}
       >
         <LinearGradient
-          colors={['transparent', metal.chrome + '10', metal.highlight + '18', metal.chrome + '10', 'transparent']}
+          colors={['transparent', palette.chrome + '12', palette.highlight + '20', palette.chrome + '12', 'transparent']}
           style={{ width: '100%', height: '100%' }}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
@@ -130,52 +118,52 @@ export default function DateCardBack({ date, dims }) {
       </RNAnimated.View>
 
       {/* Inner chrome frame */}
-      <View style={[styles.innerFrame, { borderColor: metal.chrome + '18' }]}>
+      <View style={[styles.innerFrame, { borderColor: palette.chrome + '2D', backgroundColor: palette.frameFill }]}> 
         <LinearGradient
-          colors={['transparent', metal.chrome + '15', metal.highlight + '20', metal.chrome + '15', 'transparent']}
+          colors={['transparent', palette.chrome + '20', palette.highlight + '24', palette.chrome + '20', 'transparent']}
           style={styles.frameTopLine}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
         />
         <LinearGradient
-          colors={['transparent', metal.chrome + '10', metal.highlight + '15', metal.chrome + '10', 'transparent']}
+          colors={['transparent', palette.chrome + '18', palette.highlight + '20', palette.chrome + '18', 'transparent']}
           style={styles.frameBottomLine}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
         />
 
         {/* Top badge */}
-        <View style={[styles.topBadge, { borderColor: metal.chrome + '25' }]}>
-          <Icon name="cards-heart" size={12} color={metal.chrome} />
-          <Text style={[styles.badgeText, { color: metal.chrome }]}>DATE NIGHT</Text>
+        <View style={[styles.topBadge, { borderColor: palette.chrome + '32', backgroundColor: palette.badgeBackground }]}> 
+          <Icon name="cards-heart" size={12} color={palette.highlight} />
+          <Text style={[styles.badgeText, { color: palette.highlight, textShadowColor: palette.shadow }]}>DATE NIGHT</Text>
         </View>
 
         {/* Center emblem */}
-        <Animated.View style={[styles.emblemOuter, { borderColor: metal.chrome + '30' }, ringStyle]}>
+        <Animated.View style={[styles.emblemOuter, { borderColor: palette.chrome + '38' }, ringStyle]}> 
           <LinearGradient
-            colors={[gradient[0] + '30', gradient[1] + '15']}
+            colors={[palette.band[0] + 'B3', palette.band[1] + '59']}
             style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           />
-          <View style={[styles.emblemInner, { borderColor: metal.chrome + '20' }]}>
+          <View style={[styles.emblemInner, { borderColor: palette.chrome + '2D' }]}> 
             <LinearGradient
-              colors={[gradient[0] + '20', gradient[1] + '10']}
+              colors={[palette.highlight + '24', palette.chrome + '12']}
               style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             />
-            <Icon name={icon} size={36} color={metal.chrome + '60'} />
+            <Icon name={icon} size={36} color={palette.highlight} />
           </View>
         </Animated.View>
 
         {/* Heat level text */}
-        <Text style={[styles.levelText, { color: metal.chrome + '50', textShadowColor: gradient[0] + '40' }]}>
+        <Text style={[styles.levelText, { color: palette.text, textShadowColor: palette.shadow }]}> 
           {label.toUpperCase()}
         </Text>
 
         {/* Bottom hint */}
-        <Text style={[styles.hint, { color: metal.chrome + '30' }]}>tap to reveal</Text>
+        <Text style={[styles.hint, { color: palette.body }]}>tap to reveal</Text>
       </View>
     </View>
   );

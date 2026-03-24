@@ -43,9 +43,15 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
+import { useContent } from "../context/ContentContext";
+import { useAuth } from "../context/AuthContext";
+import PremiumGatekeeper from '../services/PremiumGatekeeper';
+import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import { NicknameEngine } from "../services/PolishEngine";
+import PreferenceEngine from "../services/PreferenceEngine";
+import { getPromptById } from "../utils/contentLoader";
 import { SPACING, withAlpha } from "../utils/theme";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -93,10 +99,13 @@ const TONE_PROMPT_ANSWER_COPY = {
 };
 
 export default function PromptAnswerScreen({ route, navigation }) {
-  const { prompt } = route.params || {};
+  const { prompt: routePrompt, promptId } = route.params || {};
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { user, userProfile } = useAuth();
+  const { loadUsageStatus } = useContent();
 
+  const [prompt, setPrompt] = useState(routePrompt || null);
   const [answer, setAnswer] = useState("");
   const [existingAnswer, setExistingAnswer] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -169,12 +178,47 @@ export default function PromptAnswerScreen({ route, navigation }) {
   });
 
   useEffect(() => {
-    if (!isPremium) {
-      showPaywall?.("promptResponses");
-      navigation.goBack();
-    }
+    let active = true;
+
+    (async () => {
+      const resolvedPrompt = routePrompt || (promptId ? getPromptById(promptId) : null);
+      if (!active) return;
+
+      if (!resolvedPrompt) {
+        Alert.alert("Prompt unavailable", "This reflection is no longer available.", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
+        return;
+      }
+
+      const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+      if (!active) return;
+
+      if (!PreferenceEngine.shouldShowPrompt(resolvedPrompt, profile)) {
+        Alert.alert("Hidden by your boundaries", "This prompt is currently hidden based on your boundary settings.", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
+        return;
+      }
+
+      const dateKey = resolvedPrompt.dateKey || new Date().toISOString().split('T')[0];
+      setPrompt({ ...resolvedPrompt, dateKey });
+    })().catch(() => {
+      if (active) {
+        Alert.alert("Prompt unavailable", "This reflection is no longer available.", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [routePrompt, promptId, navigation, userProfile]);
+
+  useEffect(() => {
     if (prompt) loadExistingAnswer();
-  }, [isPremium, prompt]);
+  }, [prompt]);
 
   useFocusEffect(
     useCallback(() => {
@@ -237,6 +281,19 @@ export default function PromptAnswerScreen({ route, navigation }) {
       return;
     }
 
+    const isFirstResponse = !existingAnswer;
+
+    if (!isPremium && isFirstResponse) {
+      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user?.uid, prompt?.heat || 1, false);
+      if (!accessCheck.canAccess) {
+        const blockedFeature = accessCheck.reason === 'premium_required'
+          ? PremiumFeature.HEAT_LEVELS_4_5
+          : PremiumFeature.UNLIMITED_PROMPTS;
+        showPaywall?.(blockedFeature);
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       // Write to DataLayer (E2EE, synced, exported) — primary store
@@ -252,6 +309,10 @@ export default function PromptAnswerScreen({ route, navigation }) {
           timestamp: Date.now(),
           isRevealed: existingAnswer?.isRevealed || false,
         });
+      }
+      if (!isPremium && isFirstResponse && user?.uid) {
+        await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, false, prompt?.heat || 1);
+        await loadUsageStatus?.();
       }
       notification(NotificationFeedbackType.Success);
       navigation.goBack();

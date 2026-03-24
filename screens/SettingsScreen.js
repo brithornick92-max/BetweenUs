@@ -41,6 +41,7 @@ import { useAppContext } from '../context/AppContext';
 
 // Utilities & Components
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -340,9 +341,9 @@ export default function SettingsScreen({ navigation }) {
                 <View style={[styles.promoIconFrame, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
                   <Icon name="heart" size={32} color={t.primary} />
                 </View>
-                <Text style={[styles.promoTitle, { color: t.text }]}>Unlock Shared Rituals</Text>
+                <Text style={[styles.promoTitle, { color: t.text }]}>Connect With Your Partner</Text>
                 <Text style={[styles.promoBody, { color: t.subtext }]}>
-                  Pair with your partner to sync journals, shared memories, and relationship climate data in real-time.
+                  Pair with your partner for a shared space. Premium adds cloud sync, shared planning, and live couple features.
                 </Text>
                 
                 {inviteCode ? (
@@ -355,9 +356,9 @@ export default function SettingsScreen({ navigation }) {
                 ) : (
                   <TouchableOpacity 
                     style={[styles.actionBtn, { backgroundColor: t.primary }]}
-                    onPress={() => isPremium ? generateInviteCode() : showPaywall?.('partnerLinking')}
+                    onPress={generateInviteCode}
                   >
-                    <Text style={styles.actionBtnText}>{isPremium ? 'Generate Invite Code' : 'Upgrade to Pair'}</Text>
+                    <Text style={styles.actionBtnText}>Generate Invite Code</Text>
                   </TouchableOpacity>
                 )}
                 

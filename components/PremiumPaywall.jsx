@@ -203,7 +203,7 @@ const PremiumPaywall = ({
             title="Monthly"
             priceValue={monthlyPkg?.product?.priceString}
             durationText="/month"
-            subtext="Per couple · both partners included"
+            subtext="Per couple plan · linked partner access available"
             index={0}
           />
 
@@ -212,7 +212,7 @@ const PremiumPaywall = ({
             title="Yearly"
             priceValue={yearlyPkg?.product?.priceString}
             durationText="/year"
-            subtext="Most popular · per couple · both partners included"
+            subtext="Most popular · per couple plan · linked partner access available"
             isPopular={true}
             index={1}
           />
@@ -222,7 +222,7 @@ const PremiumPaywall = ({
             title="Lifetime"
             priceValue={lifetimePkg?.product?.priceString}
             durationText=" one-time"
-            subtext="Per couple · both partners included"
+            subtext="Per couple plan · linked partner access available"
             index={2}
           />
         </View>

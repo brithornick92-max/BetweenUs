@@ -15,6 +15,7 @@ import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
 
 export default function HeatLevelScreen({ navigation }) {
@@ -85,7 +86,7 @@ export default function HeatLevelScreen({ navigation }) {
           `Heat levels 4 and 5 are part of the full experience. Discover deeper intimacy.`,
           [
             { text: 'Maybe Later', style: 'cancel' },
-            { text: 'Discover more', onPress: () => navigation.navigate('Paywall') }
+            { text: 'Discover more', onPress: () => showPaywall(PremiumFeature.HEAT_LEVELS_4_5) }
           ]
         );
         return;
@@ -95,10 +96,10 @@ export default function HeatLevelScreen({ navigation }) {
       if (!isPremium && usageStatus?.remaining?.prompts === 0) {
         Alert.alert(
           'There\'s more waiting for you',
-          'Free users can preview 3 read-only prompts. Discover the full experience for unlimited prompts and responses.',
+          'Free users can answer 1 guided prompt per day. Discover the full experience for unlimited prompts and deeper connection.',
           [
             { text: 'Maybe Later', style: 'cancel' },
-            { text: 'Discover more', onPress: () => navigation.navigate('Paywall') }
+            { text: 'Discover more', onPress: () => showPaywall(PremiumFeature.UNLIMITED_PROMPTS) }
           ]
         );
         return;
@@ -243,7 +244,7 @@ export default function HeatLevelScreen({ navigation }) {
           {!isPremium && (
             <TouchableOpacity
               style={styles.premiumCTA}
-              onPress={() => navigation.navigate('Paywall')}
+              onPress={() => showPaywall(PremiumFeature.UNLIMITED_PROMPTS)}
               activeOpacity={0.9}
             >
               <LinearGradient

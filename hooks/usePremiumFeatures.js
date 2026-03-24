@@ -103,7 +103,7 @@ export const usePremiumFeatures = () => {
 
   const handleSubscribe = useCallback(async () => {
     // Show the paywall modal so the user can purchase
-    showPaywall('GENERAL_UPGRADE');
+    showPaywall();
   }, [showPaywall]);
 
   return {

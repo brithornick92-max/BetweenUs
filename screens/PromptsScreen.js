@@ -14,6 +14,7 @@ import {
   Platform,
   StatusBar,
   Dimensions,
+  Alert,
 } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,15 +25,17 @@ import {
   ImpactFeedbackStyle,
 } from "../utils/haptics";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { LinearGradient } from "expo-linear-gradient";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import PreferenceEngine from "../services/PreferenceEngine";
 import PromptCardDeck from "../components/PromptCardDeck";
+import { SoftBoundaries } from "../services/PolishEngine";
+import { getFilteredPromptsWithProfile } from "../utils/contentLoader";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -94,6 +97,19 @@ const TONE_PROMPT_COPY = {
   },
 };
 
+const resolveSelectableMaxHeat = (profile, selectedHeat) => {
+  const requestedHeat = typeof selectedHeat === 'number' ? selectedHeat : 1;
+  const boundaryCap = profile?.boundaries?.hideSpicy
+    ? 3
+    : profile?.boundaries?.maxHeatOverride;
+
+  if (typeof boundaryCap === 'number') {
+    return Math.min(requestedHeat, boundaryCap);
+  }
+
+  return requestedHeat;
+};
+
 function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -114,6 +130,7 @@ export default function PromptsScreen({ navigation }) {
   const [contentProfile, setContentProfile] = useState(null);
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deckVersion, setDeckVersion] = useState(0);
 
   const t = useMemo(() => ({
     background: '#0A0A0A',
@@ -172,17 +189,24 @@ export default function PromptsScreen({ navigation }) {
 
   const deckPrompts = useMemo(() => {
     const heat = selectedHeat ?? 1;
-    const byHeat = prompts.filter((p) => (p.heat || 1) === heat);
+    const selectableMaxHeat = resolveSelectableMaxHeat(contentProfile, heat);
+    const profileBase = contentProfile
+      ? getFilteredPromptsWithProfile({
+          ...contentProfile,
+          maxHeat: selectableMaxHeat,
+        }).map(normalizePrompt)
+      : prompts;
+    const byHeat = profileBase.filter((p) => (p.heat || 1) === heat);
     if (!contentProfile) return shuffleArray(byHeat);
     return PreferenceEngine.filterPrompts(byHeat, {
       ...contentProfile,
-      maxHeat: Math.min(contentProfile.maxHeat || heat, heat),
+      maxHeat: selectableMaxHeat,
     });
   }, [prompts, selectedHeat, contentProfile]);
 
   const handlePromptSelect = useCallback((prompt) => {
     if (!isPremium && (prompt.heat || 1) >= 4) {
-      showPaywall?.("unlimitedPrompts");
+      showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
       return;
     }
     navigation.navigate("PromptAnswer", {
@@ -192,12 +216,46 @@ export default function PromptsScreen({ navigation }) {
 
   const handleHeatSelect = useCallback((heat) => {
     if (!isPremium && heat >= 4) {
-      showPaywall?.("premiumHeatLevel");
+      showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5);
       return;
     }
     setSelectedHeat(heat);
     selection();
   }, [isPremium, showPaywall]);
+
+  const refreshBoundaryProfile = useCallback(async () => {
+    const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+    setContentProfile(profile);
+    setDeckVersion((value) => value + 1);
+  }, [userProfile]);
+
+  const handlePromptBoundaryAction = useCallback((prompt) => {
+    if (!prompt?.id) return;
+
+    Alert.alert(
+      "Boundary Options",
+      "Choose how you want this prompt handled.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Hide This Prompt",
+          onPress: async () => {
+            await SoftBoundaries.pauseEntry(prompt.id);
+            await refreshBoundaryProfile();
+          },
+        },
+        {
+          text: "Hide This Category",
+          onPress: async () => {
+            if (prompt.category) {
+              await SoftBoundaries.hideCategory(prompt.category);
+              await refreshBoundaryProfile();
+            }
+          },
+        },
+      ]
+    );
+  }, [refreshBoundaryProfile]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -215,35 +273,6 @@ export default function PromptsScreen({ navigation }) {
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
             <Text style={[styles.headerSubtitle, { color: t.subtext }]}>{toneCopy.subtitle}</Text>
           </Animated.View>
-
-          {/* Premium Progress / Discovery Tracker */}
-          {!isPremium && (
-            <Animated.View entering={FadeIn.duration(800).delay(400)}>
-              <TouchableOpacity
-                style={[styles.progressCard, { backgroundColor: t.surface, borderColor: t.border }]}
-                onPress={() => showPaywall?.("unlimitedPrompts")}
-                activeOpacity={0.9}
-              >
-                <View style={styles.progressHeader}>
-                  <Text style={[styles.progressTitle, { color: t.text }]}>
-                    {TOTAL_PROMPT_COUNT - deckPrompts.length} Intimacies Await
-                  </Text>
-                  <Icon name="sparkles" size={16} color={t.primary} />
-                </View>
-
-                <View style={[styles.progressBar, { backgroundColor: withAlpha(t.text, 0.05) }]}>
-                  <LinearGradient
-                    colors={[t.primary, "#8E0D2C"]}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                    style={[styles.progressFill, { width: `${Math.max(8, (deckPrompts.length / TOTAL_PROMPT_COUNT) * 100)}%` }]}
-                  />
-                </View>
-                <Text style={[styles.progressSubtitle, { color: t.subtext }]}>
-                  Upgrade to unlock the complete editorial library
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          )}
 
           {/* Tactile Heat Selector */}
           <Animated.View entering={FadeIn.duration(800).delay(500)} style={styles.heatSection}>
@@ -312,10 +341,16 @@ export default function PromptsScreen({ navigation }) {
           ) : (
             <View style={[styles.deckWrapper, { paddingBottom: tabBarHeight }]}>
               <PromptCardDeck
+                key={deckVersion}
                 prompts={deckPrompts}
                 onSelect={handlePromptSelect}
                 onSkip={() => impact(ImpactFeedbackStyle.Light)}
+                onLongPress={handlePromptBoundaryAction}
               />
+              <View style={styles.boundaryHintRow}>
+                <Icon name="hand-left-outline" size={14} color={t.subtext} />
+                <Text style={[styles.boundaryHintText, { color: t.subtext }]}>Long-press a card to hide it or mute its category.</Text>
+              </View>
             </View>
           )}
         </SafeAreaView>
@@ -352,49 +387,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 8,
     opacity: 0.9,
-  },
-  progressCard: {
-    marginHorizontal: 32,
-    padding: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    marginBottom: 32,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.1,
-        shadowRadius: 15,
-      },
-      android: { elevation: 3 }
-    })
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  progressTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    fontWeight: "700",
-    letterSpacing: -0.2,
-  },
-  progressBar: {
-    height: 4,
-    borderRadius: 2,
-    marginBottom: 10,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-  },
-  progressSubtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: "600",
-    opacity: 0.8,
   },
   heatSection: {
     paddingHorizontal: 32,
@@ -443,6 +435,20 @@ const styles = StyleSheet.create({
   },
   deckWrapper: {
     flex: 1,
+  },
+  boundaryHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 10,
+    paddingHorizontal: 24,
+  },
+  boundaryHintText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   centered: {
     flex: 1,

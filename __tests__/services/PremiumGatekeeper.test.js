@@ -6,7 +6,9 @@ jest.mock('../../services/LocalUsageService', () => ({
   __esModule: true,
   default: {
     getDailyUsage: jest.fn().mockResolvedValue({ prompts: 0, dates: 0 }),
+    getWeeklyUsage: jest.fn().mockResolvedValue({ dateFlows: 0, unlockedDateId: null }),
     incrementDailyUsage: jest.fn().mockResolvedValue({ prompts: 1 }),
+    incrementWeeklyUsage: jest.fn().mockResolvedValue({ dateFlows: 1, unlockedDateId: 'date-1' }),
   },
 }));
 
@@ -50,11 +52,19 @@ describe('PremiumGatekeeper', () => {
     });
   });
 
+  describe('canAccessDateFlow', () => {
+    it('allows free users one full date flow per week', async () => {
+      const result = await PremiumGatekeeper.canAccessDateFlow('user-1', 'date-1', false);
+      expect(result.canAccess).toBe(true);
+    });
+  });
+
   describe('getUserUsageStatus', () => {
     it('returns usage info for a user', async () => {
       const status = await PremiumGatekeeper.getUserUsageStatus('user-1', false);
       expect(status).toBeDefined();
       expect(typeof status).toBe('object');
+      expect(status.remaining.dateFlowsPerWeek).toBeDefined();
     });
   });
 });

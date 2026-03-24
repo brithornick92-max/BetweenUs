@@ -23,7 +23,11 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import EditorialPrompt from "../components/EditorialPrompt";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from "../utils/theme";
+import PreferenceEngine from '../services/PreferenceEngine';
+import { resolveEditorialCategory } from '../components/EditorialPrompt';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -31,6 +35,8 @@ const EditorialPromptScreen = ({ route, navigation }) => {
   const { promptId, category } = route?.params || {};
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { colors, isDark } = useTheme();
+  const { userProfile } = useAuth();
+  const [resolvedCategory, setResolvedCategory] = React.useState(category || 'daily_life');
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -62,6 +68,24 @@ const EditorialPromptScreen = ({ route, navigation }) => {
     ]).start();
   }, []);
 
+  useEffect(() => {
+    let active = true;
+
+    PreferenceEngine.getContentProfile(userProfile || {})
+      .then((profile) => {
+        if (!active) return;
+        setResolvedCategory(resolveEditorialCategory(profile, category));
+      })
+      .catch(() => {
+        if (!active) return;
+        setResolvedCategory(category || 'daily_life');
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [userProfile, category]);
+
   const handleBackPress = () => {
     selection();
     navigation.goBack();
@@ -90,17 +114,17 @@ const EditorialPromptScreen = ({ route, navigation }) => {
       <View style={styles.headerContent}>
         <View style={[styles.headerIcon, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
           <Icon
-            name={category === "daily_life" ? "calendar-outline" : "chatbubble-ellipses-outline"}
+            name={resolvedCategory === "daily_life" ? "calendar-outline" : "chatbubble-ellipses-outline"}
             size={28}
             color={t.primary}
           />
         </View>
 
         <Text style={[styles.headerTitle, { color: t.text }]}>
-          {category === "daily_life" ? "Daily Reflection" : "Shared Wisdom"}
+          {resolvedCategory === "daily_life" ? "Daily Reflection" : "Shared Wisdom"}
         </Text>
         <Text style={[styles.headerSubtitle, { color: t.subtext }]}>
-          {category === "daily_life"
+          {resolvedCategory === "daily_life"
             ? "Connect through the quiet moments of your day."
             : "Thoughtful prompts designed to deepen your intimacy."}
         </Text>
@@ -117,12 +141,15 @@ const EditorialPromptScreen = ({ route, navigation }) => {
   const renderCategoryInfo = () => {
     const info = {
       reflection: { icon: "eye-outline", name: "Reflection", description: "Deep questions about your inner world" },
+      gratitude: { icon: "sparkles-outline", name: "Gratitude", description: "Gentle prompts that spotlight what feels good and steady" },
       connection: { icon: "heart-outline", name: "Connection", description: "Prompts to deepen your bond" },
       growth: { icon: "trending-up-outline", name: "Growth", description: "Questions about development and aspirations" },
       intimacy: { icon: "heart-circle-outline", name: "Intimacy", description: "Vulnerable prompts for deeper connection" },
       dreams: { icon: "star-outline", name: "Dreams", description: "Explore hopes and future together" },
+      playful: { icon: "happy-outline", name: "Playful", description: "Lighter prompts with spark, warmth, and movement" },
+      daily_life: { icon: "calendar-outline", name: "Daily Life", description: "Simple check-ins shaped around the rhythm of today" },
     };
-    const categoryInfo = info[category] || info.reflection;
+    const categoryInfo = info[resolvedCategory] || info.reflection;
 
     return (
       <Animated.View
@@ -166,7 +193,7 @@ const EditorialPromptScreen = ({ route, navigation }) => {
               <Icon name="lock-closed-outline" size={32} color={t.primary} />
             </View>
             <Text style={[styles.paywallTitle, { color: t.text }]}>
-              {category === "daily_life" ? "Daily Reflection" : "Editorial Prompts"}
+              {resolvedCategory === "daily_life" ? "Daily Reflection" : "Editorial Prompts"}
             </Text>
             <Text style={[styles.paywallDescription, { color: t.subtext }]}>
               Unlock the full library of curated intimacy prompts and daily check-ins.
@@ -179,7 +206,7 @@ const EditorialPromptScreen = ({ route, navigation }) => {
             </View>
 
             <TouchableOpacity
-              onPress={() => showPaywall?.('EDITORIAL_PROMPTS')}
+              onPress={() => showPaywall?.(PremiumFeature.EDITORIAL_PROMPTS)}
               style={[styles.upgradeButton, { backgroundColor: t.primary }]}
               activeOpacity={0.9}
             >
@@ -214,7 +241,7 @@ const EditorialPromptScreen = ({ route, navigation }) => {
       >
         <EditorialPrompt
           promptId={promptId}
-          category={category}
+          category={resolvedCategory}
           onAnswerSubmit={() => impact(ImpactFeedbackStyle.Medium)}
           onPartnerAnswerRevealed={() => impact(ImpactFeedbackStyle.Light)}
         />

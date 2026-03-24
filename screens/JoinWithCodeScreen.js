@@ -28,7 +28,7 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme'
 
 /**
  * JoinWithCodeScreen — lets the receiving partner enter an invite code
- * (couple ID) to join their partner's couple and derive the shared
+ * to join their partner's couple and derive the shared
  * encryption key via X25519 key exchange.
  */
 export default function JoinWithCodeScreen({ navigation }) {
@@ -59,7 +59,7 @@ export default function JoinWithCodeScreen({ navigation }) {
 
       if (!session) {
         setPhase('error');
-        setStatusMsg('Cloud sign-in required. Go to Settings → Cloud Sync to sign in.');
+        setStatusMsg('Account sign-in required. Go to Settings → Cloud Sync to sign in.');
         return;
       }
 

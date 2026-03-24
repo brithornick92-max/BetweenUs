@@ -51,7 +51,7 @@ This directory contains all legal documents for the Between Us app.
 
 **Need to know:**
 - ✅ You must be 18+ to use Between Us
-- ✅ Your intimate content is end-to-end encrypted
+- ✅ Shared synced intimate content is encrypted before upload
 - ✅ We never sell your data
 - ✅ You can delete your data anytime
 - ✅ You control what you share with your partner

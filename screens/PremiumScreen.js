@@ -32,9 +32,9 @@ const FEATURES = [
   { icon: "chat-processing",         text: "Unlimited prompts across all heat levels" },
   { icon: "email-heart",             text: "Send & receive encrypted love notes" },
   { icon: "calendar-heart",          text: "Schedule date nights with reminders" },
-  { icon: "link-variant",            text: "Secure partner linking — one sub covers both" },
+  { icon: "link-variant",            text: "One subscription can extend premium to your linked partner" },
   { icon: "book-open-variant",       text: "Year reflection & relationship milestones" },
-  { icon: "shield-lock",             text: "End-to-end encrypted local storage" },
+  { icon: "shield-lock",             text: "Encrypted storage for sensitive content" },
 ];
 
 // ─── Animated section wrapper ─────────────────────────────────────────────────
@@ -114,7 +114,7 @@ export default function PremiumScreen({ navigation }) {
         notification(NotificationFeedbackType.Success);
         Alert.alert(
           "Welcome to Premium",
-          "You and your partner now have full access.",
+          "Your premium access is active. If you're linked, your partner can receive shared premium access too.",
           [{ text: "Continue", onPress: () => navigation.goBack() }]
         );
       } else if (!result.cancelled) {
@@ -230,7 +230,7 @@ export default function PremiumScreen({ navigation }) {
               Make space for{"\n"}what matters most.
             </Text>
             <Text style={styles.heroSubheadline}>
-              Unlimited prompts, love notes, shared calendar, and partner connection — one subscription covers both of you.
+              Unlimited prompts, love notes, shared calendar, and encrypted sync for linked premium couples.
             </Text>
           </FadeInSection>
 
@@ -279,7 +279,7 @@ export default function PremiumScreen({ navigation }) {
                 <View style={styles.coupleNoteContainer}>
                   <Icon name="heart-multiple" size={14} color={t.primary} />
                   <Text style={styles.coupleNote}>
-                    One subscription unlocks premium for both partners.
+                    One subscription can share premium access with your linked partner.
                   </Text>
                 </View>
               </FadeInSection>

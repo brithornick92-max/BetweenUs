@@ -71,7 +71,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
 
         Alert.alert(
           "🎉 Welcome to Between Us Pro",
-          "Full access is now yours. Your partner will automatically receive Pro access once you link your accounts.",
+          "Full access is now yours. If your accounts are linked, your partner can receive shared Pro access after entitlement sync completes.",
           [
             {
               text: "Begin Pro Journey",

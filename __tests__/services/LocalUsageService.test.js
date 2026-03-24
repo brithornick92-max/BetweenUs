@@ -13,8 +13,9 @@ beforeEach(() => {
 
 describe('FREE_TIER_LIMITS', () => {
   it('defines correct limits matching featureFlags.FREE_LIMITS', () => {
-    expect(FREE_TIER_LIMITS.promptsPerDay).toBe(0);
+    expect(FREE_TIER_LIMITS.promptsPerDay).toBe(1);
     expect(FREE_TIER_LIMITS.visibleDates).toBe(3);
+    expect(FREE_TIER_LIMITS.fullDateFlowsPerWeek).toBe(1);
     expect(FREE_TIER_LIMITS.journalEntriesVisible).toBe(0);
     expect(FREE_TIER_LIMITS.surpriseMeEnabled).toBe(false);
   });
@@ -87,6 +88,22 @@ describe('LocalUsageService', () => {
       await LocalUsageService.resetIfNewDay(userId);
       // getItem called but setItem should not be called
       expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('weekly usage', () => {
+    it('creates a fresh weekly record when none exists', async () => {
+      const usage = await LocalUsageService.getWeeklyUsage(userId);
+      expect(usage).toBeDefined();
+      expect(usage.dateFlows).toBe(0);
+      expect(usage.unlockedDateId).toBeNull();
+      expect(AsyncStorage.setItem).toHaveBeenCalled();
+    });
+
+    it('increments weekly date flow count and stores unlocked date id', async () => {
+      const result = await LocalUsageService.incrementWeeklyUsage(userId, 'dateFlows', { unlockedDateId: 'date-1' });
+      expect(result.dateFlows).toBe(1);
+      expect(result.unlockedDateId).toBe('date-1');
     });
   });
 });

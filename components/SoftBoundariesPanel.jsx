@@ -14,6 +14,7 @@ import {
   Animated,
   Platform,
   Modal,
+  FlatList,
 } from 'react-native';
 import Icon from './Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
@@ -23,11 +24,16 @@ import { SoftBoundaries } from '../services/PolishEngine';
 
 const ALL_PROMPTS = require('../content/prompts.json').items || [];
 const PROMPTS_BY_ID = ALL_PROMPTS.reduce((acc, p) => { acc[p.id] = p; return acc; }, {});
+const ALL_DATES = require('../content/dates.json').items || [];
+const DATES_BY_ID = ALL_DATES.reduce((acc, d) => { acc[d.id] = d; return acc; }, {});
+const ALL_CATEGORIES = [...new Set(ALL_PROMPTS.map((prompt) => prompt?.category).filter(Boolean))].sort();
 
 export default function SoftBoundariesPanel({ onBoundaryChange }) {
   const { colors, isDark } = useTheme();
   const [boundaries, setBoundaries] = useState(null);
   const [showHiddenModal, setShowHiddenModal] = useState(false);
+  const [showCategoriesModal, setShowCategoriesModal] = useState(false);
+  const [showDatesModal, setShowDatesModal] = useState(false);
 
   // STRICT Midnight Intimacy x Apple Editorial Theme Map
   const t = useMemo(() => ({
@@ -81,12 +87,37 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
     onBoundaryChange?.();
   }, [onBoundaryChange]);
 
+  const unpauseDate = useCallback(async (dateId) => {
+    impact(ImpactFeedbackStyle.Light);
+    await SoftBoundaries.unpauseDate(dateId);
+    const updated = await SoftBoundaries.getAll();
+    setBoundaries(updated);
+    onBoundaryChange?.();
+  }, [onBoundaryChange]);
+
+  const toggleCategory = useCallback(async (category) => {
+    impact(ImpactFeedbackStyle.Light);
+    if (boundaries?.hiddenCategories?.includes(category)) {
+      await SoftBoundaries.unhideCategory(category);
+    } else {
+      await SoftBoundaries.hideCategory(category);
+    }
+    const updated = await SoftBoundaries.getAll();
+    setBoundaries(updated);
+    onBoundaryChange?.();
+  }, [boundaries?.hiddenCategories, onBoundaryChange]);
+
   if (!boundaries) return null;
 
   const pausedItems = (boundaries.pausedEntries || []).map(id => ({
     id,
     text: PROMPTS_BY_ID[id]?.text || id,
     category: PROMPTS_BY_ID[id]?.category,
+  }));
+  const pausedDates = (boundaries.pausedDates || []).map(id => ({
+    id,
+    title: DATES_BY_ID[id]?.title || id,
+    minutes: DATES_BY_ID[id]?.minutes || null,
   }));
 
   return (
@@ -202,8 +233,77 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
 
         <View style={[styles.divider, { backgroundColor: t.border }]} />
 
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => { impact(ImpactFeedbackStyle.Light); setShowDatesModal(true); }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.subtext, 0.1) }]}> 
+              <Icon name="calendar-clear-outline" size={18} color={t.subtext} />
+            </View>
+            <View style={styles.rowText}>
+              <Text style={[styles.rowTitle, { color: t.text }]}>Paused date ideas</Text>
+              <Text style={[styles.rowSub, { color: t.subtext }]}> 
+                {boundaries.pausedDates.length === 0
+                  ? 'None paused right now'
+                  : `${boundaries.pausedDates.length} date ideas paused`}
+              </Text>
+            </View>
+          </View>
+          <Icon name="chevron-forward" size={20} color={t.border} />
+        </TouchableOpacity>
+
+        <Modal
+          visible={showDatesModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowDatesModal(false)}
+        >
+          <View style={[styles.modalContainer, { backgroundColor: t.surface }]}> 
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}> 
+              <Text style={[styles.modalTitle, { color: t.text }]}>Paused Dates</Text>
+              <TouchableOpacity onPress={() => setShowDatesModal(false)} style={styles.modalClose}>
+                <Icon name="close" size={24} color={t.subtext} />
+              </TouchableOpacity>
+            </View>
+
+            {pausedDates.length === 0 ? (
+              <View style={styles.modalEmpty}>
+                <Icon name="calendar-clear-outline" size={40} color={t.subtext} />
+                <Text style={[styles.modalEmptyText, { color: t.subtext }]}>No paused dates yet.</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={pausedDates}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.modalList}
+                renderItem={({ item }) => (
+                  <View style={[styles.hiddenItemRow, { borderBottomColor: t.border }]}> 
+                    <View style={styles.hiddenItemText}>
+                      <Text style={[styles.hiddenItemBody, { color: t.text }]} numberOfLines={2}>{item.title}</Text>
+                      {item.minutes ? (
+                        <Text style={[styles.hiddenItemCategory, { color: t.subtext }]}>{item.minutes} min</Text>
+                      ) : null}
+                    </View>
+                    <TouchableOpacity
+                      style={[styles.unhideBtn, { borderColor: t.primary }]}
+                      onPress={() => unpauseDate(item.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.unhideBtnText, { color: t.primary }]}>Unpause</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+            )}
+          </View>
+        </Modal>
+
+        <View style={[styles.divider, { backgroundColor: t.border }]} />
+
         {/* Row 3: Hidden Categories */}
-        <View style={styles.row}>
+        <TouchableOpacity style={styles.row} onPress={() => { impact(ImpactFeedbackStyle.Light); setShowCategoriesModal(true); }} activeOpacity={0.7}>
           <View style={styles.rowLeft}>
             <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.subtext, 0.1) }]}>
               <Icon name="pricetag-outline" size={18} color={t.subtext} />
@@ -220,7 +320,46 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
             </View>
           </View>
           <Icon name="chevron-forward" size={20} color={t.border} />
-        </View>
+        </TouchableOpacity>
+
+        <Modal
+          visible={showCategoriesModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowCategoriesModal(false)}
+        >
+          <View style={[styles.modalContainer, { backgroundColor: t.surface }]}> 
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}> 
+              <Text style={[styles.modalTitle, { color: t.text }]}>Hidden Categories</Text>
+              <TouchableOpacity onPress={() => setShowCategoriesModal(false)} style={styles.modalClose}>
+                <Icon name="close" size={24} color={t.subtext} />
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={ALL_CATEGORIES}
+              keyExtractor={(item) => item}
+              contentContainerStyle={styles.modalList}
+              renderItem={({ item }) => {
+                const hidden = boundaries.hiddenCategories.includes(item);
+                return (
+                  <TouchableOpacity
+                    style={[styles.hiddenItemRow, { borderBottomColor: t.border }]}
+                    onPress={() => toggleCategory(item)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.hiddenItemText}>
+                      <Text style={[styles.hiddenItemBody, { color: t.text }]}>{item}</Text>
+                    </View>
+                    <View style={[styles.unhideBtn, { borderColor: hidden ? t.primary : t.border }]}> 
+                      <Text style={[styles.unhideBtnText, { color: hidden ? t.primary : t.subtext }]}>{hidden ? 'Hidden' : 'Visible'}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </Modal>
       </View>
 
       <Text style={[styles.footer, { color: t.subtext }]}>

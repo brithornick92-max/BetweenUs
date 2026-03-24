@@ -17,6 +17,7 @@ import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { useRitualContext } from '../context/RitualContext';
 import { useEntitlements } from '../context/EntitlementsContext';
+import { PremiumFeature } from '../utils/featureFlags';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 import { cancelNotification } from '../utils/notifications';
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
@@ -117,7 +118,7 @@ export default function RitualRemindersScreen({ navigation }) {
             Ritual reminders help you build consistent connection habits with your partner. Part of the deeper experience — schedule personalized reminders.
           </Text>
           <TouchableOpacity
-            onPress={() => showPaywall('ritualReminders')}
+            onPress={() => showPaywall(PremiumFeature.RITUAL_REMINDERS)}
             style={{ backgroundColor: theme.colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12, width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
             activeOpacity={0.85}
           >

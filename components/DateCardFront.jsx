@@ -9,6 +9,7 @@ import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import Icon from './Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Easing } from 'react-native-reanimated';
+import { getDateCardPalette } from './dateCardPalette';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -17,12 +18,6 @@ const FONTS = {
   serifAccent: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular', default: 'serif' }),
   body: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
   bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
-};
-
-export const HEAT_GRADIENTS = {
-  1: ['#7A1E4E', '#5E1940'],
-  2: ['#9A2E5E', '#7A1E4E'],
-  3: ['#B84070', '#9A2E5E'],
 };
 
 export const HEAT_ICONS = {
@@ -37,16 +32,9 @@ const HEAT_LABELS = {
   3: 'Heat',
 };
 
-const HEAT_METAL = {
-  1: { base: '#1A1230', chrome: '#9A2E5E', highlight: '#B84070', mid: '#5E1940' },
-  2: { base: '#1E0F1A', chrome: '#B84070', highlight: '#C45060', mid: '#7A1E4E' },
-  3: { base: '#1E0808', chrome: '#C45060', highlight: '#D04848', mid: '#9A2E5E' },
-};
-
 export default function DateCardFront({ date, colors, dims }) {
   const heat = date?.heat || 1;
-  const metal = HEAT_METAL[heat] || HEAT_METAL[1];
-  const gradient = HEAT_GRADIENTS[heat] || HEAT_GRADIENTS[1];
+  const palette = getDateCardPalette(heat);
   const icon = HEAT_ICONS[heat] || 'hand-heart';
   const label = HEAT_LABELS[heat] || 'Emotional';
   const loadMeta = dims.load.find(l => l.level === date.load) || dims.load[1];
@@ -67,10 +55,10 @@ export default function DateCardFront({ date, colors, dims }) {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: metal.base }]}>
+    <View style={[styles.container, { backgroundColor: palette.base }]}> 
       {/* Base dark chrome gradient */}
       <LinearGradient
-        colors={[metal.base, metal.mid + '20', metal.base]}
+        colors={[palette.base, palette.mid + '90', palette.base]}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -78,7 +66,7 @@ export default function DateCardFront({ date, colors, dims }) {
 
       {/* Top shine */}
       <LinearGradient
-        colors={[metal.chrome + '12', 'transparent']}
+        colors={[palette.highlight + '14', 'transparent']}
         style={styles.topShine}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
@@ -89,7 +77,7 @@ export default function DateCardFront({ date, colors, dims }) {
         style={[styles.shimmerBand, { transform: [{ translateX: shimmerX }, { rotate: '25deg' }] }]}
       >
         <LinearGradient
-          colors={['transparent', metal.chrome + '08', metal.highlight + '14', metal.chrome + '08', 'transparent']}
+          colors={['transparent', palette.chrome + '10', palette.highlight + '1C', palette.chrome + '10', 'transparent']}
           style={{ width: '100%', height: '100%' }}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
@@ -99,36 +87,36 @@ export default function DateCardFront({ date, colors, dims }) {
       {/* Top band with heat level accent */}
       <View style={styles.topBand}>
         <LinearGradient
-          colors={[gradient[0] + '35', gradient[1] + '20']}
+          colors={[palette.band[0] + 'E6', palette.band[1] + 'CC']}
           style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
         />
         {/* Brushed metal accent line */}
         <LinearGradient
-          colors={['transparent', metal.chrome + '30', metal.highlight + '40', metal.chrome + '30', 'transparent']}
+          colors={['transparent', palette.chrome + '45', palette.highlight + '55', palette.chrome + '45', 'transparent']}
           style={styles.bandTopEdge}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
         />
         <View style={styles.bandContent}>
-          <Icon name={icon} size={16} color={metal.highlight} />
-          <Text style={[styles.bandLabel, { color: metal.highlight }]}>{label}</Text>
+          <Icon name={icon} size={16} color={palette.highlight} />
+          <Text style={[styles.bandLabel, { color: palette.highlight, textShadowColor: palette.shadow }]}>{label}</Text>
         </View>
       </View>
 
       {/* Chrome divider */}
       <LinearGradient
-        colors={['transparent', metal.chrome + '40', metal.highlight + '50', metal.chrome + '40', 'transparent']}
+        colors={['transparent', palette.chrome + '45', palette.highlight + '55', palette.chrome + '45', 'transparent']}
         style={styles.chromeDivider}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
       />
 
       {/* Inner card frame — metallic border */}
-      <View style={[styles.innerFrame, { borderColor: metal.chrome + '18' }]}>
+      <View style={[styles.innerFrame, { borderColor: palette.chrome + '2D' }]}> 
         <LinearGradient
-          colors={[metal.chrome + '06', 'transparent', metal.chrome + '04']}
+          colors={[palette.highlight + '08', 'transparent', palette.chrome + '0A']}
           style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -138,18 +126,18 @@ export default function DateCardFront({ date, colors, dims }) {
           {/* Tags row */}
           <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.tagsRow}>
             {loadMeta && (
-              <View style={[styles.tag, { borderColor: metal.chrome + '30' }]}>
-                <Text style={[styles.tagText, { color: metal.chrome }]}>{loadMeta.icon} {loadMeta.label}</Text>
+              <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
+                <Text style={[styles.tagText, { color: palette.body }]}>{loadMeta.icon} {loadMeta.label}</Text>
               </View>
             )}
             {date.minutes ? (
-              <View style={[styles.tag, { borderColor: metal.chrome + '30' }]}>
-                <Icon name="clock-outline" size={11} color={metal.chrome} />
-                <Text style={[styles.tagText, { color: metal.chrome }]}> {date.minutes} min</Text>
+              <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
+                <Icon name="clock-outline" size={11} color={palette.body} />
+                <Text style={[styles.tagText, { color: palette.body }]}> {date.minutes} min</Text>
               </View>
             ) : null}
             {date._matchLabel ? (
-              <View style={[styles.tag, { borderColor: colors.primaryMuted + '50' }]}>
+              <View style={[styles.tag, { borderColor: colors.primaryMuted + '50', backgroundColor: palette.tagBackground }]}> 
                 <Text style={[styles.tagText, { color: colors.primaryMuted }]}>{date._matchLabel}</Text>
               </View>
             ) : null}
@@ -158,7 +146,7 @@ export default function DateCardFront({ date, colors, dims }) {
           {/* Title */}
           <Animated.Text
             entering={FadeInDown.delay(200).duration(450)}
-            style={[styles.title, { color: metal.highlight }]}
+            style={[styles.title, { color: palette.text, textShadowColor: palette.shadow }]}
             numberOfLines={3}
           >
             {date.title}
@@ -168,7 +156,7 @@ export default function DateCardFront({ date, colors, dims }) {
           {Array.isArray(date.steps) && date.steps[0] ? (
             <Animated.Text
               entering={FadeInDown.delay(300).duration(450)}
-              style={[styles.description, { color: metal.chrome + '80' }]}
+              style={[styles.description, { color: palette.body }]}
               numberOfLines={3}
             >
               {date.steps[0]}
@@ -179,7 +167,7 @@ export default function DateCardFront({ date, colors, dims }) {
 
       {/* Chrome separator above footer */}
       <LinearGradient
-        colors={['transparent', metal.chrome + '30', metal.highlight + '40', metal.chrome + '30', 'transparent']}
+        colors={['transparent', palette.chrome + '40', palette.highlight + '4A', palette.chrome + '40', 'transparent']}
         style={styles.chromeDivider}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
@@ -188,8 +176,8 @@ export default function DateCardFront({ date, colors, dims }) {
       {/* Bottom footer */}
       <View style={styles.footer}>
         <View style={styles.footerContent}>
-          <Text style={[styles.footerText, { color: metal.chrome + '60' }]}>swipe right for tonight</Text>
-          <Icon name="arrow-right" size={14} color={metal.chrome + '60'} />
+          <Text style={[styles.footerText, { color: palette.body }]}>swipe right for tonight</Text>
+          <Icon name="arrow-right" size={14} color={palette.body} />
         </View>
       </View>
     </View>

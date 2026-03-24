@@ -9,6 +9,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Platform, Dimensions, StatusBar, InteractionManager,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -24,8 +25,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
-import { getAllDates, filterDates, getDimensionMeta } from '../utils/contentLoader';
-import { FREE_LIMITS } from '../utils/featureFlags';
+import { getAllDates, filterDates, getDimensionMeta, getFilteredDatesWithProfile } from '../utils/contentLoader';
+import { FREE_LIMITS, PremiumFeature } from '../utils/featureFlags';
 import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme'; // BORDER_RADIUS kept for styles
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -33,10 +34,13 @@ import PreferenceEngine from '../services/PreferenceEngine';
 import { useAuth } from '../context/AuthContext';
 import DateCardFront from '../components/DateCardFront';
 import DateCardBack from '../components/DateCardBack';
+import { getDateCardPalette } from '../components/dateCardPalette';
+import { SoftBoundaries } from '../services/PolishEngine';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
 const CARD_H = Math.min(height * 0.52, 480);
+const CARD_STACK_LIFT = height < 760 ? 30 : height < 850 ? 24 : 18;
 const SWIPE_THRESHOLD = 90;
 const FLIP_DURATION = 650;
 const DIMS = getDimensionMeta();
@@ -73,10 +77,47 @@ const TONE_DATE_COPY = {
   },
 };
 
+const DECK_FILTER_ICONS = {
+  heat: {
+    1: 'heart-outline',
+    2: 'sparkles-outline',
+    3: 'flame-outline',
+  },
+  load: {
+    1: 'moon-outline',
+    2: 'sunny-outline',
+    3: 'flash-outline',
+  },
+  style: {
+    talking: 'chatbubble-outline',
+    doing: 'compass-outline',
+    mixed: 'shuffle-outline',
+  },
+};
+
+function getDeckFilterIcon(type, option) {
+  if (!option) return null;
+  const key = type === 'style' ? option.id : option.level;
+  return DECK_FILTER_ICONS[type]?.[key] || 'ellipse-outline';
+}
+
+function getDeckFilterTone(type, option) {
+  if (!option) return null;
+  if (type === 'style') {
+    const styleToneMap = {
+      talking: 1,
+      doing: 2,
+      mixed: 3,
+    };
+    return getDateCardPalette(styleToneMap[option.id] || 1);
+  }
+  return getDateCardPalette(option.level);
+}
+
 
 // ── Card stack with flip + swipe ─────────────────────────────────────────────────
 const CardStack = forwardRef(function CardStack(
-  { deck, deckIndex, colors, isDark, onSwipeLeft, onSwipeRight, onPress },
+  { deck, deckIndex, colors, isDark, onSwipeLeft, onSwipeRight, onPress, onLongPress },
   ref,
 ) {
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
@@ -87,8 +128,8 @@ const CardStack = forwardRef(function CardStack(
 
   // Keep ref in sync during render (NOT in useEffect) so gesture handlers
   // always read the same deck/deckIndex that's currently displayed on screen.
-  const deckRef = useRef({ deck, deckIndex, onSwipeLeft, onSwipeRight, onPress });
-  deckRef.current = { deck, deckIndex, onSwipeLeft, onSwipeRight, onPress };
+  const deckRef = useRef({ deck, deckIndex, onSwipeLeft, onSwipeRight, onPress, onLongPress });
+  deckRef.current = { deck, deckIndex, onSwipeLeft, onSwipeRight, onPress, onLongPress };
 
   // Reset flip + position when deck advances
   useEffect(() => {
@@ -135,6 +176,11 @@ const CardStack = forwardRef(function CardStack(
     if (d[i]) pressHandler(d[i]);
   }, []);
 
+  const doCardLongPress = useCallback(() => {
+    const { deck: d, deckIndex: i, onLongPress: longPressHandler } = deckRef.current;
+    if (d[i]) longPressHandler?.(d[i]);
+  }, []);
+
   useImperativeHandle(ref, () => ({
     swipeRight: () => {
       topX.value = withTiming(width + 150, { duration: 400 }, () => runOnJS(doSwipeRight)());
@@ -173,7 +219,14 @@ const CardStack = forwardRef(function CardStack(
     }
   });
 
-  const composedGesture = Gesture.Race(gesture, tap);
+  const longPress = Gesture.LongPress()
+    .enabled(isFlipped)
+    .minDuration(500)
+    .onStart(() => {
+      runOnJS(doCardLongPress)();
+    });
+
+  const composedGesture = Gesture.Race(gesture, tap, longPress);
 
   // Top card drag animation
   const topStyle = useAnimatedStyle(() => {
@@ -381,7 +434,8 @@ export default function DateNightScreen({ navigation }) {
   }, [selectedHeat, selectedLoad, selectedStyle]);
 
   const deck = useMemo(() => {
-    let base = filterDates(allDates, activeFilters);
+    const profileBase = contentProfile ? getFilteredDatesWithProfile(contentProfile) : allDates;
+    let base = filterDates(profileBase, activeFilters);
     if (contentProfile && base.length > 0) {
       const dims = {};
       if (selectedHeat) dims.heat = selectedHeat;
@@ -403,25 +457,17 @@ export default function DateNightScreen({ navigation }) {
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
 
   const handleSwipeRight = useCallback((date) => {
-    if (!isPremium && likedDates.length >= 1) {
-      showPaywall?.('DATE_NIGHT_BROWSE');
-      return;
-    }
     setLikedDates(prev => [...prev, date]);
     setDeckIndex(prev => prev + 1);
-  }, [isPremium, likedDates.length, showPaywall]);
+  }, []);
 
   const handleSwipeLeft = useCallback(() => {
     setDeckIndex(prev => prev + 1);
   }, []);
 
   const openDate = useCallback((date) => {
-    if (!isPremium) {
-      showPaywall?.('DATE_NIGHT_BROWSE');
-      return;
-    }
     navigation.navigate('DateNightDetail', { date });
-  }, [isPremium, showPaywall, navigation]);
+  }, [navigation]);
 
   const handleReset = useCallback(async () => {
     impact(ImpactFeedbackStyle.Light);
@@ -444,6 +490,31 @@ export default function DateNightScreen({ navigation }) {
     setSelectedLoad(null);
     setSelectedStyle(null);
   }, []);
+
+  const refreshBoundaryProfile = useCallback(async () => {
+    const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+    setContentProfile(profile);
+  }, [userProfile]);
+
+  const handlePauseDate = useCallback((date) => {
+    if (!date?.id) return;
+
+    Alert.alert(
+      'Pause This Date Idea',
+      'This date will stop resurfacing until you unpause it in Settings.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Pause Date',
+          onPress: async () => {
+            await SoftBoundaries.pauseDate(date.id);
+            setLikedDates((prev) => prev.filter((entry) => entry.id !== date.id));
+            await refreshBoundaryProfile();
+          },
+        },
+      ]
+    );
+  }, [refreshBoundaryProfile]);
 
   return (
     <View style={[styles.root, { backgroundColor: t.background }]}>
@@ -501,11 +572,12 @@ export default function DateNightScreen({ navigation }) {
               {/* Mood dropdown */}
               {(() => {
                 const activeHeat = DIMS.heat.find(h => h.level === selectedHeat);
+                const activeHeatTone = getDeckFilterTone('heat', activeHeat);
                 return (
                   <TouchableOpacity
                     style={[styles.dropdownBtn, { 
-                      borderColor: activeHeat ? activeHeat.color + '40' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'), 
-                      backgroundColor: activeHeat ? activeHeat.color + '10' : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(255,255,255,0.6)')
+                      borderColor: activeHeatTone ? withAlpha(activeHeatTone.chrome, 0.42) : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'), 
+                      backgroundColor: activeHeatTone ? withAlpha(activeHeatTone.base, 0.9) : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(255,255,255,0.6)')
                     }]}
                     onPress={() => setDropdownOpen(o => o === 'heat' ? null : 'heat')}
                     activeOpacity={0.7}
@@ -513,11 +585,16 @@ export default function DateNightScreen({ navigation }) {
                     <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Mood</Text>
                     <View style={styles.dropdownValue}>
                       {activeHeat ? (
-                        <Text style={[styles.dropdownValueText, { color: activeHeat.color }]}>{activeHeat.icon} {activeHeat.label}</Text>
+                        <View style={styles.dropdownValueMeta}>
+                          <View style={[styles.dropdownValueIcon, { backgroundColor: activeHeatTone.base, borderColor: withAlpha(activeHeatTone.chrome, 0.36) }]}>
+                            <Icon name={getDeckFilterIcon('heat', activeHeat)} size={14} color={activeHeatTone.highlight} />
+                          </View>
+                          <Text style={[styles.dropdownValueText, { color: activeHeatTone.highlight }]}>{activeHeat.label}</Text>
+                        </View>
                       ) : (
                         <Text style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
                       )}
-                      <Icon name={dropdownOpen === 'heat' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={colors.text + '80'} />
+                      <Icon name={dropdownOpen === 'heat' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeHeatTone ? withAlpha(activeHeatTone.highlight, 0.8) : colors.text + '80'} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -526,11 +603,12 @@ export default function DateNightScreen({ navigation }) {
               {/* Effort dropdown */}
               {(() => {
                 const activeLoad = DIMS.load.find(l => l.level === selectedLoad);
+                const activeLoadTone = getDeckFilterTone('load', activeLoad);
                 return (
                   <TouchableOpacity
                     style={[styles.dropdownBtn, { 
-                      borderColor: activeLoad ? activeLoad.color + '40' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'), 
-                      backgroundColor: activeLoad ? activeLoad.color + '10' : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(255,255,255,0.6)') 
+                      borderColor: activeLoadTone ? withAlpha(activeLoadTone.chrome, 0.42) : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'), 
+                      backgroundColor: activeLoadTone ? withAlpha(activeLoadTone.base, 0.9) : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(255,255,255,0.6)') 
                     }]}
                     onPress={() => setDropdownOpen(o => o === 'load' ? null : 'load')}
                     activeOpacity={0.7}
@@ -538,11 +616,16 @@ export default function DateNightScreen({ navigation }) {
                     <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Energy</Text>
                     <View style={styles.dropdownValue}>
                       {activeLoad ? (
-                        <Text style={[styles.dropdownValueText, { color: activeLoad.color }]}>{activeLoad.icon} {activeLoad.label}</Text>
+                        <View style={styles.dropdownValueMeta}>
+                          <View style={[styles.dropdownValueIcon, { backgroundColor: activeLoadTone.base, borderColor: withAlpha(activeLoadTone.chrome, 0.36) }]}>
+                            <Icon name={getDeckFilterIcon('load', activeLoad)} size={14} color={activeLoadTone.highlight} />
+                          </View>
+                          <Text style={[styles.dropdownValueText, { color: activeLoadTone.highlight }]}>{activeLoad.label}</Text>
+                        </View>
                       ) : (
                         <Text style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
                       )}
-                      <Icon name={dropdownOpen === 'load' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={colors.text + '80'} />
+                      <Icon name={dropdownOpen === 'load' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeLoadTone ? withAlpha(activeLoadTone.highlight, 0.8) : colors.text + '80'} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -551,11 +634,12 @@ export default function DateNightScreen({ navigation }) {
               {/* Style dropdown */}
               {(() => {
                 const activeStyle = DIMS.style.find(s => s.id === selectedStyle);
+                const activeStyleTone = getDeckFilterTone('style', activeStyle);
                 return (
                   <TouchableOpacity
                     style={[styles.dropdownBtn, { 
-                      borderColor: activeStyle ? activeStyle.color + '40' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'), 
-                      backgroundColor: activeStyle ? activeStyle.color + '10' : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(255,255,255,0.6)') 
+                      borderColor: activeStyleTone ? withAlpha(activeStyleTone.chrome, 0.42) : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'), 
+                      backgroundColor: activeStyleTone ? withAlpha(activeStyleTone.base, 0.9) : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(255,255,255,0.6)') 
                     }]}
                     onPress={() => setDropdownOpen(o => o === 'style' ? null : 'style')}
                     activeOpacity={0.7}
@@ -563,11 +647,16 @@ export default function DateNightScreen({ navigation }) {
                     <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Style</Text>
                     <View style={styles.dropdownValue}>
                       {activeStyle ? (
-                        <Text style={[styles.dropdownValueText, { color: activeStyle.color }]}>{activeStyle.icon} {activeStyle.label}</Text>
+                        <View style={styles.dropdownValueMeta}>
+                          <View style={[styles.dropdownValueIcon, { backgroundColor: activeStyleTone.base, borderColor: withAlpha(activeStyleTone.chrome, 0.36) }]}>
+                            <Icon name={getDeckFilterIcon('style', activeStyle)} size={14} color={activeStyleTone.highlight} />
+                          </View>
+                          <Text style={[styles.dropdownValueText, { color: activeStyleTone.highlight }]}>{activeStyle.label}</Text>
+                        </View>
                       ) : (
                         <Text style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
                       )}
-                      <Icon name={dropdownOpen === 'style' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={colors.text + '80'} />
+                      <Icon name={dropdownOpen === 'style' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeStyleTone ? withAlpha(activeStyleTone.highlight, 0.8) : colors.text + '80'} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -581,19 +670,22 @@ export default function DateNightScreen({ navigation }) {
                   const val = dropdownOpen === 'style' ? opt.id : opt.level;
                   const current = dropdownOpen === 'heat' ? selectedHeat : dropdownOpen === 'load' ? selectedLoad : selectedStyle;
                   const active = current === val;
+                  const tone = getDeckFilterTone(dropdownOpen, opt);
                   return (
                     <TouchableOpacity
                       key={val}
-                      style={[styles.dropdownOption, active && { backgroundColor: opt.color + '15' }]}
+                      style={[styles.dropdownOption, active && { backgroundColor: withAlpha(tone.base, 0.94) }]}
                       onPress={() => handleFilterPress(dropdownOpen, val)}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.dropdownOptionEmoji}>{opt.icon}</Text>
-                      <View style={styles.dropdownOptionContent}>
-                        <Text style={[styles.dropdownOptionLabel, { color: active ? opt.color : colors.text }]}>{opt.label}</Text>
-                        <Text style={[styles.dropdownOptionSub, { color: colors.textMuted }]}>{opt.description || 'Curated category'}</Text>
+                      <View style={[styles.dropdownOptionIcon, { backgroundColor: tone.base, borderColor: withAlpha(tone.chrome, 0.34) }]}>
+                        <Icon name={getDeckFilterIcon(dropdownOpen, opt)} size={18} color={tone.highlight} />
                       </View>
-                      {active && <Icon name="checkmark-circle" size={20} color={opt.color} />}
+                      <View style={styles.dropdownOptionContent}>
+                        <Text style={[styles.dropdownOptionLabel, { color: active ? tone.highlight : colors.text }]}>{opt.label}</Text>
+                        <Text style={[styles.dropdownOptionSub, { color: active ? withAlpha(tone.body, 0.9) : colors.textMuted }]}>{opt.description || 'Curated category'}</Text>
+                      </View>
+                      {active && <Icon name="checkmark-circle" size={20} color={tone.highlight} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -637,7 +729,7 @@ export default function DateNightScreen({ navigation }) {
                   </Text>
                   <TouchableOpacity
                     style={[styles.resetBtn, { backgroundColor: colors.primary }]}
-                    onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
+                    onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS)}
                     activeOpacity={0.85}
                   >
                     <Text style={[styles.resetTxt, { color: '#FFFFFF' }]}>Unlock Everything</Text>
@@ -662,16 +754,23 @@ export default function DateNightScreen({ navigation }) {
               )}
             </BlurView>
           ) : (
-            <CardStack
-              ref={stackRef}
-              deck={deck}
-              deckIndex={deckIndex}
-              colors={colors}
-              isDark={isDark}
-              onSwipeRight={handleSwipeRight}
-              onSwipeLeft={handleSwipeLeft}
-              onPress={openDate}
-            />
+            <>
+              <CardStack
+                ref={stackRef}
+                deck={deck}
+                deckIndex={deckIndex}
+                colors={colors}
+                isDark={isDark}
+                onSwipeRight={handleSwipeRight}
+                onSwipeLeft={handleSwipeLeft}
+                onPress={openDate}
+                onLongPress={handlePauseDate}
+              />
+              <View style={styles.boundaryHintRow}>
+                <Icon name="hand-left-outline" size={14} color={colors.textMuted} />
+                <Text style={[styles.boundaryHintText, { color: colors.textMuted }]}>Long-press a card to pause that date idea.</Text>
+              </View>
+            </>
           )}
         </View>
 
@@ -711,7 +810,7 @@ export default function DateNightScreen({ navigation }) {
         {allSelected && !isPremium && !deckDone && deck.length > 0 && (
           <TouchableOpacity
             style={[styles.editorialBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}
-            onPress={() => showPaywall?.('UNLIMITED_DATE_IDEAS')}
+            onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS)}
             activeOpacity={0.8}
           >
             <View style={styles.editorialTag}>
@@ -741,6 +840,7 @@ export default function DateNightScreen({ navigation }) {
                     key={d.id || i}
                     style={[styles.likedCard, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
                     onPress={() => openDate(d)}
+                    onLongPress={() => handlePauseDate(d)}
                     activeOpacity={0.85}
                   >
                     <View style={[styles.likedCardEmoji, { backgroundColor: hm.color + '15' }]}>
@@ -854,6 +954,19 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
+  dropdownValueMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dropdownValueIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   dropdownPanel: {
     borderRadius: 24,
     borderWidth: 1.5,
@@ -874,7 +987,14 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(150,150,150,0.15)',
   },
-  dropdownOptionEmoji: { fontSize: 20 },
+  dropdownOptionIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   dropdownOptionContent: { flex: 1 },
   dropdownOptionLabel: {
     fontFamily: FONTS.bodyBold,
@@ -896,8 +1016,27 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   },
   clearFiltersTxt: { fontFamily: FONTS.bodyBold, fontSize: 12, fontWeight: '700', opacity: 0.6 },
 
-  stackWrapper: { alignItems: 'center', justifyContent: 'center', marginVertical: 10 },
+  stackWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -CARD_STACK_LIFT,
+    marginBottom: 10,
+  },
   stackContainer: { width: CARD_W, alignItems: 'center', justifyContent: 'flex-end' },
+  boundaryHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 12,
+    paddingHorizontal: 24,
+  },
+  boundaryHintText: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 
   flipFace: {
     position: 'absolute',

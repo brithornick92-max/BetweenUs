@@ -139,7 +139,7 @@ const EncryptedAttachments = {
     const encryptedBytes = naclUtil.decodeBase64(encryptedB64);
 
     // Upload to Supabase Storage
-    const remoteKey = `${att.couple_id || att.user_id}/${attachmentId}.enc`;
+    const remoteKey = `${att.couple_id}/${att.user_id}/${attachmentId}.enc`;
     const { error } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(remoteKey, encryptedBytes, {

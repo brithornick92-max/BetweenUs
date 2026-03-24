@@ -23,6 +23,7 @@ import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
 import { NicknameEngine } from '../services/PolishEngine';
@@ -180,10 +181,10 @@ export default function VibeSignalScreen({ navigation }) {
           </View>
           <Text style={styles.paywallTitle}>Vibe Signals</Text>
           <Text style={styles.paywallDescription}>
-            Share your emotional state and feel your partner's heartbeat through high-end synchronized signals.
+            Share your emotional state and send your partner a tactile pulse through high-end synchronized signals.
           </Text>
           <TouchableOpacity
-            onPress={() => showPaywall?.('vibeSync')}
+            onPress={() => showPaywall?.(PremiumFeature.VIBE_SIGNAL)}
             style={[styles.primaryButton, { backgroundColor: t.primary }]}
             activeOpacity={0.9}
           >
@@ -217,7 +218,7 @@ export default function VibeSignalScreen({ navigation }) {
             </View>
             <View style={styles.headerEditorial}>
               <Text style={[styles.headerTitle, { color: t.text }]}>Vibe Signal</Text>
-              <Text style={[styles.headerSubtitle, { color: t.subtext }]}>Real-time intimacy bridge.</Text>
+              <Text style={[styles.headerSubtitle, { color: t.subtext }]}>Shared mood, synced when connected.</Text>
             </View>
           </View>
 

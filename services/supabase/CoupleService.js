@@ -23,6 +23,21 @@ const SIGNED_URL_EXPIRY_SECONDS = 300; // 5 minutes
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
 const CODE_LENGTH = 6;
 
+async function generateHashedLinkCode() {
+  const randomBytes = await ExpoCrypto.getRandomBytesAsync(CODE_LENGTH);
+  let code = '';
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    code += CODE_CHARS.charAt(randomBytes[i] % CODE_CHARS.length);
+  }
+
+  const codeHash = await ExpoCrypto.digestStringAsync(
+    ExpoCrypto.CryptoDigestAlgorithm.SHA256,
+    code,
+  );
+
+  return { code, codeHash };
+}
+
 const CoupleService = {
   // ─── Partner Linking ──────────────────────────────────────────
 
@@ -47,18 +62,7 @@ const CoupleService = {
       throw new Error('You are already in a couple');
     }
 
-    // Generate cryptographically random code (CSPRNG)
-    const randomBytes = await ExpoCrypto.getRandomBytesAsync(CODE_LENGTH);
-    let code = '';
-    for (let i = 0; i < CODE_LENGTH; i++) {
-      code += CODE_CHARS.charAt(randomBytes[i] % CODE_CHARS.length);
-    }
-
-    // Hash it — never store the plain code
-    const codeHash = await ExpoCrypto.digestStringAsync(
-      ExpoCrypto.CryptoDigestAlgorithm.SHA256,
-      code,
-    );
+    const { code, codeHash } = await generateHashedLinkCode();
 
     // Store hashed code with expiry
     const expiresAt = new Date(Date.now() + CODE_EXPIRY_MINUTES * 60 * 1000).toISOString();
@@ -76,6 +80,49 @@ const CoupleService = {
     return {
       code,             // Show this in the UI (NEVER stored server-side)
       expiresAt,        // Tell the user when it expires
+      expiresInMinutes: CODE_EXPIRY_MINUTES,
+    };
+  },
+
+  /**
+   * Generate a short-lived QR pairing code for an existing couple.
+   */
+  async generatePairingCode(coupleId) {
+    const supabase = getSupabaseOrThrow();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    if (!coupleId) throw new Error('coupleId is required');
+
+    const { data: membership, error: membershipError } = await supabase
+      .from('couple_members')
+      .select('id')
+      .eq('couple_id', coupleId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (membershipError) throw membershipError;
+    if (!membership) {
+      throw new Error('You must belong to this couple to create a pairing QR code');
+    }
+
+    const { code, codeHash } = await generateHashedLinkCode();
+    const expiresAt = new Date(Date.now() + CODE_EXPIRY_MINUTES * 60 * 1000).toISOString();
+
+    const { error } = await supabase
+      .from('partner_link_codes')
+      .insert({
+        code_hash: codeHash,
+        created_by: user.id,
+        expires_at: expiresAt,
+        couple_id: coupleId,
+      });
+
+    if (error) throw error;
+
+    return {
+      code,
+      expiresAt,
       expiresInMinutes: CODE_EXPIRY_MINUTES,
     };
   },
@@ -107,6 +154,38 @@ const CoupleService = {
 
     if (!data?.success) {
       throw new Error(data?.error || 'Failed to redeem code');
+    }
+
+    return {
+      coupleId: data.couple_id,
+      partnerId: data.creator_id,
+    };
+  },
+
+  /**
+   * Redeem a QR pairing code and join the inviter's existing couple.
+   */
+  async redeemPairingCode(plainCode, publicKey) {
+    const supabase = getSupabaseOrThrow();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    if (!publicKey) throw new Error('publicKey is required');
+
+    const codeHash = await ExpoCrypto.digestStringAsync(
+      ExpoCrypto.CryptoDigestAlgorithm.SHA256,
+      plainCode.toUpperCase().trim(),
+    );
+
+    const { data, error } = await supabase.rpc('redeem_pairing_code', {
+      input_code_hash: codeHash,
+      input_public_key: publicKey,
+    });
+
+    if (error) throw error;
+
+    if (!data?.success) {
+      throw new Error(data?.error || 'Failed to redeem pairing code');
     }
 
     return {

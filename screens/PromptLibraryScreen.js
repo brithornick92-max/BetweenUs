@@ -27,10 +27,13 @@ import { useContent } from "../context/ContentContext";
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useAuth } from '../context/AuthContext';
 import { promptStorage } from "../utils/storage";
+import { PremiumFeature } from '../utils/featureFlags';
 import { withAlpha } from "../utils/theme";
 import PreferenceEngine from '../services/PreferenceEngine';
 import PromptAllocator from '../services/PromptAllocator';
 import FilmGrain from '../components/FilmGrain';
+import { SoftBoundaries } from '../services/PolishEngine';
+import { getFilteredPromptsWithProfile } from '../utils/contentLoader';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -109,6 +112,19 @@ const TONE_LIBRARY_COPY = {
     subtitle: 'Cleaner prompts with less noise and more directness.',
     empty: 'No minimal matches found. Try a simpler filter mix.',
   },
+};
+
+const resolveSelectableMaxHeat = (profile, selectedHeat) => {
+  const requestedHeat = typeof selectedHeat === 'number' ? selectedHeat : 1;
+  const boundaryCap = profile?.boundaries?.hideSpicy
+    ? 3
+    : profile?.boundaries?.maxHeatOverride;
+
+  if (typeof boundaryCap === 'number') {
+    return Math.min(requestedHeat, boundaryCap);
+  }
+
+  return requestedHeat;
 };
 
 export default function PromptLibraryScreen({ navigation }) {
@@ -197,7 +213,13 @@ export default function PromptLibraryScreen({ navigation }) {
   }, [loadPrompts, loadFavorites]);
 
   const filteredPrompts = useMemo(() => {
-    const list = Array.isArray(prompts) ? prompts : [];
+    const selectableMaxHeat = resolveSelectableMaxHeat(contentProfile, selectedHeat);
+    const list = contentProfile
+      ? getFilteredPromptsWithProfile({
+          ...contentProfile,
+          maxHeat: selectableMaxHeat,
+        }).map(normalizePrompt)
+      : Array.isArray(prompts) ? prompts : [];
     const isLocked = !isPremium && selectedHeat >= 4;
 
     if (isLocked) {
@@ -229,7 +251,7 @@ export default function PromptLibraryScreen({ navigation }) {
       });
     const browsable = PromptAllocator.excludeUsed(base);
     const rankingProfile = contentProfile
-      ? { ...contentProfile, maxHeat: Math.min(contentProfile.maxHeat || selectedHeat, selectedHeat) }
+      ? { ...contentProfile, maxHeat: selectableMaxHeat }
       : null;
     const ranked = rankingProfile
       ? PreferenceEngine.filterPrompts(browsable, rankingProfile)
@@ -240,7 +262,7 @@ export default function PromptLibraryScreen({ navigation }) {
   const toggleFavorite = useCallback(async (promptId) => {
     if (!promptId) return;
     if (!isPremium) {
-      showPaywall?.('unlimitedPrompts');
+      showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
       return;
     }
     selection();
@@ -261,7 +283,7 @@ export default function PromptLibraryScreen({ navigation }) {
   const handlePromptSelect = useCallback((prompt) => {
     const safePrompt = normalizePrompt(prompt);
     if (!isPremium && (safePrompt.isPreview || (safePrompt.heat || 1) >= 4)) {
-      showPaywall?.('unlimitedPrompts');
+      showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
       return;
     }
     impact(ImpactFeedbackStyle.Light);
@@ -278,7 +300,7 @@ export default function PromptLibraryScreen({ navigation }) {
         "There are so many more prompts waiting for you.",
         [
           { text: "Maybe Later", style: "cancel" },
-          { text: "Discover more", onPress: () => navigation.navigate("Paywall") },
+          { text: "Discover more", onPress: () => showPaywall?.(PremiumFeature.PROMPT_REFRESH) },
         ]
       );
       return;
@@ -295,7 +317,40 @@ export default function PromptLibraryScreen({ navigation }) {
       console.error(error);
       Alert.alert("Error", "Failed to load new prompt. Please try again.");
     }
-  }, [isPremium, loadTodayPrompt, loadPrompts, navigation, selectedHeat]);
+  }, [isPremium, loadTodayPrompt, loadPrompts, navigation, selectedHeat, showPaywall]);
+
+  const refreshBoundaryProfile = useCallback(async () => {
+    const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+    setContentProfile(profile);
+  }, [userProfile]);
+
+  const handleBoundaryAction = useCallback((prompt) => {
+    if (!prompt?.id) return;
+
+    Alert.alert(
+      'Boundary Options',
+      'Choose how you want this prompt handled.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Hide This Prompt',
+          onPress: async () => {
+            await SoftBoundaries.pauseEntry(prompt.id);
+            await refreshBoundaryProfile();
+          },
+        },
+        {
+          text: 'Hide This Category',
+          onPress: async () => {
+            if (prompt.category) {
+              await SoftBoundaries.hideCategory(prompt.category);
+              await refreshBoundaryProfile();
+            }
+          },
+        },
+      ]
+    );
+  }, [refreshBoundaryProfile]);
 
   const renderCategoryChip = (cat) => {
     const active = selectedCategory === cat.id;
@@ -417,7 +472,7 @@ export default function PromptLibraryScreen({ navigation }) {
                     }]}
                     onPress={() => {
                       if (!isPremium && h >= 4) {
-                        showPaywall?.('premiumHeatLevel');
+                        showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5);
                         return;
                       }
                       setSelectedHeat(h);
@@ -439,7 +494,7 @@ export default function PromptLibraryScreen({ navigation }) {
           {!isPremium && (
             <TouchableOpacity
               style={[styles.upsellBanner, { backgroundColor: withAlpha(t.primary, 0.08), borderColor: withAlpha(t.primary, 0.25) }]}
-              onPress={() => showPaywall?.('unlimitedPrompts')}
+              onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
               activeOpacity={0.8}
             >
               <Icon name="lock-open-outline" size={20} color={t.primary} />
@@ -456,6 +511,10 @@ export default function PromptLibraryScreen({ navigation }) {
             <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
           ) : (
             <View style={styles.promptList}>
+              <View style={[styles.boundaryHintBanner, { backgroundColor: withAlpha(t.primary, 0.06), borderColor: withAlpha(t.primary, 0.16) }]}> 
+                <Icon name="hand-left-outline" size={15} color={t.primary} />
+                <Text style={[styles.boundaryHintText, { color: t.subtext }]}>Long-press any prompt to hide it or mute that category.</Text>
+              </View>
               {filteredPrompts.map((item, index) => {
                 const safe = normalizePrompt(item);
                 const isFav = favorites.includes(safe.id);
@@ -464,6 +523,7 @@ export default function PromptLibraryScreen({ navigation }) {
                     key={safe.id || `prompt_${index}`}
                     style={[styles.promptCard, { backgroundColor: t.surface, borderColor: t.border }, item.answered && { opacity: 0.5 }]}
                     onPress={() => handlePromptSelect(safe)}
+                    onLongPress={() => handleBoundaryAction(safe)}
                     activeOpacity={0.8}
                   >
                     <View style={styles.cardHeader}>
@@ -516,7 +576,7 @@ export default function PromptLibraryScreen({ navigation }) {
         {!isPremium && (
           <TouchableOpacity
             style={[styles.premiumFab, { backgroundColor: t.primary }]}
-            onPress={() => showPaywall?.('unlimitedPrompts')}
+            onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
             activeOpacity={0.8}
           >
             <Icon name="sparkles" size={18} color="#FFF" />
@@ -635,6 +695,22 @@ const styles = StyleSheet.create({
   upsellSubtitle: { fontSize: 13, marginTop: 2 },
 
   promptList: { paddingHorizontal: 24, gap: 16 },
+  boundaryHintBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  boundaryHintText: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
   promptCard: {
     padding: 24,
     borderRadius: 24,

@@ -30,6 +30,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
+import { PremiumFeature } from '../utils/featureFlags';
 import { useAppContext } from '../context/AppContext';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
 import DataLayer from '../services/data/DataLayer';
@@ -381,7 +382,7 @@ export default function CalendarScreen({ navigation, route }) {
             Plan date nights, protect anniversaries, and build a beautiful archive of your time together.
           </Text>
           <TouchableOpacity
-            onPress={() => showPaywall?.('calendar')}
+            onPress={() => showPaywall?.(PremiumFeature.CALENDAR)}
             style={[styles.paywallButton, { backgroundColor: t.primary }]}
             activeOpacity={0.85}
           >

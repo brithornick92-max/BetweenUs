@@ -26,6 +26,8 @@ import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { DataLayer } from '../services/localfirst';
+import PremiumGatekeeper from '../services/PremiumGatekeeper';
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import MomentSignal from '../components/MomentSignal';
@@ -110,7 +112,7 @@ export default function HomeScreen({ navigation }) {
   const { state } = useAppContext();
   const { user, userProfile } = useAuth();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
-  const { todayPrompt, loadTodayPrompt } = useContent();
+  const { todayPrompt, loadTodayPrompt, usageStatus, loadUsageStatus } = useContent();
   const { colors, isDark } = useTheme();
 
   // Apple Editorial & Velvet Glass Theme Map
@@ -139,6 +141,8 @@ export default function HomeScreen({ navigation }) {
   const [throwback, setThrowback] = useState(null);
   const [unreadNotes, setUnreadNotes] = useState(0);
   const [selectedTone, setSelectedTone] = useState('warm');
+  const remainingFreePrompts = usageStatus?.remaining?.prompts ?? 1;
+  const canWritePrompt = isPremium || !!myAnswer.trim() || remainingFreePrompts > 0;
 
   // Entrance animations
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -226,11 +230,23 @@ export default function HomeScreen({ navigation }) {
 
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
-    if (!finalText || !prompt?.id) return;
-    notification(NotificationFeedbackType.Success);
+    if (!finalText || !prompt?.id || !user?.uid) return;
     setIsSavingInline(true);
     try {
+      if (!isPremium && !myAnswer) {
+        const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, prompt.heat || 1, false);
+        if (!accessCheck.canAccess) {
+          showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+          return;
+        }
+      }
+
       await DataLayer.savePromptAnswer({ promptId: prompt.id, answer: finalText });
+      if (!isPremium && !myAnswer) {
+        await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, false, prompt.heat || 1);
+        await loadUsageStatus?.();
+      }
+      notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
       setInlineText('');
     } catch {
@@ -238,21 +254,42 @@ export default function HomeScreen({ navigation }) {
     } finally {
       setIsSavingInline(false);
     }
-  }, [inlineText, prompt]);
+  }, [inlineText, prompt, user, isPremium, myAnswer, showPaywall, loadUsageStatus]);
 
   const handlePrimaryCTA = useCallback(async () => {
     impact(ImpactFeedbackStyle.Medium);
-    if (!isPremium) { showPaywall?.('promptResponses'); return; }
     if (!promptReady) { navigation.navigate('HeatLevel'); return; }
     if (!myAnswer && inlineText.trim()) { await handleInlineSave(); return; }
-    if (!myAnswer) return;
+    if (!myAnswer && !isPremium && remainingFreePrompts <= 0) {
+      showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+      return;
+    }
+    if (!myAnswer) {
+      navigation.navigate('PromptAnswer', {
+        prompt: { id: prompt.id, text: prompt.text, dateKey: todayKey, heat: prompt.heat, category: prompt.category },
+      });
+      return;
+    }
     navigation.navigate('Reveal', {
       prompt: { id: prompt.id, text: prompt.text, dateKey: todayKey },
       userAnswer: { answer: myAnswer },
       partnerAnswer: partnerAnswer || null,
       bothAnswered,
     });
-  }, [isPremium, promptReady, myAnswer, partnerAnswer, bothAnswered, prompt, todayKey, navigation, inlineText, handleInlineSave]);
+  }, [
+    isPremium,
+    promptReady,
+    myAnswer,
+    partnerAnswer,
+    bothAnswered,
+    prompt,
+    todayKey,
+    navigation,
+    inlineText,
+    handleInlineSave,
+    remainingFreePrompts,
+    showPaywall,
+  ]);
 
   const primaryCTALabel = useMemo(() => {
     if (!promptReady) return 'Customize Content';
@@ -270,12 +307,12 @@ export default function HomeScreen({ navigation }) {
   const handleAction = useCallback(async (key) => {
     impact(ImpactFeedbackStyle.Light);
     if (key === 'note') {
-      if (!isPremium) { showPaywall?.('loveNotes'); return; }
+      if (!isPremium) { showPaywall?.(PremiumFeature.LOVE_NOTES); return; }
       navigation.navigate('LoveNotesInbox');
     } else if (key === 'ritual') {
       navigation.navigate('NightRitual');
     } else if (key === 'jokes') {
-      if (!isPremium) { showPaywall?.('insideJokes'); return; }
+      if (!isPremium) { showPaywall?.(PremiumFeature.INSIDE_JOKES); return; }
       navigation.navigate('InsideJokes');
     }
   }, [isPremium, showPaywall, navigation]);
@@ -358,7 +395,7 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.answerBubble}>
                   <Text style={styles.answerText}>{myAnswer}</Text>
                 </View>
-              ) : isPremium ? (
+              ) : canWritePrompt ? (
                 <TextInput
                   style={styles.input}
                   placeholderTextColor={t.subtext}
@@ -372,10 +409,10 @@ export default function HomeScreen({ navigation }) {
               ) : (
                 <TouchableOpacity
                   activeOpacity={0.7}
-                  onPress={() => showPaywall?.('promptResponses')}
+                  onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
                   style={[styles.input, { justifyContent: 'center' }]}
                 >
-                  <Text style={styles.inputPlaceholder}>What comes to mind…</Text>
+                  <Text style={styles.inputPlaceholder}>You used today's free reflection. Unlock more.</Text>
                 </TouchableOpacity>
               )}
 

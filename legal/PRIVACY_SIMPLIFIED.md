@@ -9,7 +9,7 @@
 ### What We Encrypt (End-to-End)
 ✅ Your journal entries
 ✅ Your responses to prompts
-✅ Love notes and photo attachments
+✅ Shared love notes and photo attachments
 ✅ Shared memories and milestones
 
 ### What We Encrypt (Device-Level)
@@ -85,7 +85,7 @@
 - Your Vibe Signals and Moment Signals (when you send them)
 - Revealed prompt answers (only when both opt in)
 - Nothing private
-- Nothing after you unlink
+- No new shared activity after you unlink
 
 ### Your Partner Cannot See
 - Your private entries
@@ -105,9 +105,9 @@
 - Everything (no questions asked)
 
 ### What Happens
-- Deleted immediately
+- Removed from active systems promptly
 - Removed from backups within 90 days
-- Cannot be recovered
+- Cannot be recovered after deletion finishes processing
 - Your partner's data stays separate
 
 ---

@@ -248,7 +248,7 @@ export default function SyncSetupScreen({ navigation }) {
         <View style={styles.card}>
           <Text style={[styles.title, { color: colors.text }]}>Enable Secure Sync</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Sync is optional and only available to premium couples.
+            Partner linking is free. Encrypted cloud sync is optional and available to linked premium couples.
           </Text>
 
           {!supabaseAvailable && (

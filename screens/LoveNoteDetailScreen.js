@@ -40,6 +40,7 @@ import LottieView from "lottie-react-native";
 
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
+import { PremiumFeature } from '../utils/featureFlags';
 import DataLayer from "../services/data/DataLayer";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
@@ -96,10 +97,10 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
 
   useEffect(() => {
     if (!isPremium) {
-      showPaywall?.('loveNotes');
+      showPaywall?.(PremiumFeature.LOVE_NOTES);
       navigation.goBack();
     }
-  }, [isPremium]);
+  }, [isPremium, navigation, showPaywall]);
 
   useEffect(() => {
     let active = true;
