@@ -29,18 +29,28 @@ const _isValidUUID = (str) => typeof str === 'string' && UUID_RE.test(str);
 const _resolveSupabaseUserId = async (fallbackUserId) => {
   try {
     const sb = _getSupabase();
-    if (!sb) return fallbackUserId;
-    const { data } = await sb.auth.getUser();
+    if (!sb) {
+      if (__DEV__) console.warn('[MomentSignal] _resolveSupabaseUserId: supabase client is NULL — env vars missing?');
+      return fallbackUserId;
+    }
+    const { data, error } = await sb.auth.getUser();
     if (data?.user?.id) return data.user.id;
+    if (__DEV__ && error) console.warn('[MomentSignal] getUser() error:', error.message);
     // Session may have expired — attempt silent re-auth via stored credentials
     try {
       const { SupabaseAuthService } = require('./supabase/SupabaseAuthService');
       if (SupabaseAuthService?.signInWithStoredCredentials) {
         const session = await SupabaseAuthService.signInWithStoredCredentials();
         if (session?.user?.id) return session.user.id;
+        if (__DEV__) console.warn('[MomentSignal] silent re-auth returned no session');
       }
-    } catch (_) {}
-  } catch (_) {}
+    } catch (reAuthErr) {
+      if (__DEV__) console.warn('[MomentSignal] silent re-auth threw:', reAuthErr?.message);
+    }
+  } catch (err) {
+    if (__DEV__) console.warn('[MomentSignal] _resolveSupabaseUserId threw:', err?.message);
+  }
+  if (__DEV__) console.warn('[MomentSignal] falling back to local ID:', fallbackUserId);
   return fallbackUserId;
 };
 
@@ -201,13 +211,14 @@ export const MomentSignalSender = {
           });
 
         if (error) {
+          const errMsg = error.message || error.details || error.hint || `DB error (code: ${error.code})` || 'Unknown Supabase error';
           if (__DEV__) console.warn('[MomentSignal] Supabase insert failed — code:', error.code, '— message:', error.message, '— details:', error.details);
           if (requireRemote) {
             await rollbackCooldown();
-            return { sent: false, remote: false, type: momentType, timestamp: now, error: error.message };
+            return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
           }
           // Still counts as "sent" locally — the user saw the confirmation
-          return { sent: true, remote: false, type: momentType, timestamp: now, error: error.message };
+          return { sent: true, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
         }
 
         // Fire push notification to partner — non-blocking, non-critical
@@ -224,12 +235,13 @@ export const MomentSignalSender = {
 
         return { sent: true, remote: true, type: momentType, timestamp: now };
       } catch (err) {
-        console.warn('[MomentSignal] Send failed:', err.message);
+        const errMsg = err.message || String(err) || 'Network or connection error';
+        console.warn('[MomentSignal] Send failed:', errMsg);
         if (requireRemote) {
           await rollbackCooldown();
-          return { sent: false, remote: false, type: momentType, timestamp: now, error: err.message };
+          return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: err.code };
         }
-        return { sent: true, remote: false, type: momentType, timestamp: now, error: err.message };
+        return { sent: true, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: err.code };
       }
     }
 
@@ -303,18 +315,28 @@ export const MomentSignalSender = {
    * @param {(signal: { moment_type: string, sender_id: string, sent_at: string }) => void} onSignal
    * @returns {() => void} unsubscribe function
    */
-  subscribeToSignals(onSignal) {
+  /**
+   * @param {Function} onSignal
+   * @param {{ coupleId?: string, userId?: string }} [directIds] — pass IDs from
+   *   context directly to avoid relying on AsyncStorage timing. Falls back to
+   *   AsyncStorage values if not provided.
+   */
+  subscribeToSignals(onSignal, directIds = {}) {
     const sb = _getSupabase();
     if (!sb) return () => {};
 
-    let coupleId = null;
-    let userId = null;
+    let cancelled = false;
+    let channelRef = null;
 
-    // Read IDs and subscribe
     const setup = async () => {
-      coupleId = await AsyncStorage.getItem(KEYS.MOMENT_COUPLE_ID);
-      userId = await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
-      if (!coupleId) return null;
+      const coupleId = directIds.coupleId || await AsyncStorage.getItem(KEYS.MOMENT_COUPLE_ID);
+      const userId = directIds.userId || await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
+
+      if (!coupleId) {
+        if (__DEV__) console.warn('[MomentSignal] subscribeToSignals: coupleId not available, skipping');
+        return;
+      }
+      if (cancelled) return;
 
       const tableName = (_supabaseTables && _supabaseTables.COUPLE_DATA) || 'couple_data';
       const channel = sb
@@ -330,26 +352,34 @@ export const MomentSignalSender = {
           (payload) => {
             const row = payload.new;
             if (row?.data_type !== 'moment_signal') return;
-            if (row?.created_by === userId) return; // Skip own signals
+            if (userId && row?.created_by === userId) return; // Skip own signals
             try {
               // value is stored as jsonb — the Supabase client returns it as an object.
               // Guard against legacy rows where it was stored as a JSON string.
               const signal = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+              if (__DEV__) console.log('[MomentSignal] Incoming signal received:', signal?.moment_type);
               onSignal(signal);
             } catch { /* ignore malformed rows */ }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          if (__DEV__) console.log('[MomentSignal] channel status:', status);
+        });
 
-      return channel;
+      if (cancelled) {
+        sb.removeChannel(channel);
+        return;
+      }
+      channelRef = channel;
     };
 
-    let channelRef = null;
-    setup().then(ch => { channelRef = ch; });
+    setup();
 
     return () => {
+      cancelled = true;
       if (channelRef && sb) {
         sb.removeChannel(channelRef);
+        channelRef = null;
       }
     };
   },

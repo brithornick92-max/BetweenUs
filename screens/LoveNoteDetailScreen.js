@@ -61,6 +61,29 @@ function formatDate(ts) {
   });
 }
 
+function formatExpiry(expiresAt) {
+  const ms = expiresAt - Date.now();
+  if (ms <= 0) return 'Expiring…';
+  const totalMins = Math.floor(ms / 60000);
+  const hrs = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  if (hrs > 0) return `Expires in ${hrs}h ${mins}m`;
+  return `Expires in ${mins}m`;
+}
+
+function ExpiryCountdown({ expiresAt }) {
+  const [label, setLabel] = React.useState(() => formatExpiry(expiresAt));
+  React.useEffect(() => {
+    const id = setInterval(() => setLabel(formatExpiry(expiresAt)), 60000);
+    return () => clearInterval(id);
+  }, [expiresAt]);
+  return (
+    <Text style={{ color: 'rgba(255,120,100,0.8)', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>
+      {label.toUpperCase()}
+    </Text>
+  );
+}
+
 export default function LoveNoteDetailScreen({ navigation, route }) {
   const { noteId } = route.params || {};
   const { colors, isDark } = useTheme();
@@ -93,14 +116,29 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
   }, [isPremium, navigation, showPaywall]);
 
   useEffect(() => {
+    if (!noteId) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
     let active = true;
     setLoadError(false);
     setEnvelopeOpen(false);
     revealProgress.value = 0;
     (async () => {
       try {
-        const loaded = await DataLayer.getLoveNote(noteId);
-        if (active) setNote(loaded);
+        // Try local cache first for speed
+        let loaded = await DataLayer.getLoveNote(noteId);
+        // Not found locally (e.g. arrived via deep link before first sync) —
+        // pull from Supabase and retry once.
+        if (!loaded) {
+          await DataLayer.pullNow().catch(() => {});
+          loaded = await DataLayer.getLoveNote(noteId);
+        }
+        if (active) {
+          if (loaded) setNote(loaded);
+          else setLoadError(true);
+        }
       } catch (err) {
         console.warn('[LoveNoteDetail] Failed to load note:', err?.message);
         if (active) setLoadError(true);
@@ -293,7 +331,11 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
 
                     <View style={styles.cardFooter}>
                       <Text style={styles.dateText}>{formatDate(note.createdAt).toUpperCase()}</Text>
-                      <Icon name="shield-checkmark-outline" size={16} color="rgba(255,255,255,0.4)" />
+                      {!note.isOwn && note.expiresAt ? (
+                        <ExpiryCountdown expiresAt={note.expiresAt} />
+                      ) : (
+                        <Icon name="shield-checkmark-outline" size={16} color="rgba(255,255,255,0.4)" />
+                      )}
                     </View>
                   </View>
                 </View>

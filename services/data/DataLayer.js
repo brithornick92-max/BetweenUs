@@ -1370,6 +1370,7 @@ const DataLayer = {
         mediaRef: row.media_ref,
         isRead: !!row.is_read,
         readAt: row.read_at,
+        expiresAt: row.expires_at ? new Date(row.expires_at).getTime() : null,
         isOwn: row.user_id === _userId,
         userId: row.user_id,
         invisibleInk: !!row.is_invisible_ink,
@@ -1385,6 +1386,7 @@ const DataLayer = {
         senderName: null,
         imageUri: null,
         isRead: !!row.is_read,
+        expiresAt: row.expires_at ? new Date(row.expires_at).getTime() : null,
         isOwn: row.user_id === _userId,
         invisibleInk: !!row.is_invisible_ink,
         createdAt: new Date(row.created_at).getTime(),
@@ -1419,6 +1421,14 @@ const DataLayer = {
   /** Trigger a full sync cycle. */
   async sync() {
     return SyncEngine.sync();
+  },
+
+  /**
+   * Pull only — bypasses the sync throttle. Use when you need the freshest
+   * remote data immediately (e.g. inbox open, deep link landing).
+   */
+  async pullNow() {
+    return SyncEngine.pullNow();
   },
 
   /** Subscribe to realtime changes from partner. Returns unsubscribe fn. */

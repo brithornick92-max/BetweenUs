@@ -70,6 +70,16 @@ function relativeTime(ts) {
   return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function formatExpiryShort(expiresAt) {
+  const ms = expiresAt - Date.now();
+  if (ms <= 0) return 'Expiring…';
+  const totalMins = Math.floor(ms / 60000);
+  const hrs = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  if (hrs > 0) return `Expires in ${hrs}h ${mins}m`;
+  return `Expires in ${mins}m`;
+}
+
 export default function LoveNotesInboxScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -114,7 +124,37 @@ export default function LoveNotesInboxScreen({ navigation }) {
     return unsubscribe;
   }, [navigation, loadNotes]);
 
+  // Pull from Supabase on mount, then reload list when sync delivers new notes.
+  // This ensures the partner sees freshly sent notes without waiting for the
+  // 60-second periodic sync or manually pull‑to‑refreshing.
+  useEffect(() => {
+    // Fire-and-forget pull; reload list when it completes
+    DataLayer.pullNow().then(() => loadNotes()).catch(() => {});
+
+    // Stay subscribed so realtime / periodic sync auto-updates the list
+    const unsub = DataLayer.onSyncEvent((event, data) => {
+      if (
+        (event === 'sync:complete' && (data?.pulled ?? 0) > 0) ||
+        (event === 'sync:realtime' && data?.table === 'love_notes')
+      ) {
+        loadNotes();
+      }
+    });
+    return unsub;
+  }, [loadNotes]);
+
   // Notes are marked as read individually when opened in LoveNoteDetailScreen.
+
+  // Schedule a reload when the nearest note is about to expire
+  useEffect(() => {
+    const expiringNotes = notes.filter((n) => !n.isOwn && n.expiresAt);
+    if (!expiringNotes.length) return;
+    const nearestExpiry = Math.min(...expiringNotes.map((n) => n.expiresAt));
+    const delay = nearestExpiry - Date.now();
+    if (delay <= 0) { loadNotes(); return; }
+    const id = setTimeout(() => loadNotes(), delay + 500);
+    return () => clearTimeout(id);
+  }, [notes, loadNotes]);
 
   const onRefresh = useCallback(async () => {
     selection();
@@ -217,6 +257,11 @@ export default function LoveNotesInboxScreen({ navigation }) {
             >
               {previewText}
             </Text>
+            {!item.isOwn && item.expiresAt && (
+              <Text style={[styles.expiryHint, { color: colors.primary }]} numberOfLines={1}>
+                {formatExpiryShort(item.expiresAt)}
+              </Text>
+            )}
           </View>
 
           <Icon name="chevron-forward" size={20} color={withAlpha(colors.text, 0.2)} />
@@ -465,6 +510,12 @@ const createStyles = (colors, isDark) =>
       fontFamily: SANS,
       fontSize: 14,
       lineHeight: 20,
+    },
+    expiryHint: {
+      fontFamily: SANS,
+      fontSize: 11,
+      fontWeight: '600',
+      marginTop: 3,
     },
 
     // Empty State Architecture

@@ -76,6 +76,9 @@ const LOCAL_ONLY_COLUMNS = new Set([
   // Per-device read state — each device tracks independently.
   // Syncing sender's is_read:true would make the partner's copy appear already-read.
   'is_read', 'read_at',
+  // Expiry is per-device: only the recipient who opened the note has a local timer.
+  // The sender's copy is permanent; syncing expires_at would erase their archive.
+  'expires_at',
 ]);
 
 // ─── State ──────────────────────────────────────────────────────────
@@ -127,9 +130,11 @@ function toRemoteRow(tableName, row) {
     created_by: row.user_id || _userId,
     // love_notes are always couple-shared; the table has no is_private column
     is_private: tableName === 'love_notes' ? false : !!row.is_private,
-    // Metadata columns (unencrypted for sorting/filtering on server)
-    value: JSON.stringify(metadata),
-    // Encrypted payload (already ciphertext from local E2EE)
+    // Metadata object — passed as a plain JS object so PostgREST stores it
+    // as a JSONB object (not a JSONB string). Returning it as an object
+    // ensures fromRemoteRow can read it back without JSON.parse.
+    value: metadata,
+    // Encrypted payload is text, not JSONB — must stay as a JSON string.
     encrypted_value: Object.keys(encryptedPayload).length
       ? JSON.stringify(encryptedPayload)
       : null,
@@ -147,7 +152,14 @@ function fromRemoteRow(tableName, remoteRow) {
   let cipherFields = {};
 
   try {
-    metadata = remoteRow.value ? JSON.parse(remoteRow.value) : {};
+    // value is a JSONB column — PostgREST returns it as a JS object,
+    // but older rows or edge cases may have been stored as a JSON string.
+    // Handle both to be safe.
+    if (remoteRow.value !== null && remoteRow.value !== undefined) {
+      metadata = typeof remoteRow.value === 'string'
+        ? JSON.parse(remoteRow.value)
+        : remoteRow.value;
+    }
   } catch (e) {
     CrashReporting.captureException(
       new Error(`[Sync] Corrupted metadata in ${tableName}: ${e?.message}`),

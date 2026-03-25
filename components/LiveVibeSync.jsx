@@ -12,6 +12,7 @@ import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } f
 import { MomentSignalSender } from '../services/ConnectionEngine';
 import { useTheme } from '../context/ThemeContext';
 import { useTogetherPresence } from '../hooks/useTogetherPresence';
+import { useAppContext } from '../context/AppContext';
 import { SPACING, withAlpha } from '../utils/theme';
 
 const INCOMING_LABEL_DURATION = 3000;
@@ -21,6 +22,8 @@ const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
   const { colors, isDark } = useTheme();
   const { isTogetherNow } = useTogetherPresence();
+  const { state: appState } = useAppContext();
+  const coupleId = appState?.coupleId || null;
   const hapticTimerRef = useRef(null);
 
   const [isSending, setIsSending] = useState(false);
@@ -73,12 +76,12 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
       setIncomingLabel(partnerLabel);
       if (incomingLabelTimerRef.current) clearTimeout(incomingLabelTimerRef.current);
       incomingLabelTimerRef.current = setTimeout(() => setIncomingLabel(null), INCOMING_LABEL_DURATION);
-    });
+    }, { coupleId });
 
     return () => {
       if (typeof unsubSignalsRef.current === 'function') unsubSignalsRef.current();
     };
-  }, [partnerLabel, scale, inBloomScale, inBloomOpacity]);
+  }, [partnerLabel, coupleId, scale, inBloomScale, inBloomOpacity]);
 
   const t = useMemo(() => ({
     surface: isDark ? '#130608' : '#FFFFFF',
@@ -127,22 +130,36 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
 
       if (!result.sent) {
         notification(NotificationFeedbackType.Error);
-        // Use friendly messages — never expose raw error strings to the user
-        const friendlyError = result.error?.includes('cooldown')
-          ? result.error
-          : result.error?.includes('partner') || result.error?.includes('Link')
-            ? 'Link with your partner to send a pulse.'
-            : result.error?.includes('Sign in')
-              ? 'Sign in to send a pulse.'
-              : result.error?.includes('configured') || result.error?.includes('Sync is not')
-                ? 'Connection not set up on this device yet.'
-                : result.error?.includes('policy') || result.error?.includes('violates') || result.error?.includes('permission')
-                  ? 'Server permissions need updating — please contact support.'
-                  : result.error?.includes('JWT') || result.error?.includes('token') || result.error?.includes('expired') || result.error?.includes('auth')
-                    ? 'Session expired — please sign out and back in.'
-                    : result.error?.includes('fetch') || result.error?.includes('network') || result.error?.includes('Network')
-                      ? 'No connection — check your internet and try again.'
+        const e = result.error || '';
+        const code = result.errorCode || '';
+        // Map to a friendly message. Check both the message text AND the Postgres/PostgREST error code.
+        const isRLS = e.includes('violates') || e.includes('policy') || e.includes('permission') || e.includes('insufficient') || code === '42501' || code === 'PGRST301' || e.includes('row-level') || e.includes('security');
+        const isAuth = e.includes('JWT') || e.includes('token') || e.includes('expired') || e.includes('auth') || e.includes('session') || e.includes('Sign in') || code === 'PGRST302';
+        const isNetwork = e.includes('fetch') || e.includes('network') || e.includes('Network') || e.includes('timeout') || e.includes('ECONNREFUSED') || e.includes('Failed to fetch') || e.includes('Abort');
+        const isNotLinked = e.includes('Link') || e.includes('couple') || e.includes('partner');
+        const isCooldown = e.includes('cooldown') || e.includes('Cooldown');
+        const isNotConfigured = e.includes('configured') || e.includes('Sync is not') || e.includes('not configured');
+
+        const friendlyError = isCooldown
+          ? e
+          : isNotConfigured
+            ? 'Connection not set up on this device yet.'
+            : isNotLinked
+              ? 'Link with your partner to send a pulse.'
+              : isAuth
+                ? 'Session expired — please sign out and back in.'
+                : isRLS
+                  ? 'A server policy is blocking this — the database needs a quick update.'
+                  : isNetwork
+                    ? 'No connection — check your internet and try again.'
+                    : e
+                      ? `Could not send right now (${__DEV__ ? e : 'try again'}).`
                       : 'Could not reach your partner right now. Try again in a moment.';
+
+        if (__DEV__) {
+          console.warn('[LiveVibeSync] result.sent=false error:', e, 'code:', code);
+        }
+
         setStatus({
           tone: 'error',
           title: 'Hold for a beat',
@@ -237,13 +254,14 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
                   borderColor: incomingLabel ? '#FF6B8A' : t.primary,
                   shadowColor: incomingLabel ? '#FF6B8A' : t.primary,
                   opacity: isSending ? 0.82 : 1,
+                  gap: incomingLabel ? 6 : 12,
                 },
                 buttonStyle,
               ]}
             >
-              <Icon name="pulse-outline" size={34} color={incomingLabel ? '#FF6B8A' : t.primary} />
-              <Text style={[styles.buttonText, { color: incomingLabel ? '#FF6B8A' : t.primary }]}>
-                {incomingLabel ? `${incomingLabel} is here ♥` : isSending ? 'Sending...' : 'Send Pulse'}
+              <Icon name="pulse-outline" size={incomingLabel ? 22 : 34} color={incomingLabel ? '#FF6B8A' : t.primary} />
+              <Text style={[styles.buttonText, { color: incomingLabel ? '#FF6B8A' : t.primary, fontSize: incomingLabel ? 11 : 14, letterSpacing: incomingLabel ? 0.3 : 1 }]} numberOfLines={2} textBreakStrategy="balanced">
+                {incomingLabel ? `${incomingLabel}\nis here ♥` : isSending ? 'Sending...' : 'Send Pulse'}
               </Text>
             </Animated.View>
           </Pressable>
@@ -353,6 +371,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 1,
+    textAlign: 'center',
+    paddingHorizontal: 12,
   },
   statusCard: {
     borderRadius: 20,
