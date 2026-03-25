@@ -99,15 +99,11 @@ const TONE_PROMPT_COPY = {
 
 const resolveSelectableMaxHeat = (profile, selectedHeat) => {
   const requestedHeat = typeof selectedHeat === 'number' ? selectedHeat : 1;
-  const boundaryCap = profile?.boundaries?.hideSpicy
-    ? 3
-    : profile?.boundaries?.maxHeatOverride;
-
-  if (typeof boundaryCap === 'number') {
-    return Math.min(requestedHeat, boundaryCap);
-  }
-
-  return requestedHeat;
+  const caps = [requestedHeat];
+  if (profile?.boundaries?.hideSpicy) caps.push(3);
+  else if (typeof profile?.boundaries?.maxHeatOverride === 'number') caps.push(profile.boundaries.maxHeatOverride);
+  if (typeof profile?.maxHeat === 'number') caps.push(profile.maxHeat);
+  return Math.min(...caps);
 };
 
 function shuffleArray(arr) {

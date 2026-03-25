@@ -73,6 +73,9 @@ const LOCAL_ONLY_COLUMNS = new Set([
   'sync_status', 'sync_version', 'sync_source', 'local_uri',
   // Sensitive metadata — only cipher versions go to remote
   'mood', 'tags', 'heat_level',
+  // Per-device read state — each device tracks independently.
+  // Syncing sender's is_read:true would make the partner's copy appear already-read.
+  'is_read', 'read_at',
 ]);
 
 // ─── State ──────────────────────────────────────────────────────────
@@ -122,7 +125,8 @@ function toRemoteRow(tableName, row) {
     key: `${dataType}_${row.id}`,
     data_type: dataType,
     created_by: row.user_id || _userId,
-    is_private: !!row.is_private,
+    // love_notes are always couple-shared; the table has no is_private column
+    is_private: tableName === 'love_notes' ? false : !!row.is_private,
     // Metadata columns (unencrypted for sorting/filtering on server)
     value: JSON.stringify(metadata),
     // Encrypted payload (already ciphertext from local E2EE)

@@ -118,8 +118,13 @@ export default function ComposeLoveNoteScreen({ navigation }) {
       allowsEditing: true,
       aspect: [4, 5],
     });
-    if (!result.canceled && result.assets?.[0]?.uri) {
-      setImageUri(result.assets[0].uri);
+    const asset = result.assets?.[0];
+    if (!result.canceled && asset?.uri) {
+      if (asset.fileSize && asset.fileSize > 5_000_000) {
+        Alert.alert("Image Too Large", "Please choose a photo under 5 MB.");
+        return;
+      }
+      setImageUri(asset.uri);
       impact(ImpactFeedbackStyle.Light);
     }
   };
@@ -127,7 +132,6 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   const handleSend = async () => {
     if (!text.trim() && !imageUri) return;
     setIsSending(true);
-    notification(NotificationFeedbackType.Success).catch(() => {});
     try {
       await DataLayer.saveLoveNote({
         text: text.trim() || null,
@@ -136,9 +140,16 @@ export default function ComposeLoveNoteScreen({ navigation }) {
         senderName: getMyDisplayName(userProfile, state?.userProfile, null),
         invisibleInk,
       });
+      notification(NotificationFeedbackType.Success).catch(() => {});
       navigation.goBack();
     } catch (err) {
-      Alert.alert("Error", "Your partner key isn't ready. Ensure both are paired.");
+      let message = "Something went wrong. Please try again.";
+      if (err?.message?.includes('COUPLE_KEY_MISSING')) {
+        message = "Your partner key isn't ready. Make sure both partners have completed pairing.";
+      } else if (err?.message?.includes('attach image')) {
+        message = "Failed to attach your photo. Please try a different image.";
+      }
+      Alert.alert("Couldn't Send Note", message);
     } finally {
       setIsSending(false);
     }

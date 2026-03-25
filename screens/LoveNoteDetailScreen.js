@@ -26,16 +26,10 @@ import Animated, {
   FadeInUp,
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedProps,
-  withTiming,
   withSpring,
   interpolate,
   Extrapolation,
-  Easing,
-  runOnJS,
 } from "react-native-reanimated";
-import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
-import Svg, { Defs, Mask, Rect, Path } from "react-native-svg";
 import LottieView from "lottie-react-native";
 
 import { useTheme } from "../context/ThemeContext";
@@ -50,8 +44,6 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const SERIF_FONT = Platform.select({ ios: "DMSerifDisplay-Regular", android: "DMSerifDisplay_400Regular" });
-
-const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 // True Red / Neon Progression for Love Notes
 const STATIONERY_MAP = {
@@ -76,8 +68,8 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
 
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [envelopeOpen, setEnvelopeOpen] = useState(false);
-  const [fogCleared, setFogCleared] = useState(false);
   const lottieRef = useRef(null);
 
   // ── True Red × Apple Editorial theme map ──
@@ -92,8 +84,6 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
 
   // ── Animation shared values ──
   const revealProgress = useSharedValue(0);
-  const fogOpacity = useSharedValue(1);
-  const pathData = useSharedValue("M 0 0");
 
   useEffect(() => {
     if (!isPremium) {
@@ -104,32 +94,34 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
 
   useEffect(() => {
     let active = true;
+    setLoadError(false);
+    setEnvelopeOpen(false);
+    revealProgress.value = 0;
     (async () => {
       try {
         const loaded = await DataLayer.getLoveNote(noteId);
         if (active) setNote(loaded);
       } catch (err) {
         console.warn('[LoveNoteDetail] Failed to load note:', err?.message);
+        if (active) setLoadError(true);
       } finally {
         if (active) setLoading(false);
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+      lottieRef.current?.reset?.();
+    };
   }, [noteId]);
 
-  // ── Foggy Glass Wipe Gesture (runs on UI thread) ──
-  const panGesture = Gesture.Pan()
-    .onStart((e) => {
-      pathData.value = `${pathData.value} M ${e.x} ${e.y}`;
-      runOnJS(impact)(ImpactFeedbackStyle.Light);
-    })
-    .onUpdate((e) => {
-      pathData.value = `${pathData.value} L ${e.x} ${e.y}`;
-    });
-
-  const animatedMaskProps = useAnimatedProps(() => ({
-    d: pathData.value,
-  }));
+  // ── Mark as read when the envelope is opened ──
+  useEffect(() => {
+    if (envelopeOpen && note && !note.isOwn && !note.isRead) {
+      DataLayer.markLoveNoteRead(note.id).catch((err) =>
+        console.warn('[LoveNoteDetail] Failed to mark read:', err?.message)
+      );
+    }
+  }, [envelopeOpen, note]);
 
   // ── Animated styles ──
   const cardRevealStyle = useAnimatedStyle(() => ({
@@ -138,10 +130,6 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
       { translateY: interpolate(revealProgress.value, [0, 1], [80, 0], Extrapolation.CLAMP) },
       { scale: interpolate(revealProgress.value, [0, 1], [0.85, 1], Extrapolation.CLAMP) },
     ],
-  }));
-
-  const fogContainerStyle = useAnimatedStyle(() => ({
-    opacity: fogOpacity.value,
   }));
 
   // ── Handlers ──
@@ -153,12 +141,6 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
       revealProgress.value = withSpring(1, { damping: 18, stiffness: 120 });
       notification(NotificationFeedbackType.Success);
     }, 1800);
-  };
-
-  const handleClearFog = () => {
-    impact(ImpactFeedbackStyle.Medium);
-    setFogCleared(true);
-    fogOpacity.value = withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) });
   };
 
   const handleDelete = () => {
@@ -188,7 +170,18 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
     );
   }
 
-  if (!note) return null;
+  if (loadError || !note) {
+    return (
+      <View style={[styles.container, { alignItems: "center", justifyContent: "center", backgroundColor: t.background }]}>
+        <Text style={{ color: t.subtext, marginBottom: 16 }}>
+          {loadError ? "Couldn\u2019t load this note." : "This note no longer exists."}
+        </Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={{ color: t.primary }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const stationery = note?.stationeryId
     ? (STATIONERY_MAP[note.stationeryId] || STATIONERY_MAP.love)
@@ -196,7 +189,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
   const hasImage = !!note?.imageUri;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <View style={[styles.container, { backgroundColor: t.background }]}>
         <StatusBar barStyle="light-content" />
         <FilmGrain opacity={0.03} />
@@ -222,8 +215,12 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
             </View>
 
             <Animated.View entering={FadeIn.duration(800)} style={styles.envelopeCenterArea}>
-              <Text style={[styles.envelopeLabel, { color: t.primary }]}>A PRIVATE MESSAGE</Text>
-              <Text style={[styles.editorialTitle, { color: t.text }]}>For your eyes only</Text>
+              <Text style={[styles.envelopeLabel, { color: t.primary }]}>
+                {note.isOwn ? 'YOUR SENT NOTE' : 'A PRIVATE MESSAGE'}
+              </Text>
+              <Text style={[styles.editorialTitle, { color: t.text }]}>
+                {note.isOwn ? 'Delivered with love' : 'For your eyes only'}
+              </Text>
 
               <TouchableOpacity activeOpacity={0.95} onPress={handleOpenEnvelope} style={styles.lottieContainer}>
                 <LottieView
@@ -285,7 +282,9 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                     </View>
 
                     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-                      {note.invisibleInk ? (
+                      {note.locked ? (
+                        <Text style={[styles.noteText, { opacity: 0.4 }]}>[Message could not be decrypted]</Text>
+                      ) : note.invisibleInk ? (
                         <InvisibleInkMessage text={note.text || ''} style={styles.noteText} />
                       ) : (
                         <Text style={styles.noteText}>{note.text}</Text>
@@ -299,52 +298,11 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                   </View>
                 </View>
 
-                {/* ── Foggy Glass Overlay ── */}
-                {!fogCleared && (
-                  <GestureDetector gesture={panGesture}>
-                    <Animated.View style={[StyleSheet.absoluteFill, fogContainerStyle]}>
-                      <Svg style={StyleSheet.absoluteFill}>
-                        <Defs>
-                          <Mask id="wipeMask">
-                            {/* White = show fog, black stroke = punch a hole */}
-                            <Rect x="0" y="0" width={SCREEN_WIDTH} height={SCREEN_HEIGHT} fill="white" />
-                            <AnimatedPath
-                              animatedProps={animatedMaskProps}
-                              fill="none"
-                              stroke="black"
-                              strokeWidth={60}
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </Mask>
-                        </Defs>
-                        <Rect
-                          x="0"
-                          y="0"
-                          width={SCREEN_WIDTH}
-                          height={SCREEN_HEIGHT}
-                          fill="rgba(20, 10, 15, 0.95)"
-                          mask="url(#wipeMask)"
-                        />
-                      </Svg>
-
-                      <View style={styles.fogInstructions} pointerEvents="none">
-                        <Icon name="hand-index-outline" size={32} color="rgba(255,255,255,0.6)" />
-                        <Text style={styles.fogText}>Wipe the glass</Text>
-                      </View>
-                    </Animated.View>
-                  </GestureDetector>
-                )}
-
               </Animated.View>
             </View>
 
             <Animated.View entering={FadeInUp.delay(800)} style={styles.bottomDecoration}>
-              {!fogCleared ? (
-                <TouchableOpacity style={styles.clearFogBtn} onPress={handleClearFog} activeOpacity={0.8}>
-                  <Text style={styles.clearFogText}>Reveal Entirely</Text>
-                </TouchableOpacity>
-              ) : !note.isOwn ? (
+              {!note.isOwn ? (
                 <TouchableOpacity
                   style={[styles.replyButton, { backgroundColor: t.primary }]}
                   onPress={() => {
@@ -366,7 +324,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
           </SafeAreaView>
         )}
       </View>
-    </GestureHandlerRootView>
+    </View>
   );
 }
 
@@ -507,36 +465,6 @@ const createStyles = (t) =>
       fontSize: 10,
       fontWeight: '800',
       letterSpacing: 1.5,
-    },
-
-    // ── Foggy Glass ──
-    fogInstructions: {
-      ...StyleSheet.absoluteFillObject,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 12,
-    },
-    fogText: {
-      fontFamily: SERIF_FONT,
-      fontSize: 24,
-      color: "rgba(255,255,255,0.8)",
-      letterSpacing: 1,
-    },
-    clearFogBtn: {
-      paddingHorizontal: 24,
-      paddingVertical: 12,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.2)",
-      backgroundColor: "rgba(255,255,255,0.05)",
-    },
-    clearFogText: {
-      color: "#FFF",
-      fontFamily: SYSTEM_FONT,
-      fontSize: 12,
-      fontWeight: '800',
-      letterSpacing: 1.5,
-      textTransform: 'uppercase',
     },
 
     // ── Bottom Interaction ──

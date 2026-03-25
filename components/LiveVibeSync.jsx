@@ -14,6 +14,8 @@ import { useTheme } from '../context/ThemeContext';
 import { useTogetherPresence } from '../hooks/useTogetherPresence';
 import { SPACING, withAlpha } from '../utils/theme';
 
+const INCOMING_LABEL_DURATION = 3000;
+
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
 export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
@@ -23,18 +25,60 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
 
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState(null);
+  const [incomingLabel, setIncomingLabel] = useState(null);
+  const incomingLabelTimerRef = useRef(null);
+  const unsubSignalsRef = useRef(null);
 
   const scale = useSharedValue(1);
   const bloomScale = useSharedValue(0.9);
   const bloomOpacity = useSharedValue(0);
+  // Separate bloom for incoming so it can use a different colour
+  const inBloomScale = useSharedValue(0.9);
+  const inBloomOpacity = useSharedValue(0);
 
   useEffect(() => {
     return () => {
-      if (hapticTimerRef.current) {
-        clearTimeout(hapticTimerRef.current);
-      }
+      if (hapticTimerRef.current) clearTimeout(hapticTimerRef.current);
+      if (incomingLabelTimerRef.current) clearTimeout(incomingLabelTimerRef.current);
     };
   }, []);
+
+  // Subscribe to partner heartbeats while on screen
+  useEffect(() => {
+    unsubSignalsRef.current = MomentSignalSender.subscribeToSignals((signal) => {
+      // Haptic double-tap — mirrors what the sender feels
+      impact(ImpactFeedbackStyle.Heavy);
+      setTimeout(() => impact(ImpactFeedbackStyle.Heavy), 150);
+      notification(NotificationFeedbackType.Success);
+
+      // Animate the button
+      scale.value = withSequence(
+        withTiming(1.08, { duration: 120 }),
+        withTiming(0.96, { duration: 70 }),
+        withSpring(1, { damping: 12, stiffness: 180 })
+      );
+
+      // Animate the incoming bloom (slightly different feel)
+      inBloomScale.value = 0.92;
+      inBloomOpacity.value = withSequence(
+        withTiming(0.7, { duration: 140 }),
+        withTiming(0, { duration: 900 })
+      );
+      inBloomScale.value = withSequence(
+        withTiming(1.5, { duration: 200 }),
+        withTiming(1.9, { duration: 880 })
+      );
+
+      // Show label briefly
+      setIncomingLabel(partnerLabel);
+      if (incomingLabelTimerRef.current) clearTimeout(incomingLabelTimerRef.current);
+      incomingLabelTimerRef.current = setTimeout(() => setIncomingLabel(null), INCOMING_LABEL_DURATION);
+    });
+
+    return () => {
+      if (typeof unsubSignalsRef.current === 'function') unsubSignalsRef.current();
+    };
+  }, [partnerLabel, scale, inBloomScale, inBloomOpacity]);
 
   const t = useMemo(() => ({
     surface: isDark ? '#130608' : '#FFFFFF',
@@ -94,7 +138,11 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
                 ? 'Connection not set up on this device yet.'
                 : result.error?.includes('policy') || result.error?.includes('violates') || result.error?.includes('permission')
                   ? 'Server permissions need updating — please contact support.'
-                  : 'Could not reach your partner right now. Try again in a moment.';
+                  : result.error?.includes('JWT') || result.error?.includes('token') || result.error?.includes('expired') || result.error?.includes('auth')
+                    ? 'Session expired — please sign out and back in.'
+                    : result.error?.includes('fetch') || result.error?.includes('network') || result.error?.includes('Network')
+                      ? 'No connection — check your internet and try again.'
+                      : 'Could not reach your partner right now. Try again in a moment.';
         setStatus({
           tone: 'error',
           title: 'Hold for a beat',
@@ -132,6 +180,11 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
     transform: [{ scale: bloomScale.value }],
   }));
 
+  const inBloomStyle = useAnimatedStyle(() => ({
+    opacity: inBloomOpacity.value,
+    transform: [{ scale: inBloomScale.value }],
+  }));
+
   const statusColor = status?.tone === 'error'
     ? '#FF9F0A'
     : status?.tone === 'success'
@@ -155,15 +208,23 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
         </View>
 
         <View style={styles.centerStage}>
+          {/* Outgoing bloom */}
           <Animated.View
             pointerEvents="none"
             style={[
               styles.bloom,
-              {
-                backgroundColor: t.primary,
-                shadowColor: t.primary,
-              },
+              { backgroundColor: t.primary, shadowColor: t.primary },
               bloomStyle,
+            ]}
+          />
+
+          {/* Incoming bloom — softer pink tint so Partner B can tell it's from their partner */}
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.bloom,
+              { backgroundColor: '#FF6B8A', shadowColor: '#FF6B8A' },
+              inBloomStyle,
             ]}
           />
 
@@ -173,16 +234,16 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
                 styles.pulseButton,
                 {
                   backgroundColor: t.primaryDeep,
-                  borderColor: t.primary,
-                  shadowColor: t.primary,
+                  borderColor: incomingLabel ? '#FF6B8A' : t.primary,
+                  shadowColor: incomingLabel ? '#FF6B8A' : t.primary,
                   opacity: isSending ? 0.82 : 1,
                 },
                 buttonStyle,
               ]}
             >
-              <Icon name="pulse-outline" size={34} color={t.primary} />
-              <Text style={[styles.buttonText, { color: t.primary }]}>
-                {isSending ? 'Sending...' : 'Send Pulse'}
+              <Icon name="pulse-outline" size={34} color={incomingLabel ? '#FF6B8A' : t.primary} />
+              <Text style={[styles.buttonText, { color: incomingLabel ? '#FF6B8A' : t.primary }]}>
+                {incomingLabel ? `${incomingLabel} is here ♥` : isSending ? 'Sending...' : 'Send Pulse'}
               </Text>
             </Animated.View>
           </Pressable>

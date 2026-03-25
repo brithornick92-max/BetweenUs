@@ -1255,11 +1255,17 @@ const DataLayer = {
 
     // Link the attachment to this note
     if (mediaRef) {
-      const db = await Database.init();
-      await db.runAsync(
-        `UPDATE attachments SET parent_id = ? WHERE id = ?`,
-        [row.id, mediaRef]
-      );
+      try {
+        const db = await Database.init();
+        await db.runAsync(
+          `UPDATE attachments SET parent_id = ? WHERE id = ?`,
+          [row.id, mediaRef]
+        );
+      } catch (err) {
+        console.warn('[DataLayer] Failed to link attachment to love note:', err?.message);
+        try { await EncryptedAttachments.deleteAttachment(mediaRef); } catch { /* ok */ }
+        throw new Error('Failed to attach image to note');
+      }
     }
 
     debouncedPush();
@@ -1279,7 +1285,7 @@ const DataLayer = {
    * Get a single love note by ID, decrypted.
    */
   async getLoveNote(id) {
-    const row = await Database.getLoveNoteById(id);
+    const row = await Database.getLoveNoteById(id, _coupleId);
     return row ? this._decryptLoveNote(row) : null;
   },
 
@@ -1287,9 +1293,15 @@ const DataLayer = {
    * Mark a love note as read (for the receiving partner).
    */
   async markLoveNoteRead(id) {
-    const result = await Database.markLoveNoteRead(id);
+    const result = await Database.markLoveNoteRead(id, _userId, _coupleId);
     debouncedPush();
     return result;
+  },
+
+  /** Soft-delete all expired love notes and push deletion to sync. */
+  async purgeExpiredLoveNotes() {
+    await Database.purgeExpiredLoveNotes();
+    debouncedPush();
   },
 
   /**
@@ -1297,7 +1309,7 @@ const DataLayer = {
    */
   async deleteLoveNote(id) {
     // Also clean up the encrypted attachment file
-    const note = await Database.getLoveNoteById(id);
+    const note = await Database.getLoveNoteById(id, _coupleId);
     if (note?.media_ref) {
       try {
         await EncryptedAttachments.deleteAttachment(note.media_ref);

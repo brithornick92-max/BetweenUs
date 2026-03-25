@@ -39,7 +39,7 @@ const FONTS = {
 
 export default function EnergyMatcher({ onSelect, compact = false }) {
   const { colors } = useTheme();
-  const { loadContentProfile } = useContent() || {};
+  const { loadContentProfile, loadTodayPrompt } = useContent() || {};
   const [selected, setSelected] = useState('open');
   const hasInteracted = useRef(false);
 
@@ -58,8 +58,8 @@ export default function EnergyMatcher({ onSelect, compact = false }) {
     await ContentIntensityMatcher.setEnergyLevel(level);
     const params = ContentIntensityMatcher.getContentParams(level);
     onSelect?.(level, params);
-    // Refresh global content profile so all screens see updated energy
-    loadContentProfile?.().catch(() => {});
+    // Refresh global content profile and today's prompt so all screens see updated energy
+    loadTodayPrompt?.().catch(() => {});
   }, [onSelect, loadContentProfile]);
 
   if (compact) {

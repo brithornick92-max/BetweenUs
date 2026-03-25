@@ -263,7 +263,7 @@ async function gatherCounts(dataLayer) {
     rituals: rituals.length,
     ritualMaxStreak: computeRitualMaxStreak(rituals),
     vibes: vibes.length,
-    loveNotes: loveNotes.length,
+    loveNotes: loveNotes.filter((n) => n.isOwn).length,
     distinctHeatLevels: computeDistinctHeatLevels(prompts),
   };
 }

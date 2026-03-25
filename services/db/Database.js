@@ -355,6 +355,21 @@ async function migrate(db) {
       PRAGMA user_version = 7;
     `);
   }
+
+  // v8: Ephemeral love notes — expires_at field
+  if (user_version < 8) {
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      await db.execAsync(
+        `ALTER TABLE love_notes ADD COLUMN expires_at TEXT;`
+      );
+      await db.execAsync('PRAGMA user_version = 8;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  }
 }
 
 // ─── Generic CRUD ───────────────────────────────────────────────────
@@ -757,30 +772,43 @@ const Database = {
     const db = await getDb();
     return db.getAllAsync(
       `SELECT * FROM love_notes
-       WHERE couple_id IS ? AND deleted_at IS NULL
+       WHERE couple_id = ? AND deleted_at IS NULL
+         AND (expires_at IS NULL OR expires_at > ?)
        ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-      [coupleId, limit, offset]
+      [coupleId, now(), limit, offset]
     );
   },
 
-  async getLoveNoteById(id) {
+  async getLoveNoteById(id, coupleId) {
     const db = await getDb();
+    if (coupleId) {
+      return db.getFirstAsync(
+        'SELECT * FROM love_notes WHERE id = ? AND couple_id = ? AND deleted_at IS NULL AND (expires_at IS NULL OR expires_at > ?)',
+        [id, coupleId, now()]
+      );
+    }
     return db.getFirstAsync(
-      'SELECT * FROM love_notes WHERE id = ? AND deleted_at IS NULL',
-      [id]
+      'SELECT * FROM love_notes WHERE id = ? AND deleted_at IS NULL AND (expires_at IS NULL OR expires_at > ?)',
+      [id, now()]
     );
   },
 
-  async markLoveNoteRead(id) {
+  async markLoveNoteRead(id, userId, coupleId) {
     const db = await getDb();
     const ts = now();
+    // Expires 4 hours after the recipient first reads it
+    const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
     await db.runAsync(
-      `UPDATE love_notes SET is_read = 1, read_at = ?, updated_at = ?,
-       sync_status = 'pending', sync_version = sync_version + 1
-       WHERE id = ? AND deleted_at IS NULL`,
-      [ts, ts, id]
+      `UPDATE love_notes
+       SET is_read = 1,
+           read_at = COALESCE(read_at, ?),
+           expires_at = CASE WHEN expires_at IS NULL THEN ? ELSE expires_at END,
+           updated_at = ?,
+           sync_status = 'pending', sync_version = sync_version + 1
+       WHERE id = ? AND couple_id = ? AND user_id != ? AND deleted_at IS NULL`,
+      [ts, expiresAt, ts, id, coupleId, userId]
     );
-    return { id, read_at: ts, updated_at: ts };
+    return { id, read_at: ts, expires_at: expiresAt, updated_at: ts };
   },
 
   async softDeleteLoveNote(id) {
@@ -791,6 +819,19 @@ const Database = {
        sync_status = 'pending', sync_version = sync_version + 1
        WHERE id = ?`,
       [ts, ts, id]
+    );
+  },
+
+  /** Soft-delete all love notes whose expires_at has passed. */
+  async purgeExpiredLoveNotes() {
+    const db = await getDb();
+    const ts = now();
+    await db.runAsync(
+      `UPDATE love_notes
+       SET deleted_at = ?, updated_at = ?,
+           sync_status = 'pending', sync_version = sync_version + 1
+       WHERE expires_at IS NOT NULL AND expires_at <= ? AND deleted_at IS NULL`,
+      [ts, ts, ts]
     );
   },
 

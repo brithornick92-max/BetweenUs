@@ -23,6 +23,7 @@ import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
+import { useTogetherPresence } from '../hooks/useTogetherPresence';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
@@ -124,6 +125,7 @@ export default function VibeSignalScreen({ navigation }) {
   const { userProfile } = useAuth();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'Partner');
+  const { isTogetherNow } = useTogetherPresence();
 
   const [activeVibeId,      setActiveVibeId]      = useState('passionate');
   const handleVibeSelect = (vibe) => {
@@ -245,7 +247,7 @@ export default function VibeSignalScreen({ navigation }) {
               <View style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                 <View style={styles.widgetHeader}>
                   <View style={styles.liveIndicator}>
-                    <View style={styles.liveDot} />
+                    <View style={[styles.liveDot, { backgroundColor: isTogetherNow ? '#34C759' : t.subtext }]} />
                   </View>
                   <Text style={[styles.widgetTitle, { color: t.subtext }]}>Live Sync</Text>
                 </View>
@@ -254,11 +256,13 @@ export default function VibeSignalScreen({ navigation }) {
                     <View style={[styles.avatar, { backgroundColor: '#FFFFFF', borderColor: t.surface }]}>
                       <Text style={{ color: '#000000', fontWeight: '800', fontSize: 18 }}>{userInitial || '?'}</Text>
                     </View>
-                    <View style={[styles.avatar, { backgroundColor: t.primary, borderColor: t.surface, marginLeft: -12 }]}>
+                    <View style={[styles.avatar, { backgroundColor: isTogetherNow ? t.primary : t.border, borderColor: t.surface, marginLeft: -12 }]}>
                       <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 18 }}>{partnerLabel.charAt(0).toUpperCase()}</Text>
                     </View>
                   </View>
-                  <Text style={[styles.widgetStatus, { color: t.text }]}>Connected</Text>
+                  <Text style={[styles.widgetStatus, { color: isTogetherNow ? t.text : t.subtext }]}>
+                    {isTogetherNow ? 'Together now' : 'Not online'}
+                  </Text>
                 </View>
               </View>
 

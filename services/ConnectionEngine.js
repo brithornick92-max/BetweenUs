@@ -24,6 +24,26 @@ const _getSupabase = () => {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const _isValidUUID = (str) => typeof str === 'string' && UUID_RE.test(str);
 
+// ── Resolve the real Supabase auth UUID at runtime.
+//    AsyncStorage may hold a local 'user_XXX' id — always prefer the live session. ──
+const _resolveSupabaseUserId = async (fallbackUserId) => {
+  try {
+    const sb = _getSupabase();
+    if (!sb) return fallbackUserId;
+    const { data } = await sb.auth.getUser();
+    if (data?.user?.id) return data.user.id;
+    // Session may have expired — attempt silent re-auth via stored credentials
+    try {
+      const { SupabaseAuthService } = require('./supabase/SupabaseAuthService');
+      if (SupabaseAuthService?.signInWithStoredCredentials) {
+        const session = await SupabaseAuthService.signInWithStoredCredentials();
+        if (session?.user?.id) return session.user.id;
+      }
+    } catch (_) {}
+  } catch (_) {}
+  return fallbackUserId;
+};
+
 // ── Shared encrypt/decrypt helpers (device-local key via EncryptionService) ──
 const _encrypt = async (data) => {
   const { default: EncryptionService } = await import('./EncryptionService');
@@ -139,7 +159,8 @@ export const MomentSignalSender = {
     // Save cooldown immediately (optimistic)
     await AsyncStorage.setItem(KEYS.MOMENT_COOLDOWN, String(now));
 
-    const userId = await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
+    const storedUserId = await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
+    const userId = await _resolveSupabaseUserId(storedUserId);
     const coupleId = await AsyncStorage.getItem(KEYS.MOMENT_COUPLE_ID);
     const sb = _getSupabase();
 
@@ -170,17 +191,17 @@ export const MomentSignalSender = {
             data_type: 'moment_signal',
             created_by: userId,
             is_private: false,
-            value: JSON.stringify({
+            value: {
               moment_type: momentType,
               sender_id: userId,
               sent_at: timestamp,
-            }),
+            },
             created_at: timestamp,
             updated_at: timestamp,
           });
 
         if (error) {
-          console.warn('[MomentSignal] Supabase insert failed:', error.message);
+          if (__DEV__) console.warn('[MomentSignal] Supabase insert failed — code:', error.code, '— message:', error.message, '— details:', error.details);
           if (requireRemote) {
             await rollbackCooldown();
             return { sent: false, remote: false, type: momentType, timestamp: now, error: error.message };
@@ -188,6 +209,18 @@ export const MomentSignalSender = {
           // Still counts as "sent" locally — the user saw the confirmation
           return { sent: true, remote: false, type: momentType, timestamp: now, error: error.message };
         }
+
+        // Fire push notification to partner — non-blocking, non-critical
+        try {
+          const momentDef = MOMENT_TYPES.find(m => m.id === momentType);
+          const label = momentDef?.label || 'A moment';
+          const PushSvc = require('./PushNotificationService').default;
+          PushSvc.notifyPartner(sb, {
+            title: '💌 From your partner',
+            body: label,
+            data: { type: 'moment_signal', moment_type: momentType },
+          });
+        } catch { /* non-critical */ }
 
         return { sent: true, remote: true, type: momentType, timestamp: now };
       } catch (err) {
@@ -299,7 +332,9 @@ export const MomentSignalSender = {
             if (row?.data_type !== 'moment_signal') return;
             if (row?.created_by === userId) return; // Skip own signals
             try {
-              const signal = JSON.parse(row.value);
+              // value is stored as jsonb — the Supabase client returns it as an object.
+              // Guard against legacy rows where it was stored as a JSON string.
+              const signal = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
               onSignal(signal);
             } catch { /* ignore malformed rows */ }
           }

@@ -188,15 +188,19 @@ export default function HomeScreen({ navigation }) {
     })();
   }, []);
 
-  useEffect(() => {
-    if (!isPremium) return;
-    (async () => {
-      try {
-        const count = await DataLayer.getUnreadLoveNoteCount();
-        setUnreadNotes(count || 0);
-      } catch (e) { /* fallback to 0 */ }
-    })();
-  }, [isPremium]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!isPremium) return;
+      let active = true;
+      (async () => {
+        try {
+          const count = await DataLayer.getUnreadLoveNoteCount();
+          if (active) setUnreadNotes(count || 0);
+        } catch (e) { /* fallback to 0 */ }
+      })();
+      return () => { active = false; };
+    }, [isPremium])
+  );
 
   useFocusEffect(
     useCallback(() => {

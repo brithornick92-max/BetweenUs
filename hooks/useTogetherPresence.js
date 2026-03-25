@@ -20,17 +20,45 @@ import { AppState } from 'react-native';
 import { supabase } from '../config/supabase';
 import { useAppContext } from '../context/AppContext';
 
+// ── Resolve a valid Supabase auth UUID.
+//    If the session has expired, attempt silent re-auth via stored credentials.
+//    Falls back to localUserId if nothing works.
+const _resolvePresenceKey = async (localUserId) => {
+  if (!supabase) return localUserId;
+  try {
+    const { data } = await supabase.auth.getUser();
+    if (data?.user?.id) return data.user.id;
+  } catch (_) {}
+  // Try silent re-auth
+  try {
+    const { SupabaseAuthService } = require('../services/supabase/SupabaseAuthService');
+    const session = await SupabaseAuthService.signInWithStoredCredentials();
+    if (session?.user?.id) return session.user.id;
+  } catch (_) {}
+  // Last resort: sign in anonymously to get a real JWT for Realtime
+  try {
+    const { data } = await supabase.auth.signInAnonymously();
+    if (data?.user?.id) return data.user.id;
+  } catch (_) {}
+  return localUserId;
+};
+
 export function useTogetherPresence() {
   const { state } = useAppContext();
-  const { coupleId, userId } = state;
+  const { coupleId, userId: localUserId } = state;
 
   const [isTogetherNow, setIsTogetherNow] = useState(false);
 
   const channelRef = useRef(null);
+  const retryTimerRef = useRef(null);
   const appStateRef = useRef(AppState.currentState);
 
   // ── Disconnect from presence channel ──────────────────────────────────────
   const cleanup = useCallback(() => {
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
     if (channelRef.current) {
       supabase?.removeChannel(channelRef.current).catch(() => {});
       channelRef.current = null;
@@ -40,40 +68,46 @@ export function useTogetherPresence() {
 
   // ── Connect and start tracking presence ───────────────────────────────────
   const connect = useCallback(() => {
-    if (!supabase || !coupleId || !userId) return;
+    if (!supabase || !coupleId || !localUserId) return;
     if (channelRef.current) return; // already subscribed
 
-    const channel = supabase.channel(`couple-presence:${coupleId}`, {
-      config: { presence: { key: userId } },
-    });
+    _resolvePresenceKey(localUserId).then((presenceKey) => {
+      // Bail if another connect() won the race or cleanup ran
+      if (channelRef.current) return;
 
-    const checkTogether = () => {
-      const presenceState = channel.presenceState();
-      // True if any slot key other than our own userId has at least one entry
-      const partnerOnline = Object.keys(presenceState).some((k) => k !== userId);
-      setIsTogetherNow(partnerOnline);
-    };
-
-    channel
-      .on('presence', { event: 'sync' }, checkTogether)
-      .on('presence', { event: 'join' }, checkTogether)
-      .on('presence', { event: 'leave' }, checkTogether)
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          // Announce our presence to the partner
-          await channel
-            .track({ online_at: new Date().toISOString() })
-            .catch(() => {});
-        }
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          // Silently untrack and let the AppState listener reconnect on next foreground
-          channelRef.current = null;
-          setIsTogetherNow(false);
-        }
+      const channel = supabase.channel(`couple-presence:${coupleId}`, {
+        config: { presence: { key: presenceKey } },
       });
 
-    channelRef.current = channel;
-  }, [coupleId, userId]);
+      const checkTogether = () => {
+        const presenceState = channel.presenceState();
+        const partnerOnline = Object.keys(presenceState).some((k) => k !== presenceKey);
+        setIsTogetherNow(partnerOnline);
+      };
+
+      channel
+        .on('presence', { event: 'sync' }, checkTogether)
+        .on('presence', { event: 'join' }, checkTogether)
+        .on('presence', { event: 'leave' }, checkTogether)
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await channel.track({ online_at: new Date().toISOString() }).catch(() => {});
+          }
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            // Channel failed — clear ref and retry after a short delay
+            channelRef.current = null;
+            setIsTogetherNow(false);
+            if (retryTimerRef.current) return; // already scheduled
+            retryTimerRef.current = setTimeout(() => {
+              retryTimerRef.current = null;
+              connect();
+            }, 5000);
+          }
+        });
+
+      channelRef.current = channel;
+    });
+  }, [coupleId, localUserId]);
 
   // ── Mount / unmount ────────────────────────────────────────────────────────
   useEffect(() => {

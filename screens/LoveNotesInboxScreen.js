@@ -92,6 +92,8 @@ export default function LoveNotesInboxScreen({ navigation }) {
 
   const loadNotes = useCallback(async () => {
     try {
+      // Purge any notes that have passed their 1-hour read window
+      await DataLayer.purgeExpiredLoveNotes().catch(() => {});
       const all = await DataLayer.getLoveNotes({ limit: 200 });
       setNotes(all || []);
     } catch (err) {
@@ -112,12 +114,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
     return unsubscribe;
   }, [navigation, loadNotes]);
 
-  useEffect(() => {
-    if (notes.length > 0) {
-      const unread = notes.filter((n) => !n.isOwn && !n.isRead);
-      unread.forEach((n) => DataLayer.markLoveNoteRead(n.id).catch(() => {}));
-    }
-  }, [notes]);
+  // Notes are marked as read individually when opened in LoveNoteDetailScreen.
 
   const onRefresh = useCallback(async () => {
     selection();
@@ -274,7 +271,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
         {/* ── Editorial Filter Tabs ── */}
         <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.filterRow}>
           {[
-            { key: "all", label: "Archive" },
+            { key: "all", label: "Inbox" },
             { key: "received", label: "Received" },
             { key: "sent", label: "Sent" },
           ].map((f) => {
