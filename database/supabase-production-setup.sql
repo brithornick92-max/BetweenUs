@@ -717,9 +717,11 @@ SET search_path = public
 SET row_security = off
 AS $$
 DECLARE
-  code_row partner_link_codes%ROWTYPE;
-  creator_id uuid;
-  redeemer_id uuid;
+  code_row              partner_link_codes%ROWTYPE;
+  creator_id            uuid;
+  redeemer_id           uuid;
+  old_redeemer_couple   uuid;
+  remaining             int;
 BEGIN
   redeemer_id := auth.uid();
   IF redeemer_id IS NULL THEN
@@ -757,8 +759,17 @@ BEGIN
   ) THEN
     RETURN jsonb_build_object('success', false, 'error', 'Pairing code is no longer valid');
   END IF;
-  IF EXISTS (SELECT 1 FROM couple_members WHERE user_id = redeemer_id) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'You are already in a couple');
+  -- Auto-leave any existing couple so re-pairing always works
+  SELECT couple_id INTO old_redeemer_couple
+    FROM couple_members WHERE user_id = redeemer_id LIMIT 1;
+  IF old_redeemer_couple IS NOT NULL THEN
+    DELETE FROM couple_members WHERE user_id = redeemer_id;
+    SELECT count(*) INTO remaining
+      FROM couple_members WHERE couple_id = old_redeemer_couple;
+    IF remaining = 0 THEN
+      DELETE FROM partner_link_codes WHERE couple_id = old_redeemer_couple;
+      DELETE FROM couples WHERE id = old_redeemer_couple;
+    END IF;
   END IF;
 
   INSERT INTO couple_members (couple_id, user_id, role, public_key)
@@ -779,6 +790,97 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION redeem_pairing_code(text, text) TO authenticated;
+
+-- Create a new couple and add caller as owner (bypasses RLS — mirrors redeem_* pattern)
+DROP FUNCTION IF EXISTS create_couple_for_qr(text);
+CREATE OR REPLACE FUNCTION create_couple_for_qr(device_public_key text DEFAULT NULL)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+SET row_security = off
+AS $$
+DECLARE
+  caller_id     uuid;
+  old_couple_id uuid;
+  new_couple_id uuid;
+  remaining     int;
+BEGIN
+  caller_id := auth.uid();
+  IF caller_id IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+  END IF;
+
+  -- Auto-leave any existing couple so re-pairing always works
+  SELECT couple_id INTO old_couple_id
+    FROM couple_members WHERE user_id = caller_id LIMIT 1;
+  IF old_couple_id IS NOT NULL THEN
+    DELETE FROM couple_members WHERE user_id = caller_id;
+    SELECT count(*) INTO remaining
+      FROM couple_members WHERE couple_id = old_couple_id;
+    IF remaining = 0 THEN
+      DELETE FROM partner_link_codes WHERE couple_id = old_couple_id;
+      DELETE FROM couples WHERE id = old_couple_id;
+    END IF;
+  END IF;
+
+  INSERT INTO couples (created_by) VALUES (caller_id)
+    RETURNING id INTO new_couple_id;
+
+  INSERT INTO couple_members (couple_id, user_id, role, public_key)
+  VALUES (new_couple_id, caller_id, 'owner', device_public_key);
+
+  RETURN jsonb_build_object(
+    'success',   true,
+    'couple_id', new_couple_id
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION create_couple_for_qr(text) TO authenticated;
+
+-- Leave current couple (remove self from couple_members, bypasses RLS)
+DROP FUNCTION IF EXISTS leave_couple();
+CREATE OR REPLACE FUNCTION leave_couple()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+SET row_security = off
+AS $$
+DECLARE
+  caller_id    uuid;
+  the_couple_id uuid;
+  remaining    int;
+BEGIN
+  caller_id := auth.uid();
+  IF caller_id IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
+  END IF;
+
+  SELECT couple_id INTO the_couple_id
+    FROM couple_members WHERE user_id = caller_id LIMIT 1;
+
+  IF the_couple_id IS NULL THEN
+    -- Already not in a couple — treat as success
+    RETURN jsonb_build_object('success', true, 'couple_id', null);
+  END IF;
+
+  DELETE FROM couple_members WHERE user_id = caller_id;
+
+  -- If no members remain, clean up the orphaned couple row
+  SELECT count(*) INTO remaining
+    FROM couple_members WHERE couple_id = the_couple_id;
+  IF remaining = 0 THEN
+    DELETE FROM partner_link_codes WHERE couple_id = the_couple_id;
+    DELETE FROM couples WHERE id = the_couple_id;
+  END IF;
+
+  RETURN jsonb_build_object('success', true, 'couple_id', the_couple_id);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION leave_couple() TO authenticated;
 
 
 -- ############################################################################
@@ -1278,7 +1380,7 @@ CREATE POLICY "Couple data insert (premium-aware)" ON couple_data
     AND created_by = auth.uid()
     AND (
       is_user_premium()
-      OR data_type IN ('journal', 'prompt_answer', 'check_in', 'vibe', 'couple_state')
+      OR data_type IN ('journal', 'prompt_answer', 'check_in', 'vibe', 'couple_state', 'moment_signal')
       OR (data_type = 'memory'       AND user_data_count(couple_id, 'memory')       < 10)
       OR (data_type = 'custom_ritual' AND user_data_count(couple_id, 'custom_ritual') < 2)
       OR (data_type = 'love_note'     AND user_data_count(couple_id, 'love_note')     < 20)

@@ -229,7 +229,7 @@ export const resolveEditorialCategory = (profile, requestedCategory = null) => {
 
   const tone = profile?.tone || 'warm';
   const seasonId = profile?.season?.id || 'cozy';
-  const energyLevel = profile?.energy?.level || 'medium';
+  const energyLevel = profile?.energy?.level || 'open';
   const climateCategories = profile?.climate?.preferredCategories || [];
 
   if (climateCategories.includes('playful')) pushIfAllowed(PROMPT_CATEGORIES.PLAYFUL.id);

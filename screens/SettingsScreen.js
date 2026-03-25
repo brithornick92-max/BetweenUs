@@ -932,8 +932,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 48,
-    borderRadius: 24,
+    width: '100%',
+    height: 56,
+    borderRadius: 28,
     gap: 8,
   },
   reconnectBtnText: {

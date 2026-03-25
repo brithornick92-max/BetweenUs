@@ -245,19 +245,14 @@ const CoupleService = {
 
   /**
    * Unlink from couple (remove self from couple_members).
+   * Uses a SECURITY DEFINER RPC to bypass RLS — same pattern as create_couple_for_qr.
    */
   async unlinkFromCouple() {
     const supabase = getSupabaseOrThrow();
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await supabase
-      .from('couple_members')
-      .delete()
-      .eq('user_id', user.id);
-
+    const { data, error } = await supabase.rpc('leave_couple');
     if (error) throw error;
+    if (data && data.success === false) throw new Error(data.error || 'Failed to leave couple');
     return true;
   },
 

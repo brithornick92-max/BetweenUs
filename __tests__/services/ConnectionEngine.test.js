@@ -32,7 +32,7 @@ describe('MomentSignalSender', () => {
 
     AsyncStorage.getItem.mockImplementation(async (key) => {
       if (key === '@bu_moment_cooldown') return null;
-      if (key === '@bu_moment_user_id') return 'user-1';
+      if (key === '@bu_moment_user_id') return 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
       if (key === '@bu_moment_couple_id') return 'couple-1';
       return null;
     });
@@ -56,7 +56,7 @@ describe('MomentSignalSender', () => {
 
     AsyncStorage.getItem.mockImplementation(async (key) => {
       if (key === '@bu_moment_cooldown') return null;
-      if (key === '@bu_moment_user_id') return 'user-1';
+      if (key === '@bu_moment_user_id') return 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
       if (key === '@bu_moment_couple_id') return 'couple-1';
       return null;
     });
@@ -68,14 +68,14 @@ describe('MomentSignalSender', () => {
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({
       couple_id: 'couple-1',
       data_type: 'moment_signal',
-      created_by: 'user-1',
+      created_by: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
       value: expect.any(String),
     }));
 
     const payload = JSON.parse(insert.mock.calls[0][0].value);
     expect(payload).toMatchObject({
       moment_type: 'heartbeat',
-      sender_id: 'user-1',
+      sender_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
     });
   });
 });

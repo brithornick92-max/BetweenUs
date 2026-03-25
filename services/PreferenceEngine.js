@@ -482,7 +482,7 @@ function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
 async function getSmartGreeting(profile) {
   const tone = profile?.tone || 'warm';
   const seasonId = profile?.season?.id || 'cozy';
-  const energyLevel = profile?.energy?.level || 'medium';
+  const energyLevel = profile?.energy?.level || 'open';
 
   // Base greeting from NicknameEngine tone
   const tonePhrase = await NicknameEngine.getTonePhrase('home_sub');

@@ -27,6 +27,7 @@ import React, {
 import { AppState } from 'react-native';
 import { DataLayer, SyncEngine, Database } from '../services/localfirst';
 import { MomentSignalSender } from '../services/ConnectionEngine';
+import { supabase } from '../config/supabase';
 import { useAuth } from './AuthContext';
 import { useEntitlements } from './EntitlementsContext';
 import { useAppContext as useApp } from './AppContext';
@@ -74,8 +75,18 @@ export function DataProvider({ children }) {
 
         await DataLayer.migrateLegacyStorage();
 
+        // Prefer the Supabase auth UUID for MomentSignalSender — local IDs have
+        // a 'user_' prefix that intentionally fails the remote-send UUID check.
+        let momentUserId = userId;
+        try {
+          if (supabase) {
+            const { data } = await supabase.auth.getUser();
+            if (data?.user?.id) momentUserId = data.user.id;
+          }
+        } catch (_) {}
+
         // Configure MomentSignalSender with user context
-        MomentSignalSender.configure({ userId, coupleId: coupleId || null });
+        MomentSignalSender.configure({ userId: momentUserId, coupleId: coupleId || null });
 
         if (cancelled) return;
         initializedRef.current = true;
@@ -149,7 +160,17 @@ export function DataProvider({ children }) {
       coupleId: coupleId || null,
       isPremium: !!isPremium,
     });
-    MomentSignalSender.configure({ userId, coupleId: coupleId || null });
+    // Re-resolve Supabase UUID on reconfigure too
+    (async () => {
+      let momentUserId = userId;
+      try {
+        if (supabase) {
+          const { data } = await supabase.auth.getUser();
+          if (data?.user?.id) momentUserId = data.user.id;
+        }
+      } catch (_) {}
+      MomentSignalSender.configure({ userId: momentUserId, coupleId: coupleId || null });
+    })();
   }, [userId, coupleId, isPremium]);
 
   // ─── Sync on app foreground ─────────────────────────────────

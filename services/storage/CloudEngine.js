@@ -38,35 +38,19 @@ class CloudEngine {
   async createCouple(devicePublicKeyB64) {
     this._ensureSession();
     const supabase = getSupabaseOrThrow();
-    const userId = await this._getUserId();
 
-    // Guard: check if user is already in a couple
-    const { data: existing } = await supabase
-      .from(TABLES.COUPLE_MEMBERS)
-      .select('couple_id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (existing?.couple_id) {
-      throw new Error('You are already linked to a partner. Leave your current couple first.');
+    // Use a SECURITY DEFINER RPC to bypass RLS (same pattern as redeem_pairing_code).
+    // Direct INSERTs into `couples` fail when the JWT is stale or the user is anonymous.
+    const { data, error } = await supabase.rpc('create_couple_for_qr', {
+      device_public_key: devicePublicKeyB64 ?? null,
+    });
+
+    if (error) throw error;
+    if (!data?.success) {
+      throw new Error(data?.error || 'Failed to create couple');
     }
 
-    const { data, error } = await supabase
-      .from(TABLES.COUPLES)
-      .insert({ created_by: userId })
-      .select()
-      .single();
-    if (error) throw error;
-
-    const memberRow = {
-      couple_id: data.id,
-      user_id: userId,
-      role: 'owner',
-    };
-    if (devicePublicKeyB64) memberRow.public_key = devicePublicKeyB64;
-
-    await supabase.from(TABLES.COUPLE_MEMBERS).insert(memberRow);
-
-    return data.id;
+    return data.couple_id;
   }
 
   /**

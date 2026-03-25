@@ -90,7 +90,11 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
             ? 'Link with your partner to send a pulse.'
             : result.error?.includes('Sign in')
               ? 'Sign in to send a pulse.'
-              : 'Pulse unavailable right now. Try again soon.';
+              : result.error?.includes('configured') || result.error?.includes('Sync is not')
+                ? 'Connection not set up on this device yet.'
+                : result.error?.includes('policy') || result.error?.includes('violates') || result.error?.includes('permission')
+                  ? 'Server permissions need updating — please contact support.'
+                  : 'Could not reach your partner right now. Try again in a moment.';
         setStatus({
           tone: 'error',
           title: 'Hold for a beat',

@@ -152,7 +152,7 @@ export const MomentSignalSender = {
       if (!_isValidUUID(userId)) return 'Sign in again to send a pulse.';
       if (!coupleId) return 'Link with your partner before sending a pulse.';
       if (!sb) return 'Sync is not configured on this device.';
-      return 'Pulse is unavailable right now.';
+      return 'Could not reach your partner right now. Try again in a moment.';
     };
 
     // ── Remote send via Supabase ──
@@ -421,7 +421,7 @@ export const ContentIntensityMatcher = {
       const raw = await AsyncStorage.getItem(KEYS.ENERGY_LEVEL);
       return raw || 'open';
     } catch {
-      return 'medium';
+      return 'open';
     }
   },
 

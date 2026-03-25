@@ -541,7 +541,11 @@ export default function HomeScreen({ navigation }) {
                 color={t.subtext}
               />
             </TouchableOpacity>
-            {showMoments && <MomentSignal partnerLabel={partnerLabel} />}
+            <MomentSignal
+              partnerLabel={partnerLabel}
+              visible={showMoments}
+              onReceive={() => setShowMoments(true)}
+            />
           </View>
 
         </ScrollView>

@@ -455,13 +455,16 @@ export default function PromptLibraryScreen({ navigation }) {
               {[1, 2, 3, 4, 5].map((h) => {
                 const active = selectedHeat === h;
                 const locked = !isPremium && h >= 4;
+                const userMaxHeat = userProfile?.heatLevelPreference ?? 5;
+                const aboveMax = h > userMaxHeat;
                 const heatColor = HEAT_BADGE_COLORS[h];
                 return (
                   <TouchableOpacity
                     key={h}
                     style={[styles.heatBtn, {
                       backgroundColor: active ? heatColor : 'rgba(255,255,255,0.03)',
-                      borderColor: active ? heatColor : 'rgba(255,255,255,0.1)',
+                      borderColor: active ? heatColor : aboveMax ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)',
+                      opacity: aboveMax ? 0.3 : 1,
                       ...(active ? {
                         shadowColor: heatColor,
                         shadowOffset: { width: 0, height: 4 },
@@ -471,6 +474,7 @@ export default function PromptLibraryScreen({ navigation }) {
                       } : {}),
                     }]}
                     onPress={() => {
+                      if (aboveMax) return;
                       if (!isPremium && h >= 4) {
                         showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5);
                         return;
@@ -478,12 +482,13 @@ export default function PromptLibraryScreen({ navigation }) {
                       setSelectedHeat(h);
                       selection();
                     }}
-                    activeOpacity={0.7}
+                    activeOpacity={aboveMax ? 1 : 0.7}
+                    disabled={aboveMax}
                   >
-                    <Text style={[styles.heatBtnText, { color: active ? '#FFF' : withAlpha(heatColor, 0.5) }]}>
+                    <Text style={[styles.heatBtnText, { color: active ? '#FFF' : withAlpha(heatColor, aboveMax ? 0.15 : 0.5) }]}>
                       {HEAT_LABELS[h].toUpperCase()}
                     </Text>
-                    {locked && <Icon name="lock-closed" size={10} color={active ? '#FFF' : withAlpha(heatColor, 0.4)} />}
+                    {locked && !aboveMax && <Icon name="lock-closed" size={10} color={active ? '#FFF' : withAlpha(heatColor, 0.4)} />}
                   </TouchableOpacity>
                 );
               })}

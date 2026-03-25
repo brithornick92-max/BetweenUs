@@ -126,7 +126,14 @@ export default function PairingScanScreen({ navigation }) {
         }
       }, 1000);
     } catch (error) {
-      setStatus('Unable to read link. Try again.');
+      const msg = String(error?.message || '');
+      if (msg.includes('expired') || msg.includes('Invalid') || msg.includes('already-used')) {
+        setStatus('This code has expired. Ask your partner to tap "Try Again" for a new one.');
+      } else if (msg.includes('already in a couple')) {
+        setStatus('You are already linked. Unlink first from Settings.');
+      } else {
+        setStatus(msg || 'Unable to read link. Try again.');
+      }
       setScanned(false);
     }
   };

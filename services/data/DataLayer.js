@@ -259,7 +259,7 @@ const DataLayer = {
             const existing = await Database.getPromptAnswerByPromptAndDate(_userId, String(promptId), dk);
             if (existing) continue;
 
-            const heatLevel = Number(payload?.heatLevel ?? payload?.heat_level ?? 1) || 1;
+            const heatLevel = Number(payload?.heatLevel ?? payload?.heat_level ?? 5) || 5;
             const answerCipher = await E2EEncryption.encryptString(answer, kt, cid);
             const heatCipher = await E2EEncryption.encryptString(String(heatLevel), kt, cid);
 
@@ -523,7 +523,7 @@ const DataLayer = {
 
   // ─── Prompt Answers ───────────────────────────────────────────
 
-  async savePromptAnswer({ promptId, answer, heatLevel = 1 }) {
+  async savePromptAnswer({ promptId, answer, heatLevel = 5 }) {
     const kt = keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
     const answerCipher = await E2EEncryption.encryptString(answer, kt, cid);

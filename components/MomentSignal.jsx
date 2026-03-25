@@ -16,7 +16,7 @@ import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import { MomentSignalSender, MOMENT_TYPES } from '../services/ConnectionEngine';
 
-export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
+export default function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onReceive }) {
   const { colors, isDark } = useTheme();
 
   // STRICT Apple Editorial Theme Map
@@ -42,10 +42,18 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const receiveFadeAnim = useRef(new Animated.Value(0)).current;
   const unsubRef = useRef(null);
+  const cooldownTimerRef = useRef(null);
 
   // Check send availability on mount
   useEffect(() => {
     MomentSignalSender.canSend().then(setCanSend);
+  }, []);
+
+  // Clean up cooldown timer on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+    };
   }, []);
 
   // Subscribe to incoming partner signals
@@ -54,6 +62,7 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
       const momentDef = MOMENT_TYPES.find(m => m.id === signal.moment_type);
       if (!momentDef) return;
 
+      onReceive?.();
       setReceivedSignal(momentDef);
       notification(NotificationFeedbackType.Success).catch(() => {});
 
@@ -102,16 +111,26 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend }) {
     const result = await MomentSignalSender.send(moment.id);
 
     if (!result.sent) {
-      // Cooldown blocked it — re-enable after cooldown
       setSendError(result.error || 'Please wait before sending again');
-      setCanSend(false);
     } else if (result.error) {
       // Sent locally but remote failed — show subtle warning
       setSendError('Sent locally — will sync when connected');
     }
 
+    // Re-enable sending once the cooldown expires
+    MomentSignalSender.getCooldownRemaining().then(remaining => {
+      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+      cooldownTimerRef.current = setTimeout(() => {
+        setCanSend(true);
+        setSendError(null);
+      }, remaining > 0 ? remaining : 0);
+    });
+
     onSend?.(moment);
   }, [canSend, fadeAnim, scaleAnim, onSend]);
+
+  // When panel is collapsed and no incoming signal, render nothing (but stay mounted so subscription runs)
+  if (!visible && !receivedSignal) return null;
 
   // Incoming signal banner
   if (receivedSignal) {

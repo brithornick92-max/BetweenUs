@@ -149,7 +149,7 @@ export default function PromptsScreen({ navigation }) {
         try {
           const profile = await PreferenceEngine.getContentProfile(userProfile || {});
           if (!active) return;
-          let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 1;
+          let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
           if (!isPremium && heat >= 4) heat = 3;
           setContentProfile(profile);
           setSelectedHeat(heat);
@@ -281,14 +281,15 @@ export default function PromptsScreen({ navigation }) {
               {HEAT_LEVELS.map(({ value, label, color: heatColor }) => {
                 const active = selectedHeat === value;
                 const locked = !isPremium && value >= 4;
+                const userMaxHeat = userProfile?.heatLevelPreference ?? 5;
+                const aboveMax = value > userMaxHeat;
 
                 const bgColor = active ? heatColor : 'rgba(255,255,255,0.03)';
-                const borderColor = active ? heatColor : 'rgba(255,255,255,0.1)';
-                const textColor = active ? '#FFFFFF' : withAlpha(heatColor, 0.4);
-                const textOpacity = 1;
+                const borderColor = active ? heatColor : aboveMax ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)';
+                const textColor = active ? '#FFFFFF' : withAlpha(heatColor, aboveMax ? 0.15 : 0.4);
 
                 return (
-                  <View key={value} style={styles.chipWrapper}>
+                  <View key={value} style={[styles.chipWrapper, aboveMax && { opacity: 0.3 }]}>
                     <TouchableOpacity
                       style={[
                         styles.heatChip,
@@ -304,14 +305,15 @@ export default function PromptsScreen({ navigation }) {
                           } : {})
                         },
                       ]}
-                      onPress={() => handleHeatSelect(value)}
-                      activeOpacity={0.8}
+                      onPress={() => !aboveMax && handleHeatSelect(value)}
+                      activeOpacity={aboveMax ? 1 : 0.8}
+                      disabled={aboveMax}
                     >
-                      <Text style={[styles.heatLabel, { color: textColor, opacity: textOpacity }]}>
+                      <Text style={[styles.heatLabel, { color: textColor }]}>
                         {label}
                       </Text>
                     </TouchableOpacity>
-                    {locked && (
+                    {locked && !aboveMax && (
                       <View style={[
                         styles.lockBadge,
                         {
@@ -460,5 +462,6 @@ const styles = StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 15,
     fontWeight: "600",
+    textAlign: "center",
   },
 });

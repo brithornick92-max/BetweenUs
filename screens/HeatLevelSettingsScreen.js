@@ -91,7 +91,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
   const { loadContentProfile } = useContent();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   
-  const [selectedLevel, setSelectedLevel] = useState(3);
+  const [selectedLevel, setSelectedLevel] = useState(5);
   const [isSaving, setIsSaving] = useState(false);
 
   // Entrance animations

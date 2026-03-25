@@ -113,7 +113,7 @@ export default function PairingQRCodeScreen({ navigation }) {
       setStatus('Ready to scan');
       setPhase('waiting');
 
-      const partnerPubKeyB64 = await CloudEngine.waitForPartnerPublicKey(coupleId, 180_000, 3_000);
+      const partnerPubKeyB64 = await CloudEngine.waitForPartnerPublicKey(coupleId, 600_000, 3_000);
       if (!activeRef.current) return;
 
       if (!partnerPubKeyB64) {
@@ -139,18 +139,6 @@ export default function PairingQRCodeScreen({ navigation }) {
       }, 1200);
     } catch (error) {
       if (!activeRef.current) return;
-      if (error?.message?.includes('already linked')) {
-        // Stale server record — silently remove it so the next attempt can proceed
-        try {
-          await CoupleService.unlinkFromCouple();
-          await storage.remove(STORAGE_KEYS.COUPLE_ID);
-        } catch (_) {
-          // best-effort
-        }
-        setStatus('Previous link cleared — tap "Try Again" to generate your code.');
-        setPhase('error');
-        return;
-      }
       setStatus(error?.message || 'Connection failed. Please try again.');
       setPhase('error');
     } finally {
@@ -170,6 +158,22 @@ export default function PairingQRCodeScreen({ navigation }) {
       return;
     }
     navigation.navigate('SyncSetup');
+  };
+
+  const handleUnlink = async () => {
+    try {
+      try { await CoupleService.unlinkFromCouple(); } catch (_) {}
+      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+      if (coupleId) {
+        await CoupleKeyService.clearCoupleKey(coupleId);
+        await storage.remove(STORAGE_KEYS.COUPLE_ID);
+        await updateProfile?.({ coupleId: null });
+      }
+      await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
+      await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
+    } catch (_) {}
+    if (navigation.canGoBack()) navigation.goBack();
+    else navigation.navigate('Settings');
   };
 
   return (
@@ -214,14 +218,21 @@ export default function PairingQRCodeScreen({ navigation }) {
             ) : (
               <ActivityIndicator size="large" color={t.primary} />
             )}
-            
-            {phase === 'waiting' && (
-              <View style={styles.scanningOverlay}>
-                <ActivityIndicator color={t.primary} />
-                <Text style={[styles.waitingLabel, { color: t.primary }]}>WAITING...</Text>
-              </View>
-            )}
           </View>
+
+          {phase === 'waiting' && (
+            <View style={styles.waitingRow}>
+              <ActivityIndicator color={t.primary} size="small" />
+              <Text style={[styles.waitingLabel, { color: t.primary }]}>WAITING FOR SCAN...</Text>
+            </View>
+          )}
+
+          {phase === 'waiting' && (
+            <TouchableOpacity style={styles.unlinkBtn} onPress={handleUnlink}>
+              <Icon name="close-circle-outline" size={14} color={t.subtext} />
+              <Text style={[styles.unlinkBtnText, { color: t.subtext }]}>Cancel & Go Back</Text>
+            </TouchableOpacity>
+          )}
 
           {phase === 'error' && (
             <TouchableOpacity 
@@ -230,6 +241,13 @@ export default function PairingQRCodeScreen({ navigation }) {
             >
               <Text style={styles.primaryButtonText}>{status.includes('Sync') ? 'Sync Settings' : 'Try Again'}</Text>
               <Icon name={status.includes('Sync') ? 'settings-outline' : 'refresh-outline'} size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+          )}
+
+          {phase === 'error' && (
+            <TouchableOpacity style={styles.unlinkBtn} onPress={handleUnlink}>
+              <Icon name="unlink-outline" size={14} color={t.subtext} />
+              <Text style={[styles.unlinkBtnText, { color: t.subtext }]}>{'Unlink & Go Back'}</Text>
             </TouchableOpacity>
           )}
 
@@ -306,16 +324,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   scanningOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    display: 'none', // no longer used
+  },
+  waitingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    marginTop: 16,
   },
   waitingLabel: {
     fontFamily: SYSTEM_FONT,
@@ -347,6 +363,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     marginTop: 24,
+  },
+  unlinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 16,
+    padding: 8,
+  },
+  unlinkBtnText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '600',
   },
   noticeText: { 
     fontFamily: SYSTEM_FONT,
