@@ -18,6 +18,7 @@ import {
   Dimensions,
   StatusBar,
   ActivityIndicator,
+  Keyboard,
 } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -297,6 +298,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
     setIsSaving(true);
     try {
+      Keyboard.dismiss();
       // Write to DataLayer (E2EE, synced, exported) — primary store
       await DataLayer.savePromptAnswer({
         promptId: prompt.id,

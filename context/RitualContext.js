@@ -177,19 +177,25 @@ function reducer(state, action) {
 function calculateStreak(history) {
   if (history.length === 0) return 0;
   
-  const sortedHistory = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
+  // Deduplicate by day to avoid inflating streak with multiple same-day rituals
+  const daySet = new Set(
+    history.map(r => {
+      const d = new Date(r.date);
+      return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+    })
+  );
+  const sortedDays = [...daySet].sort((a, b) => b - a);
+  
   let streak = 0;
   const now = new Date();
   let currentUTCDay = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   
-  for (const ritual of sortedHistory) {
-    const d = new Date(ritual.date);
-    const ritualUTCDay = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-    const diffDays = (currentUTCDay - ritualUTCDay) / 86400000;
+  for (const dayUTC of sortedDays) {
+    const diffDays = (currentUTCDay - dayUTC) / 86400000;
     
     if (diffDays <= 1) {
       streak++;
-      currentUTCDay = ritualUTCDay;
+      currentUTCDay = dayUTC;
     } else {
       break;
     }

@@ -7,7 +7,7 @@ import StorageRouter from "../services/storage/StorageRouter";
 import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
 
 const SubscriptionContext = createContext(null);
-const DEV_FORCE_PREMIUM = false;
+const DEV_FORCE_PREMIUM = __DEV__ && false;
 
 export const useSubscription = () => {
   const context = useContext(SubscriptionContext);

@@ -76,8 +76,6 @@ const loadAllBundledPrompts = () => {
   }
 };
 
-
-
 const normalizePrompt = (p) => {
   if (!p || typeof p !== "object") return FALLBACK_PROMPT;
   const text = typeof p.text === "string" ? p.text : "";

@@ -383,8 +383,7 @@ function App() {
       </GestureHandlerRootView>
     );
   } catch (error) {
-    logError('app_init', error);
-    return (
+    logError('app_init', error);    SplashScreen.hideAsync().catch(() => {});    return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#070509' }}>
         <Text style={{ color: '#F2E9E6', padding: 20 }}>Something didn’t work. Please restart the app.</Text>
       </View>

@@ -154,6 +154,8 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles, colors, i
                     style={[styles.dayCell, selected && { backgroundColor: colors.primary }]}
                     onPress={() => { selection(); onDateSelect(date); }}
                     activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}${dayEvents.length ? `, ${dayEvents.length} event${dayEvents.length > 1 ? 's' : ''}` : ''}${selected ? ', selected' : ''}${today ? ', today' : ''}`}
                   >
                     <Text style={[
                       styles.dayText,
@@ -318,8 +320,12 @@ export default function CalendarScreen({ navigation, route }) {
     setRefreshing(false);
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleSave = async () => {
+    if (isSaving) return;
     if (!form.title.trim()) return Alert.alert('Required', 'Please name your event.');
+    setIsSaving(true);
 
     try {
       const combined = new Date(pickerDate);
@@ -369,6 +375,8 @@ export default function CalendarScreen({ navigation, route }) {
       setForm({ title: '', location: '', notes: '', eventType: 'general', isDateNight: false, notify: false, notifyMins: 60 });
     } catch (err) {
       Alert.alert('Error', 'Something went wrong saving your event. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -610,11 +618,12 @@ export default function CalendarScreen({ navigation, route }) {
 
                   {/* Save */}
                   <TouchableOpacity
-                    style={[styles.primaryBtn, { backgroundColor: t.primary }]}
+                    style={[styles.primaryBtn, { backgroundColor: t.primary, opacity: isSaving ? 0.6 : 1 }]}
                     onPress={handleSave}
                     activeOpacity={0.8}
+                    disabled={isSaving}
                   >
-                    <Text style={styles.primaryBtnText}>SAVE TO TIMELINE</Text>
+                    <Text style={styles.primaryBtnText}>{isSaving ? 'SAVING…' : 'SAVE TO TIMELINE'}</Text>
                   </TouchableOpacity>
 
                 </ScrollView>

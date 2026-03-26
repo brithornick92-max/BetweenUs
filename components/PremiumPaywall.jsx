@@ -59,10 +59,22 @@ const PremiumPaywall = ({
   const handleSubscribe = async (pkg) => {
     if (isSubscribing) return;
     if (!pkg) {
-      Alert.alert(
-        'Store Unavailable',
-        'Unable to connect to the App Store. Please check your internet connection and try again.'
-      );
+      const reason = offerings?.reason;
+      let message = 'Subscription plans are not available right now.';
+      if (reason === 'missing_api_key') {
+        message = __DEV__
+          ? `Development build: RevenueCat API key not set (${offerings.missingKeyName}). Add it to eas.json env or a local .env file.`
+          : 'Subscription plans are not available right now. Please try again later.';
+      } else if (reason === 'no_offerings' || reason === 'offerings_unavailable') {
+        message = 'No subscription products are configured yet. Please check back soon or contact support.';
+      } else if (reason === 'not_configured') {
+        message = __DEV__
+          ? 'Development build: RevenueCat is not configured. Add your API key to eas.json env or a local .env file.'
+          : 'Subscription plans are not available right now. Please try again later.';
+      } else {
+        message = 'Unable to connect to the App Store. Please check your internet connection and try again.';
+      }
+      Alert.alert('Store Unavailable', message);
       return;
     }
     setIsSubscribing(true);

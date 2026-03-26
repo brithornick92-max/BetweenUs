@@ -15,6 +15,7 @@ import {
   Alert,
   Dimensions,
   StatusBar,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -143,6 +144,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
 
   const handleSend = async () => {
     if (!text.trim() && !imageUri) return;
+    Keyboard.dismiss();
     setIsSending(true);
     try {
       await DataLayer.saveLoveNote({
@@ -254,7 +256,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
                 {STATIONERY_OPTIONS.map((opt) => {
                   const isActive = selectedStationery.id === opt.id;
                   return (
-                    <TouchableOpacity key={opt.id} onPress={() => { setSelectedStationery(opt); selection(); }} activeOpacity={0.8}>
+                    <TouchableOpacity key={opt.id} onPress={() => { setSelectedStationery(opt); selection(); }} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={`${opt.label} stationery${isActive ? ', selected' : ''}`}>
                       <View style={[
                         styles.stationeryChip, 
                         { backgroundColor: opt.paper },

@@ -880,7 +880,7 @@ const Database = {
         ts,
         entry.deleted_at ?? null,
         syncStatus,
-        entry.sync_version ?? (existing?.sync_version ?? 0),
+        syncSource === 'local' ? (existing?.sync_version ?? 0) + 1 : (entry.sync_version ?? 0),
         syncSource,
       ]
     );
@@ -986,7 +986,7 @@ const Database = {
         ts,
         entry.deleted_at ?? null,
         syncStatus,
-        entry.sync_version ?? (existing?.sync_version ?? 0),
+        syncSource === 'local' ? (existing?.sync_version ?? 0) + 1 : (entry.sync_version ?? 0),
         syncSource,
       ]
     );

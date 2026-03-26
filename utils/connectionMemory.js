@@ -213,11 +213,6 @@ const ConnectionMemory = {
     };
   },
 
-  /** @deprecated Legacy alias — returns empty array. Use getPreferredDimensions. */
-  async getPreferredMoods() {
-    return [];
-  },
-
   /** Get the user's comfort heat level (median). */
   async getPreferredHeatLevel() {
     const mem = await this._load();

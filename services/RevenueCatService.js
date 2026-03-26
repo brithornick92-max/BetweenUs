@@ -12,6 +12,7 @@ class RevenueCatService {
     this._initPromise = null;
     this._offeringsUnavailable = false;
     this._offeringsUnavailableWarned = false;
+    this._configIssue = null;
   }
 
   /**
@@ -38,17 +39,35 @@ class RevenueCatService {
     return key || null;
   }
 
+  getMissingKeyName() {
+    return Platform.OS === 'android'
+      ? 'EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY'
+      : 'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY';
+  }
+
+  getDiagnostics() {
+    return {
+      configured: this._configured,
+      offeringsUnavailable: this._offeringsUnavailable,
+      configIssue: this._configIssue,
+      missingKeyName: this.getMissingKeyName(),
+      hasApiKey: !!this.getApiKey(),
+    };
+  }
+
   async _doInit() {
     try {
       // Keep SDK logs quiet to avoid noisy non-fatal offerings spam
       Purchases.setLogLevel(LOG_LEVEL.WARN);
 
       const apiKey = this.getApiKey();
-      const missingKeyName = Platform.OS === 'android'
-        ? 'EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY'
-        : 'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY';
+      const missingKeyName = this.getMissingKeyName();
 
       if (!apiKey) {
+        this._configIssue = {
+          reason: 'missing_api_key',
+          missingKeyName,
+        };
         console.warn(`⚠️ RevenueCat API key missing. Set ${missingKeyName}.`);
         return;
       }
@@ -56,6 +75,7 @@ class RevenueCatService {
       Purchases.configure({ apiKey });
 
       this._configured = true;
+      this._configIssue = null;
       if (__DEV__) console.log('✅ RevenueCat configured');
     
       // Debug: Log available entitlements to help identify the correct ENTITLEMENT_ID
@@ -118,7 +138,16 @@ class RevenueCatService {
    */
   async getOfferings() {
     try {
-      this.ensureConfigured();
+      if (!this._configured) {
+        const diagnostics = this.getDiagnostics();
+        return {
+          current: null,
+          packages: [],
+          nonFatal: true,
+          reason: diagnostics.configIssue?.reason || 'not_configured',
+          missingKeyName: diagnostics.configIssue?.missingKeyName,
+        };
+      }
 
       // Quiet fallback after first known "not configured" offerings failure
       if (this._offeringsUnavailable) {
@@ -161,6 +190,17 @@ class RevenueCatService {
           packages: [],
           nonFatal: true,
           reason: 'offerings_unavailable',
+        };
+      }
+
+      if (msg.includes('not configured')) {
+        const diagnostics = this.getDiagnostics();
+        return {
+          current: null,
+          packages: [],
+          nonFatal: true,
+          reason: diagnostics.configIssue?.reason || 'not_configured',
+          missingKeyName: diagnostics.configIssue?.missingKeyName,
         };
       }
 

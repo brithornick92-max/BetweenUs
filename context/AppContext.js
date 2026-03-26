@@ -191,8 +191,10 @@ export function AppProvider({ children }) {
       const isActuallyLinked = !!coupleId;
       
       // If linked but no recent activity, set initial activity timestamp
+      let effectivePartnerActivity = lastPartnerActivity;
       if (coupleId && !lastPartnerActivity) {
         await storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, now);
+        effectivePartnerActivity = now;
       }
 
       dispatch({ 
@@ -206,7 +208,7 @@ export function AppProvider({ children }) {
           appLockEnabled: !!appLockEnabled,
           isPremium, 
           isCouplePremium: isPremium,
-          lastPartnerActivity: isActuallyLinked ? lastPartnerActivity : null,
+          lastPartnerActivity: isActuallyLinked ? effectivePartnerActivity : null,
         } 
       });
 

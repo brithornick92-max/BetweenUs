@@ -82,7 +82,7 @@ function formatMemoryDate(date) {
   const memoryDate = new Date(date);
   const now = new Date();
   const diffTime = Math.abs(now - memoryDate);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';

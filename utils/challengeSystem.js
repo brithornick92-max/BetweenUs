@@ -151,7 +151,10 @@ async function gatherChallengeCounts(dataLayer) {
 
   let checkInStreak = 0;
   if (checkInDates.length) {
-    const daySet = new Set(checkInDates.map((d) => new Date(d).toISOString().slice(0, 10)));
+    const daySet = new Set(checkInDates.map((d) => {
+      const dt = new Date(d);
+      return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+    }));
     const sortedDays = [...daySet].sort().reverse();
     checkInStreak = 1;
     for (let i = 1; i < sortedDays.length; i++) {

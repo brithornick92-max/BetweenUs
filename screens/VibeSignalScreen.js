@@ -86,6 +86,8 @@ const VibeCard = ({ vibe, isSelected, onPress, styles, t }) => {
         activeOpacity={0.9}
         onPress={onPress}
         style={styles.vibeTouchableArea}
+        accessibilityRole="button"
+        accessibilityLabel={`${vibe.name} vibe${isSelected ? ', selected' : ''}`}
       >
         <Animated.View style={[styles.vibeCard, { backgroundColor, borderColor: isSelected ? vibe.color : t.border }]}>
           <View style={[styles.vibeIconContainer, { backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : withAlpha(vibe.color, 0.1) }]}>

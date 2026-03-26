@@ -17,6 +17,7 @@ import {
   StatusBar,
   Dimensions,
   ActivityIndicator,
+  Keyboard,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
@@ -85,6 +86,7 @@ export default function JournalEntryScreen({ navigation, route }) {
       return;
     }
 
+    Keyboard.dismiss();
     setIsSaving(true);
     notification(NotificationFeedbackType.Success);
 
