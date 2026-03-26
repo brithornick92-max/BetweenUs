@@ -51,15 +51,36 @@ const CoupleService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    // Check user isn't already in a couple
+    // Check user isn't already in a couple with a partner
     const { data: existing } = await supabase
       .from('couple_members')
-      .select('id')
+      .select('couple_id')
       .eq('user_id', user.id)
       .maybeSingle();
 
     if (existing) {
-      throw new Error('You are already in a couple');
+      // Check if the couple has a second member (a real partner)
+      const { data: members } = await supabase
+        .from('couple_members')
+        .select('id')
+        .eq('couple_id', existing.couple_id);
+
+      if (members && members.length >= 2) {
+        throw new Error('You are already in a couple');
+      }
+
+      // Solo couple (no partner joined yet) — clean it up so a new invite can be generated
+      await supabase
+        .from('couple_members')
+        .delete()
+        .eq('user_id', user.id);
+
+      // Also remove any outstanding partner_link_codes from this user
+      await supabase
+        .from('partner_link_codes')
+        .delete()
+        .eq('created_by', user.id)
+        .is('used_at', null);
     }
 
     const { code, codeHash } = await generateHashedLinkCode();
