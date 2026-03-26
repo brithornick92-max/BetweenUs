@@ -35,7 +35,7 @@ import { useAuth } from "../context/AuthContext";
 import PreferenceEngine from "../services/PreferenceEngine";
 import PromptCardDeck from "../components/PromptCardDeck";
 import { SoftBoundaries } from "../services/PolishEngine";
-import { getFilteredPromptsWithProfile } from "../utils/contentLoader";
+import { getFilteredPromptsWithProfile, FALLBACK_PROMPT } from "../utils/contentLoader";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -59,13 +59,6 @@ const loadAllBundledPrompts = () => {
 
 const ALL_BUNDLED = loadAllBundledPrompts();
 const TOTAL_PROMPT_COUNT = ALL_BUNDLED.length;
-
-const FALLBACK_PROMPT = {
-  id: "fallback_prompt",
-  text: "What is one small thing you can do today to feel closer?",
-  category: "emotional",
-  heat: 1,
-};
 
 const normalizePrompt = (p) => {
   if (!p || typeof p !== "object") return FALLBACK_PROMPT;

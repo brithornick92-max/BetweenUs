@@ -22,7 +22,6 @@ appId: com.brittany.betweenus
 # Should see prompt content
 - assertVisible:
     text: ".*prompt.*|.*question.*"
-    optional: true
 
 # Tap on a prompt to answer it (if premium or free preview)
 - tapOn:
@@ -38,7 +37,6 @@ appId: com.brittany.betweenus
 # Should see date night content
 - assertVisible:
     text: ".*date.*|.*draw.*"
-    optional: true
 
 # Navigate to Calendar tab
 - tapOn: "Calendar"
@@ -51,7 +49,6 @@ appId: com.brittany.betweenus
 # Should see settings content
 - assertVisible:
     text: ".*Settings.*|.*Sign Out.*"
-    optional: true
 
 # Return to Home
 - tapOn: "Home"

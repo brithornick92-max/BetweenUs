@@ -248,13 +248,13 @@ export async function evaluateAchievements(dataLayer) {
 
 async function gatherCounts(dataLayer) {
   const [journals, prompts, checkIns, memories, rituals, vibes, loveNotes] = await Promise.all([
-    dataLayer.getJournalEntries({ limit: 9999 }).catch(() => []),
-    dataLayer.getPromptAnswers({ limit: 9999 }).catch(() => []),
-    dataLayer.getCheckIns({ limit: 9999 }).catch(() => []),
-    dataLayer.getMemories({ limit: 9999 }).catch(() => []),
-    dataLayer.getRituals({ limit: 9999 }).catch(() => []),
-    dataLayer.getVibes({ limit: 9999 }).catch(() => []),
-    dataLayer.getLoveNotes({ limit: 9999 }).catch(() => []),
+    dataLayer.getJournalEntries({ limit: 500 }).catch(() => []),
+    dataLayer.getPromptAnswers({ limit: 500 }).catch(() => []),
+    dataLayer.getCheckIns({ limit: 500 }).catch(() => []),
+    dataLayer.getMemories({ limit: 500 }).catch(() => []),
+    dataLayer.getRituals({ limit: 500 }).catch(() => []),
+    dataLayer.getVibes({ limit: 500 }).catch(() => []),
+    dataLayer.getLoveNotes({ limit: 500 }).catch(() => []),
   ]);
 
   return {

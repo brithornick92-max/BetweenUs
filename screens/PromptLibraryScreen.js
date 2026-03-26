@@ -33,7 +33,7 @@ import PreferenceEngine from '../services/PreferenceEngine';
 import PromptAllocator from '../services/PromptAllocator';
 import FilmGrain from '../components/FilmGrain';
 import { SoftBoundaries } from '../services/PolishEngine';
-import { getFilteredPromptsWithProfile } from '../utils/contentLoader';
+import { getFilteredPromptsWithProfile, FALLBACK_PROMPT } from '../utils/contentLoader';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -76,13 +76,7 @@ const loadAllBundledPrompts = () => {
   }
 };
 
-// Safe fallback prompt (never missing .text)
-const FALLBACK_PROMPT = {
-  id: "fallback_prompt",
-  text: "What’s one small thing you can do today to feel closer?",
-  category: "emotional",
-  heat: 1,
-};
+
 
 const normalizePrompt = (p) => {
   if (!p || typeof p !== "object") return FALLBACK_PROMPT;

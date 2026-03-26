@@ -185,7 +185,7 @@ export function MemoryProvider({ children }) {
         const { default: Database } = await import('../services/db/Database');
         await Database.updateMemory(memoryId, dbUpdates);
         // Re-fetch the decrypted version
-        const allMemories = await DataLayer.getMemories({ limit: 9999 });
+        const allMemories = await DataLayer.getMemories({ limit: 500 });
         updatedMemory = allMemories.find((m) => m.id === memoryId) || { id: memoryId, ...updates };
       } else {
         updatedMemory = { id: memoryId, ...updates };
@@ -216,7 +216,7 @@ export function MemoryProvider({ children }) {
     },
 
     getMemoriesForDateRange: async (startDate, endDate) => {
-      const all = await DataLayer.getMemories({ limit: 9999 });
+      const all = await DataLayer.getMemories({ limit: 500 });
       return (all || []).filter(m => {
         const d = new Date(m.date || m.createdAt || m.created_at);
         return d >= new Date(startDate) && d <= new Date(endDate);
@@ -224,7 +224,7 @@ export function MemoryProvider({ children }) {
     },
 
     getMemoriesByType: async (type) => {
-      const all = await DataLayer.getMemories({ limit: 9999 });
+      const all = await DataLayer.getMemories({ limit: 500 });
       return (all || []).filter(m => m.type === type);
     },
 

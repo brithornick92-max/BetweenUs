@@ -57,7 +57,7 @@ export default function RevealScreen({ route, navigation }) {
   // Safety check
   useEffect(() => {
     if (!prompt || !prompt?.text) {
-      console.warn('RevealScreen: Invalid prompt provided');
+      if (__DEV__) console.warn('RevealScreen: Invalid prompt provided');
       navigation.goBack();
       return;
     }

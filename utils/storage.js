@@ -199,7 +199,7 @@ export const promptStorage = {
               ? { ...data, isEncrypted: false }
               : { ...answer, decryptionFailed: true };
           } catch (error) {
-            console.error('Failed to decrypt answer:', error);
+            import('../services/CrashReporting').then(m => m.default.captureException(error, { source: 'promptStorage.decrypt' })).catch(() => {});
             decrypted[dateKey][promptId] = { ...answer, decryptionFailed: true };
           }
         } else {
@@ -288,7 +288,7 @@ export const journalStorage = {
               isEncrypted: false,
             };
           } catch (error) {
-            console.error('Failed to decrypt journal entry:', error);
+            import('../services/CrashReporting').then(m => m.default.captureException(error, { source: 'journalStorage.decrypt' })).catch(() => {});
             return { ...entry, decryptionFailed: true };
           }
         }

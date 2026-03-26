@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
+import CrashReporting from './CrashReporting';
 
 // ✅ Matches RevenueCat dashboard entitlement identifier exactly
 const ENTITLEMENT_ID = 'Between Us Pro';
@@ -91,7 +92,7 @@ class RevenueCatService {
       this._offeringsUnavailableWarned = false;
       if (__DEV__) console.log('RevenueCat identify ok');
     } catch (error) {
-      console.error('❌ Failed to identify user:', error);
+      CrashReporting.captureException(error, { source: 'RevenueCatService.identifyUser' });
       throw error;
     }
   }
@@ -106,7 +107,7 @@ class RevenueCatService {
       this.currentUserId = null;
       if (__DEV__) console.log('User logged out');
     } catch (error) {
-      console.error('Failed to logout user:', error);
+      CrashReporting.captureException(error, { source: 'RevenueCatService.logoutUser' });
       throw error;
     }
   }
@@ -163,7 +164,7 @@ class RevenueCatService {
         };
       }
 
-      console.error('Failed to get offerings:', error);
+      CrashReporting.captureException(error, { source: 'RevenueCatService.getOfferings' });
       throw error;
     }
   }
@@ -193,7 +194,7 @@ class RevenueCatService {
         };
       }
       
-      console.error('Purchase failed:', error);
+      CrashReporting.captureException(error, { source: 'RevenueCatService.purchasePackage' });
       return {
         success: false,
         cancelled: false,
@@ -218,7 +219,7 @@ class RevenueCatService {
         customerInfo,
       };
     } catch (error) {
-      console.error('Failed to restore purchases:', error);
+      CrashReporting.captureException(error, { source: 'RevenueCatService.restorePurchases' });
       return {
         success: false,
         error: error.message,
@@ -242,7 +243,7 @@ class RevenueCatService {
         entitlements: customerInfo?.entitlements?.active ?? {},
       };
     } catch (error) {
-      console.error('Failed to get customer info:', error);
+      CrashReporting.captureException(error, { source: 'RevenueCatService.getCustomerInfo' });
       throw error;
     }
   }
@@ -304,7 +305,7 @@ class RevenueCatService {
         },
       };
     } catch (error) {
-      console.error('Failed to get subscription details:', error);
+      CrashReporting.captureException(error, { source: 'RevenueCatService.getSubscriptionDetails' });
       throw error;
     }
   }
@@ -319,7 +320,7 @@ class RevenueCatService {
       );
       return eligibility;
     } catch (error) {
-      console.error('Failed to check intro eligibility:', error);
+      CrashReporting.captureException(error, { source: 'RevenueCatService.checkIntroEligibility' });
       return {};
     }
   }

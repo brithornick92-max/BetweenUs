@@ -41,6 +41,7 @@ import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { NicknameEngine, RelationshipMilestones } from '../services/PolishEngine';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
+import { FALLBACK_PROMPT } from '../utils/contentLoader';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
@@ -48,13 +49,6 @@ function dateKey(date) {
   const d = date instanceof Date ? date : new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
-
-const FALLBACK_PROMPT = {
-  id: 'fallback_prompt',
-  text: "What's something about our relationship your past self wouldn't believe?",
-  category: 'romance',
-  heat: 1,
-};
 
 function getMomentLabel() {
   const hour = new Date().getHours(); // uses device locale time automatically

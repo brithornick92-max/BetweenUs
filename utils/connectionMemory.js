@@ -151,11 +151,6 @@ const ConnectionMemory = {
     await this._save();
   },
 
-  /** @deprecated Use recordDimensionSelection instead. */
-  async recordMoodSelection(mood) {
-    // Legacy no-op kept so old call sites don't crash
-  },
-
   /** Record a heat level selection. */
   async recordHeatSelection(level) {
     if (typeof level !== 'number') return;

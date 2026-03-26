@@ -22,6 +22,7 @@ import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { SUPPORT_EMAIL } from '../config/constants';
 import { SPACING, withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -209,7 +210,7 @@ export default function FAQScreen({ navigation }) {
 
   const handleContactSupport = () => {
     impact(ImpactFeedbackStyle.Medium);
-    Alert.alert('Concierge Support', 'Email: brittanyapps@outlook.com\nTypical response: 24h');
+    Alert.alert('Concierge Support', `Email: ${SUPPORT_EMAIL}\nTypical response: 24h`);
   };
 
   return (
@@ -310,7 +311,7 @@ export default function FAQScreen({ navigation }) {
               <Text style={styles.supportButtonText}>Contact Concierge</Text>
             </TouchableOpacity>
 
-            <Text style={[styles.supportEmail, { color: t.subtext }]}>brittanyapps@outlook.com</Text>
+            <Text style={[styles.supportEmail, { color: t.subtext }]}>{SUPPORT_EMAIL}</Text>
           </View>
 
           <View style={{ height: 100 }} />

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
+import { SUPPORT_EMAIL, DATA_REQUEST_RESPONSE_TIME } from '../config/constants';
 
 /**
  * Privacy Policy Screen
@@ -238,8 +239,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>16. Contact Us</Text>
           <Text style={[styles.paragraph, { color: colors.textSecondary }]}>
             If you have questions about this Privacy Policy or want to exercise your rights:{'\n\n'}
-            Email: brittanyapps@outlook.com{'\n'}
-            Response time: Within 30 days for data requests{'\n\n'}
+            Email: {SUPPORT_EMAIL}{'\n'}
+            Response time: {DATA_REQUEST_RESPONSE_TIME} for data requests{'\n\n'}
             For data deletion requests, please use the "Delete Account" option in Settings.
           </Text>
 

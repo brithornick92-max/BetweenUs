@@ -17,7 +17,6 @@ appId: com.brittany.betweenus
 # Free users should see limited content or paywall trigger
 - assertVisible:
     text: ".*preview.*|.*unlock.*|.*premium.*"
-    optional: true
 
 # Navigate to Date Plans
 - tapOn: "DatePlans"
@@ -32,7 +31,6 @@ appId: com.brittany.betweenus
 # Look for lock icon on heat 4+
 - assertVisible:
     id: "lock-outline"
-    optional: true
 
 # Navigate to Settings and check premium section
 - tapOn: "Settings"
@@ -43,4 +41,3 @@ appId: com.brittany.betweenus
 
 - assertVisible:
     text: ".*Premium.*|.*Pro.*|.*Upgrade.*"
-    optional: true

@@ -10,6 +10,7 @@ import { useEntitlements } from './EntitlementsContext';
 import PreferenceEngine from '../services/PreferenceEngine';
 import { NicknameEngine } from '../services/PolishEngine';
 import PromptAllocator from '../services/PromptAllocator';
+import { FALLBACK_PROMPT } from '../utils/contentLoader';
 
 const ContentContext = createContext({});
 
@@ -143,14 +144,7 @@ export const ContentProvider = ({ children }) => {
       // Guard against prompt missing .text
       if (!selectedPrompt || typeof selectedPrompt.text !== 'string' || !selectedPrompt.text.trim()) {
         const fallback = promptsData.find((p) => p && typeof p.text === 'string' && p.text.trim());
-        selectedPrompt =
-          fallback || {
-            id: 'fallback_1',
-            text: "What's one thing you love about our relationship?",
-            category: 'emotional',
-            heat: 1,
-            relationshipDuration: ['universal'],
-          };
+        selectedPrompt = fallback || FALLBACK_PROMPT;
       }
 
       // Reserve this prompt so browse screens won't show it
@@ -182,18 +176,12 @@ export const ContentProvider = ({ children }) => {
           errorString.includes('Free users can preview 3') ||
           errorString.includes('Heat levels 4 and 5 require premium access')
         ) {
-          console.log("[ContentContext] Setting fallback daily prompt for free user.");
+          if (__DEV__) console.log("[ContentContext] Setting fallback daily prompt for free user.");
         } else {
           console.error("Error loading today's prompt:", error);
         }
 
-        const fallbackPrompt = {
-          id: 'fallback_1',
-          text: "What's one thing you love about our relationship?",
-          category: 'emotional',
-          heat: 1,
-          relationshipDuration: ['universal'],
-        };
+        const fallbackPrompt = FALLBACK_PROMPT;
 
         const personalizedFallback = await personalizePrompt(fallbackPrompt);
         setTodayPrompt(personalizedFallback);

@@ -15,7 +15,6 @@ appId: com.brittany.betweenus
 # Should see the date night header
 - assertVisible:
     text: ".*Draw a date.*|.*date.*"
-    optional: true
 
 # Open filter controls (if not already open)
 - tapOn:
@@ -50,4 +49,3 @@ appId: com.brittany.betweenus
 # Verify "Tonight's picks" section appears
 - assertVisible:
     text: ".*Tonight.*pick.*"
-    optional: true

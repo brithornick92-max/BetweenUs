@@ -1,5 +1,6 @@
 import LocalUsageService from './LocalUsageService';
 import StorageRouter from './storage/StorageRouter';
+import CrashReporting from './CrashReporting';
 
 class PremiumGatekeeper {
   constructor() {
@@ -56,7 +57,7 @@ class PremiumGatekeeper {
         reason: 'within_free_limits'
       };
     } catch (error) {
-      console.error('Error checking prompt access:', error);
+      CrashReporting.captureException(error, { source: 'PremiumGatekeeper.canAccessPrompt' });
       return {
         canAccess: false,
         reason: 'error',
@@ -93,7 +94,7 @@ class PremiumGatekeeper {
         reason: 'within_free_limits'
       };
     } catch (error) {
-      console.error('Error checking date access:', error);
+      CrashReporting.captureException(error, { source: 'PremiumGatekeeper.canAccessDate' });
       return {
         canAccess: false,
         reason: 'error',
@@ -199,7 +200,7 @@ class PremiumGatekeeper {
         message: 'Free users can fully plan 1 date per week. Discover premium for unlimited date nights.'
       };
     } catch (error) {
-      console.error('Error checking date flow access:', error);
+      CrashReporting.captureException(error, { source: 'PremiumGatekeeper.canAccessDateFlow' });
       return {
         canAccess: false,
         reason: 'error',

@@ -15,7 +15,6 @@ appId: com.brittany.betweenus
 # Verify the auth screen has key elements
 - assertVisible:
     text: ".*Between Us.*"
-    optional: true
 
 # Enter a test email
 - tapOn:

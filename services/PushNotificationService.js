@@ -17,7 +17,6 @@ try {
 
 const PushNotificationService = {
   _token: null,
-  _listeners: [],
 
   /**
    * Initialize: configure notification handler for foreground display,

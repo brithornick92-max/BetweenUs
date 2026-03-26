@@ -34,7 +34,6 @@ appId: com.brittany.betweenus
 # Step 3: Preferences — season, heat level, tone
 - assertVisible:
     text: ".*season.*|.*preference.*"
-    optional: true
 
 # Select a heat level (tap the first option)
 - tapOn:
@@ -48,7 +47,6 @@ appId: com.brittany.betweenus
 # Step 4: Pairing — generate or skip
 - assertVisible:
     text: ".*link later.*|.*invitation.*|.*pair.*"
-    optional: true
 
 - tapOn:
     text: ".*later.*|.*skip.*"
@@ -59,4 +57,3 @@ appId: com.brittany.betweenus
 # Should now be on the main tabs (Home)
 - assertVisible:
     text: ".*Home.*|.*tonight.*|.*moment.*"
-    optional: true

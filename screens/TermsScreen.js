@@ -21,6 +21,7 @@ import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { FALLBACK_PRICES } from '../utils/premiumFeatures';
 import { withAlpha, SYSTEM_FONT } from '../utils/theme';
+import { SUPPORT_EMAIL, SUPPORT_RESPONSE_TIME } from '../config/constants';
 
 const TermsScreen = ({ navigation, route }) => {
   const { colors, isDark } = useTheme();
@@ -340,8 +341,8 @@ const TermsScreen = ({ navigation, route }) => {
             <Text style={[styles.sectionTitle, { color: t.text }]}>15. Contact Us</Text>
             <Text style={[styles.paragraph, { color: t.subtext }]}>
               If you have questions about these Terms:{'\n\n'}
-              Email: brittanyapps@outlook.com{'\n'}
-              Response time: 24–48 hours
+              Email: {SUPPORT_EMAIL}{'\n'}
+              Response time: {SUPPORT_RESPONSE_TIME}
             </Text>
           </View>
 

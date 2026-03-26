@@ -13,6 +13,8 @@ import {
   Platform,
   Dimensions,
   StatusBar,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import Animated, { 
   FadeInDown, 
@@ -55,7 +57,14 @@ const PremiumPaywall = ({
   const styles = useMemo(() => createStyles(colors, isDark, theme), [colors, isDark, theme]);
 
   const handleSubscribe = async (pkg) => {
-    if (isSubscribing || !pkg) return;
+    if (isSubscribing) return;
+    if (!pkg) {
+      Alert.alert(
+        'Store Unavailable',
+        'Unable to connect to the App Store. Please check your internet connection and try again.'
+      );
+      return;
+    }
     setIsSubscribing(true);
     try {
       impact(ImpactFeedbackStyle.Medium);
@@ -103,41 +112,6 @@ const PremiumPaywall = ({
     const syncAvailable = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
     return syncAvailable ? features : features.filter((f) => f.id !== PremiumFeature.CLOUD_SYNC);
   }, []);
-
-  const BenefitItem = ({ iconName, title, body, index = 0 }) => (
-    <Animated.View entering={FadeInDown.delay(300 + index * 60).duration(500)} style={styles.benefitItem}>
-      <View style={[styles.benefitIconCircle, { backgroundColor: theme.crimson + '10' }]}>
-        <Icon name={iconName} size={20} color={theme.crimson} />
-      </View>
-      <View style={styles.benefitTextContainer}>
-        <Text style={[styles.benefitTitle, { color: colors.text }]}>{title}</Text>
-        <Text style={[styles.benefitBody, { color: colors.textMuted }]}>{body}</Text>
-      </View>
-    </Animated.View>
-  );
-
-  const PricingOption = ({ pkg, title, price, subtext, isPopular, index }) => (
-    <Animated.View entering={FadeInUp.delay(500 + index * 100).duration(600)}>
-      <TouchableOpacity 
-        onPress={() => handleSubscribe(pkg)}
-        style={[styles.pricingOption, isPopular && styles.pricingOptionPopular]}
-        activeOpacity={0.9}
-      >
-        <View style={styles.pricingLeft}>
-          <Text style={[styles.pricingTitle, { color: colors.text }]}>{title}</Text>
-          <Text style={[styles.pricingSubtext, { color: colors.textMuted }]}>{subtext}</Text>
-        </View>
-        <View style={styles.pricingRight}>
-          <Text style={[styles.pricingPrice, { color: isPopular ? theme.crimson : colors.text }]}>{price}</Text>
-          {isPopular && (
-            <View style={styles.popularTag}>
-              <Text style={styles.popularTagText}>SAVINGS</Text>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
 
   return (
     <View style={styles.container}>
@@ -189,6 +163,8 @@ const PremiumPaywall = ({
             price={monthlyPkg?.product?.priceString || FALLBACK_PRICES.monthly}
             subtext="One payment per month"
             index={0}
+            onPress={handleSubscribe}
+            isDisabled={isSubscribing}
           />
           <PricingOption
             pkg={yearlyPkg}
@@ -197,6 +173,8 @@ const PremiumPaywall = ({
             subtext="One payment per year"
             isPopular={true}
             index={1}
+            onPress={handleSubscribe}
+            isDisabled={isSubscribing}
           />
           <PricingOption
             pkg={lifetimePkg}
@@ -204,6 +182,8 @@ const PremiumPaywall = ({
             price={lifetimePkg?.product?.priceString || FALLBACK_PRICES.lifetime}
             subtext="One payment forever"
             index={2}
+            onPress={handleSubscribe}
+            isDisabled={isSubscribing}
           />
 
           <Animated.View entering={FadeIn.delay(800).duration(600)} style={styles.perCoupleWrapper}>
@@ -241,7 +221,11 @@ const PremiumPaywall = ({
           disabled={isLoading || isSubscribing}
         >
           <LinearGradient colors={[theme.crimson, '#900C0F']} style={styles.mainActionGrad}>
-            <Text style={styles.mainActionText}>Unlock Full Access</Text>
+            {isSubscribing || isLoading ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <Text style={styles.mainActionText}>Unlock Full Access</Text>
+            )}
           </LinearGradient>
         </TouchableOpacity>
       </BlurView>
@@ -384,5 +368,62 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
   mainActionGrad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   mainActionText: { color: '#FFF', fontSize: 18, fontWeight: '900', letterSpacing: -0.3 },
 });
+
+// ─── Module-level sub-components (stable references, no remount on parent re-render) ─
+const BenefitItem = ({ iconName, title, body, index = 0 }) => {
+  const { colors, isDark } = useTheme();
+  const theme = useMemo(() => ({
+    crimson: '#D2121A',
+    silver: isDark ? '#E5E5E7' : '#8E8E93',
+    obsidian: '#0A0A0C',
+    glass: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
+  }), [isDark]);
+  const styles = useMemo(() => createStyles(colors, isDark, theme), [colors, isDark, theme]);
+  return (
+    <Animated.View entering={FadeInDown.delay(300 + index * 60).duration(500)} style={styles.benefitItem}>
+      <View style={[styles.benefitIconCircle, { backgroundColor: theme.crimson + '10' }]}>
+        <Icon name={iconName} size={20} color={theme.crimson} />
+      </View>
+      <View style={styles.benefitTextContainer}>
+        <Text style={[styles.benefitTitle, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.benefitBody, { color: colors.textMuted }]}>{body}</Text>
+      </View>
+    </Animated.View>
+  );
+};
+
+const PricingOption = ({ pkg, title, price, subtext, isPopular, index, onPress, isDisabled }) => {
+  const { colors, isDark } = useTheme();
+  const theme = useMemo(() => ({
+    crimson: '#D2121A',
+    silver: isDark ? '#E5E5E7' : '#8E8E93',
+    obsidian: '#0A0A0C',
+    glass: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
+  }), [isDark]);
+  const styles = useMemo(() => createStyles(colors, isDark, theme), [colors, isDark, theme]);
+  return (
+    <Animated.View entering={FadeInUp.delay(500 + index * 100).duration(600)}>
+      <TouchableOpacity
+        onPress={() => onPress(pkg)}
+        style={[styles.pricingOption, isPopular && styles.pricingOptionPopular]}
+        activeOpacity={0.9}
+        disabled={isDisabled}
+      >
+        <View style={styles.pricingLeft}>
+          <Text style={[styles.pricingTitle, { color: colors.text }]}>{title}</Text>
+          <Text style={[styles.pricingSubtext, { color: colors.textMuted }]}>{subtext}</Text>
+        </View>
+        <View style={styles.pricingRight}>
+          <Text style={[styles.pricingPrice, { color: isPopular ? theme.crimson : colors.text }]}>{price}</Text>
+          {isPopular && (
+            <View style={styles.popularTag}>
+              <Text style={styles.popularTagText}>SAVINGS</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
 export default PremiumPaywall;

@@ -5,6 +5,7 @@ import { storage, STORAGE_KEYS, makeId } from '../utils/storage';
 import { useAppContext } from './AppContext';
 import { useEntitlements } from './EntitlementsContext';
 import StorageRouter from '../services/storage/StorageRouter';
+import CrashReporting from '../services/CrashReporting';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
 
 // Ritual Types and Templates
@@ -172,21 +173,23 @@ function reducer(state, action) {
   }
 }
 
-// Helper function to calculate ritual streak
+// Helper function to calculate ritual streak (DST-safe using UTC day boundaries)
 function calculateStreak(history) {
   if (history.length === 0) return 0;
   
   const sortedHistory = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
   let streak = 0;
-  let currentDay = normalizeToDay(new Date());
+  const now = new Date();
+  let currentUTCDay = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   
   for (const ritual of sortedHistory) {
-    const ritualDay = normalizeToDay(new Date(ritual.date));
-    const daysDiff = Math.round((currentDay - ritualDay) / (1000 * 60 * 60 * 24));
+    const d = new Date(ritual.date);
+    const ritualUTCDay = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+    const diffDays = (currentUTCDay - ritualUTCDay) / 86400000;
     
-    if (daysDiff <= 1) {
+    if (diffDays <= 1) {
       streak++;
-      currentDay = ritualDay;
+      currentUTCDay = ritualUTCDay;
     } else {
       break;
     }
@@ -328,7 +331,7 @@ export function RitualProvider({ children }) {
           payload: { flows: customFlows }
         });
       } catch (error) {
-        console.error('Failed to load rituals:', error);
+        CrashReporting.captureException(error, { source: 'ritual_load' });
         dispatch({ type: ACTIONS.SET_LOADING, payload: { loading: false } });
       }
     };
@@ -392,7 +395,12 @@ export function RitualProvider({ children }) {
       
       dispatch({ type: ACTIONS.UPDATE_RITUAL, payload: { updates } });
       
-      // Note: Partner sync would happen here in production
+      // Queue partner sync
+      StorageRouter.queueRitualSync({
+        id: `ritual_update_${Date.now()}`,
+        ritual: { ...stateRef.current.currentRitual, ...updates },
+        queuedAt: Date.now(),
+      }).catch(() => {});
     },
 
     completeRitual: async () => {
@@ -413,7 +421,12 @@ export function RitualProvider({ children }) {
       // Gentle haptic feedback for completion
       impact(ImpactFeedbackStyle.Light);
       
-      // Note: Partner sync would happen here in production
+      // Queue partner sync
+      StorageRouter.queueRitualSync({
+        id: `ritual_complete_${Date.now()}`,
+        ritual: completedRitual,
+        queuedAt: Date.now(),
+      }).catch(() => {});
       
       return completedRitual;
     },
@@ -566,7 +579,12 @@ export function RitualProvider({ children }) {
       
       dispatch({ type: ACTIONS.UPDATE_RITUAL, payload: { updates } });
       
-      // Note: Partner sync would happen here in production
+      // Queue partner sync
+      StorageRouter.queueRitualSync({
+        id: `custom_ritual_update_${Date.now()}`,
+        ritual: { ...stateRef.current.currentRitual, ...updates },
+        queuedAt: Date.now(),
+      }).catch(() => {});
     },
 
     deleteCustomFlow: async (flowId) => {

@@ -17,6 +17,7 @@ import {
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { withAlpha } from '../utils/theme';
+import { SUPPORT_EMAIL, SUPPORT_RESPONSE_TIME } from '../config/constants';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
@@ -167,8 +168,8 @@ const EULAScreen = ({ navigation }) => {
           <Text style={[styles.subTitle, { color: t.text }]}>10. Contact</Text>
           <Text style={[styles.paragraph, { color: t.subtext }]}>
             If you have questions about this EULA:{'\n\n'}
-            Email: brittanyapps@outlook.com{'\n'}
-            Response time: 24–48 hours
+            Email: {SUPPORT_EMAIL}{'\n'}
+            Response time: {SUPPORT_RESPONSE_TIME}
           </Text>
         </View>
 

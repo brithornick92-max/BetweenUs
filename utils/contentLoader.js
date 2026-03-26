@@ -59,12 +59,13 @@ const getLocalDateKey = (date = new Date()) => {
   return `${y}-${m}-${day}`;
 };
 
-// Fallback prompt (guaranteed safe)
-const FALLBACK_PROMPT = {
+// Fallback prompt (guaranteed safe) — single canonical definition for the whole app
+export const FALLBACK_PROMPT = {
   id: "fallback_prompt",
-  text: "What’s one small thing we can do today to feel closer?",
+  text: "What's one small thing we can do today to feel closer?",
   category: "romance",
   heat: 1,
+  relationshipDuration: ["universal"],
 };
 
 // Normalize any prompt into a safe prompt with .text

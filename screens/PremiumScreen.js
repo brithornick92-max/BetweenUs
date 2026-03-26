@@ -60,6 +60,41 @@ function FadeInSection({ index = 0, children, style }) {
   );
 }
 
+function PlanCard({ id, label, price, detail, badge, isSelected, onSelect, styles, primaryColor }) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={() => {
+        selection();
+        onSelect(id);
+      }}
+      style={[
+        styles.planCard,
+        isSelected && styles.planCardSelected,
+        isSelected && { borderColor: primaryColor },
+      ]}
+    >
+      <View style={styles.planCardInner}>
+        <View style={styles.planTextWrap}>
+          <View style={styles.planLabelRow}>
+            <Text style={styles.planLabel}>{label}</Text>
+            {badge && (
+              <View style={[styles.planBadge, { backgroundColor: primaryColor + '15' }]}>
+                <Text style={[styles.planBadgeText, { color: primaryColor }]}>{badge}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.planPrice}>{price}</Text>
+          {detail ? <Text style={styles.planDetail}>{detail}</Text> : null}
+        </View>
+        <View style={[styles.planRadio, isSelected && { borderColor: primaryColor }]}>
+          {isSelected && <View style={[styles.planRadioDot, { backgroundColor: primaryColor }]} />}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function PremiumScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -104,7 +139,14 @@ export default function PremiumScreen({ navigation }) {
   // ── Handlers ─────────────────────────────────────────────────────────────────
   const handlePurchase = async () => {
     const pkg = planMap[selectedPlan];
-    if (!pkg || purchasing) return;
+    if (purchasing) return;
+    if (!pkg) {
+      Alert.alert(
+        "Store Unavailable",
+        "Unable to load subscription options right now. Please check your connection and try again."
+      );
+      return;
+    }
     setPurchasing(true);
     try {
       impact(ImpactFeedbackStyle.Medium);
@@ -154,40 +196,6 @@ export default function PremiumScreen({ navigation }) {
     impact(ImpactFeedbackStyle.Light);
     hidePaywall();
     if (navigation.canGoBack()) navigation.goBack();
-  };
-
-  // ── Plan card ────────────────────────────────────────────────────────────────
-  const PlanCard = ({ id, label, price, detail, badge }) => {
-    const isSelected = selectedPlan === id;
-    return (
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => { selection(); setSelectedPlan(id); }}
-        style={[
-          styles.planCard, 
-          isSelected && styles.planCardSelected,
-          isSelected && { borderColor: t.primary }
-        ]}
-      >
-        <View style={styles.planCardInner}>
-          <View style={styles.planTextWrap}>
-            <View style={styles.planLabelRow}>
-              <Text style={styles.planLabel}>{label}</Text>
-              {badge && (
-                <View style={[styles.planBadge, { backgroundColor: t.primary + '15' }]}>
-                  <Text style={[styles.planBadgeText, { color: t.primary }]}>{badge}</Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.planPrice}>{price}</Text>
-            {detail ? <Text style={styles.planDetail}>{detail}</Text> : null}
-          </View>
-          <View style={[styles.planRadio, isSelected && { borderColor: t.primary }]}>
-            {isSelected && <View style={[styles.planRadioDot, { backgroundColor: t.primary }]} />}
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
   };
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -261,6 +269,10 @@ export default function PremiumScreen({ navigation }) {
                   label="Monthly"
                   price={monthlyPkg?.product?.priceString || "$7.99 / mo"}
                   detail="Flexible · cancel anytime"
+                  isSelected={selectedPlan === "monthly"}
+                  onSelect={setSelectedPlan}
+                  styles={styles}
+                  primaryColor={t.primary}
                 />
                 <PlanCard
                   id="yearly"
@@ -268,12 +280,20 @@ export default function PremiumScreen({ navigation }) {
                   price={yearlyPkg?.product?.priceString || "$49.99 / yr"}
                   detail="Save over 45% · best value"
                   badge="Most Popular"
+                  isSelected={selectedPlan === "yearly"}
+                  onSelect={setSelectedPlan}
+                  styles={styles}
+                  primaryColor={t.primary}
                 />
                 <PlanCard
                   id="lifetime"
                   label="Lifetime"
                   price={lifetimePkg?.product?.priceString || "$69.99"}
                   detail="One payment, yours forever"
+                  isSelected={selectedPlan === "lifetime"}
+                  onSelect={setSelectedPlan}
+                  styles={styles}
+                  primaryColor={t.primary}
                 />
 
                 <View style={styles.coupleNoteContainer}>

@@ -45,6 +45,7 @@ import { useAppContext } from '../context/AppContext';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
+import { SUPPORT_EMAIL } from '../config/constants';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
@@ -589,7 +590,7 @@ export default function SettingsScreen({ navigation }) {
             <EditorialRow 
               icon="mail-outline" 
               title="Support Center" 
-              onPress={() => Linking.openURL('mailto:brittanyapps@outlook.com')}
+              onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
               t={t}
               isLast
             />

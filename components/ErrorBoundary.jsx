@@ -19,6 +19,7 @@ import {
   Platform
 } from 'react-native';
 import CrashReporting from '../services/CrashReporting';
+import { SUPPORT_EMAIL } from '../config/constants';
 import Icon from './Icon';
 import { withAlpha } from '../utils/theme';
 
@@ -78,7 +79,7 @@ export default class ErrorBoundary extends React.Component {
   };
 
   handleContactSupport = () => {
-    Linking.openURL('mailto:support@betweenus.app?subject=App%20Crash%20Report')
+    Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=App%20Crash%20Report`)
       .catch((err) => console.warn('Could not open mail client:', err));
   };
 
