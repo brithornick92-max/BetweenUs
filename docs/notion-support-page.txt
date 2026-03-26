@@ -1,0 +1,158 @@
+# Between Us
+
+*Where closeness deepens*
+
+A private space for couples to connect through daily prompts, shared journaling, love notes, and date nights. No scores. No streaks. Just the two of you.
+
+**Need help?** brittanyapps@outlook.com
+
+---
+
+## Support
+
+For questions, feedback, or help with your account, email us anytime at **brittanyapps@outlook.com**. We'll get back to you as soon as we can.
+
+**Delete your account:** Open the app → Settings → Privacy & Security → Delete Account. Your data is removed from active systems promptly. Backups are purged within 90 days.
+
+**Cancel your subscription:** iPhone Settings → Apple ID → Subscriptions → Between Us → Cancel. You keep premium access until the end of your billing period.
+
+---
+
+## Frequently Asked Questions
+
+**What is Between Us?**
+A private couples app for deepening your connection through daily prompts, shared journaling, love notes, and date nights. Designed for thriving couples only.
+
+**Do I need my partner to use it?**
+No. You can use it solo for journaling and reflection. Linking with your partner unlocks shared features.
+
+**How do I link with my partner?**
+One partner generates an invite code or QR code in the app. The other scans or enters it. Both confirm. You're connected.
+
+**Is my data private?**
+Yes. Journal entries and shared content are end-to-end encrypted before leaving your device. We never sell your data or share it with advertisers.
+
+**How much does it cost?**
+Free version available. Premium: $7.99/month, $49.99/year, or $69.99 lifetime. One subscription covers both partners.
+
+**How do I delete my account?**
+In the app: Settings → Privacy & Security → Delete Account.
+
+**How do I cancel my subscription?**
+iPhone Settings → Apple ID → Subscriptions → Between Us → Cancel.
+
+---
+
+## Privacy Policy
+
+**Last Updated: March 26, 2026**
+
+Your privacy is our top priority. Between Us encrypts your intimate content before it ever leaves your device, never sells your data, and never shares your content with third parties.
+
+### Information We Collect
+
+**Account Information:** Email address, display name, partner names, relationship start date (optional).
+
+**Content You Create:** Journal entries, prompt responses, love notes, shared memories, milestones, inside jokes, nicknames, heat level preferences, calendar events, vibe signal selections, and relationship duration.
+
+**Automatically Collected:** Device type and model, OS version, app version, device identifiers (for authentication), features used, error logs, and crash reports.
+
+**We Never Collect:** Sexual orientation, precise location, contact lists, photos (unless you explicitly share), biometric data, or financial information.
+
+### How We Use Your Information
+
+We use your data to provide personalized prompts, sync data between you and your partner, save your entries, send notifications you opt into, fix bugs, improve performance, and respond to support requests.
+
+### Data Security and Encryption
+
+Shared synced content is protected with end-to-end encryption. Journal entries, prompt responses, memories, and love notes are encrypted on your device before upload using XSalsa20-Poly1305 (NaCl secretbox). Encryption keys are derived via X25519 key exchange during partner pairing and never stored on our servers.
+
+Additional local data is encrypted with a device-specific key stored in your device's secure Keychain. Some metadata (timestamps, event types, mood labels) is stored without end-to-end encryption to support features like filtering and sorting — this metadata is still protected by TLS in transit and access controls at rest.
+
+### Data Sharing
+
+**With Your Partner:** Content you choose to share is visible to your linked partner. You control what you share and when. Unlinking stops new data sharing.
+
+**With Service Providers:**
+- Supabase — cloud hosting (your content is end-to-end encrypted)
+- RevenueCat — subscription management (no personal content shared)
+- Sentry — crash reporting and performance monitoring
+- Apple — payment processing (we never see your payment details)
+
+All providers are bound by strict confidentiality agreements.
+
+**We Never Share With:** Advertisers, data brokers, marketing companies, social media platforms, or third-party apps.
+
+We may disclose information if required by valid court orders, subpoenas, or legal process. We will notify you unless legally prohibited.
+
+### Your Rights
+
+You can view, export, edit, or delete your data at any time within the app. You can delete your account in Settings → Privacy & Security → Delete Account. Data is removed from active systems promptly. Backups are purged within 90 days.
+
+### Children's Privacy
+
+Between Us is for users 18 and older. We do not knowingly collect data from anyone under 18.
+
+### Changes to This Policy
+
+We will notify you of material changes via in-app notification or email. Continued use after changes constitutes acceptance.
+
+### Contact
+
+brittanyapps@outlook.com
+
+---
+
+## Terms of Service
+
+**Last Updated: March 26, 2026**
+
+By creating an account or using Between Us, you agree to these Terms and our Privacy Policy.
+
+### Age Requirement
+
+You must be at least 18 years old to use Between Us.
+
+### Description of Service
+
+Between Us is a couples app that helps partners deepen their connection through daily prompts, journaling, date night planning, love notes, night rituals, vibe signals, and more. It is designed for thriving couples only and is not a relationship repair or counseling tool. If your relationship needs professional support, please seek qualified counseling or therapy.
+
+### Accounts
+
+You must provide accurate information. You are responsible for maintaining the security of your account. One account per person.
+
+**Partner Linking:** Both partners must consent. Either partner can unlink at any time. Unlinking does not delete your individual data.
+
+### Your Content
+
+You retain ownership of all content you create. You grant us a limited license to store and display your content to you and your linked partner. You can export or delete your content at any time.
+
+### Subscriptions and Payments
+
+**Free:** 1 prompt per day (Heat levels 1–3), partner linking, 1 fully planned date per week, data export.
+
+**Premium Monthly:** $7.99/month
+**Premium Yearly:** $49.99/year
+**Premium Lifetime:** $69.99 one-time
+
+Subscriptions are per couple — both partners get access. Payment is charged to your Apple ID. Monthly and yearly subscriptions auto-renew unless turned off at least 24 hours before the end of the current period. Manage subscriptions in your iPhone Settings → Apple ID → Subscriptions.
+
+### Acceptable Use
+
+Use Between Us only for its intended purpose. Do not use the service for illegal purposes, attempt to access other accounts, reverse engineer the app, or use automated systems to access the service.
+
+### Disclaimers
+
+Between Us is not a substitute for professional counseling. We do not provide medical, therapeutic, or legal advice. The service is provided "as is." We strive for reliability but do not guarantee uninterrupted service.
+
+### Limitation of Liability
+
+To the maximum extent permitted by law, we are not liable for indirect, incidental, or consequential damages. Our total liability is limited to the amount you paid in the last 12 months.
+
+### Termination
+
+You can delete your account at any time in the app. We may suspend accounts that violate these Terms.
+
+### Contact
+
+brittanyapps@outlook.com
