@@ -80,6 +80,7 @@
     },
     "newArchEnabled": true,
     "plugins": [
+      "./plugins/withSentryAlwaysOutOfDate.cjs",
       "expo-font",
       "@react-native-community/datetimepicker",
       "expo-camera",

@@ -590,7 +590,15 @@ export default function SettingsScreen({ navigation }) {
             <EditorialRow 
               icon="mail-outline" 
               title="Support Center" 
-              onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
+              onPress={async () => {
+                const url = `mailto:${SUPPORT_EMAIL}`;
+                const canOpen = await Linking.canOpenURL(url).catch(() => false);
+                if (canOpen) {
+                  Linking.openURL(url).catch(() => null);
+                } else {
+                  Alert.alert('No Mail App', `Please email us at ${SUPPORT_EMAIL}`);
+                }
+              }}
               t={t}
               isLast
             />
