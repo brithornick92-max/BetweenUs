@@ -12,7 +12,7 @@
       "content/**"
     ],
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.brittany.betweenus",
       "buildNumber": "3",
       "deploymentTarget": "17.1",
