@@ -7,7 +7,7 @@ import StorageRouter from "../services/storage/StorageRouter";
 import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
 
 const SubscriptionContext = createContext(null);
-const DEV_FORCE_PREMIUM = __DEV__;
+const DEV_FORCE_PREMIUM = false;
 
 export const useSubscription = () => {
   const context = useContext(SubscriptionContext);
@@ -26,7 +26,7 @@ export const SubscriptionProvider = ({ children }) => {
   const [storedCoupleId, setStoredCoupleId] = useState(null);
 
   const listenerRef = useRef(null);
-  const initInFlightRef = useRef(false);
+  const initPromiseRef = useRef(null);
   const premiumListenersRef = useRef(new Set());
   const effectiveIsPremium = DEV_FORCE_PREMIUM || isPremium;
 
@@ -177,9 +177,11 @@ export const SubscriptionProvider = ({ children }) => {
         return;
       }
 
-      // prevent double-runs
-      if (initInFlightRef.current) return;
-      initInFlightRef.current = true;
+      // prevent double-runs — await any in-flight init instead of skipping
+      if (initPromiseRef.current) {
+        await initPromiseRef.current;
+        return;
+      }
 
       try {
         setIsLoading(true);
@@ -227,12 +229,13 @@ export const SubscriptionProvider = ({ children }) => {
           setSubscriptionDetails(null);
         }
       } finally {
-        initInFlightRef.current = false;
+        initPromiseRef.current = null;
         if (!cancelled) setIsLoading(false);
       }
     };
 
-    initialize();
+    initPromiseRef.current = initialize();
+    initPromiseRef.current.finally(() => { initPromiseRef.current = null; });
 
     return () => {
       cancelled = true;
@@ -246,7 +249,7 @@ export const SubscriptionProvider = ({ children }) => {
           Purchases.removeCustomerInfoUpdateListener();
         } catch (e) { /* cleanup non-critical */ }
       }
-      initInFlightRef.current = false;
+      initPromiseRef.current = null;
     };
   }, [user, coupleId, storedCoupleId, checkSubscriptionStatus, effectiveIsPremium, loadOfferings, updateSubscriptionDetails]);
 

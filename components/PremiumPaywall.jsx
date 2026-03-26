@@ -1,4 +1,8 @@
 // components/PremiumPaywall.jsx
+// Velvet Glass & Apple Editorial High-End Updates Integrated.
+// Palette: Deep Crimson, Obsidian, Liquid Silver (Strictly No Gold).
+// Removed Free Trial Language.
+
 import React, { useState, useMemo } from "react";
 import {
   View,
@@ -7,34 +11,48 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  Dimensions,
+  StatusBar,
 } from "react-native";
-import Animated, { FadeInDown, FadeIn, FadeInUp } from "react-native-reanimated";
+import Animated, { 
+  FadeInDown, 
+  FadeIn, 
+  FadeInUp,
+} from "react-native-reanimated";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import Icon from './Icon';
+import GlowOrb from './GlowOrb';
+import FilmGrain from './FilmGrain';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useNavigation } from "@react-navigation/native";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useTheme } from "../context/ThemeContext";
-import {
-  TYPOGRAPHY,
-  SPACING,
-  BORDER_RADIUS,
-  ICON_SIZES,
-} from "../utils/theme";
+import CrashReporting from "../services/CrashReporting";
 import { getPaywallFeatures, PremiumFeature } from "../utils/featureFlags";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config/supabase";
 
+const { width } = Dimensions.get('window');
+
 const PremiumPaywall = ({
-  feature = null,
   onSubscribe,
   onClose,
   showCloseButton = true,
 }) => {
   const { offerings, purchasePackage, restorePurchases, isLoading } = useSubscription();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [isSubscribing, setIsSubscribing] = useState(false);
   const nav = useNavigation();
 
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  // High-End Color Logic (No Gold)
+  const theme = useMemo(() => ({
+    crimson: '#D2121A',
+    silver: isDark ? '#E5E5E7' : '#8E8E93',
+    obsidian: '#0A0A0C',
+    glass: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
+  }), [isDark]);
+
+  const styles = useMemo(() => createStyles(colors, isDark, theme), [colors, isDark, theme]);
 
   const handleSubscribe = async (pkg) => {
     if (isSubscribing || !pkg) return;
@@ -46,7 +64,7 @@ const PremiumPaywall = ({
         onSubscribe();
       }
     } catch (error) {
-      console.error("Subscription failed:", error);
+      CrashReporting.captureException(error, { source: 'premium_subscribe', packageType: pkg?.packageType });
     } finally {
       setIsSubscribing(false);
     }
@@ -59,7 +77,7 @@ const PremiumPaywall = ({
       await restorePurchases();
       notification(NotificationFeedbackType.Success);
     } catch (error) {
-      console.error("Restore failed:", error);
+      CrashReporting.captureException(error, { source: 'premium_restore' });
     } finally {
       setIsSubscribing(false);
     }
@@ -70,459 +88,301 @@ const PremiumPaywall = ({
   const yearlyPkg = packages.find((p) => p.packageType === "ANNUAL");
   const lifetimePkg = packages.find((p) => p.packageType === "LIFETIME");
 
+  const FALLBACK_PRICES = { monthly: '$7.99', yearly: '$49.99', lifetime: '$69.99' };
+
+  const FEATURE_IONICONS = {
+    [PremiumFeature.UNLIMITED_PROMPTS]: 'flame',
+    [PremiumFeature.UNLIMITED_DATE_IDEAS]: 'rose',
+    [PremiumFeature.LOVE_NOTES]: 'heart-half',
+    [PremiumFeature.NIGHT_RITUAL_MODE]: 'moon',
+    [PremiumFeature.CLOUD_SYNC]: 'shield-checkmark',
+  };
+
   const premiumFeatures = useMemo(() => {
     const features = getPaywallFeatures();
     const syncAvailable = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
-    if (!syncAvailable) {
-      return features.filter((feature) => feature.id !== PremiumFeature.CLOUD_SYNC);
-    }
-    return features;
+    return syncAvailable ? features : features.filter((f) => f.id !== PremiumFeature.CLOUD_SYNC);
   }, []);
 
-  const BenefitItem = ({ icon, title, body, index = 0 }) => (
-    <Animated.View entering={FadeInDown.delay(200 + index * 80).duration(400)} style={styles.benefitItem}>
-      <View style={styles.benefitIconContainer}>
-        <Text style={styles.benefitEmoji}>{icon}</Text>
+  const BenefitItem = ({ iconName, title, body, index = 0 }) => (
+    <Animated.View entering={FadeInDown.delay(300 + index * 60).duration(500)} style={styles.benefitItem}>
+      <View style={[styles.benefitIconCircle, { backgroundColor: theme.crimson + '10' }]}>
+        <Icon name={iconName} size={20} color={theme.crimson} />
       </View>
       <View style={styles.benefitTextContainer}>
-        <Text style={styles.benefitTitle}>{title}</Text>
-        <Text style={styles.benefitBody}>{body}</Text>
+        <Text style={[styles.benefitTitle, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.benefitBody, { color: colors.textMuted }]}>{body}</Text>
       </View>
     </Animated.View>
   );
 
-  const PricingCard = ({ pkg, title, priceValue, durationText, subtext, isPopular, index = 0 }) => {
-    const isPlanAvailable = !!pkg;
-    
-    let displayPrice = "-";
-    if (isLoading) {
-      displayPrice = "-";
-    } else if (!isPlanAvailable) {
-      displayPrice = "Unavailable";
-    } else {
-      displayPrice = priceValue;
-    }
-
-    return (
-    <Animated.View
-      entering={FadeInUp.delay(100 + index * 120).duration(500).springify().damping(16)}
-      style={[
-        styles.pricingCard,
-        isPopular && styles.pricingCardPopular,
-        !isPlanAvailable && styles.pricingCardDisabled,
-      ]}
-    >
-      {isPopular && (
-        <View style={styles.popularBadge}>
-          <Text style={styles.popularBadgeText}>BEST VALUE</Text>
+  const PricingOption = ({ pkg, title, price, subtext, isPopular, index }) => (
+    <Animated.View entering={FadeInUp.delay(500 + index * 100).duration(600)}>
+      <TouchableOpacity 
+        onPress={() => handleSubscribe(pkg)}
+        style={[styles.pricingOption, isPopular && styles.pricingOptionPopular]}
+        activeOpacity={0.9}
+      >
+        <View style={styles.pricingLeft}>
+          <Text style={[styles.pricingTitle, { color: colors.text }]}>{title}</Text>
+          <Text style={[styles.pricingSubtext, { color: colors.textMuted }]}>{subtext}</Text>
         </View>
-      )}
-      <View style={styles.pricingCardContent}>
-        <Text style={styles.pricingCardTitle}>{title}</Text>
-        <View style={styles.pricingPriceRow}>
-          <Text style={styles.pricingCardPrice}>{displayPrice}</Text>
-          {isPlanAvailable && !isLoading && durationText ? (
-            <Text style={styles.pricingCardDuration}>{durationText}</Text>
-          ) : null}
+        <View style={styles.pricingRight}>
+          <Text style={[styles.pricingPrice, { color: isPopular ? theme.crimson : colors.text }]}>{price}</Text>
+          {isPopular && (
+            <View style={styles.popularTag}>
+              <Text style={styles.popularTagText}>SAVINGS</Text>
+            </View>
+          )}
         </View>
-        <Text style={styles.pricingCardSubtext}>{subtext}</Text>
-        <TouchableOpacity
-          style={[styles.subscribeButton, (!isPlanAvailable || isLoading) && styles.subscribeButtonDisabled]}
-          onPress={() => handleSubscribe(pkg)}
-          activeOpacity={0.85}
-          disabled={isSubscribing || !isPlanAvailable || isLoading}
-          accessibilityRole="button"
-          accessibilityLabel={`Subscribe to ${title} plan at ${displayPrice}`}
-        >
-          <Text style={styles.subscribeButtonText}>
-            {isLoading
-              ? "Loading plans..."
-              : !isPlanAvailable
-                ? "Not available"
-                : title === "Lifetime"
-                  ? "Discover forever"
-                  : `Discover ${title.toLowerCase()}`}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      </TouchableOpacity>
     </Animated.View>
-    );
-  };
+  );
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.delay(100).duration(600)} style={styles.header}>
-          {showCloseButton && (
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.closeButton}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel="Close"
-            >
-              <Icon
-                name="close-outline"
-                size={ICON_SIZES.lg}
-                color={colors.text}
-              />
-            </TouchableOpacity>
-          )}
-          <Text style={styles.title}>Premium</Text>
-          <Text style={styles.subtitle}>
-            This is part of the deeper experience.
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={isDark ? ['#0A0A0C', '#1A0205', '#0A0A0C'] : ['#FFFFFF', '#F9F4F4', '#FFFFFF']}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <GlowOrb color={theme.crimson} size={width * 1.2} top={-200} left={-100} opacity={0.12} />
+      <FilmGrain opacity={0.03} />
+
+      {showCloseButton && (
+        <TouchableOpacity onPress={onClose} style={styles.closeButton} activeOpacity={0.7}>
+          <BlurView intensity={20} tint="dark" style={styles.closeBlur}>
+            <Icon name="close" size={24} color="#FFF" />
+          </BlurView>
+        </TouchableOpacity>
+      )}
+
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View entering={FadeIn.duration(800)} style={styles.header}>
+          <Text style={[styles.headerEye, { color: theme.crimson }]}>Elevate Your Connection</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Unlock the Full Experience</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+            Deeper prompts, unlimited date planning, and encrypted intimacy for your most meaningful relationship.
           </Text>
         </Animated.View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What awaits</Text>
-
-          {premiumFeatures.map((feature, index) => (
+        <View style={styles.benefitSection}>
+          {premiumFeatures.map((f, i) => (
             <BenefitItem
-              key={feature.id}
-              icon={feature.icon}
-              title={feature.name}
-              body={feature.description}
-              index={index}
+              key={f.id}
+              iconName={FEATURE_IONICONS[f.id] || 'sparkles'}
+              title={f.name}
+              body={f.description}
+              index={i}
             />
           ))}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Choose your plan</Text>
-          {!packages.length && (
-            <Text style={styles.planStatusText}>
-              {isLoading
-                ? "Fetching plans from the store..."
-                : "Plans are unavailable right now. Please try again."}
-            </Text>
-          )}
-
-          <PricingCard
+        <View style={styles.pricingSection}>
+          <PricingOption
             pkg={monthlyPkg}
             title="Monthly"
-            priceValue={monthlyPkg?.product?.priceString}
-            durationText="/month"
-            subtext="Per couple plan · linked partner access available"
+            price={monthlyPkg?.product?.priceString || FALLBACK_PRICES.monthly}
+            subtext="One payment per month"
             index={0}
           />
-
-          <PricingCard
+          <PricingOption
             pkg={yearlyPkg}
-            title="Yearly"
-            priceValue={yearlyPkg?.product?.priceString}
-            durationText="/year"
-            subtext="Most popular · per couple plan · linked partner access available"
+            title="Annual"
+            price={yearlyPkg?.product?.priceString || FALLBACK_PRICES.yearly}
+            subtext="One payment per year"
             isPopular={true}
             index={1}
           />
-
-          <PricingCard
+          <PricingOption
             pkg={lifetimePkg}
             title="Lifetime"
-            priceValue={lifetimePkg?.product?.priceString}
-            durationText=" one-time"
-            subtext="Per couple plan · linked partner access available"
+            price={lifetimePkg?.product?.priceString || FALLBACK_PRICES.lifetime}
+            subtext="One payment forever"
             index={2}
           />
+
+          <Animated.View entering={FadeIn.delay(800).duration(600)} style={styles.perCoupleWrapper}>
+            <Text style={[styles.perCoupleText, { color: colors.textMuted }]}>
+              All prices are per couple.
+            </Text>
+          </Animated.View>
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity
-            onPress={onClose}
-            style={styles.maybeLaterButton}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.maybeLaterText}>Maybe Later</Text>
+          <TouchableOpacity style={styles.restoreBtn} onPress={handleRestore}>
+            <Text style={[styles.restoreText, { color: colors.textMuted }]}>Restore Previous Purchases</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={handleRestore}
-            style={styles.restoreButton}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.restoreButtonText}>Restore Purchases</Text>
-          </TouchableOpacity>
-
-          {/* App Store Required Subscription Disclosure */}
-          <Text style={styles.subscriptionDisclosure}>
-            Payment will be charged to your Apple ID account at confirmation of purchase.
-            Subscription automatically renews unless auto-renew is turned off at least
-            24 hours before the end of the current period. Your account will be charged
-            for renewal within 24 hours prior to the end of the current period at the
-            same price. You can manage your subscriptions and turn off auto-renewal in
-            your Account Settings after purchase.
+          <Text style={[styles.disclosure, { color: colors.textMuted }]}>
+            Subscriptions will be charged to your Apple ID. Renewal occurs automatically 24 hours before the end of the period. Manage in Settings.
           </Text>
-          {(monthlyPkg?.product?.introPrice || yearlyPkg?.product?.introPrice) && (
-            <Text style={styles.subscriptionDisclosure}>
-              Any unused portion of a free trial period, if offered, will be forfeited
-              when you purchase a subscription.
-            </Text>
-          )}
 
-          {/* Legal Links (App Store Required) */}
-          <View style={styles.legalLinks}>
-            <TouchableOpacity
-              onPress={() => { try { nav.navigate('Terms'); } catch {} }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.legalLinkText}>Terms of Use</Text>
+          <View style={styles.legalRow}>
+            <TouchableOpacity onPress={() => nav.navigate('Terms')}>
+              <Text style={styles.legalText}>Terms of Service</Text>
             </TouchableOpacity>
-            <Text style={styles.legalSeparator}>·</Text>
-            <TouchableOpacity
-              onPress={() => { try { nav.navigate('PrivacyPolicy'); } catch {} }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+            <View style={styles.legalDot} />
+            <TouchableOpacity onPress={() => nav.navigate('PrivacyPolicy')}>
+              <Text style={styles.legalText}>Privacy Policy</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
+
+      <BlurView intensity={30} tint={isDark ? "dark" : "light"} style={styles.bottomBar}>
+        <TouchableOpacity 
+          style={styles.mainActionBtn} 
+          onPress={() => handleSubscribe(yearlyPkg || monthlyPkg)}
+          disabled={isLoading || isSubscribing}
+        >
+          <LinearGradient colors={[theme.crimson, '#900C0F']} style={styles.mainActionGrad}>
+            <Text style={styles.mainActionText}>Unlock Full Access</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </BlurView>
     </View>
   );
 };
 
-const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: SPACING.xxxl,
-  },
+const createStyles = (colors, isDark, theme) => StyleSheet.create({
+  container: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingBottom: 160 },
+  
   header: {
-    paddingTop: SPACING.xxxl,
-    paddingHorizontal: SPACING.xl,
-    paddingBottom: SPACING.xxl,
-    alignItems: "center",
+    paddingTop: 80,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginBottom: 32,
   },
-  closeButton: {
-    position: "absolute",
-    top: SPACING.md,
-    left: SPACING.lg,
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-    backgroundColor: colors.surface2,
-    zIndex: 10,
-  },
-  benefitEmoji: {
-    fontSize: 26,
+  headerEye: {
+    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold' }),
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 12,
   },
   title: {
-    fontFamily: Platform.select({
-      ios: "DMSerifDisplay-Regular",
-      android: "DMSerifDisplay_400Regular",
-    }),
-    fontSize: 36,
-    fontWeight: "400",
-    color: colors.text,
-    textAlign: "center",
-    marginBottom: SPACING.sm,
-    letterSpacing: -0.3,
+    fontFamily: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'serif' }),
+    fontSize: 34,
+    textAlign: 'center',
+    lineHeight: 40,
+    letterSpacing: -0.5,
+    marginBottom: 16,
   },
   subtitle: {
-    ...TYPOGRAPHY.body,
     fontSize: 16,
-    color: colors.text + "AA",
-    textAlign: "center",
     lineHeight: 24,
+    textAlign: 'center',
+    opacity: 0.8,
+    paddingHorizontal: 10,
   },
-  section: {
-    paddingHorizontal: SPACING.xl,
-    marginBottom: SPACING.xxxl,
+
+  benefitSection: { paddingHorizontal: 24, gap: 24, marginBottom: 40 },
+  benefitItem: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  benefitIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sectionTitle: {
-    ...TYPOGRAPHY.label,
-    fontSize: 12,
-    color: colors.textMuted,
-    letterSpacing: 2.5,
-    textTransform: "uppercase",
-    marginBottom: SPACING.lg,
-  },
-  planStatusText: {
-    ...TYPOGRAPHY.caption,
-    fontSize: 13,
-    color: colors.text + "CC",
-    marginBottom: SPACING.xl,
-    textAlign: "center",
-  },
-  benefitItem: {
-    flexDirection: "row",
-    marginBottom: SPACING.md + 2,
-    alignItems: "center",
-    paddingVertical: SPACING.xs,
-  },
-  benefitIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: colors.surface2,
-    marginRight: SPACING.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  benefitTextContainer: {
-    flex: 1,
-  },
-  benefitTitle: {
-    ...TYPOGRAPHY.h3,
-    fontSize: 15,
-    color: colors.text,
-    marginBottom: 4,
-  },
-  benefitBody: {
-    ...TYPOGRAPHY.body,
-    fontSize: 14,
-    color: colors.textMuted,
-    lineHeight: 20,
-  },
-  pricingCard: {
-    backgroundColor: colors.surface,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: SPACING.sm,
-    overflow: "hidden",
-  },
-  pricingCardDisabled: {
-    opacity: 0.5,
-  },
-  pricingCardPopular: {
-    borderColor: colors.primary + "60",
+  benefitTextContainer: { flex: 1 },
+  benefitTitle: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3, marginBottom: 2 },
+  benefitBody: { fontSize: 14, lineHeight: 20, opacity: 0.7 },
+
+  pricingSection: { paddingHorizontal: 24, gap: 12 },
+  pricingOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderRadius: 24,
     borderWidth: 1.5,
+    borderColor: theme.glass,
+    backgroundColor: theme.glass,
   },
-  popularBadge: {
-    backgroundColor: colors.primary + "18",
-    paddingVertical: 10,
-    alignItems: "center",
+  pricingOptionPopular: {
+    borderColor: theme.crimson + '40',
+    backgroundColor: theme.crimson + '05',
   },
-  popularBadgeText: {
-    ...TYPOGRAPHY.label,
-    fontSize: 10,
-    color: colors.primary,
-    letterSpacing: 2,
+  pricingLeft: { flex: 1 },
+  pricingTitle: { fontSize: 18, fontWeight: '800', letterSpacing: -0.5 },
+  pricingSubtext: { fontSize: 13, marginTop: 2 },
+  pricingRight: { alignItems: 'flex-end' },
+  pricingPrice: { fontSize: 20, fontWeight: '900' },
+  popularTag: {
+    backgroundColor: theme.crimson,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginTop: 4,
   },
-  pricingCardContent: {
-    padding: SPACING.lg,
-    alignItems: "center",
-  },
-  pricingCardTitle: {
-    ...TYPOGRAPHY.h3,
-    fontSize: 17,
-    color: colors.text,
-    marginBottom: 6,
-  },
-  pricingPriceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "center",
+  popularTagText: { color: '#FFF', fontSize: 9, fontWeight: '900' },
+
+  perCoupleWrapper: {
+    alignItems: 'center',
+    marginTop: 8,
     marginBottom: 4,
   },
-  pricingCardPrice: {
-    fontSize: 26,
-    fontWeight: "700",
-    color: colors.text,
-    letterSpacing: -0.3,
-  },
-  pricingCardDuration: {
-    ...TYPOGRAPHY.caption,
-    fontSize: 15,
-    fontWeight: "500",
-    color: colors.textMuted,
-    marginLeft: 2,
-  },
-  pricingCardSubtext: {
-    ...TYPOGRAPHY.caption,
+  perCoupleText: {
     fontSize: 13,
-    color: colors.textMuted,
-    marginBottom: SPACING.lg,
-    textAlign: "center",
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    opacity: 0.6,
   },
-  subscribeButton: {
-    height: 50,
-    backgroundColor: colors.primary,
-    borderRadius: BORDER_RADIUS.md,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
+
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 100,
   },
-  subscribeButtonDisabled: {
-    backgroundColor: colors.border,
+  closeBlur: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  subscribeButtonText: {
-    ...TYPOGRAPHY.button,
-    fontSize: 14,
-    color: "#F2E9E6",
-    letterSpacing: 0.8,
+
+  footer: { paddingHorizontal: 40, marginTop: 40, alignItems: 'center', gap: 16 },
+  restoreBtn: { padding: 8 },
+  restoreText: { fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
+  disclosure: { textAlign: 'center', fontSize: 11, lineHeight: 16, opacity: 0.5 },
+  legalRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  legalText: { fontSize: 12, fontWeight: '700', color: theme.crimson },
+  legalDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#888' },
+
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    paddingHorizontal: 24,
+    borderTopWidth: 1,
+    borderColor: theme.glass,
   },
-  footer: {
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.xxl,
-    alignItems: "center",
+  mainActionBtn: {
+    height: 60,
+    borderRadius: 22,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: theme.crimson, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
+      android: { elevation: 6 },
+    }),
   },
-  footerTrustText: {
-    ...TYPOGRAPHY.caption,
-    fontSize: 12,
-    color: colors.textMuted,
-    marginBottom: SPACING.md,
-    textAlign: "center",
-    lineHeight: 18,
-  },
-  maybeLaterButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    marginBottom: 4,
-  },
-  maybeLaterText: {
-    ...TYPOGRAPHY.caption,
-    fontSize: 15,
-    color: colors.textMuted,
-  },
-  restoreButton: {
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.lg,
-  },
-  restoreButtonText: {
-    ...TYPOGRAPHY.caption,
-    fontSize: 13,
-    color: colors.primary,
-  },
-  subscriptionDisclosure: {
-    ...TYPOGRAPHY.caption,
-    fontSize: 11,
-    color: colors.textMuted,
-    textAlign: "center",
-    lineHeight: 16,
-    marginBottom: SPACING.sm,
-    paddingHorizontal: SPACING.sm,
-  },
-  legalLinks: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: SPACING.xs,
-    marginBottom: SPACING.md,
-  },
-  legalLinkText: {
-    ...TYPOGRAPHY.caption,
-    fontSize: 13,
-    color: colors.primary,
-    textDecorationLine: "underline",
-  },
-  legalSeparator: {
-    ...TYPOGRAPHY.caption,
-    fontSize: 13,
-    color: colors.textMuted,
-    marginHorizontal: SPACING.sm,
-  },
+  mainActionGrad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  mainActionText: { color: '#FFF', fontSize: 18, fontWeight: '900', letterSpacing: -0.3 },
 });
 
 export default PremiumPaywall;

@@ -1360,7 +1360,9 @@ const DataLayer = {
           decryptedImageUri = await EncryptedAttachments.getDecryptedUri(
             row.media_ref, kt, cid
           );
-        } catch { /* photo may be still uploading/downloading */ }
+        } catch (imgErr) {
+          if (__DEV__) console.warn('[DataLayer] Love note image decrypt failed:', imgErr?.message);
+        }
       }
 
       return {

@@ -1034,9 +1034,7 @@ CREATE TRIGGER update_couples_updated_at
   BEFORE UPDATE ON couples FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 DROP TRIGGER IF EXISTS update_couple_data_updated_at ON couple_data;
-CREATE TRIGGER update_couple_data_updated_at
-  BEFORE UPDATE ON couple_data FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
+-- Use the sync-aware version (GREATEST) so client timestamps survive
 DROP TRIGGER IF EXISTS couple_data_updated_at ON couple_data;
 CREATE TRIGGER couple_data_updated_at
   BEFORE UPDATE ON couple_data FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -1380,7 +1378,7 @@ CREATE POLICY "Couple data insert (premium-aware)" ON couple_data
     AND created_by = auth.uid()
     AND (
       is_user_premium()
-      OR data_type IN ('journal', 'prompt_answer', 'check_in', 'vibe', 'couple_state', 'moment_signal')
+      OR data_type IN ('journal', 'prompt_answer', 'check_in', 'vibe', 'couple_state', 'moment_signal', 'attachment_meta')
       OR (data_type = 'memory'       AND user_data_count(couple_id, 'memory')       < 10)
       OR (data_type = 'custom_ritual' AND user_data_count(couple_id, 'custom_ritual') < 2)
       OR (data_type = 'love_note'     AND user_data_count(couple_id, 'love_note')     < 20)

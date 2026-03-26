@@ -16,10 +16,24 @@ import { UsageEventType, FREE_LIMITS } from '../utils/featureFlags';
 
 const LOCAL_USAGE_PREFIX = '@betweenus:usage_v2_';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5-minute cache validity
+const MAX_CACHE_ENTRIES = 50; // Prevent unbounded memory growth
 
 class UsageLimitsService {
   constructor() {
     this._remoteCache = new Map(); // key → { count, fetchedAt }
+  }
+
+  /** Evict oldest entries when cache exceeds MAX_CACHE_ENTRIES. */
+  _evictStaleCache() {
+    if (this._remoteCache.size <= MAX_CACHE_ENTRIES) return;
+    // Map iterates in insertion order — delete oldest entries first
+    const overflow = this._remoteCache.size - MAX_CACHE_ENTRIES;
+    let removed = 0;
+    for (const key of this._remoteCache.keys()) {
+      if (removed >= overflow) break;
+      this._remoteCache.delete(key);
+      removed++;
+    }
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -94,6 +108,7 @@ class UsageLimitsService {
 
       const count = data ?? 0;
       this._remoteCache.set(cacheKey, { count, fetchedAt: Date.now() });
+      this._evictStaleCache();
       return count;
     } catch (err) {
       console.warn('[UsageLimits] Remote count exception:', err.message);

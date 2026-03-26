@@ -1,6 +1,6 @@
 # Frequently Asked Questions (FAQ)
 
-**Last Updated: March 21, 2026**
+**Last Updated: March 26, 2026**
 
 ---
 
@@ -35,14 +35,14 @@ Between Us is for couples of all orientations and identities — our prompts are
 Between Us is for thriving couples — it deepens what's already beautiful.
 
 ### How much does it cost?
-- **Free version:** Preview 3 read-only prompts (Heat levels 1-3)
+- **Free version:** Answer 1 prompt per day (Heat levels 1-3), link with your partner, fully plan 1 date per week, and export your data
 - **Premium Monthly:** $7.99/month per couple
 - **Premium Yearly:** $49.99/year per couple (save 48%!)
 - **Premium Lifetime:** $69.99 one-time payment per couple
 
-Premium unlocks unlimited prompts, responses, love notes, calendar, partner connection, cloud sync, and more.
+Premium unlocks unlimited prompts, unlimited date ideas, love notes, calendar, cloud sync, and more.
 
-**Note:** Pricing is per couple, not per person. One subscription can support shared premium access for linked partners.
+**Note:** Pricing is per couple, not per person. One subscription covers both you and your linked partner.
 
 ### How do I get started?
 1. Create your account
@@ -65,10 +65,12 @@ However, linking with your partner unlocks shared features and makes the experie
 
 ### How do I link with my partner?
 1. Both partners create accounts
-2. One partner generates a link code
-3. The other partner enters the code
+2. One partner generates an invite code or QR code
+3. The other partner scans the QR code or enters the code manually
 4. Both partners confirm the link
 5. You're connected!
+
+Partner linking is free. Premium adds encrypted sync and more shared features.
 
 ### Can I unlink from my partner?
 Yes, either partner can unlink at any time:
@@ -147,11 +149,11 @@ This data is never uploaded to our servers.
 
 ### What are heat levels?
 Heat levels help you choose the right prompts for the moment:
-- **Heat 1 — Heart Connection:** Pure emotional intimacy (non-sexual)
-- **Heat 2 — Spark & Attraction:** Flirty attraction and romantic tension
-- **Heat 3 — Intimate Connection:** Moderately sexual, relationship-focused
-- **Heat 4 — Adventurous Exploration:** Playfully sexual and adventurous (Premium)
-- **Heat 5 — Unrestrained Passion:** Intensely passionate and deeply intimate (Premium)
+- **Heat 1 — Emotional Connection:** Emotional intimacy, non-sexual
+- **Heat 2 — Flirty & Romantic:** Flirty attraction and romantic tension
+- **Heat 3 — Sensual:** Sensual, relationship-focused intimacy
+- **Heat 4 — Steamy:** Suggestive, adventurous, and heated (Premium)
+- **Heat 5 — Explicit:** Intensely passionate and explicit (Premium)
 
 You can adjust your heat level anytime based on your mood.
 
@@ -230,14 +232,14 @@ Yes! You can enable biometric lock (Face ID or Touch ID) in your settings. The a
 
 ### What's included in Premium?
 Premium unlocks:
-- **All heat levels (1-5)** - From emotional to passionate
+- **All heat levels (1-5)** - From emotional to explicit
 - **Unlimited daily prompts** - Refresh as many times as you want
-- **Full prompt responses** - Write and share your answers
+- **Unlimited prompt responses** - Write and share as many answers as you want
 - **Love notes** - Send love notes with optional photo attachments
-- **Date night ideas** - Full catalog with planning tools
+- **Unlimited date ideas** - Full catalog with planning tools
 - **Night rituals** - Custom evening routines together
 - **Calendar and scheduling** - Plan dates and set reminders
-- **Partner connection and cloud sync** - Sync with your linked partner
+- **Cloud sync** - Sync encrypted data with your linked partner
 - **Vibe Signals** - Share your mood with your partner when connected
 - **Moment Signals** - Send "thinking of you" taps throughout the day
 - **Energy Matcher** - Get content matched to your current energy
@@ -245,7 +247,7 @@ Premium unlocks:
 - **Year Reflection** - A personalized narrative of your year together
 - **Surprise Tonight** - Spontaneous date suggestions tailored to you
 - **Custom rituals and routines** - Create your own traditions
-- **Data export** - Download your journals, prompts, memories, rituals, check-ins, vibes, and love notes
+- **Data export** - Download your journals, prompts, memories, rituals, check-ins, vibes, and love notes (always free for all users)
 - **Both partners get access** - Premium is per couple
 
 **Pricing:**

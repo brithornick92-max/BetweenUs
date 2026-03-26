@@ -272,7 +272,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   const handleSave = async () => {
     const finalText = answer.trim();
-    if (!finalText || !prompt?.id || !prompt?.dateKey) return;
+    if (!finalText || !prompt?.id || !prompt?.dateKey || isSaving) return;
 
     if (finalText.length > MAX_LEN) {
       Alert.alert(

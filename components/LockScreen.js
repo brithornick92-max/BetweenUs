@@ -21,6 +21,7 @@ import { Platform } from "react-native";
 
 const PIN_LENGTH = 4;
 const PIN_KEY = "betweenus_app_lock_pin_v1";
+const PIN_SALT_KEY = "betweenus_app_lock_salt_v1";
 const PIN_SERVICE = "betweenus_app_lock";
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 30000; // 30 seconds
@@ -32,6 +33,7 @@ export default function LockScreen({ onUnlock }) {
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
   const [storedPinHash, setStoredPinHash] = useState(null);
+  const [storedSalt, setStoredSalt] = useState(null);
   const [biometricType, setBiometricType] = useState(null);
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -65,6 +67,12 @@ export default function LockScreen({ onUnlock }) {
         }
       }
       setStoredPinHash(savedHash);
+
+      // 1b. Get stored salt (may be null for legacy unsalted hashes)
+      const savedSalt = await SecureStore.getItemAsync(PIN_SALT_KEY, {
+        keychainService: PIN_SERVICE,
+      });
+      setStoredSalt(savedSalt);
 
       // 2. Check Biometrics
       if (Platform.OS !== "web") {
@@ -131,10 +139,23 @@ export default function LockScreen({ onUnlock }) {
 
       const hash = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
-        newPin
+        storedSalt ? storedSalt + newPin : newPin
       );
 
       if (hash === storedPinHash) {
+        // Migrate legacy unsalted hash to salted on successful unlock
+        if (!storedSalt) {
+          try {
+            const saltBytes = await Crypto.getRandomBytesAsync(16);
+            const salt = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+            const saltedHash = await Crypto.digestStringAsync(
+              Crypto.CryptoDigestAlgorithm.SHA256,
+              salt + newPin
+            );
+            await SecureStore.setItemAsync(PIN_SALT_KEY, salt, { keychainService: PIN_SERVICE });
+            await SecureStore.setItemAsync(PIN_KEY, saltedHash, { keychainService: PIN_SERVICE });
+          } catch { /* migration is best-effort */ }
+        }
         onUnlock?.();
       } else {
         setError(true);

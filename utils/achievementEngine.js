@@ -184,10 +184,13 @@ function computeCheckInStreak(checkIns) {
   const sortedDays = [...daySet].sort().reverse();
   let streak = 1;
   for (let i = 1; i < sortedDays.length; i++) {
-    const prev = new Date(sortedDays[i - 1]);
-    const curr = new Date(sortedDays[i]);
-    const diffMs = prev.getTime() - curr.getTime();
-    if (diffMs <= 86400000 * 1.5) {
+    // Compare by calendar day difference (DST-safe)
+    const [py, pm, pd] = sortedDays[i - 1].split('-').map(Number);
+    const [cy, cm, cd] = sortedDays[i].split('-').map(Number);
+    const prevUtc = Date.UTC(py, pm - 1, pd);
+    const currUtc = Date.UTC(cy, cm - 1, cd);
+    const diffDays = (prevUtc - currUtc) / 86400000;
+    if (diffDays === 1) {
       streak++;
     } else {
       break;

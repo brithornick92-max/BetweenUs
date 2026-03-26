@@ -76,7 +76,6 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   const [selectedStationery, setSelectedStationery] = useState(STATIONERY_OPTIONS[0]);
   const [isSending, setIsSending] = useState(false);
   const [showPrompts, setShowPrompts] = useState(false);
-  const [invisibleInk, setInvisibleInk] = useState(false);
 
   const inputRef = useRef(null);
   const styles = useMemo(() => createStyles(t), [t]);
@@ -151,7 +150,6 @@ export default function ComposeLoveNoteScreen({ navigation }) {
         imageUri: imageUri || null,
         stationeryId: selectedStationery.id,
         senderName: getMyDisplayName(userProfile, state?.userProfile, null),
-        invisibleInk,
       });
       notification(NotificationFeedbackType.Success).catch(() => {});
       navigation.goBack();
@@ -318,44 +316,6 @@ export default function ComposeLoveNoteScreen({ navigation }) {
               )}
             </View>
 
-            {/* Invisible Ink Toggle */}
-            <TouchableOpacity
-              onPress={() => { setInvisibleInk(v => !v); selection(); }}
-              activeOpacity={0.85}
-              style={{ marginBottom: 60 }}
-            >
-              <BlurView intensity={40} tint="dark" style={[
-                styles.inkToggle,
-                invisibleInk && { borderColor: withAlpha(t.primary, 0.4), backgroundColor: withAlpha(t.primary, 0.1) }
-              ]}>
-                <Icon
-                  name={invisibleInk ? 'eye-off' : 'eye-off-outline'}
-                  size={22}
-                  color={invisibleInk ? t.primary : t.subtext}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.inkToggleTitle, { color: invisibleInk ? t.primary : t.text }]}>
-                    Invisible Ink
-                  </Text>
-                  <Text style={[styles.inkToggleSubtitle, { color: t.subtext }]}>
-                    {invisibleInk
-                      ? 'Partner must hold phone up to light to reveal.'
-                      : 'Hide message until tilted.'}
-                  </Text>
-                </View>
-                <View style={[
-                  styles.inkTogglePill,
-                  { backgroundColor: invisibleInk ? t.primary : t.surfaceSecondary },
-                ]}>
-                  <Text style={[
-                    styles.inkTogglePillText,
-                    { color: invisibleInk ? '#FFF' : t.subtext },
-                  ]}>
-                    {invisibleInk ? 'ON' : 'OFF'}
-                  </Text>
-                </View>
-              </BlurView>
-            </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

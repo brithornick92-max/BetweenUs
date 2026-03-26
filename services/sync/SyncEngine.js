@@ -377,18 +377,23 @@ const SyncEngine = {
     try {
       // 1. Upload pending attachment files FIRST so they exist in Storage
       //    before love_notes rows (which reference media_ref) reach the partner.
+      let attachmentUploadOk = false;
       try {
         results.attachments = await EncryptedAttachments.uploadAllPending();
+        attachmentUploadOk = true;
       } catch (err) {
         console.warn('[Sync] Attachment upload batch failed:', err.message);
       }
 
-      // 2. Push attachment metadata so partner can discover files
-      try {
-        const attPush = await pushTable('attachments');
-        results.pushed += attPush.pushed;
-        results.failed += attPush.failed;
-      } catch { /* ignore */ }
+      // 2. Push attachment metadata ONLY if uploads succeeded
+      //    (prevents partner from seeing broken media_ref references)
+      if (attachmentUploadOk) {
+        try {
+          const attPush = await pushTable('attachments');
+          results.pushed += attPush.pushed;
+          results.failed += attPush.failed;
+        } catch { /* ignore */ }
+      }
 
       // 3. Push all other local changes (love_notes, journals, etc.)
       for (const table of SYNC_TABLES) {

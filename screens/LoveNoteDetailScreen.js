@@ -42,7 +42,6 @@ import DataLayer from "../services/data/DataLayer";
 import { withAlpha } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
-import InvisibleInkMessage from "../components/InvisibleInkMessage";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -200,6 +199,20 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
     }, 1800);
   };
 
+  // Image retry hook — must be before early returns
+  const [retryImageUri, setRetryImageUri] = useState(null);
+  useEffect(() => {
+    const mediaRef = note?.mediaRef;
+    const imageUri = note?.imageUri;
+    if (mediaRef && !imageUri) {
+      DataLayer.getLoveNoteImageUri(mediaRef)
+        .then(uri => { if (uri) setRetryImageUri(uri); })
+        .catch(() => {});
+    } else {
+      setRetryImageUri(null);
+    }
+  }, [note?.mediaRef, note?.imageUri]);
+
   const handleDelete = () => {
     Alert.alert("Delete Note", "Remove this memory from your vault?", [
       { text: "Cancel", style: "cancel" },
@@ -243,7 +256,8 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
   const stationery = note?.stationeryId
     ? (STATIONERY_MAP[note.stationeryId] || STATIONERY_MAP.love)
     : STATIONERY_MAP.love;
-  const hasImage = !!note?.imageUri;
+  const displayImageUri = note?.imageUri || retryImageUri;
+  const showImage = !!displayImageUri;
 
   return (
     <View style={{ flex: 1 }}>
@@ -331,37 +345,31 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
                 </View>
 
                 <View style={styles.cardContent}>
-                  <View style={styles.senderHeader}>
-                    <View style={[styles.senderLine, { backgroundColor: withAlpha(stationery.ink, 0.15) }]} />
-                    <Text style={[styles.senderLabel, { color: withAlpha(stationery.ink, 0.5) }]}>
-                      FROM {note.senderName?.toUpperCase() || 'YOUR PARTNER'}
-                    </Text>
+                  <View style={[styles.cardFooter, { borderTopColor: 'transparent', borderBottomColor: withAlpha(stationery.ink, 0.1), borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: 12, paddingBottom: 10, paddingTop: 0 }]}>
+                    <Text style={[styles.dateText, { color: withAlpha(stationery.ink, 0.4) }]}>{formatDate(note.createdAt).toUpperCase()}</Text>
+                    <Icon name="shield-checkmark-outline" size={16} color={withAlpha(stationery.ink, 0.3)} />
                   </View>
 
                   {/* Photo attachment with physical Polaroid feel */}
-                  {hasImage && (
+                  {showImage && (
                     <View style={styles.cardPhotoFrame}>
-                      <Image source={{ uri: note.imageUri }} style={styles.cardPhotoImg} />
+                      <Image source={{ uri: displayImageUri }} style={styles.cardPhotoImg} resizeMode="cover" />
                     </View>
                   )}
 
                   <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                     {note.locked ? (
                       <Text style={[styles.noteText, { color: stationery.ink, opacity: 0.4 }]}>[Message could not be decrypted]</Text>
-                    ) : note.invisibleInk ? (
-                      <InvisibleInkMessage text={note.text || ''} textColor={stationery.ink} panelColor={stationery.paper} accentColor={stationery.accent} />
                     ) : (
                       <Text style={[styles.noteText, { color: stationery.ink }]}>{note.text}</Text>
                     )}
                   </ScrollView>
 
-                  <View style={[styles.cardFooter, { borderTopColor: withAlpha(stationery.ink, 0.1) }]}>
-                    <Text style={[styles.dateText, { color: withAlpha(stationery.ink, 0.4) }]}>{formatDate(note.createdAt).toUpperCase()}</Text>
-                    {!note.isOwn && note.expiresAt ? (
-                      <ExpiryCountdown expiresAt={note.expiresAt} />
-                    ) : (
-                      <Icon name="shield-checkmark-outline" size={16} color={withAlpha(stationery.ink, 0.3)} />
-                    )}
+                  <View style={styles.senderHeader}>
+                    <View style={[styles.senderLine, { backgroundColor: withAlpha(stationery.ink, 0.15) }]} />
+                    <Text style={[styles.senderLabel, { color: withAlpha(stationery.ink, 0.5) }]}>
+                      FROM {note.senderName?.toUpperCase() || 'YOUR PARTNER'}
+                    </Text>
                   </View>
                 </View>
 

@@ -222,7 +222,7 @@ export const FEATURE_META = Object.freeze({
     description: 'Guided bedtime connection rituals for winding down together',
     icon: '🌜',
     category: 'ritual',
-    guardBehavior: GuardBehavior.HIDE,
+    guardBehavior: GuardBehavior.LOCK,
     emotionalValue: 'End every day connected',
   },
   [PremiumFeature.PROMPT_REFRESH]: {

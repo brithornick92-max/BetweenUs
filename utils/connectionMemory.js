@@ -89,16 +89,26 @@ function median(arr) {
 
 const ConnectionMemory = {
   _cache: null,
+  _loadPromise: null,
 
   async _load() {
     if (this._cache) return this._cache;
+    // Deduplicate concurrent loads — share a single in-flight promise
+    if (this._loadPromise) return this._loadPromise;
+    this._loadPromise = (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(MEMORY_KEY);
+        this._cache = raw ? { ...defaultMemory(), ...JSON.parse(raw) } : defaultMemory();
+      } catch {
+        this._cache = defaultMemory();
+      }
+      return this._cache;
+    })();
     try {
-      const raw = await AsyncStorage.getItem(MEMORY_KEY);
-      this._cache = raw ? { ...defaultMemory(), ...JSON.parse(raw) } : defaultMemory();
-    } catch {
-      this._cache = defaultMemory();
+      return await this._loadPromise;
+    } finally {
+      this._loadPromise = null;
     }
-    return this._cache;
   },
 
   async _save() {

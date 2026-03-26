@@ -104,7 +104,7 @@ function normalizePrompt(p) {
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
   { label: 'Love Note', icon: 'mail-outline', key: 'note', premium: true, color: '#D2121A' }, // Sexy red
-  { label: 'Ritual', icon: 'flame-outline', key: 'ritual', color: '#7E4FA3' }, // Velvet plum
+  { label: 'Ritual', icon: 'flame-outline', key: 'ritual', premium: true, color: '#7E4FA3' }, // Velvet plum
   { label: 'Jokes', icon: 'happy-outline', key: 'jokes', premium: true, color: '#D4AA7E' }, // Champagne gold
 ];
 
@@ -234,7 +234,7 @@ export default function HomeScreen({ navigation }) {
 
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
-    if (!finalText || !prompt?.id || !user?.uid) return;
+    if (!finalText || !prompt?.id || !user?.uid || isSavingInline) return;
     setIsSavingInline(true);
     try {
       if (!isPremium && !myAnswer) {
@@ -258,7 +258,7 @@ export default function HomeScreen({ navigation }) {
     } finally {
       setIsSavingInline(false);
     }
-  }, [inlineText, prompt, user, isPremium, myAnswer, showPaywall, loadUsageStatus]);
+  }, [inlineText, prompt, user, isPremium, myAnswer, showPaywall, loadUsageStatus, isSavingInline]);
 
   const handlePrimaryCTA = useCallback(async () => {
     impact(ImpactFeedbackStyle.Medium);

@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.brittany.betweenus",
-      "buildNumber": "1.0.0",
+      "buildNumber": "2",
       "deploymentTarget": "17.1",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing.",

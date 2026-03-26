@@ -69,6 +69,7 @@ let _queue = [];
 let _enabled = true;
 let _userId = null;
 let _flushTimer = null;
+let _flushing = false;
 let _supabase = null;
 
 const AnalyticsService = {
@@ -155,10 +156,10 @@ const AnalyticsService = {
    * Flush events to Supabase (if configured).
    */
   async flush() {
-    if (!_supabase || _queue.length === 0) return;
+    if (!_supabase || _queue.length === 0 || _flushing) return;
+    _flushing = true;
 
-    const batch = [..._queue];
-    _queue = [];
+    const batch = _queue.splice(0, _queue.length);
 
     try {
       // Write to analytics_events table (create this via migration)
@@ -183,6 +184,8 @@ const AnalyticsService = {
       // Restore queue on network failure and persist to survive app kill
       _queue = [...batch, ..._queue].slice(-MAX_QUEUE_SIZE);
       await AsyncStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(_queue)).catch(() => {});
+    } finally {
+      _flushing = false;
     }
   },
 

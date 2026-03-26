@@ -7,7 +7,6 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, Platform, AppState } from 'react-native';
 import { Accelerometer } from 'expo-sensors';
 import { BlurView } from 'expo-blur';
-import MaskedView from '@react-native-masked-view/masked-view';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -122,15 +121,17 @@ export default function InvisibleInkMessage({ text, style, textColor, panelColor
 
   // ─── Animated Styles (Apple Editorial Rendering) ──────────────────────
   
-  // The mask scales up infinitely from the center
+  // The clip circle expands from center outward as a circular overflow:hidden container
   const maskAnimatedStyle = useAnimatedStyle(() => {
-    // Starts expanding just after the tilt begins, finishing right at the end
-    const scale = interpolate(fluidProgress.value, [0.1, 0.95], [0, 25], Extrapolation.CLAMP);
+    // Diameter: starts at 0 and grows to cover the entire wrapper (1000px is generous)
+    const size = interpolate(fluidProgress.value, [0.1, 0.95], [0, 1000], Extrapolation.CLAMP);
     const opacity = interpolate(fluidProgress.value, [0.05, 0.2], [0, 1], Extrapolation.CLAMP);
     
     return {
       opacity,
-      transform: [{ scale }],
+      width: size,
+      height: size,
+      borderRadius: size / 2,
     };
   });
 
@@ -185,20 +186,13 @@ export default function InvisibleInkMessage({ text, style, textColor, panelColor
       />
 
       {/* ── Layer 2: The secret text (Masked Center-Outward Reveal) ── */}
-      <MaskedView
-        style={StyleSheet.absoluteFillObject}
-        maskElement={
-          <View style={styles.maskCenter}>
-            <Animated.View style={[styles.maskCircle, maskAnimatedStyle]} />
-          </View>
-        }
-      >
-        <Animated.View style={styles.textContainer}>
-          <Animated.Text style={[styles.text, { color: t.ink }, textAnimatedStyle]}>
+      <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, styles.maskCenter]}>
+        <Animated.View style={[maskAnimatedStyle, { overflow: 'hidden', justifyContent: 'center', alignItems: 'center' }]}>
+          <Animated.Text style={[styles.text, { color: t.ink, position: 'absolute' }, textAnimatedStyle]}>
             {text}
           </Animated.Text>
         </Animated.View>
-      </MaskedView>
+      </View>
 
       {/* ── Layer 3: Velvet Glass Obfuscation ── */}
       <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, glassAnimatedStyle]}>

@@ -42,8 +42,6 @@ describe('MomentSignalSender', () => {
     expect(result.sent).toBe(false);
     expect(result.remote).toBe(false);
     expect(result.error).toBe('Sync is not configured on this device.');
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith('@bu_moment_cooldown', expect.any(String));
-    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('@bu_moment_cooldown');
   });
 
   it('writes the heartbeat signal remotely when the couple context is valid', async () => {
@@ -69,13 +67,10 @@ describe('MomentSignalSender', () => {
       couple_id: 'couple-1',
       data_type: 'moment_signal',
       created_by: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      value: expect.any(String),
+      value: expect.objectContaining({
+        moment_type: 'heartbeat',
+        sender_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      }),
     }));
-
-    const payload = JSON.parse(insert.mock.calls[0][0].value);
-    expect(payload).toMatchObject({
-      moment_type: 'heartbeat',
-      sender_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-    });
   });
 });

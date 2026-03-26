@@ -185,8 +185,8 @@ function AppContent() {
               syncEnabled,
               supabaseSessionPresent: !!session,
             });
-          } catch {
-            // ignore
+          } catch (syncErr) {
+            CrashReporting.captureException(syncErr, { source: 'auth_state_sync' });
           }
         });
 
@@ -194,8 +194,9 @@ function AppContent() {
           result?.data?.subscription?.unsubscribe ||
           result?.unsubscribe ||
           (typeof result === "function" ? result : null);
-      } catch {
-        // Supabase not configured; ignore
+      } catch (subErr) {
+        // Supabase not configured — log but don't crash
+        CrashReporting.captureException(subErr, { source: 'auth_subscribe' });
       }
     };
 
@@ -218,8 +219,9 @@ function AppContent() {
         if (session && active) {
           await PushNotificationService.initialize(supabase, { requestPermissions: true });
         }
-      } catch {
-        // Push registration is non-critical
+      } catch (pushErr) {
+        // Push registration is non-critical but worth logging
+        CrashReporting.captureException(pushErr, { source: 'push_registration' });
       }
     };
     registerPush();
@@ -346,7 +348,7 @@ function App() {
 
   useEffect(() => {
     // CrashReporting.init() already called at module scope above
-    AnalyticsService.init({}).catch(() => {});
+    AnalyticsService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'analytics_init' }));
     initializeRevenueCat();
     registerAutoClearDecryptedCache();
     return () => AnalyticsService.destroy();

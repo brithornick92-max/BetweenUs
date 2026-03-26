@@ -86,7 +86,7 @@ export const SUBSCRIPTION_TIERS = {
     mostPopular: true,
     features: Object.values(PREMIUM_FEATURES),
     emotionalBenefits: [
-      'Best value: Save 50% vs monthly',
+      'Best value: Save 48% vs monthly',
       'All premium features, all year',
       'Priority support',
       'Protect your love story forever',

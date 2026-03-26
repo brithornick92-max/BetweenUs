@@ -136,11 +136,11 @@ async function gatherChallengeCounts(dataLayer) {
   if (!dataLayer) return {};
 
   const [prompts, checkIns, journals, vibes, rituals] = await Promise.all([
-    dataLayer.getPromptAnswers({ limit: 9999 }).catch(() => []),
-    dataLayer.getCheckIns({ limit: 9999 }).catch(() => []),
-    dataLayer.getJournalEntries({ limit: 9999 }).catch(() => []),
-    dataLayer.getVibes({ limit: 9999 }).catch(() => []),
-    dataLayer.getRituals({ limit: 9999 }).catch(() => []),
+    dataLayer.getPromptAnswers({ limit: 200 }).catch(() => []),
+    dataLayer.getCheckIns({ limit: 200 }).catch(() => []),
+    dataLayer.getJournalEntries({ limit: 200 }).catch(() => []),
+    dataLayer.getVibes({ limit: 200 }).catch(() => []),
+    dataLayer.getRituals({ limit: 200 }).catch(() => []),
   ]);
 
   const checkInDates = checkIns
@@ -155,9 +155,10 @@ async function gatherChallengeCounts(dataLayer) {
     const sortedDays = [...daySet].sort().reverse();
     checkInStreak = 1;
     for (let i = 1; i < sortedDays.length; i++) {
-      const prev = new Date(sortedDays[i - 1]);
-      const curr = new Date(sortedDays[i]);
-      if (prev.getTime() - curr.getTime() <= 86400000 * 1.5) {
+      const [py, pm, pd] = sortedDays[i - 1].split('-').map(Number);
+      const [cy, cm, cd] = sortedDays[i].split('-').map(Number);
+      const diffDays = (Date.UTC(py, pm - 1, pd) - Date.UTC(cy, cm - 1, cd)) / 86400000;
+      if (diffDays === 1) {
         checkInStreak++;
       } else {
         break;

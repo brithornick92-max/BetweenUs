@@ -128,7 +128,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Love notes with photo attachments\n• Unlimited date planning tools\n• Night rituals and custom routines\n• Calendar and scheduling\n• Encrypted sync for linked premium couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Soft Boundaries (hide content privately)\n• Shared premium access for linked partners',
+        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Unlimited prompt responses\n• Love notes with photo attachments\n• Unlimited date planning tools\n• Night rituals and custom routines\n• Calendar and scheduling\n• Encrypted cloud sync for linked couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Shared premium access for linked partners',
       },
       {
         q: 'How do I subscribe?',

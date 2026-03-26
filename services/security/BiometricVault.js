@@ -36,8 +36,15 @@ const b64 = naclUtil.encodeBase64;
 const unb64 = naclUtil.decodeBase64;
 
 // Cache the vault key in memory only for the duration of a session.
-// Cleared on lock, sign-out, or app background (if configured).
+// Cleared on lock, sign-out, app background, or after idle timeout.
 let _vaultKeyCache = null;
+let _vaultCacheTimer = null;
+const VAULT_CACHE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+const _resetCacheTimer = () => {
+  if (_vaultCacheTimer) clearTimeout(_vaultCacheTimer);
+  _vaultCacheTimer = setTimeout(() => { _vaultKeyCache = null; _vaultCacheTimer = null; }, VAULT_CACHE_TIMEOUT_MS);
+};
 
 const BiometricVault = {
   /**
@@ -115,7 +122,10 @@ const BiometricVault = {
    */
   async authenticate(reason = 'Authenticate to access your vault') {
     // Return cached key if available
-    if (_vaultKeyCache) return _vaultKeyCache;
+    if (_vaultKeyCache) {
+      _resetCacheTimer();
+      return _vaultKeyCache;
+    }
 
     // First do an explicit biometric check for better UX
     const authResult = await LocalAuthentication.authenticateAsync({
@@ -146,6 +156,7 @@ const BiometricVault = {
     }
 
     _vaultKeyCache = keyBytes;
+    _resetCacheTimer();
     return keyBytes;
   },
 
@@ -221,6 +232,7 @@ const BiometricVault = {
    */
   lock() {
     _vaultKeyCache = null;
+    if (_vaultCacheTimer) { clearTimeout(_vaultCacheTimer); _vaultCacheTimer = null; }
   },
 
   /**

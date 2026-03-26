@@ -34,6 +34,7 @@ import { PremiumFeature } from '../utils/featureFlags';
 import { useAppContext } from '../context/AppContext';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
 import DataLayer from '../services/data/DataLayer';
+import CrashReporting from '../services/CrashReporting';
 import { SPACING, withAlpha } from '../utils/theme';
 import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -343,7 +344,9 @@ export default function CalendarScreen({ navigation, route }) {
               Alert.alert('Notifications', 'Please enable notifications in Settings to receive reminders.');
             }
           }
-        } catch (notifErr) {}
+        } catch (notifErr) {
+          CrashReporting.captureException(notifErr, { source: 'calendar_notification_schedule' });
+        }
       }
 
       await DataLayer.createCalendarEvent({
@@ -367,6 +370,14 @@ export default function CalendarScreen({ navigation, route }) {
     } catch (err) {
       Alert.alert('Error', 'Something went wrong saving your event. Please try again.');
     }
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    const now = new Date();
+    setPickerDate(now);
+    setPickerTime(now);
+    setForm({ title: '', location: '', notes: '', eventType: 'general', isDateNight: false, notify: false, notifyMins: 60 });
   };
 
   const selectedDateEvents = events.filter(e => toDisplayDate(new Date(e.whenTs)) === toDisplayDate(selectedDate));
@@ -504,7 +515,7 @@ export default function CalendarScreen({ navigation, route }) {
                 {/* Modal header */}
                 <View style={styles.modalHeader}>
                   <Text style={[styles.modalTitle, { color: t.text }]}>New Event</Text>
-                  <TouchableOpacity onPress={() => setModalOpen(false)} style={styles.closeButton}>
+                  <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
                     <Icon name="close-outline" size={24} color={t.text} />
                   </TouchableOpacity>
                 </View>

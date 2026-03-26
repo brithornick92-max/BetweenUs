@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
+import { useEntitlements } from '../context/EntitlementsContext';
 import { SPACING, withAlpha } from '../utils/theme';
 import ConnectionMemory from '../utils/connectionMemory';
 import achievementEngine from '../utils/achievementEngine';
@@ -53,8 +54,8 @@ const uiPersonalization = {
       prompts:  { icon: 'chatbubbles-outline', label: 'Prompts',    screen: 'PromptsScreen' },
       journal:  { icon: 'book-outline',        label: 'Journal',    screen: 'JournalEntry' },
       dates:    { icon: 'calendar-outline',    label: 'Date Night', screen: 'DateScreen' },
-      rituals:  { icon: 'moon-outline',        label: 'Rituals',    screen: 'NightRitualScreen' },
-      lovenote: { icon: 'heart-outline',       label: 'Love Notes', screen: 'LoveNotesScreen' },
+    rituals:  { icon: 'moon-outline',        label: 'Rituals',    screen: 'NightRitualScreen', premium: true },
+    lovenote: { icon: 'heart-outline',       label: 'Love Notes', screen: 'LoveNotesScreen', premium: true },
       checkin:  { icon: 'pulse-outline',       label: 'Check-in',   screen: 'CheckInScreen' },
       memories: { icon: 'images-outline',      label: 'Memories',   screen: 'MemoriesScreen' },
     };
@@ -89,6 +90,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
   const { user } = useAuth();
   const { colors, isDark } = useTheme();
   const { data: dataLayer } = useData();
+  const { isPremiumEffective, showPaywall } = useEntitlements();
   
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -176,6 +178,10 @@ export default function AdaptiveHomeScreen({ navigation }) {
 
   const handleShortcutPress = (shortcut) => {
     selection();
+    if (shortcut.premium && !isPremiumEffective) {
+      showPaywall?.();
+      return;
+    }
     if (shortcut.screen && navigation) {
       navigation.navigate(shortcut.screen);
     }
@@ -237,6 +243,11 @@ export default function AdaptiveHomeScreen({ navigation }) {
                   <Icon name={shortcut.icon} size={22} color={t.primary} />
                 </View>
                 <Text style={[styles.shortcutLabel, { color: t.text }]}>{shortcut.label}</Text>
+                {shortcut.premium && !isPremiumEffective && (
+                  <View style={styles.lockBadge}>
+                    <Icon name="lock-closed-outline" size={12} color={t.subtext} />
+                  </View>
+                )}
               </TouchableOpacity>
             ))}
           </View>
@@ -364,6 +375,7 @@ const createStyles = (t, isDark) => {
     },
     shortcutIconWrap: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
     shortcutLabel: { fontSize: 15, fontWeight: "800", letterSpacing: -0.2 },
+    lockBadge: { position: 'absolute', top: 12, right: 12, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
     widgetCard: { borderRadius: 24, padding: SPACING.xl, borderWidth: 1 },
     statsGrid: { flexDirection: 'row', alignItems: 'center' },
     statItem: { alignItems: 'center', flex: 1 },

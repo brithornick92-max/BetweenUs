@@ -1,6 +1,6 @@
 # Legal Documents Summary
 
-**Last Updated: March 21, 2026**
+**Last Updated: March 26, 2026**
 
 This document provides an overview of all legal documents for the Between Us app.
 
@@ -27,7 +27,7 @@ This document provides an overview of all legal documents for the Between Us app
 **Key Points:**
 - Encryption for shared synced intimate content
 - We never sell your data
-- Client-side ML processing
+- Client-side processing
 - Your privacy rights (GDPR, CCPA compliant)
 - Data retention and deletion
 - Security measures
@@ -76,7 +76,7 @@ This document provides an overview of all legal documents for the Between Us app
 
 ### Data Protection
 🔒 **Encrypted Sync** - Shared synced intimate content is protected before upload  
-🔒 **Client-Side Processing** - Personalization happens on your device  
+🔒 **Client-Side Processing** - Personalization and content selection happen on your device  
 🔒 **No Third-Party Sharing** - We never sell your data  
 
 ---

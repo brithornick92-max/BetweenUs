@@ -204,8 +204,17 @@ const EncryptedAttachments = {
         .download(att.remote_key);
       if (error) throw error;
 
-      const arrayBuffer = await data.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
+      // Supabase returns a Blob; Hermes doesn't support Blob.arrayBuffer()
+      // so read it via FileReader as base64 instead.
+      const bytes = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const b64 = reader.result.split(',')[1];
+          resolve(naclUtil.decodeBase64(b64));
+        };
+        reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
+        reader.readAsDataURL(data);
+      });
       encryptedUri = `${ENCRYPTED_DIR}${attachmentId}.enc`;
       await writeBytesToFile(bytes, encryptedUri);
     }

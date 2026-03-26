@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last Updated: March 21, 2026**
+**Last Updated: March 26, 2026**
 
 Welcome to Between Us! These Terms of Service ("Terms") govern your use of the Between Us mobile application and related services (collectively, the "Service"). By using Between Us, you agree to these Terms.
 
@@ -80,8 +80,9 @@ You agree not to post content that:
 ## 5. Subscription and Payments
 
 ### 5.1 Free and Premium Features
-- Free users may preview a limited selection of read-only prompts (Heat levels 1-3)
-- All other features (responding, love notes, calendar, partner connection, cloud sync) require a paid subscription
+- Free users can answer 1 prompt per day (Heat levels 1-3), link with a partner, fully plan 1 date per week, and export their data
+- Premium adds unlimited prompts, unlimited date ideas, love notes, calendar, cloud sync, and more
+- Partner linking is free; premium adds encrypted cloud sync for linked couples
 - Premium subscription is per couple (both partners get access when linked)
 - Current pricing:
   - Monthly: $7.99/month

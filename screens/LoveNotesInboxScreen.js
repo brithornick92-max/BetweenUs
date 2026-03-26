@@ -213,9 +213,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
     const isUnread = !item.isOwn && !item.isRead;
     const previewText = item.locked
       ? "Locked Reflection"
-      : item.invisibleInk
-        ? "Hidden message — hold up to light"
-        : item.text
+      : item.text
           ? item.text.length > 100
             ? item.text.slice(0, 100) + "…"
             : item.text

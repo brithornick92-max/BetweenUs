@@ -4,7 +4,7 @@
  * Sync your energy in real-time with high-end tactile feedback.
  */
 
-import React, { useRef, useEffect, useMemo, useState } from 'react';
+import React, { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -124,32 +124,12 @@ export default function VibeSignalScreen({ navigation }) {
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'Partner');
   const { isTogetherNow } = useTogetherPresence();
 
-  const [activeVibeId,      setActiveVibeId]      = useState('passionate');
-  const handleVibeSelect = (vibe) => {
-    setActiveVibeId(vibe.id);
-    impact(ImpactFeedbackStyle.Medium);
-    vibeStorage.addVibeEntry(vibe, state.userId).catch(() => {});
-  };
-  const [userInitial,       setUserInitial]        = useState('');
+  const [activeVibeId, setActiveVibeId] = useState('passionate');
+  const [userInitial,  setUserInitial]  = useState('');
   // { mine: number[7], partner: number[7] } — pulse count per day (Mon–Sun)
-  const [fluxData,          setFluxData]           = useState(null);
+  const [fluxData,     setFluxData]     = useState(null);
 
-  const entranceFade       = useRef(new Animated.Value(0)).current;
-  const entranceSlide      = useRef(new Animated.Value(20)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(entranceFade,  { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.spring(entranceSlide, { toValue: 0, friction: 9,   useNativeDriver: true }),
-    ]).start();
-
-    // Load user's own nickname initial
-    NicknameEngine.getConfig().then(cfg => {
-      const name = cfg?.myNickname?.trim();
-      if (name) setUserInitial(name.charAt(0).toUpperCase());
-    }).catch(() => {});
-
-    // Flux History: count of pulses per day for user and partner
+  const loadFluxData = useCallback(() => {
     Promise.all([
       vibeStorage.getRecentVibes(7),
       vibeStorage.getRecentPartnerVibes(7),
@@ -170,6 +150,38 @@ export default function VibeSignalScreen({ navigation }) {
       setFluxData({ mine: countByDay(myVibes), partner: countByDay(partnerVibes) });
     }).catch(() => setFluxData(null));
   }, []);
+
+  const handleVibeSelect = useCallback((vibe) => {
+    setActiveVibeId(vibe.id);
+    impact(ImpactFeedbackStyle.Medium);
+    vibeStorage.addVibeEntry(vibe, state.userId)
+      .then(() => loadFluxData())
+      .catch(() => {});
+  }, [state.userId, loadFluxData]);
+
+  const entranceFade  = useRef(new Animated.Value(0)).current;
+  const entranceSlide = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(entranceFade,  { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(entranceSlide, { toValue: 0, friction: 9,   useNativeDriver: true }),
+    ]).start();
+
+    // Load user's own nickname initial
+    NicknameEngine.getConfig().then(cfg => {
+      const name = cfg?.myNickname?.trim();
+      if (name) setUserInitial(name.charAt(0).toUpperCase());
+    }).catch(() => {});
+
+    loadFluxData();
+  }, [loadFluxData]);
+
+  // Re-load chart whenever a new partner vibe arrives via realtime
+  const partnerVibe = state?.partnerVibe;
+  useEffect(() => {
+    if (partnerVibe) loadFluxData();
+  }, [partnerVibe, loadFluxData]);
 
   // ── Paywall Gate ──────────────────────────────────────────────────
   if (!isPremium) {

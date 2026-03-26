@@ -20,10 +20,17 @@
 
 let _navigationRef = null;
 
+// Only allow safe characters in deep link ID parameters
+const SAFE_ID_RE = /^[a-zA-Z0-9_\-:.]{1,128}$/;
+const _sanitizeId = (id) => {
+  if (!id || typeof id !== 'string') return null;
+  return SAFE_ID_RE.test(id) ? id : null;
+};
+
 const ROUTE_MAP = {
   'love-note': (params) => ({
     screen: 'LoveNoteDetail',
-    params: { noteId: params.id },
+    params: { noteId: _sanitizeId(params.id) },
   }),
   'vibe': () => ({
     screen: 'VibeSignal',
@@ -31,7 +38,7 @@ const ROUTE_MAP = {
   }),
   'prompt': (params) => ({
     screen: 'PromptAnswer',
-    params: { promptId: params.id },
+    params: { promptId: _sanitizeId(params.id) },
   }),
   'ritual': () => ({
     screen: 'NightRitual',
@@ -43,7 +50,7 @@ const ROUTE_MAP = {
   }),
   'date': (params) => ({
     screen: 'DateNightDetail',
-    params: { dateId: params.id },
+    params: { dateId: _sanitizeId(params.id) },
   }),
   'journal': () => ({
     screen: 'JournalEntry',

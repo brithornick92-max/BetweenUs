@@ -76,13 +76,27 @@ export default function NightRitualScreen({ navigation }) {
     ]).start();
   }, [fadeAnimation, slideAnimation]);
 
+  const autoNavTimerRef = useRef(null);
+
+  const safeGoBack = () => {
+    if (autoNavTimerRef.current) {
+      clearTimeout(autoNavTimerRef.current);
+      autoNavTimerRef.current = null;
+    }
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.replace('MainTabs');
+    }
+  };
+
   const handleRitualComplete = async (ritual, responses) => {
     impact(ImpactFeedbackStyle.Medium);
     if (__DEV__) {
       console.log('Night ritual completed:', ritual?.id);
     }
     // Navigate back after a short delay so the completion overlay is visible
-    setTimeout(() => navigation.goBack(), 3200);
+    autoNavTimerRef.current = setTimeout(safeGoBack, 3200);
   };
 
   const handleElementComplete = async (elementId, response) => {
@@ -92,11 +106,22 @@ export default function NightRitualScreen({ navigation }) {
     }
   };
 
+  const handleDismiss = () => {
+    safeGoBack();
+  };
+
   const handleBackPress = async () => {
     impact(ImpactFeedbackStyle.Light);
     selection();
-    navigation.goBack();
+    safeGoBack();
   };
+
+  // Clean up auto-nav timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoNavTimerRef.current) clearTimeout(autoNavTimerRef.current);
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -152,6 +177,7 @@ export default function NightRitualScreen({ navigation }) {
         <NightRitualMode
           onRitualComplete={handleRitualComplete}
           onElementComplete={handleElementComplete}
+          onDismiss={handleDismiss}
         />
       </Animated.View>
     </SafeAreaView>
