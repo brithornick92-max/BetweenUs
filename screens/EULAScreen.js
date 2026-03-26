@@ -83,7 +83,7 @@ const EULAScreen = ({ navigation }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>LICENSE AGREEMENT</Text>
             <Text style={[styles.title, { color: colors.text }]}>EULA</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              Effective: March 21, 2026
+              Effective: March 26, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Between Us is licensed to you subject to the terms of the Licensed Application End User License

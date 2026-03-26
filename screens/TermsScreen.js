@@ -97,7 +97,7 @@ const TermsScreen = ({ navigation, route }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>RULES OF ENGAGEMENT</Text>
             <Text style={[styles.title, { color: colors.text }]}>Terms of Service</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              EFFECTIVE: MARCH 21, 2026
+              EFFECTIVE: MARCH 26, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Welcome to Between Us. These Terms of Service ("Terms") govern your use of the Between Us mobile

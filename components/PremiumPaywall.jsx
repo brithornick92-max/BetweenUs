@@ -44,6 +44,7 @@ const PremiumPaywall = ({
   const { offerings, purchasePackage, restorePurchases, isLoading } = useSubscription();
   const { colors, isDark } = useTheme();
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [selectedTier, setSelectedTier] = useState('ANNUAL');
   const nav = useNavigation();
 
   // High-End Color Logic (No Gold)
@@ -86,6 +87,7 @@ const PremiumPaywall = ({
       }
     } catch (error) {
       CrashReporting.captureException(error, { source: 'premium_subscribe', packageType: pkg?.packageType });
+      Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
     } finally {
       setIsSubscribing(false);
     }
@@ -175,8 +177,9 @@ const PremiumPaywall = ({
             price={monthlyPkg?.product?.priceString || FALLBACK_PRICES.monthly}
             subtext="One payment per month"
             index={0}
-            onPress={handleSubscribe}
+            onPress={() => { selection(); setSelectedTier('MONTHLY'); }}
             isDisabled={isSubscribing}
+            isSelected={selectedTier === 'MONTHLY'}
           />
           <PricingOption
             pkg={yearlyPkg}
@@ -185,8 +188,9 @@ const PremiumPaywall = ({
             subtext="One payment per year"
             isPopular={true}
             index={1}
-            onPress={handleSubscribe}
+            onPress={() => { selection(); setSelectedTier('ANNUAL'); }}
             isDisabled={isSubscribing}
+            isSelected={selectedTier === 'ANNUAL'}
           />
           <PricingOption
             pkg={lifetimePkg}
@@ -194,8 +198,9 @@ const PremiumPaywall = ({
             price={lifetimePkg?.product?.priceString || FALLBACK_PRICES.lifetime}
             subtext="One payment forever"
             index={2}
-            onPress={handleSubscribe}
+            onPress={() => { selection(); setSelectedTier('LIFETIME'); }}
             isDisabled={isSubscribing}
+            isSelected={selectedTier === 'LIFETIME'}
           />
 
           <Animated.View entering={FadeIn.delay(800).duration(600)} style={styles.perCoupleWrapper}>
@@ -229,11 +234,15 @@ const PremiumPaywall = ({
       <BlurView intensity={30} tint={isDark ? "dark" : "light"} style={styles.bottomBar}>
         <TouchableOpacity 
           style={styles.mainActionBtn} 
-          onPress={() => handleSubscribe(yearlyPkg || monthlyPkg)}
-          disabled={isLoading || isSubscribing}
+          onPress={() => handleSubscribe(
+            selectedTier === 'MONTHLY' ? monthlyPkg :
+            selectedTier === 'LIFETIME' ? lifetimePkg :
+            yearlyPkg || monthlyPkg
+          )}
+          disabled={isSubscribing}
         >
           <LinearGradient colors={[theme.crimson, '#900C0F']} style={styles.mainActionGrad}>
-            {isSubscribing || isLoading ? (
+            {isSubscribing ? (
               <ActivityIndicator color="#FFF" size="small" />
             ) : (
               <Text style={styles.mainActionText}>Unlock Full Access</Text>
@@ -404,7 +413,7 @@ const BenefitItem = ({ iconName, title, body, index = 0 }) => {
   );
 };
 
-const PricingOption = ({ pkg, title, price, subtext, isPopular, index, onPress, isDisabled }) => {
+const PricingOption = ({ pkg, title, price, subtext, isPopular, isSelected, index, onPress, isDisabled }) => {
   const { colors, isDark } = useTheme();
   const theme = useMemo(() => ({
     crimson: '#D2121A',
@@ -416,8 +425,8 @@ const PricingOption = ({ pkg, title, price, subtext, isPopular, index, onPress, 
   return (
     <Animated.View entering={FadeInUp.delay(500 + index * 100).duration(600)}>
       <TouchableOpacity
-        onPress={() => onPress(pkg)}
-        style={[styles.pricingOption, isPopular && styles.pricingOptionPopular]}
+        onPress={onPress}
+        style={[styles.pricingOption, (isPopular || isSelected) && styles.pricingOptionPopular]}
         activeOpacity={0.9}
         disabled={isDisabled}
       >

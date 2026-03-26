@@ -77,7 +77,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>SECURITY & TRUST</Text>
             <Text style={[styles.title, { color: colors.text }]}>Privacy Policy</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              Last Updated: March 21, 2026
+              Last Updated: March 26, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Your privacy is critically important to us. This Privacy Policy explains how we collect, use, 

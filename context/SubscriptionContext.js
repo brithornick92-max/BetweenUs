@@ -180,6 +180,7 @@ export const SubscriptionProvider = ({ children }) => {
       // prevent double-runs — await any in-flight init instead of skipping
       if (initPromiseRef.current) {
         await initPromiseRef.current;
+        if (!cancelled) setIsLoading(false);
         return;
       }
 
@@ -230,7 +231,9 @@ export const SubscriptionProvider = ({ children }) => {
         }
       } finally {
         initPromiseRef.current = null;
-        if (!cancelled) setIsLoading(false);
+        // Always reset loading — SubscriptionProvider is never unmounted,
+        // so state updates here are always safe regardless of cancellation.
+        setIsLoading(false);
       }
     };
 
