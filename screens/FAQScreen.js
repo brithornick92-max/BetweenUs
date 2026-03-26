@@ -1,29 +1,29 @@
 /**
  * FAQScreen — Knowledge & Support Hub
- * Sexy Red Intimacy & Apple Editorial Updates Integrated.
- * High-end editorial typography with Velvet Glass surfaces.
+ * Velvet Glass & Apple Editorial High-End Updates Integrated.
+ * Palette: Deep Crimson, Obsidian, Liquid Silver (Strictly No Gold).
  */
 
 import React, { useState, useMemo } from 'react';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   Alert,
   Dimensions,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SUPPORT_EMAIL } from '../config/constants';
-import { SPACING, withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { FALLBACK_PRICES } from '../utils/premiumFeatures';
@@ -189,18 +189,16 @@ export default function FAQScreen({ navigation }) {
   const [expandedItems, setExpandedItems] = useState({});
   const { colors, isDark } = useTheme();
 
-  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
-  const t = useMemo(() => ({
-    background: colors.background,
-    surface: isDark ? '#131016' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#D2121A',
-    text: colors.text,
-    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-  }), [colors, isDark]);
+  // ── High-End Color Logic (No Gold) ──────────────────────────────────────────
+  const theme = useMemo(() => ({
+    crimson: '#D2121A',
+    silver: isDark ? '#E5E5E7' : '#8E8E93',
+    obsidian: '#0A0A0C',
+    glass: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
+    glassBorder: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+  }), [isDark]);
 
-  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  const styles = useMemo(() => createStyles(colors, isDark, theme), [colors, isDark, theme]);
 
   const toggleItem = (categoryIndex, questionIndex) => {
     selection();
@@ -214,26 +212,30 @@ export default function FAQScreen({ navigation }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle="light-content" />
-      <GlowOrb color="#D2121A" size={300} top={-100} left={SCREEN_W - 200} opacity={isDark ? 0.15 : 0.1} />
-      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={250} top={650} left={-80} delay={1500} opacity={isDark ? 0.1 : 0.06} />
-      <FilmGrain opacity={0.03} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <LinearGradient
+        colors={isDark ? [theme.obsidian, '#1A0205', theme.obsidian] : ['#FFFFFF', '#F9F4F4', '#FFFFFF']}
+        style={StyleSheet.absoluteFillObject}
+      />
+      {/* Crimson Ambient Glow */}
+      <GlowOrb color={theme.crimson} size={400} top={-100} left={SCREEN_W - 250} opacity={0.1} />
+      <GlowOrb color={theme.silver} size={300} top={500} left={-100} opacity={isDark ? 0.05 : 0.08} />
+      <FilmGrain opacity={0.035} />
 
-      <SafeAreaView style={styles.safeArea}>
-        {/* Editorial Header */}
-        <View style={styles.header}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Editorial Top Navigation */}
+        <View style={styles.navHeader}>
           <TouchableOpacity
             onPress={() => {
               selection();
               navigation.goBack();
             }}
             style={styles.backButton}
+            activeOpacity={0.7}
           >
-            <Icon name="chevron-back" size={28} color={t.text} />
+            <Icon name="chevron-back" size={28} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: t.text }]}>Assistance</Text>
-          <View style={{ width: 44 }} />
         </View>
 
         <ScrollView
@@ -241,13 +243,14 @@ export default function FAQScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Intro Text */}
-          <View style={styles.introSection}>
-            <Text style={[styles.introTitle, { color: t.text }]}>Frequently Asked Questions</Text>
-            <Text style={[styles.introText, { color: t.subtext }]}>
-              Explore how to make the most of your shared sanctuary. If you need further help, our support team is available.
+          {/* Editorial Header Block */}
+          <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
+            <Text style={[styles.headerEye, { color: theme.crimson }]}>KNOWLEDGE BASE</Text>
+            <Text style={[styles.introTitle, { color: colors.text }]}>Assistance</Text>
+            <Text style={[styles.introText, { color: colors.textMuted }]}>
+              Explore how to make the most of your shared sanctuary. If you need further guidance, our concierge team is available.
             </Text>
-          </View>
+          </Animated.View>
 
           {/* FAQ Categories */}
           {FAQ_DATA.map((category, catIdx) => (
@@ -256,9 +259,9 @@ export default function FAQScreen({ navigation }) {
               entering={FadeInDown.delay(catIdx * 100).duration(600)}
               style={styles.categoryContainer}
             >
-              <Text style={[styles.categoryTitle, { color: t.primary }]}>{category.category}</Text>
+              <Text style={[styles.categoryTitle, { color: theme.crimson }]}>{category.category}</Text>
 
-              <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+              <View style={[styles.card, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}>
                 {category.questions.map((item, qIdx) => {
                   const key = `${catIdx}-${qIdx}`;
                   const isExpanded = expandedItems[key];
@@ -269,23 +272,25 @@ export default function FAQScreen({ navigation }) {
                       key={qIdx}
                       style={[
                         styles.faqItem,
-                        !isLast && { borderBottomWidth: 1, borderBottomColor: t.border },
+                        !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glassBorder },
                       ]}
                       onPress={() => toggleItem(catIdx, qIdx)}
-                      activeOpacity={0.8}
+                      activeOpacity={0.7}
                     >
                       <View style={styles.questionRow}>
-                        <Text style={[styles.questionText, { color: t.text }]}>{item.q}</Text>
-                        <Icon
-                          name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                          size={18}
-                          color={t.subtext}
-                        />
+                        <Text style={[styles.questionText, { color: colors.text }]}>{item.q}</Text>
+                        <View style={[styles.iconCircle, isExpanded && { backgroundColor: theme.crimson + '15' }]}>
+                          <Icon
+                            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                            size={16}
+                            color={isExpanded ? theme.crimson : colors.textMuted}
+                          />
+                        </View>
                       </View>
 
                       {isExpanded && (
                         <Animated.View entering={FadeInDown.duration(300)}>
-                          <Text style={[styles.answerText, { color: t.subtext }]}>{item.a}</Text>
+                          <Text style={[styles.answerText, { color: colors.textMuted }]}>{item.a}</Text>
                         </Animated.View>
                       )}
                     </TouchableOpacity>
@@ -295,24 +300,31 @@ export default function FAQScreen({ navigation }) {
             </Animated.View>
           ))}
 
-          {/* Support Section */}
-          <View style={[styles.supportCard, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
-            <View style={[styles.supportIcon, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
-              <Icon name="mail-outline" size={24} color={t.primary} />
-            </View>
-            <Text style={[styles.supportTitle, { color: t.text }]}>Still have questions?</Text>
-            <Text style={[styles.supportSub, { color: t.subtext }]}>We usually respond within 24 hours.</Text>
+          {/* Concierge Support Velvet Card */}
+          <Animated.View entering={FadeInDown.delay(600).duration(800)}>
+            <BlurView intensity={isDark ? 20 : 40} tint={isDark ? "dark" : "light"} style={[styles.supportCard, { borderColor: theme.glassBorder }]}>
+              <View style={[styles.supportIcon, { backgroundColor: theme.crimson + '15' }]}>
+                <Icon name="mail" size={28} color={theme.crimson} />
+              </View>
+              <Text style={[styles.supportTitle, { color: colors.text }]}>Still have questions?</Text>
+              <Text style={[styles.supportSub, { color: colors.textMuted }]}>Our concierge team usually responds within 24 hours.</Text>
 
-            <TouchableOpacity
-              style={[styles.supportButton, { backgroundColor: t.primary }]}
-              onPress={handleContactSupport}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.supportButtonText}>Contact Concierge</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.supportButton}
+                onPress={handleContactSupport}
+                activeOpacity={0.9}
+              >
+                <LinearGradient
+                  colors={[theme.crimson, '#900C0F']}
+                  style={styles.supportButtonGrad}
+                >
+                  <Text style={styles.supportButtonText}>Contact Concierge</Text>
+                </LinearGradient>
+              </TouchableOpacity>
 
-            <Text style={[styles.supportEmail, { color: t.subtext }]}>{SUPPORT_EMAIL}</Text>
-          </View>
+              <Text style={[styles.supportEmail, { color: colors.textMuted }]}>{SUPPORT_EMAIL}</Text>
+            </BlurView>
+          </Animated.View>
 
           <View style={{ height: 100 }} />
         </ScrollView>
@@ -321,129 +333,163 @@ export default function FAQScreen({ navigation }) {
   );
 }
 
-const createStyles = (t, isDark) => StyleSheet.create({
+const createStyles = (colors, isDark, theme) => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  
+  navHeader: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 10 : 20,
-    paddingBottom: 20,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
-  backButton: { width: 44, height: 44, justifyContent: 'center' },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
+  backButton: { 
+    width: 44, 
+    height: 44, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 22,
+    backgroundColor: theme.glass,
   },
+
   scrollView: { flex: 1 },
-  scrollContent: { paddingHorizontal: 24, paddingTop: 20 },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 16 },
+  
   introSection: { marginBottom: 40 },
+  headerEye: {
+    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold' }),
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
   introTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 32,
-    fontWeight: '800',
-    letterSpacing: -0.8,
-    marginBottom: 12,
+    fontSize: 42,
+    fontWeight: '900',
+    letterSpacing: -1.5,
+    marginBottom: 16,
   },
   introText: {
     fontFamily: SYSTEM_FONT,
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '500',
+    opacity: 0.8,
   },
-  categoryContainer: { marginBottom: 32 },
+
+  categoryContainer: { marginBottom: 36 },
   categoryTitle: {
-    fontFamily: SYSTEM_FONT,
+    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold' }),
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 16,
     marginLeft: 4,
   },
-  card: { borderRadius: 24, borderWidth: 1, overflow: 'hidden' },
-  faqItem: { padding: 20 },
+  card: { 
+    borderRadius: 28, 
+    borderWidth: 1.5, 
+    overflow: 'hidden' 
+  },
+  faqItem: { 
+    padding: 22 
+  },
   questionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 16,
   },
   questionText: {
     flex: 1,
     fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-    marginRight: 16,
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.glass,
   },
   answerText: {
     fontFamily: SYSTEM_FONT,
     fontSize: 15,
-    lineHeight: 22,
-    marginTop: 12,
+    lineHeight: 24,
+    marginTop: 14,
     fontWeight: '500',
+    opacity: 0.85,
   },
+
   supportCard: {
     padding: 32,
-    borderRadius: 32,
+    borderRadius: 36,
     alignItems: 'center',
-    borderWidth: 1,
-    marginTop: 20,
+    borderWidth: 1.5,
+    marginTop: 10,
+    overflow: 'hidden',
   },
   supportIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
   },
   supportTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 4,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginBottom: 8,
   },
   supportSub: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
-    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+    opacity: 0.8,
   },
   supportButton: {
-    height: 56,
-    paddingHorizontal: 32,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
-    marginBottom: 16,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 20,
     ...Platform.select({
       ios: {
-        shadowColor: '#D2121A',
+        shadowColor: theme.crimson,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.3,
-        shadowRadius: 12,
+        shadowRadius: 15,
       },
-      android: { elevation: 6 },
+      android: { elevation: 8 },
     }),
+  },
+  supportButtonGrad: {
+    flex: 1,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   supportButtonText: {
     color: '#FFFFFF',
     fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    fontWeight: '800',
-    textTransform: 'uppercase',
+    fontWeight: '900',
     letterSpacing: -0.2,
   },
   supportEmail: {
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
+    opacity: 0.6,
   },
 });

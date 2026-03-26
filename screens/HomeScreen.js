@@ -46,7 +46,7 @@ import { FALLBACK_PROMPT } from '../utils/contentLoader';
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 function dateKey(date) {
-  const d = date instanceof Date ? date : new Date();
+  const d = date instanceof Date ? date : new Date(date ?? undefined);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 

@@ -1,12 +1,14 @@
 /**
  * FilmGrain — Subtle analog texture overlay
- * Sexy Red Intimacy & Apple Editorial Updates Integrated.
- * * Renders a deterministic noise pattern at very low opacity.
- * Gives ink-black backgrounds a tactile, high-end paper feeling.
+ * Velvet Glass & Apple Editorial High-End Updates Integrated.
+ * Palette: Deep Crimson, Obsidian, Liquid Silver (Strictly No Gold).
+ * Renders a deterministic noise pattern at very low opacity.
+ * Gives obsidian backgrounds a tactile, high-end paper feeling.
  */
 
 import React, { useMemo } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -26,6 +28,10 @@ const seed = (s) => () => {
 };
 
 const FilmGrain = ({ opacity = 0.04 }) => {
+  const { isDark } = useTheme();
+  // Crisp white grain for dark obsidian backgrounds; pure black grain for stark light backgrounds
+  const dotColor = isDark ? '255,255,255' : '0,0,0';
+
   const dots = useMemo(() => {
     const rng = seed(77); // New seed for updated distribution
     const result = [];
@@ -52,15 +58,14 @@ const FilmGrain = ({ opacity = 0.04 }) => {
               width: DOT,
               height: DOT,
               borderRadius: DOT / 2,
-              // Warm linen-bone tint for tactile intimacy
-              backgroundColor: `rgba(242,233,230,${o})`,
+              backgroundColor: `rgba(${dotColor},${o})`,
             }}
           />
         );
       }
     }
     return result;
-  }, []);
+  }, [dotColor]);
 
   return (
     <View 

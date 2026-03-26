@@ -64,7 +64,7 @@ const HEAT_ICONS = {
   5: "flame-outline",
 };
 
-function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, isDark, cardWidth, cardHeight, shimmerBandStyle }) {
+function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, isDark, colors, cardWidth, cardHeight, shimmerBandStyle }) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const rotateZ = useSharedValue(0);
@@ -265,7 +265,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
               <Icon name="pencil-outline" size={24} color="#FFF" />
               <Text style={styles.swipeHintText}>Reflect</Text>
             </Animated.View>
-            <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}>
+            <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle, { backgroundColor: colors.surface2 }]}>
               <Icon name="close-outline" size={24} color="#FFF" />
               <Text style={styles.swipeHintText}>Skip</Text>
             </Animated.View>
@@ -277,6 +277,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
 }
 
 export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress }) {
+  const { isDark, colors } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [deckLayout, setDeckLayout] = useState({ width: DEFAULT_CARD_W + (CARD_HORIZONTAL_MARGIN * 2), height: DEFAULT_CARD_H + (CARD_VERTICAL_MARGIN * 2) });
   const visibleCards = useMemo(() => prompts.slice(currentIndex, currentIndex + 4), [prompts, currentIndex]);
@@ -326,7 +327,8 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongP
             onSwipeRight={handleSwipeRight}
             onSwipeLeft={handleSwipeLeft}
             onLongPress={onLongPress}
-            isDark={true}
+            isDark={isDark}
+            colors={colors}
             cardWidth={cardWidth}
             cardHeight={cardHeight}
             shimmerBandStyle={shimmerBandStyle}
@@ -370,6 +372,6 @@ const styles = StyleSheet.create({
 
   swipeHint: { position: "absolute", top: 20, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 2, borderColor: "rgba(255,255,255,0.15)" },
   swipeHintRight: { left: 16, backgroundColor: "#D2121A" },
-  swipeHintLeft: { right: 16, backgroundColor: "#1C1C1E" },
+  swipeHintLeft: { right: 16 },
   swipeHintText: { fontFamily: SYSTEM_FONT, fontSize: 14, fontWeight: "800", color: "#FFF", letterSpacing: 0.5, textTransform: "uppercase" },
 });

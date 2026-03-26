@@ -16,6 +16,7 @@ import {
   Animated, 
   Easing, 
   Linking,
+  Appearance,
   Platform
 } from 'react-native';
 import CrashReporting from '../services/CrashReporting';
@@ -84,20 +85,30 @@ export default class ErrorBoundary extends React.Component {
   };
 
   render() {
-    // SEXY RED x APPLE EDITORIAL THEME CONSTANTS
-    const t = {
+    // THEME — respects system color scheme since ErrorBoundary lives outside ThemeProvider
+    const isDark = Appearance.getColorScheme() !== 'light';
+    const t = isDark ? {
       background: '#070509',
-      primary: '#D2121A', // Sexy Red
+      primary: '#D2121A',
       text: '#F2E9E6',
       subtext: 'rgba(242,233,230,0.55)',
       surface: 'rgba(255,255,255,0.04)',
-      border: 'rgba(255,255,255,0.08)'
+      border: 'rgba(255,255,255,0.08)',
+      barStyle: 'light-content',
+    } : {
+      background: '#FAF4EE',
+      primary: '#D2121A',
+      text: '#1C1019',
+      subtext: 'rgba(28,16,25,0.55)',
+      surface: 'rgba(0,0,0,0.04)',
+      border: 'rgba(0,0,0,0.08)',
+      barStyle: 'dark-content',
     };
 
     if (this.state.hasError) {
       return (
         <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} accessibilityRole="alert">
-          <StatusBar barStyle="light-content" />
+          <StatusBar barStyle={t.barStyle} />
           
           <Animated.View 
             style={[

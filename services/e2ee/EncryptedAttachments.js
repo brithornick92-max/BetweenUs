@@ -209,7 +209,12 @@ const EncryptedAttachments = {
       const bytes = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
-          const b64 = reader.result.split(',')[1];
+          const parts = reader.result.split(',');
+          const b64 = parts.length >= 2 ? parts[1] : parts[0];
+          if (!b64) {
+            reject(new Error('Invalid data URL format from Blob'));
+            return;
+          }
           resolve(naclUtil.decodeBase64(b64));
         };
         reader.onerror = () => reject(reader.error || new Error('FileReader failed'));

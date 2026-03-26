@@ -395,8 +395,10 @@ const SyncEngine = {
         } catch { /* ignore */ }
       }
 
-      // 3. Push all other local changes (love_notes, journals, etc.)
+      // 3. Push all other local changes (journals, etc.)
+      //    Skip love_notes if attachments failed — prevents partner seeing broken media_ref
       for (const table of SYNC_TABLES) {
+        if (table === 'love_notes' && !attachmentUploadOk) continue;
         const r = await pushTable(table);
         results.pushed += r.pushed;
         results.failed += r.failed;
@@ -426,19 +428,25 @@ const SyncEngine = {
     if (!canSync()) return;
     // Upload encrypted attachment files FIRST so they exist in Storage
     // before love_notes rows (which reference media_ref) reach the partner.
+    let attachmentsOk = false;
     try {
       await EncryptedAttachments.uploadAllPending();
+      attachmentsOk = true;
     } catch (err) {
       console.warn('[Sync] pushNow attachment upload failed:', err?.message);
     }
     // Push attachment metadata so partner can discover the files
-    try {
-      await pushTable('attachments');
-    } catch (err) {
-      console.warn('[Sync] pushNow attachment meta push failed:', err?.message);
+    if (attachmentsOk) {
+      try {
+        await pushTable('attachments');
+      } catch (err) {
+        console.warn('[Sync] pushNow attachment meta push failed:', err?.message);
+      }
     }
-    // Now push all other tables (love_notes, journals, etc.)
+    // Now push all other tables (journals, etc.)
+    // Skip love_notes if attachments failed — prevents partner seeing broken media_ref
     for (const table of SYNC_TABLES) {
+      if (table === 'love_notes' && !attachmentsOk) continue;
       await pushTable(table);
     }
   },

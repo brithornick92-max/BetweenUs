@@ -74,11 +74,11 @@ export function DataProvider({ children }) {
         let syncUserId = userId;
         for (let attempt = 0; attempt < 3; attempt++) {
           try {
-            if (supabase) {
-              const { data } = await supabase.auth.getUser();
-              if (data?.user?.id) { syncUserId = data.user.id; break; }
-            }
-            break; // supabase is null — no point retrying
+            if (!supabase) break; // supabase is null — no point retrying
+            const { data } = await supabase.auth.getUser();
+            if (data?.user?.id) { syncUserId = data.user.id; break; }
+            // User not returned yet — retry after backoff
+            if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
           } catch (err) {
             console.warn('[DataContext] auth.getUser attempt', attempt + 1, 'failed:', err?.message);
             if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));

@@ -1,4 +1,8 @@
-import { useState, useEffect } from 'react';
+// screens/PrivacySecuritySettingsScreen.js
+// Velvet Glass & Apple Editorial High-End Updates Integrated.
+// Palette: Deep Crimson, Obsidian, Liquid Silver (Strictly No Gold).
+
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,8 +12,17 @@ import {
   Switch,
   Alert,
   Platform,
+  StatusBar,
+  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import Icon from '../components/Icon';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../context/ThemeContext';
@@ -19,12 +32,26 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { PremiumFeature } from '../utils/featureFlags';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 
+const { width: SCREEN_W } = Dimensions.get('window');
+const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
+
 const PrivacySecuritySettingsScreen = ({ navigation }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors, false);
+  const { colors, isDark } = useTheme();
   const { signOutLocal, signOutGlobal, busy } = useAuth();
   const { actions } = useAppContext();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  
+  // High-End Color Logic (No Gold)
+  const theme = useMemo(() => ({
+    crimson: '#D2121A',
+    silver: isDark ? '#E5E5E7' : '#8E8E93',
+    obsidian: '#0A0A0C',
+    glass: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
+    glassBorder: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+  }), [isDark]);
+
+  const styles = useMemo(() => createStyles(colors, isDark, theme), [colors, isDark, theme]);
+
   const [appLockEnabled, setAppLockEnabled] = useState(false);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [biometricsAvailable, setBiometricsAvailable] = useState(false);
@@ -81,7 +108,6 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
       return;
     }
     if (value && biometricsAvailable) {
-      // Test biometric authentication
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Authenticate to enable app lock',
         fallbackLabel: 'Use passcode',
@@ -139,10 +165,8 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
       };
 
       await storage.set(STORAGE_KEYS.PRIVACY_SETTINGS, settings);
-
-      // Also persist appLockEnabled to the key AppContext reads on boot
       await storage.set(STORAGE_KEYS.APP_LOCK_ENABLED, appLockEnabled);
-      // Immediately update AppContext so the lock takes effect without restart
+      
       if (actions?.setAppLockEnabled) {
         actions.setAppLockEnabled(appLockEnabled);
       }
@@ -159,11 +183,11 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
     }
   };
 
-  const renderSettingRow = (title, description, value, onValueChange, disabled = false) => (
-    <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
+  const renderSettingRow = (title, description, value, onValueChange, disabled = false, isLast = false) => (
+    <View style={[styles.settingRow, !isLast && { borderBottomColor: theme.glassBorder }]}>
       <View style={styles.settingInfo}>
         <Text style={[styles.settingTitle, { color: colors.text }]}>{title}</Text>
-        <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+        <Text style={[styles.settingDescription, { color: colors.textMuted || 'gray' }]}>
           {description}
         </Text>
       </View>
@@ -171,403 +195,455 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
-        trackColor={{ false: colors.border, true: colors.primary + '80' }}
-        thumbColor={value ? colors.primary : colors.textMuted}
-        ios_backgroundColor={colors.border}
+        trackColor={{ false: theme.glassBorder, true: theme.crimson + '80' }}
+        thumbColor={value ? theme.crimson : (isDark ? '#E5E5E7' : '#FFFFFF')}
+        ios_backgroundColor={theme.glassBorder}
       />
     </View>
   );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="arrow-back-outline" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Privacy & Security</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <LinearGradient
+        colors={isDark ? [theme.obsidian, '#1A0205', theme.obsidian] : ['#FFFFFF', '#F9F4F4', '#FFFFFF']}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <GlowOrb color={theme.crimson} size={400} top={-100} left={SCREEN_W - 250} opacity={0.08} />
+      <GlowOrb color={theme.silver} size={300} top={600} left={-100} opacity={isDark ? 0.04 : 0.08} />
+      <FilmGrain opacity={0.035} />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-            <Icon name="shield-checkmark" size={48} color={colors.primary} />
-          </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Navigation */}
+        <View style={styles.navHeader}>
+          <TouchableOpacity
+            onPress={() => { selection(); navigation.goBack(); }}
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <Icon name="chevron-back" size={28} color={colors.text} />
+          </TouchableOpacity>
+        </View>
 
-          {/* Title */}
-          <Text style={[styles.title, { color: colors.text }]}>Keep Your Data Safe</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Control how your personal information is protected
-          </Text>
-
-          {/* App Lock Section */}
-          <View style={[styles.settingsCard, { backgroundColor: colors.card }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>App Lock</Text>
-              {!isPremium && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                  <Icon name="lock-closed" size={12} color={colors.primary} style={{ marginRight: 4 }} />
-                  <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '600' }}>PREMIUM</Text>
-                </View>
-              )}
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          
+          {/* Editorial Header Block */}
+          <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
+            <View style={styles.iconContainer}>
+              <Icon name="shield-checkmark" size={42} color={theme.crimson} />
             </View>
+            <Text style={[styles.headerEye, { color: theme.crimson }]}>DATA PROTECTION</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Privacy & Security</Text>
+            <Text style={[styles.intro, { color: colors.textMuted }]}>
+              Control how your personal information is protected and who has access to your sanctuary.
+            </Text>
+          </Animated.View>
 
-            {renderSettingRow(
-              'Enable App Lock',
-              biometricsAvailable 
-                ? `Require ${biometricType} to open the app`
-                : 'Biometrics not available on this device',
-              appLockEnabled,
-              handleToggleAppLock,
-              !biometricsAvailable
-            )}
+          <Animated.View entering={FadeInDown.delay(100).duration(800)}>
+            {/* App Lock Section (Velvet Glass Card) */}
+            <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.settingsCard, { borderColor: theme.glassBorder }]}>
+              <View style={styles.cardHeaderRow}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Vault Lock</Text>
+                {!isPremium && (
+                  <View style={[styles.premiumBadge, { backgroundColor: theme.crimson + '15' }]}>
+                    <Icon name="lock-closed" size={10} color={theme.crimson} style={{ marginRight: 4 }} />
+                    <Text style={[styles.premiumBadgeText, { color: theme.crimson }]}>PREMIUM</Text>
+                  </View>
+                )}
+              </View>
 
-            {appLockEnabled && biometricsAvailable && renderSettingRow(
-              `Use ${biometricType}`,
-              `Unlock with ${biometricType} instead of passcode`,
-              biometricsEnabled,
-              handleToggleBiometrics
-            )}
+              {renderSettingRow(
+                'Enable Vault Lock',
+                biometricsAvailable 
+                  ? `Require ${biometricType} to open the app`
+                  : 'Biometrics not available on this device',
+                appLockEnabled,
+                handleToggleAppLock,
+                !biometricsAvailable,
+                !(appLockEnabled && biometricsAvailable) && !appLockEnabled
+              )}
 
-            {appLockEnabled && (
+              {appLockEnabled && biometricsAvailable && renderSettingRow(
+                `Use ${biometricType}`,
+                `Unlock with ${biometricType} instead of passcode`,
+                biometricsEnabled,
+                handleToggleBiometrics,
+                false,
+                !appLockEnabled
+              )}
+
+              {appLockEnabled && (
+                <TouchableOpacity
+                  style={[styles.actionRow, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.glassBorder }]}
+                  onPress={() => navigation.navigate('SetPin')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.actionInfo}>
+                    <Text style={[styles.actionTitle, { color: colors.text }]}>Set Fallback PIN</Text>
+                    <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Optional backup if biometrics fail</Text>
+                  </View>
+                  <Icon name="chevron-forward" size={20} color={colors.textMuted || 'gray'} />
+                </TouchableOpacity>
+              )}
+            </BlurView>
+
+            {/* Privacy Section */}
+            <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.settingsCard, { borderColor: theme.glassBorder }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>App Switcher</Text>
+              {renderSettingRow(
+                'Hide App Preview',
+                'Blur app content when switching between apps',
+                hidePreview,
+                (value) => { setHidePreview(value); selection(); },
+                false,
+                true
+              )}
+            </BlurView>
+
+            {/* Session Security */}
+            <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.settingsCard, { borderColor: theme.glassBorder }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Session Security</Text>
+
               <TouchableOpacity
-                style={styles.actionRow}
-                onPress={() => navigation.navigate('SetPin')}
+                style={[styles.actionRow, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glassBorder }]}
+                onPress={() => {
+                  Alert.alert(
+                    'Sign Out This Device',
+                    'This will sign you out of Between Us on this device only. Your other devices will stay logged in.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Sign Out',
+                        onPress: async () => {
+                          try {
+                            impact(ImpactFeedbackStyle.Medium);
+                            await signOutLocal();
+                          } catch (error) {
+                            Alert.alert('Error', 'Failed to sign out. Please try again.');
+                          }
+                        },
+                      },
+                    ]
+                  );
+                }}
+                disabled={busy}
                 activeOpacity={0.7}
               >
                 <View style={styles.actionInfo}>
-                  <Text style={[styles.actionTitle, { color: colors.text }]}>
-                    Set App Lock PIN
-                  </Text>
-                  <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
-                    Optional fallback if biometrics aren’t available
+                  <Text style={[styles.actionTitle, { color: colors.text }]}>Sign Out (This Device)</Text>
+                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Keep other devices signed in</Text>
+                </View>
+                <Icon name="log-out-outline" size={20} color={colors.textMuted || 'gray'} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionRow}
+                onPress={() => {
+                  Alert.alert(
+                    'Sign Out Everywhere',
+                    'This will sign you out of Between Us on ALL devices. Other sessions will be forced out when their access token expires.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Sign Out Everywhere',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            notification(NotificationFeedbackType.Warning);
+                            await signOutGlobal();
+                          } catch (error) {
+                            Alert.alert('Error', 'Failed to sign out. Please try again.');
+                          }
+                        },
+                      },
+                    ]
+                  );
+                }}
+                disabled={busy}
+                activeOpacity={0.7}
+              >
+                <View style={styles.actionInfo}>
+                  <Text style={[styles.actionTitle, { color: theme.crimson }]}>Revoke All Sessions</Text>
+                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Sign out everywhere immediately</Text>
+                </View>
+                <Icon name="shield-outline" size={20} color={theme.crimson} />
+              </TouchableOpacity>
+            </BlurView>
+
+            {/* Information Cards (Velvet Layout) */}
+            <View style={styles.infoGroup}>
+              <View style={[styles.infoCard, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}>
+                <View style={[styles.infoIconWrap, { backgroundColor: theme.crimson + '15' }]}>
+                  <Icon name="lock-closed" size={20} color={theme.crimson} />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={[styles.infoTitle, { color: colors.text }]}>End-to-End Encryption</Text>
+                  <Text style={[styles.infoText, { color: colors.textMuted || 'gray' }]}>
+                    Synced data is encrypted in transit and protected at rest. Sensitive shared content is encrypted before sync. One shared space. Nothing public. Ever.
                   </Text>
                 </View>
-                <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
+              </View>
+
+              <View style={[styles.infoCard, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}>
+                <View style={[styles.infoIconWrap, { backgroundColor: theme.silver + '20' }]}>
+                  <Icon name="phone-portrait-outline" size={20} color={colors.text} />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={[styles.infoTitle, { color: colors.text }]}>Device Continuity</Text>
+                  <Text style={[styles.infoText, { color: colors.textMuted || 'gray' }]}>
+                    Sign in on a new device to automatically restore your account, couple link, and cloud-synced shared data.
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Data Management */}
+            <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.settingsCard, { borderColor: theme.glassBorder }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Data Management</Text>
+
+              <TouchableOpacity
+                style={[styles.actionRow, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glassBorder }]}
+                onPress={() => navigation.navigate('ExportData')}
+                activeOpacity={0.7}
+              >
+                <View style={styles.actionInfo}>
+                  <Text style={[styles.actionTitle, { color: colors.text }]}>Export My Data</Text>
+                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Download all your journal entries</Text>
+                </View>
+                <Icon name="download-outline" size={20} color={colors.textMuted || 'gray'} />
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionRow}
+                onPress={() => navigation.navigate('DeleteAccount')}
+                activeOpacity={0.7}
+              >
+                <View style={styles.actionInfo}>
+                  <Text style={[styles.actionTitle, { color: theme.crimson }]}>Delete Account</Text>
+                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Permanently delete your account and data</Text>
+                </View>
+                <Icon name="trash-outline" size={20} color={theme.crimson} />
+              </TouchableOpacity>
+            </BlurView>
+          </Animated.View>
+
+          <View style={{ height: 120 }} />
+        </ScrollView>
+      </SafeAreaView>
+
+      {/* Floating Save Button */}
+      <BlurView intensity={isDark ? 40 : 60} tint={isDark ? "dark" : "light"} style={[styles.bottomBar, { borderColor: theme.glassBorder }]}>
+        <TouchableOpacity 
+          style={styles.saveBtn} 
+          onPress={handleSave}
+          disabled={isSaving}
+          activeOpacity={0.9}
+        >
+          <LinearGradient colors={[theme.crimson, '#900C0F']} style={styles.saveBtnGrad}>
+            {isSaving ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.saveBtnText}>Save Configuration</Text>
             )}
-          </View>
-
-          {/* Privacy Section */}
-          <View style={[styles.settingsCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Privacy</Text>
-
-            {renderSettingRow(
-              'Hide App Preview',
-              'Blur app content when switching apps',
-              hidePreview,
-              (value) => {
-                setHidePreview(value);
-                selection();
-              }
-            )}
-          </View>
-
-          {/* Privacy Info (accurate, trust-building copy) */}
-          <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-            <Icon name="lock-closed" size={24} color={colors.primary} />
-            <View style={styles.infoContent}>
-              <Text style={[styles.infoTitle, { color: colors.text }]}>Your data is encrypted and private</Text>
-              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                Shared content stays inside your couple space, and private settings like soft boundaries stay on your device.{"\n\n"}
-                Synced data is encrypted in transit (HTTPS/TLS) and protected at rest on our servers. Sensitive shared content is also encrypted before sync, and access is limited by row-level security to the correct account or couple.{"\n\n"}
-                Photos are stored in a private bucket. Viewing requires a short-lived signed URL that expires automatically.{"\n\n"}
-                One shared space. Nothing public. Ever.
-              </Text>
-            </View>
-          </View>
-
-          {/* Session Security */}
-          <View style={[styles.settingsCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Session Security</Text>
-
-            <TouchableOpacity
-              style={styles.actionRow}
-              onPress={() => {
-                Alert.alert(
-                  'Sign Out This Device',
-                  'This will sign you out of Between Us on this device only. Your other devices will stay logged in.',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Sign Out',
-                      onPress: async () => {
-                        try {
-                          impact(ImpactFeedbackStyle.Medium);
-                          await signOutLocal();
-                        } catch (error) {
-                          Alert.alert('Error', 'Failed to sign out. Please try again.');
-                        }
-                      },
-                    },
-                  ]
-                );
-              }}
-              disabled={busy}
-              activeOpacity={0.7}
-            >
-              <View style={styles.actionInfo}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>
-                  Sign out (this device)
-                </Text>
-                <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
-                  Keep other devices signed in
-                </Text>
-              </View>
-              <Icon name="log-out-outline" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionRow}
-              onPress={() => {
-                Alert.alert(
-                  'Sign Out Everywhere',
-                  'This will sign you out of Between Us on ALL devices. Other sessions will be forced out when their access token expires.\n\nRecommended if you lost your phone or suspect unauthorized access.',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Sign Out Everywhere',
-                      style: 'destructive',
-                      onPress: async () => {
-                        try {
-                          notification(NotificationFeedbackType.Warning);
-                          await signOutGlobal();
-                        } catch (error) {
-                          Alert.alert('Error', 'Failed to sign out. Please try again.');
-                        }
-                      },
-                    },
-                  ]
-                );
-              }}
-              disabled={busy}
-              activeOpacity={0.7}
-            >
-              <View style={styles.actionInfo}>
-                <Text style={[styles.actionTitle, { color: colors.danger || '#D2121A' }]}>
-                  Sign out everywhere
-                </Text>
-                <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
-                  Revokes all sessions on every device
-                </Text>
-              </View>
-              <Icon name="shield-outline" size={20} color={colors.danger || '#D2121A'} />
-            </TouchableOpacity>
-          </View>
-
-          {/* New Phone / Lost Phone Info */}
-          <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-            <Icon name="phone-portrait-outline" size={24} color={colors.primary} />
-            <View style={styles.infoContent}>
-              <Text style={[styles.infoTitle, { color: colors.text }]}>New phone?</Text>
-              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                Sign in with your email and password to restore your account. Your couple link and premium access will return automatically. Shared content and planning data restore across devices when cloud sync is enabled.
-              </Text>
-            </View>
-          </View>
-
-          <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-            <Icon name="warning-outline" size={24} color={colors.primary} />
-            <View style={styles.infoContent}>
-              <Text style={[styles.infoTitle, { color: colors.text }]}>Lost your phone?</Text>
-              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                Sign in on another device and use "Sign out everywhere" above to protect your account. All other sessions will be revoked.
-              </Text>
-            </View>
-          </View>
-
-          {/* Partner Linking Info */}
-          <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-            <Icon name="heart-outline" size={24} color={colors.primary} />
-            <View style={styles.infoContent}>
-              <Text style={[styles.infoTitle, { color: colors.text }]}>Partner Linking</Text>
-              <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                Invite-only. Temporary code. Only your partner can join.{"\n\n"}
-                Codes expire in 15 minutes, are single-use, and are never stored in plain text. Your couple link is created securely on the server. Shared content and planning data restore on new phones when cloud sync is enabled.
-              </Text>
-            </View>
-          </View>
-
-          {/* Data Management */}
-          <View style={[styles.settingsCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Data Management</Text>
-
-            <TouchableOpacity
-              style={styles.actionRow}
-              onPress={() => navigation.navigate('ExportData')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.actionInfo}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>
-                  Export My Data
-                </Text>
-                <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
-                  Download all your journal entries
-                </Text>
-              </View>
-              <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionRow}
-              onPress={() => navigation.navigate('DeleteAccount')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.actionInfo}>
-                <Text style={[styles.actionTitle, { color: colors.danger || '#D2121A' }]}>
-                  Delete Account
-                </Text>
-                <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
-                  Permanently delete your account and data
-                </Text>
-              </View>
-              <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Save Button */}
-          <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: colors.primary }]}
-            onPress={handleSave}
-            disabled={isSaving}
-          >
-            <Text style={[styles.saveButtonText, { color: colors.text }]}>
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          </LinearGradient>
+        </TouchableOpacity>
+      </BlurView>
     </View>
   );
 };
 
-const createStyles = (colors, isDark) => StyleSheet.create({
-  container: {
-    flex: 1,
+const createStyles = (colors, isDark, theme) => StyleSheet.create({
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  
+  navHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
-  header: {
+  backButton: { 
+    width: 44, 
+    height: 44, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 22,
+    backgroundColor: theme.glass,
+  },
+
+  scrollView: { flex: 1 },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 16 },
+
+  introSection: { marginBottom: 32 },
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: theme.crimson + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  headerEye: {
+    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold' }),
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  title: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 40,
+    fontWeight: '900',
+    letterSpacing: -1.5,
+    marginBottom: 12,
+  },
+  intro: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '500',
+    opacity: 0.8,
+  },
+
+  settingsCard: {
+    borderRadius: 28,
+    borderWidth: 1.5,
+    padding: 24,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
     marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  settingsCard: {
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-  },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginBottom: 8,
   },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  premiumBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  settingInfo: {
-    flex: 1,
-    marginRight: 16,
-  },
+  settingInfo: { flex: 1, paddingRight: 20 },
   settingTitle: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
     marginBottom: 4,
   },
   settingDescription: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 14,
     lineHeight: 20,
+    fontWeight: '500',
   },
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 16,
-    gap: 16,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
+
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 18,
   },
-  actionInfo: {
-    flex: 1,
-  },
+  actionInfo: { flex: 1, paddingRight: 20 },
   actionTitle: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
     marginBottom: 4,
   },
   actionDescription: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 14,
     lineHeight: 20,
+    fontWeight: '500',
   },
-  saveButton: {
-    paddingVertical: 16,
+
+  infoGroup: { gap: 12, marginBottom: 20 },
+  infoCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    gap: 16,
+  },
+  infoIconWrap: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  saveButtonText: {
-    color: colors.text,
+  infoContent: { flex: 1 },
+  infoTitle: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '800',
+    letterSpacing: -0.2,
+    marginBottom: 6,
+  },
+  infoText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    paddingHorizontal: 24,
+    borderTopWidth: 1.5,
+  },
+  saveBtn: {
+    height: 60,
+    borderRadius: 22,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: theme.crimson, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
+      android: { elevation: 6 },
+    }),
+  },
+  saveBtnGrad: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.3,
   },
 });
 

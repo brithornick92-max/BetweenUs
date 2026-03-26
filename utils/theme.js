@@ -1,5 +1,5 @@
-// utils/theme.js — Midnight Intimacy & Apple Editorial Design System
-// Deep plum surfaces · Wine accents · Heavy squircles · Native shadows · Editorial typography
+// utils/theme.js — Velvet Glass & Apple Editorial Design System
+// Obsidian surfaces · Deep Crimson accents · Liquid Silver · Heavy squircles · Editorial typography
 
 import { Platform } from "react-native";
 
@@ -36,73 +36,74 @@ export function withAlpha(color, alpha) {
 }
 
 // ═══════════════════════════════════════════════════════
-// SEMANTIC TOKEN PALETTES — Midnight Intimacy
+// SEMANTIC TOKEN PALETTES — Crimson & Obsidian
 // ═══════════════════════════════════════════════════════
 
 export const DARK_PALETTE = {
-  // Near-black with a rich plum-velvet undertone — like a darkened bedroom
-  background: "#09060B",
-  surface: "#140F19",          // deep velvet plum — cards, inputs
-  surface2: "#1D1524",         // rich aubergine — secondary surfaces
-  surfaceElevated: "#261C2E",  // layered velvet — modals, overlays
-  surfaceGlass: "rgba(29,21,36,0.70)", // plum-velvet frosted glass
+  // Deep, pitch-dark obsidian environments
+  background: "#0A0A0C",
+  surface: "#131016",          // subtle elevation
+  surface2: "#1C1C1E",         // apple native dark mode surface
+  surfaceElevated: "#2C2C2E",  // layered elements
+  surfaceGlass: "rgba(28,28,30,0.70)", // pure frosted glass
 
-  // Warm petal cream — glowing, intimate
-  text: "#F8EDE8",
-  textSecondary: "rgba(248,237,232,0.78)",
-  textMuted: "rgba(248,237,232,0.48)",
-  textGlow: "rgba(195,17,61,0.92)",
+  // Stark, crisp white text
+  text: "#FFFFFF",
+  textSecondary: "rgba(255,255,255,0.78)",
+  textMuted: "rgba(255,255,255,0.48)",
+  textGlow: "rgba(210,18,26,0.92)",
 
-  // Feather-light velvet borders
-  border: "rgba(255,255,255,0.08)",
-  borderGlass: "rgba(255,255,255,0.06)",
-  divider: "rgba(255,255,255,0.045)",
+  // Feather-light glass borders
+  border: "rgba(255,255,255,0.12)",
+  borderGlass: "rgba(255,255,255,0.08)",
+  divider: "rgba(255,255,255,0.05)",
 
-  // Sexy Red & Champagne Gold — passionate, desire-forward
-  primary: "#D2121A",          // sexy red — primary CTAs, active states, desire
-  primaryMuted: "#AC0E15",     // deep berry-red — secondary states, pressed
+  // Deep Crimson & Liquid Silver — passionate, high-contrast, modern
+  primary: "#D2121A",          // sexy red — primary CTAs, active states
+  primaryMuted: "#900C0F",     // deep crimson — secondary states, pressed
   primaryGlow: "rgba(210,18,26,0.35)",
-  accent: "#D4AA7E",           // warm champagne gold — glowing, sensual
-  accentMuted: "rgba(212,170,126,0.40)",
+  accent: "#E5E5E7",           // liquid silver — replaces all gold
+  accentMuted: "rgba(229,229,231,0.40)",
 
   // Semantic
   danger: "#D2121A",
-  success: "#4E7A55",
-  shadow: "#09060B",
-  overlay: "rgba(9,6,11,0.82)",
+  success: "#34C759",          // apple native success green
+  shadow: "#000000",
+  overlay: "rgba(10,10,12,0.85)",
 };
 
 export const LIGHT_PALETTE = {
-  // Warm candlelight parchment — like a letter written by firelight
-  background: "#FAF4EE",
-  surface: "#FFFCF7",          // warm cream white
-  surface2: "#F3E9DF",         // parchment tint
-  surfaceElevated: "#FFFCF7",
-  surfaceGlass: "rgba(255,252,247,0.80)",
+  // Stark, crisp white environments
+  background: "#FFFFFF",
+  surface: "#F2F2F7",          // apple native light mode secondary
+  surface2: "#E5E5EA",         
+  surfaceElevated: "#FFFFFF",
+  surfaceGlass: "rgba(255,255,255,0.80)",
 
-  // Deep near-black with a plum undertone
-  text: "#1C1019",
-  textSecondary: "rgba(28,16,25,0.75)",
-  textMuted: "rgba(28,16,25,0.47)",
+  // Deep obsidian text
+  text: "#000000",
+  textSecondary: "rgba(0,0,0,0.75)",
+  textMuted: "rgba(0,0,0,0.47)",
   textGlow: "rgba(210,18,26,0.9)",
 
-  border: "rgba(28,16,25,0.07)",
-  borderGlass: "rgba(28,16,25,0.048)",
-  divider: "rgba(28,16,25,0.044)",
+  border: "rgba(0,0,0,0.08)",
+  borderGlass: "rgba(0,0,0,0.05)",
+  divider: "rgba(0,0,0,0.04)",
 
   primary: "#D2121A",
-  primaryMuted: "#AC0E15",
+  primaryMuted: "#900C0F",
   primaryGlow: "rgba(210,18,26,0.25)",
-  accent: "#D4AA7E",
-  accentMuted: "rgba(212,170,126,0.28)",
+  accent: "#8E8E93",           // liquid silver (darkened for light mode contrast)
+  accentMuted: "rgba(142,142,147,0.28)",
 
   danger: "#D2121A",
-  success: "#4E7A55",
-  shadow: "#1C1019",
-  overlay: "rgba(250,244,238,0.65)",
+  success: "#34C759",
+  shadow: "#000000",
+  overlay: "rgba(255,255,255,0.65)",
 };
 
 // Legacy: COLORS mapping for backward compatibility
+// All legacy "gold" keys now map to the new Liquid Silver accent to prevent breaking changes
 export const COLORS = {
   ...DARK_PALETTE,
   inkBlack: DARK_PALETTE.background,
@@ -117,28 +118,28 @@ export const COLORS = {
   cardBorder: DARK_PALETTE.border,
   wine: DARK_PALETTE.primary,
   mulberry: DARK_PALETTE.primaryMuted,
-  wineMuted: "#780D2A",
+  wineMuted: "#900C0F",
   wineDeep: "#4E0820",
   error: DARK_PALETTE.danger,
   warmCharcoal: DARK_PALETTE.background,
   obsidian: DARK_PALETTE.background,
   charcoal: DARK_PALETTE.surface,
-  deepPlum: "#1A0C1E",
+  deepPlum: "#0A0A0C",
   pureWhite: DARK_PALETTE.text,
   cream: DARK_PALETTE.text,
   softGray: DARK_PALETTE.textMuted,
-  champagneGold: DARK_PALETTE.accent,
+  champagneGold: DARK_PALETTE.accent,       // Re-mapped to Silver
   roseCopper: DARK_PALETTE.primary,
-  classicGold: DARK_PALETTE.accent,
-  mutedGold: DARK_PALETTE.accentMuted,
+  classicGold: DARK_PALETTE.accent,         // Re-mapped to Silver
+  mutedGold: DARK_PALETTE.accentMuted,      // Re-mapped to Silver
   blushRose: DARK_PALETTE.primaryMuted,
   highlight: DARK_PALETTE.accent,
-  plumVignette: "#1A0C1E",
+  plumVignette: "#0A0A0C",
   blushRoseLight: DARK_PALETTE.primaryMuted,
   deepRed: DARK_PALETTE.primary,
-  beetroot: "#780D2A",
+  beetroot: "#900C0F",
   roseGold: DARK_PALETTE.primaryMuted,
-  platinum: "rgba(245,234,230,0.9)",
+  platinum: DARK_PALETTE.accent,
 };
 
 // ═══════════════════════════════════════════════════════
@@ -150,29 +151,29 @@ export const getGradients = (palette) => {
   const isDark = p.background === DARK_PALETTE.background;
 
   return {
-    screenBackground: [p.background, isDark ? "#0C0912" : "#F0E6D8", p.background],
+    screenBackground: [p.background, isDark ? "#1A0205" : "#F9F4F4", p.background],
     glass: [
-      isDark ? "rgba(27,18,33,0.68)" : "rgba(255,252,247,0.80)",
-      isDark ? "rgba(19,13,23,0.78)" : "rgba(243,233,223,0.88)"
+      isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)",
+      isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)"
     ],
     glassSubtle: [
-      isDark ? "rgba(27,18,33,0.42)" : "rgba(255,252,247,0.52)",
-      isDark ? "rgba(19,13,23,0.52)" : "rgba(243,233,223,0.58)"
+      isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)",
+      isDark ? "rgba(255,255,255,0.01)" : "rgba(0,0,0,0.01)"
     ],
     accentBloom: [p.primaryGlow, "transparent"],
     cta: [p.primary, p.primaryMuted],
     ctaGlow: [p.primaryGlow, "transparent"],
     wineCTA: [p.primary, p.primaryMuted],
-    plumVignette: [isDark ? "#1A0C1E" : "#EDE3D5", p.background],
+    plumVignette: [isDark ? "#1A0205" : "#F9F4F4", p.background],
     background: [p.background, p.background],
     surface: [
-      isDark ? "rgba(27,18,33,0.82)" : "rgba(255,252,247,0.92)",
-      isDark ? "rgba(19,13,23,0.88)" : "rgba(243,233,223,0.96)"
+      isDark ? "rgba(28,28,30,0.82)" : "rgba(242,242,247,0.92)",
+      isDark ? "rgba(28,28,30,0.95)" : "rgba(242,242,247,0.98)"
     ],
     primary: [p.primary, p.primaryMuted],
     secondary: [p.surface2, p.primary],
-    gold: [p.accent, isDark ? "#9A7040" : "#DEC896"],
-    champagne: [p.text, p.text + "CC"],
+    silver: [p.accent, isDark ? "#8E8E93" : "#C7C7CC"], // Replaced Gold
+    chrome: [p.text, p.text + "CC"], // Replaced Champagne
   };
 };
 
@@ -180,7 +181,7 @@ export const GRADIENTS = getGradients(DARK_PALETTE);
 
 // ═══════════════════════════════════════════════════════
 // TYPOGRAPHY — Editorial Elegance
-// SANS: Heavy system UI fonts (crisp, modern)
+// SANS: Heavy system UI fonts (crisp, modern, tight tracking)
 // SERIF: Elegant displays (romantic, editorial)
 // ═══════════════════════════════════════════════════════
 
@@ -202,50 +203,50 @@ export const SANS_MEDIUM = SYSTEM_FONT;
 export const SANS_BOLD = SYSTEM_FONT;
 
 const typographyBase = {
-  // Hero display — Romantic Serif
+  // Hero display — Crisp System Sans / Heavy Tracking
   display: {
-    fontFamily: SERIF,
-    fontSize: 40,
-    lineHeight: 46,
-    letterSpacing: -0.2,
-    fontWeight: "400",
+    fontFamily: SYSTEM_FONT,
+    fontSize: 42,
+    lineHeight: 48,
+    letterSpacing: -1.5,
+    fontWeight: "900",
   },
-  // Page title — Romantic Serif
+  // Page title
   h1: {
-    fontFamily: SERIF,
+    fontFamily: SYSTEM_FONT,
     fontSize: 34,
-    lineHeight: 41,
-    letterSpacing: -0.2,
-    fontWeight: "400",
+    lineHeight: 40,
+    letterSpacing: -1.2,
+    fontWeight: "900",
   },
-  // Section header — Romantic Serif
+  // Section header
   h2: {
-    fontFamily: SERIF,
+    fontFamily: SYSTEM_FONT,
     fontSize: 28,
     lineHeight: 34,
-    letterSpacing: 0,
-    fontWeight: "400",
+    letterSpacing: -0.8,
+    fontWeight: "800",
   },
-  // Card title / subsection — Crisp System Sans
+  // Card title / subsection
   h3: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 18,
-    lineHeight: 24,
-    letterSpacing: -0.3,
-    fontWeight: "700",
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: -0.5,
+    fontWeight: "800",
   },
-  // Body text — Crisp System Sans
+  // Body text
   body: {
     fontFamily: SYSTEM_FONT,
     fontSize: 17, 
-    lineHeight: 24,
+    lineHeight: 26,
     letterSpacing: -0.2,
-    fontWeight: "400",
+    fontWeight: "500",
   },
   bodySecondary: {
     fontFamily: SYSTEM_FONT,
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 24,
     letterSpacing: -0.1,
     fontWeight: "500",
   },
@@ -254,24 +255,24 @@ const typographyBase = {
     fontFamily: SYSTEM_FONT,
     fontSize: 13,
     lineHeight: 18,
-    letterSpacing: 0,
-    fontWeight: "500",
+    letterSpacing: 0.2,
+    fontWeight: "600",
   },
   // Eyebrow / overline
   label: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
+    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: SYSTEM_FONT }),
+    fontSize: 11,
     lineHeight: 16,
-    letterSpacing: 1.5,
+    letterSpacing: 2,
     textTransform: "uppercase",
-    fontWeight: "700",
+    fontWeight: "900",
   },
   // CTA button
   button: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 17,
-    letterSpacing: -0.2,
-    fontWeight: "700",
+    fontSize: 18,
+    letterSpacing: -0.3,
+    fontWeight: "900",
   },
 };
 
@@ -288,7 +289,7 @@ export const SCREEN_TITLE_STYLE = {
   fontFamily: SYSTEM_FONT,
   fontSize: 36,
   fontWeight: '900',
-  letterSpacing: -1,
+  letterSpacing: -1.2,
   lineHeight: 42,
 };
 
@@ -304,7 +305,7 @@ export const SPACING = {
   xl: 20,
   xxl: 28,
   xxxl: 48,
-  screen: 20,    
+  screen: 24,    
   section: 32,   
   gutter: 16,    
 };
@@ -329,9 +330,9 @@ export const BORDER_RADIUS = {
 export const getGlassStyle = (palette) => {
   const isDark = palette.background === DARK_PALETTE.background;
   return {
-    backgroundColor: isDark ? "rgba(28,21,32,0.65)" : "rgba(255,255,255,0.75)",
-    borderWidth: 1,
-    borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(19,16,22,0.05)",
+    backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)",
+    borderWidth: 1.5,
+    borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
     borderRadius: BORDER_RADIUS.xxl,
     ...(Platform.OS === "ios"
       ? {
@@ -351,7 +352,7 @@ export const getGlassStyle = (palette) => {
 export const getShadows = (palette) => {
   const isDark = palette?.background === DARK_PALETTE.background;
   const shadowColor = isDark ? "#000000" : "#131016";
-  const opacityMod = isDark ? 0.4 : 1; // Boost opacity heavily on dark so the shadow reads against charcoal
+  const opacityMod = isDark ? 0.4 : 1;
 
   return {
     small: Platform.select({
@@ -378,7 +379,7 @@ export const getShadows = (palette) => {
       ios: {
         shadowColor,
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12 * opacityMod,
+        shadowOpacity: 0.15 * opacityMod,
         shadowRadius: 24,
       },
       android: { elevation: 8 },
@@ -387,11 +388,11 @@ export const getShadows = (palette) => {
     glow: Platform.select({
       ios: {
         shadowColor: palette?.primary || "#D2121A",
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.3,
-        shadowRadius: 16,
+        shadowRadius: 15,
       },
-      android: { elevation: 6 },
+      android: { elevation: 8 },
       default: {},
     }),
   };
@@ -437,19 +438,19 @@ export const getNavigationTheme = (palette) => {
     fonts: {
       regular: {
         fontFamily: SYSTEM_FONT,
-        fontWeight: '400',
+        fontWeight: '500',
       },
       medium: {
         fontFamily: SYSTEM_FONT,
-        fontWeight: '500',
+        fontWeight: '600',
       },
       bold: {
         fontFamily: SYSTEM_FONT,
-        fontWeight: '700',
+        fontWeight: '800',
       },
       heavy: {
         fontFamily: SYSTEM_FONT,
-        fontWeight: '800',
+        fontWeight: '900',
       },
     },
   };

@@ -36,15 +36,15 @@ export const useTheme = () => {
 
 export const ThemeProvider = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const [themeMode, setThemeModeState] = useState("dark");
+  const [themeMode, setThemeModeState] = useState(systemColorScheme === "light" ? "light" : "dark");
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
     const load = async () => {
       try {
-        const stored = await storage.get(STORAGE_KEYS.THEME_MODE, "dark");
-        if (active && THEME_MODES.includes(stored)) {
+        const stored = await storage.get(STORAGE_KEYS.THEME_MODE, null);
+        if (active && stored && THEME_MODES.includes(stored)) {
           setThemeModeState(stored);
         }
       } catch {
