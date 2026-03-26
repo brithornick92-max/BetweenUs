@@ -22,7 +22,7 @@ import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as ImagePicker from "expo-image-picker";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, Layout, SlideInDown } from "react-native-reanimated";
 
 import { useTheme } from "../context/ThemeContext";
 import { useAppContext } from "../context/AppContext";
@@ -35,13 +35,15 @@ import { getMyDisplayName } from '../utils/profileNames';
 
 const { width: screenWidth } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+const SERIF_FONT = Platform.select({ ios: "DMSerifDisplay-Regular", android: "DMSerifDisplay_400Regular", default: "serif" });
 
+// All Emojis replaced with crisp Outline Ionicons for that custom-embossed wax seal look
 const STATIONERY_OPTIONS = [
-  { id: "sexy",    icon: "flame-outline", gradient: ["#D2121A", "#5E081D"], label: "Intimate" },
-  { id: "love",    icon: "heart-outline", gradient: ["#E8A0BF", "#BA6B8F"], label: "Sweet" },
-  { id: "dreamy",  icon: "moon-outline",  gradient: ["#1C1C1E", "#0A0003"], label: "Midnight" },
-  { id: "playful", icon: "happy-outline", gradient: ["#FFD966", "#F5A623"], label: "Playful" },
-  { id: "classic", icon: "mail-outline",  gradient: ["#AEB6BF", "#5D6D7E"], label: "Classic" },
+  { id: "sexy",    icon: "flame-outline", label: "Intimate",  paper: "#FFF5F5", ink: "#6B0F0F", accent: "#D2121A", ruled: "rgba(200,80,80,0.08)" },
+  { id: "love",    icon: "heart-outline", label: "Sweet",     paper: "#FFF0F5", ink: "#5E2040", accent: "#D4609A", ruled: "rgba(180,100,140,0.08)" },
+  { id: "dreamy",  icon: "moon-outline",  label: "Midnight",  paper: "#F0EDF8", ink: "#1C1C3E", accent: "#7B68EE", ruled: "rgba(80,60,160,0.08)" },
+  { id: "playful", icon: "happy-outline", label: "Playful",   paper: "#FFFDF2", ink: "#5C4A1E", accent: "#E8A020", ruled: "rgba(180,140,40,0.08)" },
+  { id: "classic", icon: "mail-outline",  label: "Classic",   paper: "#FAF8F5", ink: "#2C2C2E", accent: "#8B7355", ruled: "rgba(100,80,60,0.08)" },
 ];
 
 const PROMPTS = [
@@ -60,14 +62,14 @@ export default function ComposeLoveNoteScreen({ navigation }) {
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
-    background: colors.background, 
-    surface: isDark ? '#131016' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#D2121A', 
-    text: colors.text,
-    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-  }), [colors, isDark]);
+    background: isDark ? '#050305' : '#140A0D', 
+    surface: 'rgba(255,255,255,0.03)',
+    surfaceSecondary: 'rgba(255,255,255,0.06)',
+    primary: '#D2121A', 
+    text: '#FFFFFF',
+    subtext: 'rgba(255, 255, 255, 0.55)',
+    border: 'rgba(255,255,255,0.08)',
+  }), [isDark]);
 
   const [text, setText] = useState("");
   const [imageUri, setImageUri] = useState(null);
@@ -77,35 +79,46 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   const [invisibleInk, setInvisibleInk] = useState(false);
 
   const inputRef = useRef(null);
-  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  const styles = useMemo(() => createStyles(t), [t]);
 
+  // ─── Premium Lock Screen (Velvet Glass Upgraded) ───
   if (!isPremium) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: t.background }}>
+      <View style={{ flex: 1, backgroundColor: t.background }}>
         <StatusBar barStyle="light-content" />
-        <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={15}>
-            <Icon name="chevron-back" size={28} color={t.text} />
-          </TouchableOpacity>
-        </View>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 }}>
-          <View style={styles.lockIconContainer}>
-            <Icon name="lock-closed-outline" size={32} color={t.primary} />
+        <LinearGradient colors={['#16050A', t.background]} style={StyleSheet.absoluteFill} />
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
+            <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
+              <BlurView intensity={40} tint="dark" style={styles.circleButton}>
+                <Icon name="chevron-back" size={24} color={t.text} />
+              </BlurView>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.lockTitle}>Love Notes</Text>
-          <Text style={styles.lockSubtitle}>
-            Write heartfelt notes, choose high-end stationery, and share private moments with your partner.
-          </Text>
-          <TouchableOpacity
-            onPress={() => showPaywall?.(PremiumFeature.LOVE_NOTES)}
-            style={styles.lockButton}
-            activeOpacity={0.9}
-          >
-            <Icon name="sparkles-outline" size={18} color="#FFF" />
-            <Text style={styles.lockButtonText}>Unlock Pro Experience</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 }}>
+            <Animated.View entering={FadeInDown.springify().damping(20)}>
+              <BlurView intensity={80} tint="dark" style={styles.lockCard}>
+                <View style={styles.lockIconContainer}>
+                  <Icon name="heart-half-outline" size={40} color={t.primary} />
+                </View>
+                <Text style={styles.lockTitle}>Love Notes</Text>
+                <Text style={styles.lockSubtitle}>
+                  Write deeply personal notes on high-end stationery. Encrypted, intimate, and exclusive to the Pro experience.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => showPaywall?.(PremiumFeature.LOVE_NOTES)}
+                  activeOpacity={0.85}
+                >
+                  <LinearGradient colors={[t.primary, '#8A0B11']} style={styles.lockButton}>
+                    <Icon name="sparkles-outline" size={18} color="#FFF" />
+                    <Text style={styles.lockButtonText}>Unlock Pro</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </BlurView>
+            </Animated.View>
+          </View>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -125,7 +138,7 @@ export default function ComposeLoveNoteScreen({ navigation }) {
         return;
       }
       setImageUri(asset.uri);
-      impact(ImpactFeedbackStyle.Light);
+      impact(ImpactFeedbackStyle.Medium);
     }
   };
 
@@ -158,76 +171,113 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={[t.background, "#0A0003"]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#110408', t.background]} style={StyleSheet.absoluteFill} />
 
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+          
           {/* Editorial Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-              <Icon name="close-outline" size={28} color={t.text} />
+            <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
+              <BlurView intensity={40} tint="dark" style={styles.circleButton}>
+                <Icon name="close-outline" size={24} color={t.text} />
+              </BlurView>
             </TouchableOpacity>
 
             <View style={styles.headerCenter}>
               <Text style={styles.headerTitle}>Compose</Text>
-              <View style={styles.headerIndicator} />
             </View>
 
             <TouchableOpacity
-              style={[styles.sendButton, (!text.trim() && !imageUri) && styles.sendButtonDisabled]}
+              activeOpacity={0.8}
               onPress={handleSend}
               disabled={isSending || (!text.trim() && !imageUri)}
             >
-              <Text style={styles.sendText}>{isSending ? "..." : "Send"}</Text>
+              <Animated.View layout={Layout.springify()}>
+                <LinearGradient 
+                  colors={(!text.trim() && !imageUri) ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)'] : [t.primary, '#9F1218']}
+                  style={styles.sendButton}
+                >
+                  <Text style={[styles.sendText, (!text.trim() && !imageUri) && { color: t.subtext }]}>
+                    {isSending ? "..." : "Seal"}
+                  </Text>
+                </LinearGradient>
+              </Animated.View>
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             
             {/* Live Preview Card */}
-            <Animated.View entering={FadeInDown.springify()} style={styles.previewWrapper}>
-              <View style={[styles.previewCard, { borderColor: t.border }]}>
-                {imageUri ? (
-                  <Image source={{ uri: imageUri }} style={styles.previewImage} />
-                ) : (
-                  <LinearGradient colors={selectedStationery.gradient} style={styles.previewGradientFill}>
-                    <Icon name={selectedStationery.icon} size={80} color={withAlpha('#FFF', 0.1)} />
-                  </LinearGradient>
+            <Animated.View entering={FadeInDown.springify().damping(20).delay(100)} style={styles.previewWrapper}>
+              <View style={[styles.previewCard, { borderColor: withAlpha(selectedStationery.accent, 0.15) }]}>
+                
+                {/* ── Paper Lighting Gradient ── */}
+                <LinearGradient 
+                  colors={[selectedStationery.paper, withAlpha(selectedStationery.paper, 0.9)]} 
+                  style={StyleSheet.absoluteFill} 
+                />
+
+                {/* Left margin accent line */}
+                <View style={[styles.accentStrip, { backgroundColor: withAlpha(selectedStationery.accent, 0.25) }]} />
+                
+                {/* Ruled lines */}
+                <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <View key={i} style={[styles.ruledLine, { top: 52 + i * 28, backgroundColor: selectedStationery.ruled }]} />
+                  ))}
+                </View>
+
+                {/* Photo tucked into letter (Polaroid Feel) */}
+                {imageUri && (
+                  <View style={styles.photoInset}>
+                    <Image source={{ uri: imageUri }} style={styles.photoInsetImg} />
+                  </View>
                 )}
-                <LinearGradient colors={["transparent", "rgba(0,0,0,0.8)"]} style={styles.previewOverlay} />
-                <View style={styles.previewTextContainer}>
-                  <Text style={styles.previewText} numberOfLines={6}>
-                    {text || "Your heartbeat, in words..."}
+
+                {/* Letter text */}
+                <View style={[styles.letterBody, imageUri && { top: 140 }]}>
+                  <Text style={[styles.letterText, { color: selectedStationery.ink, opacity: text ? 1 : 0.4 }]} numberOfLines={imageUri ? 4 : 8}>
+                    {text || "Write something from the heart..."}
                   </Text>
+                </View>
+
+                {/* Outline Icon Wax Seal */}
+                <View style={[styles.waxSeal, { backgroundColor: selectedStationery.accent }]}>
+                  <Icon name={selectedStationery.icon} size={14} color="#FFF" />
                 </View>
               </View>
             </Animated.View>
 
-            {/* Stationery Picker */}
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Select Vibe</Text>
+            {/* Stationery Picker (Velvet Swatches) */}
+            <Animated.View entering={FadeIn.delay(300)} style={styles.section}>
+              <Text style={styles.sectionLabel}>Material & Vibe</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stationeryRow}>
                 {STATIONERY_OPTIONS.map((opt) => {
                   const isActive = selectedStationery.id === opt.id;
                   return (
-                    <TouchableOpacity key={opt.id} onPress={() => { setSelectedStationery(opt); selection(); }} style={styles.optContainer}>
-                      <LinearGradient colors={opt.gradient} style={[styles.stationeryChip, isActive && { borderWidth: 2, borderColor: '#FFF' }]}>
-                        <Icon name={opt.icon} size={20} color="#FFF" />
-                      </LinearGradient>
-                      <Text style={[styles.stationeryLabel, { color: isActive ? t.text : t.subtext }]}>{opt.label}</Text>
+                    <TouchableOpacity key={opt.id} onPress={() => { setSelectedStationery(opt); selection(); }} activeOpacity={0.8}>
+                      <View style={[
+                        styles.stationeryChip, 
+                        { backgroundColor: opt.paper },
+                        isActive && { borderColor: opt.accent, borderWidth: 2, transform: [{ scale: 1.05 }] }
+                      ]}>
+                        <Icon name={opt.icon} size={22} color={opt.accent} />
+                      </View>
+                      <Text style={[styles.stationeryLabel, { color: isActive ? '#FFF' : t.subtext }]}>{opt.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </ScrollView>
-            </View>
+            </Animated.View>
 
             {/* Text Input Area */}
             <View style={styles.inputArea}>
               <TextInput
                 ref={inputRef}
-                style={styles.textInput}
-                placeholder="Write something intimate..."
-                placeholderTextColor={withAlpha(t.text, 0.3)}
+                style={[styles.textInput, { color: '#FFF' }]}
+                placeholder="Pour your heart out here..."
+                placeholderTextColor={t.subtext}
                 value={text}
                 onChangeText={setText}
                 multiline
@@ -240,65 +290,71 @@ export default function ComposeLoveNoteScreen({ navigation }) {
               </TouchableOpacity>
 
               {showPrompts && (
-                <View style={styles.promptList}>
+                <Animated.View entering={SlideInDown.springify()} style={styles.promptList}>
                   {PROMPTS.map((p, i) => (
-                    <TouchableOpacity key={i} style={[styles.promptItem, { backgroundColor: t.surfaceSecondary }]} onPress={() => { setText(p); setShowPrompts(false); }}>
-                      <Text style={[styles.promptItemText, { color: t.text }]}>{p}</Text>
+                    <TouchableOpacity key={i} onPress={() => { setText(p); setShowPrompts(false); impact(ImpactFeedbackStyle.Light); }}>
+                      <BlurView intensity={30} tint="dark" style={styles.promptItem}>
+                        <Text style={[styles.promptItemText, { color: t.text }]}>{p}</Text>
+                      </BlurView>
                     </TouchableOpacity>
                   ))}
-                </View>
+                </Animated.View>
               )}
             </View>
 
             {/* Media Actions */}
             <View style={styles.mediaRow}>
-              <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: t.surfaceSecondary }]} onPress={handlePickImage}>
-                <Icon name="image-outline" size={20} color={t.text} />
-                <Text style={[styles.mediaBtnText, { color: t.text }]}>Add Photo</Text>
+              <TouchableOpacity activeOpacity={0.8} onPress={handlePickImage}>
+                <BlurView intensity={40} tint="dark" style={styles.mediaBtn}>
+                  <Icon name="image-outline" size={20} color={t.text} />
+                  <Text style={[styles.mediaBtnText, { color: t.text }]}>Attach Photo</Text>
+                </BlurView>
               </TouchableOpacity>
               
               {imageUri && (
                 <TouchableOpacity onPress={() => setImageUri(null)} style={styles.removeBtn}>
-                  <Text style={{ color: t.primary, fontWeight: '700' }}>Remove Image</Text>
+                  <Text style={{ color: t.primary, fontWeight: '700', fontSize: 13, letterSpacing: 0.5 }}>REMOVE</Text>
                 </TouchableOpacity>
               )}
             </View>
 
             {/* Invisible Ink Toggle */}
             <TouchableOpacity
-              style={[
-                styles.inkToggle,
-                invisibleInk && { borderColor: t.primary, backgroundColor: `${t.primary}18` },
-              ]}
               onPress={() => { setInvisibleInk(v => !v); selection(); }}
               activeOpacity={0.85}
+              style={{ marginBottom: 60 }}
             >
-              <Icon
-                name={invisibleInk ? 'eye-off' : 'eye-off-outline'}
-                size={18}
-                color={invisibleInk ? t.primary : t.subtext}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.inkToggleTitle, { color: invisibleInk ? t.primary : t.text }]}>
-                  Invisible Ink
-                </Text>
-                <Text style={[styles.inkToggleSubtitle, { color: t.subtext }]}>
-                  {invisibleInk
-                    ? 'Partner must tilt their phone 45° to reveal'
-                    : 'Hide message — tilt to reveal'}
-                </Text>
-              </View>
-              <View style={[
-                styles.inkTogglePill,
-                { backgroundColor: invisibleInk ? t.primary : t.surfaceSecondary },
+              <BlurView intensity={40} tint="dark" style={[
+                styles.inkToggle,
+                invisibleInk && { borderColor: withAlpha(t.primary, 0.4), backgroundColor: withAlpha(t.primary, 0.1) }
               ]}>
-                <Text style={[
-                  styles.inkTogglePillText,
-                  { color: invisibleInk ? '#FFF' : t.subtext },
+                <Icon
+                  name={invisibleInk ? 'eye-off' : 'eye-off-outline'}
+                  size={22}
+                  color={invisibleInk ? t.primary : t.subtext}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.inkToggleTitle, { color: invisibleInk ? t.primary : t.text }]}>
+                    Invisible Ink
+                  </Text>
+                  <Text style={[styles.inkToggleSubtitle, { color: t.subtext }]}>
+                    {invisibleInk
+                      ? 'Partner must hold phone up to light to reveal.'
+                      : 'Hide message until tilted.'}
+                  </Text>
+                </View>
+                <View style={[
+                  styles.inkTogglePill,
+                  { backgroundColor: invisibleInk ? t.primary : t.surfaceSecondary },
                 ]}>
-                  {invisibleInk ? 'ON' : 'OFF'}
-                </Text>
-              </View>
+                  <Text style={[
+                    styles.inkTogglePillText,
+                    { color: invisibleInk ? '#FFF' : t.subtext },
+                  ]}>
+                    {invisibleInk ? 'ON' : 'OFF'}
+                  </Text>
+                </View>
+              </BlurView>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -307,8 +363,8 @@ export default function ComposeLoveNoteScreen({ navigation }) {
   );
 }
 
-const createStyles = (t, isDark) => StyleSheet.create({
-  container: { flex: 1 },
+const createStyles = (t) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#050305' },
   safeArea: { flex: 1 },
   
   // Header
@@ -316,34 +372,37 @@ const createStyles = (t, isDark) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    height: 60,
+    paddingHorizontal: 24,
+    height: 70,
+    zIndex: 10,
+  },
+  circleButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: t.border,
+    overflow: 'hidden',
   },
   headerCenter: { alignItems: "center" },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 2,
     color: t.text,
-  },
-  headerIndicator: {
-    width: 12,
-    height: 2,
-    backgroundColor: t.primary,
-    marginTop: 4,
-    borderRadius: 1,
+    textTransform: 'uppercase',
   },
   sendButton: {
-    backgroundColor: t.primary,
     paddingHorizontal: 20,
-    height: 36,
-    borderRadius: 18,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
+    alignItems: "center",
   },
-  sendButtonDisabled: { opacity: 0.3 },
-  sendText: { color: "#FFF", fontSize: 14, fontWeight: "800" },
+  sendText: { color: "#FFF", fontSize: 14, fontWeight: "800", letterSpacing: 0.5 },
   
   // Content
   scroll: { flex: 1, paddingHorizontal: 24 },
@@ -351,70 +410,143 @@ const createStyles = (t, isDark) => StyleSheet.create({
   previewCard: {
     width: screenWidth * 0.75,
     height: screenWidth * 0.95,
-    borderRadius: 32,
+    borderRadius: 8,
     overflow: "hidden",
     borderWidth: 1,
+    position: 'relative',
+    ...Platform.select({
+      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.35, shadowRadius: 24 },
+      android: { elevation: 12 },
+    }),
   },
-  previewImage: { ...StyleSheet.absoluteFillObject },
-  previewGradientFill: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center" },
-  previewOverlay: { ...StyleSheet.absoluteFillObject },
-  previewTextContainer: { position: "absolute", bottom: 0, padding: 24 },
-  previewText: { 
-    color: "#FFF", 
-    fontSize: 18, 
-    fontWeight: "600", 
-    fontStyle: "italic", 
-    lineHeight: 26,
-    letterSpacing: -0.4
+  accentStrip: {
+    position: 'absolute',
+    left: 32,
+    top: 0,
+    bottom: 0,
+    width: 2,
+  },
+  ruledLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: StyleSheet.hairlineWidth,
+  },
+  photoInset: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 80,
+    height: 100,
+    borderRadius: 4,
+    overflow: 'hidden',
+    transform: [{ rotate: '3deg' }],
+    backgroundColor: '#FFF',
+    padding: 6,
+    ...Platform.select({
+      ios: { shadowColor: "#000", shadowOffset: { width: 2, height: 6 }, shadowOpacity: 0.25, shadowRadius: 8 },
+      android: { elevation: 6 },
+    }),
+  },
+  photoInsetImg: {
+    flex: 1,
+    borderRadius: 2,
+  },
+  letterBody: {
+    position: 'absolute',
+    left: 44,
+    right: 20,
+    top: 52,
+    bottom: 44,
+  },
+  letterText: {
+    fontFamily: SERIF_FONT,
+    fontSize: 16,
+    lineHeight: 28,
+  },
+  waxSeal: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+      android: { elevation: 4 },
+    }),
   },
   
   // Stationery
-  section: { marginBottom: 32 },
+  section: { marginBottom: 36 },
   sectionLabel: { 
-    fontSize: 12, 
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11, 
     fontWeight: "800", 
     textTransform: "uppercase", 
-    letterSpacing: 1.5, 
+    letterSpacing: 2, 
     color: t.subtext, 
-    marginBottom: 16 
+    marginBottom: 20 
   },
-  stationeryRow: { gap: 16 },
-  optContainer: { alignItems: 'center' },
-  stationeryChip: { 
-    width: 56, 
-    height: 56, 
-    borderRadius: 16, 
-    alignItems: "center", 
-    justifyContent: "center" 
+  stationeryRow: { gap: 20, paddingBottom: 10 },
+  stationeryChip: {
+    width: 56,
+    height: 72,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: 'transparent',
+    ...Platform.select({
+      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+      android: { elevation: 4 },
+    }),
   },
-  stationeryLabel: { fontSize: 11, fontWeight: "700", marginTop: 8 },
+  stationeryLabel: { 
+    fontSize: 11, 
+    fontWeight: "800", 
+    marginTop: 12,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
   
   // Input
-  inputArea: { marginBottom: 32 },
+  inputArea: { marginBottom: 36 },
   textInput: { 
     fontFamily: SYSTEM_FONT, 
-    fontSize: 20, 
-    color: t.text, 
+    fontSize: 22, 
     minHeight: 120, 
     textAlignVertical: "top", 
     fontWeight: "500",
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
+    lineHeight: 32,
   },
   promptBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16 },
-  promptBtnText: { fontSize: 14, fontWeight: '700', color: t.primary },
-  promptList: { marginTop: 12, gap: 8 },
-  promptItem: { padding: 12, borderRadius: 12 },
-  promptItemText: { fontSize: 14, fontWeight: '600', fontStyle: 'italic' },
+  promptBtnText: { fontSize: 14, fontWeight: '800', color: t.primary, letterSpacing: -0.2 },
+  promptList: { marginTop: 16, gap: 10 },
+  promptItem: { 
+    padding: 16, 
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: t.border,
+    overflow: 'hidden',
+  },
+  promptItemText: { fontSize: 15, fontWeight: '500', fontStyle: 'italic' },
   
   // Media
-  mediaRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingBottom: 24 },
+  mediaRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingBottom: 32 },
   mediaBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     gap: 10, 
-    height: 48, 
-    paddingHorizontal: 20, 
-    borderRadius: 24 
+    height: 52, 
+    paddingHorizontal: 24, 
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: t.border,
+    overflow: 'hidden',
   },
   mediaBtnText: { fontSize: 14, fontWeight: '700' },
   removeBtn: { marginLeft: 'auto' },
@@ -423,27 +555,28 @@ const createStyles = (t, isDark) => StyleSheet.create({
   inkToggle: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    padding: 16,
-    borderRadius: 16,
+    gap: 16,
+    padding: 20,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    marginBottom: 60,
+    borderColor: t.border,
+    overflow: 'hidden',
   },
   inkToggleTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     letterSpacing: -0.3,
   },
   inkToggleSubtitle: {
     fontSize: 12,
-    marginTop: 2,
+    marginTop: 4,
     fontWeight: '500',
+    lineHeight: 18,
   },
   inkTogglePill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
   },
   inkTogglePillText: {
@@ -453,21 +586,30 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
 
   // Lock Screen Updates
+  lockCard: {
+    width: '100%',
+    borderRadius: 40,
+    padding: 40,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: t.border,
+    overflow: 'hidden',
+  },
   lockIconContainer: { 
     width: 80, 
     height: 80, 
-    borderRadius: 24, 
-    backgroundColor: withAlpha(t.primary, 0.12), 
+    borderRadius: 40, 
+    backgroundColor: 'rgba(210, 18, 26, 0.1)', 
     alignItems: 'center', 
     justifyContent: 'center', 
-    marginBottom: 32 
+    marginBottom: 24 
   },
   lockTitle: { 
     color: t.text, 
-    fontSize: 32, 
+    fontSize: 34, 
     fontWeight: '800', 
     letterSpacing: -1, 
-    marginBottom: 12, 
+    marginBottom: 16, 
     textAlign: 'center' 
   },
   lockSubtitle: { 
@@ -479,10 +621,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '500' 
   },
   lockButton: { 
-    backgroundColor: t.primary, 
-    height: 56, 
-    borderRadius: 28, 
-    width: '100%', 
+    height: 60, 
+    borderRadius: 30, 
+    width: screenWidth * 0.6, 
     alignItems: 'center', 
     justifyContent: 'center', 
     flexDirection: 'row', 
@@ -490,9 +631,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   lockButtonText: { 
     color: '#FFF', 
-    fontSize: 16, 
+    fontSize: 17, 
     fontWeight: '800', 
-    textTransform: 'uppercase', 
-    letterSpacing: -0.2 
+    letterSpacing: -0.3 
   },
 });

@@ -1,7 +1,7 @@
 // context/AppContext.js
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
 import * as Crypto from 'expo-crypto';
-import { storage, STORAGE_KEYS } from '../utils/storage';
+import { storage, STORAGE_KEYS, vibeStorage } from '../utils/storage';
 import { useEntitlements } from './EntitlementsContext';
 import { NicknameEngine } from '../services/PolishEngine';
 import CoupleService from '../services/supabase/CoupleService';
@@ -235,6 +235,7 @@ export function AppProvider({ children }) {
                     try {
                       const vibeData = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
                       dispatch({ type: ACTIONS.SET_PARTNER_VIBE, payload: { vibe: vibeData } });
+                      vibeStorage.addPartnerVibeEntry(vibeData).catch(() => {});
                     } catch { /* ignore parse errors */ }
                     const ts = Date.now();
                     dispatch({ type: ACTIONS.UPDATE_PARTNER_ACTIVITY, payload: ts });

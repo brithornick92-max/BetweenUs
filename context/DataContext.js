@@ -67,26 +67,35 @@ export function DataProvider({ children }) {
 
     (async () => {
       try {
+        // Resolve the Supabase auth UUID — this MUST be used as userId for
+        // SyncEngine so that `created_by` matches `auth.uid()` in RLS policies.
+        // The local Crypto.randomUUID() from AppContext does NOT match and
+        // causes every couple_data INSERT to be silently rejected by RLS.
+        let syncUserId = userId;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            if (supabase) {
+              const { data } = await supabase.auth.getUser();
+              if (data?.user?.id) { syncUserId = data.user.id; break; }
+            }
+            break; // supabase is null — no point retrying
+          } catch (err) {
+            console.warn('[DataContext] auth.getUser attempt', attempt + 1, 'failed:', err?.message);
+            if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          }
+        }
+
         await DataLayer.init({
-          userId,
+          userId: syncUserId,
+          legacyLocalUserId: syncUserId !== userId ? userId : null,
           coupleId: coupleId || null,
           isPremium: !!isPremium,
         });
 
         await DataLayer.migrateLegacyStorage();
 
-        // Prefer the Supabase auth UUID for MomentSignalSender — local IDs have
-        // a 'user_' prefix that intentionally fails the remote-send UUID check.
-        let momentUserId = userId;
-        try {
-          if (supabase) {
-            const { data } = await supabase.auth.getUser();
-            if (data?.user?.id) momentUserId = data.user.id;
-          }
-        } catch (_) {}
-
-        // Configure MomentSignalSender with user context
-        MomentSignalSender.configure({ userId: momentUserId, coupleId: coupleId || null });
+        // Configure MomentSignalSender with the same Supabase UUID
+        MomentSignalSender.configure({ userId: syncUserId, coupleId: coupleId || null });
 
         if (cancelled) return;
         initializedRef.current = true;
@@ -155,22 +164,33 @@ export function DataProvider({ children }) {
 
   useEffect(() => {
     if (!initializedRef.current) return;
-    DataLayer.reconfigure({
-      userId,
-      coupleId: coupleId || null,
-      isPremium: !!isPremium,
-    });
-    // Re-resolve Supabase UUID on reconfigure too
+    let cancelled = false;
+    // Re-resolve Supabase UUID on reconfigure
     (async () => {
-      let momentUserId = userId;
-      try {
-        if (supabase) {
-          const { data } = await supabase.auth.getUser();
-          if (data?.user?.id) momentUserId = data.user.id;
+      let syncUserId = userId;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          if (supabase) {
+            const { data } = await supabase.auth.getUser();
+            if (data?.user?.id) { syncUserId = data.user.id; break; }
+          }
+          break;
+        } catch (err) {
+          console.warn('[DataContext] reconfigure auth.getUser attempt', attempt + 1, 'failed:', err?.message);
+          if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
         }
-      } catch (_) {}
-      MomentSignalSender.configure({ userId: momentUserId, coupleId: coupleId || null });
+      }
+      if (cancelled) return;
+
+      DataLayer.reconfigure({
+        userId: syncUserId,
+        legacyLocalUserId: syncUserId !== userId ? userId : null,
+        coupleId: coupleId || null,
+        isPremium: !!isPremium,
+      });
+      MomentSignalSender.configure({ userId: syncUserId, coupleId: coupleId || null });
     })();
+    return () => { cancelled = true; };
   }, [userId, coupleId, isPremium]);
 
   // ─── Sync on app foreground ─────────────────────────────────

@@ -132,7 +132,7 @@ function SecretKnock({ mode = 'record', rhythm, onSend, style }) {
       setPhase('playing');
       playRhythm(rhythm, ImpactFeedbackStyle.Heavy);
     }
-  }, []); // intentionally runs once on mount
+  }, [rhythm]); // replay when partner sends a new rhythm
 
   // ── Cleanup seal timer ────────────────────────────────────
   useEffect(() => () => { if (sealTimer.current) clearTimeout(sealTimer.current); }, []);

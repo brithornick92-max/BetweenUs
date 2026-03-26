@@ -215,12 +215,17 @@ export function MemoryProvider({ children }) {
       );
     },
 
-    getMemoriesForDateRange: (startDate, endDate) => {
-      return memoryManager.getMemoriesForDateRange(startDate, endDate);
+    getMemoriesForDateRange: async (startDate, endDate) => {
+      const all = await DataLayer.getMemories({ limit: 9999 });
+      return (all || []).filter(m => {
+        const d = new Date(m.date || m.createdAt || m.created_at);
+        return d >= new Date(startDate) && d <= new Date(endDate);
+      });
     },
 
-    getMemoriesByType: (type) => {
-      return memoryManager.getMemoriesByType(type);
+    getMemoriesByType: async (type) => {
+      const all = await DataLayer.getMemories({ limit: 9999 });
+      return (all || []).filter(m => m.type === type);
     },
 
     getAnniversaryThemes: () => {

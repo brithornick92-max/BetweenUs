@@ -56,6 +56,7 @@ export const STORAGE_KEYS = {
   RITUAL_SYNC_QUEUE: "@betweenus:ritualSyncQueue",
   CUSTOM_RITUAL_FLOWS: "@betweenus:customRitualFlows",
   VIBE_HISTORY: "@betweenus:vibeHistory",
+  PARTNER_VIBE_HISTORY: "@betweenus:partnerVibeHistory",
   VIBE_SYNC_QUEUE: "@betweenus:vibeSyncQueue",
   ANNIVERSARY_THEMES: "@betweenus:anniversaryThemes",
   ANNIVERSARY_VIBE_HISTORY: "@betweenus:anniversaryVibeHistory",
@@ -792,6 +793,27 @@ export const vibeStorage = {
 
   async getRecentVibes(days = 7) {
     const history = await this.getVibeHistory();
+    const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
+    return history.filter(entry => entry.timestamp > cutoff);
+  },
+
+  async addPartnerVibeEntry(vibe) {
+    const rawHistory = ensureArray(await storage.get(STORAGE_KEYS.PARTNER_VIBE_HISTORY, []));
+    const entry = {
+      id: makeId('pvibe'),
+      vibe,
+      timestamp: Date.now(),
+      isPartner: true,
+    };
+    const encrypted = await this._encryptEntry(entry);
+    const newHistory = [encrypted, ...rawHistory.slice(0, 99)];
+    await storage.set(STORAGE_KEYS.PARTNER_VIBE_HISTORY, newHistory);
+    return entry;
+  },
+
+  async getRecentPartnerVibes(days = 7) {
+    const raw = ensureArray(await storage.get(STORAGE_KEYS.PARTNER_VIBE_HISTORY, []));
+    const history = await Promise.all(raw.map(e => this._decryptEntry(e)));
     const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
     return history.filter(entry => entry.timestamp > cutoff);
   },

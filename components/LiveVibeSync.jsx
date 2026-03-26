@@ -76,12 +76,12 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
       setIncomingLabel(partnerLabel);
       if (incomingLabelTimerRef.current) clearTimeout(incomingLabelTimerRef.current);
       incomingLabelTimerRef.current = setTimeout(() => setIncomingLabel(null), INCOMING_LABEL_DURATION);
-    }, { coupleId });
+    }, { coupleId, userId: appState?.userId || null });
 
     return () => {
       if (typeof unsubSignalsRef.current === 'function') unsubSignalsRef.current();
     };
-  }, [partnerLabel, coupleId, scale, inBloomScale, inBloomOpacity]);
+  }, [partnerLabel, coupleId, appState?.userId]);
 
   const t = useMemo(() => ({
     surface: isDark ? '#130608' : '#FFFFFF',
@@ -137,7 +137,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
         const isAuth = e.includes('JWT') || e.includes('token') || e.includes('expired') || e.includes('auth') || e.includes('session') || e.includes('Sign in') || code === 'PGRST302';
         const isNetwork = e.includes('fetch') || e.includes('network') || e.includes('Network') || e.includes('timeout') || e.includes('ECONNREFUSED') || e.includes('Failed to fetch') || e.includes('Abort');
         const isNotLinked = e.includes('Link') || e.includes('couple') || e.includes('partner');
-        const isCooldown = e.includes('cooldown') || e.includes('Cooldown');
+        const isCooldown = false;
         const isNotConfigured = e.includes('configured') || e.includes('Sync is not') || e.includes('not configured');
 
         const friendlyError = isCooldown
@@ -254,13 +254,12 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
                   borderColor: incomingLabel ? '#FF6B8A' : t.primary,
                   shadowColor: incomingLabel ? '#FF6B8A' : t.primary,
                   opacity: isSending ? 0.82 : 1,
-                  gap: incomingLabel ? 6 : 12,
                 },
                 buttonStyle,
               ]}
             >
               <Icon name="pulse-outline" size={incomingLabel ? 22 : 34} color={incomingLabel ? '#FF6B8A' : t.primary} />
-              <Text style={[styles.buttonText, { color: incomingLabel ? '#FF6B8A' : t.primary, fontSize: incomingLabel ? 11 : 14, letterSpacing: incomingLabel ? 0.3 : 1 }]} numberOfLines={2} textBreakStrategy="balanced">
+              <Text style={[styles.buttonText, { color: incomingLabel ? '#FF6B8A' : t.primary, fontSize: incomingLabel ? 11 : 14, letterSpacing: incomingLabel ? 0.3 : 1, width: incomingLabel ? 140 : undefined }]} numberOfLines={2} textBreakStrategy="balanced">
                 {incomingLabel ? `${incomingLabel}\nis here ♥` : isSending ? 'Sending...' : 'Send Pulse'}
               </Text>
             </Animated.View>

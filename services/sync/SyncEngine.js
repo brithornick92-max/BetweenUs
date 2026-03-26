@@ -99,7 +99,11 @@ function emit(event, data) {
 }
 
 function canSync() {
-  return !!supabase && !!_coupleId && !!_userId && _isPremium;
+  // Supabase client must exist and user must be in a couple.
+  // We do NOT gate on _isPremium here — that caused a startup race condition
+  // where notes saved before entitlements loaded were permanently stuck as
+  // 'pending' and never pushed. Supabase RLS enforces premium limits server-side.
+  return !!supabase && !!_coupleId && !!_userId;
 }
 
 /**
@@ -127,7 +131,10 @@ function toRemoteRow(tableName, row) {
     couple_id: _coupleId,
     key: `${dataType}_${row.id}`,
     data_type: dataType,
-    created_by: row.user_id || _userId,
+    // MUST use the Supabase auth UUID (_userId) — not the local SQLite user_id.
+    // RLS requires created_by = auth.uid(). Local rows may have a different
+    // UUID stored in user_id (legacy Crypto.randomUUID from AppContext).
+    created_by: _userId,
     // love_notes are always couple-shared; the table has no is_private column
     is_private: tableName === 'love_notes' ? false : !!row.is_private,
     // Metadata object — passed as a plain JS object so PostgREST stores it
@@ -231,13 +238,20 @@ async function pushTable(tableName) {
         break; // success
       } catch (err) {
         lastErr = err;
+        // Don't retry permanent RLS / permission errors — only transient ones
+        const isPermanent = err?.code === '42501' || err?.message?.includes('row-level security');
+        if (isPermanent) break;
         if (attempt < MAX_PUSH_RETRIES - 1) {
           await sleep(RETRY_BASE_DELAY_MS * Math.pow(2, attempt));
         }
       }
     }
     if (lastErr) {
-      console.warn(`[Sync] Push ${tableName}/${row.id} failed after ${MAX_PUSH_RETRIES} attempts:`, lastErr.message);
+      console.warn(
+        `[Sync] Push ${tableName}/${row.id} failed after ${MAX_PUSH_RETRIES} attempts:`,
+        lastErr?.message,
+        lastErr?.code ? `(code: ${lastErr.code})` : ''
+      );
       failed++;
     }
   }
@@ -295,7 +309,10 @@ async function pullTable(tableName) {
     // Apply tombstones: soft-delete locally
     for (const remote of tombstoneRows) {
       try {
-        const parsed = remote.value ? JSON.parse(remote.value) : {};
+        let parsed = {};
+        if (remote.value) {
+          parsed = typeof remote.value === 'string' ? JSON.parse(remote.value) : remote.value;
+        }
         if (parsed.id) {
           const db = await Database.init();
           await db.runAsync(
@@ -358,32 +375,33 @@ const SyncEngine = {
     const results = { pushed: 0, pulled: 0, failed: 0, attachments: { uploaded: 0, failed: 0 } };
 
     try {
-      // 1. Push local changes
-      for (const table of SYNC_TABLES) {
-        const r = await pushTable(table);
-        results.pushed += r.pushed;
-        results.failed += r.failed;
-      }
-
-      // 2. Pull remote changes
-      for (const table of PULL_TABLES) {
-        const r = await pullTable(table);
-        results.pulled += r.pulled;
-      }
-
-      // 3. Upload pending attachments
+      // 1. Upload pending attachment files FIRST so they exist in Storage
+      //    before love_notes rows (which reference media_ref) reach the partner.
       try {
         results.attachments = await EncryptedAttachments.uploadAllPending();
       } catch (err) {
         console.warn('[Sync] Attachment upload batch failed:', err.message);
       }
 
-      // 4. Push attachment metadata (the rows in attachments table)
+      // 2. Push attachment metadata so partner can discover files
       try {
         const attPush = await pushTable('attachments');
         results.pushed += attPush.pushed;
         results.failed += attPush.failed;
       } catch { /* ignore */ }
+
+      // 3. Push all other local changes (love_notes, journals, etc.)
+      for (const table of SYNC_TABLES) {
+        const r = await pushTable(table);
+        results.pushed += r.pushed;
+        results.failed += r.failed;
+      }
+
+      // 4. Pull remote changes
+      for (const table of PULL_TABLES) {
+        const r = await pullTable(table);
+        results.pulled += r.pulled;
+      }
 
       emit('sync:complete', results);
     } catch (err) {
@@ -401,6 +419,20 @@ const SyncEngine = {
    */
   async pushNow() {
     if (!canSync()) return;
+    // Upload encrypted attachment files FIRST so they exist in Storage
+    // before love_notes rows (which reference media_ref) reach the partner.
+    try {
+      await EncryptedAttachments.uploadAllPending();
+    } catch (err) {
+      console.warn('[Sync] pushNow attachment upload failed:', err?.message);
+    }
+    // Push attachment metadata so partner can discover the files
+    try {
+      await pushTable('attachments');
+    } catch (err) {
+      console.warn('[Sync] pushNow attachment meta push failed:', err?.message);
+    }
+    // Now push all other tables (love_notes, journals, etc.)
     for (const table of SYNC_TABLES) {
       await pushTable(table);
     }

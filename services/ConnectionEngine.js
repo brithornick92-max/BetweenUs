@@ -107,12 +107,12 @@ const KEYS = {
 // ═══════════════════════════════════════════════════════
 
 export const MOMENT_TYPES = [
-  { id: 'thinking', label: 'Thinking of you', icon: 'chatbubble-ellipses-outline' },
-  { id: 'grateful', label: 'Grateful for you', icon: 'heart-circle-outline' },
-  { id: 'missing', label: 'Missing you', icon: 'heart-half-outline' },
-  { id: 'proud', label: 'Proud of you', icon: 'star-outline' },
-  { id: 'want', label: 'Want you', icon: 'flame-outline' },
-  { id: 'love', label: 'Love you', icon: 'heart-outline' },
+  { id: 'thinking', label: 'Thinking of you', icon: 'cloud-outline', tint: '#A78BFA' },
+  { id: 'grateful', label: 'Grateful for you', icon: 'leaf-outline', tint: '#34D399' },
+  { id: 'missing', label: 'I miss you', icon: 'moon-outline', tint: '#93C5FD' },
+  { id: 'proud', label: 'So proud of you', icon: 'sparkles-outline', tint: '#FBBF24' },
+  { id: 'want', label: 'I want you', icon: 'flame-outline', tint: null },
+  { id: 'love', label: 'I love you', icon: 'heart-outline', tint: '#FB7185' },
 ];
 
 export const HEARTBEAT_SIGNAL = {
@@ -121,7 +121,7 @@ export const HEARTBEAT_SIGNAL = {
   icon: 'pulse-outline',
 };
 
-const COOLDOWN_MS = 5 * 60 * 1000; // 5 min cooldown
+// No cooldown — users can send freely
 
 export const MomentSignalSender = {
   /**
@@ -133,16 +133,9 @@ export const MomentSignalSender = {
     _setStoredContextValue(KEYS.MOMENT_COUPLE_ID, coupleId);
   },
 
-  /** Check if cooldown has passed (prevent spam) */
+  /** Always allowed — no cooldown */
   async canSend() {
-    try {
-      const last = await AsyncStorage.getItem(KEYS.MOMENT_COOLDOWN);
-      if (!last) return true;
-      const elapsed = Date.now() - parseInt(last, 10);
-      return elapsed > COOLDOWN_MS;
-    } catch {
-      return true;
-    }
+    return true;
   },
 
   /**
@@ -159,24 +152,14 @@ export const MomentSignalSender = {
     const now = Date.now();
     const timestamp = new Date(now).toISOString();
 
-    // Enforce cooldown
-    const allowed = await this.canSend();
-    if (!allowed) {
-      const remaining = await this.getCooldownRemaining();
-      return { sent: false, remote: false, type: momentType, timestamp: now, error: `Cooldown active (${Math.ceil(remaining / 1000)}s remaining)` };
-    }
 
-    // Save cooldown immediately (optimistic)
-    await AsyncStorage.setItem(KEYS.MOMENT_COOLDOWN, String(now));
 
     const storedUserId = await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
     const userId = await _resolveSupabaseUserId(storedUserId);
     const coupleId = await AsyncStorage.getItem(KEYS.MOMENT_COUPLE_ID);
     const sb = _getSupabase();
 
-    const rollbackCooldown = async () => {
-      await _persistWithoutThrow(() => AsyncStorage.removeItem(KEYS.MOMENT_COOLDOWN));
-    };
+
 
     const getUnavailableError = () => {
       if (!userId) return 'Sign in again to send a pulse.';
@@ -214,7 +197,6 @@ export const MomentSignalSender = {
           const errMsg = error.message || error.details || error.hint || `DB error (code: ${error.code})` || 'Unknown Supabase error';
           if (__DEV__) console.warn('[MomentSignal] Supabase insert failed — code:', error.code, '— message:', error.message, '— details:', error.details);
           if (requireRemote) {
-            await rollbackCooldown();
             return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
           }
           // Still counts as "sent" locally — the user saw the confirmation
@@ -225,10 +207,11 @@ export const MomentSignalSender = {
         try {
           const momentDef = MOMENT_TYPES.find(m => m.id === momentType);
           const label = momentDef?.label || 'A moment';
+          const isHeartbeat = momentType === HEARTBEAT_SIGNAL.id;
           const PushSvc = require('./PushNotificationService').default;
           PushSvc.notifyPartner(sb, {
-            title: '💌 From your partner',
-            body: label,
+            title: isHeartbeat ? '💗' : '💌',
+            body: isHeartbeat ? 'Your partner sent a pulse' : label,
             data: { type: 'moment_signal', moment_type: momentType },
           });
         } catch { /* non-critical */ }
@@ -238,7 +221,6 @@ export const MomentSignalSender = {
         const errMsg = err.message || String(err) || 'Network or connection error';
         console.warn('[MomentSignal] Send failed:', errMsg);
         if (requireRemote) {
-          await rollbackCooldown();
           return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: err.code };
         }
         return { sent: true, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: err.code };
@@ -246,7 +228,6 @@ export const MomentSignalSender = {
     }
 
     if (requireRemote) {
-      await rollbackCooldown();
       return {
         sent: false,
         remote: false,
@@ -384,17 +365,9 @@ export const MomentSignalSender = {
     };
   },
 
-  /** Get time until next send allowed */
+  /** @deprecated No cooldown — always returns 0 */
   async getCooldownRemaining() {
-    try {
-      const last = await AsyncStorage.getItem(KEYS.MOMENT_COOLDOWN);
-      if (!last) return 0;
-      const elapsed = Date.now() - parseInt(last, 10);
-      const remaining = Math.max(0, COOLDOWN_MS - elapsed);
-      return remaining;
-    } catch {
-      return 0;
-    }
+    return 0;
   },
 };
 

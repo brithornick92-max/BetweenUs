@@ -59,7 +59,7 @@ export default function EnergyMatcher({ onSelect, compact = false }) {
     const params = ContentIntensityMatcher.getContentParams(level);
     onSelect?.(level, params);
     // Refresh global content profile and today's prompt so all screens see updated energy
-    loadTodayPrompt?.().catch(() => {});
+    loadTodayPrompt?.()?.catch(() => {});
   }, [onSelect, loadContentProfile]);
 
   if (compact) {

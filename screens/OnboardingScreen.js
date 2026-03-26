@@ -231,6 +231,7 @@ export default function OnboardingScreen({ navigation }) {
       // 2. Generate a 6-character invite code via CoupleService
       if (__DEV__) console.log("🔑 [invite] Step 5: generateInviteCode");
       const result = await CoupleService.generateInviteCode();
+      if (!result?.code) throw new Error('No invite code returned');
       if (__DEV__) console.log("🔑 [invite] Step 6: code =", result.code);
       
       setInviteCode(result.code);

@@ -84,18 +84,28 @@ const ExportDataScreen = ({ navigation }) => {
     };
 
     // Fetch from each data type via DataLayer (handles decryption)
+    const loadErrors = [];
+    const safeLoad = (fn, label) => fn.catch(e => { loadErrors.push(label); return []; });
+
     const [journalEntries, promptAnswers, memoryRows, rituals, checkIns, vibes, loveNotes, calendarEvents, myDates] =
       await Promise.all([
-        DataLayer.getJournalEntries({ limit: 10000 }).catch(() => []),
-        DataLayer.getPromptAnswers({ limit: 10000 }).catch(() => []),
-        DataLayer.getMemories({ limit: 10000 }).catch(() => []),
-        DataLayer.getRituals({ limit: 10000 }).catch(() => []),
-        DataLayer.getCheckIns({ limit: 10000 }).catch(() => []),
-        DataLayer.getVibes({ limit: 10000 }).catch(() => []),
-        DataLayer.getLoveNotes({ limit: 10000 }).catch(() => []),
-        DataLayer.getCalendarEvents({ limit: 10000 }).catch(() => []),
-        DataLayer.getDatePlans({ limit: 10000 }).catch(() => []),
+        safeLoad(DataLayer.getJournalEntries({ limit: 10000 }), 'Journal'),
+        safeLoad(DataLayer.getPromptAnswers({ limit: 10000 }), 'Prompts'),
+        safeLoad(DataLayer.getMemories({ limit: 10000 }), 'Memories'),
+        safeLoad(DataLayer.getRituals({ limit: 10000 }), 'Rituals'),
+        safeLoad(DataLayer.getCheckIns({ limit: 10000 }), 'Check-ins'),
+        safeLoad(DataLayer.getVibes({ limit: 10000 }), 'Vibes'),
+        safeLoad(DataLayer.getLoveNotes({ limit: 10000 }), 'Love Notes'),
+        safeLoad(DataLayer.getCalendarEvents({ limit: 10000 }), 'Calendar'),
+        safeLoad(DataLayer.getDatePlans({ limit: 10000 }), 'Dates'),
       ]);
+
+    if (loadErrors.length > 0) {
+      Alert.alert(
+        'Partial Export',
+        `Some data could not be loaded: ${loadErrors.join(', ')}. The export will continue without those sections.`,
+      );
+    }
 
     // Strip cipher columns and internal sync metadata from output
     const sanitize = (rows) => (rows || []).map(r => {

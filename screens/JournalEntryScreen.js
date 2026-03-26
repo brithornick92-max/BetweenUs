@@ -16,6 +16,7 @@ import {
   Alert,
   StatusBar,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';

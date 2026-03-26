@@ -61,8 +61,21 @@ const AAD_TAG_LEN = 32; // first 32 bytes of SHA-512
 
 // ─── Device key (per-device) ────────────────────────────────────────
 let _deviceKeyCache = null;
+let _deviceKeyPromise = null;
 
 async function getDeviceKey() {
+  if (_deviceKeyCache) return _deviceKeyCache;
+  // Mutex: if another call is already generating/loading the key, wait for it
+  if (_deviceKeyPromise) return _deviceKeyPromise;
+  _deviceKeyPromise = _loadOrCreateDeviceKey();
+  try {
+    return await _deviceKeyPromise;
+  } finally {
+    _deviceKeyPromise = null;
+  }
+}
+
+async function _loadOrCreateDeviceKey() {
   if (_deviceKeyCache) return _deviceKeyCache;
   const existing = await SecureStore.getItemAsync(DEVICE_KEY_NAME, {
     keychainService: 'betweenus',
@@ -75,7 +88,6 @@ async function getDeviceKey() {
         return bytes;
       }
     } catch (e) {
-      // Key exists but is corrupted — report before regenerating
       const CrashReporting = require('../CrashReporting').default;
       CrashReporting.captureException(
         new Error('E2EEncryption: device key corrupted, regenerating — previous ciphertext will be unreadable'),

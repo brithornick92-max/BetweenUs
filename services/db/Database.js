@@ -839,8 +839,9 @@ const Database = {
     const db = await getDb();
     const row = await db.getFirstAsync(
       `SELECT COUNT(*) as count FROM love_notes
-       WHERE couple_id = ? AND user_id != ? AND is_read = 0 AND deleted_at IS NULL`,
-      [coupleId, userId]
+       WHERE couple_id = ? AND user_id != ? AND is_read = 0 AND deleted_at IS NULL
+         AND (expires_at IS NULL OR expires_at > ?)`,
+      [coupleId, userId, now()]
     );
     return row?.count || 0;
   },

@@ -51,10 +51,16 @@ export function useTogetherPresence() {
 
   const channelRef = useRef(null);
   const retryTimerRef = useRef(null);
+  const connectCancelRef = useRef(null);
   const appStateRef = useRef(AppState.currentState);
 
   // ── Disconnect from presence channel ──────────────────────────────────────
   const cleanup = useCallback(() => {
+    // Cancel any in-flight async connect() so it doesn't set channelRef after cleanup
+    if (connectCancelRef.current) {
+      connectCancelRef.current.cancel();
+      connectCancelRef.current = null;
+    }
     if (retryTimerRef.current) {
       clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
@@ -71,9 +77,14 @@ export function useTogetherPresence() {
     if (!supabase || !coupleId || !localUserId) return;
     if (channelRef.current) return; // already subscribed
 
+    let connectCancelled = false;
+    const cancelToken = { cancel: () => { connectCancelled = true; } };
+    // Store cancel token so cleanup() can abort an in-flight connect
+    connectCancelRef.current = cancelToken;
+
     _resolvePresenceKey(localUserId).then((presenceKey) => {
-      // Bail if another connect() won the race or cleanup ran
-      if (channelRef.current) return;
+      // Bail if cleanup ran or another connect() won the race
+      if (connectCancelled || channelRef.current) return;
 
       const channel = supabase.channel(`couple-presence:${coupleId}`, {
         config: { presence: { key: presenceKey } },

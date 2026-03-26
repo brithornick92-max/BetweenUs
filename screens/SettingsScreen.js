@@ -569,7 +569,25 @@ export default function SettingsScreen({ navigation }) {
               t={t}
             />
             <EditorialRow 
+              icon="document-text-outline" 
+              title="Terms of Service" 
+              onPress={() => navigation.navigate('Terms')}
+              t={t}
+            />
+            <EditorialRow 
               icon="help-circle-outline" 
+              title="FAQ" 
+              onPress={() => navigation.navigate('FAQ')}
+              t={t}
+            />
+            <EditorialRow 
+              icon="document-attach-outline" 
+              title="EULA" 
+              onPress={() => navigation.navigate('EULA')}
+              t={t}
+            />
+            <EditorialRow 
+              icon="mail-outline" 
               title="Support Center" 
               onPress={() => Linking.openURL('mailto:brittanyapps@outlook.com')}
               t={t}

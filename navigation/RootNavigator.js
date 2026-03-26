@@ -47,6 +47,7 @@ import LoveNotesInboxScreen from "../screens/LoveNotesInboxScreen";
 import PremiumScreen from "../screens/PremiumScreen";
 import InsideJokesScreen from "../screens/InsideJokesScreen";
 import YearReflectionScreen from "../screens/YearReflectionScreen";
+import EULAScreen from "../screens/EULAScreen";
 
 // Tabs
 import Tabs from "./Tabs";
@@ -211,6 +212,7 @@ export default function RootNavigator() {
         <Stack.Screen name="Terms" component={TermsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} options={{ headerShown: false }} />
         <Stack.Screen name="FAQ" component={FAQScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="EULA" component={EULAScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ExportData" component={ExportDataScreen} options={{ headerShown: false }} />
         <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} options={{ headerShown: false }} />
 

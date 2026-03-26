@@ -44,11 +44,8 @@ const VIBES = [
   { id: 'luxurious',   name: 'Grounded',   icon: 'infinite-outline', color: '#AF52DE' },
 ];
 
-// Vibe intensity mapping for the energy chart
-const VIBE_INTENSITY = {
-  passionate: 90, adventurous: 80, luxurious: 70,
-  mysterious: 60, tender: 50,  serene: 30,
-};
+// Color representing the partner in the Flux History chart
+const PARTNER_COLOR = '#FF6B98';
 
 // ------------------------------------------------------------------
 // 2. INLINE COMPONENTS (VibeCard)
@@ -134,7 +131,8 @@ export default function VibeSignalScreen({ navigation }) {
     vibeStorage.addVibeEntry(vibe, state.userId).catch(() => {});
   };
   const [userInitial,       setUserInitial]        = useState('');
-  const [weeklyData,        setWeeklyData]         = useState(null);
+  // { mine: number[7], partner: number[7] } — pulse count per day (Mon–Sun)
+  const [fluxData,          setFluxData]           = useState(null);
 
   const entranceFade       = useRef(new Animated.Value(0)).current;
   const entranceSlide      = useRef(new Animated.Value(20)).current;
@@ -151,22 +149,26 @@ export default function VibeSignalScreen({ navigation }) {
       if (name) setUserInitial(name.charAt(0).toUpperCase());
     }).catch(() => {});
 
-    // Real vibe history for the chart
-    vibeStorage.getRecentVibes(7).then(vibes => {
-      if (!vibes || vibes.length === 0) { setWeeklyData(null); return; }
-      const buckets = [[], [], [], [], [], [], []];
-      for (const v of vibes) {
-        const dow    = new Date(v.timestamp).getDay();
-        const vibeId = v.vibe?.id || v.vibe?.name?.toLowerCase() || '';
-        buckets[dow].push(VIBE_INTENSITY[vibeId] ?? 50);
+    // Flux History: count of pulses per day for user and partner
+    Promise.all([
+      vibeStorage.getRecentVibes(7),
+      vibeStorage.getRecentPartnerVibes(7),
+    ]).then(([myVibes, partnerVibes]) => {
+      if ((!myVibes || myVibes.length === 0) && (!partnerVibes || partnerVibes.length === 0)) {
+        setFluxData(null);
+        return;
       }
-      const orderedDays = [1, 2, 3, 4, 5, 6, 0];
-      const data = orderedDays.map(d => {
-        if (buckets[d].length === 0) return 0;
-        return Math.round(buckets[d].reduce((a, b) => a + b, 0) / buckets[d].length);
-      });
-      setWeeklyData(data);
-    }).catch(() => setWeeklyData(null));
+      const orderedDays = [1, 2, 3, 4, 5, 6, 0]; // Mon–Sun
+      const countByDay = (vibes) => {
+        const buckets = [0, 0, 0, 0, 0, 0, 0];
+        for (const v of (vibes || [])) {
+          const dow = new Date(v.timestamp).getDay();
+          buckets[dow]++;
+        }
+        return orderedDays.map(d => buckets[d]);
+      };
+      setFluxData({ mine: countByDay(myVibes), partner: countByDay(partnerVibes) });
+    }).catch(() => setFluxData(null));
   }, []);
 
   // ── Paywall Gate ──────────────────────────────────────────────────
@@ -272,29 +274,41 @@ export default function VibeSignalScreen({ navigation }) {
                   <Icon name="bar-chart-outline" size={14} color={t.subtext} />
                   <Text style={[styles.widgetTitle, { color: t.subtext }]}>Flux History</Text>
                 </View>
+                {/* Legend */}
+                <View style={styles.chartLegend}>
+                  <View style={styles.chartLegendItem}>
+                    <View style={[styles.chartLegendDot, { backgroundColor: t.primary }]} />
+                    <Text style={[styles.chartLegendLabel, { color: t.subtext }]}>You</Text>
+                  </View>
+                  <View style={styles.chartLegendItem}>
+                    <View style={[styles.chartLegendDot, { backgroundColor: PARTNER_COLOR }]} />
+                    <Text style={[styles.chartLegendLabel, { color: t.subtext }]}>{partnerLabel}</Text>
+                  </View>
+                </View>
                 <View style={styles.chartArea}>
-                  {['M','T','W','T','F','S','S'].map((day, i) => {
-                    const val = weeklyData?.[i] ?? 0;
-                    const maxH = 56;
-                    const barH = val > 0 ? Math.max(Math.round((val / 100) * maxH), 6) : 3;
-                    const isActive = val > 0;
-                    return (
-                      <View key={i} style={styles.chartColumn}>
-                        <View style={styles.chartTrack}>
-                          <View
-                            style={[
-                              styles.chartBar,
-                              {
-                                height: barH,
-                                backgroundColor: val > 70 ? t.primary : isActive ? withAlpha(t.primary, 0.35) : t.surfaceSecondary,
-                              },
-                            ]}
-                          />
+                  {(() => {
+                    const allCounts = (fluxData?.mine || []).concat(fluxData?.partner || []);
+                    const maxCount = Math.max(1, ...allCounts);
+                    const maxH = 44;
+                    return ['M','T','W','T','F','S','S'].map((day, i) => {
+                      const myVal      = fluxData?.mine?.[i] ?? 0;
+                      const partnerVal = fluxData?.partner?.[i] ?? 0;
+                      const myH        = myVal > 0      ? Math.max(Math.round((myVal / maxCount) * maxH), 5)      : 2;
+                      const partnerH   = partnerVal > 0 ? Math.max(Math.round((partnerVal / maxCount) * maxH), 5) : 2;
+                      const hasAny     = myVal > 0 || partnerVal > 0;
+                      return (
+                        <View key={i} style={styles.chartColumn}>
+                          <View style={styles.chartTrack}>
+                            <View style={styles.chartDualBars}>
+                              <View style={[styles.chartBar, { height: myH,      backgroundColor: myVal > 0      ? t.primary      : t.surfaceSecondary }]} />
+                              <View style={[styles.chartBar, { height: partnerH, backgroundColor: partnerVal > 0 ? PARTNER_COLOR : t.surfaceSecondary }]} />
+                            </View>
+                          </View>
+                          <Text style={[styles.chartDayLabel, { color: hasAny ? t.text : t.subtext }]}>{day}</Text>
                         </View>
-                        <Text style={[styles.chartDayLabel, { color: isActive ? t.text : t.subtext }]}>{day}</Text>
-                      </View>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </View>
               </View>
 
@@ -413,9 +427,14 @@ const createStyles = (t, isDark) => StyleSheet.create({
   widgetStatus: { fontSize: 14, fontWeight: '700' },
   chartArea:        { flex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   chartColumn:      { flex: 1, alignItems: 'center' },
-  chartTrack:       { height: 56, justifyContent: 'flex-end' },
+  chartTrack:       { height: 44, justifyContent: 'flex-end' },
+  chartDualBars:    { flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
   chartBar:         { width: 5, borderRadius: 3 },
   chartDayLabel:    { fontSize: 9, fontWeight: '700', marginTop: 4 },
+  chartLegend:      { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  chartLegendItem:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  chartLegendDot:   { width: 6, height: 6, borderRadius: 3 },
+  chartLegendLabel: { fontSize: 9, fontWeight: '700' },
   // Paywall
   paywallContent:  { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   paywallBack:     { position: 'absolute', top: 20, left: 20 },
@@ -437,5 +456,24 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color:       t.subtext,
     lineHeight:  24,
     marginBottom: 40,
+  },
+  primaryButton: {
+    width:          '100%',
+    paddingVertical: 18,
+    borderRadius:   28,
+    alignItems:     'center',
+    justifyContent: 'center',
+    shadowOffset:   { width: 0, height: 8 },
+    shadowOpacity:  0.3,
+    shadowRadius:   16,
+    elevation:      6,
+  },
+  primaryButtonText: {
+    fontFamily:    SYSTEM_FONT,
+    fontSize:      16,
+    fontWeight:    '800',
+    color:         '#FFFFFF',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
 });

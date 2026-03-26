@@ -16,46 +16,38 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import Animated, { FadeIn, FadeInDown, FadeInUp, SlideInRight } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, Layout } from "react-native-reanimated";
 
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { PremiumFeature } from '../utils/featureFlags';
 import DataLayer from "../services/data/DataLayer";
-import {
-  SPACING,
-  BORDER_RADIUS,
-  TYPOGRAPHY,
-  SERIF,
-  SERIF_ACCENT,
-  SANS,
-  SANS_MEDIUM,
-  SANS_BOLD,
-  SYSTEM_FONT,
-  withAlpha,
-} from "../utils/theme";
+import SyncEngine from "../services/sync/SyncEngine";
+import { withAlpha } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 
-const STATIONERY_COLORS = {
-  love:    ["#9A2E5E", "#7A1E4E"],
-  fun:     ["#F5A623", "#F7D046"],
-  sexy:    ["#C0392B", "#8E2323"],
-  spicy:   ["#D35400", "#A83210"],
-  sweet:   ["#D4856A", "#A85A4A"],
-  flirty:  ["#8E44AD", "#6C3483"],
-  classic: ["#5D6D7E", "#2C3E50"],
-  dreamy:  ["#3A4A7A", "#1E2E5E"],
-  heart:   ["#A8516E", "#8B3A5C"],
-  sparkle: ["#6E4B7A", "#4A2E5E"],
-  rose:    ["#B8606A", "#9A3E4E"],
-  sunset:  ["#D4856A", "#A85A4A"],
-  night:   ["#3A4A7A", "#1E2E5E"],
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+const SERIF_FONT = Platform.select({ ios: "DMSerifDisplay-Regular", android: "DMSerifDisplay_400Regular", default: "serif" });
+
+// Unified Stationery Map to match Compose & Detail screens
+const STATIONERY_MAP = {
+  love:    { icon: "heart-outline", paper: "#FFF0F5", accent: "#D4609A" },
+  heart:   { icon: "heart-circle-outline", paper: "#FFF5F5", accent: "#FF2D55" },
+  sparkle: { icon: "sparkles-outline", paper: "#FFF0F3", accent: "#FF006E" },
+  rose:    { icon: "flower-outline", paper: "#FFF5F5", accent: "#D2121A" },
+  sunset:  { icon: "sunny-outline", paper: "#FFF8F2", accent: "#E08860" },
+  night:   { icon: "star-outline", paper: "#F0EDF8", accent: "#7B68EE" },
+  sexy:    { icon: "flame-outline", paper: "#FFF5F5", accent: "#D2121A" },
+  dreamy:  { icon: "moon-outline", paper: "#F0EDF8", accent: "#7B68EE" },
+  playful: { icon: "happy-outline", paper: "#FFFDF2", accent: "#E8A020" },
+  classic: { icon: "mail-outline", paper: "#FAF8F5", accent: "#8B7355" },
 };
 
 function relativeTime(ts) {
@@ -76,12 +68,12 @@ function formatExpiryShort(expiresAt) {
   const totalMins = Math.floor(ms / 60000);
   const hrs = Math.floor(totalMins / 60);
   const mins = totalMins % 60;
-  if (hrs > 0) return `Expires in ${hrs}h ${mins}m`;
-  return `Expires in ${mins}m`;
+  if (hrs > 0) return `${hrs}h ${mins}m`;
+  return `${mins}m`;
 }
 
 export default function LoveNotesInboxScreen({ navigation }) {
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { user } = useAuth();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
@@ -90,9 +82,19 @@ export default function LoveNotesInboxScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState("all"); 
 
-  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+  // Apple Editorial Velvet Glass Theme
+  const t = useMemo(() => ({
+    background: isDark ? '#050305' : '#140A0D',
+    primary: '#D2121A',
+    text: '#FFFFFF',
+    textMuted: 'rgba(255, 255, 255, 0.55)',
+    border: 'rgba(255, 255, 255, 0.08)',
+    surface: 'rgba(255, 255, 255, 0.03)',
+  }), [isDark]);
 
-  // integrated premium logic
+  const styles = useMemo(() => createStyles(t), [t]);
+
+  // Integrated premium logic
   useEffect(() => {
     if (!isPremium) {
       showPaywall?.(PremiumFeature.LOVE_NOTES);
@@ -102,7 +104,6 @@ export default function LoveNotesInboxScreen({ navigation }) {
 
   const loadNotes = useCallback(async () => {
     try {
-      // Purge any notes that have passed their 1-hour read window
       await DataLayer.purgeExpiredLoveNotes().catch(() => {});
       const all = await DataLayer.getLoveNotes({ limit: 200 });
       setNotes(all || []);
@@ -124,14 +125,13 @@ export default function LoveNotesInboxScreen({ navigation }) {
     return unsubscribe;
   }, [navigation, loadNotes]);
 
-  // Pull from Supabase on mount, then reload list when sync delivers new notes.
-  // This ensures the partner sees freshly sent notes without waiting for the
-  // 60-second periodic sync or manually pull‑to‑refreshing.
   useEffect(() => {
-    // Fire-and-forget pull; reload list when it completes
-    DataLayer.pullNow().then(() => loadNotes()).catch(() => {});
+    SyncEngine.pushNow()
+      .catch(() => {})
+      .then(() => DataLayer.pullNow())
+      .catch(() => {})
+      .finally(() => loadNotes());
 
-    // Stay subscribed so realtime / periodic sync auto-updates the list
     const unsub = DataLayer.onSyncEvent((event, data) => {
       if (
         (event === 'sync:complete' && (data?.pulled ?? 0) > 0) ||
@@ -143,9 +143,6 @@ export default function LoveNotesInboxScreen({ navigation }) {
     return unsub;
   }, [loadNotes]);
 
-  // Notes are marked as read individually when opened in LoveNoteDetailScreen.
-
-  // Schedule a reload when the nearest note is about to expire
   useEffect(() => {
     const expiringNotes = notes.filter((n) => !n.isOwn && n.expiresAt);
     if (!expiringNotes.length) return;
@@ -159,6 +156,10 @@ export default function LoveNotesInboxScreen({ navigation }) {
   const onRefresh = useCallback(async () => {
     selection();
     setRefreshing(true);
+    try {
+      await SyncEngine.pushNow().catch(() => {});
+      await DataLayer.pullNow().catch(() => {});
+    } catch { /* best-effort */ }
     await loadNotes();
     setRefreshing(false);
   }, [loadNotes]);
@@ -191,80 +192,95 @@ export default function LoveNotesInboxScreen({ navigation }) {
   const renderEmpty = () => (
     <Animated.View entering={FadeIn.duration(800)} style={styles.emptyContainer}>
       <View style={styles.emptyIconCircle}>
-        <Icon
-          name="mail-outline"
-          size={48}
-          color={colors.primary}
-        />
+        <Icon name="mail-outline" size={48} color={t.primary} />
       </View>
-      <Text style={[styles.emptyTitle, { color: colors.text }]}>No notes yet</Text>
-      <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
+      <Text style={styles.emptyTitle}>No notes yet</Text>
+      <Text style={styles.emptySubtitle}>
         Begin your shared anthology. Send a private note that only you two can ever decrypt.
       </Text>
-      <TouchableOpacity style={[styles.emptyButton, { backgroundColor: colors.primary }]} onPress={handleCompose} activeOpacity={0.85}>
-        <Icon name="pencil-outline" size={18} color="#FFF" />
-        <Text style={styles.emptyButtonText}>Write First Note</Text>
+      <TouchableOpacity activeOpacity={0.85} onPress={handleCompose}>
+        <LinearGradient colors={[t.primary, '#8A0B11']} style={styles.emptyButton}>
+          <Icon name="pencil-outline" size={18} color="#FFF" />
+          <Text style={styles.emptyButtonText}>Write First Note</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </Animated.View>
   );
 
-  // ── High-End Note Card ──
+  // ── High-End Velvet Glass Note Card ──
   const renderNote = ({ item, index }) => {
-    const gradient = STATIONERY_COLORS[item.stationeryId] || STATIONERY_COLORS.love;
+    const stationery = STATIONERY_MAP[item.stationeryId] || STATIONERY_MAP.love;
     const isUnread = !item.isOwn && !item.isRead;
     const previewText = item.locked
       ? "Locked Reflection"
-      : item.text
-        ? item.text.length > 100
-          ? item.text.slice(0, 100) + "…"
-          : item.text
-        : "A digital keepsake";
+      : item.invisibleInk
+        ? "Hidden message — hold up to light"
+        : item.text
+          ? item.text.length > 100
+            ? item.text.slice(0, 100) + "…"
+            : item.text
+          : "A digital keepsake";
 
     return (
-      <Animated.View entering={FadeInDown.delay(index * 40).springify().damping(20)}>
+      <Animated.View 
+        entering={FadeInDown.delay(index * 40).springify().damping(20)} 
+        layout={Layout.springify()}
+      >
         <TouchableOpacity
-          style={[styles.noteCard, isUnread && { borderColor: withAlpha(colors.primary, 0.3) }]}
           onPress={() => handleOpenNote(item.id)}
           activeOpacity={0.7}
+          style={styles.noteCardWrapper}
         >
-          {/* Visual Identity */}
-          <View style={styles.noteThumbnailWrap}>
-            {item.imageUri ? (
-              <Image source={{ uri: item.imageUri }} style={styles.noteThumbnail} />
-            ) : (
-              <LinearGradient colors={gradient} style={styles.noteThumbnail}>
-                <Icon
-                  name="checkmark-seal-outline"
-                  size={24}
-                  color="rgba(255,255,255,0.25)"
-                />
-              </LinearGradient>
-            )}
-            {isUnread && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
-          </View>
-
-          {/* Editorial Content */}
-          <View style={styles.noteContent}>
-            <View style={styles.noteTopRow}>
-              <Text style={[styles.noteSender, { color: colors.text }]} numberOfLines={1}>
-                {item.isOwn ? "Sent" : item.senderName || "Received"}
-              </Text>
-              <Text style={[styles.noteTime, { color: colors.textMuted }]}>{relativeTime(item.createdAt)}</Text>
+          <BlurView 
+            intensity={40} 
+            tint="dark" 
+            style={[
+              styles.noteCard, 
+              isUnread && { borderColor: withAlpha(t.primary, 0.4), backgroundColor: withAlpha(t.primary, 0.05) }
+            ]}
+          >
+            {/* Visual Identity (Miniature Paper) */}
+            <View style={styles.noteThumbnailWrap}>
+              {item.imageUri ? (
+                <View style={styles.imageThumbnailContainer}>
+                  <Image source={{ uri: item.imageUri }} style={styles.noteThumbnailImg} />
+                </View>
+              ) : (
+                <View style={[styles.noteThumbnail, { backgroundColor: stationery.paper }]}>
+                  <View style={[styles.thumbnailAccent, { backgroundColor: withAlpha(stationery.accent, 0.3) }]} />
+                  <Icon name={stationery.icon} size={18} color={stationery.accent} />
+                </View>
+              )}
+              {isUnread && <View style={[styles.unreadDot, { backgroundColor: t.primary }]} />}
             </View>
-            <Text
-              style={[styles.notePreview, { color: isUnread ? colors.text : colors.textMuted }]}
-              numberOfLines={2}
-            >
-              {previewText}
-            </Text>
-            {!item.isOwn && item.expiresAt && (
-              <Text style={[styles.expiryHint, { color: colors.primary }]} numberOfLines={1}>
-                {formatExpiryShort(item.expiresAt)}
-              </Text>
-            )}
-          </View>
 
-          <Icon name="chevron-forward" size={20} color={withAlpha(colors.text, 0.2)} />
+            {/* Editorial Content */}
+            <View style={styles.noteContent}>
+              <View style={styles.noteTopRow}>
+                <Text style={[styles.noteSender, { color: isUnread ? t.text : t.textMuted }]} numberOfLines={1}>
+                  {item.isOwn ? "Sent" : item.senderName || "Received"}
+                </Text>
+                <Text style={styles.noteTime}>{relativeTime(item.createdAt)}</Text>
+              </View>
+              <Text
+                style={[styles.notePreview, { color: isUnread ? t.text : t.textMuted }]}
+                numberOfLines={2}
+              >
+                {previewText}
+              </Text>
+              
+              {!item.isOwn && item.expiresAt && (
+                <View style={styles.expiryBadge}>
+                  <Icon name="time-outline" size={10} color={t.primary} />
+                  <Text style={styles.expiryHint} numberOfLines={1}>
+                    {formatExpiryShort(item.expiresAt)}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <Icon name="chevron-forward" size={20} color={withAlpha(t.text, 0.2)} />
+          </BlurView>
         </TouchableOpacity>
       </Animated.View>
     );
@@ -275,45 +291,38 @@ export default function LoveNotesInboxScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <FilmGrain opacity={0.15} />
-      <GlowOrb color={colors.primary} size={400} top={-150} left={SCREEN_W - 200} opacity={0.1} />
-      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={650} left={-100} opacity={isDark ? 0.1 : 0.06} />
+      <FilmGrain opacity={0.05} />
+      <GlowOrb color={t.primary} size={500} top={-200} left={SCREEN_W - 250} opacity={0.12} />
+      <GlowOrb color={t.primary} size={400} top={SCREEN_W * 1.5} left={-150} opacity={0.08} />
       
-      <LinearGradient
-        colors={[isDark ? "#0F0514" : "#FAF7F5", colors.background]}
-        style={StyleSheet.absoluteFillObject}
-      />
+      <LinearGradient colors={['#110408', t.background]} style={StyleSheet.absoluteFillObject} />
 
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         {/* ── Apple Editorial Header ── */}
         <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
-          <TouchableOpacity
-            style={[styles.backButton, { backgroundColor: withAlpha(colors.text, 0.05) }]}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <Icon name="chevron-back" size={28} color={colors.text} />
+          <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.goBack()}>
+            <BlurView intensity={40} tint="dark" style={styles.circleButton}>
+              <Icon name="chevron-back" size={24} color={t.text} />
+            </BlurView>
           </TouchableOpacity>
 
           <View style={styles.headerCenter}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Love Notes</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.primary }]}>
+            <Text style={styles.headerTitle}>Love Notes</Text>
+            <Text style={styles.headerSubtitle}>
               {unreadCount > 0
                 ? `${unreadCount} UNREAD`
                 : "END-TO-END ENCRYPTED"}
             </Text>
           </View>
 
-          <TouchableOpacity
-            style={[styles.composeButton, { backgroundColor: colors.primary }]}
-            onPress={handleCompose}
-            activeOpacity={0.85}
-          >
-            <Icon name="add-outline" size={24} color="#FFF" />
+          <TouchableOpacity activeOpacity={0.85} onPress={handleCompose}>
+            <LinearGradient colors={[t.primary, '#9F1218']} style={styles.composeButton}>
+              <Icon name="add-outline" size={24} color="#FFF" />
+            </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
 
-        {/* ── Editorial Filter Tabs ── */}
+        {/* ── Editorial Filter Tabs (Velvet Glass) ── */}
         <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.filterRow}>
           {[
             { key: "all", label: "Inbox" },
@@ -324,19 +333,22 @@ export default function LoveNotesInboxScreen({ navigation }) {
             return (
               <TouchableOpacity
                 key={f.key}
-                style={[
-                  styles.filterChip,
-                  active && { backgroundColor: withAlpha(colors.primary, 0.12), borderColor: colors.primary },
-                ]}
-                onPress={() => {
-                  setFilter(f.key);
-                  selection();
-                }}
+                onPress={() => { setFilter(f.key); selection(); }}
                 activeOpacity={0.8}
+                style={styles.filterChipWrapper}
               >
-                <Text style={[styles.filterText, active && { color: colors.primary, fontFamily: SANS_BOLD }]}>
-                  {f.label}
-                </Text>
+                <BlurView 
+                  intensity={active ? 60 : 20} 
+                  tint="dark" 
+                  style={[
+                    styles.filterChip,
+                    active && { borderColor: withAlpha(t.primary, 0.5), backgroundColor: withAlpha(t.primary, 0.15) }
+                  ]}
+                >
+                  <Text style={[styles.filterText, active && { color: '#FFF', fontWeight: '700' }]}>
+                    {f.label}
+                  </Text>
+                </BlurView>
               </TouchableOpacity>
             );
           })}
@@ -350,13 +362,13 @@ export default function LoveNotesInboxScreen({ navigation }) {
           ListEmptyComponent={loading ? null : renderEmpty}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          RefreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.primary} />
           }
           ListHeaderComponent={
             <View style={styles.securityHeader}>
-                <Icon name="shield-checkmark-outline" size={12} color={colors.textMuted} />
-                <Text style={[styles.securityText, { color: colors.textMuted }]}>SECURE PRIVATE CHANNEL</Text>
+                <Icon name="shield-checkmark-outline" size={12} color={t.textMuted} />
+                <Text style={styles.securityText}>SECURE PRIVATE CHANNEL</Text>
             </View>
           }
         />
@@ -365,9 +377,9 @@ export default function LoveNotesInboxScreen({ navigation }) {
   );
 }
 
-const createStyles = (colors, isDark) =>
+const createStyles = (t) =>
   StyleSheet.create({
-    container: { flex: 1 },
+    container: { flex: 1, backgroundColor: '#050305' },
     safeArea: { flex: 1 },
 
     // Header Architecture
@@ -377,13 +389,17 @@ const createStyles = (colors, isDark) =>
       paddingHorizontal: 24,
       paddingTop: 12,
       paddingBottom: 24,
+      zIndex: 10,
     },
-    backButton: {
+    circleButton: {
       width: 44,
       height: 44,
       borderRadius: 22,
       alignItems: "center",
       justifyContent: "center",
+      borderWidth: 1,
+      borderColor: t.border,
+      overflow: 'hidden',
     },
     headerCenter: {
       flex: 1,
@@ -391,25 +407,27 @@ const createStyles = (colors, isDark) =>
     },
     headerTitle: {
       fontFamily: SYSTEM_FONT,
-      fontSize: 36,
-      fontWeight: '900',
-      letterSpacing: -1,
-      lineHeight: 42,
+      fontSize: 28,
+      fontWeight: '800',
+      letterSpacing: -0.5,
+      color: t.text,
     },
     headerSubtitle: {
-      fontFamily: SANS_BOLD,
+      fontFamily: SYSTEM_FONT,
       fontSize: 10,
+      fontWeight: '800',
       letterSpacing: 2,
+      color: t.primary,
       marginTop: 4,
     },
     composeButton: {
       width: 44,
       height: 44,
-      borderRadius: 14,
+      borderRadius: 22,
       alignItems: "center",
       justifyContent: "center",
       ...Platform.select({
-        ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+        ios: { shadowColor: t.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
         android: { elevation: 6 },
       }),
     },
@@ -418,35 +436,44 @@ const createStyles = (colors, isDark) =>
     filterRow: {
       flexDirection: "row",
       paddingHorizontal: 24,
-      gap: 10,
+      gap: 12,
       marginBottom: 24,
+      zIndex: 10,
+    },
+    filterChipWrapper: {
+      borderRadius: 20,
+      overflow: 'hidden',
     },
     filterChip: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 12,
+      paddingHorizontal: 18,
+      paddingVertical: 10,
       borderWidth: 1,
-      borderColor: withAlpha(colors.text, 0.08),
-      backgroundColor: withAlpha(colors.text, 0.03),
+      borderColor: t.border,
+      borderRadius: 20,
     },
     filterText: {
-      fontFamily: SANS_MEDIUM,
+      fontFamily: SYSTEM_FONT,
       fontSize: 13,
-      color: colors.textMuted,
+      fontWeight: '500',
+      color: t.textMuted,
+      letterSpacing: 0.2,
     },
 
     // Security Info
     securityHeader: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
         gap: 6,
-        marginBottom: 16,
-        paddingHorizontal: 4,
+        marginBottom: 20,
+        paddingHorizontal: 24,
     },
     securityText: {
-      fontFamily: SANS_BOLD,
-      fontSize: 9,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 10,
+      fontWeight: '800',
       letterSpacing: 1.5,
+      color: t.textMuted,
     },
 
     // List Layout
@@ -455,28 +482,57 @@ const createStyles = (colors, isDark) =>
       paddingBottom: 120,
     },
 
-    // Editorial Note Card
+    // Velvet Glass Note Card
+    noteCardWrapper: {
+      marginBottom: 16,
+      borderRadius: 24,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 16 },
+        android: { elevation: 6 },
+      }),
+    },
     noteCard: {
       flexDirection: "row",
       alignItems: "center",
       padding: 16,
-      marginBottom: 12,
-      borderRadius: 20,
+      borderRadius: 24,
       borderWidth: 1,
-      borderColor: withAlpha(colors.text, 0.08),
-      backgroundColor: withAlpha(colors.surface, 0.5),
+      borderColor: t.border,
       gap: 16,
+      overflow: 'hidden',
     },
     noteThumbnailWrap: {
       position: "relative",
     },
     noteThumbnail: {
       width: 56,
-      height: 56,
-      borderRadius: 14,
+      height: 64,
+      borderRadius: 8,
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden",
+      borderWidth: 1,
+      borderColor: 'rgba(0,0,0,0.1)',
+      transform: [{ rotate: '-2deg' }],
+    },
+    thumbnailAccent: {
+      position: 'absolute',
+      left: 6,
+      top: 0,
+      bottom: 0,
+      width: 1.5,
+    },
+    imageThumbnailContainer: {
+      width: 56,
+      height: 64,
+      borderRadius: 8,
+      backgroundColor: '#FFF',
+      padding: 3,
+      transform: [{ rotate: '-2deg' }],
+    },
+    noteThumbnailImg: {
+      flex: 1,
+      borderRadius: 4,
     },
     unreadDot: {
       position: "absolute",
@@ -486,36 +542,52 @@ const createStyles = (colors, isDark) =>
       height: 12,
       borderRadius: 6,
       borderWidth: 2,
-      borderColor: colors.background,
+      borderColor: '#110408',
     },
     noteContent: {
       flex: 1,
+      justifyContent: 'center',
     },
     noteTopRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 4,
+      marginBottom: 6,
     },
     noteSender: {
-      fontFamily: SANS_BOLD,
-      fontSize: 15,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 16,
+      fontWeight: '700',
+      letterSpacing: -0.2,
     },
     noteTime: {
-      fontFamily: SANS,
-      fontSize: 11,
-      opacity: 0.6,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 12,
+      fontWeight: '500',
+      color: t.textMuted,
     },
     notePreview: {
-      fontFamily: SANS,
-      fontSize: 14,
-      lineHeight: 20,
+      fontFamily: SERIF_FONT,
+      fontSize: 15,
+      lineHeight: 22,
+    },
+    expiryBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: 8,
+      backgroundColor: withAlpha(t.primary, 0.1),
+      alignSelf: 'flex-start',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
     },
     expiryHint: {
-      fontFamily: SANS,
-      fontSize: 11,
-      fontWeight: '600',
-      marginTop: 3,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 10,
+      fontWeight: '800',
+      color: t.primary,
+      letterSpacing: 0.5,
     },
 
     // Empty State Architecture
@@ -529,40 +601,44 @@ const createStyles = (colors, isDark) =>
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: withAlpha(colors.primary, 0.08),
+        backgroundColor: withAlpha(t.primary, 0.08),
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 24,
     },
     emptyTitle: {
-      fontFamily: SERIF,
+      fontFamily: SERIF_FONT,
       fontSize: 28,
       textAlign: 'center',
       marginBottom: 12,
+      color: t.text,
     },
     emptySubtitle: {
-      fontFamily: SANS,
+      fontFamily: SYSTEM_FONT,
       fontSize: 15,
       textAlign: "center",
       lineHeight: 24,
-      marginBottom: 32,
+      marginBottom: 36,
+      color: t.textMuted,
     },
     emptyButton: {
       flexDirection: "row",
       alignItems: "center",
       gap: 10,
       paddingHorizontal: 32,
-      paddingVertical: 16,
+      paddingVertical: 18,
       borderRadius: 30,
       ...Platform.select({
-        ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12 },
+        ios: { shadowColor: t.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 16 },
         android: { elevation: 8 },
       }),
     },
     emptyButtonText: {
-      fontFamily: SANS_BOLD,
-      fontSize: 15,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 16,
+      fontWeight: '700',
       color: "#FFF",
+      letterSpacing: -0.2,
     },
   });
   

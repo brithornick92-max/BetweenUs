@@ -29,6 +29,7 @@ import { storage, promptStorage, journalStorage, STORAGE_KEYS } from '../../util
 // ─── Helpers ────────────────────────────────────────────────────────
 
 let _userId = null;
+let _legacyLocalUserId = null; // old Crypto.randomUUID() for isOwn on pre-fix notes
 let _coupleId = null;
 let _coupleKeyAvailable = false;
 let _calendarChannel = null;
@@ -168,8 +169,9 @@ const DataLayer = {
   /**
    * Initialize the data layer. Call once at app start (after auth).
    */
-  async init({ userId, coupleId, isPremium = false }) {
+  async init({ userId, coupleId, isPremium = false, legacyLocalUserId = null }) {
     _userId = userId;
+    _legacyLocalUserId = legacyLocalUserId;
     _coupleId = coupleId;
 
     // Check if the couple key is actually available
@@ -194,8 +196,9 @@ const DataLayer = {
   /**
    * Update config (e.g. when couple links, premium changes).
    */
-  async reconfigure({ userId, coupleId, isPremium }) {
+  async reconfigure({ userId, coupleId, isPremium, legacyLocalUserId }) {
     if (userId) _userId = userId;
+    if (legacyLocalUserId !== undefined) _legacyLocalUserId = legacyLocalUserId;
     if (coupleId !== undefined) _coupleId = coupleId;
 
     // Re-check couple key availability
@@ -414,6 +417,7 @@ const DataLayer = {
    * Full reset (sign-out / account delete).
    */
   async reset() {
+    if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; }
     _userId = null;
     _coupleId = null;
     _coupleKeyAvailable = false;
@@ -1371,7 +1375,7 @@ const DataLayer = {
         isRead: !!row.is_read,
         readAt: row.read_at,
         expiresAt: row.expires_at ? new Date(row.expires_at).getTime() : null,
-        isOwn: row.user_id === _userId,
+        isOwn: row.user_id === _userId || row.user_id === _legacyLocalUserId,
         userId: row.user_id,
         invisibleInk: !!row.is_invisible_ink,
         createdAt: new Date(row.created_at).getTime(),
@@ -1387,7 +1391,7 @@ const DataLayer = {
         imageUri: null,
         isRead: !!row.is_read,
         expiresAt: row.expires_at ? new Date(row.expires_at).getTime() : null,
-        isOwn: row.user_id === _userId,
+        isOwn: row.user_id === _userId || row.user_id === _legacyLocalUserId,
         invisibleInk: !!row.is_invisible_ink,
         createdAt: new Date(row.created_at).getTime(),
         locked: true,

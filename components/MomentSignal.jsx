@@ -13,48 +13,36 @@ import {
 import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING, BORDER_RADIUS } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import { MomentSignalSender, MOMENT_TYPES } from '../services/ConnectionEngine';
+
+const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
 export default function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onReceive }) {
   const { colors, isDark } = useTheme();
 
-  // STRICT Apple Editorial Theme Map
   const t = useMemo(() => ({
-    background: isDark ? '#000000' : '#F2F2F7', 
+    background: isDark ? '#000000' : '#F2F2F7',
     surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F5F5F7',
     primary: colors.primary,
     text: isDark ? '#FFFFFF' : '#000000',
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+    border: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
   }), [colors, isDark]);
 
-  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
-
   const [sentType, setSentType] = useState(null);
-  const [canSend, setCanSend] = useState(true);
   const [sendError, setSendError] = useState(null);
   const [receivedSignal, setReceivedSignal] = useState(null);
-  
+
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
   const receiveFadeAnim = useRef(new Animated.Value(0)).current;
+  const receiveScaleAnim = useRef(new Animated.Value(0.6)).current;
+  const receivePulseAnim = useRef(new Animated.Value(1)).current;
   const unsubRef = useRef(null);
-  const cooldownTimerRef = useRef(null);
-
-  // Check send availability on mount
-  useEffect(() => {
-    MomentSignalSender.canSend().then(setCanSend);
-  }, []);
-
-  // Clean up cooldown timer on unmount
-  useEffect(() => {
-    return () => {
-      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
-    };
-  }, []);
 
   // Subscribe to incoming partner signals
   useEffect(() => {
@@ -64,106 +52,133 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend, visible
 
       onReceive?.();
       setReceivedSignal(momentDef);
-      notification(NotificationFeedbackType.Success).catch(() => {});
 
-      // Fade in, hold, fade out
-      Animated.sequence([
-        Animated.timing(receiveFadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-        Animated.delay(3500),
-        Animated.timing(receiveFadeAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
-      ]).start(() => {
-        setReceivedSignal(null);
-      });
+      // Layered haptics — double tap for intimacy
+      notification(NotificationFeedbackType.Success).catch(() => {});
+      setTimeout(() => impact(ImpactFeedbackStyle.Light).catch(() => {}), 200);
+
+      // Elegant entrance: scale up + fade + gentle pulse
+      receiveScaleAnim.setValue(0.6);
+      receivePulseAnim.setValue(1);
+      Animated.parallel([
+        Animated.spring(receiveScaleAnim, { toValue: 1, friction: 8, tension: 60, useNativeDriver: true }),
+        Animated.sequence([
+          Animated.timing(receiveFadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+          Animated.delay(3200),
+          // Gentle breathing pulse before fading
+          Animated.sequence([
+            Animated.timing(receivePulseAnim, { toValue: 1.05, duration: 600, useNativeDriver: true }),
+            Animated.timing(receivePulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+          ]),
+          Animated.timing(receiveFadeAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+        ]),
+      ]).start(() => setReceivedSignal(null));
     });
 
     return () => {
       if (typeof unsubRef.current === 'function') unsubRef.current();
     };
-  }, [receiveFadeAnim]);
+  }, [receiveFadeAnim, receiveScaleAnim, receivePulseAnim]);
 
   const handleSend = useCallback(async (moment) => {
-    if (!canSend) return;
-
     selection();
-    notification(NotificationFeedbackType.Success);
+    impact(ImpactFeedbackStyle.Medium).catch(() => {});
     setSentType(moment.id);
-    setCanSend(false);
     setSendError(null);
 
-    // Animate confirmation: fade + scale up
-    scaleAnim.setValue(0.9);
+    // Animate: scale up + fade in + glow pulse
+    scaleAnim.setValue(0.85);
+    glowAnim.setValue(0);
     Animated.parallel([
+      Animated.spring(scaleAnim, { toValue: 1, friction: 7, tension: 70, useNativeDriver: true }),
       Animated.sequence([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-        Animated.delay(3000),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 280, useNativeDriver: true }),
+        // Glow pulse
+        Animated.sequence([
+          Animated.timing(glowAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+          Animated.timing(glowAnim, { toValue: 0.3, duration: 300, useNativeDriver: true }),
+          Animated.timing(glowAnim, { toValue: 0.7, duration: 300, useNativeDriver: true }),
+        ]),
+        Animated.delay(2200),
         Animated.timing(fadeAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
       ]),
-      Animated.spring(scaleAnim, { toValue: 1, friction: 6, tension: 80, useNativeDriver: true }),
-    ]).start(() => {
-      setSentType(null);
-    });
+    ]).start(() => setSentType(null));
 
-    // Second gentle haptic pulse after a beat
-    setTimeout(() => {
-      impact(ImpactFeedbackStyle.Medium).catch(() => {});
-    }, 400);
+    // Second gentle haptic after a beat
+    setTimeout(() => impact(ImpactFeedbackStyle.Light).catch(() => {}), 350);
 
     const result = await MomentSignalSender.send(moment.id);
 
     if (!result.sent) {
-      setSendError(result.error || 'Please wait before sending again');
+      setSendError(result.error || 'Something went wrong');
     } else if (result.error) {
-      // Sent locally but remote failed — show subtle warning
       setSendError('Sent locally — will sync when connected');
     }
 
-    // Re-enable sending once the cooldown expires
-    MomentSignalSender.getCooldownRemaining().then(remaining => {
-      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
-      cooldownTimerRef.current = setTimeout(() => {
-        setCanSend(true);
-        setSendError(null);
-      }, remaining > 0 ? remaining : 0);
-    });
+    // Third soft confirmation haptic
+    setTimeout(() => notification(NotificationFeedbackType.Success).catch(() => {}), 600);
 
     onSend?.(moment);
-  }, [canSend, fadeAnim, scaleAnim, onSend]);
+  }, [fadeAnim, scaleAnim, glowAnim, onSend]);
 
-  // When panel is collapsed and no incoming signal, render nothing (but stay mounted so subscription runs)
+  // When panel is collapsed and no incoming signal, render nothing
   if (!visible && !receivedSignal) return null;
 
-  // Incoming signal banner
+  // ── Incoming signal from partner ──
   if (receivedSignal) {
+    const tint = receivedSignal.tint || t.primary;
     return (
-      <Animated.View style={[styles.sentContainer, { opacity: receiveFadeAnim }]}>
-        <View style={styles.receivedIconContainer}>
-          <Icon name={receivedSignal.icon} size={32} color={t.primary} />
+      <Animated.View style={[
+        styles.feedbackContainer,
+        {
+          opacity: receiveFadeAnim,
+          transform: [{ scale: Animated.multiply(receiveScaleAnim, receivePulseAnim) }],
+        },
+      ]}>
+        <View style={[styles.feedbackGlow, { backgroundColor: tint + '12' }]}>
+          <View style={[styles.feedbackIconCircle, { backgroundColor: tint + '20', borderColor: tint + '30' }]}>
+            <Icon name={receivedSignal.icon} size={30} color={tint} />
+          </View>
         </View>
-        <Text style={styles.sentText}>
-          {partnerLabel} says...
+        <Text style={[styles.feedbackEyebrow, { color: tint }]}>
+          {partnerLabel}
         </Text>
-        <Text style={styles.sentLabel}>
-          "{receivedSignal.label}"
+        <Text style={[styles.feedbackLabel, { color: t.text }]}>
+          {receivedSignal.label}
         </Text>
       </Animated.View>
     );
   }
 
+  // ── Sent confirmation ──
   if (sentType) {
     const sent = MOMENT_TYPES.find(m => m.id === sentType);
+    const tint = sent?.tint || t.primary;
     return (
-      <Animated.View style={[styles.sentContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-        <View style={styles.checkCircle}>
-          <Icon name="checkmark-outline" size={28} color={t.surface} />
+      <Animated.View style={[
+        styles.feedbackContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ scale: scaleAnim }],
+        },
+      ]}>
+        <Animated.View style={[styles.feedbackGlow, { backgroundColor: tint + '12', opacity: glowAnim }]}>
+          <View style={[styles.feedbackIconCircle, { backgroundColor: tint + '20', borderColor: tint + '30' }]}>
+            <Icon name={sent?.icon || 'heart-outline'} size={28} color={tint} />
+          </View>
+        </Animated.View>
+        {/* Static icon on top of glow */}
+        <View style={[styles.feedbackIconCircle, { backgroundColor: tint + '20', borderColor: tint + '30', position: 'absolute', top: SPACING.xl }]}>
+          <Icon name={sent?.icon || 'heart-outline'} size={28} color={tint} />
         </View>
-        <Text style={styles.sentText}>
+        <Text style={[styles.feedbackEyebrow, { color: t.subtext, marginTop: 72 }]}>
           Sent to {partnerLabel}
         </Text>
-        <Text style={styles.sentLabel}>
-          "{sent?.label}"
+        <Text style={[styles.feedbackLabel, { color: t.text }]}>
+          {sent?.label}
         </Text>
         {sendError && (
-          <Text style={styles.errorText}>
+          <Text style={[styles.feedbackHint, { color: t.subtext }]}>
             {sendError}
           </Text>
         )}
@@ -171,153 +186,119 @@ export default function MomentSignal({ partnerLabel = 'Partner', onSend, visible
     );
   }
 
+  // ── Moment grid ──
   return (
     <View style={styles.container}>
       <View style={styles.grid}>
-        {MOMENT_TYPES.map((moment) => (
-          <TouchableOpacity
-            key={moment.id}
-            style={[
-              styles.momentButton,
-              {
-                opacity: canSend ? 1 : 0.5,
-              },
-            ]}
-            onPress={() => handleSend(moment)}
-            disabled={!canSend}
-            activeOpacity={0.7}
-          >
-            <View style={styles.iconWrap}>
-              <Icon
-                name={moment.icon}
-                size={22}
-                color={t.primary}
-              />
-            </View>
-            <Text
-              style={styles.momentLabel}
-              numberOfLines={1}
+        {MOMENT_TYPES.map((moment) => {
+          const tint = moment.tint || t.primary;
+          return (
+            <TouchableOpacity
+              key={moment.id}
+              style={[styles.momentButton, {
+                backgroundColor: isDark ? tint + '10' : tint + '08',
+                borderColor: isDark ? tint + '18' : tint + '12',
+              }]}
+              onPress={() => handleSend(moment)}
+              activeOpacity={0.65}
             >
-              {moment.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <View style={[styles.iconWrap, {
+                backgroundColor: isDark ? tint + '22' : tint + '15',
+              }]}>
+                <Icon name={moment.icon} size={22} color={tint} />
+              </View>
+              <Text style={[styles.momentLabel, { color: isDark ? tint : t.text }]} numberOfLines={1}>
+                {moment.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
-      {!canSend && (
-        <Text style={styles.cooldownText}>
-          Sent recently · you can send again soon
-        </Text>
-      )}
     </View>
   );
 }
 
 // ------------------------------------------------------------------
-// STYLES - Apple Editorial
+// STYLES
 // ------------------------------------------------------------------
-const createStyles = (t, isDark) => {
-  const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+const styles = StyleSheet.create({
+  container: {
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.sm,
+    width: '100%',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'center',
+  },
+  momentButton: {
+    width: '30%',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 8,
+  },
+  iconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  momentLabel: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+    letterSpacing: 0.1,
+  },
 
-  return StyleSheet.create({
-    container: {
-      paddingVertical: SPACING.md,
-      paddingHorizontal: SPACING.sm,
-      width: '100%',
-    },
-    grid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-      justifyContent: 'center',
-    },
-    momentButton: {
-      width: '30%',
-      alignItems: 'center',
-      paddingVertical: SPACING.md,
-      paddingHorizontal: SPACING.xs,
-      backgroundColor: t.surfaceSecondary,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: t.border,
-      gap: 8,
-    },
-    iconWrap: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: t.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-      ...Platform.select({
-        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 4 },
-        android: { elevation: 1 },
-      }),
-    },
-    momentLabel: {
-      fontFamily: systemFont,
-      fontSize: 11,
-      fontWeight: '600',
-      color: t.subtext,
-      textAlign: 'center',
-      letterSpacing: 0.1,
-    },
-    
-    // State Feedback (Sent / Received)
-    sentContainer: {
-      alignItems: 'center',
-      paddingVertical: SPACING.xl,
-      gap: 6,
-    },
-    checkCircle: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: t.text, // Solid contrast Apple success mark
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: SPACING.sm,
-      ...Platform.select({
-        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.15, shadowRadius: 8 },
-        android: { elevation: 3 },
-      }),
-    },
-    receivedIconContainer: {
-      width: 64,
-      height: 64,
-      borderRadius: 32,
-      backgroundColor: t.primary + '15',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: SPACING.sm,
-    },
-    sentText: {
-      fontFamily: systemFont,
-      fontSize: 18,
-      fontWeight: '700',
-      color: t.text,
-      letterSpacing: -0.2,
-    },
-    sentLabel: {
-      fontFamily: systemFont,
-      fontSize: 15,
-      fontWeight: '500',
-      color: t.subtext,
-      fontStyle: 'italic',
-    },
-    errorText: {
-      fontFamily: systemFont,
-      fontSize: 12,
-      fontWeight: '500',
-      color: t.subtext,
-      marginTop: SPACING.sm,
-    },
-    cooldownText: {
-      fontFamily: systemFont,
-      fontSize: 12,
-      fontWeight: '500',
-      color: t.subtext,
-      textAlign: 'center',
-      marginTop: SPACING.md,
-    },
-  });
-};
+  // ── Feedback states (sent / received) ──
+  feedbackContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.xl,
+    minHeight: 160,
+    gap: 4,
+  },
+  feedbackGlow: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  feedbackIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedbackEyebrow: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  feedbackLabel: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    marginTop: 2,
+  },
+  feedbackHint: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: SPACING.sm,
+  },
+});

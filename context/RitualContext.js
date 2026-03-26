@@ -5,7 +5,7 @@ import { storage, STORAGE_KEYS, makeId } from '../utils/storage';
 import { useAppContext } from './AppContext';
 import { useEntitlements } from './EntitlementsContext';
 import StorageRouter from '../services/storage/StorageRouter';
-import { ensureNotificationPermissions, scheduleEventNotification } from '../utils/notifications';
+import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
 
 // Ritual Types and Templates
 export const RITUAL_TYPES = {
@@ -609,6 +609,10 @@ export function RitualProvider({ children }) {
       });
 
       const existing = (await storage.get(STORAGE_KEYS.RITUAL_REMINDERS, [])) || [];
+      const old = existing.find((item) => item?.id === schedule?.id);
+      if (old?.notificationId) {
+        await cancelNotification(old.notificationId).catch(() => {});
+      }
       const filtered = existing.filter((item) => item?.id !== schedule?.id);
       const reminder = {
         ...schedule,
