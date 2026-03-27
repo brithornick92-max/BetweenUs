@@ -154,8 +154,8 @@ export const EntitlementsProvider = ({ children }) => {
     const sub = AppState.addEventListener('change', (nextState) => {
       if (appStateRef.current.match(/inactive|background/) && nextState === 'active') {
         fetchCouplePremium();
-        // Also sync usage limits with remote
-        if (user?.uid && coupleId) {
+        // Also sync usage limits with remote (only with a real Supabase UUID)
+        if (user?.uid && coupleId && !user.uid.startsWith('user_')) {
           UsageLimitsService.syncWithRemote(user.uid, coupleId);
         }
       }

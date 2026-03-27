@@ -86,6 +86,7 @@ class UsageLimitsService {
 
   async _getRemoteCount(coupleId, userId, eventType, dayKey) {
     if (!supabase || !coupleId) return null; // Offline or not linked
+    if (!userId || userId.startsWith('user_')) return null; // Local-only ID, not a Supabase UUID
 
     const cacheKey = `${coupleId}_${userId}_${eventType}_${dayKey}`;
     const cached = this._remoteCache.get(cacheKey);
@@ -118,6 +119,7 @@ class UsageLimitsService {
 
   async _writeRemoteEvent(coupleId, userId, eventType, dayKey, metadata = {}) {
     if (!supabase || !coupleId) return false;
+    if (!userId || userId.startsWith('user_')) return false; // Local-only ID, not a Supabase UUID
 
     try {
       const { error } = await supabase
