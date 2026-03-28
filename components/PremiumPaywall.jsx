@@ -227,6 +227,10 @@ const PremiumPaywall = ({
             <TouchableOpacity onPress={() => nav.navigate('PrivacyPolicy')}>
               <Text style={styles.legalText}>Privacy Policy</Text>
             </TouchableOpacity>
+            <View style={styles.legalDot} />
+            <TouchableOpacity onPress={() => nav.navigate('EULA')}>
+              <Text style={styles.legalText}>EULA</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

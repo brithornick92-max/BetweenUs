@@ -131,6 +131,56 @@ These are not repo changes, but they still need confirmation:
 5. RevenueCat offerings and entitlement mapping are correct in production
 6. Sentry release upload works for production builds
 
+## App Store Review Feedback — v1.0 Rejection (March 27, 2026)
+
+### Guideline 3.1.2(c) — Subscriptions: Terms of Use (EULA) Link
+
+**Issue:** App Store metadata is missing a functional link to the Terms of Use (EULA).
+
+**Required App Store Connect Changes:**
+
+1. **Option A (Recommended):** In the App Store description, add a line like:
+   ```
+   Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+   ```
+2. **Option B:** Add a custom EULA in App Store Connect → App Information → License Agreement (EULA).
+
+**In-App Fix (Done):** EULA link added to both paywall screens (PremiumPaywall and PremiumScreen) alongside existing Terms of Service and Privacy Policy links.
+
+**Ensure these are also set in App Store Connect:**
+- Privacy Policy URL field (App Store Connect → App Information)
+- In-app subscription flow already shows: subscription title, length, price, and links to Terms, Privacy Policy, and EULA
+
+### Guideline 2.3.2 — Accurate Metadata: Cloud Sync
+
+**Issue:** App description and/or screenshots reference cloud sync without indicating it requires a premium subscription.
+
+**Required App Store Connect Changes:**
+
+1. Update the App Store description to clearly mark cloud sync as a premium feature. Example wording:
+   ```
+   Premium features (available via in-app subscription) include unlimited prompts,
+   love notes, date night planning, cloud sync, and more.
+   ```
+2. If screenshots show cloud sync, either:
+   - Remove cloud sync from screenshots, or
+   - Add a visible "Premium" badge or label in the screenshot
+
+### Review Notes Update
+
+Include this in the Notes field for the resubmission:
+
+```text
+Changes made to address review feedback (Submission ID: 8a6c9ee7-d852-4dad-b1fa-99ce00c83117):
+
+1. [3.1.2(c)] Added EULA link to in-app subscription purchase flow.
+   Terms of Use (EULA) link also added to App Store description.
+2. [2.3.2] Updated App Store description to clearly identify cloud sync
+   as a premium feature requiring an in-app subscription.
+```
+
+---
+
 ## Final Go / No-Go
 
 ### Go if all of these are true
@@ -139,6 +189,9 @@ These are not repo changes, but they still need confirmation:
 2. Encryption compliance filing is handled
 3. Real-device smoke tests pass
 4. Production Supabase environment is verified
+5. App Store description includes Terms of Use (EULA) link
+6. App Store description clearly marks cloud sync as a premium feature
+7. Privacy Policy URL is set in App Store Connect
 
 ### No-Go if any of these are still unknown
 

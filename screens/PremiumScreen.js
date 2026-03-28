@@ -381,6 +381,14 @@ export default function PremiumScreen({ navigation }) {
             >
               <Text style={styles.legalLink}>Terms of Use</Text>
             </TouchableOpacity>
+            <Text style={styles.legalSep}>·</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("EULA")}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Text style={styles.legalLink}>EULA</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
