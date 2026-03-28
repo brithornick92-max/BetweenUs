@@ -21,8 +21,10 @@ import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from "../context/ThemeContext";
 import { useSubscription } from "../context/SubscriptionContext";
+import { useEntitlements } from "../context/EntitlementsContext";
 import { usePremiumFeatures } from "../hooks/usePremiumFeatures";
 import { useAppContext } from "../context/AppContext";
+import { PremiumSource } from "../utils/featureFlags";
 import { SPACING } from "../utils/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -98,8 +100,9 @@ function PlanCard({ id, label, price, detail, badge, isSelected, onSelect, style
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function PremiumScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const { offerings, purchasePackage, restorePurchases, isLoading, isPremium } =
+  const { offerings, purchasePackage, restorePurchases, isLoading } =
     useSubscription();
+  const { isPremiumEffective: isPremium, premiumSource } = useEntitlements();
   const { hidePaywall } = usePremiumFeatures();
   const { actions } = useAppContext();
 
@@ -360,7 +363,11 @@ export default function PremiumScreen({ navigation }) {
             <FadeInSection index={2} style={styles.alreadyPremium}>
               <Icon name="checkmark-circle-outline" size={56} color={t.primary} />
               <Text style={styles.alreadyPremiumText}>You're on Premium.</Text>
-              <Text style={styles.alreadyPremiumSub}>Manage your subscription in your device settings.</Text>
+              <Text style={styles.alreadyPremiumSub}>
+                {premiumSource === PremiumSource.PARTNER
+                  ? "Your linked partner's subscription gives you both full access."
+                  : "Manage your subscription in your device settings."}
+              </Text>
             </FadeInSection>
           )}
 
