@@ -203,18 +203,8 @@ export const MomentSignalSender = {
           return { sent: true, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
         }
 
-        // Fire push notification to partner — non-blocking, non-critical
-        try {
-          const momentDef = MOMENT_TYPES.find(m => m.id === momentType);
-          const label = momentDef?.label || 'A moment';
-          const isHeartbeat = momentType === HEARTBEAT_SIGNAL.id;
-          const PushSvc = require('./PushNotificationService').default;
-          PushSvc.notifyPartner(sb, {
-            title: isHeartbeat ? '💗' : '💌',
-            body: isHeartbeat ? 'Your partner sent a pulse' : label,
-            data: { type: 'moment_signal', moment_type: momentType },
-          });
-        } catch { /* non-critical */ }
+        // Push notification is handled by the DB trigger on couple_data insert
+        // (notify_on_couple_data_insert) — no client-side call needed.
 
         return { sent: true, remote: true, type: momentType, timestamp: now };
       } catch (err) {
