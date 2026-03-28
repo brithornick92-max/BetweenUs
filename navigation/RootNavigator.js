@@ -12,11 +12,11 @@ import AnalyticsService from "../services/AnalyticsService";
 import AuthScreen from "../screens/AuthScreen";
 import OnboardingScreen from "../screens/OnboardingScreen";
 import AuthCallbackScreen from "../screens/AuthCallbackScreen";
-
-// Deferred require helpers — each uses a string literal so Metro can resolve statically
-
-// Tabs
 import Tabs from "./Tabs";
+
+// Lazy-loaded screens — see lazyScreens.js for the deferred require() registry.
+// ⚠️  Do NOT add screen imports here. Add them to lazyScreens.js instead.
+import * as Screens from "./lazyScreens";
 
 // Lazy-load debug screen so it's excluded from production bundles
 const RevenueCatDebugScreen = __DEV__
@@ -64,8 +64,8 @@ export default function RootNavigator() {
           }}
         >
           <Stack.Screen name="Auth" component={AuthScreen} />
-          <Stack.Screen name="Terms" getComponent={() => require("../screens/TermsScreen").default} />
-          <Stack.Screen name="PrivacyPolicy" getComponent={() => require("../screens/PrivacyPolicyScreen").default} />
+          <Stack.Screen name="Terms" getComponent={Screens.Terms} />
+          <Stack.Screen name="PrivacyPolicy" getComponent={Screens.PrivacyPolicy} />
         </Stack.Navigator>
       </>
     );
@@ -159,7 +159,7 @@ export default function RootNavigator() {
 
         <Stack.Screen
           name="DateNightDetail"
-          getComponent={() => require("../screens/DateNightDetailScreen").default}
+          getComponent={Screens.DateNightDetail}
           options={{
             headerShown: false,
             animation: "slide_from_right",
@@ -167,32 +167,32 @@ export default function RootNavigator() {
           }}
         />
 
-        <Stack.Screen name="HeatLevel" getComponent={() => require("../screens/HeatLevelScreen").default} options={{ headerShown: false, presentation: 'modal' }} />
-        <Stack.Screen name="JournalEntry" getComponent={() => require("../screens/JournalEntryScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="VibeSignal" getComponent={() => require("../screens/VibeSignalScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="EditorialPrompt" getComponent={() => require("../screens/EditorialPromptScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="NightRitual" getComponent={() => require("../screens/NightRitualScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="Settings" getComponent={() => require("../screens/SettingsScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="AdaptiveHome" getComponent={() => require("../components/AdaptiveHomeScreen").default} options={{ headerShown: false }} />
+        <Stack.Screen name="HeatLevel" getComponent={Screens.HeatLevel} options={{ headerShown: false, presentation: 'modal' }} />
+        <Stack.Screen name="JournalEntry" getComponent={Screens.JournalEntry} options={{ headerShown: false }} />
+        <Stack.Screen name="VibeSignal" getComponent={Screens.VibeSignal} options={{ headerShown: false }} />
+        <Stack.Screen name="EditorialPrompt" getComponent={Screens.EditorialPrompt} options={{ headerShown: false }} />
+        <Stack.Screen name="NightRitual" getComponent={Screens.NightRitual} options={{ headerShown: false }} />
+        <Stack.Screen name="Settings" getComponent={Screens.Settings} options={{ headerShown: false }} />
+        <Stack.Screen name="AdaptiveHome" getComponent={Screens.AdaptiveHome} options={{ headerShown: false }} />
 
-        <Stack.Screen name="Terms" getComponent={() => require("../screens/TermsScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="PrivacyPolicy" getComponent={() => require("../screens/PrivacyPolicyScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="FAQ" getComponent={() => require("../screens/FAQScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="EULA" getComponent={() => require("../screens/EULAScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="ExportData" getComponent={() => require("../screens/ExportDataScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="DeleteAccount" getComponent={() => require("../screens/DeleteAccountScreen").default} options={{ headerShown: false }} />
+        <Stack.Screen name="Terms" getComponent={Screens.Terms} options={{ headerShown: false }} />
+        <Stack.Screen name="PrivacyPolicy" getComponent={Screens.PrivacyPolicy} options={{ headerShown: false }} />
+        <Stack.Screen name="FAQ" getComponent={Screens.FAQ} options={{ headerShown: false }} />
+        <Stack.Screen name="EULA" getComponent={Screens.EULA} options={{ headerShown: false }} />
+        <Stack.Screen name="ExportData" getComponent={Screens.ExportData} options={{ headerShown: false }} />
+        <Stack.Screen name="DeleteAccount" getComponent={Screens.DeleteAccount} options={{ headerShown: false }} />
 
-        <Stack.Screen name="PartnerNamesSettings" getComponent={() => require("../screens/PartnerNamesSettingsScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="HeatLevelSettings" getComponent={() => require("../screens/HeatLevelSettingsScreen").default} options={{ headerShown: false, presentation: 'modal' }} />
-        <Stack.Screen name="NotificationSettings" getComponent={() => require("../screens/NotificationSettingsScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="RitualReminders" getComponent={() => require("../screens/RitualRemindersScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="PrivacySecuritySettings" getComponent={() => require("../screens/PrivacySecuritySettingsScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="SetPin" getComponent={() => require("../screens/SetPinScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="SyncSetup" getComponent={() => require("../screens/SyncSetupScreen").default} options={{ headerShown: false }} />
+        <Stack.Screen name="PartnerNamesSettings" getComponent={Screens.PartnerNamesSettings} options={{ headerShown: false }} />
+        <Stack.Screen name="HeatLevelSettings" getComponent={Screens.HeatLevelSettings} options={{ headerShown: false, presentation: 'modal' }} />
+        <Stack.Screen name="NotificationSettings" getComponent={Screens.NotificationSettings} options={{ headerShown: false }} />
+        <Stack.Screen name="RitualReminders" getComponent={Screens.RitualReminders} options={{ headerShown: false }} />
+        <Stack.Screen name="PrivacySecuritySettings" getComponent={Screens.PrivacySecuritySettings} options={{ headerShown: false }} />
+        <Stack.Screen name="SetPin" getComponent={Screens.SetPin} options={{ headerShown: false }} />
+        <Stack.Screen name="SyncSetup" getComponent={Screens.SyncSetup} options={{ headerShown: false }} />
         <Stack.Screen name="AuthCallback" component={AuthCallbackScreen} options={{ headerShown: false, animation: "fade", animationDuration: 300 }} />
-        <Stack.Screen name="PairingQRCode" getComponent={() => require("../screens/PairingQRCodeScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="PairingScan" getComponent={() => require("../screens/PairingScanScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="JoinWithCode" getComponent={() => require("../screens/JoinWithCodeScreen").default} options={{ headerShown: false }} />
+        <Stack.Screen name="PairingQRCode" getComponent={Screens.PairingQRCode} options={{ headerShown: false }} />
+        <Stack.Screen name="PairingScan" getComponent={Screens.PairingScan} options={{ headerShown: false }} />
+        <Stack.Screen name="JoinWithCode" getComponent={Screens.JoinWithCode} options={{ headerShown: false }} />
 
         {__DEV__ && (
           <Stack.Screen
@@ -202,15 +202,15 @@ export default function RootNavigator() {
           />
         )}
 
-        <Stack.Screen name="LoveNotesInbox" getComponent={() => require("../screens/LoveNotesInboxScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="ComposeLoveNote" getComponent={() => require("../screens/ComposeLoveNoteScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="LoveNoteDetail" getComponent={() => require("../screens/LoveNoteDetailScreen").default} options={{ headerShown: false }} />
+        <Stack.Screen name="LoveNotesInbox" getComponent={Screens.LoveNotesInbox} options={{ headerShown: false }} />
+        <Stack.Screen name="ComposeLoveNote" getComponent={Screens.ComposeLoveNote} options={{ headerShown: false }} />
+        <Stack.Screen name="LoveNoteDetail" getComponent={Screens.LoveNoteDetail} options={{ headerShown: false }} />
 
-        <Stack.Screen name="PromptLibrary" getComponent={() => require("../screens/PromptLibraryScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="Paywall" getComponent={() => require("../screens/PaywallScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="Premium" getComponent={() => require("../screens/PremiumScreen").default} options={{ headerShown: false, animation: "fade", animationDuration: 500 }} />
-        <Stack.Screen name="InsideJokes" getComponent={() => require("../screens/InsideJokesScreen").default} options={{ headerShown: false }} />
-        <Stack.Screen name="YearReflection" getComponent={() => require("../screens/YearReflectionScreen").default} options={{ headerShown: false }} />
+        <Stack.Screen name="PromptLibrary" getComponent={Screens.PromptLibrary} options={{ headerShown: false }} />
+        <Stack.Screen name="Paywall" getComponent={Screens.Paywall} options={{ headerShown: false }} />
+        <Stack.Screen name="Premium" getComponent={Screens.Premium} options={{ headerShown: false, animation: "fade", animationDuration: 500 }} />
+        <Stack.Screen name="InsideJokes" getComponent={Screens.InsideJokes} options={{ headerShown: false }} />
+        <Stack.Screen name="YearReflection" getComponent={Screens.YearReflection} options={{ headerShown: false }} />
 
         <Stack.Group
           screenOptions={{
@@ -222,10 +222,10 @@ export default function RootNavigator() {
             keyboardHandlingEnabled: false,
           }}
         >
-          <Stack.Screen name="PromptAnswer" getComponent={() => require("../screens/PromptAnswerScreen").default} options={{ headerShown: false }} />
-          <Stack.Screen name="Reveal" getComponent={() => require("../screens/RevealScreen").default} options={{ headerShown: false, animation: "fade", animationDuration: 600 }} />
-          <Stack.Screen name="RevenueCatPaywall" getComponent={() => require("../components/RevenueCatPaywall").default} options={{ headerShown: false }} />
-          <Stack.Screen name="CustomerCenter" getComponent={() => require("../components/CustomerCenter").default} options={{ headerShown: false }} />
+          <Stack.Screen name="PromptAnswer" getComponent={Screens.PromptAnswer} options={{ headerShown: false }} />
+          <Stack.Screen name="Reveal" getComponent={Screens.Reveal} options={{ headerShown: false, animation: "fade", animationDuration: 600 }} />
+          <Stack.Screen name="RevenueCatPaywall" getComponent={Screens.RevenueCatPaywall} options={{ headerShown: false }} />
+          <Stack.Screen name="CustomerCenter" getComponent={Screens.CustomerCenter} options={{ headerShown: false }} />
         </Stack.Group>
       </Stack.Navigator>
     </>
