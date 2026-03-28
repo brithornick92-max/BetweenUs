@@ -19,6 +19,7 @@ const DB_NAME = 'betweenus.db';
 const DB_VERSION = 1;
 
 let _db = null;
+let _dbPromise = null;
 
 // ─── helpers ────────────────────────────────────────────────────────
 const now = () => new Date().toISOString();
@@ -43,37 +44,46 @@ function assertValidTable(tableName) {
 
 async function getDb() {
   if (_db) return _db;
-  _db = await SQLite.openDatabaseAsync(DB_NAME);
-  await _db.execAsync('PRAGMA journal_mode = WAL;');
-  await _db.execAsync('PRAGMA foreign_keys = ON;');
-
-  // Detect database corruption before running migrations
-  try {
-    const check = await _db.getFirstAsync('PRAGMA integrity_check;');
-    const result = check?.integrity_check ?? check?.['integrity_check'] ?? 'ok';
-    if (result !== 'ok') {
-      console.error('[Database] Corruption detected:', result);
-      CrashReporting.captureException(new Error('Database corruption detected'), { result });
-      try {
-        await _db.closeAsync();
-        _db = null;
-        await SQLite.deleteDatabaseAsync(DB_NAME);
-      } catch (deleteErr) {
-        console.error('[Database] Could not delete corrupted DB:', deleteErr?.message);
-        _db = null;
-        // Cannot recover — let migrate() fail naturally on next open attempt
-      }
+  if (_dbPromise) return _dbPromise;
+  _dbPromise = (async () => {
+    try {
       _db = await SQLite.openDatabaseAsync(DB_NAME);
       await _db.execAsync('PRAGMA journal_mode = WAL;');
       await _db.execAsync('PRAGMA foreign_keys = ON;');
-    }
-  } catch (err) {
-    console.warn('[Database] integrity_check failed:', err?.message);
-    CrashReporting.captureException(err, { source: 'db_integrity_check' });
-  }
 
-  await migrate(_db);
-  return _db;
+      // Detect database corruption before running migrations
+      try {
+        const check = await _db.getFirstAsync('PRAGMA integrity_check;');
+        const result = check?.integrity_check ?? check?.['integrity_check'] ?? 'ok';
+        if (result !== 'ok') {
+          console.error('[Database] Corruption detected:', result);
+          CrashReporting.captureException(new Error('Database corruption detected'), { result });
+          try {
+            await _db.closeAsync();
+            _db = null;
+            await SQLite.deleteDatabaseAsync(DB_NAME);
+          } catch (deleteErr) {
+            console.error('[Database] Could not delete corrupted DB:', deleteErr?.message);
+            _db = null;
+          }
+          _db = await SQLite.openDatabaseAsync(DB_NAME);
+          await _db.execAsync('PRAGMA journal_mode = WAL;');
+          await _db.execAsync('PRAGMA foreign_keys = ON;');
+        }
+      } catch (err) {
+        console.warn('[Database] integrity_check failed:', err?.message);
+        CrashReporting.captureException(err, { source: 'db_integrity_check' });
+      }
+
+      await migrate(_db);
+      return _db;
+    } catch (err) {
+      _db = null;
+      _dbPromise = null;
+      throw err;
+    }
+  })();
+  return _dbPromise;
 }
 
 async function migrate(db) {
@@ -429,6 +439,7 @@ const Database = {
     if (_db) {
       await _db.closeAsync();
       _db = null;
+      _dbPromise = null;
     }
   },
 

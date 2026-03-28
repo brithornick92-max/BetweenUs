@@ -11,6 +11,7 @@ import { cloudSyncStorage } from '../utils/storage';
 import Database from '../services/db/Database';
 import * as FileSystem from 'expo-file-system';
 import AnalyticsService from '../services/AnalyticsService';
+import CrashReporting from '../services/CrashReporting';
 
 const AuthContext = createContext(null);
 
@@ -69,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
         }
       } catch (error) {
-        console.error('Error loading user profile:', error);
+        if (__DEV__) console.error('Error loading user profile:', error);
       } finally {
         // ✅ End initializing exactly once
         if (!bootstrappedRef.current) {
@@ -246,7 +247,7 @@ export const AuthProvider = ({ children }) => {
       try {
         await SupabaseAuthService.deleteAccount();
       } catch (rpcErr) {
-        console.error('Supabase account deletion failed:', rpcErr?.message);
+        if (__DEV__) console.error('Supabase account deletion failed:', rpcErr?.message);
         // If RPC fails (e.g. function not deployed yet), still try sign-out
         try {
           await SupabaseAuthService.signOut('global');
@@ -283,7 +284,7 @@ export const AuthProvider = ({ children }) => {
 
       return true;
     } catch (error) {
-      console.error('Error deleting account:', error);
+      if (__DEV__) console.error('Error deleting account:', error);
       throw error;
     } finally {
       setBusy(false);

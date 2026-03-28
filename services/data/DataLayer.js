@@ -159,7 +159,9 @@ let _pushTimer = null;
 function debouncedPush() {
   if (_pushTimer) clearTimeout(_pushTimer);
   _pushTimer = setTimeout(() => {
-    SyncEngine.pushNow().catch(() => {});
+    SyncEngine.pushNow().catch((err) => {
+      if (__DEV__) console.warn('[DataLayer] Background push failed:', err?.message);
+    });
   }, 500);
 }
 
@@ -417,7 +419,12 @@ const DataLayer = {
    * Full reset (sign-out / account delete).
    */
   async reset() {
-    if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; }
+    // Flush any pending writes before tearing down
+    if (_pushTimer) {
+      clearTimeout(_pushTimer);
+      _pushTimer = null;
+      try { await SyncEngine.pushNow(); } catch (e) { if (__DEV__) console.warn('[DataLayer] flush before reset failed:', e?.message); }
+    }
     _userId = null;
     _coupleId = null;
     _coupleKeyAvailable = false;

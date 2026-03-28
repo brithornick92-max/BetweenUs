@@ -95,7 +95,9 @@ let _lastSyncAt = 0;
 
 function emit(event, data) {
   _listeners.forEach(fn => {
-    try { fn(event, data); } catch { /* ignore listener errors */ }
+    try { fn(event, data); } catch (e) {
+      if (__DEV__) console.warn('[Sync] Listener error:', e?.message);
+    }
   });
 }
 
@@ -326,8 +328,14 @@ async function pullTable(tableName) {
       }
     }
 
-    // Advance cursor to the latest timestamp we saw
-    for (const row of rows) {
+    // Advance cursor only for rows that were successfully processed
+    // (prevents permanently skipping corrupted rows that fromRemoteRow rejected)
+    for (const row of liveRows.filter(r => fromRemoteRow(tableName, r) !== null)) {
+      if (row.updated_at > cursor) {
+        cursor = row.updated_at;
+      }
+    }
+    for (const row of tombstoneRows) {
       if (row.updated_at > cursor) {
         cursor = row.updated_at;
       }
@@ -413,7 +421,10 @@ const SyncEngine = {
           const attPush = await pushTable('attachments');
           results.pushed += attPush.pushed;
           results.failed += attPush.failed;
-        } catch { /* ignore */ }
+        } catch (e) {
+          if (__DEV__) console.warn('[Sync] Attachment metadata push failed:', e?.message);
+          CrashReporting.captureException(e, { source: 'sync_attach_push' });
+        }
       }
 
       // 3. Push all other local changes (journals, etc.)

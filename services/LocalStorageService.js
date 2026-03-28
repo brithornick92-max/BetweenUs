@@ -9,6 +9,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as ExpoCrypto from 'expo-crypto';
 import { pbkdf2 } from '@noble/hashes/pbkdf2.js';
 import { sha256 } from '@noble/hashes/sha2.js';
+import CrashReporting from './CrashReporting';
 
 const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
 
@@ -70,7 +71,7 @@ class LocalStorageService {
 
       return { user };
     } catch (error) {
-      console.error('Create account error:', error);
+      if (__DEV__) console.error('Create account error:', error);
       throw error;
     }
   }
@@ -151,7 +152,7 @@ class LocalStorageService {
 
       return { user };
     } catch (error) {
-      console.error('Sign in error:', error);
+      if (__DEV__) console.error('Sign in error:', error);
       throw error;
     }
   }
@@ -180,7 +181,7 @@ class LocalStorageService {
       this.currentUser = null;
       this.notifyAuthListeners(null);
     } catch (error) {
-      console.error('Sign out error:', error);
+      if (__DEV__) console.error('Sign out error:', error);
       throw error;
     }
   }
@@ -214,7 +215,7 @@ class LocalStorageService {
 
       return null;
     } catch (error) {
-      console.error('Get current user error:', error);
+      if (__DEV__) console.error('Get current user error:', error);
       return null;
     }
   }
@@ -229,7 +230,7 @@ class LocalStorageService {
         callback(user);
       })
       .catch((err) => {
-        console.error('onAuthStateChanged init error:', err);
+        if (__DEV__) console.error('onAuthStateChanged init error:', err);
         try {
           callback(null);
         } catch (e) {
@@ -249,7 +250,7 @@ class LocalStorageService {
       const userData = await AsyncStorage.getItem(`userDoc_${userId}`);
       return userData ? JSON.parse(userData) : {};
     } catch (error) {
-      console.error('Get user document error:', error);
+      if (__DEV__) console.error('Get user document error:', error);
       return {};
     }
   }
@@ -261,7 +262,7 @@ class LocalStorageService {
       await AsyncStorage.setItem(`userDoc_${userId}`, JSON.stringify(updated));
       return updated;
     } catch (error) {
-      console.error('Update user document error:', error);
+      if (__DEV__) console.error('Update user document error:', error);
       throw error;
     }
   }
@@ -271,7 +272,7 @@ class LocalStorageService {
       await AsyncStorage.removeItem(`userDoc_${userId}`);
       await AsyncStorage.removeItem(`user_${userId}`);
     } catch (error) {
-      console.error('Delete user document error:', error);
+      if (__DEV__) console.error('Delete user document error:', error);
       throw error;
     }
   }
@@ -320,7 +321,7 @@ class LocalStorageService {
 
       return filteredPrompts;
     } catch (error) {
-      console.error('Get prompts error:', error);
+      if (__DEV__) console.error('Get prompts error:', error);
       return [];
     }
   }
@@ -356,7 +357,7 @@ class LocalStorageService {
 
       return filteredDates;
     } catch (error) {
-      console.error('Get dates error:', error);
+      if (__DEV__) console.error('Get dates error:', error);
       return [];
     }
   }
@@ -375,7 +376,7 @@ class LocalStorageService {
         challenges: 0
       };
     } catch (error) {
-      console.error('Get daily usage error:', error);
+      if (__DEV__) console.error('Get daily usage error:', error);
       return { date: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })(), prompts: 0, dates: 0, challenges: 0 };
     }
   }
@@ -392,7 +393,7 @@ class LocalStorageService {
       await AsyncStorage.setItem(`usage_${userId}_${today}`, JSON.stringify(usage));
       return usage;
     } catch (error) {
-      console.error('Track daily usage error:', error);
+      if (__DEV__) console.error('Track daily usage error:', error);
       throw error;
     }
   }
@@ -418,7 +419,7 @@ class LocalStorageService {
 
       return memory;
     } catch (error) {
-      console.error('Save memory error:', error);
+      if (__DEV__) console.error('Save memory error:', error);
       throw error;
     }
   }
@@ -438,7 +439,7 @@ class LocalStorageService {
 
       return memories.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } catch (error) {
-      console.error('Get user memories error:', error);
+      if (__DEV__) console.error('Get user memories error:', error);
       return [];
     }
   }
@@ -460,7 +461,7 @@ class LocalStorageService {
       await AsyncStorage.setItem(`memory_${memoryId}`, JSON.stringify(updatedMemory));
       return updatedMemory;
     } catch (error) {
-      console.error('Update memory error:', error);
+      if (__DEV__) console.error('Update memory error:', error);
       throw error;
     }
   }
@@ -480,7 +481,7 @@ class LocalStorageService {
       const filteredMemories = memories.filter(m => m.id !== memoryId).map(m => m.id);
       await AsyncStorage.setItem(`userMemories_${memory.userId}`, JSON.stringify(filteredMemories));
     } catch (error) {
-      console.error('Delete memory error:', error);
+      if (__DEV__) console.error('Delete memory error:', error);
       throw error;
     }
   }
@@ -500,7 +501,7 @@ class LocalStorageService {
       await this.updateUserDocument(userId, updatedDoc);
       return updatedDoc;
     } catch (error) {
-      console.error('Link partner error:', error);
+      if (__DEV__) console.error('Link partner error:', error);
       throw error;
     }
   }
@@ -518,7 +519,7 @@ class LocalStorageService {
       await this.updateUserDocument(userId, updatedDoc);
       return updatedDoc;
     } catch (error) {
-      console.error('Unlink partner error:', error);
+      if (__DEV__) console.error('Unlink partner error:', error);
       throw error;
     }
   }
@@ -564,7 +565,7 @@ class LocalStorageService {
 
       return users;
     } catch (error) {
-      console.error('Get all users error:', error);
+      if (__DEV__) console.error('Get all users error:', error);
       return [];
     }
   }
@@ -574,7 +575,7 @@ class LocalStorageService {
       try {
         callback(user);
       } catch (error) {
-        console.error('Auth listener error:', error);
+        if (__DEV__) console.error('Auth listener error:', error);
       }
     });
   }
@@ -606,7 +607,7 @@ class LocalStorageService {
         }
       }
     } catch (error) {
-      console.error('Batch write error:', error);
+      if (__DEV__) console.error('Batch write error:', error);
       throw error;
     }
   }
@@ -618,7 +619,7 @@ class LocalStorageService {
       this.currentUser = null;
       this.notifyAuthListeners(null);
     } catch (error) {
-      console.error('Clear all data error:', error);
+      if (__DEV__) console.error('Clear all data error:', error);
       throw error;
     }
   }

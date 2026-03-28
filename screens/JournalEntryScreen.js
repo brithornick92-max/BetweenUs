@@ -55,13 +55,15 @@ export default function JournalEntryScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
-  // integrated premium logic
+  // Premium gate — redirect non-premium users without crashing
+  const isPremiumGated = !isPremium;
   useEffect(() => {
-    if (!isPremium) {
+    if (isPremiumGated) {
       showPaywall?.(PremiumFeature.UNLIMITED_JOURNAL_HISTORY);
-      navigation.goBack();
+      const timeout = setTimeout(() => navigation.goBack(), 100);
+      return () => clearTimeout(timeout);
     }
-  }, [isPremium, navigation, showPaywall]);
+  }, [isPremiumGated, navigation, showPaywall]);
 
   const [title, setTitle] = useState(entry?.title || "");
   const [content, setContent] = useState(entry?.content || "");
@@ -162,7 +164,12 @@ export default function JournalEntryScreen({ navigation, route }) {
       });
 
       if (!result.canceled && result.assets?.[0]?.uri) {
-        setImageUri(result.assets[0].uri);
+        const asset = result.assets[0];
+        if (asset.fileSize && asset.fileSize > 5_000_000) {
+          Alert.alert("Image Too Large", "Please choose a photo under 5 MB.");
+          return;
+        }
+        setImageUri(asset.uri);
         impact(ImpactFeedbackStyle.Light);
       }
     } catch (err) {

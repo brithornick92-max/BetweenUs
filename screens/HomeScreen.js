@@ -165,7 +165,7 @@ export default function HomeScreen({ navigation }) {
         const row = await DataLayer.getPromptAnswerForToday(prompt.id);
         setMyAnswer(row?.answer || '');
         setPartnerAnswer(row?.partnerAnswer || '');
-      } catch (e) { /* fallback to empty */ }
+      } catch (e) { if (__DEV__) console.warn('[Home] prompt answer fetch:', e?.message); }
     })();
   }, [prompt.id, promptReady]);
 
@@ -178,7 +178,7 @@ export default function HomeScreen({ navigation }) {
           const pick = answered[Math.floor(Math.random() * answered.length)];
           setThrowback(pick);
         }
-      } catch (e) { /* fallback to no throwback */ }
+      } catch (e) { if (__DEV__) console.warn('[Home] throwback fetch:', e?.message); }
     })();
   }, []);
 
@@ -190,7 +190,7 @@ export default function HomeScreen({ navigation }) {
         try {
           const count = await DataLayer.getUnreadLoveNoteCount();
           if (active) setUnreadNotes(count || 0);
-        } catch (e) { /* fallback to 0 */ }
+        } catch (e) { if (__DEV__) console.warn('[Home] unread notes fetch:', e?.message); }
       })();
       return () => { active = false; };
     }, [isPremium])
