@@ -132,7 +132,7 @@ const ClimateOption = ({ option, isSelected, onPress, t, isDark, styleOverrides 
 // ------------------------------------------------------------------
 // MAIN COMPONENT
 // ------------------------------------------------------------------
-export default function RelationshipClimate({ onClimateChange, compact = false }) {
+function RelationshipClimate({ onClimateChange, compact = false }) {
   const { colors, isDark } = useTheme();
   const [selected, setSelected] = useState(null);
 
@@ -317,3 +317,5 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
 });
+
+export default React.memo(RelationshipClimate);

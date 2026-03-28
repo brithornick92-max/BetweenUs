@@ -18,7 +18,7 @@ import { SPACING, withAlpha } from '../utils/theme';
  * @param {number}  intensity  - blur intensity (default 25/45 dark/light)
  * @param {string}  variant    - 'default' | 'subtle' | 'elevated'
  */
-export default function GlassCard({
+function GlassCard({
   children,
   style,
   glow = false,
@@ -139,3 +139,5 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
   },
 });
+
+export default React.memo(GlassCard);

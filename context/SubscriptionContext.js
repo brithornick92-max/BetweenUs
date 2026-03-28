@@ -69,7 +69,8 @@ export const SubscriptionProvider = ({ children }) => {
         try {
           const session = await SupabaseAuthService.getSession();
           sessionPresent = !!session;
-        } catch {
+        } catch (e) {
+          if (__DEV__) console.warn('[SubscriptionContext] getSession failed (non-fatal):', e?.message);
           sessionPresent = false;
         }
 

@@ -30,7 +30,7 @@ import { RelationshipMilestones } from '../services/PolishEngine';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
-export default function MilestoneCard() {
+function MilestoneCard() {
   const { colors, isDark } = useTheme();
   const [milestone, setMilestone] = useState(null);
   const [dismissed, setDismissed] = useState(false);
@@ -152,3 +152,5 @@ const styles = StyleSheet.create({
     padding: 4,
   },
 });
+
+export default React.memo(MilestoneCard);

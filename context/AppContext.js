@@ -183,7 +183,7 @@ export function AppProvider({ children }) {
           });
         }
       } catch (e) {
-        // Non-critical — keep boot resilient if nickname migration fails.
+        if (__DEV__) console.warn('[AppContext] Nickname migration failed:', e?.message);
       }
 
       // QR pairing does not use invite codes, so coupleId alone marks linkage.
@@ -237,8 +237,12 @@ export function AppProvider({ children }) {
                     try {
                       const vibeData = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
                       dispatch({ type: ACTIONS.SET_PARTNER_VIBE, payload: { vibe: vibeData } });
-                      vibeStorage.addPartnerVibeEntry(vibeData).catch(() => {});
-                    } catch { /* ignore parse errors */ }
+                      vibeStorage.addPartnerVibeEntry(vibeData).catch((e) => {
+                        if (__DEV__) console.warn('[AppContext] Failed to store partner vibe entry:', e?.message);
+                      });
+                    } catch (e) {
+                      if (__DEV__) console.warn('[AppContext] Failed to parse partner vibe payload:', e?.message);
+                    }
                     const ts = Date.now();
                     dispatch({ type: ACTIONS.UPDATE_PARTNER_ACTIVITY, payload: ts });
                     storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, ts);

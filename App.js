@@ -42,7 +42,8 @@ import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
 import { cloudSyncStorage } from "./utils/storage";
 
-// Initialize Sentry BEFORE the component tree mounts
+// Initialize Sentry early — this is fast (synchronous config, no network).
+// Sentry.wrap() at module scope requires init() to have been called first.
 CrashReporting.init();
 
 // ── Global error handlers (production + dev) ──────────────────────
@@ -228,11 +229,15 @@ function AppContent() {
     return () => { active = false; };
   }, [isPremium]);
 
+  const paywallNavPending = useRef(false);
   useEffect(() => {
     if (!navReady || !paywallVisible || !navigationRef.isReady()) return;
+    if (paywallNavPending.current) return;
     const currentRoute = navigationRef.getCurrentRoute()?.name;
     if (currentRoute !== "Paywall") {
+      paywallNavPending.current = true;
       navigationRef.navigate("Paywall", { feature: paywallFeature || null });
+      setTimeout(() => { paywallNavPending.current = false; }, 500);
     }
   }, [navReady, paywallVisible, paywallFeature]);
 
@@ -350,13 +355,20 @@ function App() {
   }, [fontsLoaded]);
 
   useEffect(() => {
-    // CrashReporting.init() already called at module scope above
-    // Parallelize independent startup tasks for faster cold boot
-    Promise.all([
+    // Parallelize independent startup tasks with a timeout guard
+    // so a hung SDK can't block the app indefinitely.
+    const STARTUP_TIMEOUT_MS = 15000;
+    const startupTasks = Promise.all([
       AnalyticsService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'analytics_init' })),
       initializeRevenueCat(),
       registerAutoClearDecryptedCache(),
-    ]).catch((e) => CrashReporting.captureException(e, { source: 'startup_init' }));
+    ]);
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Startup tasks timed out (15s)')), STARTUP_TIMEOUT_MS)
+    );
+    Promise.race([startupTasks, timeout]).catch((e) =>
+      CrashReporting.captureException(e, { source: 'startup_init' })
+    );
     return () => AnalyticsService.destroy();
   }, []);
 

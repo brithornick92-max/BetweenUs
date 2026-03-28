@@ -52,9 +52,15 @@ async function getDb() {
     const result = check?.integrity_check ?? check?.['integrity_check'] ?? 'ok';
     if (result !== 'ok') {
       console.error('[Database] Corruption detected:', result);
-      await _db.closeAsync();
-      _db = null;
-      await SQLite.deleteDatabaseAsync(DB_NAME);
+      try {
+        await _db.closeAsync();
+        _db = null;
+        await SQLite.deleteDatabaseAsync(DB_NAME);
+      } catch (deleteErr) {
+        console.error('[Database] Could not delete corrupted DB:', deleteErr?.message);
+        _db = null;
+        // Cannot recover — let migrate() fail naturally on next open attempt
+      }
       _db = await SQLite.openDatabaseAsync(DB_NAME);
       await _db.execAsync('PRAGMA journal_mode = WAL;');
       await _db.execAsync('PRAGMA foreign_keys = ON;');

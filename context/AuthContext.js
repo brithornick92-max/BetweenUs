@@ -57,7 +57,8 @@ export const AuthProvider = ({ children }) => {
           let supabaseSession = null;
           try {
             supabaseSession = await SupabaseAuthService.getSession();
-          } catch (_) {
+          } catch (e) {
+            if (__DEV__) console.warn('[AuthContext] getSession failed (non-fatal):', e?.message);
             supabaseSession = null;
           }
 
@@ -98,7 +99,9 @@ export const AuthProvider = ({ children }) => {
         if (!session) {
           try {
             session = await SupabaseAuthService.signInWithPassword(email, password);
-          } catch (_) { /* may fail if confirmation is truly required */ }
+          } catch (e) {
+              if (__DEV__) console.warn('[AuthContext] Post-signup signIn failed (confirmation may be required):', e?.message);
+            }
         }
       } else {
         session = await SupabaseAuthService.signInWithPassword(email, password);
@@ -127,7 +130,9 @@ export const AuthProvider = ({ children }) => {
               email: session.user?.email || email,
             });
           }
-        } catch (_) { /* swallow — non-fatal */ }
+        } catch (e) {
+          if (__DEV__) console.warn('[AuthContext] Retry signIn after "already registered" failed:', e?.message);
+        }
       }
       if (__DEV__) console.warn('⚠️ Supabase bridge (non-fatal):', err?.message);
     }

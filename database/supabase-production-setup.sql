@@ -297,6 +297,7 @@ CREATE INDEX IF NOT EXISTS idx_moments_private ON moments(is_private);
 CREATE INDEX IF NOT EXISTS idx_link_codes_hash ON partner_link_codes(code_hash);
 CREATE INDEX IF NOT EXISTS idx_link_codes_created_by ON partner_link_codes(created_by);
 CREATE INDEX IF NOT EXISTS idx_link_codes_expires ON partner_link_codes(expires_at);
+CREATE INDEX IF NOT EXISTS idx_link_codes_couple ON partner_link_codes(couple_id);
 
 -- user_entitlements
 CREATE INDEX IF NOT EXISTS idx_entitlements_user ON user_entitlements(user_id);
@@ -1138,6 +1139,8 @@ BEGIN
 
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
+  INSERT INTO notification_log (token, title, body, status, error_msg)
+  VALUES ('trigger_error', 'couple_data_insert', '', 'failed', SQLERRM);
   RETURN NEW;
 END;
 $$;
@@ -1169,6 +1172,8 @@ BEGIN
 
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
+  INSERT INTO notification_log (token, title, body, status, error_msg)
+  VALUES ('trigger_error', 'calendar_event_insert', '', 'failed', SQLERRM);
   RETURN NEW;
 END;
 $$;
@@ -1202,6 +1207,8 @@ BEGIN
 
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
+  INSERT INTO notification_log (token, title, body, status, error_msg)
+  VALUES ('trigger_error', 'moment_insert', '', 'failed', SQLERRM);
   RETURN NEW;
 END;
 $$;

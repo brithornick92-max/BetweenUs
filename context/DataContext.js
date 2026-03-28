@@ -142,7 +142,9 @@ export function DataProvider({ children }) {
         // Periodic sync every 60s
         syncIntervalRef.current = setInterval(() => {
           if (initializedRef.current) {
-            SyncEngine.sync().catch(() => {});
+            SyncEngine.sync().catch((e) => {
+              if (__DEV__) console.warn('[DataContext] Periodic sync failed:', e?.message);
+            });
           }
         }, 60_000);
       } catch (err) {
@@ -198,11 +200,14 @@ export function DataProvider({ children }) {
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active' && initializedRef.current) {
-        SyncEngine.sync().catch(() => {});
+        SyncEngine.sync().catch((e) => {
+          if (__DEV__) console.warn('[DataContext] Foreground sync failed:', e?.message);
+        });
       }
       if (nextState === 'background') {
-        // Clean up decrypted cache when backgrounding
-        DataLayer.clearCache().catch(() => {});
+        DataLayer.clearCache().catch((e) => {
+          if (__DEV__) console.warn('[DataContext] Cache clear failed:', e?.message);
+        });
       }
     });
     return () => sub.remove();

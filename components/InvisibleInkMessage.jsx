@@ -28,7 +28,7 @@ const REVEAL_FULL  = -0.96;
 
 const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
 
-export default function InvisibleInkMessage({ text, style, textColor, panelColor, accentColor }) {
+function InvisibleInkMessage({ text, style, textColor, panelColor, accentColor }) {
   const { isDark } = useTheme();
 
   // Reanimated Shared Values for 60fps UI-thread performance
@@ -278,3 +278,5 @@ const styles = StyleSheet.create({
     }),
   },
 });
+
+export default React.memo(InvisibleInkMessage);

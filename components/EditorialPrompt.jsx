@@ -457,4 +457,4 @@ const createStyles = (t, isDark) => {
   });
 };
 
-export default EditorialPrompt;
+export default React.memo(EditorialPrompt);

@@ -540,4 +540,4 @@ const createStyles = (t, isDark, compact) => {
   });
 };
 
-export default VibeSignal;
+export default React.memo(VibeSignal);

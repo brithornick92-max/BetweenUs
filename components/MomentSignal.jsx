@@ -18,7 +18,7 @@ import { MomentSignalSender, MOMENT_TYPES } from '../services/ConnectionEngine';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
-export default function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onReceive }) {
+function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onReceive }) {
   const { colors, isDark } = useTheme();
 
   const t = useMemo(() => ({
@@ -302,3 +302,5 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
   },
 });
+
+export default React.memo(MomentSignal);

@@ -19,7 +19,7 @@ const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
  * - Sexy Red primary accents
  * - Editorial system typography
  */
-export default function StoryProgress({
+function StoryProgress({
   title = 'Your story so far',
   progress = 0,
   target = 100,
@@ -195,3 +195,4 @@ const createStyles = (t, isDark) =>
     },
   });
   
+export default React.memo(StoryProgress);

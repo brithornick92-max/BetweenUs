@@ -26,7 +26,7 @@ const CONNECTIVITY_URL = SUPABASE_URL
   ? `${SUPABASE_URL}/rest/v1/`
   : 'https://one.one.one.one/cdn-cgi/trace';
 
-export default function OfflineIndicator() {
+function OfflineIndicator() {
   const { colors, isDark } = useTheme();
   const [isOffline, setIsOffline] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
@@ -161,3 +161,5 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
+
+export default React.memo(OfflineIndicator);

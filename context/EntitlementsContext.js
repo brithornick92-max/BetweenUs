@@ -406,8 +406,8 @@ async function _cacheCouplePremium(isPremium) {
       COUPLE_PREMIUM_CACHE_KEY,
       JSON.stringify({ isPremium, cachedAt: Date.now() })
     );
-  } catch {
-    // Ignore
+  } catch (e) {
+    if (__DEV__) console.warn('[Entitlements] Failed to cache couple premium status:', e?.message);
   }
 }
 
@@ -430,7 +430,8 @@ async function _loadCachedCouplePremium() {
     }
 
     return isPremium;
-  } catch {
+  } catch (e) {
+    if (__DEV__) console.warn('[Entitlements] Failed to load cached couple premium:', e?.message);
     return null;
   }
 }

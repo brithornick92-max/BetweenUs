@@ -134,4 +134,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GlowOrb;
+export default React.memo(GlowOrb);

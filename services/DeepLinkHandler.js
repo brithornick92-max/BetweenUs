@@ -20,6 +20,8 @@
 
 let _navigationRef = null;
 
+import CrashReporting from './CrashReporting';
+
 // Only allow safe characters in deep link ID parameters
 const SAFE_ID_RE = /^[a-zA-Z0-9_\-:.]{1,128}$/;
 const _sanitizeId = (id) => {
@@ -88,12 +90,16 @@ const DeepLinkHandler = {
         : (pathParts[1] || parsed.searchParams?.get('id') || null);
 
       const handler = ROUTE_MAP[route];
-      if (!handler) return false;
+      if (!handler) {
+        CrashReporting.captureMessage(`Unknown deep link route: ${route}`, 'warning');
+        return false;
+      }
 
       const { screen, params } = handler({ id });
       _navigationRef.navigate(screen, params);
       return true;
-    } catch {
+    } catch (err) {
+      CrashReporting.captureException(err, { source: 'deepLinkUrl' });
       return false;
     }
   },
@@ -124,7 +130,8 @@ const DeepLinkHandler = {
       });
       _navigationRef.navigate(screen, { ...params, ...(data.params || {}) });
       return true;
-    } catch {
+    } catch (err) {
+      CrashReporting.captureException(err, { source: 'deepLinkNotification' });
       return false;
     }
   },

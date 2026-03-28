@@ -11,7 +11,7 @@ import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../utils/theme';
 /**
  * A single settings row with icon, title, optional subtitle, and chevron.
  */
-export function SettingRow({ icon, iconColor, title, subtitle, onPress, rightElement, disabled, colors, isLast }) {
+function SettingRowBase({ icon, iconColor, title, subtitle, onPress, rightElement, disabled, colors, isLast }) {
   return (
     <TouchableOpacity
       style={[styles.row, disabled && { opacity: 0.4 }]}
@@ -37,7 +37,7 @@ export function SettingRow({ icon, iconColor, title, subtitle, onPress, rightEle
 /**
  * A card-wrapped section with optional label.
  */
-export function SettingsSection({ title, children, colors, style }) {
+function SettingsSectionBase({ title, children, colors, style }) {
   return (
     <View style={[styles.sectionWrap, style]}>
       {title ? <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>{title}</Text> : null}
@@ -100,3 +100,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 });
+
+export const SettingRow = React.memo(SettingRowBase);
+export const SettingsSection = React.memo(SettingsSectionBase);

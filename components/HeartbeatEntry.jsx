@@ -188,4 +188,4 @@ const createStyles = (t, isDark) => {
   });
 };
 
-export default HeartbeatEntry;
+export default React.memo(HeartbeatEntry);
