@@ -103,6 +103,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
           myName: myName.trim(),
           partnerName: partnerName.trim(),
         },
+        display_name: myName.trim(),
       });
       await actions.updateProfile({
         partnerNames: {
