@@ -163,11 +163,18 @@ class CloudEngine {
   async upsertProfile(userId, updates) {
     this._ensureSession();
     const supabase = getSupabaseOrThrow();
+    // Only send columns that exist on the profiles table to avoid
+    // Supabase errors from app-local fields like partnerNames.
+    const PROFILE_COLUMNS = ['email', 'display_name', 'is_premium', 'preferences'];
+    const safeUpdates = {};
+    for (const key of PROFILE_COLUMNS) {
+      if (key in updates) safeUpdates[key] = updates[key];
+    }
     const { data, error } = await supabase
       .from(TABLES.PROFILES)
       .upsert({
         id: userId,
-        ...updates,
+        ...safeUpdates,
         updated_at: new Date().toISOString(),
       })
       .select()
