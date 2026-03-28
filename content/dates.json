@@ -5283,6 +5283,7 @@
       "style": "doing"
     },
     {
+      "id": "d416",
       "title": "Couples Around-the-World Dinner",
       "minutes": 120,
       "location": "home",
@@ -5292,12 +5293,12 @@
         "Set the table with themed decorations",
         "Rate each dish and crown a winner"
       ],
-      "id": "d416",
       "heat": 2,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d417",
       "title": "Moonlit Rooftop Yoga and Wine",
       "minutes": 90,
       "location": "out",
@@ -5307,12 +5308,12 @@
         "Pour wine and slow dance under the stars",
         "Share three things you're grateful for tonight"
       ],
-      "id": "d417",
       "heat": 1,
       "load": 1,
       "style": "doing"
     },
     {
+      "id": "d418",
       "title": "DIY Couples Game Show",
       "minutes": 90,
       "location": "home",
@@ -5322,12 +5323,12 @@
         "Take turns being host and contestant",
         "Award prizes with heartfelt compliments"
       ],
-      "id": "d418",
       "heat": 2,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d419",
       "title": "Sunrise Hike and Love Letters",
       "minutes": 150,
       "location": "out",
@@ -5337,12 +5338,12 @@
         "Read love letters you wrote the night before",
         "Take a photo to remember the moment"
       ],
-      "id": "d419",
       "heat": 1,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d420",
       "title": "Blanket Fort Confessions Night",
       "minutes": 90,
       "location": "home",
@@ -5352,12 +5353,12 @@
         "Take turns sharing secrets and dreams",
         "End with a long embrace in the quiet"
       ],
-      "id": "d420",
       "heat": 1,
       "load": 2,
       "style": "mixed"
     },
     {
+      "id": "d421",
       "title": "Spontaneous Road Trip Roulette",
       "minutes": 180,
       "location": "out",
@@ -5367,12 +5368,12 @@
         "Document the adventure with silly photos",
         "End at a restaurant neither of you has tried"
       ],
-      "id": "d421",
       "heat": 2,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d422",
       "title": "Sensual Art Studio Evening",
       "minutes": 120,
       "location": "home",
@@ -5382,12 +5383,12 @@
         "Paint blindfolded and guess the subject",
         "Sign and date your masterpieces together"
       ],
-      "id": "d422",
       "heat": 2,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d423",
       "title": "Farmers Market to Feast Challenge",
       "minutes": 150,
       "location": "either",
@@ -5397,12 +5398,12 @@
         "Set a timer for the cooking challenge",
         "Enjoy your feast with candlelight and music"
       ],
-      "id": "d423",
       "heat": 2,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d424",
       "title": "Stargazing and Soul Questions",
       "minutes": 120,
       "location": "out",
@@ -5412,12 +5413,12 @@
         "Ask each other deep life questions",
         "Make a wish on a shooting star together"
       ],
-      "id": "d424",
       "heat": 1,
       "load": 2,
       "style": "mixed"
     },
     {
+      "id": "d425",
       "title": "Couples Karaoke and Cocktail Lab",
       "minutes": 90,
       "location": "home",
@@ -5427,12 +5428,12 @@
         "Perform dramatic duets to each other",
         "End with a slow dance to your favorite love song"
       ],
-      "id": "d425",
       "heat": 2,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d426",
       "title": "Midnight Picnic and Poetry Swap",
       "minutes": 90,
       "location": "out",
@@ -5442,12 +5443,12 @@
         "Read poems aloud — ones you wrote or favorites",
         "Lie together and listen to the night sounds"
       ],
-      "id": "d426",
       "heat": 1,
       "load": 1,
       "style": "mixed"
     },
     {
+      "id": "d427",
       "title": "Thrift Store Costume Date",
       "minutes": 120,
       "location": "out",
@@ -5457,12 +5458,12 @@
         "Go to dinner in character",
         "Stay in character the entire evening"
       ],
-      "id": "d427",
       "heat": 2,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d428",
       "title": "Home Spa and Heartfelt Playlist",
       "minutes": 90,
       "location": "home",
@@ -5472,12 +5473,12 @@
         "Give each other face masks and hand massages",
         "Share the story behind each song you chose"
       ],
-      "id": "d428",
       "heat": 1,
       "load": 1,
       "style": "mixed"
     },
     {
+      "id": "d429",
       "title": "Beach Bonfire and Truth Telling",
       "minutes": 120,
       "location": "out",
@@ -5487,12 +5488,12 @@
         "Play a deep-questions card game by firelight",
         "Write something to release and burn it together"
       ],
-      "id": "d429",
       "heat": 1,
       "load": 3,
       "style": "mixed"
     },
     {
+      "id": "d430",
       "title": "Couples Dance Class and Dessert",
       "minutes": 120,
       "location": "out",
@@ -5502,12 +5503,12 @@
         "Walk to a nearby dessert spot hand-in-hand",
         "Try to teach each other one new move at home"
       ],
-      "id": "d430",
       "heat": 2,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d431",
       "title": "Vision Board and Wine Night",
       "minutes": 90,
       "location": "home",
@@ -5517,12 +5518,12 @@
         "Share your boards over a glass of wine",
         "Hang them somewhere you'll both see daily"
       ],
-      "id": "d431",
       "heat": 1,
       "load": 1,
       "style": "talking"
     },
     {
+      "id": "d432",
       "title": "Adventure Photography Scavenger Hunt",
       "minutes": 120,
       "location": "out",
@@ -5532,12 +5533,12 @@
         "Vote on the best and worst photos together",
         "Print the winners and add to a memory wall"
       ],
-      "id": "d432",
       "heat": 2,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d433",
       "title": "Candlelit Cooking and Confession",
       "minutes": 120,
       "location": "home",
@@ -5547,12 +5548,12 @@
         "Plate the food beautifully and sit across from each other",
         "End dinner with handwritten notes of appreciation"
       ],
-      "id": "d433",
       "heat": 1,
       "load": 2,
       "style": "mixed"
     },
     {
+      "id": "d434",
       "title": "Sunset Paddleboard and Picnic",
       "minutes": 150,
       "location": "out",
@@ -5562,12 +5563,12 @@
         "Enjoy a floating picnic with simple snacks",
         "Watch the sun set from the water together"
       ],
-      "id": "d434",
       "heat": 1,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d435",
       "title": "Blindfold Taste Test and Trust Walk",
       "minutes": 75,
       "location": "home",
@@ -5577,12 +5578,12 @@
         "Switch roles and get creative with textures",
         "End with a blindfolded slow dance"
       ],
-      "id": "d435",
       "heat": 2,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d436",
       "title": "Rainy Day Baking and Board Games",
       "minutes": 120,
       "location": "home",
@@ -5592,12 +5593,12 @@
         "Play the game while treats cool",
         "Taste-test your creation cuddled on the couch"
       ],
-      "id": "d436",
       "heat": 2,
       "load": 1,
       "style": "doing"
     },
     {
+      "id": "d437",
       "title": "Full Moon Night Swim and Stargazing",
       "minutes": 90,
       "location": "out",
@@ -5607,12 +5608,12 @@
         "Float and look up at the stars",
         "Dry off with warm towels and hot cocoa"
       ],
-      "id": "d437",
       "heat": 2,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d438",
       "title": "Memory Lane Photo Walk",
       "minutes": 120,
       "location": "out",
@@ -5622,12 +5623,12 @@
         "Share memories and feelings at each location",
         "Create a then-and-now photo collage at home"
       ],
-      "id": "d438",
       "heat": 1,
       "load": 3,
       "style": "mixed"
     },
     {
+      "id": "d439",
       "title": "Couple's Spa and Slow Dance Marathon",
       "minutes": 120,
       "location": "home",
@@ -5637,12 +5638,12 @@
         "Put on a slow jazz playlist",
         "Dance barefoot in the living room until you're sleepy"
       ],
-      "id": "d439",
       "heat": 3,
       "load": 1,
       "style": "doing"
     },
     {
+      "id": "d440",
       "title": "Mystery Envelope Adventure",
       "minutes": 150,
       "location": "either",
@@ -5652,12 +5653,12 @@
         "Do whatever the envelope says immediately",
         "Reflect on surprises over dessert"
       ],
-      "id": "d440",
       "heat": 2,
       "load": 3,
       "style": "talking"
     },
     {
+      "id": "d441",
       "title": "Breakfast in Bed and Bucket Lists",
       "minutes": 90,
       "location": "home",
@@ -5667,12 +5668,12 @@
         "Find 5 items you both want to do together",
         "Plan the first one for the coming month"
       ],
-      "id": "d441",
       "heat": 1,
       "load": 1,
       "style": "talking"
     },
     {
+      "id": "d442",
       "title": "Drive-In Movie and Backseat Cuddles",
       "minutes": 150,
       "location": "out",
@@ -5682,12 +5683,12 @@
         "Cuddle up in the backseat to watch",
         "Stay and talk long after the credits roll"
       ],
-      "id": "d442",
       "heat": 2,
       "load": 1,
       "style": "mixed"
     },
     {
+      "id": "d443",
       "title": "Couples Improv and Wine Tasting",
       "minutes": 90,
       "location": "home",
@@ -5697,12 +5698,12 @@
         "Act out your first date, wedding, or dream vacation",
         "Award each other superlatives like 'Best Drama'"
       ],
-      "id": "d443",
       "heat": 2,
       "load": 1,
       "style": "mixed"
     },
     {
+      "id": "d444",
       "title": "Garden Planting and Future Dreaming",
       "minutes": 120,
       "location": "either",
@@ -5712,12 +5713,12 @@
         "Assign a meaning to each plant you chose",
         "Water your garden together each week"
       ],
-      "id": "d444",
       "heat": 1,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d445",
       "title": "Street Mural Hunt and Ice Cream",
       "minutes": 90,
       "location": "out",
@@ -5727,12 +5728,12 @@
         "Discuss what each piece means to you",
         "Reward yourselves with ice cream at the end"
       ],
-      "id": "d445",
       "heat": 2,
       "load": 3,
       "style": "mixed"
     },
     {
+      "id": "d446",
       "title": "Firepit Stories and S'mores",
       "minutes": 90,
       "location": "either",
@@ -5742,12 +5743,12 @@
         "Tell each other your happiest relationship memory",
         "Sit in comfortable silence watching the flames"
       ],
-      "id": "d446",
       "heat": 1,
       "load": 1,
       "style": "talking"
     },
     {
+      "id": "d447",
       "title": "Couple's Cook-Off and Critics Night",
       "minutes": 120,
       "location": "home",
@@ -5757,12 +5758,12 @@
         "Rate each dish like food critics with scorecards",
         "Share dessert together regardless of who wins"
       ],
-      "id": "d447",
       "heat": 2,
       "load": 3,
       "style": "mixed"
     },
     {
+      "id": "d448",
       "title": "Love Letter Scavenger Walk",
       "minutes": 90,
       "location": "out",
@@ -5772,12 +5773,12 @@
         "Walk together and 'discover' the notes along the way",
         "Read the final one together at a special spot"
       ],
-      "id": "d448",
       "heat": 1,
       "load": 1,
       "style": "mixed"
     },
     {
+      "id": "d449",
       "title": "Pajama Brunch and Puzzle Day",
       "minutes": 120,
       "location": "home",
@@ -5787,12 +5788,12 @@
         "Take breaks for tea and cuddling",
         "See how far you get before the day ends"
       ],
-      "id": "d449",
       "heat": 2,
       "load": 1,
       "style": "doing"
     },
     {
+      "id": "d450",
       "title": "Night Market Food Tour",
       "minutes": 120,
       "location": "out",
@@ -5802,12 +5803,12 @@
         "Rate everything with dramatic commentary",
         "Find a quiet bench to people-watch after eating"
       ],
-      "id": "d450",
       "heat": 2,
       "load": 2,
       "style": "mixed"
     },
     {
+      "id": "d451",
       "title": "Silent Sunset Walk and Journaling",
       "minutes": 90,
       "location": "out",
@@ -5817,12 +5818,12 @@
         "Sit down and journal about what you noticed",
         "Read your journals aloud to each other"
       ],
-      "id": "d451",
       "heat": 1,
       "load": 1,
       "style": "mixed"
     },
     {
+      "id": "d452",
       "title": "Role-Swap Date Night",
       "minutes": 120,
       "location": "either",
@@ -5832,12 +5833,12 @@
         "Discuss what surprised you about their choices",
         "Appreciate how well you know each other"
       ],
-      "id": "d452",
       "heat": 2,
       "load": 2,
       "style": "talking"
     },
     {
+      "id": "d453",
       "title": "Waterfall Hike and Skinny Dip",
       "minutes": 180,
       "location": "out",
@@ -5847,12 +5848,12 @@
         "Take a dip together if it's private enough",
         "Dry off in the sun and share a quiet moment"
       ],
-      "id": "d453",
       "heat": 3,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d454",
       "title": "Cocktails and Canvas Painting",
       "minutes": 90,
       "location": "home",
@@ -5862,12 +5863,12 @@
         "Paint portraits of each other — no peeking",
         "Reveal your masterpieces with dramatic flair"
       ],
-      "id": "d454",
       "heat": 2,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d455",
       "title": "Couples Volunteer and Reflection",
       "minutes": 150,
       "location": "out",
@@ -5877,12 +5878,12 @@
         "Grab coffee afterward to reflect on the experience",
         "Discuss what causes matter most to you both"
       ],
-      "id": "d455",
       "heat": 1,
       "load": 3,
       "style": "talking"
     },
     {
+      "id": "d456",
       "title": "Hot Tub Time Machine Conversation",
       "minutes": 90,
       "location": "either",
@@ -5892,12 +5893,12 @@
         "Share your favorite ages and why",
         "Dream about where you'll be in 10 years"
       ],
-      "id": "d456",
       "heat": 1,
       "load": 1,
       "style": "talking"
     },
     {
+      "id": "d457",
       "title": "Dessert Crawl and Deep Talks",
       "minutes": 120,
       "location": "out",
@@ -5907,12 +5908,12 @@
         "Share a deep conversation topic at every stop",
         "Vote on your favorite dessert and conversation"
       ],
-      "id": "d457",
       "heat": 1,
       "load": 3,
       "style": "talking"
     },
     {
+      "id": "d458",
       "title": "Morning Meditation and Farmers Market",
       "minutes": 120,
       "location": "either",
@@ -5922,12 +5923,12 @@
         "Pick ingredients for a meal you'll cook that day",
         "Cook slowly, enjoying the process side by side"
       ],
-      "id": "d458",
       "heat": 1,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d459",
       "title": "Scenic Train Ride and Journaling",
       "minutes": 180,
       "location": "out",
@@ -5937,12 +5938,12 @@
         "Explore the destination with no plan",
         "Take the train back as the sun sets"
       ],
-      "id": "d459",
       "heat": 1,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d460",
       "title": "Couples Trivia and Strip Rules",
       "minutes": 75,
       "location": "home",
@@ -5952,12 +5953,12 @@
         "Keep score with dramatic announcements",
         "The winner gets to choose the next activity"
       ],
-      "id": "d460",
       "heat": 3,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d461",
       "title": "Sunset Sail and Slow Dancing on Deck",
       "minutes": 120,
       "location": "out",
@@ -5967,12 +5968,12 @@
         "Slow dance on deck as the sun goes down",
         "Make a wish together as the first star appears"
       ],
-      "id": "d461",
       "heat": 1,
       "load": 2,
       "style": "doing"
     },
     {
+      "id": "d462",
       "title": "Couples Escape Room and Dinner Debrief",
       "minutes": 150,
       "location": "out",
@@ -5982,12 +5983,12 @@
         "Go to dinner and debrief your teamwork",
         "Discuss what you learned about how you communicate"
       ],
-      "id": "d462",
       "heat": 2,
       "load": 3,
       "style": "doing"
     },
     {
+      "id": "d463",
       "title": "Candlelit Poetry Writing Night",
       "minutes": 90,
       "location": "home",
@@ -5997,12 +5998,12 @@
         "Read them aloud to each other slowly",
         "Frame or save the poems as keepsakes"
       ],
-      "id": "d463",
       "heat": 1,
       "load": 1,
       "style": "talking"
     },
     {
+      "id": "d464",
       "title": "Bike Ride and Secret Picnic Spot",
       "minutes": 120,
       "location": "out",
@@ -6012,12 +6013,12 @@
         "Surprise them with the picnic reveal",
         "Linger and enjoy the scenery together"
       ],
-      "id": "d464",
       "heat": 1,
       "load": 3,
       "style": "mixed"
     },
     {
+      "id": "d465",
       "title": "Gratitude Dinner and Dance Party",
       "minutes": 120,
       "location": "home",
@@ -6027,7 +6028,6 @@
         "Clear the table and blast your favorite songs",
         "Dance wildly until you collapse into a hug"
       ],
-      "id": "d465",
       "heat": 1,
       "load": 2,
       "style": "mixed"

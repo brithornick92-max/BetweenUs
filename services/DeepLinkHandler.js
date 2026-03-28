@@ -128,7 +128,8 @@ const DeepLinkHandler = {
       const { screen, params } = handler({
         id: data.id || data.noteId || data.promptId || data.dateId,
       });
-      _navigationRef.navigate(screen, { ...params, ...(data.params || {}) });
+      // Only merge known-safe params — don't pass arbitrary notification data to screens
+      _navigationRef.navigate(screen, params);
       return true;
     } catch (err) {
       CrashReporting.captureException(err, { source: 'deepLinkNotification' });

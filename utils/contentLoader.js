@@ -36,6 +36,23 @@ try {
 
 if (__DEV__) console.log("🔵 ContentLoader: Module loading complete");
 
+// Validate ID uniqueness in dev mode
+if (__DEV__) {
+  const validateIds = (items, label) => {
+    const seen = new Set();
+    for (const item of items) {
+      if (!item.id) {
+        console.warn(`⚠️ ContentLoader: ${label} has entry without id:`, item.title);
+      } else if (seen.has(item.id)) {
+        console.warn(`⚠️ ContentLoader: ${label} has duplicate id: ${item.id}`);
+      }
+      seen.add(item.id);
+    }
+  };
+  validateIds(promptsData.items, 'prompts');
+  validateIds(datesData.items, 'dates');
+}
+
 // =======================
 // SAFETY HELPERS
 // =======================
