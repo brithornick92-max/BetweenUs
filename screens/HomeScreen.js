@@ -232,7 +232,7 @@ export default function HomeScreen({ navigation }) {
     setIsSavingInline(true);
     try {
       if (!isPremium && !myAnswer) {
-        const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, prompt.heat || 1, false);
+        const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, prompt.heat || 1, isPremium);
         if (!accessCheck.canAccess) {
           showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
           return;
@@ -241,7 +241,7 @@ export default function HomeScreen({ navigation }) {
 
       await DataLayer.savePromptAnswer({ promptId: prompt.id, answer: finalText });
       if (!isPremium && !myAnswer) {
-        await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, false, prompt.heat || 1);
+        await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt.heat || 1);
         await loadUsageStatus?.();
       }
       notification(NotificationFeedbackType.Success);

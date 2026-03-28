@@ -213,15 +213,15 @@ export default function DateNightDetailScreen({ route, navigation }) {
     if (!date) return;
 
     if (!isPremium && user?.uid) {
-      const accessCheck = await PremiumGatekeeper.canAccessDateFlow(user.uid, date.id, false);
+      const accessCheck = await PremiumGatekeeper.canAccessDateFlow(user.uid, date.id, isPremium);
       if (!accessCheck.canAccess) {
         showPaywall(PremiumFeature.UNLIMITED_DATE_IDEAS);
         return;
       }
 
-      await PremiumGatekeeper.trackDateFlowUsage(user.uid, date.id, false);
+      await PremiumGatekeeper.trackDateFlowUsage(user.uid, date.id, isPremium);
       await loadUsageStatus?.();
-      const refreshed = await PremiumGatekeeper.getUserUsageStatus(user.uid, false);
+      const refreshed = await PremiumGatekeeper.getUserUsageStatus(user.uid, isPremium);
       setFreeDateFlowRemaining(refreshed?.remaining?.dateFlowsPerWeek ?? null);
     }
 

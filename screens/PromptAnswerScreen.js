@@ -286,7 +286,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     const isFirstResponse = !existingAnswer;
 
     if (!isPremium && isFirstResponse) {
-      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user?.uid, prompt?.heat || 1, false);
+      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user?.uid, prompt?.heat || 1, isPremium);
       if (!accessCheck.canAccess) {
         const blockedFeature = accessCheck.reason === 'premium_required'
           ? PremiumFeature.HEAT_LEVELS_4_5
@@ -314,7 +314,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         });
       }
       if (!isPremium && isFirstResponse && user?.uid) {
-        await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, false, prompt?.heat || 1);
+        await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt?.heat || 1);
         await loadUsageStatus?.();
       }
       notification(NotificationFeedbackType.Success);

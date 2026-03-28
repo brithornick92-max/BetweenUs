@@ -861,9 +861,12 @@ SET search_path = public
 SET row_security = off
 AS $$
 DECLARE
-  caller_id    uuid;
-  the_couple_id uuid;
-  remaining    int;
+  caller_id           uuid;
+  the_couple_id       uuid;
+  remaining           int;
+  active_premium_user uuid;
+  should_be_premium   boolean;
+  caller_own_premium  boolean;
 BEGIN
   caller_id := auth.uid();
   IF caller_id IS NULL THEN
@@ -886,7 +889,45 @@ BEGIN
   IF remaining = 0 THEN
     DELETE FROM partner_link_codes WHERE couple_id = the_couple_id;
     DELETE FROM couples WHERE id = the_couple_id;
+  ELSE
+    -- Recompute couple premium from remaining members' entitlements
+    SELECT cm.user_id INTO active_premium_user
+      FROM couple_members cm
+      JOIN user_entitlements ue ON ue.user_id = cm.user_id
+     WHERE cm.couple_id = the_couple_id
+       AND ue.is_premium = true
+       AND (ue.expires_at IS NULL OR ue.expires_at > now())
+     ORDER BY ue.updated_at DESC NULLS LAST
+     LIMIT 1;
+
+    should_be_premium := active_premium_user IS NOT NULL;
+
+    UPDATE couples SET
+      is_premium     = should_be_premium,
+      premium_since  = CASE
+        WHEN should_be_premium AND premium_since IS NULL THEN now()
+        WHEN NOT should_be_premium THEN NULL
+        ELSE premium_since
+      END,
+      premium_source = COALESCE(active_premium_user::text, 'none'),
+      updated_at     = now()
+    WHERE id = the_couple_id;
+    -- The trigger_sync_couple_premium fires here and updates remaining
+    -- partner's profiles.is_premium when couples.is_premium changes.
   END IF;
+
+  -- Reset leaving user's profile premium to their own entitlement status
+  SELECT EXISTS (
+    SELECT 1 FROM user_entitlements ue
+    WHERE ue.user_id = caller_id
+      AND ue.is_premium = true
+      AND (ue.expires_at IS NULL OR ue.expires_at > now())
+  ) INTO caller_own_premium;
+
+  UPDATE profiles SET
+    is_premium = caller_own_premium,
+    updated_at = now()
+  WHERE id = caller_id;
 
   RETURN jsonb_build_object('success', true, 'couple_id', the_couple_id);
 END;
