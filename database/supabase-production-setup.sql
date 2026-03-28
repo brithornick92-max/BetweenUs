@@ -318,8 +318,13 @@ CREATE INDEX IF NOT EXISTS idx_push_tokens_user ON push_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_push_tokens_token ON push_tokens(token);
 
 -- notification_log
-CREATE INDEX IF NOT EXISTS idx_notification_log_created ON notification_log(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_notification_log_status  ON notification_log(status) WHERE status = 'failed';
+CREATE INDEX IF NOT EXISTS idx_notification_log_created   ON notification_log(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notification_log_status    ON notification_log(status) WHERE status = 'failed';
+CREATE INDEX IF NOT EXISTS idx_notification_log_recipient ON notification_log(recipient);
+
+-- partial indexes for cron cleanup queries
+CREATE INDEX IF NOT EXISTS idx_link_codes_unused      ON partner_link_codes(expires_at) WHERE used_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_push_tokens_last_used   ON push_tokens(last_used_at) WHERE last_used_at IS NOT NULL;
 
 
 -- ############################################################################
@@ -328,21 +333,27 @@ CREATE INDEX IF NOT EXISTS idx_notification_log_status  ON notification_log(stat
 
 -- updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS trigger AS $$
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Sync-aware updated_at (preserves future client timestamps)
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS trigger AS $$
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = GREATEST(NEW.updated_at, now());
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Get couple ID for a user
 CREATE OR REPLACE FUNCTION get_user_couple_id(input_user_id uuid)
@@ -903,21 +914,34 @@ BEGIN
     FROM couple_members WHERE user_id = auth.uid() LIMIT 1;
 
   IF _couple_id IS NOT NULL THEN
-    DELETE FROM couple_data    WHERE couple_id = _couple_id AND created_by = auth.uid();
-    DELETE FROM couple_members WHERE couple_id = _couple_id AND user_id    = auth.uid();
+    DELETE FROM couple_data      WHERE couple_id = _couple_id AND created_by = auth.uid();
+    DELETE FROM calendar_events  WHERE couple_id = _couple_id AND created_by = auth.uid();
+    DELETE FROM moments          WHERE couple_id = _couple_id AND created_by = auth.uid();
+    DELETE FROM couple_members   WHERE couple_id = _couple_id AND user_id    = auth.uid();
     SELECT count(*) INTO _partner_count
       FROM couple_members WHERE couple_id = _couple_id;
     IF _partner_count = 0 THEN
-      DELETE FROM couple_data WHERE couple_id = _couple_id;
-      DELETE FROM couples     WHERE id = _couple_id;
+      DELETE FROM couple_data     WHERE couple_id = _couple_id;
+      DELETE FROM calendar_events WHERE couple_id = _couple_id;
+      DELETE FROM moments         WHERE couple_id = _couple_id;
+      DELETE FROM partner_link_codes WHERE couple_id = _couple_id;
+      DELETE FROM couples         WHERE id = _couple_id;
+    ELSE
+      -- Partner remains — reassign ownership so couples.created_by FK doesn't block deletion
+      UPDATE couples SET created_by = (
+        SELECT user_id FROM couple_members WHERE couple_id = _couple_id LIMIT 1
+      ) WHERE id = _couple_id AND created_by = auth.uid();
     END IF;
   END IF;
 
-  BEGIN DELETE FROM usage_events      WHERE user_id = auth.uid(); EXCEPTION WHEN undefined_table THEN NULL; END;
-  BEGIN DELETE FROM user_entitlements  WHERE user_id = auth.uid(); EXCEPTION WHEN undefined_table THEN NULL; END;
-  BEGIN DELETE FROM push_tokens       WHERE user_id = auth.uid(); EXCEPTION WHEN undefined_table THEN NULL; END;
-  BEGIN DELETE FROM analytics_events  WHERE user_id = auth.uid(); EXCEPTION WHEN undefined_table THEN NULL; END;
-  BEGIN DELETE FROM notification_log  WHERE recipient = auth.uid(); EXCEPTION WHEN undefined_table THEN NULL; END;
+  -- Clean up remaining FK references outside the couple
+  BEGIN DELETE FROM partner_link_codes WHERE created_by = auth.uid(); EXCEPTION WHEN undefined_table THEN NULL; END;
+  BEGIN DELETE FROM usage_events       WHERE user_id = auth.uid();   EXCEPTION WHEN undefined_table THEN NULL; END;
+  BEGIN DELETE FROM user_entitlements   WHERE user_id = auth.uid();   EXCEPTION WHEN undefined_table THEN NULL; END;
+  BEGIN DELETE FROM push_tokens        WHERE user_id = auth.uid();   EXCEPTION WHEN undefined_table THEN NULL; END;
+  BEGIN DELETE FROM analytics_events   WHERE user_id = auth.uid();   EXCEPTION WHEN undefined_table THEN NULL; END;
+  BEGIN DELETE FROM notification_log   WHERE recipient = auth.uid(); EXCEPTION WHEN undefined_table THEN NULL; END;
+  BEGIN DELETE FROM rate_limit_buckets WHERE user_id = auth.uid();   EXCEPTION WHEN undefined_table THEN NULL; END;
 
   DELETE FROM auth.users WHERE id = auth.uid();
 END;
@@ -1262,6 +1286,8 @@ BEGIN
 
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
+  INSERT INTO notification_log (token, title, body, status, error_msg)
+  VALUES ('trigger_error', 'couple_created', '', 'failed', SQLERRM);
   RETURN NEW;
 END;
 $$;
@@ -1499,6 +1525,16 @@ DROP POLICY IF EXISTS "Users can view own entitlements" ON user_entitlements;
 CREATE POLICY "Users can view own entitlements" ON user_entitlements
   FOR SELECT USING (user_id = auth.uid());
 
+-- Entitlements are managed server-side only (RevenueCat webhook → service_role).
+-- Explicit deny prevents client-side privilege escalation.
+DROP POLICY IF EXISTS "Deny client entitlement writes" ON user_entitlements;
+CREATE POLICY "Deny client entitlement writes" ON user_entitlements
+  FOR INSERT TO authenticated WITH CHECK (false);
+
+DROP POLICY IF EXISTS "Deny client entitlement updates" ON user_entitlements;
+CREATE POLICY "Deny client entitlement updates" ON user_entitlements
+  FOR UPDATE TO authenticated USING (false) WITH CHECK (false);
+
 -- ─── USAGE_EVENTS ─────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Users can insert own usage events" ON usage_events;
 CREATE POLICY "Users can insert own usage events" ON usage_events
@@ -1720,7 +1756,7 @@ SELECT cron.unschedule('cleanup-stale-push-tokens')
 SELECT cron.schedule(
   'cleanup-stale-push-tokens',
   '30 4 * * *',
-  $$DELETE FROM push_tokens WHERE last_used_at IS NOT NULL AND last_used_at < now() - interval '90 days'$$
+  $$DELETE FROM push_tokens WHERE (last_used_at IS NOT NULL AND last_used_at < now() - interval '90 days') OR (last_used_at IS NULL AND created_at < now() - interval '90 days')$$
 );
 
 -- 4. Rate-limit bucket refill (every 5 min)
