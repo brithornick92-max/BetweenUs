@@ -14,7 +14,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.brittany.betweenus",
-      "buildNumber": "3",
+      "buildNumber": "10",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing.",
         "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes, journal entries, and memories.",
