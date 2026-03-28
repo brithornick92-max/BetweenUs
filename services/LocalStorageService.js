@@ -165,7 +165,7 @@ class LocalStorageService {
         await SupabaseAuthService.signOut(scope);
       } catch (e) {
         // Supabase may not be configured — continue with local cleanup
-        console.warn('[LocalStorageService] Supabase sign-out skipped:', e?.message);
+        if (__DEV__) console.warn('[LocalStorageService] Supabase sign-out skipped:', e?.message);
       }
 
       await AsyncStorage.removeItem('currentUserId');

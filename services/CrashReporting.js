@@ -80,7 +80,7 @@ const CrashReporting = {
       _initialized = true;
     } catch (err) {
       // Sentry init failure should never crash the app
-      console.warn('[CrashReporting] Sentry init failed:', err?.message);
+      if (__DEV__) console.warn('[CrashReporting] Sentry init failed:', err?.message);
     }
   },
 

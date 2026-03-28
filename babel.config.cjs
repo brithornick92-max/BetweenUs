@@ -4,13 +4,11 @@ module.exports = function (api) {
 
   const plugins = [];
 
-  // Strip console.log (but keep console.warn and console.error) in production builds.
-  // Prevents leaking internal state, PII, or debug traces to device logs.
+  // Strip ALL console calls in production builds.
+  // Debug logging is guarded with __DEV__ checks (dead-code-eliminated in prod).
+  // Error telemetry goes through CrashReporting/Sentry, not console.
   if (process.env.NODE_ENV === 'production' || process.env.BABEL_ENV === 'production') {
-    plugins.push([
-      'transform-remove-console',
-      { exclude: ['error', 'warn'] },
-    ]);
+    plugins.push(['transform-remove-console']);
   }
 
   return {

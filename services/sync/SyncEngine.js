@@ -250,7 +250,7 @@ async function pushTable(tableName) {
       }
     }
     if (lastErr) {
-      console.warn(
+      if (__DEV__) console.warn(
         `[Sync] Push ${tableName}/${row.id} failed after ${MAX_PUSH_RETRIES} attempts:`,
         lastErr?.message,
         lastErr?.code ? `(code: ${lastErr.code})` : ''
@@ -324,7 +324,7 @@ async function pullTable(tableName) {
           );
         }
       } catch (err) {
-        console.warn(`[Sync] Tombstone apply ${tableName} failed:`, err.message);
+        if (__DEV__) console.warn(`[Sync] Tombstone apply ${tableName} failed:`, err.message);
       }
     }
 
@@ -411,7 +411,7 @@ const SyncEngine = {
         results.attachments = await EncryptedAttachments.uploadAllPending();
         attachmentUploadOk = true;
       } catch (err) {
-        console.warn('[Sync] Attachment upload batch failed:', err.message);
+        if (__DEV__) console.warn('[Sync] Attachment upload batch failed:', err.message);
       }
 
       // 2. Push attachment metadata ONLY if uploads succeeded
@@ -455,14 +455,14 @@ const SyncEngine = {
       await EncryptedAttachments.uploadAllPending();
       attachmentsOk = true;
     } catch (err) {
-      console.warn('[Sync] pushNow attachment upload failed:', err?.message);
+      if (__DEV__) console.warn('[Sync] pushNow attachment upload failed:', err?.message);
     }
     // Push attachment metadata so partner can discover the files
     if (attachmentsOk) {
       try {
         await pushTable('attachments');
       } catch (err) {
-        console.warn('[Sync] pushNow attachment meta push failed:', err?.message);
+        if (__DEV__) console.warn('[Sync] pushNow attachment meta push failed:', err?.message);
       }
     }
     // Now push all other tables (journals, etc.)
@@ -509,7 +509,7 @@ const SyncEngine = {
               await pullTable(tableName);
               emit('sync:realtime', { table: tableName, event: payload.eventType });
             } catch (err) {
-              console.warn('[Sync] Realtime pull failed:', err.message);
+              if (__DEV__) console.warn('[Sync] Realtime pull failed:', err.message);
             }
           }
         }

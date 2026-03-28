@@ -68,7 +68,7 @@ class RevenueCatService {
           reason: 'missing_api_key',
           missingKeyName,
         };
-        console.warn(`⚠️ RevenueCat API key missing. Set ${missingKeyName}.`);
+        if (__DEV__) console.warn(`⚠️ RevenueCat API key missing. Set ${missingKeyName}.`);
         return;
       }
 
@@ -183,7 +183,7 @@ class RevenueCatService {
         this._offeringsUnavailable = true;
         if (!this._offeringsUnavailableWarned) {
           this._offeringsUnavailableWarned = true;
-          console.warn('[RevenueCat] Offerings unavailable; falling back to free mode.');
+          if (__DEV__) console.warn('[RevenueCat] Offerings unavailable; falling back to free mode.');
         }
         return {
           current: null,

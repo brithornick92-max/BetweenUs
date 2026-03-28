@@ -46,6 +46,7 @@ export default class ErrorBoundary extends React.Component {
     });
 
     console.error('[ErrorBoundary] Uncaught error:', error?.message);
+    // ErrorBoundary logs in all environments — this is the last-resort crash handler
 
     // High-end Apple-style entrance
     Animated.parallel([
@@ -81,7 +82,7 @@ export default class ErrorBoundary extends React.Component {
 
   handleContactSupport = () => {
     Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=App%20Crash%20Report`)
-      .catch((err) => console.warn('Could not open mail client:', err));
+      .catch((err) => { if (__DEV__) console.warn('Could not open mail client:', err); });
   };
 
   render() {

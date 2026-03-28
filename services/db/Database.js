@@ -56,14 +56,14 @@ async function getDb() {
         const check = await _db.getFirstAsync('PRAGMA integrity_check;');
         const result = check?.integrity_check ?? check?.['integrity_check'] ?? 'ok';
         if (result !== 'ok') {
-          console.error('[Database] Corruption detected:', result);
+          if (__DEV__) console.error('[Database] Corruption detected:', result);
           CrashReporting.captureException(new Error('Database corruption detected'), { result });
           try {
             await _db.closeAsync();
             _db = null;
             await SQLite.deleteDatabaseAsync(DB_NAME);
           } catch (deleteErr) {
-            console.error('[Database] Could not delete corrupted DB:', deleteErr?.message);
+            if (__DEV__) console.error('[Database] Could not delete corrupted DB:', deleteErr?.message);
             _db = null;
           }
           _db = await SQLite.openDatabaseAsync(DB_NAME);
@@ -71,7 +71,7 @@ async function getDb() {
           await _db.execAsync('PRAGMA foreign_keys = ON;');
         }
       } catch (err) {
-        console.warn('[Database] integrity_check failed:', err?.message);
+        if (__DEV__) console.warn('[Database] integrity_check failed:', err?.message);
         CrashReporting.captureException(err, { source: 'db_integrity_check' });
       }
 
