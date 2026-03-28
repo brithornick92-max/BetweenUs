@@ -33,6 +33,12 @@ class LocalStorageService {
     return bytesToHex(derived);
   }
 
+  // Hash email into a SecureStore-safe key (keys only allow [\w.-])
+  _emailToKey(email) {
+    const enc = new TextEncoder();
+    return bytesToHex(sha256(enc.encode(email.toLowerCase())));
+  }
+
   // Persist user profile to SecureStore so it survives app reinstalls (dev builds)
   async _persistUserToSecureStore(user) {
     try {
@@ -41,14 +47,22 @@ class LocalStorageService {
         JSON.stringify(user),
         SECURE_STORE_OPTS
       );
+    } catch (e) {
+      if (__DEV__) console.warn('SecureStore user profile persist failed:', e);
+    }
+    try {
       await SecureStore.setItemAsync(
-        `email_uid_${user.email.toLowerCase()}`,
+        `email_uid_${this._emailToKey(user.email)}`,
         user.uid,
         SECURE_STORE_OPTS
       );
+    } catch (e) {
+      if (__DEV__) console.warn('SecureStore email index persist failed:', e);
+    }
+    try {
       await SecureStore.setItemAsync('currentUserId', user.uid, SECURE_STORE_OPTS);
     } catch (e) {
-      if (__DEV__) console.warn('SecureStore user persist failed:', e);
+      if (__DEV__) console.warn('SecureStore currentUserId persist failed:', e);
     }
   }
 
@@ -56,7 +70,7 @@ class LocalStorageService {
   async _recoverUserByEmail(email) {
     try {
       const uid = await SecureStore.getItemAsync(
-        `email_uid_${email.toLowerCase()}`,
+        `email_uid_${this._emailToKey(email)}`,
         SECURE_STORE_OPTS
       );
       if (!uid) return null;

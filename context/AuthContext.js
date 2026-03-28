@@ -286,13 +286,15 @@ export const AuthProvider = ({ children }) => {
       // 6b. Clear SecureStore auth backup (persists across reinstalls)
       try {
         const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
+        const LocalStorageService = require('../services/LocalStorageService').default;
         await SecureStore.deleteItemAsync('currentUserId', SECURE_STORE_OPTS);
         if (user.uid) {
           await SecureStore.deleteItemAsync(`user_profile_${user.uid}`, SECURE_STORE_OPTS);
           await SecureStore.deleteItemAsync(`cred_${user.uid}`, SECURE_STORE_OPTS);
         }
         if (user.email) {
-          await SecureStore.deleteItemAsync(`email_uid_${user.email.toLowerCase()}`, SECURE_STORE_OPTS);
+          const emailKey = LocalStorageService._emailToKey(user.email);
+          await SecureStore.deleteItemAsync(`email_uid_${emailKey}`, SECURE_STORE_OPTS);
         }
       } catch (secErr) {
         if (__DEV__) console.warn('SecureStore cleanup (non-fatal):', secErr?.message);
