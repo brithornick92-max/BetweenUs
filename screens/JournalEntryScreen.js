@@ -59,9 +59,10 @@ export default function JournalEntryScreen({ navigation, route }) {
   const isPremiumGated = !isPremium;
   useEffect(() => {
     if (isPremiumGated) {
+      let active = true;
       showPaywall?.(PremiumFeature.UNLIMITED_JOURNAL_HISTORY);
-      const timeout = setTimeout(() => navigation.goBack(), 100);
-      return () => clearTimeout(timeout);
+      const timeout = setTimeout(() => { if (active) navigation.goBack(); }, 100);
+      return () => { active = false; clearTimeout(timeout); };
     }
   }, [isPremiumGated, navigation, showPaywall]);
 
