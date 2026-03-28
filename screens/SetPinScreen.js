@@ -23,7 +23,7 @@ import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import * as SecureStore from 'expo-secure-store';
-import * as Crypto from 'expo-crypto';
+import { generatePinSalt, hashPin, PIN_HASH_VERSION } from '../utils/pinHash';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { PremiumFeature } from '../utils/featureFlags';
@@ -31,6 +31,7 @@ import { SPACING, withAlpha } from '../utils/theme';
 
 const PIN_KEY = 'betweenus_app_lock_pin_v1';
 const PIN_SALT_KEY = 'betweenus_app_lock_salt_v1';
+const PIN_VERSION_KEY = 'betweenus_app_lock_pin_version';
 const PIN_SERVICE = 'betweenus_app_lock';
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -83,14 +84,11 @@ const SetPinScreen = ({ navigation }) => {
 
     try {
       setSaving(true);
-      const saltBytes = await Crypto.getRandomBytesAsync(16);
-      const salt = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
-      const hash = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        salt + pin
-      );
+      const salt = await generatePinSalt();
+      const { hash } = hashPin(pin, salt);
       await SecureStore.setItemAsync(PIN_SALT_KEY, salt, { keychainService: PIN_SERVICE });
       await SecureStore.setItemAsync(PIN_KEY, hash, { keychainService: PIN_SERVICE });
+      await SecureStore.setItemAsync(PIN_VERSION_KEY, String(PIN_HASH_VERSION), { keychainService: PIN_SERVICE });
       impact(ImpactFeedbackStyle.Medium);
       Alert.alert('Security Set', 'Your app lock is now active.', [
         { text: 'OK', onPress: () => navigation.goBack() },
@@ -107,6 +105,7 @@ const SetPinScreen = ({ navigation }) => {
       setSaving(true);
       await SecureStore.deleteItemAsync(PIN_KEY, { keychainService: PIN_SERVICE });
       await SecureStore.deleteItemAsync(PIN_SALT_KEY, { keychainService: PIN_SERVICE });
+      await SecureStore.deleteItemAsync(PIN_VERSION_KEY, { keychainService: PIN_SERVICE });
       impact(ImpactFeedbackStyle.Light);
       Alert.alert('Lock Removed', 'Your app lock has been cleared.', [
         { text: 'OK', onPress: () => navigation.goBack() },

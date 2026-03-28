@@ -1,5 +1,6 @@
 import { getSupabaseOrThrow } from "../../config/supabase";
 import * as SecureStore from 'expo-secure-store';
+import { EncryptionService } from '../EncryptionService';
 
 const SUPABASE_CRED_KEY = 'betweenus_supabase_cred';
 const AUTH_TIMEOUT_MS = 15_000;
@@ -65,10 +66,12 @@ export const SupabaseAuthService = {
   },
 
   /**
-   * Store Supabase credentials in SecureStore for silent re-auth.
+   * Store Supabase credentials encrypted in SecureStore for silent re-auth.
+   * Password is encrypted with the device key before storage.
    */
   async storeCredentials(email, password) {
-    await SecureStore.setItemAsync(SUPABASE_CRED_KEY, JSON.stringify({ email, password }), {
+    const encrypted = await EncryptionService.encryptJson({ email, password });
+    await SecureStore.setItemAsync(SUPABASE_CRED_KEY, encrypted, {
       keychainService: 'betweenus',
     });
   },
@@ -83,7 +86,21 @@ export const SupabaseAuthService = {
     });
     if (!raw) return null;
     try {
-      const { email, password } = JSON.parse(raw);
+      // Try decrypting (v2 format); fall back to legacy plaintext JSON
+      let creds;
+      try {
+        creds = await EncryptionService.decryptJson(raw);
+      } catch {
+        creds = JSON.parse(raw);
+        // Auto-migrate plaintext credentials to encrypted format
+        if (creds?.email && creds?.password) {
+          const encrypted = await EncryptionService.encryptJson(creds);
+          await SecureStore.setItemAsync(SUPABASE_CRED_KEY, encrypted, {
+            keychainService: 'betweenus',
+          });
+        }
+      }
+      const { email, password } = creds || {};
       if (!email || !password) return null;
       return await this.signInWithPassword(email, password);
     } catch {

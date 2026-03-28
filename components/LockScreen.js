@@ -14,6 +14,7 @@ import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedb
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
+import { verifyPin, generatePinSalt, hashPin, PIN_HASH_VERSION } from '../utils/pinHash';
 import { useTheme } from "../context/ThemeContext";
 import { SPACING, TYPOGRAPHY } from "../utils/theme";
 import { storage, STORAGE_KEYS } from "../utils/storage";
@@ -22,6 +23,7 @@ import { Platform } from "react-native";
 const PIN_LENGTH = 4;
 const PIN_KEY = "betweenus_app_lock_pin_v1";
 const PIN_SALT_KEY = "betweenus_app_lock_salt_v1";
+const PIN_VERSION_KEY = "betweenus_app_lock_pin_version";
 const PIN_SERVICE = "betweenus_app_lock";
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 30000; // 30 seconds
@@ -34,6 +36,7 @@ export default function LockScreen({ onUnlock }) {
   const [lockedUntil, setLockedUntil] = useState(0);
   const [storedPinHash, setStoredPinHash] = useState(null);
   const [storedSalt, setStoredSalt] = useState(null);
+  const [pinVersion, setPinVersion] = useState(null);
   const [biometricType, setBiometricType] = useState(null);
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -73,6 +76,12 @@ export default function LockScreen({ onUnlock }) {
         keychainService: PIN_SERVICE,
       });
       setStoredSalt(savedSalt);
+
+      // 1c. Get stored hash version (null = legacy v1 SHA-256)
+      const savedVersion = await SecureStore.getItemAsync(PIN_VERSION_KEY, {
+        keychainService: PIN_SERVICE,
+      });
+      setPinVersion(savedVersion ? parseInt(savedVersion, 10) : null);
 
       // 2. Check Biometrics
       if (Platform.OS !== "web") {
@@ -137,23 +146,17 @@ export default function LockScreen({ onUnlock }) {
         return;
       }
 
-      const hash = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        storedSalt ? storedSalt + newPin : newPin
-      );
+      const isValid = await verifyPin(newPin, storedSalt, storedPinHash, pinVersion);
 
-      if (hash === storedPinHash) {
-        // Migrate legacy unsalted hash to salted on successful unlock
-        if (!storedSalt) {
+      if (isValid) {
+        // Migrate legacy hashes (unsalted or SHA-256) to PBKDF2
+        if (pinVersion !== PIN_HASH_VERSION) {
           try {
-            const saltBytes = await Crypto.getRandomBytesAsync(16);
-            const salt = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
-            const saltedHash = await Crypto.digestStringAsync(
-              Crypto.CryptoDigestAlgorithm.SHA256,
-              salt + newPin
-            );
+            const salt = storedSalt || await generatePinSalt();
+            const { hash } = hashPin(newPin, salt);
             await SecureStore.setItemAsync(PIN_SALT_KEY, salt, { keychainService: PIN_SERVICE });
-            await SecureStore.setItemAsync(PIN_KEY, saltedHash, { keychainService: PIN_SERVICE });
+            await SecureStore.setItemAsync(PIN_KEY, hash, { keychainService: PIN_SERVICE });
+            await SecureStore.setItemAsync(PIN_VERSION_KEY, String(PIN_HASH_VERSION), { keychainService: PIN_SERVICE });
           } catch { /* migration is best-effort */ }
         }
         onUnlock?.();
