@@ -13,6 +13,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
+import CrashReporting from '../CrashReporting';
 
 const DB_NAME = 'betweenus.db';
 const DB_VERSION = 1;
@@ -52,6 +53,7 @@ async function getDb() {
     const result = check?.integrity_check ?? check?.['integrity_check'] ?? 'ok';
     if (result !== 'ok') {
       console.error('[Database] Corruption detected:', result);
+      CrashReporting.captureException(new Error('Database corruption detected'), { result });
       try {
         await _db.closeAsync();
         _db = null;
@@ -67,6 +69,7 @@ async function getDb() {
     }
   } catch (err) {
     console.warn('[Database] integrity_check failed:', err?.message);
+    CrashReporting.captureException(err, { source: 'db_integrity_check' });
   }
 
   await migrate(_db);

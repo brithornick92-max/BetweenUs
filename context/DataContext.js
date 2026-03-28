@@ -1,3 +1,5 @@
+import CrashReporting from '../services/CrashReporting';
+
 /**
  * DataContext.js — React context for the local-first + E2EE data layer
  *
@@ -144,11 +146,13 @@ export function DataProvider({ children }) {
           if (initializedRef.current) {
             SyncEngine.sync().catch((e) => {
               if (__DEV__) console.warn('[DataContext] Periodic sync failed:', e?.message);
+              CrashReporting.captureException(e, { source: 'periodic_sync' });
             });
           }
         }, 60_000);
       } catch (err) {
         console.error('[DataContext] Init failed:', err);
+        CrashReporting.captureException(err, { source: 'datacontext_init' });
       }
     })();
 
@@ -202,6 +206,7 @@ export function DataProvider({ children }) {
       if (nextState === 'active' && initializedRef.current) {
         SyncEngine.sync().catch((e) => {
           if (__DEV__) console.warn('[DataContext] Foreground sync failed:', e?.message);
+          CrashReporting.captureException(e, { source: 'foreground_sync' });
         });
       }
       if (nextState === 'background') {

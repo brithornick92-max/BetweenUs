@@ -79,6 +79,7 @@ const DeepLinkHandler = {
    */
   handleUrl(url) {
     if (!url || !_navigationRef?.isReady()) return false;
+    if (!url.startsWith('betweenus://')) return false;
 
     try {
       const parsed = new URL(url);
@@ -120,8 +121,7 @@ const DeepLinkHandler = {
 
       const handler = ROUTE_MAP[data.route];
       if (!handler) {
-        // No fallback — only allowlisted routes are navigable via notifications
-        if (__DEV__) console.warn('[DeepLink] Unrecognized notification route:', data.route);
+        CrashReporting.captureMessage(`Unknown notification route: ${data.route}`, 'warning');
         return false;
       }
 

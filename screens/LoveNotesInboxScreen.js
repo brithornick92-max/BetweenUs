@@ -208,7 +208,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
   );
 
   // ── High-End Velvet Glass Note Card ──
-  const renderNote = ({ item, index }) => {
+  const renderNote = useCallback(({ item, index }) => {
     const stationery = STATIONERY_MAP[item.stationeryId] || STATIONERY_MAP.love;
     const isUnread = !item.isOwn && !item.isRead;
     const previewText = item.locked
@@ -282,7 +282,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
         </TouchableOpacity>
       </Animated.View>
     );
-  };
+  }, [t, handleOpenNote, styles]);
 
   if (!isPremium) return null;
 
