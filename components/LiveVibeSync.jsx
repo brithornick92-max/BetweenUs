@@ -6,10 +6,13 @@ import Animated, {
   withSequence,
   withSpring,
   withTiming,
+  withRepeat,
+  Easing,
 } from 'react-native-reanimated';
 import Icon from './Icon';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { MomentSignalSender } from '../services/ConnectionEngine';
+import { supabase } from '../config/supabase';
 import { useTheme } from '../context/ThemeContext';
 import { useTogetherPresence } from '../hooks/useTogetherPresence';
 import { useAppContext } from '../context/AppContext';
@@ -24,13 +27,17 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
   const { isTogetherNow } = useTogetherPresence();
   const { state: appState } = useAppContext();
   const coupleId = appState?.coupleId || null;
+  const userId = appState?.userId || null;
   const hapticTimerRef = useRef(null);
 
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState(null);
   const [incomingLabel, setIncomingLabel] = useState(null);
+  const [partnerOnScreen, setPartnerOnScreen] = useState(false);
   const incomingLabelTimerRef = useRef(null);
   const unsubSignalsRef = useRef(null);
+  const broadcastChannelRef = useRef(null);
+  const recentBroadcastRef = useRef(null);
 
   const scale = useSharedValue(1);
   const bloomScale = useSharedValue(0.9);
@@ -38,6 +45,9 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
   // Separate bloom for incoming so it can use a different colour
   const inBloomScale = useSharedValue(0.9);
   const inBloomOpacity = useSharedValue(0);
+  // Gentle breathing glow when partner is also on this screen
+  const glowRingOpacity = useSharedValue(0);
+  const glowRingScale = useSharedValue(1);
 
   useEffect(() => {
     return () => {
@@ -46,42 +56,112 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
     };
   }, []);
 
-  // Subscribe to partner heartbeats while on screen
+  // Stable ref for the incoming animation so broadcast + postgres_changes can both call it
+  const triggerIncomingRef = useRef(null);
+  triggerIncomingRef.current = () => {
+    // Haptic double-tap — mirrors what the sender feels
+    impact(ImpactFeedbackStyle.Heavy);
+    setTimeout(() => impact(ImpactFeedbackStyle.Heavy), 150);
+    notification(NotificationFeedbackType.Success);
+
+    // Animate the button (pronounced bounce)
+    scale.value = withSequence(
+      withTiming(1.14, { duration: 140 }),
+      withTiming(0.93, { duration: 80 }),
+      withSpring(1, { damping: 10, stiffness: 160 })
+    );
+
+    // Animate the incoming bloom — brighter and longer-lasting
+    inBloomScale.value = 0.92;
+    inBloomOpacity.value = withSequence(
+      withTiming(0.9, { duration: 160 }),
+      withTiming(0.45, { duration: 700 }),
+      withTiming(0, { duration: 900 })
+    );
+    inBloomScale.value = withSequence(
+      withTiming(1.5, { duration: 220 }),
+      withTiming(2.2, { duration: 1380 })
+    );
+
+    // Show label briefly
+    setIncomingLabel(partnerLabel);
+    if (incomingLabelTimerRef.current) clearTimeout(incomingLabelTimerRef.current);
+    incomingLabelTimerRef.current = setTimeout(() => setIncomingLabel(null), INCOMING_LABEL_DURATION);
+  };
+
+  // ── Broadcast channel: instant heartbeat relay when both partners are on screen ──
+  useEffect(() => {
+    if (!supabase || !coupleId || !userId) return;
+
+    const channel = supabase.channel(`heartbeat-live:${coupleId}`, {
+      config: { broadcast: { self: false }, presence: { key: userId } },
+    });
+
+    const checkPartner = () => {
+      const ps = channel.presenceState();
+      setPartnerOnScreen(Object.keys(ps).some((k) => k !== userId));
+    };
+
+    channel
+      .on('broadcast', { event: 'heartbeat' }, () => {
+        recentBroadcastRef.current = Date.now();
+        triggerIncomingRef.current?.();
+      })
+      .on('presence', { event: 'sync' }, checkPartner)
+      .on('presence', { event: 'join' }, checkPartner)
+      .on('presence', { event: 'leave' }, checkPartner)
+      .subscribe(async (st) => {
+        if (st === 'SUBSCRIBED') {
+          await channel.track({ screen: 'vibe-signal', joined_at: new Date().toISOString() });
+        }
+      });
+
+    broadcastChannelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+      broadcastChannelRef.current = null;
+      setPartnerOnScreen(false);
+    };
+  }, [coupleId, userId]);
+
+  // Breathing glow ring while partner is also viewing the heartbeat
+  useEffect(() => {
+    if (partnerOnScreen) {
+      glowRingOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.55, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.15, { duration: 1200, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1, true
+      );
+      glowRingScale.value = withRepeat(
+        withSequence(
+          withTiming(1.18, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1.06, { duration: 1200, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1, true
+      );
+    } else {
+      glowRingOpacity.value = withTiming(0, { duration: 400 });
+      glowRingScale.value = withTiming(1, { duration: 400 });
+    }
+  }, [partnerOnScreen]);
+
+  // Subscribe to partner heartbeats via postgres_changes (fallback for when broadcast misses)
   useEffect(() => {
     unsubSignalsRef.current = MomentSignalSender.subscribeToSignals((signal) => {
-      // Haptic double-tap — mirrors what the sender feels
-      impact(ImpactFeedbackStyle.Heavy);
-      setTimeout(() => impact(ImpactFeedbackStyle.Heavy), 150);
-      notification(NotificationFeedbackType.Success);
-
-      // Animate the button
-      scale.value = withSequence(
-        withTiming(1.08, { duration: 120 }),
-        withTiming(0.96, { duration: 70 }),
-        withSpring(1, { damping: 12, stiffness: 180 })
-      );
-
-      // Animate the incoming bloom (slightly different feel)
-      inBloomScale.value = 0.92;
-      inBloomOpacity.value = withSequence(
-        withTiming(0.7, { duration: 140 }),
-        withTiming(0, { duration: 900 })
-      );
-      inBloomScale.value = withSequence(
-        withTiming(1.5, { duration: 200 }),
-        withTiming(1.9, { duration: 880 })
-      );
-
-      // Show label briefly
-      setIncomingLabel(partnerLabel);
-      if (incomingLabelTimerRef.current) clearTimeout(incomingLabelTimerRef.current);
-      incomingLabelTimerRef.current = setTimeout(() => setIncomingLabel(null), INCOMING_LABEL_DURATION);
-    }, { coupleId, userId: appState?.userId || null });
+      // If we already received this via broadcast within the last 4s, skip the duplicate
+      if (recentBroadcastRef.current && (Date.now() - recentBroadcastRef.current) < 4000) {
+        return;
+      }
+      triggerIncomingRef.current?.();
+    }, { coupleId, userId });
 
     return () => {
       if (typeof unsubSignalsRef.current === 'function') unsubSignalsRef.current();
     };
-  }, [partnerLabel, coupleId, appState?.userId]);
+  }, [partnerLabel, coupleId, userId]);
 
   const t = useMemo(() => ({
     surface: isDark ? '#130608' : '#FFFFFF',
@@ -124,6 +204,15 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
     }, 150);
 
     triggerPulseAnimation();
+
+    // Broadcast instantly for partners on the same screen
+    try {
+      broadcastChannelRef.current?.send({
+        type: 'broadcast',
+        event: 'heartbeat',
+        payload: { sender: userId, ts: Date.now() },
+      });
+    } catch { /* non-critical */ }
 
     try {
       const result = await MomentSignalSender.sendHeartbeat();
@@ -202,6 +291,11 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
     transform: [{ scale: inBloomScale.value }],
   }));
 
+  const glowRingStyle = useAnimatedStyle(() => ({
+    opacity: glowRingOpacity.value,
+    transform: [{ scale: glowRingScale.value }],
+  }));
+
   const statusColor = status?.tone === 'error'
     ? '#FF9F0A'
     : status?.tone === 'success'
@@ -216,15 +310,25 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
             <Text style={[styles.eyebrow, { color: t.subtext }]}>Sanctuary Sync</Text>
             <Text style={[styles.title, { color: t.text }]}>Heartbeat</Text>
           </View>
-          <View style={[styles.presencePill, { backgroundColor: withAlpha(isTogetherNow ? t.success : t.primary, 0.12) }]}>
-            <View style={[styles.presenceDot, { backgroundColor: isTogetherNow ? t.success : t.primary }]} />
-            <Text style={[styles.presenceText, { color: isTogetherNow ? t.success : t.primary }]}>
-              {isTogetherNow ? 'Live now' : 'Push ready'}
+          <View style={[styles.presencePill, { backgroundColor: withAlpha(partnerOnScreen ? t.success : isTogetherNow ? t.success : t.primary, 0.12) }]}>
+            <View style={[styles.presenceDot, { backgroundColor: partnerOnScreen ? t.success : isTogetherNow ? t.success : t.primary }]} />
+            <Text style={[styles.presenceText, { color: partnerOnScreen ? t.success : isTogetherNow ? t.success : t.primary }]}>
+              {partnerOnScreen ? 'Both live' : isTogetherNow ? 'Live now' : 'Push ready'}
             </Text>
           </View>
         </View>
 
         <View style={styles.centerStage}>
+          {/* Breathing glow ring — visible when partner is also on this screen */}
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.glowRing,
+              { borderColor: '#FF6B8A', shadowColor: '#FF6B8A' },
+              glowRingStyle,
+            ]}
+          />
+
           {/* Outgoing bloom */}
           <Animated.View
             pointerEvents="none"
@@ -271,7 +375,9 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
             {status?.title || `Send a tactile pulse to ${partnerLabel}`}
           </Text>
           <Text style={[styles.statusSubtitle, { color: t.subtext }]}>
-            {status?.subtitle || (isTogetherNow
+            {status?.subtitle || (partnerOnScreen
+              ? `${partnerLabel} is viewing this right now — pulses arrive instantly.`
+              : isTogetherNow
               ? 'Your partner is active right now, so realtime and push can both carry it.'
               : 'The app writes a heartbeat signal and sends a push when the connection path is available.')}
           </Text>
@@ -347,6 +453,16 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 40,
+  },
+  glowRing: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 2.5,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
   },
   buttonPressable: {
     borderRadius: 999,
