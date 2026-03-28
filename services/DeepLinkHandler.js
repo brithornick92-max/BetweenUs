@@ -125,8 +125,9 @@ const DeepLinkHandler = {
         return false;
       }
 
+      const rawId = data.id || data.noteId || data.promptId || data.dateId;
       const { screen, params } = handler({
-        id: data.id || data.noteId || data.promptId || data.dateId,
+        id: rawId ? _sanitizeId(String(rawId)) : null,
       });
       // Only merge known-safe params — don't pass arbitrary notification data to screens
       _navigationRef.navigate(screen, params);

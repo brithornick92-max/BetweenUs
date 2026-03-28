@@ -1,6 +1,6 @@
 // File: context/ContentContext.js
 
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageRouter from '../services/storage/StorageRouter';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
@@ -8,7 +8,7 @@ import E2EEncryption from '../services/e2ee/E2EEncryption';
 import { useAuth } from './AuthContext';
 import { useEntitlements } from './EntitlementsContext';
 import PreferenceEngine from '../services/PreferenceEngine';
-import { NicknameEngine } from '../services/PolishEngine';
+import { NicknameEngine, SoftBoundaries } from '../services/PolishEngine';
 import PromptAllocator from '../services/PromptAllocator';
 import { FALLBACK_PROMPT } from '../utils/contentLoader';
 
@@ -52,7 +52,7 @@ export const ContentProvider = ({ children }) => {
       setContentProfile(profile);
       return profile;
     } catch (error) {
-      console.error('Error loading content profile:', error);
+      if (__DEV__) console.error('Error loading content profile:', error);
       return null;
     }
   };
@@ -132,18 +132,30 @@ export const ContentProvider = ({ children }) => {
 
       // Fallback to hash-based selection if PreferenceEngine returns null
       if (!selectedPrompt) {
+        // Apply boundary filtering so hidden/paused prompts never surface
+        const boundaryChecks = await Promise.all(
+          promptsData.map(async (p) => ({ prompt: p, allowed: await SoftBoundaries.shouldShowPrompt(p) }))
+        );
+        const boundaryFiltered = boundaryChecks.filter(b => b.allowed).map(b => b.prompt);
+        const fallbackSource = boundaryFiltered.length > 0 ? boundaryFiltered : promptsData;
+
         // Remove already-shown prompts this month
-        const freshPool = promptsData.filter(p => !excludeIds.has(p.id));
-        const pool = freshPool.length > 0 ? freshPool : promptsData;
+        const freshPool = fallbackSource.filter(p => !excludeIds.has(p.id));
+        const pool = freshPool.length > 0 ? freshPool : fallbackSource;
         const [y, m, d] = today.split('-').map(Number);
         const dateHash = ((y * 31 + m) * 31 + d) ^ (y * 7 + m * 13 + d * 37);
         let promptIndex = Math.abs(dateHash) % pool.length;
         selectedPrompt = pool[promptIndex];
       }
 
-      // Guard against prompt missing .text
+      // Guard against prompt missing .text — still respect boundaries
       if (!selectedPrompt || typeof selectedPrompt.text !== 'string' || !selectedPrompt.text.trim()) {
-        const fallback = promptsData.find((p) => p && typeof p.text === 'string' && p.text.trim());
+        const boundaryChecks = await Promise.all(
+          promptsData.map(async (p) => ({ prompt: p, allowed: await SoftBoundaries.shouldShowPrompt(p) }))
+        );
+        const safePool = boundaryChecks.filter(b => b.allowed).map(b => b.prompt);
+        const fallback = (safePool.length > 0 ? safePool : promptsData)
+          .find((p) => p && typeof p.text === 'string' && p.text.trim());
         selectedPrompt = fallback || FALLBACK_PROMPT;
       }
 
@@ -178,7 +190,7 @@ export const ContentProvider = ({ children }) => {
         ) {
           if (__DEV__) console.log("[ContentContext] Setting fallback daily prompt for free user.");
         } else {
-          console.error("Error loading today's prompt:", error);
+          if (__DEV__) console.error("Error loading today's prompt:", error);
         }
 
         const fallbackPrompt = FALLBACK_PROMPT;
@@ -220,9 +232,13 @@ export const ContentProvider = ({ children }) => {
         return PreferenceEngine.filterPrompts(rawPrompts, profile);
       }
 
-      return rawPrompts;
+      // Profile unavailable — still respect boundaries
+      const checks = await Promise.all(
+        rawPrompts.map(async (p) => ({ prompt: p, ok: await SoftBoundaries.shouldShowPrompt(p) }))
+      );
+      return checks.filter(c => c.ok).map(c => c.prompt);
     } catch (error) {
-      console.error('Error getting filtered prompts:', error);
+      if (__DEV__) console.error('Error getting filtered prompts:', error);
       return [];
     }
   };
@@ -277,7 +293,7 @@ export const ContentProvider = ({ children }) => {
 
       return true;
     } catch (error) {
-      console.error('Error updating relationship start date:', error);
+      if (__DEV__) console.error('Error updating relationship start date:', error);
       throw error;
     }
   };
@@ -305,9 +321,13 @@ export const ContentProvider = ({ children }) => {
         return PreferenceEngine.filterDatesWithProfile(dates, profile, Object.keys(dims).length ? dims : null);
       }
 
-      return dates;
+      // Profile unavailable — still respect boundaries (remove paused dates)
+      const checks = await Promise.all(
+        dates.map(async (d) => ({ date: d, ok: await SoftBoundaries.shouldShowDate(d.id) }))
+      );
+      return checks.filter(c => c.ok).map(c => c.date);
     } catch (error) {
-      console.error('Error getting date ideas:', error);
+      if (__DEV__) console.error('Error getting date ideas:', error);
       throw error;
     }
   };
@@ -354,7 +374,7 @@ export const ContentProvider = ({ children }) => {
 
       return true;
     } catch (error) {
-      console.error('Error saving response:', error);
+      if (__DEV__) console.error('Error saving response:', error);
       throw error;
     }
   };
@@ -380,7 +400,7 @@ export const ContentProvider = ({ children }) => {
               );
               return decrypted ? { ...response, decryptedContent: decrypted } : response;
             } catch (error) {
-              console.error('Error decrypting response:', error);
+              if (__DEV__) console.error('Error decrypting response:', error);
               return response;
             }
           }
@@ -391,7 +411,7 @@ export const ContentProvider = ({ children }) => {
       setUserResponses(decryptedResponses);
       return decryptedResponses;
     } catch (error) {
-      console.error('Error loading user responses:', error);
+      if (__DEV__) console.error('Error loading user responses:', error);
       return [];
     }
   };
@@ -405,7 +425,7 @@ export const ContentProvider = ({ children }) => {
       setUsageStatus(status);
       return status;
     } catch (error) {
-      console.error('Error loading usage status:', error);
+      if (__DEV__) console.error('Error loading usage status:', error);
       return null;
     }
   };
@@ -418,7 +438,7 @@ export const ContentProvider = ({ children }) => {
       await PremiumGatekeeper.trackDateUsage(user.uid, dateId);
       await loadUsageStatus(); // Reload usage status
     } catch (error) {
-      console.error('Error tracking date usage:', error);
+      if (__DEV__) console.error('Error tracking date usage:', error);
       throw error;
     }
   };
@@ -430,7 +450,7 @@ export const ContentProvider = ({ children }) => {
       if (contentType === 'date') return getDateIdeas(options);
       return getFilteredPrompts(options);
     } catch (error) {
-      console.error('Error getting content:', error);
+      if (__DEV__) console.error('Error getting content:', error);
       return [];
     }
   };
@@ -452,7 +472,7 @@ export const ContentProvider = ({ children }) => {
     }
   }, [user, userProfile]);
 
-  const value = {
+  const value = useMemo(() => ({
     prompts,
     dates,
     todayPrompt,
@@ -474,7 +494,14 @@ export const ContentProvider = ({ children }) => {
     contentProfile,
     loadContentProfile,
     promptAllocator: PromptAllocator,
-  };
+  }), [
+    prompts, dates, todayPrompt, userResponses, loading, usageStatus,
+    contentProfile,
+    loadTodayPrompt, getFilteredPrompts, getDateIdeas, saveResponse,
+    loadUserResponses, loadUsageStatus, trackDateUsage,
+    getRelationshipDuration, getDurationCategory, getRelationshipDurationText,
+    updateRelationshipStartDate, getPersonalizedContent, loadContentProfile,
+  ]);
 
   return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>;
 };

@@ -309,7 +309,7 @@ export function AppProvider({ children }) {
         await DataLayer.saveVibe({ vibe: vibeValue, note: null });
         dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'synced' } });
       } catch (err) {
-        console.warn('[setVibe] DataLayer.saveVibe failed:', err.message);
+        if (__DEV__) console.warn('[setVibe] DataLayer.saveVibe failed:', err?.message);
         dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'offline' } });
       }
     },
@@ -381,7 +381,7 @@ export function AppProvider({ children }) {
           await CoupleService.unlinkFromCouple();
         } catch (serverErr) {
           // Log but don't block local cleanup — user may be offline
-          console.warn('Server unlink failed (will retry):', serverErr.message);
+          if (__DEV__) console.warn('Server unlink failed (will retry):', serverErr?.message);
         }
 
         await storage.remove(STORAGE_KEYS.COUPLE_ID);

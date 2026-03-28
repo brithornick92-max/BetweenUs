@@ -112,7 +112,9 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
       .on('presence', { event: 'leave' }, checkPartner)
       .subscribe(async (st) => {
         if (st === 'SUBSCRIBED') {
-          await channel.track({ screen: 'vibe-signal', joined_at: new Date().toISOString() });
+          await channel.track({ screen: 'vibe-signal', joined_at: new Date().toISOString() }).catch((err) => {
+            if (__DEV__) console.warn('[LiveVibeSync] track() failed:', err?.message);
+          });
         }
       });
 

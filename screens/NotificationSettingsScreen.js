@@ -74,7 +74,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
         setMilestones(settings.milestones ?? true);
       }
     } catch (error) {
-      console.error('Failed to load notification settings:', error);
+      if (__DEV__) console.error('Failed to load notification settings:', error);
     }
   };
 

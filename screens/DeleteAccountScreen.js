@@ -83,7 +83,7 @@ export default function DeleteAccountScreen({ navigation }) {
                 [{ text: 'OK' }]
               );
             } catch (error) {
-              console.error('Delete account error:', error);
+              if (__DEV__) console.error('Delete account error:', error);
               Alert.alert(
                 'Error',
                 'Failed to delete account. Please try again or contact support.',

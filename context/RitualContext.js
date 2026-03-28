@@ -661,7 +661,7 @@ export function RitualProvider({ children }) {
   }), [appActions, isPremium]);
 
   return (
-    <RitualContext.Provider value={{ state, actions }}>
+    <RitualContext.Provider value={useMemo(() => ({ state, actions }), [state, actions])}>
       {children}
     </RitualContext.Provider>
   );

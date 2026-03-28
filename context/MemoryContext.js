@@ -251,7 +251,7 @@ export function MemoryProvider({ children }) {
   }), [appActions, DataLayer]);
 
   return (
-    <MemoryContext.Provider value={{ state, actions }}>
+    <MemoryContext.Provider value={useMemo(() => ({ state, actions }), [state, actions])}>
       {children}
     </MemoryContext.Provider>
   );
