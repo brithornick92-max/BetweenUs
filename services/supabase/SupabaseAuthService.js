@@ -2,6 +2,18 @@ import { getSupabaseOrThrow } from "../../config/supabase";
 import * as SecureStore from 'expo-secure-store';
 
 const SUPABASE_CRED_KEY = 'betweenus_supabase_cred';
+const AUTH_TIMEOUT_MS = 15_000;
+
+/** Race a promise against a timeout. Rejects if timeout fires first. */
+function withTimeout(promise, ms = AUTH_TIMEOUT_MS) {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`Auth request timed out (${ms}ms)`)), ms);
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
 
 export const SupabaseAuthService = {
   /**
@@ -11,7 +23,7 @@ export const SupabaseAuthService = {
     if (!email) throw new Error("Email is required");
     if (!password || password.length < 6) throw new Error("Password must be at least 6 characters");
     const supabase = getSupabaseOrThrow();
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await withTimeout(supabase.auth.signUp({ email, password }));
     if (error) throw error;
     return data?.session || null;
   },
@@ -23,7 +35,7 @@ export const SupabaseAuthService = {
     if (!email) throw new Error("Email is required");
     if (!password) throw new Error("Password is required");
     const supabase = getSupabaseOrThrow();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await withTimeout(supabase.auth.signInWithPassword({ email, password }));
     if (error) throw error;
     return data?.session || null;
   },
@@ -31,12 +43,12 @@ export const SupabaseAuthService = {
   async sendMagicLink(email) {
     if (!email) throw new Error("Email is required");
     const supabase = getSupabaseOrThrow();
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await withTimeout(supabase.auth.signInWithOtp({
       email,
       options: {
         redirectTo: "betweenus://auth-callback",
       },
-    });
+    }));
     if (error) throw error;
     return true;
   },
@@ -47,7 +59,7 @@ export const SupabaseAuthService = {
    */
   async signInAnonymously() {
     const supabase = getSupabaseOrThrow();
-    const { data, error } = await supabase.auth.signInAnonymously();
+    const { data, error } = await withTimeout(supabase.auth.signInAnonymously());
     if (error) throw error;
     return data?.session || null;
   },
@@ -81,14 +93,14 @@ export const SupabaseAuthService = {
 
   async getSession() {
     const supabase = getSupabaseOrThrow();
-    const { data, error } = await supabase.auth.getSession();
+    const { data, error } = await withTimeout(supabase.auth.getSession());
     if (error) throw error;
     return data?.session || null;
   },
 
   async getUser() {
     const supabase = getSupabaseOrThrow();
-    const { data, error } = await supabase.auth.getUser();
+    const { data, error } = await withTimeout(supabase.auth.getUser());
     if (error) throw error;
     return data?.user || null;
   },
@@ -109,7 +121,7 @@ export const SupabaseAuthService = {
    */
   async signOut(scope = 'global') {
     const supabase = getSupabaseOrThrow();
-    const { error } = await supabase.auth.signOut({ scope });
+    const { error } = await withTimeout(supabase.auth.signOut({ scope }));
     if (error) throw error;
   },
 
@@ -138,7 +150,7 @@ export const SupabaseAuthService = {
    */
   async deleteAccount() {
     const supabase = getSupabaseOrThrow();
-    const { error } = await supabase.rpc('delete_own_account');
+    const { error } = await withTimeout(supabase.rpc('delete_own_account'));
     if (error) throw error;
   },
 };

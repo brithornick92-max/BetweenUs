@@ -237,9 +237,13 @@ async function migrate(db) {
         'rituals', 'check_ins', 'vibes', 'attachments',
       ];
       for (const t of tables) {
-        await db.execAsync(
-          `ALTER TABLE ${t} ADD COLUMN sync_source TEXT DEFAULT 'local';`
-        );
+        try {
+          await db.execAsync(
+            `ALTER TABLE ${t} ADD COLUMN sync_source TEXT DEFAULT 'local';`
+          );
+        } catch (e) {
+          if (!e?.message?.includes('duplicate column')) throw e;
+        }
       }
       await db.execAsync('PRAGMA user_version = 2;');
       await db.execAsync('COMMIT;');
@@ -253,15 +257,20 @@ async function migrate(db) {
   if (user_version < 3) {
     await db.execAsync('BEGIN TRANSACTION;');
     try {
-      // journal_entries: mood + tags can be encrypted
-      await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN mood_cipher TEXT;`);
-      await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN tags_cipher TEXT;`);
-      // prompt_answers: heat_level can be encrypted
-      await db.execAsync(`ALTER TABLE prompt_answers ADD COLUMN heat_level_cipher TEXT;`);
-      // memories: mood can be encrypted
-      await db.execAsync(`ALTER TABLE memories ADD COLUMN mood_cipher TEXT;`);
-      // check_ins: mood can be encrypted
-      await db.execAsync(`ALTER TABLE check_ins ADD COLUMN mood_cipher TEXT;`);
+      const cols = [
+        ['journal_entries', 'mood_cipher TEXT'],
+        ['journal_entries', 'tags_cipher TEXT'],
+        ['prompt_answers', 'heat_level_cipher TEXT'],
+        ['memories', 'mood_cipher TEXT'],
+        ['check_ins', 'mood_cipher TEXT'],
+      ];
+      for (const [table, col] of cols) {
+        try {
+          await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${col};`);
+        } catch (e) {
+          if (!e?.message?.includes('duplicate column')) throw e;
+        }
+      }
       await db.execAsync('PRAGMA user_version = 3;');
       await db.execAsync('COMMIT;');
     } catch (err) {
@@ -322,9 +331,13 @@ async function migrate(db) {
   if (user_version < 6) {
     await db.execAsync('BEGIN TRANSACTION;');
     try {
-      await db.execAsync(
-        `ALTER TABLE love_notes ADD COLUMN is_invisible_ink INTEGER DEFAULT 0;`
-      );
+      try {
+        await db.execAsync(
+          `ALTER TABLE love_notes ADD COLUMN is_invisible_ink INTEGER DEFAULT 0;`
+        );
+      } catch (e) {
+        if (!e?.message?.includes('duplicate column')) throw e;
+      }
       await db.execAsync('PRAGMA user_version = 6;');
       await db.execAsync('COMMIT;');
     } catch (err) {
@@ -387,9 +400,13 @@ async function migrate(db) {
   if (user_version < 8) {
     await db.execAsync('BEGIN TRANSACTION;');
     try {
-      await db.execAsync(
-        `ALTER TABLE love_notes ADD COLUMN expires_at TEXT;`
-      );
+      try {
+        await db.execAsync(
+          `ALTER TABLE love_notes ADD COLUMN expires_at TEXT;`
+        );
+      } catch (e) {
+        if (!e?.message?.includes('duplicate column')) throw e;
+      }
       await db.execAsync('PRAGMA user_version = 8;');
       await db.execAsync('COMMIT;');
     } catch (err) {

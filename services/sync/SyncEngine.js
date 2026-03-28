@@ -47,6 +47,7 @@ const PULL_PAGE_SIZE = 200;
 const MIN_SYNC_INTERVAL_MS = 10_000; // 10 seconds between full cycles
 const MAX_PUSH_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 1000; // exponential backoff base
+const SYNC_TIMEOUT_MS = 30_000; // 30s max for a full sync cycle
 
 /** Maps SQLite table → Supabase couple_data.data_type */
 const TABLE_TO_TYPE = {
@@ -374,7 +375,27 @@ const SyncEngine = {
 
     const results = { pushed: 0, pulled: 0, failed: 0, attachments: { uploaded: 0, failed: 0 } };
 
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Sync timed out (30s)')), SYNC_TIMEOUT_MS);
+    });
+
     try {
+      await Promise.race([this._performSyncCycle(results), timeout]);
+      emit('sync:complete', results);
+    } catch (err) {
+      emit('sync:error', { error: err.message });
+      CrashReporting.captureException(err, { source: 'sync_cycle' });
+    } finally {
+      clearTimeout(timer);
+      _syncing = false;
+    }
+
+    return results;
+  },
+
+  /** @private Internal sync logic — called by sync() under timeout guard. */
+  async _performSyncCycle(results) {
       // 1. Upload pending attachment files FIRST so they exist in Storage
       //    before love_notes rows (which reference media_ref) reach the partner.
       let attachmentUploadOk = false;
@@ -409,16 +430,6 @@ const SyncEngine = {
         const r = await pullTable(table);
         results.pulled += r.pulled;
       }
-
-      emit('sync:complete', results);
-    } catch (err) {
-      emit('sync:error', { error: err.message });
-      console.error('[Sync] Cycle failed:', err);
-    } finally {
-      _syncing = false;
-    }
-
-    return results;
   },
 
   /**
