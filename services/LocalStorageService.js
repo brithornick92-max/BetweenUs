@@ -168,6 +168,15 @@ class LocalStorageService {
       }
 
       await AsyncStorage.removeItem('currentUserId');
+      // Clear couple state so a different account doesn't inherit a stale couple ID
+      await AsyncStorage.multiRemove([
+        '@betweenus:coupleId',
+        '@betweenus:coupleRole',
+        '@betweenus:partnerProfile',
+        '@betweenus:lastPartnerActivity',
+        '@betweenus:onboardingCompleted',
+        '@betweenus:couplePremiumCache',
+      ]);
       this.currentUser = null;
       this.notifyAuthListeners(null);
     } catch (error) {

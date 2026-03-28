@@ -50,6 +50,7 @@ import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
 import CrashReporting from '../services/CrashReporting';
+import RevenueCatService from '../services/RevenueCatService';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
@@ -625,7 +626,21 @@ export default function SettingsScreen({ navigation }) {
           {/* ═══ EDITORIAL FOOTER ═══ */}
           <View style={styles.footer}>
             <Text style={[styles.footerBrand, { color: t.subtext }]}>BETWEEN US</Text>
-            <Text style={[styles.footerVersion, { color: t.subtext }]}>Version {appVersion}</Text>
+            <TouchableOpacity
+              onLongPress={async () => {
+                const rcId = RevenueCatService.currentUserId;
+                if (rcId) {
+                  await Clipboard.setStringAsync(rcId);
+                  Alert.alert('Copied', `User ID copied:\n${rcId}`);
+                } else {
+                  Alert.alert('Not Available', 'RevenueCat user ID not set yet.');
+                }
+              }}
+              activeOpacity={0.7}
+              delayLongPress={800}
+            >
+              <Text style={[styles.footerVersion, { color: t.subtext }]}>Version {appVersion}</Text>
+            </TouchableOpacity>
             <View style={[styles.footerDivider, { backgroundColor: t.borderGlass }]} />
             <Text style={[styles.footerLegal, { color: t.subtext }]}>
               Handcrafted for romance, worldwide.

@@ -190,10 +190,15 @@ export const SubscriptionProvider = ({ children }) => {
         // ✅ MUST configure before logIn / getOfferings
         await RevenueCatService.init?.();
 
-        // ✅ Identify user with their OWN user ID (not coupleId).
+        // ✅ Identify user with their Supabase UUID (not the local storage user_* ID).
         // Premium sharing between partners is handled server-side via
         // the set_couple_premium Supabase RPC, not by sharing RC identities.
-        await RevenueCatService.identifyUser(user.uid);
+        let rcUserId = user.uid;
+        try {
+          const supabaseUser = await SupabaseAuthService.getUser();
+          if (supabaseUser?.id) rcUserId = supabaseUser.id;
+        } catch (_) { /* fall back to local uid */ }
+        await RevenueCatService.identifyUser(rcUserId);
 
         if (cancelled) return;
 
