@@ -10,6 +10,7 @@ import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import { cloudSyncStorage } from '../utils/storage';
 import Database from '../services/db/Database';
 import * as FileSystem from 'expo-file-system';
+import * as SecureStore from 'expo-secure-store';
 import AnalyticsService from '../services/AnalyticsService';
 import CrashReporting from '../services/CrashReporting';
 
@@ -67,6 +68,19 @@ export const AuthProvider = ({ children }) => {
             user: localUser,
             supabaseSessionPresent: !!supabaseSession,
           });
+
+          // Sync display_name to Supabase if the user has set a name in
+          // Identity settings but the cloud profile still has the email
+          // prefix from signup.
+          if (supabaseSession && profile?.partnerNames?.myName) {
+            try {
+              await CloudEngine.upsertProfile(localUser.uid, {
+                display_name: profile.partnerNames.myName,
+              });
+            } catch (e) {
+              if (__DEV__) console.warn('[AuthContext] display_name sync (non-fatal):', e?.message);
+            }
+          }
 
         }
       } catch (error) {
@@ -268,6 +282,21 @@ export const AuthProvider = ({ children }) => {
 
       // 6. Clear all remaining local data
       await AsyncStorage.clear();
+
+      // 6b. Clear SecureStore auth backup (persists across reinstalls)
+      try {
+        const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
+        await SecureStore.deleteItemAsync('currentUserId', SECURE_STORE_OPTS);
+        if (user.uid) {
+          await SecureStore.deleteItemAsync(`user_profile_${user.uid}`, SECURE_STORE_OPTS);
+          await SecureStore.deleteItemAsync(`cred_${user.uid}`, SECURE_STORE_OPTS);
+        }
+        if (user.email) {
+          await SecureStore.deleteItemAsync(`email_uid_${user.email.toLowerCase()}`, SECURE_STORE_OPTS);
+        }
+      } catch (secErr) {
+        if (__DEV__) console.warn('SecureStore cleanup (non-fatal):', secErr?.message);
+      }
 
       // 7. Purge SQLite database file from disk
       try {

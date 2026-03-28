@@ -33,6 +33,72 @@ class LocalStorageService {
     return bytesToHex(derived);
   }
 
+  // Persist user profile to SecureStore so it survives app reinstalls (dev builds)
+  async _persistUserToSecureStore(user) {
+    try {
+      await SecureStore.setItemAsync(
+        `user_profile_${user.uid}`,
+        JSON.stringify(user),
+        SECURE_STORE_OPTS
+      );
+      await SecureStore.setItemAsync(
+        `email_uid_${user.email.toLowerCase()}`,
+        user.uid,
+        SECURE_STORE_OPTS
+      );
+      await SecureStore.setItemAsync('currentUserId', user.uid, SECURE_STORE_OPTS);
+    } catch (e) {
+      if (__DEV__) console.warn('SecureStore user persist failed:', e);
+    }
+  }
+
+  // Recover user from SecureStore into AsyncStorage after a reinstall
+  async _recoverUserByEmail(email) {
+    try {
+      const uid = await SecureStore.getItemAsync(
+        `email_uid_${email.toLowerCase()}`,
+        SECURE_STORE_OPTS
+      );
+      if (!uid) return null;
+
+      const raw = await SecureStore.getItemAsync(`user_profile_${uid}`, SECURE_STORE_OPTS);
+      if (!raw) return null;
+
+      const user = JSON.parse(raw);
+      // Restore to AsyncStorage
+      await AsyncStorage.setItem(`user_${uid}`, JSON.stringify(user));
+      await AsyncStorage.setItem('currentUserId', uid);
+      await this._setEmailIndex(user.email, uid);
+
+      return user;
+    } catch (e) {
+      if (__DEV__) console.warn('SecureStore user recovery by email failed:', e);
+      return null;
+    }
+  }
+
+  // Recover the last signed-in user from SecureStore
+  async _recoverCurrentUser() {
+    try {
+      const uid = await SecureStore.getItemAsync('currentUserId', SECURE_STORE_OPTS);
+      if (!uid) return null;
+
+      const raw = await SecureStore.getItemAsync(`user_profile_${uid}`, SECURE_STORE_OPTS);
+      if (!raw) return null;
+
+      const user = JSON.parse(raw);
+      // Restore to AsyncStorage
+      await AsyncStorage.setItem(`user_${uid}`, JSON.stringify(user));
+      await AsyncStorage.setItem('currentUserId', uid);
+      await this._setEmailIndex(user.email, uid);
+
+      return user;
+    } catch (e) {
+      if (__DEV__) console.warn('SecureStore current user recovery failed:', e);
+      return null;
+    }
+  }
+
   // Authentication Methods (Local-first, SecureStore-backed)
   async createAccount(email, password, displayName) {
     try {
@@ -66,6 +132,8 @@ class LocalStorageService {
       // Maintain email-to-uid index for efficient lookup
       await this._setEmailIndex(email, userId);
       
+      await this._persistUserToSecureStore(user);
+
       this.currentUser = user;
       this.notifyAuthListeners(user);
 
@@ -93,6 +161,12 @@ class LocalStorageService {
         if (user) await this._setEmailIndex(email, user.uid);
       }
       
+      if (!user) {
+        // AsyncStorage may have been wiped by a dev build reinstall;
+        // try recovering the user from SecureStore (Keychain persists).
+        user = await this._recoverUserByEmail(email);
+      }
+
       if (!user) {
         throw new Error('User not found');
       }
@@ -143,10 +217,12 @@ class LocalStorageService {
         if (user.passwordHash) {
           const { passwordHash, passwordSalt, passwordIterations, ...cleanUser } = user;
           await AsyncStorage.setItem(`user_${user.uid}`, JSON.stringify(cleanUser));
+          user = cleanUser;
         }
       }
 
       await AsyncStorage.setItem('currentUserId', user.uid);
+      await this._persistUserToSecureStore(user);
       this.currentUser = user;
       this.notifyAuthListeners(user);
 
@@ -169,6 +245,9 @@ class LocalStorageService {
       }
 
       await AsyncStorage.removeItem('currentUserId');
+      try {
+        await SecureStore.deleteItemAsync('currentUserId', SECURE_STORE_OPTS);
+      } catch { /* non-critical */ }
       // Clear couple state so a different account doesn't inherit a stale couple ID
       await AsyncStorage.multiRemove([
         '@betweenus:coupleId',
@@ -194,6 +273,12 @@ class LocalStorageService {
 
       const userId = await AsyncStorage.getItem('currentUserId');
       if (!userId) {
+        // AsyncStorage wiped (dev build reinstall) — try SecureStore recovery
+        const recovered = await this._recoverCurrentUser();
+        if (recovered) {
+          this.currentUser = recovered;
+          return recovered;
+        }
         return null;
       }
 
