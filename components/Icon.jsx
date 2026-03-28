@@ -47,7 +47,7 @@ function normalizeIoniconName(name) {
   return IONICON_GLYPHS[mappedName] ? mappedName : 'ellipse-outline';
 }
 
-export default function Icon({ 
+function Icon({ 
   name, 
   size = 24, 
   color, 
@@ -81,3 +81,5 @@ export default function Icon({
     />
   );
 }
+
+export default React.memo(Icon);

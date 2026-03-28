@@ -10,7 +10,7 @@ import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 
-export default function Card({
+function Card({
   children,
   variant = "glass",
   onPress = null,
@@ -132,6 +132,8 @@ export default function Card({
     </Animated.View>
   );
 }
+
+export default React.memo(Card);
 
 // ------------------------------------------------------------------
 // STYLES - Apple Editorial Squircle

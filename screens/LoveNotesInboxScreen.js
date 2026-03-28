@@ -360,6 +360,9 @@ export default function LoveNotesInboxScreen({ navigation }) {
           ListEmptyComponent={loading ? null : renderEmpty}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          windowSize={11}
+          maxToRenderPerBatch={8}
+          removeClippedSubviews={true}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.primary} />
           }

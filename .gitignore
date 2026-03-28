@@ -47,6 +47,7 @@ web-build/
 # ============================
 *.apk
 *.aab
+*.ipa
 *.iml
 .gradle/
 local.properties
@@ -108,6 +109,11 @@ android/
 # ============================
 __pycache__/
 *.pyc
+
+# ============================
+# EAS (contains env secrets)
+# ============================
+eas.json
 
 # ============================
 # Misc

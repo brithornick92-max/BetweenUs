@@ -37,10 +37,10 @@ class LocalStorageService {
     try {
       const userId = this.generateUserId();
       const passwordSalt = bytesToHex(ExpoCrypto.getRandomBytes(16));
-      // 50,000 iterations: below current OWASP recommendation (600k+ for SHA-256),
-      // but chosen for mobile performance (2-3s in pure JS). Credentials are stored
+      // 120,000 iterations: improved from 50k toward OWASP recommendations,
+      // balanced for mobile performance (~3-4s in pure JS). Credentials are stored
       // in hardware-backed SecureStore, not exposed database.
-      const passwordIterations = 50000;
+      const passwordIterations = 120000;
       const passwordHash = this._hashPassword(password, passwordSalt, passwordIterations);
 
       // Store credentials in SecureStore (not AsyncStorage)
@@ -128,7 +128,7 @@ class LocalStorageService {
             throw new Error('Invalid password');
           }
           const passwordSalt = bytesToHex(ExpoCrypto.getRandomBytes(16));
-          const passwordIterations = 50000;
+          const passwordIterations = 120000;
           const upgradedHash = this._hashPassword(password, passwordSalt, passwordIterations);
           cred = { passwordHash: upgradedHash, passwordSalt, passwordIterations };
         }

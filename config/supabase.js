@@ -7,12 +7,15 @@
 import { createClient } from "@supabase/supabase-js";
 import { SecureSupabaseStorage } from "../services/supabase/SecureSupabaseStorage";
 
-// Production fallback ensures the app works even if env vars are missing or stale
-const PRODUCTION_SUPABASE_URL = 'https://gfysobqmiwxmmaondrmt.supabase.co';
-const PRODUCTION_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmeXNvYnFtaXd4bW1hb25kcm10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjEzODMsImV4cCI6MjA4NjEzNzM4M30.-KzsrcUgVWLguJ0HiAh7V0m5iFhCjUKRKLpXzGPkJfo';
+export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || PRODUCTION_SUPABASE_URL;
-export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || PRODUCTION_SUPABASE_ANON_KEY;
+if (__DEV__ && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
+  console.warn(
+    '[Supabase] Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. ' +
+    'Set them in .env or eas.json. Supabase features will be disabled.'
+  );
+}
 
 export const supabase =
   SUPABASE_URL && SUPABASE_ANON_KEY

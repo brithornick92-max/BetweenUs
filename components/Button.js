@@ -18,7 +18,7 @@ import { useTheme } from "../context/ThemeContext";
 import { impact, ImpactFeedbackStyle } from "../utils/haptics";
 import { SPACING, withAlpha } from "../utils/theme";
 
-export default function Button({
+function Button({
   title,
   onPress,
   variant = "primary",
@@ -197,6 +197,8 @@ export default function Button({
     </Animated.View>
   );
 }
+
+export default React.memo(Button);
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 

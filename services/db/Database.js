@@ -45,6 +45,24 @@ async function getDb() {
   _db = await SQLite.openDatabaseAsync(DB_NAME);
   await _db.execAsync('PRAGMA journal_mode = WAL;');
   await _db.execAsync('PRAGMA foreign_keys = ON;');
+
+  // Detect database corruption before running migrations
+  try {
+    const check = await _db.getFirstAsync('PRAGMA integrity_check;');
+    const result = check?.integrity_check ?? check?.['integrity_check'] ?? 'ok';
+    if (result !== 'ok') {
+      console.error('[Database] Corruption detected:', result);
+      await _db.closeAsync();
+      _db = null;
+      await SQLite.deleteDatabaseAsync(DB_NAME);
+      _db = await SQLite.openDatabaseAsync(DB_NAME);
+      await _db.execAsync('PRAGMA journal_mode = WAL;');
+      await _db.execAsync('PRAGMA foreign_keys = ON;');
+    }
+  } catch (err) {
+    console.warn('[Database] integrity_check failed:', err?.message);
+  }
+
   await migrate(_db);
   return _db;
 }

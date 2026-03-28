@@ -323,6 +323,9 @@ function AppContent() {
         setNavReady(true);
         DeepLinkHandler.setNavigationRef(navigationRef);
       }}
+      onUnhandledAction={(action) => {
+        CrashReporting.captureMessage(`Unhandled nav action: ${action?.type}`, 'warning');
+      }}
     >
       <StatusBar style={isDark ? "light" : "dark"} />
       <RootNavigator />
@@ -348,9 +351,12 @@ function App() {
 
   useEffect(() => {
     // CrashReporting.init() already called at module scope above
-    AnalyticsService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'analytics_init' }));
-    initializeRevenueCat();
-    registerAutoClearDecryptedCache();
+    // Parallelize independent startup tasks for faster cold boot
+    Promise.all([
+      AnalyticsService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'analytics_init' })),
+      initializeRevenueCat(),
+      registerAutoClearDecryptedCache(),
+    ]).catch((e) => CrashReporting.captureException(e, { source: 'startup_init' }));
     return () => AnalyticsService.destroy();
   }, []);
 
@@ -358,8 +364,8 @@ function App() {
 
   try {
     return (
-      <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
-        <ErrorBoundary>
+      <ErrorBoundary>
+        <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
         <AuthProvider>
           <SubscriptionProvider>
             <EntitlementsProvider>
@@ -379,11 +385,13 @@ function App() {
             </EntitlementsProvider>
           </SubscriptionProvider>
         </AuthProvider>
-        </ErrorBoundary>
-      </GestureHandlerRootView>
+        </GestureHandlerRootView>
+      </ErrorBoundary>
     );
   } catch (error) {
-    logError('app_init', error);    SplashScreen.hideAsync().catch(() => {});    return (
+    logError('app_init', error);
+    SplashScreen.hideAsync().catch(() => {});
+    return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#070509' }}>
         <Text style={{ color: '#F2E9E6', padding: 20 }}>Something didn’t work. Please restart the app.</Text>
       </View>

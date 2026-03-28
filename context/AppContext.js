@@ -393,8 +393,10 @@ export function AppProvider({ children }) {
     },
   }), []); // stable — all state access via stateRef/isPremiumRef
 
+  const contextValue = useMemo(() => ({ state, actions }), [state, actions]);
+
   return (
-    <AppContext.Provider value={{ state, actions }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );
