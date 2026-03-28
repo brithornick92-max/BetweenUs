@@ -20,6 +20,7 @@ import {
 
 import RootNavigator from "./navigation/RootNavigator";
 import { registerAutoClearDecryptedCache } from "./services/autoClearDecryptedCache";
+import BiometricVault from "./services/security/BiometricVault";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AppProvider, useAppContext } from "./context/AppContext";
 import { MemoryProvider } from "./context/MemoryContext";
@@ -154,6 +155,7 @@ function AppContent() {
       if (state.appLockEnabled) {
         if (nextAppState.match(/inactive|background/)) {
           backgroundTimeRef.current = Date.now();
+          BiometricVault.lock();
         } else if (nextAppState === "active" && appStateVisible.match(/inactive|background/)) {
           const backgroundTime = backgroundTimeRef.current;
           if (backgroundTime && Date.now() - backgroundTime > LOCK_GRACE_PERIOD) {

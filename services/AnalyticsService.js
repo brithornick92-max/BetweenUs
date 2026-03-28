@@ -72,6 +72,15 @@ let _flushTimer = null;
 let _flushing = false;
 let _supabase = null;
 
+// Simple session ID (random per app launch)
+const _sessionId = (() => {
+  try {
+    return require('expo-crypto').randomUUID();
+  } catch {
+    return Date.now().toString(36) + '_anon';
+  }
+})();
+
 const AnalyticsService = {
   /**
    * Initialize analytics. Call once after auth resolves.
@@ -231,14 +240,5 @@ const AnalyticsService = {
     }
   },
 };
-
-// Simple session ID (random per app launch — crypto-safe)
-const _sessionId = (() => {
-  try {
-    return require('expo-crypto').randomUUID();
-  } catch {
-    return Date.now().toString(36) + '_anon';
-  }
-})();
 
 export default AnalyticsService;

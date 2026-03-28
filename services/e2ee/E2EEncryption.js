@@ -185,6 +185,7 @@ function decryptBytesRaw(envelope, keyBytes, aadString) {
     parsed = typeof envelope === 'string' ? JSON.parse(envelope) : envelope;
   } catch {
     // Not encrypted — return raw string as-is (migration path for plaintext)
+    if (__DEV__) console.warn('[E2EE] decryptBytesRaw received non-JSON envelope (plaintext fallback)');
     return typeof envelope === 'string' ? toBytes(envelope) : null;
   }
 
@@ -192,6 +193,7 @@ function decryptBytesRaw(envelope, keyBytes, aadString) {
   const supportedAlgs = [ALG, 'nacl_secretbox'];
   if (!parsed || !supportedAlgs.includes(parsed.alg)) {
     // Not an envelope — raw plaintext
+    if (__DEV__) console.warn('[E2EE] decryptBytesRaw received unknown alg (plaintext fallback):', parsed?.alg);
     return typeof envelope === 'string' ? toBytes(envelope) : null;
   }
 
