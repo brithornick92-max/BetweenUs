@@ -42,6 +42,7 @@ export function hashPin(pin, salt) {
 /**
  * Verify a PIN against a stored hash.
  * Supports both v2 (PBKDF2) and legacy v1 (single SHA-256).
+ * Legacy v1 auto-migrates to v2 on successful verify (handled by callers).
  */
 export async function verifyPin(pin, salt, storedHash, version) {
   if (version === PIN_HASH_VERSION) {
@@ -49,6 +50,8 @@ export async function verifyPin(pin, salt, storedHash, version) {
     return hash === storedHash;
   }
   // Legacy v1: single-pass SHA-256 (salt + pin)
+  // Salt is 32 hex chars so collision with 4-digit PIN is not practical,
+  // but callers should auto-migrate to v2 on success.
   const legacyHash = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
     salt ? salt + pin : pin,
