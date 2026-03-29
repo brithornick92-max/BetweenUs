@@ -21,6 +21,7 @@ import QRCode from 'react-native-qrcode-svg';
 import naclUtil from 'tweetnacl-util';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { clearCouplePremiumCache } from '../context/EntitlementsContext';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import StorageRouter from '../services/storage/StorageRouter';
 import CloudEngine from '../services/storage/CloudEngine';
@@ -171,6 +172,7 @@ export default function PairingQRCodeScreen({ navigation }) {
       }
       await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
+      await clearCouplePremiumCache();
     } catch (_) {}
     if (navigation.canGoBack()) navigation.goBack();
     else navigation.navigate('Settings');

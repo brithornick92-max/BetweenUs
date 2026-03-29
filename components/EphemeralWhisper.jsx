@@ -168,6 +168,8 @@ export default function EphemeralWhisper({
   const localUriRef = useRef(null);
   const accelSubRef = useRef(null);
   const maxTimerRef = useRef(null);
+  const sentTimerRef = useRef(null);
+  const playedTimerRef = useRef(null);
 
   // ── Animations ───────────────────────────────────────────────────────────
   const rippleScale = useSharedValue(1);
@@ -179,6 +181,8 @@ export default function EphemeralWhisper({
   useEffect(() => {
     return () => {
       clearTimeout(maxTimerRef.current);
+      clearTimeout(sentTimerRef.current);
+      clearTimeout(playedTimerRef.current);
       accelSubRef.current?.remove();
       recordingRef.current?.stopAndUnloadAsync().catch(() => {});
       soundRef.current?.unloadAsync().catch(() => {});
@@ -263,7 +267,7 @@ export default function EphemeralWhisper({
 
       micScale.value = withSpring(1, { damping: 12, stiffness: 200 });
       setPhase('sent');
-      setTimeout(() => onSent?.(), 900);
+      sentTimerRef.current = setTimeout(() => onSent?.(), 900);
     } catch {
       notification(NotificationFeedbackType.Error);
       setPhase('error');
@@ -336,7 +340,7 @@ export default function EphemeralWhisper({
           soundRef.current = null;
           localUriRef.current = null;
 
-          setTimeout(() => {
+          playedTimerRef.current = setTimeout(() => {
             setPhase('played');
             onPlayed?.();
           }, 1400);

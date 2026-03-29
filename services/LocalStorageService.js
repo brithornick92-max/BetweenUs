@@ -140,13 +140,13 @@ class LocalStorageService {
         emailVerified: false,
       };
 
-      // Store user data
-      await AsyncStorage.setItem(`user_${userId}`, JSON.stringify(user));
-      await AsyncStorage.setItem('currentUserId', userId);
-      // Maintain email-to-uid index for efficient lookup
-      await this._setEmailIndex(email, userId);
-      
-      await this._persistUserToSecureStore(user);
+      // Store user data — all independent, run in parallel
+      await Promise.all([
+        AsyncStorage.setItem(`user_${userId}`, JSON.stringify(user)),
+        AsyncStorage.setItem('currentUserId', userId),
+        this._setEmailIndex(email, userId),
+        this._persistUserToSecureStore(user),
+      ]);
 
       this.currentUser = user;
       this.notifyAuthListeners(user);

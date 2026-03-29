@@ -172,13 +172,18 @@ export const AuthProvider = ({ children }) => {
   const signUp = async (email, password, displayName) => {
     try {
       setBusy(true);
+      // Yield to the render cycle so the loading UI renders before the
+      // blocking PBKDF2 hash computation begins on the JS thread.
+      await new Promise(resolve => setTimeout(resolve, 0));
       const createdUser = await StorageRouter.createAccount(email, password, displayName);
-      await storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, false);
-      await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, true);
+      await Promise.all([
+        storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, false),
+        storage.set(STORAGE_KEYS.PENDING_ONBOARDING, true),
+      ]);
       setRequiresOnboarding(true);
 
-      // Bridge Supabase auth so pairing is ready immediately
-      await _bridgeSupabaseAuth(email, password, true);
+      // Bridge Supabase auth so pairing is ready immediately (fire-and-forget — non-fatal)
+      _bridgeSupabaseAuth(email, password, true).catch(() => {});
 
       // Verify encryption is working for this user
       if (__DEV__) {
@@ -244,6 +249,11 @@ export const AuthProvider = ({ children }) => {
       await EncryptionService.clearKey();
       E2EEncryption.clearCache();
       await ConnectionMemory.clear();
+
+      // Clear cached data to prevent stale data leaking across accounts
+      try {
+        await AsyncStorage.clear();
+      } catch (_) {}
     } finally {
       setBusy(false);
     }

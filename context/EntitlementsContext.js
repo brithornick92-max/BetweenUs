@@ -506,3 +506,16 @@ async function _loadCachedCouplePremium() {
     return null;
   }
 }
+
+/**
+ * Clear the couple premium offline cache.
+ * Call this whenever a user unlinks from a couple so that the 72-hour
+ * grace window does not carry over stale premium entitlements.
+ */
+export async function clearCouplePremiumCache() {
+  try {
+    await AsyncStorage.removeItem(COUPLE_PREMIUM_CACHE_KEY);
+  } catch (e) {
+    if (__DEV__) console.warn('[Entitlements] Failed to clear couple premium cache:', e?.message);
+  }
+}

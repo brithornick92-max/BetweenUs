@@ -58,12 +58,12 @@ const CrashReporting = {
         ],
         // Strip PII from breadcrumbs
         beforeBreadcrumb(breadcrumb) {
-          // Redact any URL that might contain tokens
+          // Redact any URL that might contain tokens or API keys
           if (breadcrumb.data?.url) {
-            breadcrumb.data.url = breadcrumb.data.url.replace(
-              /access_token=[^&]+/g,
-              'access_token=REDACTED'
-            );
+            breadcrumb.data.url = breadcrumb.data.url
+              .replace(/access_token=[^&]+/g, 'access_token=REDACTED')
+              .replace(/refresh_token=[^&]+/g, 'refresh_token=REDACTED')
+              .replace(/apikey=[^&]+/g, 'apikey=REDACTED');
           }
           return breadcrumb;
         },

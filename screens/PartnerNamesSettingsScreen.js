@@ -109,6 +109,12 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
           partnerName: partnerName.trim(),
         },
         display_name: myName.trim(),
+        // Persist the recipient-facing partner label to Supabase so the
+        // notification trigger can use the name the user assigned their partner.
+        preferences: {
+          ...(userProfile?.preferences || {}),
+          partnerLabel: partnerName.trim(),
+        },
       });
       await actions.updateProfile({
         partnerNames: {

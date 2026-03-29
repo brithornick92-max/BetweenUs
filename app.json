@@ -68,13 +68,6 @@
         ]
       }
     },
-    "android": {
-      "package": "com.brittany.betweenus",
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ]
-    },
     "web": {
       "favicon": "./assets/icon.png"
     },

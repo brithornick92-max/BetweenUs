@@ -1,7 +1,7 @@
 -- ============================================================================
 -- 🚀 BETWEENUS — PRODUCTION DATABASE SETUP (Single File)
 -- ============================================================================
--- Generated: March 20, 2026
+-- Generated: March 29, 2026
 --
 -- This file combines ALL migrations into one idempotent script:
 --   • supabase-full-setup.sql        (tables, indexes, functions, RLS, storage)
@@ -528,6 +528,7 @@ RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
+SET row_security = off
 AS $$
 DECLARE
   active_premium_user uuid;
@@ -1155,6 +1156,8 @@ SET search_path = public
 AS $$
 DECLARE
   sender_name     text;
+  recipient_id    uuid;
+  recipient_label text;
   notif_title     text;
   notif_body      text;
   moment_type_val text;
@@ -1162,8 +1165,25 @@ DECLARE
 BEGIN
   IF NEW.data_type = 'couple_state' THEN RETURN NEW; END IF;
 
+  -- Default: use the sender's own chosen display name
   SELECT COALESCE(display_name, email, 'Your partner') INTO sender_name
     FROM profiles WHERE id = NEW.created_by;
+
+  -- Prefer the name the recipient assigned to their partner over the sender's
+  -- self-chosen display name. This respects what the user typed in Identity settings.
+  SELECT user_id INTO recipient_id
+    FROM couple_members
+   WHERE couple_id = NEW.couple_id
+     AND user_id  != NEW.created_by
+   LIMIT 1;
+
+  IF recipient_id IS NOT NULL THEN
+    SELECT trim(preferences->>'partnerLabel') INTO recipient_label
+      FROM profiles WHERE id = recipient_id;
+    IF recipient_label IS NOT NULL AND length(recipient_label) > 0 THEN
+      sender_name := recipient_label;
+    END IF;
+  END IF;
 
   -- Default notification data (overridden per type below)
   notif_data := jsonb_build_object('type', NEW.data_type, 'couple_id', NEW.couple_id);
@@ -1754,6 +1774,13 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
+-- couples must be in the publication so EntitlementsContext real-time
+-- premium listener fires when the RevenueCat webhook updates is_premium.
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE couples;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
 -- REPLICA IDENTITY FULL for RLS evaluation on UPDATE/DELETE events
 ALTER TABLE couple_data     REPLICA IDENTITY FULL;
 ALTER TABLE calendar_events REPLICA IDENTITY FULL;
@@ -1781,6 +1808,9 @@ GRANT EXECUTE ON FUNCTION check_sensitive_rate_limit(uuid)      TO authenticated
 REVOKE EXECUTE ON FUNCTION send_expo_push(text, text, text, jsonb) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION send_expo_push(text, text, text, jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION redeem_partner_code(text)             TO authenticated;
+GRANT EXECUTE ON FUNCTION redeem_pairing_code(text, text)       TO authenticated;
+GRANT EXECUTE ON FUNCTION create_couple_for_qr(text)            TO authenticated;
+GRANT EXECUTE ON FUNCTION leave_couple()                        TO authenticated;
 GRANT EXECUTE ON FUNCTION delete_own_account()                  TO authenticated;
 GRANT EXECUTE ON FUNCTION notify_partner(uuid, text, text, jsonb) TO authenticated;
 
@@ -1843,6 +1873,17 @@ SELECT cron.schedule(
   $$DELETE FROM rate_limit_buckets WHERE user_id NOT IN (SELECT id FROM auth.users)$$
 );
 
+-- 7. Clean up orphaned couples (no couple_members rows) daily 3:30 AM UTC.
+--    These accumulate when a user generates an invite code that is never redeemed
+--    and the client cleans up the solo couple_members row but leaves the couples row.
+SELECT cron.unschedule('cleanup-orphaned-couples')
+  WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-orphaned-couples');
+SELECT cron.schedule(
+  'cleanup-orphaned-couples',
+  '30 3 * * *',
+  $$DELETE FROM couples WHERE id NOT IN (SELECT couple_id FROM couple_members) AND created_at < now() - interval '1 hour'$$
+);
+
 
 -- ############################################################################
 -- PART 16: BACKFILL + COMMENTS
@@ -1893,5 +1934,10 @@ COMMENT ON COLUMN couple_members.wrapped_couple_key IS 'Couple symmetric key enc
 --   supabase-security-hardening.sql — SET search_path on all functions, anti-spoof, row_security
 --   supabase-realtime-replica-identity.sql — REPLICA IDENTITY FULL on 5 tables
 --   supabase-unique-user-couple.sql — single-couple-per-user constraint
+--
+-- Additional fixes (March 29, 2026):
+--   • couples added to supabase_realtime publication (EntitlementsContext listener)
+--   • cleanup-orphaned-couples cron job (solo couple rows left by generateInviteCode)
+--   • redeem_pairing_code, create_couple_for_qr, leave_couple added to Part 14 grants
 --
 -- Fully idempotent — safe to re-run at any time.

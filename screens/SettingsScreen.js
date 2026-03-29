@@ -37,7 +37,7 @@ import ReAnimated, {
 
 // Context & Services
 import { useAuth } from '../context/AuthContext';
-import { useEntitlements } from '../context/EntitlementsContext';
+import { useEntitlements, clearCouplePremiumCache } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
@@ -231,6 +231,10 @@ export default function SettingsScreen({ navigation }) {
           const coupleKey = await CoupleKeyService.deriveFromKeyExchange(partnerPubKey);
           await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
 
+          // Update auth profile so EntitlementsContext picks up the new coupleId
+          // and can sync premium status between partners immediately.
+          await updateProfile?.({ coupleId });
+
           clearInterval(poll);
           setInviteCode(null);
           notification(NotificationFeedbackType.Success);
@@ -335,6 +339,7 @@ export default function SettingsScreen({ navigation }) {
       }
       await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
+      await clearCouplePremiumCache();
       setPaired(false);
       setShowUnlinkConfirm(false);
       notification(NotificationFeedbackType.Success);
@@ -359,6 +364,7 @@ export default function SettingsScreen({ navigation }) {
       }
       await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
+      await clearCouplePremiumCache();
       setPaired(false);
       setShowUnlinkConfirm(false);
       notification(NotificationFeedbackType.Success);

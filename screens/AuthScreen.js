@@ -37,6 +37,9 @@ export default function AuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigation = useNavigation();
 
@@ -58,7 +61,9 @@ export default function AuthScreen() {
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const handleAuth = useCallback(async () => {
+    if (submitting) return;
     try {
+      setSubmitting(true);
       if (!signIn || !signUp) {
         Alert.alert("Auth not ready", "Please wait a moment and try again.");
         return;
@@ -79,9 +84,9 @@ export default function AuthScreen() {
           Alert.alert("Mismatch", "Passwords do not match.");
           return;
         }
-        if (password.length < 6) {
+        if (password.length < 8) {
           impact(ImpactFeedbackStyle.Light);
-          Alert.alert("Too short", "Password must be at least 6 characters.");
+          Alert.alert("Too short", "Password must be at least 8 characters.");
           return;
         }
         if (!ageConfirmed) {
@@ -96,7 +101,6 @@ export default function AuthScreen() {
         }
         impact(ImpactFeedbackStyle.Medium);
         await signUp(email.trim(), password, displayName.trim());
-        Alert.alert("Welcome", "Your account has been created.");
       } else {
         impact(ImpactFeedbackStyle.Medium);
         await signIn(email.trim(), password);
@@ -112,8 +116,10 @@ export default function AuthScreen() {
       else if (raw.includes('network') || raw.includes('Network')) friendly = 'Network error. Check your connection and try again.';
       else if (raw.includes('Email not confirmed')) friendly = 'Please check your email and confirm your account first.';
       Alert.alert("Error", friendly);
+    } finally {
+      setSubmitting(false);
     }
-  }, [signIn, signUp, email, password, displayName, confirmPassword, isSignUp, ageConfirmed, termsAccepted]);
+  }, [signIn, signUp, email, password, displayName, confirmPassword, isSignUp, ageConfirmed, termsAccepted, submitting]);
 
   const toggleMode = useCallback(() => {
     selection().catch(() => {});
@@ -227,13 +233,25 @@ export default function AuthScreen() {
                   placeholderTextColor={t.subtext}
                   value={password}
                   onChangeText={setPassword}
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                   textContentType="password"
                   autoComplete="password"
                   returnKeyType={isSignUp ? "next" : "done"}
                   onSubmitEditing={isSignUp ? () => confirmRef.current?.focus() : handleAuth}
                   blurOnSubmit={!isSignUp}
                 />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(v => !v)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Icon
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color={t.subtext}
+                  />
+                </TouchableOpacity>
               </View>
 
               {isSignUp && (
@@ -251,12 +269,24 @@ export default function AuthScreen() {
                     placeholderTextColor={t.subtext}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
-                    secureTextEntry
+                    secureTextEntry={!showConfirmPassword}
                     textContentType="oneTimeCode"
                     autoComplete="off"
                     returnKeyType="done"
                     onSubmitEditing={handleAuth}
                   />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(v => !v)}
+                    accessibilityRole="button"
+                    accessibilityLabel={showConfirmPassword ? "Hide password" : "Show password"}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Icon
+                      name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color={t.subtext}
+                    />
+                  </TouchableOpacity>
                 </View>
               )}
 
@@ -267,6 +297,9 @@ export default function AuthScreen() {
                     style={styles.checkRow}
                     onPress={() => { selection(); setAgeConfirmed(v => !v); }}
                     activeOpacity={0.7}
+                    accessibilityRole="checkbox"
+                    accessibilityLabel="I confirm I am 18 years or older"
+                    accessibilityState={{ checked: ageConfirmed }}
                   >
                     <Icon
                       name={ageConfirmed ? "checkmark-circle" : "ellipse-outline"}
@@ -280,6 +313,9 @@ export default function AuthScreen() {
                     style={styles.checkRow}
                     onPress={() => { selection(); setTermsAccepted(v => !v); }}
                     activeOpacity={0.7}
+                    accessibilityRole="checkbox"
+                    accessibilityLabel="I agree to the Terms of Service and Privacy Policy"
+                    accessibilityState={{ checked: termsAccepted }}
                   >
                     <Icon
                       name={termsAccepted ? "checkmark-circle" : "ellipse-outline"}
@@ -288,9 +324,9 @@ export default function AuthScreen() {
                     />
                     <Text style={styles.checkText}>
                       I agree to the{" "}
-                      <Text style={styles.linkText} onPress={() => navigation.navigate("Terms")}>Terms of Service</Text>
+                      <Text style={styles.linkText} onPress={() => navigation.navigate("Terms")} accessibilityRole="link">Terms of Service</Text>
                       {" "}and{" "}
-                      <Text style={styles.linkText} onPress={() => navigation.navigate("PrivacyPolicy")}>Privacy Policy</Text>
+                      <Text style={styles.linkText} onPress={() => navigation.navigate("PrivacyPolicy")} accessibilityRole="link">Privacy Policy</Text>
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -300,8 +336,11 @@ export default function AuthScreen() {
               <TouchableOpacity
                 style={[styles.authButton, { backgroundColor: t.primary }]}
                 onPress={handleAuth}
-                disabled={loading}
+                disabled={loading || submitting}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={isSignUp ? "Create Account" : "Sign In"}
+                accessibilityState={{ disabled: loading || submitting, busy: loading || submitting }}
               >
                 <Text style={styles.authButtonText}>
                   {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
@@ -313,6 +352,9 @@ export default function AuthScreen() {
                 onPress={toggleMode}
                 disabled={loading}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+                accessibilityState={{ disabled: loading }}
               >
                 <Text style={[styles.toggleText, { color: t.primary }]}>
                   {isSignUp

@@ -3,9 +3,11 @@ import React, { createContext, useContext, useReducer, useEffect, useMemo, useRe
 import * as Crypto from 'expo-crypto';
 import { storage, STORAGE_KEYS, vibeStorage } from '../utils/storage';
 import { useEntitlements } from './EntitlementsContext';
+import { clearCouplePremiumCache } from './EntitlementsContext';
 import { NicknameEngine } from '../services/PolishEngine';
 import CoupleService from '../services/supabase/CoupleService';
 import CoupleKeyService from '../services/security/CoupleKeyService';
+import StorageRouter from '../services/storage/StorageRouter';
 
 const initialState = {
   userId: null,
@@ -432,7 +434,20 @@ export function AppProvider({ children }) {
         await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
         await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
         await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
-        
+
+        // Clear the couple premium offline cache so the former partner's
+        // premium does not bleed through the 72-hour grace window.
+        await clearCouplePremiumCache();
+
+        // Clear coupleId from the persisted user document so AuthContext
+        // propagates the change to EntitlementsContext on the next read.
+        const userId = stateRef.current.userId;
+        if (userId) {
+          try {
+            await StorageRouter.updateUserDocument(userId, { coupleId: null });
+          } catch (_) {}
+        }
+
         dispatch({ type: ACTIONS.LEAVE_COUPLE });
       } catch (error) {
         console.error('Failed to leave couple:', error);

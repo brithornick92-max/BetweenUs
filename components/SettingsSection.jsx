@@ -18,6 +18,9 @@ function SettingRowBase({ icon, iconColor, title, subtitle, onPress, rightElemen
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.6}
+      accessibilityRole="button"
+      accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
+      accessibilityState={{ disabled: !!disabled }}
     >
       <View style={[styles.rowIcon, { backgroundColor: (iconColor || colors.primary) + '14' }]}>
         <Icon name={icon} size={20} color={iconColor || colors.primary} />

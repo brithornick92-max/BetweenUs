@@ -55,10 +55,9 @@ if (global?.ErrorUtils?.setGlobalHandler) {
   const defaultHandler = global.ErrorUtils.getGlobalHandler?.();
   global.ErrorUtils.setGlobalHandler((error, isFatal) => {
     CrashReporting.captureException(error, { isFatal, source: 'globalHandler' });
-    if (__DEV__) {
-      // In dev, still show the red box
-      defaultHandler?.(error, isFatal);
-    }
+    // Always forward to the default handler so the system can show
+    // a crash dialog / restart the app instead of silently swallowing.
+    defaultHandler?.(error, isFatal);
   });
 }
 
@@ -397,18 +396,19 @@ function App() {
     // Parallelize independent startup tasks with a timeout guard
     // so a hung SDK can't block the app indefinitely.
     const STARTUP_TIMEOUT_MS = 15000;
+    let timeoutId;
     const startupTasks = Promise.all([
       AnalyticsService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'analytics_init' })),
       ExperimentService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'experiments_init' })),
       initializeRevenueCat(),
       registerAutoClearDecryptedCache(),
     ]);
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Startup tasks timed out (15s)')), STARTUP_TIMEOUT_MS)
-    );
-    Promise.race([startupTasks, timeout]).catch((e) =>
-      CrashReporting.captureException(e, { source: 'startup_init' })
-    );
+    const timeout = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('Startup tasks timed out (15s)')), STARTUP_TIMEOUT_MS);
+    });
+    Promise.race([startupTasks, timeout])
+      .catch((e) => CrashReporting.captureException(e, { source: 'startup_init' }))
+      .finally(() => clearTimeout(timeoutId));
     return () => AnalyticsService.destroy();
   }, []);
 
