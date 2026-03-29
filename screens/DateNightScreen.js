@@ -392,6 +392,7 @@ export default function DateNightScreen({ navigation }) {
   const [ready, setReady] = useState(false);
   const [allDates, setAllDates] = useState([]);
   const [contentProfile, setContentProfile] = useState(null);
+  const [rawBoundaries, setRawBoundaries] = useState(null);
   const [selectedHeat, setSelectedHeat] = useState(null);   // mood: 1=Heart, 2=Play, 3=Heat
   const [selectedLoad, setSelectedLoad] = useState(null);   // energy: 1=Chill, 2=Moderate, 3=Active
   const [selectedStyle, setSelectedStyle] = useState(null); // style: talking, doing, mixed
@@ -409,9 +410,17 @@ export default function DateNightScreen({ navigation }) {
       setReady(false);
       const task = InteractionManager.runAfterInteractions(() => {
         setAllDates(getAllDates());
-        PreferenceEngine.getContentProfile(userProfile || {})
-          .then(setContentProfile)
-          .catch(() => {})
+        Promise.all([
+          PreferenceEngine.getContentProfile(userProfile || {}),
+          SoftBoundaries.getAll(),
+        ])
+          .then(([profile, bounds]) => {
+            setContentProfile(profile);
+            setRawBoundaries(bounds);
+          })
+          .catch(() => {
+            SoftBoundaries.getAll().then(setRawBoundaries).catch(() => {});
+          })
           .finally(() => setReady(true));
       });
       return () => task.cancel();
@@ -434,14 +443,24 @@ export default function DateNightScreen({ navigation }) {
   }, [selectedHeat, selectedLoad, selectedStyle]);
 
   const deck = useMemo(() => {
-    const strictProfileBase = contentProfile ? getFilteredDatesWithProfile(contentProfile) : allDates;
+    // When no profile, apply raw boundaries synchronously so paused/heat-capped dates never surface
+    const boundaryFilteredDates = contentProfile
+      ? allDates
+      : allDates.filter((date) => {
+          if (!date) return false;
+          if (rawBoundaries?.pausedDates?.includes(date.id)) return false;
+          if (rawBoundaries?.maxHeatOverride != null && typeof date.heat === 'number' && date.heat > rawBoundaries.maxHeatOverride) return false;
+          return true;
+        });
+
+    const strictProfileBase = contentProfile ? getFilteredDatesWithProfile(contentProfile) : boundaryFilteredDates;
     const fallbackProfileBase = contentProfile
       ? allDates.filter((date) => {
           if (contentProfile.boundaries?.pausedDates?.includes(date.id)) return false;
           if (typeof contentProfile.maxHeat === 'number' && date.heat > contentProfile.maxHeat) return false;
           return true;
         })
-      : allDates;
+      : boundaryFilteredDates;
 
     const dims = {};
     if (selectedHeat) dims.heat = selectedHeat;
@@ -466,7 +485,7 @@ export default function DateNightScreen({ navigation }) {
       base = base.slice(0, FREE_LIMITS.VISIBLE_DATE_IDEAS);
     }
     return base;
-  }, [allDates, activeFilters, contentProfile, selectedHeat, selectedLoad, selectedStyle, isPremium]);
+  }, [allDates, activeFilters, contentProfile, rawBoundaries, selectedHeat, selectedLoad, selectedStyle, isPremium]);
 
   const allSelected = selectedHeat && selectedLoad && selectedStyle;
   const hasFilters = selectedHeat || selectedLoad || selectedStyle;

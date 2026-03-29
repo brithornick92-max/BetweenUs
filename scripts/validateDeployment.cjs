@@ -78,7 +78,7 @@ if (missingRecommended.length > 0) {
 }
 
 // ─── 2. Required assets ───────────────────────────────────────────
-const requiredAssets = ['assets/icon.png', 'assets/splash.png'];
+const requiredAssets = ['assets/icon.png'];
 for (const asset of requiredAssets) {
   const fullPath = path.join(ROOT, asset);
   if (!fs.existsSync(fullPath)) {
@@ -129,6 +129,16 @@ try {
   }
   if (expo.splash?.image && !fs.existsSync(path.join(ROOT, expo.splash.image))) {
     console.error(`❌ app.json splash image does not exist: ${expo.splash.image}`);
+    hasErrors = true;
+  }
+
+  const splashPlugin = Array.isArray(expo.plugins)
+    ? expo.plugins.find((plugin) => Array.isArray(plugin) && plugin[0] === 'expo-splash-screen')
+    : null;
+  const splashPluginConfig = splashPlugin?.[1] || null;
+
+  if (splashPluginConfig?.image && !fs.existsSync(path.join(ROOT, splashPluginConfig.image))) {
+    console.error(`❌ expo-splash-screen image path does not exist: ${splashPluginConfig.image}`);
     hasErrors = true;
   }
 } catch (e) {

@@ -108,6 +108,20 @@ function shuffleArray(arr) {
   return a;
 }
 
+// Synchronous boundary filter used when contentProfile is unavailable
+function applyRawBoundaryFilter(items, bounds) {
+  if (!bounds) return items;
+  return items.filter((p) => {
+    if (!p) return false;
+    const heat = p.heat || 1;
+    if (bounds.hideSpicy && heat >= 4) return false;
+    if (bounds.maxHeatOverride != null && heat > bounds.maxHeatOverride) return false;
+    if (bounds.hiddenCategories?.includes(p.category)) return false;
+    if (bounds.pausedEntries?.includes(p.id)) return false;
+    return true;
+  });
+}
+
 export default function PromptsScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { colors, isDark } = useTheme();
@@ -117,6 +131,7 @@ export default function PromptsScreen({ navigation }) {
   const [selectedHeat, setSelectedHeat] = useState(null);
   const [selectedTone, setSelectedTone] = useState('warm');
   const [contentProfile, setContentProfile] = useState(null);
+  const [rawBoundaries, setRawBoundaries] = useState(null);
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deckVersion, setDeckVersion] = useState(0);
@@ -136,16 +151,21 @@ export default function PromptsScreen({ navigation }) {
 
       (async () => {
         try {
-          const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+          const [profile, bounds] = await Promise.all([
+            PreferenceEngine.getContentProfile(userProfile || {}),
+            SoftBoundaries.getAll(),
+          ]);
           if (!active) return;
           let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
           if (!isPremium && heat >= 4) heat = 3;
           setContentProfile(profile);
+          setRawBoundaries(bounds);
           setSelectedHeat(heat);
           setSelectedTone(profile?.tone || 'warm');
         } catch {
           if (!active) return;
           setContentProfile(null);
+          SoftBoundaries.getAll().then(b => { if (active) setRawBoundaries(b); }).catch(() => {});
           setSelectedHeat(1);
           setSelectedTone('warm');
         }
@@ -184,14 +204,14 @@ export default function PromptsScreen({ navigation }) {
           ...contentProfile,
           maxHeat: selectableMaxHeat,
         }).map(normalizePrompt)
-      : prompts;
+      : applyRawBoundaryFilter(prompts, rawBoundaries);
     const byHeat = profileBase.filter((p) => (p.heat || 1) === heat);
     if (!contentProfile) return shuffleArray(byHeat);
     return PreferenceEngine.filterPrompts(byHeat, {
       ...contentProfile,
       maxHeat: selectableMaxHeat,
     });
-  }, [prompts, selectedHeat, contentProfile]);
+  }, [prompts, selectedHeat, contentProfile, rawBoundaries]);
 
   const handlePromptSelect = useCallback((prompt) => {
     if (!isPremium && (prompt.heat || 1) >= 4) {

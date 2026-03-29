@@ -59,8 +59,35 @@ ALTER TABLE couples ADD COLUMN IF NOT EXISTS is_premium boolean DEFAULT false;
 ALTER TABLE couples ADD COLUMN IF NOT EXISTS premium_since timestamptz;
 DO $$ BEGIN
   ALTER TABLE couples ADD COLUMN premium_source text DEFAULT 'none'
-    CHECK (premium_source IN ('none', 'user_a', 'user_b'));
+    CHECK (premium_source = 'none' OR premium_source ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$');
 EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+
+UPDATE couples
+SET premium_source = 'none'
+WHERE premium_source IS NULL
+   OR premium_source IN ('user_a', 'user_b')
+   OR NOT (
+     premium_source = 'none'
+     OR premium_source ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+   );
+
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'couples_premium_source_check'
+      AND conrelid = 'couples'::regclass
+  ) THEN
+    ALTER TABLE couples DROP CONSTRAINT couples_premium_source_check;
+  END IF;
+
+  ALTER TABLE couples ADD CONSTRAINT couples_premium_source_check
+    CHECK (
+      premium_source = 'none'
+      OR premium_source ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 -- Couple members
@@ -733,7 +760,7 @@ DECLARE
   creator_id            uuid;
   redeemer_id           uuid;
   old_redeemer_couple   uuid;
-  remaining             int;
+  affected_member_ids   uuid[];
 BEGIN
   redeemer_id := auth.uid();
   IF redeemer_id IS NULL THEN
@@ -775,13 +802,23 @@ BEGIN
   SELECT couple_id INTO old_redeemer_couple
     FROM couple_members WHERE user_id = redeemer_id LIMIT 1;
   IF old_redeemer_couple IS NOT NULL THEN
-    DELETE FROM couple_members WHERE user_id = redeemer_id;
-    SELECT count(*) INTO remaining
-      FROM couple_members WHERE couple_id = old_redeemer_couple;
-    IF remaining = 0 THEN
-      DELETE FROM partner_link_codes WHERE couple_id = old_redeemer_couple;
-      DELETE FROM couples WHERE id = old_redeemer_couple;
-    END IF;
+    SELECT COALESCE(array_agg(user_id), ARRAY[]::uuid[]) INTO affected_member_ids
+      FROM couple_members
+     WHERE couple_id = old_redeemer_couple;
+
+    DELETE FROM couple_members WHERE couple_id = old_redeemer_couple;
+    DELETE FROM partner_link_codes WHERE couple_id = old_redeemer_couple;
+    DELETE FROM couples WHERE id = old_redeemer_couple;
+
+    UPDATE profiles SET
+      is_premium = EXISTS (
+        SELECT 1 FROM user_entitlements ue
+        WHERE ue.user_id = profiles.id
+          AND ue.is_premium = true
+          AND (ue.expires_at IS NULL OR ue.expires_at > now())
+      ),
+      updated_at = now()
+    WHERE id = ANY(affected_member_ids);
   END IF;
 
   INSERT INTO couple_members (couple_id, user_id, role, public_key)
@@ -816,7 +853,7 @@ DECLARE
   caller_id     uuid;
   old_couple_id uuid;
   new_couple_id uuid;
-  remaining     int;
+  affected_member_ids uuid[];
 BEGIN
   caller_id := auth.uid();
   IF caller_id IS NULL THEN
@@ -827,13 +864,23 @@ BEGIN
   SELECT couple_id INTO old_couple_id
     FROM couple_members WHERE user_id = caller_id LIMIT 1;
   IF old_couple_id IS NOT NULL THEN
-    DELETE FROM couple_members WHERE user_id = caller_id;
-    SELECT count(*) INTO remaining
-      FROM couple_members WHERE couple_id = old_couple_id;
-    IF remaining = 0 THEN
-      DELETE FROM partner_link_codes WHERE couple_id = old_couple_id;
-      DELETE FROM couples WHERE id = old_couple_id;
-    END IF;
+    SELECT COALESCE(array_agg(user_id), ARRAY[]::uuid[]) INTO affected_member_ids
+      FROM couple_members
+     WHERE couple_id = old_couple_id;
+
+    DELETE FROM couple_members WHERE couple_id = old_couple_id;
+    DELETE FROM partner_link_codes WHERE couple_id = old_couple_id;
+    DELETE FROM couples WHERE id = old_couple_id;
+
+    UPDATE profiles SET
+      is_premium = EXISTS (
+        SELECT 1 FROM user_entitlements ue
+        WHERE ue.user_id = profiles.id
+          AND ue.is_premium = true
+          AND (ue.expires_at IS NULL OR ue.expires_at > now())
+      ),
+      updated_at = now()
+    WHERE id = ANY(affected_member_ids);
   END IF;
 
   INSERT INTO couples (created_by) VALUES (caller_id)

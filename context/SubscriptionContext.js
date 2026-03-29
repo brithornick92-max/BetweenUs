@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useCallback, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useCallback, useMemo, useRef, useState } from "react";
 import Purchases from "react-native-purchases";
 import RevenueCatService from "../services/RevenueCatService";
 import { storage, STORAGE_KEYS, cloudSyncStorage } from "../utils/storage";
@@ -290,7 +290,7 @@ export const SubscriptionProvider = ({ children }) => {
     }
   };
 
-  const value = {
+  const value = useMemo(() => ({
     isPremium: effectiveIsPremium,
     isLoading,
     offerings,
@@ -303,7 +303,8 @@ export const SubscriptionProvider = ({ children }) => {
       premiumListenersRef.current.add(cb);
       return () => premiumListenersRef.current.delete(cb);
     },
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [effectiveIsPremium, isLoading, offerings, subscriptionDetails, customerInfo]);
 
   return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;
 };

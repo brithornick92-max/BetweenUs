@@ -211,25 +211,55 @@ function AppContent() {
     };
   }, [isPremium]);
 
-  // Register Expo push token when Supabase session is available
+  // Keep Expo push token state aligned with the current Supabase session.
   useEffect(() => {
     let active = true;
+    let unsubscribe = null;
+
+    const syncPushRegistration = async (session, requestPermissions = false) => {
+      try {
+        const { supabase } = require("./config/supabase");
+        if (!supabase || !active) return;
+
+        if (session && active) {
+          await PushNotificationService.initialize(supabase, { requestPermissions });
+        } else {
+          await PushNotificationService.removeToken(supabase);
+        }
+      } catch (pushErr) {
+        CrashReporting.captureException(pushErr, { source: 'push_registration' });
+      }
+    };
+
     const registerPush = async () => {
       try {
         const { supabase } = require("./config/supabase");
         if (!supabase || !active) return;
+
         const { data: { session } } = await supabase.auth.getSession();
-        if (session && active) {
-          await PushNotificationService.initialize(supabase, { requestPermissions: true });
-        }
+        await syncPushRegistration(session, true);
+
+        const authListener = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+          await syncPushRegistration(nextSession, true);
+        });
+
+        unsubscribe =
+          authListener?.data?.subscription?.unsubscribe ||
+          authListener?.subscription?.unsubscribe ||
+          authListener?.unsubscribe ||
+          null;
       } catch (pushErr) {
-        // Push registration is non-critical but worth logging
-        CrashReporting.captureException(pushErr, { source: 'push_registration' });
+        CrashReporting.captureException(pushErr, { source: 'push_registration_subscribe' });
       }
     };
+
     registerPush();
-    return () => { active = false; };
-  }, [isPremium]);
+
+    return () => {
+      active = false;
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, []);
 
   const paywallNavPending = useRef(false);
   useEffect(() => {

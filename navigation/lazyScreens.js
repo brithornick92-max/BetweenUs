@@ -7,54 +7,60 @@
  *
  * ⚠️  DO NOT convert these to top-level imports — that defeats lazy loading.
  *     This file is intentionally structured with inline require() calls.
+ *
+ * Every screen is wrapped with ScreenErrorBoundary so a crash in one screen
+ * cannot propagate up to the navigation tree or root error boundary.
  */
 
+import { withScreenErrorBoundary } from "../components/ScreenErrorBoundary";
+
 // ─── Main screens ───────────────────────────────────────────────────
-export const DateNightDetail = () => require("../screens/DateNightDetailScreen").default;
-export const HeatLevel = () => require("../screens/HeatLevelScreen").default;
-export const JournalEntry = () => require("../screens/JournalEntryScreen").default;
-export const VibeSignal = () => require("../screens/VibeSignalScreen").default;
-export const EditorialPrompt = () => require("../screens/EditorialPromptScreen").default;
-export const NightRitual = () => require("../screens/NightRitualScreen").default;
-export const Settings = () => require("../screens/SettingsScreen").default;
-export const AdaptiveHome = () => require("../components/AdaptiveHomeScreen").default;
+export const DateNightDetail = () => withScreenErrorBoundary(require("../screens/DateNightDetailScreen").default, "DateNightDetail");
+export const HeatLevel = () => withScreenErrorBoundary(require("../screens/HeatLevelScreen").default, "HeatLevel");
+export const JournalEntry = () => withScreenErrorBoundary(require("../screens/JournalEntryScreen").default, "JournalEntry");
+export const VibeSignal = () => withScreenErrorBoundary(require("../screens/VibeSignalScreen").default, "VibeSignal");
+export const EditorialPrompt = () => withScreenErrorBoundary(require("../screens/EditorialPromptScreen").default, "EditorialPrompt");
+export const NightRitual = () => withScreenErrorBoundary(require("../screens/NightRitualScreen").default, "NightRitual");
+export const Settings = () => withScreenErrorBoundary(require("../screens/SettingsScreen").default, "Settings");
+export const AdaptiveHome = () => withScreenErrorBoundary(require("../components/AdaptiveHomeScreen").default, "AdaptiveHome");
 
 // ─── Legal / info ───────────────────────────────────────────────────
-export const Terms = () => require("../screens/TermsScreen").default;
-export const PrivacyPolicy = () => require("../screens/PrivacyPolicyScreen").default;
-export const FAQ = () => require("../screens/FAQScreen").default;
-export const EULA = () => require("../screens/EULAScreen").default;
-export const ExportData = () => require("../screens/ExportDataScreen").default;
-export const DeleteAccount = () => require("../screens/DeleteAccountScreen").default;
+export const Terms = () => withScreenErrorBoundary(require("../screens/TermsScreen").default, "Terms");
+export const PrivacyPolicy = () => withScreenErrorBoundary(require("../screens/PrivacyPolicyScreen").default, "PrivacyPolicy");
+export const FAQ = () => withScreenErrorBoundary(require("../screens/FAQScreen").default, "FAQ");
+export const EULA = () => withScreenErrorBoundary(require("../screens/EULAScreen").default, "EULA");
+export const ExportData = () => withScreenErrorBoundary(require("../screens/ExportDataScreen").default, "ExportData");
+export const DeleteAccount = () => withScreenErrorBoundary(require("../screens/DeleteAccountScreen").default, "DeleteAccount");
 
 // ─── Settings sub-screens ───────────────────────────────────────────
-export const PartnerNamesSettings = () => require("../screens/PartnerNamesSettingsScreen").default;
-export const HeatLevelSettings = () => require("../screens/HeatLevelSettingsScreen").default;
-export const NotificationSettings = () => require("../screens/NotificationSettingsScreen").default;
-export const RitualReminders = () => require("../screens/RitualRemindersScreen").default;
-export const PrivacySecuritySettings = () => require("../screens/PrivacySecuritySettingsScreen").default;
-export const SetPin = () => require("../screens/SetPinScreen").default;
-export const SyncSetup = () => require("../screens/SyncSetupScreen").default;
+export const PartnerNamesSettings = () => withScreenErrorBoundary(require("../screens/PartnerNamesSettingsScreen").default, "PartnerNamesSettings");
+export const HeatLevelSettings = () => withScreenErrorBoundary(require("../screens/HeatLevelSettingsScreen").default, "HeatLevelSettings");
+export const NotificationSettings = () => withScreenErrorBoundary(require("../screens/NotificationSettingsScreen").default, "NotificationSettings");
+export const RitualReminders = () => withScreenErrorBoundary(require("../screens/RitualRemindersScreen").default, "RitualReminders");
+export const PrivacySecuritySettings = () => withScreenErrorBoundary(require("../screens/PrivacySecuritySettingsScreen").default, "PrivacySecuritySettings");
+export const SetPin = () => withScreenErrorBoundary(require("../screens/SetPinScreen").default, "SetPin");
+export const SyncSetup = () => withScreenErrorBoundary(require("../screens/SyncSetupScreen").default, "SyncSetup");
 
 // ─── Pairing ────────────────────────────────────────────────────────
-export const PairingQRCode = () => require("../screens/PairingQRCodeScreen").default;
-export const PairingScan = () => require("../screens/PairingScanScreen").default;
-export const JoinWithCode = () => require("../screens/JoinWithCodeScreen").default;
+export const PairingQRCode = () => withScreenErrorBoundary(require("../screens/PairingQRCodeScreen").default, "PairingQRCode");
+export const PairingScan = () => withScreenErrorBoundary(require("../screens/PairingScanScreen").default, "PairingScan");
+export const JoinWithCode = () => withScreenErrorBoundary(require("../screens/JoinWithCodeScreen").default, "JoinWithCode");
 
 // ─── Love notes ─────────────────────────────────────────────────────
-export const LoveNotesInbox = () => require("../screens/LoveNotesInboxScreen").default;
-export const ComposeLoveNote = () => require("../screens/ComposeLoveNoteScreen").default;
-export const LoveNoteDetail = () => require("../screens/LoveNoteDetailScreen").default;
+export const LoveNotesInbox = () => withScreenErrorBoundary(require("../screens/LoveNotesInboxScreen").default, "LoveNotesInbox");
+export const ComposeLoveNote = () => withScreenErrorBoundary(require("../screens/ComposeLoveNoteScreen").default, "ComposeLoveNote");
+export const LoveNoteDetail = () => withScreenErrorBoundary(require("../screens/LoveNoteDetailScreen").default, "LoveNoteDetail");
 
 // ─── Premium / paywall ──────────────────────────────────────────────
-export const PromptLibrary = () => require("../screens/PromptLibraryScreen").default;
-export const Paywall = () => require("../screens/PaywallScreen").default;
-export const Premium = () => require("../screens/PremiumScreen").default;
-export const InsideJokes = () => require("../screens/InsideJokesScreen").default;
-export const YearReflection = () => require("../screens/YearReflectionScreen").default;
+export const PromptLibrary = () => withScreenErrorBoundary(require("../screens/PromptLibraryScreen").default, "PromptLibrary");
+export const Paywall = () => withScreenErrorBoundary(require("../screens/PaywallScreen").default, "Paywall");
+export const Premium = () => withScreenErrorBoundary(require("../screens/PremiumScreen").default, "Premium");
+export const InsideJokes = () => withScreenErrorBoundary(require("../screens/InsideJokesScreen").default, "InsideJokes");
+export const YearReflection = () => withScreenErrorBoundary(require("../screens/YearReflectionScreen").default, "YearReflection");
 
 // ─── Modal screens ──────────────────────────────────────────────────
-export const PromptAnswer = () => require("../screens/PromptAnswerScreen").default;
-export const Reveal = () => require("../screens/RevealScreen").default;
-export const RevenueCatPaywall = () => require("../components/RevenueCatPaywall").default;
-export const CustomerCenter = () => require("../components/CustomerCenter").default;
+export const PromptAnswer = () => withScreenErrorBoundary(require("../screens/PromptAnswerScreen").default, "PromptAnswer");
+export const Reveal = () => withScreenErrorBoundary(require("../screens/RevealScreen").default, "Reveal");
+export const RevenueCatPaywall = () => withScreenErrorBoundary(require("../components/RevenueCatPaywall").default, "RevenueCatPaywall");
+export const CustomerCenter = () => withScreenErrorBoundary(require("../components/CustomerCenter").default, "CustomerCenter");
+

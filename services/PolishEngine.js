@@ -512,7 +512,7 @@ export const SoftBoundaries = {
   async shouldShowPrompt(prompt) {
     const data = await this._getAll();
     if (data.hideSpicy && prompt.heat >= 4) return false;
-    if (data.maxHeatOverride && prompt.heat > data.maxHeatOverride) return false;
+    if (data.maxHeatOverride != null && prompt.heat > data.maxHeatOverride) return false;
     if (data.hiddenCategories.includes(prompt.category)) return false;
     if (data.pausedEntries.includes(prompt.id)) return false;
     return true;

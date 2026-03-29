@@ -46,6 +46,13 @@ const ACTIONS = {
   UPDATE_PARTNER_ACTIVITY: 'UPDATE_PARTNER_ACTIVITY',
 };
 
+async function persistPartnerActivity(ts) {
+  const saved = await storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, ts);
+  if (!saved && __DEV__) {
+    console.warn('[AppContext] Failed to persist partner activity timestamp');
+  }
+}
+
 function reducer(state, action) {
   switch (action.type) {
     case ACTIONS.SYNC:
@@ -119,6 +126,8 @@ export function AppProvider({ children }) {
   stateRef.current = state;
   const isPremiumRef = useRef(isPremium);
   isPremiumRef.current = isPremium;
+  const isCouplePremiumRef = useRef(isCouplePremium);
+  isCouplePremiumRef.current = isCouplePremium;
 
   useEffect(() => {
     let unsubscribe = null;
@@ -211,6 +220,13 @@ export function AppProvider({ children }) {
       // QR pairing does not use invite codes, so coupleId alone marks linkage.
       const now = Date.now();
       const isActuallyLinked = !!resolvedCoupleId;
+      let supabaseUserId = null;
+
+      try {
+        const { supabase } = await import('../config/supabase');
+        const { data: authData } = supabase ? await supabase.auth.getUser() : { data: null };
+        supabaseUserId = authData?.user?.id || null;
+      } catch (_) {}
       
       // If linked but no recent activity, set initial activity timestamp
       let effectivePartnerActivity = lastPartnerActivity;
@@ -229,7 +245,7 @@ export function AppProvider({ children }) {
           isLinked: isActuallyLinked,
           appLockEnabled: !!appLockEnabled,
           isPremium, 
-          isCouplePremium: isPremium,
+          isCouplePremium,
           lastPartnerActivity: isActuallyLinked ? effectivePartnerActivity : null,
         } 
       });
@@ -255,7 +271,7 @@ export function AppProvider({ children }) {
                   if (!active) return;
                   const row = payload.new;
                   // Partner vibe update
-                  if (row?.data_type === 'vibe' && row?.created_by !== userId) {
+                  if (row?.data_type === 'vibe' && supabaseUserId && row?.created_by !== supabaseUserId) {
                     try {
                       const vibeData = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
                       dispatch({ type: ACTIONS.SET_PARTNER_VIBE, payload: { vibe: vibeData } });
@@ -267,7 +283,9 @@ export function AppProvider({ children }) {
                     }
                     const ts = Date.now();
                     dispatch({ type: ACTIONS.UPDATE_PARTNER_ACTIVITY, payload: ts });
-                    storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, ts);
+                    persistPartnerActivity(ts).catch((e) => {
+                      if (__DEV__) console.warn('[AppContext] Partner activity persist failed:', e?.message);
+                    });
                   }
                   dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status: 'synced' } });
                 }
@@ -302,17 +320,19 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     dispatch({ type: ACTIONS.REFRESH_PREMIUM, payload: { isPremium, isCouplePremium } });
-  }, [isPremium]);
+  }, [isCouplePremium, isPremium]);
 
   const actions = useMemo(() => ({
     unlock: () => dispatch({ type: ACTIONS.UNLOCK }),
     refreshPremium: async () => {
       const p = isPremiumRef.current;
-      dispatch({ type: ACTIONS.REFRESH_PREMIUM, payload: { isPremium: p, isCouplePremium: p } });
+      const cp = isCouplePremiumRef.current;
+      dispatch({ type: ACTIONS.REFRESH_PREMIUM, payload: { isPremium: p, isCouplePremium: cp } });
     },
     refreshPremiumStatus: async () => {
       const p = isPremiumRef.current;
-      dispatch({ type: ACTIONS.REFRESH_PREMIUM, payload: { isPremium: p, isCouplePremium: p } });
+      const cp = isCouplePremiumRef.current;
+      dispatch({ type: ACTIONS.REFRESH_PREMIUM, payload: { isPremium: p, isCouplePremium: cp } });
     },
     
     // Premium Value Loop Actions
@@ -340,7 +360,9 @@ export function AppProvider({ children }) {
       // Update partner activity timestamp when receiving partner vibe
       const now = Date.now();
       dispatch({ type: ACTIONS.UPDATE_PARTNER_ACTIVITY, payload: now });
-      storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, now);
+      persistPartnerActivity(now).catch((e) => {
+        if (__DEV__) console.warn('[AppContext] Partner activity persist failed:', e?.message);
+      });
     },
     setSyncStatus: (status) => {
       dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: { status } });

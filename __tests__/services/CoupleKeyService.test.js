@@ -145,4 +145,188 @@ describe('CoupleKeyService', () => {
       expect(await CoupleKeyService.hasCoupleKey('couple-1')).toBe(false);
     });
   });
+
+  describe('X25519 ECDH key exchange (deriveFromKeyExchange)', () => {
+    it('derives the same 32-byte key from both sides of a key exchange', async () => {
+      // Simulate two devices: Alice (inviter) and Bob (scanner)
+      const aliceKp = nacl.box.keyPair();
+      const bobKp = nacl.box.keyPair();
+
+      // Alice derives: nacl.box.before(bobPublicKey, aliceSecretKey) → HKDF
+      const aliceRaw = nacl.box.before(bobKp.publicKey, aliceKp.secretKey);
+      const aliceDerived = CoupleKeyService._kdf(aliceRaw);
+
+      // Bob derives: nacl.box.before(alicePublicKey, bobSecretKey) → HKDF
+      const bobRaw = nacl.box.before(aliceKp.publicKey, bobKp.secretKey);
+      const bobDerived = CoupleKeyService._kdf(bobRaw);
+
+      // Both sides must arrive at the same key
+      expect(naclUtil.encodeBase64(aliceDerived)).toBe(naclUtil.encodeBase64(bobDerived));
+      expect(aliceDerived.length).toBe(32);
+    });
+
+    it('deriveFromKeyExchange uses the stored device keypair', async () => {
+      const SecureStore = require('expo-secure-store');
+      const partnerKp = nacl.box.keyPair();
+
+      // Let the device keypair be generated fresh
+      SecureStore.getItemAsync.mockResolvedValueOnce(null);
+
+      const key = await CoupleKeyService.deriveFromKeyExchange(partnerKp.publicKey);
+      expect(key).toBeInstanceOf(Uint8Array);
+      expect(key.length).toBe(32);
+    });
+
+    it('produces different keys for different partners', async () => {
+      const SecureStore = require('expo-secure-store');
+      const partnerA = nacl.box.keyPair();
+      const partnerB = nacl.box.keyPair();
+
+      SecureStore.getItemAsync.mockResolvedValue(null);
+
+      const keyA = await CoupleKeyService.deriveFromKeyExchange(partnerA.publicKey);
+      const keyB = await CoupleKeyService.deriveFromKeyExchange(partnerB.publicKey);
+
+      expect(naclUtil.encodeBase64(keyA)).not.toBe(naclUtil.encodeBase64(keyB));
+    });
+  });
+
+  describe('wrapKeyForDevice / unwrapKeyForDevice', () => {
+    it('round-trips the couple key via nacl.box envelope', async () => {
+      const SecureStore = require('expo-secure-store');
+      SecureStore.getItemAsync.mockResolvedValue(null);
+
+      // Generate a couple key
+      const coupleKey = nacl.randomBytes(32);
+
+      // Get this device's public key
+      const kp = await CoupleKeyService.getDeviceKeyPair();
+
+      // Wrap the couple key for this same device (self-wrapping test)
+      const wrapped = await CoupleKeyService.wrapKeyForDevice(coupleKey, kp.publicKey);
+      expect(typeof wrapped).toBe('string');
+
+      const parsed = JSON.parse(wrapped);
+      expect(parsed.n).toBeTruthy();
+      expect(parsed.c).toBeTruthy();
+      expect(parsed.from).toBeTruthy();
+
+      // Unwrap and verify
+      const unwrapped = await CoupleKeyService.unwrapKeyForDevice(wrapped);
+      expect(unwrapped).toBeInstanceOf(Uint8Array);
+      expect(unwrapped.length).toBe(32);
+      expect(naclUtil.encodeBase64(unwrapped)).toBe(naclUtil.encodeBase64(coupleKey));
+    });
+
+    it('returns null when unwrapping a tampered envelope', async () => {
+      const SecureStore = require('expo-secure-store');
+      SecureStore.getItemAsync.mockResolvedValue(null);
+
+      const coupleKey = nacl.randomBytes(32);
+      const kp = await CoupleKeyService.getDeviceKeyPair();
+      const wrapped = await CoupleKeyService.wrapKeyForDevice(coupleKey, kp.publicKey);
+
+      // Tamper with the ciphertext
+      const parsed = JSON.parse(wrapped);
+      const cBytes = naclUtil.decodeBase64(parsed.c);
+      cBytes[0] ^= 0xFF; // flip bits
+      parsed.c = naclUtil.encodeBase64(cBytes);
+
+      const result = await CoupleKeyService.unwrapKeyForDevice(JSON.stringify(parsed));
+      expect(result).toBeNull();
+    });
+
+    it('returns null for malformed JSON input', async () => {
+      const result = await CoupleKeyService.unwrapKeyForDevice('not-json');
+      expect(result).toBeNull();
+    });
+
+    it('returns null when required fields are missing', async () => {
+      const result = await CoupleKeyService.unwrapKeyForDevice(JSON.stringify({ n: 'abc' }));
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('rotateCoupleKey', () => {
+    it('generates a new 32-byte key and increments the version', async () => {
+      const SecureStore = require('expo-secure-store');
+      const coupleId = 'couple-rotate-test';
+
+      // Simulate stored version of 1
+      SecureStore.getItemAsync.mockImplementation(async (key) => {
+        if (key.includes('_kv_')) return '1';
+        return null;
+      });
+      SecureStore.setItemAsync.mockResolvedValue(undefined);
+
+      const { key, version } = await CoupleKeyService.rotateCoupleKey(coupleId);
+      expect(key).toBeInstanceOf(Uint8Array);
+      expect(key.length).toBe(32);
+      expect(version).toBe(2);
+    });
+
+    it('produces a different key each rotation', async () => {
+      const SecureStore = require('expo-secure-store');
+      const coupleId = 'couple-rotate-unique';
+
+      let storedVersion = '1';
+      const store = {};
+      SecureStore.getItemAsync.mockImplementation(async (key) => {
+        if (key.includes('_kv_')) return storedVersion;
+        return store[key] || null;
+      });
+      SecureStore.setItemAsync.mockImplementation(async (key, value) => {
+        if (key.includes('_kv_')) storedVersion = value;
+        store[key] = value;
+      });
+
+      const { key: key1 } = await CoupleKeyService.rotateCoupleKey(coupleId);
+      const { key: key2 } = await CoupleKeyService.rotateCoupleKey(coupleId);
+
+      expect(naclUtil.encodeBase64(key1)).not.toBe(naclUtil.encodeBase64(key2));
+    });
+  });
+
+  describe('clearCoupleKey', () => {
+    it('deletes both the key and version entries from SecureStore', async () => {
+      const SecureStore = require('expo-secure-store');
+      SecureStore.deleteItemAsync.mockResolvedValue(undefined);
+
+      await CoupleKeyService.clearCoupleKey('couple-clear-test');
+
+      const deletedKeys = SecureStore.deleteItemAsync.mock.calls.map(c => c[0]);
+      expect(deletedKeys.some(k => k.includes('couple_key_'))).toBe(true);
+      expect(deletedKeys.some(k => k.includes('couple_kv_'))).toBe(true);
+    });
+  });
+
+  describe('getDevicePublicKeyB64', () => {
+    it('returns a base64-encoded 32-byte public key', async () => {
+      const SecureStore = require('expo-secure-store');
+      SecureStore.getItemAsync.mockResolvedValue(null);
+
+      const pubKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
+      expect(typeof pubKeyB64).toBe('string');
+      const bytes = naclUtil.decodeBase64(pubKeyB64);
+      expect(bytes.length).toBe(32);
+    });
+  });
+
+  describe('clearDeviceKeyPairCache', () => {
+    it('forces a SecureStore read on next call', async () => {
+      const SecureStore = require('expo-secure-store');
+      SecureStore.getItemAsync.mockResolvedValue(null);
+
+      // Warm the cache
+      await CoupleKeyService.getDeviceKeyPair();
+      const callsBefore = SecureStore.getItemAsync.mock.calls.length;
+
+      // Clear cache
+      CoupleKeyService.clearDeviceKeyPairCache();
+
+      // Next call should hit SecureStore again
+      await CoupleKeyService.getDeviceKeyPair();
+      expect(SecureStore.getItemAsync.mock.calls.length).toBeGreaterThan(callsBefore);
+    });
+  });
 });

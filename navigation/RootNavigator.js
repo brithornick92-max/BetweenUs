@@ -7,6 +7,7 @@ import { useTheme } from "../context/ThemeContext";
 import { TYPOGRAPHY } from "../utils/theme";
 import ConnectionMemory from "../utils/connectionMemory";
 import AnalyticsService from "../services/AnalyticsService";
+import { withScreenErrorBoundary } from "../components/ScreenErrorBoundary";
 
 // Eagerly-loaded screens (critical path — auth, onboarding, main tabs)
 import AuthScreen from "../screens/AuthScreen";

@@ -39,7 +39,7 @@ const unb64 = naclUtil.decodeBase64;
 // Cleared on lock, sign-out, app background, or after idle timeout.
 let _vaultKeyCache = null;
 let _vaultCacheTimer = null;
-const VAULT_CACHE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+const VAULT_CACHE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes — reduces exposure if device is compromised
 
 const _resetCacheTimer = () => {
   if (_vaultCacheTimer) clearTimeout(_vaultCacheTimer);

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import StorageRouter from '../services/storage/StorageRouter';
 import CloudEngine from '../services/storage/CloudEngine';
 import EncryptionService from '../services/EncryptionService';
@@ -13,6 +13,8 @@ import * as FileSystem from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 import AnalyticsService from '../services/AnalyticsService';
 import CrashReporting from '../services/CrashReporting';
+import PushNotificationService from '../services/PushNotificationService';
+import { supabase } from '../config/supabase';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 
 const AuthContext = createContext(null);
@@ -223,6 +225,14 @@ export const AuthProvider = ({ children }) => {
       // Get coupleId BEFORE signing out so it's still accessible
       const coupleId = await StorageRouter.getCoupleId();
 
+      try {
+        if (supabase) {
+          await PushNotificationService.removeToken(supabase);
+        }
+      } catch (pushErr) {
+        if (__DEV__) console.warn('[AuthContext] Push token cleanup failed:', pushErr?.message);
+      }
+
       await StorageRouter.signOut(scope);
 
       if (coupleId) {
@@ -344,7 +354,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     userProfile,
 
@@ -365,7 +375,8 @@ export const AuthProvider = ({ children }) => {
     deleteUserAccount,
 
     coupleId: userProfile?.coupleId || null,
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [user, userProfile, initializing, busy, requiresOnboarding]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

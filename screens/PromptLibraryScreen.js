@@ -115,6 +115,20 @@ const resolveSelectableMaxHeat = (profile, selectedHeat) => {
   return Math.min(...caps);
 };
 
+// Synchronous boundary filter used when contentProfile is unavailable
+function applyRawBoundaryFilter(items, bounds) {
+  if (!bounds) return items;
+  return items.filter((p) => {
+    if (!p) return false;
+    const heat = p.heat || 1;
+    if (bounds.hideSpicy && heat >= 4) return false;
+    if (bounds.maxHeatOverride != null && heat > bounds.maxHeatOverride) return false;
+    if (bounds.hiddenCategories?.includes(p.category)) return false;
+    if (bounds.pausedEntries?.includes(p.id)) return false;
+    return true;
+  });
+}
+
 export default function PromptLibraryScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
@@ -129,6 +143,7 @@ export default function PromptLibraryScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTone, setSelectedTone] = useState('warm');
   const [contentProfile, setContentProfile] = useState(null);
+  const [rawBoundaries, setRawBoundaries] = useState(null);
 
   const [prompts, setPrompts] = useState([]);
   const [allPromptsCount, setAllPromptsCount] = useState(0);
@@ -161,14 +176,19 @@ export default function PromptLibraryScreen({ navigation }) {
 
       (async () => {
         try {
-          const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+          const [profile, bounds] = await Promise.all([
+            PreferenceEngine.getContentProfile(userProfile || {}),
+            SoftBoundaries.getAll(),
+          ]);
           if (!active) return;
           setContentProfile(profile);
+          setRawBoundaries(bounds);
           if (profile?.heatLevel) setSelectedHeat(profile.heatLevel);
           setSelectedTone(profile?.tone || 'warm');
         } catch {
           if (!active) return;
           setContentProfile(null);
+          SoftBoundaries.getAll().then(b => { if (active) setRawBoundaries(b); }).catch(() => {});
           setSelectedTone('warm');
         }
       })();
@@ -207,7 +227,7 @@ export default function PromptLibraryScreen({ navigation }) {
           ...contentProfile,
           maxHeat: selectableMaxHeat,
         }).map(normalizePrompt)
-      : Array.isArray(prompts) ? prompts : [];
+      : applyRawBoundaryFilter(Array.isArray(prompts) ? prompts : [], rawBoundaries);
     const isLocked = !isPremium && selectedHeat >= 4;
 
     if (isLocked) {
@@ -245,7 +265,7 @@ export default function PromptLibraryScreen({ navigation }) {
       ? PreferenceEngine.filterPrompts(browsable, rankingProfile)
       : browsable;
     return PromptAllocator.tagAnswered(ranked);
-  }, [prompts, selectedCategory, selectedHeat, selectedDuration, searchQuery, isPremium, contentProfile]);
+  }, [prompts, selectedCategory, selectedHeat, selectedDuration, searchQuery, isPremium, contentProfile, rawBoundaries]);
 
   const toggleFavorite = useCallback(async (promptId) => {
     if (!promptId) return;

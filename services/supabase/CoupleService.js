@@ -226,11 +226,13 @@ const CoupleService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data: membership } = await supabase
+    const { data: membership, error } = await supabase
       .from('couple_members')
       .select('couple_id, role, couples(*)')
       .eq('user_id', user.id)
       .maybeSingle();
+
+    if (error) throw error;
 
     return membership || null;
   },

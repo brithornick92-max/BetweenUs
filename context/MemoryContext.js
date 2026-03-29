@@ -98,8 +98,9 @@ export function MemoryProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const stateRef = useRef(state);
   stateRef.current = state;
-  const { actions: appActions } = useAppContext();
+  const { state: appState, actions: appActions } = useAppContext();
   const { data: DataLayer } = useData();
+  const coupleId = appState?.coupleId || null;
 
   // Load memories from DataLayer (SQLite + E2EE) on mount
   useEffect(() => {
@@ -153,7 +154,9 @@ export function MemoryProvider({ children }) {
       });
 
       // Also write to legacy manager for PDF/recap (fire-and-forget)
-      memoryManager.addMemory(memoryData).catch(() => {});
+      memoryManager.addMemory(memoryData).catch((err) => {
+        if (__DEV__) console.warn('[MemoryContext] Legacy addMemory failed:', err?.message);
+      });
 
       dispatch({ type: ACTIONS.ADD_MEMORY, payload: { memory } });
 
@@ -168,12 +171,15 @@ export function MemoryProvider({ children }) {
       // Re-encrypt updated fields and write through DataLayer (SQLite + sync)
       const dbUpdates = {};
       if (updates.content !== undefined || updates.text !== undefined) {
-        const kt = updates.isPrivate ? 'device' : 'couple';
+        const existingMemory = stateRef.current.memories.find((memory) => memory.id === memoryId);
+        const isPrivate = updates.isPrivate ?? existingMemory?.isPrivate ?? false;
+        const kt = isPrivate ? 'device' : 'couple';
+        const cid = kt === 'couple' ? coupleId : null;
         const { default: E2EEncryption } = await import('../services/e2ee/E2EEncryption');
         dbUpdates.body_cipher = await E2EEncryption.encryptString(
           updates.content || updates.text || '',
           kt,
-          null
+          cid
         );
       }
       if (updates.type !== undefined) dbUpdates.type = updates.type;
@@ -192,7 +198,9 @@ export function MemoryProvider({ children }) {
       }
 
       // Also update legacy manager (fire-and-forget)
-      memoryManager.updateMemory(memoryId, updates).catch(() => {});
+      memoryManager.updateMemory(memoryId, updates).catch((err) => {
+        if (__DEV__) console.warn('[MemoryContext] Legacy updateMemory failed:', err?.message);
+      });
 
       dispatch({ type: ACTIONS.UPDATE_MEMORY, payload: { memory: updatedMemory } });
 
@@ -248,7 +256,7 @@ export function MemoryProvider({ children }) {
         return { success: false, error: err?.message };
       }
     },
-  }), [appActions, DataLayer]);
+  }), [appActions, coupleId, DataLayer]);
 
   return (
     <MemoryContext.Provider value={useMemo(() => ({ state, actions }), [state, actions])}>
