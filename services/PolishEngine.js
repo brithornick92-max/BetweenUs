@@ -31,8 +31,12 @@ const _encrypt = async (data) => {
   try {
     const { default: EncryptionService } = await import('./EncryptionService');
     return { __enc: true, d: await EncryptionService.encryptJson(data) };
-  } catch {
-    return data; // Fall back to plaintext if encryption unavailable
+  } catch (err) {
+    try {
+      const { default: CrashReporting } = await import('./CrashReporting');
+      CrashReporting.captureException(err, { source: 'polish_engine_encrypt' });
+    } catch {}
+    return data;
   }
 };
 const _decrypt = async (raw) => {

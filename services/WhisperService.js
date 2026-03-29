@@ -106,9 +106,6 @@ async function upload({ fileUri, coupleId, senderId, durationMs, coupleKey }) {
   const whisperKey = deriveWhisperKey(coupleKey);
   const { ciphertextB64, nonceB64 } = await encryptFile(fileUri, whisperKey);
 
-  // Delete local recording immediately — it's encrypted now
-  await FileSystem.deleteAsync(fileUri, { idempotent: true });
-
   const whisperId = `${coupleId}_${senderId}_${Date.now()}`;
   const storagePath = `${coupleId}/${whisperId}.bin`;
 
@@ -121,6 +118,9 @@ async function upload({ fileUri, coupleId, senderId, durationMs, coupleKey }) {
     });
 
   if (uploadError) throw new Error(`WhisperService upload: ${uploadError.message}`);
+
+  // Delete local recording only after successful upload
+  await FileSystem.deleteAsync(fileUri, { idempotent: true });
 
   // Store metadata in couple_data (no sensitive content here)
   const { error: metaError } = await supabase
