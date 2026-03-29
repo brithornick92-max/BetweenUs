@@ -177,11 +177,20 @@ Deno.serve(async (req: Request) => {
           })?.user_id ?? "none"
       : "none";
 
+    // Preserve original premium_since on renewals — only set it when transitioning to premium
+    const { data: currentCouple } = await supabase
+      .from("couples")
+      .select("premium_since")
+      .eq("id", membership.couple_id)
+      .maybeSingle();
+
     await supabase
       .from("couples")
       .update({
         is_premium: anyPremium,
-        premium_since: anyPremium ? new Date().toISOString() : null,
+        premium_since: anyPremium
+          ? (currentCouple?.premium_since ?? new Date().toISOString())
+          : null,
         premium_source: premiumSource,
         updated_at: new Date().toISOString(),
       })

@@ -35,11 +35,6 @@ const _resolvePresenceKey = async (localUserId) => {
     const session = await SupabaseAuthService.signInWithStoredCredentials();
     if (session?.user?.id) return session.user.id;
   } catch (_) {}
-  // Last resort: sign in anonymously to get a real JWT for Realtime
-  try {
-    const { data } = await supabase.auth.signInAnonymously();
-    if (data?.user?.id) return data.user.id;
-  } catch (_) {}
   return localUserId;
 };
 

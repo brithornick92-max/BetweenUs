@@ -19,7 +19,8 @@
         "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing.",
         "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes, journal entries, and memories.",
         "NSFaceIDUsageDescription": "Between Us uses Face ID to protect your private content with biometric authentication.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": true,
+        "ITSEncryptionExportComplianceCode": ""
       },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
@@ -71,8 +72,6 @@
     "android": {
       "package": "com.brittany.betweenus",
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]

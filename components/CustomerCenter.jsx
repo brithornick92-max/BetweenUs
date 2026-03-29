@@ -13,6 +13,7 @@ import { RevenueCatUI, CUSTOMER_CENTER_ACTION } from 'react-native-purchases-ui'
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useTheme } from '../context/ThemeContext';
+import AnalyticsService from '../services/AnalyticsService';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { SPACING } from '../utils/theme';
 
@@ -81,6 +82,7 @@ export default function CustomerCenter({ onDismiss }) {
 
             case CUSTOMER_CENTER_ACTION.RESTORED:
               if (__DEV__) console.log('Purchases restored');
+              AnalyticsService.trackPurchase('restore_completed', { source: 'customerCenter' });
               notification(NotificationFeedbackType.Success);
               Alert.alert(
                 'Purchases Restored',

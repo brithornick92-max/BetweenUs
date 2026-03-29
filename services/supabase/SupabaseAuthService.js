@@ -22,7 +22,7 @@ export const SupabaseAuthService = {
    */
   async signUp(email, password) {
     if (!email) throw new Error("Email is required");
-    if (!password || password.length < 6) throw new Error("Password must be at least 6 characters");
+    if (!password || password.length < 8) throw new Error("Password must be at least 8 characters");
     const supabase = getSupabaseOrThrow();
     const { data, error } = await withTimeout(supabase.auth.signUp({ email, password }));
     if (error) throw error;
