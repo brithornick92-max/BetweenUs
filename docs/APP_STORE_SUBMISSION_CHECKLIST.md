@@ -11,7 +11,7 @@ There are no known **repo-side** blockers remaining for iOS App Store submission
 The remaining work is operational and store-side:
 
 1. Complete App Store Connect privacy answers
-2. File ERN / self-classification for encryption
+2. Complete export compliance questionnaire in App Store Connect (exempt path)
 3. Verify production Supabase environment state
 4. Perform final real-device iOS smoke tests
 
@@ -93,7 +93,7 @@ ENCRYPTION:
 The app uses client-side encryption for private synced data before upload. App Store Connect currently classifies this implementation on the exempt path, so `ITSAppUsesNonExemptEncryption` should be set to `NO` in the shipped plist.
 ```
 
-## Encryption / ERN Checklist
+## Encryption / Export Compliance Checklist
 
 App Store Connect currently classifies this app on the exempt documentation path. Keep the following aligned for submission:
 

@@ -144,7 +144,7 @@ DATA DELETION: Settings → Privacy & Security → Delete Account
 (immediately deletes all user data, couple data, and auth record).
 ```
 
-### ERN/Encryption Documentation
+### Encryption Documentation
 App Store Connect currently classifies this app on the exempt documentation path. Keep the questionnaire answers and shipped plist aligned with `ITSAppUsesNonExemptEncryption: false`.
 
 Keep these details handy in case Apple requests clarification:
@@ -167,7 +167,7 @@ Keep these details handy in case Apple requests clarification:
 - [x] Run full automated validation (`13/13` test suites passing; deployment validator passing)
 - [ ] Verify cron jobs are running: `SELECT * FROM cron.job`
 - [ ] Verify App Store Connect privacy answers match B3 recommendations
-- [ ] File ERN self-classification with BIS (annual)
+- [ ] Confirm export compliance questionnaire in App Store Connect is answered on the exempt path
 - [ ] Build → inspect PrivacyInfo.xcprivacy in .app bundle
 - [ ] Test: kill app → send notification → tap → verify correct screen opens
 - [ ] Test: airplane mode → create content → restore network → verify sync
@@ -177,6 +177,6 @@ Keep these details handy in case Apple requests clarification:
 For **App Store submission only**, there are no known repo-side blockers remaining from this audit. The remaining work is:
 
 1. App Store Connect privacy declarations
-2. ERN / encryption filing
+2. Export compliance questionnaire in App Store Connect (exempt path)
 3. Production Supabase verification (cron jobs / migrations / RPC availability)
 4. Real-device notification and offline-sync verification on an iOS release build

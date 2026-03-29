@@ -149,7 +149,7 @@ Recommended rating from the audit:
 
 ### Encryption Compliance
 
-Because the app declares non-exempt encryption, confirm the compliance step is handled before final submission.
+The app is on the exempt export compliance path (`ITSAppUsesNonExemptEncryption = false`). Confirm the App Store Connect questionnaire answers are aligned to the exempt path before final submission.
 
 ## Phase 7 — Submit
 
