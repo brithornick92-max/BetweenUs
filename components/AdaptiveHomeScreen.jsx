@@ -232,9 +232,9 @@ export default function AdaptiveHomeScreen({ navigation }) {
             Quick Actions
           </Text>
           <View style={styles.shortcutsGrid}>
-            {shortcuts.map((shortcut, index) => (
+            {shortcuts.map((shortcut) => (
               <TouchableOpacity
-                key={index}
+                key={shortcut.screen}
                 style={[styles.shortcutCard, { backgroundColor: t.surface, borderColor: t.border }]}
                 onPress={() => handleShortcutPress(shortcut)}
                 activeOpacity={0.9}
@@ -269,8 +269,8 @@ export default function AdaptiveHomeScreen({ navigation }) {
                   <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading, color: t.subtext }]}>
                     Recent Milestones
                   </Text>
-                  {safeNewlyUnlocked.slice(0, 2).map((m, idx) => (
-                    <QuietMilestone key={idx} achievement={m} size={layout.type === 'compact' ? 'small' : 'medium'} />
+                  {safeNewlyUnlocked.slice(0, 2).map((m) => (
+                    <QuietMilestone key={m.id} achievement={m} size={layout.type === 'compact' ? 'small' : 'medium'} />
                   ))}
                 </View>
               ) : null;
@@ -281,8 +281,8 @@ export default function AdaptiveHomeScreen({ navigation }) {
                   <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading, color: t.subtext }]}>
                     Invitations
                   </Text>
-                  {safeInvitations.slice(0, 1).map((inv, idx) => (
-                    <InvitationCard key={idx} challenge={inv} compact={layout.type === 'compact'} />
+                  {safeInvitations.slice(0, 1).map((inv) => (
+                    <InvitationCard key={inv.id || inv.title} challenge={inv} compact={layout.type === 'compact'} />
                   ))}
                 </View>
               ) : null;
