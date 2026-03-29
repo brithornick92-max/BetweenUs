@@ -121,7 +121,9 @@ export const HEARTBEAT_SIGNAL = {
   icon: 'pulse-outline',
 };
 
-// No cooldown — users can send freely
+// 5-minute cooldown — keeps each signal intentional and prevents notification fatigue
+const MOMENT_COOLDOWN_MS = 5 * 60 * 1000;
+let _lastMomentSentAt = 0;
 
 export const MomentSignalSender = {
   /**
@@ -133,9 +135,9 @@ export const MomentSignalSender = {
     _setStoredContextValue(KEYS.MOMENT_COUPLE_ID, coupleId);
   },
 
-  /** Always allowed — no cooldown */
+  /** Returns true if cooldown has elapsed since last send */
   async canSend() {
-    return true;
+    return Date.now() - _lastMomentSentAt >= MOMENT_COOLDOWN_MS;
   },
 
   /**
@@ -145,11 +147,17 @@ export const MomentSignalSender = {
    *
    * @param {string} momentType — one of MOMENT_TYPES[].id
    * @param {{ requireRemote?: boolean }} options
-   * @returns {{ sent: boolean, remote: boolean, type: string, timestamp: number, error?: string }}
+   * @returns {{ sent: boolean, remote: boolean, type: string, timestamp: number, error?: string, cooldown?: boolean }}
    */
   async send(momentType, options = {}) {
     const { requireRemote = false } = options;
     const now = Date.now();
+
+    if (now - _lastMomentSentAt < MOMENT_COOLDOWN_MS) {
+      const remaining = Math.ceil((MOMENT_COOLDOWN_MS - (now - _lastMomentSentAt)) / 1000);
+      return { sent: false, remote: false, type: momentType, timestamp: now, cooldown: true, error: `Wait ${remaining}s before sending again.` };
+    }
+
     const timestamp = new Date(now).toISOString();
 
 
@@ -200,12 +208,14 @@ export const MomentSignalSender = {
             return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
           }
           // Still counts as "sent" locally — the user saw the confirmation
+          _lastMomentSentAt = now;
           return { sent: true, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
         }
 
         // Push notification is handled by the DB trigger on couple_data insert
         // (notify_on_couple_data_insert) — no client-side call needed.
 
+        _lastMomentSentAt = now;
         return { sent: true, remote: true, type: momentType, timestamp: now };
       } catch (err) {
         const errMsg = err.message || String(err) || 'Network or connection error';
@@ -228,6 +238,7 @@ export const MomentSignalSender = {
     }
 
     // ── Local-only fallback (no Supabase / not linked) ──
+    _lastMomentSentAt = now;
     return { sent: true, remote: false, type: momentType, timestamp: now };
   },
 
@@ -358,9 +369,10 @@ export const MomentSignalSender = {
     };
   },
 
-  /** @deprecated No cooldown — always returns 0 */
+  /** Returns milliseconds remaining before the next signal can be sent (0 if ready) */
   async getCooldownRemaining() {
-    return 0;
+    const elapsed = Date.now() - _lastMomentSentAt;
+    return Math.max(0, MOMENT_COOLDOWN_MS - elapsed);
   },
 };
 

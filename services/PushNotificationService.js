@@ -108,6 +108,10 @@ const PushNotificationService = {
       if (__DEV__) console.log('[Push] Token saved to Supabase');
     } catch (error) {
       if (__DEV__) console.error('[Push] Save token error:', error.message);
+      try {
+        const { default: CrashReporting } = await import('../services/CrashReporting');
+        CrashReporting.captureException(error, { source: 'push_token_save' });
+      } catch {}
     }
   },
 
@@ -136,6 +140,10 @@ const PushNotificationService = {
       await storage.remove(STORAGE_KEYS.PUSH_TOKEN);
     } catch (error) {
       if (__DEV__) console.error('[Push] Remove token error:', error.message);
+      try {
+        const { default: CrashReporting } = await import('../services/CrashReporting');
+        CrashReporting.captureException(error, { source: 'push_token_remove' });
+      } catch {}
     }
   },
 
