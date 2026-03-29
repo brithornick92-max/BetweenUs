@@ -251,7 +251,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
-      marginBottom: 16,
+    marginBottom: 16,
     justifyContent: 'center',
     ...Platform.select({
       ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
@@ -259,4 +259,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
     }),
   },
   saveButtonText: {
-  container: { flex: 1 },
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: -0.2,
+  },
+});
+
+export default NotificationSettingsScreen;
