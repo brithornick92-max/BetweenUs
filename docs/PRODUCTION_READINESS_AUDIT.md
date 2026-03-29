@@ -138,17 +138,19 @@ cloud sync with E2E encryption, and night ritual mode.
 
 ENCRYPTION: End-to-end encryption uses XSalsa20-Poly1305 (NaCl). 
 Couple key derived via X25519 ECDH during pairing. Only ciphertext 
-stored on our servers. ITSAppUsesNonExemptEncryption=YES.
+stored on our servers. App Store Connect currently classifies this on the exempt path, so the shipped plist should use ITSAppUsesNonExemptEncryption=NO.
 
 DATA DELETION: Settings → Privacy & Security → Delete Account
 (immediately deletes all user data, couple data, and auth record).
 ```
 
 ### ERN/Encryption Documentation
-Since `ITSAppUsesNonExemptEncryption: true`, you need:
-1. Either a CCATS/ENC classification from BIS, OR
-2. A self-classification report filed annually with BIS
-3. Details: XSalsa20-Poly1305, 256-bit keys, used for user data confidentiality
+App Store Connect currently classifies this app on the exempt documentation path. Keep the questionnaire answers and shipped plist aligned with `ITSAppUsesNonExemptEncryption: false`.
+
+Keep these details handy in case Apple requests clarification:
+1. XSalsa20-Poly1305 for end-to-end encrypted content
+2. X25519 ECDH for couple key exchange
+3. 256-bit key material used for user data confidentiality
 
 ---
 
