@@ -85,6 +85,13 @@ After build completion:
 
 1. Install the build if you need a final smoke test on device
 2. Confirm the binary version/build number in App Store Connect is the one you expect
+3. Confirm export compliance answers in App Store Connect match the binary's `ITSAppUsesNonExemptEncryption` value before submitting the build for review
+
+### Export Compliance Check
+
+For this app, the production IPA should contain `ITSAppUsesNonExemptEncryption = false` because App Store Connect currently classifies the implementation on the exempt documentation path.
+
+If App Store Connect raises `ITMS-90592`, assume the questionnaire answers are out of sync with the binary before changing code. Verify the built IPA first, then make sure the questionnaire answers and the plist both stay on the same exempt path.
 
 ## Phase 5 — Real Device Smoke Test
 

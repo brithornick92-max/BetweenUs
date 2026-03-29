@@ -16,11 +16,10 @@ import {
   Alert,
   Platform,
   StatusBar,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
-import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import * as Notifications from 'expo-notifications';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
@@ -46,13 +45,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
-  // Original State Logic
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [dailyPromptReminder, setDailyPromptReminder] = useState(true);
-  const [partnerActivity, setPartnerActivity] = useState(true);
-  const [weeklyRecap, setWeeklyRecap] = useState(true);
-  const [milestones, setMilestones] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     loadNotificationState();
@@ -61,10 +54,6 @@ const NotificationSettingsScreen = ({ navigation }) => {
   const saveNotificationSettings = async (overrides = {}) => {
     const nextSettings = {
       notificationsEnabled,
-      dailyPromptReminder,
-      partnerActivity,
-      weeklyRecap,
-      milestones,
       ...overrides,
     };
     await storage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, nextSettings);
@@ -81,12 +70,6 @@ const NotificationSettingsScreen = ({ navigation }) => {
       const permissionGranted = permissionState?.status === 'granted';
       const masterEnabled = settings?.notificationsEnabled ?? permissionGranted;
 
-      if (settings) {
-        setDailyPromptReminder(settings.dailyPromptReminder ?? true);
-        setPartnerActivity(settings.partnerActivity ?? true);
-        setWeeklyRecap(settings.weeklyRecap ?? true);
-        setMilestones(settings.milestones ?? true);
-      }
       setNotificationsEnabled(permissionGranted && masterEnabled);
     } catch (error) {
       if (__DEV__) console.error('Failed to load notification settings:', error);
@@ -120,48 +103,6 @@ const NotificationSettingsScreen = ({ navigation }) => {
     }
   };
 
-  const handleSave = async () => {
-    try {
-      setIsSaving(true);
-      impact(ImpactFeedbackStyle.Medium);
-
-      const settings = {
-        notificationsEnabled,
-        dailyPromptReminder,
-        partnerActivity,
-        weeklyRecap,
-        milestones,
-      };
-
-      await storage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, settings);
-      impact(ImpactFeedbackStyle.Success);
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert('Update Failed', 'We could not save your notification preferences.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const renderSettingRow = (title, description, value, onValueChange, isLast = false) => (
-    <View style={[styles.settingRow, !isLast && { borderBottomColor: t.border, borderBottomWidth: 1 }]}>
-      <View style={styles.settingInfo}>
-        <Text style={[styles.settingTitle, { color: t.text }]}>{title}</Text>
-        <Text style={[styles.settingDescription, { color: t.subtext }]}>
-          {description}
-        </Text>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onValueChange}
-        disabled={!notificationsEnabled}
-        trackColor={{ false: t.border, true: t.primary }}
-        thumbColor={Platform.OS === 'ios' ? undefined : (value ? t.primary : '#F4F3F4')}
-        ios_backgroundColor={t.border}
-      />
-    </View>
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle="light-content" />
@@ -181,7 +122,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
         <Text style={[styles.title, { color: t.text }]}>Stay Connected</Text>
         <Text style={[styles.subtitle, { color: t.subtext }]}>
-          Choose the moments you want to be invited back into your shared space.
+          Turn partner notifications on or off for this device.
         </Text>
 
         <View style={[styles.masterToggle, { backgroundColor: t.surface, borderColor: t.border }]}>
@@ -199,37 +140,11 @@ const NotificationSettingsScreen = ({ navigation }) => {
           />
         </View>
 
-        <View style={[styles.settingsCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-          <Text style={[styles.sectionTitle, { color: t.primary }]}>PREFERENCES</Text>
-
-          {renderSettingRow(
-            'Daily Reflections',
-            'A gentle nudge for your daily shared prompt.',
-            dailyPromptReminder,
-            (v) => { setDailyPromptReminder(v); selection(); }
-          )}
-
-          {renderSettingRow(
-            'Partner Activity',
-            'Get notified when your partner shares something, when delivery is available.',
-            partnerActivity,
-            (v) => { setPartnerActivity(v); selection(); }
-          )}
-
-          {renderSettingRow(
-            'Weekly Highlights',
-            'A weekly recap of recent shared activity.',
-            weeklyRecap,
-            (v) => { setWeeklyRecap(v); selection(); }
-          )}
-
-          {renderSettingRow(
-            'Shared Milestones',
-            'Celebrate anniversaries and new discoveries.',
-            milestones,
-            (v) => { setMilestones(v); selection(); },
-            true
-          )}
+        <View style={[styles.infoCard, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}> 
+          <Icon name="shield-checkmark-outline" size={20} color={t.primary} />
+          <Text style={[styles.infoText, { color: t.subtext }]}> 
+            This switch controls whether this device stays registered for partner alerts and reminders.
+          </Text>
         </View>
 
         {!notificationsEnabled && (
@@ -240,19 +155,6 @@ const NotificationSettingsScreen = ({ navigation }) => {
             </Text>
           </View>
         )}
-
-        <TouchableOpacity
-          style={[styles.saveButton, { backgroundColor: t.primary }]}
-          onPress={handleSave}
-          disabled={isSaving}
-          activeOpacity={0.9}
-        >
-          {isSaving ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={[styles.saveButtonText, { color: "#FFFFFF" }]}>Apply Changes</Text>
-          )}
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -309,27 +211,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     justifyContent: 'space-between',
     padding: 24,
     borderRadius: 24,
-    marginBottom: 16,
-    borderWidth: 1,
-  },
-  settingsCard: {
-    borderRadius: 24,
-    padding: 24,
     marginBottom: 24,
     borderWidth: 1,
-  },
-  sectionTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    marginBottom: 12,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 20,
   },
   settingInfo: {
     flex: 1,
@@ -368,6 +251,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
+      marginBottom: 16,
     justifyContent: 'center',
     ...Platform.select({
       ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
@@ -375,12 +259,4 @@ const createStyles = (t, isDark) => StyleSheet.create({
     }),
   },
   saveButtonText: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: -0.2,
-  },
-});
-
-export default NotificationSettingsScreen;
+  container: { flex: 1 },

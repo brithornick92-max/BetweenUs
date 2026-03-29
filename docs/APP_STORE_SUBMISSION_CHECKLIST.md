@@ -23,7 +23,7 @@ The remaining work is operational and store-side:
 - Build number: `1.0.0` in `app.json`, with EAS `appVersionSource: remote` and production `autoIncrement: true`
 - iOS deployment target: `17.1`
 - URL scheme: `betweenus`
-- Encryption flag: `ITSAppUsesNonExemptEncryption = true`
+- Encryption flag: `ITSAppUsesNonExemptEncryption = false`
 - Privacy manifest: present in `app.json`
 - Sentry Expo plugin: configured
 - EAS submit config: `appleId`, `ascAppId`, and `appleTeamId` present
@@ -90,15 +90,15 @@ NOTIFICATIONS:
 - Push notification permission is requested only from explicit user action in-app
 
 ENCRYPTION:
-ITSAppUsesNonExemptEncryption is set to YES. The app uses client-side encryption for private synced data before upload.
+The app uses client-side encryption for private synced data before upload. App Store Connect currently classifies this implementation on the exempt path, so `ITSAppUsesNonExemptEncryption` should be set to `NO` in the shipped plist.
 ```
 
 ## Encryption / ERN Checklist
 
-Because the app declares `ITSAppUsesNonExemptEncryption = true`, complete one of the following before or during submission compliance work:
+App Store Connect currently classifies this app on the exempt documentation path. Keep the following aligned for submission:
 
-1. File the required self-classification / ERN paperwork with BIS, or
-2. Use an existing applicable classification if you already have one
+1. `ITSAppUsesNonExemptEncryption = false` in the shipped plist
+2. Export compliance answers in App Store Connect aligned to the exempt path
 
 Keep the following details handy:
 
@@ -106,6 +106,20 @@ Keep the following details handy:
 - NaCl-based encrypted payload flow
 - 256-bit key material
 - Ciphertext stored remotely, plaintext kept off the server
+
+## ITMS-90592 Fix
+
+If App Store Connect rejects the upload with `ITMS-90592: Invalid Export Compliance Code`, treat it as a metadata mismatch first.
+
+For this app, the App Store Connect questionnaire currently resolves to the exempt path, so the shipped IPA must match that classification:
+
+1. Open the app in App Store Connect
+2. Go to the export compliance / encryption questionnaire for the rejected build
+3. Answer the encryption questions so they resolve to the exempt path
+4. Ensure the next uploaded binary ships with `ITSAppUsesNonExemptEncryption = false`
+5. Re-upload the build if the rejected binary already contains the wrong plist value
+
+This is not usually a code-signing or plist-generation bug unless the IPA itself is missing the key.
 
 ## Final iPhone Smoke Tests
 
