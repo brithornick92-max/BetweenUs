@@ -2,6 +2,9 @@ const mockSetNotificationHandler = jest.fn();
 const mockGetPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
 const mockRequestPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
 const mockGetExpoPushTokenAsync = jest.fn().mockResolvedValue({ data: 'ExponentPushToken[test]' });
+const mockStorageGet = jest.fn();
+const mockStorageSet = jest.fn();
+const mockStorageRemove = jest.fn();
 
 jest.mock('expo-notifications', () => ({
   setNotificationHandler: mockSetNotificationHandler,
@@ -24,12 +27,26 @@ jest.mock('expo-constants', () => ({
   },
 }));
 
+jest.mock('../../utils/storage', () => ({
+  STORAGE_KEYS: {
+    PUSH_TOKEN: '@betweenus:pushToken',
+  },
+  storage: {
+    get: (...args) => mockStorageGet(...args),
+    set: (...args) => mockStorageSet(...args),
+    remove: (...args) => mockStorageRemove(...args),
+  },
+}));
+
 const PushNotificationService = require('../../services/PushNotificationService').default;
 
 describe('PushNotificationService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     PushNotificationService._token = null;
+    mockStorageGet.mockResolvedValue(null);
+    mockStorageSet.mockResolvedValue(true);
+    mockStorageRemove.mockResolvedValue(true);
   });
 
   it('registers a token and saves it to Supabase', async () => {
@@ -45,15 +62,19 @@ describe('PushNotificationService', () => {
 
     expect(token).toBe('ExponentPushToken[test]');
     expect(upsert).toHaveBeenCalled();
+    expect(mockStorageSet).toHaveBeenCalledWith('@betweenus:pushToken', 'ExponentPushToken[test]');
   });
 
   it('does not prompt on silent initialization when permissions are not granted', async () => {
     mockGetPermissionsAsync.mockResolvedValueOnce({ status: 'undetermined' });
+    mockStorageGet.mockResolvedValueOnce('ExponentPushToken[test]');
+    const eq = jest.fn().mockResolvedValue({ error: null });
+    const del = jest.fn(() => ({ eq: jest.fn(() => ({ eq })) }));
     const supabase = {
       auth: {
-        getUser: jest.fn(),
+        getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'user-1' } } }),
       },
-      from: jest.fn(),
+      from: jest.fn(() => ({ delete: del })),
     };
 
     const token = await PushNotificationService.initialize(supabase, { requestPermissions: false });
@@ -61,6 +82,8 @@ describe('PushNotificationService', () => {
     expect(token).toBeNull();
     expect(mockRequestPermissionsAsync).not.toHaveBeenCalled();
     expect(mockGetExpoPushTokenAsync).not.toHaveBeenCalled();
+    expect(eq).toHaveBeenCalledWith('token', 'ExponentPushToken[test]');
+    expect(mockStorageRemove).toHaveBeenCalledWith('@betweenus:pushToken');
   });
 
   it('prompts when interactive initialization is requested', async () => {

@@ -55,24 +55,39 @@ const NotificationSettingsScreen = ({ navigation }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    loadSettings();
-    checkNotificationPermissions();
+    loadNotificationState();
   }, []);
 
-  const checkNotificationPermissions = async () => {
-    const { status } = await Notifications.getPermissionsAsync();
-    setNotificationsEnabled(status === 'granted');
+  const saveNotificationSettings = async (overrides = {}) => {
+    const nextSettings = {
+      notificationsEnabled,
+      dailyPromptReminder,
+      partnerActivity,
+      weeklyRecap,
+      milestones,
+      ...overrides,
+    };
+    await storage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, nextSettings);
+    return nextSettings;
   };
 
-  const loadSettings = async () => {
+  const loadNotificationState = async () => {
     try {
-      const settings = await storage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS, {});
+      const [settings, permissionState] = await Promise.all([
+        storage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS, {}),
+        Notifications.getPermissionsAsync(),
+      ]);
+
+      const permissionGranted = permissionState?.status === 'granted';
+      const masterEnabled = settings?.notificationsEnabled ?? permissionGranted;
+
       if (settings) {
         setDailyPromptReminder(settings.dailyPromptReminder ?? true);
         setPartnerActivity(settings.partnerActivity ?? true);
         setWeeklyRecap(settings.weeklyRecap ?? true);
         setMilestones(settings.milestones ?? true);
       }
+      setNotificationsEnabled(permissionGranted && masterEnabled);
     } catch (error) {
       if (__DEV__) console.error('Failed to load notification settings:', error);
     }
@@ -84,6 +99,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
       if (status === 'granted') {
         await PushNotificationService.initialize(supabase, { requestPermissions: false });
         setNotificationsEnabled(true);
+        await saveNotificationSettings({ notificationsEnabled: true });
         impact(ImpactFeedbackStyle.Medium);
       } else {
         Alert.alert(
@@ -96,7 +112,10 @@ const NotificationSettingsScreen = ({ navigation }) => {
         );
       }
     } else {
+      await PushNotificationService.removeToken(supabase);
+      await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
       setNotificationsEnabled(false);
+      await saveNotificationSettings({ notificationsEnabled: false });
       impact(ImpactFeedbackStyle.Light);
     }
   };
@@ -107,6 +126,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
       impact(ImpactFeedbackStyle.Medium);
 
       const settings = {
+        notificationsEnabled,
         dailyPromptReminder,
         partnerActivity,
         weeklyRecap,

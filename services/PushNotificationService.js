@@ -7,6 +7,7 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
+import { storage, STORAGE_KEYS } from '../utils/storage';
 
 let Notifications = null;
 try {
@@ -48,6 +49,7 @@ const PushNotificationService = {
     }
 
     if (finalStatus !== 'granted') {
+      await this.removeToken(supabase);
       if (__DEV__) console.log('[Push] Permission not granted');
       return null;
     }
@@ -101,6 +103,8 @@ const PushNotificationService = {
 
       if (error) throw error;
 
+      await storage.set(STORAGE_KEYS.PUSH_TOKEN, token);
+
       if (__DEV__) console.log('[Push] Token saved to Supabase');
     } catch (error) {
       if (__DEV__) console.error('[Push] Save token error:', error.message);
@@ -111,8 +115,11 @@ const PushNotificationService = {
    * Remove the push token from Supabase (e.g., on sign-out).
    */
   async removeToken(supabase) {
-    if (!this._token || !supabase) return;
+    if (!supabase) return;
     try {
+      const token = this._token || await storage.get(STORAGE_KEYS.PUSH_TOKEN, null);
+      if (!token) return;
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -120,12 +127,13 @@ const PushNotificationService = {
         .from('push_tokens')
         .delete()
         .eq('user_id', user.id)
-        .eq('token', this._token);
+        .eq('token', token);
 
       if (error) throw error;
 
       if (__DEV__) console.log('[Push] Token removed');
       this._token = null;
+      await storage.remove(STORAGE_KEYS.PUSH_TOKEN);
     } catch (error) {
       if (__DEV__) console.error('[Push] Remove token error:', error.message);
     }

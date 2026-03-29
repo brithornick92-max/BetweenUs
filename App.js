@@ -41,7 +41,7 @@ import revenueCatService from "./services/RevenueCatService";
 import PushNotificationService from "./services/PushNotificationService";
 import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
-import { cloudSyncStorage } from "./utils/storage";
+import { cloudSyncStorage, storage, STORAGE_KEYS } from "./utils/storage";
 
 // Initialize Sentry early — this is fast (synchronous config, no network).
 // Sentry.wrap() at module scope requires init() to have been called first.
@@ -216,13 +216,19 @@ function AppContent() {
     let active = true;
     let unsubscribe = null;
 
-    const syncPushRegistration = async (session, requestPermissions = false) => {
+    const syncPushRegistration = async (session) => {
       try {
         const { supabase } = require("./config/supabase");
         if (!supabase || !active) return;
 
+        const notificationSettings = await storage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS, {});
+        if (notificationSettings?.notificationsEnabled === false) {
+          await PushNotificationService.removeToken(supabase);
+          return;
+        }
+
         if (session && active) {
-          await PushNotificationService.initialize(supabase, { requestPermissions });
+          await PushNotificationService.initialize(supabase, { requestPermissions: false });
         } else {
           await PushNotificationService.removeToken(supabase);
         }
@@ -237,10 +243,10 @@ function AppContent() {
         if (!supabase || !active) return;
 
         const { data: { session } } = await supabase.auth.getSession();
-        await syncPushRegistration(session, true);
+        await syncPushRegistration(session);
 
         const authListener = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
-          await syncPushRegistration(nextSession, true);
+          await syncPushRegistration(nextSession);
         });
 
         unsubscribe =
