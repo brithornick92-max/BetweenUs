@@ -43,6 +43,12 @@ function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onRece
   const receiveScaleAnim = useRef(new Animated.Value(0.6)).current;
   const receivePulseAnim = useRef(new Animated.Value(1)).current;
   const unsubRef = useRef(null);
+  const onReceiveRef = useRef(onReceive);
+  const timerIdsRef = useRef(new Set());
+
+  useEffect(() => {
+    onReceiveRef.current = onReceive;
+  }, [onReceive]);
 
   // Subscribe to incoming partner signals
   useEffect(() => {
@@ -50,12 +56,16 @@ function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onRece
       const momentDef = MOMENT_TYPES.find(m => m.id === signal.moment_type);
       if (!momentDef) return;
 
-      onReceive?.();
+      onReceiveRef.current?.();
       setReceivedSignal(momentDef);
 
       // Layered haptics — double tap for intimacy
       notification(NotificationFeedbackType.Success).catch(() => {});
-      setTimeout(() => impact(ImpactFeedbackStyle.Light).catch(() => {}), 200);
+      const receiveTimerId = setTimeout(() => {
+        timerIdsRef.current.delete(receiveTimerId);
+        impact(ImpactFeedbackStyle.Light).catch(() => {});
+      }, 200);
+      timerIdsRef.current.add(receiveTimerId);
 
       // Elegant entrance: scale up + fade + gentle pulse
       receiveScaleAnim.setValue(0.6);
@@ -77,6 +87,8 @@ function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onRece
 
     return () => {
       if (typeof unsubRef.current === 'function') unsubRef.current();
+      timerIdsRef.current.forEach((timerId) => clearTimeout(timerId));
+      timerIdsRef.current.clear();
     };
   }, [receiveFadeAnim, receiveScaleAnim, receivePulseAnim]);
 
@@ -105,7 +117,11 @@ function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onRece
     ]).start(() => setSentType(null));
 
     // Second gentle haptic after a beat
-    setTimeout(() => impact(ImpactFeedbackStyle.Light).catch(() => {}), 350);
+    const sendImpactTimerId = setTimeout(() => {
+      timerIdsRef.current.delete(sendImpactTimerId);
+      impact(ImpactFeedbackStyle.Light).catch(() => {});
+    }, 350);
+    timerIdsRef.current.add(sendImpactTimerId);
 
     const result = await MomentSignalSender.send(moment.id);
 
@@ -116,7 +132,11 @@ function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onRece
     }
 
     // Third soft confirmation haptic
-    setTimeout(() => notification(NotificationFeedbackType.Success).catch(() => {}), 600);
+    const sendNotificationTimerId = setTimeout(() => {
+      timerIdsRef.current.delete(sendNotificationTimerId);
+      notification(NotificationFeedbackType.Success).catch(() => {});
+    }, 600);
+    timerIdsRef.current.add(sendNotificationTimerId);
 
     onSend?.(moment);
   }, [fadeAnim, scaleAnim, glowAnim, onSend]);

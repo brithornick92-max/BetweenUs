@@ -344,7 +344,10 @@ export const MomentSignalSender = {
       channelRef = channel;
     };
 
-    setup();
+    setup().catch((err) => {
+      if (cancelled) return;
+      if (__DEV__) console.warn('[MomentSignal] subscribeToSignals setup failed:', err?.message);
+    });
 
     return () => {
       cancelled = true;
