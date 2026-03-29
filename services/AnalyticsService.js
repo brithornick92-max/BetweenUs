@@ -50,6 +50,13 @@ export const AnalyticsEvent = Object.freeze({
   PURCHASE_COMPLETED: 'purchase_completed',
   PURCHASE_FAILED: 'purchase_failed',
 
+  // Premium features
+  PREMIUM_FEATURE_USED: 'premium_feature_used',
+  PREMIUM_FEATURE_GATED: 'premium_feature_gated',
+  RESTORE_STARTED: 'restore_started',
+  RESTORE_COMPLETED: 'restore_completed',
+  RESTORE_FAILED: 'restore_failed',
+
   // Features
   FILTER_USED: 'filter_used',
   SURPRISE_ME_USED: 'surprise_me_used',
@@ -152,6 +159,32 @@ const AnalyticsService = {
   trackPaywall(feature, action = 'shown') {
     const event = action === 'dismissed' ? AnalyticsEvent.PAYWALL_DISMISSED : AnalyticsEvent.PAYWALL_SHOWN;
     this.track(event, { feature });
+  },
+
+  /**
+   * Track a purchase funnel event.
+   */
+  trackPurchase(action, properties = {}) {
+    const eventMap = {
+      started: AnalyticsEvent.PURCHASE_STARTED,
+      completed: AnalyticsEvent.PURCHASE_COMPLETED,
+      failed: AnalyticsEvent.PURCHASE_FAILED,
+      restore_started: AnalyticsEvent.RESTORE_STARTED,
+      restore_completed: AnalyticsEvent.RESTORE_COMPLETED,
+      restore_failed: AnalyticsEvent.RESTORE_FAILED,
+    };
+    const event = eventMap[action];
+    if (event) this.track(event, properties);
+  },
+
+  /**
+   * Track premium feature access (used or gated).
+   */
+  trackPremiumFeature(featureId, granted) {
+    this.track(
+      granted ? AnalyticsEvent.PREMIUM_FEATURE_USED : AnalyticsEvent.PREMIUM_FEATURE_GATED,
+      { feature: featureId }
+    );
   },
 
   /**

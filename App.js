@@ -34,6 +34,7 @@ import LockScreen from "./components/LockScreen";
 import ErrorBoundary from "./components/ErrorBoundary";
 import CrashReporting from "./services/CrashReporting";
 import AnalyticsService from "./services/AnalyticsService";
+import ExperimentService from "./services/ExperimentService";
 import DeepLinkHandler from "./services/DeepLinkHandler";
 import { impact, ImpactFeedbackStyle } from "./utils/haptics";
 import { addNotificationResponseListener } from "./utils/notifications";
@@ -398,6 +399,7 @@ function App() {
     const STARTUP_TIMEOUT_MS = 15000;
     const startupTasks = Promise.all([
       AnalyticsService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'analytics_init' })),
+      ExperimentService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'experiments_init' })),
       initializeRevenueCat(),
       registerAutoClearDecryptedCache(),
     ]);

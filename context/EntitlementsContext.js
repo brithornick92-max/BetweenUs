@@ -33,6 +33,7 @@ import { useSubscription } from './SubscriptionContext';
 import { useAuth } from './AuthContext';
 import { supabase } from '../config/supabase';
 import UsageLimitsService from '../services/UsageLimitsService';
+import AnalyticsService from '../services/AnalyticsService';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 import {
   PremiumFeature,
@@ -336,6 +337,8 @@ export const EntitlementsProvider = ({ children }) => {
 
   // ─── Paywall Control ────────────────────────────────────────────────────────
 
+  const paywallFeatureRef = useRef(null);
+
   const showPaywall = useCallback((featureId = null) => {
     const normalizedFeatureId = normalizePremiumFeatureId(featureId);
 
@@ -344,11 +347,17 @@ export const EntitlementsProvider = ({ children }) => {
       return false;
     }
 
+    AnalyticsService.trackPaywall(normalizedFeatureId, 'shown');
+    paywallFeatureRef.current = normalizedFeatureId;
     setPaywallState({ visible: true, feature: normalizedFeatureId });
     return true;
   }, []);
 
   const hidePaywall = useCallback(() => {
+    if (paywallFeatureRef.current) {
+      AnalyticsService.trackPaywall(paywallFeatureRef.current, 'dismissed');
+    }
+    paywallFeatureRef.current = null;
     setPaywallState({ visible: false, feature: null });
   }, []);
 
@@ -365,7 +374,11 @@ export const EntitlementsProvider = ({ children }) => {
         return false;
       }
 
-      if (isPremiumEffective) return true;
+      if (isPremiumEffective) {
+        AnalyticsService.trackPremiumFeature(normalizedFeatureId, true);
+        return true;
+      }
+      AnalyticsService.trackPremiumFeature(normalizedFeatureId, false);
       if (autoPaywall) {
         showPaywall(normalizedFeatureId);
       }

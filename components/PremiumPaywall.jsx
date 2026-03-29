@@ -31,6 +31,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useTheme } from "../context/ThemeContext";
 import CrashReporting from "../services/CrashReporting";
+import AnalyticsService from "../services/AnalyticsService";
 import { getPaywallFeatures, PremiumFeature } from "../utils/featureFlags";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config/supabase";
 
@@ -81,12 +82,17 @@ const PremiumPaywall = ({
     setIsSubscribing(true);
     try {
       impact(ImpactFeedbackStyle.Medium);
+      AnalyticsService.trackPurchase('started', { tier: selectedTier, packageType: pkg?.packageType });
       const purchaseResult = await purchasePackage(pkg);
       if (purchaseResult.success && onSubscribe) {
+        AnalyticsService.trackPurchase('completed', { tier: selectedTier, packageType: pkg?.packageType });
         onSubscribe();
+      } else if (!purchaseResult.success && !purchaseResult.cancelled) {
+        AnalyticsService.trackPurchase('failed', { tier: selectedTier, reason: purchaseResult.error || 'unknown' });
       }
     } catch (error) {
       CrashReporting.captureException(error, { source: 'premium_subscribe', packageType: pkg?.packageType });
+      AnalyticsService.trackPurchase('failed', { tier: selectedTier, reason: error?.message || 'exception' });
       Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
     } finally {
       setIsSubscribing(false);
@@ -97,9 +103,12 @@ const PremiumPaywall = ({
     if (isSubscribing) return;
     setIsSubscribing(true);
     try {
+      AnalyticsService.trackPurchase('restore_started');
       await restorePurchases();
+      AnalyticsService.trackPurchase('restore_completed');
       notification(NotificationFeedbackType.Success);
     } catch (error) {
+      AnalyticsService.trackPurchase('restore_failed', { reason: error?.message || 'exception' });
       CrashReporting.captureException(error, { source: 'premium_restore' });
     } finally {
       setIsSubscribing(false);

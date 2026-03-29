@@ -12,6 +12,7 @@ import Database from '../services/db/Database';
 import * as FileSystem from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 import AnalyticsService from '../services/AnalyticsService';
+import ExperimentService from '../services/ExperimentService';
 import CrashReporting from '../services/CrashReporting';
 import PushNotificationService from '../services/PushNotificationService';
 import { supabase } from '../config/supabase';
@@ -50,12 +51,14 @@ export const AuthProvider = ({ children }) => {
 
         if (!localUser) {
           AnalyticsService.setUser(null);
+          ExperimentService.setUser(null);
           setUserProfile(null);
           await EncryptionService.clearKey();
           E2EEncryption.clearCache();
           await StorageRouter.initialize({ user: null, supabaseSessionPresent: false });
         } else {
           AnalyticsService.setUser(localUser.uid);
+          ExperimentService.setUser(localUser.uid);
           const profile = await StorageRouter.getUserDocument(localUser.uid);
           if (!active) return;
           setUserProfile(profile);

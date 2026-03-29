@@ -5,6 +5,7 @@ import { RevenueCatUI } from "react-native-purchases-ui";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useTheme } from "../context/ThemeContext";
+import AnalyticsService from "../services/AnalyticsService";
 import { SPACING } from "../utils/theme";
 import Icon from "../components/Icon";
 
@@ -61,12 +62,14 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
   const presentPaywall = async () => {
     try {
       setIsLoading(true);
+      AnalyticsService.trackPaywall('revenueCatNative', 'shown');
 
       const result = await RevenueCatUI.presentPaywall({
         displayCloseButton: true,
       });
 
       if (result === RevenueCatUI.PAYWALL_RESULT.PURCHASED) {
+        AnalyticsService.trackPurchase('completed', { source: 'revenueCatNative' });
         await checkSubscriptionStatus();
 
         Alert.alert(
@@ -86,6 +89,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
       }
 
       if (result === RevenueCatUI.PAYWALL_RESULT.RESTORED) {
+        AnalyticsService.trackPurchase('restore_completed', { source: 'revenueCatNative' });
         await checkSubscriptionStatus();
 
         Alert.alert("Purchases Restored", "Your premium membership has been successfully restored.", [
@@ -98,11 +102,13 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
       }
 
       if (result === RevenueCatUI.PAYWALL_RESULT.CANCELLED) {
+        AnalyticsService.trackPaywall('revenueCatNative', 'dismissed');
         onDismiss?.();
         return;
       }
 
       if (result === RevenueCatUI.PAYWALL_RESULT.ERROR) {
+        AnalyticsService.trackPurchase('failed', { source: 'revenueCatNative', reason: 'store_error' });
         Alert.alert("Connection Issue", "We couldn't connect to the store. Please check your connection and try again.", [
           { text: "OK", onPress: () => onDismiss?.() },
         ]);

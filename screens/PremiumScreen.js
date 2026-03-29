@@ -24,6 +24,7 @@ import { useSubscription } from "../context/SubscriptionContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { usePremiumFeatures } from "../hooks/usePremiumFeatures";
 import { useAppContext } from "../context/AppContext";
+import AnalyticsService from "../services/AnalyticsService";
 import { PremiumSource } from "../utils/featureFlags";
 import { SPACING } from "../utils/theme";
 
@@ -130,6 +131,11 @@ export default function PremiumScreen({ navigation }) {
 
   useEffect(() => () => hidePaywall(), [hidePaywall]);
 
+  // Track paywall shown when screen mounts (may not come through showPaywall())
+  useEffect(() => {
+    AnalyticsService.trackPaywall('PremiumScreen', 'shown');
+  }, []);
+
   // ── Selected package's price string ─────────────────────────────────────────
   const selectedPkg = planMap[selectedPlan];
   const selectedPriceStr = selectedPkg?.product?.priceString;
@@ -165,8 +171,10 @@ export default function PremiumScreen({ navigation }) {
     setPurchasing(true);
     try {
       impact(ImpactFeedbackStyle.Medium);
+      AnalyticsService.trackPurchase('started', { tier: selectedPlan, packageType: pkg?.packageType, source: 'PremiumScreen' });
       const result = await purchasePackage(pkg);
       if (result.success) {
+        AnalyticsService.trackPurchase('completed', { tier: selectedPlan, packageType: pkg?.packageType, source: 'PremiumScreen' });
         await actions?.refreshPremiumStatus?.();
         notification(NotificationFeedbackType.Success);
         Alert.alert(
@@ -175,10 +183,12 @@ export default function PremiumScreen({ navigation }) {
           [{ text: "Continue", onPress: () => navigation.goBack() }]
         );
       } else if (!result.cancelled) {
+        AnalyticsService.trackPurchase('failed', { tier: selectedPlan, reason: result.error || 'unknown', source: 'PremiumScreen' });
         notification(NotificationFeedbackType.Error);
         Alert.alert("Something went wrong", result.error || "Please try again.");
       }
     } catch {
+      AnalyticsService.trackPurchase('failed', { tier: selectedPlan, reason: 'exception', source: 'PremiumScreen' });
       notification(NotificationFeedbackType.Error);
       Alert.alert("Error", "Purchase could not be completed.");
     } finally {
@@ -191,8 +201,10 @@ export default function PremiumScreen({ navigation }) {
     setPurchasing(true);
     try {
       impact(ImpactFeedbackStyle.Light);
+      AnalyticsService.trackPurchase('restore_started', { source: 'PremiumScreen' });
       const result = await restorePurchases();
       if (result.success && result.isPremium) {
+        AnalyticsService.trackPurchase('restore_completed', { source: 'PremiumScreen' });
         notification(NotificationFeedbackType.Success);
         Alert.alert("Restored", "Your premium access has been restored.", [
           { text: "Continue", onPress: () => navigation.goBack() },
@@ -201,6 +213,7 @@ export default function PremiumScreen({ navigation }) {
         Alert.alert("Nothing found", "We couldn't find a previous purchase.");
       }
     } catch {
+      AnalyticsService.trackPurchase('restore_failed', { source: 'PremiumScreen' });
       Alert.alert("Error", "Restore failed. Please try again.");
     } finally {
       setPurchasing(false);
