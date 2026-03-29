@@ -25,6 +25,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
+import naclUtil from 'tweetnacl-util';
 import ReAnimated, { 
   FadeInDown, 
   FadeInRight, 
@@ -55,6 +56,7 @@ import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import StorageRouter from '../services/storage/StorageRouter';
+import CloudEngine from '../services/storage/CloudEngine';
 import SeasonSelector from '../components/SeasonSelector';
 import EnergyMatcher from '../components/EnergyMatcher';
 import SoftBoundariesPanel from '../components/SoftBoundariesPanel';
@@ -169,12 +171,30 @@ export default function SettingsScreen({ navigation }) {
       setSyncStatus(status || { enabled: false });
       
       let coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
-      if (coupleId) {
-        const key = await CoupleKeyService.getCoupleKey(coupleId);
-        setPaired(!!key);
-      } else {
-        setPaired(false);
+      try {
+        const remoteCouple = await CoupleService.getMyCouple();
+        const remoteCoupleId = remoteCouple?.couple_id || null;
+
+        if (remoteCoupleId) {
+          coupleId = remoteCoupleId;
+          await storage.set(STORAGE_KEYS.COUPLE_ID, remoteCoupleId);
+          await StorageRouter.setActiveCoupleId(remoteCoupleId);
+        } else if (coupleId) {
+          const staleCoupleId = coupleId;
+          coupleId = null;
+          await storage.remove(STORAGE_KEYS.COUPLE_ID);
+          await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
+          await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
+          await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
+          try {
+            await CoupleKeyService.clearCoupleKey(staleCoupleId);
+          } catch (_) {}
+        }
+      } catch (_) {
+        // Keep local state when the server cannot be reached.
       }
+
+      setPaired(!!coupleId);
     } catch (err) {
       setPaired(false);
       CrashReporting.captureException(err, { context: 'settings_refresh' });
@@ -195,9 +215,23 @@ export default function SettingsScreen({ navigation }) {
       try {
         const couple = await CoupleService.getMyCouple();
         if (couple?.couple_id && active) {
+          const coupleId = couple.couple_id;
+          await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
+          await StorageRouter.setActiveCoupleId(coupleId);
+
+          const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
+          await CloudEngine.joinCouple(coupleId, myPublicKeyB64);
+
+          const partnerPubKeyB64 = await CloudEngine.getPartnerPublicKey(coupleId);
+          if (!partnerPubKeyB64) {
+            return;
+          }
+
+          const partnerPubKey = naclUtil.decodeBase64(partnerPubKeyB64);
+          const coupleKey = await CoupleKeyService.deriveFromKeyExchange(partnerPubKey);
+          await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
+
           clearInterval(poll);
-          await storage.set(STORAGE_KEYS.COUPLE_ID, couple.couple_id);
-          await StorageRouter.setActiveCoupleId(couple.couple_id);
           setInviteCode(null);
           notification(NotificationFeedbackType.Success);
           Alert.alert('Linked! 💕', 'You are now connected with your partner.');

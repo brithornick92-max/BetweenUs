@@ -33,6 +33,7 @@ import { useSubscription } from './SubscriptionContext';
 import { useAuth } from './AuthContext';
 import { supabase } from '../config/supabase';
 import UsageLimitsService from '../services/UsageLimitsService';
+import { STORAGE_KEYS, storage } from '../utils/storage';
 import {
   PremiumFeature,
   PremiumSource,
@@ -68,13 +69,62 @@ export const EntitlementsProvider = ({ children }) => {
   const [premiumSource, setPremiumSource] = useState(PremiumSource.NONE);
   const [coupleLoading, setCoupleLoading] = useState(true);
   const [paywallState, setPaywallState] = useState({ visible: false, feature: null });
+  const [resolvedCoupleId, setResolvedCoupleId] = useState(coupleId || null);
 
   const appStateRef = useRef(AppState.currentState);
+
+  useEffect(() => {
+    let active = true;
+
+    const resolveCoupleId = async () => {
+      const storedCoupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+      const localCoupleId = coupleId || storedCoupleId || null;
+
+      if (!user || !supabase) {
+        if (active) setResolvedCoupleId(localCoupleId);
+        return;
+      }
+
+      try {
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+
+        const supabaseUserId = authData?.user?.id;
+        if (!supabaseUserId) {
+          if (active) setResolvedCoupleId(null);
+          return;
+        }
+
+        const { data: membership, error: membershipError } = await supabase
+          .from('couple_members')
+          .select('couple_id')
+          .eq('user_id', supabaseUserId)
+          .maybeSingle();
+        if (membershipError) throw membershipError;
+
+        const remoteCoupleId = membership?.couple_id || null;
+        if (remoteCoupleId) {
+          await storage.set(STORAGE_KEYS.COUPLE_ID, remoteCoupleId);
+        } else if (localCoupleId) {
+          await storage.remove(STORAGE_KEYS.COUPLE_ID);
+        }
+        if (active) setResolvedCoupleId(remoteCoupleId);
+      } catch (err) {
+        if (__DEV__) console.warn('[Entitlements] Failed to resolve couple ID:', err?.message);
+        if (active) setResolvedCoupleId(localCoupleId);
+      }
+    };
+
+    resolveCoupleId();
+    return () => {
+      active = false;
+    };
+  }, [coupleId, user]);
 
   // ─── Fetch couple premium status from Supabase ──────────────────────────────
 
   const fetchCouplePremium = useCallback(async () => {
-    if (!coupleId || !supabase) {
+    if (!resolvedCoupleId || !supabase) {
       // No couple link or no Supabase → fall back to cached value
       const cached = await _loadCachedCouplePremium();
       if (cached !== null) {
@@ -88,7 +138,7 @@ export const EntitlementsProvider = ({ children }) => {
 
     try {
       const { data, error } = await supabase.rpc('get_couple_premium_status', {
-        input_couple_id: coupleId,
+        input_couple_id: resolvedCoupleId,
       });
 
       if (error) {
@@ -116,24 +166,24 @@ export const EntitlementsProvider = ({ children }) => {
     } finally {
       setCoupleLoading(false);
     }
-  }, [coupleId]);
+  }, [resolvedCoupleId]);
 
   // ─── Request server-side premium recomputation ──────────────────────────────
 
   const syncSelfPremiumToCouple = useCallback(async () => {
-    if (!coupleId || !supabase || !user) return;
+    if (!resolvedCoupleId || !supabase || !user) return;
 
     try {
       await supabase.rpc('set_couple_premium', {
-        input_couple_id: coupleId,
+        input_couple_id: resolvedCoupleId,
         input_is_premium: !!isPremiumSelf,
         input_source: isPremiumSelf ? user.uid : 'none',
       });
-      if (__DEV__) console.log('[Entitlements] Requested premium recompute for couple:', coupleId);
+      if (__DEV__) console.log('[Entitlements] Requested premium recompute for couple:', resolvedCoupleId);
     } catch (err) {
       console.warn('[Entitlements] Failed to sync premium to couple:', err.message);
     }
-  }, [coupleId, isPremiumSelf, user]);
+  }, [resolvedCoupleId, isPremiumSelf, user]);
 
   // ─── Effects ────────────────────────────────────────────────────────────────
 
@@ -155,28 +205,28 @@ export const EntitlementsProvider = ({ children }) => {
       if (appStateRef.current.match(/inactive|background/) && nextState === 'active') {
         fetchCouplePremium();
         // Also sync usage limits with remote (only with a real Supabase UUID)
-        if (user?.uid && coupleId && !user.uid.startsWith('user_')) {
-          UsageLimitsService.syncWithRemote(user.uid, coupleId);
+        if (user?.uid && resolvedCoupleId && !user.uid.startsWith('user_')) {
+          UsageLimitsService.syncWithRemote(user.uid, resolvedCoupleId);
         }
       }
       appStateRef.current = nextState;
     });
     return () => sub?.remove();
-  }, [fetchCouplePremium, user, coupleId]);
+  }, [fetchCouplePremium, user, resolvedCoupleId]);
 
   // Listen for real-time couple premium changes via Supabase
   useEffect(() => {
-    if (!supabase || !coupleId) return;
+    if (!supabase || !resolvedCoupleId) return;
 
     const channel = supabase
-      .channel(`couple-premium-${coupleId}`)
+      .channel(`couple-premium-${resolvedCoupleId}`)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'couples',
-          filter: `id=eq.${coupleId}`,
+          filter: `id=eq.${resolvedCoupleId}`,
         },
         (payload) => {
           const newPremium = payload.new?.is_premium ?? false;
@@ -190,7 +240,7 @@ export const EntitlementsProvider = ({ children }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [coupleId]);
+  }, [resolvedCoupleId]);
 
   // ─── Derived State ──────────────────────────────────────────────────────────
 
@@ -232,49 +282,49 @@ export const EntitlementsProvider = ({ children }) => {
     if (isPremiumEffective) return { allowed: true, used: 0, remaining: Infinity };
     return UsageLimitsService.canConsume(
       user?.uid,
-      coupleId,
+      resolvedCoupleId,
       UsageEventType.PROMPT_VIEWED,
       FREE_LIMITS.PROMPTS_PER_DAY
     );
-  }, [isPremiumEffective, user, coupleId]);
+  }, [isPremiumEffective, user, resolvedCoupleId]);
 
   const canConsumeDateIdea = useCallback(async () => {
     if (isPremiumEffective) return { allowed: true, used: 0, remaining: Infinity };
     return UsageLimitsService.canConsume(
       user?.uid,
-      coupleId,
+      resolvedCoupleId,
       UsageEventType.DATE_IDEA_VIEWED,
       FREE_LIMITS.DATE_IDEAS_PER_DAY
     );
-  }, [isPremiumEffective, user, coupleId]);
+  }, [isPremiumEffective, user, resolvedCoupleId]);
 
   const recordPromptUsage = useCallback(
     async (metadata = {}) => {
       return UsageLimitsService.recordConsumption(
         user?.uid,
-        coupleId,
+        resolvedCoupleId,
         UsageEventType.PROMPT_VIEWED,
         metadata
       );
     },
-    [user, coupleId]
+    [user, resolvedCoupleId]
   );
 
   const recordDateIdeaUsage = useCallback(
     async (metadata = {}) => {
       return UsageLimitsService.recordConsumption(
         user?.uid,
-        coupleId,
+        resolvedCoupleId,
         UsageEventType.DATE_IDEA_VIEWED,
         metadata
       );
     },
-    [user, coupleId]
+    [user, resolvedCoupleId]
   );
 
   const getDailyUsage = useCallback(async () => {
-    return UsageLimitsService.getDailyUsageSummary(user?.uid, coupleId, isPremiumEffective);
-  }, [user, coupleId, isPremiumEffective]);
+    return UsageLimitsService.getDailyUsageSummary(user?.uid, resolvedCoupleId, isPremiumEffective);
+  }, [user, resolvedCoupleId, isPremiumEffective]);
 
   // ─── Paywall Control ────────────────────────────────────────────────────────
 

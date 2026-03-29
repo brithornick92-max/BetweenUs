@@ -43,7 +43,7 @@ function FullScreenLoader({ colors }) {
 
 export default function RootNavigator() {
   const { state } = useAppContext();
-  const { user, initializing } = useAuth();
+  const { user, initializing, requiresOnboarding } = useAuth();
   const { colors, isDark } = useTheme();
 
   // ✅ Never return null. Null causes tree churn and keyboard dismissal.
@@ -71,7 +71,7 @@ export default function RootNavigator() {
     );
   }
 
-  const isNewUser = !state?.onboardingCompleted;
+  const isNewUser = !!requiresOnboarding;
 
   const globalScreenOptions = {
     headerStyle: {

@@ -13,6 +13,7 @@ import * as FileSystem from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 import AnalyticsService from '../services/AnalyticsService';
 import CrashReporting from '../services/CrashReporting';
+import { storage, STORAGE_KEYS } from '../utils/storage';
 
 const AuthContext = createContext(null);
 
@@ -25,6 +26,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [requiresOnboarding, setRequiresOnboarding] = useState(false);
 
   // ✅ Only for first bootstrapping auth state (RootNavigator can gate on this)
   const [initializing, setInitializing] = useState(true);
@@ -55,6 +57,15 @@ export const AuthProvider = ({ children }) => {
           const profile = await StorageRouter.getUserDocument(localUser.uid);
           if (!active) return;
           setUserProfile(profile);
+
+          try {
+            const pendingOnboarding = await storage.get(STORAGE_KEYS.PENDING_ONBOARDING, false);
+            if (!active) return;
+            setRequiresOnboarding(!!pendingOnboarding);
+          } catch (_) {
+            if (!active) return;
+            setRequiresOnboarding(false);
+          }
 
           let supabaseSession = null;
           try {
@@ -157,6 +168,9 @@ export const AuthProvider = ({ children }) => {
     try {
       setBusy(true);
       const createdUser = await StorageRouter.createAccount(email, password, displayName);
+      await storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, false);
+      await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, true);
+      setRequiresOnboarding(true);
 
       // Bridge Supabase auth so pairing is ready immediately
       await _bridgeSupabaseAuth(email, password, true);
@@ -182,6 +196,8 @@ export const AuthProvider = ({ children }) => {
     try {
       setBusy(true);
       const signedInUser = await StorageRouter.signInWithEmailAndPassword(email, password);
+      await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
+      setRequiresOnboarding(false);
 
       // Bridge Supabase auth so pairing is ready immediately
       await _bridgeSupabaseAuth(email, password, false);
@@ -202,6 +218,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async (scope = 'global') => {
     try {
       setBusy(true);
+      setRequiresOnboarding(false);
 
       // Get coupleId BEFORE signing out so it's still accessible
       const coupleId = await StorageRouter.getCoupleId();
@@ -224,6 +241,11 @@ export const AuthProvider = ({ children }) => {
 
   /** Convenience: sign out all devices (revokes refresh tokens) */
   const signOutGlobal = () => signOut('global');
+
+  const markOnboardingComplete = async () => {
+    await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
+    setRequiresOnboarding(false);
+  };
 
   const updateProfile = async (updates) => {
     if (!user) throw new Error('No user logged in');
@@ -337,6 +359,8 @@ export const AuthProvider = ({ children }) => {
     signOut,
     signOutLocal,
     signOutGlobal,
+    requiresOnboarding,
+    markOnboardingComplete,
     updateProfile,
     deleteUserAccount,
 

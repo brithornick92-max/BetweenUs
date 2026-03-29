@@ -34,7 +34,7 @@ const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 export default function PartnerNamesSettingsScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const { userProfile, updateProfile } = useAuth();
+  const { user, userProfile, updateProfile } = useAuth();
   const { actions } = useAppContext();
   
   const [myName, setMyName] = useState('');
@@ -76,11 +76,16 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
   }, [fadeAnimation, slideAnimation]);
 
   useEffect(() => {
-    if (userProfile?.partnerNames) {
-      setMyName(userProfile.partnerNames.myName || '');
-      setPartnerName(userProfile.partnerNames.partnerName || '');
-    }
-  }, [userProfile]);
+    const nextMyName =
+      userProfile?.partnerNames?.myName ||
+      userProfile?.displayName ||
+      user?.displayName ||
+      '';
+    const nextPartnerName = userProfile?.partnerNames?.partnerName || '';
+
+    setMyName(nextMyName);
+    setPartnerName(nextPartnerName);
+  }, [user, userProfile]);
 
   const handleBack = () => {
     impact(ImpactFeedbackStyle.Light);

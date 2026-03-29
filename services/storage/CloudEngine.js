@@ -63,13 +63,27 @@ class CloudEngine {
     const supabase = getSupabaseOrThrow();
     const userId = await this._getUserId();
 
-    // Guard: check if user is already in a couple
-    const { data: existing } = await supabase
+    // If the membership already exists for this couple, update the key in place.
+    const { data: existing, error: existingError } = await supabase
       .from(TABLES.COUPLE_MEMBERS)
-      .select('couple_id')
+      .select('couple_id, public_key')
       .eq('user_id', userId)
       .maybeSingle();
+    if (existingError) throw existingError;
+
     if (existing?.couple_id) {
+      if (existing.couple_id === coupleId) {
+        if (devicePublicKeyB64 && existing.public_key !== devicePublicKeyB64) {
+          const { error: updateError } = await supabase
+            .from(TABLES.COUPLE_MEMBERS)
+            .update({ public_key: devicePublicKeyB64 })
+            .eq('couple_id', coupleId)
+            .eq('user_id', userId);
+          if (updateError) throw updateError;
+        }
+        return true;
+      }
+
       throw new Error('You are already linked to a partner. Leave your current couple first.');
     }
 

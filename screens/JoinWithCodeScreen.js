@@ -15,12 +15,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import naclUtil from 'tweetnacl-util';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import CloudEngine from '../services/storage/CloudEngine';
 import StorageRouter from '../services/storage/StorageRouter';
 import CoupleKeyService from '../services/security/CoupleKeyService';
+import { finalizeInviteCodeLink, recoverExistingInviteCodeLink } from '../services/linking/InviteCodeLinking';
 import CoupleService from '../services/supabase/CoupleService';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import { STORAGE_KEYS, storage } from '../utils/storage';
@@ -93,28 +93,13 @@ export default function JoinWithCodeScreen({ navigation }) {
       const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
 
       // Redeem the invite code via CoupleService (hashes code → calls redeem_partner_code RPC)
-      const { coupleId, partnerId } = await CoupleService.redeemInviteCode(trimmed);
-
-      // Upload our public key to the couple membership
-      await CloudEngine.joinCouple(coupleId, myPublicKeyB64).catch(() => {
-        // May fail if redeem_partner_code already inserted our membership — that's fine
+      const { coupleId } = await CoupleService.redeemInviteCode(trimmed);
+      await finalizeInviteCodeLink({
+        coupleId,
+        userId: user?.uid,
+        updateProfile,
+        myPublicKeyB64,
       });
-
-      // Store couple ID locally
-      await StorageRouter.setActiveCoupleId(coupleId);
-      if (user?.uid) {
-        await StorageRouter.updateUserDocument(user.uid, { coupleId });
-        await updateProfile?.({ coupleId });
-      }
-      await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
-
-      // Try to get the inviter's public key for key exchange
-      const inviterPubKeyB64 = await CloudEngine.getPartnerPublicKey(coupleId);
-      if (inviterPubKeyB64) {
-        const inviterPubKey = naclUtil.decodeBase64(inviterPubKeyB64);
-        const coupleKey = await CoupleKeyService.deriveFromKeyExchange(inviterPubKey);
-        await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
-      }
 
       notification(NotificationFeedbackType.Success);
       setPhase('done');
@@ -131,10 +116,22 @@ export default function JoinWithCodeScreen({ navigation }) {
       if (msg.includes('Supabase is not configured')) {
         setStatusMsg("Sync isn't available in this build.");
       } else if (msg.includes('duplicate key') || msg.includes('already exists')) {
-        setStatusMsg("You're already linked to this partner.");
-        setPhase('done');
-        setTimeout(() => navigation.goBack(), 1200);
-        return;
+        try {
+          const resolvedCoupleId = await recoverExistingInviteCodeLink({
+            userId: user?.uid,
+            updateProfile,
+            myPublicKeyB64: await CoupleKeyService.getDevicePublicKeyB64(),
+          });
+
+          if (resolvedCoupleId) {
+            setStatusMsg("You're already linked to this partner.");
+            setPhase('done');
+            setTimeout(() => navigation.goBack(), 1200);
+            return;
+          }
+        } catch (_) {}
+
+        setStatusMsg('Link may have failed. Please retry with a fresh code.');
       } else {
         setStatusMsg(msg || 'Unable to join. Check the code and try again.');
       }

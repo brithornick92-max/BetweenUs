@@ -5,6 +5,7 @@ import { storage, STORAGE_KEYS, vibeStorage } from '../utils/storage';
 import { useEntitlements } from './EntitlementsContext';
 import { NicknameEngine } from '../services/PolishEngine';
 import CoupleService from '../services/supabase/CoupleService';
+import CoupleKeyService from '../services/security/CoupleKeyService';
 
 const initialState = {
   userId: null,
@@ -148,6 +149,7 @@ export function AppProvider({ children }) {
         ]);
 
       let hydratedUserProfile = userProfile && typeof userProfile === 'object' ? { ...userProfile } : {};
+      let resolvedCoupleId = coupleId || null;
 
       try {
         const nicknameConfig = await NicknameEngine.getConfig();
@@ -186,13 +188,33 @@ export function AppProvider({ children }) {
         if (__DEV__) console.warn('[AppContext] Nickname migration failed:', e?.message);
       }
 
+      try {
+        const remoteCouple = await CoupleService.getMyCouple();
+        const remoteCoupleId = remoteCouple?.couple_id || null;
+
+        if (remoteCoupleId && remoteCoupleId !== resolvedCoupleId) {
+          resolvedCoupleId = remoteCoupleId;
+          await storage.set(STORAGE_KEYS.COUPLE_ID, remoteCoupleId);
+        } else if (!remoteCoupleId && resolvedCoupleId) {
+          const staleCoupleId = resolvedCoupleId;
+          resolvedCoupleId = null;
+          await storage.remove(STORAGE_KEYS.COUPLE_ID);
+          await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
+          await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
+          await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
+          try {
+            await CoupleKeyService.clearCoupleKey(staleCoupleId);
+          } catch (_) {}
+        }
+      } catch (_) {}
+
       // QR pairing does not use invite codes, so coupleId alone marks linkage.
       const now = Date.now();
-      const isActuallyLinked = !!coupleId;
+      const isActuallyLinked = !!resolvedCoupleId;
       
       // If linked but no recent activity, set initial activity timestamp
       let effectivePartnerActivity = lastPartnerActivity;
-      if (coupleId && !lastPartnerActivity) {
+      if (resolvedCoupleId && !lastPartnerActivity) {
         await storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, now);
         effectivePartnerActivity = now;
       }
@@ -203,7 +225,7 @@ export function AppProvider({ children }) {
           userId, 
           onboardingCompleted: !!onboardingCompleted,
           userProfile: hydratedUserProfile,
-          coupleId: isActuallyLinked ? coupleId : null,
+          coupleId: isActuallyLinked ? resolvedCoupleId : null,
           isLinked: isActuallyLinked,
           appLockEnabled: !!appLockEnabled,
           isPremium, 
@@ -214,7 +236,7 @@ export function AppProvider({ children }) {
 
       // Setup Supabase Realtime listener for partner vibe/data changes
       // (replaces the old local-only vibeSyncService which never actually synced)
-      const coupleIdVal = isActuallyLinked ? coupleId : null;
+      const coupleIdVal = isActuallyLinked ? resolvedCoupleId : null;
       if (coupleIdVal) {
         try {
           const { supabase, TABLES } = await import('../config/supabase');

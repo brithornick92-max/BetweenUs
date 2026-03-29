@@ -21,6 +21,7 @@ export const STORAGE_KEYS = {
   // Authentication & Identity
   USER_ID: "@betweenus:userId",
   ONBOARDING_COMPLETED: "@betweenus:onboardingCompleted",
+  PENDING_ONBOARDING: "@betweenus:pendingOnboarding",
   USER_PROFILE: "@betweenus:userProfile",
   PARTNER_LABEL: "@betweenus:partnerLabel",
 

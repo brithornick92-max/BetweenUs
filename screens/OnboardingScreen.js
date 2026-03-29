@@ -22,6 +22,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ReAnimated, { FadeInDown } from 'react-native-reanimated';
+import naclUtil from 'tweetnacl-util';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as Clipboard from "expo-clipboard";
@@ -47,10 +48,10 @@ import { getSupabaseOrThrow } from "../config/supabase";
 const { width } = Dimensions.get("window");
 
 export default function OnboardingScreen({ navigation }) {
-  const { actions } = useAppContext();
+  const { actions, state } = useAppContext();
   const { colors, isDark } = useTheme();
   const { updateRelationshipStartDate } = useContent();
-  const { user } = useAuth();
+  const { user, userProfile, updateProfile, markOnboardingComplete } = useAuth();
   
   // STRICT Apple Editorial Theme Map
   const t = useMemo(() => ({
@@ -89,6 +90,28 @@ export default function OnboardingScreen({ navigation }) {
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
+  const alreadyLinked = !!(state?.coupleId || userProfile?.coupleId);
+
+  useEffect(() => {
+    const profileMyName = userProfile?.partnerNames?.myName || '';
+    const profilePartnerName = userProfile?.partnerNames?.partnerName || '';
+    const relationshipStartDate = userProfile?.relationshipStartDate;
+
+    if (profileMyName) setMyName((current) => current || profileMyName);
+    if (profilePartnerName) setPartnerName((current) => current || profilePartnerName);
+    if (relationshipStartDate) {
+      const parsed = new Date(relationshipStartDate);
+      if (!Number.isNaN(parsed.getTime())) {
+        setAnniversaryDate(parsed);
+        setPendingDate(parsed);
+      }
+    }
+  }, [userProfile]);
+
+  const finalizeOnboarding = async () => {
+    await actions.completeOnboarding();
+    await markOnboardingComplete?.();
+  };
 
   // ─── Poll for partner linking after invite code is generated ───
   useEffect(() => {
@@ -98,21 +121,34 @@ export default function OnboardingScreen({ navigation }) {
       try {
         const couple = await CoupleService.getMyCouple();
         if (couple?.couple_id && active) {
-          clearInterval(poll);
+          const coupleId = couple.couple_id;
+
           // Store couple ID locally
-          await storage.set(STORAGE_KEYS.COUPLE_ID, couple.couple_id);
-          await StorageRouter.setActiveCoupleId(couple.couple_id);
+          await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
+          await StorageRouter.setActiveCoupleId(coupleId);
           // Upload our public key to the new couple membership
           try {
             const myPubKey = await CoupleKeyService.getDevicePublicKeyB64();
-            await CloudEngine.joinCouple(couple.couple_id, myPubKey).catch(() => {});
+            await CloudEngine.joinCouple(coupleId, myPubKey);
+
+            const partnerPubKeyB64 = await CloudEngine.getPartnerPublicKey(coupleId);
+            if (!partnerPubKeyB64) {
+              return;
+            }
+
+            const partnerPubKey = naclUtil.decodeBase64(partnerPubKeyB64);
+            const coupleKey = await CoupleKeyService.deriveFromKeyExchange(partnerPubKey);
+            await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
           } catch (err) {
             CrashReporting.captureException(err, { context: 'onboarding_key_upload' });
+            return;
           }
+
+          clearInterval(poll);
           notification(NotificationFeedbackType.Success);
           // Complete onboarding immediately — don't wait for Alert button
           try {
-            await actions.completeOnboarding();
+            await finalizeOnboarding();
           } catch (err) {
             if (__DEV__) console.error('completeOnboarding failed:', err);
             // Retry dispatch directly as fallback
@@ -196,6 +232,13 @@ export default function OnboardingScreen({ navigation }) {
     try {
       // 1. Save Profile info
       if (__DEV__) console.log("🔑 [invite] Step 1: updateProfile");
+      await updateProfile?.({
+        partnerNames: {
+          myName: myName.trim(),
+          partnerName: partnerName.trim(),
+        },
+        display_name: myName.trim(),
+      });
       await actions.updateProfile({
         partnerNames: {
           myName: myName.trim(),
@@ -573,6 +616,14 @@ export default function OnboardingScreen({ navigation }) {
               Keyboard.dismiss();
               // Save all preferences
               try {
+                await updateProfile?.({
+                  heatLevelPreference: selectedHeatLevel,
+                  partnerNames: {
+                    myName: myName.trim(),
+                    partnerName: partnerName.trim(),
+                  },
+                  display_name: myName.trim(),
+                });
                 await actions.updateProfile({
                   heatLevelPreference: selectedHeatLevel,
                   partnerNames: {
@@ -643,7 +694,7 @@ export default function OnboardingScreen({ navigation }) {
 
             <TouchableOpacity 
               onPress={async () => {
-                await actions.completeOnboarding();
+                  await finalizeOnboarding();
               }}
               style={{ marginTop: 40 }}
               activeOpacity={0.6}
@@ -690,7 +741,7 @@ export default function OnboardingScreen({ navigation }) {
 
             <TouchableOpacity 
               onPress={async () => {
-                await actions.completeOnboarding();
+                await finalizeOnboarding();
               }}
               style={{ marginTop: 32 }}
             >
@@ -702,13 +753,46 @@ export default function OnboardingScreen({ navigation }) {
     </View>
   );
 
+  const renderLinkedPairing = () => (
+    <View style={styles.content}>
+      <ReAnimated.View entering={FadeInDown.delay(100).duration(800).springify()}>
+        <Text style={styles.title}>Pairing</Text>
+      </ReAnimated.View>
+
+      <View style={styles.pairingContainer}>
+        <ReAnimated.View entering={FadeInDown.delay(200).duration(800).springify()}>
+          <Icon
+            name="checkmark-circle-outline"
+            size={48}
+            color={t.primary}
+            style={{ marginBottom: 24, alignSelf: 'center' }}
+          />
+          <Text style={styles.pairingSubtitle}>Already connected.</Text>
+          <Text style={styles.pairingBody}>
+            Your account is already linked with your partner, so there is nothing else to generate here.
+          </Text>
+        </ReAnimated.View>
+
+        <ReAnimated.View entering={FadeInDown.delay(350).duration(800).springify()} style={{ width: '100%', alignItems: 'center' }}>
+          <TouchableOpacity
+            style={[styles.primaryButtonTouch, { backgroundColor: t.text }]}
+            activeOpacity={0.8}
+            onPress={finalizeOnboarding}
+          >
+            <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue to app</Text>
+          </TouchableOpacity>
+        </ReAnimated.View>
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
 
       {step === 0 ? renderIntro() : (
         <Animated.View style={[styles.stepWrapper, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          {step === 1 ? renderYourStory() : step === 2 ? renderPreferences() : renderPairing()}
+          {step === 1 ? renderYourStory() : step === 2 ? renderPreferences() : alreadyLinked ? renderLinkedPairing() : renderPairing()}
         </Animated.View>
       )}
 
