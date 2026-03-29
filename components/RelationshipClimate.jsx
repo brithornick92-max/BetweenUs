@@ -148,9 +148,15 @@ function RelationshipClimate({ onClimateChange, compact = false }) {
   }), [colors, isDark]);
 
   useEffect(() => {
-    RelationshipClimateState.get().then(data => {
-      if (data?.id) setSelected(data.id);
-    });
+    let active = true;
+    RelationshipClimateState.get()
+      .then(data => {
+        if (active && data?.id) setSelected(data.id);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSelect = useCallback(async (climateId) => {

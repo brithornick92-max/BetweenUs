@@ -38,6 +38,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
   const unsubSignalsRef = useRef(null);
   const broadcastChannelRef = useRef(null);
   const recentBroadcastRef = useRef(null);
+  const incomingHapticTimerRef = useRef(null);
 
   const scale = useSharedValue(1);
   const bloomScale = useSharedValue(0.9);
@@ -52,6 +53,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
   useEffect(() => {
     return () => {
       if (hapticTimerRef.current) clearTimeout(hapticTimerRef.current);
+      if (incomingHapticTimerRef.current) clearTimeout(incomingHapticTimerRef.current);
       if (incomingLabelTimerRef.current) clearTimeout(incomingLabelTimerRef.current);
     };
   }, []);
@@ -61,7 +63,11 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
   triggerIncomingRef.current = () => {
     // Haptic double-tap — mirrors what the sender feels
     impact(ImpactFeedbackStyle.Heavy);
-    setTimeout(() => impact(ImpactFeedbackStyle.Heavy), 150);
+    if (incomingHapticTimerRef.current) clearTimeout(incomingHapticTimerRef.current);
+    incomingHapticTimerRef.current = setTimeout(() => {
+      incomingHapticTimerRef.current = null;
+      impact(ImpactFeedbackStyle.Heavy);
+    }, 150);
     notification(NotificationFeedbackType.Success);
 
     // Animate the button (pronounced bounce)
