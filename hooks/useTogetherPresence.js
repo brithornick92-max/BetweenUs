@@ -117,6 +117,10 @@ export function useTogetherPresence() {
         });
 
       channelRef.current = channel;
+    }).catch((err) => {
+      if (connectCancelled) return;
+      if (__DEV__) console.warn('[Presence] Failed to resolve presence key:', err?.message);
+      setIsTogetherNow(false);
     });
   }, [coupleId, localUserId]);
 

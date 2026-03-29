@@ -5,7 +5,7 @@
  * Velvet Glass · Physics-based Modals · High-End Typography
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -258,12 +258,23 @@ export default function CalendarScreen({ navigation, route }) {
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  const mountedRef = useRef(true);
 
-  const loadEvents = async () => {
-    const safe = await DataLayer.refreshCalendarEventsFromRemote({ limit: 5000 }).catch(() => []);
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
+  const loadLocalEvents = useCallback(async () => {
+    const safe = await DataLayer.getCalendarEvents({ limit: 5000 }).catch(() => []);
+    if (!mountedRef.current) return;
     setEvents(safe.sort((a, b) => (a.whenTs || 0) - (b.whenTs || 0)));
-  };
+  }, []);
+
+  const loadEvents = useCallback(async () => {
+    const safe = await DataLayer.refreshCalendarEventsFromRemote({ limit: 5000 }).catch(() => []);
+    if (!mountedRef.current) return;
+    setEvents(safe.sort((a, b) => (a.whenTs || 0) - (b.whenTs || 0)));
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -306,13 +317,15 @@ export default function CalendarScreen({ navigation, route }) {
         setModalOpen(true);
         navigation.setParams({ prefill: null });
       }
-    }, [route?.params?.prefill])
+    }, [loadEvents, navigation, route?.params?.prefill])
   );
 
   useEffect(() => {
     if (!coupleId) return;
-    return DataLayer.subscribeCalendarEvents(() => loadEvents());
-  }, [coupleId]);
+    return DataLayer.subscribeCalendarEvents(() => {
+      loadLocalEvents();
+    });
+  }, [coupleId, loadLocalEvents]);
 
   const onRefresh = async () => {
     setRefreshing(true);

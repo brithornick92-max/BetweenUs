@@ -188,13 +188,17 @@ export function DataProvider({ children }) {
       }
       if (cancelled) return;
 
-      DataLayer.reconfigure({
-        userId: syncUserId,
-        legacyLocalUserId: syncUserId !== userId ? userId : null,
-        coupleId: coupleId || null,
-        isPremium: !!isPremium,
-      });
-      MomentSignalSender.configure({ userId: syncUserId, coupleId: coupleId || null });
+      try {
+        await DataLayer.reconfigure({
+          userId: syncUserId,
+          legacyLocalUserId: syncUserId !== userId ? userId : null,
+          coupleId: coupleId || null,
+          isPremium: !!isPremium,
+        });
+        MomentSignalSender.configure({ userId: syncUserId, coupleId: coupleId || null });
+      } catch (reconfigureErr) {
+        CrashReporting.captureException(reconfigureErr, { source: 'data_reconfigure' });
+      }
     })();
     return () => { cancelled = true; };
   }, [userId, coupleId, isPremium]);

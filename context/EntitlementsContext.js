@@ -50,6 +50,7 @@ import {
 // ─── Local cache keys for couple premium ─────────────────────────────────────
 const COUPLE_PREMIUM_CACHE_KEY = '@betweenus:couplePremiumCache';
 const GRACE_WINDOW_MS = 72 * 60 * 60 * 1000; // 72 hours offline grace
+const COUPLE_PREMIUM_RPC_TIMEOUT_MS = 10_000;
 
 const EntitlementsContext = createContext(null);
 
@@ -136,10 +137,16 @@ export const EntitlementsProvider = ({ children }) => {
       return;
     }
 
+    let timeoutId;
     try {
-      const { data, error } = await supabase.rpc('get_couple_premium_status', {
-        input_couple_id: resolvedCoupleId,
-      });
+      const { data, error } = await Promise.race([
+        supabase.rpc('get_couple_premium_status', {
+          input_couple_id: resolvedCoupleId,
+        }),
+        new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('Couple premium check timed out')), COUPLE_PREMIUM_RPC_TIMEOUT_MS);
+        }),
+      ]);
 
       if (error) {
         console.warn('[Entitlements] Failed to fetch couple premium:', error.message);
@@ -164,9 +171,10 @@ export const EntitlementsProvider = ({ children }) => {
         setIsPremiumCouple(cached);
       }
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       setCoupleLoading(false);
     }
-  }, [resolvedCoupleId]);
+  }, [resolvedCoupleId, supabase]);
 
   // ─── Request server-side premium recomputation ──────────────────────────────
 
@@ -240,7 +248,7 @@ export const EntitlementsProvider = ({ children }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [resolvedCoupleId]);
+  }, [resolvedCoupleId, supabase]);
 
   // ─── Derived State ──────────────────────────────────────────────────────────
 
