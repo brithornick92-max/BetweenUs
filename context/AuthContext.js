@@ -74,7 +74,10 @@ export const AuthProvider = ({ children }) => {
 
           let supabaseSession = null;
           try {
-            supabaseSession = await SupabaseAuthService.getSession();
+            supabaseSession = await Promise.race([
+              SupabaseAuthService.getSession(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timed out')), 10000)),
+            ]);
           } catch (e) {
             if (__DEV__) console.warn('[AuthContext] getSession failed (non-fatal):', e?.message);
             supabaseSession = null;
@@ -90,9 +93,12 @@ export const AuthProvider = ({ children }) => {
           // prefix from signup.
           if (supabaseSession && profile?.partnerNames?.myName) {
             try {
-              await CloudEngine.upsertProfile(localUser.uid, {
-                display_name: profile.partnerNames.myName,
-              });
+              await Promise.race([
+                CloudEngine.upsertProfile(localUser.uid, {
+                  display_name: profile.partnerNames.myName,
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('upsertProfile timed out')), 10000)),
+              ]);
             } catch (e) {
               if (__DEV__) console.warn('[AuthContext] display_name sync (non-fatal):', e?.message);
             }

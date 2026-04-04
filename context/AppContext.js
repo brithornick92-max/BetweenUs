@@ -200,7 +200,10 @@ export function AppProvider({ children }) {
       }
 
       try {
-        const remoteCouple = await CoupleService.getMyCouple();
+        const remoteCouple = await Promise.race([
+          CoupleService.getMyCouple(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('getMyCouple timed out')), 10000)),
+        ]);
         const remoteCoupleId = remoteCouple?.couple_id || null;
 
         if (remoteCoupleId && remoteCoupleId !== resolvedCoupleId) {
@@ -226,7 +229,10 @@ export function AppProvider({ children }) {
 
       try {
         const { supabase } = await import('../config/supabase');
-        const { data: authData } = supabase ? await supabase.auth.getUser() : { data: null };
+        const { data: authData } = supabase ? await Promise.race([
+          supabase.auth.getUser(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('getUser timed out')), 10000)),
+        ]) : { data: null };
         supabaseUserId = authData?.user?.id || null;
       } catch (_) {}
       
