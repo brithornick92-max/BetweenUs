@@ -147,9 +147,10 @@ export const ContentProvider = ({ children }) => {
     }
   };
 
-  // Load today's prompt — preference-aware
-  // If heatLevel is explicitly passed (e.g. from HeatLevelScreen), use it.
-  // Otherwise, use the user's full content profile (season, energy, boundaries, etc.)
+  // Load today's prompt — one fixed prompt per scope/day.
+  // Caller-specific heat selection must not regenerate a second "today" prompt.
+  // We keep the legacy parameter for compatibility with existing callers, but
+  // the selection itself is based on the persisted content profile only.
   const loadTodayPrompt = async (heatLevel = null) => {
       if (loadingPromptRef.current) return todayPrompt;
 
@@ -208,8 +209,9 @@ export const ContentProvider = ({ children }) => {
       // Load (or refresh) the content profile
       const profile = await loadContentProfile();
 
-      // Determine effective heat level
-      const effectiveHeat = heatLevel || profile?.maxHeat || (userProfile?.heatLevelPreference) || 5;
+      // Determine the daily pool from the persisted profile only so the day's
+      // moment stays fixed regardless of which screen opens it first.
+      const effectiveHeat = profile?.maxHeat || (userProfile?.heatLevelPreference) || 5;
 
       // Check if user can access this heat level
       const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, effectiveHeat, isPremium);

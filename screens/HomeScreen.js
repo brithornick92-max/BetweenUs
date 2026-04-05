@@ -370,16 +370,28 @@ export default function HomeScreen({ navigation }) {
             ) : null}
             <Text style={styles.headerToneLine}>{toneCopy.subheadline(partnerLabel)}</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => { selection(); navigation.navigate('VibeSignal'); }}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="button"
-            accessibilityLabel="Send a vibe signal"
-            style={styles.vibeButton}
-          >
-            <Icon name="heart-outline" size={30} color={t.primary} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              onPress={() => { selection(); navigation.navigate('SavedMoments'); }}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Open saved moments and prompts"
+              style={styles.vibeButton}
+            >
+              <Icon name="archive-outline" size={24} color={t.text} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { selection(); navigation.navigate('VibeSignal'); }}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Send a vibe signal"
+              style={styles.vibeButton}
+            >
+              <Icon name="heart-outline" size={30} color={t.primary} />
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         <OfflineIndicator />
@@ -586,6 +598,11 @@ const createStyles = (t, isDark) => StyleSheet.create({
     paddingBottom: SPACING.lg,
   },
   headerLeft: { flex: 1 },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   headerGreetingSub: {
     fontFamily: systemFont,
     fontSize: 13,

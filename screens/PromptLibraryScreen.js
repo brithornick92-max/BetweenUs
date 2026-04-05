@@ -302,30 +302,11 @@ export default function PromptLibraryScreen({ navigation }) {
 
   const handleRefreshPrompt = useCallback(async () => {
     impact(ImpactFeedbackStyle.Medium);
-    if (!isPremium) {
-      Alert.alert(
-        "There's more waiting for you",
-        "There are so many more prompts waiting for you.",
-        [
-          { text: "Maybe Later", style: "cancel" },
-          { text: "Discover more", onPress: () => showPaywall?.(PremiumFeature.PROMPT_REFRESH) },
-        ]
-      );
-      return;
-    }
-    if (typeof loadTodayPrompt !== "function") {
-      await loadPrompts();
-      return;
-    }
-    try {
-      await loadTodayPrompt(selectedHeat);
-      Alert.alert("Success", "New prompt loaded!");
-      navigation.goBack();
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to load new prompt. Please try again.");
-    }
-  }, [isPremium, loadTodayPrompt, loadPrompts, navigation, selectedHeat, showPaywall]);
+    Alert.alert(
+      "Today's moment is set",
+      "There is only one moment per day. It stays the same for both partners until tomorrow."
+    );
+  }, []);
 
   const refreshBoundaryProfile = useCallback(async () => {
     const profile = await PreferenceEngine.getContentProfile(userProfile || {});

@@ -23,6 +23,7 @@ export const EditorialPrompt = () => withScreenErrorBoundary(require("../screens
 export const NightRitual = () => withScreenErrorBoundary(require("../screens/NightRitualScreen").default, "NightRitual");
 export const Settings = () => withScreenErrorBoundary(require("../screens/SettingsScreen").default, "Settings");
 export const AdaptiveHome = () => withScreenErrorBoundary(require("../components/AdaptiveHomeScreen").default, "AdaptiveHome");
+export const SavedMoments = () => withScreenErrorBoundary(require("../screens/SavedMomentsScreen").default, "SavedMoments");
 
 // ─── Legal / info ───────────────────────────────────────────────────
 export const Terms = () => withScreenErrorBoundary(require("../screens/TermsScreen").default, "Terms");

@@ -175,6 +175,7 @@ export default function RootNavigator() {
         <Stack.Screen name="NightRitual" getComponent={Screens.NightRitual} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" getComponent={Screens.Settings} options={{ headerShown: false }} />
         <Stack.Screen name="AdaptiveHome" getComponent={Screens.AdaptiveHome} options={{ headerShown: false }} />
+        <Stack.Screen name="SavedMoments" getComponent={Screens.SavedMoments} options={{ headerShown: false }} />
 
         <Stack.Screen name="Terms" getComponent={Screens.Terms} options={{ headerShown: false }} />
         <Stack.Screen name="PrivacyPolicy" getComponent={Screens.PrivacyPolicy} options={{ headerShown: false }} />

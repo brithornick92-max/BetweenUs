@@ -57,7 +57,7 @@ const uiPersonalization = {
     rituals:  { icon: 'moon-outline',        label: 'Rituals',    screen: 'NightRitualScreen', premium: true },
     lovenote: { icon: 'heart-outline',       label: 'Love Notes', screen: 'LoveNotesScreen', premium: true },
       checkin:  { icon: 'pulse-outline',       label: 'Check-in',   screen: 'CheckInScreen' },
-      memories: { icon: 'images-outline',      label: 'Memories',   screen: 'MemoriesScreen' },
+      memories: { icon: 'archive-outline',     label: 'Saved',      screen: 'SavedMoments' },
     };
 
     const shortcuts = sortedFeatures
