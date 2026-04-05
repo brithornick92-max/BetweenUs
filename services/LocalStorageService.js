@@ -12,6 +12,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import CrashReporting from './CrashReporting';
 
 const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
+const PASSWORD_ITERATIONS = 60000;
 
 /** Convert Uint8Array to lowercase hex string */
 function bytesToHex(bytes) {
@@ -118,10 +119,9 @@ class LocalStorageService {
     try {
       const userId = this.generateUserId();
       const passwordSalt = bytesToHex(ExpoCrypto.getRandomBytes(16));
-      // 120,000 iterations: improved from 50k toward OWASP recommendations,
-      // balanced for mobile performance (~3-4s in pure JS). Credentials are stored
-      // in hardware-backed SecureStore, not exposed database.
-      const passwordIterations = 120000;
+      // Pure-JS PBKDF2 runs on the JS thread, so keep the work factor high enough
+      // to be meaningful while avoiding multi-second interactive sign-in delays.
+      const passwordIterations = PASSWORD_ITERATIONS;
       const passwordHash = this._hashPassword(password, passwordSalt, passwordIterations);
 
       // Store credentials in SecureStore (not AsyncStorage)
@@ -154,6 +154,88 @@ class LocalStorageService {
       return { user };
     } catch (error) {
       if (__DEV__) console.error('Create account error:', error);
+      throw error;
+    }
+  }
+
+  async hydrateRemoteAccount({ uid, email, password, displayName = '', emailVerified = true }) {
+    try {
+      if (!uid) throw new Error('Remote user id is required');
+      if (!email) throw new Error('Email is required');
+      if (!password) throw new Error('Password is required');
+
+      let existingUser = null;
+      const indexedUid = await this._getUidByEmail(email);
+      if (indexedUid) {
+        const raw = await AsyncStorage.getItem(`user_${indexedUid}`);
+        if (raw) existingUser = JSON.parse(raw);
+      }
+
+      if (!existingUser) {
+        const raw = await AsyncStorage.getItem(`user_${uid}`);
+        if (raw) existingUser = JSON.parse(raw);
+      }
+
+      if (!existingUser) {
+        existingUser = await this._recoverUserByEmail(email);
+      }
+
+      const localUid = existingUser?.uid || uid;
+      let storedCredentials = null;
+
+      try {
+        const credRaw = await SecureStore.getItemAsync(`cred_${localUid}`, SECURE_STORE_OPTS);
+        if (credRaw) {
+          storedCredentials = JSON.parse(credRaw);
+        }
+      } catch (_) {}
+
+      if (!storedCredentials?.passwordHash && existingUser?.passwordHash) {
+        storedCredentials = {
+          passwordHash: existingUser.passwordHash,
+          passwordSalt: existingUser.passwordSalt,
+          passwordIterations: existingUser.passwordIterations,
+        };
+      }
+
+      if (!storedCredentials?.passwordHash) {
+        const passwordSalt = bytesToHex(ExpoCrypto.getRandomBytes(16));
+        const passwordIterations = PASSWORD_ITERATIONS;
+        storedCredentials = {
+          passwordHash: this._hashPassword(password, passwordSalt, passwordIterations),
+          passwordSalt,
+          passwordIterations,
+        };
+      }
+
+      const fallbackName = email.split('@')[0] || 'Between Us';
+      const user = {
+        ...(existingUser && typeof existingUser === 'object' ? existingUser : {}),
+        uid: localUid,
+        email,
+        displayName: displayName || existingUser?.displayName || fallbackName,
+        createdAt: existingUser?.createdAt || new Date().toISOString(),
+        emailVerified,
+      };
+
+      await Promise.all([
+        SecureStore.setItemAsync(
+          `cred_${localUid}`,
+          JSON.stringify(storedCredentials),
+          SECURE_STORE_OPTS
+        ),
+        AsyncStorage.setItem(`user_${localUid}`, JSON.stringify(user)),
+        AsyncStorage.setItem('currentUserId', localUid),
+        this._setEmailIndex(email, localUid),
+        this._persistUserToSecureStore(user),
+      ]);
+
+      this.currentUser = user;
+      this.notifyAuthListeners(user);
+
+      return { user };
+    } catch (error) {
+      if (__DEV__) console.error('Hydrate remote account error:', error);
       throw error;
     }
   }
@@ -217,7 +299,7 @@ class LocalStorageService {
             throw new Error('Invalid password');
           }
           const passwordSalt = bytesToHex(ExpoCrypto.getRandomBytes(16));
-          const passwordIterations = 120000;
+          const passwordIterations = PASSWORD_ITERATIONS;
           const upgradedHash = this._hashPassword(password, passwordSalt, passwordIterations);
           cred = { passwordHash: upgradedHash, passwordSalt, passwordIterations };
         }
@@ -249,15 +331,6 @@ class LocalStorageService {
 
   async signOut(scope = 'global') {
     try {
-      // Sign out from Supabase with scope control
-      try {
-        const SupabaseAuthService = require('./supabase/SupabaseAuthService').default;
-        await SupabaseAuthService.signOut(scope);
-      } catch (e) {
-        // Supabase may not be configured — continue with local cleanup
-        if (__DEV__) console.warn('[LocalStorageService] Supabase sign-out skipped:', e?.message);
-      }
-
       await AsyncStorage.removeItem('currentUserId');
       try {
         await SecureStore.deleteItemAsync('currentUserId', SECURE_STORE_OPTS);
@@ -273,6 +346,15 @@ class LocalStorageService {
       ]);
       this.currentUser = null;
       this.notifyAuthListeners(null);
+
+      // Remote session teardown should not block the local sign-out transition.
+      try {
+        const SupabaseAuthService = require('./supabase/SupabaseAuthService').default;
+        await SupabaseAuthService.signOut(scope);
+      } catch (e) {
+        // Supabase may not be configured — continue with local cleanup
+        if (__DEV__) console.warn('[LocalStorageService] Supabase sign-out skipped:', e?.message);
+      }
     } catch (error) {
       if (__DEV__) console.error('Sign out error:', error);
       throw error;

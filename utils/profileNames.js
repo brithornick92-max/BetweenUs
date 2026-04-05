@@ -7,8 +7,10 @@ export function getMyDisplayName(primaryProfile, fallbackProfile, defaultName = 
   const myName =
     normalizeName(primaryProfile?.partnerNames?.myName) ||
     normalizeName(fallbackProfile?.partnerNames?.myName) ||
+    normalizeName(primaryProfile?.display_name) ||
     normalizeName(primaryProfile?.displayName) ||
     normalizeName(primaryProfile?.name) ||
+    normalizeName(fallbackProfile?.display_name) ||
     normalizeName(fallbackProfile?.displayName) ||
     normalizeName(fallbackProfile?.name);
 

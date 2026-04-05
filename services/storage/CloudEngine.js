@@ -144,8 +144,11 @@ class CloudEngine {
       .select('*')
       .eq('couple_id', coupleId)
       .eq('key', key)
-      .single();
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return null;
     if (data?.encrypted_value) {
       if (!coupleKey) {
         return { ...data, locked: true };

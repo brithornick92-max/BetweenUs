@@ -212,14 +212,16 @@ export default function RevealScreen({ route, navigation }) {
           {!isRevealed ? (
             /* LOCKED STATE */
             <View style={styles.lockedStage}>
-              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-                <LinearGradient 
-                  colors={[t.accent, '#7A1E4E']} 
-                  style={[styles.lockedCircle, { shadowColor: t.accent }]}
-                >
-                  <Icon name="lock-closed-outline" size={42} color="#FFFFFF" />
-                </LinearGradient>
-              </Animated.View>
+              <View style={{ width: '100%', alignItems: 'center' }}>
+                <Animated.View style={{ transform: [{ scale: pulseAnim }], marginBottom: SPACING.xxl }}>
+                  <LinearGradient 
+                    colors={['#D2121A', '#8F0C11']} 
+                    style={[styles.lockedCircle, { shadowColor: '#D2121A' }]}
+                  >
+                    <Icon name="lock-closed-outline" size={42} color="#FFFFFF" />
+                  </LinearGradient>
+                </Animated.View>
+              </View>
 
               <Text style={[styles.lockedTitle, { color: t.text }]}>Ready to connect?</Text>
               <Text style={[styles.lockedSub, { color: t.subtext }]}>
@@ -316,6 +318,7 @@ export default function RevealScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { 
+    flexGrow: 1,
     paddingHorizontal: SPACING.xl, 
     paddingTop: SPACING.sm, 
     paddingBottom: SPACING.xxxl 

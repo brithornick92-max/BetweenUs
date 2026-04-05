@@ -28,6 +28,7 @@ import { useContent } from '../context/ContentContext';
 import { DataLayer } from '../services/localfirst';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { PremiumFeature } from '../utils/featureFlags';
+import { promptStorage } from '../utils/storage';
 import { SPACING } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import MomentSignal from '../components/MomentSignal';
@@ -163,11 +164,18 @@ export default function HomeScreen({ navigation }) {
       if (!promptReady) return;
       try {
         const row = await DataLayer.getPromptAnswerForToday(prompt.id);
-        setMyAnswer(row?.answer || '');
+        if (row?.answer) {
+          setMyAnswer(row.answer);
+          setPartnerAnswer(row?.partnerAnswer || '');
+          return;
+        }
+
+        const saved = await promptStorage.getAnswer(todayKey, prompt.id);
+        setMyAnswer(saved?.content || saved?.answer || '');
         setPartnerAnswer(row?.partnerAnswer || '');
       } catch (e) { if (__DEV__) console.warn('[Home] prompt answer fetch:', e?.message); }
     })();
-  }, [prompt.id, promptReady]);
+  }, [prompt.id, promptReady, todayKey]);
 
   useEffect(() => {
     (async () => {
@@ -239,7 +247,17 @@ export default function HomeScreen({ navigation }) {
         }
       }
 
-      await DataLayer.savePromptAnswer({ promptId: prompt.id, answer: finalText });
+      await promptStorage.setAnswer(todayKey, prompt.id, {
+        answer: finalText,
+        timestamp: Date.now(),
+      });
+
+      try {
+        await DataLayer.savePromptAnswer({ promptId: prompt.id, answer: finalText });
+      } catch (dataLayerError) {
+        if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);
+      }
+
       if (!isPremium && !myAnswer) {
         await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt.heat || 1);
         await loadUsageStatus?.();

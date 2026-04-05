@@ -299,13 +299,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
     setIsSaving(true);
     try {
       Keyboard.dismiss();
-      // Write to DataLayer (E2EE, synced, exported) — primary store
-      await DataLayer.savePromptAnswer({
-        promptId: prompt.id,
-        answer: finalText,
-        heatLevel: prompt?.heat || 1,
-      });
-      // Also write to legacy promptStorage for backward compatibility
+      // Save locally first so prompt answering still works even if the
+      // E2EE/sync layer is still initializing or temporarily unavailable.
       if (prompt?.dateKey) {
         await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
           answer: finalText,
@@ -313,6 +308,17 @@ export default function PromptAnswerScreen({ route, navigation }) {
           isRevealed: existingAnswer?.isRevealed || false,
         });
       }
+
+      try {
+        await DataLayer.savePromptAnswer({
+          promptId: prompt.id,
+          answer: finalText,
+          heatLevel: prompt?.heat || 1,
+        });
+      } catch (dataLayerError) {
+        if (__DEV__) console.warn('[PromptAnswer] DataLayer prompt save failed:', dataLayerError?.message);
+      }
+
       if (!isPremium && isFirstResponse && user?.uid) {
         await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt?.heat || 1);
         await loadUsageStatus?.();

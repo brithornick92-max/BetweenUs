@@ -20,6 +20,7 @@ import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedb
 import { useTheme } from '../context/ThemeContext';
 import { BORDER_RADIUS, SPACING } from '../utils/theme';
 import { NicknameEngine } from '../services/PolishEngine';
+import StorageRouter from '../services/storage/StorageRouter';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -36,6 +37,7 @@ export default function NicknameSettings({ onConfigChanged }) {
 
   const updateField = useCallback(async (field, value) => {
     const updated = await NicknameEngine.setConfig({ [field]: value });
+    StorageRouter.updateCloudProfilePreferences({ nicknameConfig: updated }).catch(() => {});
     setConfig(updated);
     onConfigChanged?.(updated);
   }, [onConfigChanged]);
@@ -43,6 +45,10 @@ export default function NicknameSettings({ onConfigChanged }) {
   const selectTone = useCallback(async (toneId) => {
     impact(ImpactFeedbackStyle.Light);
     const updated = await NicknameEngine.setConfig({ tone: toneId });
+    StorageRouter.updateCloudProfilePreferences({
+      nicknameConfig: updated,
+      tone: toneId,
+    }).catch(() => {});
     setConfig(updated);
     onConfigChanged?.(updated);
   }, [onConfigChanged]);

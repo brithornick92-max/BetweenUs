@@ -636,6 +636,14 @@ export default function OnboardingScreen({ navigation }) {
                   partnerNickname: partnerName,
                   tone: selectedTone,
                 });
+                StorageRouter.updateCloudProfilePreferences({
+                  nicknameConfig: {
+                    myNickname: myName,
+                    partnerNickname: partnerName,
+                    tone: selectedTone,
+                  },
+                  tone: selectedTone,
+                }).catch(() => {});
               } catch (e) {
                 console.warn('Error saving onboarding preferences:', e);
               }

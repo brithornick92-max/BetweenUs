@@ -24,6 +24,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 // Mock Expo modules
 jest.mock('expo-crypto', () => ({
   digestStringAsync: jest.fn(),
+  getRandomBytes: jest.fn((size) => new Uint8Array(size).fill(1)),
   getRandomBytesAsync: jest.fn(async (size) => new Uint8Array(size).fill(1)),
   randomUUID: jest.fn(() => 'mock-uuid-' + Math.random().toString(36).slice(2)),
 }));

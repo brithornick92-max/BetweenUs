@@ -16,6 +16,7 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING } from '../utils/theme';
 import { RelationshipSeasons, SEASONS } from '../services/PolishEngine';
+import StorageRouter from '../services/storage/StorageRouter';
 
 // ------------------------------------------------------------------
 // INLINE COMPONENT: Animated Season Option
@@ -125,6 +126,9 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
   const handleSelect = useCallback(async (seasonId) => {
     selection();
     await RelationshipSeasons.set(seasonId);
+    StorageRouter.updateCloudProfilePreferences({
+      relationshipSeason: { id: seasonId, setAt: Date.now() },
+    }).catch(() => {});
     setCurrentSeason(seasonId);
     onSeasonChange?.(seasonId);
   }, [onSeasonChange]);

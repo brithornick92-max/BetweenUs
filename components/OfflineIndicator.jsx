@@ -31,6 +31,8 @@ function OfflineIndicator() {
   const [isOffline, setIsOffline] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const slideAnim = useRef(new Animated.Value(-100)).current;
+  const consecutiveFailuresRef = useRef(0);
+  const retryTimeoutRef = useRef(null);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -42,14 +44,20 @@ function OfflineIndicator() {
   }), [colors, isDark]);
 
   const checkConnection = useCallback(async () => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+
+    let timeout = null;
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4000);
+      timeout = setTimeout(() => controller.abort(), 6000);
       await fetch(CONNECTIVITY_URL, {
         method: 'HEAD',
         signal: controller.signal,
       });
-      clearTimeout(timeout);
+      consecutiveFailuresRef.current = 0;
       setIsOffline(false);
       Animated.timing(slideAnim, {
         toValue: -100,
@@ -57,6 +65,16 @@ function OfflineIndicator() {
         useNativeDriver: true,
       }).start();
     } catch {
+      consecutiveFailuresRef.current += 1;
+
+      if (consecutiveFailuresRef.current < 2) {
+        retryTimeoutRef.current = setTimeout(() => {
+          retryTimeoutRef.current = null;
+          checkConnection();
+        }, 1500);
+        return;
+      }
+
       setIsOffline(true);
       OfflineGrace.getPendingCount().then(setPendingCount).catch(() => {});
       Animated.spring(slideAnim, {
@@ -65,6 +83,8 @@ function OfflineIndicator() {
         stiffness: 120,
         useNativeDriver: true,
       }).start();
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
   }, [slideAnim]);
 
@@ -79,6 +99,9 @@ function OfflineIndicator() {
     return () => {
       sub.remove();
       clearInterval(interval);
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
     };
   }, [checkConnection, isOffline]);
 

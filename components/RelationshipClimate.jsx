@@ -16,6 +16,7 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, withAlpha } from '../utils/theme';
 import { RelationshipClimateState, CLIMATE_OPTIONS } from '../services/ConnectionEngine';
+import StorageRouter from '../services/storage/StorageRouter';
 
 // ------------------------------------------------------------------
 // INLINE COMPONENT: Animated Climate Card
@@ -163,6 +164,9 @@ function RelationshipClimate({ onClimateChange, compact = false }) {
     selection();
     setSelected(climateId);
     await RelationshipClimateState.set(climateId);
+    StorageRouter.updateCloudProfilePreferences({
+      relationshipClimate: { id: climateId, updatedAt: Date.now() },
+    }).catch(() => {});
     onClimateChange?.(climateId);
   }, [onClimateChange]);
 

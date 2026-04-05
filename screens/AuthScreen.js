@@ -110,10 +110,11 @@ export default function AuthScreen() {
       // Sanitize error: don't expose raw Supabase messages that may contain PII
       const raw = error?.message ?? '';
       let friendly = 'Something went wrong. Please try again.';
-      if (raw.includes('Invalid login')) friendly = 'Incorrect email or password.';
+      if (raw.includes('Invalid login') || raw.includes('Invalid password') || raw.includes('User not found')) friendly = 'Incorrect email or password.';
       else if (raw.includes('already registered') || raw.includes('already been registered')) friendly = 'This email is already registered. Try signing in instead.';
       else if (raw.includes('rate limit') || raw.includes('too many')) friendly = 'Too many attempts. Please wait a moment and try again.';
       else if (raw.includes('network') || raw.includes('Network')) friendly = 'Network error. Check your connection and try again.';
+      else if (raw.includes('timed out')) friendly = 'Sign in timed out. Check your connection and try again.';
       else if (raw.includes('Email not confirmed')) friendly = 'Please check your email and confirm your account first.';
       Alert.alert("Error", friendly);
     } finally {

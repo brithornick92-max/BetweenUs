@@ -117,9 +117,14 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
         },
       });
       await actions.updateProfile({
+        displayName: myName.trim(),
         partnerNames: {
           myName: myName.trim(),
           partnerName: partnerName.trim(),
+        },
+        preferences: {
+          ...(userProfile?.preferences || {}),
+          partnerLabel: partnerName.trim(),
         },
       });
 

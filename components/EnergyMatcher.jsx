@@ -16,6 +16,7 @@ import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import { ContentIntensityMatcher, ENERGY_LEVELS } from '../services/ConnectionEngine';
 import { useContent } from '../context/ContentContext';
+import StorageRouter from '../services/storage/StorageRouter';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -56,6 +57,7 @@ export default function EnergyMatcher({ onSelect, compact = false }) {
     impact(ImpactFeedbackStyle.Light);
     setSelected(level);
     await ContentIntensityMatcher.setEnergyLevel(level);
+    StorageRouter.updateCloudProfilePreferences({ energyLevel: level }).catch(() => {});
     const params = ContentIntensityMatcher.getContentParams(level);
     onSelect?.(level, params);
     // Refresh global content profile and today's prompt so all screens see updated energy

@@ -228,7 +228,10 @@ function AppContent() {
         }
 
         if (session && active) {
-          await PushNotificationService.initialize(supabase, { requestPermissions: false });
+          const shouldRequestPermissions = notificationSettings?.notificationsEnabled !== false;
+          await PushNotificationService.initialize(supabase, {
+            requestPermissions: shouldRequestPermissions,
+          });
         } else {
           await PushNotificationService.removeToken(supabase);
         }

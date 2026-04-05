@@ -156,10 +156,23 @@ export default function ComposeLoveNoteScreen({ navigation }) {
       notification(NotificationFeedbackType.Success).catch(() => {});
       navigation.goBack();
     } catch (err) {
-      let message = "Something went wrong. Please try again.";
       if (err?.message?.includes('COUPLE_KEY_MISSING')) {
-        message = "Your partner key isn't ready. Make sure both partners have completed pairing.";
-      } else if (err?.message?.includes('attach image')) {
+        Alert.alert(
+          "Repair Secure Pairing",
+          "This device is linked to your relationship, but it is missing the shared encryption key. On your partner's working device, open the pairing QR. Then scan it on this device to repair secure notes and shared content.",
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Scan Partner QR',
+              onPress: () => navigation.navigate('PairingScan'),
+            },
+          ]
+        );
+        return;
+      }
+
+      let message = "Something went wrong. Please try again.";
+      if (err?.message?.includes('attach image')) {
         message = "Failed to attach your photo. Please try a different image.";
       }
       Alert.alert("Couldn't Send Note", message);

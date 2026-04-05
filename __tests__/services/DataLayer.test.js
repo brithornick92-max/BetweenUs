@@ -88,10 +88,19 @@ jest.mock('../../services/sync/SyncEngine', () => ({
   },
 }));
 
+jest.mock('../../services/PushNotificationService', () => ({
+  __esModule: true,
+  default: {
+    notifyPartner: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 const mockRemoveChannel = jest.fn();
 const mockSubscribe = jest.fn(() => ({ unsubscribe: jest.fn() }));
 const mockChannelOn = jest.fn(() => ({ subscribe: mockSubscribe }));
 const mockChannel = jest.fn(() => ({ on: mockChannelOn }));
+const mockAuthGetUser = jest.fn();
+const mockRpc = jest.fn();
 const mockSingle = jest.fn();
 const mockSelect = jest.fn(() => ({ single: mockSingle }));
 const mockInsert = jest.fn(() => ({ select: mockSelect }));
@@ -112,7 +121,11 @@ const mockFrom = jest.fn(() => ({
 jest.mock('../../config/supabase', () => ({
   __esModule: true,
   supabase: {
+    auth: {
+      getUser: (...args) => mockAuthGetUser(...args),
+    },
     from: mockFrom,
+    rpc: (...args) => mockRpc(...args),
     channel: mockChannel,
     removeChannel: mockRemoveChannel,
   },
@@ -124,11 +137,14 @@ jest.mock('../../config/supabase', () => ({
 const DataLayer = require('../../services/data/DataLayer').default;
 const Database = require('../../services/db/Database').default;
 const E2EEncryption = require('../../services/e2ee/E2EEncryption').default;
+const PushNotificationService = require('../../services/PushNotificationService').default;
 
 describe('DataLayer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' } } });
+    mockRpc.mockResolvedValue({ error: null });
     mockSingle.mockResolvedValue({ data: { id: '11111111-1111-4111-8111-111111111111' }, error: null });
     mockUpdateEq.mockResolvedValue({ error: null });
     mockDeleteEq.mockResolvedValue({ error: null });
@@ -210,6 +226,26 @@ describe('DataLayer', () => {
       expect(E2EEncryption.encryptString).toHaveBeenCalled();
       expect(Database.insertPromptAnswer).toHaveBeenCalled();
     });
+
+    it('savePromptAnswer updates the existing answer for the same prompt and day', async () => {
+      Database.getPromptAnswerByPromptAndDate.mockResolvedValueOnce({ id: 'pa_existing' });
+
+      await DataLayer.savePromptAnswer({
+        promptId: 'prompt-42',
+        answer: 'Updated answer',
+        heatLevel: 3,
+      });
+
+      expect(Database.updatePromptAnswer).toHaveBeenCalledWith(
+        'pa_existing',
+        expect.objectContaining({
+          heat_level: 3,
+          answer_cipher: 'enc:Updated answer',
+          heat_level_cipher: 'enc:3',
+        })
+      );
+      expect(Database.insertPromptAnswer).not.toHaveBeenCalled();
+    });
   });
 
   describe('Vibes', () => {
@@ -239,6 +275,17 @@ describe('DataLayer', () => {
       });
       expect(E2EEncryption.encryptString).toHaveBeenCalled();
       expect(Database.insertLoveNote).toHaveBeenCalled();
+    });
+
+    it('saveLoveNote still rejects when the couple key is unavailable and cannot be restored', async () => {
+      E2EEncryption.hasCoupleKey.mockResolvedValue(false);
+      await DataLayer.reconfigure({ userId: 'user-1', coupleId: 'couple-1', isPremium: true });
+
+      await expect(DataLayer.saveLoveNote({
+        text: 'I love you',
+        stationeryId: 'default',
+        senderName: 'Alice',
+      })).rejects.toThrow('COUPLE_KEY_MISSING');
     });
 
     it('getUnreadLoveNoteCount returns count', async () => {
@@ -273,6 +320,19 @@ describe('DataLayer', () => {
         expect.objectContaining({ syncStatus: 'synced', syncSource: 'remote' })
       );
       expect(Database.upsertDatePlan).toHaveBeenCalled();
+      expect(PushNotificationService.notifyPartner).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          title: 'New date plan',
+          body: 'Dinner was added to your timeline.',
+          data: expect.objectContaining({
+            type: 'calendar_event_created',
+            route: 'Calendar',
+            eventId: '11111111-1111-4111-8111-111111111111',
+            eventType: 'dateNight',
+          }),
+        })
+      );
       expect(result.remoteSynced).toBe(true);
     });
 
@@ -303,6 +363,17 @@ describe('DataLayer', () => {
       expect(Database.replaceCalendarEventId).toHaveBeenCalledWith(
         'cal_local_1',
         '22222222-2222-4222-8222-222222222222'
+      );
+      expect(PushNotificationService.notifyPartner).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          title: 'New date plan',
+          body: 'Dinner was added to your timeline.',
+          data: expect.objectContaining({
+            eventId: '22222222-2222-4222-8222-222222222222',
+            eventType: 'dateNight',
+          }),
+        })
       );
       expect(result).toEqual({ pushed: 1, deleted: 0, failed: 0 });
     });
@@ -384,6 +455,60 @@ describe('DataLayer', () => {
 
       expect(Database.softDeleteCalendarEvent).toHaveBeenCalledWith('44444444-4444-4444-8444-444444444444');
       expect(result).toHaveLength(1);
+    });
+
+    it('saveCalendarEvent caches remote events with the device key when the couple key is unavailable', async () => {
+      E2EEncryption.hasCoupleKey.mockResolvedValue(false);
+      await DataLayer.reconfigure({ userId: 'user-1', coupleId: 'couple-1', isPremium: true });
+
+      await DataLayer.saveCalendarEvent({
+        id: '33333333-3333-4333-8333-333333333333',
+        title: 'Remote dinner',
+        notes: 'Remote notes',
+        location: 'Remote spot',
+        whenTs: new Date('2024-01-15T19:00:00Z').getTime(),
+      }, { syncSource: 'remote', markSynced: true });
+
+      expect(E2EEncryption.encryptString).toHaveBeenCalledWith('Remote dinner', 'device', null);
+      expect(E2EEncryption.encryptString).toHaveBeenCalledWith('Remote spot', 'device', null);
+      expect(E2EEncryption.encryptString).toHaveBeenCalledWith('Remote notes', 'device', null);
+    });
+
+    it('saveDatePlan caches remote plans with the device key when the couple key is unavailable', async () => {
+      E2EEncryption.hasCoupleKey.mockResolvedValue(false);
+      await DataLayer.reconfigure({ userId: 'user-1', coupleId: 'couple-1', isPremium: true });
+
+      await DataLayer.saveDatePlan({
+        id: 'dp-remote-1',
+        title: 'Plan title',
+        locationType: 'home',
+        heat: 2,
+        load: 2,
+        style: 'mixed',
+        steps: [],
+      }, { syncSource: 'remote', markSynced: true });
+
+      expect(E2EEncryption.encryptJson).toHaveBeenCalledWith(
+        expect.objectContaining({
+          locationType: 'home',
+          heat: 2,
+          load: 2,
+          style: 'mixed',
+          steps: [],
+        }),
+        'device',
+        null
+      );
+    });
+
+    it('saveCalendarEvent still rejects unsynced shared writes when the couple key is unavailable', async () => {
+      E2EEncryption.hasCoupleKey.mockResolvedValue(false);
+      await DataLayer.reconfigure({ userId: 'user-1', coupleId: 'couple-1', isPremium: true });
+
+      await expect(DataLayer.saveCalendarEvent({
+        title: 'Dinner',
+        whenTs: new Date('2024-01-15T19:00:00Z').getTime(),
+      })).rejects.toThrow('COUPLE_KEY_MISSING');
     });
   });
 

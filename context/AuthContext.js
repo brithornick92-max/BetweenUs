@@ -17,8 +17,142 @@ import CrashReporting from '../services/CrashReporting';
 import PushNotificationService from '../services/PushNotificationService';
 import { supabase } from '../config/supabase';
 import { storage, STORAGE_KEYS } from '../utils/storage';
+import { NicknameEngine, RelationshipSeasons, SoftBoundaries } from '../services/PolishEngine';
+import { ContentIntensityMatcher, RelationshipClimateState } from '../services/ConnectionEngine';
 
 const AuthContext = createContext(null);
+const PRESERVED_ASYNC_STORAGE_PREFIXES = ['user_', 'userDoc_', 'email_idx_'];
+
+function mergeCloudProfile(localProfile, remoteProfile) {
+  const safeLocal = localProfile && typeof localProfile === 'object' ? localProfile : {};
+  const remotePrefs = remoteProfile?.preferences && typeof remoteProfile.preferences === 'object'
+    ? remoteProfile.preferences
+    : {};
+
+  return {
+    ...safeLocal,
+    ...(remoteProfile?.display_name
+      ? {
+          displayName: remoteProfile.display_name,
+          display_name: remoteProfile.display_name,
+        }
+      : {}),
+    ...(typeof remotePrefs.heatLevelPreference !== 'undefined'
+      ? { heatLevelPreference: remotePrefs.heatLevelPreference }
+      : {}),
+    ...(typeof remotePrefs.onboardingCompleted === 'boolean'
+      ? { onboardingCompleted: remotePrefs.onboardingCompleted }
+      : {}),
+    ...(typeof remotePrefs.tone === 'string' && remotePrefs.tone.trim()
+      ? { tone: remotePrefs.tone.trim() }
+      : {}),
+    ...(remotePrefs.nicknameConfig && typeof remotePrefs.nicknameConfig === 'object'
+      ? { nicknameConfig: remotePrefs.nicknameConfig }
+      : {}),
+    ...(remotePrefs.relationshipSeason && typeof remotePrefs.relationshipSeason === 'object'
+      ? { relationshipSeason: remotePrefs.relationshipSeason }
+      : {}),
+    ...(remotePrefs.relationshipClimate && typeof remotePrefs.relationshipClimate === 'object'
+      ? { relationshipClimate: remotePrefs.relationshipClimate }
+      : {}),
+    ...(typeof remotePrefs.energyLevel === 'string' && remotePrefs.energyLevel.trim()
+      ? { energyLevel: remotePrefs.energyLevel.trim() }
+      : {}),
+    ...(remotePrefs.softBoundaries && typeof remotePrefs.softBoundaries === 'object'
+      ? { softBoundaries: remotePrefs.softBoundaries }
+      : {}),
+    ...(remotePrefs.relationshipStartDate
+      ? { relationshipStartDate: remotePrefs.relationshipStartDate }
+      : {}),
+    ...(remotePrefs.partnerNames && typeof remotePrefs.partnerNames === 'object'
+      ? {
+          partnerNames: {
+            ...(safeLocal.partnerNames && typeof safeLocal.partnerNames === 'object' ? safeLocal.partnerNames : {}),
+            ...remotePrefs.partnerNames,
+          },
+        }
+      : {}),
+    preferences: {
+      ...(safeLocal.preferences && typeof safeLocal.preferences === 'object' ? safeLocal.preferences : {}),
+      ...remotePrefs,
+    },
+  };
+}
+
+async function persistAppUserProfile(profile) {
+  const normalizedProfile = profile && typeof profile === 'object' ? profile : {};
+  await storage.set(STORAGE_KEYS.USER_PROFILE, normalizedProfile);
+}
+
+async function applyCloudPreferenceState(remoteProfile) {
+  const remotePrefs = remoteProfile?.preferences && typeof remoteProfile.preferences === 'object'
+    ? remoteProfile.preferences
+    : {};
+
+  const nicknameConfig = {};
+  if (remotePrefs.nicknameConfig && typeof remotePrefs.nicknameConfig === 'object') {
+    if (typeof remotePrefs.nicknameConfig.myNickname === 'string') {
+      nicknameConfig.myNickname = remotePrefs.nicknameConfig.myNickname;
+    }
+    if (typeof remotePrefs.nicknameConfig.partnerNickname === 'string') {
+      nicknameConfig.partnerNickname = remotePrefs.nicknameConfig.partnerNickname;
+    }
+    if (typeof remotePrefs.nicknameConfig.tone === 'string') {
+      nicknameConfig.tone = remotePrefs.nicknameConfig.tone;
+    }
+  }
+
+  if (remotePrefs.partnerNames && typeof remotePrefs.partnerNames === 'object') {
+    if (!nicknameConfig.myNickname && typeof remotePrefs.partnerNames.myName === 'string') {
+      nicknameConfig.myNickname = remotePrefs.partnerNames.myName;
+    }
+    if (!nicknameConfig.partnerNickname && typeof remotePrefs.partnerNames.partnerName === 'string') {
+      nicknameConfig.partnerNickname = remotePrefs.partnerNames.partnerName;
+    }
+  }
+
+  if (!nicknameConfig.tone && typeof remotePrefs.tone === 'string') {
+    nicknameConfig.tone = remotePrefs.tone;
+  }
+
+  if (Object.keys(nicknameConfig).length > 0) {
+    await NicknameEngine.setConfig(nicknameConfig);
+  }
+
+  if (remotePrefs.relationshipSeason?.id) {
+    await RelationshipSeasons.set(remotePrefs.relationshipSeason.id);
+  }
+
+  if (remotePrefs.relationshipClimate?.id) {
+    await RelationshipClimateState.set(remotePrefs.relationshipClimate.id);
+  }
+
+  if (typeof remotePrefs.energyLevel === 'string' && remotePrefs.energyLevel.trim()) {
+    await ContentIntensityMatcher.setEnergyLevel(remotePrefs.energyLevel.trim());
+  }
+
+  if (remotePrefs.softBoundaries && typeof remotePrefs.softBoundaries === 'object') {
+    await SoftBoundaries.setAll(remotePrefs.softBoundaries);
+  }
+
+  if (typeof remotePrefs.onboardingCompleted === 'boolean') {
+    await storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, remotePrefs.onboardingCompleted);
+    await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, !remotePrefs.onboardingCompleted);
+  }
+}
+
+async function clearSessionCachesPreservingAccounts() {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const removableKeys = keys.filter(
+      (key) => !PRESERVED_ASYNC_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))
+    );
+
+    if (removableKeys.length) {
+      await AsyncStorage.multiRemove(removableKeys);
+    }
+  } catch (_) {}
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -39,6 +173,13 @@ export const AuthProvider = ({ children }) => {
 
   const bootstrappedRef = useRef(false);
 
+  const finishBootstrap = (active) => {
+    if (active && !bootstrappedRef.current) {
+      bootstrappedRef.current = true;
+      setInitializing(false);
+    }
+  };
+
   useEffect(() => {
     let active = true;
 
@@ -53,15 +194,17 @@ export const AuthProvider = ({ children }) => {
           AnalyticsService.setUser(null);
           ExperimentService.setUser(null);
           setUserProfile(null);
+          finishBootstrap(active);
           await EncryptionService.clearKey();
           E2EEncryption.clearCache();
           await StorageRouter.initialize({ user: null, supabaseSessionPresent: false });
         } else {
           AnalyticsService.setUser(localUser.uid);
           ExperimentService.setUser(localUser.uid);
-          const profile = await StorageRouter.getUserDocument(localUser.uid);
+          let profile = await StorageRouter.getUserDocument(localUser.uid);
           if (!active) return;
           setUserProfile(profile);
+          await persistAppUserProfile(profile);
 
           try {
             const pendingOnboarding = await storage.get(STORAGE_KEYS.PENDING_ONBOARDING, false);
@@ -71,6 +214,8 @@ export const AuthProvider = ({ children }) => {
             if (!active) return;
             setRequiresOnboarding(false);
           }
+
+          finishBootstrap(active);
 
           let supabaseSession = null;
           try {
@@ -88,13 +233,47 @@ export const AuthProvider = ({ children }) => {
             supabaseSessionPresent: !!supabaseSession,
           });
 
+          if (supabaseSession) {
+            try {
+              const cloudUserId = supabaseSession.user?.id;
+              if (!cloudUserId) {
+                throw new Error('Supabase user not found in session');
+              }
+
+              const remoteProfile = await Promise.race([
+                CloudEngine.getProfile(cloudUserId),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('getProfile timed out')), 10000)),
+              ]);
+              const mergedProfile = mergeCloudProfile(profile, remoteProfile);
+
+              if (active && JSON.stringify(mergedProfile) !== JSON.stringify(profile)) {
+                profile = await StorageRouter.updateUserDocument(localUser.uid, mergedProfile);
+                setUserProfile(profile);
+                await persistAppUserProfile(profile);
+              }
+
+              await applyCloudPreferenceState(remoteProfile);
+
+              if (typeof remoteProfile?.preferences?.onboardingCompleted === 'boolean' && active) {
+                setRequiresOnboarding(!remoteProfile.preferences.onboardingCompleted);
+              }
+            } catch (e) {
+              if (__DEV__) console.warn('[AuthContext] getProfile failed (non-fatal):', e?.message);
+            }
+          }
+
           // Sync display_name to Supabase if the user has set a name in
           // Identity settings but the cloud profile still has the email
           // prefix from signup.
           if (supabaseSession && profile?.partnerNames?.myName) {
             try {
+              const cloudUserId = supabaseSession.user?.id;
+              if (!cloudUserId) {
+                throw new Error('Supabase user not found in session');
+              }
+
               await Promise.race([
-                CloudEngine.upsertProfile(localUser.uid, {
+                CloudEngine.upsertProfile(cloudUserId, {
                   display_name: profile.partnerNames.myName,
                 }),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('upsertProfile timed out')), 10000)),
@@ -108,11 +287,7 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         if (__DEV__) console.error('Error loading user profile:', error);
       } finally {
-        // ✅ End initializing exactly once
-        if (!bootstrappedRef.current) {
-          bootstrappedRef.current = true;
-          if (active) setInitializing(false);
-        }
+        finishBootstrap(active);
       }
     });
 
@@ -175,6 +350,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const _restoreSupabaseAccount = async (email, password) => {
+    const session = await SupabaseAuthService.signInWithPassword(email, password);
+    return _restoreSupabaseSession(email, password, session);
+  };
+
+  const _restoreSupabaseSession = async (email, password, session) => {
+    const remoteUser = session?.user;
+    const remoteEmail = remoteUser?.email || email;
+    const remoteDisplayName =
+      remoteUser?.user_metadata?.display_name ||
+      remoteUser?.user_metadata?.full_name ||
+      remoteEmail.split('@')[0] ||
+      'Between Us';
+
+    await StorageRouter.setSupabaseSession(session);
+    const restoredUser = await StorageRouter.hydrateRemoteAccount({
+      uid: remoteUser?.id,
+      email: remoteEmail,
+      password,
+      displayName: remoteDisplayName,
+      emailVerified: !!(remoteUser?.email_confirmed_at || remoteUser?.confirmed_at),
+    });
+    await SupabaseAuthService.storeCredentials(remoteEmail, password);
+
+    const syncStatus = await cloudSyncStorage.getSyncStatus();
+    await cloudSyncStorage.setSyncStatus({
+      ...syncStatus,
+      email: remoteEmail,
+    });
+
+    return restoredUser;
+  };
+
   const signUp = async (email, password, displayName) => {
     try {
       setBusy(true);
@@ -211,12 +419,59 @@ export const AuthProvider = ({ children }) => {
   const signIn = async (email, password) => {
     try {
       setBusy(true);
-      const signedInUser = await StorageRouter.signInWithEmailAndPassword(email, password);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      let signedInUser;
+      let shouldBridgeSupabase = true;
+      let remoteAuthError = null;
+
+      try {
+        const remoteSession = await Promise.race([
+          SupabaseAuthService.signInWithPassword(email, password),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Remote sign-in timed out')), 5000)),
+        ]);
+
+        if (remoteSession) {
+          signedInUser = await _restoreSupabaseSession(email, password, remoteSession);
+          shouldBridgeSupabase = false;
+        }
+      } catch (remoteError) {
+        remoteAuthError = remoteError;
+      }
+
+      if (!signedInUser) {
+        try {
+          signedInUser = await StorageRouter.signInWithEmailAndPassword(email, password);
+        } catch (localError) {
+          const localMessage = String(localError?.message || '');
+          const shouldTrySupabase =
+            localMessage.includes('User not found') ||
+            localMessage.includes('Invalid password');
+
+          if (!shouldTrySupabase) {
+            throw localError;
+          }
+
+          try {
+            signedInUser = await _restoreSupabaseAccount(email, password);
+            shouldBridgeSupabase = false;
+          } catch (fallbackRemoteError) {
+            const remoteMessage = String(fallbackRemoteError?.message || '');
+            if (remoteMessage.includes('Supabase is not configured')) {
+              throw localError;
+            }
+            throw fallbackRemoteError;
+          }
+        }
+      }
+
+      if (!signedInUser && remoteAuthError) throw remoteAuthError;
+
       await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
       setRequiresOnboarding(false);
 
-      // Bridge Supabase auth so pairing is ready immediately
-      await _bridgeSupabaseAuth(email, password, false);
+      if (shouldBridgeSupabase) {
+        _bridgeSupabaseAuth(email, password, false).catch(() => {});
+      }
 
       return signedInUser;
     } finally {
@@ -239,6 +494,8 @@ export const AuthProvider = ({ children }) => {
       // Get coupleId BEFORE signing out so it's still accessible
       const coupleId = await StorageRouter.getCoupleId();
 
+      await StorageRouter.signOut(scope);
+
       try {
         if (supabase) {
           await PushNotificationService.removeToken(supabase);
@@ -247,8 +504,6 @@ export const AuthProvider = ({ children }) => {
         if (__DEV__) console.warn('[AuthContext] Push token cleanup failed:', pushErr?.message);
       }
 
-      await StorageRouter.signOut(scope);
-
       if (coupleId) {
         await CoupleKeyService.clearCoupleKey(coupleId);
       }
@@ -256,10 +511,8 @@ export const AuthProvider = ({ children }) => {
       E2EEncryption.clearCache();
       await ConnectionMemory.clear();
 
-      // Clear cached data to prevent stale data leaking across accounts
-      try {
-        await AsyncStorage.clear();
-      } catch (_) {}
+      // Clear global caches without deleting account documents needed for relogin.
+      await clearSessionCachesPreservingAccounts();
     } finally {
       setBusy(false);
     }
@@ -272,7 +525,13 @@ export const AuthProvider = ({ children }) => {
   const signOutGlobal = () => signOut('global');
 
   const markOnboardingComplete = async () => {
-    await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
+    await Promise.all([
+      storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, true),
+      storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false),
+    ]);
+    if (user) {
+      await updateProfile({ onboardingCompleted: true });
+    }
     setRequiresOnboarding(false);
   };
 
@@ -283,6 +542,7 @@ export const AuthProvider = ({ children }) => {
 
     const updatedProfile = await StorageRouter.getUserDocument(user.uid);
     setUserProfile(updatedProfile);
+    await persistAppUserProfile(updatedProfile);
 
     return updatedProfile;
   };

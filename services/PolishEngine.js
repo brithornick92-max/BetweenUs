@@ -455,6 +455,18 @@ export const SoftBoundaries = {
     await AsyncStorage.setItem(KEYS.SOFT_BOUNDARIES, JSON.stringify(encrypted));
   },
 
+  async setAll(data) {
+    const normalized = {
+      hideSpicy: !!data?.hideSpicy,
+      pausedDates: Array.isArray(data?.pausedDates) ? data.pausedDates : [],
+      pausedEntries: Array.isArray(data?.pausedEntries) ? data.pausedEntries : [],
+      hiddenCategories: Array.isArray(data?.hiddenCategories) ? data.hiddenCategories : [],
+      maxHeatOverride: data?.maxHeatOverride ?? null,
+    };
+    await this._save(normalized);
+    return normalized;
+  },
+
   async getAll() {
     return this._getAll();
   },

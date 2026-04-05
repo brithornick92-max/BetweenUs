@@ -9,6 +9,10 @@ class LocalEngine {
     return LocalStorageService.createAccount(email, password, displayName);
   }
 
+  hydrateRemoteAccount(params) {
+    return LocalStorageService.hydrateRemoteAccount(params);
+  }
+
   signInWithEmailAndPassword(email, password) {
     return LocalStorageService.signInWithEmailAndPassword(email, password);
   }

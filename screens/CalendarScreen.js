@@ -231,6 +231,7 @@ export default function CalendarScreen({ navigation, route }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [refreshing,   setRefreshing]   = useState(false);
   const [modalOpen,    setModalOpen]    = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
 
   // Date/time picker state
   const [pickerDate, setPickerDate] = useState(new Date());
@@ -281,6 +282,7 @@ export default function CalendarScreen({ navigation, route }) {
       loadEvents();
       const prefill = route?.params?.prefill;
       if (prefill) {
+        setEditingEvent(null);
         let prefillDateObj = new Date();
         if (prefill.prefillDate) prefillDateObj = new Date(prefill.prefillDate);
         else if (prefill.dateStr) {
@@ -335,6 +337,68 @@ export default function CalendarScreen({ navigation, route }) {
 
   const [isSaving, setIsSaving] = useState(false);
 
+  const resetComposer = useCallback(() => {
+    const now = new Date();
+    setEditingEvent(null);
+    setPickerDate(now);
+    setPickerTime(now);
+    setForm({ title: '', location: '', notes: '', eventType: 'general', isDateNight: false, notify: false, notifyMins: 60 });
+  }, []);
+
+  const openCreateModal = useCallback(() => {
+    resetComposer();
+    setModalOpen(true);
+    selection();
+  }, [resetComposer]);
+
+  const openEditModal = useCallback((event) => {
+    const when = new Date(event.whenTs);
+    setEditingEvent(event);
+    setPickerDate(when);
+    setPickerTime(when);
+    setForm({
+      title: event.title || '',
+      location: event.location || '',
+      notes: event.notes || '',
+      eventType: event.eventType || (event.isDateNight ? 'dateNight' : 'general'),
+      isDateNight: !!(event.isDateNight || event.eventType === 'dateNight'),
+      notify: !!event.notify,
+      notifyMins: Number(event.notifyMins ?? 60) || 60,
+    });
+    setModalOpen(true);
+    selection();
+  }, []);
+
+  const handleDelete = useCallback((event) => {
+    Alert.alert('Delete Event', 'Are you sure you want to delete this?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            if (event.notificationId) await cancelNotification(event.notificationId);
+            await DataLayer.deleteCalendarEvent(event.id, {
+              deleteRemote: !!(event.isRemote || event.supabaseId),
+              remoteId: event.supabaseId || event.id,
+            });
+            await loadEvents();
+          } catch (error) {
+            Alert.alert('Error', 'Could not delete this event. Please try again.');
+          }
+        },
+      },
+    ]);
+  }, [loadEvents]);
+
+  const handleEventLongPress = useCallback((event) => {
+    Alert.alert(event.title || 'Event', 'Choose an action', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Edit', onPress: () => openEditModal(event) },
+      { text: 'Delete', style: 'destructive', onPress: () => handleDelete(event) },
+    ]);
+  }, [handleDelete, openEditModal]);
+
   const handleSave = async () => {
     if (isSaving) return;
     if (!form.title.trim()) return Alert.alert('Required', 'Please name your event.');
@@ -345,7 +409,16 @@ export default function CalendarScreen({ navigation, route }) {
       combined.setHours(pickerTime.getHours(), pickerTime.getMinutes(), 0, 0);
       const whenTs = combined.getTime();
 
-      let notificationId = null;
+      let notificationId = editingEvent?.notificationId || null;
+
+      if (editingEvent?.notificationId) {
+        try {
+          await cancelNotification(editingEvent.notificationId);
+          notificationId = null;
+        } catch (notifErr) {
+          CrashReporting.captureException(notifErr, { source: 'calendar_notification_cancel' });
+        }
+      }
 
       if (form.notify) {
         try {
@@ -368,13 +441,21 @@ export default function CalendarScreen({ navigation, route }) {
         }
       }
 
-      await DataLayer.createCalendarEvent({
+      const payload = {
+        ...(editingEvent || {}),
         ...form,
         title: form.title.trim(),
         whenTs,
         notificationId,
         eventType: form.eventType,
-      });
+        isDateNight: form.eventType === 'dateNight' || form.isDateNight,
+      };
+
+      if (editingEvent) {
+        await DataLayer.updateCalendarEvent(payload);
+      } else {
+        await DataLayer.createCalendarEvent(payload);
+      }
 
       notification(NotificationFeedbackType.Success);
       setModalOpen(false);
@@ -382,10 +463,7 @@ export default function CalendarScreen({ navigation, route }) {
       savedDate.setHours(0, 0, 0, 0);
       setSelectedDate(savedDate);
       await loadEvents();
-      const now = new Date();
-      setPickerDate(now);
-      setPickerTime(now);
-      setForm({ title: '', location: '', notes: '', eventType: 'general', isDateNight: false, notify: false, notifyMins: 60 });
+      resetComposer();
     } catch (err) {
       Alert.alert('Error', 'Something went wrong saving your event. Please try again.');
     } finally {
@@ -395,10 +473,7 @@ export default function CalendarScreen({ navigation, route }) {
 
   const closeModal = () => {
     setModalOpen(false);
-    const now = new Date();
-    setPickerDate(now);
-    setPickerTime(now);
-    setForm({ title: '', location: '', notes: '', eventType: 'general', isDateNight: false, notify: false, notifyMins: 60 });
+    resetComposer();
   };
 
   const selectedDateEvents = events.filter(e => toDisplayDate(new Date(e.whenTs)) === toDisplayDate(selectedDate));
@@ -486,23 +561,7 @@ export default function CalendarScreen({ navigation, route }) {
                       item={event}
                       styles={styles}
                       colors={t}
-                      onLongPress={() => {
-                        Alert.alert('Remove Event', 'Are you sure you want to delete this?', [
-                          { text: 'Cancel', style: 'cancel' },
-                          {
-                            text: 'Delete',
-                            style: 'destructive',
-                            onPress: async () => {
-                              if (event.notificationId) await cancelNotification(event.notificationId);
-                              await DataLayer.deleteCalendarEvent(event.id, {
-                                deleteRemote: !!(event.isRemote || event.supabaseId),
-                                remoteId: event.supabaseId || event.id,
-                              });
-                              loadEvents();
-                            },
-                          },
-                        ]);
-                      }}
+                      onLongPress={() => handleEventLongPress(event)}
                     />
                   </ReAnimated.View>
                 ))}
@@ -518,7 +577,7 @@ export default function CalendarScreen({ navigation, route }) {
 
         {/* FAB */}
         <TouchableOpacity
-          onPress={() => { setModalOpen(true); selection(); }}
+          onPress={openCreateModal}
           style={[styles.fab, { backgroundColor: t.primary }]}
           activeOpacity={0.9}
         >
@@ -535,7 +594,7 @@ export default function CalendarScreen({ navigation, route }) {
               <View style={[styles.modalInner, { backgroundColor: t.surface, borderColor: t.border }]}>
                 {/* Modal header */}
                 <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: t.text }]}>New Event</Text>
+                  <Text style={[styles.modalTitle, { color: t.text }]}>{editingEvent ? 'Edit Event' : 'New Event'}</Text>
                   <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
                     <Icon name="close-outline" size={24} color={t.text} />
                   </TouchableOpacity>
@@ -636,7 +695,7 @@ export default function CalendarScreen({ navigation, route }) {
                     activeOpacity={0.8}
                     disabled={isSaving}
                   >
-                    <Text style={styles.primaryBtnText}>{isSaving ? 'SAVING…' : 'SAVE TO TIMELINE'}</Text>
+                    <Text style={styles.primaryBtnText}>{isSaving ? 'SAVING…' : (editingEvent ? 'UPDATE EVENT' : 'SAVE TO TIMELINE')}</Text>
                   </TouchableOpacity>
 
                 </ScrollView>

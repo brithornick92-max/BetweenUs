@@ -23,7 +23,10 @@
 import Database from '../db/Database';
 import E2EEncryption from '../e2ee/E2EEncryption';
 import EncryptedAttachments from '../e2ee/EncryptedAttachments';
+import PushNotificationService from '../PushNotificationService';
+import CoupleKeyService from '../security/CoupleKeyService';
 import SyncEngine from '../sync/SyncEngine';
+import naclUtil from 'tweetnacl-util';
 import { storage, promptStorage, journalStorage, STORAGE_KEYS } from '../../utils/storage';
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -93,6 +96,55 @@ function isUuid(value) {
     && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
+async function resolveRemoteUserId() {
+  const { supabase } = getSupabaseConfigSync();
+
+  if (supabase) {
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user?.id && isUuid(data.user.id)) {
+        return data.user.id;
+      }
+    } catch (_) {}
+  }
+
+  return isUuid(_userId) ? _userId : null;
+}
+
+async function ensureLocalIdentityState() {
+  if (!_userId) {
+    const { supabase } = getSupabaseConfigSync();
+    let resolvedUserId = null;
+
+    if (supabase) {
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user?.id) {
+          resolvedUserId = data.user.id;
+        }
+      } catch (_) {}
+    }
+
+    if (!resolvedUserId) {
+      resolvedUserId = await storage.get(STORAGE_KEYS.USER_ID, null);
+    }
+
+    if (resolvedUserId) {
+      _userId = resolvedUserId;
+    }
+  }
+
+  if (_coupleId === null || _coupleId === undefined) {
+    _coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+  }
+
+  if (_coupleId && !_coupleKeyAvailable) {
+    _coupleKeyAvailable = await E2EEncryption.hasCoupleKey(_coupleId);
+  }
+
+  return { userId: _userId, coupleId: _coupleId };
+}
+
 function serializeDatePlanForMetadata(plan) {
   if (!plan) return null;
   return {
@@ -102,6 +154,31 @@ function serializeDatePlanForMetadata(plan) {
     style: plan.style || 'mixed',
     steps: Array.isArray(plan.steps) ? plan.steps : [],
   };
+}
+
+function buildCalendarPartnerNotification(event, eventId) {
+  const eventType = event?.eventType || (event?.isDateNight ? 'dateNight' : 'general');
+  const title = eventType === 'dateNight' ? 'New date plan' : 'New shared event';
+  const eventTitle = event?.title?.trim() || 'A new plan';
+  const body = `${eventTitle} was added to your timeline.`;
+
+  return {
+    title,
+    body,
+    data: {
+      type: 'calendar_event_created',
+      route: 'Calendar',
+      eventId,
+      eventType,
+    },
+  };
+}
+
+async function notifyPartnerAboutCalendarEvent(supabase, event, eventId) {
+  if (!supabase || !_coupleId || !eventId) return;
+
+  const notificationPayload = buildCalendarPartnerNotification(event, eventId);
+  await PushNotificationService.notifyPartner(supabase, notificationPayload);
 }
 
 async function readLegacyEncryptedList(storageKey, sortFn) {
@@ -134,6 +211,83 @@ async function readLegacyEncryptedList(storageKey, sortFn) {
  */
 function keyTier() {
   return _coupleId ? 'couple' : 'device';
+}
+
+async function tryRestoreCoupleKey() {
+  if (!_coupleId) return false;
+
+  const { supabase, TABLES } = getSupabaseConfigSync();
+  if (!supabase || !TABLES?.COUPLE_MEMBERS) return false;
+
+  try {
+    const currentPublicKey = await CoupleKeyService.getDevicePublicKeyB64();
+    const { data: authData } = await supabase.auth.getUser();
+    const remoteUserId = authData?.user?.id;
+    if (!remoteUserId) return false;
+
+    const { data: myMembership, error: myMembershipError } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .select('public_key')
+      .eq('couple_id', _coupleId)
+      .eq('user_id', remoteUserId)
+      .maybeSingle();
+    if (myMembershipError) throw myMembershipError;
+
+    // Only attempt restoration if this device still has the same keypair
+    // that was originally registered for this couple membership.
+    if (!myMembership?.public_key || myMembership.public_key !== currentPublicKey) {
+      return false;
+    }
+
+    const { data: partnerMembership, error: partnerMembershipError } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .select('public_key')
+      .eq('couple_id', _coupleId)
+      .neq('user_id', remoteUserId)
+      .maybeSingle();
+    if (partnerMembershipError) throw partnerMembershipError;
+    if (!partnerMembership?.public_key) return false;
+
+    const partnerPublicKey = naclUtil.decodeBase64(partnerMembership.public_key);
+    const coupleKey = await CoupleKeyService.deriveFromKeyExchange(partnerPublicKey);
+    await CoupleKeyService.storeCoupleKey(_coupleId, coupleKey);
+    _coupleKeyAvailable = true;
+    return true;
+  } catch (error) {
+    console.warn('[DataLayer] Couple key restore failed:', error?.message);
+    return false;
+  }
+}
+
+async function resolveLocalWriteTier({ syncSource = 'local', allowRemoteCacheFallback = false } = {}) {
+  await ensureLocalIdentityState();
+  const kt = keyTier();
+  if (kt !== 'couple') {
+    return { keyTier: kt, coupleId: null };
+  }
+
+  if (_coupleKeyAvailable) {
+    return { keyTier: 'couple', coupleId: _coupleId };
+  }
+
+  _coupleKeyAvailable = await E2EEncryption.hasCoupleKey(_coupleId);
+  if (_coupleKeyAvailable) {
+    return { keyTier: 'couple', coupleId: _coupleId };
+  }
+
+  _coupleKeyAvailable = await tryRestoreCoupleKey();
+  if (_coupleKeyAvailable) {
+    return { keyTier: 'couple', coupleId: _coupleId };
+  }
+
+  if (allowRemoteCacheFallback && syncSource === 'remote') {
+    return { keyTier: 'device', coupleId: null };
+  }
+
+  throw new Error(
+    'COUPLE_KEY_MISSING: Your partner encryption key is not available yet. ' +
+    'Please make sure both partners have completed pairing.'
+  );
 }
 
 /**
@@ -535,21 +689,29 @@ const DataLayer = {
   // ─── Prompt Answers ───────────────────────────────────────────
 
   async savePromptAnswer({ promptId, answer, heatLevel = 5 }) {
+    await ensureLocalIdentityState();
     const kt = keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
     const answerCipher = await E2EEncryption.encryptString(answer, kt, cid);
     const heatCipher = await E2EEncryption.encryptString(String(heatLevel), kt, cid);
     const dk = dateKey();
 
-    const row = await Database.insertPromptAnswer({
-      user_id: _userId,
-      couple_id: _coupleId,
-      prompt_id: promptId,
-      date_key: dk,
-      answer_cipher: answerCipher,
-      heat_level: heatLevel,          // unencrypted for local sorting
-      heat_level_cipher: heatCipher,  // encrypted for Supabase
-    });
+    const existing = await Database.getPromptAnswerByPromptAndDate(_userId, promptId, dk);
+    const row = existing
+      ? await Database.updatePromptAnswer(existing.id, {
+          answer_cipher: answerCipher,
+          heat_level: heatLevel,
+          heat_level_cipher: heatCipher,
+        })
+      : await Database.insertPromptAnswer({
+          user_id: _userId,
+          couple_id: _coupleId,
+          prompt_id: promptId,
+          date_key: dk,
+          answer_cipher: answerCipher,
+          heat_level: heatLevel,
+          heat_level_cipher: heatCipher,
+        });
 
     debouncedPush();
     return row;
@@ -811,8 +973,10 @@ const DataLayer = {
   // ─── Calendar Events ──────────────────────────────────────────
 
   async saveCalendarEvent(event, { syncSource = 'local', markSynced = false } = {}) {
-    const kt = keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier({
+      syncSource,
+      allowRemoteCacheFallback: true,
+    });
     const titleCipher = await E2EEncryption.encryptString(event?.title || '', kt, cid);
     const locationCipher = await E2EEncryption.encryptString(event?.location || '', kt, cid);
     const notesCipher = await E2EEncryption.encryptString(event?.notes || '', kt, cid);
@@ -898,6 +1062,11 @@ const DataLayer = {
       return { pushed: 0, deleted: 0, failed: 0 };
     }
 
+    const remoteUserId = await resolveRemoteUserId();
+    if (!remoteUserId) {
+      return { pushed: 0, deleted: 0, failed: 0 };
+    }
+
     const pendingRows = await Database.getPendingCalendarEvents(_userId, { limit });
     let pushed = 0;
     let deleted = 0;
@@ -957,13 +1126,14 @@ const DataLayer = {
             event_type: event.eventType || 'general',
             location: event.location || null,
             metadata,
-            created_by: _userId,
+            created_by: remoteUserId,
           })
           .select('id')
           .single();
         if (error || !inserted?.id) throw error || new Error('Calendar remote insert failed');
 
         await Database.replaceCalendarEventId(row.id, inserted.id);
+        await notifyPartnerAboutCalendarEvent(supabase, event, inserted.id);
         pushed += 1;
       } catch (error) {
         console.warn('[DataLayer] Pending calendar push failed:', error?.message);
@@ -979,8 +1149,9 @@ const DataLayer = {
     const metadata = buildCalendarMetadata(event);
     let remoteId = event?.id || null;
     let remoteSynced = false;
+    const remoteUserId = await resolveRemoteUserId();
 
-    if (supabase && _coupleId && _userId) {
+    if (supabase && _coupleId && remoteUserId) {
       try {
         const { data: inserted, error } = await supabase
           .from(TABLES.CALENDAR_EVENTS)
@@ -997,7 +1168,7 @@ const DataLayer = {
                 ? { myDateData: buildDatePlanFromEvent(event, null) }
                 : {}),
             },
-            created_by: _userId,
+            created_by: remoteUserId,
           })
           .select('id')
           .single();
@@ -1005,6 +1176,7 @@ const DataLayer = {
         if (!error && inserted?.id) {
           remoteId = inserted.id;
           remoteSynced = true;
+          await notifyPartnerAboutCalendarEvent(supabase, event, inserted.id);
         }
       } catch (error) {
         console.warn('[DataLayer] Calendar remote create failed:', error?.message);
@@ -1026,6 +1198,82 @@ const DataLayer = {
         syncSource: remoteSynced ? 'remote' : 'local',
         markSynced: remoteSynced,
       });
+    }
+
+    return { ...savedEvent, remoteSynced };
+  },
+
+  async updateCalendarEvent(event) {
+    const { supabase, TABLES } = getSupabaseConfigSync();
+    const eventId = event?.id;
+    if (!eventId) {
+      throw new Error('Calendar event id is required for updates');
+    }
+
+    const metadata = buildCalendarMetadata(event);
+    const datePlan = buildDatePlanFromEvent(event, eventId);
+    const linkedPlans = await Database.getDatePlansBySourceEvent(_userId, eventId);
+    const primaryPlan = linkedPlans?.[0] || null;
+    let remoteSynced = false;
+
+    if (supabase && (event?.isRemote || event?.supabaseId || isUuid(eventId))) {
+      try {
+        const payload = {
+          title: event?.title?.trim(),
+          description: event?.notes || null,
+          event_date: new Date(event.whenTs).toISOString(),
+          event_type: event?.eventType || 'general',
+          location: event?.location || null,
+          metadata: {
+            ...metadata,
+            ...(datePlan ? { myDateData: buildDatePlanFromEvent(event, null) } : {}),
+          },
+        };
+
+        if (!datePlan) {
+          delete payload.metadata.myDateData;
+        }
+
+        const { error } = await supabase
+          .from(TABLES.CALENDAR_EVENTS)
+          .update(payload)
+          .eq('id', event?.supabaseId || eventId);
+
+        if (error) throw error;
+        remoteSynced = true;
+      } catch (error) {
+        console.warn('[DataLayer] Calendar remote update failed:', error?.message);
+      }
+    }
+
+    const savedEvent = await this.saveCalendarEvent({
+      ...event,
+      id: eventId,
+      metadata,
+      updatedAt: Date.now(),
+    }, {
+      syncSource: remoteSynced ? 'remote' : 'local',
+      markSynced: remoteSynced,
+    });
+
+    if (datePlan) {
+      await this.saveDatePlan({
+        ...datePlan,
+        id: primaryPlan?.id,
+        sourceEventId: eventId,
+        createdAt: primaryPlan?.created_at || event?.createdAt || Date.now(),
+        updatedAt: Date.now(),
+      }, {
+        syncSource: remoteSynced ? 'remote' : 'local',
+        markSynced: remoteSynced,
+      });
+    } else {
+      for (const plan of linkedPlans || []) {
+        await Database.softDeleteDatePlan(plan.id);
+      }
+      if (remoteSynced) {
+        await Database.markDatePlansSyncedBySourceEvent(eventId, { syncSource: 'remote' });
+      }
     }
 
     return { ...savedEvent, remoteSynced };
@@ -1140,8 +1388,10 @@ const DataLayer = {
   // ─── Date Plans ───────────────────────────────────────────────
 
   async saveDatePlan(plan, { syncSource = 'local', markSynced = false } = {}) {
-    const kt = keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier({
+      syncSource,
+      allowRemoteCacheFallback: true,
+    });
     const titleCipher = await E2EEncryption.encryptString(plan?.title || '', kt, cid);
     const bodyCipher = await E2EEncryption.encryptJson({
       locationType: plan?.locationType || 'home',
@@ -1216,20 +1466,8 @@ const DataLayer = {
    * device in plaintext).
    */
   async saveLoveNote({ text, stationeryId, senderName, imageUri, invisibleInk = false }) {
-    const kt = keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
-
-    // Pre-check: if couple tier is required, make sure the key exists
-    if (kt === 'couple' && !_coupleKeyAvailable) {
-      // Re-check in case it became available after init
-      _coupleKeyAvailable = await E2EEncryption.hasCoupleKey(_coupleId);
-      if (!_coupleKeyAvailable) {
-        throw new Error(
-          'COUPLE_KEY_MISSING: Your partner encryption key is not available yet. ' +
-          'Please make sure both partners have completed pairing.'
-        );
-      }
-    }
+    await ensureLocalIdentityState();
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
 
     const textCipher = text
       ? await E2EEncryption.encryptString(text, kt, cid)

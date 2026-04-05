@@ -21,6 +21,7 @@ import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, withAlpha } from '../utils/theme';
 import { SoftBoundaries } from '../services/PolishEngine';
+import StorageRouter from '../services/storage/StorageRouter';
 
 const ALL_PROMPTS = require('../content/prompts.json').items || [];
 const PROMPTS_BY_ID = ALL_PROMPTS.reduce((acc, p) => { acc[p.id] = p; return acc; }, {});
@@ -75,6 +76,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
     impact(ImpactFeedbackStyle.Light);
     await SoftBoundaries.setHideSpicy(value);
     const updated = await SoftBoundaries.getAll();
+    StorageRouter.updateCloudProfilePreferences({ softBoundaries: updated }).catch(() => {});
     setBoundaries(updated);
     onBoundaryChange?.();
   }, [onBoundaryChange]);
@@ -83,6 +85,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
     impact(ImpactFeedbackStyle.Light);
     await SoftBoundaries.unpauseEntry(entryId);
     const updated = await SoftBoundaries.getAll();
+    StorageRouter.updateCloudProfilePreferences({ softBoundaries: updated }).catch(() => {});
     setBoundaries(updated);
     onBoundaryChange?.();
   }, [onBoundaryChange]);
@@ -91,6 +94,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
     impact(ImpactFeedbackStyle.Light);
     await SoftBoundaries.unpauseDate(dateId);
     const updated = await SoftBoundaries.getAll();
+    StorageRouter.updateCloudProfilePreferences({ softBoundaries: updated }).catch(() => {});
     setBoundaries(updated);
     onBoundaryChange?.();
   }, [onBoundaryChange]);
@@ -103,6 +107,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
       await SoftBoundaries.hideCategory(category);
     }
     const updated = await SoftBoundaries.getAll();
+    StorageRouter.updateCloudProfilePreferences({ softBoundaries: updated }).catch(() => {});
     setBoundaries(updated);
     onBoundaryChange?.();
   }, [boundaries?.hiddenCategories, onBoundaryChange]);

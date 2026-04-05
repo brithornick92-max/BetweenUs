@@ -39,7 +39,10 @@ export default function PairingScanScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [status, setStatus] = useState("Position your partner's code in view.");
+  const [repairingExistingCouple, setRepairingExistingCouple] = useState(false);
   const activeRef = useRef(true);
+  const scanInFlightRef = useRef(false);
+  const completedRef = useRef(false);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -83,12 +86,14 @@ export default function PairingScanScreen({ navigation }) {
   }, []);
 
   const handleScan = async ({ data }) => {
-    if (scanned) return;
+    if (scanInFlightRef.current || completedRef.current) return;
+    scanInFlightRef.current = true;
     setScanned(true);
 
     try {
       const session = await ensureCloudSession();
       if (!session) {
+        scanInFlightRef.current = false;
         setScanned(false);
         return;
       }
@@ -100,6 +105,9 @@ export default function PairingScanScreen({ navigation }) {
       const { pairingCode, publicKey: inviterPublicKeyB64 } = parsed.payload;
 
       setStatus('Establishing secure bridge...');
+      const existingCoupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+        const isRepairFlow = !!existingCoupleId;
+        setRepairingExistingCouple(isRepairFlow);
       
       const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
       const { coupleId } = await CoupleService.redeemPairingCode(pairingCode, myPublicKeyB64);
@@ -116,16 +124,32 @@ export default function PairingScanScreen({ navigation }) {
       }
       await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
 
-      setStatus('Successfully paired.');
+      completedRef.current = true;
+      setStatus(isRepairFlow ? 'Secure pairing repaired.' : 'Successfully paired.');
       setTimeout(() => {
         if (!activeRef.current) return;
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        } else {
-          navigation.navigate('Settings');
-        }
-      }, 1000);
+        Alert.alert(
+          isRepairFlow ? 'Secure Pairing Restored' : 'Pairing Complete',
+          isRepairFlow
+            ? 'This device has restored the shared encryption key. Your partner should see the same success confirmation now.'
+            : 'Your private space is now linked on both devices.',
+          [{
+            text: 'Continue',
+            onPress: () => {
+              if (!activeRef.current) return;
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              } else {
+                navigation.navigate('Settings');
+              }
+            },
+          }]
+        );
+      }, 50);
     } catch (error) {
+      if (completedRef.current) {
+        return;
+      }
       const msg = String(error?.message || '');
       if (msg.includes('expired') || msg.includes('Invalid') || msg.includes('already-used')) {
         setStatus('This code has expired. Ask your partner to tap "Try Again" for a new one.');
@@ -135,6 +159,12 @@ export default function PairingScanScreen({ navigation }) {
         setStatus(msg || 'Unable to read link. Try again.');
       }
       setScanned(false);
+      scanInFlightRef.current = false;
+      return;
+    } finally {
+      if (!completedRef.current) {
+        scanInFlightRef.current = false;
+      }
     }
   };
 
@@ -168,7 +198,7 @@ export default function PairingScanScreen({ navigation }) {
       
       <CameraView
         style={StyleSheet.absoluteFill}
-        onBarcodeScanned={scanned ? undefined : handleScan}
+        onBarcodeScanned={handleScan}
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       />
 
@@ -205,10 +235,16 @@ export default function PairingScanScreen({ navigation }) {
             <Text style={styles.statusText}>{status}</Text>
           </BlurView>
           
-          {scanned && !status.includes('Success') && (
+          {scanned && !completedRef.current && (
             <TouchableOpacity 
               style={styles.retryBtn} 
-              onPress={() => setScanned(false)}
+              onPress={() => {
+                completedRef.current = false;
+                scanInFlightRef.current = false;
+                setRepairingExistingCouple(false);
+                setStatus("Position your partner's code in view.");
+                setScanned(false);
+              }}
             >
               <Text style={{ color: t.primary, fontWeight: '800' }}>RETRY</Text>
             </TouchableOpacity>

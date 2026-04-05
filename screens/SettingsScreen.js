@@ -40,7 +40,6 @@ import { useAuth } from '../context/AuthContext';
 import { useEntitlements, clearCouplePremiumCache } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
-import { useAppContext } from '../context/AppContext';
 
 // Utilities & Components
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -60,6 +59,7 @@ import CloudEngine from '../services/storage/CloudEngine';
 import SeasonSelector from '../components/SeasonSelector';
 import EnergyMatcher from '../components/EnergyMatcher';
 import SoftBoundariesPanel from '../components/SoftBoundariesPanel';
+import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -127,7 +127,7 @@ const EditorialRow = ({ icon, title, subtitle, onPress, t, isLast, iconColor, ri
 
 export default function SettingsScreen({ navigation }) {
   // ─── HOOKS & CONTEXT ───
-  const { user, userProfile, signOutGlobal, updateProfile } = useAuth();
+  const { user, userProfile, signOutLocal, updateProfile } = useAuth();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { colors, themeMode, setThemeMode, isDark } = useTheme();
   const { getRelationshipDurationText, updateRelationshipStartDate, loadContentProfile } = useContent();
@@ -160,7 +160,14 @@ export default function SettingsScreen({ navigation }) {
   );
 
   // ─── DERIVED VALUES ───
-  const displayName = useMemo(() => userProfile?.displayName || user?.displayName || 'You', [userProfile, user]);
+  const displayName = useMemo(
+    () => getMyDisplayName(userProfile, null, user?.displayName || 'You') || 'You',
+    [userProfile, user]
+  );
+  const partnerName = useMemo(
+    () => getPartnerDisplayName(userProfile, null, 'Partner'),
+    [userProfile]
+  );
   const initial = useMemo(() => displayName.charAt(0).toUpperCase(), [displayName]);
   const appVersion = Constants.expoConfig?.version || '1.0.0';
 
@@ -257,7 +264,7 @@ export default function SettingsScreen({ navigation }) {
     impact(ImpactFeedbackStyle.Medium);
     Alert.alert('Sign Out', 'Your session will be ended. Continue?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => signOutGlobal() },
+      { text: 'Sign Out', style: 'destructive', onPress: () => signOutLocal() },
     ]);
   };
 
@@ -530,7 +537,7 @@ export default function SettingsScreen({ navigation }) {
               <EditorialRow 
                 icon="infinite-outline" 
                 title="Partner Linked" 
-                subtitle={`Connected to ${userProfile?.partnerNames?.partnerName || 'Partner'}`}
+                subtitle={`Connected to ${partnerName}`}
                 onPress={() => setShowUnlinkConfirm(true)}
                 t={t}
                 isLast

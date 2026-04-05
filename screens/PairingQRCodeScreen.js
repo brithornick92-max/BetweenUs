@@ -40,7 +40,8 @@ export default function PairingQRCodeScreen({ navigation }) {
 
   const [qrPayload, setQrPayload] = useState(null);
   const [status, setStatus] = useState('Preparing secure link...');
-  const [phase, setPhase] = useState('init'); 
+  const [phase, setPhase] = useState('init');
+  const [repairingExistingCouple, setRepairingExistingCouple] = useState(false);
   const activeRef = useRef(true);
   const preparingRef = useRef(false);
 
@@ -97,21 +98,40 @@ export default function PairingQRCodeScreen({ navigation }) {
       await CloudEngine.initialize({ supabaseSessionPresent: true });
 
       const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-      const coupleId = await CloudEngine.createCouple(myPublicKeyB64);
+      const storedCoupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+      let coupleId = storedCoupleId || null;
+      let isRepairFlow = false;
 
-      await StorageRouter.setActiveCoupleId(coupleId);
-      if (user?.uid) {
-        await StorageRouter.updateUserDocument(user.uid, { coupleId });
-        await updateProfile?.({ coupleId });
+      if (!coupleId) {
+        const membership = await CoupleService.getMyCouple().catch(() => null);
+        coupleId = membership?.couple_id || null;
       }
-      await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
+
+      if (coupleId) {
+        isRepairFlow = true;
+        setRepairingExistingCouple(true);
+        await CloudEngine.joinCouple(coupleId, myPublicKeyB64);
+        await StorageRouter.setActiveCoupleId(coupleId);
+        await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
+        setStatus('Preparing repair code...');
+      } else {
+        setRepairingExistingCouple(false);
+        coupleId = await CloudEngine.createCouple(myPublicKeyB64);
+
+        await StorageRouter.setActiveCoupleId(coupleId);
+        if (user?.uid) {
+          await StorageRouter.updateUserDocument(user.uid, { coupleId });
+          await updateProfile?.({ coupleId });
+        }
+        await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
+      }
 
       const { code: pairingCode } = await CoupleService.generatePairingCode(coupleId);
       const payload = makePairingPayload({ pairingCode, publicKey: myPublicKeyB64 });
 
       if (!activeRef.current) return;
       setQrPayload(JSON.stringify(payload));
-      setStatus('Ready to scan');
+  setStatus(isRepairFlow ? 'Repair code ready' : 'Ready to scan');
       setPhase('waiting');
 
       const partnerPubKeyB64 = await CloudEngine.waitForPartnerPublicKey(coupleId, 600_000, 3_000);
@@ -128,16 +148,28 @@ export default function PairingQRCodeScreen({ navigation }) {
       await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
 
       if (!activeRef.current) return;
-      setStatus('Connected successfully!');
+      setStatus(isRepairFlow ? 'Secure pairing repaired.' : 'Connected successfully!');
       setPhase('done');
       setTimeout(() => {
         if (!activeRef.current) return;
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        } else {
-          navigation.navigate('Settings');
-        }
-      }, 1200);
+        Alert.alert(
+          isRepairFlow ? 'Secure Pairing Restored' : 'Pairing Complete',
+          isRepairFlow
+            ? 'This device has restored the shared encryption key. Your partner should see the same success confirmation now.'
+            : 'Your private space is now linked on both devices.',
+          [{
+            text: 'Continue',
+            onPress: () => {
+              if (!activeRef.current) return;
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              } else {
+                navigation.navigate('Settings');
+              }
+            },
+          }]
+        );
+      }, 50);
     } catch (error) {
       if (!activeRef.current) return;
       setStatus(error?.message || 'Connection failed. Please try again.');
@@ -162,6 +194,12 @@ export default function PairingQRCodeScreen({ navigation }) {
   };
 
   const handleUnlink = async () => {
+    if (repairingExistingCouple) {
+      if (navigation.canGoBack()) navigation.goBack();
+      else navigation.navigate('Settings');
+      return;
+    }
+
     try {
       try { await CoupleService.unlinkFromCouple(); } catch (_) {}
       const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
@@ -206,7 +244,11 @@ export default function PairingQRCodeScreen({ navigation }) {
 
           <Text style={[styles.title, { color: t.text }]}>Pairing Invitation</Text>
           <Text style={[styles.subtitle, { color: t.subtext }]}>
-            {phase === 'waiting' ? "Show this code to your partner's device." : status}
+            {phase === 'waiting'
+              ? (repairingExistingCouple
+                  ? "Show this repair code to your partner's device so they can restore secure pairing."
+                  : "Show this code to your partner's device.")
+              : status}
           </Text>
 
           <View style={[styles.qrContainer, { backgroundColor: '#FFFFFF', borderColor: t.primary }]}>
@@ -232,7 +274,9 @@ export default function PairingQRCodeScreen({ navigation }) {
           {phase === 'waiting' && (
             <TouchableOpacity style={styles.unlinkBtn} onPress={handleUnlink}>
               <Icon name="close-circle-outline" size={14} color={t.subtext} />
-              <Text style={[styles.unlinkBtnText, { color: t.subtext }]}>Cancel & Go Back</Text>
+              <Text style={[styles.unlinkBtnText, { color: t.subtext }]}>
+                {repairingExistingCouple ? 'Close' : 'Cancel & Go Back'}
+              </Text>
             </TouchableOpacity>
           )}
 
@@ -249,7 +293,9 @@ export default function PairingQRCodeScreen({ navigation }) {
           {phase === 'error' && (
             <TouchableOpacity style={styles.unlinkBtn} onPress={handleUnlink}>
               <Icon name="unlink-outline" size={14} color={t.subtext} />
-              <Text style={[styles.unlinkBtnText, { color: t.subtext }]}>{'Unlink & Go Back'}</Text>
+              <Text style={[styles.unlinkBtnText, { color: t.subtext }]}>
+                {repairingExistingCouple ? 'Close' : 'Unlink & Go Back'}
+              </Text>
             </TouchableOpacity>
           )}
 

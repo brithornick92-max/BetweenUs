@@ -135,6 +135,31 @@ export function AppProvider({ children }) {
     let unsubscribe = null;
     let active = true;
 
+    const syncState = ({
+      userId,
+      onboardingCompleted,
+      userProfile,
+      coupleId,
+      appLockEnabled,
+      lastPartnerActivity,
+    }) => {
+      if (!active) return;
+      dispatch({
+        type: ACTIONS.SYNC,
+        payload: {
+          userId,
+          onboardingCompleted: !!onboardingCompleted,
+          userProfile,
+          coupleId: coupleId || null,
+          isLinked: !!coupleId,
+          appLockEnabled: !!appLockEnabled,
+          isPremium,
+          isCouplePremium,
+          lastPartnerActivity: coupleId ? lastPartnerActivity : null,
+        },
+      });
+    };
+
     const init = async () => {
       let userId = await storage.get(STORAGE_KEYS.USER_ID, null);
       if (!userId) {
@@ -199,6 +224,22 @@ export function AppProvider({ children }) {
         if (__DEV__) console.warn('[AppContext] Nickname migration failed:', e?.message);
       }
 
+      const now = Date.now();
+      let effectivePartnerActivity = lastPartnerActivity;
+      if (resolvedCoupleId && !lastPartnerActivity) {
+        await storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, now);
+        effectivePartnerActivity = now;
+      }
+
+      syncState({
+        userId,
+        onboardingCompleted,
+        userProfile: hydratedUserProfile,
+        coupleId: resolvedCoupleId,
+        appLockEnabled,
+        lastPartnerActivity: effectivePartnerActivity,
+      });
+
       try {
         const remoteCouple = await Promise.race([
           CoupleService.getMyCouple(),
@@ -222,9 +263,6 @@ export function AppProvider({ children }) {
         }
       } catch (_) {}
 
-      // QR pairing does not use invite codes, so coupleId alone marks linkage.
-      const now = Date.now();
-      const isActuallyLinked = !!resolvedCoupleId;
       let supabaseUserId = null;
 
       try {
@@ -235,32 +273,19 @@ export function AppProvider({ children }) {
         ]) : { data: null };
         supabaseUserId = authData?.user?.id || null;
       } catch (_) {}
-      
-      // If linked but no recent activity, set initial activity timestamp
-      let effectivePartnerActivity = lastPartnerActivity;
-      if (resolvedCoupleId && !lastPartnerActivity) {
-        await storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, now);
-        effectivePartnerActivity = now;
-      }
 
-      dispatch({ 
-        type: ACTIONS.SYNC, 
-        payload: { 
-          userId, 
-          onboardingCompleted: !!onboardingCompleted,
-          userProfile: hydratedUserProfile,
-          coupleId: isActuallyLinked ? resolvedCoupleId : null,
-          isLinked: isActuallyLinked,
-          appLockEnabled: !!appLockEnabled,
-          isPremium, 
-          isCouplePremium,
-          lastPartnerActivity: isActuallyLinked ? effectivePartnerActivity : null,
-        } 
+      syncState({
+        userId,
+        onboardingCompleted,
+        userProfile: hydratedUserProfile,
+        coupleId: resolvedCoupleId,
+        appLockEnabled,
+        lastPartnerActivity: effectivePartnerActivity,
       });
 
       // Setup Supabase Realtime listener for partner vibe/data changes
       // (replaces the old local-only vibeSyncService which never actually synced)
-      const coupleIdVal = isActuallyLinked ? resolvedCoupleId : null;
+      const coupleIdVal = resolvedCoupleId || null;
       if (coupleIdVal) {
         try {
           const { supabase, TABLES } = await import('../config/supabase');
@@ -315,8 +340,13 @@ export function AppProvider({ children }) {
         }
       }
     };
-    
-    init();
+
+    init().catch((err) => {
+      if (__DEV__) console.warn('[AppContext] init failed:', err?.message);
+      if (active) {
+        dispatch({ type: ACTIONS.SYNC, payload: {} });
+      }
+    });
 
     return () => {
       active = false;

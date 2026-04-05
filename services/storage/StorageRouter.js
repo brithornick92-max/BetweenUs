@@ -3,6 +3,78 @@ import CloudEngine from './CloudEngine';
 import { cloudSyncStorage, storage, STORAGE_KEYS } from '../../utils/storage';
 import { SENSITIVE_TYPES } from '../security/Sensitivity';
 
+function buildCloudProfileUpdates(localProfile = {}) {
+  const preferences = {
+    ...(localProfile?.preferences && typeof localProfile.preferences === 'object' ? localProfile.preferences : {}),
+  };
+
+  if (localProfile?.partnerNames && typeof localProfile.partnerNames === 'object') {
+    preferences.partnerNames = {
+      ...(preferences.partnerNames && typeof preferences.partnerNames === 'object' ? preferences.partnerNames : {}),
+      ...localProfile.partnerNames,
+    };
+  }
+
+  if (localProfile?.relationshipStartDate) {
+    preferences.relationshipStartDate = localProfile.relationshipStartDate;
+  }
+
+  if (typeof localProfile?.heatLevelPreference !== 'undefined') {
+    preferences.heatLevelPreference = localProfile.heatLevelPreference;
+  }
+
+  if (typeof localProfile?.onboardingCompleted === 'boolean') {
+    preferences.onboardingCompleted = localProfile.onboardingCompleted;
+  }
+
+  if (typeof localProfile?.tone === 'string' && localProfile.tone.trim()) {
+    preferences.tone = localProfile.tone.trim();
+  }
+
+  if (localProfile?.nicknameConfig && typeof localProfile.nicknameConfig === 'object') {
+    preferences.nicknameConfig = {
+      ...(preferences.nicknameConfig && typeof preferences.nicknameConfig === 'object' ? preferences.nicknameConfig : {}),
+      ...localProfile.nicknameConfig,
+    };
+  }
+
+  if (localProfile?.relationshipSeason && typeof localProfile.relationshipSeason === 'object') {
+    preferences.relationshipSeason = localProfile.relationshipSeason;
+  }
+
+  if (localProfile?.relationshipClimate && typeof localProfile.relationshipClimate === 'object') {
+    preferences.relationshipClimate = localProfile.relationshipClimate;
+  }
+
+  if (typeof localProfile?.energyLevel === 'string' && localProfile.energyLevel.trim()) {
+    preferences.energyLevel = localProfile.energyLevel.trim();
+  }
+
+  if (localProfile?.softBoundaries && typeof localProfile.softBoundaries === 'object') {
+    preferences.softBoundaries = localProfile.softBoundaries;
+  }
+
+  const updates = {
+    preferences,
+  };
+
+  const displayName =
+    localProfile?.partnerNames?.myName ||
+    localProfile?.display_name ||
+    localProfile?.displayName ||
+    null;
+
+  if (displayName) {
+    updates.display_name = displayName;
+  }
+
+  if (localProfile?.email) {
+    updates.email = localProfile.email;
+  }
+
+  return updates;
+}
+
 class StorageRouter {
   constructor() {
     this.isPremium = false;
@@ -10,13 +82,18 @@ class StorageRouter {
     this.sessionPresent = false;
   }
 
+  async _syncCloudSessionState() {
+    await CloudEngine.initialize({ supabaseSessionPresent: this.sessionPresent });
+  }
+
   async initialize({ user, isPremium = false, syncEnabled = false, supabaseSessionPresent = false } = {}) {
     this.isPremium = !!isPremium;
     this.syncEnabled = !!syncEnabled;
     this.sessionPresent = !!supabaseSessionPresent;
     await LocalEngine.initialize?.();
+    await this._syncCloudSessionState();
     if (this._useCloud()) {
-      await CloudEngine.initialize({ supabaseSessionPresent: this.sessionPresent });
+      await this.flushRitualSyncQueue();
     }
   }
 
@@ -24,14 +101,18 @@ class StorageRouter {
     if (typeof isPremium === 'boolean') this.isPremium = isPremium;
     if (typeof syncEnabled === 'boolean') this.syncEnabled = syncEnabled;
     if (typeof supabaseSessionPresent === 'boolean') this.sessionPresent = supabaseSessionPresent;
+    await this._syncCloudSessionState();
     if (this._useCloud()) {
-      await CloudEngine.initialize({ supabaseSessionPresent: this.sessionPresent });
       await this.flushRitualSyncQueue();
     }
   }
 
   _useCloud() {
     return this.isPremium && this.syncEnabled && this.sessionPresent;
+  }
+
+  _canUseAuthenticatedCloud() {
+    return this.sessionPresent;
   }
 
   async setCoupleId(coupleId) {
@@ -53,8 +134,9 @@ class StorageRouter {
 
   async setSupabaseSession(session) {
     this.sessionPresent = !!session;
+    await this._syncCloudSessionState();
     if (this._useCloud()) {
-      await CloudEngine.initialize({ supabaseSessionPresent: this.sessionPresent });
+      await this.flushRitualSyncQueue();
     }
   }
 
@@ -64,6 +146,10 @@ class StorageRouter {
 
   createAccount(email, password, displayName) {
     return LocalEngine.createAccount(email, password, displayName);
+  }
+
+  hydrateRemoteAccount(params) {
+    return LocalEngine.hydrateRemoteAccount(params);
   }
 
   signInWithEmailAndPassword(email, password) {
@@ -80,14 +166,90 @@ class StorageRouter {
 
   async updateUserDocument(userId, updates) {
     const local = await LocalEngine.updateUserDocument(userId, updates);
-    if (this._useCloud()) {
+    if (this.sessionPresent) {
       try {
-        await CloudEngine.upsertProfile(userId, updates);
+        const cloudUserId = await CloudEngine.getCurrentUserId();
+        await CloudEngine.upsertProfile(cloudUserId, buildCloudProfileUpdates(local));
       } catch (err) {
         console.warn('[StorageRouter] Cloud profile upsert failed:', err?.message);
       }
     }
     return local;
+  }
+
+  async getCoupleData(coupleId, key, coupleKey = null) {
+    if (!this._canUseAuthenticatedCloud() || !coupleId || !key) return null;
+    try {
+      return await CloudEngine.getCoupleData(coupleId, key, coupleKey);
+    } catch (err) {
+      const message = String(err?.message || '');
+      const isMissingRow =
+        message.includes('JSON object requested') ||
+        message.includes('multiple (or no) rows returned') ||
+        message.includes('No rows found');
+
+      if (isMissingRow) return null;
+      throw err;
+    }
+  }
+
+  async upsertCoupleData(coupleId, key, value, createdBy, isPrivate = false, dataType = 'unknown') {
+    if (!this._canUseAuthenticatedCloud() || !coupleId || !key || !createdBy) return false;
+
+    try {
+      const cloudUserId = await CloudEngine.getCurrentUserId();
+      const existing = await this.getCoupleData(coupleId, key);
+      if (existing) {
+        await CloudEngine.updateCoupleData(coupleId, key, value);
+        return true;
+      }
+
+      await CloudEngine.saveCoupleData(coupleId, key, value, cloudUserId, isPrivate, dataType);
+      return true;
+    } catch (err) {
+      const message = String(err?.message || '');
+      const isDuplicate =
+        message.includes('duplicate key') ||
+        message.includes('couple_data_couple_id_key_unique');
+
+      if (isDuplicate) {
+        await CloudEngine.updateCoupleData(coupleId, key, value);
+        return true;
+      }
+
+      console.warn('[StorageRouter] Couple data upsert failed:', err?.message);
+      return false;
+    }
+  }
+
+  async updateCloudProfilePreferences(preferenceUpdates) {
+    if (!this.sessionPresent || !preferenceUpdates || typeof preferenceUpdates !== 'object') {
+      return false;
+    }
+
+    try {
+      const userId = await CloudEngine.getCurrentUserId();
+      let existingPreferences = {};
+
+      try {
+        const remoteProfile = await CloudEngine.getProfile(userId);
+        existingPreferences = remoteProfile?.preferences && typeof remoteProfile.preferences === 'object'
+          ? remoteProfile.preferences
+          : {};
+      } catch (_) {}
+
+      await CloudEngine.upsertProfile(userId, {
+        preferences: {
+          ...existingPreferences,
+          ...preferenceUpdates,
+        },
+      });
+
+      return true;
+    } catch (err) {
+      console.warn('[StorageRouter] Cloud preference sync failed:', err?.message);
+      return false;
+    }
   }
 
   async deleteUserDocument(userId) {
