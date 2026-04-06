@@ -609,6 +609,7 @@ const DataLayer = {
 
     const row = await Database.insertJournal({
       user_id: _userId,
+      couple_id: isPrivate ? null : _coupleId,
       title_cipher: titleCipher,
       body_cipher: bodyCipher,
       mood,       // unencrypted coarse label for local calendar/filters
@@ -643,8 +644,11 @@ const DataLayer = {
     if (effectiveTitle !== undefined) updates.title_cipher = await E2EEncryption.encryptString(effectiveTitle, kt, cid);
     if (effectiveBody !== undefined) updates.body_cipher = await E2EEncryption.encryptString(effectiveBody, kt, cid);
     if (mood !== undefined) updates.mood = mood;
+    if (mood !== undefined) updates.mood_cipher = mood ? await E2EEncryption.encryptString(mood, kt, cid) : null;
     if (tags !== undefined) updates.tags = tags;
+    if (tags !== undefined) updates.tags_cipher = tags?.length ? await E2EEncryption.encryptJson(tags, kt, cid) : null;
     if (isPrivate !== undefined) updates.is_private = isPrivate;
+    if (isPrivate !== undefined) updates.couple_id = isPrivate ? null : _coupleId;
 
     const row = await Database.updateJournal(id, updates);
     debouncedPush();
@@ -658,7 +662,7 @@ const DataLayer = {
 
   async getJournalEntries({ limit = 50, offset = 0, mood, visibility } = {}) {
     const rows = visibility
-      ? await Database.getJournalFeed(_userId, { limit, offset, mood, visibility })
+      ? await Database.getJournalFeed(_userId, { coupleId: _coupleId, limit, offset, mood, visibility })
       : await Database.getJournals(_userId, { limit, offset, mood });
     return Promise.all((rows || []).map(r => this._decryptJournal(r)));
   },
@@ -675,17 +679,24 @@ const DataLayer = {
     const kt = info?.keyTier || keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
     try {
+      const decryptedMood = row.mood_cipher
+        ? await E2EEncryption.decryptString(row.mood_cipher, kt, cid).catch(() => null)
+        : null;
+      const decryptedTags = row.tags_cipher
+        ? await E2EEncryption.decryptJson(row.tags_cipher, kt, cid).catch(() => null)
+        : null;
       return {
         ...row,
         title: await E2EEncryption.decryptString(row.title_cipher, kt, cid),
         body: await E2EEncryption.decryptString(row.body_cipher, kt, cid),
-        tags: row.tags ? JSON.parse(row.tags) : [],
+        mood: row.mood ?? decryptedMood ?? null,
+        tags: row.tags ? JSON.parse(row.tags) : (decryptedTags || []),
         is_private: !!row.is_private,
       };
     } catch (err) {
       // Decryption failed — return with locked flag
       console.warn('[DataLayer] Journal decryption failed:', err?.message);
-      return { ...row, title: null, body: null, tags: [], locked: true };
+      return { ...row, mood: row.mood ?? null, title: null, body: null, tags: [], locked: true };
     }
   },
 
@@ -1135,15 +1146,17 @@ const DataLayer = {
         if (isUuid(row.id)) {
           const { error } = await supabase
             .from(TABLES.CALENDAR_EVENTS)
-            .update({
+            .upsert({
+              id: row.id,
+              couple_id: _coupleId,
               title: event.title,
               description: event.notes || null,
               event_date: new Date(event.whenTs).toISOString(),
               event_type: event.eventType || 'general',
               location: event.location || null,
               metadata,
-            })
-            .eq('id', row.id);
+              created_by: remoteUserId,
+            }, { onConflict: 'id' });
           if (error) throw error;
 
           await Database.markCalendarEventSynced(row.id, { syncSource: 'remote' });

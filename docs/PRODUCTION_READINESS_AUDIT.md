@@ -35,8 +35,8 @@
 | A6 | Unhandled promise rejection handler | **PASS** | `global.ErrorUtils.setGlobalHandler` installed at module scope in App.js (outside `__DEV__` guard). Reports to Sentry via `CrashReporting.captureException` with `isFatal` + `source: 'globalHandler'` tags. Dev builds still show the red box. |
 | **B — Privacy, Compliance, Metadata** |||
 | B1 | Privacy Policy + Terms links in-app | **PASS** | `PrivacyPolicyScreen` and `TermsScreen` exist; accessible from settings and onboarding |
-| B2 | iOS Privacy Manifest (PrivacyInfo.xcprivacy) | **PASS** | `privacyManifests` declared in app.json under `ios`. Covers 4 API types (UserDefaults CA92.1, FileTimestamp C617.1, DiskSpace E174.1, SystemBootTime 35F9.1) and 2 collected data types (DeviceID for analytics, marked linked because analytics events are attached to signed-in user IDs; CrashData for app functionality). |
-| B3 | App Store privacy answers match reality | **WARN** | Repo metadata now reflects linked analytics identifiers, but App Store Connect still needs to match reality. Declare: **Analytics: Yes** (linked to user ID), **Diagnostics: crash/performance** (Sentry), **Identifiers: Device ID** (linked, not used for tracking). |
+| B2 | iOS Privacy Manifest (PrivacyInfo.xcprivacy) | **PASS** | `privacyManifests` declared in app.json under `ios` and mirrored in `ios/BetweenUs/PrivacyInfo.xcprivacy`. Covers 4 API types (UserDefaults CA92.1, FileTimestamp C617.1, DiskSpace E174.1, SystemBootTime 35F9.1) and 4 verified collected data types (DeviceID, CrashData, PerformanceData, OtherDiagnosticData). |
+| B3 | App Store privacy answers match reality | **WARN** | Repo metadata now reflects analytics + diagnostics, but App Store Connect still needs to include account email plus user content categories used by encrypted sync/export flows. Declare: **Contact Info: Email**, **Usage Data: Product Interaction**, **Diagnostics: crash/performance**, **Identifiers: Device ID**, plus user content categories for encrypted text/photos/audio as applicable. |
 | B4 | Encryption claim + specifics | **PASS** | `ITSAppUsesNonExemptEncryption: false` in app.json to match the exempt export-compliance path currently indicated by App Store Connect. The app still uses E2EE with XSalsa20-Poly1305 (nacl.secretbox), 256-bit keys, SecureStore-backed device keys, and X25519 ECDH for couple key exchange. Data is encrypted before Supabase upload and stored remotely as ciphertext. |
 | B5 | Account deletion path | **PASS** | `DeleteAccountScreen` exists; calls `delete_own_account` RPC which cascades: removes couple_data, couple_members, orphaned couples, push_tokens, analytics, then deletes `auth.users` row. |
 | **C — Notification UX + Deep Links** |||
@@ -67,7 +67,7 @@
 | **I — Secrets + Supply Chain** |||
 | I1 | No secrets committed | **PASS** | `.gitignore` covers `.env`, `.env.*`, `.env*.local`, `*.pem`, `*.key`, `*.p8`, `*.p12`, `*.mobileprovision`, `*.keystore`. All API keys use `EXPO_PUBLIC_` env vars or `$SENTRY_AUTH_TOKEN` refs. EAS credentials (`appleId`) in eas.json is non-secret (just the email). Supabase config uses only anon key (public). |
 | I2 | Dependency risks | **PASS** | `crypto-js` replaced with `@noble/hashes` (audited, maintained) for PBKDF2 and `expo-crypto` for SHA-256 / random bytes. Password hash comparison bug (operator precedence) fixed. `react-native-worklets` (0.7.2) — check compatibility with `react-native-reanimated` 4.x. All Expo packages are on SDK 54 (matched versions). |
-| I3 | Privacy manifest SDK requirements | **PASS** | `PrivacyInfo.xcprivacy` updated to include `NSPrivacyCollectedDataTypes` (DeviceID for analytics, CrashData for app functionality). API types cover UserDefaults, FileTimestamp, DiskSpace, SystemBootTime. CocoaPods deps auto-add additional reasons during build. Confirmed matching `app.json` `privacyManifests` declarations. |
+| I3 | Privacy manifest SDK requirements | **PASS** | `PrivacyInfo.xcprivacy` updated to include verified `NSPrivacyCollectedDataTypes` used in the shipped app and linked SDKs (DeviceID, CrashData, PerformanceData, OtherDiagnosticData). API types cover UserDefaults, FileTimestamp, DiskSpace, SystemBootTime. CocoaPods deps may still add more items in generated privacy reports; confirm the archive report before submission. |
 
 ---
 
@@ -79,7 +79,7 @@ All four FAIL items from the original audit have been fixed. Details below for r
 **Fix applied:** `global.ErrorUtils.setGlobalHandler` installed at module scope in App.js (outside `__DEV__` guard). Reports to Sentry with `isFatal` + `source: 'globalHandler'` context. Dev builds preserve red box via `defaultHandler` passthrough.
 
 ### ~~FAIL~~ B2: iOS Privacy Manifest — **RESOLVED**
-**Fix applied:** `privacyManifests` added to `ios` section of app.json. Declares 4 API types (UserDefaults, FileTimestamp, DiskSpace, SystemBootTime) and 2 collected data types (DeviceID, CrashData).
+**Fix applied:** `privacyManifests` added to `ios` section of app.json and mirrored in `ios/BetweenUs/PrivacyInfo.xcprivacy`. Declares 4 API types (UserDefaults, FileTimestamp, DiskSpace, SystemBootTime) and verified collected data types for analytics + Sentry diagnostics.
 
 ### ~~FAIL~~ C4: Cold-start notification deep link — **RESOLVED**
 **Fix applied:** `getLastNotificationResponseAsync()` called in AppContent `useEffect` gated on `navReady`. 500ms delay ensures navigation stack is mounted. Guard flag prevents double-processing.
@@ -93,7 +93,7 @@ All four FAIL items from the original audit have been fixed. Details below for r
 
 | # | Item | Action |
 |---|------|--------|
-| B3 | App Store privacy answers | In App Store Connect → App Privacy: **Analytics: Yes** (linked to signed-in user ID via AnalyticsService), **Diagnostics: Yes** (crash data + performance via Sentry), **Identifiers: Yes** (device ID, linked, not used for tracking). See detailed answers below. |
+| B3 | App Store privacy answers | In App Store Connect → App Privacy: include **Contact Info: Email**, **Usage Data: Product Interaction**, **Diagnostics: crash/performance**, **Identifiers: Device ID**, and user content categories used by encrypted sync/export flows. See detailed answers below. |
 
 ### B3 — App Store Connect Privacy Answers (step-by-step)
 
@@ -101,10 +101,13 @@ In **App Store Connect → Your App → App Privacy**, answer:
 
 1. **Do you or your third-party partners collect data?** → **Yes**
 2. **Data types collected:**
+   - **Contact Info → Email Address** — Authentication and account recovery. **Linked** to identity. **Not used for tracking.**
    - **Identifiers → Device ID** — Collected for analytics/service operations. **Linked** to the account because analytics events are associated with signed-in user IDs. **Not used for tracking.**
    - **Diagnostics → Crash Data** — Sentry collects anonymous crash reports. `sendDefaultPii: false`, email/IP stripped in `beforeSend`. **Not linked** to identity.
    - **Diagnostics → Performance Data** — Sentry tracing (10% session sample). **Not linked.**
+   - **Diagnostics → Other Diagnostic Data** — Sentry logs/replay metadata used for debugging. **Not linked.**
    - **Usage Data → Product Interaction** — Screen views and feature engagement via AnalyticsService. **Linked to user** because events are attached to the signed-in user ID. **Not used for tracking.**
+   - **User Content categories** — App Store Connect should include the encrypted text/photo/audio categories actually used by your sync/export features even though their content is encrypted before upload.
 3. **Do you or your third-party partners use data for tracking?** → **No**
 4. **Contact Info / Email** → Collected for authentication only → **Linked to identity** → Purpose: **App Functionality**
 

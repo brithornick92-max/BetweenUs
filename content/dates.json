@@ -88,7 +88,7 @@
         "Feed each other",
         "Share dreams and desires"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -1618,9 +1618,9 @@
         "Share deepest desires",
         "Plan steps together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 2,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d195",
@@ -2833,7 +2833,7 @@
         "Massage each other's feet while soaking",
         "Talk about your day without screens"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -2863,7 +2863,7 @@
         "Bring them tea or water in bed",
         "Lie together before the day begins"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -2968,7 +2968,7 @@
         "Pat dry gently and slowly",
         "Apply lotion to their skin with care"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -3088,7 +3088,7 @@
         "Synchronize breath together",
         "Feel deeper connection"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -3240,7 +3240,7 @@
       ],
       "heat": 3,
       "load": 1,
-      "style": "doing"
+      "style": "mixed"
     },
     {
       "id": "d239",
@@ -4978,7 +4978,7 @@
         "Breathe deeply and relax together",
         "Discuss which scents feel most soothing"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -5308,9 +5308,9 @@
         "Pour wine and slow dance under the stars",
         "Share three things you're grateful for tonight"
       ],
-      "heat": 1,
-      "load": 1,
-      "style": "doing"
+      "heat": 2,
+      "load": 2,
+      "style": "mixed"
     },
     {
       "id": "d418",
@@ -5473,7 +5473,7 @@
         "Give each other face masks and hand massages",
         "Share the story behind each song you chose"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -5789,7 +5789,7 @@
         "See how far you get before the day ends"
       ],
       "heat": 2,
-      "load": 1,
+      "load": 2,
       "style": "doing"
     },
     {
@@ -5819,7 +5819,7 @@
         "Read your journals aloud to each other"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "mixed"
     },
     {

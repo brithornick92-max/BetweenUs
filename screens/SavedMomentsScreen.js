@@ -19,6 +19,7 @@ import Icon from '../components/Icon';
 import FilmGrain from '../components/FilmGrain';
 import GlowOrb from '../components/GlowOrb';
 import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
 import { getPromptById } from '../utils/contentLoader';
@@ -99,8 +100,8 @@ function buildMemoryItem(row) {
   };
 }
 
-function buildJournalItem(row, currentUserId) {
-  const isOwn = row.user_id === currentUserId;
+function buildJournalItem(row, ownerIds) {
+  const isOwn = ownerIds.has(row.user_id);
   return {
     id: `journal:${row.id}`,
     kind: 'journal',
@@ -121,12 +122,16 @@ function buildJournalItem(row, currentUserId) {
 
 export default function SavedMomentsScreen({ navigation }) {
   const { user } = useAuth();
+  const { state } = useAppContext();
   const { colors, isDark } = useTheme();
   const [filter, setFilter] = useState('all');
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const currentUserId = user?.id || user?.uid || null;
+  const ownerIds = useMemo(
+    () => new Set([user?.id, user?.uid, state?.userId].filter(Boolean)),
+    [state?.userId, user?.id, user?.uid]
+  );
 
   const t = useMemo(() => ({
     background: colors.background,
@@ -152,7 +157,7 @@ export default function SavedMomentsScreen({ navigation }) {
       const merged = [
         ...(promptRows || []).map(buildPromptItem),
         ...(memoryRows || []).map(buildMemoryItem),
-        ...(journalRows || []).map((row) => buildJournalItem(row, currentUserId)),
+        ...(journalRows || []).map((row) => buildJournalItem(row, ownerIds)),
       ].sort((a, b) => getSortTime(b) - getSortTime(a));
 
       setEntries(merged);
@@ -163,7 +168,7 @@ export default function SavedMomentsScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [currentUserId]);
+  }, [ownerIds]);
 
   useFocusEffect(
     useCallback(() => {

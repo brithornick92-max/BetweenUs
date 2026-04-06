@@ -196,6 +196,7 @@ function fromRemoteRow(tableName, remoteRow) {
 
   return {
     ...metadata,
+    couple_id: remoteRow.couple_id ?? metadata.couple_id ?? null,
     ...cipherFields,
     sync_status: 'synced',
     sync_source: 'remote',

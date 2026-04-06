@@ -83,7 +83,7 @@ const EULAScreen = ({ navigation }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>LICENSE AGREEMENT</Text>
             <Text style={[styles.title, { color: colors.text }]}>EULA</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              Effective: March 26, 2026
+              Effective: April 6, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Between Us is licensed to you subject to the terms of the Licensed Application End User License
@@ -155,8 +155,8 @@ const EULAScreen = ({ navigation }) => {
               <Text style={[styles.subTitle, { color: colors.text }]}>5. Privacy & Data</Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Your use of Between Us is also governed by our Privacy Policy, available in the app
-                under Settings {'>'} Safety & Support {'>'} Privacy Policy. We use end-to-end encryption for
-                sensitive content and never sell your personal data.
+                under Settings {'>'} Safety & Support {'>'} Privacy Policy. Shared synced intimate content is encrypted before sync,
+                some private content remains device-encrypted only, and we never sell your personal data.
               </Text>
 
               <Text style={[styles.subTitle, { color: colors.text }]}>6. Disclaimer</Text>
@@ -185,9 +185,9 @@ const EULAScreen = ({ navigation }) => {
 
               <Text style={[styles.subTitle, { color: colors.text }]}>9. Governing Law</Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-                This agreement is governed by the laws of the United States, without regard to conflict of
-                law principles. Any disputes shall be resolved in accordance with the dispute resolution
-                provisions in our Terms of Service.
+                If you have a dispute or concern about the app, contact us first so we can try to resolve it
+                informally. Any formal dispute handling is subject to applicable law, Apple's Standard EULA,
+                and the current Terms of Service.
               </Text>
 
               <Text style={[styles.subTitle, { color: colors.text }]}>10. Contact</Text>

@@ -50,6 +50,7 @@ describe('Database', () => {
     it('insertJournal creates a journal entry', async () => {
       await Database.insertJournal({
         user_id: 'user-1',
+        couple_id: 'couple-1',
         title_cipher: 'enc_title',
         body_cipher: 'enc_body',
         mood: 'happy',
@@ -60,6 +61,7 @@ describe('Database', () => {
       const sql = mockRunAsync.mock.calls[0][0];
       expect(sql).toContain('INSERT');
       expect(sql).toContain('journal_entries');
+      expect(sql).toContain('couple_id');
     });
 
     it('getJournals queries journal entries by user', async () => {
@@ -71,16 +73,17 @@ describe('Database', () => {
       expect(result).toHaveLength(1);
     });
 
-    it('getJournalFeed queries shared entries without filtering by owner', async () => {
+    it('getJournalFeed scopes shared entries to the current couple when provided', async () => {
       mockAllAsync.mockResolvedValueOnce([
-        { id: 'j_2', user_id: 'partner-1', is_private: 0, created_at: '2024-01-02' },
+        { id: 'j_2', user_id: 'partner-1', is_private: 0, couple_id: 'couple-1', created_at: '2024-01-02' },
       ]);
 
-      const result = await Database.getJournalFeed('user-1', { visibility: 'shared', limit: 10, offset: 0 });
+      const result = await Database.getJournalFeed('user-1', { visibility: 'shared', coupleId: 'couple-1', limit: 10, offset: 0 });
 
       expect(mockAllAsync).toHaveBeenCalled();
       expect(result).toHaveLength(1);
       expect(mockAllAsync.mock.calls[0][0]).toContain('is_private = 0');
+      expect(mockAllAsync.mock.calls[0][0]).toContain('couple_id = ?');
     });
 
     it('softDeleteJournal sets deleted_at and sync_status', async () => {

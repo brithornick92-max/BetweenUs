@@ -75,7 +75,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Absolutely. Shared content such as synced journal entries, prompt responses, memories, and love notes is encrypted before sync, and some private preferences stay only on your device. We do not sell your data, and we cannot read content protected by your device-only or couple encryption keys.',
+        a: 'Absolutely. Shared content such as synced journal entries, prompt responses, memories, and love notes is encrypted before sync, and some private preferences stay only on your device. We also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data, and we cannot read content protected by your device-only or couple encryption keys.',
       },
       {
         q: 'Can my partner see everything I write?',
@@ -160,6 +160,14 @@ const FAQ_DATA = [
         q: 'How do I delete my account?',
         a: '1. Go to Settings > Privacy & Security\n2. Tap "Delete Account"\n3. Confirm your decision\n4. Your data will be permanently deleted\n\nWarning: This cannot be undone!',
       },
+      {
+        q: 'I forgot my password. What can I do?',
+        a: 'Use the Magic Link option from the Cloud Sync screen to sign in by email without entering your password. If you still need help accessing your account, contact support.',
+      },
+      {
+        q: 'Can I use Between Us on multiple devices?',
+        a: 'Yes. You can sign in on multiple devices with the same account. Synced cloud data can appear across devices after sign-in and sync, but device-only encrypted content may not be recoverable on a new device unless cloud sync is enabled.',
+      },
     ],
   },
   {
@@ -208,7 +216,7 @@ export default function FAQScreen({ navigation }) {
 
   const handleContactSupport = () => {
     impact(ImpactFeedbackStyle.Medium);
-    Alert.alert('Concierge Support', `Email: ${SUPPORT_EMAIL}\nTypical response: 24h`);
+    Alert.alert('Concierge Support', `Email: ${SUPPORT_EMAIL}\nTypical response: 24-48 hours`);
   };
 
   return (
@@ -247,6 +255,7 @@ export default function FAQScreen({ navigation }) {
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
             <Text style={[styles.headerEye, { color: theme.crimson }]}>KNOWLEDGE BASE</Text>
             <Text style={[styles.introTitle, { color: colors.text }]}>Assistance</Text>
+            <Text style={[styles.introDate, { color: colors.textMuted }]}>Updated April 6, 2026</Text>
             <Text style={[styles.introText, { color: colors.textMuted }]}>
               Explore how to make the most of your shared sanctuary. If you need further guidance, our concierge team is available.
             </Text>
@@ -307,7 +316,7 @@ export default function FAQScreen({ navigation }) {
                 <Icon name="mail" size={28} color={theme.crimson} />
               </View>
               <Text style={[styles.supportTitle, { color: colors.text }]}>Still have questions?</Text>
-              <Text style={[styles.supportSub, { color: colors.textMuted }]}>Our concierge team usually responds within 24 hours.</Text>
+              <Text style={[styles.supportSub, { color: colors.textMuted }]}>Our concierge team usually responds within 24-48 hours.</Text>
 
               <TouchableOpacity
                 style={styles.supportButton}
@@ -376,6 +385,14 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
     lineHeight: 24,
     fontWeight: '500',
     opacity: 0.8,
+  },
+  introDate: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    marginBottom: 10,
+    textTransform: 'uppercase',
   },
 
   categoryContainer: { marginBottom: 36 },

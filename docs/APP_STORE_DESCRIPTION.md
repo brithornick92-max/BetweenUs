@@ -19,7 +19,7 @@ Write journal entries. Save inside jokes. Turn a great date into a memory you ca
 Send encrypted love notes your partner discovers on their own time. Share how you're feeling with a gentle vibe signal — no pressure, no performance.
 
 **PRIVATE BY DESIGN**
-Journal entries, prompt responses, and love notes are encrypted end-to-end. Face ID and Touch ID protect your most personal content. Your data is never sold. Never shared. Never read. Delete your account anytime.
+Journal entries, prompt responses, and love notes are encrypted end-to-end. Face ID and Touch ID protect your most personal content. Your data is never sold. Shared content stays between you and your partner. Encrypted content isn't readable by us. Delete your account anytime.
 
 — 
 
@@ -34,10 +34,9 @@ Journal entries, prompt responses, and love notes are encrypted end-to-end. Face
 • Love notes with encrypted delivery
 • Shared calendar for date nights & anniversaries
 • Nightly ritual mode with reminders
-• Full journal history & PDF export
+• Cloud sync for linked couples
 • Vibe Signal — share your emotional state
 • Inside Jokes vault & Year in Review
-• Cloud sync with end-to-end encryption
 • Biometric-protected private vault
 • Ad-free experience
 • One subscription covers both partners

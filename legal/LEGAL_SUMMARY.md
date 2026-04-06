@@ -1,6 +1,6 @@
 # Legal Documents Summary
 
-**Last Updated: March 26, 2026**
+**Last Updated: April 6, 2026**
 
 This document provides an overview of all legal documents for the Between Us app.
 
@@ -28,7 +28,7 @@ This document provides an overview of all legal documents for the Between Us app
 - Encryption for shared synced intimate content
 - We never sell your data
 - Client-side processing
-- Your privacy rights (GDPR, CCPA compliant)
+- Your privacy rights (including GDPR and CCPA disclosures)
 - Data retention and deletion
 - Security measures
 
@@ -68,7 +68,7 @@ This document provides an overview of all legal documents for the Between Us app
 ✅ Never sell your data  
 ✅ Client-side processing  
 ✅ Transparent practices  
-✅ GDPR & CCPA compliant  
+✅ GDPR & CCPA rights documented  
 ✅ 24-48 hour support response  
 
 ### Age Requirement
@@ -106,9 +106,9 @@ This document provides an overview of all legal documents for the Between Us app
 ## Compliance
 
 ### Regulations
-- ✅ GDPR (EU/UK)
-- ✅ CCPA (California)
-- ✅ COPPA (Children's privacy)
+- ✅ GDPR rights disclosures (EU/UK)
+- ✅ CCPA rights disclosures (California)
+- ✅ Adult-only product policy (18+)
 - ✅ App Store Guidelines
 
 ### Security
@@ -133,24 +133,15 @@ This document provides an overview of all legal documents for the Between Us app
 
 ---
 
-## Legal Jurisdiction
+## Legal Process
 
-**Governing Law:** United States  
-**Dispute Resolution:** Binding arbitration  
-**Small Claims:** Available for qualifying disputes
+We ask users to contact support first for disputes or legal concerns. Formal dispute handling depends on applicable law and the forum with proper jurisdiction.
 
 ---
 
 ## Transparency
 
-### Annual Reports
-We publish annual transparency reports covering:
-- Government data requests
-- Account terminations
-- Security incidents
-- Privacy improvements
-
-**Latest Report:** [Link when available]
+We communicate material privacy and security changes through updated legal documents, in-app notices, or direct support responses when appropriate.
 
 ---
 
@@ -169,6 +160,9 @@ All legal documents are:
 | Terms of Service | 1.3 | Mar 21, 2026 | Apple-only, accuracy audit |
 | Privacy Policy | 1.3 | Mar 21, 2026 | Apple-only, accuracy audit |
 | FAQ | 1.3 | Mar 21, 2026 | Updated prompt count (697), Apple-only, local-first offline |
+| Terms of Service | 1.4 | Apr 6, 2026 | Removed unsupported dispute / trial claims, synced product details |
+| Privacy Policy | 1.4 | Apr 6, 2026 | Clarified analytics, Sentry replay, retention, and transfers |
+| FAQ | 1.4 | Apr 6, 2026 | Added magic link guidance, multi-device notes, privacy clarifications |
 | Terms of Service | 1.2 | Feb 22, 2026 | Synced dates, accuracy review |
 | Privacy Policy | 1.2 | Feb 22, 2026 | Added Sentry disclosure, synced dates |
 | FAQ | 1.2 | Feb 22, 2026 | Updated prompt count (686), synced dates |

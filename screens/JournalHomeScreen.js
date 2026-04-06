@@ -20,6 +20,7 @@ import FilmGrain from '../components/FilmGrain';
 import GlowOrb from '../components/GlowOrb';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 import { DataLayer } from '../services/localfirst';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
@@ -45,8 +46,8 @@ function formatDateLabel(value) {
   });
 }
 
-function buildJournalItem(row, currentUserId) {
-  const isOwn = row.user_id === currentUserId;
+function buildJournalItem(row, ownerIds) {
+  const isOwn = ownerIds.has(row.user_id);
   const isPrivate = !!row.is_private;
   const preview = row.locked
     ? 'This entry is locked on this device.'
@@ -70,12 +71,16 @@ function buildJournalItem(row, currentUserId) {
 export default function JournalHomeScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const { state } = useAppContext();
   const [filter, setFilter] = useState('private');
   const [entries, setEntries] = useState({ private: [], shared: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const currentUserId = user?.id || user?.uid || null;
+  const ownerIds = useMemo(
+    () => new Set([user?.id, user?.uid, state?.userId].filter(Boolean)),
+    [state?.userId, user?.id, user?.uid]
+  );
 
   const t = useMemo(() => ({
     background: colors.background,
@@ -98,8 +103,8 @@ export default function JournalHomeScreen({ navigation }) {
       ]);
 
       setEntries({
-        private: (privateRows || []).map((row) => buildJournalItem(row, currentUserId)),
-        shared: (sharedRows || []).map((row) => buildJournalItem(row, currentUserId)),
+        private: (privateRows || []).map((row) => buildJournalItem(row, ownerIds)),
+        shared: (sharedRows || []).map((row) => buildJournalItem(row, ownerIds)),
       });
     } catch (error) {
       if (__DEV__) console.warn('[JournalHome] Load failed:', error?.message);
@@ -108,7 +113,7 @@ export default function JournalHomeScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [currentUserId]);
+  }, [ownerIds]);
 
   useFocusEffect(
     useCallback(() => {

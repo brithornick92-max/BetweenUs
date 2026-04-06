@@ -7,7 +7,10 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
-import { storage, STORAGE_KEYS } from '../utils/storage';
+import SecureCacheStore from './security/SecureCacheStore';
+
+const PUSH_TOKEN_CACHE_KEY = 'push_token';
+const PUSH_TOKEN_SERVICE = 'betweenus_push';
 
 let Notifications = null;
 try {
@@ -103,7 +106,9 @@ const PushNotificationService = {
 
       if (error) throw error;
 
-      await storage.set(STORAGE_KEYS.PUSH_TOKEN, token);
+      await SecureCacheStore.setString(PUSH_TOKEN_CACHE_KEY, token, {
+        service: PUSH_TOKEN_SERVICE,
+      });
 
       if (__DEV__) console.log('[Push] Token saved to Supabase');
     } catch (error) {
@@ -119,10 +124,19 @@ const PushNotificationService = {
    * Remove the push token from Supabase (e.g., on sign-out).
    */
   async removeToken(supabase) {
-    if (!supabase) return;
     try {
-      const token = this._token || await storage.get(STORAGE_KEYS.PUSH_TOKEN, null);
+      const token = this._token || await SecureCacheStore.getString(PUSH_TOKEN_CACHE_KEY, {
+        service: PUSH_TOKEN_SERVICE,
+      });
       if (!token) return;
+
+      if (!supabase) {
+        this._token = null;
+        await SecureCacheStore.removeItem(PUSH_TOKEN_CACHE_KEY, {
+          service: PUSH_TOKEN_SERVICE,
+        });
+        return;
+      }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -137,7 +151,9 @@ const PushNotificationService = {
 
       if (__DEV__) console.log('[Push] Token removed');
       this._token = null;
-      await storage.remove(STORAGE_KEYS.PUSH_TOKEN);
+      await SecureCacheStore.removeItem(PUSH_TOKEN_CACHE_KEY, {
+        service: PUSH_TOKEN_SERVICE,
+      });
     } catch (error) {
       if (__DEV__) console.error('[Push] Remove token error:', error.message);
       try {

@@ -29,10 +29,10 @@ This includes:
 **Target Response Time:** 24-48 hours
 
 **Priority Issues:**
-- Safety concerns: Immediate
-- Data deletion requests: Within 24 hours
-- Privacy inquiries: Within 48 hours
-- General support: Within 48 hours
+- Safety concerns: As soon as available
+- Data deletion requests: Typically within 24-48 hours, depending on verification needs
+- Privacy inquiries: Typically within 24-48 hours
+- General support: Typically within 24-48 hours
 
 ---
 
@@ -69,7 +69,7 @@ All will initially forward to: brittanyapps@outlook.com
 
 ## Support Hours
 
-**Email Support:** 24/7 (responses within 24-48 hours)  
+**Email Support:** Messages can be sent anytime (responses typically within 24-48 hours)  
 **Timezone:** US Eastern (ET)
 
 ---
@@ -88,4 +88,4 @@ For urgent safety concerns:
 
 ---
 
-**Last Updated:** March 21, 2026
+**Last Updated:** April 6, 2026

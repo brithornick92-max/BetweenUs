@@ -1,6 +1,6 @@
 # Between Us — App Store Submission Checklist
 
-**Date:** March 22, 2026  
+**Date:** April 6, 2026  
 **Submission scope:** iOS App Store only  
 **Repo status:** Automated checks passing (`13/13` test suites, deployment validator passing)
 
@@ -32,6 +32,8 @@ The remaining work is operational and store-side:
 
 Use these answers in **App Store Connect → App Privacy**.
 
+Before filling the final form for a release candidate, generate the privacy report from the archived build in Xcode Organizer and reconcile these answers against that report. The archived binary is the source of truth.
+
 ### Top-level answers
 
 1. Do you or your third-party partners collect data? → **Yes**
@@ -44,25 +46,53 @@ Use these answers in **App Store Connect → App Privacy**.
    Linked to the user: **Yes**
    Used for tracking: **No**
 
-2. **Identifiers → Device ID**
+2. **User Content → Other User Content**
+   Purpose: **App Functionality**
+   Linked to the user: **Yes**
+   Used for tracking: **No**
+
+3. **User Content → Photos or Videos**
+   Purpose: **App Functionality**
+   Linked to the user: **Yes**
+   Used for tracking: **No**
+
+4. **User Content → Audio Data**
+   Purpose: **App Functionality**
+   Linked to the user: **Yes**
+   Used for tracking: **No**
+
+5. **Identifiers → Device ID**
    Purpose: **Analytics**
    Linked to the user: **Yes**
    Used for tracking: **No**
 
-3. **Diagnostics → Crash Data**
+6. **Diagnostics → Crash Data**
    Purpose: **App Functionality**
    Linked to the user: **No**
    Used for tracking: **No**
 
-4. **Diagnostics → Performance Data**
+7. **Diagnostics → Performance Data**
    Purpose: **App Functionality**
    Linked to the user: **No**
    Used for tracking: **No**
 
-5. **Usage Data → Product Interaction**
+7. **Usage Data → Product Interaction**
    Purpose: **Analytics**
    Linked to the user: **Yes**
    Used for tracking: **No**
+
+Important: the app privacy answers in App Store Connect should reflect the full shipped experience, including account email and user-content categories. The app's own privacy manifest in the repo currently emphasizes app-defined analytics and diagnostics, while linked SDK manifests and the archive privacy report may add more categories. Use the archive privacy report as the final source of truth.
+
+## Archive Privacy Report Workflow
+
+Run this for the actual build you plan to submit:
+
+1. Build/archive the iOS app
+2. Open the archive in Xcode Organizer
+3. Control-click the archive and choose `Generate Privacy Report`
+4. Review collected-data categories from the app and linked SDKs
+5. Confirm App Store Connect matches the report for email, diagnostics, identifiers, usage data, and any user-content categories present in the binary
+6. If the report differs from this checklist, update this checklist before submission
 
 ## Review Notes To Paste Into App Store Connect
 
@@ -83,6 +113,8 @@ KEY FEATURES:
 
 DATA HANDLING:
 - Private synced content is encrypted before upload
+- Optional photo and voice-note attachments are encrypted before upload
+- The app uses limited pseudonymous analytics plus crash/performance diagnostics, including limited Sentry session replay, to improve reliability
 - The app includes an in-app Privacy Policy, Terms, and account deletion flow
 - Account deletion is available in Settings → Privacy & Security → Delete Account
 
@@ -185,12 +217,22 @@ These are not repo changes, but they still need confirmation:
 Include this in the Notes field for the resubmission:
 
 ```text
-Changes made to address review feedback (Submission ID: 8a6c9ee7-d852-4dad-b1fa-99ce00c83117):
+Changes made for this resubmission:
 
-1. [3.1.2(c)] Added EULA link to in-app subscription purchase flow.
-   Terms of Use (EULA) link also added to App Store description.
-2. [2.3.2] Updated App Store description to clearly identify cloud sync
-   as a premium feature requiring an in-app subscription.
+1. [3.1.2(c)] Added the Terms of Use (EULA) link to the in-app subscription purchase flow, and the App Store description has been updated to include the EULA link as well.
+
+2. [2.3.2] Updated App Store metadata to clearly identify cloud sync as a premium subscription feature.
+
+3. Improved pairing and shared-content reliability for review testing:
+   - fixed QR/invite linking and existing-couple repair behavior
+   - fixed shared prompt consistency so both partners see the same daily prompt for the day
+   - fixed prompt reflection saving from both the home prompt entry point and the full prompt screen
+   - fixed shared love note and calendar sync reliability for paired users
+
+4. Notification behavior remains user-initiated only:
+   push permission is requested only after explicit in-app action.
+
+If needed for review, the core test flow is: create two accounts, link them as partners, open Today's Moment on both devices, and verify the same shared daily prompt appears for both partners.
 ```
 
 ---
@@ -206,6 +248,16 @@ Changes made to address review feedback (Submission ID: 8a6c9ee7-d852-4dad-b1fa-
 5. App Store description includes Terms of Use (EULA) link
 6. App Store description clearly marks cloud sync as a premium feature
 7. Privacy Policy URL is set in App Store Connect
+
+## Residual Risk
+
+Before final submission, reconcile three sources against the same release archive:
+
+1. The archive privacy report generated by Xcode Organizer
+2. App Store Connect → App Privacy answers
+3. The repo copies of `app.json` and `ios/BetweenUs/PrivacyInfo.xcprivacy`
+
+If the archive report lists collected data categories beyond the current repo manifest, update the repo and App Store Connect to match the archive before submitting.
 
 ### No-Go if any of these are still unknown
 

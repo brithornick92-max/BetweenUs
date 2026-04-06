@@ -97,7 +97,7 @@ const TermsScreen = ({ navigation, route }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>RULES OF ENGAGEMENT</Text>
             <Text style={[styles.title, { color: colors.text }]}>Terms of Service</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              EFFECTIVE: MARCH 26, 2026
+              EFFECTIVE: APRIL 6, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Welcome to Between Us. These Terms of Service ("Terms") govern your use of the Between Us mobile
@@ -132,7 +132,7 @@ const TermsScreen = ({ navigation, route }) => {
                 • Night rituals and shared routines{'\n'}
                 • Relationship memories and milestones{'\n'}
                 • Vibe Signals and Moment Signals (mood sharing when connected){'\n'}
-                • Inside Jokes vault (shared nicknames, jokes, and rituals){'\n'}
+                • Inside Jokes vault (private nicknames, jokes, and rituals){'\n'}
                 • Reveal Together (simultaneous answer sharing){'\n'}
                 • Energy Matcher and Relationship Climate (personalized content){'\n'}
                 • Year Reflection narratives{'\n'}
@@ -213,9 +213,8 @@ const TermsScreen = ({ navigation, route }) => {
                 • Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period{'\n'}
                 • Your account will be charged for renewal within 24 hours prior to the end of the current period{'\n'}
                 • You can manage and cancel subscriptions in Settings › Apple ID › Subscriptions{'\n'}
-                • Any unused portion of a free trial is forfeited when you purchase a subscription{'\n'}
                 • Lifetime subscriptions are one-time payments with no renewal{'\n'}
-                • EU/UK users may have a 14-day right of withdrawal as provided by Apple store policies{'\n\n'}
+                • Depending on your location, you may have additional cancellation or withdrawal rights under applicable law and App Store policies{'\n\n'}
                 Partner Access:{'\n'}
                 • When you subscribe, your linked partner automatically gets premium access{'\n'}
                 • If you unlink, your partner loses premium access unless they subscribe separately{'\n'}
@@ -310,15 +309,14 @@ const TermsScreen = ({ navigation, route }) => {
               </Text>
             </View>
 
-            {/* 10. Indemnification */}
+            {/* 10. User Responsibility */}
             <View style={[styles.section, { borderTopColor: theme.glassBorder }]}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                <Text style={{ color: theme.crimson }}>10.</Text> Indemnification
+                <Text style={{ color: theme.crimson }}>10.</Text> User Responsibility
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-                You agree to indemnify and hold harmless Between Us and its developers from any claims, damages,
-                losses, or expenses (including legal fees) arising from your use of the App, your violation of
-                these Terms, or your violation of any third-party rights.
+                You are responsible for using the Service lawfully, respecting other people’s rights, and keeping
+                your account credentials secure.
               </Text>
             </View>
 
@@ -364,13 +362,9 @@ const TermsScreen = ({ navigation, route }) => {
                 <Text style={{ color: theme.crimson }}>13.</Text> Dispute Resolution
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-                These Terms are governed by the laws of the United States, without regard to conflict of law principles.{'\n\n'}
-                Disputes will be resolved through binding arbitration. You waive the right to a jury trial. Class action
-                lawsuits are not permitted. Arbitration is conducted under the rules of the American Arbitration Association.{'\n\n'}
-                You may bring claims in small claims court if they qualify.{'\n\n'}
-                If arbitration is not enforceable in your jurisdiction, disputes shall be resolved in the courts
-                of competent jurisdiction in the United States. Nothing in this section limits your statutory
-                rights under applicable consumer protection law.
+                If you have a dispute or concern about the Service, contact us first so we can try to resolve it informally.{'\n\n'}
+                If we cannot resolve a dispute informally, it may be handled in a court or other forum with proper
+                jurisdiction, subject to any mandatory rights you have under applicable consumer protection law.
               </Text>
             </View>
 

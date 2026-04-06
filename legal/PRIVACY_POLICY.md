@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last Updated: March 26, 2026**
+**Last Updated: April 6, 2026**
 
 At Between Us, your privacy is our top priority. This Privacy Policy explains how we collect, use, protect, and share your information when you use our app.
 
@@ -11,7 +11,7 @@ At Between Us, your privacy is our top priority. This Privacy Policy explains ho
 **We believe your intimate moments should stay private.** That's why we:
 - ✅ Use end-to-end encryption for sensitive content (journals, prompts, intimate answers)
 - ✅ Never sell your personal data
-- ✅ Never share your content with third parties
+- ✅ Never share your content with advertisers or data brokers
 - ✅ Process data on your device whenever possible
 - ✅ Give you full control over your data
 
@@ -31,6 +31,7 @@ At Between Us, your privacy is our top priority. This Privacy Policy explains ho
 - Journal entries and responses to prompts
 - Shared memories and milestones
 - Love notes (text and optional photo attachments)
+- Optional encrypted voice notes
 - Inside jokes, nicknames, and shared references
 - Custom rituals and preferences
 - Heat level and energy level preferences
@@ -44,6 +45,7 @@ At Between Us, your privacy is our top priority. This Privacy Policy explains ho
 - Content filtering preferences
 - Notification settings
 - App customization choices
+- Voice note permission choices
 
 ### 1.2 Information Collected Automatically
 
@@ -51,7 +53,7 @@ At Between Us, your privacy is our top priority. This Privacy Policy explains ho
 - Device type and model
 - Operating system version
 - App version
-- Device identifiers (for authentication)
+- App and authentication identifiers used by our infrastructure
 
 **Usage Data:**
 - Features you use
@@ -78,7 +80,7 @@ We **never** collect:
 - Sync data between you and your partner
 - Save your journal entries and responses
 - Send notifications (if enabled): daily prompt reminders, partner activity alerts, weekly relationship recaps, and milestone celebrations
-- Collect aggregated analytics events (screen views, feature usage) server-side to improve the app
+- Collect limited pseudonymous analytics events (such as screen views, paywall events, feature usage, and exports) to improve the app
 - Provide customer support
 
 ### 2.2 To Improve the Service
@@ -89,7 +91,6 @@ We **never** collect:
 ### 2.3 To Communicate With You
 - Send important service updates
 - Respond to your support requests
-- Send subscription reminders
 - Send account, billing, and support-related messages
 
 ### 2.4 For Security and Compliance
@@ -120,7 +121,9 @@ We **never** collect:
 
 This data is encrypted on your device using a key stored in your device's secure Keychain. It cannot be read by extracting the app's storage files.
 
-**Note:** Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored without end-to-end encryption so we can provide features like filtering, sorting, and calendar scheduling. This metadata is still protected by TLS in transit and access controls at rest.
+This data is encrypted on your device using a key stored in your device's secure Keychain and is intended to protect local data at rest.
+
+**Note:** Some metadata (such as timestamps, event types, mood labels, heat-level preferences, calendar scheduling fields, and push tokens when notifications are enabled) is stored without end-to-end encryption so we can provide features like filtering, sorting, delivery, and scheduling. This metadata is still protected by TLS in transit and access controls at rest.
 
 ### 3.3 Security Measures
 We implement industry-standard security:
@@ -163,11 +166,12 @@ We implement industry-standard security:
 ### 4.2 With Service Providers
 We work with trusted partners who help us operate:
 - **Cloud hosting:** Supabase (journal content is E2E encrypted; metadata such as timestamps, mood labels, and couple IDs is stored with standard server-side encryption)
-- **Subscription management:** RevenueCat (subscription status, entitlement IDs, and anonymous user identifiers — no personal content)
+- **Subscription management:** RevenueCat (subscription status, entitlement IDs, and app user identifiers — no personal content)
+- **Error monitoring:** Sentry (crash reports, performance traces, limited session replays, and optional user feedback to diagnose bugs)
 - **Payment processing:** Handled by Apple (we don't see payment details)
 - **Customer support:** Only if you contact us
 
-All providers are bound by strict confidentiality agreements.
+These providers process data under their own terms and applicable agreements with us.
 
 ### 4.3 We Never Share
 We **never** sell or share your data with:
@@ -206,7 +210,7 @@ We'll notify you unless legally prohibited.
 - Delete individual entries
 - Delete your entire account
 - Request complete data deletion
-- Deletion is permanent, but backup removal may take up to 90 days
+- Deletion is permanent, but backup copies may persist for a limited period before routine purge
 
 ### 5.4 Opt-Out Rights
 - Disable notifications
@@ -234,13 +238,13 @@ We'll notify you unless legally prohibited.
 ### 6.1 Active Accounts
 - We retain your data while your account is active
 - You can delete data anytime
-- Deleted data is removed from active systems promptly; backup purge may take up to 90 days
+- Deleted data is removed from active systems promptly; backup copies may persist for a limited period before routine purge
 
 ### 6.2 Deleted Accounts
 - Account deletion is permanent
 - Most active data is deleted promptly
-- Some data retained for legal compliance (30-90 days)
-- Backups purged within 90 days
+- Some data may be retained for legal compliance or fraud prevention for a limited period
+- Backup copies may persist for a limited period before routine purge
 
 ### 6.3 Partner Data
 - Your partner's data remains separate
@@ -261,10 +265,9 @@ Between Us is **not for children:**
 
 ## 8. International Data Transfers
 
-- Our servers are located in the United States
-- Data may be transferred internationally
-- We use standard contractual clauses
-- Your data receives the same protection everywhere
+- Our app and service providers may process data in the United States and other countries where they operate
+- Data may be transferred internationally when required to provide the service
+- Transfer protections depend on the provider, the destination country, and applicable law
 
 ---
 
@@ -273,7 +276,7 @@ Between Us is **not for children:**
 ### 9.1 Services We Use
 - **Supabase:** Encrypted data storage and authentication
 - **RevenueCat:** Subscription management
-- **Sentry:** Crash reporting, performance monitoring, and session replays (10% of sessions; 100% of sessions where an error occurs — replays capture screen interactions to help us reproduce and fix bugs). Also powers optional user feedback submission.
+- **Sentry:** Crash reporting, performance monitoring, limited session replays (10% of sessions; 100% of sessions where an error occurs), and optional user feedback submission
 - **Expo:** Push notification delivery and over-the-air updates
 - **Apple:** Payment processing and app distribution
 
@@ -335,11 +338,7 @@ brittanyapps@outlook.com
 
 ## 13. Transparency Report
 
-We believe in transparency. We'll publish an annual report on:
-- Government data requests
-- Account terminations
-- Security incidents
-- Privacy improvements
+We aim to communicate material privacy and security changes through updated legal documents, in-app notices, or direct support responses when appropriate.
 
 ---
 
@@ -377,4 +376,4 @@ We believe in transparency. We'll publish an annual report on:
 
 **Your privacy matters to us. If you have any questions or concerns, please reach out.**
 
-*Last Updated: March 26, 2026*
+*Last Updated: April 6, 2026*

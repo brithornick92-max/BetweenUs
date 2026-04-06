@@ -55,6 +55,7 @@ This directory contains all legal documents for the Between Us app.
 - ✅ We never sell your data
 - ✅ You can delete your data anytime
 - ✅ You control what you share with your partner
+- ✅ Limited pseudonymous analytics and diagnostics are used to improve reliability
 
 **Questions?**
 - General: brittanyapps@outlook.com
@@ -89,9 +90,9 @@ This directory contains all legal documents for the Between Us app.
 - ✅ Contact information provided
 
 ### Legal Requirements
-- ✅ GDPR compliant (EU/UK)
-- ✅ CCPA compliant (California)
-- ✅ COPPA compliant (18+ only)
+- ✅ GDPR rights disclosures included (EU/UK)
+- ✅ CCPA rights disclosures included (California)
+- ✅ Adult-only product policy documented (18+)
 - ✅ Terms clearly stated
 - ✅ Privacy practices transparent
 - ✅ User rights documented
@@ -139,7 +140,7 @@ This directory contains all legal documents for the Between Us app.
 2. **Version Control**
    - Update version number
    - Update "Last Updated" date
-   - Document changes in history
+   - Document material changes in history
    - Archive previous version
 
 3. **User Notification**
@@ -174,7 +175,7 @@ This directory contains all legal documents for the Between Us app.
 
 **Safety & Abuse**
 - Email: brittanyapps@outlook.com
-- Urgent: Immediate response
+- Priority: as soon as available
 
 **Feedback**
 - Email: brittanyapps@outlook.com
@@ -200,15 +201,7 @@ This directory contains all legal documents for the Between Us app.
 
 ## 📊 Transparency
 
-### Annual Reports
-We publish transparency reports covering:
-- Government data requests (if any)
-- Account terminations
-- Security incidents
-- Privacy improvements
-- User rights requests
-
-**Latest Report:** [Coming soon]
+We communicate material privacy and security changes through updated legal documents, in-app notices, support responses, and App Store metadata updates when needed.
 
 ### Open Communication
 - Regular blog posts about privacy
@@ -231,7 +224,6 @@ We publish transparency reports covering:
 - End-to-end encryption
 - Client-side encryption (XSalsa20-Poly1305)
 - TLS/SSL in transit
-- Regular security audits
 - Incident response plan
 
 ---
@@ -348,8 +340,8 @@ Before launching Between Us:
 
 ---
 
-**Last Updated:** March 21, 2026  
-**Version:** 1.0  
+**Last Updated:** April 6, 2026  
+**Version:** 1.1  
 **Status:** ✅ Ready for Production
 
 ---

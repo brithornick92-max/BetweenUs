@@ -76,6 +76,12 @@ export const SupabaseAuthService = {
     });
   },
 
+  async clearStoredCredentials() {
+    await SecureStore.deleteItemAsync(SUPABASE_CRED_KEY, {
+      keychainService: 'betweenus',
+    });
+  },
+
   /**
    * Silently re-authenticate using stored credentials.
    * Returns a session or null if no stored creds / auth fails.

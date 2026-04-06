@@ -135,6 +135,7 @@ const ExportDataScreen = ({ navigation }) => {
   };
 
   const exportData = async (options = {}) => {
+    let fileUri = null;
     try {
       setIsExporting(true);
 
@@ -175,7 +176,8 @@ const ExportDataScreen = ({ navigation }) => {
       // Create filename with timestamp
       const timestamp = new Date().toISOString().split('T')[0];
       const filename = `between-us-export-${timestamp}.json`;
-      const fileUri = `${FileSystem.documentDirectory}${filename}`;
+      const exportDir = FileSystem.cacheDirectory || FileSystem.documentDirectory;
+      fileUri = `${exportDir}${filename}`;
 
       // Write file
       await FileSystem.writeAsStringAsync(fileUri, jsonData);
@@ -191,22 +193,12 @@ const ExportDataScreen = ({ navigation }) => {
           UTI: 'public.json',
         });
 
-        // Clean up exported file after sharing to avoid plaintext data lingering on disk
-        try {
-          await FileSystem.deleteAsync(fileUri, { idempotent: true });
-        } catch (e) { /* cleanup non-critical */ }
-
         Alert.alert(
           'Export Successful',
           'Your digital history has been securely exported. The temporary file has been removed from this device.',
           [{ text: 'OK' }]
         );
       } else {
-        // Sharing not available — clean up the plaintext file immediately
-        try {
-          await FileSystem.deleteAsync(fileUri, { idempotent: true });
-        } catch (e) { /* cleanup non-critical */ }
-
         Alert.alert(
           'Export Unavailable',
           'Sharing is not available on this device. The export file has been removed for your privacy.',
@@ -221,6 +213,11 @@ const ExportDataScreen = ({ navigation }) => {
         [{ text: 'OK' }]
       );
     } finally {
+      if (fileUri) {
+        try {
+          await FileSystem.deleteAsync(fileUri, { idempotent: true });
+        } catch (_) { /* cleanup non-critical */ }
+      }
       setIsExporting(false);
     }
   };

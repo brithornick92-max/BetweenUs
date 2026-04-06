@@ -134,6 +134,14 @@ Enter the privacy answers from:
 
 1. [docs/APP_STORE_SUBMISSION_CHECKLIST.md](docs/APP_STORE_SUBMISSION_CHECKLIST.md#L22)
 
+Before entering the final App Privacy form, generate the archive privacy report from the built app and reconcile the App Store Connect answers against that report:
+
+1. Open the release archive in Xcode Organizer
+2. Control-click the archive and choose `Generate Privacy Report`
+3. Save the report and review collected-data categories from the app plus linked SDKs
+4. Make App Store Connect match the archive report, not just the repo docs
+5. If the report adds categories beyond the repo checklist, update the checklist before submitting
+
 ### Review Notes
 
 Paste the prepared review notes from:
@@ -150,6 +158,15 @@ Recommended rating from the audit:
 ### Encryption Compliance
 
 The app is on the exempt export compliance path (`ITSAppUsesNonExemptEncryption = false`). Confirm the App Store Connect questionnaire answers are aligned to the exempt path before final submission.
+
+### Native Privacy Manifest Check
+
+Before submit, verify the built archive contains the same privacy manifest categories you expect from the repo:
+
+1. Confirm [app.json](app.json) and [ios/BetweenUs/PrivacyInfo.xcprivacy](ios/BetweenUs/PrivacyInfo.xcprivacy) are in sync before building
+2. Generate the archive privacy report after the build
+3. Compare the report against the App Store Connect privacy form
+4. Treat the archive privacy report as the source of truth for the submitted binary
 
 ## Phase 7 — Submit
 

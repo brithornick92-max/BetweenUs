@@ -37,7 +37,6 @@ export const STORAGE_KEYS = {
   BIOMETRICS_AVAILABLE: "@betweenus:biometricsAvailable",
   THEME_MODE: "@betweenus:themeMode",
   NOTIFICATION_SETTINGS: "@betweenus:notificationSettings",
-  PUSH_TOKEN: "@betweenus:pushToken",
   PRIVACY_SETTINGS: "@betweenus:privacySettings",
 
   // Core Content

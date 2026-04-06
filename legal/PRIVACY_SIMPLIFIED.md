@@ -14,7 +14,7 @@
 
 ### What We Encrypt (Device-Level)
 ✅ Daily check-ins (mood, closeness, notes)
-✅ Relationship memories
+✅ Local-only memories
 ✅ Inside jokes and shared references
 ✅ Relationship climate selections
 
@@ -46,8 +46,9 @@
 - Your email (to log you in)
 - Partner names (what you call each other)
 - Relationship start date (optional, for better prompts)
-- Your responses (encrypted, for you and your partner)
+- Your responses and shared content (encrypted where supported)
 - Daily usage counts (for free-tier limits)
+- Limited analytics, crash, and performance data to improve reliability
 
 ### We Use It To
 - Show you personalized prompts
@@ -106,7 +107,7 @@
 
 ### What Happens
 - Removed from active systems promptly
-- Removed from backups within 90 days
+- Backup copies may persist for a limited period before routine purge
 - Cannot be recovered after deletion finishes processing
 - Your partner's data stays separate
 
@@ -124,18 +125,17 @@
 ✅ Protect your data  
 ✅ Respect your choices  
 ✅ Be transparent  
-✅ Follow privacy laws  
+✅ Honor the rights described in our policies  
 ✅ Respond to your requests  
 
 ---
 
 ## 🌍 Privacy Laws
 
-We comply with:
+We provide privacy-rights disclosures for:
 - **GDPR** (Europe)
 - **CCPA** (California)
-- **COPPA** (Children - but we're 18+ only)
-- All applicable privacy laws
+- Adult-only use (18+)
 
 ---
 
@@ -160,4 +160,4 @@ We make money from subscriptions, not from your data.
 ---
 
 **Read the full Privacy Policy:** See PRIVACY_POLICY.md
-**Last Updated:** February 22, 2026
+**Last Updated:** April 6, 2026

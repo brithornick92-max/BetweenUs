@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last Updated: March 26, 2026**
+**Last Updated: April 6, 2026**
 
 Welcome to Between Us! These Terms of Service ("Terms") govern your use of the Between Us mobile application and related services (collectively, the "Service"). By using Between Us, you agree to these Terms.
 
@@ -24,7 +24,7 @@ Between Us is a couples app — where closeness deepens. It helps couples deepen
 - Night rituals and shared routines
 - Relationship memories and milestones
 - Vibe Signals and Moment Signals (connectivity-dependent mood sharing)
-- Inside Jokes vault (shared nicknames, jokes, and rituals)
+- Inside Jokes vault (private nicknames, jokes, and rituals)
 - Reveal Together (simultaneous answer sharing)
 - Energy Matcher and Relationship Climate (personalized content)
 - Year Reflection narratives
@@ -95,9 +95,8 @@ You agree not to post content that:
 - Monthly and yearly subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period
 - Your account will be charged for renewal within 24 hours prior to the end of the current period at the same price
 - You can manage and cancel subscriptions in Settings > Apple ID > Subscriptions
-- Any unused portion of a free trial period is forfeited when you purchase a subscription
 - Lifetime subscriptions are one-time payments with no renewal
-- EU/UK users may have a 14-day right of withdrawal for digital purchases, as provided by Apple store policies
+- Depending on your location, you may have additional cancellation or withdrawal rights under applicable law and App Store policies
 
 ### 5.3 Partner Access
 - Premium subscription is per couple, not per person
@@ -221,17 +220,9 @@ We may suspend or terminate your account if you:
 
 ## 12. Dispute Resolution
 
-### 12.1 Governing Law
-These Terms are governed by the laws of the United States, without regard to conflict of law principles.
+If you have a dispute or concern about the Service, contact us first so we can try to resolve it informally.
 
-### 12.2 Arbitration
-- Disputes will be resolved through binding arbitration
-- You waive the right to a jury trial
-- Class action lawsuits are not permitted
-- Arbitration is conducted under the rules of the American Arbitration Association
-
-### 12.3 Exceptions
-You may bring claims in small claims court if they qualify.
+If we cannot resolve a dispute informally, it may be handled in a court or other forum with proper jurisdiction, subject to any mandatory rights you have under applicable consumer protection law.
 
 ---
 

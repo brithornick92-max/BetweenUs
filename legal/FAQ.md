@@ -1,6 +1,6 @@
 # Frequently Asked Questions (FAQ)
 
-**Last Updated: March 26, 2026**
+**Last Updated: April 6, 2026**
 
 ---
 
@@ -96,6 +96,7 @@ Currently, Between Us supports one linked partner at a time. If you're in a poly
 ### Is my data private?
 Absolutely. We take privacy seriously:
 - Your journal entries are end-to-end encrypted
+- We collect limited pseudonymous analytics, crash reports, and session replays to improve reliability
 - We never sell your data
 - We can't read your encrypted content
 - Only you and your linked partner can see shared content
@@ -313,10 +314,9 @@ Check that:
 - Try unlinking and relinking if needed
 
 ### I forgot my password. What can I do?
-Currently, password reset requires creating a new account. We recommend:
-- Using a password you'll remember
-- Storing your password in a password manager
-- Contact brittanyapps@outlook.com for account recovery assistance
+If you can't remember your password, use the Magic Link sign-in option from the Cloud Sync screen to sign in by email without entering your password.
+
+If you still need help accessing your account, contact brittanyapps@outlook.com.
 
 ### How do I delete my account?
 1. Go to Settings > Account
@@ -336,9 +336,9 @@ Check that:
 ### Can I use Between Us on multiple devices?
 Yes! Your account syncs across devices:
 - Log in with the same credentials
-- Your data syncs automatically
+- Synced cloud data can appear across devices after sign-in and sync
 - Use on phone and tablet
-- Only one active session at a time for security
+- Device-only encrypted content may not be recoverable on a new device unless cloud sync is enabled
 
 ---
 
@@ -477,7 +477,7 @@ Yes! You can export your data (available to both free and premium users):
 - Love notes
 - Account details (optional)
 
-All exported as JSON data you can save locally.
+Exports are provided as a plaintext JSON file that you can save locally or share.
 
 ### Do you have a desktop version?
 Currently iOS only:

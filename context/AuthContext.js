@@ -21,7 +21,6 @@ import { NicknameEngine, RelationshipSeasons, SoftBoundaries } from '../services
 import { ContentIntensityMatcher, RelationshipClimateState } from '../services/ConnectionEngine';
 
 const AuthContext = createContext(null);
-const PRESERVED_ASYNC_STORAGE_PREFIXES = ['user_', 'userDoc_', 'email_idx_'];
 
 function mergeCloudProfile(localProfile, remoteProfile) {
   const safeLocal = localProfile && typeof localProfile === 'object' ? localProfile : {};
@@ -141,16 +140,9 @@ async function applyCloudPreferenceState(remoteProfile) {
   }
 }
 
-async function clearSessionCachesPreservingAccounts() {
+async function clearLocalAsyncStorage() {
   try {
-    const keys = await AsyncStorage.getAllKeys();
-    const removableKeys = keys.filter(
-      (key) => !PRESERVED_ASYNC_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))
-    );
-
-    if (removableKeys.length) {
-      await AsyncStorage.multiRemove(removableKeys);
-    }
+    await AsyncStorage.clear();
   } catch (_) {}
 }
 
@@ -494,8 +486,6 @@ export const AuthProvider = ({ children }) => {
       // Get coupleId BEFORE signing out so it's still accessible
       const coupleId = await StorageRouter.getCoupleId();
 
-      await StorageRouter.signOut(scope);
-
       try {
         if (supabase) {
           await PushNotificationService.removeToken(supabase);
@@ -504,15 +494,19 @@ export const AuthProvider = ({ children }) => {
         if (__DEV__) console.warn('[AuthContext] Push token cleanup failed:', pushErr?.message);
       }
 
+      await StorageRouter.signOut(scope);
+      await SupabaseAuthService.clearStoredCredentials();
+
       if (coupleId) {
         await CoupleKeyService.clearCoupleKey(coupleId);
       }
+      await AnalyticsService.clearLocalCache();
       await EncryptionService.clearKey();
       E2EEncryption.clearCache();
       await ConnectionMemory.clear();
 
-      // Clear global caches without deleting account documents needed for relogin.
-      await clearSessionCachesPreservingAccounts();
+      // A signed-out device should not retain plaintext account or profile data.
+      await clearLocalAsyncStorage();
     } finally {
       setBusy(false);
     }
@@ -555,6 +549,14 @@ export const AuthProvider = ({ children }) => {
       // 1. Get coupleId before we start tearing things down
       const coupleId = await StorageRouter.getCoupleId();
 
+      try {
+        if (supabase) {
+          await PushNotificationService.removeToken(supabase);
+        }
+      } catch (pushErr) {
+        if (__DEV__) console.warn('[AuthContext] Push token cleanup failed during delete:', pushErr?.message);
+      }
+
       // 2. Delete cloud data (profile, couple membership, couple data)
       //    Non-fatal — the RPC will also handle this, but doing it
       //    explicitly first gives us cleaner error isolation.
@@ -578,11 +580,13 @@ export const AuthProvider = ({ children }) => {
           await SupabaseAuthService.signOut('global');
         } catch (_) { /* swallow */ }
       }
+      await SupabaseAuthService.clearStoredCredentials();
 
       // 4. Clean up local encryption / couple key material
       await EncryptionService.clearKey();
       E2EEncryption.clearCache();
       await ConnectionMemory.clear();
+      await AnalyticsService.clearLocalCache();
 
       if (coupleId) {
         await CoupleKeyService.clearCoupleKey(coupleId);
@@ -592,7 +596,7 @@ export const AuthProvider = ({ children }) => {
       await StorageRouter.deleteUserDocument(user.uid);
 
       // 6. Clear all remaining local data
-      await AsyncStorage.clear();
+      await clearLocalAsyncStorage();
 
       // 6b. Clear SecureStore auth backup (persists across reinstalls)
       try {

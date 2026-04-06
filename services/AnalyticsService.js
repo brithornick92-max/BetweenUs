@@ -17,9 +17,11 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SecureCacheStore from './security/SecureCacheStore';
 
 const ANALYTICS_QUEUE_KEY = '@bu_analytics_queue';
 const ANALYTICS_ENABLED_KEY = '@bu_analytics_enabled';
+const ANALYTICS_QUEUE_SERVICE = 'betweenus_analytics';
 const MAX_QUEUE_SIZE = 500;
 const FLUSH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -108,12 +110,9 @@ const AnalyticsService = {
     }
 
     // Load persisted queue
-    try {
-      const stored = await AsyncStorage.getItem(ANALYTICS_QUEUE_KEY);
-      _queue = stored ? JSON.parse(stored) : [];
-    } catch {
-      _queue = [];
-    }
+    _queue = await SecureCacheStore.getJson(ANALYTICS_QUEUE_KEY, [], {
+      service: ANALYTICS_QUEUE_SERVICE,
+    });
 
     // Start periodic flush
     this._startFlushTimer();
@@ -143,7 +142,9 @@ const AnalyticsService = {
     }
 
     // Persist to disk (fire-and-forget)
-    AsyncStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(_queue)).catch(() => {});
+    SecureCacheStore.setJson(ANALYTICS_QUEUE_KEY, _queue, {
+      service: ANALYTICS_QUEUE_SERVICE,
+    }).catch(() => {});
   },
 
   /**
@@ -221,11 +222,15 @@ const AnalyticsService = {
       }
 
       // Clear persisted queue on success
-      await AsyncStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(_queue));
+      await SecureCacheStore.setJson(ANALYTICS_QUEUE_KEY, _queue, {
+        service: ANALYTICS_QUEUE_SERVICE,
+      });
     } catch {
       // Restore queue on network failure and persist to survive app kill
       _queue = [...batch, ..._queue].slice(-MAX_QUEUE_SIZE);
-      await AsyncStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(_queue)).catch(() => {});
+      await SecureCacheStore.setJson(ANALYTICS_QUEUE_KEY, _queue, {
+        service: ANALYTICS_QUEUE_SERVICE,
+      }).catch(() => {});
     } finally {
       _flushing = false;
     }
@@ -238,8 +243,7 @@ const AnalyticsService = {
     _enabled = enabled;
     await AsyncStorage.setItem(ANALYTICS_ENABLED_KEY, String(enabled));
     if (!enabled) {
-      _queue = [];
-      await AsyncStorage.removeItem(ANALYTICS_QUEUE_KEY);
+      await this.clearLocalCache();
     }
   },
 
@@ -256,6 +260,13 @@ const AnalyticsService = {
   /** Get current queue size (for debugging) */
   get queueSize() {
     return _queue.length;
+  },
+
+  async clearLocalCache() {
+    _queue = [];
+    await SecureCacheStore.removeItem(ANALYTICS_QUEUE_KEY, {
+      service: ANALYTICS_QUEUE_SERVICE,
+    });
   },
 
   _startFlushTimer() {

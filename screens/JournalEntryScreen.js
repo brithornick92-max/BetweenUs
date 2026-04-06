@@ -28,6 +28,7 @@ import { DataLayer } from "../services/localfirst";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
+import { useAppContext } from "../context/AppContext";
 import { PremiumFeature } from '../utils/featureFlags';
 import { withAlpha } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
@@ -47,8 +48,9 @@ export default function JournalEntryScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user } = useAuth();
-  const currentUserId = user?.id || user?.uid || null;
-  const isOwnEntry = !!entry?.id && entry?.user_id === currentUserId;
+  const { state } = useAppContext();
+  const ownerIds = useMemo(() => new Set([user?.id, user?.uid, state?.userId].filter(Boolean)), [state?.userId, user?.id, user?.uid]);
+  const isOwnEntry = !!entry?.id && ownerIds.has(entry?.user_id);
   const isReadOnly = !!readOnly || (!!entry?.id && !isOwnEntry);
   const initialIsShared = entry
     ? (entry?.isShared ?? entry?.is_private === false)

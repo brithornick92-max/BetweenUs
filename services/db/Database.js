@@ -95,6 +95,7 @@ async function migrate(db) {
       CREATE TABLE IF NOT EXISTS journal_entries (
         id              TEXT PRIMARY KEY,
         user_id         TEXT NOT NULL,
+        couple_id       TEXT,
         title_cipher    TEXT,          -- encrypted title
         body_cipher     TEXT,          -- encrypted rich content
         mood            TEXT,          -- unencrypted label for filters
@@ -107,6 +108,7 @@ async function migrate(db) {
         sync_version    INTEGER DEFAULT 0
       );
       CREATE INDEX IF NOT EXISTS idx_journal_user   ON journal_entries(user_id);
+      CREATE INDEX IF NOT EXISTS idx_journal_couple ON journal_entries(couple_id);
       CREATE INDEX IF NOT EXISTS idx_journal_sync   ON journal_entries(sync_status);
       CREATE INDEX IF NOT EXISTS idx_journal_date   ON journal_entries(created_at);
 
@@ -424,6 +426,24 @@ async function migrate(db) {
       throw err;
     }
   }
+
+  // v9: couple_id on journal entries for shared-feed scoping
+  if (user_version < 9) {
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      try {
+        await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN couple_id TEXT;`);
+      } catch (e) {
+        if (!e?.message?.includes('duplicate column')) throw e;
+      }
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_journal_couple ON journal_entries(couple_id);`);
+      await db.execAsync('PRAGMA user_version = 9;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  }
 }
 
 // ─── Generic CRUD ───────────────────────────────────────────────────
@@ -451,10 +471,10 @@ const Database = {
     const ts = now();
     await db.runAsync(
       `INSERT INTO journal_entries
-         (id, user_id, title_cipher, body_cipher, mood, mood_cipher, tags, tags_cipher,
-          is_private, created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
-      [id, entry.user_id, entry.title_cipher ?? null, entry.body_cipher ?? null,
+        (id, user_id, couple_id, title_cipher, body_cipher, mood, mood_cipher, tags, tags_cipher,
+         is_private, created_at, updated_at, sync_status, sync_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+      [id, entry.user_id, entry.couple_id ?? null, entry.title_cipher ?? null, entry.body_cipher ?? null,
        entry.mood ?? null, entry.mood_cipher ?? null,
        entry.tags ? JSON.stringify(entry.tags) : null, entry.tags_cipher ?? null,
        entry.is_private ? 1 : 0, entry.created_at ?? ts, ts]
@@ -469,7 +489,7 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'is_private'].includes(k)) {
+      if (['title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'is_private', 'couple_id'].includes(k)) {
         fields.push(`${k} = ?`);
         params.push(k === 'tags' ? JSON.stringify(v) : (k === 'is_private' ? (v ? 1 : 0) : v));
       }
@@ -501,7 +521,7 @@ const Database = {
     return db.getAllAsync(sql, params);
   },
 
-  async getJournalFeed(userId, { limit = 50, offset = 0, mood, visibility = 'all' } = {}) {
+  async getJournalFeed(userId, { coupleId, limit = 50, offset = 0, mood, visibility = 'all' } = {}) {
     const db = await getDb();
     let sql = 'SELECT * FROM journal_entries WHERE deleted_at IS NULL';
     const params = [];
@@ -511,9 +531,18 @@ const Database = {
       params.push(userId);
     } else if (visibility === 'shared') {
       sql += ' AND is_private = 0';
+      if (coupleId) {
+        sql += ' AND couple_id = ?';
+        params.push(coupleId);
+      }
     } else {
-      sql += ' AND (user_id = ? OR is_private = 0)';
+      sql += ' AND (user_id = ? OR (is_private = 0';
       params.push(userId);
+      if (coupleId) {
+        sql += ' AND couple_id = ?';
+        params.push(coupleId);
+      }
+      sql += '))';
     }
 
     if (mood) {

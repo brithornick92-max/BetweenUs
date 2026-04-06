@@ -77,7 +77,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>SECURITY & TRUST</Text>
             <Text style={[styles.title, { color: colors.text }]}>Privacy Policy</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              Last Updated: March 26, 2026
+              Last Updated: April 6, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Your privacy is critically important to us. This Privacy Policy explains how we collect, use, 
@@ -104,6 +104,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               We protect different categories of content in different ways:{'\n\n'}
               • Journal entries, prompt responses, love notes, and memories are encrypted before any premium cloud sync{'\n'}
               • Photo attachments are encrypted before upload{'\n'}
+              • Voice notes are encrypted before upload{'\n'}
               • Some preferences and sensitive controls stay only on your device{'\n'}
               • Some metadata used for filtering, sorting, and scheduling is protected but not end-to-end encrypted{'\n'}
               • Shared content is only visible to your linked partner when you choose to share it
@@ -116,13 +117,15 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               • Crash reports{'\n'}
               • Performance data{'\n'}
               • Device information (type, OS version){'\n'}
-              • Aggregated analytics events (screen views, feature usage) stored server-side{'\n'}
-              • Session replays on a limited sample of sessions (10%) and on sessions where an error occurs to help fix bugs
+              • Limited pseudonymous analytics events (such as screen views, paywall events, feature usage, and exports) stored server-side{'\n'}
+              • Limited session replays on a sample of sessions and on sessions where an error occurs to help fix bugs
             </Text>
 
             <Text style={[styles.subTitle, { color: colors.text }]}>Device Permissions</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              • Camera and Photo Library: Used for QR code scanning (partner linking) and photo attachments on love notes. Photos are encrypted before upload.{'\n'}
+              • Camera: Used for QR code scanning during partner linking.{"\n"}
+              • Photo Library: Used only when you choose to attach a photo to supported features such as love notes or journal entries. Photos are encrypted before upload.{'\n'}
+              • Microphone: Used only when you choose to record an encrypted voice note for your partner.{"\n"}
               • Push Notifications: Your device push token is sent to our server to deliver notifications such as partner activity and reminders. You can disable notifications in your device settings at any time.{'\n'}
               • Biometrics (Face ID / Touch ID): Used optionally to lock the app. Biometric data never leaves your device — we only receive a success/failure result from your device's secure enclave. We do not collect, store, or transmit biometric data.
             </Text>
@@ -206,8 +209,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Account data: Retained while your account is active{'\n'}
               • Journal entries and linked-partner metadata: Retained until you delete them or remove access through unlinking or account deletion{'\n'}
-              • Usage data: Retained for up to 2 years{'\n'}
-              • Deleted data: Removed from active systems promptly; backup purge may take longer
+              • Usage and diagnostic data: Retained for a limited period based on operational needs{'\n'}
+              • Deleted data: Removed from active systems promptly; backup copies may persist for a limited period before routine purge
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -268,9 +271,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               We implement industry-standard security measures:{'\n\n'}
-              • End-to-end encryption for journal entries{'\n'}
+              • End-to-end or device-key encryption for supported intimate content{'\n'}
               • Secure data transmission (HTTPS/TLS){'\n'}
-              • Regular security audits{'\n'}
               • Access controls and authentication{'\n'}
               • Encrypted data storage
             </Text>
@@ -279,8 +281,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               <Text style={{ color: theme.crimson }}>13.</Text> International Transfers
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              Our servers are located in the United States. Your data may be transferred internationally. 
-              We use standard contractual clauses and ensure your data receives the same protection everywhere.
+              Our app and service providers may process data in the United States and other countries where they operate.
+              International transfer protections depend on the provider, destination, and applicable law.
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -323,7 +325,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               <Text style={{ color: theme.crimson }}>17.</Text> Transparency Report
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              We believe in transparency. We publish an annual report on government data requests, account terminations, security incidents, and privacy improvements.
+              We aim to communicate material privacy and security changes through updated legal documents, in-app notices, or direct support responses when appropriate.
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>

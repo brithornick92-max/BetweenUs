@@ -203,7 +203,13 @@ describe('DataLayer', () => {
       });
 
       expect(E2EEncryption.encryptString).toHaveBeenCalled();
-      expect(Database.insertJournal).toHaveBeenCalled();
+      expect(Database.insertJournal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user_id: 'user-1',
+          couple_id: 'couple-1',
+          is_private: false,
+        })
+      );
     });
 
     it('getJournalEntries decrypts rows', async () => {
@@ -224,6 +230,27 @@ describe('DataLayer', () => {
       expect(E2EEncryption.decryptString).toHaveBeenCalled();
     });
 
+    it('getJournalEntries falls back to encrypted mood and tags when plaintext metadata is missing', async () => {
+      Database.getJournals.mockResolvedValueOnce([
+        {
+          id: 'j_2',
+          title_cipher: 'enc:title',
+          body_cipher: 'enc:body',
+          mood: null,
+          mood_cipher: 'enc:connected',
+          tags: null,
+          tags_cipher: 'enc:["anniversary"]',
+          created_at: '2024-01-01',
+        },
+      ]);
+
+      const entries = await DataLayer.getJournalEntries({ limit: 10 });
+
+      expect(entries).toHaveLength(1);
+      expect(entries[0].mood).toBe('connected');
+      expect(entries[0].tags).toEqual(['anniversary']);
+    });
+
     it('getJournalEntries uses the visibility feed when requested', async () => {
       Database.getJournalFeed.mockResolvedValueOnce([
         {
@@ -241,6 +268,7 @@ describe('DataLayer', () => {
       const entries = await DataLayer.getJournalEntries({ limit: 10, visibility: 'shared' });
 
       expect(Database.getJournalFeed).toHaveBeenCalledWith('user-1', {
+        coupleId: 'couple-1',
         limit: 10,
         offset: 0,
         mood: undefined,
