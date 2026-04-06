@@ -254,7 +254,7 @@
         "Float and stargaze"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "mixed"
     },
     {
@@ -449,7 +449,7 @@
         "Share one wish for your future"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "mixed"
     },
     {
@@ -1590,7 +1590,7 @@
       ],
       "heat": 1,
       "load": 2,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d084",
@@ -1754,8 +1754,8 @@
         "Affirm each other under the stars"
       ],
       "heat": 1,
-      "load": 1,
-      "style": "talking"
+      "load": 2,
+      "style": "mixed"
     },
     {
       "id": "d278",
@@ -2338,7 +2338,7 @@
         "Breathe together",
         "Feel soul connection"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -2443,7 +2443,7 @@
         "Massage scalp slowly",
         "Dry and brush with care"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -2458,7 +2458,7 @@
         "Pay attention to tension spots",
         "Switch roles and enjoy being cared for"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -2488,7 +2488,7 @@
         "Share where you hold tension",
         "Gently massage each other's tension spots"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "mixed"
     },
@@ -2565,7 +2565,7 @@
       ],
       "heat": 1,
       "load": 1,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d323",
@@ -2593,7 +2593,7 @@
         "Work through hair slowly",
         "Wrap in a warm towel together"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -2653,7 +2653,7 @@
         "Use warm towels between massage rounds",
         "Finish with a long grateful hug"
       ],
-      "heat": 1,
+      "heat": 2,
       "load": 1,
       "style": "doing"
     },
@@ -2669,7 +2669,7 @@
         "Share what the silence felt like"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "mixed"
     },
     {
@@ -4980,7 +4980,7 @@
       ],
       "heat": 1,
       "load": 1,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d395",
@@ -5009,8 +5009,8 @@
         "Keep a shared birding list"
       ],
       "heat": 2,
-      "load": 1,
-      "style": "doing"
+      "load": 2,
+      "style": "mixed"
     },
     {
       "id": "d397",
@@ -5055,7 +5055,7 @@
       ],
       "heat": 2,
       "load": 2,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d400",
@@ -5100,7 +5100,7 @@
       ],
       "heat": 2,
       "load": 2,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d403",
@@ -5234,7 +5234,7 @@
         "Share what nature revealed to you"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "mixed"
     },
     {
@@ -5250,7 +5250,7 @@
       ],
       "heat": 1,
       "load": 1,
-      "style": "doing"
+      "style": "mixed"
     },
     {
       "id": "d413",
@@ -5279,7 +5279,7 @@
         "Walk home slowly in the twilight"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "doing"
     },
     {
@@ -6359,7 +6359,7 @@
         "Relax over herbal tea afterward"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "mixed"
     },
     {
@@ -6645,7 +6645,7 @@
       ],
       "heat": 2,
       "load": 3,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d507",
@@ -6839,7 +6839,7 @@
         "Pick the song that feels most like your relationship right now"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "mixed"
     },
     {
@@ -7004,7 +7004,7 @@
         "End somewhere cozy and choose the track that felt most like your relationship"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "mixed"
     },
     {
@@ -7454,8 +7454,8 @@
         "Eat afterward and talk about what made you feel unexpectedly light"
       ],
       "heat": 1,
-      "load": 1,
-      "style": "doing"
+      "load": 2,
+      "style": "mixed"
     },
     {
       "id": "d561",
@@ -7515,7 +7515,7 @@
       ],
       "heat": 1,
       "load": 2,
-      "style": "doing"
+      "style": "mixed"
     },
     {
       "id": "d565",
@@ -7530,7 +7530,7 @@
       ],
       "heat": 1,
       "load": 1,
-      "style": "doing"
+      "style": "mixed"
     },
     {
       "id": "d566",
@@ -7544,7 +7544,7 @@
         "End by ranking the best cheap thrill of the night"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "doing"
     },
     {
@@ -7740,7 +7740,7 @@
       ],
       "heat": 1,
       "load": 1,
-      "style": "doing"
+      "style": "mixed"
     },
     {
       "id": "d580",
@@ -7859,7 +7859,7 @@
         "Talk afterward about what felt grounding, tender, or unexpectedly emotional"
       ],
       "heat": 1,
-      "load": 1,
+      "load": 2,
       "style": "mixed"
     },
     {
