@@ -52,10 +52,10 @@ const uiPersonalization = {
 
     const FEATURE_META = {
       prompts:  { icon: 'chatbubbles-outline', label: 'Prompts',    screen: 'PromptsScreen' },
-      journal:  { icon: 'book-outline',        label: 'Journal',    screen: 'JournalEntry' },
+      journal:  { icon: 'book-outline',        label: 'Journal',    screen: 'JournalHome' },
       dates:    { icon: 'calendar-outline',    label: 'Date Night', screen: 'DateScreen' },
     rituals:  { icon: 'moon-outline',        label: 'Rituals',    screen: 'NightRitualScreen', premium: true },
-    lovenote: { icon: 'heart-outline',       label: 'Love Notes', screen: 'LoveNotesScreen', premium: true },
+    lovenote: { icon: 'heart-outline',       label: 'Love Notes', screen: 'LoveNotesInbox', premium: true },
       checkin:  { icon: 'pulse-outline',       label: 'Check-in',   screen: 'CheckInScreen' },
       memories: { icon: 'archive-outline',     label: 'Saved',      screen: 'SavedMoments' },
     };

@@ -115,6 +115,12 @@ const resolveSelectableMaxHeat = (profile, selectedHeat) => {
   return Math.min(...caps);
 };
 
+const clampHeatSelection = (profile, selectedHeat) => {
+  const requestedHeat = typeof selectedHeat === 'number' ? selectedHeat : 1;
+  const normalizedHeat = Math.min(Math.max(requestedHeat, 1), 5);
+  return Math.max(1, resolveSelectableMaxHeat(profile, normalizedHeat));
+};
+
 // Synchronous boundary filter used when contentProfile is unavailable
 function applyRawBoundaryFilter(items, bounds) {
   if (!bounds) return items;
@@ -183,7 +189,7 @@ export default function PromptLibraryScreen({ navigation }) {
           if (!active) return;
           setContentProfile(profile);
           setRawBoundaries(bounds);
-          if (profile?.heatLevel) setSelectedHeat(profile.heatLevel);
+          if (profile?.heatLevel) setSelectedHeat(clampHeatSelection(profile, profile.heatLevel));
           setSelectedTone(profile?.tone || 'warm');
         } catch {
           if (!active) return;
@@ -200,6 +206,10 @@ export default function PromptLibraryScreen({ navigation }) {
   );
 
   const toneCopy = TONE_LIBRARY_COPY[selectedTone] || TONE_LIBRARY_COPY.warm;
+  const maxSelectableHeat = useMemo(
+    () => clampHeatSelection(contentProfile, userProfile?.heatLevelPreference || 5),
+    [contentProfile, userProfile?.heatLevelPreference]
+  );
 
   const loadPrompts = useCallback(async () => {
     setLoading(true);
@@ -444,8 +454,7 @@ export default function PromptLibraryScreen({ navigation }) {
               {[1, 2, 3, 4, 5].map((h) => {
                 const active = selectedHeat === h;
                 const locked = !isPremium && h >= 4;
-                const userMaxHeat = userProfile?.heatLevelPreference ?? 5;
-                const aboveMax = h > userMaxHeat;
+                const aboveMax = h > maxSelectableHeat;
                 const heatColor = HEAT_BADGE_COLORS[h];
                 return (
                   <TouchableOpacity

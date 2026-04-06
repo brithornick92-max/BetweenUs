@@ -13,7 +13,7 @@
  *   betweenus://ritual                  → NightRitual
  *   betweenus://calendar                → Calendar (tab)
  *   betweenus://date/:dateId            → DateNightDetail
- *   betweenus://journal                 → JournalEntry
+ *   betweenus://journal                 → JournalHome
  *   betweenus://pair                    → PairingQRCode
  *   betweenus://auth-callback           → AuthCallback (existing)
  */
@@ -55,7 +55,7 @@ const ROUTE_MAP = {
     params: { dateId: _sanitizeId(params.id) },
   }),
   'journal': () => ({
-    screen: 'JournalEntry',
+    screen: 'JournalHome',
     params: {},
   }),
   'pair': () => ({

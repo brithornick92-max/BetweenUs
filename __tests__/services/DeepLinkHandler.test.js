@@ -25,6 +25,13 @@ describe('DeepLinkHandler.handleUrl', () => {
     expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: 'prompt-123' });
   });
 
+  it('routes journal URLs to the journal home', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://journal');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('JournalHome', {});
+  });
+
   it('returns false for unknown routes', () => {
     const handled = DeepLinkHandler.handleUrl('betweenus://unknown/123');
 

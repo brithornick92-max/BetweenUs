@@ -169,6 +169,7 @@ export default function RootNavigator() {
         />
 
         <Stack.Screen name="HeatLevel" getComponent={Screens.HeatLevel} options={{ headerShown: false, presentation: 'modal' }} />
+        <Stack.Screen name="JournalHome" getComponent={Screens.JournalHome} options={{ headerShown: false }} />
         <Stack.Screen name="JournalEntry" getComponent={Screens.JournalEntry} options={{ headerShown: false }} />
         <Stack.Screen name="VibeSignal" getComponent={Screens.VibeSignal} options={{ headerShown: false }} />
         <Stack.Screen name="EditorialPrompt" getComponent={Screens.EditorialPrompt} options={{ headerShown: false }} />

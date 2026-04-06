@@ -99,6 +99,12 @@ const resolveSelectableMaxHeat = (profile, selectedHeat) => {
   return Math.min(...caps);
 };
 
+const clampHeatSelection = (profile, selectedHeat) => {
+  const requestedHeat = typeof selectedHeat === 'number' ? selectedHeat : 1;
+  const normalizedHeat = Math.min(Math.max(requestedHeat, 1), 5);
+  return Math.max(1, resolveSelectableMaxHeat(profile, normalizedHeat));
+};
+
 function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -158,6 +164,7 @@ export default function PromptsScreen({ navigation }) {
           if (!active) return;
           let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
           if (!isPremium && heat >= 4) heat = 3;
+          heat = clampHeatSelection(profile, heat);
           setContentProfile(profile);
           setRawBoundaries(bounds);
           setSelectedHeat(heat);
@@ -178,6 +185,10 @@ export default function PromptsScreen({ navigation }) {
   );
 
   const toneCopy = TONE_PROMPT_COPY[selectedTone] || TONE_PROMPT_COPY.warm;
+  const maxSelectableHeat = useMemo(
+    () => clampHeatSelection(contentProfile, userProfile?.heatLevelPreference || 5),
+    [contentProfile, userProfile?.heatLevelPreference]
+  );
 
   const loadPrompts = useCallback(async () => {
     if (selectedHeat === null) return;
@@ -290,8 +301,7 @@ export default function PromptsScreen({ navigation }) {
               {HEAT_LEVELS.map(({ value, label, color: heatColor }) => {
                 const active = selectedHeat === value;
                 const locked = !isPremium && value >= 4;
-                const userMaxHeat = userProfile?.heatLevelPreference ?? 5;
-                const aboveMax = value > userMaxHeat;
+                const aboveMax = value > maxSelectableHeat;
 
                 const bgColor = active ? heatColor : 'rgba(255,255,255,0.03)';
                 const borderColor = active ? heatColor : aboveMax ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)';

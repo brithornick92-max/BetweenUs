@@ -71,6 +71,18 @@ describe('Database', () => {
       expect(result).toHaveLength(1);
     });
 
+    it('getJournalFeed queries shared entries without filtering by owner', async () => {
+      mockAllAsync.mockResolvedValueOnce([
+        { id: 'j_2', user_id: 'partner-1', is_private: 0, created_at: '2024-01-02' },
+      ]);
+
+      const result = await Database.getJournalFeed('user-1', { visibility: 'shared', limit: 10, offset: 0 });
+
+      expect(mockAllAsync).toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(mockAllAsync.mock.calls[0][0]).toContain('is_private = 0');
+    });
+
     it('softDeleteJournal sets deleted_at and sync_status', async () => {
       await Database.softDeleteJournal('j_1');
       expect(mockRunAsync).toHaveBeenCalled();

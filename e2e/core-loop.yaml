@@ -12,16 +12,16 @@ appId: com.brittany.betweenus
 # Wait for home screen to load
 - waitForAnimationToEnd
 - extendedWaitUntil:
-    visible: ".*prompt.*|.*moment.*"
+    visible: ".*TONIGHT'S MOMENT.*|.*TODAY'S MOMENT.*|.*Share Your Thoughts.*"
     timeout: 10000
 
 # Navigate to Prompts tab
-- tapOn: "Prompts"
+- tapOn: "Prompts, tab, 2 of 5"
 - waitForAnimationToEnd
 
 # Should see prompt content
 - assertVisible:
-    text: ".*prompt.*|.*question.*"
+    text: ".*Prompts.*|.*questions.*|.*reflection.*"
 
 # Tap on a prompt to answer it (if premium or free preview)
 - tapOn:
@@ -31,7 +31,7 @@ appId: com.brittany.betweenus
 - waitForAnimationToEnd
 
 # Navigate to the Date Plans tab
-- tapOn: "DatePlans"
+- tapOn: "Dates, tab, 4 of 5"
 - waitForAnimationToEnd
 
 # Should see date night content
@@ -39,11 +39,11 @@ appId: com.brittany.betweenus
     text: ".*date.*|.*draw.*"
 
 # Navigate to Calendar tab
-- tapOn: "Calendar"
+- tapOn: "Calendar, tab, 3 of 5"
 - waitForAnimationToEnd
 
 # Navigate to Settings tab
-- tapOn: "Settings"
+- tapOn: "Settings, tab, 5 of 5"
 - waitForAnimationToEnd
 
 # Should see settings content
@@ -51,5 +51,5 @@ appId: com.brittany.betweenus
     text: ".*Settings.*|.*Sign Out.*"
 
 # Return to Home
-- tapOn: "Home"
+- tapOn: "Home, tab, 1 of 5"
 - waitForAnimationToEnd

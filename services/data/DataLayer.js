@@ -28,6 +28,7 @@ import CoupleKeyService from '../security/CoupleKeyService';
 import SyncEngine from '../sync/SyncEngine';
 import naclUtil from 'tweetnacl-util';
 import { storage, promptStorage, journalStorage, STORAGE_KEYS } from '../../utils/storage';
+import { getPromptById } from '../../utils/contentLoader';
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
@@ -655,8 +656,10 @@ const DataLayer = {
     debouncedPush();
   },
 
-  async getJournalEntries({ limit = 50, offset = 0, mood } = {}) {
-    const rows = await Database.getJournals(_userId, { limit, offset, mood });
+  async getJournalEntries({ limit = 50, offset = 0, mood, visibility } = {}) {
+    const rows = visibility
+      ? await Database.getJournalFeed(_userId, { limit, offset, mood, visibility })
+      : await Database.getJournals(_userId, { limit, offset, mood });
     return Promise.all((rows || []).map(r => this._decryptJournal(r)));
   },
 
@@ -688,19 +691,22 @@ const DataLayer = {
 
   // ─── Prompt Answers ───────────────────────────────────────────
 
-  async savePromptAnswer({ promptId, answer, heatLevel = 5 }) {
+  async savePromptAnswer({ promptId, answer, heatLevel }) {
     await ensureLocalIdentityState();
     const kt = keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
+    const resolvedHeatLevel = typeof heatLevel === 'number'
+      ? heatLevel
+      : (getPromptById(promptId)?.heat || 1);
     const answerCipher = await E2EEncryption.encryptString(answer, kt, cid);
-    const heatCipher = await E2EEncryption.encryptString(String(heatLevel), kt, cid);
+    const heatCipher = await E2EEncryption.encryptString(String(resolvedHeatLevel), kt, cid);
     const dk = dateKey();
 
     const existing = await Database.getPromptAnswerByPromptAndDate(_userId, promptId, dk);
     const row = existing
       ? await Database.updatePromptAnswer(existing.id, {
           answer_cipher: answerCipher,
-          heat_level: heatLevel,
+          heat_level: resolvedHeatLevel,
           heat_level_cipher: heatCipher,
         })
       : await Database.insertPromptAnswer({
@@ -709,7 +715,7 @@ const DataLayer = {
           prompt_id: promptId,
           date_key: dk,
           answer_cipher: answerCipher,
-          heat_level: heatLevel,
+          heat_level: resolvedHeatLevel,
           heat_level_cipher: heatCipher,
         });
 
@@ -739,12 +745,24 @@ const DataLayer = {
 
   async _decryptPromptAnswer(row) {
     if (!row) return null;
+    await ensureLocalIdentityState();
     const info = E2EEncryption.inspect(row.answer_cipher);
     const kt = info?.keyTier || keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
+    const promptHeat = getPromptById(row.prompt_id)?.heat;
+    if (kt === 'couple' && !cid) {
+      return {
+        ...row,
+        heat_level: typeof promptHeat === 'number' ? promptHeat : (row.heat_level ?? 1),
+        answer: null,
+        partnerAnswer: null,
+        locked: true,
+      };
+    }
     try {
       return {
         ...row,
+        heat_level: typeof promptHeat === 'number' ? promptHeat : (row.heat_level ?? 1),
         answer: await E2EEncryption.decryptString(row.answer_cipher, kt, cid),
         partnerAnswer: row.partner_answer_cipher
           ? await E2EEncryption.decryptString(row.partner_answer_cipher, kt, cid)
@@ -752,8 +770,16 @@ const DataLayer = {
         is_revealed: !!row.is_revealed,
       };
     } catch (err) {
-      console.warn('[DataLayer] Prompt answer decryption failed:', err?.message);
-      return { ...row, answer: null, partnerAnswer: null, locked: true };
+      if (err?.message !== 'E2EE: couple key requested but no coupleId provided') {
+        console.warn('[DataLayer] Prompt answer decryption failed:', err?.message);
+      }
+      return {
+        ...row,
+        heat_level: typeof promptHeat === 'number' ? promptHeat : (row.heat_level ?? 1),
+        answer: null,
+        partnerAnswer: null,
+        locked: true,
+      };
     }
   },
 
@@ -1009,6 +1035,7 @@ const DataLayer = {
   },
 
   async refreshCalendarEventsFromRemote({ limit = 5000 } = {}) {
+    await this.healLegacyCalendarDeletes({ limit: Math.min(limit, 200) });
     await this.pushPendingCalendarEvents();
 
     const { supabase, TABLES } = getSupabaseConfigSync();
@@ -1039,14 +1066,6 @@ const DataLayer = {
               }, { syncSource: 'remote', markSynced: true });
             }
           }
-
-          const remoteIds = new Set(remoteEvents.map((row) => row.id));
-          const existingEvents = await this.getCalendarEvents({ limit });
-          for (const event of existingEvents || []) {
-            if (event?.isRemote && !remoteIds.has(event.id)) {
-              await this.deleteCalendarEvent(event.id);
-            }
-          }
         }
       } catch (error) {
         console.warn('[DataLayer] Calendar remote refresh failed:', error?.message);
@@ -1054,6 +1073,23 @@ const DataLayer = {
     }
 
     return this.getCalendarEvents({ limit });
+  },
+
+  async healLegacyCalendarDeletes({ limit = 200 } = {}) {
+    if (!_userId) {
+      return 0;
+    }
+
+    const rows = await Database.getPendingDeletedRemoteCalendarEvents(_userId, { limit });
+    let restored = 0;
+
+    for (const row of rows || []) {
+      await Database.restoreCalendarEvent(row.id, { syncStatus: 'synced', syncSource: 'remote' });
+      await Database.restoreDatePlansBySourceEvent(row.id, { syncStatus: 'synced', syncSource: 'remote' });
+      restored += 1;
+    }
+
+    return restored;
   },
 
   async pushPendingCalendarEvents({ limit = 200 } = {}) {
@@ -1284,7 +1320,7 @@ const DataLayer = {
     return Promise.all((rows || []).map(r => this._decryptCalendarEvent(r)));
   },
 
-  async deleteCalendarEvent(id, { deleteRemote = false, remoteId } = {}) {
+  async deleteCalendarEvent(id, { deleteRemote = false, remoteId, markSyncedAfterDelete = false } = {}) {
     const { supabase, TABLES } = getSupabaseConfigSync();
     const linkedPlans = await Database.getDatePlansBySourceEvent(_userId, id);
 
@@ -1308,7 +1344,7 @@ const DataLayer = {
       await Database.softDeleteDatePlan(plan.id);
     }
 
-    if (deleteRemote && isUuid(remoteId || id)) {
+    if ((deleteRemote || markSyncedAfterDelete) && isUuid(remoteId || id)) {
       await Database.markCalendarEventSynced(id, { syncSource: 'remote' });
       await Database.markDatePlansSyncedBySourceEvent(id, { syncSource: 'remote' });
     }
@@ -1332,8 +1368,15 @@ const DataLayer = {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: TABLES.CALENDAR_EVENTS, filter: `couple_id=eq.${_coupleId}` },
-        async () => {
-          await this.refreshCalendarEventsFromRemote();
+        async (payload) => {
+          const deletedEventId = payload?.eventType === 'DELETE' ? payload?.old?.id : null;
+
+          if (deletedEventId) {
+            await this.deleteCalendarEvent(deletedEventId, { markSyncedAfterDelete: true });
+          } else {
+            await this.refreshCalendarEventsFromRemote();
+          }
+
           onChange?.();
         }
       )
@@ -1353,7 +1396,7 @@ const DataLayer = {
     if (!row) return null;
     const info = E2EEncryption.inspect(row.title_cipher);
     const kt = info?.keyTier || keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
     try {
       const metadata = row.metadata_cipher
         ? await E2EEncryption.decryptJson(row.metadata_cipher, kt, cid)
@@ -1381,7 +1424,24 @@ const DataLayer = {
       };
     } catch (err) {
       console.warn('[DataLayer] Calendar event decryption failed:', err?.message);
-      return { ...row, title: null, location: '', notes: '', metadata: {}, locked: true };
+      return {
+        id: row.id,
+        title: 'Locked shared event',
+        location: '',
+        notes: '',
+        eventType: row.event_type || 'general',
+        isDateNight: !!row.is_date_night,
+        whenTs: Number(row.when_ts),
+        notify: !!row.notify,
+        notifyMins: Number(row.notify_mins ?? 60) || 60,
+        notificationId: row.notification_id || null,
+        metadata: {},
+        createdAt: row.created_at ? new Date(row.created_at).getTime() : null,
+        updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : null,
+        isRemote: row.sync_source === 'remote',
+        supabaseId: row.sync_source === 'remote' ? row.id : null,
+        locked: true,
+      };
     }
   },
 
@@ -1433,7 +1493,7 @@ const DataLayer = {
     if (!row) return null;
     const info = E2EEncryption.inspect(row.title_cipher);
     const kt = info?.keyTier || keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
     try {
       const body = row.body_cipher
         ? await E2EEncryption.decryptJson(row.body_cipher, kt, cid)
@@ -1453,7 +1513,20 @@ const DataLayer = {
       };
     } catch (err) {
       console.warn('[DataLayer] Date plan decryption failed:', err?.message);
-      return { ...row, title: null, steps: [], locked: true };
+      return {
+        id: row.id,
+        title: 'Locked date plan',
+        sourceEventId: row.source_event_id || null,
+        locationType: 'home',
+        heat: 2,
+        load: 2,
+        style: 'mixed',
+        steps: [],
+        createdAt: row.created_at ? new Date(row.created_at).getTime() : null,
+        updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : null,
+        isRemote: row.sync_source === 'remote',
+        locked: true,
+      };
     }
   },
 

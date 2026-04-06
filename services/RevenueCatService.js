@@ -105,12 +105,32 @@ class RevenueCatService {
       await this.init();
       this.ensureConfigured();
 
+      if (!userId) {
+        throw new Error('RevenueCat identifyUser requires a userId');
+      }
+
+      if (this.currentUserId === userId) {
+        if (__DEV__) console.log('RevenueCat identify skipped; user already active');
+        return { skipped: true, userId };
+      }
+
+      const cachedAppUserId = typeof Purchases.getAppUserID === 'function'
+        ? await Purchases.getAppUserID().catch(() => null)
+        : null;
+
+      if (cachedAppUserId === userId) {
+        this.currentUserId = userId;
+        if (__DEV__) console.log('RevenueCat identify skipped; SDK already has user');
+        return { skipped: true, userId };
+      }
+
       await Purchases.logIn(userId);
       this.currentUserId = userId;
       // Reset per-user offerings cache flag
       this._offeringsUnavailable = false;
       this._offeringsUnavailableWarned = false;
       if (__DEV__) console.log('RevenueCat identify ok');
+      return { skipped: false, userId };
     } catch (error) {
       CrashReporting.captureException(error, { source: 'RevenueCatService.identifyUser' });
       throw error;

@@ -13,6 +13,8 @@ import {
 import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { useAppContext as useApp } from '../context/AppContext';
 import { SPACING } from '../utils/theme';
 import { MomentSignalSender, MOMENT_TYPES } from '../services/ConnectionEngine';
 
@@ -20,6 +22,10 @@ const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
 function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onReceive }) {
   const { colors, isDark } = useTheme();
+  const { user } = useAuth();
+  const { state: appState } = useApp();
+  const userId = user?.id || user?.uid || appState?.userId || null;
+  const coupleId = appState?.coupleId || null;
 
   const t = useMemo(() => ({
     background: isDark ? '#000000' : '#F2F2F7',
@@ -83,14 +89,14 @@ function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onRece
           Animated.timing(receiveFadeAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
         ]),
       ]).start(() => setReceivedSignal(null));
-    });
+    }, { coupleId, userId });
 
     return () => {
       if (typeof unsubRef.current === 'function') unsubRef.current();
       timerIdsRef.current.forEach((timerId) => clearTimeout(timerId));
       timerIdsRef.current.clear();
     };
-  }, [receiveFadeAnim, receiveScaleAnim, receivePulseAnim]);
+  }, [coupleId, receiveFadeAnim, receiveScaleAnim, receivePulseAnim, userId]);
 
   const handleSend = useCallback(async (moment) => {
     selection();

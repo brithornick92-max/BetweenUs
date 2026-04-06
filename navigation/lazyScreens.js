@@ -17,6 +17,7 @@ import { withScreenErrorBoundary } from "../components/ScreenErrorBoundary";
 // ─── Main screens ───────────────────────────────────────────────────
 export const DateNightDetail = () => withScreenErrorBoundary(require("../screens/DateNightDetailScreen").default, "DateNightDetail");
 export const HeatLevel = () => withScreenErrorBoundary(require("../screens/HeatLevelScreen").default, "HeatLevel");
+export const JournalHome = () => withScreenErrorBoundary(require("../screens/JournalHomeScreen").default, "JournalHome");
 export const JournalEntry = () => withScreenErrorBoundary(require("../screens/JournalEntryScreen").default, "JournalEntry");
 export const VibeSignal = () => withScreenErrorBoundary(require("../screens/VibeSignalScreen").default, "VibeSignal");
 export const EditorialPrompt = () => withScreenErrorBoundary(require("../screens/EditorialPromptScreen").default, "EditorialPrompt");

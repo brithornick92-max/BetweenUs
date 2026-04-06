@@ -338,7 +338,8 @@ function AppContent() {
         VibeSignal: "vibe",
         PromptAnswer: "prompt/:promptId",
         NightRitual: "ritual",
-        JournalEntry: "journal",
+        JournalHome: "journal",
+        JournalEntry: "journal/new",
         DateNightDetail: "date/:dateId",
         MainTabs: {
           screens: {

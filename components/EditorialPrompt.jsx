@@ -26,6 +26,7 @@ import { useAuth } from '../context/AuthContext';
 import { storage, STORAGE_KEYS, promptStorage } from '../utils/storage';
 import { DataLayer } from '../services/localfirst';
 import { supabase, TABLES } from '../config/supabase';
+import { getPromptById } from '../utils/contentLoader';
 import { SPACING, withAlpha } from '../utils/theme';
 import PreferenceEngine from '../services/PreferenceEngine';
 
@@ -92,9 +93,10 @@ const promptSyncService = {
 
   submitAnswer: async (promptId, answer, userId, coupleId) => {
     const today = new Date().toISOString().split('T')[0];
+    const promptHeat = getPromptById(promptId)?.heat || 1;
     // Write to DataLayer (E2EE, synced, exported) — primary store
     try {
-      await DataLayer.savePromptAnswer({ promptId, answer, heatLevel: 1 });
+      await DataLayer.savePromptAnswer({ promptId, answer, heatLevel: promptHeat });
     } catch { /* DataLayer not initialized (unauthenticated flow) — skip */ }
     // Write to legacy promptStorage for backward compat
     await promptStorage.setAnswer(today, promptId, { answer, userId });

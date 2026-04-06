@@ -21,27 +21,19 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
-import { BlurView } from "expo-blur";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as ImagePicker from "expo-image-picker";
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
-import { journalStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
+import { useAuth } from "../context/AuthContext";
 import { PremiumFeature } from '../utils/featureFlags';
-import {
-  TYPOGRAPHY,
-  SPACING,
-  BORDER_RADIUS,
-  ICON_SIZES,
-  withAlpha,
-} from "../utils/theme";
+import { withAlpha } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const MAX_LEN = 5000;
 
 const moods = [
   { id: "calm", label: "Calm", icon: "leaf-outline" },
@@ -51,9 +43,16 @@ const moods = [
 ];
 
 export default function JournalEntryScreen({ navigation, route }) {
-  const { entry } = route.params || {};
+  const { entry, defaultShared = false, readOnly = false } = route.params || {};
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { user } = useAuth();
+  const currentUserId = user?.id || user?.uid || null;
+  const isOwnEntry = !!entry?.id && entry?.user_id === currentUserId;
+  const isReadOnly = !!readOnly || (!!entry?.id && !isOwnEntry);
+  const initialIsShared = entry
+    ? (entry?.isShared ?? entry?.is_private === false)
+    : !!defaultShared;
 
   // Premium gate — redirect non-premium users without crashing
   const isPremiumGated = !isPremium;
@@ -67,13 +66,16 @@ export default function JournalEntryScreen({ navigation, route }) {
   }, [isPremiumGated, navigation, showPaywall]);
 
   const [title, setTitle] = useState(entry?.title || "");
-  const [content, setContent] = useState(entry?.content || "");
+  const [content, setContent] = useState(entry?.content || entry?.body || "");
   const [mood, setMood] = useState(entry?.mood || "calm");
   const [imageUri, setImageUri] = useState(
     entry?.imageUri || entry?.photoUri || entry?.mediaUri || null
   );
-  const [isShared, setIsShared] = useState(entry?.isShared ?? false);
+  const [isShared, setIsShared] = useState(initialIsShared);
   const [isSaving, setIsSaving] = useState(false);
+  const headerLabel = isReadOnly
+    ? (entry?.is_private ? "PRIVATE JOURNAL" : "SHARED JOURNAL")
+    : (isShared ? "SHARED JOURNAL" : "PRIVATE REFLECTION");
 
   const lastHapticLength = useRef(0);
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -206,9 +208,9 @@ export default function JournalEntryScreen({ navigation, route }) {
             </TouchableOpacity>
 
             <View style={styles.headerCenter}>
-              <Text style={[styles.headerSubtitle, { color: colors.primary }]}>PRIVATE REFLECTION</Text>
+              <Text style={[styles.headerSubtitle, { color: colors.primary }]}>{headerLabel}</Text>
               <Text style={[styles.headerDate, { color: colors.text }]}>
-                {new Date().toLocaleDateString("en-US", {
+                {new Date(entry?.created_at || Date.now()).toLocaleDateString("en-US", {
                   weekday: "short",
                   month: "long",
                   day: "numeric",
@@ -216,18 +218,25 @@ export default function JournalEntryScreen({ navigation, route }) {
               </Text>
             </View>
 
-            <TouchableOpacity
-              style={[styles.saveButton, { backgroundColor: colors.primary }]}
-              onPress={handleSave}
-              disabled={isSaving}
-              activeOpacity={0.8}
-            >
-              {isSaving ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <Text style={styles.saveText}>Save</Text>
-              )}
-            </TouchableOpacity>
+            {isReadOnly ? (
+              <View style={[styles.readOnlyBadge, { borderColor: withAlpha(colors.text, 0.12), backgroundColor: withAlpha(colors.text, 0.05) }]}>
+                <Icon name="book-outline" size={14} color={colors.textMuted} />
+                <Text style={[styles.readOnlyText, { color: colors.textMuted }]}>Read Only</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: colors.primary }]}
+                onPress={handleSave}
+                disabled={isSaving}
+                activeOpacity={0.8}
+              >
+                {isSaving ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={styles.saveText}>Save</Text>
+                )}
+              </TouchableOpacity>
+            )}
           </Animated.View>
 
           <ScrollView
@@ -245,6 +254,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                 value={title}
                 onChangeText={setTitle}
                 multiline
+                editable={!isReadOnly}
                 selectionColor={colors.primary}
               />
             </Animated.View>
@@ -258,6 +268,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                     return (
                         <TouchableOpacity
                             key={m.id}
+                          disabled={isReadOnly}
                             onPress={() => {
                                 setMood(m.id);
                                 impact(ImpactFeedbackStyle.Light);
@@ -285,17 +296,20 @@ export default function JournalEntryScreen({ navigation, route }) {
               {imageUri ? (
                 <View style={styles.previewWrapper}>
                   <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-                  <TouchableOpacity 
-                    style={styles.removeImageBtn} 
-                    onPress={() => { selection(); setImageUri(null); }}
-                  >
-                    <Icon name="close-outline" size={16} color="#FFF" />
-                  </TouchableOpacity>
+                  {!isReadOnly && (
+                    <TouchableOpacity 
+                      style={styles.removeImageBtn} 
+                      onPress={() => { selection(); setImageUri(null); }}
+                    >
+                      <Icon name="close-outline" size={16} color="#FFF" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               ) : (
                 <TouchableOpacity 
                   style={[styles.imagePlaceholder, { borderColor: withAlpha(colors.text, 0.1) }]} 
                   onPress={handlePickImage}
+                  disabled={isReadOnly}
                 >
                   <Icon name="camera-plus-outline" size={24} color={colors.primary} />
                   <Text style={[styles.placeholderText, { color: colors.textMuted }]}>Add a visual memory</Text>
@@ -317,37 +331,56 @@ export default function JournalEntryScreen({ navigation, route }) {
                     onChangeText={handleContentChange}
                     multiline
                     scrollEnabled={false}
+                    editable={!isReadOnly}
                     selectionColor={colors.primary}
-                    autoFocus={!entry}
+                    autoFocus={!entry && !isReadOnly}
                 />
             </Animated.View>
 
             {/* Footer Actions */}
             <Animated.View entering={FadeInUp.delay(600)} style={styles.footer}>
               <View style={styles.footerActions}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setIsShared(!isShared);
-                    selection();
-                  }}
-                  activeOpacity={0.8}
-                  style={[
-                    styles.shareToggle,
-                    { borderColor: isShared ? colors.primary : withAlpha(colors.text, 0.1) },
-                    isShared && { backgroundColor: withAlpha(colors.primary, 0.08) }
-                  ]}
-                >
-                  <Icon
-                    name={isShared ? "people-outline" : "eye-off-outline"}
-                    size={18}
-                    color={isShared ? colors.primary : colors.textMuted}
-                  />
-                  <Text style={[styles.shareText, { color: isShared ? colors.primary : colors.textMuted }]}>
-                    {isShared ? "Shared with Partner" : "Private Archive"}
-                  </Text>
-                </TouchableOpacity>
+                {isReadOnly ? (
+                  <View
+                    style={[
+                      styles.shareToggle,
+                      { borderColor: withAlpha(colors.text, 0.1), backgroundColor: withAlpha(colors.text, 0.04) }
+                    ]}
+                  >
+                    <Icon
+                      name={entry?.is_private ? "eye-off-outline" : "people-outline"}
+                      size={18}
+                      color={colors.textMuted}
+                    />
+                    <Text style={[styles.shareText, { color: colors.textMuted }]}> 
+                      {entry?.is_private ? "Private archive" : "Shared journal"}
+                    </Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setIsShared(!isShared);
+                      selection();
+                    }}
+                    activeOpacity={0.8}
+                    style={[
+                      styles.shareToggle,
+                      { borderColor: isShared ? colors.primary : withAlpha(colors.text, 0.1) },
+                      isShared && { backgroundColor: withAlpha(colors.primary, 0.08) }
+                    ]}
+                  >
+                    <Icon
+                      name={isShared ? "people-outline" : "eye-off-outline"}
+                      size={18}
+                      color={isShared ? colors.primary : colors.textMuted}
+                    />
+                    <Text style={[styles.shareText, { color: isShared ? colors.primary : colors.textMuted }]}> 
+                      {isShared ? "Shared with Partner" : "Private Archive"}
+                    </Text>
+                  </TouchableOpacity>
+                )}
 
-                {entry && (
+                {entry && !isReadOnly && (
                   <TouchableOpacity
                     onPress={handleDelete}
                     style={[styles.deleteButton, { backgroundColor: withAlpha('#D2121A', 0.1) }]}
@@ -410,6 +443,19 @@ const createStyles = (colors) => StyleSheet.create({
         ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
         android: { elevation: 4 }
     })
+  },
+  readOnlyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  readOnlyText: {
+    fontSize: 12,
+    fontFamily: 'Lato_700Bold',
   },
   saveText: {
     color: "#FFF",

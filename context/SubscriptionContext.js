@@ -27,6 +27,7 @@ export const SubscriptionProvider = ({ children }) => {
 
   const listenerRef = useRef(null);
   const initPromiseRef = useRef(null);
+  const identifiedRcUserRef = useRef(null);
   const premiumListenersRef = useRef(new Set());
   const effectiveIsPremium = DEV_FORCE_PREMIUM || isPremium;
 
@@ -170,6 +171,7 @@ export const SubscriptionProvider = ({ children }) => {
       const activeCoupleId = coupleId || storedCoupleId;
 
       if (!user) {
+        identifiedRcUserRef.current = null;
         setIsPremium(false);
         setOfferings(null);
         setSubscriptionDetails(null);
@@ -199,7 +201,11 @@ export const SubscriptionProvider = ({ children }) => {
           const supabaseUser = await SupabaseAuthService.getUser();
           if (supabaseUser?.id) rcUserId = supabaseUser.id;
         } catch (_) { /* fall back to local uid */ }
-        await RevenueCatService.identifyUser(rcUserId);
+
+        if (identifiedRcUserRef.current !== rcUserId) {
+          await RevenueCatService.identifyUser(rcUserId);
+          identifiedRcUserRef.current = rcUserId;
+        }
 
         if (cancelled) return;
 

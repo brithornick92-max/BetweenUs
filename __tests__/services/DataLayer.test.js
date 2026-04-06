@@ -12,6 +12,7 @@ jest.mock('../../services/db/Database', () => ({
     updateJournal: jest.fn().mockResolvedValue(undefined),
     softDeleteJournal: jest.fn().mockResolvedValue(undefined),
     getJournals: jest.fn().mockResolvedValue([]),
+    getJournalFeed: jest.fn().mockResolvedValue([]),
     getJournalById: jest.fn().mockResolvedValue(null),
     insertPromptAnswer: jest.fn().mockResolvedValue(undefined),
     updatePromptAnswer: jest.fn().mockResolvedValue(undefined),
@@ -38,13 +39,16 @@ jest.mock('../../services/db/Database', () => ({
     getCalendarEvents: jest.fn().mockResolvedValue([]),
     getCalendarEventById: jest.fn().mockResolvedValue(null),
     getPendingCalendarEvents: jest.fn().mockResolvedValue([]),
+    getPendingDeletedRemoteCalendarEvents: jest.fn().mockResolvedValue([]),
     markCalendarEventSynced: jest.fn().mockResolvedValue(undefined),
     replaceCalendarEventId: jest.fn().mockResolvedValue(undefined),
+    restoreCalendarEvent: jest.fn().mockResolvedValue(undefined),
     softDeleteCalendarEvent: jest.fn().mockResolvedValue(undefined),
     upsertDatePlan: jest.fn().mockResolvedValue({ id: 'dp-1', created_at: '2024-01-01', updated_at: '2024-01-01' }),
     getDatePlans: jest.fn().mockResolvedValue([]),
     getDatePlansBySourceEvent: jest.fn().mockResolvedValue([]),
     getDatePlanById: jest.fn().mockResolvedValue(null),
+    restoreDatePlansBySourceEvent: jest.fn().mockResolvedValue(undefined),
     softDeleteDatePlan: jest.fn().mockResolvedValue(undefined),
     markDatePlansSyncedBySourceEvent: jest.fn().mockResolvedValue(undefined),
     purgeDeleted: jest.fn().mockResolvedValue(undefined),
@@ -93,6 +97,17 @@ jest.mock('../../services/PushNotificationService', () => ({
   default: {
     notifyPartner: jest.fn().mockResolvedValue(undefined),
   },
+}));
+
+const mockGetPromptById = jest.fn((id) => {
+  if (id === 'prompt-42') return { id, heat: 2 };
+  if (id === 'prompt-99') return { id, heat: 4 };
+  return null;
+});
+
+jest.mock('../../utils/contentLoader', () => ({
+  __esModule: true,
+  getPromptById: (...args) => mockGetPromptById(...args),
 }));
 
 const mockRemoveChannel = jest.fn();
@@ -209,6 +224,31 @@ describe('DataLayer', () => {
       expect(E2EEncryption.decryptString).toHaveBeenCalled();
     });
 
+    it('getJournalEntries uses the visibility feed when requested', async () => {
+      Database.getJournalFeed.mockResolvedValueOnce([
+        {
+          id: 'j_shared_1',
+          user_id: 'partner-1',
+          is_private: 0,
+          title_cipher: 'enc:title',
+          body_cipher: 'enc:body',
+          mood: 'calm',
+          tags: '[]',
+          created_at: '2024-01-02',
+        },
+      ]);
+
+      const entries = await DataLayer.getJournalEntries({ limit: 10, visibility: 'shared' });
+
+      expect(Database.getJournalFeed).toHaveBeenCalledWith('user-1', {
+        limit: 10,
+        offset: 0,
+        mood: undefined,
+        visibility: 'shared',
+      });
+      expect(entries).toHaveLength(1);
+    });
+
     it('deleteJournalEntry calls softDelete', async () => {
       await DataLayer.deleteJournalEntry('j_1');
       expect(Database.softDeleteJournal).toHaveBeenCalledWith('j_1');
@@ -225,6 +265,21 @@ describe('DataLayer', () => {
 
       expect(E2EEncryption.encryptString).toHaveBeenCalled();
       expect(Database.insertPromptAnswer).toHaveBeenCalled();
+    });
+
+    it('savePromptAnswer infers heat from prompt metadata when omitted', async () => {
+      await DataLayer.savePromptAnswer({
+        promptId: 'prompt-42',
+        answer: 'My answer',
+      });
+
+      expect(Database.insertPromptAnswer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt_id: 'prompt-42',
+          heat_level: 2,
+          heat_level_cipher: 'enc:2',
+        })
+      );
     });
 
     it('savePromptAnswer updates the existing answer for the same prompt and day', async () => {
@@ -245,6 +300,44 @@ describe('DataLayer', () => {
         })
       );
       expect(Database.insertPromptAnswer).not.toHaveBeenCalled();
+    });
+
+    it('getPromptAnswers normalizes stored heat to prompt metadata', async () => {
+      Database.getPromptAnswers.mockResolvedValueOnce([
+        {
+          id: 'pa_1',
+          prompt_id: 'prompt-42',
+          answer_cipher: 'enc:Saved answer',
+          heat_level: 5,
+          is_revealed: 0,
+        },
+      ]);
+
+      const rows = await DataLayer.getPromptAnswers({ limit: 10 });
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].heat_level).toBe(2);
+      expect(rows[0].answer).toBe('Saved answer');
+    });
+
+    it('getPromptAnswers decrypts couple-tier rows using the row couple id before reconfigure completes', async () => {
+      await DataLayer.reconfigure({ userId: 'user-1', coupleId: null, isPremium: false });
+      Database.getPromptAnswers.mockResolvedValueOnce([
+        {
+          id: 'pa_2',
+          prompt_id: 'prompt-42',
+          couple_id: 'couple-row-1',
+          answer_cipher: 'enc:Shared answer',
+          heat_level: 2,
+          is_revealed: 0,
+        },
+      ]);
+
+      const rows = await DataLayer.getPromptAnswers({ limit: 10 });
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].answer).toBe('Shared answer');
+      expect(E2EEncryption.decryptString).toHaveBeenCalledWith('enc:Shared answer', 'couple', 'couple-row-1');
     });
   });
 
@@ -378,7 +471,8 @@ describe('DataLayer', () => {
       expect(result).toEqual({ pushed: 1, deleted: 0, failed: 0 });
     });
 
-    it('refreshCalendarEventsFromRemote removes stale remote-backed local events', async () => {
+    it('refreshCalendarEventsFromRemote preserves remote-backed local events missing from a fetch result', async () => {
+      Database.getPendingDeletedRemoteCalendarEvents.mockResolvedValueOnce([]);
       Database.getPendingCalendarEvents.mockResolvedValueOnce([]);
       mockOrder.mockResolvedValueOnce({
         data: [
@@ -396,65 +490,170 @@ describe('DataLayer', () => {
         ],
         error: null,
       });
-      Database.getCalendarEvents
-        .mockResolvedValueOnce([
-          {
-            id: '33333333-3333-4333-8333-333333333333',
-            title_cipher: 'enc:Existing remote',
-            location_cipher: 'enc:Somewhere',
-            notes_cipher: 'enc:Notes',
-            event_type: 'general',
-            when_ts: 1705345200000,
-            is_date_night: 0,
-            notify: 0,
-            notify_mins: 60,
-            notification_id: null,
-            metadata_cipher: 'enc:{}',
-            created_at: '2024-01-01T00:00:00.000Z',
-            updated_at: '2024-01-01T00:00:00.000Z',
-            sync_source: 'remote',
-          },
-          {
-            id: '44444444-4444-4444-8444-444444444444',
-            title_cipher: 'enc:Stale remote',
-            location_cipher: 'enc:Old',
-            notes_cipher: 'enc:Old notes',
-            event_type: 'general',
-            when_ts: 1705345200000,
-            is_date_night: 0,
-            notify: 0,
-            notify_mins: 60,
-            notification_id: null,
-            metadata_cipher: 'enc:{}',
-            created_at: '2024-01-01T00:00:00.000Z',
-            updated_at: '2024-01-01T00:00:00.000Z',
-            sync_source: 'remote',
-          },
-        ])
-        .mockResolvedValueOnce([
-          {
-            id: '33333333-3333-4333-8333-333333333333',
-            title_cipher: 'enc:Existing remote',
-            location_cipher: 'enc:Somewhere',
-            notes_cipher: 'enc:Notes',
-            event_type: 'general',
-            when_ts: 1705345200000,
-            is_date_night: 0,
-            notify: 0,
-            notify_mins: 60,
-            notification_id: null,
-            metadata_cipher: 'enc:{}',
-            created_at: '2024-01-01T00:00:00.000Z',
-            updated_at: '2024-01-01T00:00:00.000Z',
-            sync_source: 'remote',
-          },
-        ]);
+      Database.getCalendarEvents.mockResolvedValueOnce([
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          title_cipher: 'enc:Existing remote',
+          location_cipher: 'enc:Somewhere',
+          notes_cipher: 'enc:Notes',
+          event_type: 'general',
+          when_ts: 1705345200000,
+          is_date_night: 0,
+          notify: 0,
+          notify_mins: 60,
+          notification_id: null,
+          metadata_cipher: 'enc:{}',
+          created_at: '2024-01-01T00:00:00.000Z',
+          updated_at: '2024-01-01T00:00:00.000Z',
+          sync_source: 'remote',
+        },
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          title_cipher: 'enc:Stale remote',
+          location_cipher: 'enc:Old',
+          notes_cipher: 'enc:Old notes',
+          event_type: 'general',
+          when_ts: 1705345200000,
+          is_date_night: 0,
+          notify: 0,
+          notify_mins: 60,
+          notification_id: null,
+          metadata_cipher: 'enc:{}',
+          created_at: '2024-01-01T00:00:00.000Z',
+          updated_at: '2024-01-01T00:00:00.000Z',
+          sync_source: 'remote',
+        },
+      ]);
       Database.getDatePlansBySourceEvent.mockResolvedValue([]);
 
       const result = await DataLayer.refreshCalendarEventsFromRemote({ limit: 50 });
 
-      expect(Database.softDeleteCalendarEvent).toHaveBeenCalledWith('44444444-4444-4444-8444-444444444444');
+      expect(Database.softDeleteCalendarEvent).not.toHaveBeenCalled();
+      expect(result).toHaveLength(2);
+    });
+
+    it('healLegacyCalendarDeletes restores pending remote tombstones before refresh sync runs', async () => {
+      Database.getPendingDeletedRemoteCalendarEvents.mockResolvedValueOnce([
+        { id: '44444444-4444-4444-8444-444444444444' },
+      ]);
+      Database.getPendingCalendarEvents.mockResolvedValueOnce([]);
+      mockOrder.mockResolvedValueOnce({ data: [], error: null });
+      Database.getCalendarEvents.mockResolvedValueOnce([
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          title_cipher: 'enc:Recovered remote',
+          location_cipher: 'enc:Somewhere',
+          notes_cipher: 'enc:Notes',
+          event_type: 'general',
+          when_ts: 1705345200000,
+          is_date_night: 0,
+          notify: 0,
+          notify_mins: 60,
+          notification_id: null,
+          metadata_cipher: 'enc:{}',
+          created_at: '2024-01-01T00:00:00.000Z',
+          updated_at: '2024-01-01T00:00:00.000Z',
+          sync_source: 'remote',
+        },
+      ]);
+
+      const result = await DataLayer.refreshCalendarEventsFromRemote({ limit: 50 });
+
+      expect(Database.restoreCalendarEvent).toHaveBeenCalledWith(
+        '44444444-4444-4444-8444-444444444444',
+        expect.objectContaining({ syncStatus: 'synced', syncSource: 'remote' })
+      );
+      expect(Database.restoreDatePlansBySourceEvent).toHaveBeenCalledWith(
+        '44444444-4444-4444-8444-444444444444',
+        expect.objectContaining({ syncStatus: 'synced', syncSource: 'remote' })
+      );
       expect(result).toHaveLength(1);
+    });
+
+    it('getCalendarEvents decrypts couple-tier rows using the row couple id', async () => {
+      Database.getCalendarEvents.mockResolvedValueOnce([
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          couple_id: '9fb4ab73-9152-4002-8a24-1ca63d37a0bb',
+          title_cipher: 'enc:Remote dinner',
+          location_cipher: 'enc:Remote spot',
+          notes_cipher: 'enc:Remote notes',
+          event_type: 'general',
+          when_ts: 1705345200000,
+          is_date_night: 0,
+          notify: 0,
+          notify_mins: 60,
+          notification_id: null,
+          metadata_cipher: 'enc:{}',
+          created_at: '2024-01-01T00:00:00.000Z',
+          updated_at: '2024-01-01T00:00:00.000Z',
+          sync_source: 'remote',
+        },
+      ]);
+
+      await DataLayer.getCalendarEvents({ limit: 10 });
+
+      expect(E2EEncryption.decryptString).toHaveBeenCalledWith(
+        'enc:Remote dinner',
+        'couple',
+        '9fb4ab73-9152-4002-8a24-1ca63d37a0bb'
+      );
+    });
+
+    it('getCalendarEvents preserves event shape when decryption fails', async () => {
+      Database.getCalendarEvents.mockResolvedValueOnce([
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          couple_id: '9fb4ab73-9152-4002-8a24-1ca63d37a0bb',
+          title_cipher: 'enc:Remote dinner',
+          location_cipher: 'enc:Remote spot',
+          notes_cipher: 'enc:Remote notes',
+          event_type: 'general',
+          when_ts: 1705345200000,
+          is_date_night: 0,
+          notify: 1,
+          notify_mins: 30,
+          notification_id: 'notif-1',
+          metadata_cipher: 'enc:{}',
+          created_at: '2024-01-01T00:00:00.000Z',
+          updated_at: '2024-01-01T00:00:00.000Z',
+          sync_source: 'remote',
+        },
+      ]);
+      E2EEncryption.decryptString.mockRejectedValueOnce(new Error('missing key'));
+
+      const events = await DataLayer.getCalendarEvents({ limit: 10 });
+
+      expect(events[0]).toEqual(expect.objectContaining({
+        id: '33333333-3333-4333-8333-333333333333',
+        title: 'Locked shared event',
+        whenTs: 1705345200000,
+        locked: true,
+        isRemote: true,
+      }));
+    });
+
+    it('subscribeCalendarEvents soft-deletes local calendar rows on explicit remote deletes', async () => {
+      Database.getDatePlansBySourceEvent.mockResolvedValueOnce([{ id: 'dp-1' }]);
+
+      const onChange = jest.fn();
+      const unsubscribe = DataLayer.subscribeCalendarEvents(onChange);
+      const realtimeHandler = mockChannelOn.mock.calls[0][2];
+
+      await realtimeHandler({
+        eventType: 'DELETE',
+        old: { id: '44444444-4444-4444-8444-444444444444' },
+      });
+
+      expect(Database.softDeleteCalendarEvent).toHaveBeenCalledWith('44444444-4444-4444-8444-444444444444');
+      expect(Database.softDeleteDatePlan).toHaveBeenCalledWith('dp-1');
+      expect(Database.markCalendarEventSynced).toHaveBeenCalledWith(
+        '44444444-4444-4444-8444-444444444444',
+        expect.objectContaining({ syncSource: 'remote' })
+      );
+      expect(onChange).toHaveBeenCalled();
+
+      unsubscribe();
     });
 
     it('saveCalendarEvent caches remote events with the device key when the couple key is unavailable', async () => {

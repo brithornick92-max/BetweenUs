@@ -107,6 +107,8 @@ const VibeCard = ({ vibe, isSelected, onPress, styles, t }) => {
 // ------------------------------------------------------------------
 export default function VibeSignalScreen({ navigation }) {
   const { colors, isDark } = useTheme();
+  const scrollViewRef = useRef(null);
+  const scrollOffsetRef = useRef(0);
 
   // SEXY RED x APPLE EDITORIAL THEME MAP
   const t = useMemo(() => ({
@@ -160,6 +162,10 @@ export default function VibeSignalScreen({ navigation }) {
       .then(() => loadFluxData())
       .catch(() => {});
   }, [state.userId, loadFluxData]);
+
+  const restoreScrollPosition = useCallback(() => {
+    scrollViewRef.current?.scrollTo({ x: 0, y: scrollOffsetRef.current, animated: false });
+  }, []);
 
   const entranceFade  = useRef(new Animated.Value(0)).current;
   const entranceSlide = useRef(new Animated.Value(20)).current;
@@ -217,7 +223,15 @@ export default function VibeSignalScreen({ navigation }) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        onScroll={(event) => {
+          scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
+      >
 
         <Animated.View style={{ opacity: entranceFade, transform: [{ translateY: entranceSlide }] }}>
 
@@ -329,7 +343,7 @@ export default function VibeSignalScreen({ navigation }) {
             </View>
           </View>
 
-          <LiveVibeSync partnerLabel={partnerLabel} />
+          <LiveVibeSync partnerLabel={partnerLabel} onViewportStabilize={restoreScrollPosition} />
 
         </Animated.View>
       </ScrollView>

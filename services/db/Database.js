@@ -501,6 +501,31 @@ const Database = {
     return db.getAllAsync(sql, params);
   },
 
+  async getJournalFeed(userId, { limit = 50, offset = 0, mood, visibility = 'all' } = {}) {
+    const db = await getDb();
+    let sql = 'SELECT * FROM journal_entries WHERE deleted_at IS NULL';
+    const params = [];
+
+    if (visibility === 'private') {
+      sql += ' AND user_id = ? AND is_private = 1';
+      params.push(userId);
+    } else if (visibility === 'shared') {
+      sql += ' AND is_private = 0';
+    } else {
+      sql += ' AND (user_id = ? OR is_private = 0)';
+      params.push(userId);
+    }
+
+    if (mood) {
+      sql += ' AND mood = ?';
+      params.push(mood);
+    }
+
+    sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+    return db.getAllAsync(sql, params);
+  },
+
   async getJournalById(id) {
     const db = await getDb();
     return db.getFirstAsync('SELECT * FROM journal_entries WHERE id = ? AND deleted_at IS NULL', [id]);
@@ -964,6 +989,19 @@ const Database = {
     );
   },
 
+  async getPendingDeletedRemoteCalendarEvents(userId, { limit = 200 } = {}) {
+    const db = await getDb();
+    return db.getAllAsync(
+      `SELECT * FROM calendar_events_local
+       WHERE user_id = ?
+         AND deleted_at IS NOT NULL
+         AND sync_status = 'pending'
+         AND sync_source = 'remote'
+       ORDER BY updated_at ASC LIMIT ?`,
+      [userId, limit]
+    );
+  },
+
   async getCalendarEventById(id) {
     const db = await getDb();
     return db.getFirstAsync(
@@ -980,6 +1018,17 @@ const Database = {
        SET deleted_at = ?, updated_at = ?, sync_status = 'pending', sync_version = sync_version + 1
        WHERE id = ?`,
       [ts, ts, id]
+    );
+  },
+
+  async restoreCalendarEvent(id, { syncStatus = 'synced', syncSource = 'remote' } = {}) {
+    const db = await getDb();
+    const ts = now();
+    await db.runAsync(
+      `UPDATE calendar_events_local
+       SET deleted_at = NULL, updated_at = ?, sync_status = ?, sync_source = ?
+       WHERE id = ?`,
+      [ts, syncStatus, syncSource, id]
     );
   },
 
@@ -1085,6 +1134,17 @@ const Database = {
        SET deleted_at = ?, updated_at = ?, sync_status = 'pending', sync_version = sync_version + 1
        WHERE id = ?`,
       [ts, ts, id]
+    );
+  },
+
+  async restoreDatePlansBySourceEvent(sourceEventId, { syncStatus = 'synced', syncSource = 'remote' } = {}) {
+    const db = await getDb();
+    const ts = now();
+    await db.runAsync(
+      `UPDATE date_plans
+       SET deleted_at = NULL, updated_at = ?, sync_status = ?, sync_source = ?
+       WHERE source_event_id = ?`,
+      [ts, syncStatus, syncSource, sourceEventId]
     );
   },
 

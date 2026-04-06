@@ -315,7 +315,6 @@ export const MomentSignalSender = {
       const userId = directIds.userId || await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
 
       if (!coupleId) {
-        if (__DEV__) console.warn('[MomentSignal] subscribeToSignals: coupleId not available, skipping');
         return;
       }
       if (cancelled) return;

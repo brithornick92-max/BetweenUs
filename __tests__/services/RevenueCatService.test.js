@@ -49,6 +49,7 @@ const mockGetCustomerInfo = jest.fn().mockResolvedValue({
   },
   activeSubscriptions: ['com.betweenus.pro.monthly'],
 });
+const mockGetAppUserID = jest.fn().mockResolvedValue(null);
 const mockSetLogLevel = jest.fn();
 const mockAddListener = jest.fn().mockReturnValue(jest.fn());
 const mockCheckTrialOrIntroPriceEligibility = jest.fn().mockResolvedValue({});
@@ -63,6 +64,7 @@ jest.mock('react-native-purchases', () => ({
     purchasePackage: mockPurchasePackage,
     restorePurchases: mockRestorePurchases,
     getCustomerInfo: mockGetCustomerInfo,
+    getAppUserID: mockGetAppUserID,
     setLogLevel: mockSetLogLevel,
     addCustomerInfoUpdateListener: mockAddListener,
     checkTrialOrIntroPriceEligibility: mockCheckTrialOrIntroPriceEligibility,
@@ -155,6 +157,27 @@ describe('RevenueCatService', () => {
       await RevenueCatService.identifyUser('user-abc');
       expect(mockConfigure).toHaveBeenCalled();
       expect(mockLogIn).toHaveBeenCalledWith('user-abc');
+    });
+
+    it('skips logIn when the same user is already active', async () => {
+      await RevenueCatService.init();
+      RevenueCatService.currentUserId = 'user-abc';
+
+      const result = await RevenueCatService.identifyUser('user-abc');
+
+      expect(mockLogIn).not.toHaveBeenCalled();
+      expect(result).toEqual({ skipped: true, userId: 'user-abc' });
+    });
+
+    it('skips logIn when the SDK already has the same cached app user', async () => {
+      await RevenueCatService.init();
+      mockGetAppUserID.mockResolvedValueOnce('user-abc');
+
+      const result = await RevenueCatService.identifyUser('user-abc');
+
+      expect(mockLogIn).not.toHaveBeenCalled();
+      expect(RevenueCatService.currentUserId).toBe('user-abc');
+      expect(result).toEqual({ skipped: true, userId: 'user-abc' });
     });
   });
 

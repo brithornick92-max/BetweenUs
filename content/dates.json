@@ -3,7 +3,7 @@
     "type": "dates",
     "app": "Between Us",
     "version": "5.0.0-emotional",
-    "description": "449 unique date ideas with multi-dimensional filtering",
+    "description": "526 unique date ideas with multi-dimensional filtering",
     "minMinutes": 45,
     "locations": {
       "home": "At-home intimate experiences",
@@ -2398,9 +2398,9 @@
         "Share a warm drink",
         "Finish with soft towels and cuddles"
       ],
-      "heat": 3,
+      "heat": 2,
       "load": 1,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d236",
@@ -2520,7 +2520,7 @@
       ],
       "heat": 3,
       "load": 1,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d320",
@@ -3450,7 +3450,7 @@
       ],
       "heat": 3,
       "load": 1,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d361",
@@ -3555,7 +3555,7 @@
       ],
       "heat": 3,
       "load": 2,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d368",
@@ -6600,7 +6600,7 @@
       ],
       "heat": 3,
       "load": 2,
-      "style": "talking"
+      "style": "mixed"
     },
     {
       "id": "d504",
@@ -6766,6 +6766,1161 @@
       "heat": 2,
       "load": 3,
       "style": "doing"
+    },
+    {
+      "id": "d515",
+      "title": "Synastry and Snacks Night",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Pull up both your charts and a synastry overview",
+        "Make a snack board inspired by your signs",
+        "Compare your Venus, Mars, and moon placements",
+        "Share which dynamics feel most true between you"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "talking"
+    },
+    {
+      "id": "d516",
+      "title": "New Moon Vision Board Date",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Gather magazines, scissors, candles, and glue",
+        "Talk about what you want to call in this season",
+        "Build a shared vision board under soft music",
+        "Name one intention you want to protect together"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d517",
+      "title": "Zodiac Cocktail and Mocktail Lab",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Pick drinks that match each of your signs",
+        "Mix one bold recipe and one comfort recipe each",
+        "Create dramatic names for every drink you make",
+        "Toast to your chaos, chemistry, and compatibility"
+      ],
+      "heat": 2,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d518",
+      "title": "Mercury Retrograde Repair Ritual",
+      "minutes": 60,
+      "location": "home",
+      "steps": [
+        "Light a candle and put both phones away",
+        "Name one recent misunderstanding without interrupting",
+        "Each offer one repair and one reassurance",
+        "Choose a small ritual to use the next time communication slips"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "talking"
+    },
+    {
+      "id": "d519",
+      "title": "Planetary Playlist Stargazing",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Build a playlist with one song for each planet mood",
+        "Drive or walk to a spot with an open sky",
+        "Listen through the playlist while stargazing together",
+        "Pick the song that feels most like your relationship right now"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d520",
+      "title": "Astrocartography Dream Trip",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Pull up your astrocartography maps together",
+        "Find three places that feel exciting or healing",
+        "Imagine what version of you comes alive in each place",
+        "Plan one future trip inspired by what you discover"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "talking"
+    },
+    {
+      "id": "d521",
+      "title": "Crystal Shop and Energy Night",
+      "minutes": 90,
+      "location": "either",
+      "steps": [
+        "Visit a crystal shop or browse stones online together",
+        "Each choose one crystal for support and one for your relationship",
+        "Read what each stone is believed to represent",
+        "Create a small shared altar or bedside spot for the ones you picked"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d522",
+      "title": "Tantric Breathwork Ritual",
+      "minutes": 60,
+      "location": "home",
+      "steps": [
+        "Set up floor cushions, soft lighting, and a timer",
+        "Sit knee to knee and match each other's breathing pace",
+        "Alternate slow breath holds with eye contact and hand contact",
+        "End by sharing what shifted in your body and connection"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d523",
+      "title": "Tantric Massage Night",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Warm the room, lay out towels, and choose an oil together",
+        "Begin with slow breathing and long grounding strokes",
+        "Trade turns giving an unhurried full-body tantric massage",
+        "Pause to ask what feels best and let the pace stay intentional"
+      ],
+      "heat": 3,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d528",
+      "title": "Desire Menu Night",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Each write a short menu of things you want to give, receive, and maybe try",
+        "Read your lists aloud without interrupting or apologizing",
+        "Circle the overlaps that feel hottest to both of you",
+        "Choose one item to explore tonight and one to save for later"
+      ],
+      "heat": 3,
+      "load": 1,
+      "style": "talking"
+    },
+    {
+      "id": "d529",
+      "title": "Private Strip Playlist Night",
+      "minutes": 60,
+      "location": "home",
+      "steps": [
+        "Build a five-song playlist that gets bolder with each track",
+        "Take turns undressing slowly to the music",
+        "Pause between songs to say what you want next",
+        "End with one slow song and no rush to stop touching"
+      ],
+      "heat": 3,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d524",
+      "title": "Shower to Sheets Night",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Take a hot shower together and wash each other slowly",
+        "Trade towels for a made bed and low lighting",
+        "Take turns saying exactly how you want to be touched",
+        "Keep the whole night focused on pace, attention, and pleasure"
+      ],
+      "heat": 3,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d525",
+      "title": "Yes, No, Harder, Softer Session",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Set a playful rule that feedback has to stay simple and honest",
+        "Take turns exploring with only four phrases allowed: yes, no, harder, softer",
+        "Notice what changes when guidance gets immediate and clear",
+        "Debrief after with the two things you each want more of"
+      ],
+      "heat": 3,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d526",
+      "title": "After-Dark Hotel Energy at Home",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Turn the bedroom into a hotel-night setup with clean sheets, dim lights, and drinks",
+        "Pretend you're meeting each other there after a long day apart",
+        "Flirt like you have all night and nothing to do tomorrow",
+        "Let the roleplay turn into exactly the kind of reunion you both want"
+      ],
+      "heat": 3,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d527",
+      "title": "Hands, Mouth, Maybe Game",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Write down body areas or kinds of touch you want to explore",
+        "Draw one at a time and decide together: hands, mouth, or maybe later",
+        "Stay vocal about what is working and what you want more of",
+        "Keep score only by how honest and turned on you both feel"
+      ],
+      "heat": 3,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d530",
+      "title": "Silent Disco Walk",
+      "minutes": 60,
+      "location": "out",
+      "steps": [
+        "Make a shared playlist and put in one earbud each or bring silent disco headphones",
+        "Walk a familiar route without talking for the first three songs",
+        "Pause after each song to say what memory or mood it sparked",
+        "End somewhere cozy and choose the track that felt most like your relationship"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d531",
+      "title": "No-Spend Micro Adventure",
+      "minutes": 90,
+      "location": "either",
+      "steps": [
+        "Set a zero-dollar rule and pick a neighborhood, park, or route to explore",
+        "Create three tiny missions like finding a mural, a hidden bench, and a perfect photo spot",
+        "Take turns leading for fifteen minutes without explaining the plan first",
+        "Wrap up by naming the moment that felt unexpectedly rich"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d532",
+      "title": "Tea Leaf Reading Night",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Brew loose-leaf tea and set the table with candles or low light",
+        "Sip slowly and each write one question about the season ahead",
+        "Swirl the last of the tea and look up playful interpretations of the leaves",
+        "Share what reading you want to treat as a real invitation"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d533",
+      "title": "Cat Cafe Date",
+      "minutes": 60,
+      "location": "out",
+      "steps": [
+        "Book a cat cafe visit or find an animal lounge nearby",
+        "Each pick the cat whose vibe feels most like your partner",
+        "Trade stories about pets, comfort, and the kind of home you want",
+        "Leave with one tiny ritual you want to bring into your shared life"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d534",
+      "title": "Audio Tour City Date",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Download a walking audio tour or neighborhood history guide",
+        "Take turns choosing which stops to linger at and which to skip",
+        "Pause at one place that surprises you and invent your own backstory for it",
+        "Finish with food or coffee and compare the city you expected with the one you noticed"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d535",
+      "title": "Annual Relationship Planning Night",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Bring calendars, notes, and a drink that makes planning feel celebratory",
+        "Name three things you want more of in your relationship this year",
+        "Choose shared priorities around money, travel, intimacy, or family rhythm",
+        "Lock in one meaningful date for each upcoming quarter"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "talking"
+    },
+    {
+      "id": "d536",
+      "title": "Cheese Board and Pairing Night",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Build a simple board with cheeses, fruit, crackers, and one surprise item each",
+        "Taste everything in random order and rank the best unexpected pairing",
+        "Create a playful menu description for your favorite combination",
+        "End by choosing one indulgence you want to recreate on future cozy nights"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d537",
+      "title": "Sunrise Donuts and Disposable Camera Walk",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Wake up early enough to catch first light and grab donuts on the way",
+        "Bring a disposable camera and agree to shoot only moments that feel soft or funny",
+        "Walk without rushing and let one person be the photographer for half the route",
+        "When the roll is done, guess which photo will become your favorite memory"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d538",
+      "title": "DIY Perfume or Signature Scent Date",
+      "minutes": 90,
+      "location": "either",
+      "steps": [
+        "Visit a scent bar or gather oils, paper strips, and notebooks at home",
+        "Each build a blend inspired by how you want to feel together",
+        "Test the scents on skin and notice what changes after a few minutes",
+        "Name each blend like it belongs to a specific chapter of your love story"
+      ],
+      "heat": 2,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d539",
+      "title": "Bookstore Book Swap Rules Date",
+      "minutes": 75,
+      "location": "out",
+      "steps": [
+        "Go to a bookstore and set playful rules for choosing each other's book",
+        "Pick one book for comfort, one for challenge, and one wild-card option",
+        "Read a page aloud from your final picks over coffee or on a bench",
+        "Decide how and when you will report back on what your partner chose"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d540",
+      "title": "Bathhouse Circuit Date",
+      "minutes": 120,
+      "location": "out",
+      "steps": [
+        "Visit a bathhouse, wellness spa, or thermal circuit together",
+        "Move slowly through heat, steam, or soaking rooms and notice what each body wants",
+        "Take a quiet break between rounds for tea or water and a check-in",
+        "End by naming which part of the circuit made you feel most connected"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d541",
+      "title": "Mineral Salt Soak Ritual",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Draw a warm bath with mineral salts, candles, and soft music",
+        "Take turns adding one ingredient or detail that makes the soak feel healing",
+        "Settle in together and talk about what your bodies have been carrying lately",
+        "Finish with rinsing off, lotion, and clean sheets or robes"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d542",
+      "title": "Backyard Hot Tub Stargazing",
+      "minutes": 90,
+      "location": "either",
+      "steps": [
+        "Set up a private hot tub, warm pool, or borrowed soak spot after dark",
+        "Bring drinks in spill-safe cups and dim everything except string lights or candles",
+        "Take turns pointing out constellations, planes, or imagined shapes overhead",
+        "End with one wish each for the season ahead and a long quiet float"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d543",
+      "title": "Spa Day Passport",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Create a mini passport with stations like tea, masks, hand massage, and stretching",
+        "Take turns stamping each stop after you complete it together",
+        "Let each person choose one surprise luxury add-on for the other",
+        "Finish by rating the best station and deciding what belongs in your permanent reset routine"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d544",
+      "title": "Cold Plunge and Tea Reset",
+      "minutes": 60,
+      "location": "either",
+      "steps": [
+        "Set up a cold plunge, cold shower finish, or icy foot soak with warm towels nearby",
+        "Count each other into the cold and focus on slow steady breathing",
+        "Warm back up with tea, blankets, or a sauna round if available",
+        "Talk about what challenge or stress you want to recover from together"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d545",
+      "title": "DIY Facial Bar Night",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Set out masks, serums, chilled spoons, towels, and infused water like a mini facial bar",
+        "Choose products for each other based on mood instead of skin perfection",
+        "Apply everything slowly and trade compliments while it sets",
+        "End with moisturizer, soft lighting, and a no-phones wind-down"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d546",
+      "title": "Float Tank Double Date",
+      "minutes": 120,
+      "location": "out",
+      "steps": [
+        "Book back-to-back float tank sessions or another quiet sensory reset experience",
+        "Agree on one question to reflect on while you float separately",
+        "Meet back up slowly and compare what felt strange, calming, or unexpectedly emotional",
+        "Wrap up with a low-key meal or tea before re-entering normal life"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d547",
+      "title": "Airport Observation Date",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Find an airport overlook, terminal hotel lounge, or cafe near arrivals and departures",
+        "Pick a few travelers and invent gentle backstories about where they are headed",
+        "Take turns answering where you would fly tomorrow if nothing was in the way",
+        "End by choosing one future trip that feels most like your next chapter"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "talking"
+    },
+    {
+      "id": "d548",
+      "title": "Estate Sale Story Hunt",
+      "minutes": 120,
+      "location": "out",
+      "steps": [
+        "Go to an estate sale, flea market, or antique spot with no pressure to buy anything",
+        "Each choose three objects that feel like clues from another person's life",
+        "Tell the story of the couple or family who might have owned them",
+        "Pick the one object that feels strangely like a relic from your own future"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d549",
+      "title": "24-Hour Time Capsule Date",
+      "minutes": 75,
+      "location": "either",
+      "steps": [
+        "Spend one day collecting tiny artifacts like receipts, voice notes, screenshots, and photos",
+        "That night, choose what best captures who you are right now together",
+        "Seal everything in an envelope or small box with today's date",
+        "Set a calendar reminder to open it together one year from now"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d550",
+      "title": "One-Day Tiny Film Festival",
+      "minutes": 120,
+      "location": "home",
+      "steps": [
+        "Each curate a short lineup of films, animations, or internet gems around a secret theme",
+        "Make ballots, snacks, and a silly festival name before the screening starts",
+        "Watch everything in order and defend your picks between each round",
+        "End with awards for best surprise, most beautiful, and most us"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d551",
+      "title": "Cemetery History Walk",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Visit a historic cemetery during the day and move slowly with respect",
+        "Notice names, symbols, dates, and epitaphs that pull at your attention",
+        "Look up one or two local histories connected to the place",
+        "Talk afterward about memory, legacy, and what kind of life feels meaningful to you"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "talking"
+    },
+    {
+      "id": "d552",
+      "title": "Public Piano Request Date",
+      "minutes": 75,
+      "location": "out",
+      "steps": [
+        "Find a hotel bar, station, or lounge with a live pianist or open piano nearby",
+        "Choose one song request that feels bold, sentimental, or a little absurd",
+        "Build the rest of the date around whatever mood the song creates",
+        "Before leaving, decide what soundtrack would define tonight if it were a movie"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d553",
+      "title": "Map Pin Future Life Date",
+      "minutes": 75,
+      "location": "either",
+      "steps": [
+        "Open a map and choose categories like peace, chaos, reinvention, and retirement",
+        "Drop one pin each for every category without over-explaining at first",
+        "Take turns defending why each place fits that imaginary future life",
+        "Pick one pinned city that deserves a real research rabbit hole later"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "talking"
+    },
+    {
+      "id": "d554",
+      "title": "Reverse Bucket List Night",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Make a list of things you are relieved you never have to chase, prove, or survive again",
+        "Compare the pressures, fantasies, or old goals you have outgrown",
+        "Turn the list into a conversation about what enough looks like now",
+        "Close by naming one standard or story you want to release for good"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "talking"
+    },
+    {
+      "id": "d555",
+      "title": "Found Object Sculpture Date",
+      "minutes": 90,
+      "location": "either",
+      "steps": [
+        "Collect thrifted, recycled, or overlooked objects that catch your eye",
+        "Spread everything out and agree on a loose theme for the piece",
+        "Build a strange little sculpture or altar that represents your relationship right now",
+        "Name the final piece like it belongs in a gallery no one else would understand"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d556",
+      "title": "Street Interview Date",
+      "minutes": 75,
+      "location": "out",
+      "steps": [
+        "Walk somewhere lively and take turns interviewing each other like documentary subjects",
+        "Ask questions about love, timing, fear, identity, and what this season means",
+        "Answer in character as if the camera is catching your most honest version",
+        "End by deciding which answer you wish more people understood about you"
+      ],
+      "heat": 2,
+      "load": 2,
+      "style": "talking"
+    },
+    {
+      "id": "d557",
+      "title": "Fake Travel Agent Night",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Each secretly design a dream getaway for the other with specific hotels, meals, and side quests",
+        "Pitch the trip like a luxury travel agent who needs the sale tonight",
+        "Ask follow-up questions about budget, mood, and what kind of person returns from that trip",
+        "Choose one part of the winning pitch to turn into a real plan this year"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "talking"
+    },
+    {
+      "id": "d558",
+      "title": "Night Bus or Last-Stop Date",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Pick a bus or train line you almost never take and bring snacks for the ride",
+        "Stay on long enough for the city to start looking unfamiliar or strange",
+        "Get off at a random stop that still feels safe and walk for a little while",
+        "Head home talking about what felt cinematic, awkward, or unexpectedly intimate"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d559",
+      "title": "Firefly Watching Night",
+      "minutes": 75,
+      "location": "out",
+      "steps": [
+        "Find a safe grassy spot, field edge, or park where fireflies appear after dusk",
+        "Bring a blanket, bug spray, and something cold to drink",
+        "Watch quietly for the first few minutes before pointing out the patterns you notice",
+        "End by sharing what small kind of wonder you want more of in your life together"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d560",
+      "title": "Kite Picnic Date",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Pack easy picnic food and find a wide open field or breezy beach",
+        "Bring one kite to share or two if you want a little friendly competition",
+        "Take turns handling the line while the other calls wind and direction",
+        "Eat afterward and talk about what made you feel unexpectedly light"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d561",
+      "title": "Berry Picking and Pie Night",
+      "minutes": 150,
+      "location": "either",
+      "steps": [
+        "Go berry picking or buy fresh seasonal berries from a market together",
+        "Taste as you go and pick the fruit you are most excited to bring home",
+        "Bake a pie, crumble, or galette side by side without rushing the process",
+        "Eat the first warm servings while deciding what other seasonal rituals you want"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d562",
+      "title": "Sunflower Field Photo Date",
+      "minutes": 75,
+      "location": "out",
+      "steps": [
+        "Visit a sunflower field, flower farm, or roadside patch during golden hour",
+        "Take turns taking candid photos instead of trying to stage everything",
+        "Pick one photo prompt like joy, softness, or summer main character",
+        "Choose one image that captures how you want this season to feel"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d563",
+      "title": "Dawn Birdwatching Date",
+      "minutes": 75,
+      "location": "out",
+      "steps": [
+        "Head to a quiet park, trail, or wetland early enough to catch the first bird activity",
+        "Bring coffee, binoculars, or a bird app if that makes it more fun",
+        "Stay mostly quiet and point out calls, colors, or behaviors to each other",
+        "Afterward, talk about which part of the morning felt most calming or alive"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d564",
+      "title": "GeoGuessr in Real Life Date",
+      "minutes": 120,
+      "location": "out",
+      "steps": [
+        "Pick a neighborhood, nearby town, or district that neither of you knows well",
+        "Walk around collecting clues from architecture, menus, signs, and sounds",
+        "Take turns making bold guesses about the area's story or vibe before looking anything up",
+        "Score each round for accuracy, creativity, or confidence and crown a winner at the end"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d565",
+      "title": "Toy Store Dare Date",
+      "minutes": 60,
+      "location": "out",
+      "steps": [
+        "Go to a toy store, game store, or novelty aisle with a playful budget",
+        "Take turns giving each other tiny dares like finding the weirdest toy or your childhood favorite",
+        "Each pick one item that says something true about your personality",
+        "Leave with one shared game or object that earns a future date night"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d566",
+      "title": "Five-Dollar Carnival Date",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Find a boardwalk, fair, arcade strip, or carnival-style spot and set a tiny budget each",
+        "Spend deliberately on only the rides, games, or snacks that seem most worth it",
+        "Keep track of who made the smarter or funnier use of their five dollars",
+        "End by ranking the best cheap thrill of the night"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d567",
+      "title": "DIY Mini Olympics",
+      "minutes": 90,
+      "location": "either",
+      "steps": [
+        "Set up a few ridiculous challenges using household items, a yard, or a park",
+        "Name each event like it belongs in a very unserious international competition",
+        "Keep score with full commitment and award bonus points for style or recovery",
+        "Finish with a medal ceremony and one rematch event by popular demand"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d568",
+      "title": "Water Balloon Truce Night",
+      "minutes": 60,
+      "location": "out",
+      "steps": [
+        "Fill water balloons or reusable splash balls before sunset and set simple ground rules",
+        "Start with teams or target games before allowing full chaos",
+        "Call a truce halfway through for popsicles, towels, or a warm drink",
+        "End by choosing whether the winner gets bragging rights or cleanup immunity"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d569",
+      "title": "Rage Room Reset Date",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Book a rage room or a safe smash-room experience and talk through boundaries before you start",
+        "Choose one frustration, season, or stressor you are symbolically leaving behind",
+        "Take turns releasing energy without performing for each other or fixing anything yet",
+        "Afterward, get food or a quiet drink and talk about what felt relieving versus overwhelming"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d570",
+      "title": "Therapy Questions Night",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Bring a list of thoughtful therapy-style questions about patterns, needs, and repair",
+        "Take turns answering slowly while the other only reflects back what they heard",
+        "Pause anytime something feels tender instead of rushing to the next question",
+        "End by naming one thing you understand better now and one thing you want to keep exploring"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "talking"
+    },
+    {
+      "id": "d571",
+      "title": "Anxiety Soothing Toolkit Date",
+      "minutes": 75,
+      "location": "home",
+      "steps": [
+        "Gather sensory items, calming playlists, teas, scents, snacks, and grounding exercises",
+        "Each build a personal calm-down kit while explaining what actually helps when you spiral",
+        "Practice one regulation tool together instead of only talking about it",
+        "Leave with a shared plan for how you want to support each other during anxious days"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "mixed"
+    },
+    {
+      "id": "d572",
+      "title": "Burnout Recovery Night",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Make the night as low-demand as possible with easy food, soft lighting, and no productivity energy",
+        "Talk honestly about what has been draining you without trying to optimize it on the spot",
+        "Choose one nourishing thing for your body and one thing for your mind to do tonight",
+        "End by making a very small recovery plan for the next 48 hours"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d573",
+      "title": "Feelings Wheel Check-In Date",
+      "minutes": 60,
+      "location": "home",
+      "steps": [
+        "Pull up a feelings wheel and each choose the emotions that actually fit today",
+        "Go past the first obvious answer and name what is underneath it",
+        "Ask each other what support, witness, or space would feel best right now",
+        "Close with one appreciation and one emotional truth you want to keep telling faster"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "talking"
+    },
+    {
+      "id": "d574",
+      "title": "Comedy Club Date",
+      "minutes": 120,
+      "location": "out",
+      "steps": [
+        "Pick a local comedy show with comics you know nothing about",
+        "Order one drink or snack each and rate the room before the set starts",
+        "Notice which jokes land differently for each of you",
+        "Walk home trading your favorite line and your least funny moment"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d575",
+      "title": "Open Mic Night Date",
+      "minutes": 105,
+      "location": "out",
+      "steps": [
+        "Find a local open mic with music, poetry, or storytelling",
+        "Make a game of predicting who will surprise you most",
+        "Cheer loudly for at least one performer who clearly needs the room",
+        "Afterward, talk about what kind of courage you wish you practiced more"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d576",
+      "title": "Magic Show Date",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Book a close-up magic show, parlor show, or a small illusion night",
+        "Choose one trick each to obsess over instead of trying to solve everything",
+        "Let yourselves be delighted before becoming skeptics",
+        "End by naming one impossible thing you would love to believe together"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d577",
+      "title": "Board Game Cafe Date",
+      "minutes": 120,
+      "location": "out",
+      "steps": [
+        "Go to a board game cafe and let each person choose one game the other has never played",
+        "Start with something light before escalating into a slightly ruthless round",
+        "Keep track of who learns fastest versus who gets weirdly competitive",
+        "Leave with one game you would actually want in your real rotation"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d578",
+      "title": "Book Fair Date",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Visit a book fair, library sale, or indie book event with a small budget",
+        "Split up for ten minutes to find the strangest or most irresistible title",
+        "Meet back up and pitch your finds like they are life-changing discoveries",
+        "Take one book home that feels like it belongs to this version of your relationship"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d579",
+      "title": "Plant Swap Date",
+      "minutes": 75,
+      "location": "either",
+      "steps": [
+        "Go to a local plant swap or create one yourselves with cuttings and spare pots",
+        "Each choose a plant that matches what you want more of at home",
+        "Repot or trade cuttings while talking about what you are trying to grow this season",
+        "Name the new plant like it already belongs in your shared lore"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d580",
+      "title": "Jewelry Making Workshop",
+      "minutes": 105,
+      "location": "either",
+      "steps": [
+        "Book a beginner jewelry class or gather simple supplies at home",
+        "Choose one small piece to make for yourselves or for each other",
+        "Work slowly enough to care about the details without needing perfection",
+        "Wear or keep the final pieces as proof you made something from scratch together"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d581",
+      "title": "Makerspace Challenge Date",
+      "minutes": 120,
+      "location": "out",
+      "steps": [
+        "Visit a makerspace, community workshop, or craft lab with beginner-friendly equipment",
+        "Give yourselves a silly brief like make the ugliest useful object or the best tiny invention",
+        "Build with a time limit instead of overplanning",
+        "End by deciding which object deserves to live in your home and which should never be seen again"
+      ],
+      "heat": 2,
+      "load": 3,
+      "style": "doing"
+    },
+    {
+      "id": "d582",
+      "title": "Furniture Flipping Date",
+      "minutes": 150,
+      "location": "either",
+      "steps": [
+        "Find a cheap side table, stool, or nightstand at a thrift store or curbside pickup spot",
+        "Sketch a quick plan for paint, hardware, or a small makeover",
+        "Refinish it together while trading opinions on style and patience",
+        "Keep it, gift it, or sell it and decide if you would do a bigger project next time"
+      ],
+      "heat": 1,
+      "load": 3,
+      "style": "doing"
+    },
+    {
+      "id": "d583",
+      "title": "Volunteer Soup Kitchen Date",
+      "minutes": 150,
+      "location": "out",
+      "steps": [
+        "Sign up for a community meal service or soup kitchen shift together",
+        "Arrive early enough to understand the flow and the people you are serving",
+        "Work side by side without turning the service into a performance",
+        "Debrief afterward over simple food and talk about what kind of generosity felt most real"
+      ],
+      "heat": 1,
+      "load": 2,
+      "style": "doing"
+    },
+    {
+      "id": "d584",
+      "title": "Mutual Aid Care Package Night",
+      "minutes": 90,
+      "location": "home",
+      "steps": [
+        "Pick a local mutual aid effort, neighbor, or friend who could use extra care",
+        "Assemble practical items, snacks, notes, or supplies with intention",
+        "Talk about the difference between helping, fixing, and showing up consistently",
+        "Deliver the package or set a concrete plan for getting it where it needs to go"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d585",
+      "title": "Little Free Library Restock Date",
+      "minutes": 75,
+      "location": "out",
+      "steps": [
+        "Gather a stack of books you are ready to pass on and add a few handwritten notes inside",
+        "Map two or three little free libraries nearby and make a small route of it",
+        "Restock the shelves and browse what other people have left behind",
+        "Take one book home if something feels too serendipitous to ignore"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "doing"
+    },
+    {
+      "id": "d586",
+      "title": "Dog Park Coffee Date",
+      "minutes": 60,
+      "location": "out",
+      "steps": [
+        "Grab coffee or pastries and find a dog park, dog beach, or pet-friendly plaza",
+        "Make up personalities and relationship dynamics for the dogs you see",
+        "Talk about what kind of pet chaos you could actually handle together",
+        "Leave with one tiny rule for your imaginary future pet household"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "talking"
+    },
+    {
+      "id": "d587",
+      "title": "Horse Sanctuary Visit",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Visit a horse sanctuary or rescue ranch that allows guests or tours",
+        "Learn the stories of a few horses instead of trying to do too much",
+        "Move slowly and notice how the animals respond to calm attention",
+        "Talk afterward about what felt grounding, tender, or unexpectedly emotional"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d588",
+      "title": "Wildlife Rescue Center Visit",
+      "minutes": 75,
+      "location": "out",
+      "steps": [
+        "Visit a local wildlife rescue center, rehabilitation center, or nature preserve with education hours",
+        "Read the recovery stories instead of rushing exhibit to exhibit",
+        "Pick one animal each that you oddly relate to and explain why",
+        "End with a conversation about care, healing, and what wildness you want to protect"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d589",
+      "title": "Drag Show Date",
+      "minutes": 120,
+      "location": "out",
+      "steps": [
+        "Book a drag show, cabaret, or local performance night with strong energy",
+        "Dress a little bolder than usual and let the outing feel like an event",
+        "Cheer hard, tip if appropriate, and notice what confidence onstage unlocks in you",
+        "Afterward, talk about the version of yourselves you want to bring out more often"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d590",
+      "title": "Drag Brunch Date",
+      "minutes": 120,
+      "location": "out",
+      "steps": [
+        "Find a drag brunch with a fun crowd and show up ready to be seen",
+        "Order something celebratory even if the day itself is ordinary",
+        "Let the performance reset the tone of your whole week",
+        "Leave by naming one thing you want to be more unapologetic about"
+      ],
+      "heat": 2,
+      "load": 1,
+      "style": "mixed"
+    },
+    {
+      "id": "d591",
+      "title": "Zine Fair Date",
+      "minutes": 90,
+      "location": "out",
+      "steps": [
+        "Go to a zine fair, indie print market, or small press event together",
+        "Each choose one zine that feels most like your private brain on paper",
+        "Trade finds and explain what aesthetic, politics, or weirdness drew you in",
+        "Bring one home and decide whether you should make your own someday"
+      ],
+      "heat": 1,
+      "load": 1,
+      "style": "mixed"
     }
   ]
 }

@@ -253,7 +253,7 @@ export default function HomeScreen({ navigation }) {
       });
 
       try {
-        await DataLayer.savePromptAnswer({ promptId: prompt.id, answer: finalText });
+        await DataLayer.savePromptAnswer({ promptId: prompt.id, answer: finalText, heatLevel: prompt.heat || 1 });
       } catch (dataLayerError) {
         if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);
       }
@@ -375,11 +375,14 @@ export default function HomeScreen({ navigation }) {
               onPress={() => { selection(); navigation.navigate('SavedMoments'); }}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessible
               accessibilityRole="button"
               accessibilityLabel="Open saved moments and prompts"
-              style={styles.vibeButton}
+              testID="open-saved-moments-button"
+              style={styles.archiveButton}
             >
               <Icon name="archive-outline" size={24} color={t.text} />
+              <Text style={styles.archiveButtonText}>Saved</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => { selection(); navigation.navigate('VibeSignal'); }}
@@ -641,6 +644,29 @@ const createStyles = (t, isDark) => StyleSheet.create({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 8 },
       android: { elevation: 2 },
     }),
+  },
+  archiveButton: {
+    minWidth: 82,
+    height: 56,
+    paddingHorizontal: 14,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: t.border,
+    backgroundColor: t.surface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
+  },
+  archiveButtonText: {
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '700',
+    color: t.text,
   },
 
   // ── Scroll ──

@@ -18,30 +18,19 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import Icon from '../components/Icon';
 import FilmGrain from '../components/FilmGrain';
 import GlowOrb from '../components/GlowOrb';
-import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { DataLayer } from '../services/localfirst';
-import { getPromptById } from '../utils/contentLoader';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 const FILTERS = [
-  { id: 'all', label: 'All', icon: 'albums-outline' },
-  { id: 'prompt', label: 'Prompts', icon: 'chatbubbles-outline' },
-  { id: 'memory', label: 'Moments', icon: 'images-outline' },
-  { id: 'journal', label: 'Journal', icon: 'book-outline' },
+  { id: 'private', label: 'Private', icon: 'eye-off-outline' },
+  { id: 'shared', label: 'Shared', icon: 'people-outline' },
 ];
-
-const MEMORY_TYPE_META = {
-  moment: { label: 'Saved Moment', icon: 'sparkles-outline' },
-  anniversary: { label: 'Anniversary', icon: 'heart-outline' },
-  milestone: { label: 'Milestone', icon: 'ribbon-outline' },
-  memory: { label: 'Memory', icon: 'time-outline' },
-};
 
 function formatDateLabel(value) {
   if (!value) return '';
@@ -56,76 +45,36 @@ function formatDateLabel(value) {
   });
 }
 
-function getSortTime(item) {
-  const raw = item.sortAt || item.created_at || item.date_key || item.date;
-  if (!raw) return 0;
-  const value = typeof raw === 'string' && raw.length === 10
-    ? new Date(`${raw}T00:00:00`).getTime()
-    : new Date(raw).getTime();
-  return Number.isNaN(value) ? 0 : value;
-}
-
-function buildPromptItem(row) {
-  const prompt = getPromptById(row.prompt_id);
-  return {
-    id: `prompt:${row.id}`,
-    kind: 'prompt',
-    sourceId: row.id,
-    title: prompt?.text || 'Saved reflection',
-    body: row.locked ? 'This reflection is locked on this device.' : (row.answer || ''),
-    eyebrow: row.is_revealed ? 'REFLECTION' : 'SEALED REFLECTION',
-    icon: row.is_revealed ? 'chatbubbles-outline' : 'lock-closed-outline',
-    accent: '#D2121A',
-    meta: row.heat_level ? `Heat ${row.heat_level}` : 'Prompt',
-    dateLabel: formatDateLabel(row.date_key || row.created_at),
-    sortAt: row.created_at || row.date_key,
-  };
-}
-
-function buildMemoryItem(row) {
-  const memoryType = MEMORY_TYPE_META[row.type] || MEMORY_TYPE_META.moment;
-  return {
-    id: `memory:${row.id}`,
-    kind: 'memory',
-    sourceId: row.id,
-    title: memoryType.label,
-    body: row.locked ? 'This moment is locked on this device.' : (row.content || ''),
-    eyebrow: row.is_private ? 'PRIVATE MOMENT' : 'SHARED MOMENT',
-    icon: memoryType.icon,
-    accent: row.is_private ? '#7E4FA3' : '#D2121A',
-    meta: row.mood ? String(row.mood).toUpperCase() : 'Moment',
-    dateLabel: formatDateLabel(row.created_at || row.date),
-    sortAt: row.created_at || row.date,
-  };
-}
-
 function buildJournalItem(row, currentUserId) {
   const isOwn = row.user_id === currentUserId;
+  const isPrivate = !!row.is_private;
+  const preview = row.locked
+    ? 'This entry is locked on this device.'
+    : (row.body || '').trim();
+
   return {
     id: `journal:${row.id}`,
-    kind: 'journal',
     sourceId: row.id,
-    title: row.locked ? 'Locked shared journal' : (row.title || 'Shared reflection'),
-    body: row.locked ? 'This shared journal entry is locked on this device.' : (row.body || ''),
-    eyebrow: isOwn ? 'SHARED JOURNAL' : 'PARTNER JOURNAL',
-    icon: 'book-outline',
-    accent: '#D2121A',
-    meta: isOwn ? 'Visible to both of you' : 'Shared by your partner',
+    title: row.locked ? 'Locked journal entry' : (row.title || 'Untitled reflection'),
+    body: preview,
+    eyebrow: isPrivate ? 'PRIVATE JOURNAL' : (isOwn ? 'SHARED BY YOU' : 'SHARED BY PARTNER'),
+    icon: isPrivate ? 'eye-off-outline' : 'book-outline',
+    accent: isPrivate ? '#7E4FA3' : '#D2121A',
+    meta: isPrivate ? 'Only you can read this' : (isOwn ? 'Visible to both of you' : 'Shared with both of you'),
     dateLabel: formatDateLabel(row.created_at),
-    sortAt: row.created_at,
     entry: row,
-    canOpen: true,
     canEdit: isOwn,
   };
 }
 
-export default function SavedMomentsScreen({ navigation }) {
-  const { user } = useAuth();
+export default function JournalHomeScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const [filter, setFilter] = useState('all');
-  const [entries, setEntries] = useState([]);
+  const { user } = useAuth();
+  const [filter, setFilter] = useState('private');
+  const [entries, setEntries] = useState({ private: [], shared: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
   const currentUserId = user?.id || user?.uid || null;
 
   const t = useMemo(() => ({
@@ -139,26 +88,22 @@ export default function SavedMomentsScreen({ navigation }) {
     border: colors.border || (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
   }), [colors, isDark]);
 
-  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  const styles = useMemo(() => createStyles(t), [t]);
 
   const loadEntries = useCallback(async () => {
     try {
-      const [promptRows, memoryRows, journalRows] = await Promise.all([
-        DataLayer.getPromptAnswers({ limit: 500 }),
-        DataLayer.getMemories({ limit: 500 }),
+      const [privateRows, sharedRows] = await Promise.all([
+        DataLayer.getJournalEntries({ limit: 500, visibility: 'private' }),
         DataLayer.getJournalEntries({ limit: 500, visibility: 'shared' }),
       ]);
 
-      const merged = [
-        ...(promptRows || []).map(buildPromptItem),
-        ...(memoryRows || []).map(buildMemoryItem),
-        ...(journalRows || []).map((row) => buildJournalItem(row, currentUserId)),
-      ].sort((a, b) => getSortTime(b) - getSortTime(a));
-
-      setEntries(merged);
+      setEntries({
+        private: (privateRows || []).map((row) => buildJournalItem(row, currentUserId)),
+        shared: (sharedRows || []).map((row) => buildJournalItem(row, currentUserId)),
+      });
     } catch (error) {
-      if (__DEV__) console.warn('[SavedMoments] Load failed:', error?.message);
-      setEntries([]);
+      if (__DEV__) console.warn('[JournalHome] Load failed:', error?.message);
+      setEntries({ private: [], shared: [] });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -172,16 +117,11 @@ export default function SavedMomentsScreen({ navigation }) {
     }, [loadEntries])
   );
 
-  const filteredEntries = useMemo(() => {
-    if (filter === 'all') return entries;
-    return entries.filter((item) => item.kind === filter);
-  }, [entries, filter]);
+  const filteredEntries = entries[filter] || [];
 
   const counts = useMemo(() => ({
-    all: entries.length,
-    prompt: entries.filter((item) => item.kind === 'prompt').length,
-    memory: entries.filter((item) => item.kind === 'memory').length,
-    journal: entries.filter((item) => item.kind === 'journal').length,
+    private: entries.private.length,
+    shared: entries.shared.length,
   }), [entries]);
 
   const onRefresh = useCallback(() => {
@@ -189,6 +129,11 @@ export default function SavedMomentsScreen({ navigation }) {
     setRefreshing(true);
     loadEntries();
   }, [loadEntries]);
+
+  const handleCreate = useCallback((nextFilter = filter) => {
+    impact(ImpactFeedbackStyle.Light);
+    navigation.navigate('JournalEntry', { defaultShared: nextFilter === 'shared' });
+  }, [filter, navigation]);
 
   const renderFilter = ({ id, label, icon }) => {
     const active = filter === id;
@@ -207,7 +152,7 @@ export default function SavedMomentsScreen({ navigation }) {
       >
         <Icon name={icon} size={14} color={active ? t.primary : t.subtext} />
         <Text style={[styles.filterLabel, { color: active ? t.text : t.subtext }]}>{label}</Text>
-        <View style={[styles.filterCount, { backgroundColor: active ? withAlpha(t.primary, 0.18) : t.surfaceSecondary }]}> 
+        <View style={[styles.filterCount, { backgroundColor: active ? withAlpha(t.primary, 0.18) : t.surfaceSecondary }]}>
           <Text style={[styles.filterCountText, { color: active ? t.primary : t.subtext }]}>{counts[id]}</Text>
         </View>
       </TouchableOpacity>
@@ -217,14 +162,8 @@ export default function SavedMomentsScreen({ navigation }) {
   const renderItem = ({ item, index }) => (
     <Animated.View entering={FadeInDown.delay(index * 35).springify().damping(18)}>
       <TouchableOpacity
-        activeOpacity={item.canOpen ? 0.86 : 1}
-        disabled={!item.canOpen}
-        onPress={() => {
-          if (item.kind === 'journal') {
-            impact(ImpactFeedbackStyle.Light);
-            navigation.navigate('JournalEntry', { entry: item.entry, readOnly: !item.canEdit });
-          }
-        }}
+        activeOpacity={0.88}
+        onPress={() => navigation.navigate('JournalEntry', { entry: item.entry, readOnly: !item.canEdit })}
         style={styles.card}
       >
         <View style={styles.cardTopRow}>
@@ -236,17 +175,15 @@ export default function SavedMomentsScreen({ navigation }) {
         </View>
 
         <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardBody}>{item.body || 'Nothing saved yet.'}</Text>
+        <Text style={styles.cardBody} numberOfLines={4}>{item.body || 'Nothing saved yet.'}</Text>
 
         <View style={styles.cardFooter}>
           <View style={[styles.metaPill, { backgroundColor: withAlpha(item.accent, 0.12), borderColor: withAlpha(item.accent, 0.22) }]}>
             <Text style={[styles.metaPillText, { color: item.accent }]}>{item.meta}</Text>
           </View>
-          {item.kind === 'journal' && (
-            <View style={[styles.openPill, { borderColor: t.border }]}> 
-              <Text style={[styles.openPillText, { color: t.text }]}>{item.canEdit ? 'Open' : 'Read'}</Text>
-            </View>
-          )}
+          <View style={[styles.actionPill, { borderColor: t.border }]}>
+            <Text style={[styles.actionPillText, { color: t.text }]}>{item.canEdit ? 'Edit' : 'Read'}</Text>
+          </View>
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -263,26 +200,46 @@ export default function SavedMomentsScreen({ navigation }) {
             navigation.goBack();
           }}
         >
-          <Icon name="chevron-back" size={28} color={t.text} />
+          <Icon name='chevron-back' size={28} color={t.text} />
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Text style={[styles.headerSubtitle, { color: t.primary }]}>SAVED SPACE</Text>
-          <Text style={styles.headerTitle}>Moments, Prompts & Journal</Text>
+          <Text style={[styles.headerSubtitle, { color: t.primary }]}>JOURNAL</Text>
+          <Text style={styles.headerTitle}>Private & Shared</Text>
         </View>
 
-        <View style={styles.backButtonPlaceholder} />
+        <TouchableOpacity
+          style={[styles.newButton, { backgroundColor: t.primary }]}
+          activeOpacity={0.85}
+          onPress={() => handleCreate()}
+        >
+          <Icon name='add-outline' size={18} color='#FFF' />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.heroCard}>
         <View style={styles.heroEyebrowRow}>
-          <Icon name="archive-outline" size={15} color={t.accent} />
-          <Text style={styles.heroEyebrow}>YOUR SHARED ARCHIVE</Text>
+          <Icon name='book-outline' size={15} color={t.accent} />
+          <Text style={styles.heroEyebrow}>{filter === 'private' ? 'ONLY YOU' : 'VISIBLE TO BOTH OF YOU'}</Text>
         </View>
-        <Text style={styles.heroTitle}>Everything you’ve saved, kept in one place.</Text>
+        <Text style={styles.heroTitle}>{filter === 'private' ? 'A quieter place for your own reflections.' : 'A shared shelf for the entries you write together.'}</Text>
         <Text style={styles.heroBody}>
-          Browse earlier reflections, shared journal entries, and captured moments without leaving the app’s main rhythm.
+          {filter === 'private'
+            ? 'Private entries stay in your personal journal and never show up in the couple archive.'
+            : 'Shared entries are readable by both partners and belong to the relationship story, not just your private notes.'}
         </Text>
+
+        <View style={styles.heroActions}>
+          <TouchableOpacity style={[styles.heroPrimaryAction, { backgroundColor: t.primary }]} activeOpacity={0.85} onPress={() => handleCreate(filter)}>
+            <Icon name='create-outline' size={16} color='#FFF' />
+            <Text style={styles.heroPrimaryActionText}>{filter === 'private' ? 'New Private Entry' : 'New Shared Entry'}</Text>
+          </TouchableOpacity>
+          {filter === 'shared' && (
+            <TouchableOpacity style={[styles.heroSecondaryAction, { borderColor: t.border }]} activeOpacity={0.8} onPress={() => handleCreate('private')}>
+              <Text style={[styles.heroSecondaryActionText, { color: t.text }]}>Write privately instead</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       <View style={styles.filtersRow}>
@@ -294,19 +251,24 @@ export default function SavedMomentsScreen({ navigation }) {
   const EmptyState = (
     <Animated.View entering={FadeIn.duration(450)} style={styles.emptyState}>
       <View style={styles.emptyIconCircle}>
-        <Icon name="archive-outline" size={42} color={t.primary} />
+        <Icon name={filter === 'private' ? 'eye-off-outline' : 'people-outline'} size={42} color={t.primary} />
       </View>
-      <Text style={styles.emptyTitle}>Nothing saved yet</Text>
+      <Text style={styles.emptyTitle}>{filter === 'private' ? 'No private entries yet' : 'No shared entries yet'}</Text>
       <Text style={styles.emptyBody}>
-        Reflections, shared journal entries, and captured moments will collect here once you start saving them.
+        {filter === 'private'
+          ? 'Start a personal reflection and keep it just for yourself.'
+          : 'Write something meant for both of you and it will collect here.'}
       </Text>
+      <TouchableOpacity style={[styles.emptyButton, { backgroundColor: t.primary }]} activeOpacity={0.85} onPress={() => handleCreate(filter)}>
+        <Text style={styles.emptyButtonText}>{filter === 'private' ? 'Write Private Entry' : 'Write Shared Entry'}</Text>
+      </TouchableOpacity>
     </Animated.View>
   );
 
   const LoadingState = (
     <View style={styles.loadingState}>
-      <ActivityIndicator size="small" color={t.primary} />
-      <Text style={styles.loadingText}>Gathering your saved history…</Text>
+      <ActivityIndicator size='small' color={t.primary} />
+      <Text style={styles.loadingText}>Gathering your journal…</Text>
     </View>
   );
 
@@ -339,7 +301,7 @@ export default function SavedMomentsScreen({ navigation }) {
   );
 }
 
-const createStyles = (t, isDark) => StyleSheet.create({
+const createStyles = (t) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.background },
   safeArea: { flex: 1 },
   listContent: {
@@ -363,63 +325,85 @@ const createStyles = (t, isDark) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backButtonPlaceholder: {
-    width: 52,
-    height: 52,
-  },
-  headerCenter: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerCenter: { alignItems: 'center' },
   headerSubtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 10,
     letterSpacing: 2.2,
-    textTransform: 'uppercase',
-    marginBottom: 6,
+    fontWeight: '700',
+    marginBottom: 4,
   },
   headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.4,
+    fontSize: 24,
     color: t.text,
+    fontFamily: SERIF_FONT,
+  },
+  newButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heroCard: {
     borderRadius: 28,
     borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: t.surface,
-    padding: SPACING.xl,
+    backgroundColor: withAlpha(t.surface, 0.9),
+    padding: 24,
     marginBottom: SPACING.xl,
   },
   heroEyebrowRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: SPACING.sm,
+    gap: 8,
+    marginBottom: 14,
   },
   heroEyebrow: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1.5,
     color: t.accent,
-    textTransform: 'uppercase',
+    fontSize: 11,
+    letterSpacing: 1.8,
+    fontWeight: '700',
   },
   heroTitle: {
-    fontFamily: SERIF_FONT,
-    fontSize: 30,
-    lineHeight: 36,
     color: t.text,
-    marginBottom: SPACING.sm,
+    fontSize: 28,
+    lineHeight: 34,
+    fontFamily: SERIF_FONT,
+    marginBottom: 10,
   },
   heroBody: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    lineHeight: 22,
     color: t.subtext,
+    fontSize: 15,
+    lineHeight: 24,
+  },
+  heroActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 20,
+  },
+  heroPrimaryAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 999,
+  },
+  heroPrimaryActionText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  heroSecondaryAction: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  heroSecondaryActionText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   filtersRow: {
     flexDirection: 'row',
@@ -427,152 +411,147 @@ const createStyles = (t, isDark) => StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   filterChip: {
-    flex: 1,
-    minHeight: 52,
-    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
     borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: t.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    backgroundColor: withAlpha(t.surface, 0.72),
   },
   filterLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
   },
   filterCount: {
-    minWidth: 28,
-    height: 20,
-    borderRadius: 10,
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 7,
+    paddingHorizontal: 6,
   },
   filterCountText: {
-    fontFamily: SYSTEM_FONT,
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   card: {
     borderRadius: 24,
+    padding: 20,
+    marginBottom: 14,
+    backgroundColor: withAlpha(t.surface, 0.92),
     borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: withAlpha(t.surface, isDark ? 0.92 : 0.98),
-    padding: SPACING.xl,
-    marginBottom: SPACING.lg,
   },
   cardTopRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: SPACING.md,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   eyebrowRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  openPill: {
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  openPillText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-    gap: 6,
+    gap: 8,
     flexShrink: 1,
   },
   eyebrow: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1.6,
-    textTransform: 'uppercase',
+    fontSize: 10,
+    letterSpacing: 1.5,
+    fontWeight: '700',
   },
   dateLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '600',
     color: t.subtext,
+    fontSize: 12,
   },
   cardTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 20,
-    lineHeight: 28,
-    fontWeight: '800',
     color: t.text,
-    marginBottom: SPACING.sm,
+    fontSize: 24,
+    lineHeight: 30,
+    fontFamily: SERIF_FONT,
+    marginBottom: 10,
   },
   cardBody: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
+    color: t.subtext,
+    fontSize: 15,
     lineHeight: 24,
-    color: t.text,
   },
   cardFooter: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginTop: SPACING.lg,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 10,
   },
   metaPill: {
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 8,
+    flexShrink: 1,
   },
   metaPillText: {
-    fontFamily: SYSTEM_FONT,
     fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
+    fontWeight: '600',
+  },
+  actionPill: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  actionPillText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 80,
-    paddingHorizontal: SPACING.xl,
+    paddingTop: 60,
+    paddingHorizontal: 24,
   },
   emptyIconCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 1,
-    borderColor: t.border,
-    backgroundColor: t.surface,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: 20,
+    backgroundColor: withAlpha(t.primary, 0.12),
   },
   emptyTitle: {
-    fontFamily: SERIF_FONT,
-    fontSize: 30,
     color: t.text,
-    marginBottom: SPACING.sm,
+    fontSize: 24,
+    fontFamily: SERIF_FONT,
+    marginBottom: 10,
   },
   emptyBody: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    lineHeight: 22,
     color: t.subtext,
+    fontSize: 15,
+    lineHeight: 24,
     textAlign: 'center',
+    marginBottom: 20,
+  },
+  emptyButton: {
+    borderRadius: 999,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  emptyButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   loadingState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 72,
-    gap: 14,
+    paddingTop: 80,
+    gap: 12,
   },
   loadingText: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    fontWeight: '600',
     color: t.subtext,
+    fontSize: 14,
   },
 });

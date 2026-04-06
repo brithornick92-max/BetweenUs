@@ -1,0 +1,31 @@
+# saved-moments-flow.yaml — E2E test: Open Saved archive from Home
+# Tests the new archive entry point and verifies the Saved Moments screen renders.
+
+appId: com.brittany.betweenus
+
+---
+
+- launchApp
+- waitForAnimationToEnd
+
+- extendedWaitUntil:
+    visible: ".*Open saved moments and prompts.*|.*TONIGHT'S MOMENT.*|.*TODAY'S MOMENT.*"
+    timeout: 10000
+
+- tapOn: "Open saved moments and prompts"
+- waitForAnimationToEnd
+
+- assertVisible:
+    text: ".*Moments, Prompts & Journal.*|.*Moments & Prompts.*"
+
+- assertVisible:
+    text: ".*YOUR SHARED ARCHIVE.*|.*Everything you’ve saved, kept in one place.*"
+
+- assertVisible:
+    text: ".*All.*"
+
+- assertVisible:
+    text: ".*Prompts.*"
+
+- assertVisible:
+    text: ".*Moments.*"

@@ -22,7 +22,7 @@ const INCOMING_LABEL_DURATION = 3000;
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
-export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
+export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewportStabilize }) {
   const { colors, isDark } = useTheme();
   const { isTogetherNow } = useTogetherPresence();
   const { state: appState } = useAppContext();
@@ -200,11 +200,21 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
     );
   };
 
+  const scheduleViewportStabilize = () => {
+    if (typeof onViewportStabilize !== 'function') return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        onViewportStabilize();
+      });
+    });
+  };
+
   const handleSend = async () => {
     if (isSending) return;
 
     setIsSending(true);
     setStatus(null);
+    scheduleViewportStabilize();
 
     impact(ImpactFeedbackStyle.Heavy);
     hapticTimerRef.current = setTimeout(() => {
@@ -262,6 +272,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
           title: 'Hold for a beat',
           subtitle: friendlyError,
         });
+        scheduleViewportStabilize();
         return;
       }
 
@@ -273,6 +284,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
           ? (isTogetherNow ? 'Their device should pulse now.' : 'Push is on the way.')
           : 'Saved locally and will sync when connected.',
       });
+      scheduleViewportStabilize();
     } catch {
       notification(NotificationFeedbackType.Error);
       setStatus({
@@ -280,8 +292,10 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style }) {
         title: `Saved for ${partnerLabel}`,
         subtitle: 'Pulse will sync when the connection returns.',
       });
+      scheduleViewportStabilize();
     } finally {
       setIsSending(false);
+      scheduleViewportStabilize();
     }
   };
 

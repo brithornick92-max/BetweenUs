@@ -339,7 +339,7 @@
       "id": "h1_029",
       "text": "What goes through your mind when I absentmindedly touch your arm while talking...",
       "category": "physical",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ]
@@ -2358,7 +2358,7 @@
       "id": "h3_016",
       "text": "Describe how you feel when I kiss you slowly and tenderly.",
       "category": "physical",
-      "heat": 3,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -2391,7 +2391,7 @@
       "id": "h3_019",
       "text": "What's your favorite way I show love through physical touch...",
       "category": "physical",
-      "heat": 3,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -3622,7 +3622,7 @@
       "id": "h4_054",
       "text": "What one small thing we could try to make intimacy feel more fun (or less serious)...",
       "category": "playful",
-      "heat": 4,
+      "heat": 3,
       "relationshipDuration": [
         "established",
         "mature",
@@ -3645,7 +3645,7 @@
       "id": "h4_056",
       "text": "Would you rather describe what you want to try in bed verbally IRL or send it in a text...",
       "category": "emotional",
-      "heat": 4,
+      "heat": 3,
       "relationshipDuration": [
         "established",
         "mature",
@@ -3668,7 +3668,7 @@
       "id": "h4_058",
       "text": "Are there any intimate experiences or activities you dislike or don't want to try...",
       "category": "emotional",
-      "heat": 4,
+      "heat": 3,
       "relationshipDuration": [
         "established",
         "mature",
@@ -3701,7 +3701,7 @@
       "id": "h4_061",
       "text": "What are a few fun ways you'd like me to initiate intimacy...",
       "category": "physical",
-      "heat": 4,
+      "heat": 3,
       "relationshipDuration": [
         "established",
         "mature",
@@ -4297,7 +4297,7 @@
       "id": "h5_024",
       "text": "Walk me through your ideal extended intimacy session with me.",
       "category": "fantasy",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -4537,7 +4537,7 @@
       "id": "h5_048",
       "text": "Walk me through exactly how you want tonight to end — every position, every touch, every word...",
       "category": "physical",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -4577,7 +4577,7 @@
       "id": "h5_052",
       "text": "I need you now. Can you come home?",
       "category": "fantasy",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -4979,7 +4979,7 @@
       "id": "h5_071",
       "text": "We're strangers at a hotel bar. You slide a room key across the counter with a note that says 'Room 1204. Don't knock.' Describe everything that happens from the moment I open that door — what I find, what you're wearing, and how you take control of every moment...",
       "category": "physical",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -5463,7 +5463,7 @@
       "id": "h5_086",
       "text": "Walk me through exactly how you want to be touched right now, step by step...",
       "category": "physical",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -5813,7 +5813,7 @@
       "id": "h5_121",
       "text": "We slip into a lavish bath together with steam rising all around us. Describe the slow washing, the teasing hands, and what happens when the water is no longer enough to cool us down...",
       "category": "physical",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -6824,7 +6824,7 @@
       "id": "h3_091",
       "text": "What's a time we almost kissed — or the tension was unbearable before we finally did?",
       "category": "memory",
-      "heat": 3,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -6870,7 +6870,7 @@
       "id": "h3_095",
       "text": "Is there a place we've been together where the tension between us was palpable?",
       "category": "location",
-      "heat": 3,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -6882,7 +6882,7 @@
       "id": "h3_096",
       "text": "If we could sneak away for a flirty weekend, where would you want us to go?",
       "category": "location",
-      "heat": 3,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ]
@@ -6911,7 +6911,7 @@
       "id": "h3_099",
       "text": "What's a cold-weather activity that could turn unexpectedly flirty between us?",
       "category": "seasonal",
-      "heat": 3,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ]
