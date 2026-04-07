@@ -54,6 +54,38 @@ export const SupabaseAuthService = {
     return true;
   },
 
+  async requestRecoveryCode(email) {
+    if (!email) throw new Error("Email is required");
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await withTimeout(supabase.functions.invoke("password-recovery", {
+      body: {
+        action: "send",
+        email,
+      },
+    }));
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return true;
+  },
+
+  async verifyRecoveryCode({ email, code, password }) {
+    if (!email) throw new Error("Email is required");
+    if (!code) throw new Error("Recovery code is required");
+    if (!password || password.length < 8) throw new Error("Password must be at least 8 characters");
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await withTimeout(supabase.functions.invoke("password-recovery", {
+      body: {
+        action: "verify",
+        email,
+        code,
+        password,
+      },
+    }));
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return true;
+  },
+
   /**
    * Sign in anonymously (no email/password required).
    * Creates a temporary Supabase session for device-keyed operations like pairing.

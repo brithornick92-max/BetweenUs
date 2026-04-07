@@ -90,6 +90,13 @@ let _userId = null;
 let _isPremium = false;
 let _listeners = [];
 let _lastSyncAt = 0;
+let _operationChain = Promise.resolve();
+let _realtimeChannel = null;
+
+const DEFAULT_PULL_CURSOR = Object.freeze({
+  updatedAt: '1970-01-01T00:00:00.000Z',
+  key: null,
+});
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
@@ -107,6 +114,79 @@ function canSync() {
   // where notes saved before entitlements loaded were permanently stuck as
   // 'pending' and never pushed. Supabase RLS enforces premium limits server-side.
   return !!supabase && !!_coupleId && !!_userId;
+}
+
+function enqueueSyncOperation(fn) {
+  const operation = _operationChain
+    .catch(() => {})
+    .then(fn);
+
+  _operationChain = operation.catch(() => {});
+  return operation;
+}
+
+function parsePullCursor(meta) {
+  if (meta?.cursor) {
+    try {
+      const parsed = typeof meta.cursor === 'string'
+        ? JSON.parse(meta.cursor)
+        : meta.cursor;
+
+      if (parsed?.updatedAt) {
+        return {
+          updatedAt: parsed.updatedAt,
+          key: parsed.key || null,
+        };
+      }
+    } catch (err) {
+      if (__DEV__) console.warn('[Sync] Failed to parse stored cursor:', err?.message);
+    }
+  }
+
+  return {
+    updatedAt: meta?.last_pulled_at || DEFAULT_PULL_CURSOR.updatedAt,
+    key: null,
+  };
+}
+
+function toCursor(row) {
+  return {
+    updatedAt: row?.updated_at || DEFAULT_PULL_CURSOR.updatedAt,
+    key: row?.key || null,
+  };
+}
+
+function isCursorAfter(candidate, current) {
+  if (!candidate?.updatedAt) return false;
+  if (!current?.updatedAt) return true;
+  if (candidate.updatedAt > current.updatedAt) return true;
+  if (candidate.updatedAt < current.updatedAt) return false;
+
+  const candidateKey = candidate.key || '';
+  const currentKey = current.key || '';
+  return candidateKey > currentKey;
+}
+
+function applyPullCursor(query, cursor) {
+  if (cursor?.key) {
+    return query.or(
+      `updated_at.gt.${cursor.updatedAt},and(updated_at.eq.${cursor.updatedAt},key.gt.${cursor.key})`
+    );
+  }
+
+  return query.gt('updated_at', cursor?.updatedAt || DEFAULT_PULL_CURSOR.updatedAt);
+}
+
+function clearRealtimeChannel() {
+  if (!supabase || !_realtimeChannel) return;
+
+  try {
+    supabase.removeChannel(_realtimeChannel);
+  } catch (err) {
+    if (__DEV__) console.warn('[Sync] Failed to remove realtime channel:', err?.message);
+  } finally {
+    _realtimeChannel = null;
+  }
 }
 
 /**
@@ -272,20 +352,24 @@ async function pushTable(tableName) {
 async function pullTable(tableName) {
   const dataType = TABLE_TO_TYPE[tableName];
   const meta = await Database.getSyncMeta(tableName);
-  let cursor = meta?.last_pulled_at || '1970-01-01T00:00:00.000Z';
+  let cursor = parsePullCursor(meta);
 
   const sb = supabase;
   let totalPulled = 0;
 
   // Paginate: keep fetching until we get fewer rows than page size
   while (true) {
-    const { data: rows, error } = await sb
+    let query = sb
       .from(TABLES.COUPLE_DATA)
       .select('*')
       .eq('couple_id', _coupleId)
       .eq('data_type', dataType)
-      .gt('updated_at', cursor)
       .order('updated_at', { ascending: true })
+      .order('key', { ascending: true });
+
+    query = applyPullCursor(query, cursor);
+
+    const { data: rows, error } = await query
       .limit(PULL_PAGE_SIZE);
 
     if (error) throw error;
@@ -303,9 +387,14 @@ async function pullTable(tableName) {
     }
 
     // Convert to local format, filtering out invalid rows
-    const localRows = liveRows
-      .map(r => fromRemoteRow(tableName, r))
-      .filter(Boolean);
+    const localRows = [];
+    const processedLiveRows = [];
+    for (const remoteRow of liveRows) {
+      const localRow = fromRemoteRow(tableName, remoteRow);
+      if (!localRow) continue;
+      localRows.push(localRow);
+      processedLiveRows.push(remoteRow);
+    }
 
     // Batch upsert in a single transaction (atomic)
     const results = await Database.batchUpsertFromRemote(tableName, localRows);
@@ -331,14 +420,10 @@ async function pullTable(tableName) {
 
     // Advance cursor only for rows that were successfully processed
     // (prevents permanently skipping corrupted rows that fromRemoteRow rejected)
-    for (const row of liveRows.filter(r => fromRemoteRow(tableName, r) !== null)) {
-      if (row.updated_at > cursor) {
-        cursor = row.updated_at;
-      }
-    }
-    for (const row of tombstoneRows) {
-      if (row.updated_at > cursor) {
-        cursor = row.updated_at;
+    for (const row of [...processedLiveRows, ...tombstoneRows]) {
+      const rowCursor = toCursor(row);
+      if (isCursorAfter(rowCursor, cursor)) {
+        cursor = rowCursor;
       }
     }
 
@@ -348,7 +433,10 @@ async function pullTable(tableName) {
     if (rows.length < PULL_PAGE_SIZE) break;
   }
 
-  await Database.setSyncMeta(tableName, { last_pulled_at: cursor });
+  await Database.setSyncMeta(tableName, {
+    last_pulled_at: cursor.updatedAt,
+    cursor: JSON.stringify(cursor),
+  });
   return { pulled: totalPulled };
 }
 
@@ -359,9 +447,19 @@ const SyncEngine = {
    * Configure the sync engine. Call when auth state or couple changes.
    */
   configure({ userId, coupleId, isPremium }) {
-    _userId = userId || _userId;
-    _coupleId = coupleId || _coupleId;
+    const previousCoupleId = _coupleId;
+
+    if (userId !== undefined) {
+      _userId = userId || null;
+    }
+    if (coupleId !== undefined) {
+      _coupleId = coupleId || null;
+    }
     _isPremium = typeof isPremium === 'boolean' ? isPremium : _isPremium;
+
+    if (previousCoupleId && previousCoupleId !== _coupleId) {
+      clearRealtimeChannel();
+    }
   },
 
   /**
@@ -369,38 +467,42 @@ const SyncEngine = {
    * Safe to call frequently — guards against re-entrant runs and throttles.
    */
   async sync() {
-    if (_syncing) return { skipped: true };
     if (!canSync()) return { skipped: true, reason: 'not configured' };
 
-    // Throttle: don't allow more than one sync per MIN_SYNC_INTERVAL_MS
-    const now = Date.now();
-    if (now - _lastSyncAt < MIN_SYNC_INTERVAL_MS) {
-      return { skipped: true, reason: 'throttled' };
-    }
+    return enqueueSyncOperation(async () => {
+      if (!canSync()) return { skipped: true, reason: 'not configured' };
+      if (_syncing) return { skipped: true, reason: 'in_progress' };
 
-    _syncing = true;
-    _lastSyncAt = now;
-    emit('sync:start', null);
+      // Throttle: don't allow more than one sync per MIN_SYNC_INTERVAL_MS
+      const now = Date.now();
+      if (now - _lastSyncAt < MIN_SYNC_INTERVAL_MS) {
+        return { skipped: true, reason: 'throttled' };
+      }
 
-    const results = { pushed: 0, pulled: 0, failed: 0, attachments: { uploaded: 0, failed: 0 } };
+      _syncing = true;
+      _lastSyncAt = now;
+      emit('sync:start', null);
 
-    let timer;
-    const timeout = new Promise((_, reject) => {
-      timer = setTimeout(() => reject(new Error('Sync timed out (30s)')), SYNC_TIMEOUT_MS);
+      const results = { pushed: 0, pulled: 0, failed: 0, attachments: { uploaded: 0, failed: 0 } };
+
+      let timer;
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Sync timed out (30s)')), SYNC_TIMEOUT_MS);
+      });
+
+      try {
+        await Promise.race([this._performSyncCycle(results), timeout]);
+        emit('sync:complete', results);
+      } catch (err) {
+        emit('sync:error', { error: err.message });
+        CrashReporting.captureException(err, { source: 'sync_cycle' });
+      } finally {
+        clearTimeout(timer);
+        _syncing = false;
+      }
+
+      return results;
     });
-
-    try {
-      await Promise.race([this._performSyncCycle(results), timeout]);
-      emit('sync:complete', results);
-    } catch (err) {
-      emit('sync:error', { error: err.message });
-      CrashReporting.captureException(err, { source: 'sync_cycle' });
-    } finally {
-      clearTimeout(timer);
-      _syncing = false;
-    }
-
-    return results;
   },
 
   /** @private Internal sync logic — called by sync() under timeout guard. */
@@ -449,29 +551,35 @@ const SyncEngine = {
    */
   async pushNow() {
     if (!canSync()) return;
-    // Upload encrypted attachment files FIRST so they exist in Storage
-    // before love_notes rows (which reference media_ref) reach the partner.
-    let attachmentsOk = false;
-    try {
-      await EncryptedAttachments.uploadAllPending();
-      attachmentsOk = true;
-    } catch (err) {
-      if (__DEV__) console.warn('[Sync] pushNow attachment upload failed:', err?.message);
-    }
-    // Push attachment metadata so partner can discover the files
-    if (attachmentsOk) {
+    return enqueueSyncOperation(async () => {
+      if (!canSync()) return { skipped: true, reason: 'not configured' };
+
+      // Upload encrypted attachment files FIRST so they exist in Storage
+      // before love_notes rows (which reference media_ref) reach the partner.
+      let attachmentsOk = false;
       try {
-        await pushTable('attachments');
+        await EncryptedAttachments.uploadAllPending();
+        attachmentsOk = true;
       } catch (err) {
-        if (__DEV__) console.warn('[Sync] pushNow attachment meta push failed:', err?.message);
+        if (__DEV__) console.warn('[Sync] pushNow attachment upload failed:', err?.message);
       }
-    }
-    // Now push all other tables (journals, etc.)
-    // Skip love_notes if attachments failed — prevents partner seeing broken media_ref
-    for (const table of SYNC_TABLES) {
-      if (table === 'love_notes' && !attachmentsOk) continue;
-      await pushTable(table);
-    }
+      // Push attachment metadata so partner can discover the files
+      if (attachmentsOk) {
+        try {
+          await pushTable('attachments');
+        } catch (err) {
+          if (__DEV__) console.warn('[Sync] pushNow attachment meta push failed:', err?.message);
+        }
+      }
+      // Now push all other tables (journals, etc.)
+      // Skip love_notes if attachments failed — prevents partner seeing broken media_ref
+      for (const table of SYNC_TABLES) {
+        if (table === 'love_notes' && !attachmentsOk) continue;
+        await pushTable(table);
+      }
+
+      return { pushed: true };
+    });
   },
 
   /**
@@ -479,9 +587,13 @@ const SyncEngine = {
    */
   async pullNow() {
     if (!canSync()) return;
-    for (const table of PULL_TABLES) {
-      await pullTable(table);
-    }
+    return enqueueSyncOperation(async () => {
+      if (!canSync()) return { skipped: true, reason: 'not configured' };
+      for (const table of PULL_TABLES) {
+        await pullTable(table);
+      }
+      return { pulled: true };
+    });
   },
 
   /**
@@ -490,6 +602,8 @@ const SyncEngine = {
    */
   subscribeRealtime() {
     if (!supabase || !_coupleId) return () => {};
+
+    clearRealtimeChannel();
 
     const channel = supabase
       .channel(`couple_sync_${_coupleId}`)
@@ -507,7 +621,10 @@ const SyncEngine = {
           const tableName = Object.entries(TABLE_TO_TYPE).find(([, v]) => v === dataType)?.[0];
           if (tableName) {
             try {
-              await pullTable(tableName);
+              await enqueueSyncOperation(async () => {
+                if (!canSync()) return;
+                await pullTable(tableName);
+              });
               emit('sync:realtime', { table: tableName, event: payload.eventType });
             } catch (err) {
               if (__DEV__) console.warn('[Sync] Realtime pull failed:', err.message);
@@ -517,7 +634,12 @@ const SyncEngine = {
       )
       .subscribe();
 
+    _realtimeChannel = channel;
+
     return () => {
+      if (_realtimeChannel === channel) {
+        _realtimeChannel = null;
+      }
       supabase.removeChannel(channel);
     };
   },
@@ -538,12 +660,14 @@ const SyncEngine = {
    * Full reset (sign-out / delete account).
    */
   async reset() {
+    clearRealtimeChannel();
     _syncing = false;
     _coupleId = null;
     _userId = null;
     _isPremium = false;
     _listeners = [];
     _lastSyncAt = 0;
+    _operationChain = Promise.resolve();
     await Database.wipeAll();
   },
 

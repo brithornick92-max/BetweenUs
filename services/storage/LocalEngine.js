@@ -17,6 +17,10 @@ class LocalEngine {
     return LocalStorageService.signInWithEmailAndPassword(email, password);
   }
 
+  updatePasswordForEmail(email, password) {
+    return LocalStorageService.updatePasswordForEmail(email, password);
+  }
+
   signOut(scope) {
     return LocalStorageService.signOut(scope);
   }

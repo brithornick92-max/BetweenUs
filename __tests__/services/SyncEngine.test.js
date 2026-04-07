@@ -46,25 +46,28 @@ jest.mock('../../services/CrashReporting', () => ({
 const mockSelect = jest.fn().mockReturnThis();
 const mockEq = jest.fn().mockReturnThis();
 const mockGt = jest.fn().mockReturnThis();
+const mockOr = jest.fn().mockReturnThis();
 const mockOrder = jest.fn().mockReturnThis();
-const mockLimit = jest.fn().mockReturnThis();
-const mockRange = jest.fn().mockResolvedValue({ data: [], error: null });
+const mockLimit = jest.fn().mockImplementation(async () => ({ data: [], error: null }));
 const mockUpsert = jest.fn().mockResolvedValue({ data: null, error: null });
-const mockSubscribe = jest.fn().mockReturnValue({ unsubscribe: jest.fn() });
+const mockSubscribe = jest.fn().mockImplementation(() => ({ id: `channel-${mockSubscribe.mock.calls.length}` }));
+const mockOn = jest.fn().mockReturnThis();
+
+const mockQueryBuilder = {
+  select: mockSelect,
+  upsert: mockUpsert,
+  eq: mockEq,
+  gt: mockGt,
+  or: mockOr,
+  order: mockOrder,
+  limit: mockLimit,
+};
 
 jest.mock('../../config/supabase', () => ({
   supabase: {
-    from: jest.fn(() => ({
-      select: mockSelect,
-      upsert: mockUpsert,
-      eq: mockEq,
-      gt: mockGt,
-      order: mockOrder,
-      limit: mockLimit,
-      range: mockRange,
-    })),
+    from: jest.fn(() => mockQueryBuilder),
     channel: jest.fn(() => ({
-      on: jest.fn().mockReturnThis(),
+      on: mockOn,
       subscribe: mockSubscribe,
     })),
     removeChannel: jest.fn(),
@@ -78,11 +81,12 @@ const SyncEngine = require('../../services/sync/SyncEngine').default;
 const Database = require('../../services/db/Database').default;
 const CrashReporting = require('../../services/CrashReporting').default;
 const EncryptedAttachments = require('../../services/e2ee/EncryptedAttachments').default;
+const { supabase } = require('../../config/supabase');
 
 describe('SyncEngine', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await SyncEngine.reset();
     jest.clearAllMocks();
-    SyncEngine.reset();
   });
 
   describe('configure', () => {
@@ -103,6 +107,22 @@ describe('SyncEngine', () => {
       });
       // canSync returns false without premium, but configure still sets state
       // The actual isConfigured getter may return false if premium is required
+    });
+
+    it('clears stale identity when null values are provided', () => {
+      SyncEngine.configure({
+        userId: 'user-1',
+        coupleId: 'couple-1',
+        isPremium: true,
+      });
+      expect(SyncEngine.isConfigured).toBe(true);
+
+      SyncEngine.configure({
+        userId: null,
+        coupleId: null,
+      });
+
+      expect(SyncEngine.isConfigured).toBe(false);
     });
   });
 
@@ -178,24 +198,88 @@ describe('SyncEngine', () => {
         coupleId: 'couple-1',
         isPremium: true,
       });
+      Database.batchUpsertFromRemote.mockImplementation(async (_table, rows) => ({
+        inserted: rows.length,
+        updated: 0,
+        skipped: 0,
+      }));
     });
 
     it('pulls and upserts remote rows', async () => {
-      mockRange.mockResolvedValueOnce({
+      mockLimit.mockResolvedValueOnce({
         data: [
-          { id: 'remote_1', data_type: 'journal', payload: '{}', updated_at: '2024-01-01' },
+          {
+            key: 'journal_remote_1',
+            couple_id: 'couple-1',
+            data_type: 'journal',
+            value: { id: 'remote_1' },
+            encrypted_value: '{}',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
         ],
         error: null,
       });
 
       await SyncEngine.pullNow();
-      // Should have attempted to upsert
+      expect(Database.batchUpsertFromRemote).toHaveBeenCalledWith(
+        'journal_entries',
+        expect.arrayContaining([expect.objectContaining({ id: 'remote_1' })])
+      );
     });
 
     it('handles empty pull results', async () => {
-      mockRange.mockResolvedValue({ data: [], error: null });
+      mockLimit.mockResolvedValue({ data: [], error: null });
       await SyncEngine.pullNow();
       // Should not throw
+    });
+
+    it('continues pagination when the next page shares the same updated_at', async () => {
+      const firstPage = Array.from({ length: 200 }, (_, index) => ({
+        key: `journal_same_ts_${String(index).padStart(3, '0')}`,
+        couple_id: 'couple-1',
+        data_type: 'journal',
+        value: { id: `remote_${index}` },
+        encrypted_value: '{}',
+        updated_at: '2024-01-01T00:00:00.000Z',
+      }));
+      const secondPageRow = {
+        key: 'journal_same_ts_zzz',
+        couple_id: 'couple-1',
+        data_type: 'journal',
+        value: { id: 'remote_200' },
+        encrypted_value: '{}',
+        updated_at: '2024-01-01T00:00:00.000Z',
+      };
+
+      mockLimit
+        .mockResolvedValueOnce({ data: firstPage, error: null })
+        .mockResolvedValueOnce({ data: [secondPageRow], error: null });
+
+      await SyncEngine.pullNow();
+
+      expect(Database.batchUpsertFromRemote).toHaveBeenNthCalledWith(
+        1,
+        'journal_entries',
+        expect.arrayContaining([expect.objectContaining({ id: 'remote_0' })])
+      );
+      expect(Database.batchUpsertFromRemote).toHaveBeenNthCalledWith(
+        2,
+        'journal_entries',
+        [expect.objectContaining({ id: 'remote_200' })]
+      );
+      expect(mockOr).toHaveBeenCalledWith(
+        'updated_at.gt.2024-01-01T00:00:00.000Z,and(updated_at.eq.2024-01-01T00:00:00.000Z,key.gt.journal_same_ts_199)'
+      );
+      expect(Database.setSyncMeta).toHaveBeenCalledWith(
+        'journal_entries',
+        expect.objectContaining({
+          last_pulled_at: '2024-01-01T00:00:00.000Z',
+          cursor: JSON.stringify({
+            updatedAt: '2024-01-01T00:00:00.000Z',
+            key: 'journal_same_ts_zzz',
+          }),
+        })
+      );
     });
   });
 
@@ -210,6 +294,19 @@ describe('SyncEngine', () => {
       const unsub = SyncEngine.subscribeRealtime();
       expect(typeof unsub).toBe('function');
     });
+
+    it('replaces the previous realtime channel before subscribing again', () => {
+      SyncEngine.configure({
+        userId: 'user-1',
+        coupleId: 'couple-1',
+        isPremium: true,
+      });
+
+      SyncEngine.subscribeRealtime();
+      SyncEngine.subscribeRealtime();
+
+      expect(supabase.removeChannel).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('onSyncEvent', () => {
@@ -221,13 +318,13 @@ describe('SyncEngine', () => {
   });
 
   describe('reset', () => {
-    it('wipes configuration state', () => {
+    it('wipes configuration state', async () => {
       SyncEngine.configure({
         userId: 'user-1',
         coupleId: 'couple-1',
         isPremium: true,
       });
-      SyncEngine.reset();
+      await SyncEngine.reset();
       expect(SyncEngine.isConfigured).toBe(false);
     });
   });

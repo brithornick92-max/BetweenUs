@@ -329,6 +329,65 @@ class LocalStorageService {
     }
   }
 
+  async updatePasswordForEmail(email, password) {
+    try {
+      if (!email) throw new Error('Email is required');
+      if (!password || password.length < 8) throw new Error('Password must be at least 8 characters');
+
+      let user = null;
+      const uid = await this._getUidByEmail(email);
+      if (uid) {
+        const raw = await AsyncStorage.getItem(`user_${uid}`);
+        if (raw) user = JSON.parse(raw);
+      }
+
+      if (!user) {
+        const users = await this.getAllUsers();
+        user = users.find(u => u.email === email);
+      }
+
+      if (!user) {
+        user = await this._recoverUserByEmail(email);
+      }
+
+      if (!user?.uid) return false;
+
+      const passwordSalt = bytesToHex(ExpoCrypto.getRandomBytes(16));
+      const passwordIterations = PASSWORD_ITERATIONS;
+      const cleanUser = user.passwordHash
+        ? (() => {
+            const { passwordHash: _oldHash, passwordSalt: _oldSalt, passwordIterations: _oldIterations, ...rest } = user;
+            return rest;
+          })()
+        : user;
+
+      await Promise.all([
+        SecureStore.setItemAsync(
+          `cred_${user.uid}`,
+          JSON.stringify({
+            passwordHash: this._hashPassword(password, passwordSalt, passwordIterations),
+            passwordSalt,
+            passwordIterations,
+          }),
+          SECURE_STORE_OPTS
+        ),
+        AsyncStorage.setItem(`user_${user.uid}`, JSON.stringify(cleanUser)),
+        this._persistUserToSecureStore(cleanUser),
+        this._setEmailIndex(email, user.uid),
+      ]);
+
+      if (this.currentUser?.uid === cleanUser.uid) {
+        this.currentUser = cleanUser;
+        this.notifyAuthListeners(cleanUser);
+      }
+
+      return true;
+    } catch (error) {
+      if (__DEV__) console.error('Update password error:', error);
+      throw error;
+    }
+  }
+
   async signOut(scope = 'global') {
     try {
       await AsyncStorage.removeItem('currentUserId');

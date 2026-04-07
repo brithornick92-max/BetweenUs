@@ -42,6 +42,7 @@ export const RitualReminders = () => withScreenErrorBoundary(require("../screens
 export const PrivacySecuritySettings = () => withScreenErrorBoundary(require("../screens/PrivacySecuritySettingsScreen").default, "PrivacySecuritySettings");
 export const SetPin = () => withScreenErrorBoundary(require("../screens/SetPinScreen").default, "SetPin");
 export const SyncSetup = () => withScreenErrorBoundary(require("../screens/SyncSetupScreen").default, "SyncSetup");
+export const ResetPassword = () => withScreenErrorBoundary(require("../screens/ResetPasswordScreen").default, "ResetPassword");
 
 // ─── Pairing ────────────────────────────────────────────────────────
 export const PairingQRCode = () => withScreenErrorBoundary(require("../screens/PairingQRCodeScreen").default, "PairingQRCode");

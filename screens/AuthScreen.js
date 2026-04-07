@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { SPACING, withAlpha } from '../utils/theme';
@@ -29,9 +29,11 @@ export default function AuthScreen() {
   const signUp = auth?.signUp;
   const loading = !!auth?.busy;
   const { colors, isDark } = useTheme();
+  const route = useRoute();
+  const recoveryEmail = String(route?.params?.recoveryEmail || '').trim();
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(recoveryEmail);
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -132,6 +134,13 @@ export default function AuthScreen() {
     setAgeConfirmed(false);
     setTermsAccepted(false);
   }, []);
+
+  const handleForgotPassword = useCallback(async () => {
+    navigation.navigate('ResetPassword', {
+      initialEmail: email.trim(),
+      returnTo: 'Auth',
+    });
+  }, [email, navigation]);
 
   return (
     <View style={styles.container}>
@@ -348,6 +357,20 @@ export default function AuthScreen() {
                 </Text>
               </TouchableOpacity>
 
+              {!isSignUp && (
+                <TouchableOpacity
+                  style={styles.forgotButton}
+                  onPress={handleForgotPassword}
+                  disabled={loading || submitting}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel="Forgot password"
+                  accessibilityState={{ disabled: loading || submitting }}
+                >
+                  <Text style={[styles.forgotText, { color: t.primary }]}>Email me a recovery code.</Text>
+                </TouchableOpacity>
+              )}
+
               <TouchableOpacity
                 style={styles.toggleButton}
                 onPress={toggleMode}
@@ -491,6 +514,18 @@ const createStyles = (t, isDark) => StyleSheet.create({
     marginTop: SPACING.xl,
     alignItems: "center",
     paddingVertical: SPACING.sm,
+  },
+
+  forgotButton: {
+    marginTop: SPACING.lg,
+    alignItems: 'center',
+  },
+
+  forgotText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 
   toggleText: {

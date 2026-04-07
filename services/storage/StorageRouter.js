@@ -156,6 +156,10 @@ class StorageRouter {
     return LocalEngine.signInWithEmailAndPassword(email, password);
   }
 
+  updatePasswordForEmail(email, password) {
+    return LocalEngine.updatePasswordForEmail(email, password);
+  }
+
   signOut(scope = 'global') {
     return LocalEngine.signOut(scope);
   }

@@ -65,6 +65,8 @@ export default function RootNavigator() {
           }}
         >
           <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="AuthCallback" component={AuthCallbackScreen} options={{ animation: "fade", animationDuration: 300 }} />
+          <Stack.Screen name="ResetPassword" getComponent={Screens.ResetPassword} />
           <Stack.Screen name="Terms" getComponent={Screens.Terms} />
           <Stack.Screen name="PrivacyPolicy" getComponent={Screens.PrivacyPolicy} />
         </Stack.Navigator>
@@ -192,6 +194,7 @@ export default function RootNavigator() {
         <Stack.Screen name="PrivacySecuritySettings" getComponent={Screens.PrivacySecuritySettings} options={{ headerShown: false }} />
         <Stack.Screen name="SetPin" getComponent={Screens.SetPin} options={{ headerShown: false }} />
         <Stack.Screen name="SyncSetup" getComponent={Screens.SyncSetup} options={{ headerShown: false }} />
+        <Stack.Screen name="ResetPassword" getComponent={Screens.ResetPassword} options={{ headerShown: false }} />
         <Stack.Screen name="AuthCallback" component={AuthCallbackScreen} options={{ headerShown: false, animation: "fade", animationDuration: 300 }} />
         <Stack.Screen name="PairingQRCode" getComponent={Screens.PairingQRCode} options={{ headerShown: false }} />
         <Stack.Screen name="PairingScan" getComponent={Screens.PairingScan} options={{ headerShown: false }} />

@@ -118,6 +118,13 @@ export default function SyncSetupScreen({ navigation }) {
     }
   };
 
+  const handleForgotPassword = async () => {
+    navigation.navigate('ResetPassword', {
+      initialEmail: email.trim(),
+      returnTo: 'SyncSetup',
+    });
+  };
+
   const handlePasswordAuth = async () => {
     if (!supabaseAvailable) return;
     if (!email || !email.includes('@')) {
@@ -325,6 +332,16 @@ export default function SyncSetupScreen({ navigation }) {
                 </LinearGradient>
               </TouchableOpacity>
 
+              {authMode === 'password' && !isSignUp && (
+                <TouchableOpacity
+                  style={styles.textLink}
+                  onPress={handleForgotPassword}
+                  disabled={loading}
+                >
+                  <Text style={[styles.textLinkTxt, styles.forgotText, { color: theme.crimson }]}>Email me a recovery code.</Text>
+                </TouchableOpacity>
+              )}
+
               <TouchableOpacity 
                 style={styles.textLink} 
                 onPress={() => setIsSignUp(!isSignUp)}
@@ -481,6 +498,7 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
 
   textLink: { alignSelf: 'center', padding: 10 },
   textLinkTxt: { fontSize: 14, fontWeight: '600' },
+  forgotText: { fontWeight: '700' },
 
   signOutBtn: {
     flexDirection: 'row',
