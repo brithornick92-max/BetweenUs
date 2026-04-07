@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+import extractAuthPayloadFromUrl from '../services/supabase/AuthCallbackPayload';
 import { getSupabaseOrThrow } from '../config/supabase';
 import StorageRouter from '../services/storage/StorageRouter';
 import { cloudSyncStorage } from '../utils/storage';
@@ -27,34 +28,6 @@ import { SPACING, withAlpha } from '../utils/theme';
 import Icon from '../components/Icon';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-
-function extractAuthPayloadFromUrl(url) {
-  if (!url) return null;
-
-  const [basePart, fragment = ''] = url.split('#');
-  const queryIndex = basePart.indexOf('?');
-  const query = queryIndex >= 0 ? basePart.substring(queryIndex + 1) : '';
-  const queryParams = new URLSearchParams(query);
-  const fragmentParams = new URLSearchParams(fragment);
-
-  const access_token = fragmentParams.get('access_token') || queryParams.get('access_token');
-  const refresh_token = fragmentParams.get('refresh_token') || queryParams.get('refresh_token');
-  const type = fragmentParams.get('type') || queryParams.get('type');
-  const mode = fragmentParams.get('mode') || queryParams.get('mode');
-  const errorDescription = fragmentParams.get('error_description') || queryParams.get('error_description');
-
-  if (!access_token && !refresh_token && !type && !mode && !errorDescription) {
-    return null;
-  }
-
-  return {
-    access_token,
-    refresh_token,
-    type,
-    mode,
-    errorDescription,
-  };
-}
 
 export default function AuthCallbackScreen({ navigation }) {
   const { colors, isDark } = useTheme();

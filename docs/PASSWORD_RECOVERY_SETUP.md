@@ -16,7 +16,7 @@ Notes:
 
 - `RESEND_API_KEY`: API key from Resend.
 - `RECOVERY_CODE_FROM_EMAIL`: verified sender identity in Resend. Current sender: `Between Us <auth@brittanyapps.com>`.
-- `RECOVERY_CODE_PEPPER`: extra server-side secret mixed into the hashed recovery code. Use a long random value.
+- `RECOVERY_CODE_PEPPER`: extra server-side secret mixed into the hashed recovery code. Use a long random value. The function now refuses requests if this secret is missing.
 
 ## Deploy Steps
 
@@ -26,6 +26,11 @@ Run the migration and deploy the Edge Function:
 supabase db push
 supabase functions deploy password-recovery --no-verify-jwt
 ```
+
+The function is intentionally public because users may need recovery before they can authenticate. Abuse protection is enforced server-side with:
+
+- a 60 second resend cooldown for an active email/code pair
+- a rolling request cap on both the target email and the caller IP
 
 ## Resend Domain Setup
 
@@ -50,4 +55,5 @@ The app flow is:
 
 - `supabase/functions/password-recovery/index.ts`
 - `supabase/migrations/20260407120000_password_recovery_codes.sql`
+- `supabase/migrations/20260407143000_password_recovery_request_limits.sql`
 - `screens/ResetPasswordScreen.js`

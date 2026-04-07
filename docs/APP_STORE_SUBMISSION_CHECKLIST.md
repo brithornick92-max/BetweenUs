@@ -2,7 +2,7 @@
 
 **Date:** April 6, 2026  
 **Submission scope:** iOS App Store only  
-**Repo status:** Automated checks passing (`13/13` test suites, deployment validator passing)
+**Repo status:** Automated checks passing (`23/23` test suites, deployment validator passing)
 
 ## Release Verdict
 
@@ -20,7 +20,7 @@ The remaining work is operational and store-side:
 - App name: `Between Us`
 - Bundle ID: `com.brittany.betweenus`
 - Version: `1.0.0`
-- Build number: `1.0.0` in `app.json`, with EAS `appVersionSource: remote` and production `autoIncrement: true`
+- Build number: `10` in `app.json`, with EAS `appVersionSource: remote` and production `autoIncrement: true`
 - iOS deployment target: `17.1`
 - URL scheme: `betweenus`
 - Encryption flag: `ITSAppUsesNonExemptEncryption = false`

@@ -26,7 +26,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
   const initialEmail = String(route?.params?.initialEmail || '').trim();
   const returnTo = route?.params?.returnTo || 'Auth';
 
-  const [step, setStep] = useState(initialEmail ? 1 : 0);
+  const [step, setStep] = useState(0);
   const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
@@ -100,10 +100,25 @@ export default function ResetPasswordScreen({ navigation, route }) {
         password,
       });
 
-      await StorageRouter.updatePasswordForEmail(trimmedEmail, password).catch(() => false);
-      await SupabaseAuthService.storeCredentials(trimmedEmail, password).catch(() => {});
+      const postResetWarnings = [];
 
-      Alert.alert('Password updated', 'Your password has been reset.', [
+      try {
+        await StorageRouter.updatePasswordForEmail(trimmedEmail, password);
+      } catch (storageError) {
+        postResetWarnings.push('This device could not update its local sign-in cache. If prompted, sign in again manually.');
+      }
+
+      try {
+        await SupabaseAuthService.storeCredentials(trimmedEmail, password);
+      } catch (credentialError) {
+        postResetWarnings.push('This device could not save your refreshed cloud credentials. If prompted, sign in again manually.');
+      }
+
+      const successMessage = postResetWarnings.length
+        ? `Your password has been reset. ${postResetWarnings.join(' ')}`
+        : 'Your password has been reset.';
+
+      Alert.alert('Password updated', successMessage, [
         {
           text: 'Continue',
           onPress: () => navigation.reset({

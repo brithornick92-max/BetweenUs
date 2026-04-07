@@ -20,6 +20,8 @@ const CODE_TTL_MINUTES = 15;
 const CODE_LENGTH = 6;
 const MAX_ATTEMPTS = 5;
 const MIN_RESEND_INTERVAL_MS = 60_000;
+const SEND_RATE_LIMIT_WINDOW_MS = 15 * 60_000;
+const SEND_RATE_LIMIT_MAX_REQUESTS = 5;
 
 type SendPayload = {
   action: "send";
@@ -45,6 +47,12 @@ const json = (status: number, body: Record<string, unknown>) =>
 
 const normalizeEmail = (value: string | undefined) => String(value || "").trim().toLowerCase();
 
+const normalizeIp = (value: string | null | undefined) => {
+  if (!value) return null;
+  const firstValue = value.split(",")[0]?.trim();
+  return firstValue || null;
+};
+
 const isValidEmail = (email: string) => /.+@.+\..+/.test(email);
 
 const isValidCode = (code: string) => /^\d{6}$/.test(code);
@@ -53,6 +61,100 @@ async function sha256Hex(value: string) {
   const data = new TextEncoder().encode(value);
   const digest = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function getClientIp(req: Request) {
+  return normalizeIp(
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-forwarded-for") ||
+    req.headers.get("x-real-ip") ||
+    req.headers.get("fly-client-ip")
+  );
+}
+
+async function enforceSendRateLimit(supabase: ReturnType<typeof createClient>, email: string, req: Request) {
+  const clientIp = getClientIp(req);
+  const identifiers = [`email:${email}`];
+
+  if (clientIp) {
+    identifiers.push(`ip:${clientIp}`);
+  }
+
+  const now = Date.now();
+  const nowIso = new Date(now).toISOString();
+
+  for (const identifier of identifiers) {
+    const identifierHash = await sha256Hex(identifier);
+    const { data: existing, error: lookupError } = await supabase
+      .from("password_recovery_request_limits")
+      .select("id, request_count, window_started_at")
+      .eq("identifier_hash", identifierHash)
+      .eq("action", "send")
+      .maybeSingle();
+
+    if (lookupError) {
+      throw lookupError;
+    }
+
+    if (!existing?.id) {
+      const { error: insertError } = await supabase
+        .from("password_recovery_request_limits")
+        .insert({
+          identifier_hash: identifierHash,
+          action: "send",
+          request_count: 1,
+          window_started_at: nowIso,
+          last_request_at: nowIso,
+          updated_at: nowIso,
+        });
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      continue;
+    }
+
+    const windowStartedAt = new Date(existing.window_started_at).getTime();
+    const windowExpired = Number.isNaN(windowStartedAt) || now - windowStartedAt >= SEND_RATE_LIMIT_WINDOW_MS;
+
+    if (windowExpired) {
+      const { error: resetError } = await supabase
+        .from("password_recovery_request_limits")
+        .update({
+          request_count: 1,
+          window_started_at: nowIso,
+          last_request_at: nowIso,
+          updated_at: nowIso,
+        })
+        .eq("id", existing.id);
+
+      if (resetError) {
+        throw resetError;
+      }
+
+      continue;
+    }
+
+    if ((existing.request_count || 0) >= SEND_RATE_LIMIT_MAX_REQUESTS) {
+      return false;
+    }
+
+    const { error: updateError } = await supabase
+      .from("password_recovery_request_limits")
+      .update({
+        request_count: (existing.request_count || 0) + 1,
+        last_request_at: nowIso,
+        updated_at: nowIso,
+      })
+      .eq("id", existing.id);
+
+    if (updateError) {
+      throw updateError;
+    }
+  }
+
+  return true;
 }
 
 function generateCode() {
@@ -103,17 +205,31 @@ Deno.serve(async (req: Request) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const pepper = Deno.env.get("RECOVERY_CODE_PEPPER");
   if (!supabaseUrl || !serviceRoleKey) {
     return json(500, { error: "Server misconfigured" });
   }
+  if (!pepper) {
+    console.error("[password-recovery] RECOVERY_CODE_PEPPER is not configured");
+    return json(500, { error: "Recovery is temporarily unavailable." });
+  }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
-  const pepper = Deno.env.get("RECOVERY_CODE_PEPPER") || "betweenus-recovery";
 
   if (payload.action === "send") {
     const email = normalizeEmail(payload.email);
     if (!isValidEmail(email)) {
       return json(400, { error: "Enter a valid email address." });
+    }
+
+    try {
+      const allowed = await enforceSendRateLimit(supabase, email, req);
+      if (!allowed) {
+        return json(429, { error: "Too many recovery requests. Please wait a few minutes before trying again." });
+      }
+    } catch (rateLimitError) {
+      console.error("[password-recovery] request rate limit failed", rateLimitError);
+      return json(500, { error: "Unable to send a recovery code right now." });
     }
 
     const nowIso = new Date().toISOString();

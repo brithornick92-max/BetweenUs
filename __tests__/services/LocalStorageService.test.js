@@ -44,4 +44,39 @@ describe('LocalStorageService.hydrateRemoteAccount', () => {
       expect.objectContaining({ keychainService: 'betweenus' })
     );
   });
+
+  it('rotates stored credentials when resetting a local password', async () => {
+    const AsyncStorage = require('@react-native-async-storage/async-storage');
+    const SecureStore = require('expo-secure-store');
+    const LocalStorageService = require('../../services/LocalStorageService').default;
+
+    AsyncStorage.getItem.mockImplementation(async (key) => {
+      if (key === 'email_idx_review@example.com') return 'remote-user-1';
+      if (key === 'user_remote-user-1') {
+        return JSON.stringify({
+          uid: 'remote-user-1',
+          email: 'review@example.com',
+          displayName: 'Reviewer',
+        });
+      }
+      return null;
+    });
+    AsyncStorage.setItem.mockResolvedValue(undefined);
+
+    const updated = await LocalStorageService.updatePasswordForEmail(
+      'review@example.com',
+      'new horse battery staple'
+    );
+
+    expect(updated).toBe(true);
+    expect(SecureStore.setItemAsync).toHaveBeenCalledWith(
+      'cred_remote-user-1',
+      expect.stringContaining('passwordHash'),
+      expect.objectContaining({ keychainService: 'betweenus' })
+    );
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'user_remote-user-1',
+      expect.stringContaining('"review@example.com"')
+    );
+  });
 });

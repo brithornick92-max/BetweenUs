@@ -131,8 +131,8 @@ export default function SyncSetupScreen({ navigation }) {
       Alert.alert('Email Required', 'Please enter a valid email address.');
       return;
     }
-    if (!password || password.length < 6) {
-      Alert.alert('Security Check', 'Password must be at least 6 characters.');
+    if (!password || password.length < 8) {
+      Alert.alert('Security Check', 'Password must be at least 8 characters.');
       return;
     }
 

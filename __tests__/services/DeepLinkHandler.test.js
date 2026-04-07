@@ -39,3 +39,58 @@ describe('DeepLinkHandler.handleUrl', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 });
+
+describe('DeepLinkHandler.handleNotificationResponse', () => {
+  it('routes notification taps to the expected screen', () => {
+    const handled = DeepLinkHandler.handleNotificationResponse({
+      notification: {
+        request: {
+          content: {
+            data: {
+              route: 'love-note',
+              noteId: 'note-456',
+            },
+          },
+        },
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('LoveNoteDetail', { noteId: 'note-456' });
+  });
+
+  it('rejects unsafe notification ids', () => {
+    const handled = DeepLinkHandler.handleNotificationResponse({
+      notification: {
+        request: {
+          content: {
+            data: {
+              route: 'prompt',
+              promptId: 'bad/id',
+            },
+          },
+        },
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: null });
+  });
+
+  it('returns false for unknown notification routes', () => {
+    const handled = DeepLinkHandler.handleNotificationResponse({
+      notification: {
+        request: {
+          content: {
+            data: {
+              route: 'unknown',
+            },
+          },
+        },
+      },
+    });
+
+    expect(handled).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+});

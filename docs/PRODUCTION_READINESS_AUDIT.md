@@ -16,7 +16,7 @@
    - Push token persistence and partner notification RPC calls now surface Supabase write failures instead of silently succeeding.
    - Jest coverage was repaired for SecureStore-backed auth/session storage and expanded for deep-link and push flows.
 - Validation after these fixes:
-   - `npm test -- --runInBand` → **13/13 suites passing, 183 tests passing**
+   - `npm test -- --runInBand` → **23/23 suites passing, 324 tests passing**
    - `node scripts/validateDeployment.cjs` with required env vars present → **passes**
 - Remaining risk is now concentrated in manual release/compliance steps and live-environment verification, not in known repo-side blockers.
 
@@ -167,7 +167,7 @@ Keep these details handy in case Apple requests clarification:
 - [x] Fix RevenueCat platform key selection
 - [x] Defer push permission prompt to explicit user action
 - [x] Repair Jest coverage for SecureStore-backed auth/session path
-- [x] Run full automated validation (`13/13` test suites passing; deployment validator passing)
+- [x] Run full automated validation (`23/23` test suites passing; deployment validator passing)
 - [ ] Verify cron jobs are running: `SELECT * FROM cron.job`
 - [ ] Verify App Store Connect privacy answers match B3 recommendations
 - [ ] Confirm export compliance questionnaire in App Store Connect is answered on the exempt path
