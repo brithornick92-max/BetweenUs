@@ -36,7 +36,7 @@ export const useTheme = () => {
 
 export const ThemeProvider = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const [themeMode, setThemeModeState] = useState(systemColorScheme === "light" ? "light" : "dark");
+  const [themeMode, setThemeModeState] = useState("auto");
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
