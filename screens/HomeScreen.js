@@ -366,7 +366,7 @@ export default function HomeScreen({ navigation }) {
               {greeting}
             </Text>
             {preferredName ? (
-              <Text style={styles.headerName}>{preferredName}</Text>
+              <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{preferredName}</Text>
             ) : null}
             <Text style={styles.headerToneLine}>{toneCopy.subheadline(partnerLabel)}</Text>
           </View>

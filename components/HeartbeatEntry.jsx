@@ -29,7 +29,7 @@ const HeartbeatEntry = () => {
     background: colors.background, 
     surface: isDark ? '#131016' : '#FFFFFF',
     primary: colors.primary || '#D2121A', // Sexy Red
-    core: isDark ? colors.text : '#F5EFE6',
+    core: isDark ? colors.text : colors.background,
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
   }), [colors, isDark]);

@@ -412,51 +412,61 @@ export const AuthProvider = ({ children }) => {
     try {
       setBusy(true);
       await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Run local and remote sign-in in parallel so the faster path wins.
+      // Local is pure crypto (no network) and typically completes in ~1s.
+      // Remote requires a round-trip and can take several seconds.
+      const localPromise = StorageRouter.signInWithEmailAndPassword(email, password)
+        .then(u => ({ ok: true, user: u }))
+        .catch(e => ({ ok: false, error: e }));
+
+      const remotePromise = Promise.race([
+        SupabaseAuthService.signInWithPassword(email, password),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Remote sign-in timed out')), 5000)),
+      ])
+        .then(s => ({ ok: !!s, session: s }))
+        .catch(e => ({ ok: false, error: e }));
+
+      const localResult = await localPromise;
+
       let signedInUser;
       let shouldBridgeSupabase = true;
-      let remoteAuthError = null;
 
-      try {
-        const remoteSession = await Promise.race([
-          SupabaseAuthService.signInWithPassword(email, password),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Remote sign-in timed out')), 5000)),
-        ]);
+      if (localResult.ok) {
+        // Local succeeded — use it immediately, bridge Supabase in background.
+        signedInUser = localResult.user;
+        remotePromise.then(r => {
+          if (r.ok && r.session) {
+            StorageRouter.setSupabaseSession(r.session).catch(() => {});
+            SupabaseAuthService.storeCredentials(email, password).catch(() => {});
+          }
+        }).catch(() => {});
+        shouldBridgeSupabase = false;
+      } else {
+        // Local failed — wait for remote and attempt full cloud restore.
+        const localMessage = String(localResult.error?.message || '');
+        const mightExistRemotely =
+          localMessage.includes('User not found') ||
+          localMessage.includes('Invalid password');
 
-        if (remoteSession) {
-          signedInUser = await _restoreSupabaseSession(email, password, remoteSession);
+        const remoteResult = await remotePromise;
+
+        if (remoteResult.ok && remoteResult.session) {
+          signedInUser = await _restoreSupabaseSession(email, password, remoteResult.session);
           shouldBridgeSupabase = false;
-        }
-      } catch (remoteError) {
-        remoteAuthError = remoteError;
-      }
-
-      if (!signedInUser) {
-        try {
-          signedInUser = await StorageRouter.signInWithEmailAndPassword(email, password);
-        } catch (localError) {
-          const localMessage = String(localError?.message || '');
-          const shouldTrySupabase =
-            localMessage.includes('User not found') ||
-            localMessage.includes('Invalid password');
-
-          if (!shouldTrySupabase) {
-            throw localError;
+        } else if (mightExistRemotely) {
+          // Remote also failed — surface the most useful error
+          const remoteMessage = String(remoteResult.error?.message || '');
+          if (remoteMessage && !remoteMessage.includes('Supabase is not configured')) {
+            throw remoteResult.error;
           }
-
-          try {
-            signedInUser = await _restoreSupabaseAccount(email, password);
-            shouldBridgeSupabase = false;
-          } catch (fallbackRemoteError) {
-            const remoteMessage = String(fallbackRemoteError?.message || '');
-            if (remoteMessage.includes('Supabase is not configured')) {
-              throw localError;
-            }
-            throw fallbackRemoteError;
-          }
+          throw localResult.error;
+        } else {
+          throw localResult.error;
         }
       }
 
-      if (!signedInUser && remoteAuthError) throw remoteAuthError;
+      if (!signedInUser) throw new Error('Sign-in failed');
 
       await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
       setRequiresOnboarding(false);

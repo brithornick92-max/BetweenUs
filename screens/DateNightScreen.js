@@ -988,7 +988,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   },
   dropdownValueText: {
     fontFamily: FONTS.bodyBold,
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '700',
   },
   dropdownValueMeta: {

@@ -178,7 +178,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
     subtext: isDark ? 'rgba(242,233,230,0.66)' : 'rgba(60,60,67,0.66)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
     primary: colors.primary || '#D2121A',
-    primaryDeep: '#1A0000',
+    primaryDeep: isDark ? '#1A0000' : colors.background,
     success: '#34C759',
   }), [colors, isDark]);
 
