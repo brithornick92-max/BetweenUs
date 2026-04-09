@@ -142,14 +142,21 @@ export default function PromptsScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [deckVersion, setDeckVersion] = useState(0);
 
-  const t = useMemo(() => ({
+  const t = useMemo(() => isDark ? {
     background: '#0A0A0A',
     primary: '#FF2D55',
     surface: '#1C1C1E',
     text: '#FFFFFF',
     subtext: 'rgba(255,255,255,0.4)',
     border: 'rgba(255,255,255,0.1)',
-  }), []);
+  } : {
+    background: '#F2F2F7',
+    primary: '#D2121A',
+    surface: '#FFFFFF',
+    text: '#1C1C1E',
+    subtext: 'rgba(0,0,0,0.4)',
+    border: 'rgba(0,0,0,0.1)',
+  }, [isDark]);
 
   useFocusEffect(
     useCallback(() => {
@@ -280,7 +287,7 @@ export default function PromptsScreen({ navigation }) {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={[styles.root, { backgroundColor: t.background }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
         <SafeAreaView style={styles.safe} edges={["top"]}>
           {/* Editorial Header */}
@@ -303,9 +310,9 @@ export default function PromptsScreen({ navigation }) {
                 const locked = !isPremium && value >= 4;
                 const aboveMax = value > maxSelectableHeat;
 
-                const bgColor = active ? heatColor : 'rgba(255,255,255,0.03)';
-                const borderColor = active ? heatColor : aboveMax ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)';
-                const textColor = active ? '#FFFFFF' : withAlpha(heatColor, aboveMax ? 0.15 : 0.4);
+                const bgColor = active ? heatColor : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
+                const borderColor = active ? heatColor : aboveMax ? (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)') : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)');
+                const textColor = active ? '#FFFFFF' : withAlpha(heatColor, aboveMax ? 0.15 : 0.55);
 
                 return (
                   <View key={value} style={[styles.chipWrapper, aboveMax && { opacity: 0.3 }]}>
@@ -336,8 +343,8 @@ export default function PromptsScreen({ navigation }) {
                       <View style={[
                         styles.lockBadge,
                         {
-                          backgroundColor: active ? '#000' : t.background,
-                          borderColor: active ? '#FFF' : withAlpha(heatColor, 0.4)
+                          backgroundColor: active ? (isDark ? '#000' : '#FFF') : t.background,
+                          borderColor: active ? (isDark ? '#FFF' : '#000') : withAlpha(heatColor, 0.4)
                         }
                       ]}>
                         <Icon name="lock-closed" size={10} color={active ? '#FFF' : withAlpha(heatColor, 0.6)} />

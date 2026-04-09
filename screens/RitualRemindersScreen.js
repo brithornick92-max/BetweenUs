@@ -168,7 +168,7 @@ export default function RitualRemindersScreen({ navigation }) {
             />
 
             <TouchableOpacity
-              style={styles.timeButton}
+              style={[styles.timeButton, { backgroundColor: theme.colors.surface }]}
               onPress={() => setShowPicker(true)}
               activeOpacity={0.9}
             >

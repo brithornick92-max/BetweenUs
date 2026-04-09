@@ -82,15 +82,22 @@ export default function LoveNotesInboxScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState("all"); 
 
-  // Apple Editorial Velvet Glass Theme
-  const t = useMemo(() => ({
-    background: isDark ? '#050305' : '#140A0D',
+  // Apple Editorial Theme
+  const t = useMemo(() => isDark ? {
+    background: '#050305',
     primary: '#D2121A',
     text: '#FFFFFF',
     textMuted: 'rgba(255, 255, 255, 0.55)',
     border: 'rgba(255, 255, 255, 0.08)',
     surface: 'rgba(255, 255, 255, 0.03)',
-  }), [isDark]);
+  } : {
+    background: '#F2F2F7',
+    primary: '#D2121A',
+    text: '#1C1C1E',
+    textMuted: 'rgba(0, 0, 0, 0.5)',
+    border: 'rgba(0, 0, 0, 0.08)',
+    surface: 'rgba(0, 0, 0, 0.03)',
+  }, [isDark]);
 
   const styles = useMemo(() => createStyles(t), [t]);
 
@@ -288,7 +295,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <FilmGrain opacity={0.05} />
       <GlowOrb color={t.primary} size={500} top={-200} left={SCREEN_W - 250} opacity={0.12} />
       <GlowOrb color={t.primary} size={400} top={SCREEN_W * 1.5} left={-150} opacity={0.08} />
@@ -380,7 +387,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
 
 const createStyles = (t) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#050305' },
+    container: { flex: 1, backgroundColor: t.background },
     safeArea: { flex: 1 },
 
     // Header Architecture

@@ -156,15 +156,22 @@ export default function PromptLibraryScreen({ navigation }) {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ─── OLED Editorial Palette ───
-  const t = useMemo(() => ({
+  // ─── Editorial Palette ───
+  const t = useMemo(() => isDark ? {
     background: '#0A0A0A',
     surface: '#1C1C1E',
     primary: '#FF2D55',
     text: '#FFFFFF',
     subtext: 'rgba(255,255,255,0.4)',
     border: 'rgba(255,255,255,0.1)',
-  }), []);
+  } : {
+    background: '#F2F2F7',
+    surface: '#FFFFFF',
+    primary: '#D2121A',
+    text: '#1C1C1E',
+    subtext: 'rgba(0,0,0,0.4)',
+    border: 'rgba(0,0,0,0.1)',
+  }, [isDark]);
 
   const loadFavorites = useCallback(async () => {
     try {
@@ -368,7 +375,7 @@ export default function PromptLibraryScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <FilmGrain opacity={0.03} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
 

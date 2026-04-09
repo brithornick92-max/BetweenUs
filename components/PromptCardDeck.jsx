@@ -56,6 +56,15 @@ const HEAT_METAL = {
   5: { base: ["#120202", "#050000"], chrome: "#D2121A" }, // Deep Red
 };
 
+// Warm parchment tones — light mode card palette.
+const HEAT_PEARL = {
+  1: { base: ["#FFF5F9", "#FDE8F2"], chrome: "#FF85C2", text: "#2D1320" }, // Soft Orchid Pink
+  2: { base: ["#FFF0F6", "#FDE2EE"], chrome: "#FF1493", text: "#2D0E1F" }, // Deep Pink
+  3: { base: ["#FFEFF5", "#FCDDE9"], chrome: "#FF006E", text: "#2D0D1B" }, // Vivid Magenta-Red
+  4: { base: ["#FFECF1", "#FBD9E4"], chrome: "#F00049", text: "#2D0714" }, // Carmine
+  5: { base: ["#FFEBEB", "#FBD5D5"], chrome: "#D2121A", text: "#2D0202" }, // Deep Red
+};
+
 const HEAT_ICONS = {
   1: "chatbubble-outline",
   2: "sparkles-outline",
@@ -76,7 +85,8 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   const heat = item?.heat || 1;
   const neon = HEAT_NEON[heat] || HEAT_NEON[1];
   const catIcon = HEAT_ICONS[heat] || "heart-outline";
-  const metal = HEAT_METAL[heat] || HEAT_METAL[1];
+  const metal = isDark ? (HEAT_METAL[heat] || HEAT_METAL[1]) : (HEAT_PEARL[heat] || HEAT_PEARL[1]);
+  const promptTextColor = isDark ? "#FFFFFF" : (metal.text || "#1C1C1E");
 
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
 
@@ -202,9 +212,9 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
               <View style={styles.cardCenterLockup}>
                 {/* Luminous Number with Heavy Bloom */}
                 <Text style={[styles.heroNumber, {
-                  color: neon.core,
+                  color: isDark ? neon.core : neon.bloom,
                   textShadowColor: neon.bloom,
-                  textShadowRadius: 25,
+                  textShadowRadius: isDark ? 25 : 8,
                   textShadowOffset: { width: 0, height: 0 },
                 }]}>
                   {heat}
@@ -230,9 +240,9 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
             </Animated.View>
 
             {/* Front Band */}
-            <LinearGradient colors={["#111", "#000"]} style={styles.frontBand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            <LinearGradient colors={isDark ? ["#111", "#000"] : [metal.base[0], metal.base[1]]} style={styles.frontBand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
               <View style={styles.frontBandLeft}>
-                <Text style={[styles.frontBandLabel, { color: neon.core, textShadowColor: neon.bloom, textShadowRadius: 10 }]}>{heat}</Text>
+                <Text style={[styles.frontBandLabel, { color: isDark ? neon.core : neon.bloom, textShadowColor: neon.bloom, textShadowRadius: isDark ? 10 : 4 }]}>{heat}</Text>
               </View>
               <Icon name={catIcon} size={18} color={neon.bloom} />
             </LinearGradient>
@@ -241,7 +251,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
 
             <View style={styles.frontBody}>
               <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }} showsVerticalScrollIndicator={false}>
-                <Text style={[styles.frontPromptText, { color: "#FFFFFF", fontSize: (item?.text?.length || 0) > 180 ? 20 : (item?.text?.length || 0) > 120 ? 24 : 28 }]}>
+                <Text style={[styles.frontPromptText, { color: promptTextColor, fontSize: (item?.text?.length || 0) > 180 ? 20 : (item?.text?.length || 0) > 120 ? 24 : 28 }]}>
                   {item?.text || "Something beautiful awaits\u2026"}
                 </Text>
               </ScrollView>
@@ -250,7 +260,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
             <LinearGradient colors={["transparent", metal.chrome + "50", "transparent"]} style={styles.chromeDivider} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
 
             <View style={styles.frontFooter}>
-              <BlurView intensity={20} tint="dark" style={styles.footerBlur}>
+              <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.footerBlur}>
                 <Text style={[styles.frontFooterText, { color: neon.bloom }]}>SWIPE RIGHT TO REFLECT</Text>
                 <Icon name="arrow-forward" size={14} color={neon.bloom} />
               </BlurView>
