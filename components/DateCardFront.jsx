@@ -47,9 +47,9 @@ const HEAT_LABELS = {
   3: 'Heat',
 };
 
-export default function DateCardFront({ date, colors, dims }) {
+export default function DateCardFront({ date, colors, dims, isDark = true }) {
   const heat = date?.heat || 1;
-  const palette = getDateCardPalette(heat);
+  const palette = getDateCardPalette(heat, isDark);
   const icon = HEAT_ICONS[heat] || 'heart-outline';
   const label = HEAT_LABELS[heat] || 'Emotional';
   const loadMeta = dims.load.find(l => l.level === date.load) || dims.load[1];

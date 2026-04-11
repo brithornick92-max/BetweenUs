@@ -39,9 +39,9 @@ const HEAT_LABELS = {
   3: 'Heat',
 };
 
-export default function DateCardBack({ date, dims }) {
+export default function DateCardBack({ date, dims, isDark = true }) {
   const heat = date?.heat || 1;
-  const palette = getDateCardPalette(heat);
+  const palette = getDateCardPalette(heat, isDark);
   const icon = HEAT_ICONS[heat] || 'heart-outline';
   const label = HEAT_LABELS[heat] || 'Emotional';
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });

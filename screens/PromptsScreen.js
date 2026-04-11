@@ -449,6 +449,9 @@ const styles = StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 22,
     fontWeight: "800",
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   lockBadge: {
     position: 'absolute',

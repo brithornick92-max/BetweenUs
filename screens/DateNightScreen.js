@@ -101,7 +101,7 @@ function getDeckFilterIcon(type, option) {
   return DECK_FILTER_ICONS[type]?.[key] || 'ellipse-outline';
 }
 
-function getDeckFilterTone(type, option) {
+function getDeckFilterTone(type, option, isDark = true) {
   if (!option) return null;
   if (type === 'style') {
     const styleToneMap = {
@@ -109,9 +109,9 @@ function getDeckFilterTone(type, option) {
       doing: 2,
       mixed: 3,
     };
-    return getDateCardPalette(styleToneMap[option.id] || 1);
+    return getDateCardPalette(styleToneMap[option.id] || 1, isDark);
   }
-  return getDateCardPalette(option.level);
+  return getDateCardPalette(option.level, isDark);
 }
 
 
@@ -312,7 +312,7 @@ const CardStack = forwardRef(function CardStack(
             behind2Style,
           ]}
         >
-          <DateCardBack date={nextNextCard} dims={DIMS} />
+          <DateCardBack date={nextNextCard} dims={DIMS} isDark={isDark} />
         </Animated.View>
       )}
 
@@ -325,7 +325,7 @@ const CardStack = forwardRef(function CardStack(
             behind1Style,
           ]}
         >
-          <DateCardBack date={nextCard} dims={DIMS} />
+          <DateCardBack date={nextCard} dims={DIMS} isDark={isDark} />
         </Animated.View>
       )}
 
@@ -340,13 +340,13 @@ const CardStack = forwardRef(function CardStack(
         >
           {/* Back face */}
           <Animated.View style={[styles.flipFace, backFaceStyle]}>
-            <DateCardBack date={topCard} dims={DIMS} />
+            <DateCardBack date={topCard} dims={DIMS} isDark={isDark} />
           </Animated.View>
 
           {/* Front face */}
           <Animated.View style={[styles.flipFace, frontFaceStyle]}>
             <View style={[styles.cardFrontWrap, { backgroundColor: isDark ? '#131016' : '#FFFFFF' }]}>
-              <DateCardFront date={topCard} colors={colors} dims={DIMS} />
+              <DateCardFront date={topCard} colors={colors} dims={DIMS} isDark={isDark} />
             </View>
           </Animated.View>
 
@@ -560,10 +560,10 @@ export default function DateNightScreen({ navigation }) {
         style={StyleSheet.absoluteFillObject}
       />
       <GlowOrb color="#D2121A" size={400} top={-100} left={width - 250} opacity={0.12} />
-      <GlowOrb color={isDark ? '#4A1010' : '#F2F2F7'} size={300} top={650} left={-100} opacity={0.1} />
+      <GlowOrb color={isDark ? '#4A1010' : '#F8D7DA'} size={300} top={650} left={-100} opacity={isDark ? 0.1 : 0.35} />
       <FilmGrain opacity={0.035} />
       
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
       
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
@@ -609,29 +609,31 @@ export default function DateNightScreen({ navigation }) {
               {/* Mood dropdown */}
               {(() => {
                 const activeHeat = DIMS.heat.find(h => h.level === selectedHeat);
-                const activeHeatTone = getDeckFilterTone('heat', activeHeat);
+                const activeHeatTone = getDeckFilterTone('heat', activeHeat, isDark);
                 return (
                   <TouchableOpacity
                     style={[styles.dropdownBtn, { 
-                      borderColor: activeHeatTone ? withAlpha(activeHeatTone.chrome, 0.42) : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'), 
-                      backgroundColor: activeHeatTone ? withAlpha(activeHeatTone.base, 0.9) : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(255,255,255,0.6)')
+                      borderColor: activeHeatTone ? (isDark ? withAlpha(activeHeatTone.chrome, 0.42) : 'rgba(0,0,0,0.12)') : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)'), 
+                      backgroundColor: activeHeatTone ? (isDark ? withAlpha(activeHeatTone.base, 0.9) : '#FFFFFF') : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(242,242,247,0.9)')
                     }]}
                     onPress={() => setDropdownOpen(o => o === 'heat' ? null : 'heat')}
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Mood</Text>
                     <View style={styles.dropdownValue}>
-                      {activeHeat ? (
-                        <View style={styles.dropdownValueMeta}>
-                          <View style={[styles.dropdownValueIcon, { backgroundColor: activeHeatTone.base, borderColor: withAlpha(activeHeatTone.chrome, 0.36) }]}>
-                            <Icon name={getDeckFilterIcon('heat', activeHeat)} size={14} color={activeHeatTone.highlight} />
+                      <View style={styles.dropdownSideSlot} />
+                      <View style={styles.dropdownValueCenter}>
+                        {activeHeat ? (
+                          <View style={styles.dropdownValueMeta}>
+                            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: isDark ? activeHeatTone.highlight : colors.text }]}>{activeHeat.label}</Text>
                           </View>
-                          <Text style={[styles.dropdownValueText, { color: activeHeatTone.highlight }]}>{activeHeat.label}</Text>
-                        </View>
-                      ) : (
-                        <Text style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
-                      )}
-                      <Icon name={dropdownOpen === 'heat' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeHeatTone ? withAlpha(activeHeatTone.highlight, 0.8) : colors.text + '80'} />
+                        ) : (
+                          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
+                        )}
+                      </View>
+                      <View style={styles.dropdownSideSlot}>
+                        <Icon name={dropdownOpen === 'heat' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeHeatTone ? (isDark ? withAlpha(activeHeatTone.highlight, 0.8) : colors.text + '80') : colors.text + '80'} />
+                      </View>
                     </View>
                   </TouchableOpacity>
                 );
@@ -640,29 +642,31 @@ export default function DateNightScreen({ navigation }) {
               {/* Effort dropdown */}
               {(() => {
                 const activeLoad = DIMS.load.find(l => l.level === selectedLoad);
-                const activeLoadTone = getDeckFilterTone('load', activeLoad);
+                const activeLoadTone = getDeckFilterTone('load', activeLoad, isDark);
                 return (
                   <TouchableOpacity
                     style={[styles.dropdownBtn, { 
-                      borderColor: activeLoadTone ? withAlpha(activeLoadTone.chrome, 0.42) : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'), 
-                      backgroundColor: activeLoadTone ? withAlpha(activeLoadTone.base, 0.9) : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(255,255,255,0.6)') 
+                      borderColor: activeLoadTone ? (isDark ? withAlpha(activeLoadTone.chrome, 0.42) : 'rgba(0,0,0,0.12)') : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)'), 
+                      backgroundColor: activeLoadTone ? (isDark ? withAlpha(activeLoadTone.base, 0.9) : '#FFFFFF') : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(242,242,247,0.9)') 
                     }]}
                     onPress={() => setDropdownOpen(o => o === 'load' ? null : 'load')}
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Energy</Text>
                     <View style={styles.dropdownValue}>
-                      {activeLoad ? (
-                        <View style={styles.dropdownValueMeta}>
-                          <View style={[styles.dropdownValueIcon, { backgroundColor: activeLoadTone.base, borderColor: withAlpha(activeLoadTone.chrome, 0.36) }]}>
-                            <Icon name={getDeckFilterIcon('load', activeLoad)} size={14} color={activeLoadTone.highlight} />
+                      <View style={styles.dropdownSideSlot} />
+                      <View style={styles.dropdownValueCenter}>
+                        {activeLoad ? (
+                          <View style={styles.dropdownValueMeta}>
+                            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: isDark ? activeLoadTone.highlight : colors.text }]}>{activeLoad.label}</Text>
                           </View>
-                          <Text style={[styles.dropdownValueText, { color: activeLoadTone.highlight }]}>{activeLoad.label}</Text>
-                        </View>
-                      ) : (
-                        <Text style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
-                      )}
-                      <Icon name={dropdownOpen === 'load' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeLoadTone ? withAlpha(activeLoadTone.highlight, 0.8) : colors.text + '80'} />
+                        ) : (
+                          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
+                        )}
+                      </View>
+                      <View style={styles.dropdownSideSlot}>
+                        <Icon name={dropdownOpen === 'load' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeLoadTone ? (isDark ? withAlpha(activeLoadTone.highlight, 0.8) : colors.text + '80') : colors.text + '80'} />
+                      </View>
                     </View>
                   </TouchableOpacity>
                 );
@@ -671,29 +675,31 @@ export default function DateNightScreen({ navigation }) {
               {/* Style dropdown */}
               {(() => {
                 const activeStyle = DIMS.style.find(s => s.id === selectedStyle);
-                const activeStyleTone = getDeckFilterTone('style', activeStyle);
+                const activeStyleTone = getDeckFilterTone('style', activeStyle, isDark);
                 return (
                   <TouchableOpacity
                     style={[styles.dropdownBtn, { 
-                      borderColor: activeStyleTone ? withAlpha(activeStyleTone.chrome, 0.42) : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'), 
-                      backgroundColor: activeStyleTone ? withAlpha(activeStyleTone.base, 0.9) : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(255,255,255,0.6)') 
+                      borderColor: activeStyleTone ? (isDark ? withAlpha(activeStyleTone.chrome, 0.42) : 'rgba(0,0,0,0.12)') : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)'), 
+                      backgroundColor: activeStyleTone ? (isDark ? withAlpha(activeStyleTone.base, 0.9) : '#FFFFFF') : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(242,242,247,0.9)') 
                     }]}
                     onPress={() => setDropdownOpen(o => o === 'style' ? null : 'style')}
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Style</Text>
                     <View style={styles.dropdownValue}>
-                      {activeStyle ? (
-                        <View style={styles.dropdownValueMeta}>
-                          <View style={[styles.dropdownValueIcon, { backgroundColor: activeStyleTone.base, borderColor: withAlpha(activeStyleTone.chrome, 0.36) }]}>
-                            <Icon name={getDeckFilterIcon('style', activeStyle)} size={14} color={activeStyleTone.highlight} />
+                      <View style={styles.dropdownSideSlot} />
+                      <View style={styles.dropdownValueCenter}>
+                        {activeStyle ? (
+                          <View style={styles.dropdownValueMeta}>
+                            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: isDark ? activeStyleTone.highlight : colors.text }]}>{activeStyle.label}</Text>
                           </View>
-                          <Text style={[styles.dropdownValueText, { color: activeStyleTone.highlight }]}>{activeStyle.label}</Text>
-                        </View>
-                      ) : (
-                        <Text style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
-                      )}
-                      <Icon name={dropdownOpen === 'style' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeStyleTone ? withAlpha(activeStyleTone.highlight, 0.8) : colors.text + '80'} />
+                        ) : (
+                          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
+                        )}
+                      </View>
+                      <View style={styles.dropdownSideSlot}>
+                        <Icon name={dropdownOpen === 'style' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeStyleTone ? (isDark ? withAlpha(activeStyleTone.highlight, 0.8) : colors.text + '80') : colors.text + '80'} />
+                      </View>
                     </View>
                   </TouchableOpacity>
                 );
@@ -707,22 +713,22 @@ export default function DateNightScreen({ navigation }) {
                   const val = dropdownOpen === 'style' ? opt.id : opt.level;
                   const current = dropdownOpen === 'heat' ? selectedHeat : dropdownOpen === 'load' ? selectedLoad : selectedStyle;
                   const active = current === val;
-                  const tone = getDeckFilterTone(dropdownOpen, opt);
+                  const tone = getDeckFilterTone(dropdownOpen, opt, isDark);
                   return (
                     <TouchableOpacity
                       key={val}
-                      style={[styles.dropdownOption, active && { backgroundColor: withAlpha(tone.base, 0.94) }]}
+                      style={[styles.dropdownOption, active && { backgroundColor: isDark ? withAlpha(tone.base, 0.94) : 'rgba(0,0,0,0.04)' }]}
                       onPress={() => handleFilterPress(dropdownOpen, val)}
                       activeOpacity={0.7}
                     >
-                      <View style={[styles.dropdownOptionIcon, { backgroundColor: tone.base, borderColor: withAlpha(tone.chrome, 0.34) }]}>
-                        <Icon name={getDeckFilterIcon(dropdownOpen, opt)} size={18} color={tone.highlight} />
+                      <View style={[styles.dropdownOptionIcon, { backgroundColor: isDark ? tone.base : '#F2F2F7', borderColor: isDark ? withAlpha(tone.chrome, 0.34) : 'rgba(0,0,0,0.06)' }]}>
+                        <Icon name={getDeckFilterIcon(dropdownOpen, opt)} size={18} color={isDark ? tone.highlight : colors.text} />
                       </View>
                       <View style={styles.dropdownOptionContent}>
-                        <Text style={[styles.dropdownOptionLabel, { color: active ? tone.highlight : colors.text }]}>{opt.label}</Text>
-                        <Text style={[styles.dropdownOptionSub, { color: active ? withAlpha(tone.body, 0.9) : colors.textMuted }]}>{opt.description || 'Curated category'}</Text>
+                        <Text style={[styles.dropdownOptionLabel, { color: active ? (isDark ? tone.highlight : colors.text) : colors.text }]}>{opt.label}</Text>
+                        <Text style={[styles.dropdownOptionSub, { color: active ? (isDark ? withAlpha(tone.body, 0.9) : colors.textMuted) : colors.textMuted }]}>{opt.description || 'Curated category'}</Text>
                       </View>
-                      {active && <Icon name="checkmark-circle-outline" size={20} color={tone.highlight} />}
+                      {active && <Icon name="checkmark-circle-outline" size={20} color={isDark ? tone.highlight : colors.primary} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -815,7 +821,7 @@ export default function DateNightScreen({ navigation }) {
         {allSelected && !deckDone && deck.length > 0 && (
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF' }]}
+              style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(242,242,247,0.9)' }]}
               onPress={() => stackRef.current?.swipeLeft()}
               activeOpacity={0.8}
             >
@@ -970,8 +976,10 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     flex: 1,
     borderRadius: 20,
     borderWidth: 1.5,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 12,
+    alignItems: 'stretch',
+    justifyContent: 'center',
   },
   dropdownLabel: {
     fontFamily: FONTS.bodyBold,
@@ -980,21 +988,35 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: 4,
+    textAlign: 'center',
   },
   dropdownValue: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    width: '100%',
+  },
+  dropdownSideSlot: {
+    width: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dropdownValueCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dropdownValueText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 11,
     fontWeight: '700',
+    textAlign: 'center',
   },
   dropdownValueMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    justifyContent: 'center',
   },
   dropdownValueIcon: {
     width: 24,
