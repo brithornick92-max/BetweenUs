@@ -47,6 +47,7 @@ import {
   getAccessibleHeatLevels,
   normalizePremiumFeatureId,
 } from '../utils/featureFlags';
+import WinBackNudges from '../services/WinBackNudges';
 
 // ─── Local cache keys for couple premium ─────────────────────────────────────
 const COUPLE_PREMIUM_CACHE_KEY = '@betweenus:couplePremiumCache';
@@ -254,6 +255,16 @@ export const EntitlementsProvider = ({ children }) => {
   // ─── Derived State ──────────────────────────────────────────────────────────
 
   const isPremiumEffective = !!(isPremiumSelf || isPremiumCouple);
+
+  // Schedule or cancel win-back nudges based on premium status
+  useEffect(() => {
+    if (subscriptionLoading || coupleLoading) return;
+    if (isPremiumEffective) {
+      WinBackNudges.cancelNudges();
+    } else {
+      WinBackNudges.scheduleNudges();
+    }
+  }, [isPremiumEffective, subscriptionLoading, coupleLoading]);
 
   // Determine source
   useEffect(() => {

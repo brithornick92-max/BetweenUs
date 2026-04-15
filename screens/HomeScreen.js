@@ -28,9 +28,10 @@ import { useContent } from '../context/ContentContext';
 import { DataLayer } from '../services/localfirst';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { PremiumFeature } from '../utils/featureFlags';
-import { promptStorage } from '../utils/storage';
+import { promptStorage, storage, STORAGE_KEYS } from '../utils/storage';
 import { SPACING } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
+import { Share } from 'react-native';
 import MomentSignal from '../components/MomentSignal';
 import RelationshipClimate from '../components/RelationshipClimate';
 import SurpriseTonight from '../components/SurpriseTonight';
@@ -265,6 +266,32 @@ export default function HomeScreen({ navigation }) {
       notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
       setInlineText('');
+
+      // Viral loop: prompt free users to invite partner after first answer
+      if (!isPremium) {
+        const hasPromptedShare = await storage.get('@betweenus:promptedPartnerShare', false);
+        const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+        if (!hasPromptedShare && !coupleId) {
+          await storage.set('@betweenus:promptedPartnerShare', true);
+          setTimeout(() => {
+            Alert.alert(
+              'Share with your partner?',
+              'Invite them to Between Us so they can answer too \u2014 and you can reveal each other\u2019s responses.',
+              [
+                { text: 'Not Now', style: 'cancel' },
+                {
+                  text: 'Invite Partner',
+                  onPress: () => {
+                    Share.share({
+                      message: 'I just answered a relationship prompt on Between Us \u2014 download it so we can share our answers together! https://apps.apple.com/app/between-us',
+                    }).catch(() => {});
+                  },
+                },
+              ]
+            );
+          }, 800);
+        }
+      }
     } catch {
       Alert.alert('Something didn\u2019t work', "We couldn\u2019t save your thoughts \u2014 try again?");
     } finally {
@@ -443,7 +470,13 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
                   style={[styles.input, { justifyContent: 'center' }]}
                 >
-                  <Text style={styles.inputPlaceholder}>You used today's free reflection. Unlock more.</Text>
+                  <Text style={styles.inputPlaceholder}>
+                    {`You\u2019ve used today\u2019s free reflection. ${isPremium ? '' : `Premium unlocks all ${697} prompts across 5 heat levels.`}`}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                    <Icon name="lock-open-outline" size={14} color={t.primary} />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: t.primary }}>Unlock more</Text>
+                  </View>
                 </TouchableOpacity>
               )}
 

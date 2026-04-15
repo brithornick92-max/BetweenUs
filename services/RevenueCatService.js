@@ -421,8 +421,6 @@ class RevenueCatService {
     
     if (identifier.includes('monthly')) return 'per month';
     if (identifier.includes('annual') || identifier.includes('yearly')) return 'per year';
-    if (identifier.includes('lifetime')) return 'one-time';
-    
     return '';
   }
 
@@ -436,7 +434,7 @@ class RevenueCatService {
   }
 
   /**
-   * Sort packages: yearly first, then monthly, then lifetime
+   * Sort packages: yearly first, then monthly
    */
   sortPackages(packages) {
     if (!packages?.length) return [];
@@ -445,8 +443,7 @@ class RevenueCatService {
         const id = (pkg.identifier || '').toLowerCase();
         if (id.includes('annual') || id.includes('yearly')) return 0;
         if (id.includes('monthly')) return 1;
-        if (id.includes('lifetime')) return 2;
-        return 3;
+        return 2;
       };
       return order(a) - order(b);
     });

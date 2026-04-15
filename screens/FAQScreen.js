@@ -45,7 +45,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `Pro membership includes:\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly} (Best Value)\n• Lifetime: ${FALLBACK_PRICES.lifetime}\n\nFree users can still link with a partner, answer 1 prompt per day, and fully plan 1 date per week. One subscription covers both you and your linked partner. Access to data export is always free for all users.`,
+        a: `Pro membership includes:\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly} (Best Value)\n\nFree users can still link with a partner, answer 1 prompt per day, and fully plan 1 date per week. One subscription covers both you and your linked partner. Access to data export is always free for all users.`,
       },
       {
         q: 'How do I get started?',
@@ -133,7 +133,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How do I subscribe?',
-        a: '1. Tap "Upgrade to Premium" in the app\n2. Choose your plan (Monthly, Yearly, or Lifetime)\n3. Confirm through the App Store\n4. Premium activates after purchase confirmation\n5. If you\'re linked, your partner can receive shared access too',
+        a: '1. Tap "Upgrade to Premium" in the app\n2. Choose your plan (Monthly or Yearly)\n3. Confirm through the App Store\n4. Premium activates after purchase confirmation\n5. If you\'re linked, your partner can receive shared access too',
       },
       {
         q: 'Can I cancel anytime?',

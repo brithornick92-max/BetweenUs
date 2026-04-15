@@ -45,7 +45,7 @@ export const GuardBehavior = Object.freeze({
 // ─── Free-Tier Limits ───────────────────────────────────────────────────────────
 export const FREE_LIMITS = Object.freeze({
   PROMPTS_PER_DAY: 1,           // One guided prompt response per day
-  PREVIEW_PROMPTS_TOTAL: 3,     // Exactly 3 fixed preview prompts (1 per heat 1-3)
+  PREVIEW_PROMPTS_TOTAL: 10,    // 10 preview prompts to build habit before gating
   DATE_IDEAS_PER_DAY: 3,        // 3 preview date ideas per day
   FULL_DATE_FLOWS_PER_WEEK: 1,  // One fully planned date flow per week
   VISIBLE_DATE_IDEAS: 3,        // 3 preview date ideas visible for free users
@@ -77,7 +77,7 @@ export const PREMIUM_LIMITS = Object.freeze({
 });
 
 // ─── Fixed Preview Prompts for Free Users ────────────────────────────────────
-// Exactly 3 hand-picked prompts (1 per heat level 1-3). Read-only, no responses.
+// 10 hand-picked preview prompts across heat levels 1-3 to build habit before gating.
 export const FREE_PREVIEW_PROMPTS = Object.freeze([
   {
     id: 'free_preview_h1',
@@ -96,6 +96,55 @@ export const FREE_PREVIEW_PROMPTS = Object.freeze([
   {
     id: 'free_preview_h3',
     text: "What's something you've always wanted to try together but haven't brought up yet?",
+    category: 'physical',
+    heat: 3,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h1b',
+    text: "What's a moment from this week where you felt most connected to me?",
+    category: 'emotional',
+    heat: 1,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h1c',
+    text: "What's one dream you haven't told me about yet?",
+    category: 'emotional',
+    heat: 1,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h2b',
+    text: "What song makes you think of us — and why?",
+    category: 'romance',
+    heat: 2,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h2c',
+    text: "Describe your perfect lazy Sunday with me.",
+    category: 'romance',
+    heat: 2,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h1d',
+    text: "What's something I said once that you still think about?",
+    category: 'emotional',
+    heat: 1,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h2d',
+    text: "If we had no responsibilities for 48 hours, what would we do?",
+    category: 'romance',
+    heat: 2,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h3b',
+    text: "What's a new experience you'd love for us to share this month?",
     category: 'physical',
     heat: 3,
     isPreview: true,
@@ -299,6 +348,11 @@ export const PAYWALL_FEATURE_IDS = Object.freeze([
   PremiumFeature.LOVE_NOTES,
   PremiumFeature.NIGHT_RITUAL_MODE,
   PremiumFeature.CLOUD_SYNC,
+  PremiumFeature.CALENDAR,
+  PremiumFeature.VAULT_AND_BIOMETRIC,
+  PremiumFeature.INSIDE_JOKES,
+  PremiumFeature.YEAR_REFLECTION,
+  PremiumFeature.VIBE_SIGNAL,
 ]);
 
 const LEGACY_PREMIUM_FEATURE_ALIASES = Object.freeze({
@@ -378,4 +432,24 @@ export function isKnownPremiumFeatureId(featureId) {
  */
 export function getAccessibleHeatLevels(isPremiumEffective) {
   return isPremiumEffective ? PREMIUM_LIMITS.ALL_HEAT_LEVELS : FREE_LIMITS.FREE_HEAT_LEVELS;
+}
+
+// ─── Timed Content Unlocks ─────────────────────────────────────────────────────
+// Every Friday, free users get expanded date browsing to build habit + FOMO.
+
+/**
+ * Check if today is a "free unlock" day (Friday).
+ * Returns boosted limits for free users on unlock days.
+ */
+export function getTimedUnlockLimits(isPremiumEffective) {
+  if (isPremiumEffective) return null; // Premium users don't need unlocks
+  const dayOfWeek = new Date().getDay(); // 0=Sun, 5=Fri
+  if (dayOfWeek !== 5) return null;
+  return {
+    isUnlockDay: true,
+    unlockLabel: 'Friday Date Night',
+    VISIBLE_DATE_IDEAS: 10,        // 10 instead of 3
+    DATE_IDEAS_PER_DAY: 10,        // 10 instead of 3
+    PROMPTS_PER_DAY: 3,            // 3 instead of 1
+  };
 }

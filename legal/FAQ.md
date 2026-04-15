@@ -38,7 +38,6 @@ Between Us is for thriving couples — it deepens what's already beautiful.
 - **Free version:** Answer 1 prompt per day (Heat levels 1-3), link with your partner, fully plan 1 date per week, and export your data
 - **Premium Monthly:** $7.99/month per couple
 - **Premium Yearly:** $49.99/year per couple (save 48%!)
-- **Premium Lifetime:** $69.99 one-time payment per couple
 
 Premium unlocks unlimited prompts, unlimited date ideas, love notes, calendar, cloud sync, and more.
 
@@ -254,14 +253,12 @@ Premium unlocks:
 **Pricing:**
 - Monthly: $7.99/month
 - Yearly: $49.99/year (save 48%!)
-- Lifetime: $69.99 one-time payment
 
 ### How do I subscribe?
 1. Tap "Upgrade to Premium" in the app
 2. Choose your plan:
    - **Monthly:** $7.99/month
    - **Yearly:** $49.99/year (best value - save 48%!)
-   - **Lifetime:** $69.99 one-time payment
 3. Confirm through the App Store
 4. Premium activates after purchase confirmation
 5. If your accounts are linked, your partner can receive shared access too

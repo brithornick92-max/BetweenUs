@@ -8,6 +8,7 @@ import { NicknameEngine } from '../services/PolishEngine';
 import CoupleService from '../services/supabase/CoupleService';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import StorageRouter from '../services/storage/StorageRouter';
+import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
 
 const initialState = {
   userId: null,
@@ -161,6 +162,7 @@ export function AppProvider({ children }) {
     };
 
     const init = async () => {
+      await WeeklyContentScheduler.init();
       let userId = await storage.get(STORAGE_KEYS.USER_ID, null);
       if (!userId) {
         userId = Crypto.randomUUID();

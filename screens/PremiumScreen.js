@@ -126,8 +126,7 @@ export default function PremiumScreen({ navigation }) {
   const packages  = offerings?.packages || [];
   const monthlyPkg  = packages.find((p) => p.packageType === "MONTHLY");
   const yearlyPkg   = packages.find((p) => p.packageType === "ANNUAL");
-  const lifetimePkg = packages.find((p) => p.packageType === "LIFETIME");
-  const planMap = { monthly: monthlyPkg, yearly: yearlyPkg, lifetime: lifetimePkg };
+  const planMap = { monthly: monthlyPkg, yearly: yearlyPkg };
 
   useEffect(() => () => hidePaywall(), [hidePaywall]);
 
@@ -141,7 +140,6 @@ export default function PremiumScreen({ navigation }) {
   const selectedPriceStr = selectedPkg?.product?.priceString;
 
   const ctaLabel = (() => {
-    if (selectedPlan === "lifetime") return selectedPriceStr ? `Get Lifetime — ${selectedPriceStr}` : "Get Lifetime Access";
     return selectedPriceStr ? `Start Premium — ${selectedPriceStr}` : "Start Premium";
   })();
 
@@ -313,17 +311,6 @@ export default function PremiumScreen({ navigation }) {
                   styles={styles}
                   primaryColor={t.primary}
                 />
-                <PlanCard
-                  id="lifetime"
-                  label="Lifetime"
-                  price={lifetimePkg?.product?.priceString || "$69.99"}
-                  detail="One payment, yours forever"
-                  isSelected={selectedPlan === "lifetime"}
-                  onSelect={setSelectedPlan}
-                  styles={styles}
-                  primaryColor={t.primary}
-                />
-
                 <View style={styles.coupleNoteContainer}>
                   <Icon name="heart-outline" size={14} color={t.primary} />
                   <Text style={styles.coupleNote}>
@@ -352,11 +339,9 @@ export default function PremiumScreen({ navigation }) {
                 </TouchableOpacity>
 
                 {/* 24-hour cancellation notice — required by App Store */}
-                {selectedPlan !== "lifetime" && (
-                  <Text style={styles.renewalNotice}>
-                    Payment charged to your Apple ID at confirmation. Subscription renews automatically unless cancelled at least 24 hours before the end of the current period. Manage in your Apple ID subscription settings.
-                  </Text>
-                )}
+                <Text style={styles.renewalNotice}>
+                  Payment charged to your Apple ID at confirmation. Subscription renews automatically unless cancelled at least 24 hours before the end of the current period. Manage in your Apple ID subscription settings.
+                </Text>
               </FadeInSection>
 
               {/* ─── SECONDARY ACTIONS ──────────────────────────── */}

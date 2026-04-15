@@ -44,7 +44,6 @@ Journal entries, prompt responses, and love notes are encrypted end-to-end. Face
 **SUBSCRIPTION OPTIONS**
 • Monthly: $7.99/month
 • Annual: $49.99/year (best value)
-• Lifetime: $69.99 one-time purchase
 
 All prices are per couple — one subscription extends premium to your linked partner. Payment is charged to your Apple ID. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage subscriptions in Settings.
 

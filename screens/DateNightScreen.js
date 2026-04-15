@@ -26,7 +26,7 @@ import { BlurView } from 'expo-blur';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { getAllDates, filterDates, getDimensionMeta, getFilteredDatesWithProfile } from '../utils/contentLoader';
-import { FREE_LIMITS, PremiumFeature } from '../utils/featureFlags';
+import { FREE_LIMITS, PremiumFeature, getTimedUnlockLimits } from '../utils/featureFlags';
 import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme'; // BORDER_RADIUS kept for styles
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -480,9 +480,13 @@ export default function DateNightScreen({ navigation }) {
       base = filterDates(fallbackProfileBase, activeFilters);
     }
 
-    // Free users only see a small preview of dates
-    if (!isPremium && base.length > FREE_LIMITS.VISIBLE_DATE_IDEAS) {
-      base = base.slice(0, FREE_LIMITS.VISIBLE_DATE_IDEAS);
+    // Free users only see a small preview of dates (expanded on Fridays)
+    if (!isPremium) {
+      const timedUnlock = getTimedUnlockLimits(false);
+      const visibleLimit = timedUnlock?.VISIBLE_DATE_IDEAS ?? FREE_LIMITS.VISIBLE_DATE_IDEAS;
+      if (base.length > visibleLimit) {
+        base = base.slice(0, visibleLimit);
+      }
     }
     return base;
   }, [allDates, activeFilters, contentProfile, rawBoundaries, selectedHeat, selectedLoad, selectedStyle, isPremium]);
@@ -581,6 +585,14 @@ export default function DateNightScreen({ navigation }) {
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>The Deck</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>{toneCopy.subtitle}</Text>
+            {!isPremium && getTimedUnlockLimits(false) && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: colors.primary + '15', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start' }}>
+                <Icon name="sparkles" size={14} color={colors.primary} />
+                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>
+                  Friday Date Night — Extra ideas unlocked free today!
+                </Text>
+              </View>
+            )}
           </View>
           <TouchableOpacity
             style={[styles.filterToggle, { 
@@ -859,9 +871,9 @@ export default function DateNightScreen({ navigation }) {
             <View style={styles.editorialTag}>
               <Text style={[styles.editorialTagText, { color: colors.primary }]}>PREMIUM ACCESS</Text>
             </View>
-            <Text style={[styles.editorialTitle, { color: colors.text }]}>Unlock {allDates.length}+ Hidden Gems</Text>
+            <Text style={[styles.editorialTitle, { color: colors.text }]}>Unlock {allDates.length}+ Date Ideas</Text>
             <Text style={[styles.editorialBody, { color: colors.textMuted }]}>
-              Get full access to high-heat intimacy prompts and exclusive date plans.
+              You've seen {deck.length} of {allDates.length}+ curated plans. Upgrade to browse the full catalog with mood, budget, and heat filters.
             </Text>
           </TouchableOpacity>
         )}

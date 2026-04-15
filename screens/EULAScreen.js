@@ -146,7 +146,7 @@ const EULAScreen = ({ navigation }) => {
 
               <Text style={[styles.subTitle, { color: colors.text }]}>4. Subscriptions</Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-                Between Us offers optional in-app subscriptions (monthly, yearly, lifetime). Payment is
+                Between Us offers optional in-app subscriptions (monthly and yearly). Payment is
                 charged to your Apple ID account. Subscriptions auto-renew unless turned off at least 24
                 hours before the end of the current period. You can manage subscriptions in Settings {'>'} Apple
                 ID {'>'} Subscriptions on your device.

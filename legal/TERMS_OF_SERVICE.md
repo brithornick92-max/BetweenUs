@@ -87,7 +87,6 @@ You agree not to post content that:
 - Current pricing:
   - Monthly: $7.99/month
   - Yearly: $49.99/year
-  - Lifetime: $69.99 one-time payment
 - Prices may change with 30 days notice
 
 ### 5.2 Billing
@@ -95,7 +94,6 @@ You agree not to post content that:
 - Monthly and yearly subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period
 - Your account will be charged for renewal within 24 hours prior to the end of the current period at the same price
 - You can manage and cancel subscriptions in Settings > Apple ID > Subscriptions
-- Lifetime subscriptions are one-time payments with no renewal
 - Depending on your location, you may have additional cancellation or withdrawal rights under applicable law and App Store policies
 
 ### 5.3 Partner Access
@@ -107,7 +105,6 @@ You agree not to post content that:
 ### 5.4 Cancellation
 - You can cancel monthly or yearly subscriptions anytime through your app store account settings
 - Access to premium features continues until the end of your billing period
-- Lifetime subscriptions cannot be cancelled (one-time payment)
 - Your data remains accessible after cancellation
 - You can resubscribe at any time
 

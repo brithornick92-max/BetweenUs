@@ -10,6 +10,7 @@ import * as ExpoCrypto from 'expo-crypto';
 import { pbkdf2 } from '@noble/hashes/pbkdf2.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import CrashReporting from './CrashReporting';
+import WeeklyContentScheduler from './WeeklyContentScheduler';
 
 const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
 const PASSWORD_ITERATIONS = 60000;
@@ -524,7 +525,8 @@ class LocalStorageService {
       const promptsData = require('../content/prompts.json');
       const prompts = Array.isArray(promptsData?.items) ? promptsData.items : [];
       
-      let filteredPrompts = prompts;
+      // Drip content: only show items released up to the current week
+      let filteredPrompts = WeeklyContentScheduler.filterAvailable(prompts);
 
       // Apply filters
       if (filters.category) {
@@ -572,7 +574,8 @@ class LocalStorageService {
       const datesData = require('../content/dates.json');
       const dates = Array.isArray(datesData?.items) ? datesData.items : [];
       
-      let filteredDates = dates;
+      // Drip content: only show items released up to the current week
+      let filteredDates = WeeklyContentScheduler.filterAvailable(dates);
 
       // Apply filters
       if (filters.category) {

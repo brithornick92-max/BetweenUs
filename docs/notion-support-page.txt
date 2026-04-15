@@ -33,7 +33,7 @@ One partner generates an invite code or QR code in the app. The other scans or e
 Yes. Journal entries and shared content are end-to-end encrypted before leaving your device. We never sell your data or share it with advertisers.
 
 **How much does it cost?**
-Free version available. Premium: $7.99/month, $49.99/year, or $69.99 lifetime. One subscription covers both partners.
+Free version available. Premium: $7.99/month or $49.99/year. One subscription covers both partners.
 
 **How do I delete my account?**
 In the app: Settings → Privacy & Security → Delete Account.
@@ -133,7 +133,6 @@ You retain ownership of all content you create. You grant us a limited license t
 
 **Premium Monthly:** $7.99/month
 **Premium Yearly:** $49.99/year
-**Premium Lifetime:** $69.99 one-time
 
 Subscriptions are per couple — both partners get access. Payment is charged to your Apple ID. Monthly and yearly subscriptions auto-renew unless turned off at least 24 hours before the end of the current period. Manage subscriptions in your iPhone Settings → Apple ID → Subscriptions.
 

@@ -1,7 +1,7 @@
 // components/PremiumPaywall.jsx
 // Velvet Glass & Apple Editorial High-End Updates Integrated.
 // Palette: Deep Crimson, Obsidian, Liquid Silver (Strictly No Gold).
-// Removed Free Trial Language.
+// Free trial language restored for conversion lift.
 
 import React, { useState, useMemo } from "react";
 import {
@@ -118,9 +118,20 @@ const PremiumPaywall = ({
   const packages = offerings?.packages || [];
   const monthlyPkg = packages.find((p) => p.packageType === "MONTHLY");
   const yearlyPkg = packages.find((p) => p.packageType === "ANNUAL");
-  const lifetimePkg = packages.find((p) => p.packageType === "LIFETIME");
 
-  const FALLBACK_PRICES = { monthly: '$7.99', yearly: '$49.99', lifetime: '$69.99' };
+  const FALLBACK_PRICES = { monthly: '$7.99', yearly: '$49.99' };
+
+  // Detect intro/trial pricing from RevenueCat product metadata
+  const trialInfo = useMemo(() => {
+    const annualIntro = yearlyPkg?.product?.introPrice;
+    const monthlyIntro = monthlyPkg?.product?.introPrice;
+    const intro = annualIntro || monthlyIntro;
+    if (!intro) return null;
+    const period = intro.periodNumberOfUnits;
+    const unit = intro.periodUnit === 'DAY' ? 'day' : intro.periodUnit === 'WEEK' ? 'week' : 'month';
+    const isFree = intro.price === 0;
+    return { period, unit, isFree, priceString: intro.priceString };
+  }, [yearlyPkg, monthlyPkg]);
 
   const FEATURE_IONICONS = {
     [PremiumFeature.UNLIMITED_PROMPTS]: 'flame',
@@ -165,6 +176,14 @@ const PremiumPaywall = ({
           <Text style={[styles.subtitle, { color: colors.textMuted }]}>
             Deeper prompts, unlimited date planning, and encrypted intimacy for your most meaningful relationship.
           </Text>
+          {trialInfo?.isFree && (
+            <View style={styles.trialBadge}>
+              <Icon name="gift-outline" size={16} color="#FFF" />
+              <Text style={styles.trialBadgeText}>
+                Start with {trialInfo.period} free {trialInfo.unit}{trialInfo.period > 1 ? 's' : ''} — cancel anytime
+              </Text>
+            </View>
+          )}
         </Animated.View>
 
         <View style={styles.benefitSection}>
@@ -201,17 +220,6 @@ const PremiumPaywall = ({
             isDisabled={isSubscribing}
             isSelected={selectedTier === 'ANNUAL'}
           />
-          <PricingOption
-            pkg={lifetimePkg}
-            title="Lifetime"
-            price={lifetimePkg?.product?.priceString || FALLBACK_PRICES.lifetime}
-            subtext="One payment forever"
-            index={2}
-            onPress={() => { selection(); setSelectedTier('LIFETIME'); }}
-            isDisabled={isSubscribing}
-            isSelected={selectedTier === 'LIFETIME'}
-          />
-
           <Animated.View entering={FadeIn.delay(800).duration(600)} style={styles.perCoupleWrapper}>
             <Text style={[styles.perCoupleText, { color: colors.textMuted }]}>
               All prices are per couple.
@@ -249,7 +257,6 @@ const PremiumPaywall = ({
           style={styles.mainActionBtn} 
           onPress={() => handleSubscribe(
             selectedTier === 'MONTHLY' ? monthlyPkg :
-            selectedTier === 'LIFETIME' ? lifetimePkg :
             yearlyPkg || monthlyPkg
           )}
           disabled={isSubscribing}
@@ -258,7 +265,9 @@ const PremiumPaywall = ({
             {isSubscribing ? (
               <ActivityIndicator color="#FFF" size="small" />
             ) : (
-              <Text style={styles.mainActionText}>Unlock Full Access</Text>
+              <Text style={styles.mainActionText}>
+                {trialInfo?.isFree ? 'Start Free Trial' : 'Unlock Full Access'}
+              </Text>
             )}
           </LinearGradient>
         </TouchableOpacity>
@@ -354,6 +363,23 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
     opacity: 0.6,
+  },
+
+  trialBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: theme.crimson,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginTop: 16,
+  },
+  trialBadgeText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: -0.2,
   },
 
   closeButton: {

@@ -206,14 +206,13 @@ const TermsScreen = ({ navigation, route }) => {
                 Current pricing:{'\n'}
                 • Monthly: {FALLBACK_PRICES.monthly}/month{'\n'}
                 • Yearly: {FALLBACK_PRICES.yearly}/year{'\n'}
-                • Lifetime: {FALLBACK_PRICES.lifetime} one-time payment{'\n'}
                 • Prices may change with 30 days notice{'\n\n'}
                 Billing:{'\n'}
                 • Payment is charged to your Apple ID account at confirmation of purchase{'\n'}
                 • Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period{'\n'}
                 • Your account will be charged for renewal within 24 hours prior to the end of the current period{'\n'}
                 • You can manage and cancel subscriptions in Settings › Apple ID › Subscriptions{'\n'}
-                • Lifetime subscriptions are one-time payments with no renewal{'\n'}
+
                 • Depending on your location, you may have additional cancellation or withdrawal rights under applicable law and App Store policies{'\n\n'}
                 Partner Access:{'\n'}
                 • When you subscribe, your linked partner automatically gets premium access{'\n'}
@@ -222,7 +221,7 @@ const TermsScreen = ({ navigation, route }) => {
                 Cancellation:{'\n'}
                 • You can cancel monthly or yearly subscriptions anytime through your app store account settings{'\n'}
                 • Access to premium features continues until the end of your billing period{'\n'}
-                • Lifetime subscriptions cannot be cancelled (one-time payment){'\n'}
+
                 • Your data remains accessible after cancellation{'\n'}
                 • You can resubscribe at any time
               </Text>

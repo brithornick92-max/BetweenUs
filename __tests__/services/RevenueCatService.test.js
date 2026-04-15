@@ -272,7 +272,6 @@ describe('RevenueCatService', () => {
       const packages = [
         { packageType: 'MONTHLY', identifier: 'monthly' },
         { packageType: 'ANNUAL', identifier: 'annual' },
-        { packageType: 'LIFETIME', identifier: 'lifetime' },
       ];
       const sorted = RevenueCatService.sortPackages(packages);
       expect(sorted).toBeTruthy();

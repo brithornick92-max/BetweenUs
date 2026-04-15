@@ -84,7 +84,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_002",
@@ -93,7 +94,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_003",
@@ -102,7 +104,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_004",
@@ -111,7 +114,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_005",
@@ -120,7 +124,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_006",
@@ -129,7 +134,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_007",
@@ -138,7 +144,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_008",
@@ -147,7 +154,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_009",
@@ -156,7 +164,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_010",
@@ -165,7 +174,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_011",
@@ -177,7 +187,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_012",
@@ -186,7 +197,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_013",
@@ -195,7 +207,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_014",
@@ -204,7 +217,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_015",
@@ -213,7 +227,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_016",
@@ -222,7 +237,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_017",
@@ -231,7 +247,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_018",
@@ -240,7 +257,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_019",
@@ -249,7 +267,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_020",
@@ -258,7 +277,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_021",
@@ -267,7 +287,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_022",
@@ -276,7 +297,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_023",
@@ -286,7 +308,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_024",
@@ -295,7 +318,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_025",
@@ -304,7 +328,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_026",
@@ -313,7 +338,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_027",
@@ -324,7 +350,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_028",
@@ -333,7 +360,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_029",
@@ -342,7 +370,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_031",
@@ -351,7 +380,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_032",
@@ -360,7 +390,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_033",
@@ -369,7 +400,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_034",
@@ -378,7 +410,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_035",
@@ -387,7 +420,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_036",
@@ -396,7 +430,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_037",
@@ -405,7 +440,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_038",
@@ -414,7 +450,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_039",
@@ -424,7 +461,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_040",
@@ -433,7 +471,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_041",
@@ -442,7 +481,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_042",
@@ -451,7 +491,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_043",
@@ -462,7 +503,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_044",
@@ -471,7 +513,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_045",
@@ -480,7 +523,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_046",
@@ -489,7 +533,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_047",
@@ -498,7 +543,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_048",
@@ -507,7 +553,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_049",
@@ -516,7 +563,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_050",
@@ -525,7 +573,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_051",
@@ -536,7 +585,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_052",
@@ -545,7 +595,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_053",
@@ -556,7 +607,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_054",
@@ -565,7 +617,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_055",
@@ -576,16 +629,18 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_056",
-      "text": "How do our careers influence our relationship—for better or worse...",
+      "text": "How do our careers influence our relationship\u2014for better or worse...",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_057",
@@ -594,7 +649,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_058",
@@ -603,7 +659,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_059",
@@ -613,7 +670,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_060",
@@ -622,7 +680,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_061",
@@ -631,7 +690,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_062",
@@ -640,7 +700,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_063",
@@ -649,7 +710,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_064",
@@ -658,7 +720,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_065",
@@ -667,7 +730,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_066",
@@ -676,7 +740,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_068",
@@ -685,7 +750,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_069",
@@ -694,7 +760,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_070",
@@ -704,7 +771,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_071",
@@ -713,7 +781,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_072",
@@ -722,7 +791,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_073",
@@ -731,7 +801,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_074",
@@ -740,7 +811,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_075",
@@ -749,7 +821,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_076",
@@ -758,7 +831,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_077",
@@ -767,7 +841,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_078",
@@ -776,7 +851,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_079",
@@ -785,7 +861,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_080",
@@ -794,7 +871,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_081",
@@ -804,7 +882,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_082",
@@ -813,7 +892,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_083",
@@ -822,7 +902,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_084",
@@ -831,7 +912,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_085",
@@ -840,7 +922,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_086",
@@ -849,7 +932,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_087",
@@ -859,7 +943,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_088",
@@ -870,7 +955,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_089",
@@ -879,7 +965,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_090",
@@ -888,7 +975,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_091",
@@ -897,7 +985,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_092",
@@ -906,7 +995,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_093",
@@ -916,7 +1006,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_094",
@@ -925,7 +1016,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_095",
@@ -934,7 +1026,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_096",
@@ -943,7 +1036,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_098",
@@ -952,7 +1046,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_099",
@@ -961,7 +1056,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_100",
@@ -970,7 +1066,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_101",
@@ -979,7 +1076,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_102",
@@ -988,7 +1086,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_103",
@@ -997,7 +1096,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_104",
@@ -1006,7 +1106,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_105",
@@ -1015,7 +1116,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_106",
@@ -1024,7 +1126,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_107",
@@ -1033,7 +1136,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_108",
@@ -1042,7 +1146,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_109",
@@ -1051,7 +1156,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_110",
@@ -1060,7 +1166,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_111",
@@ -1069,7 +1176,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_112",
@@ -1079,7 +1187,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_113",
@@ -1089,7 +1198,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_114",
@@ -1099,7 +1209,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_115",
@@ -1108,7 +1219,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_116",
@@ -1117,7 +1229,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_117",
@@ -1126,7 +1239,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_118",
@@ -1135,7 +1249,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_119",
@@ -1144,7 +1259,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_120",
@@ -1153,7 +1269,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_121",
@@ -1162,7 +1279,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_122",
@@ -1171,7 +1289,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_123",
@@ -1181,7 +1300,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_124",
@@ -1190,7 +1310,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_125",
@@ -1199,7 +1320,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_126",
@@ -1208,7 +1330,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_127",
@@ -1217,7 +1340,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_128",
@@ -1226,7 +1350,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_129",
@@ -1235,7 +1360,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_130",
@@ -1244,7 +1370,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_131",
@@ -1254,7 +1381,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_132",
@@ -1264,7 +1392,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_133",
@@ -1275,7 +1404,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_134",
@@ -1284,7 +1414,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_135",
@@ -1293,7 +1424,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_136",
@@ -1302,7 +1434,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_137",
@@ -1311,7 +1444,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_138",
@@ -1320,7 +1454,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_139",
@@ -1331,7 +1466,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_140",
@@ -1342,7 +1478,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_141",
@@ -1351,7 +1488,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_142",
@@ -1360,7 +1498,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_144",
@@ -1369,7 +1508,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_145",
@@ -1378,7 +1518,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_146",
@@ -1388,7 +1529,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_147",
@@ -1397,7 +1539,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_148",
@@ -1408,7 +1551,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_149",
@@ -1417,7 +1561,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_150",
@@ -1426,7 +1571,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_151",
@@ -1435,7 +1581,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_152",
@@ -1444,7 +1591,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_153",
@@ -1453,7 +1601,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_154",
@@ -1462,7 +1611,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_155",
@@ -1471,7 +1621,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_156",
@@ -1482,7 +1633,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_157",
@@ -1491,7 +1643,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_158",
@@ -1500,7 +1653,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_159",
@@ -1509,7 +1663,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_160",
@@ -1518,7 +1673,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_161",
@@ -1527,7 +1683,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_162",
@@ -1536,7 +1693,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h1_163",
@@ -1545,7 +1703,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_001",
@@ -1557,7 +1716,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_002",
@@ -1567,7 +1727,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_003",
@@ -1579,7 +1740,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_004",
@@ -1590,7 +1752,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_005",
@@ -1601,7 +1764,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_006",
@@ -1613,7 +1777,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_007",
@@ -1624,7 +1789,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_008",
@@ -1635,7 +1801,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_009",
@@ -1647,7 +1814,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_010",
@@ -1659,7 +1827,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_011",
@@ -1671,7 +1840,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_012",
@@ -1681,7 +1851,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_013",
@@ -1692,7 +1863,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_014",
@@ -1703,7 +1875,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_015",
@@ -1714,7 +1887,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_016",
@@ -1724,7 +1898,8 @@
       "relationshipDuration": [
         "developing",
         "established"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_017",
@@ -1735,7 +1910,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_018",
@@ -1746,7 +1922,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_019",
@@ -1757,7 +1934,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_020",
@@ -1768,7 +1946,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_021",
@@ -1779,7 +1958,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_022",
@@ -1790,7 +1970,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_023",
@@ -1801,7 +1982,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_024",
@@ -1812,7 +1994,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_025",
@@ -1823,7 +2006,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_026",
@@ -1833,7 +2017,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_027",
@@ -1844,7 +2029,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_028",
@@ -1856,7 +2042,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_029",
@@ -1867,7 +2054,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_030",
@@ -1878,7 +2066,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_031",
@@ -1889,7 +2078,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_032",
@@ -1900,7 +2090,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_033",
@@ -1911,7 +2102,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_034",
@@ -1922,7 +2114,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_035",
@@ -1933,7 +2126,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_036",
@@ -1944,7 +2138,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_037",
@@ -1955,7 +2150,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_038",
@@ -1966,7 +2162,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_039",
@@ -1977,7 +2174,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_040",
@@ -1988,7 +2186,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_041",
@@ -1999,7 +2198,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_042",
@@ -2010,7 +2210,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_043",
@@ -2022,7 +2223,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_044",
@@ -2033,7 +2235,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_045",
@@ -2044,7 +2247,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_046",
@@ -2055,7 +2259,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_047",
@@ -2066,7 +2271,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_049",
@@ -2077,7 +2283,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_050",
@@ -2088,7 +2295,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_051",
@@ -2098,18 +2306,20 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_052",
-      "text": "It's pouring out…do you want to go kiss in the rain?",
+      "text": "It's pouring out\u2026do you want to go kiss in the rain?",
       "category": "romance",
       "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 0
     },
     {
       "id": "h2_053",
@@ -2119,7 +2329,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 1
     },
     {
       "id": "h2_054",
@@ -2129,7 +2340,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 1
     },
     {
       "id": "h2_055",
@@ -2140,7 +2352,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 1
     },
     {
       "id": "h2_056",
@@ -2151,7 +2364,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 1
     },
     {
       "id": "h2_057",
@@ -2161,7 +2375,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 1
     },
     {
       "id": "h2_058",
@@ -2172,7 +2387,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 1
     },
     {
       "id": "h2_059",
@@ -2183,7 +2399,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 1
     },
     {
       "id": "h3_001",
@@ -2195,7 +2412,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 1
     },
     {
       "id": "h3_002",
@@ -2207,7 +2425,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 1
     },
     {
       "id": "h3_003",
@@ -2219,7 +2438,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 2
     },
     {
       "id": "h3_004",
@@ -2230,7 +2450,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 2
     },
     {
       "id": "h3_005",
@@ -2241,7 +2462,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 2
     },
     {
       "id": "h3_006",
@@ -2252,7 +2474,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 2
     },
     {
       "id": "h3_007",
@@ -2263,7 +2486,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 2
     },
     {
       "id": "h3_008",
@@ -2274,7 +2498,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 2
     },
     {
       "id": "h3_009",
@@ -2285,7 +2510,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 2
     },
     {
       "id": "h3_010",
@@ -2297,7 +2523,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 2
     },
     {
       "id": "h3_011",
@@ -2308,7 +2535,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 2
     },
     {
       "id": "h3_012",
@@ -2319,7 +2547,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 3
     },
     {
       "id": "h3_013",
@@ -2330,7 +2559,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 3
     },
     {
       "id": "h3_014",
@@ -2341,7 +2571,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 3
     },
     {
       "id": "h3_015",
@@ -2352,7 +2583,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 3
     },
     {
       "id": "h3_016",
@@ -2363,7 +2595,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 3
     },
     {
       "id": "h3_017",
@@ -2374,7 +2607,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 3
     },
     {
       "id": "h3_018",
@@ -2385,7 +2619,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 3
     },
     {
       "id": "h3_019",
@@ -2396,7 +2631,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 3
     },
     {
       "id": "h3_020",
@@ -2407,7 +2643,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 3
     },
     {
       "id": "h3_021",
@@ -2418,7 +2655,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 4
     },
     {
       "id": "h3_022",
@@ -2429,7 +2667,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 4
     },
     {
       "id": "h3_023",
@@ -2440,7 +2679,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 4
     },
     {
       "id": "h3_024",
@@ -2451,7 +2691,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 4
     },
     {
       "id": "h3_025",
@@ -2462,7 +2703,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 4
     },
     {
       "id": "h3_026",
@@ -2473,7 +2715,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 4
     },
     {
       "id": "h3_027",
@@ -2484,7 +2727,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 4
     },
     {
       "id": "h3_028",
@@ -2495,7 +2739,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 4
     },
     {
       "id": "h3_029",
@@ -2506,7 +2751,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 4
     },
     {
       "id": "h3_030",
@@ -2517,7 +2763,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 5
     },
     {
       "id": "h3_031",
@@ -2528,7 +2775,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 5
     },
     {
       "id": "h3_032",
@@ -2539,7 +2787,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 5
     },
     {
       "id": "h3_033",
@@ -2550,7 +2799,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 5
     },
     {
       "id": "h3_034",
@@ -2561,7 +2811,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 5
     },
     {
       "id": "h3_035",
@@ -2572,7 +2823,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 5
     },
     {
       "id": "h3_036",
@@ -2583,7 +2835,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 5
     },
     {
       "id": "h3_037",
@@ -2594,7 +2847,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 5
     },
     {
       "id": "h3_038",
@@ -2606,7 +2860,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 5
     },
     {
       "id": "h3_039",
@@ -2617,7 +2872,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 6
     },
     {
       "id": "h3_040",
@@ -2628,7 +2884,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 6
     },
     {
       "id": "h3_041",
@@ -2639,7 +2896,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 6
     },
     {
       "id": "h3_042",
@@ -2650,7 +2908,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 6
     },
     {
       "id": "h3_043",
@@ -2661,7 +2920,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 6
     },
     {
       "id": "h3_044",
@@ -2672,7 +2932,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 6
     },
     {
       "id": "h3_045",
@@ -2683,7 +2944,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 6
     },
     {
       "id": "h3_046",
@@ -2694,7 +2956,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 6
     },
     {
       "id": "h3_047",
@@ -2705,7 +2968,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 6
     },
     {
       "id": "h3_048",
@@ -2716,7 +2980,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 7
     },
     {
       "id": "h3_049",
@@ -2727,7 +2992,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 7
     },
     {
       "id": "h3_050",
@@ -2738,7 +3004,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 7
     },
     {
       "id": "h3_051",
@@ -2749,7 +3016,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 7
     },
     {
       "id": "h3_052",
@@ -2760,7 +3028,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 7
     },
     {
       "id": "h3_053",
@@ -2771,7 +3040,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 7
     },
     {
       "id": "h3_054",
@@ -2782,7 +3052,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 7
     },
     {
       "id": "h3_055",
@@ -2793,7 +3064,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 7
     },
     {
       "id": "h3_056",
@@ -2804,7 +3076,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 7
     },
     {
       "id": "h3_057",
@@ -2815,7 +3088,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 8
     },
     {
       "id": "h3_058",
@@ -2826,7 +3100,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 8
     },
     {
       "id": "h3_059",
@@ -2838,7 +3113,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 8
     },
     {
       "id": "h3_060",
@@ -2850,7 +3126,8 @@
         "established",
         "mature",
         "universal"
-      ]
+      ],
+      "releaseWeek": 8
     },
     {
       "id": "h3_061",
@@ -2861,7 +3138,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 8
     },
     {
       "id": "h3_062",
@@ -2872,7 +3150,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 8
     },
     {
       "id": "h3_063",
@@ -2883,7 +3162,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 8
     },
     {
       "id": "h3_064",
@@ -2894,7 +3174,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 8
     },
     {
       "id": "h3_065",
@@ -2905,7 +3186,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 8
     },
     {
       "id": "h3_066",
@@ -2916,7 +3198,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 9
     },
     {
       "id": "h3_067",
@@ -2927,7 +3210,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 9
     },
     {
       "id": "h3_068",
@@ -2938,7 +3222,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 9
     },
     {
       "id": "h3_069",
@@ -2949,7 +3234,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 9
     },
     {
       "id": "h3_070",
@@ -2961,7 +3247,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 9
     },
     {
       "id": "h3_071",
@@ -2972,7 +3259,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 9
     },
     {
       "id": "h3_072",
@@ -2983,7 +3271,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 9
     },
     {
       "id": "h3_073",
@@ -2994,7 +3283,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 9
     },
     {
       "id": "h3_074",
@@ -3005,7 +3295,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 9
     },
     {
       "id": "h3_075",
@@ -3016,7 +3307,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 10
     },
     {
       "id": "h3_081",
@@ -3027,7 +3319,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 10
     },
     {
       "id": "h4_001",
@@ -3039,7 +3332,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 10
     },
     {
       "id": "h4_002",
@@ -3050,7 +3344,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 10
     },
     {
       "id": "h4_003",
@@ -3061,7 +3356,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 10
     },
     {
       "id": "h4_004",
@@ -3072,7 +3368,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 10
     },
     {
       "id": "h4_005",
@@ -3084,7 +3381,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 10
     },
     {
       "id": "h4_006",
@@ -3096,7 +3394,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 10
     },
     {
       "id": "h4_007",
@@ -3108,7 +3407,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 10
     },
     {
       "id": "h4_008",
@@ -3119,7 +3419,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 11
     },
     {
       "id": "h4_009",
@@ -3130,7 +3431,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 11
     },
     {
       "id": "h4_010",
@@ -3141,7 +3443,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 11
     },
     {
       "id": "h4_011",
@@ -3152,7 +3455,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 11
     },
     {
       "id": "h4_012",
@@ -3163,7 +3467,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 11
     },
     {
       "id": "h4_013",
@@ -3174,7 +3479,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 11
     },
     {
       "id": "h4_014",
@@ -3185,7 +3491,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 11
     },
     {
       "id": "h4_015",
@@ -3196,7 +3503,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 11
     },
     {
       "id": "h4_016",
@@ -3207,7 +3515,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 11
     },
     {
       "id": "h4_017",
@@ -3218,7 +3527,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 12
     },
     {
       "id": "h4_018",
@@ -3230,7 +3540,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 12
     },
     {
       "id": "h4_019",
@@ -3241,7 +3552,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 12
     },
     {
       "id": "h4_020",
@@ -3252,7 +3564,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 12
     },
     {
       "id": "h4_021",
@@ -3263,7 +3576,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 12
     },
     {
       "id": "h4_022",
@@ -3274,7 +3588,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 12
     },
     {
       "id": "h4_023",
@@ -3286,7 +3601,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 12
     },
     {
       "id": "h4_024",
@@ -3297,7 +3613,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 12
     },
     {
       "id": "h4_025",
@@ -3308,7 +3625,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 12
     },
     {
       "id": "h4_026",
@@ -3319,7 +3637,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 13
     },
     {
       "id": "h4_027",
@@ -3330,7 +3649,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 13
     },
     {
       "id": "h4_028",
@@ -3341,7 +3661,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 13
     },
     {
       "id": "h4_029",
@@ -3352,7 +3673,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 13
     },
     {
       "id": "h4_030",
@@ -3363,7 +3685,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 13
     },
     {
       "id": "h4_031",
@@ -3374,7 +3697,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 13
     },
     {
       "id": "h4_032",
@@ -3385,7 +3709,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 13
     },
     {
       "id": "h4_033",
@@ -3396,7 +3721,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 13
     },
     {
       "id": "h4_034",
@@ -3407,7 +3733,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 13
     },
     {
       "id": "h4_035",
@@ -3418,7 +3745,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 14
     },
     {
       "id": "h4_036",
@@ -3429,7 +3757,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 14
     },
     {
       "id": "h4_037",
@@ -3440,7 +3769,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 14
     },
     {
       "id": "h4_038",
@@ -3451,7 +3781,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 14
     },
     {
       "id": "h4_039",
@@ -3462,7 +3793,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 14
     },
     {
       "id": "h4_040",
@@ -3473,7 +3805,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 14
     },
     {
       "id": "h4_041",
@@ -3484,7 +3817,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 14
     },
     {
       "id": "h4_042",
@@ -3495,7 +3829,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 14
     },
     {
       "id": "h4_043",
@@ -3506,7 +3841,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 14
     },
     {
       "id": "h4_044",
@@ -3517,7 +3853,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 15
     },
     {
       "id": "h4_045",
@@ -3528,7 +3865,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 15
     },
     {
       "id": "h4_046",
@@ -3539,7 +3877,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 15
     },
     {
       "id": "h4_047",
@@ -3550,7 +3889,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 15
     },
     {
       "id": "h4_048",
@@ -3561,7 +3901,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 15
     },
     {
       "id": "h4_049",
@@ -3572,7 +3913,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 15
     },
     {
       "id": "h4_050",
@@ -3583,7 +3925,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 15
     },
     {
       "id": "h4_051",
@@ -3594,18 +3937,20 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 15
     },
     {
       "id": "h4_052",
-      "text": "We've been dancing around something new in the bedroom. Describe exactly what you want to try — the setup, the mood, and how you imagine it playing out between us...",
+      "text": "We've been dancing around something new in the bedroom. Describe exactly what you want to try \u2014 the setup, the mood, and how you imagine it playing out between us...",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 15
     },
     {
       "id": "h4_053",
@@ -3616,7 +3961,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 16
     },
     {
       "id": "h4_054",
@@ -3628,7 +3974,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 16
     },
     {
       "id": "h4_055",
@@ -3639,7 +3986,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 16
     },
     {
       "id": "h4_056",
@@ -3651,7 +3999,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 16
     },
     {
       "id": "h4_057",
@@ -3662,7 +4011,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 16
     },
     {
       "id": "h4_058",
@@ -3673,7 +4023,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 16
     },
     {
       "id": "h4_059",
@@ -3684,7 +4035,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 16
     },
     {
       "id": "h4_060",
@@ -3695,7 +4047,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 16
     },
     {
       "id": "h4_061",
@@ -3706,7 +4059,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 16
     },
     {
       "id": "h4_062",
@@ -3717,7 +4071,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 17
     },
     {
       "id": "h4_063",
@@ -3728,7 +4083,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 17
     },
     {
       "id": "h4_064",
@@ -3739,18 +4095,20 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 17
     },
     {
       "id": "h4_065",
-      "text": "If you could write the script for our dirty talk tonight, what would you have me say to you — and what would you whisper back? Start from the first words...",
+      "text": "If you could write the script for our dirty talk tonight, what would you have me say to you \u2014 and what would you whisper back? Start from the first words...",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 17
     },
     {
       "id": "h4_066",
@@ -3761,7 +4119,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 17
     },
     {
       "id": "h4_067",
@@ -3772,18 +4131,20 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 17
     },
     {
       "id": "h4_068",
-      "text": "Describe how you'd want us to touch ourselves together in the same room — the lighting, the eye contact, who starts first, and every detail of watching each other...",
+      "text": "Describe how you'd want us to touch ourselves together in the same room \u2014 the lighting, the eye contact, who starts first, and every detail of watching each other...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 17
     },
     {
       "id": "h4_069",
@@ -3794,7 +4155,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 17
     },
     {
       "id": "h4_070",
@@ -3805,7 +4167,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 17
     },
     {
       "id": "h4_071",
@@ -3816,29 +4179,32 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 18
     },
     {
       "id": "h4_072",
-      "text": "We're cooking dinner and the tension gets unbearable. Describe how the evening unfolds from the kitchen counter to wherever we end up — the spontaneity, the urgency, every detail...",
+      "text": "We're cooking dinner and the tension gets unbearable. Describe how the evening unfolds from the kitchen counter to wherever we end up \u2014 the spontaneity, the urgency, every detail...",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 18
     },
     {
       "id": "h4_073",
-      "text": "Picture us on a long flight in first class with a blanket over us. Describe the mile-high fantasy — the thrill, the risk, what happens under that blanket, and how we keep composure...",
+      "text": "Picture us on a long flight in first class with a blanket over us. Describe the mile-high fantasy \u2014 the thrill, the risk, what happens under that blanket, and how we keep composure...",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 18
     },
     {
       "id": "h4_074",
@@ -3849,7 +4215,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 18
     },
     {
       "id": "h4_075",
@@ -3860,7 +4227,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 18
     },
     {
       "id": "h4_076",
@@ -3871,18 +4239,20 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 18
     },
     {
       "id": "h4_077",
-      "text": "We're alone in a private pool at midnight under the stars. The warm water is around us. Describe how the evening unfolds — where your hands go underwater, how we move together...",
+      "text": "We're alone in a private pool at midnight under the stars. The warm water is around us. Describe how the evening unfolds \u2014 where your hands go underwater, how we move together...",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 18
     },
     {
       "id": "h4_078",
@@ -3893,7 +4263,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 18
     },
     {
       "id": "h4_079",
@@ -3904,7 +4275,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 18
     },
     {
       "id": "h4_080",
@@ -3915,7 +4287,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 19
     },
     {
       "id": "h4_081",
@@ -3926,7 +4299,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 19
     },
     {
       "id": "h4_082",
@@ -3937,18 +4311,20 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 19
     },
     {
       "id": "h4_083",
-      "text": "One of us is blindfolded and completely at the other's mercy. Describe the full scene — who wears the blindfold, what sensations you use to drive them wild, every teasing moment from start to finish...",
+      "text": "One of us is blindfolded and completely at the other's mercy. Describe the full scene \u2014 who wears the blindfold, what sensations you use to drive them wild, every teasing moment from start to finish...",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 19
     },
     {
       "id": "h4_084",
@@ -3959,7 +4335,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 19
     },
     {
       "id": "h4_085",
@@ -3969,7 +4346,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 19
     },
     {
       "id": "h4_086",
@@ -3980,7 +4358,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 19
     },
     {
       "id": "h4_087",
@@ -3991,7 +4370,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 19
     },
     {
       "id": "h4_088",
@@ -4002,7 +4382,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 19
     },
     {
       "id": "h4_089",
@@ -4013,29 +4394,32 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 20
     },
     {
       "id": "h4_090",
-      "text": "Describe in detail your favorite thing about giving me oral — the sounds I make, the way my body responds, the specific moments that drive you to keep going...",
+      "text": "Describe in detail your favorite thing about giving me oral \u2014 the sounds I make, the way my body responds, the specific moments that drive you to keep going...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 20
     },
     {
       "id": "h4_091",
-      "text": "If we were to explore inviting someone else into our bedroom, describe how you'd want that night to unfold — the boundaries, the dynamic, every detail of how the three of us interact...",
+      "text": "If we were to explore inviting someone else into our bedroom, describe how you'd want that night to unfold \u2014 the boundaries, the dynamic, every detail of how the three of us interact...",
       "category": "fantasy",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 20
     },
     {
       "id": "h4_092",
@@ -4046,18 +4430,20 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 20
     },
     {
       "id": "h4_093",
-      "text": "Describe from start to finish your ideal scenario for what happens when you take complete control on top — the pace, the positions, my reactions, how you make us both finish...",
+      "text": "Describe from start to finish your ideal scenario for what happens when you take complete control on top \u2014 the pace, the positions, my reactions, how you make us both finish...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 20
     },
     {
       "id": "h5_001",
@@ -4068,7 +4454,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 20
     },
     {
       "id": "h5_002",
@@ -4079,7 +4466,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 20
     },
     {
       "id": "h5_003",
@@ -4089,7 +4477,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 20
     },
     {
       "id": "h5_004",
@@ -4099,7 +4488,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 20
     },
     {
       "id": "h5_005",
@@ -4109,7 +4499,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 21
     },
     {
       "id": "h5_006",
@@ -4119,7 +4510,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 21
     },
     {
       "id": "h5_007",
@@ -4129,7 +4521,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 21
     },
     {
       "id": "h5_008",
@@ -4140,7 +4533,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 21
     },
     {
       "id": "h5_009",
@@ -4150,7 +4544,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 21
     },
     {
       "id": "h5_010",
@@ -4160,7 +4555,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 21
     },
     {
       "id": "h5_011",
@@ -4170,7 +4566,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 21
     },
     {
       "id": "h5_012",
@@ -4180,7 +4577,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 21
     },
     {
       "id": "h5_013",
@@ -4190,7 +4588,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 21
     },
     {
       "id": "h5_014",
@@ -4200,7 +4599,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 22
     },
     {
       "id": "h5_015",
@@ -4211,7 +4611,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 22
     },
     {
       "id": "h5_016",
@@ -4221,7 +4622,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 22
     },
     {
       "id": "h5_017",
@@ -4231,7 +4633,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 22
     },
     {
       "id": "h5_018",
@@ -4241,7 +4644,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 22
     },
     {
       "id": "h5_019",
@@ -4251,7 +4655,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 22
     },
     {
       "id": "h5_020",
@@ -4261,17 +4666,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 22
     },
     {
       "id": "h5_021",
-      "text": "Guide my hands across your body right now — tell me exactly where to go and what to do until you can't take it anymore...",
+      "text": "Guide my hands across your body right now \u2014 tell me exactly where to go and what to do until you can't take it anymore...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 22
     },
     {
       "id": "h5_022",
@@ -4281,7 +4688,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 22
     },
     {
       "id": "h5_023",
@@ -4291,7 +4699,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 23
     },
     {
       "id": "h5_024",
@@ -4301,7 +4710,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 23
     },
     {
       "id": "h5_025",
@@ -4311,7 +4721,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 23
     },
     {
       "id": "h5_026",
@@ -4321,7 +4732,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 23
     },
     {
       "id": "h5_027",
@@ -4331,7 +4743,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 23
     },
     {
       "id": "h5_028",
@@ -4341,7 +4754,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 23
     },
     {
       "id": "h5_029",
@@ -4351,17 +4765,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 23
     },
     {
       "id": "h5_030",
-      "text": "Tell me about a time you almost lost control with me — and what would push you completely over the edge...",
+      "text": "Tell me about a time you almost lost control with me \u2014 and what would push you completely over the edge...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 23
     },
     {
       "id": "h5_031",
@@ -4371,7 +4787,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 23
     },
     {
       "id": "h5_032",
@@ -4381,7 +4798,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 24
     },
     {
       "id": "h5_033",
@@ -4391,7 +4809,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 24
     },
     {
       "id": "h5_034",
@@ -4401,7 +4820,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 24
     },
     {
       "id": "h5_035",
@@ -4411,7 +4831,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 24
     },
     {
       "id": "h5_036",
@@ -4421,7 +4842,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 24
     },
     {
       "id": "h5_037",
@@ -4431,17 +4853,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 24
     },
     {
       "id": "h5_038",
-      "text": "Describe the most intense lovemaking session you can imagine us having — from the first touch to the last breath...",
+      "text": "Describe the most intense lovemaking session you can imagine us having \u2014 from the first touch to the last breath...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 24
     },
     {
       "id": "h5_039",
@@ -4451,7 +4875,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 24
     },
     {
       "id": "h5_040",
@@ -4461,7 +4886,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 24
     },
     {
       "id": "h5_041",
@@ -4471,7 +4897,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 25
     },
     {
       "id": "h5_042",
@@ -4481,7 +4908,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 25
     },
     {
       "id": "h5_043",
@@ -4491,7 +4919,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 25
     },
     {
       "id": "h5_044",
@@ -4501,7 +4930,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 25
     },
     {
       "id": "h5_045",
@@ -4511,7 +4941,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 25
     },
     {
       "id": "h5_046",
@@ -4521,7 +4952,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 25
     },
     {
       "id": "h5_047",
@@ -4531,17 +4963,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 25
     },
     {
       "id": "h5_048",
-      "text": "Walk me through exactly how you want tonight to end — every position, every touch, every word...",
+      "text": "Walk me through exactly how you want tonight to end \u2014 every position, every touch, every word...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 25
     },
     {
       "id": "h5_049",
@@ -4551,7 +4985,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 25
     },
     {
       "id": "h5_050",
@@ -4561,7 +4996,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 26
     },
     {
       "id": "h5_051",
@@ -4571,7 +5007,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 26
     },
     {
       "id": "h5_052",
@@ -4581,7 +5018,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 26
     },
     {
       "id": "h5_053",
@@ -4591,7 +5029,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 26
     },
     {
       "id": "h5_054",
@@ -4601,7 +5040,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 26
     },
     {
       "id": "h5_055",
@@ -4611,7 +5051,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 26
     },
     {
       "id": "h5_056",
@@ -4622,7 +5063,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 26
     },
     {
       "id": "h5_057",
@@ -4632,7 +5074,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 26
     },
     {
       "id": "h5_058",
@@ -4642,7 +5085,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 26
     },
     {
       "id": "h5_059",
@@ -4652,7 +5096,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 27
     },
     {
       "id": "h5_060",
@@ -4662,7 +5107,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 27
     },
     {
       "id": "h5_061",
@@ -4672,7 +5118,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 27
     },
     {
       "id": "h1_164",
@@ -4682,7 +5129,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 27
     },
     {
       "id": "h1_165",
@@ -4691,7 +5139,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 27
     },
     {
       "id": "h1_166",
@@ -4700,7 +5149,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 27
     },
     {
       "id": "h1_167",
@@ -4709,7 +5159,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 27
     },
     {
       "id": "h1_168",
@@ -4718,7 +5169,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 27
     },
     {
       "id": "h2_060",
@@ -4729,7 +5181,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 27
     },
     {
       "id": "h2_061",
@@ -4740,7 +5193,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 28
     },
     {
       "id": "h2_062",
@@ -4751,7 +5205,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 28
     },
     {
       "id": "h2_063",
@@ -4762,7 +5217,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 28
     },
     {
       "id": "h2_064",
@@ -4773,7 +5229,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 28
     },
     {
       "id": "h3_076",
@@ -4784,7 +5241,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 28
     },
     {
       "id": "h3_077",
@@ -4795,7 +5253,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 28
     },
     {
       "id": "h3_078",
@@ -4806,7 +5265,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 28
     },
     {
       "id": "h3_079",
@@ -4817,7 +5277,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 28
     },
     {
       "id": "h3_080",
@@ -4828,7 +5289,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 28
     },
     {
       "id": "h4_094",
@@ -4839,7 +5301,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 29
     },
     {
       "id": "h4_095",
@@ -4850,7 +5313,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 29
     },
     {
       "id": "h4_096",
@@ -4861,7 +5325,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 29
     },
     {
       "id": "h4_097",
@@ -4872,7 +5337,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 29
     },
     {
       "id": "h4_098",
@@ -4883,7 +5349,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 29
     },
     {
       "id": "h5_062",
@@ -4893,7 +5360,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 29
     },
     {
       "id": "h5_063",
@@ -4903,7 +5371,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 29
     },
     {
       "id": "h5_064",
@@ -4913,7 +5382,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 29
     },
     {
       "id": "h5_065",
@@ -4923,7 +5393,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 29
     },
     {
       "id": "h5_066",
@@ -4933,7 +5404,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 30
     },
     {
       "id": "h5_067",
@@ -4943,17 +5415,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 30
     },
     {
       "id": "h5_068",
-      "text": "I'm a stranger who just moved in next door. You come over to introduce yourself and find me barely dressed. The tension is unbearable. Describe how we go from small talk to you pinning me against my kitchen counter — every touch, every piece of clothing that comes off...",
+      "text": "I'm a stranger who just moved in next door. You come over to introduce yourself and find me barely dressed. The tension is unbearable. Describe how we go from small talk to you pinning me against my kitchen counter \u2014 every touch, every piece of clothing that comes off...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 30
     },
     {
       "id": "h5_069",
@@ -4963,7 +5437,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 30
     },
     {
       "id": "h5_070",
@@ -4973,17 +5448,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 30
     },
     {
       "id": "h5_071",
-      "text": "We're strangers at a hotel bar. You slide a room key across the counter with a note that says 'Room 1204. Don't knock.' Describe everything that happens from the moment I open that door — what I find, what you're wearing, and how you take control of every moment...",
+      "text": "We're strangers at a hotel bar. You slide a room key across the counter with a note that says 'Room 1204. Don't knock.' Describe everything that happens from the moment I open that door \u2014 what I find, what you're wearing, and how you take control of every moment...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 30
     },
     {
       "id": "h5_072",
@@ -4993,7 +5470,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 30
     },
     {
       "id": "h5_073",
@@ -5003,7 +5481,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 30
     },
     {
       "id": "h5_074",
@@ -5013,7 +5492,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 30
     },
     {
       "id": "h5_075",
@@ -5023,7 +5503,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 31
     },
     {
       "id": "h5_076",
@@ -5033,17 +5514,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 31
     },
     {
       "id": "h5_077",
-      "text": "We meet at a masquerade party and we don't recognize each other behind our masks. Describe the raw, uninhibited encounter between two 'strangers' — how we dance, how we disappear to a private room, and every explicit detail of what we do without ever removing our masks...",
+      "text": "We meet at a masquerade party and we don't recognize each other behind our masks. Describe the raw, uninhibited encounter between two 'strangers' \u2014 how we dance, how we disappear to a private room, and every explicit detail of what we do without ever removing our masks...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 31
     },
     {
       "id": "h5_078",
@@ -5053,7 +5536,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 31
     },
     {
       "id": "h5_079",
@@ -5063,7 +5547,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 31
     },
     {
       "id": "h5_080",
@@ -5073,7 +5558,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 31
     },
     {
       "id": "h1_169",
@@ -5083,7 +5569,8 @@
       "relationshipDuration": [
         "new",
         "developing"
-      ]
+      ],
+      "releaseWeek": 31
     },
     {
       "id": "h1_170",
@@ -5092,7 +5579,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 31
     },
     {
       "id": "h1_171",
@@ -5102,7 +5590,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 31
     },
     {
       "id": "h1_172",
@@ -5111,7 +5600,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 32
     },
     {
       "id": "h1_173",
@@ -5120,7 +5610,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 32
     },
     {
       "id": "h1_174",
@@ -5129,7 +5620,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 32
     },
     {
       "id": "h1_175",
@@ -5138,7 +5630,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 32
     },
     {
       "id": "h1_176",
@@ -5147,7 +5640,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 32
     },
     {
       "id": "h1_177",
@@ -5156,7 +5650,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 32
     },
     {
       "id": "h1_178",
@@ -5165,7 +5660,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 32
     },
     {
       "id": "h2_065",
@@ -5176,7 +5672,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 32
     },
     {
       "id": "h2_066",
@@ -5187,7 +5684,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 32
     },
     {
       "id": "h2_067",
@@ -5198,7 +5696,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 33
     },
     {
       "id": "h2_068",
@@ -5209,7 +5708,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 33
     },
     {
       "id": "h2_069",
@@ -5220,7 +5720,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 33
     },
     {
       "id": "h2_070",
@@ -5231,7 +5732,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 33
     },
     {
       "id": "h2_071",
@@ -5242,7 +5744,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 33
     },
     {
       "id": "h2_072",
@@ -5253,7 +5756,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 33
     },
     {
       "id": "h3_088",
@@ -5264,7 +5768,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 33
     },
     {
       "id": "h3_082",
@@ -5275,7 +5780,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 33
     },
     {
       "id": "h3_083",
@@ -5286,7 +5792,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 33
     },
     {
       "id": "h3_084",
@@ -5297,7 +5804,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 34
     },
     {
       "id": "h3_085",
@@ -5308,7 +5816,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 34
     },
     {
       "id": "h3_086",
@@ -5319,7 +5828,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 34
     },
     {
       "id": "h3_087",
@@ -5330,7 +5840,8 @@
         "developing",
         "established",
         "mature"
-      ]
+      ],
+      "releaseWeek": 34
     },
     {
       "id": "h4_099",
@@ -5341,7 +5852,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 34
     },
     {
       "id": "h4_100",
@@ -5352,7 +5864,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 34
     },
     {
       "id": "h4_101",
@@ -5363,7 +5876,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 34
     },
     {
       "id": "h4_102",
@@ -5374,7 +5888,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 34
     },
     {
       "id": "h4_103",
@@ -5385,7 +5900,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 34
     },
     {
       "id": "h4_104",
@@ -5396,7 +5912,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 35
     },
     {
       "id": "h4_105",
@@ -5407,37 +5924,41 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 35
     },
     {
       "id": "h5_081",
-      "text": "I'm interviewing for a position at your company. You close the blinds and tell me the final round is a 'practical assessment.' Describe the power dynamic — how you direct me from behind your desk, what you make me demonstrate, and how I earn the job in graphic detail...",
+      "text": "I'm interviewing for a position at your company. You close the blinds and tell me the final round is a 'practical assessment.' Describe the power dynamic \u2014 how you direct me from behind your desk, what you make me demonstrate, and how I earn the job in graphic detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 35
     },
     {
       "id": "h5_082",
-      "text": "You're a bartender and I'm the last customer. You lock the front door and pour us both a shot. Describe how we go from flirting to you lifting me onto the bar — every detail of what your hands do, where your mouth goes, and how we christen every surface in that bar...",
+      "text": "You're a bartender and I'm the last customer. You lock the front door and pour us both a shot. Describe how we go from flirting to you lifting me onto the bar \u2014 every detail of what your hands do, where your mouth goes, and how we christen every surface in that bar...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 35
     },
     {
       "id": "h5_083",
-      "text": "I want to ride you while you play with me at the same time — describe exactly how you want that to feel for both of us...",
+      "text": "I want to ride you while you play with me at the same time \u2014 describe exactly how you want that to feel for both of us...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 35
     },
     {
       "id": "h5_084",
@@ -5447,17 +5968,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 35
     },
     {
       "id": "h5_085",
-      "text": "You're my dance instructor teaching me the tango. Describe how the lesson escalates — your hand sliding lower on my back, our hips grinding together to the rhythm, and what happens when you press me against the mirror and the dancing turns into something far more passionate...",
+      "text": "You're my dance instructor teaching me the tango. Describe how the lesson escalates \u2014 your hand sliding lower on my back, our hips grinding together to the rhythm, and what happens when you press me against the mirror and the dancing turns into something far more passionate...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 35
     },
     {
       "id": "h5_086",
@@ -5467,17 +5990,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 35
     },
     {
       "id": "h5_087",
-      "text": "I'm a guest at your bed and breakfast and I accidentally walk into your room. You're freshly out of the shower with just a towel. Describe the charged energy between us — how the towel drops, what happens against the door, and every explicit detail of the next hour...",
+      "text": "I'm a guest at your bed and breakfast and I accidentally walk into your room. You're freshly out of the shower with just a towel. Describe the charged energy between us \u2014 how the towel drops, what happens against the door, and every explicit detail of the next hour...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 35
     },
     {
       "id": "h5_088",
@@ -5487,47 +6012,52 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 36
     },
     {
       "id": "h5_089",
-      "text": "You're my personal chef cooking a private dinner. You dip your finger in sauce and bring it to my lips. Describe how we go from tasting to touching — how you lift me onto the kitchen island, what you do with the whipped cream, and how we devour each other between courses...",
+      "text": "You're my personal chef cooking a private dinner. You dip your finger in sauce and bring it to my lips. Describe how we go from tasting to touching \u2014 how you lift me onto the kitchen island, what you do with the whipped cream, and how we devour each other between courses...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 36
     },
     {
       "id": "h5_090",
-      "text": "We're coworkers on a business trip sharing a hotel room because the company cheaped out. There's only one bed. Describe in explicit detail the pretense of 'just sleeping' that unravels — the accidental touches, who makes the first move, and everything that follows...",
+      "text": "We're coworkers on a business trip sharing a hotel room because the company cheaped out. There's only one bed. Describe in explicit detail the pretense of 'just sleeping' that unravels \u2014 the accidental touches, who makes the first move, and everything that follows...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 36
     },
     {
       "id": "h5_091",
-      "text": "You're a lifeguard and you just pulled me from the water. I'm lying on the sand barely conscious and when I open my eyes you're over me, lips close to mine. Describe how mouth-to-mouth turns into something much more behind the dunes — every graphic detail...",
+      "text": "You're a lifeguard and you just pulled me from the water. I'm lying on the sand barely conscious and when I open my eyes you're over me, lips close to mine. Describe how mouth-to-mouth turns into something much more behind the dunes \u2014 every graphic detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 36
     },
     {
       "id": "h5_092",
-      "text": "You're my tattoo artist and I want ink on my inner thigh. Describe the entire session — your gloved hand on my bare skin, how close your face is to my body, the vibrations, and what happens when the tattoo is done and your hands don't leave my thigh...",
+      "text": "You're my tattoo artist and I want ink on my inner thigh. Describe the entire session \u2014 your gloved hand on my bare skin, how close your face is to my body, the vibrations, and what happens when the tattoo is done and your hands don't leave my thigh...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 36
     },
     {
       "id": "h5_093",
@@ -5537,37 +6067,41 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 36
     },
     {
       "id": "h5_094",
-      "text": "I'm a room service attendant who brings your order. You answer the door in just a robe. You pull me inside and tell me the tip is 'on the bed.' Walk me through this encounter in explicit detail — the power play, the seduction, every position we try in that luxury suite...",
+      "text": "I'm a room service attendant who brings your order. You answer the door in just a robe. You pull me inside and tell me the tip is 'on the bed.' Walk me through this encounter in explicit detail \u2014 the power play, the seduction, every position we try in that luxury suite...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 36
     },
     {
       "id": "h5_095",
-      "text": "You're my commanding officer and I've been insubordinate. You order me to your quarters for discipline. Describe in detail the dynamic — how you assert dominance, what you command me to do, where you put me, and how you punish me until I beg for more...",
+      "text": "You're my commanding officer and I've been insubordinate. You order me to your quarters for discipline. Describe in detail the dynamic \u2014 how you assert dominance, what you command me to do, where you put me, and how you punish me until I beg for more...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 36
     },
     {
       "id": "h5_096",
-      "text": "I'm a hitchhiker you pick up on a deserted highway at sunset. The chemistry is instant. Describe how we pull over onto a dirt road — what happens in the back seat, how our bodies move together, every steamy detail of our roadside encounter with nothing but open sky above us...",
+      "text": "I'm a hitchhiker you pick up on a deserted highway at sunset. The chemistry is instant. Describe how we pull over onto a dirt road \u2014 what happens in the back seat, how our bodies move together, every steamy detail of our roadside encounter with nothing but open sky above us...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 36
     },
     {
       "id": "h5_097",
@@ -5577,7 +6111,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 37
     },
     {
       "id": "h5_098",
@@ -5587,7 +6122,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 37
     },
     {
       "id": "h5_099",
@@ -5597,7 +6133,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 37
     },
     {
       "id": "h5_100",
@@ -5607,17 +6144,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 37
     },
     {
       "id": "h5_101",
-      "text": "I'm a pilot and you're my flight attendant on a red-eye with an empty first-class cabin. Describe how we lock the cockpit door — what you do when I recline the seat, how you straddle me at 35,000 feet, every turbulent detail of our mile-high encounter...",
+      "text": "I'm a pilot and you're my flight attendant on a red-eye with an empty first-class cabin. Describe how we lock the cockpit door \u2014 what you do when I recline the seat, how you straddle me at 35,000 feet, every turbulent detail of our mile-high encounter...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 37
     },
     {
       "id": "h5_102",
@@ -5627,7 +6166,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 37
     },
     {
       "id": "h5_103",
@@ -5637,27 +6177,30 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 37
     },
     {
       "id": "h5_104",
-      "text": "You're a rock star and I snuck backstage after your concert. You pull me into your dressing room. Describe the groupie fantasy — the leather couch, the adrenaline, how you pin me against the mirror, and what happens when I tell you I'll do absolutely anything...",
+      "text": "You're a rock star and I snuck backstage after your concert. You pull me into your dressing room. Describe the groupie fantasy \u2014 the leather couch, the adrenaline, how you pin me against the mirror, and what happens when I tell you I'll do absolutely anything...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 37
     },
     {
       "id": "h5_105",
-      "text": "We're strangers on a train in a private sleeper car. The train sways and jolts us together. Describe the overnight journey — how the close quarters and rhythm of the train lead to us tangled together, every detail of what we do as cities blur past the window...",
+      "text": "We're strangers on a train in a private sleeper car. The train sways and jolts us together. Describe the overnight journey \u2014 how the close quarters and rhythm of the train lead to us tangled together, every detail of what we do as cities blur past the window...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 37
     },
     {
       "id": "h5_106",
@@ -5667,7 +6210,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 38
     },
     {
       "id": "h5_107",
@@ -5677,7 +6221,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 38
     },
     {
       "id": "h5_108",
@@ -5687,17 +6232,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 38
     },
     {
       "id": "h5_109",
-      "text": "I'm a mechanic working under a car when you walk into my shop. You see my body glistening with sweat. Describe how you get my attention, how things get heated in the garage — against the car hood, on the workbench — every grease-stained detail...",
+      "text": "I'm a mechanic working under a car when you walk into my shop. You see my body glistening with sweat. Describe how you get my attention, how things get heated in the garage \u2014 against the car hood, on the workbench \u2014 every grease-stained detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 38
     },
     {
       "id": "h5_110",
@@ -5707,7 +6254,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 38
     },
     {
       "id": "h5_111",
@@ -5717,17 +6265,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 38
     },
     {
       "id": "h5_112",
-      "text": "You're a vampire who's been watching me for centuries and tonight you finally reveal yourself. Describe the seduction — how you mesmerize me, how your lips trace my neck, and the explicit encounter that unfolds when I willingly submit to your dark desire...",
+      "text": "You're a vampire who's been watching me for centuries and tonight you finally reveal yourself. Describe the seduction \u2014 how you mesmerize me, how your lips trace my neck, and the explicit encounter that unfolds when I willingly submit to your dark desire...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 38
     },
     {
       "id": "h5_113",
@@ -5737,7 +6287,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 38
     },
     {
       "id": "h5_114",
@@ -5747,27 +6298,30 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 38
     },
     {
       "id": "h5_115",
-      "text": "We're rival lawyers who just faced off in court. The tension is electric. We end up alone in the law library after midnight. Describe how the intellectual sparring becomes physical — on the conference table, against the bookshelves, every fierce detail...",
+      "text": "We're rival lawyers who just faced off in court. The tension is electric. We end up alone in the law library after midnight. Describe how the intellectual sparring becomes physical \u2014 on the conference table, against the bookshelves, every fierce detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 39
     },
     {
       "id": "h5_116",
-      "text": "You're a genie and I just rubbed your lamp. My three wishes are all variations of 'I want you.' Describe how you grant each wish — the first tender, the second wild, the third absolutely no-holds-barred — every magical, explicit detail of each granted desire...",
+      "text": "You're a genie and I just rubbed your lamp. My three wishes are all variations of 'I want you.' Describe how you grant each wish \u2014 the first tender, the second wild, the third absolutely no-holds-barred \u2014 every magical, explicit detail of each granted desire...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 39
     },
     {
       "id": "h5_117",
@@ -5777,37 +6331,41 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 39
     },
     {
       "id": "h5_118",
-      "text": "You're a fortune teller and you read my palm — you see an incredibly passionate night in my immediate future... with someone in this very room. Describe how the reading becomes a self-fulfilling prophecy in your dimly lit tent, every sensory detail...",
+      "text": "You're a fortune teller and you read my palm \u2014 you see an incredibly passionate night in my immediate future... with someone in this very room. Describe how the reading becomes a self-fulfilling prophecy in your dimly lit tent, every sensory detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 39
     },
     {
       "id": "h5_119",
-      "text": "We're astronauts on a two-person mission, floating alone in zero gravity. How does intimacy work up here? Describe the physics, the floating, bodies intertwined with nothing to hold onto but each other — every weightless, explicit detail...",
+      "text": "We're astronauts on a two-person mission, floating alone in zero gravity. How does intimacy work up here? Describe the physics, the floating, bodies intertwined with nothing to hold onto but each other \u2014 every weightless, explicit detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 39
     },
     {
       "id": "h5_120",
-      "text": "You're a painter and I'm your muse. You ask me to pose nude and begin painting, but the brush strokes on the canvas become actual strokes on my body. Describe how art and desire merge — paint on skin, every vivid, colorful, explicit detail...",
+      "text": "You're a painter and I'm your muse. You ask me to pose nude and begin painting, but the brush strokes on the canvas become actual strokes on my body. Describe how art and desire merge \u2014 paint on skin, every vivid, colorful, explicit detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 39
     },
     {
       "id": "h5_121",
@@ -5817,27 +6375,30 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 39
     },
     {
       "id": "h5_122",
-      "text": "You're a librarian and I keep checking out the same book just to see you. Today the library is empty. Describe how the quiet turns electric — between the shelves, on the reading table, trying to stay silent — every hushed, explicit detail of our literary encounter...",
+      "text": "You're a librarian and I keep checking out the same book just to see you. Today the library is empty. Describe how the quiet turns electric \u2014 between the shelves, on the reading table, trying to stay silent \u2014 every hushed, explicit detail of our literary encounter...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 39
     },
     {
       "id": "h5_123",
-      "text": "I'm a celebrity and you're the reporter doing a private interview in my penthouse. The questions get personal. Describe how the interview dissolves — my hand on your recorder, your hand on my thigh, and every headline-making detail of what happens off the record...",
+      "text": "I'm a celebrity and you're the reporter doing a private interview in my penthouse. The questions get personal. Describe how the interview dissolves \u2014 my hand on your recorder, your hand on my thigh, and every headline-making detail of what happens off the record...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 39
     },
     {
       "id": "h5_124",
@@ -5847,17 +6408,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 40
     },
     {
       "id": "h5_125",
-      "text": "We're outlaws on the run who duck into an abandoned cabin. Adrenaline is pumping. Describe the desperate, urgent encounter — against the wall, on the dusty floor, the danger outside making everything more intense — every raw, explicit detail of our hideout tryst...",
+      "text": "We're outlaws on the run who duck into an abandoned cabin. Adrenaline is pumping. Describe the desperate, urgent encounter \u2014 against the wall, on the dusty floor, the danger outside making everything more intense \u2014 every raw, explicit detail of our hideout tryst...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 40
     },
     {
       "id": "h4_106",
@@ -5868,7 +6431,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 40
     },
     {
       "id": "h4_107",
@@ -5879,7 +6443,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 40
     },
     {
       "id": "h4_108",
@@ -5890,7 +6455,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 40
     },
     {
       "id": "h4_109",
@@ -5901,7 +6467,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 40
     },
     {
       "id": "h4_110",
@@ -5912,7 +6479,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 40
     },
     {
       "id": "h4_111",
@@ -5923,7 +6491,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 40
     },
     {
       "id": "h4_112",
@@ -5934,7 +6503,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 40
     },
     {
       "id": "h5_126",
@@ -5944,7 +6514,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 41
     },
     {
       "id": "h5_127",
@@ -5954,7 +6525,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 41
     },
     {
       "id": "h5_128",
@@ -5964,7 +6536,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 41
     },
     {
       "id": "h5_129",
@@ -5974,7 +6547,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 41
     },
     {
       "id": "h5_130",
@@ -5984,7 +6558,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 41
     },
     {
       "id": "h5_131",
@@ -5994,7 +6569,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 41
     },
     {
       "id": "h5_132",
@@ -6004,7 +6580,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 41
     },
     {
       "id": "h5_133",
@@ -6014,7 +6591,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 41
     },
     {
       "id": "h5_134",
@@ -6024,7 +6602,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 41
     },
     {
       "id": "h5_135",
@@ -6034,7 +6613,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 42
     },
     {
       "id": "h5_136",
@@ -6044,7 +6624,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 42
     },
     {
       "id": "h5_137",
@@ -6054,7 +6635,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 42
     },
     {
       "id": "h4_113",
@@ -6065,7 +6647,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 42
     },
     {
       "id": "h4_114",
@@ -6076,7 +6659,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 42
     },
     {
       "id": "h4_115",
@@ -6087,7 +6671,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 42
     },
     {
       "id": "h4_116",
@@ -6098,7 +6683,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 42
     },
     {
       "id": "h4_117",
@@ -6109,7 +6695,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 42
     },
     {
       "id": "h4_118",
@@ -6120,7 +6707,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 42
     },
     {
       "id": "h4_119",
@@ -6131,7 +6719,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 43
     },
     {
       "id": "h4_120",
@@ -6142,7 +6731,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 43
     },
     {
       "id": "h4_121",
@@ -6153,7 +6743,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 43
     },
     {
       "id": "h4_122",
@@ -6164,7 +6755,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 43
     },
     {
       "id": "h4_123",
@@ -6175,7 +6767,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 43
     },
     {
       "id": "h4_124",
@@ -6186,7 +6779,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 43
     },
     {
       "id": "h4_125",
@@ -6197,7 +6791,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 43
     },
     {
       "id": "h4_126",
@@ -6208,7 +6803,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 43
     },
     {
       "id": "h4_127",
@@ -6219,7 +6815,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 43
     },
     {
       "id": "h4_128",
@@ -6230,7 +6827,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 44
     },
     {
       "id": "h4_129",
@@ -6242,7 +6840,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 44
     },
     {
       "id": "h4_130",
@@ -6253,7 +6852,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 44
     },
     {
       "id": "h4_131",
@@ -6264,7 +6864,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 44
     },
     {
       "id": "h4_132",
@@ -6275,7 +6876,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 44
     },
     {
       "id": "h4_133",
@@ -6286,7 +6888,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 44
     },
     {
       "id": "h4_134",
@@ -6297,7 +6900,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 44
     },
     {
       "id": "h4_135",
@@ -6308,7 +6912,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 44
     },
     {
       "id": "h4_136",
@@ -6319,7 +6924,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 44
     },
     {
       "id": "h4_137",
@@ -6330,7 +6936,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 45
     },
     {
       "id": "h4_138",
@@ -6341,7 +6948,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 45
     },
     {
       "id": "h4_139",
@@ -6352,7 +6960,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 45
     },
     {
       "id": "h4_140",
@@ -6363,7 +6972,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 45
     },
     {
       "id": "h4_141",
@@ -6374,7 +6984,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 45
     },
     {
       "id": "h4_142",
@@ -6385,7 +6996,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 45
     },
     {
       "id": "h4_143",
@@ -6396,7 +7008,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 45
     },
     {
       "id": "h5_138",
@@ -6406,7 +7019,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 45
     },
     {
       "id": "h5_139",
@@ -6416,7 +7030,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 45
     },
     {
       "id": "h5_140",
@@ -6426,7 +7041,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 46
     },
     {
       "id": "h5_141",
@@ -6437,7 +7053,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 46
     },
     {
       "id": "h5_142",
@@ -6447,7 +7064,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 46
     },
     {
       "id": "h5_143",
@@ -6458,7 +7076,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 46
     },
     {
       "id": "h5_144",
@@ -6469,7 +7088,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 46
     },
     {
       "id": "h5_145",
@@ -6479,7 +7099,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 46
     },
     {
       "id": "h5_146",
@@ -6489,7 +7110,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 46
     },
     {
       "id": "h5_147",
@@ -6499,7 +7121,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 46
     },
     {
       "id": "h5_148",
@@ -6509,7 +7132,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 46
     },
     {
       "id": "h5_149",
@@ -6519,7 +7143,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 47
     },
     {
       "id": "h5_150",
@@ -6529,7 +7154,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 47
     },
     {
       "id": "h5_151",
@@ -6539,7 +7165,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 47
     },
     {
       "id": "h5_152",
@@ -6549,7 +7176,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 47
     },
     {
       "id": "h5_153",
@@ -6559,7 +7187,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 47
     },
     {
       "id": "h5_154",
@@ -6569,7 +7198,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 47
     },
     {
       "id": "h5_155",
@@ -6579,7 +7209,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 47
     },
     {
       "id": "h5_156",
@@ -6589,7 +7220,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 47
     },
     {
       "id": "h1_179",
@@ -6598,16 +7230,18 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 47
     },
     {
       "id": "h1_180",
-      "text": "Imagine we wake up tomorrow with the power to read each other's minds for a day — what's the first thing you'd want me to know?",
+      "text": "Imagine we wake up tomorrow with the power to read each other's minds for a day \u2014 what's the first thing you'd want me to know?",
       "category": "fantasy",
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 48
     },
     {
       "id": "h1_181",
@@ -6616,16 +7250,18 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 48
     },
     {
       "id": "h1_182",
-      "text": "Picture us in a movie montage — what song is playing and what are we doing?",
+      "text": "Picture us in a movie montage \u2014 what song is playing and what are we doing?",
       "category": "fantasy",
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 48
     },
     {
       "id": "h1_183",
@@ -6634,11 +7270,12 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 48
     },
     {
       "id": "h1_184",
-      "text": "Have you ever been curious about who tends to take charge in our relationship — and how does that make you feel?",
+      "text": "Have you ever been curious about who tends to take charge in our relationship \u2014 and how does that make you feel?",
       "category": "kinky",
       "heat": 1,
       "relationshipDuration": [
@@ -6646,7 +7283,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 48
     },
     {
       "id": "h1_185",
@@ -6655,7 +7293,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 48
     },
     {
       "id": "h1_186",
@@ -6664,7 +7303,8 @@
       "heat": 1,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 48
     },
     {
       "id": "h2_073",
@@ -6673,7 +7313,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 48
     },
     {
       "id": "h2_074",
@@ -6682,7 +7323,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 48
     },
     {
       "id": "h2_075",
@@ -6694,7 +7336,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 49
     },
     {
       "id": "h2_076",
@@ -6703,7 +7346,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 49
     },
     {
       "id": "h2_077",
@@ -6715,7 +7359,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 49
     },
     {
       "id": "h2_078",
@@ -6727,7 +7372,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 49
     },
     {
       "id": "h2_079",
@@ -6736,7 +7382,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 49
     },
     {
       "id": "h2_080",
@@ -6745,7 +7392,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 49
     },
     {
       "id": "h2_081",
@@ -6757,7 +7405,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 49
     },
     {
       "id": "h2_082",
@@ -6766,7 +7415,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 49
     },
     {
       "id": "h2_083",
@@ -6775,7 +7425,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 49
     },
     {
       "id": "h2_084",
@@ -6784,7 +7435,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 50
     },
     {
       "id": "h2_085",
@@ -6793,7 +7445,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 50
     },
     {
       "id": "h3_089",
@@ -6806,11 +7459,12 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 50
     },
     {
       "id": "h3_090",
-      "text": "Tell me about a moment between us that felt electric — one you've replayed in your mind...",
+      "text": "Tell me about a moment between us that felt electric \u2014 one you've replayed in your mind...",
       "category": "memory",
       "heat": 3,
       "relationshipDuration": [
@@ -6818,11 +7472,12 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 50
     },
     {
       "id": "h3_091",
-      "text": "What's a time we almost kissed — or the tension was unbearable before we finally did?",
+      "text": "What's a time we almost kissed \u2014 or the tension was unbearable before we finally did?",
       "category": "memory",
       "heat": 2,
       "relationshipDuration": [
@@ -6830,11 +7485,12 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 50
     },
     {
       "id": "h3_092",
-      "text": "Have you ever thought about one of us blindfolding the other — just for a few minutes — to heighten the senses?",
+      "text": "Have you ever thought about one of us blindfolding the other \u2014 just for a few minutes \u2014 to heighten the senses?",
       "category": "kinky",
       "heat": 3,
       "relationshipDuration": [
@@ -6842,7 +7498,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 50
     },
     {
       "id": "h3_093",
@@ -6853,7 +7510,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 50
     },
     {
       "id": "h3_094",
@@ -6864,7 +7522,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 50
     },
     {
       "id": "h3_095",
@@ -6876,7 +7535,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 50
     },
     {
       "id": "h3_096",
@@ -6885,7 +7545,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 51
     },
     {
       "id": "h3_097",
@@ -6896,16 +7557,18 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 51
     },
     {
       "id": "h3_098",
-      "text": "Something about a warm summer night makes me want to be closer to you — does any season bring that out in you?",
+      "text": "Something about a warm summer night makes me want to be closer to you \u2014 does any season bring that out in you?",
       "category": "seasonal",
       "heat": 3,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 51
     },
     {
       "id": "h3_099",
@@ -6914,7 +7577,8 @@
       "heat": 2,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 51
     },
     {
       "id": "h3_100",
@@ -6923,11 +7587,12 @@
       "heat": 3,
       "relationshipDuration": [
         "universal"
-      ]
+      ],
+      "releaseWeek": 51
     },
     {
       "id": "h4_144",
-      "text": "Describe the most romantic, sensual evening you could imagine us sharing — every detail...",
+      "text": "Describe the most romantic, sensual evening you could imagine us sharing \u2014 every detail...",
       "category": "romance",
       "heat": 4,
       "relationshipDuration": [
@@ -6935,7 +7600,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 51
     },
     {
       "id": "h4_145",
@@ -6946,7 +7612,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 51
     },
     {
       "id": "h4_146",
@@ -6957,7 +7624,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 51
     },
     {
       "id": "h4_147",
@@ -6969,7 +7637,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 51
     },
     {
       "id": "h4_148",
@@ -6980,18 +7649,20 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h4_149",
-      "text": "Imagine our anniversary five years from now — what bold, passionate tradition do you hope we've started?",
+      "text": "Imagine our anniversary five years from now \u2014 what bold, passionate tradition do you hope we've started?",
       "category": "future",
       "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h4_150",
@@ -7003,18 +7674,20 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h4_151",
-      "text": "There's something about a thunderstorm that feels electric — what would you want us to do while it raged outside?",
+      "text": "There's something about a thunderstorm that feels electric \u2014 what would you want us to do while it raged outside?",
       "category": "seasonal",
       "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h4_152",
@@ -7025,18 +7698,20 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_157",
-      "text": "Tell me about the most passionately romantic thing you've ever wanted us to do — no holding back...",
+      "text": "Tell me about the most passionately romantic thing you've ever wanted us to do \u2014 no holding back...",
       "category": "romance",
       "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_158",
@@ -7046,7 +7721,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_159",
@@ -7056,7 +7732,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_160",
@@ -7067,7 +7744,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_161",
@@ -7077,17 +7755,19 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_162",
-      "text": "Describe a fantasy you'd love for us to fulfill together someday — somewhere we've never been...",
+      "text": "Describe a fantasy you'd love for us to fulfill together someday \u2014 somewhere we've never been...",
       "category": "future",
       "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_163",
@@ -7098,7 +7778,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_164",
@@ -7108,7 +7789,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_165",
@@ -7118,7 +7800,8 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_166",
@@ -7129,7 +7812,8 @@
         "mature",
         "long_term",
         "universal"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_167",
@@ -7139,94 +7823,103 @@
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_168",
-      "text": "Imagine a New Year's Eve where we skip the party and ring it in together our way — describe everything...",
+      "text": "Imagine a New Year's Eve where we skip the party and ring it in together our way \u2014 describe everything...",
       "category": "seasonal",
       "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_01",
-      "text": "We're deep in the woods at our campsite, miles from anyone. The fire's dying down, the sleeping bag is unzipped, and the night air is cool against our skin. Describe how the isolation changes everything — the sounds we make knowing nobody can hear, how the firelight plays across our bodies, every bold thing you'd do knowing the nearest person is miles away...",
+      "text": "We're deep in the woods at our campsite, miles from anyone. The fire's dying down, the sleeping bag is unzipped, and the night air is cool against our skin. Describe how the isolation changes everything \u2014 the sounds we make knowing nobody can hear, how the firelight plays across our bodies, every bold thing you'd do knowing the nearest person is miles away...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_02",
-      "text": "We're swimming together in a secluded mountain lake at sunset. The water is warm on the surface, cool underneath, and we're completely alone. Describe how it starts — the way our bodies feel weightless together, how hands move differently underwater, pulling me close with nothing between us, the sensation of skin against skin in the water as the sun disappears...",
+      "text": "We're swimming together in a secluded mountain lake at sunset. The water is warm on the surface, cool underneath, and we're completely alone. Describe how it starts \u2014 the way our bodies feel weightless together, how hands move differently underwater, pulling me close with nothing between us, the sensation of skin against skin in the water as the sun disappears...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_03",
-      "text": "We're alone in an outdoor hot tub under the stars, the jets pulsing around us, steam rising into the cold night air. Describe every detail — how you position us so the jets hit just right, the way the bubbling water hides what your hands are doing underneath, how the heat of the water mixes with the heat between us as things escalate...",
+      "text": "We're alone in an outdoor hot tub under the stars, the jets pulsing around us, steam rising into the cold night air. Describe every detail \u2014 how you position us so the jets hit just right, the way the bubbling water hides what your hands are doing underneath, how the heat of the water mixes with the heat between us as things escalate...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_04",
-      "text": "We've been flirting with someone we both find irresistible. Tonight, they're in our bedroom. Describe the scene from the very beginning — who makes the first move, how the three of us navigate each other's bodies, the dynamic of watching me with someone else while waiting for your turn, every position, every moment of shared pleasure...",
+      "text": "We've been flirting with someone we both find irresistible. Tonight, they're in our bedroom. Describe the scene from the very beginning \u2014 who makes the first move, how the three of us navigate each other's bodies, the dynamic of watching me with someone else while waiting for your turn, every position, every moment of shared pleasure...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_05",
-      "text": "We're deep in a late-night conversation and the tension has been building for weeks. Tonight I pull you closer and confess I haven't been able to stop thinking about you. My partner is waiting in the next room — I invited them because I want us all together. Describe what happens when that door opens and the night turns into something none of us will forget...",
+      "text": "We're deep in a late-night conversation and the tension has been building for weeks. Tonight I pull you closer and confess I haven't been able to stop thinking about you. My partner is waiting in the next room \u2014 I invited them because I want us all together. Describe what happens when that door opens and the night turns into something none of us will forget...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_06",
-      "text": "You're a flight attendant on a private jet and I'm your only passenger. After takeoff, you close the cabin curtain and tell me this flight comes with very special first-class service. Describe the full fantasy — the uniform coming undone, the turbulence that pushes us together, every mile-high detail from takeoff to the descent you give me...",
+      "text": "You're a flight attendant on a private jet and I'm your only passenger. After takeoff, you close the cabin curtain and tell me this flight comes with very special first-class service. Describe the full fantasy \u2014 the uniform coming undone, the turbulence that pushes us together, every mile-high detail from takeoff to the descent you give me...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_07",
-      "text": "We're strangers who locked eyes across a hotel bar. No names, no history — just raw attraction. You slide into the seat next to me and within minutes we're in the elevator, barely keeping our hands off each other. Describe every moment from the hallway to the hotel room — the urgency, the anonymity, the things we do because there are no strings and no rules...",
+      "text": "We're strangers who locked eyes across a hotel bar. No names, no history \u2014 just raw attraction. You slide into the seat next to me and within minutes we're in the elevator, barely keeping our hands off each other. Describe every moment from the hallway to the hotel room \u2014 the urgency, the anonymity, the things we do because there are no strings and no rules...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_08",
@@ -7237,29 +7930,32 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_09",
-      "text": "We rented a cabin with a massive window overlooking a valley — no neighbors, no curtains, nothing but wilderness. There's a bearskin rug by the fireplace and a storm rolling in. Describe the entire night — how the thunder covers our sounds, the warmth of the fire on bare skin, every position we try in front of that window knowing nature is our only audience...",
+      "text": "We rented a cabin with a massive window overlooking a valley \u2014 no neighbors, no curtains, nothing but wilderness. There's a bearskin rug by the fireplace and a storm rolling in. Describe the entire night \u2014 how the thunder covers our sounds, the warmth of the fire on bare skin, every position we try in front of that window knowing nature is our only audience...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_10",
-      "text": "We're at a masquerade party in a mansion. Masks on, identities hidden. We find a locked room upstairs — velvet furniture, dim lighting, a mirror covering one wall. We can hear the party below but no one knows we've slipped away. Describe what happens behind that locked door, with the masks still on, the anonymity and the mirror showing everything...",
+      "text": "We're at a masquerade party in a mansion. Masks on, identities hidden. We find a locked room upstairs \u2014 velvet furniture, dim lighting, a mirror covering one wall. We can hear the party below but no one knows we've slipped away. Describe what happens behind that locked door, with the masks still on, the anonymity and the mirror showing everything...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     },
     {
       "id": "h5_rp_11",
@@ -7270,7 +7966,8 @@
         "established",
         "mature",
         "long_term"
-      ]
+      ],
+      "releaseWeek": 52
     }
   ]
 }

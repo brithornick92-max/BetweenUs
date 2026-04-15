@@ -10,7 +10,6 @@ const FEATURE_USAGE_KEY = '@betweenus:premiumFeatureUsage';
 export const FALLBACK_PRICES = {
   monthly: '$7.99/month',
   yearly: '$49.99/year',
-  lifetime: '$69.99',
 };
 
 // Premium features configuration
@@ -98,25 +97,7 @@ export const SUBSCRIPTION_TIERS = {
       'Biometric vault protection',
     ],
   },
-  LIFETIME: {
-    id: 'premium_lifetime',
-    name: 'Lifetime',
-    price: FALLBACK_PRICES.lifetime + ' one-time',
-    mostPopular: false,
-    features: Object.values(PREMIUM_FEATURES),
-    emotionalBenefits: [
-      'One payment, forever premium',
-      'No renewals, no worries',
-      'All future features included',
-      'Protect your love story forever',
-    ],
-    memoryProtection: [
-      'Unlimited memory storage',
-      'PDF export of your timeline',
-      'Secure cloud backup',
-      'Biometric vault protection',
-    ],
-  },
+
 };
 
 /**
