@@ -1,0 +1,600 @@
+{
+  "meta": {
+    "type": "intimacy-positions",
+    "app": "Between Us",
+    "version": "2.0.0",
+    "description": "Intimacy building positions with three couple variants per position: him & her, her & her, him & him. Premium-only with weekly releases.",
+    "premium": true,
+    "releaseSchedule": "10 positions at launch (releaseWeek 0), then 1 new position per week",
+    "categories": {
+      "deep-connection": "Slow, emotionally resonant closeness",
+      "playful-energy": "Lighthearted, fun physical connection",
+      "sensual-rhythm": "Body awareness, breath, and sync",
+      "trust-vulnerability": "Surrender, safety, and openness",
+      "exploratory": "Curiosity-led, adventurous intimacy"
+    },
+    "accessibility": {
+      "low-mobility": "Minimal movement or flexibility required",
+      "standard": "Average flexibility and comfort",
+      "active": "Requires some strength or balance"
+    },
+    "inclusivity": "Every position includes three variant descriptions so all couples see themselves represented. The default Partner A / Partner B setup remains as a universal fallback.",
+    "variants": {
+      "him-her": "Tailored for male-female couples",
+      "her-her": "Tailored for female-female couples",
+      "him-him": "Tailored for male-male couples"
+    }
+  },
+  "items": [
+    {
+      "id": "ip001",
+      "title": "The Lotus",
+      "category": "deep-connection",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "focus": "A seated posture that prioritizes skin-to-skin closeness, sustained eye contact, and synchronized breathing to build emotional resonance.",
+      "setup": "Partner A sits comfortably upright with legs crossed or extended. Partner B sits facing them, settling into their lap and gently wrapping their legs around Partner A's lower back. Both keep their torsos upright, arms free to embrace.",
+      "whyItWorks": "Minimizes physical strain while maximizing closeness. Slows the pace so both partners can focus entirely on shared rhythm and presence.",
+      "mood": "intimate",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "He sits comfortably upright with legs crossed or extended. She sits facing him, settling into his lap and gently wrapping her legs around his lower back. Both keep their torsos upright, arms free to embrace.",
+        "her-her": "One partner sits comfortably upright with legs crossed or extended. The other sits facing her, settling into her lap and gently wrapping her legs around her lower back. Both keep their torsos upright, arms free to embrace.",
+        "him-him": "One partner sits comfortably upright with legs crossed or extended. The other sits facing him, settling into his lap and gently wrapping his legs around his lower back. Both keep their torsos upright, arms free to embrace."
+      }
+    },
+    {
+      "id": "ip002",
+      "title": "The Slow Melt",
+      "category": "sensual-rhythm",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "focus": "A lying-down position designed around unhurried body contact, gentle weight, and the feeling of dissolving into each other.",
+      "setup": "Both partners lie on their sides facing each other, legs loosely intertwined. One partner's head rests against the other's chest or shoulder. Arms wrap naturally — no fixed placement required.",
+      "whyItWorks": "Side-lying removes performance pressure entirely. The full-body contact and shared warmth create a cocoon effect that deepens emotional safety.",
+      "mood": "tender",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "They lie on their sides facing each other, legs loosely intertwined. Her head rests against his chest or shoulder. Arms wrap naturally — no fixed placement required.",
+        "her-her": "They lie on their sides facing each other, legs loosely intertwined. One partner's head rests against the other's chest or shoulder. Arms wrap naturally — no fixed placement required.",
+        "him-him": "They lie on their sides facing each other, legs loosely intertwined. One partner's head rests against the other's chest or shoulder. Arms wrap naturally — no fixed placement required."
+      }
+    },
+    {
+      "id": "ip003",
+      "title": "The Compass",
+      "category": "exploratory",
+      "duration": "15–20 min",
+      "accessibility": "standard",
+      "focus": "A position built around slow rotation and discovering what angles feel most natural, letting curiosity lead instead of habit.",
+      "setup": "Partner A lies back comfortably. Partner B positions themselves on top, facing any direction — and slowly experiments with shifting orientation over time. There's no fixed 'correct' alignment.",
+      "whyItWorks": "Breaks routine by removing the idea that there's one right way. Encourages wordless communication as both partners adjust to what feels good.",
+      "mood": "curious",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "He lies back comfortably. She positions herself on top, facing any direction — and slowly experiments with shifting orientation over time. There's no fixed \"correct\" alignment.",
+        "her-her": "One partner lies back comfortably. The other positions herself on top, facing any direction — and slowly experiments with shifting orientation over time. There's no fixed \"correct\" alignment.",
+        "him-him": "One partner lies back comfortably. The other positions himself on top, facing any direction — and slowly experiments with shifting orientation over time. There's no fixed \"correct\" alignment."
+      }
+    },
+    {
+      "id": "ip004",
+      "title": "The Safe Harbor",
+      "category": "trust-vulnerability",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "focus": "A wraparound hold where one partner fully envelops the other, creating a profound sense of safety and surrender.",
+      "setup": "Partner A sits upright against a headboard or wall with legs extended. Partner B sits between their legs, back resting against Partner A's chest. Partner A wraps both arms around Partner B. Both breathe together.",
+      "whyItWorks": "The enveloping hold activates a deep sense of being protected. Ideal for partners who want closeness without face-to-face intensity.",
+      "mood": "protective",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "He sits upright against a headboard or wall with legs extended. She sits between his legs, back resting against his chest. He wraps both arms around her. Both breathe together.",
+        "her-her": "One partner sits upright against a headboard or wall with legs extended. The other sits between her legs, back resting against her chest. She wraps both arms around her partner. Both breathe together.",
+        "him-him": "One partner sits upright against a headboard or wall with legs extended. The other sits between his legs, back resting against his chest. He wraps both arms around his partner. Both breathe together."
+      }
+    },
+    {
+      "id": "ip005",
+      "title": "The Bridge",
+      "category": "playful-energy",
+      "duration": "5–10 min",
+      "accessibility": "active",
+      "focus": "A playful, dynamic position where both partners support each other's weight, building trust through balance and laughter.",
+      "setup": "Both partners stand facing each other, holding hands or forearms. They lean back slowly until both are supporting each other's weight equally, finding a shared center of gravity.",
+      "whyItWorks": "Introduces lightness and play into physical connection. The mutual dependence is a powerful nonverbal trust exercise.",
+      "mood": "playful",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "They stand facing each other, holding hands or forearms. They lean back slowly until both are supporting each other's weight equally, finding a shared center of gravity.",
+        "her-her": "They stand facing each other, holding hands or forearms. They lean back slowly until both are supporting each other's weight equally, finding a shared center of gravity.",
+        "him-him": "They stand facing each other, holding hands or forearms. They lean back slowly until both are supporting each other's weight equally, finding a shared center of gravity."
+      }
+    },
+    {
+      "id": "ip006",
+      "title": "The Whisper",
+      "category": "deep-connection",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "focus": "An ultra-close position where mouths stay near each other's ears, encouraging soft-spoken words, breath, and quiet sounds as the primary connection.",
+      "setup": "Both partners lie on their sides, facing the same direction. Partner B presses close behind Partner A, mouth near their ear. Arms drape naturally. The key is proximity of breath to skin.",
+      "whyItWorks": "Hearing your partner's breathing and quiet voice at close range activates deep intimacy circuits. Words become optional — breath alone communicates.",
+      "mood": "intimate",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "They lie on their sides, facing the same direction. He presses close behind her, mouth near her ear. Arms drape naturally. The key is proximity of breath to skin.",
+        "her-her": "They lie on their sides, facing the same direction. She presses close behind her partner, mouth near her ear. Arms drape naturally. The key is proximity of breath to skin.",
+        "him-him": "They lie on their sides, facing the same direction. He presses close behind his partner, mouth near his ear. Arms drape naturally. The key is proximity of breath to skin."
+      }
+    },
+    {
+      "id": "ip007",
+      "title": "The Mirror",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "focus": "Both partners match each other's movements in real time — a slow, synchronized dance of touch that builds attunement.",
+      "setup": "Both partners kneel facing each other. One leads with slow hand, arm, or torso movements. The other mirrors exactly. After a few minutes, switch who leads — or let it blur until neither is leading.",
+      "whyItWorks": "Mirroring activates empathy and attunement at a neurological level. The slow pace forces both partners fully into the present moment.",
+      "mood": "meditative",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "They kneel facing each other. She leads with slow hand, arm, or torso movements. He mirrors exactly. After a few minutes, switch who leads — or let it blur until neither is leading.",
+        "her-her": "They kneel facing each other. One leads with slow hand, arm, or torso movements. The other mirrors exactly. After a few minutes, switch who leads — or let it blur until neither is leading.",
+        "him-him": "They kneel facing each other. One leads with slow hand, arm, or torso movements. The other mirrors exactly. After a few minutes, switch who leads — or let it blur until neither is leading."
+      }
+    },
+    {
+      "id": "ip008",
+      "title": "The Throne",
+      "category": "trust-vulnerability",
+      "duration": "10–20 min",
+      "accessibility": "standard",
+      "focus": "One partner is fully supported and elevated while the other holds space below — an exploration of giving and receiving attention.",
+      "setup": "Partner A sits on the edge of a bed or sturdy surface. Partner B kneels or sits on the floor in front of them, hands resting on Partner A's knees or thighs. The focus is on Partner A receiving unhurried, undivided attention.",
+      "whyItWorks": "Many people struggle to receive without reciprocating. This position practices the vulnerability of being fully seen and attended to.",
+      "mood": "devoted",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "She sits on the edge of a bed or sturdy surface. He kneels or sits on the floor in front of her, hands resting on her knees or thighs. The focus is on her receiving unhurried, undivided attention.",
+        "her-her": "One partner sits on the edge of a bed or sturdy surface. The other kneels or sits on the floor in front of her, hands resting on her knees or thighs. The focus is on the seated partner receiving unhurried, undivided attention.",
+        "him-him": "One partner sits on the edge of a bed or sturdy surface. The other kneels or sits on the floor in front of him, hands resting on his knees or thighs. The focus is on the seated partner receiving unhurried, undivided attention."
+      }
+    },
+    {
+      "id": "ip009",
+      "title": "The Drift",
+      "category": "exploratory",
+      "duration": "15–25 min",
+      "accessibility": "low-mobility",
+      "focus": "A freeform, no-rules position where both partners start intertwined and slowly let their bodies find whatever arrangement feels most natural.",
+      "setup": "Start lying down together in any comfortable tangle. Close your eyes. Over the next 15+ minutes, move only when your body wants to — no plan, no goal. Let gravity, comfort, and instinct guide every shift.",
+      "whyItWorks": "Removes all scripts and expectations. Partners often discover positions and contact points they'd never choose consciously.",
+      "mood": "freeform",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "They start lying down together in any comfortable tangle. Close your eyes. Over the next 15+ minutes, move only when your body wants to — no plan, no goal.",
+        "her-her": "They start lying down together in any comfortable tangle. Close your eyes. Over the next 15+ minutes, move only when your body wants to — no plan, no goal.",
+        "him-him": "They start lying down together in any comfortable tangle. Close your eyes. Over the next 15+ minutes, move only when your body wants to — no plan, no goal."
+      }
+    },
+    {
+      "id": "ip010",
+      "title": "The Pulse",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "focus": "A stillness-based position where both partners hold completely still and focus only on feeling each other's heartbeat and breath rhythm.",
+      "setup": "Partner A lies flat on their back. Partner B lies on top, chest to chest, aligning their hearts. Both close their eyes and breathe naturally. The only goal is to feel the other person's pulse.",
+      "whyItWorks": "Radical stillness after movement creates heightened body awareness. Partners often report feeling more connected in five minutes of this than in longer, more active experiences.",
+      "mood": "meditative",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 0,
+      "variants": {
+        "him-her": "He lies flat on his back. She lies on top, chest to chest, aligning their hearts. Both close their eyes and breathe naturally. The only goal is to feel the other person's pulse.",
+        "her-her": "One partner lies flat on her back. The other lies on top, chest to chest, aligning their hearts. Both close their eyes and breathe naturally. The only goal is to feel the other person's pulse.",
+        "him-him": "One partner lies flat on his back. The other lies on top, chest to chest, aligning their hearts. Both close their eyes and breathe naturally. The only goal is to feel the other person's pulse."
+      }
+    },
+    {
+      "id": "ip011",
+      "title": "The Reveal",
+      "category": "trust-vulnerability",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "focus": "One partner slowly uncovers the other — using hands, breath, or light fabric — turning vulnerability into an act of care.",
+      "setup": "Partner B lies comfortably with a light sheet or blanket covering them. Partner A slowly, deliberately reveals them — one area at a time — pausing to appreciate each part before moving on.",
+      "whyItWorks": "Being slowly seen, rather than all at once, builds anticipation and communicates that every part of the body is worth attention.",
+      "mood": "tender",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 1,
+      "variants": {
+        "him-her": "She lies comfortably with a light sheet or blanket covering her. He slowly, deliberately reveals her — one area at a time — pausing to appreciate each part before moving on.",
+        "her-her": "One partner lies comfortably with a light sheet covering her. The other slowly, deliberately reveals her — one area at a time — pausing to appreciate each part before moving on.",
+        "him-him": "One partner lies comfortably with a light sheet covering him. The other slowly, deliberately reveals him — one area at a time — pausing to appreciate each part before moving on."
+      }
+    },
+    {
+      "id": "ip012",
+      "title": "The Anchor",
+      "category": "deep-connection",
+      "duration": "10–20 min",
+      "accessibility": "standard",
+      "focus": "One partner grounds the other through firm, steady touch — hands on hips, shoulders, or lower back — while the other moves freely.",
+      "setup": "Partner A stands or kneels behind Partner B, placing both hands firmly on Partner B's hips or waist. Partner B moves, stretches, or sways however they want while Partner A maintains steady, grounding contact.",
+      "whyItWorks": "The contrast between one partner's stillness and the other's movement creates a powerful dynamic of freedom within safety.",
+      "mood": "grounding",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 2,
+      "variants": {
+        "him-her": "He stands or kneels behind her, placing both hands firmly on her hips or waist. She moves, stretches, or sways however she wants while he maintains steady, grounding contact.",
+        "her-her": "One partner stands or kneels behind the other, placing both hands firmly on her hips or waist. She moves however she wants while her partner maintains steady, grounding contact.",
+        "him-him": "One partner stands or kneels behind the other, placing both hands firmly on his hips or waist. He moves however he wants while his partner maintains steady, grounding contact."
+      }
+    },
+    {
+      "id": "ip013",
+      "title": "The Constellation",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "focus": "Partners take turns tracing slow patterns on each other's skin — connecting freckles, scars, and landmarks like drawing constellations.",
+      "setup": "One partner lies still while the other uses a single fingertip to slowly trace lines between different points on their body — connecting marks, curves, and textures into imaginary patterns.",
+      "whyItWorks": "Turns the body into a landscape of discovery. The slow, focused touch builds sensory awareness and communicates that every detail is noticed.",
+      "mood": "playful",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 3,
+      "variants": {
+        "him-her": "She lies still while he uses a single fingertip to slowly trace lines between different points on her body — connecting marks, curves, and textures into imaginary patterns.",
+        "her-her": "One partner lies still while the other uses a single fingertip to slowly trace lines between different points on her body — connecting marks, curves, and textures into imaginary patterns.",
+        "him-him": "One partner lies still while the other uses a single fingertip to slowly trace lines between different points on his body — connecting marks, curves, and textures into imaginary patterns."
+      }
+    },
+    {
+      "id": "ip014",
+      "title": "The Gravity Well",
+      "category": "sensual-rhythm",
+      "duration": "15–20 min",
+      "accessibility": "active",
+      "focus": "Both partners stand and slowly let gravity pull them into each other — a standing embrace that builds from barely touching to fully entwined.",
+      "setup": "Stand an arm's length apart, fingertips barely touching. Over several minutes, let your bodies drift closer — no rushing. Let forehead touch forehead, then chest to chest, then full embrace. Stay standing throughout.",
+      "whyItWorks": "The slow approach builds anticipation that lying down can't replicate. Standing keeps both partners physically engaged and present.",
+      "mood": "magnetic",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 4,
+      "variants": {
+        "him-her": "They stand an arm's length apart, fingertips barely touching. Over several minutes, let their bodies drift closer — forehead to forehead, then chest to chest, then full embrace.",
+        "her-her": "They stand an arm's length apart, fingertips barely touching. Over several minutes, let their bodies drift closer — forehead to forehead, then chest to chest, then full embrace.",
+        "him-him": "They stand an arm's length apart, fingertips barely touching. Over several minutes, let their bodies drift closer — forehead to forehead, then chest to chest, then full embrace."
+      }
+    },
+    {
+      "id": "ip015",
+      "title": "The Quiet Storm",
+      "category": "exploratory",
+      "duration": "15–20 min",
+      "accessibility": "standard",
+      "focus": "An eyes-closed exploration where both partners navigate each other entirely by touch, removing sight to heighten every other sense.",
+      "setup": "Both partners close their eyes (or use a soft blindfold). Sitting or lying facing each other, explore each other's face, hands, arms, and shoulders using only touch. No words unless needed for comfort.",
+      "whyItWorks": "Removing sight forces the brain to amplify touch, sound, and spatial awareness. Partners often rediscover each other's body as if for the first time.",
+      "mood": "exploratory",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 5,
+      "variants": {
+        "him-her": "They both close their eyes. Sitting or lying facing each other, they explore each other's face, hands, arms, and shoulders using only touch. No words unless needed for comfort.",
+        "her-her": "They both close their eyes. Sitting or lying facing each other, they explore each other's face, hands, arms, and shoulders using only touch. No words unless needed for comfort.",
+        "him-him": "They both close their eyes. Sitting or lying facing each other, they explore each other's face, hands, arms, and shoulders using only touch. No words unless needed for comfort."
+      }
+    },
+    {
+      "id": "ip016",
+      "title": "The Shelter",
+      "category": "trust-vulnerability",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "focus": "Both partners create a shared enclosed space — under blankets, in a pillow fort, or in a small room — and let the containment deepen their connection.",
+      "setup": "Build a small, enclosed space together using blankets, pillows, or cushions. Get inside together. The smaller the space, the closer you'll be. Let the boundary of the shelter become the boundary of your world.",
+      "whyItWorks": "Enclosed spaces reduce external stimulation and amplify awareness of each other. The collaborative building process is itself a bonding act.",
+      "mood": "cozy",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 6,
+      "variants": {
+        "him-her": "They build a small enclosed space together using blankets, pillows, or cushions. Get inside together. The smaller the space, the closer they'll be.",
+        "her-her": "They build a small enclosed space together using blankets, pillows, or cushions. Get inside together. The smaller the space, the closer they'll be.",
+        "him-him": "They build a small enclosed space together using blankets, pillows, or cushions. Get inside together. The smaller the space, the closer they'll be."
+      }
+    },
+    {
+      "id": "ip017",
+      "title": "The Pendulum",
+      "category": "playful-energy",
+      "duration": "5–10 min",
+      "accessibility": "active",
+      "focus": "Partners take turns gently swaying or rocking each other — one leads the rhythm while the other surrenders to the motion.",
+      "setup": "Partner A stands behind Partner B and places hands on their shoulders or waist. Partner A begins a slow, gentle rocking motion. Partner B closes their eyes and lets their body follow. After a few minutes, switch roles.",
+      "whyItWorks": "Rhythmic motion is one of the most primal forms of comfort. Taking turns leading and following builds reciprocal trust.",
+      "mood": "soothing",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 7,
+      "variants": {
+        "him-her": "He stands behind her and places hands on her shoulders or waist. He begins a slow, gentle rocking motion. She closes her eyes and lets her body follow. After a few minutes, switch.",
+        "her-her": "One partner stands behind the other and places hands on her shoulders or waist. She begins a slow rocking motion. Her partner closes her eyes and follows. After a few minutes, switch.",
+        "him-him": "One partner stands behind the other and places hands on his shoulders or waist. He begins a slow rocking motion. His partner closes his eyes and follows. After a few minutes, switch."
+      }
+    },
+    {
+      "id": "ip018",
+      "title": "The Edge",
+      "category": "exploratory",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "focus": "Partners explore the boundary between ticklish and pleasurable touch — finding the exact pressure and speed that shifts sensation.",
+      "setup": "One partner lies still. The other uses varying pressure — from barely-there fingertip contact to firm palm pressure — across different areas. The lying partner gives simple feedback: 'lighter,' 'firmer,' 'there.'",
+      "whyItWorks": "Teaches both partners the precise language of the other's body. The feedback loop builds communication skills that transfer to all forms of intimacy.",
+      "mood": "curious",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 8,
+      "variants": {
+        "him-her": "He lies still. She uses varying pressure — from barely-there fingertip contact to firm palm pressure — across different areas. He gives simple feedback: \"lighter,\" \"firmer,\" \"there.\"",
+        "her-her": "One partner lies still. The other uses varying pressure — from barely-there fingertip contact to firm palm pressure. She gives simple feedback: \"lighter,\" \"firmer,\" \"there.\"",
+        "him-him": "One partner lies still. The other uses varying pressure — from barely-there fingertip contact to firm palm pressure. He gives simple feedback: \"lighter,\" \"firmer,\" \"there.\""
+      }
+    },
+    {
+      "id": "ip019",
+      "title": "The Orbit",
+      "category": "deep-connection",
+      "duration": "10–20 min",
+      "accessibility": "standard",
+      "focus": "Partners move around each other in slow circles — sometimes close, sometimes at arm's length — like two bodies in gentle gravitational orbit.",
+      "setup": "Stand in an open space. Begin moving slowly around each other — circling, approaching, retreating. Maintain eye contact when facing each other. Let the distance between you expand and contract naturally.",
+      "whyItWorks": "The push-pull dynamic mirrors the natural rhythm of closeness in relationships. Moving through space together without a script builds intuitive responsiveness.",
+      "mood": "flowing",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 9,
+      "variants": {
+        "him-her": "They stand in an open space and begin moving slowly around each other — circling, approaching, retreating. Maintain eye contact when facing each other.",
+        "her-her": "They stand in an open space and begin moving slowly around each other — circling, approaching, retreating. Maintain eye contact when facing each other.",
+        "him-him": "They stand in an open space and begin moving slowly around each other — circling, approaching, retreating. Maintain eye contact when facing each other."
+      }
+    },
+    {
+      "id": "ip020",
+      "title": "The First Time",
+      "category": "deep-connection",
+      "duration": "15–20 min",
+      "accessibility": "low-mobility",
+      "focus": "Partners pretend they're touching each other for the very first time — bringing beginner's curiosity to a familiar body.",
+      "setup": "Sit facing each other. Partner A extends one hand. Partner B explores it as if they've never seen a hand before — every finger, knuckle, line, and nail. Then switch. Gradually expand to arms, face, shoulders. Move as slowly as genuine curiosity demands.",
+      "whyItWorks": "Long-term couples develop touch autopilot. This exercise breaks that pattern and restores wonder. Many couples describe it as unexpectedly emotional.",
+      "mood": "tender",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 10,
+      "variants": {
+        "him-her": "They sit facing each other. She extends one hand. He explores it as if he's never seen a hand before — every finger, knuckle, line, and nail. Then switch. Gradually expand to arms, face, shoulders.",
+        "her-her": "They sit facing each other. One extends a hand. The other explores it as if she's never seen a hand before — every finger, knuckle, line, and nail. Then switch.",
+        "him-him": "They sit facing each other. One extends a hand. The other explores it as if he's never seen a hand before — every finger, knuckle, line, and nail. Then switch."
+      }
+    },
+    {
+      "id": "ip-q001",
+      "title": "The Equal Ground",
+      "category": "deep-connection",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "A face-to-face position built on radical equality — no one leads, no one follows. Both partners mirror each other exactly, celebrating the symmetry of same-energy connection.",
+      "setup": "Both partners lie on their sides facing each other in identical positions — same arm under the pillow, same leg drawn up, same hand placement. The mirror-image symmetry is intentional. Breathe together.",
+      "whyItWorks": "For couples who share similar bodies, this position celebrates that similarity rather than defaulting to complementary roles. The symmetry itself becomes the intimacy.",
+      "mood": "grounding",
+      "heat": 2,
+      "variants": {
+        "him-her": "They lie on their sides facing each other in identical positions — same arm under the pillow, same leg drawn up, same hand placement. The mirror-image symmetry is intentional. Breathe together.",
+        "her-her": "They lie on their sides facing each other in identical positions — same arm under the pillow, same leg drawn up. The mirror-image symmetry of two women's bodies is intentional. Breathe together.",
+        "him-him": "They lie on their sides facing each other in identical positions — same arm under the pillow, same leg drawn up. The mirror-image symmetry of two men's bodies is intentional. Breathe together."
+      }
+    },
+    {
+      "id": "ip-q002",
+      "title": "The Soft Switch",
+      "category": "trust-vulnerability",
+      "duration": "15–20 min",
+      "accessibility": "standard",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "A flowing position where partners continuously exchange who holds and who is held — dissolving fixed roles into a fluid conversation of care.",
+      "setup": "Start with Partner A cradling Partner B from behind. After a few minutes, without words, slowly reverse — Partner B turns and becomes the holder. Continue shifting back and forth. Let the transitions be as slow and intentional as the holding.",
+      "whyItWorks": "Queer intimacy often thrives outside rigid roles. This position practices fluidity as a form of connection, letting both partners experience giving and receiving without labels.",
+      "mood": "fluid",
+      "heat": 2,
+      "variants": {
+        "him-her": "Start with him cradling her from behind. After a few minutes, without words, slowly reverse — she turns and becomes the holder. Continue shifting.",
+        "her-her": "Start with one woman cradling the other from behind. After a few minutes, without words, slowly reverse — she becomes the holder. Continue shifting.",
+        "him-him": "Start with one man cradling the other from behind. After a few minutes, without words, slowly reverse — he becomes the holder. Continue shifting."
+      }
+    },
+    {
+      "id": "ip-q003",
+      "title": "The Forehead Press",
+      "category": "deep-connection",
+      "duration": "5–10 min",
+      "accessibility": "low-mobility",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "Foreheads touching, eyes closed, breathing shared air. A powerful reset position that works as a standalone moment or a bridge between other forms of closeness.",
+      "setup": "Both partners sit or stand at equal height. Press foreheads together gently. Close eyes. Let your breathing sync naturally. Hands can rest on each other's necks, shoulders, or simply hang. Stay as long as the moment holds.",
+      "whyItWorks": "The forehead press bypasses performance entirely. It's purely about presence. For couples who navigate a world that sometimes questions their closeness, this position is quietly defiant — unhurried togetherness.",
+      "mood": "intimate",
+      "heat": 1,
+      "variants": {
+        "him-her": "They sit or stand at equal height. Press foreheads together gently. Close eyes. Let breathing sync naturally. Hands rest on each other's necks, shoulders, or simply hang.",
+        "her-her": "They sit or stand at equal height. Press foreheads together gently. Close eyes. Let breathing sync naturally. Hands rest on each other's necks, shoulders, or simply hang.",
+        "him-him": "They sit or stand at equal height. Press foreheads together gently. Close eyes. Let breathing sync naturally. Hands rest on each other's necks, shoulders, or simply hang."
+      }
+    },
+    {
+      "id": "ip-q004",
+      "title": "The Nest",
+      "category": "trust-vulnerability",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "Both partners curl inward together — knees drawn up, arms intertwined — creating a shared fetal position that feels like returning to something essential.",
+      "setup": "Both partners lie on the same side, curled toward each other, knees touching knees, foreheads close or touching. Hands find each other in the small space between your bodies. Make the shape as small and contained as possible.",
+      "whyItWorks": "The mutual vulnerability of both partners curling inward — rather than one wrapping around the other — creates a rare equality of openness. Neither is the protector; both are held.",
+      "mood": "tender",
+      "heat": 1,
+      "variants": {
+        "him-her": "They lie on the same side, curled toward each other, knees touching knees, foreheads close. Hands find each other in the small space between their bodies.",
+        "her-her": "They lie on the same side, curled toward each other, knees touching knees, foreheads close. Hands find each other in the small space between their bodies.",
+        "him-him": "They lie on the same side, curled toward each other, knees touching knees, foreheads close. Hands find each other in the small space between their bodies."
+      }
+    },
+    {
+      "id": "ip-q005",
+      "title": "The Unscripted",
+      "category": "exploratory",
+      "duration": "15–25 min",
+      "accessibility": "standard",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "A deliberate rejection of any \"position\" — both partners start from a blank slate and build something that has no name, no reference, no precedent.",
+      "setup": "Agree that for the next 15 minutes, you won't try to recreate anything you've seen, read, or done before. Start with one point of contact — a single hand touch — and let your bodies negotiate from there. If it doesn't look like anything recognizable, that's the point.",
+      "whyItWorks": "Much intimacy content assumes heteronormative templates. This position is an active practice of creating your own physical language together, free from borrowed scripts.",
+      "mood": "freeform",
+      "heat": 3,
+      "variants": {
+        "him-her": "They agree that for 15 minutes, they won't recreate anything they've seen or done before. Start with a single hand touch and let their bodies negotiate from there.",
+        "her-her": "They agree that for 15 minutes, they won't recreate anything they've seen or done before. Start with a single hand touch and let their bodies negotiate from there.",
+        "him-him": "They agree that for 15 minutes, they won't recreate anything they've seen or done before. Start with a single hand touch and let their bodies negotiate from there."
+      }
+    },
+    {
+      "id": "ip-q006",
+      "title": "The Overlap",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "Partners lie in overlapping layers — not quite on top of each other, not quite side by side — finding the in-between space where two similar bodies fit together uniquely.",
+      "setup": "Partner A lies on their back. Partner B lies partially on top, partially beside — one leg over, one arm across, head on chest or shoulder. Adjust until the overlap feels natural rather than posed. The goal is maximum surface contact without full weight.",
+      "whyItWorks": "Bodies of similar build interlock differently than complementary ones. This position invites couples to find their own unique fit rather than following a template designed for different bodies.",
+      "mood": "warm",
+      "heat": 2,
+      "variants": {
+        "him-her": "He lies on his back. She lies partially on top, partially beside — one leg over, one arm across, head on his chest or shoulder. Adjust until the overlap feels natural.",
+        "her-her": "One partner lies on her back. The other lies partially on top, partially beside — one leg over, one arm across, head on her chest. Adjust until the overlap feels natural.",
+        "him-him": "One partner lies on his back. The other lies partially on top, partially beside — one leg over, one arm across, head on his chest. Adjust until the overlap feels natural."
+      }
+    },
+    {
+      "id": "ip-q007",
+      "title": "The Reclaim",
+      "category": "trust-vulnerability",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "Partners take turns placing their hands over parts of the other's body that carry tension, shame, or complicated history — and simply hold warmth there.",
+      "setup": "One partner lies still. The other asks, \"Where do you want warmth?\" and places both hands there — no movement, just steady heat and presence. Hold for 2–3 minutes per area. Then switch roles.",
+      "whyItWorks": "Many queer people carry complex relationships with their bodies. This position transforms touch from performance into healing — a quiet act of reclamation through a partner's care.",
+      "mood": "healing",
+      "heat": 2,
+      "variants": {
+        "him-her": "She lies still. He asks, \"Where do you want warmth?\" and places both hands there — no movement, just steady heat and presence. Hold 2–3 minutes per area. Then switch.",
+        "her-her": "One partner lies still. The other asks, \"Where do you want warmth?\" and places both hands there — no movement, just steady heat and presence. Then switch.",
+        "him-him": "One partner lies still. The other asks, \"Where do you want warmth?\" and places both hands there — no movement, just steady heat and presence. Then switch."
+      }
+    },
+    {
+      "id": "ip-q008",
+      "title": "The Conversation",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "Partners communicate entirely through touch — taking turns \"saying\" something with their hands while the other interprets what was expressed.",
+      "setup": "Sit facing each other, close enough to reach any part of the other's upper body. Partner A \"says\" something through a sequence of touches — speed, pressure, location all carry meaning. Partner B says aloud what they think was communicated. Then switch.",
+      "whyItWorks": "Queer couples often develop rich nonverbal communication. This position turns that into a game — building a private tactile language that belongs only to the two of you.",
+      "mood": "playful",
+      "heat": 2,
+      "variants": {
+        "him-her": "They sit facing each other. She \"says\" something through a sequence of touches. He says aloud what he thinks was communicated. Then switch.",
+        "her-her": "They sit facing each other. One \"says\" something through a sequence of touches. She says aloud what she thinks was communicated. Then switch.",
+        "him-him": "They sit facing each other. One \"says\" something through a sequence of touches. He says aloud what he thinks was communicated. Then switch."
+      }
+    },
+    {
+      "id": "ip-q009",
+      "title": "The Surrender Knot",
+      "category": "sensual-rhythm",
+      "duration": "10–20 min",
+      "accessibility": "standard",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "Both partners intertwine as completely as possible — arms, legs, torsos woven together until it's hard to tell where one body ends and the other begins.",
+      "setup": "Start sitting face to face. Slowly weave your legs together, then your arms, then lean your torsos close. The goal is maximum intertwining — every limb finding a partner. Once fully knotted, breathe together and feel the shared boundary dissolve.",
+      "whyItWorks": "The deliberate entanglement is both physical and symbolic. For partners who share similar bodies, the knot becomes a celebration of closeness that only your specific combination of bodies can create.",
+      "mood": "intense",
+      "heat": 3,
+      "variants": {
+        "him-her": "They start sitting face to face. Slowly weave legs together, then arms, then lean torsos close. Maximum intertwining — every limb finding a partner.",
+        "her-her": "They start sitting face to face. Slowly weave legs together, then arms, then lean torsos close. Two women's bodies knot together in their own unique way.",
+        "him-him": "They start sitting face to face. Slowly weave legs together, then arms, then lean torsos close. Two men's bodies knot together in their own unique way."
+      }
+    },
+    {
+      "id": "ip-q010",
+      "title": "The Pride Rest",
+      "category": "deep-connection",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "A simple, powerful rest position — both partners lying together in open, unapologetic comfort, taking up space together without contortion or compromise.",
+      "setup": "Both partners lie on their backs, side by side, shoulders and hips touching. Hold hands or let arms overlap. Look at the ceiling or close your eyes. The position is deliberately ordinary — two people resting together without performing anything for anyone.",
+      "whyItWorks": "Sometimes the most radical intimacy is simply existing together without adjusting for anyone else's comfort. This position is rest as resistance — quiet, proud, and completely at ease.",
+      "mood": "peaceful",
+      "heat": 1,
+      "variants": {
+        "him-her": "They lie on their backs, side by side, shoulders and hips touching. Hold hands or let arms overlap. Two people resting together without performing anything for anyone.",
+        "her-her": "They lie on their backs, side by side, shoulders and hips touching. Hold hands or let arms overlap. Two women resting together without performing anything for anyone.",
+        "him-him": "They lie on their backs, side by side, shoulders and hips touching. Hold hands or let arms overlap. Two men resting together without performing anything for anyone."
+      }
+    }
+  ]
+}

@@ -44,6 +44,8 @@ import FilmGrain from '../components/FilmGrain';
 import { NicknameEngine, RelationshipMilestones } from '../services/PolishEngine';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { FALLBACK_PROMPT } from '../utils/contentLoader';
+import StreakBanner from '../components/StreakBanner';
+import { PromptCardSkeleton } from '../components/SkeletonLoader';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
@@ -253,9 +255,11 @@ export default function HomeScreen({ navigation }) {
         timestamp: Date.now(),
       });
 
+      let savedOffline = false;
       try {
         await DataLayer.savePromptAnswer({ promptId: prompt.id, answer: finalText, heatLevel: prompt.heat || 1 });
       } catch (dataLayerError) {
+        savedOffline = true;
         if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);
       }
 
@@ -266,6 +270,15 @@ export default function HomeScreen({ navigation }) {
       notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
       setInlineText('');
+
+      if (savedOffline) {
+        Alert.alert('Saved locally', "Your answer will sync with your partner when you're back online.");
+      }
+
+      // Notify partner that we answered the prompt
+      import('../services/PartnerNotifications').then(({ default: PN }) =>
+        PN.promptAnswered(getMyDisplayName(userProfile, state?.userProfile, null))
+      ).catch(() => {});
 
       // Viral loop: prompt free users to invite partner after first answer
       if (!isPremium) {
@@ -434,6 +447,11 @@ export default function HomeScreen({ navigation }) {
           <WelcomeBack />
           <MilestoneCard />
 
+          {/* ── Streak Counter ── */}
+          <View style={{ paddingHorizontal: SPACING.screen, marginBottom: SPACING.md }}>
+            <StreakBanner onPress={() => navigation.navigate('Achievements')} />
+          </View>
+
           {/* ── Hero Prompt Card (Crisp Apple Widget) ── */}
           <Animated.View style={{
             opacity: cardAnim,
@@ -446,8 +464,10 @@ export default function HomeScreen({ navigation }) {
               </View>
 
               <Text style={styles.promptText}>
-                {promptReady ? prompt.text : 'Gathering today\'s reflection…'}
+                {promptReady ? prompt.text : ''}
               </Text>
+
+              {!promptReady && <PromptCardSkeleton />}
 
               {myAnswer ? (
                 <View style={styles.answerBubble}>
@@ -471,7 +491,7 @@ export default function HomeScreen({ navigation }) {
                   style={[styles.input, { justifyContent: 'center' }]}
                 >
                   <Text style={styles.inputPlaceholder}>
-                    {`You\u2019ve used today\u2019s free reflection. ${isPremium ? '' : `Premium unlocks all ${697} prompts across 5 heat levels.`}`}
+                    {`You’ve used today’s free reflection. ${isPremium ? '' : 'Premium unlocks all prompts across 5 heat levels.'}`}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
                     <Icon name="lock-open-outline" size={14} color={t.primary} />

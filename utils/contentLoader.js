@@ -5,6 +5,12 @@
 
 if (__DEV__) console.log("🔵 ContentLoader: Module loading started");
 
+import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
+
+// Helper: filter items to only those released up to the current week
+const weeklyFilter = (items) =>
+  items.filter(i => i.releaseWeek == null || i.releaseWeek <= WeeklyContentScheduler.getCurrentWeek());
+
 // Initialize with empty safe defaults
 let promptsData = { items: [], meta: {} };
 let datesData = { items: [], meta: {} };
@@ -112,7 +118,7 @@ export function loadContent() {
 }
 
 export function getFilteredPrompts(filters = {}) {
-  const items = safeArray(promptsData?.items);
+  const items = weeklyFilter(safeArray(promptsData?.items));
 
   const {
     maxHeatLevel = 5,
@@ -226,19 +232,19 @@ export function getRandomPrompt(userFilters = {}) {
 }
 
 export function getAllPrompts() {
-  // Returns raw prompts; UI should still guard, but we keep it safe-ish
-  return safeArray(promptsData?.items).filter(Boolean);
+  // Returns raw prompts filtered by weekly schedule
+  return weeklyFilter(safeArray(promptsData?.items).filter(Boolean));
 }
 
 export function getPromptById(id) {
-  const items = safeArray(promptsData?.items);
+  const items = weeklyFilter(safeArray(promptsData?.items));
   const match = items.find((prompt) => prompt && prompt.id === id);
   return match ? normalizePrompt(match) : null;
 }
 
 export function getPromptsByHeatLevel(heatLevel) {
   const level = typeof heatLevel === "number" ? heatLevel : Number(heatLevel) || 5;
-  const items = safeArray(promptsData?.items);
+  const items = weeklyFilter(safeArray(promptsData?.items));
 
   return items.filter(
     (p) =>
@@ -252,7 +258,7 @@ export function getPromptsByHeatLevel(heatLevel) {
 
 export function getPromptsByCategory(category) {
   const cat = typeof category === "string" ? category : String(category ?? "");
-  const items = safeArray(promptsData?.items);
+  const items = weeklyFilter(safeArray(promptsData?.items));
 
   return items.filter(
     (p) => p && typeof p === "object" && typeof p.text === "string" && p.text.trim() && p.category === cat
@@ -281,7 +287,7 @@ const normalizeDate = (date) => {
 };
 
 export function filterDates(sourceData = null, filters = {}) {
-  const dataToFilter = Array.isArray(sourceData) ? sourceData : safeArray(datesData?.items);
+  const dataToFilter = Array.isArray(sourceData) ? sourceData : weeklyFilter(safeArray(datesData?.items));
   const normalized = dataToFilter.map(normalizeDate).filter(Boolean);
 
   const {
@@ -332,7 +338,7 @@ export function surpriseMeDate(sourceData = null, filters = {}, topN = 5) {
     ? matches
     : Array.isArray(sourceData)
       ? sourceData.map(normalizeDate).filter(Boolean)
-      : safeArray(datesData?.items).map(normalizeDate).filter(Boolean);
+      : weeklyFilter(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
 
   if (!Array.isArray(pool) || pool.length === 0) return null;
 

@@ -70,6 +70,16 @@ export const AnalyticsEvent = Object.freeze({
   ERROR_BOUNDARY: 'error_boundary',
   ENCRYPTION_FAILED: 'encryption_failed',
   SYNC_FAILED: 'sync_failed',
+
+  // Funnel & milestone events
+  ONBOARDING_STARTED: 'onboarding_started',
+  ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
+  ONBOARDING_COMPLETED: 'onboarding_completed',
+  FIRST_PROMPT_ANSWERED: 'first_prompt_answered',
+  PARTNER_INVITED: 'partner_invited',
+  REFERRAL_SHARED: 'referral_shared',
+  REFERRAL_APPLIED: 'referral_applied',
+  STREAK_MILESTONE: 'streak_milestone',
 });
 
 // ─── Service ─────────────────────────────────────────────────────────────────

@@ -153,6 +153,10 @@ export default function ComposeLoveNoteScreen({ navigation }) {
         stationeryId: selectedStationery.id,
         senderName: getMyDisplayName(userProfile, state?.userProfile, null),
       });
+      // Notify partner about the love note
+      import('../services/PartnerNotifications').then(({ default: PN }) =>
+        PN.loveNoteSent(getMyDisplayName(userProfile, state?.userProfile, null))
+      ).catch(() => {});
       notification(NotificationFeedbackType.Success).catch(() => {});
       navigation.goBack();
     } catch (err) {

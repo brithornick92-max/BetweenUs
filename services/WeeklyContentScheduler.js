@@ -15,12 +15,14 @@ const INSTALL_DATE_KEY = 'weekly_content_install_date';
 class WeeklyContentScheduler {
   constructor() {
     this._installDate = null;
+    this._currentWeek = 0;
+    this._ready = false;
   }
 
   /* ───── lifecycle ───── */
 
   async init() {
-    if (this._installDate) return;
+    if (this._ready) return;
     const stored = await AsyncStorage.getItem(INSTALL_DATE_KEY);
     if (stored) {
       this._installDate = new Date(stored);
@@ -36,16 +38,29 @@ class WeeklyContentScheduler {
       this._installDate = monday;
       await AsyncStorage.setItem(INSTALL_DATE_KEY, monday.toISOString());
     }
+    this._currentWeek = this._computeWeek();
+    this._ready = true;
+  }
+
+  /** Whether init() has completed. */
+  get ready() {
+    return this._ready;
   }
 
   /* ───── week math ───── */
 
-  /** How many full weeks since install (0-based). */
-  getCurrentWeek() {
+  /** Compute weeks from install date. */
+  _computeWeek() {
     if (!this._installDate) return 0;
     const now = new Date();
     const ms = now.getTime() - this._installDate.getTime();
     return Math.max(0, Math.floor(ms / (7 * 24 * 60 * 60 * 1000)));
+  }
+
+  /** How many full weeks since install (0-based). Uses cached value after init. */
+  getCurrentWeek() {
+    if (this._ready) return this._currentWeek;
+    return 0; // Before init, only week-0 content is available
   }
 
   /* ───── filtering ───── */

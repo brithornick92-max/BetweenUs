@@ -44,6 +44,7 @@ import StorageRouter from "../services/storage/StorageRouter";
 import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
 import { STORAGE_KEYS, storage } from "../utils/storage";
 import { getSupabaseOrThrow } from "../config/supabase";
+import AnalyticsService, { EVENT_NAMES } from "../services/AnalyticsService";
 
 const { width } = Dimensions.get("window");
 
@@ -67,7 +68,7 @@ export default function OnboardingScreen({ navigation }) {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
-  // Steps: 0 (Intro), 1 (Your Story), 2 (Preferences), 3 (Pairing)
+  // Steps: 0 (Intro), 1 (Your Story), 2 (Relationship Quiz), 3 (Preferences), 4 (Pairing)
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -77,7 +78,14 @@ export default function OnboardingScreen({ navigation }) {
   const [anniversaryDate, setAnniversaryDate] = useState(new Date());
   const [pendingDate, setPendingDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
+
+  // Quiz state (step 2)
+  const [loveLanguage, setLoveLanguage] = useState(null);
+  const [relationshipGoal, setRelationshipGoal] = useState(null);
+  const [promptFrequency, setPromptFrequency] = useState('daily');
+  const [hasKids, setHasKids] = useState(null);
+  const [idealDateStyle, setIdealDateStyle] = useState(null);
+  const [communicationStyle, setCommunicationStyle] = useState(null);
   // Preference state (collected in step 2)
   const [selectedSeason, setSelectedSeason] = useState(null);
   const [selectedHeatLevel, setSelectedHeatLevel] = useState(5);
@@ -109,6 +117,7 @@ export default function OnboardingScreen({ navigation }) {
   }, [userProfile]);
 
   const finalizeOnboarding = async () => {
+    AnalyticsService.trackEvent(EVENT_NAMES.ONBOARDING_COMPLETED);
     await actions.completeOnboarding();
     await markOnboardingComplete?.();
   };
@@ -169,6 +178,7 @@ export default function OnboardingScreen({ navigation }) {
   // 1. Intro Transition
   useEffect(() => {
     if (step === 0) {
+      AnalyticsService.trackEvent(EVENT_NAMES.ONBOARDING_STARTED);
       const timer = setTimeout(() => {
         transitionTo(1);
       }, 4000); // 4 seconds for Pulse & Quote
@@ -177,6 +187,7 @@ export default function OnboardingScreen({ navigation }) {
   }, [step]);
 
   const transitionTo = (nextStep) => {
+    AnalyticsService.trackEvent(EVENT_NAMES.ONBOARDING_STEP_COMPLETED, { step: nextStep - 1 });
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: -20, duration: 300, useNativeDriver: true }),
@@ -459,6 +470,168 @@ export default function OnboardingScreen({ navigation }) {
             }}
             disabled={showDatePicker}
             accessibilityRole="button"
+            accessibilityLabel="Continue to relationship quiz"
+          >
+            <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
+          </TouchableOpacity>
+        </ReAnimated.View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+
+  const LOVE_LANGUAGES = [
+    { id: 'words', icon: 'chatbubble-ellipses-outline', label: 'Words of Affirmation' },
+    { id: 'touch', icon: 'hand-left-outline', label: 'Physical Touch' },
+    { id: 'time', icon: 'time-outline', label: 'Quality Time' },
+    { id: 'gifts', icon: 'gift-outline', label: 'Receiving Gifts' },
+    { id: 'service', icon: 'construct-outline', label: 'Acts of Service' },
+  ];
+
+  const RELATIONSHIP_GOALS = [
+    { id: 'deeper', icon: 'heart-outline', label: 'Deepen our connection' },
+    { id: 'communicate', icon: 'chatbubbles-outline', label: 'Communicate better' },
+    { id: 'fun', icon: 'happy-outline', label: 'Have more fun together' },
+    { id: 'intimacy', icon: 'flame-outline', label: 'Reignite intimacy' },
+    { id: 'grow', icon: 'leaf-outline', label: 'Grow together' },
+  ];
+
+  const DATE_STYLES = [
+    { id: 'home', icon: 'home-outline', label: 'Cozy nights in' },
+    { id: 'adventure', icon: 'compass-outline', label: 'Adventures out' },
+    { id: 'mixed', icon: 'shuffle-outline', label: 'A mix of both' },
+  ];
+
+  const COMMUNICATION_STYLES = [
+    { id: 'direct', icon: 'arrow-forward-outline', label: 'Direct & honest' },
+    { id: 'gentle', icon: 'water-outline', label: 'Gentle & careful' },
+    { id: 'playful', icon: 'sparkles-outline', label: 'Playful & light' },
+  ];
+
+  const renderQuizOption = (item, selected, onSelect, accentColor) => {
+    const isActive = selected === item.id;
+    return (
+      <TouchableOpacity
+        key={item.id}
+        style={[styles.listOptionRow, { paddingVertical: 14 }]}
+        onPress={() => { onSelect(item.id); selection(); }}
+        activeOpacity={0.7}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: isActive }}
+        accessibilityLabel={item.label}
+      >
+        <View style={[styles.iconWrap, { backgroundColor: isActive ? (accentColor || t.primary) + '15' : t.surfaceSecondary }]}>
+          <Icon name={item.icon} size={20} color={isActive ? (accentColor || t.primary) : t.subtext} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.listOptionName, { color: isActive ? (accentColor || t.primary) : t.text }]}>
+            {item.label}
+          </Text>
+        </View>
+        {isActive && <Icon name="checkmark-outline" size={20} color={accentColor || t.primary} />}
+      </TouchableOpacity>
+    );
+  };
+
+  const renderQuiz = () => (
+    <KeyboardAvoidingView behavior="padding" style={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <ReAnimated.View entering={FadeInDown.delay(100).duration(600).springify()}>
+          <Text style={styles.title}>About You Two</Text>
+          <Text style={styles.storySubtitle}>Help us personalize your experience. These shape what you see.</Text>
+        </ReAnimated.View>
+
+        {/* Love Language */}
+        <ReAnimated.View entering={FadeInDown.delay(200).duration(600).springify()}>
+          <Text style={styles.groupLabel}>YOUR LOVE LANGUAGE</Text>
+          <View style={styles.groupCard}>
+            {LOVE_LANGUAGES.map((item, index) => (
+              <View key={item.id}>
+                {renderQuizOption(item, loveLanguage, setLoveLanguage)}
+                {index < LOVE_LANGUAGES.length - 1 && <View style={styles.dividerIndent} />}
+              </View>
+            ))}
+          </View>
+        </ReAnimated.View>
+
+        {/* Relationship Goal */}
+        <ReAnimated.View entering={FadeInDown.delay(300).duration(600).springify()}>
+          <Text style={styles.groupLabel}>WHAT ARE YOU HOPING FOR?</Text>
+          <View style={styles.groupCard}>
+            {RELATIONSHIP_GOALS.map((item, index) => (
+              <View key={item.id}>
+                {renderQuizOption(item, relationshipGoal, setRelationshipGoal)}
+                {index < RELATIONSHIP_GOALS.length - 1 && <View style={styles.dividerIndent} />}
+              </View>
+            ))}
+          </View>
+        </ReAnimated.View>
+
+        {/* Ideal Date Style */}
+        <ReAnimated.View entering={FadeInDown.delay(400).duration(600).springify()}>
+          <Text style={styles.groupLabel}>DATE NIGHT STYLE</Text>
+          <View style={styles.groupCard}>
+            {DATE_STYLES.map((item, index) => (
+              <View key={item.id}>
+                {renderQuizOption(item, idealDateStyle, setIdealDateStyle)}
+                {index < DATE_STYLES.length - 1 && <View style={styles.dividerIndent} />}
+              </View>
+            ))}
+          </View>
+        </ReAnimated.View>
+
+        {/* Communication Style */}
+        <ReAnimated.View entering={FadeInDown.delay(500).duration(600).springify()}>
+          <Text style={styles.groupLabel}>HOW DO YOU COMMUNICATE?</Text>
+          <View style={styles.groupCard}>
+            {COMMUNICATION_STYLES.map((item, index) => (
+              <View key={item.id}>
+                {renderQuizOption(item, communicationStyle, setCommunicationStyle)}
+                {index < COMMUNICATION_STYLES.length - 1 && <View style={styles.dividerIndent} />}
+              </View>
+            ))}
+          </View>
+        </ReAnimated.View>
+
+        {/* Kids */}
+        <ReAnimated.View entering={FadeInDown.delay(600).duration(600).springify()}>
+          <Text style={styles.groupLabel}>DO YOU HAVE KIDS?</Text>
+          <View style={styles.groupCard}>
+            {[{ id: 'yes', icon: 'people-outline', label: 'Yes' }, { id: 'no', icon: 'person-outline', label: 'No' }].map((item, index) => (
+              <View key={item.id}>
+                {renderQuizOption(item, hasKids, setHasKids)}
+                {index < 1 && <View style={styles.dividerIndent} />}
+              </View>
+            ))}
+          </View>
+        </ReAnimated.View>
+
+        <ReAnimated.View entering={FadeInDown.delay(700).duration(600).springify()}>
+          <TouchableOpacity
+            style={[styles.primaryButtonTouch, { backgroundColor: t.text }]}
+            activeOpacity={0.8}
+            onPress={async () => {
+              Keyboard.dismiss();
+              // Save quiz answers to profile
+              try {
+                const quizData = {
+                  loveLanguage,
+                  relationshipGoal,
+                  idealDateStyle,
+                  communicationStyle,
+                  hasKids: hasKids === 'yes',
+                };
+                await updateProfile?.({ quiz: quizData });
+                await actions.updateProfile({ quiz: quizData });
+              } catch (e) {
+                console.warn('Error saving quiz:', e);
+              }
+              transitionTo(3);
+            }}
+            accessibilityRole="button"
             accessibilityLabel="Continue to preferences"
           >
             <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
@@ -647,7 +820,7 @@ export default function OnboardingScreen({ navigation }) {
               } catch (e) {
                 console.warn('Error saving onboarding preferences:', e);
               }
-              transitionTo(3);
+              transitionTo(4);
             }}
           >
             <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
@@ -800,7 +973,7 @@ export default function OnboardingScreen({ navigation }) {
 
       {step === 0 ? renderIntro() : (
         <Animated.View style={[styles.stepWrapper, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          {step === 1 ? renderYourStory() : step === 2 ? renderPreferences() : alreadyLinked ? renderLinkedPairing() : renderPairing()}
+          {step === 1 ? renderYourStory() : step === 2 ? renderQuiz() : step === 3 ? renderPreferences() : alreadyLinked ? renderLinkedPairing() : renderPairing()}
         </Animated.View>
       )}
 

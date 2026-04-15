@@ -168,7 +168,12 @@ const VibeSignal = ({
 
     setSelectedVibe(vibe);
     appActions.setVibe(vibe);
-    
+
+    // Notify partner about the vibe signal
+    import('../services/PartnerNotifications').then(({ default: PN }) =>
+      PN.vibeSent(null, vibe.label || vibe.name)
+    ).catch(() => {});
+
     if (vibe.isAnniversaryTheme) {
       const anniversaryVibeEntry = {
         ...vibe,

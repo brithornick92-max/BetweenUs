@@ -601,6 +601,9 @@ export default function DateNightScreen({ navigation }) {
             }]}
             onPress={() => setFiltersOpen(o => !o)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`${filtersOpen ? 'Hide' : 'Show'} filters${hasFilters ? ', filters active' : ''}`}
+            accessibilityState={{ expanded: filtersOpen }}
           >
             <Icon name="funnel-outline" size={20} color={hasFilters ? colors.primary : colors.text} />
             {hasFilters && <View style={[styles.filterDot, { backgroundColor: colors.primary }]} />}
@@ -630,6 +633,8 @@ export default function DateNightScreen({ navigation }) {
                     }]}
                     onPress={() => setDropdownOpen(o => o === 'heat' ? null : 'heat')}
                     activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Mood filter${activeHeat ? `, ${activeHeat.label}` : ''}`}
                   >
                     <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Mood</Text>
                     <View style={styles.dropdownValue}>
@@ -663,6 +668,8 @@ export default function DateNightScreen({ navigation }) {
                     }]}
                     onPress={() => setDropdownOpen(o => o === 'load' ? null : 'load')}
                     activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Energy filter${activeLoad ? `, ${activeLoad.label}` : ''}`}
                   >
                     <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Energy</Text>
                     <View style={styles.dropdownValue}>
@@ -696,6 +703,8 @@ export default function DateNightScreen({ navigation }) {
                     }]}
                     onPress={() => setDropdownOpen(o => o === 'style' ? null : 'style')}
                     activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Style filter${activeStyle ? `, ${activeStyle.label}` : ''}`}
                   >
                     <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Style</Text>
                     <View style={styles.dropdownValue}>

@@ -50,8 +50,10 @@ const HEAT_LEVELS = [
 
 const loadAllBundledPrompts = () => {
   try {
+    const WeeklyContentScheduler = require('../services/WeeklyContentScheduler').default;
     const bundled = require("../content/prompts.json");
-    return Array.isArray(bundled?.items) ? bundled.items : [];
+    const items = Array.isArray(bundled?.items) ? bundled.items : [];
+    return items.filter(i => i.releaseWeek == null || i.releaseWeek <= WeeklyContentScheduler.getCurrentWeek());
   } catch {
     return [];
   }
@@ -334,6 +336,9 @@ export default function PromptsScreen({ navigation }) {
                       onPress={() => !aboveMax && handleHeatSelect(value)}
                       activeOpacity={aboveMax ? 1 : 0.8}
                       disabled={aboveMax}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Heat level ${label}${active ? ', selected' : ''}${locked ? ', premium only' : ''}${aboveMax ? ', unavailable' : ''}`}
+                      accessibilityState={{ selected: active, disabled: aboveMax }}
                     >
                       <Text style={[styles.heatLabel, { color: textColor }]}>
                         {label}

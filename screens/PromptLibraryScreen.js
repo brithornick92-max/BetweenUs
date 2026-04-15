@@ -69,8 +69,10 @@ const DURATION_FILTERS = [
 /** Load the full bundled prompt catalog */
 const loadAllBundledPrompts = () => {
   try {
+    const WeeklyContentScheduler = require('../services/WeeklyContentScheduler').default;
     const bundled = require("../content/prompts.json");
-    return Array.isArray(bundled?.items) ? bundled.items : [];
+    const items = Array.isArray(bundled?.items) ? bundled.items : [];
+    return items.filter(i => i.releaseWeek == null || i.releaseWeek <= WeeklyContentScheduler.getCurrentWeek());
   } catch {
     return [];
   }
@@ -509,7 +511,7 @@ export default function PromptLibraryScreen({ navigation }) {
             >
               <Icon name="lock-open-outline" size={20} color={t.primary} />
               <View style={styles.upsellBannerText}>
-                <Text style={[styles.upsellTitle, { color: t.text }]}>Unlock All 600+ Prompts</Text>
+                <Text style={[styles.upsellTitle, { color: t.text }]}>Unlock All Prompts</Text>
                 <Text style={[styles.upsellSubtitle, { color: t.subtext }]}>All heat levels, categories & search — go Premium</Text>
               </View>
               <Icon name="chevron-forward" size={20} color={t.primary} />
@@ -590,7 +592,7 @@ export default function PromptLibraryScreen({ navigation }) {
             activeOpacity={0.8}
           >
             <Icon name="sparkles-outline" size={18} color="#FFF" />
-            <Text style={styles.premiumFabText}>UNLOCK 600+ PROMPTS</Text>
+            <Text style={styles.premiumFabText}>UNLOCK ALL PROMPTS</Text>
           </TouchableOpacity>
         )}
       </SafeAreaView>

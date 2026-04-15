@@ -1,0 +1,141 @@
+DRAW THINGS PROMPTS — Intimacy Position Silhouettes
+====================================================
+
+Use these in Draw Things (free, Mac App Store).
+Settings: 512x512 or 768x512 (landscape), 25-30 steps, CFG 7-8
+
+NEGATIVE PROMPT (use for ALL):
+face, eyes, fingers, detailed, realistic, 3d, gradient, outline, line art, text, watermark, signature, anatomy details, background objects
+
+
+BODY TYPE MODIFIERS (append to any prompt):
+- average: (no modifier needed)
+- curvy: "curvy full figured bodies"
+- athletic: "athletic muscular toned bodies"
+- slim: "slim thin slender bodies"
+- plus: "plus size larger heavier bodies"
+
+COUPLE VARIANT MODIFIERS:
+- him-her: "man and woman" (default in prompts below)
+- her-her: replace "man" with "woman" / "both women"
+- him-him: replace "woman" with "man" / "both men"
+
+
+====================================================
+LAUNCH POSITIONS (releaseWeek 0) — do these first
+====================================================
+
+ip001 — The Lotus
+solid flat silhouette, man and woman sitting face to face, woman sitting in man's lap with legs wrapped around his waist, both upright, faceless, solid color fill, white background, minimal vector style
+
+ip002 — The Slow Melt
+solid flat silhouette, man and woman lying on their sides facing each other, legs loosely intertwined, heads close together, faceless, solid color fill, white background, minimal vector style
+
+ip003 — The Compass
+solid flat silhouette, woman lying on back, man on top facing different direction, bodies forming an angle, faceless, solid color fill, white background, minimal vector style
+
+ip004 — The Safe Harbor
+solid flat silhouette, man sitting upright against headboard with legs extended, woman sitting between his legs leaning back against his chest, faceless, solid color fill, white background, minimal vector style
+
+ip005 — The Bridge
+solid flat silhouette, man and woman standing face to face holding hands and leaning back away from each other, creating an arch shape, faceless, solid color fill, white background, minimal vector style
+
+ip006 — The Whisper
+solid flat silhouette, couple lying on sides spooning, one person pressed close behind the other, mouths near neck, faceless, solid color fill, white background, minimal vector style
+
+ip007 — The Mirror
+solid flat silhouette, man and woman kneeling face to face upright, mirroring each other's pose with arms raised, faceless, solid color fill, white background, minimal vector style
+
+ip008 — The Throne
+solid flat silhouette, one person seated on edge of surface, other person kneeling on floor in front between their legs, hands resting on their thighs, faceless, solid color fill, white background, minimal vector style
+
+ip009 — The Drift
+solid flat silhouette, couple lying tangled together loosely in relaxed pose, limbs casually overlapping, faceless, solid color fill, white background, minimal vector style
+
+ip010 — The Pulse
+solid flat silhouette, one person lying flat on back, other person lying on top chest to chest, bodies aligned, faceless, solid color fill, white background, minimal vector style
+
+
+====================================================
+WEEK 1-10 POSITIONS
+====================================================
+
+ip011 — The Reveal (week 1)
+solid flat silhouette, one person lying down covered by a sheet, other person kneeling beside slowly pulling sheet away, faceless, solid color fill, white background, minimal vector style
+
+ip012 — The Anchor (week 2)
+solid flat silhouette, one person standing behind the other, both hands firmly on their hips, front person stretching or moving freely, faceless, solid color fill, white background, minimal vector style
+
+ip013 — The Constellation (week 3)
+solid flat silhouette, one person lying still on back, other person leaning over tracing a finger along their body, faceless, solid color fill, white background, minimal vector style
+
+ip014 — The Gravity Well (week 4)
+solid flat silhouette, man and woman standing arm's length apart, fingertips barely touching between them, bodies slightly leaning toward each other, faceless, solid color fill, white background, minimal vector style
+
+ip015 — The Quiet Storm (week 5)
+solid flat silhouette, couple sitting cross-legged face to face, both blindfolded, hands exploring each other's face, faceless, solid color fill, white background, minimal vector style
+
+ip016 — The Shelter (week 6)
+solid flat silhouette, couple huddled close together under blanket creating a tent shape, intimate enclosed space, faceless, solid color fill, white background, minimal vector style
+
+ip017 — The Pendulum (week 7)
+solid flat silhouette, one person standing behind the other with hands on shoulders, gentle rocking motion implied, faceless, solid color fill, white background, minimal vector style
+
+ip018 — The Edge (week 8)
+solid flat silhouette, one person lying still, other person hovering hands above their body at varying distances, not quite touching, faceless, solid color fill, white background, minimal vector style
+
+ip019 — The Orbit (week 9)
+solid flat silhouette, two people standing in open space circling each other, bodies angled, maintaining eye contact, faceless, solid color fill, white background, minimal vector style
+
+ip020 — The First Time (week 10)
+solid flat silhouette, couple sitting face to face, one person holding the other's hand up and examining it closely with both hands, faceless, solid color fill, white background, minimal vector style
+
+
+====================================================
+INCLUSIVE POSITIONS (releaseWeek 0)
+====================================================
+
+ip-q001 — The Equal Ground
+solid flat silhouette, two people lying on sides facing each other in identical mirrored positions, same arm under pillow, same leg drawn up, faceless, solid color fill, white background, minimal vector style
+
+ip-q002 — The Soft Switch
+solid flat silhouette, one person cradling the other from behind in spooning position, faceless, solid color fill, white background, minimal vector style
+
+ip-q003 — The Forehead Press
+solid flat silhouette, two people sitting at equal height pressing foreheads together gently, eyes closed, faceless, solid color fill, white background, minimal vector style
+
+ip-q004 — The Nest
+solid flat silhouette, two people lying curled toward each other on same side, knees touching knees, foreheads close, hands intertwined between them, faceless, solid color fill, white background, minimal vector style
+
+ip-q005 — The Unscripted
+solid flat silhouette, two people in freeform natural embrace, one touching the other's arm tentatively, relaxed experimental pose, faceless, solid color fill, white background, minimal vector style
+
+ip-q006 — The Overlap
+solid flat silhouette, one person lying on back, other person lying partially on top partially beside, one leg draped over, arm across chest, head on shoulder, faceless, solid color fill, white background, minimal vector style
+
+ip-q007 — The Reclaim
+solid flat silhouette, one person lying still, other person placing both hands warmly on their chest, kneeling beside them, faceless, solid color fill, white background, minimal vector style
+
+ip-q008 — The Conversation
+solid flat silhouette, two people sitting face to face close together, one touching the other's shoulder expressively, intimate conversation through touch, faceless, solid color fill, white background, minimal vector style
+
+ip-q009 — The Surrender Knot
+solid flat silhouette, two people sitting face to face with legs woven together and arms intertwined, torsos leaning close, tangled embrace, faceless, solid color fill, white background, minimal vector style
+
+ip-q010 — The Pride Rest
+solid flat silhouette, two people lying on backs side by side, shoulders and hips touching, holding hands, looking upward, faceless, solid color fill, white background, minimal vector style
+
+
+====================================================
+INKSCAPE WORKFLOW (after generating each PNG)
+====================================================
+1. File > Import > select the PNG
+2. Path > Trace Bitmap > Brightness cutoff (~0.45)
+3. Click OK, then delete the original PNG layer
+4. Object > Ungroup (repeat until fully ungrouped)
+5. Select figure A paths > Object > Group > rename to "figureA" in XML editor
+6. Select figure B paths > Object > Group > rename to "figureB" in XML editor
+7. Select all > remove Fill color (will be set by code)
+8. File > Document Properties > set width=400, height=250
+9. File > Save As > Plain SVG
+10. Name: {id}-{variant}-{bodytype}.svg (e.g. ip001-him-her-average.svg)
