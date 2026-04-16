@@ -15,6 +15,7 @@
 import { withScreenErrorBoundary } from "../components/ScreenErrorBoundary";
 
 // ─── Main screens ───────────────────────────────────────────────────
+export const Achievements = () => withScreenErrorBoundary(require("../screens/AchievementsScreen").default, "Achievements");
 export const DateNightDetail = () => withScreenErrorBoundary(require("../screens/DateNightDetailScreen").default, "DateNightDetail");
 export const HeatLevel = () => withScreenErrorBoundary(require("../screens/HeatLevelScreen").default, "HeatLevel");
 export const JournalHome = () => withScreenErrorBoundary(require("../screens/JournalHomeScreen").default, "JournalHome");
@@ -33,6 +34,9 @@ export const FAQ = () => withScreenErrorBoundary(require("../screens/FAQScreen")
 export const EULA = () => withScreenErrorBoundary(require("../screens/EULAScreen").default, "EULA");
 export const ExportData = () => withScreenErrorBoundary(require("../screens/ExportDataScreen").default, "ExportData");
 export const DeleteAccount = () => withScreenErrorBoundary(require("../screens/DeleteAccountScreen").default, "DeleteAccount");
+
+// ─── Dev / Preview ──────────────────────────────────────────────────
+export const IllustrationPreview = () => withScreenErrorBoundary(require("../screens/IllustrationPreview").default, "IllustrationPreview");
 
 // ─── Settings sub-screens ───────────────────────────────────────────
 export const PartnerNamesSettings = () => withScreenErrorBoundary(require("../screens/PartnerNamesSettingsScreen").default, "PartnerNamesSettings");

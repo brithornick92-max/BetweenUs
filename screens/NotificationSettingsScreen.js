@@ -105,7 +105,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>

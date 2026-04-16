@@ -20,14 +20,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
-import EditorialPrompt from "../components/EditorialPrompt";
+import EditorialPrompt, { resolveEditorialCategory } from "../components/EditorialPrompt";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from "../utils/theme";
 import PreferenceEngine from '../services/PreferenceEngine';
-import { resolveEditorialCategory } from '../components/EditorialPrompt';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -177,9 +176,9 @@ const EditorialPromptScreen = ({ route, navigation }) => {
   if (!isPremium) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <LinearGradient
-          colors={[t.background, "#120206", t.background]}
+          colors={isDark ? [t.background, "#120206", t.background] : [t.background, "#FDF2F2", t.background]}
           style={StyleSheet.absoluteFill}
         />
 
@@ -221,7 +220,7 @@ const EditorialPromptScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <LinearGradient
         colors={[t.background, withAlpha(t.primary, 0.05), t.background]}
         style={StyleSheet.absoluteFill}

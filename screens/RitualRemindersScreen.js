@@ -178,8 +178,8 @@ export default function RitualRemindersScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.primaryButton} onPress={handleAddOrUpdate} accessibilityRole="button" accessibilityLabel={editing ? 'Save reminder' : 'Schedule reminder'}>
-              <Text style={styles.primaryButtonText}>
+            <TouchableOpacity style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]} onPress={handleAddOrUpdate} accessibilityRole="button" accessibilityLabel={editing ? 'Save reminder' : 'Schedule reminder'}>
+              <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
                 {editing ? 'Save reminder' : 'Schedule reminder'}
               </Text>
             </TouchableOpacity>
@@ -202,7 +202,7 @@ export default function RitualRemindersScreen({ navigation }) {
             )}
 
             {sortedReminders.map((reminder) => (
-              <View key={reminder.id} style={styles.reminderRow}>
+              <View key={reminder.id} style={[styles.reminderRow, { borderBottomColor: theme.colors.border }]}>
                 <View style={styles.reminderInfo}>
                   <Text style={[styles.reminderTitle, { color: theme.colors.text }]}>
                     {reminder.title || 'Ritual Reminder'}

@@ -20,7 +20,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { impact, selection, ImpactFeedbackStyle } from "../utils/haptics";
 import { SPACING, withAlpha } from "../utils/theme";
-import { getDimensionMeta } from "../utils/contentLoader";
+import { getDateById, getDimensionMeta } from "../utils/contentLoader";
 import { PremiumFeature } from "../utils/featureFlags";
 import Button from "../components/Button";
 import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -29,7 +29,6 @@ import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import PreferenceEngine from '../services/PreferenceEngine';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
-import { getDateById } from '../utils/contentLoader';
 import { getDateCardPalette } from '../components/dateCardPalette';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -245,7 +244,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <GlowOrb color="#D2121A" size={400} top={-100} left={SCREEN_WIDTH - 200} opacity={0.12} />
       <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={650} left={-100} opacity={0.08} />
       

@@ -119,15 +119,22 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const dealScale = useSharedValue(0.92);
   const dealOpacity = useSharedValue(0);
 
-  // Editorial Palette — fixed OLED black for maximum contrast
-  const t = useMemo(() => ({
+  // Editorial Palette — respects dark/light mode
+  const t = useMemo(() => isDark ? {
     background: '#0A0A0A',
     surface: '#1C1C1E',
     primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
     text: '#FFFFFF',
     subtext: 'rgba(255,255,255,0.4)',
     border: 'rgba(255,255,255,0.1)',
-  }), [prompt?.heat]);
+  } : {
+    background: '#F2F2F7',
+    surface: '#FFFFFF',
+    primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
+    text: '#1C1C1E',
+    subtext: 'rgba(0,0,0,0.4)',
+    border: 'rgba(0,0,0,0.1)',
+  }, [isDark, prompt?.heat]);
 
   const heat = prompt?.heat || 1;
   const catGradient = HEAT_COLORS[heat] || HEAT_COLORS[1];
@@ -336,7 +343,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <LinearGradient
         colors={[withAlpha(catGradient[0], 0.1), "transparent"]}
         style={StyleSheet.absoluteFill}

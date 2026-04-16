@@ -48,6 +48,7 @@ import StreakBanner from '../components/StreakBanner';
 import { PromptCardSkeleton } from '../components/SkeletonLoader';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:promptedPartnerShare';
 
 function dateKey(date) {
   const d = date instanceof Date ? date : new Date(date ?? undefined);
@@ -219,10 +220,53 @@ export default function HomeScreen({ navigation }) {
           if (active) setSelectedTone('warm');
         });
 
+      // Schedule engagement notifications (streak-break alert + weekly recap)
+      import('../services/WinBackNudges').then(({ default: WinBackNudges }) => {
+        if (!active) return;
+        // Streak-break loss-aversion alert
+        import('../services/localfirst').then(({ DataLayer: DL }) => {
+          Promise.all([
+            DL.getCheckIns?.({ limit: 90 }).catch(() => []),
+            DL.getPromptAnswers?.({ limit: 90 }).catch(() => []),
+          ]).then(([checkIns, answers]) => {
+            if (!active) return;
+            const daySet = new Set();
+            for (const ci of (checkIns || [])) {
+              const d = new Date(ci.created_at || ci.date_key);
+              daySet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+            }
+            for (const a of (answers || [])) { if (a.date_key) daySet.add(a.date_key); }
+            const sorted = [...daySet].sort().reverse();
+            let streak = 0;
+            const today = new Date();
+            for (let i = 0; i < sorted.length; i++) {
+              const exp = new Date(today); exp.setDate(exp.getDate() - i);
+              const k = `${exp.getFullYear()}-${String(exp.getMonth()+1).padStart(2,'0')}-${String(exp.getDate()).padStart(2,'0')}`;
+              if (daySet.has(k)) streak++; else break;
+            }
+            if (streak >= 3) {
+              WinBackNudges.scheduleStreakBreakAlert(streak, partnerLabel).catch(() => {});
+            }
+            // Weekly recap
+            const weekAnswers = (answers || []).filter(a => {
+              if (!a.date_key) return false;
+              const d = new Date(a.date_key + 'T00:00:00');
+              const diff = (today - d) / (1000 * 60 * 60 * 24);
+              return diff <= 7;
+            });
+            WinBackNudges.scheduleWeeklyRecap({
+              prompts: weekAnswers.length,
+              streak,
+              partnerName: partnerLabel,
+            }).catch(() => {});
+          }).catch(() => {});
+        }).catch(() => {});
+      }).catch(() => {});
+
       return () => {
         active = false;
       };
-    }, [])
+    }, [partnerLabel])
   );
 
   const greeting = useMemo(() => {
@@ -282,10 +326,10 @@ export default function HomeScreen({ navigation }) {
 
       // Viral loop: prompt free users to invite partner after first answer
       if (!isPremium) {
-        const hasPromptedShare = await storage.get('@betweenus:promptedPartnerShare', false);
+        const hasPromptedShare = await storage.get(PROMPTED_PARTNER_SHARE_KEY, false);
         const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
         if (!hasPromptedShare && !coupleId) {
-          await storage.set('@betweenus:promptedPartnerShare', true);
+          await storage.set(PROMPTED_PARTNER_SHARE_KEY, true);
           setTimeout(() => {
             Alert.alert(
               'Share with your partner?',
@@ -363,15 +407,36 @@ export default function HomeScreen({ navigation }) {
   const handleAction = useCallback(async (key) => {
     impact(ImpactFeedbackStyle.Light);
     if (key === 'note') {
-      if (!isPremium) { showPaywall?.(PremiumFeature.LOVE_NOTES); return; }
+      if (!isPremium) {
+        Alert.alert(
+          `${partnerLabel} can send you love notes`,
+          `Unlock premium so ${partnerLabel} can send you private messages — and you can write them back.`,
+          [
+            { text: 'Not Now', style: 'cancel' },
+            { text: 'Unlock Premium', onPress: () => showPaywall?.(PremiumFeature.LOVE_NOTES) },
+          ]
+        );
+        return;
+      }
       navigation.navigate('LoveNotesInbox');
     } else if (key === 'ritual') {
+      if (!isPremium) {
+        Alert.alert(
+          `Tonight's ritual with ${partnerLabel}`,
+          `Premium unlocks guided nightly rituals you and ${partnerLabel} can do together — check-ins, gratitude, and more.`,
+          [
+            { text: 'Not Now', style: 'cancel' },
+            { text: 'Unlock Premium', onPress: () => showPaywall?.(PremiumFeature.NIGHT_RITUAL_MODE) },
+          ]
+        );
+        return;
+      }
       navigation.navigate('NightRitual');
     } else if (key === 'jokes') {
       if (!isPremium) { showPaywall?.(PremiumFeature.INSIDE_JOKES); return; }
       navigation.navigate('InsideJokes');
     }
-  }, [isPremium, showPaywall, navigation]);
+  }, [isPremium, showPaywall, navigation, partnerLabel]);
 
   return (
     <View style={styles.root}>
@@ -447,6 +512,34 @@ export default function HomeScreen({ navigation }) {
           <WelcomeBack />
           <MilestoneCard />
 
+          {/* ── Partner Answered Banner (highest priority pull-back) ── */}
+          {partnerAnswer && myAnswer && !bothAnswered && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handlePrimaryCTA}
+              style={[styles.partnerAnsweredBanner, { backgroundColor: t.primary }]}
+            >
+              <Icon name="chatbubble-ellipses-outline" size={18} color="#FFF" />
+              <Text style={styles.partnerAnsweredText}>
+                {partnerLabel} just answered — tap to see both responses
+              </Text>
+              <Icon name="arrow-forward-outline" size={16} color="#FFF" />
+            </TouchableOpacity>
+          )}
+          {partnerAnswer && !myAnswer && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handlePrimaryCTA}
+              style={[styles.partnerAnsweredBanner, { backgroundColor: isDark ? '#1C1C1E' : '#FFF', borderWidth: 1.5, borderColor: t.primary }]}
+            >
+              <Icon name="time-outline" size={18} color={t.primary} />
+              <Text style={[styles.partnerAnsweredText, { color: t.primary }]}>
+                {partnerLabel} answered — your turn to share
+              </Text>
+              <Icon name="arrow-forward-outline" size={16} color={t.primary} />
+            </TouchableOpacity>
+          )}
+
           {/* ── Streak Counter ── */}
           <View style={{ paddingHorizontal: SPACING.screen, marginBottom: SPACING.md }}>
             <StreakBanner onPress={() => navigation.navigate('Achievements')} />
@@ -472,6 +565,10 @@ export default function HomeScreen({ navigation }) {
               {myAnswer ? (
                 <View style={styles.answerBubble}>
                   <Text style={styles.answerText}>{myAnswer}</Text>
+                  <View style={styles.partnerVisibilityRow}>
+                    <Icon name="eye-outline" size={13} color={t.primary} />
+                    <Text style={styles.partnerVisibilityText}>{partnerLabel} can see this</Text>
+                  </View>
                 </View>
               ) : canWritePrompt ? (
                 <TextInput
@@ -778,6 +875,36 @@ const createStyles = (t, isDark) => StyleSheet.create({
     lineHeight: 24,
     fontWeight: '400',
     color: t.text,
+  },
+  partnerVisibilityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 10,
+  },
+  partnerVisibilityText: {
+    fontFamily: systemFont,
+    fontSize: 12,
+    fontWeight: '600',
+    color: t.primary,
+    opacity: 0.75,
+  },
+  partnerAnsweredBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: SPACING.screen,
+    marginBottom: SPACING.md,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  partnerAnsweredText: {
+    flex: 1,
+    fontFamily: systemFont,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   input: {
     minHeight: 120,

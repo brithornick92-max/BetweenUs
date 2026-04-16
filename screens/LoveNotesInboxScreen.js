@@ -25,11 +25,14 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { PremiumFeature } from '../utils/featureFlags';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DataLayer from "../services/data/DataLayer";
 import SyncEngine from "../services/sync/SyncEngine";
 import { withAlpha } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
+
+const FREE_LOVE_NOTE_PEEK_KEY = '@betweenus:freeLoveNotePeekUsed';
 
 const { width: SCREEN_W } = Dimensions.get("window");
 
@@ -101,12 +104,21 @@ export default function LoveNotesInboxScreen({ navigation }) {
 
   const styles = useMemo(() => createStyles(t), [t]);
 
-  // Integrated premium logic
+  // Integrated premium logic — allow one free peek before gating
   useEffect(() => {
-    if (!isPremium) {
+    if (isPremium) return;
+    AsyncStorage.getItem(FREE_LOVE_NOTE_PEEK_KEY).then((used) => {
+      if (!used) {
+        AsyncStorage.setItem(FREE_LOVE_NOTE_PEEK_KEY, 'true').catch(() => {});
+        // Let them view the inbox once
+        return;
+      }
       showPaywall?.(PremiumFeature.LOVE_NOTES);
       navigation.goBack();
-    }
+    }).catch(() => {
+      showPaywall?.(PremiumFeature.LOVE_NOTES);
+      navigation.goBack();
+    });
   }, [isPremium, navigation, showPaywall]);
 
   const loadNotes = useCallback(async () => {

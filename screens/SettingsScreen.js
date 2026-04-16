@@ -97,6 +97,8 @@ const EditorialRow = ({ icon, title, subtitle, onPress, t, isLast, iconColor, ri
       activeOpacity={1}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
+      accessibilityLabel={title}
+      accessibilityRole="button"
       onPress={() => {
         impact(ImpactFeedbackStyle.Light);
         onPress?.();
@@ -451,6 +453,8 @@ export default function SettingsScreen({ navigation }) {
                 { backgroundColor: t.surface, borderColor: t.borderGlass },
                 !isDark && styles.lightShadow
               ]}
+              accessibilityLabel="Edit profile names"
+              accessibilityRole="button"
               onPress={() => navigation.navigate('PartnerNamesSettings')}
             >
               <View style={styles.cardContent}>
@@ -482,7 +486,7 @@ export default function SettingsScreen({ navigation }) {
                 {inviteCode ? (
                   <ReAnimated.View entering={FadeIn.duration(400)} style={[styles.codeDisplay, { backgroundColor: t.surfaceSecondary }]}>
                     <Text style={[styles.codeText, { color: t.text }]}>{inviteCode}</Text>
-                    <TouchableOpacity onPress={() => Clipboard.setStringAsync(inviteCode)} style={styles.copyBtn}>
+                    <TouchableOpacity onPress={() => Clipboard.setStringAsync(inviteCode)} style={styles.copyBtn} accessibilityLabel="Copy invite code" accessibilityRole="button">
                       <Icon name="copy-outline" size={20} color={t.primary} />
                     </TouchableOpacity>
                   </ReAnimated.View>
@@ -491,6 +495,8 @@ export default function SettingsScreen({ navigation }) {
                     style={[styles.actionBtn, { backgroundColor: t.primary }, codeLoading && styles.actionBtnDisabled]}
                     onPress={generateInviteCode}
                     disabled={codeLoading}
+                    accessibilityLabel="Generate invite code"
+                    accessibilityRole="button"
                   >
                     {codeLoading ? (
                       <ActivityIndicator color="#FFFFFF" />
@@ -505,6 +511,8 @@ export default function SettingsScreen({ navigation }) {
                     <TouchableOpacity 
                       style={[styles.actionBtn, styles.qrActionBtn, { borderColor: t.primary }]}
                       onPress={() => navigation.navigate('PairingQRCode')}
+                      accessibilityLabel="Generate QR code"
+                      accessibilityRole="button"
                     >
                       <Icon name="qr-code-outline" size={18} color={t.primary} />
                       <Text style={[styles.actionBtnText, { color: t.primary }]}>Generate QR Code</Text>
@@ -518,6 +526,8 @@ export default function SettingsScreen({ navigation }) {
                       <TouchableOpacity
                         style={[styles.scanOptionBtn, { borderColor: t.border }]}
                         onPress={() => navigation.navigate('PairingScan')}
+                        accessibilityLabel="Scan partner's QR code"
+                        accessibilityRole="button"
                       >
                         <Icon name="scan-outline" size={16} color={t.subtext} />
                         <Text style={[styles.scanOptionText, { color: t.subtext }]}>Scan Their QR</Text>
@@ -525,6 +535,8 @@ export default function SettingsScreen({ navigation }) {
                       <TouchableOpacity
                         style={[styles.scanOptionBtn, { borderColor: t.border }]}
                         onPress={() => navigation.navigate('JoinWithCode')}
+                        accessibilityLabel="Join with invite code"
+                        accessibilityRole="button"
                       >
                         <Icon name="keypad-outline" size={16} color={t.subtext} />
                         <Text style={[styles.scanOptionText, { color: t.subtext }]}>I Have a Code</Text>
@@ -591,6 +603,14 @@ export default function SettingsScreen({ navigation }) {
                 setThemeMode(next);
                 notification(NotificationFeedbackType.Success);
               }}
+              t={t}
+            />
+            <EditorialRow 
+              icon="images-outline" 
+              title="🔧 Illustration Preview" 
+              subtitle="Dev: Preview intimacy illustrations"
+              iconColor="#34C759"
+              onPress={() => navigation.navigate('IllustrationPreview')}
               t={t}
               isLast
             />

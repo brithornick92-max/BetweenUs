@@ -364,7 +364,7 @@ const createStyles = (colors) =>
       opacity: 0.4,
     },
     joinButtonText: {
-      color: colors.text,
+      color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '700',
       letterSpacing: 0.5,

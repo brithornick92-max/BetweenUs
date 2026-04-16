@@ -121,7 +121,7 @@ const SetPinScreen = ({ navigation }) => {
   if (!isPremium) {
     return (
       <View style={[styles.container, { backgroundColor: t.background }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Icon name="chevron-back" size={28} color={t.text} />
@@ -153,7 +153,7 @@ const SetPinScreen = ({ navigation }) => {
   // ─── ACTIVE SETTING STATE ───
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="chevron-back" size={28} color={t.text} />

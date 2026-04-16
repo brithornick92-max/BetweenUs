@@ -203,7 +203,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       
       <ScrollView
         style={styles.scrollView}

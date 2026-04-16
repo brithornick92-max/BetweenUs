@@ -16,6 +16,7 @@ import {
   Modal,
   TextInput,
   Alert,
+  ActivityIndicator,
   RefreshControl,
   KeyboardAvoidingView,
   Switch,
@@ -229,6 +230,7 @@ export default function CalendarScreen({ navigation, route }) {
 
   const [events,       setEvents]       = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing,   setRefreshing]   = useState(false);
   const [modalOpen,    setModalOpen]    = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -275,6 +277,7 @@ export default function CalendarScreen({ navigation, route }) {
     const safe = await DataLayer.refreshCalendarEventsFromRemote({ limit: 5000 }).catch(() => []);
     if (!mountedRef.current) return;
     setEvents(safe.sort((a, b) => (a.whenTs || 0) - (b.whenTs || 0)));
+    setInitialLoading(false);
   }, []);
 
   useFocusEffect(
@@ -501,6 +504,15 @@ export default function CalendarScreen({ navigation, route }) {
   }
 
   // ─── Main render ───────────────────────────────────────────────
+  if (initialLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: t.background, alignItems: 'center', justifyContent: 'center' }}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+        <ActivityIndicator size="large" color={t.primary} />
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: t.background }}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />

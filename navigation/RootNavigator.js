@@ -189,6 +189,7 @@ export default function RootNavigator() {
 
         <Stack.Screen name="PartnerNamesSettings" getComponent={Screens.PartnerNamesSettings} options={{ headerShown: false }} />
         <Stack.Screen name="HeatLevelSettings" getComponent={Screens.HeatLevelSettings} options={{ headerShown: false, presentation: 'modal' }} />
+        <Stack.Screen name="IllustrationPreview" getComponent={Screens.IllustrationPreview} options={{ headerShown: false }} />
         <Stack.Screen name="NotificationSettings" getComponent={Screens.NotificationSettings} options={{ headerShown: false }} />
         <Stack.Screen name="RitualReminders" getComponent={Screens.RitualReminders} options={{ headerShown: false }} />
         <Stack.Screen name="PrivacySecuritySettings" getComponent={Screens.PrivacySecuritySettings} options={{ headerShown: false }} />
@@ -208,6 +209,7 @@ export default function RootNavigator() {
           />
         )}
 
+        <Stack.Screen name="Achievements" getComponent={Screens.Achievements} options={{ headerShown: false }} />
         <Stack.Screen name="LoveNotesInbox" getComponent={Screens.LoveNotesInbox} options={{ headerShown: false }} />
         <Stack.Screen name="ComposeLoveNote" getComponent={Screens.ComposeLoveNote} options={{ headerShown: false }} />
         <Stack.Screen name="LoveNoteDetail" getComponent={Screens.LoveNoteDetail} options={{ headerShown: false }} />

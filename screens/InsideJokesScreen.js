@@ -60,7 +60,7 @@ export default function InsideJokesScreen({ navigation }) {
   if (!isPremium) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <FilmGrain opacity={0.3} />
         <GlowOrb color={colors.primary} size={400} top={-100} left={SCREEN_W - 200} opacity={0.15} />
         <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={650} left={-100} opacity={isDark ? 0.1 : 0.06} />

@@ -127,9 +127,9 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <LinearGradient
-          colors={[t.background, "#120206", t.background]}
+          colors={isDark ? [t.background, "#120206", t.background] : [t.background, "#FDF2F2", t.background]}
           style={StyleSheet.absoluteFillObject}
         />
         

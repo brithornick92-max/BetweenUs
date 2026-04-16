@@ -8,6 +8,7 @@ import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   Platform,
   Dimensions,
@@ -54,6 +55,8 @@ const MOOD_ICONS = {
   warm: 'sunny-outline',
   intense: 'flash-outline',
   peaceful: 'cloudy-night-outline',
+  passionate: 'flame-outline',
+  surrendered: 'bed-outline',
 };
 
 const VARIANT_OPTIONS = [
@@ -112,6 +115,7 @@ export default function IntimacyPositionCard({ position, defaultVariant = 'him-h
     if (getIllustrationForBodyType) return getIllustrationForBodyType(position.id, activeVariant, activeBodyType);
     return IllustrationSvg || null;
   }, [getIllustrationForBodyType, IllustrationSvg, position.id, activeVariant, activeBodyType]);
+  const isImageIllustration = typeof ActiveIllustration === 'number';
 
   const t = useMemo(() => ({
     bg: isDark ? 'rgba(19, 16, 22, 0.75)' : 'rgba(255, 255, 255, 0.7)',
@@ -141,6 +145,11 @@ export default function IntimacyPositionCard({ position, defaultVariant = 'him-h
       <Text style={[styles.title, { color: t.text, fontFamily: FONTS.serif }]}>
         {position.title}
       </Text>
+      {position.commonName ? (
+        <Text style={[styles.commonName, { color: withAlpha(t.text, 0.5) }]}>
+          {position.commonName}
+        </Text>
+      ) : null}
 
       {/* Glass card */}
       <BlurView intensity={isDark ? 25 : 45} tint="dark" style={styles.glassOuter}>
@@ -171,15 +180,23 @@ export default function IntimacyPositionCard({ position, defaultVariant = 'him-h
             })}
           </View>
 
-          {/* SVG illustration — colors based on variant */}
+          {/* Illustration — PNG preferred, SVG fallback */}
           {ActiveIllustration ? (
             <View style={styles.illustrationWrap}>
-              <ActiveIllustration
-                width="100%"
-                height={200}
-                figureAColor={illustrationColors.figureA}
-                figureBColor={illustrationColors.figureB}
-              />
+              {isImageIllustration ? (
+                <Image
+                  source={ActiveIllustration}
+                  resizeMode="contain"
+                  style={styles.illustrationImage}
+                />
+              ) : (
+                <ActiveIllustration
+                  width="100%"
+                  height={200}
+                  figureAColor={illustrationColors.figureA}
+                  figureBColor={illustrationColors.figureB}
+                />
+              )}
             </View>
           ) : (
             <View style={[styles.illustrationPlaceholder, { backgroundColor: withAlpha(t.primary, 0.04), borderColor: t.borderSubtle }]}>
@@ -296,6 +313,13 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: -0.5,
     lineHeight: 38,
+    marginBottom: SPACING.xs,
+  },
+  commonName: {
+    fontSize: 14,
+    fontWeight: '400',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
     marginBottom: SPACING.lg,
   },
   glassOuter: {
@@ -331,6 +355,10 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  illustrationImage: {
+    width: '100%',
+    height: 200,
   },
   illustrationPlaceholder: {
     width: '100%',

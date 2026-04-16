@@ -120,12 +120,12 @@ export default function AuthCallbackScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       
       {/* Immersive Midnight Vignette */}
       <LinearGradient
         pointerEvents="none"
-        colors={['#120206', t.background, t.background]}
+        colors={isDark ? ['#120206', t.background, t.background] : ['#FDF2F2', t.background, t.background]}
         style={StyleSheet.absoluteFill}
       />
 

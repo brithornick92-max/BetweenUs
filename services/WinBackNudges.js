@@ -10,11 +10,17 @@
  *   • Max 3 nudges per inactivity window
  *   • Respects notification permissions (never prompts for them)
  *   • All nudges cancelled when user goes premium
+ *
+ * Also includes:
+ *   • scheduleStreakBreakAlert — loss-aversion alert when streak >= 3
+ *   • scheduleWeeklyRecap — Sunday evening relationship recap notification
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NUDGE_IDS_KEY = '@betweenus:winback_nudge_ids';
+const STREAK_ALERT_ID_KEY = '@betweenus:streakAlertId';
+const WEEKLY_RECAP_KEY = '@betweenus:weeklyRecapScheduledWeek';
 
 let Notifications = null;
 try {
@@ -110,6 +116,101 @@ const WinBackNudges = {
         await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
       }
       await AsyncStorage.removeItem(NUDGE_IDS_KEY);
+    } catch {
+      // Non-critical
+    }
+  },
+
+  /**
+   * Schedule a streak-break loss-aversion alert.
+   * Fires tomorrow evening if the user doesn't open the app today.
+   * Only schedules when streak >= 3.
+   * Call this when user's streak is loaded and they're leaving the home screen.
+   *
+   * @param {number} currentStreak
+   * @param {string} [partnerName]
+   */
+  async scheduleStreakBreakAlert(currentStreak, partnerName) {
+    if (!Notifications || currentStreak < 3) return;
+
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status !== 'granted') return;
+
+    // Cancel any previously scheduled streak alert
+    try {
+      const existingId = await AsyncStorage.getItem(STREAK_ALERT_ID_KEY);
+      if (existingId) {
+        await Notifications.cancelScheduledNotificationAsync(existingId).catch(() => {});
+      }
+    } catch {}
+
+    try {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(20, 0, 0, 0); // 8pm tomorrow
+
+      if (tomorrow.getTime() <= Date.now() + 2000) return;
+
+      const partnerRef = partnerName ? `you and ${partnerName}` : 'your streak';
+      const id = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `Don't let your ${currentStreak}-day streak end tonight 🔥`,
+          body: `${currentStreak} days of ${partnerRef} — keep it going with one quick prompt.`,
+          data: { route: 'Home', type: 'streak_break_warning', streak: currentStreak },
+        },
+        trigger: { date: tomorrow },
+      });
+
+      await AsyncStorage.setItem(STREAK_ALERT_ID_KEY, id);
+    } catch {
+      // Non-critical
+    }
+  },
+
+  /**
+   * Schedule a weekly relationship recap notification every Sunday at 7pm.
+   * Safe to call on every app open — reschedules if not already set for this week.
+   *
+   * @param {{ prompts: number, streak: number, partnerName: string }} summary
+   */
+  async scheduleWeeklyRecap(summary) {
+    if (!Notifications) return;
+
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status !== 'granted') return;
+
+    const now = new Date();
+    // ISO week identifier: year + week number
+    const yearWeek = `${now.getFullYear()}-W${Math.ceil((now.getDate() - now.getDay() + 10) / 7)}`;
+
+    try {
+      const lastScheduled = await AsyncStorage.getItem(WEEKLY_RECAP_KEY);
+      if (lastScheduled === yearWeek) return; // Already scheduled this week
+    } catch {}
+
+    try {
+      // Find next Sunday 7pm
+      const next = new Date();
+      const daysUntilSunday = (7 - next.getDay()) % 7 || 7;
+      next.setDate(next.getDate() + daysUntilSunday);
+      next.setHours(19, 0, 0, 0);
+
+      if (next.getTime() <= Date.now() + 2000) return;
+
+      const { prompts = 0, streak = 0, partnerName = 'your partner' } = summary || {};
+      const promptLine = prompts > 0 ? `${prompts} prompt${prompts !== 1 ? 's' : ''} answered together` : 'a week of connection';
+      const streakLine = streak > 0 ? ` · ${streak}-day streak` : '';
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Your week with ' + partnerName,
+          body: `${promptLine}${streakLine}. Open Between Us to reflect on your week together.`,
+          data: { route: 'Home', type: 'weekly_recap' },
+        },
+        trigger: { date: next },
+      });
+
+      await AsyncStorage.setItem(WEEKLY_RECAP_KEY, yearWeek);
     } catch {
       // Non-critical
     }

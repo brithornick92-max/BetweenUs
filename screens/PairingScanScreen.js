@@ -194,7 +194,7 @@ export default function PairingScanScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: '#000' }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       
       <CameraView
         style={StyleSheet.absoluteFill}

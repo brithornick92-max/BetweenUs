@@ -368,6 +368,8 @@ export default function PromptLibraryScreen({ navigation }) {
         style={[styles.categoryChip, { backgroundColor: active ? t.primary : t.surface, borderColor: active ? t.primary : t.border }]}
         onPress={() => { setSelectedCategory(cat.id); selection(); }}
         activeOpacity={0.7}
+        accessibilityLabel={`${cat.label} category${active ? ', selected' : ''}`}
+        accessibilityRole="button"
       >
         <Icon name={cat.icon} size={16} color={active ? "#FFF" : t.text} />
         <Text style={[styles.categoryLabel, { color: active ? "#FFF" : t.text }]}>{cat.label}</Text>
@@ -383,7 +385,7 @@ export default function PromptLibraryScreen({ navigation }) {
 
         {/* Editorial Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.8}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} activeOpacity={0.8} accessibilityLabel="Go back" accessibilityRole="button">
             <Icon name="chevron-back" size={28} color={t.text} />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
@@ -391,7 +393,7 @@ export default function PromptLibraryScreen({ navigation }) {
             <Text style={[styles.headerTitle, { color: t.text }]}>Library</Text>
             <Text style={[styles.headerTone, { color: t.subtext }]}>{toneCopy.subtitle}</Text>
           </View>
-          <TouchableOpacity onPress={handleRefreshPrompt} style={styles.refreshButton} activeOpacity={0.8}>
+          <TouchableOpacity onPress={handleRefreshPrompt} style={styles.refreshButton} activeOpacity={0.8} accessibilityLabel="Refresh prompt" accessibilityRole="button">
             <Icon name="sync-outline" size={22} color={t.subtext} />
           </TouchableOpacity>
         </View>
@@ -413,7 +415,7 @@ export default function PromptLibraryScreen({ navigation }) {
                 autoCorrect={false}
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7}>
+                <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7} accessibilityLabel="Clear search" accessibilityRole="button">
                   <Icon name="close-circle" size={18} color={t.subtext} />
                 </TouchableOpacity>
               )}
@@ -448,6 +450,8 @@ export default function PromptLibraryScreen({ navigation }) {
                     style={[styles.categoryChip, { backgroundColor: isSelected ? (colors.accent || t.primary) : t.surface, borderColor: isSelected ? (colors.accent || t.primary) : t.border }]}
                     onPress={() => { setSelectedDuration(d.id); selection(); }}
                     activeOpacity={0.7}
+                    accessibilityLabel={`${d.label} duration filter${isSelected ? ', selected' : ''}`}
+                    accessibilityRole="button"
                   >
                     <Text style={[styles.categoryLabel, { color: isSelected ? "#FFF" : t.text }]}>{d.label}</Text>
                   </TouchableOpacity>
@@ -491,6 +495,8 @@ export default function PromptLibraryScreen({ navigation }) {
                     }}
                     activeOpacity={aboveMax ? 1 : 0.7}
                     disabled={aboveMax}
+                    accessibilityLabel={`Heat level ${h}: ${HEAT_LABELS[h]}${active ? ', selected' : ''}${locked ? ', requires premium' : ''}`}
+                    accessibilityRole="button"
                   >
                     <Text style={[styles.heatBtnText, { color: active ? '#FFF' : withAlpha(heatColor, aboveMax ? 0.15 : 0.5) }]}>
                       {HEAT_LABELS[h].toUpperCase()}
@@ -507,8 +513,8 @@ export default function PromptLibraryScreen({ navigation }) {
             <TouchableOpacity
               style={[styles.upsellBanner, { backgroundColor: withAlpha(t.primary, 0.08), borderColor: withAlpha(t.primary, 0.25) }]}
               onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
-              activeOpacity={0.8}
-            >
+              activeOpacity={0.8}              accessibilityLabel="Unlock all prompts, go Premium"
+              accessibilityRole="button"            >
               <Icon name="lock-open-outline" size={20} color={t.primary} />
               <View style={styles.upsellBannerText}>
                 <Text style={[styles.upsellTitle, { color: t.text }]}>Unlock All Prompts</Text>
@@ -537,6 +543,9 @@ export default function PromptLibraryScreen({ navigation }) {
                     onPress={() => handlePromptSelect(safe)}
                     onLongPress={() => handleBoundaryAction(safe)}
                     activeOpacity={0.8}
+                    accessibilityLabel={safe.text}
+                    accessibilityRole="button"
+                    accessibilityHint="Double tap to answer, long press for options"
                   >
                     <View style={styles.cardHeader}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -549,7 +558,7 @@ export default function PromptLibraryScreen({ navigation }) {
                           <Icon name="checkmark-circle-outline" size={16} color={'#34C759'} />
                         )}
                       </View>
-                      <TouchableOpacity onPress={() => toggleFavorite(safe.id)} style={styles.favoriteButton} activeOpacity={0.8}>
+                      <TouchableOpacity onPress={() => toggleFavorite(safe.id)} style={styles.favoriteButton} activeOpacity={0.8} accessibilityLabel={isFav ? 'Remove from favorites' : 'Add to favorites'} accessibilityRole="button">
                         <Icon name="heart-outline" size={22} color={isFav ? t.primary : t.subtext} />
                       </TouchableOpacity>
                     </View>

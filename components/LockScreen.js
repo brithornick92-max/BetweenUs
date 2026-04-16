@@ -29,7 +29,8 @@ const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 30000; // 30 seconds
 
 export default function LockScreen({ onUnlock }) {
-  const { colors, gradients } = useTheme();
+  const { colors, gradients, isDark } = useTheme();
+  const keyBgStyle = { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' };
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [attempts, setAttempts] = useState(0);
@@ -239,13 +240,14 @@ export default function LockScreen({ onUnlock }) {
                     onPress={() => handlePressDigit(digit)}
                     disabled={isLockedOut}
                     textColor={colors.text}
+                    keyBgStyle={keyBgStyle}
                   />
                 ))}
               </View>
             ))}
             <View style={styles.row}>
               <TouchableOpacity
-                style={styles.key}
+                style={[styles.key, keyBgStyle]}
                 onPress={authenticateBiometrically}
                 disabled={!biometricType || isLockedOut}
                 accessibilityRole="button"
@@ -266,9 +268,10 @@ export default function LockScreen({ onUnlock }) {
                 onPress={() => handlePressDigit("0")}
                 disabled={isLockedOut}
                 textColor={colors.text}
+                keyBgStyle={keyBgStyle}
               />
               <TouchableOpacity
-                style={styles.key}
+                style={[styles.key, keyBgStyle]}
                 onPress={handleDelete}
                 disabled={isLockedOut}
                 activeOpacity={0.7}
@@ -291,9 +294,9 @@ export default function LockScreen({ onUnlock }) {
   );
 }
 
-const Key = ({ label, onPress, disabled, textColor }) => (
+const Key = ({ label, onPress, disabled, textColor, keyBgStyle }) => (
   <TouchableOpacity
-    style={[styles.key, disabled && { opacity: 0.3 }]}
+    style={[styles.key, keyBgStyle, disabled && { opacity: 0.3 }]}
     onPress={onPress}
     disabled={disabled}
     activeOpacity={0.7}

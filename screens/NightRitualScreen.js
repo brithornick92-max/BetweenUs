@@ -1,4 +1,3 @@
-// screens/NightRitualScreen.js
 import React, { useRef, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
@@ -9,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import NightRitualMode, { getNightRitualColors } from '../components/NightRitualMode';
@@ -16,6 +16,8 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
+
+const FREE_RITUAL_KEY = '@betweenus:freeRitualUsed';
 
 export default function NightRitualScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -47,13 +49,32 @@ export default function NightRitualScreen({ navigation }) {
       return;
     }
 
-    blockedAccessHandledRef.current = true;
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      navigation.replace('MainTabs');
-    }
-    showPaywall(PremiumFeature.NIGHT_RITUAL_MODE);
+    // Allow one free ritual session before gating
+    AsyncStorage.getItem(FREE_RITUAL_KEY).then((used) => {
+      if (!used) {
+        // Mark as used so future visits are gated
+        AsyncStorage.setItem(FREE_RITUAL_KEY, 'true').catch(() => {});
+        // Let them through — don't block
+        return;
+      }
+      // Already used free ritual — show paywall
+      blockedAccessHandledRef.current = true;
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.replace('MainTabs');
+      }
+      showPaywall(PremiumFeature.NIGHT_RITUAL_MODE);
+    }).catch(() => {
+      // On error, gate normally
+      blockedAccessHandledRef.current = true;
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.replace('MainTabs');
+      }
+      showPaywall(PremiumFeature.NIGHT_RITUAL_MODE);
+    });
   }, [entitlementsLoading, isPremium, navigation, showPaywall]);
 
   // Clean, fast Apple entrance animations

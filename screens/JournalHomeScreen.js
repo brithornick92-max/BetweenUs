@@ -150,6 +150,8 @@ export default function JournalHomeScreen({ navigation }) {
           active && { borderColor: t.primary, backgroundColor: withAlpha(t.primary, 0.12) },
         ]}
         activeOpacity={0.8}
+        accessibilityLabel={`${label} filter${active ? ', selected' : ''}`}
+        accessibilityRole="button"
         onPress={() => {
           selection();
           setFilter(id);
@@ -170,6 +172,9 @@ export default function JournalHomeScreen({ navigation }) {
         activeOpacity={0.88}
         onPress={() => navigation.navigate('JournalEntry', { entry: item.entry, readOnly: !item.canEdit })}
         style={styles.card}
+        accessibilityLabel={item.title || 'Journal entry'}
+        accessibilityRole="button"
+        accessibilityHint={item.canEdit ? 'Double tap to edit' : 'Double tap to read'}
       >
         <View style={styles.cardTopRow}>
           <View style={styles.eyebrowRow}>
@@ -200,6 +205,8 @@ export default function JournalHomeScreen({ navigation }) {
         <TouchableOpacity
           style={styles.backButton}
           activeOpacity={0.7}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
           onPress={() => {
             impact(ImpactFeedbackStyle.Light);
             navigation.goBack();
@@ -216,6 +223,8 @@ export default function JournalHomeScreen({ navigation }) {
         <TouchableOpacity
           style={[styles.newButton, { backgroundColor: t.primary }]}
           activeOpacity={0.85}
+          accessibilityLabel="New journal entry"
+          accessibilityRole="button"
           onPress={() => handleCreate()}
         >
           <Icon name='add-outline' size={18} color='#FFF' />
@@ -235,12 +244,12 @@ export default function JournalHomeScreen({ navigation }) {
         </Text>
 
         <View style={styles.heroActions}>
-          <TouchableOpacity style={[styles.heroPrimaryAction, { backgroundColor: t.primary }]} activeOpacity={0.85} onPress={() => handleCreate(filter)}>
+          <TouchableOpacity style={[styles.heroPrimaryAction, { backgroundColor: t.primary }]} activeOpacity={0.85} onPress={() => handleCreate(filter)} accessibilityLabel={filter === 'private' ? 'New private entry' : 'New shared entry'} accessibilityRole="button">
             <Icon name='create-outline' size={16} color='#FFF' />
             <Text style={styles.heroPrimaryActionText}>{filter === 'private' ? 'New Private Entry' : 'New Shared Entry'}</Text>
           </TouchableOpacity>
           {filter === 'shared' && (
-            <TouchableOpacity style={[styles.heroSecondaryAction, { borderColor: t.border }]} activeOpacity={0.8} onPress={() => handleCreate('private')}>
+            <TouchableOpacity style={[styles.heroSecondaryAction, { borderColor: t.border }]} activeOpacity={0.8} onPress={() => handleCreate('private')} accessibilityLabel="Write privately instead" accessibilityRole="button">
               <Text style={[styles.heroSecondaryActionText, { color: t.text }]}>Write privately instead</Text>
             </TouchableOpacity>
           )}
@@ -264,7 +273,7 @@ export default function JournalHomeScreen({ navigation }) {
           ? 'Start a personal reflection and keep it just for yourself.'
           : 'Write something meant for both of you and it will collect here.'}
       </Text>
-      <TouchableOpacity style={[styles.emptyButton, { backgroundColor: t.primary }]} activeOpacity={0.85} onPress={() => handleCreate(filter)}>
+      <TouchableOpacity style={[styles.emptyButton, { backgroundColor: t.primary }]} activeOpacity={0.85} onPress={() => handleCreate(filter)} accessibilityLabel={filter === 'private' ? 'Write private entry' : 'Write shared entry'} accessibilityRole="button">
         <Text style={styles.emptyButtonText}>{filter === 'private' ? 'Write Private Entry' : 'Write Shared Entry'}</Text>
       </TouchableOpacity>
     </Animated.View>

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -24,7 +25,7 @@ export default function HeatLevelScreen({ navigation }) {
   const { loadTodayPrompt, usageStatus, loadContentProfile } = useContent();
   const { updateProfile } = useAuth();
   const [loading, setLoading] = useState(false);
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const HEAT_LEVELS = [
     {
@@ -189,6 +190,7 @@ export default function HeatLevelScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <LinearGradient
         colors={[colors.background, colors.surface2 || colors.background, colors.background]}
         style={StyleSheet.absoluteFill}
@@ -267,7 +269,7 @@ export default function HeatLevelScreen({ navigation }) {
   );
 }
 
-const createStyles = (colors) => StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -352,7 +354,7 @@ const createStyles = (colors) => StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },

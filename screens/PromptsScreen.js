@@ -313,8 +313,8 @@ export default function PromptsScreen({ navigation }) {
                 const aboveMax = value > maxSelectableHeat;
 
                 const bgColor = active ? heatColor : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
-                const borderColor = active ? heatColor : aboveMax ? (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)') : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)');
-                const textColor = active ? '#FFFFFF' : withAlpha(heatColor, aboveMax ? 0.15 : 0.55);
+                const borderColor = active ? heatColor : locked ? heatColor + '30' : aboveMax ? (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)') : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)');
+                const textColor = active ? '#FFFFFF' : withAlpha(heatColor, aboveMax ? 0.15 : locked ? 0.45 : 0.55);
 
                 return (
                   <View key={value} style={[styles.chipWrapper, aboveMax && { opacity: 0.3 }]}>
@@ -343,6 +343,9 @@ export default function PromptsScreen({ navigation }) {
                       <Text style={[styles.heatLabel, { color: textColor }]}>
                         {label}
                       </Text>
+                      {locked && !aboveMax && (
+                        <Text style={[styles.heatPremiumTag, { color: withAlpha(heatColor, 0.6) }]}>PRO</Text>
+                      )}
                     </TouchableOpacity>
                     {locked && !aboveMax && (
                       <View style={[
@@ -380,6 +383,19 @@ export default function PromptsScreen({ navigation }) {
                 onSkip={() => impact(ImpactFeedbackStyle.Light)}
                 onLongPress={handlePromptBoundaryAction}
               />
+              {!isPremium && (
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
+                  style={[styles.premiumTeaserBanner, { backgroundColor: isDark ? 'rgba(210,18,26,0.12)' : 'rgba(210,18,26,0.07)', borderColor: 'rgba(210,18,26,0.2)' }]}
+                >
+                  <Icon name="flame" size={16} color="#D2121A" />
+                  <Text style={[styles.premiumTeaserText, { color: isDark ? '#FF6B6B' : '#D2121A' }]}>
+                    Heat levels 4 & 5 unlocked for couples going deeper — unlock premium
+                  </Text>
+                  <Icon name="chevron-forward" size={14} color="#D2121A" />
+                </TouchableOpacity>
+              )}
               <View style={styles.boundaryHintRow}>
                 <Icon name="hand-left-outline" size={14} color={t.subtext} />
                 <Text style={[styles.boundaryHintText, { color: t.subtext }]}>Long-press a card to hide it or mute its category.</Text>
@@ -458,6 +474,14 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     includeFontPadding: false,
   },
+  heatPremiumTag: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    textAlign: 'center',
+    marginTop: 2,
+  },
   lockBadge: {
     position: 'absolute',
     top: -6,
@@ -485,6 +509,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  premiumTeaserBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 24,
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  premiumTeaserText: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
   },
   centered: {
     flex: 1,

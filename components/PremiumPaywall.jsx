@@ -149,7 +149,7 @@ const PremiumPaywall = ({
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <LinearGradient
         colors={isDark ? ['#0A0A0C', '#1A0205', '#0A0A0C'] : ['#FFFFFF', '#F9F4F4', '#FFFFFF']}
         style={StyleSheet.absoluteFillObject}
@@ -171,19 +171,25 @@ const PremiumPaywall = ({
         showsVerticalScrollIndicator={false}
       >
         <Animated.View entering={FadeIn.duration(800)} style={styles.header}>
-          <Text style={[styles.headerEye, { color: theme.crimson }]}>Elevate Your Connection</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Unlock the Full Experience</Text>
-          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-            Deeper prompts, unlimited date planning, and encrypted intimacy for your most meaningful relationship.
-          </Text>
           {trialInfo?.isFree && (
             <View style={styles.trialBadge}>
               <Icon name="gift-outline" size={16} color="#FFF" />
               <Text style={styles.trialBadgeText}>
-                Start with {trialInfo.period} free {trialInfo.unit}{trialInfo.period > 1 ? 's' : ''} — cancel anytime
+                {trialInfo.period} {trialInfo.unit}{trialInfo.period > 1 ? 's' : ''} free — cancel anytime
               </Text>
             </View>
           )}
+          <Text style={[styles.headerEye, { color: theme.crimson, marginTop: trialInfo?.isFree ? 16 : 0 }]}>Elevate Your Connection</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Unlock the Full Experience</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+            Deeper prompts, unlimited date planning, and encrypted intimacy for your most meaningful relationship.
+          </Text>
+          <View style={styles.socialProofRow}>
+            <Icon name="people-outline" size={15} color={theme.crimson} />
+            <Text style={[styles.socialProofText, { color: colors.textMuted }]}>
+              Joined by 10,000+ couples deepening their connection
+            </Text>
+          </View>
         </Animated.View>
 
         <View style={styles.benefitSection}>
@@ -266,7 +272,7 @@ const PremiumPaywall = ({
               <ActivityIndicator color="#FFF" size="small" />
             ) : (
               <Text style={styles.mainActionText}>
-                {trialInfo?.isFree ? 'Start Free Trial' : 'Unlock Full Access'}
+                {trialInfo?.isFree ? `Start ${trialInfo.period}-${trialInfo.unit} Free Trial` : 'Unlock Full Access — From $49.99/yr'}
               </Text>
             )}
           </LinearGradient>
@@ -373,13 +379,26 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    marginTop: 16,
+    marginBottom: 4,
   },
   trialBadgeText: {
     color: '#FFF',
     fontSize: 14,
     fontWeight: '800',
     letterSpacing: -0.2,
+  },
+  socialProofRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 16,
+    paddingHorizontal: 8,
+  },
+  socialProofText: {
+    fontSize: 13,
+    fontWeight: '600',
+    opacity: 0.75,
+    flexShrink: 1,
   },
 
   closeButton: {

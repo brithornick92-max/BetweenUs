@@ -633,7 +633,7 @@ export const PrivateLanguageVault = {
 // 7. BinaryPromptEngine — "This or That"
 // ═══════════════════════════════════════════════════════
 
-export const THIS_OR_THAT_PROMPTS = [
+const THIS_OR_THAT_PROMPTS = [
   { id: 'tt1', optionA: 'Stay in', optionB: 'Go out' },
   { id: 'tt2', optionA: 'Morning intimacy', optionB: 'Night intimacy', heat: 4 },
   { id: 'tt3', optionA: 'Beach', optionB: 'Mountains' },
@@ -651,7 +651,7 @@ export const THIS_OR_THAT_PROMPTS = [
   { id: 'tt15', optionA: 'Hold hands', optionB: 'Arms around each other' },
 ];
 
-export const BinaryPromptEngine = {
+const BinaryPromptEngine = {
   /** Get a this-or-that prompt not recently shown */
   async getNext() {
     try {
@@ -708,7 +708,7 @@ export const BinaryPromptEngine = {
 // 8. SharedIdentityBuilder — "Future Us" prompts
 // ═══════════════════════════════════════════════════════
 
-export const FUTURE_US_PROMPTS = [
+const FUTURE_US_PROMPTS = [
   { id: 'fu1', text: "Something I'm excited to experience with you" },
   { id: 'fu2', text: "A version of us I love imagining" },
   { id: 'fu3', text: "What I hope never changes about us" },
@@ -721,7 +721,7 @@ export const FUTURE_US_PROMPTS = [
   { id: 'fu10', text: "Something I want to learn together" },
 ];
 
-export const FuturePromptRotation = {
+const FuturePromptRotation = {
   async getNext() {
     try {
       const raw = await AsyncStorage.getItem('@bu_future_history');
@@ -750,14 +750,14 @@ export const FuturePromptRotation = {
 // 9. RitualCycleManager — Connection rituals
 // ═══════════════════════════════════════════════════════
 
-export const RITUAL_TYPES = [
+const RITUAL_TYPES_CYCLE = [
   { id: 'weekly_appreciation', label: 'Weekly Appreciation', cadence: 'weekly', description: 'Share something you appreciate about each other' },
   { id: 'monthly_reflection', label: 'Monthly Reflection', cadence: 'monthly', description: 'Reflect on what felt alive between you this month' },
   { id: 'seasonal_intention', label: 'Seasonal Intention', cadence: 'seasonal', description: 'Set an intention for the season together' },
   { id: 'anniversary_prompt', label: 'Anniversary Reflection', cadence: 'anniversary', description: 'A private, tasteful reflection on your journey' },
 ];
 
-export const RitualCycleManager = {
+const RitualCycleManager = {
   async getActiveRituals() {
     try {
       const raw = await AsyncStorage.getItem(KEYS.RITUAL_CYCLE);
@@ -786,7 +786,7 @@ export const RitualCycleManager = {
 
     for (const ritual of active) {
       if (!ritual.enabled) continue;
-      const type = RITUAL_TYPES.find(t => t.id === ritual.id);
+      const type = RITUAL_TYPES_CYCLE.find(t => t.id === ritual.id);
       if (!type) continue;
 
       const lastTriggered = ritual.lastTriggered || 0;
@@ -808,7 +808,7 @@ export const RitualCycleManager = {
 // 10. SoftIntentionsLayer — Shared soft goals
 // ═══════════════════════════════════════════════════════
 
-export const SOFT_INTENTIONS = [
+const SOFT_INTENTIONS = [
   { id: 'laughter', label: 'More laughter', icon: 'happy-outline' },
   { id: 'touch', label: 'More touch', icon: 'hand-left-outline' },
   { id: 'adventure', label: 'More adventure', icon: 'compass-outline' },
@@ -819,7 +819,7 @@ export const SOFT_INTENTIONS = [
   { id: 'presence', label: 'More presence', icon: 'eye-outline' },
 ];
 
-export const SoftIntentionsManager = {
+const SoftIntentionsManager = {
   async getActive() {
     try {
       const raw = await AsyncStorage.getItem(KEYS.SOFT_INTENTIONS);
@@ -855,15 +855,7 @@ export default {
   ContentIntensityMatcher,
   SerendipityTrigger,
   PrivateLanguageVault,
-  BinaryPromptEngine,
-  FuturePromptRotation,
-  RitualCycleManager,
-  SoftIntentionsManager,
   MOMENT_TYPES,
   CLIMATE_OPTIONS,
   ENERGY_LEVELS,
-  THIS_OR_THAT_PROMPTS,
-  FUTURE_US_PROMPTS,
-  RITUAL_TYPES,
-  SOFT_INTENTIONS,
 };

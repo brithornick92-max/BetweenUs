@@ -163,7 +163,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Velvet background gradient */}
       <LinearGradient
