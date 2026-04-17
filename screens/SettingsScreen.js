@@ -604,14 +604,6 @@ export default function SettingsScreen({ navigation }) {
                 notification(NotificationFeedbackType.Success);
               }}
               t={t}
-            />
-            <EditorialRow 
-              icon="images-outline" 
-              title="🔧 Illustration Preview" 
-              subtitle="Dev: Preview intimacy illustrations"
-              iconColor="#34C759"
-              onPress={() => navigation.navigate('IllustrationPreview')}
-              t={t}
               isLast
             />
           </EditorialSection>

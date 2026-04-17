@@ -33,20 +33,60 @@ import { DataProvider } from "./context/DataContext";
 import LockScreen from "./components/LockScreen";
 import ErrorBoundary from "./components/ErrorBoundary";
 import CrashReporting from "./services/CrashReporting";
-import AnalyticsService from "./services/AnalyticsService";
-import ExperimentService from "./services/ExperimentService";
-import DeepLinkHandler from "./services/DeepLinkHandler";
 import { impact, ImpactFeedbackStyle } from "./utils/haptics";
 import { addNotificationResponseListener } from "./utils/notifications";
-import revenueCatService from "./services/RevenueCatService";
-import PushNotificationService from "./services/PushNotificationService";
 import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
 import { cloudSyncStorage, storage, STORAGE_KEYS } from "./utils/storage";
 
+const isLightweightDevMode = __DEV__ && process.env.EXPO_PUBLIC_LIGHTWEIGHT_DEV === "1";
+
+let analyticsServiceInstance = null;
+let experimentServiceInstance = null;
+let deepLinkHandlerInstance = null;
+let revenueCatServiceInstance = null;
+let pushNotificationServiceInstance = null;
+
+function getAnalyticsService() {
+  if (!analyticsServiceInstance) {
+    analyticsServiceInstance = require("./services/AnalyticsService").default;
+  }
+  return analyticsServiceInstance;
+}
+
+function getExperimentService() {
+  if (!experimentServiceInstance) {
+    experimentServiceInstance = require("./services/ExperimentService").default;
+  }
+  return experimentServiceInstance;
+}
+
+function getDeepLinkHandler() {
+  if (!deepLinkHandlerInstance) {
+    deepLinkHandlerInstance = require("./services/DeepLinkHandler").default;
+  }
+  return deepLinkHandlerInstance;
+}
+
+function getRevenueCatService() {
+  if (!revenueCatServiceInstance) {
+    revenueCatServiceInstance = require("./services/RevenueCatService").default;
+  }
+  return revenueCatServiceInstance;
+}
+
+function getPushNotificationService() {
+  if (!pushNotificationServiceInstance) {
+    pushNotificationServiceInstance = require("./services/PushNotificationService").default;
+  }
+  return pushNotificationServiceInstance;
+}
+
 // Initialize Sentry early — this is fast (synchronous config, no network).
 // Sentry.wrap() at module scope requires init() to have been called first.
-CrashReporting.init();
+if (!isLightweightDevMode) {
+  CrashReporting.init();
+}
 
 // ── Global error handlers (production + dev) ──────────────────────
 // Catches fatal JS errors and unhandled promise rejections in release builds
@@ -119,8 +159,10 @@ function logError(context, err) {
 }
 
 const initializeRevenueCat = async () => {
+  if (isLightweightDevMode) return;
+
   try {
-    await revenueCatService.init();
+    await getRevenueCatService().init();
     if (isDev) console.log('✅ RevenueCat initialized via service');
   } catch (error) {
     logError('revenuecat_init', error);
@@ -213,6 +255,8 @@ function AppContent() {
 
   // Keep Expo push token state aligned with the current Supabase session.
   useEffect(() => {
+    if (isLightweightDevMode) return undefined;
+
     let active = true;
     let unsubscribe = null;
 
@@ -223,17 +267,17 @@ function AppContent() {
 
         const notificationSettings = await storage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS, {});
         if (notificationSettings?.notificationsEnabled === false) {
-          await PushNotificationService.removeToken(supabase);
+          await getPushNotificationService().removeToken(supabase);
           return;
         }
 
         if (session && active) {
           const shouldRequestPermissions = notificationSettings?.notificationsEnabled !== false;
-          await PushNotificationService.initialize(supabase, {
+          await getPushNotificationService().initialize(supabase, {
             requestPermissions: shouldRequestPermissions,
           });
         } else {
-          await PushNotificationService.removeToken(supabase);
+          await getPushNotificationService().removeToken(supabase);
         }
       } catch (pushErr) {
         CrashReporting.captureException(pushErr, { source: 'push_registration' });
@@ -284,6 +328,8 @@ function AppContent() {
 
   // Wire up notification tap → deep link routing
   useEffect(() => {
+    if (isLightweightDevMode) return undefined;
+
     const sub = addNotificationResponseListener((response) => {
       // Fire a haptic burst when the partner taps a heartbeat notification
       // (covers the background/killed-app case where Realtime isn't running)
@@ -291,14 +337,15 @@ function AppContent() {
       if (notifData?.type === 'moment_signal') {
         impact(ImpactFeedbackStyle.Heavy).catch(() => {});
       }
-      DeepLinkHandler.handleNotificationResponse(response);
+      getDeepLinkHandler().handleNotificationResponse(response);
     });
     return () => sub?.remove();
   }, []);
 
   // Handle notification that launched the app from killed state (cold start)
   useEffect(() => {
-    if (!navReady) return;
+    if (isLightweightDevMode || !navReady) return undefined;
+
     let handled = false;
     const checkInitialNotification = async () => {
       try {
@@ -308,7 +355,7 @@ function AppContent() {
           handled = true;
           // Brief delay to ensure navigation stack is fully mounted
           setTimeout(() => {
-            DeepLinkHandler.handleNotificationResponse(response);
+            getDeepLinkHandler().handleNotificationResponse(response);
           }, 500);
         }
       } catch {
@@ -368,7 +415,9 @@ function AppContent() {
       ref={navigationRef}
       onReady={() => {
         setNavReady(true);
-        DeepLinkHandler.setNavigationRef(navigationRef);
+        if (!isLightweightDevMode) {
+          getDeepLinkHandler().setNavigationRef(navigationRef);
+        }
       }}
       onUnhandledAction={(action) => {
         CrashReporting.captureMessage(`Unhandled nav action: ${action?.type}`, 'warning');
@@ -397,15 +446,22 @@ function App() {
   }, [fontsLoaded]);
 
   useEffect(() => {
+    const unregisterAutoClearDecryptedCache = registerAutoClearDecryptedCache();
+
+    if (isLightweightDevMode) {
+      return () => {
+        unregisterAutoClearDecryptedCache?.();
+      };
+    }
+
     // Parallelize independent startup tasks with a timeout guard
     // so a hung SDK can't block the app indefinitely.
     const STARTUP_TIMEOUT_MS = 15000;
     let timeoutId;
     const startupTasks = Promise.all([
-      AnalyticsService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'analytics_init' })),
-      ExperimentService.init({}).catch((e) => CrashReporting.captureException(e, { source: 'experiments_init' })),
+      getAnalyticsService().init({}).catch((e) => CrashReporting.captureException(e, { source: 'analytics_init' })),
+      getExperimentService().init({}).catch((e) => CrashReporting.captureException(e, { source: 'experiments_init' })),
       initializeRevenueCat(),
-      registerAutoClearDecryptedCache(),
     ]);
     const timeout = new Promise((_, reject) => {
       timeoutId = setTimeout(() => reject(new Error('Startup tasks timed out (15s)')), STARTUP_TIMEOUT_MS);
@@ -413,7 +469,7 @@ function App() {
     Promise.race([startupTasks, timeout])
       .catch((e) => CrashReporting.captureException(e, { source: 'startup_init' }))
       .finally(() => clearTimeout(timeoutId));
-    return () => AnalyticsService.destroy();
+    return () => getAnalyticsService().destroy();
   }, []);
 
   if (!fontsLoaded) return null;
@@ -445,6 +501,7 @@ function App() {
       </ErrorBoundary>
     );
   } catch (error) {
+          unregisterAutoClearDecryptedCache?.();
     logError('app_init', error);
     SplashScreen.hideAsync().catch(() => {});
     return (

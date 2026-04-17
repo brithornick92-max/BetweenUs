@@ -182,7 +182,7 @@ const PremiumPaywall = ({
           <Text style={[styles.headerEye, { color: theme.crimson, marginTop: trialInfo?.isFree ? 16 : 0 }]}>Elevate Your Connection</Text>
           <Text style={[styles.title, { color: colors.text }]}>Unlock the Full Experience</Text>
           <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-            Deeper prompts, unlimited date planning, and encrypted intimacy for your most meaningful relationship.
+            A year from now, you’ll have a vault of every answer, every memory, every moment you’ve built together. Premium keeps your story safe — and growing.
           </Text>
           <View style={styles.socialProofRow}>
             <Icon name="people-outline" size={15} color={theme.crimson} />
@@ -227,8 +227,9 @@ const PremiumPaywall = ({
             isSelected={selectedTier === 'ANNUAL'}
           />
           <Animated.View entering={FadeIn.delay(800).duration(600)} style={styles.perCoupleWrapper}>
+            <Icon name="people-outline" size={15} color={colors.textMuted} />
             <Text style={[styles.perCoupleText, { color: colors.textMuted }]}>
-              All prices are per couple.
+              One subscription covers both of you — your partner unlocks everything too.
             </Text>
           </Animated.View>
         </View>
@@ -360,7 +361,10 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
   popularTagText: { color: '#FFF', fontSize: 9, fontWeight: '900' },
 
   perCoupleWrapper: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
     marginTop: 8,
     marginBottom: 4,
   },

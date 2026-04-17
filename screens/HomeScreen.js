@@ -156,6 +156,7 @@ export default function HomeScreen({ navigation }) {
   const [rewardData, setRewardData] = useState(null);
   const [smartGreeting, setSmartGreeting] = useState('Welcome Back');
   const [smartSubGreeting, setSmartSubGreeting] = useState('Your evening awaits.');
+  const [answeredCount, setAnsweredCount] = useState(0);
   const remainingFreePrompts = usageStatus?.remaining?.prompts ?? 1;
   const canWritePrompt = isPremium || !!myAnswer.trim() || remainingFreePrompts > 0;
 
@@ -276,6 +277,7 @@ export default function HomeScreen({ navigation }) {
       try {
         const past = await DataLayer.getPromptAnswers({ limit: 50 });
         const answered = (past || []).filter(r => r.answer && r.date_key !== dateKey());
+        setAnsweredCount(answered.length);
         if (answered.length > 0) {
           const pick = answered[Math.floor(Math.random() * answered.length)];
           setThrowback(pick);
@@ -787,15 +789,42 @@ export default function HomeScreen({ navigation }) {
           <View style={{ height: homeLayout.type === 'compact' ? SPACING.md : SPACING.lg }} />
 
           <SurpriseTonight navigation={navigation} />
-          {isPremium && (
-            <>
-              <View style={{ height: SPACING.xl }} />
-              <YearReflectionCard onPress={async () => {
-                impact(ImpactFeedbackStyle.Light);
-                navigation.navigate('YearReflection');
-              }} />
-            </>
+
+          {/* ── Soft Upgrade Nudge (free users with 3+ shared moments) ── */}
+          {!isPremium && answeredCount >= 3 && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
+              style={[styles.softNudgeCard, { backgroundColor: t.surface, borderColor: t.border }]}
+            >
+              <View style={styles.softNudgeInner}>
+                <Icon name="heart-circle-outline" size={28} color={t.primary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.softNudgeTitle, { color: t.text }]}>
+                    You've shared {answeredCount} moments together
+                  </Text>
+                  <Text style={[styles.softNudgeBody, { color: t.subtext }]}>
+                    A year from now, you'll have a vault of every answer, every memory, every spark. Premium keeps your story safe — and growing.
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.softNudgeCTA}>
+                <Text style={[styles.softNudgeCTAText, { color: t.primary }]}>Protect your story</Text>
+                <Icon name="arrow-forward-outline" size={14} color={t.primary} />
+              </View>
+            </TouchableOpacity>
           )}
+
+          {/* ── Year Reflection (all users — free users hit paywall) ── */}
+          <View style={{ height: SPACING.xl }} />
+          <YearReflectionCard onPress={() => {
+            impact(ImpactFeedbackStyle.Light);
+            if (!isPremium) {
+              showPaywall?.(PremiumFeature.YEAR_REFLECTION);
+              return;
+            }
+            navigation.navigate('YearReflection');
+          }} />
 
           {/* ── Moment Signal ── */}
           <View style={styles.momentSection}>
@@ -1198,5 +1227,47 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '600',
     color: t.subtext,
     letterSpacing: 0.3,
+  },
+
+  // ── Soft Upgrade Nudge ──
+  softNudgeCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.25 : 0.05, shadowRadius: 12 },
+      android: { elevation: 2 },
+    }),
+  },
+  softNudgeInner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    marginBottom: SPACING.md,
+  },
+  softNudgeTitle: {
+    fontFamily: systemFont,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    marginBottom: 6,
+  },
+  softNudgeBody: {
+    fontFamily: systemFont,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '400',
+  },
+  softNudgeCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  softNudgeCTAText: {
+    fontFamily: systemFont,
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
 });

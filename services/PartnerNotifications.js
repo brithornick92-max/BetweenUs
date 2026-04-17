@@ -16,7 +16,7 @@ const PartnerNotifications = {
     const name = senderName || 'Your partner';
     await this._send({
       title: `${name} just answered 💬`,
-      body: 'Tap to see their response and share yours.',
+      body: "Tap to see what they wrote — then share yours.",
       data: { type: 'prompt_answered' },
     });
   },
@@ -27,8 +27,8 @@ const PartnerNotifications = {
   async loveNoteSent(senderName) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} sent you a love note 💌`,
-      body: 'Open it to read their words.',
+      title: `${name} wrote you something 💌`,
+      body: 'A private note, just for you.',
       data: { type: 'love_note_sent' },
     });
   },
@@ -40,8 +40,8 @@ const PartnerNotifications = {
     const name = senderName || 'Your partner';
     const suffix = vibeLabel ? `: ${vibeLabel}` : '';
     await this._send({
-      title: `${name} shared a vibe${suffix}`,
-      body: 'See how they\'re feeling right now.',
+      title: `${name} is thinking of you`,
+      body: 'They sent you a vibe. Open the app to feel it.',
       data: { type: 'vibe_sent' },
     });
   },
@@ -53,8 +53,8 @@ const PartnerNotifications = {
     const name = senderName || 'Your partner';
     const suffix = dateTitle ? ` — ${dateTitle}` : '';
     await this._send({
-      title: `${name} planned a date${suffix} 📅`,
-      body: 'Check your shared calendar.',
+      title: `${name} planned something for you two 📅`,
+      body: 'A date night idea is waiting in your calendar.',
       data: { type: 'date_planned' },
     });
   },
@@ -65,8 +65,8 @@ const PartnerNotifications = {
   async ritualCompleted(senderName) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} completed tonight's ritual 🌙`,
-      body: 'Join them to keep your streak going.',
+      title: `${name} lit tonight's ritual 🌙`,
+      body: 'Join them — it only takes a moment.',
       data: { type: 'ritual_completed' },
     });
   },

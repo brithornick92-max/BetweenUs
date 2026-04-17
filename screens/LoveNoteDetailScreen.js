@@ -163,9 +163,9 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
 
   useEffect(() => {
     if (envelopeOpen && note && !note.isOwn && !note.isRead) {
-      DataLayer.markLoveNoteRead(note.id).catch((err) =>
-        if (__DEV__) console.warn('[LoveNoteDetail] Failed to mark read:', err?.message)
-      );
+        DataLayer.markLoveNoteRead(note.id).catch((err) => {
+          if (__DEV__) console.warn('[LoveNoteDetail] Failed to mark read:', err?.message);
+        });
     }
   }, [envelopeOpen, note]);
 

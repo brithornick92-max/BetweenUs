@@ -344,9 +344,9 @@ const DataLayer = {
 
     // Initial pull from Supabase (get partner's latest data)
     if (isPremium && coupleId) {
-      SyncEngine.pullNow().catch(err =>
-        if (__DEV__) console.warn('[DataLayer] Initial pull failed:', err.message)
-      );
+        SyncEngine.pullNow().catch((err) => {
+          if (__DEV__) console.warn('[DataLayer] Initial pull failed:', err.message);
+        });
     }
   },
 

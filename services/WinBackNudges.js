@@ -32,20 +32,20 @@ try {
 const NUDGES = [
   {
     delayDays: 3,
-    title: 'Your partner misses you 💌',
-    body: "It's been a few days — a quick prompt could make their night.",
+    title: 'A little nudge from Between Us',
+    body: "Something you two started is still here. Come back and finish it together.",
     route: 'Home',
   },
   {
     delayDays: 7,
-    title: 'Your streak is waiting ✨',
-    body: "One reflection a day keeps the spark alive. Come back and answer today's prompt.",
+    title: 'Your reflection is waiting',
+    body: "One honest answer a day — that's all it takes. Tonight's prompt is ready.",
     route: 'Home',
   },
   {
     delayDays: 14,
-    title: 'Friday Date Night is here 🌹',
-    body: 'We unlocked bonus date ideas just for you — browse them before they go.',
+    title: 'New date ideas just dropped 🌹',
+    body: 'Fresh ideas are waiting for you two. Browse before the week is gone.',
     route: 'DateNight',
   },
 ];
@@ -154,8 +154,8 @@ const WinBackNudges = {
       const partnerRef = partnerName ? `you and ${partnerName}` : 'your streak';
       const id = await Notifications.scheduleNotificationAsync({
         content: {
-          title: `Don't let your ${currentStreak}-day streak end tonight 🔥`,
-          body: `${currentStreak} days of ${partnerRef} — keep it going with one quick prompt.`,
+          title: `${currentStreak} days in a row — keep it going`,
+          body: `You and ${partnerRef} have built something real. One more night keeps it alive.`,
           data: { route: 'Home', type: 'streak_break_warning', streak: currentStreak },
         },
         trigger: { date: tomorrow },
@@ -203,8 +203,8 @@ const WinBackNudges = {
 
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'Your week with ' + partnerName,
-          body: `${promptLine}${streakLine}. Open Between Us to reflect on your week together.`,
+          title: 'Your week together',
+          body: `${promptLine}${streakLine}. Open Between Us to reflect on it together.`,
           data: { route: 'Home', type: 'weekly_recap' },
         },
         trigger: { date: next },

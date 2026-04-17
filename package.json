@@ -6,8 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "expo start",
+    "start:light": "NODE_OPTIONS=--max-old-space-size=2048 EXPO_NO_TELEMETRY=1 EXPO_USE_FAST_RESOLVER=1 EXPO_PUBLIC_LIGHTWEIGHT_DEV=1 expo start --host lan --max-workers 2",
     "android": "expo run:android",
+    "android:light": "NODE_OPTIONS=--max-old-space-size=2048 EXPO_NO_TELEMETRY=1 EXPO_USE_FAST_RESOLVER=1 EXPO_PUBLIC_LIGHTWEIGHT_DEV=1 expo run:android",
     "ios": "expo run:ios",
+    "ios:light": "NODE_OPTIONS=--max-old-space-size=2048 EXPO_NO_TELEMETRY=1 EXPO_USE_FAST_RESOLVER=1 EXPO_PUBLIC_LIGHTWEIGHT_DEV=1 expo run:ios",
     "web": "expo start --web",
     "test": "jest --config jest.config.cjs",
     "test:watch": "jest --config jest.config.cjs --watch",
