@@ -539,10 +539,11 @@ export default function CalendarScreen({ navigation, route }) {
           }
         >
           {/* Header */}
-          <View style={styles.mainPadding}>
-            <Text style={[styles.editorialTitle, { color: t.text }]}>Timeline</Text>
-            <Text style={[styles.subGreeting,    { color: t.subtext }]}>Your shared future, organized.</Text>
-          </View>
+          <ReAnimated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
+            <Text style={[styles.headerLabel, { color: t.primary }]}>THE CALENDAR</Text>
+            <Text style={[styles.headerTitle, { color: t.text }]}>Timeline</Text>
+            <Text style={[styles.headerSubtitle, { color: t.subtext }]}>Your shared future, organized.</Text>
+          </ReAnimated.View>
 
           {/* Calendar widget */}
           <PremiumCalendar
@@ -725,20 +726,31 @@ export default function CalendarScreen({ navigation, route }) {
 const createStyles = (t, isDark) => StyleSheet.create({
   container:     { flex: 1, backgroundColor: 'transparent' },
   scrollContent: { flexGrow: 1, paddingBottom: 160 },
-  mainPadding:   { paddingHorizontal: 32, paddingTop: 20, paddingBottom: SPACING.md },
-
-  editorialTitle: {
-    fontFamily:    SYSTEM_FONT,
-    fontSize:      36,
-    fontWeight:    '900',
-    letterSpacing: -1,
-    lineHeight:    42,
+  header: {
+    paddingHorizontal: 32,
+    marginTop: 20,
+    marginBottom: 32,
   },
-  subGreeting: {
+  headerLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize:   16,
-    fontWeight: '500',
-    marginTop:  4,
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 2,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  headerTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 42,
+    fontWeight: '800',
+    letterSpacing: -1.5,
+  },
+  headerSubtitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 8,
+    opacity: 0.9,
   },
 
   // ── Calendar ──────────────────────────────────────────────────

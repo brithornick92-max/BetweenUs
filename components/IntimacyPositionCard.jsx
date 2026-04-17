@@ -1,7 +1,6 @@
 /**
- * IntimacyPositionCard — Premium intimacy building card
- * Velvet Glass surface with editorial typography.
- * Displays a single position from content/intimacy-positions.json.
+ * IntimacyPositionCard — Apple Editorial Format
+ * Crisp solid widgets, heavy native typography, high contrast.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -11,52 +10,19 @@ import {
   Image,
   StyleSheet,
   Platform,
-  Dimensions,
   TouchableOpacity,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../context/ThemeContext';
-import { SPACING, COLORS, TYPOGRAPHY, SERIF, withAlpha } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import Icon from './Icon';
 
-const { width: SCREEN_W } = Dimensions.get('window');
+const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
-const HEAT_ICONS = {
-  1: 'heart-outline',
-  2: 'sparkles-outline',
-  3: 'flame-outline',
-};
-
-const HEAT_LABELS = {
-  1: 'Gentle',
-  2: 'Warm',
-  3: 'Heated',
-};
-
+const HEAT_ICONS = { 1: 'heart-outline', 2: 'sparkles-outline', 3: 'flame-outline' };
+const HEAT_LABELS = { 1: 'Gentle', 2: 'Warm', 3: 'Heated' };
 const MOOD_ICONS = {
-  intimate: 'moon-outline',
-  tender: 'heart-outline',
-  curious: 'compass-outline',
-  protective: 'shield-outline',
-  playful: 'happy-outline',
-  meditative: 'leaf-outline',
-  freeform: 'infinite-outline',
-  devoted: 'star-outline',
-  grounding: 'earth-outline',
-  magnetic: 'magnet-outline',
-  exploratory: 'search-outline',
-  cozy: 'home-outline',
-  soothing: 'water-outline',
-  flowing: 'git-merge-outline',
-  healing: 'bandage-outline',
-  fluid: 'swap-horizontal-outline',
-  warm: 'sunny-outline',
-  intense: 'flash-outline',
-  peaceful: 'cloudy-night-outline',
-  passionate: 'flame-outline',
-  surrendered: 'bed-outline',
+  intimate: 'moon-outline', tender: 'heart-outline', curious: 'compass-outline',
+  playful: 'happy-outline', freeform: 'infinite-outline', devoted: 'star-outline',
+  passionate: 'flame-outline', surrendered: 'bed-outline', cozy: 'home-outline',
 };
 
 const BODY_TYPE_OPTIONS = [
@@ -65,416 +31,242 @@ const BODY_TYPE_OPTIONS = [
 ];
 
 const POSITION_SUPPORT_TIPS = {
-  ip001: 'A folded blanket or pillow under the bottom partner\'s hips raises the seat slightly and reduces knee strain from the bent-leg position. The arching partner can spread their arms wide to distribute weight and avoid over-bending the lower back. Moving slowly in and out of the arch rather than holding it static reduces fatigue for both partners.',
-  ip002: 'The dramatic back arch can create tension through the lower back and neck. If lower back discomfort builds, reduce the arch and let the front partner rest more of their weight against the sitting partner\'s chest rather than fully extending. A pillow behind the sitting partner\'s lower back gives firm support to brace against.',
-  ip003: 'If the knee angle feels uncomfortable, lean forward and rest your hands on your partner\'s shins or the bed rather than riding fully upright. This shortens the range of motion and takes weight off the knees. A pillow behind the knees of the partner lying down can also ease the hip angle.',
-  ip004: 'If wrist or elbow pressure builds, lower down onto forearms instead of hands. A pillow under the stomach of the receiving partner raises the hips slightly, reducing the forward lean needed. If knee discomfort is the issue, kneel on a folded blanket or a pillow.',
-  ip005: 'The reverse tabletop position puts load through the wrists and shoulders of the bottom partner. If wrist discomfort builds, try propping up on fists or place a folded blanket under the hands. The top partner can lean slightly forward to shift weight off the wrists. Shorter rounds let both partners shake out between sets.',
-  ip006: 'If breathing feels compressed, try turning the head to the side and letting it rest on a pillow rather than being fully face-down. A pillow under the chest — not just the hips — opens the airway and softens the feeling of weight. Widening the legs slightly also reduces stomach compression.',
-  ip007: 'The bottom partner is already on forearms, which is a stable low position. A folded blanket under the knees of both partners reduces hard-floor pressure significantly. The top partner can place their hands on either side of the bottom partner for stability, and moving more slowly reduces the effort needed to hold alignment from above.',
-  ip008: 'If the knee angle makes staying upright difficult, lean forward and rest your hands on your partner\'s chest or the bed. This shifts weight forward and takes pressure off the knees. Your partner can also bend their knees up slightly to give you a surface to brace against.',
-  ip009: 'A thin pillow under the lying partner\'s stomach can tilt the hips into a more comfortable angle. The kneeling partner can ease their weight forward gradually rather than all at once, and placing their hands or forearms on either side of their partner distributes pressure so no one spot takes the full load.',
-  ip010: 'If the partner on top struggles to hold their weight on forearms, try dropping fully chest-to-chest and moving more slowly. A pillow under the receiving partner\'s lower back or hips tilts the pelvis up slightly, making the angle easier for both.',
-  ip011: 'The lifting partner should keep their back straight and bend at the knees rather than the waist when taking on their partner\'s weight. Stepping close to a wall and leaning back into it lets the wall share the load. The lifted partner can loosen their grip slightly and let their weight settle low — squeezing too hard makes it harder to hold.',
-  ip012: 'A folded blanket under the knees of both partners softens the surface pressure. If raising the leg straight up creates hip or groin strain, lower it to a comfortable angle — even 45 degrees still shifts the sensation significantly. The kneeling partner should hold the leg at the ankle or calf rather than the foot for better control.',
-  ip013: 'A pillow under the hips at the bed edge helps maintain the angle and reduces lower back strain. The lying partner can bend their elbows slightly rather than reaching all the way to the floor, or place a bolster beneath their hanging upper body. The standing partner stepping slightly closer reduces the reach needed to hold the hips steady.',
-  ip014: 'If the lifted partner\'s thighs fatigue from squeezing, loosen the leg grip and let the arms carry more of the weight instead. The standing partner can bend their knees slightly to lower both bodies, which transfers more weight through their legs rather than their arms and back. Doing this near a wall gives a natural place to rest between moments.',
-  ip015: 'If elbow or shoulder pressure builds on the forearms, slide a folded pillow under the forearms to cushion the surface. The receiving partner can also widen their knees slightly to lower the hips closer to the bed, reducing how much the behind partner needs to angle down. Moving more slowly reduces the need to hold the position rigidly.',
-  ip016: 'If lower back support is needed for the leaning-back partner, place a firm pillow or folded blanket behind the lower back before settling in. The reclining partner can shift their angle slightly — more on their side vs. more on their back — to find the most comfortable position for both. Moving in smaller, slower rhythms reduces the effort needed to maintain the angle.',
-  ip017: 'If wrist pressure builds quickly, lower down onto forearms on the surface rather than hands. A lower surface — like the bed edge — is usually easier than a higher counter. If lower back strain develops, bend the knees slightly and soften the arch rather than staying fully straight.',
-  ip018: 'The sitting partner can slide back so more of their thigh is supported on the bed, reducing hip flexor tension. The kneeling partner can place a folded blanket under their knees. There\'s no need to hold a particular leg position — feet can rest on the kneeling partner\'s shoulders or stay relaxed.',
-  ip019: 'If the chair digs into the back of the thighs, use a softer surface or add a folded blanket to the seat. The straddling partner can lean slightly forward to shift weight through their own legs rather than bearing it all through the knees. A lower seat height generally makes this position more comfortable.',
-  ip020: 'If hip flexor or lower back tension builds during side-lying, place a pillow between the knees to keep the hips stacked and the spine neutral. Reducing how far the thigh is raised also reduces the stretch required. Rolling slightly onto the back — just 20–30 degrees — can immediately relieve pressure.',
+  ip001: 'Tuck a folded blanket beneath the seated partner\'s hips to lift them gently and soften any strain through the knees. The arching partner can let their arms open wide — releasing into the position rather than holding it.',
+  ip002: 'If the lower back begins to speak up, ease the arch and let the front partner settle back into their partner\'s chest — less open, more held. A pillow tucked behind the sitting partner\'s lower back gives them something solid to press into.',
+  ip003: 'If the knee angle starts to bite, lean forward and let your hands rest on your partner\'s shins or the bed. That small shift shortens the range and takes the weight off.',
+  ip004: 'If the wrists start to protest, slide down onto the forearms — the whole position softens from there. A pillow under the receiving partner\'s stomach lifts the hips just enough to ease the angle.',
+  ip005: 'The lifted-hips position draws a lot through the wrists and shoulders. If pressure builds, try propping up on fists or sliding a folded blanket under the hands.',
+  ip006: 'If breathing feels compressed, turn the head to one side and let it rest rather than pressing straight down. Widening the legs slightly gives the stomach more room to breathe.',
+  ip007: 'A folded blanket under both sets of knees takes the hardness out of any surface. The top partner can rest their hands gently on either side for stability.',
+  ip008: 'If staying upright feels like work, lean forward and let your hands rest on your partner\'s chest or the surface beside them — the weight shifts forward and the knees decompress immediately.',
+  ip009: 'A thin pillow tucked under the lying partner\'s stomach can tilt the hips into a more open, comfortable angle. The partner above can ease their weight forward gradually.',
+  ip010: 'If holding the weight on forearms becomes tiring, drop all the way down — chest to chest — and let the movement get smaller and slower.',
+  ip011: 'The lifting partner keeps their back long and bends through the knees rather than the waist. A wall just behind them lets it share the load.',
+  ip012: 'If lifting the leg fully creates tension through the hip or groin, lower it — even 45 degrees reshapes the sensation meaningfully. Hold the leg at the ankle or calf for control.',
+  ip013: 'A pillow beneath the hips, right at the edge of the bed, keeps the angle and protects the lower back. The lying partner can bend their elbows slightly rather than reaching all the way to the floor.',
+  ip014: 'If the thighs start to fatigue, loosen the leg grip and let the arms carry more — the position stays just as close. The standing partner can bend their knees slightly, lowering both bodies together.',
+  ip015: 'If the forearms need more cushion, slide a folded pillow beneath them before you begin. The receiving partner widening their knees slightly lowers the hips toward the surface.',
+  ip016: 'Before settling in, place a firm pillow behind the lower back of the reclining partner — it makes a quiet difference. Shifting slightly toward one side rather than full recline can find a sweeter angle.',
+  ip017: 'If the wrists tire quickly, lower down onto forearms on whatever surface you\'re using. If the lower back starts to arch uncomfortably, soften the knees slightly and let the spine settle.',
 };
 
-function getBodyTypeSupport(activeBodyType, position) {
-  if (activeBodyType !== 'support') return null;
-
-  const id = position?.id;
-  const tip = POSITION_SUPPORT_TIPS[id] || 'Use pillows, wedges, or the edge of the bed to create more space and a better angle. Take pressure off knees, hips, or stomach by widening your base and letting support do more of the work.';
-
-  return {
-    title: 'Comfort tip',
-    body: tip,
-  };
-}
-
-// Color mapping per variant — which figure gets which color
-const getIllustrationColors = (variant, colors) => {
-  const sexyRed = colors.primary || '#D2121A';
-  const deepCrimson = colors.primaryMuted || '#900C0F';
-  const silver = 'rgba(229,229,231,0.55)';
-  const silverLight = 'rgba(229,229,231,0.35)';
-
-  switch (variant) {
-    case 'her-her': return { figureA: sexyRed, figureB: deepCrimson };
-    case 'him-him': return { figureA: silver, figureB: silverLight };
-    case 'him-her':
-    default:        return { figureA: silver, figureB: sexyRed };
-  }
-};
-
-const FONTS = {
-  serif: Platform.select({
-    ios: 'DMSerifDisplay-Regular',
-    android: 'DMSerifDisplay_400Regular',
-    default: 'serif',
-  }),
-  body: Platform.select({
-    ios: 'Lato-Regular',
-    android: 'Lato_400Regular',
-    default: 'sans-serif',
-  }),
-  bodyBold: Platform.select({
-    ios: 'Lato-Bold',
-    android: 'Lato_700Bold',
-    default: 'sans-serif',
-  }),
-};
-
-export default function IntimacyPositionCard({ position, defaultBodyType = 'standard', IllustrationSvg, getIllustrationForBodyType }) {
+export default function IntimacyPositionCard({ position, t, isDark, defaultBodyType = 'standard', IllustrationSvg, getIllustrationForBodyType }) {
   const [activeBodyType, setActiveBodyType] = useState(defaultBodyType);
-  const { colors, isDark } = useTheme();
-  const illustrationColors = useMemo(() => getIllustrationColors('him-her', colors), [colors]);
+
+  const getIllustrationColors = (variant) => {
+    const primary = t.primary;
+    const secondary = isDark ? '#4A4A4E' : '#D1D1D6';
+    switch (variant) {
+      case 'her-her': return { figureA: primary, figureB: primary };
+      case 'him-him': return { figureA: secondary, figureB: secondary };
+      case 'him-her':
+      default:        return { figureA: secondary, figureB: primary };
+    }
+  };
+
+  const illustrationColors = useMemo(() => getIllustrationColors('him-her'), [t, isDark]);
   const ActiveIllustration = useMemo(() => {
     if (getIllustrationForBodyType) return getIllustrationForBodyType(position.id, activeBodyType);
     return IllustrationSvg || null;
   }, [getIllustrationForBodyType, IllustrationSvg, position.id, activeBodyType]);
-  const isImageIllustration = typeof ActiveIllustration === 'number';
 
-  const t = useMemo(() => ({
-    bg: isDark ? 'rgba(19, 16, 22, 0.75)' : 'rgba(255, 255, 255, 0.7)',
-    border: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-    borderSubtle: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
-    primary: colors.primary || '#D2121A',
-    primaryMuted: colors.primaryMuted || '#900C0F',
-    text: colors.text || '#FFFFFF',
-    textSecondary: colors.textSecondary || 'rgba(255,255,255,0.78)',
-    textMuted: colors.textMuted || 'rgba(255,255,255,0.48)',
-  }), [colors, isDark]);
-
-  const heat = position.heat || 1;
-  const heatIcon = HEAT_ICONS[heat] || 'heart-outline';
-  const heatLabel = HEAT_LABELS[heat] || 'Gentle';
+  const heatIcon = HEAT_ICONS[position.heat || 1];
+  const heatLabel = HEAT_LABELS[position.heat || 1];
   const moodIcon = MOOD_ICONS[position.mood] || 'ellipse-outline';
-  const bodyTypeSupport = useMemo(
-    () => getBodyTypeSupport(activeBodyType, position),
-    [activeBodyType, position]
-  );
+  
+  const tipBody = activeBodyType === 'support' ? POSITION_SUPPORT_TIPS[position.id] : null;
+
+  const shadowStyle = Platform.select({
+    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
+    android: { elevation: 6 },
+  });
 
   return (
-    <Animated.View entering={FadeInDown.duration(500).damping(20)} style={styles.wrapper}>
-      {/* Section eyebrow */}
-      <Text style={[styles.kicker, { color: withAlpha(t.primary, 0.8) }]}>
-        INTIMACY BUILDING
-      </Text>
+    <View style={[styles.heroCardWrap, { backgroundColor: t.surface, borderColor: t.border, ...shadowStyle }]}>
+      
+      {/* ── Eyebrow & Title ── */}
+      <View style={styles.eyebrowRow}>
+        <Icon name="star-outline" size={14} color={t.primary} />
+        <Text style={[styles.eyebrow, { color: t.primary }]}>{position.commonName || "INTIMACY"}</Text>
+      </View>
+      <Text style={[styles.promptText, { color: t.text }]}>{position.title}</Text>
 
-      {/* Title */}
-      <Text style={[styles.title, { color: t.text, fontFamily: FONTS.serif }]}>
-        {position.title}
-      </Text>
-      {position.commonName ? (
-        <Text style={[styles.commonName, { color: withAlpha(t.text, 0.5) }]}>
-          {position.commonName}
-        </Text>
-      ) : null}
-
-      {/* Glass card */}
-      <BlurView intensity={isDark ? 25 : 45} tint="dark" style={styles.glassOuter}>
-        <View style={[styles.glassInner, { backgroundColor: t.bg, borderColor: t.border }]}>
-
-          {/* Illustration — PNG preferred, SVG fallback */}
-          {ActiveIllustration ? (
-            <View style={styles.illustrationWrap}>
-              {isImageIllustration ? (
-                <Image
-                  source={ActiveIllustration}
-                  resizeMode="contain"
-                  style={styles.illustrationImage}
-                />
-              ) : (
-                <ActiveIllustration
-                  width="100%"
-                  height={200}
-                  figureAColor={illustrationColors.figureA}
-                  figureBColor={illustrationColors.figureB}
-                />
-              )}
-            </View>
-          ) : null}
-
-          {/* Body type selector */}
-          <View style={styles.bodyTypeRow}>
-            {BODY_TYPE_OPTIONS.map(bt => {
-              const isActive = activeBodyType === bt.key;
-              return (
-                <TouchableOpacity
-                  key={bt.key}
-                  onPress={() => setActiveBodyType(bt.key)}
-                  activeOpacity={0.7}
-                  style={[
-                    styles.bodyTypePill,
-                    {
-                      backgroundColor: isActive ? withAlpha(t.primary, 0.12) : 'transparent',
-                      borderColor: isActive ? withAlpha(t.primary, 0.25) : t.borderSubtle,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.bodyTypeText, { color: isActive ? t.primary : t.textMuted }]}>
-                    {bt.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Tags row */}
-          <View style={styles.tagRow}>
-            <View style={[styles.tag, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
-              <Icon name={heatIcon} size={13} color={t.primary} />
-              <Text style={[styles.tagText, { color: t.primary }]}>{heatLabel}</Text>
-            </View>
-            <View style={[styles.tag, styles.tagOutline, { borderColor: t.borderSubtle }]}>
-              <Text style={[styles.tagText, { color: t.textMuted }]}>{position.duration}</Text>
-            </View>
-            {position.mood && (
-              <View style={[styles.tag, styles.tagOutline, { borderColor: t.borderSubtle }]}>
-                <Icon name={moodIcon} size={13} color={t.textMuted} />
-                <Text style={[styles.tagText, { color: t.textMuted }]}>
-                  {position.mood.charAt(0).toUpperCase() + position.mood.slice(1)}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* The Focus */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: t.textMuted }]}>THE FOCUS</Text>
-            <Text style={[styles.bodyText, { color: t.textSecondary }]}>
-              {position.focus}
-            </Text>
-          </View>
-
-          {/* Divider */}
-          <View style={[styles.divider, { backgroundColor: t.borderSubtle }]} />
-
-          {/* How To */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: t.textMuted }]}>HOW TO</Text>
-            <Text style={[styles.bodyText, { color: t.textSecondary }]}>
-              {position.howTo}
-            </Text>
-          </View>
-
-          {bodyTypeSupport && (
-            <>
-              <View style={[styles.divider, { backgroundColor: t.borderSubtle }]} />
-
-              <View style={[styles.supportCard, { backgroundColor: withAlpha(t.primary, 0.06), borderColor: t.borderSubtle }]}>
-                <View style={styles.supportHeader}>
-                  <Icon name="heart-circle-outline" size={16} color={t.primary} />
-                  <Text style={[styles.supportTitle, { color: t.primary }]}>{bodyTypeSupport.title}</Text>
-                </View>
-                <Text style={[styles.supportBody, { color: t.textSecondary }]}>
-                  {bodyTypeSupport.body}
-                </Text>
-              </View>
-            </>
-          )}
-
-          {/* Divider */}
-          <View style={[styles.divider, { backgroundColor: t.borderSubtle }]} />
-
-          {/* Benefits */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: t.textMuted }]}>BENEFITS</Text>
-            <Text style={[styles.bodyText, { color: t.textSecondary }]}>
-              {position.benefits}
-            </Text>
-          </View>
-
-          {/* Divider */}
-          <View style={[styles.divider, { backgroundColor: t.borderSubtle }]} />
-
-          {/* Make It Hotter */}
-          {position.makeItHotter ? (
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: t.textMuted }]}>MAKE IT HOTTER</Text>
-              <Text style={[styles.bodyText, { color: t.textSecondary }]}>
-                {position.makeItHotter}
-              </Text>
-            </View>
-          ) : null}
-
-          {/* Accessibility note */}
-          {position.accessibility && (
-            <View style={[styles.accessibilityBadge, { backgroundColor: withAlpha(t.primary, 0.06), borderColor: t.borderSubtle }]}>
-              <Icon name="accessibility-outline" size={14} color={t.textMuted} />
-              <Text style={[styles.accessibilityText, { color: t.textMuted }]}>
-                {position.accessibility === 'low-mobility' ? 'Low mobility friendly' :
-                 position.accessibility === 'active' ? 'Some movement required' : 'Standard comfort'}
-              </Text>
-            </View>
+      {/* ── Illustration ── */}
+      {ActiveIllustration && (
+        <View style={[styles.illustrationWrap, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+          {typeof ActiveIllustration === 'number' ? (
+            <Image source={ActiveIllustration} resizeMode="contain" style={styles.illustrationImage} />
+          ) : (
+            <ActiveIllustration width="100%" height={200} figureAColor={illustrationColors.figureA} figureBColor={illustrationColors.figureB} />
           )}
         </View>
-      </BlurView>
-    </Animated.View>
+      )}
+
+      {/* ── Body Type Selector ── */}
+      <View style={styles.bodyTypeRow}>
+        {BODY_TYPE_OPTIONS.map(bt => {
+          const isActive = activeBodyType === bt.key;
+          return (
+            <TouchableOpacity
+              key={bt.key}
+              onPress={() => setActiveBodyType(bt.key)}
+              activeOpacity={0.7}
+              style={[
+                styles.bodyTypePill,
+                {
+                  backgroundColor: isActive ? t.text : t.surfaceSecondary,
+                  borderColor: isActive ? t.text : t.border,
+                },
+              ]}
+            >
+              <Text style={[styles.bodyTypeText, { color: isActive ? t.background : t.subtext }]}>
+                {bt.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* ── Tags ── */}
+      <View style={styles.tagRow}>
+        <View style={[styles.tag, { backgroundColor: isDark ? '#3A1015' : '#FCE8EA', borderColor: t.primary }]}>
+          <Icon name={heatIcon} size={14} color={t.primary} />
+          <Text style={[styles.tagText, { color: t.primary }]}>{heatLabel}</Text>
+        </View>
+        <View style={[styles.tag, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+          <Text style={[styles.tagText, { color: t.subtext }]}>{position.duration}</Text>
+        </View>
+        {position.mood && (
+          <View style={[styles.tag, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+            <Icon name={moodIcon} size={14} color={t.subtext} />
+            <Text style={[styles.tagText, { color: t.subtext }]}>
+              {position.mood.charAt(0).toUpperCase() + position.mood.slice(1)}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* ── Support Tip ── */}
+      {tipBody && (
+        <View style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+          <View style={styles.partnerVisibilityRow}>
+            <Icon name="heart-circle-outline" size={16} color={t.primary} />
+            <Text style={[styles.partnerVisibilityText, { color: t.primary }]}>A note on comfort</Text>
+          </View>
+          <Text style={[styles.answerText, { color: t.text }]}>{tipBody}</Text>
+        </View>
+      )}
+
+      {/* ── Content Sections ── */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: t.subtext }]}>THE FEELING</Text>
+        <Text style={[styles.answerText, { color: t.text }]}>{position.focus}</Text>
+      </View>
+
+      <View style={[styles.divider, { backgroundColor: t.border }]} />
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: t.subtext }]}>THE PRACTICE</Text>
+        <Text style={[styles.answerText, { color: t.text }]}>{position.howTo}</Text>
+      </View>
+
+      <View style={[styles.divider, { backgroundColor: t.border }]} />
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: t.subtext }]}>WHAT YOU'LL FEEL</Text>
+        <Text style={[styles.answerText, { color: t.text }]}>{position.benefits}</Text>
+      </View>
+
+      {position.makeItHotter && (
+        <>
+          <View style={[styles.divider, { backgroundColor: t.border }]} />
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: t.primary }]}>TURN IT UP</Text>
+            <Text style={[styles.answerText, { color: t.text }]}>{position.makeItHotter}</Text>
+          </View>
+        </>
+      )}
+
+      {/* ── Accessibility ── */}
+      {position.accessibility && (
+        <View style={styles.statusRow}>
+          <Icon name="accessibility-outline" size={16} color={t.subtext} />
+          <Text style={[styles.statusText, { color: t.subtext }]}>
+            {position.accessibility === 'low-mobility' ? 'Gentle on the body' :
+             position.accessibility === 'active' ? 'A little energy goes a long way' : 'Comfortable for most'}
+          </Text>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: SPACING.section,
-    paddingHorizontal: SPACING.screen,
-  },
-  kicker: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: SPACING.sm,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '400',
-    letterSpacing: -0.5,
-    lineHeight: 38,
-    marginBottom: SPACING.xs,
-  },
-  commonName: {
-    fontSize: 11,
-    fontWeight: '400',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: SPACING.lg,
-    opacity: 0.45,
-  },
-  glassOuter: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  glassInner: {
-    borderRadius: 20,
+  heroCardWrap: { 
+    borderRadius: 24, 
     borderWidth: 1,
     padding: SPACING.xl,
-  },
-  variantRow: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
     marginBottom: SPACING.xl,
   },
-  variantPill: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
+  eyebrowRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+    marginBottom: SPACING.sm,
   },
-  variantText: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
+  eyebrow: {
+    fontFamily: systemFont,
     fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  promptText: {
+    fontFamily: systemFont,
+    fontSize: 26,
+    fontWeight: '800',
+    lineHeight: 32,
+    letterSpacing: -0.5,
+    marginBottom: SPACING.lg,
   },
   illustrationWrap: {
     width: '100%',
     height: 200,
-    marginBottom: SPACING.xl,
+    borderRadius: 16,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: SPACING.lg,
+    overflow: 'hidden',
   },
   illustrationImage: {
     width: '100%',
     height: 200,
   },
-  illustrationPlaceholder: {
-    width: '100%',
-    height: 200,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: SPACING.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.sm,
+  bodyTypeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: SPACING.lg,
   },
-  placeholderText: {
-    fontFamily: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
-    fontSize: 12,
-    fontWeight: '500',
-    letterSpacing: 0.3,
+  bodyTypePill: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  bodyTypeText: {
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: SPACING.sm,
+    gap: 8,
     marginBottom: SPACING.xl,
   },
   tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-  },
-  tagOutline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-  },
-  tagText: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-  },
-  section: {
-    marginBottom: SPACING.lg,
-  },
-  sectionLabel: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: SPACING.sm,
-  },
-  bodyText: {
-    fontFamily: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
-    fontSize: 15,
-    fontWeight: '400',
-    lineHeight: 24,
-    letterSpacing: 0.1,
-  },
-  divider: {
-    height: 1,
-    marginVertical: SPACING.lg,
-  },
-  supportCard: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: SPACING.lg,
-    marginBottom: SPACING.lg,
-    gap: SPACING.sm,
-  },
-  supportHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  supportTitle: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-  supportBody: {
-    fontFamily: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
-    fontSize: 14,
-    lineHeight: 22,
-    fontWeight: '400',
-  },
-  accessibilityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -482,31 +274,61 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
-    marginTop: SPACING.sm,
-    alignSelf: 'flex-start',
   },
-  accessibilityText: {
-    fontFamily: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
+  tagText: {
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  section: {
+    marginBottom: 8,
+  },
+  sectionLabel: {
+    fontFamily: systemFont,
     fontSize: 12,
-    fontWeight: '500',
-    letterSpacing: 0.2,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: SPACING.sm,
   },
-  bodyTypeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+  answerText: {
+    fontFamily: systemFont,
+    fontSize: 17,
+    lineHeight: 24,
+    fontWeight: '400',
+  },
+  divider: {
+    height: 1,
+    marginVertical: SPACING.lg,
+  },
+  answerBubble: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: SPACING.lg,
     marginBottom: SPACING.xl,
   },
-  bodyTypePill: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    borderWidth: 1,
+  partnerVisibilityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
   },
-  bodyTypeText: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
-    fontSize: 11,
+  partnerVisibilityText: {
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: SPACING.xl,
+    gap: 8,
+  },
+  statusText: {
+    fontFamily: systemFont,
+    fontSize: 14,
     fontWeight: '600',
-    letterSpacing: 0.2,
   },
 });

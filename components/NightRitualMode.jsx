@@ -1,4 +1,11 @@
 // components/NightRitualMode.jsx
+// components/NightRitualMode.jsx
+/**
+ * BETWEEN US - NIGHT RITUAL ENGINE (EDITORIAL V3)
+ * High-End Apple Editorial Layout + Sexy Red (#D2121A)
+ * Matches Home, Intimacy, Settings, and Saved Space architectures.
+ */
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
@@ -14,34 +21,20 @@ import {
   Pressable,
   Dimensions,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from './Icon';
+import GlowOrb from './GlowOrb';
+import FilmGrain from './FilmGrain';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useRitualContext } from '../context/RitualContext';
 import { useMemoryContext } from '../context/MemoryContext';
 import { useTheme } from '../context/ThemeContext';
-import { withAlpha } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-
-// Midnight Intimacy x Apple Editorial Palette (Strict Red, White, Black, Gray)
-export const getNightRitualColors = (palette) => ({
-  deepNight: '#050305',      // Deepest black with a hint of warmth
-  plumVignette: '#140A0D',   // Very dark sexy red/black ink
-  midnightBlue: '#000000',   // Pure void black
-  surface: 'rgba(255, 255, 255, 0.03)',
-  surfaceSecondary: 'rgba(255, 255, 255, 0.06)',
-  text: '#FFFFFF',
-  subtext: 'rgba(255, 255, 255, 0.55)',
-  border: 'rgba(255, 255, 255, 0.12)',
-  primary: '#D2121A',        // Lustrous Sexy Red
-  white: '#FFFFFF',
-  steelGray: '#8E8E93',
-  graphite: '#2C2C2E',
-});
+const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 
 const FALLBACK_QUESTIONS = {
   prompt: [
@@ -139,7 +132,7 @@ const getRitualElements = (colors) => ({
     id: 'prompt',
     name: "Tonight's Reflection",
     icon: 'moon-outline',
-    color: colors.white,
+    color: colors.text,
     gradient: ['#FFFFFF', '#E5E5EA'], // Pure Apple White
     textColor: '#000000',             // Black text for stark contrast
     description: 'Reflect on the day',
@@ -157,8 +150,8 @@ const getRitualElements = (colors) => ({
     id: 'appreciation',
     name: 'Gratitude',
     icon: 'sparkles-outline',
-    color: colors.steelGray,
-    gradient: ['#8E8E93', '#48484A'], // Velvet Gray
+    color: colors.accent,
+    gradient: [colors.accent, '#A67C52'], // Champagne Gold
     textColor: '#FFFFFF',
     description: 'Notice the light',
   },
@@ -166,7 +159,7 @@ const getRitualElements = (colors) => ({
     id: 'dateIdea',
     name: 'Future Connection',
     icon: 'calendar-outline',
-    color: colors.white,
+    color: colors.text,
     gradient: ['#2C2C2E', '#1C1C1E'], // Graphite / Pitch Black
     textColor: '#FFFFFF',
     description: 'Plan a moment',
@@ -174,10 +167,22 @@ const getRitualElements = (colors) => ({
 });
 
 const NightRitualMode = ({ style, onRitualComplete, onElementComplete, onDismiss }) => {
-  const { colors: themeColors } = useTheme();
-  const NIGHT_COLORS = useMemo(() => getNightRitualColors(themeColors), [themeColors]);
-  const styles = useMemo(() => createStyles(NIGHT_COLORS), [NIGHT_COLORS]);
-  const RITUAL_ELEMENTS = getRitualElements(NIGHT_COLORS);
+  const { colors, isDark } = useTheme();
+  
+  // ─── THEME MAP (Forcing Dark Mode Aesthetics for Night Ritual) ───
+  const t = useMemo(() => ({
+    background: '#050305',
+    surface: 'rgba(28, 28, 30, 0.95)', // Solid dark Apple surface
+    surfaceSecondary: '#2C2C2E',
+    primary: colors.primary || '#D2121A', // Sexy Red
+    accent: colors.accent || '#D4AA7E',
+    text: '#FFFFFF',
+    subtext: 'rgba(235, 235, 245, 0.6)',
+    border: 'rgba(255, 255, 255, 0.1)',
+  }), [colors]);
+
+  const styles = useMemo(() => createStyles(t), [t]);
+  const RITUAL_ELEMENTS = getRitualElements(t);
 
   const { state: ritualState, actions: ritualActions } = useRitualContext();
   const { state: memoryState } = useMemoryContext();
@@ -295,88 +300,103 @@ const NightRitualMode = ({ style, onRitualComplete, onElementComplete, onDismiss
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      
       <LinearGradient
-        colors={[NIGHT_COLORS.deepNight, NIGHT_COLORS.plumVignette, NIGHT_COLORS.midnightBlue]}
-        style={styles.backgroundGradient}
+        colors={['#050305', '#140A0D', '#000000']}
+        style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+      <GlowOrb color={t.primary} size={500} top={-200} left={SCREEN_WIDTH - 200} opacity={0.15} />
+      <GlowOrb color={'#FFFFFF'} size={300} top={SCREEN_HEIGHT * 0.7} left={-100} delay={1500} opacity={0.08} />
+      <FilmGrain opacity={0.1} />
+
+      {/* ── Fixed Nav Header ── */}
+      <View style={styles.navHeader}>
+        <TouchableOpacity onPress={onDismiss} hitSlop={16} style={styles.iconButton}>
+          <Icon name="close" size={28} color={t.text} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          bounces={false}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.eyebrow}>NIGHT RITUAL</Text>
-            <Text style={styles.title}>Just us now.</Text>
-            <View style={styles.progressContainer}>
-              <Animated.View
-                style={[
-                  styles.progressBar,
-                  {
-                    width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
-                    backgroundColor: element.color,
-                  },
-                ]}
-              />
-            </View>
+        {/* ── Editorial Header ── */}
+        <View style={styles.header}>
+          <Text style={styles.eyebrow}>NIGHT RITUAL</Text>
+          <Text style={styles.title}>Just us now.</Text>
+          <View style={styles.progressContainer}>
+            <Animated.View
+              style={[
+                styles.progressBar,
+                {
+                  width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
+                  backgroundColor: element.color,
+                },
+              ]}
+            />
           </View>
+        </View>
 
-          {/* Main Card */}
-          <Animated.View style={[styles.cardContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <BlurView intensity={80} tint="dark" style={styles.velvetCard}>
-              <View style={styles.elementBadge}>
-                <View style={[styles.iconCircle, { backgroundColor: withAlpha(element.color, 0.15) }]}>
-                  <Icon name={element.icon} size={20} color={element.color} />
-                </View>
-                <Text style={[styles.elementName, { color: element.color }]}>{element.name.toUpperCase()}</Text>
+        {/* ── Solid Surface Card ── */}
+        <Animated.View style={[styles.cardContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          <View style={[styles.ritualCard, getShadow(true)]}>
+            <View style={styles.elementBadge}>
+              <View style={[styles.iconCircle, { backgroundColor: withAlpha(element.color, 0.15) }]}>
+                <Icon name={element.icon} size={20} color={element.color} />
               </View>
+              <Text style={[styles.elementName, { color: element.color }]}>{element.name.toUpperCase()}</Text>
+            </View>
 
-              <Text style={styles.questionText}>
-                {currentRitual?.[element.id]?.question || pickFallback(element.id)}
-              </Text>
+            <Text style={styles.questionText}>
+              {currentRitual?.[element.id]?.question || pickFallback(element.id)}
+            </Text>
 
-              <RitualInput
-                element={element}
-                onNext={(val) => handleNext(element.id, val)}
-                colors={NIGHT_COLORS}
-                styles={styles}
-              />
-            </BlurView>
-          </Animated.View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerQuote}>{nightQuote}</Text>
+            <RitualInput
+              element={element}
+              onNext={(val) => handleNext(element.id, val)}
+              t={t}
+              styles={styles}
+            />
           </View>
-        </ScrollView>
+        </Animated.View>
 
-        {showCompletion && (
-          <Animated.View style={[styles.completionOverlay, { opacity: completionAnim }]}>
-            <BlurView intensity={100} tint="dark" style={styles.completionContent}>
-              <Icon name="moon-outline" size={64} color={NIGHT_COLORS.primary} />
-              <Text style={styles.completionTitle}>Sleep Well</Text>
-              <Text style={styles.completionSubtitle}>Your heart is heard.</Text>
-              <TouchableOpacity
-                style={styles.doneButton}
-                onPress={() => {
-                  setShowCompletion(false);
-                  if (onDismiss) onDismiss();
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.doneButtonText}>Close</Text>
-              </TouchableOpacity>
-            </BlurView>
-          </Animated.View>
-        )}
-      </LinearGradient>
+        <View style={styles.footer}>
+          <Text style={styles.footerQuote}>{nightQuote}</Text>
+        </View>
+      </ScrollView>
+
+      {/* ── Completion Overlay ── */}
+      {showCompletion && (
+        <Animated.View style={[styles.completionOverlay, { opacity: completionAnim }]}>
+          <View style={[styles.completionContent, getShadow(true)]}>
+            <Icon name="moon-outline" size={64} color={t.primary} />
+            <Text style={styles.completionTitle}>Sleep Well</Text>
+            <Text style={styles.completionSubtitle}>Your heart is heard.</Text>
+            <TouchableOpacity
+              style={styles.doneButton}
+              onPress={() => {
+                impact(ImpactFeedbackStyle.Light);
+                setShowCompletion(false);
+                if (onDismiss) onDismiss();
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.doneButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      )}
     </KeyboardAvoidingView>
   );
 };
 
 // -- Ritual Input --
-const RitualInput = ({ element, onNext, colors, styles }) => {
+const RitualInput = ({ element, onNext, t, styles }) => {
   const [text, setText] = useState('');
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -388,25 +408,30 @@ const RitualInput = ({ element, onNext, colors, styles }) => {
       <TextInput
         style={styles.textInput}
         placeholder="Type your heart out..."
-        placeholderTextColor={colors.subtext}
+        placeholderTextColor={t.subtext}
         multiline
         textAlignVertical="top"
         value={text}
         onChangeText={setText}
-        selectionColor={element.color === '#FFFFFF' ? colors.primary : element.color}
+        selectionColor={element.color === '#FFFFFF' ? t.primary : element.color}
         maxLength={300}
       />
       <Animated.View style={{ transform: [{ scale }] }}>
         <Pressable
           onPressIn={onPressIn}
           onPressOut={onPressOut}
-          onPress={() => text.trim() && onNext(text.trim())}
+          onPress={() => {
+            if (text.trim()) {
+              impact(ImpactFeedbackStyle.Light);
+              onNext(text.trim());
+            }
+          }}
           disabled={!text.trim()}
           style={({ pressed }) => [{ opacity: !text.trim() ? 0.45 : pressed ? 0.9 : 1 }]}
         >
           <LinearGradient colors={element.gradient} style={styles.continueButton}>
             <Text style={[styles.continueText, { color: element.textColor }]}>Continue</Text>
-            <Icon name="arrow-forward-outline" size={16} color={element.textColor} />
+            <Icon name="arrow-forward-outline" size={20} color={element.textColor} />
           </LinearGradient>
         </Pressable>
       </Animated.View>
@@ -414,15 +439,33 @@ const RitualInput = ({ element, onNext, colors, styles }) => {
   );
 };
 
+// ─── HIGH-END DESIGN SYSTEM STYLES ───
+const getShadow = (isDark) => Platform.select({
+  ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
+  android: { elevation: 6 },
+});
+
 const createStyles = (t) => StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  backgroundGradient: { flex: 1 },
+  
+  // ── Fixed Nav Header ──
+  navHeader: {
+    paddingHorizontal: SPACING.screen || 24,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 4,
+    flexDirection: 'row',
+    zIndex: 10,
+  },
+  iconButton: {
+    padding: 8,
+    marginLeft: -8,
+  },
+
   scrollContent: {
-    padding: 24,
-    paddingTop: Platform.OS === 'ios' ? 80 : 40,
+    paddingHorizontal: SPACING.screen || 24,
     paddingBottom: 100,
   },
-  header: { marginBottom: 40 },
+  header: { marginBottom: SPACING.xl || 32, marginTop: SPACING.md || 16 },
   eyebrow: { 
     fontFamily: SYSTEM_FONT,
     color: t.primary, 
@@ -433,32 +476,29 @@ const createStyles = (t) => StyleSheet.create({
     textTransform: 'uppercase' 
   },
   title: { 
-    fontFamily: SYSTEM_FONT,
-    color: '#FFF', 
+    fontFamily: SERIF_FONT,
+    color: t.text, 
     fontSize: 42, 
-    fontWeight: '800', 
-    letterSpacing: -1.5 
+    lineHeight: 48,
+    letterSpacing: -0.5,
   },
   progressContainer: {
     height: 4,
     width: 120,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: t.border,
     borderRadius: 2,
     marginTop: 16,
     overflow: 'hidden',
   },
   progressBar: { height: '100%', borderRadius: 2 },
+  
   cardContainer: { width: '100%', marginBottom: 30 },
-  velvetCard: {
-    borderRadius: 40,
-    padding: 32,
+  ritualCard: {
+    borderRadius: 24, // Deep squircle
+    padding: SPACING.xl || 24,
     borderWidth: 1,
     borderColor: t.border,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 24 },
-    shadowOpacity: 0.5,
-    shadowRadius: 32,
+    backgroundColor: t.surface,
   },
   elementBadge: { flexDirection: 'row', alignItems: 'center', marginBottom: 28 },
   iconCircle: {
@@ -477,44 +517,40 @@ const createStyles = (t) => StyleSheet.create({
   },
   questionText: {
     fontFamily: SYSTEM_FONT,
-    color: '#FFF',
-    fontSize: 32,
+    color: t.text,
+    fontSize: 26,
     fontWeight: '800',
-    lineHeight: 40,
+    lineHeight: 32,
     letterSpacing: -0.5,
     marginBottom: 36,
   },
   inputWrapper: { gap: 24 },
   textInput: {
     fontFamily: SYSTEM_FONT,
-    color: '#FFF',
-    fontSize: 18,
-    lineHeight: 26,
+    color: t.text,
+    fontSize: 17,
+    lineHeight: 24,
     minHeight: 140,
     textAlignVertical: 'top',
-    padding: 24,
-    backgroundColor: 'rgba(0,0,0,0.4)', // Deeper insight well
-    borderRadius: 24,
+    padding: SPACING.lg || 24,
+    backgroundColor: t.surfaceSecondary,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: t.border,
   },
   continueButton: {
-    height: 60,
-    borderRadius: 30,
+    height: 56, // Apple standard height
+    borderRadius: 28,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
-      android: { elevation: 4 },
-    }),
   },
   continueText: { 
     fontFamily: SYSTEM_FONT,
     fontSize: 17, 
-    fontWeight: '800',
-    letterSpacing: -0.2,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   footer: { alignItems: 'center', marginTop: 24 },
   footerQuote: {
@@ -526,53 +562,53 @@ const createStyles = (t) => StyleSheet.create({
     paddingHorizontal: 40,
     lineHeight: 24,
   },
+
+  // ── Completion Overlay ──
   completionOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(5, 3, 5, 0.95)', // Nearly opaque ink
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 100,
+    paddingHorizontal: SPACING.screen || 24,
   },
   completionContent: {
-    padding: 48,
-    borderRadius: 44,
+    padding: 40,
+    borderRadius: 32,
     alignItems: 'center',
-    width: '85%',
+    width: '100%',
     borderWidth: 1,
     borderColor: t.border,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 30 },
-    shadowOpacity: 0.6,
-    shadowRadius: 40,
+    backgroundColor: t.surface,
   },
   completionTitle: { 
-    fontFamily: SYSTEM_FONT,
-    color: '#FFF', 
+    fontFamily: SERIF_FONT,
+    color: t.text, 
     fontSize: 36, 
-    fontWeight: '800', 
     marginTop: 24,
-    letterSpacing: -1,
+    letterSpacing: -0.5,
   },
   completionSubtitle: { 
     fontFamily: SYSTEM_FONT,
     color: t.subtext, 
-    fontSize: 18, 
+    fontSize: 16, 
     marginTop: 8, 
     marginBottom: 36,
     fontWeight: '500', 
   },
   doneButton: {
-    paddingVertical: 18,
-    paddingHorizontal: 36,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    height: 56,
+    width: '100%',
+    borderRadius: 28,
+    backgroundColor: t.surfaceSecondary,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: t.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   doneButtonText: { 
     fontFamily: SYSTEM_FONT,
-    color: '#FFF', 
+    color: t.text, 
     fontSize: 17, 
     fontWeight: '700',
     letterSpacing: -0.2,

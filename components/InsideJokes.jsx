@@ -1,6 +1,9 @@
-// components/InsideJokes.jsx — Private Language Vault
-// Sexy Red Intimacy, Apple Editorial & Velvet Glass Updates Integrated.
-// High-end, unabridged code for the "Things only we understand" archive.
+// components/InsideJokes.jsx
+/**
+ * BETWEEN US - PRIVATE LANGUAGE VAULT (EDITORIAL V3)
+ * High-End Apple Editorial Layout + Sexy Red (#D2121A)
+ * Matches Home, Intimacy, and Saved Space architectures.
+ */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
@@ -24,315 +27,544 @@ import Animated, {
   withSequence,
   Easing,
   FadeInDown,
-  FadeIn,
-  interpolate,
-} from 'react-native-reanimated';
-import Icon from './Icon';
-import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import { useTheme } from '../context/ThemeContext';
-import { SPACING, withAlpha } from '../utils/theme';
-import { PrivateLanguageVault } from '../services/ConnectionEngine';
+  // components/InsideJokes.jsx
+  /**
+   * BETWEEN US - PRIVATE LANGUAGE VAULT (EDITORIAL V3)
+   * High-End Apple Editorial Layout + Sexy Red (#D2121A)
+   * Matches Home, Intimacy, and Saved Space architectures.
+   */
 
-const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
+  import React, { useState, useEffect, useCallback, useMemo } from 'react';
+  import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    FlatList,
+    TextInput,
+    Modal,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+  } from 'react-native';
+  import { BlurView } from 'expo-blur';
+  import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withTiming,
+    withRepeat,
+    withSequence,
+    Easing,
+    FadeInDown,
+    FadeIn,
+    interpolate,
+    Layout,
+  } from 'react-native-reanimated';
+  import Icon from './Icon';
+  import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+  import { useTheme } from '../context/ThemeContext';
+  import { SPACING, withAlpha } from '../utils/theme';
+  import { PrivateLanguageVault } from '../services/ConnectionEngine';
 
-// ─── CATEGORY COLOR MAP (Using Your Palette #1-5) ───
-const getJokeTypes = (isDark) => [
-  { key: 'nickname', label: 'Nickname', icon: 'heart-half-outline', color: '#FF85C2' }, // #1 Soft Orchid
-  { key: 'joke', label: 'Inside Joke', icon: 'sparkles-outline', color: '#FF1493' },    // #2 Deep Pink
-  { key: 'ritual', label: 'Comfort Ritual', icon: 'leaf-outline', color: '#FF006E' },   // #3 Vivid Magenta
-  { key: 'reference', label: 'Shared Ref', icon: 'bookmark-outline', color: '#F00049' }, // #4 Carmine
-  { key: 'phrase', label: 'Our Phrase', icon: 'chatbubbles-outline', color: '#D2121A' }, // #5 Deep Red
-];
+  const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+  const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+  // ─── CATEGORY COLOR MAP ───
+  const getJokeTypes = (isDark) => [
+    { key: 'nickname', label: 'Nickname', icon: 'heart-half-outline', color: '#FF85C2' },
+    { key: 'joke', label: 'Inside Joke', icon: 'sparkles-outline', color: '#FF1493' },
+    { key: 'ritual', label: 'Comfort Ritual', icon: 'leaf-outline', color: '#FF006E' },
+    { key: 'reference', label: 'Shared Ref', icon: 'bookmark-outline', color: '#F00049' },
+    { key: 'phrase', label: 'Our Phrase', icon: 'chatbubbles-outline', color: '#D2121A' }, // Sexy Red
+  ];
 
-export default function InsideJokes({ compact = false }) {
-  const { isDark } = useTheme();
+  const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
+  export default function InsideJokes({ compact = false }) {
+    const { colors, isDark } = useTheme();
   
-  const JOKE_TYPES = useMemo(() => getJokeTypes(isDark), [isDark]);
-  const [jokes, setJokes] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState('joke');
-  const [formTitle, setFormTitle] = useState('');
-  const [formStory, setFormStory] = useState('');
+    const JOKE_TYPES = useMemo(() => getJokeTypes(isDark), [isDark]);
+    const [jokes, setJokes] = useState([]);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedType, setSelectedType] = useState('joke');
+    const [formTitle, setFormTitle] = useState('');
+    const [formStory, setFormStory] = useState('');
 
-  // ─── APPLE EDITORIAL THEME ───
-  const t = useMemo(() => ({
-    background: isDark ? '#1D1D1F' : '#F5F5F7', 
-    surface: isDark ? 'rgba(44, 44, 46, 0.8)' : '#FFFFFF',
-    text: isDark ? '#FFFFFF' : '#1D1D1F',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-  }), [isDark]);
+    // ─── THEME MAP ───
+    const t = useMemo(() => ({
+      background: colors.background,
+      surface: colors.surface || (isDark ? '#1C1C1E' : '#FFFFFF'),
+      surfaceSecondary: colors.surface2 || (isDark ? '#2C2C2E' : '#F2F2F7'),
+      primary: colors.primary || '#D2121A',
+      accent: colors.accent || '#D4AA7E',
+      text: colors.text,
+      subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.6)'),
+      border: colors.border || (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+    }), [colors, isDark]);
 
-  const breathe = useSharedValue(1);
-  useEffect(() => {
-    breathe.value = withRepeat(
-      withSequence(
-        withTiming(1.08, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
-  }, []);
+    const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
-  const breatheStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: breathe.value }],
-    opacity: interpolate(breathe.value, [1, 1.08], [0.4, 0.7]),
-  }));
+    // ─── ANIMATIONS ───
+    const breathe = useSharedValue(1);
+    useEffect(() => {
+      breathe.value = withRepeat(
+        withSequence(
+          withTiming(1.08, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      );
+    }, []);
 
-  const loadJokes = useCallback(async () => {
-    const loaded = await PrivateLanguageVault.getAll();
-    setJokes(loaded);
-  }, []);
+    const breatheStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: breathe.value }],
+      opacity: interpolate(breathe.value, [1, 1.08], [0.4, 0.7]),
+    }));
 
-  useEffect(() => { loadJokes(); }, [loadJokes]);
+    // ─── DATA LOADING ───
+    const loadJokes = useCallback(async () => {
+      const loaded = await PrivateLanguageVault.getAll();
+      setJokes(loaded || []);
+    }, []);
 
-  const handleSave = async () => {
-    if (!formTitle.trim()) return;
-    await PrivateLanguageVault.add({
-      type: selectedType,
-      title: formTitle.trim(),
-      story: formStory.trim(),
-    });
-    setFormTitle('');
-    setFormStory('');
-    setModalOpen(false);
-    notification(NotificationFeedbackType.Success);
-    loadJokes();
-  };
+    useEffect(() => { loadJokes(); }, [loadJokes]);
 
-  const handleDelete = (id) => {
-    impact(ImpactFeedbackStyle.Medium);
-    Alert.alert('Remove this memory?', 'This private moment will be deleted.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: async () => {
-          await PrivateLanguageVault.remove(id);
-          loadJokes();
-      }},
-    ]);
-  };
+    // ─── HANDLERS ───
+    const handleSave = async () => {
+      if (!formTitle.trim()) return;
+      await PrivateLanguageVault.add({
+        type: selectedType,
+        title: formTitle.trim(),
+        story: formStory.trim(),
+      });
+      setFormTitle('');
+      setFormStory('');
+      setModalOpen(false);
+      notification(NotificationFeedbackType.Success);
+      loadJokes();
+    };
 
-  const getTypeConfig = (type) => JOKE_TYPES.find(t => t.key === type) || JOKE_TYPES[1];
+    const handleDelete = (id) => {
+      impact(ImpactFeedbackStyle.Medium);
+      Alert.alert('Remove this memory?', 'This private moment will be deleted.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: async () => {
+            await PrivateLanguageVault.remove(id);
+            loadJokes();
+        }},
+      ]);
+    };
 
-  if (compact) {
-    const preview = jokes.slice(0, 2);
-    if (preview.length === 0) return null;
-    return (
-      <View style={[styles.compactContainer, { backgroundColor: t.surface, borderColor: t.border }]}>
-        <Text style={[styles.compactHeader, { color: t.subtext }]}>PRIVATE LANGUAGE</Text>
-        {preview.map((item) => (
-          <View key={item.id} style={styles.compactItem}>
-            <View style={[styles.dot, { backgroundColor: getTypeConfig(item.type).color }]} />
-            <Text style={[styles.compactItemText, { color: t.text }]} numberOfLines={1}>{item.title}</Text>
+    const getTypeConfig = (type) => JOKE_TYPES.find(t => t.key === type) || JOKE_TYPES[1];
+
+    // ════════════════════════════════════
+    //  COMPACT WIDGET RENDER (HOME SCREEN)
+    // ════════════════════════════════════
+    if (compact) {
+      const preview = jokes.slice(0, 2);
+      if (preview.length === 0) return null;
+      return (
+        <View style={[styles.compactContainer, getShadow(isDark)]}>
+          <View style={styles.compactHeaderRow}>
+            <Icon name="chatbubble-ellipses-outline" size={14} color={t.primary} />
+            <Text style={styles.compactHeader}>PRIVATE LANGUAGE</Text>
           </View>
-        ))}
-      </View>
-    );
-  }
-
-  const renderItem = ({ item, index }) => {
-    const config = getTypeConfig(item.type);
-    return (
-      <AnimatedTouchable
-        entering={FadeInDown.delay(index * 100).springify().damping(20)}
-        style={[styles.jokeCard, { backgroundColor: t.surface, borderColor: t.border }]}
-        onLongPress={() => handleDelete(item.id)}
-        activeOpacity={0.9}
-      >
-        <View style={styles.cardTop}>
-          <View style={[styles.tag, { backgroundColor: withAlpha(config.color, 0.1) }]}>
-            <Icon name={config.icon} size={12} color={config.color} />
-            <Text style={[styles.tagText, { color: config.color }]}>{config.label.toUpperCase()}</Text>
-          </View>
+          {preview.map((item) => (
+            <View key={item.id} style={styles.compactItem}>
+              <View style={[styles.compactDot, { backgroundColor: getTypeConfig(item.type).color }]} />
+              <Text style={styles.compactItemText} numberOfLines={1}>{item.title}</Text>
+            </View>
+          ))}
         </View>
-        <Text style={[styles.jokeTitle, { color: t.text }]}>{item.title}</Text>
-        {item.story ? <Text style={[styles.jokeStory, { color: t.subtext }]}>{item.story}</Text> : null}
-      </AnimatedTouchable>
-    );
-  };
+      );
+    }
 
-  return (
-    <View style={[styles.main, { backgroundColor: t.background }]}>
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.editorialTitle, { color: t.text }]}>Inside Jokes</Text>
-          <Text style={[styles.subtitle, { color: t.subtext }]}>The vault of us</Text>
-        </View>
-        <TouchableOpacity 
-          style={[styles.fab, { backgroundColor: t.text }]} 
-          onPress={() => { impact(ImpactFeedbackStyle.Light); setModalOpen(true); }}
+    // ════════════════════════════════════
+    //  FULL LIST RENDER
+    // ════════════════════════════════════
+    const renderItem = ({ item, index }) => {
+      const config = getTypeConfig(item.type);
+      return (
+        <AnimatedTouchable
+          entering={FadeInDown.delay(index * 40).springify().damping(18)}
+          layout={Layout.springify()}
+          style={[styles.card, getShadow(isDark)]}
+          onLongPress={() => handleDelete(item.id)}
+          activeOpacity={0.85}
         >
-          <Icon name="add-outline" size={24} color={isDark ? '#000' : '#FFF'} />
-        </TouchableOpacity>
-      </View>
+          <View style={styles.cardTopRow}>
+            <View style={[styles.tag, { backgroundColor: withAlpha(config.color, 0.12), borderColor: withAlpha(config.color, 0.2) }]}>
+              <Icon name={config.icon} size={12} color={config.color} />
+              <Text style={[styles.tagText, { color: config.color }]}>{config.label.toUpperCase()}</Text>
+            </View>
+          </View>
+        
+          <Text style={styles.cardTitle}>{item.title}</Text>
+        
+          {item.story ? (
+            <Text style={styles.cardBody}>{item.story}</Text>
+          ) : null}
+        </AnimatedTouchable>
+      );
+    };
 
-      {jokes.length === 0 ? (
-        <View style={styles.empty}>
-          <Animated.View style={breatheStyle}>
-            <Icon name="archive-outline" size={60} color={t.subtext} />
-          </Animated.View>
-          <Text style={[styles.emptyTitle, { color: t.text }]}>Your vault is quiet</Text>
-          <Text style={[styles.emptySub, { color: t.subtext }]}>Add the nicknames and rituals that define your world.</Text>
-        </View>
-      ) : (
+    const EmptyState = (
+      <Animated.View entering={FadeIn.duration(450)} style={styles.emptyState}>
+        <Animated.View style={[styles.emptyIconCircle, breatheStyle]}>
+          <Icon name="chatbubble-ellipses-outline" size={42} color={t.primary} />
+        </Animated.View>
+        <Text style={styles.emptyTitle}>Your vault is quiet</Text>
+        <Text style={styles.emptyBody}>
+          Add the nicknames, inside jokes, and shared references that define your world.
+        </Text>
+      </Animated.View>
+    );
+
+    return (
+      <View style={styles.main}>
         <FlatList
           data={jokes}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={EmptyState}
         />
-      )}
 
-      <Modal visible={modalOpen} animationType="slide" transparent>
-        <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.modalOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
-            <View style={[styles.sheet, { backgroundColor: t.surface }]}>
-              <View style={styles.sheetHeader}>
-                <Text style={[styles.sheetTitle, { color: t.text }]}>Add to Vault</Text>
-                <TouchableOpacity onPress={() => setModalOpen(false)}>
-                  <Icon name="close-circle-outline" size={28} color={t.subtext} />
+        {/* ── Apple Floating Action Pill ── */}
+        <Animated.View entering={FadeInDown.delay(300).springify().damping(18)} style={styles.fabContainer}>
+          <TouchableOpacity 
+            style={[styles.fab, getShadow(isDark)]} 
+            activeOpacity={0.85}
+            onPress={() => { impact(ImpactFeedbackStyle.Light); setModalOpen(true); }}
+          >
+            <Icon name="add" size={20} color="#FFFFFF" />
+            <Text style={styles.fabText}>Add Entry</Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* ── iOS Native Bottom Sheet Aesthetic ── */}
+        <Modal visible={modalOpen} animationType="slide" transparent>
+          <BlurView intensity={isDark ? 40 : 80} tint={isDark ? "dark" : "light"} style={styles.modalOverlay}>
+            <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setModalOpen(false)} />
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
+              <View style={[styles.sheet, getShadow(isDark)]}>
+                <View style={styles.sheetHandle} />
+              
+                <View style={styles.sheetHeader}>
+                  <Text style={styles.sheetTitle}>Add to Vault</Text>
+                  <TouchableOpacity onPress={() => { selection(); setModalOpen(false); }} hitSlop={12}>
+                    <View style={styles.closeButton}>
+                      <Icon name="close" size={20} color={t.subtext} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.typeGrid}>
+                  {JOKE_TYPES.map((type) => (
+                    <TouchableOpacity
+                      key={type.key}
+                      style={[
+                        styles.typeChip,
+                        { borderColor: selectedType === type.key ? type.color : t.border },
+                        selectedType === type.key && { backgroundColor: withAlpha(type.color, 0.12) }
+                      ]}
+                      onPress={() => { selection(); setSelectedType(type.key); }}
+                      activeOpacity={0.7}
+                    >
+                      <Icon name={type.icon} size={14} color={selectedType === type.key ? type.color : t.subtext} />
+                      <Text style={[styles.typeText, { color: selectedType === type.key ? type.color : t.subtext }]}>{type.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <TextInput
+                  style={[styles.inputTitle, { color: t.text, borderColor: t.border, backgroundColor: t.surfaceSecondary }]}
+                  placeholder="The phrase or name..."
+                  placeholderTextColor={t.subtext}
+                  value={formTitle}
+                  onChangeText={setFormTitle}
+                />
+
+                <TextInput
+                  style={[styles.inputStory, { color: t.text, borderColor: t.border, backgroundColor: t.surfaceSecondary }]}
+                  placeholder="The story behind it... (optional)"
+                  placeholderTextColor={t.subtext}
+                  value={formStory}
+                  onChangeText={setFormStory}
+                  multiline
+                  textAlignVertical="top"
+                />
+
+                <TouchableOpacity
+                  style={[styles.saveBtn, { backgroundColor: formTitle.trim() ? t.primary : t.surfaceSecondary }]}
+                  onPress={handleSave}
+                  disabled={!formTitle.trim()}
+                  activeOpacity={0.85}
+                >
+                  <Text style={[styles.saveBtnText, { color: formTitle.trim() ? '#FFFFFF' : t.subtext }] }>
+                    Secure in Vault
+                  </Text>
                 </TouchableOpacity>
               </View>
+            </KeyboardAvoidingView>
+          </BlurView>
+        </Modal>
+      </View>
+    );
+  }
 
-              <View style={styles.typeGrid}>
-                {JOKE_TYPES.map((type) => (
-                  <TouchableOpacity
-                    key={type.key}
-                    style={[
-                      styles.typeChip,
-                      { borderColor: selectedType === type.key ? type.color : t.border },
-                      selectedType === type.key && { backgroundColor: withAlpha(type.color, 0.1) }
-                    ]}
-                    onPress={() => { selection(); setSelectedType(type.key); }}
-                  >
-                    <Icon name={type.icon} size={16} color={selectedType === type.key ? type.color : t.subtext} />
-                    <Text style={[styles.typeText, { color: selectedType === type.key ? type.color : t.subtext }]}>{type.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+  // ─── HIGH-END DESIGN SYSTEM STYLES ───
+  const getShadow = (isDark) => Platform.select({
+    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
+    android: { elevation: 6 },
+  });
 
-              <TextInput
-                style={[styles.input, { color: t.text, borderBottomColor: t.border }]}
-                placeholder="The secret phrase or name..."
-                placeholderTextColor={t.subtext}
-                value={formTitle}
-                onChangeText={setFormTitle}
-              />
+  const createStyles = (t, isDark) => StyleSheet.create({
+    main: { flex: 1 },
+    listContent: { 
+      paddingHorizontal: SPACING.screen || 24, 
+      paddingBottom: 160 
+    },
 
-              <TextInput
-                style={[styles.inputStory, { color: t.text, borderBottomColor: t.border }]}
-                placeholder="The story behind it..."
-                placeholderTextColor={t.subtext}
-                value={formStory}
-                onChangeText={setFormStory}
-                multiline
-              />
+    // ── Compact Widget ──
+    compactContainer: { 
+      padding: SPACING.lg, 
+      borderRadius: 24, 
+      borderWidth: 1, 
+      borderColor: t.border,
+      backgroundColor: t.surface,
+    },
+    compactHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: SPACING.sm,
+    },
+    compactHeader: { 
+      fontFamily: SYSTEM_FONT,
+      fontSize: 11, 
+      fontWeight: '800', 
+      letterSpacing: 1.5, 
+      color: t.primary,
+    },
+    compactItem: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      gap: 8, 
+      marginBottom: 6,
+    },
+    compactDot: { 
+      width: 8, 
+      height: 8, 
+      borderRadius: 4,
+    },
+    compactItemText: { 
+      fontFamily: SYSTEM_FONT,
+      fontSize: 15, 
+      fontWeight: '600',
+      color: t.text,
+    },
 
-              <TouchableOpacity
-                style={[styles.saveBtn, { backgroundColor: formTitle.trim() ? '#D2121A' : t.border }]}
-                onPress={handleSave}
-                disabled={!formTitle.trim()}
-              >
-                <Text style={styles.saveBtnText}>Secure in Vault</Text>
-              </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
-        </BlurView>
-      </Modal>
-    </View>
-  );
-}
+    // ── Content Cards ──
+    card: {
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+      padding: SPACING.xl || 24,
+      marginBottom: SPACING.lg || 16,
+    },
+    cardTopRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: SPACING.sm,
+    },
+    tag: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 10,
+      borderWidth: 1,
+    },
+    tagText: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 1,
+    },
+    cardTitle: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 22,
+      lineHeight: 28,
+      fontWeight: '800',
+      letterSpacing: -0.4,
+      color: t.text,
+      marginBottom: 6,
+    },
+    cardBody: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 16,
+      lineHeight: 24,
+      color: t.text,
+    },
 
-const styles = StyleSheet.create({
-  main: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    marginBottom: 30,
-  },
-  editorialTitle: {
-    fontFamily: SERIF_FONT,
-    fontSize: 32,
-    fontWeight: '700',
-    letterSpacing: -1,
-  },
-  subtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    fontWeight: '500',
-    opacity: 0.7,
-  },
-  fab: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  list: { paddingHorizontal: 20, paddingBottom: 100 },
-  jokeCard: {
-    padding: 24,
-    borderRadius: 24,
-    borderWidth: 1,
-    marginBottom: 16,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
-      android: { elevation: 2 },
-    }),
-  },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginBottom: 12,
-  },
-  tagText: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  jokeTitle: {
-    fontFamily: SERIF_FONT,
-    fontSize: 22,
-    fontWeight: '600',
-    letterSpacing: -0.4,
-    marginBottom: 6,
-  },
-  jokeStory: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    lineHeight: 22,
-    opacity: 0.8,
-  },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  emptyTitle: { fontFamily: SERIF_FONT, fontSize: 24, fontWeight: '600', marginTop: 20 },
-  emptySub: { textAlign: 'center', marginTop: 10, lineHeight: 22 },
-  compactContainer: { padding: 16, borderRadius: 20, borderWidth: 1 },
-  compactHeader: { fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginBottom: 10 },
-  compactItem: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  compactItemText: { fontSize: 14, fontWeight: '500' },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalContent: { width: '100%' },
-  sheet: { borderTopLeftRadius: 36, borderTopRightRadius: 36, padding: 30, paddingBottom: 50 },
-  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
-  sheetTitle: { fontFamily: SERIF_FONT, fontSize: 24, fontWeight: '700' },
-  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 30 },
-  typeChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 100, borderWidth: 1 },
-  typeText: { fontSize: 13, fontWeight: '600' },
-  input: { fontSize: 20, fontFamily: SERIF_FONT, paddingVertical: 15, borderBottomWidth: 1, marginBottom: 15 },
-  inputStory: { fontSize: 16, paddingVertical: 15, borderBottomWidth: 1, marginBottom: 30, minHeight: 80 },
-  saveBtn: { paddingVertical: 18, borderRadius: 20, alignItems: 'center' },
-  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
-});
+    // ── Floating Action Pill ──
+    fabContainer: {
+      position: 'absolute',
+      bottom: 40,
+      alignSelf: 'center',
+      zIndex: 10,
+    },
+    fab: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: t.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+      borderRadius: 30,
+      gap: 8,
+    },
+    fabText: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 16,
+      fontWeight: '700',
+      color: '#FFFFFF',
+      letterSpacing: 0.2,
+    },
+
+    // ── Empty State ──
+    emptyState: { 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      paddingTop: 80,
+      paddingHorizontal: 40 
+    },
+    emptyIconCircle: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: SPACING.lg,
+    },
+    emptyTitle: { 
+      fontFamily: SERIF_FONT, 
+      fontSize: 30, 
+      color: t.text,
+      marginBottom: SPACING.sm,
+    },
+    emptyBody: { 
+      fontFamily: SYSTEM_FONT,
+      fontSize: 15,
+      lineHeight: 22,
+      color: t.subtext,
+      textAlign: 'center', 
+    },
+
+    // ── Modal Sheet ──
+    modalOverlay: { 
+      flex: 1, 
+      justifyContent: 'flex-end',
+    },
+    modalContent: { 
+      width: '100%',
+    },
+    sheet: { 
+      borderTopLeftRadius: 36, 
+      borderTopRightRadius: 36, 
+      padding: SPACING.xl || 24, 
+      paddingBottom: Platform.OS === 'ios' ? 50 : 30,
+      backgroundColor: t.surface,
+      borderWidth: 1,
+      borderColor: t.border,
+    },
+    sheetHandle: {
+      width: 40,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: t.border,
+      alignSelf: 'center',
+      marginBottom: SPACING.lg,
+    },
+    sheetHeader: { 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      marginBottom: SPACING.xl,
+    },
+    sheetTitle: { 
+      fontFamily: SYSTEM_FONT, 
+      fontSize: 24, 
+      fontWeight: '800',
+      letterSpacing: -0.4,
+      color: t.text,
+    },
+    closeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: t.surfaceSecondary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    typeGrid: { 
+      flexDirection: 'row', 
+      flexWrap: 'wrap', 
+      gap: 8, 
+      marginBottom: SPACING.xl,
+    },
+    typeChip: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      gap: 6, 
+      paddingVertical: 10, 
+      paddingHorizontal: 14, 
+      borderRadius: 20, 
+      borderWidth: 1,
+    },
+    typeText: { 
+      fontFamily: SYSTEM_FONT,
+      fontSize: 13, 
+      fontWeight: '700',
+    },
+    inputTitle: { 
+      fontFamily: SYSTEM_FONT,
+      fontSize: 17, 
+      fontWeight: '600',
+      paddingHorizontal: 16,
+      paddingVertical: 16, 
+      borderRadius: 16,
+      borderWidth: 1,
+      marginBottom: SPACING.md, 
+    },
+    inputStory: { 
+      fontFamily: SYSTEM_FONT,
+      fontSize: 16,
+      lineHeight: 24,
+      paddingHorizontal: 16,
+      paddingVertical: 16, 
+      borderRadius: 16,
+      borderWidth: 1,
+      marginBottom: SPACING.xl, 
+      minHeight: 100, 
+    },
+    saveBtn: { 
+      paddingVertical: 18, 
+      borderRadius: 28, 
+      alignItems: 'center',
+    },
+    saveBtnText: { 
+      fontFamily: SYSTEM_FONT,
+      fontSize: 16, 
+      fontWeight: '800', 
+      letterSpacing: 0.2, 
+    },
+  });

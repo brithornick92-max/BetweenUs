@@ -566,12 +566,10 @@ export default function HomeScreen({ navigation }) {
           }]}
         >
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerGreetingSub, { fontSize: homeLayout.fontSize.base }] }>
-              {smartGreeting}{preferredName ? ',' : ''}
+            <Text style={[styles.headerGreetingSub, { fontSize: homeLayout.fontSize.base, color: t.primary }]}>
+              {smartGreeting},
             </Text>
-            {preferredName ? (
-              <Text style={[styles.headerName, { fontSize: homeLayout.fontSize.title }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{preferredName}</Text>
-            ) : null}
+            <Text style={[styles.headerName, { fontSize: homeLayout.fontSize.title }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{preferredName || 'You'}</Text>
             <Text style={styles.headerToneLine}>{smartSubGreeting || toneCopy.subheadline(partnerLabel)}</Text>
           </View>
           <View style={styles.headerActions}>

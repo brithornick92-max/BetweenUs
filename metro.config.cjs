@@ -3,6 +3,20 @@ const path = require("path");
 
 const config = getSentryExpoConfig(__dirname);
 
+// Enable SVG imports as React components via react-native-svg-transformer
+config.transformer = {
+  ...config.transformer,
+  babelTransformerPath: require.resolve("react-native-svg-transformer"),
+};
+config.resolver = config.resolver ?? {};
+config.resolver.assetExts = (config.resolver.assetExts || []).filter(
+  (ext) => ext !== "svg"
+);
+config.resolver.sourceExts = [
+  ...(config.resolver.sourceExts || ["js", "jsx", "ts", "tsx", "json"]),
+  "svg",
+];
+
 // Stub out ExponentPedometer so the app doesn't crash when expo-sensors is
 // imported and the native Pedometer module is not linked in the current binary.
 // Real fix: `cd ios && pod install` then rebuild.
