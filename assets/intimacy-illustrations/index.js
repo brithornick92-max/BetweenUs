@@ -1,26 +1,26 @@
 /**
  * Intimacy Position Illustrations — Index
- * 19 PNG assets numbered 1–19, mapped to position IDs ip001–ip019.
+ * SVG assets with red + gray themed figures and white outlines.
  *
- *  1  → ip004  doggy style
+ *  1  → ip007  stacked (kneeling lunge)
  *  2  → ip011  standing carry
- *  3  → ip002  seated arch
+ *  3  → ip001  seated reverse arch
  *  4  → ip003  reverse cowgirl
  *  5  → ip005  bridge
- *  6  → ip016  reclined spoon
- *  7  → ip001  seated reverse arch (lotus)
+ *  6  → ip019  seated side lean
+ *  7  → ip002  seated arch
  *  8  → ip013  butterfly / bed-edge
- *  9  → ip009  lazy dog
+ *  9  → ip009  69
  * 10  → ip012  elevated leg
- * 11  → ip007  stacked
+ * 11  → ip004  doggy style (standing)
  * 12  → ip010  missionary
  * 13  → ip014  standing wrap
- * 14  → ip015  forearm doggy
+ * 14  → ip015  wheelbarrow
  * 15  → ip008  cowgirl
  * 16  → ip006  arc / forward lean
- * 17  → ip017  bent over
  * 18  → ip018  side straddle
- * 19  → ip019  seated side lean
+ * 19  → ip016  reclined spoon
+ * (17 removed — duplicate of 18)
  */
 
 const illustrations = {
@@ -32,15 +32,14 @@ const illustrations = {
   ip006: require('./png/16.png'),  // Arc / Forward Lean
   ip007: require('./png/1.png'),   // Stacked (kneeling lunge)
   ip008: require('./png/15.png'),  // Cowgirl
-  ip009: require('./png/9.png'),   // Lazy Dog
+  ip009: require('./png/9.png'),   // 69
   ip010: require('./png/12.png'),  // Missionary
   ip011: require('./png/2.png'),   // Standing Carry
   ip012: require('./png/10.png'),  // Elevated Leg
   ip013: require('./png/8.png'),   // Butterfly
   ip014: require('./png/13.png'),  // Standing Wrap
-  ip015: require('./png/14.png'),  // Forearm Doggy
-  ip016: require('./png/19.png'),  // Reclined Spoon (both horizontal)
-  ip017: require('./png/17.png'),  // Bent Over
+  ip015: require('./png/14.png'),  // Wheelbarrow
+  ip016: require('./png/19.png'),  // Reclined Spoon
   ip018: require('./png/18.png'),  // Side Straddle
   ip019: require('./png/6.png'),   // Seated Side Lean
 };

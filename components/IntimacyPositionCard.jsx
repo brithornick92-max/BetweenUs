@@ -17,7 +17,7 @@ import Icon from './Icon';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
-const HEAT_ICONS = { 1: 'heart-outline', 2: 'sparkles-outline', 3: 'flame-outline' };
+const HEAT_ICONS = { 1: 'heart-outline', 2: 'sparkles-outline', 3: 'flame-outline', 4: 'flame-outline' };
 const HEAT_LABELS = { 1: 'Gentle', 2: 'Warm', 3: 'Heated' };
 const MOOD_ICONS = {
   intimate: 'moon-outline', tender: 'heart-outline', curious: 'compass-outline',

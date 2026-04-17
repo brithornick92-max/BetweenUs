@@ -195,7 +195,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
     }
   };
 
-  if (loading || !personalizedUI) {
+  if (loading || !personalizedUI || (!userProfile && !state?.userProfile)) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>

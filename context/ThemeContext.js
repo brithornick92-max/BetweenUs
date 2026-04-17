@@ -13,17 +13,18 @@ import { STORAGE_KEYS } from "../utils/storage";
 const ThemeContext = createContext(null);
 
 const THEME_MODES = ["auto", "dark", "light"];
+const DEFAULT_THEME_MODE = "dark";
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   const systemColorScheme = useColorScheme();
 
   if (!context) {
-    const fallbackPalette = systemColorScheme === "dark" ? DARK_PALETTE : LIGHT_PALETTE;
+    const fallbackPalette = DARK_PALETTE;
     return {
-      themeMode: "auto",
+      themeMode: DEFAULT_THEME_MODE,
       setThemeMode: () => {},
-      isDark: systemColorScheme === "dark",
+      isDark: true,
       colors: fallbackPalette,
       gradients: getGradients(fallbackPalette),
       shadows: getShadows(fallbackPalette),
@@ -36,7 +37,7 @@ export const useTheme = () => {
 
 export const ThemeProvider = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const [themeMode, setThemeModeState] = useState("auto");
+  const [themeMode, setThemeModeState] = useState(DEFAULT_THEME_MODE);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
