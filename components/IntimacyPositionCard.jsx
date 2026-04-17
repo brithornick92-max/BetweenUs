@@ -59,31 +59,25 @@ const MOOD_ICONS = {
   surrendered: 'bed-outline',
 };
 
-const VARIANT_OPTIONS = [
-  { key: 'him-her', label: 'Him & Her', icon: 'heart-outline' },
-  { key: 'her-her', label: 'Her & Her', icon: 'heart-outline' },
-  { key: 'him-him', label: 'Him & Him', icon: 'heart-outline' },
-];
-
 const BODY_TYPE_OPTIONS = [
   { key: 'standard', label: 'Standard' },
   { key: 'support', label: 'More Support' },
 ];
 
 const POSITION_SUPPORT_TIPS = {
-  ip001: 'If sitting cross-legged puts pressure on the knees or hips, try sitting on a folded pillow or blanket to raise the hips slightly. This opens the pelvis and makes it easier to hold the position without strain. The partner on top can lean forward to rest more weight through their own legs.',
+  ip001: 'A folded blanket or pillow under the bottom partner\'s hips raises the seat slightly and reduces knee strain from the bent-leg position. The arching partner can spread their arms wide to distribute weight and avoid over-bending the lower back. Moving slowly in and out of the arch rather than holding it static reduces fatigue for both partners.',
   ip002: 'The dramatic back arch can create tension through the lower back and neck. If lower back discomfort builds, reduce the arch and let the front partner rest more of their weight against the sitting partner\'s chest rather than fully extending. A pillow behind the sitting partner\'s lower back gives firm support to brace against.',
   ip003: 'If the knee angle feels uncomfortable, lean forward and rest your hands on your partner\'s shins or the bed rather than riding fully upright. This shortens the range of motion and takes weight off the knees. A pillow behind the knees of the partner lying down can also ease the hip angle.',
   ip004: 'If wrist or elbow pressure builds, lower down onto forearms instead of hands. A pillow under the stomach of the receiving partner raises the hips slightly, reducing the forward lean needed. If knee discomfort is the issue, kneel on a folded blanket or a pillow.',
   ip005: 'The reverse tabletop position puts load through the wrists and shoulders of the bottom partner. If wrist discomfort builds, try propping up on fists or place a folded blanket under the hands. The top partner can lean slightly forward to shift weight off the wrists. Shorter rounds let both partners shake out between sets.',
   ip006: 'If breathing feels compressed, try turning the head to the side and letting it rest on a pillow rather than being fully face-down. A pillow under the chest — not just the hips — opens the airway and softens the feeling of weight. Widening the legs slightly also reduces stomach compression.',
-  ip007: 'The bottom partner is already on forearms, which is a stable low position. A folded blanket under the knees of both partners reduces hard-floor pressure significantly. The top partner can place their hands on either side of the bottom partner for stability, and moving more slowly reduces the effort needed to hold alignment from above.'
+  ip007: 'The bottom partner is already on forearms, which is a stable low position. A folded blanket under the knees of both partners reduces hard-floor pressure significantly. The top partner can place their hands on either side of the bottom partner for stability, and moving more slowly reduces the effort needed to hold alignment from above.',
   ip008: 'If the knee angle makes staying upright difficult, lean forward and rest your hands on your partner\'s chest or the bed. This shifts weight forward and takes pressure off the knees. Your partner can also bend their knees up slightly to give you a surface to brace against.',
-  ip009: 'A thin pillow under the lying partner\'s stomach can tilt the hips into a more comfortable angle. The kneeling partner can ease their weight forward gradually rather than all at once, and placing their hands or forearms on either side of their partner distributes pressure so no one spot takes the full load.'
+  ip009: 'A thin pillow under the lying partner\'s stomach can tilt the hips into a more comfortable angle. The kneeling partner can ease their weight forward gradually rather than all at once, and placing their hands or forearms on either side of their partner distributes pressure so no one spot takes the full load.',
   ip010: 'If the partner on top struggles to hold their weight on forearms, try dropping fully chest-to-chest and moving more slowly. A pillow under the receiving partner\'s lower back or hips tilts the pelvis up slightly, making the angle easier for both.',
   ip011: 'The lifting partner should keep their back straight and bend at the knees rather than the waist when taking on their partner\'s weight. Stepping close to a wall and leaning back into it lets the wall share the load. The lifted partner can loosen their grip slightly and let their weight settle low — squeezing too hard makes it harder to hold.',
   ip012: 'A folded blanket under the knees of both partners softens the surface pressure. If raising the leg straight up creates hip or groin strain, lower it to a comfortable angle — even 45 degrees still shifts the sensation significantly. The kneeling partner should hold the leg at the ankle or calf rather than the foot for better control.',
-  ip013: 'A pillow under the hips at the bed edge helps maintain the angle and reduces lower back strain. The lying partner can bend their elbows slightly rather than reaching all the way to the floor, or place a bolster beneath their hanging upper body. The standing partner stepping slightly closer reduces the reach needed to hold the hips steady.'
+  ip013: 'A pillow under the hips at the bed edge helps maintain the angle and reduces lower back strain. The lying partner can bend their elbows slightly rather than reaching all the way to the floor, or place a bolster beneath their hanging upper body. The standing partner stepping slightly closer reduces the reach needed to hold the hips steady.',
   ip014: 'If the lifted partner\'s thighs fatigue from squeezing, loosen the leg grip and let the arms carry more of the weight instead. The standing partner can bend their knees slightly to lower both bodies, which transfers more weight through their legs rather than their arms and back. Doing this near a wall gives a natural place to rest between moments.',
   ip015: 'If elbow or shoulder pressure builds on the forearms, slide a folded pillow under the forearms to cushion the surface. The receiving partner can also widen their knees slightly to lower the hips closer to the bed, reducing how much the behind partner needs to angle down. Moving more slowly reduces the need to hold the position rigidly.',
   ip016: 'If lower back support is needed for the leaning-back partner, place a firm pillow or folded blanket behind the lower back before settling in. The reclining partner can shift their angle slightly — more on their side vs. more on their back — to find the most comfortable position for both. Moving in smaller, slower rhythms reduces the effort needed to maintain the angle.',
@@ -138,15 +132,14 @@ const FONTS = {
   }),
 };
 
-export default function IntimacyPositionCard({ position, defaultVariant = 'him-her', defaultBodyType = 'standard', IllustrationSvg, getIllustrationForBodyType }) {
-  const [activeVariant, setActiveVariant] = useState(defaultVariant);
+export default function IntimacyPositionCard({ position, defaultBodyType = 'standard', IllustrationSvg, getIllustrationForBodyType }) {
   const [activeBodyType, setActiveBodyType] = useState(defaultBodyType);
   const { colors, isDark } = useTheme();
-  const illustrationColors = useMemo(() => getIllustrationColors(activeVariant, colors), [activeVariant, colors]);
+  const illustrationColors = useMemo(() => getIllustrationColors('him-her', colors), [colors]);
   const ActiveIllustration = useMemo(() => {
-    if (getIllustrationForBodyType) return getIllustrationForBodyType(position.id, activeVariant, activeBodyType);
+    if (getIllustrationForBodyType) return getIllustrationForBodyType(position.id, activeBodyType);
     return IllustrationSvg || null;
-  }, [getIllustrationForBodyType, IllustrationSvg, position.id, activeVariant, activeBodyType]);
+  }, [getIllustrationForBodyType, IllustrationSvg, position.id, activeBodyType]);
   const isImageIllustration = typeof ActiveIllustration === 'number';
 
   const t = useMemo(() => ({
@@ -164,7 +157,6 @@ export default function IntimacyPositionCard({ position, defaultVariant = 'him-h
   const heatIcon = HEAT_ICONS[heat] || 'heart-outline';
   const heatLabel = HEAT_LABELS[heat] || 'Gentle';
   const moodIcon = MOOD_ICONS[position.mood] || 'ellipse-outline';
-  const variantSetup = position.variants?.[activeVariant] || position.setup;
   const bodyTypeSupport = useMemo(
     () => getBodyTypeSupport(activeBodyType, position),
     [activeBodyType, position]
@@ -190,31 +182,6 @@ export default function IntimacyPositionCard({ position, defaultVariant = 'him-h
       {/* Glass card */}
       <BlurView intensity={isDark ? 25 : 45} tint="dark" style={styles.glassOuter}>
         <View style={[styles.glassInner, { backgroundColor: t.bg, borderColor: t.border }]}>
-
-          {/* Couple variant selector */}
-          <View style={styles.variantRow}>
-            {VARIANT_OPTIONS.map(v => {
-              const isActive = activeVariant === v.key;
-              return (
-                <TouchableOpacity
-                  key={v.key}
-                  onPress={() => setActiveVariant(v.key)}
-                  activeOpacity={0.7}
-                  style={[
-                    styles.variantPill,
-                    {
-                      backgroundColor: isActive ? withAlpha(t.primary, 0.15) : 'transparent',
-                      borderColor: isActive ? withAlpha(t.primary, 0.3) : t.borderSubtle,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.variantText, { color: isActive ? t.primary : t.textMuted }]}>
-                    {v.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
 
           {/* Illustration — PNG preferred, SVG fallback */}
           {ActiveIllustration ? (
@@ -291,11 +258,11 @@ export default function IntimacyPositionCard({ position, defaultVariant = 'him-h
           {/* Divider */}
           <View style={[styles.divider, { backgroundColor: t.borderSubtle }]} />
 
-          {/* The Setup — variant-specific */}
+          {/* How To */}
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: t.textMuted }]}>THE SETUP</Text>
+            <Text style={[styles.sectionLabel, { color: t.textMuted }]}>HOW TO</Text>
             <Text style={[styles.bodyText, { color: t.textSecondary }]}>
-              {variantSetup}
+              {position.howTo}
             </Text>
           </View>
 
@@ -318,13 +285,26 @@ export default function IntimacyPositionCard({ position, defaultVariant = 'him-h
           {/* Divider */}
           <View style={[styles.divider, { backgroundColor: t.borderSubtle }]} />
 
-          {/* Why It Works */}
+          {/* Benefits */}
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: t.textMuted }]}>WHY IT WORKS</Text>
+            <Text style={[styles.sectionLabel, { color: t.textMuted }]}>BENEFITS</Text>
             <Text style={[styles.bodyText, { color: t.textSecondary }]}>
-              {position.whyItWorks}
+              {position.benefits}
             </Text>
           </View>
+
+          {/* Divider */}
+          <View style={[styles.divider, { backgroundColor: t.borderSubtle }]} />
+
+          {/* Make It Hotter */}
+          {position.makeItHotter ? (
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: t.textMuted }]}>MAKE IT HOTTER</Text>
+              <Text style={[styles.bodyText, { color: t.textSecondary }]}>
+                {position.makeItHotter}
+              </Text>
+            </View>
+          ) : null}
 
           {/* Accessibility note */}
           {position.accessibility && (

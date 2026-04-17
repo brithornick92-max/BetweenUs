@@ -3,7 +3,7 @@
     "type": "intimacy-positions",
     "app": "Between Us",
     "version": "3.0.0",
-    "description": "Intimacy building positions with three couple variants per position: him & her, her & her, him & him. Premium-only with weekly releases.",
+    "description": "Intimacy building positions for all couples. Premium-only with weekly releases.",
     "premium": true,
     "releaseSchedule": "10 positions at launch (releaseWeek 0), then 1 new position per week",
     "categories": {
@@ -17,34 +17,24 @@
       "low-mobility": "Minimal movement or flexibility required",
       "standard": "Average flexibility and comfort",
       "active": "Requires some strength or balance"
-    },
-    "inclusivity": "Every position includes three variant descriptions so all couples see themselves represented. The default Partner A / Partner B setup remains as a universal fallback.",
-    "variants": {
-      "him-her": "Tailored for male-female couples",
-      "her-her": "Tailored for female-female couples",
-      "him-him": "Tailored for male-male couples"
     }
   },
   "items": [
     {
       "id": "ip001",
       "title": "The Lotus",
-      "commonName": "Lotus",
+      "commonName": "Seated Reverse Arch",
       "category": "deep-connection",
       "duration": "10–15 min",
       "accessibility": "low-mobility",
-      "focus": "A seated face-to-face position that prioritizes skin-to-skin closeness, sustained eye contact, and synchronized breathing.",
-      "setup": "Partner A sits upright with legs extended. Partner B sits in their lap facing them, wrapping their legs around Partner A's waist. Partner B can sit upright for forehead-to-forehead closeness or arch back to open up the angle — Partner A's arms hold them securely either way.",
-      "whyItWorks": "Maximizes closeness with minimal physical strain. The face-to-face intimacy slows the pace and deepens emotional connection. The arch option opens up the chest and shifts sensation while keeping full body contact.",
       "mood": "intimate",
       "heat": 3,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "He sits upright with legs extended. She sits in his lap facing him, wrapping her legs around his waist. She can stay upright for eye contact or arch back while he holds her securely.",
-        "her-her": "One partner sits upright with legs extended. The other sits in her lap facing her, wrapping her legs around her waist. She can arch back or stay close — arms hold her either way.",
-        "him-him": "One partner sits upright with legs extended. The other sits in his lap facing him, wrapping his legs around his waist. He can arch back or stay close — arms hold him securely."
-      }
+      "focus": "A seated reverse position — one partner sits with a bent and an extended leg while the other sits in their lap facing away, then arches their upper body backward, spine opening wide toward the ceiling.",
+      "howTo": "The giver sits on the floor with one leg bent and one extended in front of them. The receiver climbs into their lap facing away, then arches their entire upper body backward — spine opening wide, arms spreading out, face tilting toward the ceiling. The giver wraps both arms around from behind to support them through the arch.",
+      "benefits": "If you love the feeling of being completely open and exposed, this one is for you. The backward arch puts the receiver's chest and throat on full display, and the angle creates deep, satisfying pressure. The fact that you're not facing each other adds a layer of intensity — you feel everything without being able to read each other's faces.",
+      "makeItHotter": "As the receiver arches back, their chest is completely within reach. The giver can run both hands slowly up the torso, trace the throat, and pay some attention to the nipples — from this angle, even light touch is felt deeply."
     },
     {
       "id": "ip002",
@@ -53,18 +43,14 @@
       "category": "sensual-rhythm",
       "duration": "10–20 min",
       "accessibility": "standard",
-      "focus": "Both partners sit together — one behind, one in front — with the front partner arching dramatically backward, face tilted to the ceiling, fully open and surrendered.",
-      "setup": "Partner A sits with legs extended. Partner B sits between Partner A's legs facing away, then arches their upper body all the way backward — spine opening, face pointing toward the ceiling, weight supported by Partner A's arms and chest. Partner A holds Partner B secure through the arch.",
-      "whyItWorks": "The dramatic arch opens the front partner's chest and throat completely, creating a feeling of total openness and surrender. The back partner feels the full weight and trust of being leaned into. Sensation is intense from the angle and the vulnerability of the open-back position.",
       "mood": "tender",
       "heat": 2,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "He sits with legs extended. She sits between his legs facing away, then arches her upper body all the way back — face toward the ceiling, chest open. He holds her through the arch.",
-        "her-her": "One partner sits with legs extended. The other sits between her legs facing away, then arches her upper body dramatically backward, face to the ceiling. Arms hold her through the arch.",
-        "him-him": "One partner sits with legs extended. The other sits between his legs facing away, then arches his upper body all the way back — face up, chest open. Arms hold him through the arch."
-      }
+      "focus": "Both partners sit together — one behind, one in front — with the front partner arching backward, face tilted to the ceiling, fully open and surrendered.",
+      "howTo": "The giver sits with legs extended. The receiver sits between their legs facing away, then arches their upper body all the way backward — spine curving open, face pointing toward the ceiling, arms falling softly to the sides. The giver wraps both arms around the receiver's front and holds them steady through the arch.",
+      "benefits": "The dramatic backward lean puts the receiver in a full state of surrender — chest open, throat exposed, completely held by their partner. It's an intensely trusting position, and that trust tends to amplify everything else. The angle builds slowly and rewards patience.",
+      "makeItHotter": "The giver's mouth lands right at the receiver's neck and shoulders. Slow kisses, light biting along the side of the neck, or whispering directly into their ear while they arch back turns the physical sensation into full sensory overload."
     },
     {
       "id": "ip003",
@@ -73,18 +59,14 @@
       "category": "exploratory",
       "duration": "10–15 min",
       "accessibility": "standard",
-      "focus": "Partner on top faces away, offering a completely different angle and sense of independence while staying deeply connected.",
-      "setup": "Partner A lies back comfortably. Partner B straddles them facing their feet, sitting fully upright. Hands can rest on Partner A's legs or the bed for balance.",
-      "whyItWorks": "The reversed angle changes sensation entirely. The top partner sits upright and controls the pace and depth, while the view and feeling for both is completely fresh.",
       "mood": "curious",
       "heat": 3,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "He lies back. She straddles him facing his feet, sitting upright. Her hands rest on his legs or the bed for balance.",
-        "her-her": "One partner lies back. The other straddles her facing her feet, sitting upright. Hands rest on her partner's legs for balance. Use toys as desired.",
-        "him-him": "One partner lies back. The other straddles him facing his feet, sitting upright. Hands rest on his partner's legs for balance."
-      }
+      "focus": "Partner on top faces away, offering a completely different angle and sense of independence while staying deeply connected.",
+      "howTo": "The giver lies back comfortably. The receiver straddles them facing their feet, sitting fully upright, and lowers themselves down. Hands can rest on the giver's shins or the bed for balance. From here, the receiver bounces, grinds, or rolls their hips — whatever feels best.",
+      "benefits": "Flipping around completely changes the angle, which means new nerve endings, new pressure points, and a completely different experience from the same connection. The receiver is totally in control of pace and depth. And for receivers who enjoy G-spot or P-spot stimulation, the reversed angle hits differently — often better.",
+      "makeItHotter": "Position a mirror in front of you so both partners can see each other's reactions in real time. The receiver can also reach back and grip their partner's thighs, pulling them in whenever they want more."
     },
     {
       "id": "ip004",
@@ -93,18 +75,14 @@
       "category": "sensual-rhythm",
       "duration": "10–15 min",
       "accessibility": "standard",
-      "focus": "A classic from-behind position on all fours that offers deep connection through rhythm and trust.",
-      "setup": "Partner B positions themselves on hands and knees. Partner A kneels behind them, hands resting on Partner B's hips or lower back. Both find a shared rhythm.",
-      "whyItWorks": "The angle allows deep physical connection while the from-behind position builds trust. Partner A can lean forward for closeness or stay upright for control.",
       "mood": "passionate",
       "heat": 3,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "She positions herself on hands and knees. He kneels behind her, hands on her hips or lower back. Both find a shared rhythm.",
-        "her-her": "One partner is on hands and knees. The other kneels behind her, hands on her hips. Use hands or toys to connect. Both find a shared rhythm.",
-        "him-him": "One partner is on hands and knees. The other kneels behind him, hands on his hips or lower back. Both find a shared rhythm."
-      }
+      "focus": "A classic from-behind position on all fours that offers deep connection through rhythm and trust.",
+      "howTo": "The receiver gets on their hands and knees. The giver kneels behind them, resting their hands on the receiver's hips or lower back. Both find a rhythm together — the giver can pull the receiver in, the receiver can push back, or you can just let it build naturally.",
+      "benefits": "This position allows for deep penetration and puts the giver in full control of the pace — which some receivers find incredibly freeing. You feel your partner completely without seeing their face, which creates its own kind of intensity. It's also one of the best angles for stimulating the G-spot or P-spot, depending on the tilt of the hips.",
+      "makeItHotter": "The receiver reaches one hand back and guides the giver's hand wherever they want it. Or the giver wraps an arm around to the front — adding direct stimulation without breaking the rhythm."
     },
     {
       "id": "ip005",
@@ -113,38 +91,30 @@
       "category": "playful-energy",
       "duration": "5–10 min",
       "accessibility": "active",
-      "focus": "One partner leans back on their hands with hips lifted while the other straddles and arches — a dynamic, connected position that takes intimacy somewhere unexpected.",
-      "setup": "Partner A sits and leans back on both hands, lifting their hips off the ground (reverse tabletop position). Partner B straddles them facing forward, and can sit upright or arch their own body back dramatically. Both find their balance together.",
-      "whyItWorks": "The reverse tabletop angle lifts the hips into a unique position that changes the feel entirely. Partner B's freedom to arch back adds intensity and a sense of abandon — it's physically engaging for both partners.",
       "mood": "playful",
       "heat": 3,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "He leans back on his hands, lifting his hips into a reverse tabletop. She straddles him and can sit upright or arch back dramatically — both find their balance together.",
-        "her-her": "One partner leans back on her hands with hips lifted. The other straddles her, sitting upright or arching back. Use hands or toys. Both find their balance.",
-        "him-him": "One partner leans back on his hands with hips lifted. The other straddles him and can sit upright or arch back. Both bodies engage together."
-      }
+      "focus": "One partner leans back on their hands with hips lifted while the other straddles and arches — a dynamic, connected position that takes intimacy somewhere unexpected.",
+      "howTo": "The giver sits and leans back onto both hands, lifting their hips off the ground into a reverse tabletop. The receiver straddles them facing forward and lowers down. The receiver can sit upright or arch their own body dramatically backward — both partners find their balance together.",
+      "benefits": "The lifted hips create a unique angle that you genuinely can't replicate lying flat. For the receiver, the tilt often means more direct pressure in exactly the right spot. It takes a few seconds to find your footing together, but once you do, it's completely worth it. Both partners tend to feel more sensation from less movement.",
+      "makeItHotter": "The giver is essentially pinned in place — which means the only job is to enjoy the view. The receiver can slow all the way down, hold at the deepest point, and decide exactly when to move again."
     },
     {
       "id": "ip006",
       "title": "The Arc",
-      "commonName": "Reverse Lean",
+      "commonName": "Reverse Forward Lean",
       "category": "exploratory",
       "duration": "10–15 min",
       "accessibility": "standard",
-      "focus": "The top partner straddles facing away, then leans all the way back — chest to chest, completely surrendered.",
-      "setup": "Partner A lies back. Partner B straddles them facing away, then slowly leans back until their back rests against Partner A's chest. Partner A's arms wrap around Partner B from behind. Both bodies settle into a full-length embrace.",
-      "whyItWorks": "The lean-back angle transforms a familiar position into something unexpectedly close. The chest-to-back contact wraps around the top partner entirely, and the angle creates deep, satisfying pressure.",
       "mood": "intimate",
       "heat": 3,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "He lies back. She straddles him facing away, then leans back into his chest. His arms wrap around her from behind.",
-        "her-her": "One partner lies back. The other straddles her facing away, then leans back. Arms wrap around from behind. Use hands or toys.",
-        "him-him": "One partner lies back. The other straddles him facing away, then leans back into his chest. Arms wrap around from behind."
-      }
+      "focus": "The top partner straddles facing away, then leans all the way forward — chest toward the giver's legs, body curved over them.",
+      "howTo": "The giver lies back. The receiver straddles them facing away (toward the giver's feet), then slowly leans forward — curving their upper body down and over the giver's legs, hands resting on the giver's shins or ankles for support. The giver rests their hands on the receiver's hips or lower back.",
+      "benefits": "The forward lean from a reversed straddle creates a completely different angle than sitting upright — it shifts the pressure and hits new spots for both partners. The receiver has full control of how far they lean and how that changes the sensation. It's a position that rewards slow, deliberate movement.",
+      "makeItHotter": "The receiver can vary how far they lean forward mid-session — sitting more upright changes the angle immediately and lets you find the exact spot that works best. The giver's hands on the receiver's hips give them a way to guide the pace without taking control."
     },
     {
       "id": "ip007",
@@ -153,18 +123,14 @@
       "category": "sensual-rhythm",
       "duration": "10–15 min",
       "accessibility": "active",
-      "focus": "Both partners stack together on all fours — the bottom partner low with forearms down and head resting on their arms, the top partner kneeling over them, bodies fully aligned.",
-      "setup": "Partner B gets on their knees and lowers down to their forearms, head resting on their folded arms. Partner A kneels over them from behind, chest pressing toward Partner B's back, hands on either side. Both bodies stack in alignment from knees to shoulders.",
-      "whyItWorks": "The bottom partner's lowered forearm position changes the angle and creates a deeper, more enveloping connection. The full-body overlay from the top partner creates maximum closeness and a primal sense of being completely covered.",
       "mood": "passionate",
       "heat": 3,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "She lowers to her forearms, head resting on her arms. He kneels over her from behind, chest toward her back, hands on either side of her.",
-        "her-her": "One partner lowers to her forearms, head down. The other kneels over her from behind, chest toward her back. Use hands or toys in the stacked position.",
-        "him-him": "One partner lowers to his forearms, head resting on his arms. The other kneels over him from behind, chest toward his back, hands on either side."
-      }
+      "focus": "Both partners stack together on all fours — the bottom partner low with forearms down and head resting on their arms, the top partner kneeling over them, bodies fully aligned.",
+      "howTo": "The receiver gets on their knees and lowers down to their forearms, resting their head on their folded arms. The giver kneels over them from behind, pressing their chest toward the receiver's back with hands placed on either side. Both bodies align from knees to shoulders — fully stacked.",
+      "benefits": "The forearm position tilts the receiver's hips in a way that deepens everything significantly. For receivers who enjoy deep penetration, this is one of the best angles available — and the full-body overlay from the giver adds a primal sense of being completely covered that's hard to find elsewhere. Every movement is felt across the whole body.",
+      "makeItHotter": "The giver is right at the receiver's ear — whisper exactly what you're feeling in real time. Even the smallest movements are amplified by the closeness; try barely moving at all and just breathing together to see how quickly the tension builds."
     },
     {
       "id": "ip008",
@@ -173,18 +139,14 @@
       "category": "trust-vulnerability",
       "duration": "10–20 min",
       "accessibility": "standard",
-      "focus": "The partner on top straddles and rides, fully controlling the pace, angle, and depth while the other surrenders to their rhythm.",
-      "setup": "Partner A lies on their back. Partner B straddles them, sitting upright. Partner B controls all the movement — speed, depth, and angle. Partner A's hands are free to roam.",
-      "whyItWorks": "Gives the top partner complete control, which is empowering. The bottom partner practices surrender and learns to receive. Eye contact is easy and natural.",
       "mood": "devoted",
       "heat": 3,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "He lies on his back. She straddles him sitting upright, controlling speed, depth, and angle. His hands are free to roam her body.",
-        "her-her": "One partner lies on her back. The other straddles her, sitting upright, controlling the rhythm. Use hands or toys. Eye contact is easy and natural.",
-        "him-him": "One partner lies on his back. The other straddles him, sitting upright, controlling speed and depth. Hands are free to explore."
-      }
+      "focus": "The partner on top straddles and rides, fully controlling the pace, angle, and depth while the other surrenders to their rhythm.",
+      "howTo": "The giver lies on their back. The receiver straddles their pelvis, lowers themselves down, and takes control — bouncing, grinding, rolling their hips forward and back, or whatever combination feels best. The giver's hands are completely free.",
+      "benefits": "If you're a receiver who likes to control the depth, speed, and angle, this position is made for you. You set the pace, you decide how deep, and you find the exact angle that hits right. It also offers excellent G-spot access — try leaning slightly forward to dial that in. The giver gets to experience the rare pleasure of fully letting go and being ridden.",
+      "makeItHotter": "Lock eyes and hold contact — no looking away. The receiver can slow to an almost complete stop, holding at the deepest point, and use the pause itself as a form of touch. Then decide when to move again."
     },
     {
       "id": "ip009",
@@ -193,18 +155,14 @@
       "category": "exploratory",
       "duration": "15–25 min",
       "accessibility": "low-mobility",
-      "focus": "A slow, close from-behind position — one partner lying flat while the other kneels over them from behind, body curled forward and close. Unhurried, low-effort, and deeply intimate.",
-      "setup": "Partner B lies flat on their stomach. Partner A kneels over them from behind, leaning forward with arms around Partner B, body curled low and close. There's minimal movement — it's about sustained warmth and the feeling of being completely covered.",
-      "whyItWorks": "The kneeling-over position lets the top partner stay close and enveloping without full body weight on the bottom partner. Perfect for slow, sleepy mornings or winding down at night — all closeness, no effort.",
       "mood": "freeform",
       "heat": 2,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "She lies flat on her stomach. He kneels over her from behind, leaning forward with arms around her, body curled close. Slow, minimal movement — closeness over pace.",
-        "her-her": "One partner lies flat on her stomach. The other kneels over her from behind, leaning forward with arms around her. Use hands or toys. Slow and close.",
-        "him-him": "One partner lies flat on his stomach. The other kneels over him from behind, leaning forward with arms around him, body curled close. Slow, minimal movement."
-      }
+      "focus": "A slow, close from-behind position — one partner lying flat while the other kneels over them from behind, body curled forward and close. Unhurried, low-effort, and deeply intimate.",
+      "howTo": "The receiver lies flat on their stomach. The giver kneels over them from behind, leaning forward with arms wrapped around, body curled close. Movement is slow and minimal — this one is about warmth and sustained closeness, not pace.",
+      "benefits": "The kneeling position keeps the giver close and enveloping without putting their full weight on their partner. Think of it as the intimate version of being held from behind — a full-body cocoon. It's perfect for slow mornings or late nights when you want to feel completely close without any effort.",
+      "makeItHotter": "The giver reaches one arm all the way around to the front, making the receiver feel completely surrounded. Keep everything barely moving — focused on breath and warmth rather than rhythm — and see how long you can stay in it."
     },
     {
       "id": "ip010",
@@ -213,18 +171,14 @@
       "category": "deep-connection",
       "duration": "10–15 min",
       "accessibility": "low-mobility",
-      "focus": "The classic face-to-face position — one partner on top, chest to chest, with full eye contact and kiss access.",
-      "setup": "Partner B lies on their back. Partner A positions on top, chest to chest, weight supported on forearms. Faces are close enough to kiss, whisper, and maintain eye contact throughout.",
-      "whyItWorks": "The most intimate position for a reason — full frontal contact, easy eye contact, natural kissing distance. Slowing it down and focusing on breath turns the familiar into something profound.",
       "mood": "intimate",
       "heat": 2,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "She lies on her back. He positions on top, chest to chest, weight on his forearms. Close enough to kiss and maintain eye contact.",
-        "her-her": "One partner lies on her back. The other positions on top, chest to chest. Use hands or toys. Close enough to kiss and hold eye contact.",
-        "him-him": "One partner lies on his back. The other positions on top, chest to chest, weight on forearms. Close enough to kiss and hold eye contact."
-      }
+      "focus": "The classic face-to-face position — one partner on top, chest to chest, with full eye contact and kiss access.",
+      "howTo": "The receiver lies on their back. The giver lowers on top of them, chest to chest, resting their weight on their forearms. Faces are close enough to kiss, whisper, and hold eye contact the entire time. Move together from there — slow tends to work best.",
+      "benefits": "There's a reason this is still one of the most popular positions — the full frontal body contact, easy eye contact, and natural kissing access create a closeness that's hard to replicate anywhere else. It's also a great angle for clitoral stimulation through grinding, and the face-to-face position means your breath, sounds, and expressions are fully shared. Slowing it down makes it feel completely new.",
+      "makeItHotter": "Press your foreheads together and breathe in sync — breath for breath. Try going so slow you're barely moving at all, just feeling the pressure and warmth between you, and see how long you can hold it before it becomes impossible."
     },
     {
       "id": "ip011",
@@ -233,18 +187,14 @@
       "category": "trust-vulnerability",
       "duration": "5–15 min",
       "accessibility": "active",
-      "focus": "One partner lifts the other completely off the ground — face to face, both fully present and committed to each other.",
-      "setup": "Partner A stands firmly and lifts Partner B, who wraps their legs tightly around Partner A's waist and arms around their shoulders. Partner A supports Partner B's weight with both hands. A wall behind Partner A can help with balance.",
-      "whyItWorks": "Being held off the ground creates immediate vulnerability and complete trust. The face-to-face closeness at eye level amplifies every sensation — nowhere to look but at each other.",
       "mood": "passionate",
       "heat": 3,
       "premium": true,
       "releaseWeek": 1,
-      "variants": {
-        "him-her": "He lifts her completely, hands supporting her. She wraps her legs around his waist and arms around his shoulders. A wall behind him helps with balance.",
-        "her-her": "One partner lifts the other completely. The lifted partner wraps legs around her waist and arms around her shoulders. Use a wall for support.",
-        "him-him": "One partner lifts the other completely off the ground. The lifted partner wraps legs around his waist and holds tight. A wall behind helps with balance."
-      }
+      "focus": "One partner lifts the other completely off the ground — face to face, both fully present and committed to each other.",
+      "howTo": "The giver stands and lifts their partner completely off the ground. The receiver wraps their legs around the giver's waist and holds on with their arms around their shoulders. Step back against a wall — it takes most of the effort out of holding the position and lets both partners relax into it.",
+      "benefits": "Being lifted completely off the ground creates a kind of vulnerability you can't fake or rush — there's nowhere to brace, nothing to hold onto except your partner. The face-to-face height puts you eye to eye in a way that only happens in this position, and that closeness intensifies everything. It's equal parts trust and adrenaline.",
+      "makeItHotter": "With the wall taking the weight, the giver's hands are free. Use them — the receiver is right there at chest height, completely accessible. The receiver can tilt their hips to adjust the angle and find exactly what they need."
     },
     {
       "id": "ip012",
@@ -253,18 +203,14 @@
       "category": "deep-connection",
       "duration": "10–15 min",
       "accessibility": "standard",
-      "focus": "One partner is on all fours with one leg raised and supported — a rear-entry position with a uniquely deep and open angle.",
-      "setup": "Partner B positions on all fours at the edge of a bed or surface. They raise one leg upward — nearly vertical — which Partner A (kneeling behind) supports with both hands. The elevated leg creates a deep, open angle.",
-      "whyItWorks": "Raising the leg straight up dramatically opens the hip and shifts the angle to one of the deepest available in a rear-entry position. The vertical leg gives the kneeling partner control over depth and angle by adjusting how high they hold it.",
       "mood": "intense",
       "heat": 3,
       "premium": true,
       "releaseWeek": 2,
-      "variants": {
-        "him-her": "She gets on all fours at the bed's edge and raises one leg straight up. He kneels behind, supporting her raised leg with both hands. The vertical leg controls the depth and angle.",
-        "her-her": "One partner gets on all fours and raises one leg upward. The other kneels behind, supporting it with both hands. Use hands or toys. Adjust height to control the angle.",
-        "him-him": "One partner gets on all fours and raises one leg straight up. The other kneels behind, holding the raised leg with both hands. The vertical angle deepens the connection."
-      }
+      "focus": "One partner is on all fours with one leg raised and supported — a rear-entry position with a uniquely deep and open angle.",
+      "howTo": "The receiver gets on all fours at the edge of a bed or surface, then raises one leg straight up — nearly vertical. The giver kneels behind them, supporting the raised leg with both hands. How high the giver holds the leg directly controls the depth and angle, so both partners can communicate and adjust in real time.",
+      "benefits": "Raising one leg straight up opens the hip in a way that creates one of the deepest penetration angles available in any rear-entry position. For the giver, a tiny adjustment in how high you hold the leg makes an immediate, significant difference in sensation for both of you. It's a position that rewards communication — the more you talk through it, the better it gets.",
+      "makeItHotter": "Ask your partner to tell you the exact moment you hit the right angle — then stay there and don't move. Try dropping the leg slightly to feel the shift, then raising it back up and watching the difference."
     },
     {
       "id": "ip013",
@@ -273,18 +219,14 @@
       "category": "playful-energy",
       "duration": "10–15 min",
       "accessibility": "standard",
-      "focus": "One partner lies at the edge of a bed or surface — upper body hanging off the edge with hands on the floor — while the other stands between their legs. A gravity-driven angle unlike anything on a flat surface.",
-      "setup": "Partner B lies on their back with hips right at the edge of the bed. Their upper body hangs off the edge, arms reaching down toward the floor for support. Partner A stands between their legs, holding Partner B's hips or thighs to keep them steady.",
-      "whyItWorks": "The inverted upper body creates a unique blood-rush and heightened sensitivity. The standing partner has full control while the lying partner is in a completely open, surrendered, head-down position — an intense combination.",
       "mood": "playful",
       "heat": 3,
       "premium": true,
       "releaseWeek": 3,
-      "variants": {
-        "him-her": "She lies with hips at the bed edge, upper body hanging off with hands toward the floor. He stands between her legs, holding her hips steady.",
-        "her-her": "One partner lies with hips at the edge, upper body hanging off. The other stands between her legs, holding her hips. Use hands or toys.",
-        "him-him": "One partner lies with hips at the bed edge, upper body hanging off with hands toward the floor. The other stands between his legs, holding his hips steady."
-      }
+      "focus": "One partner lies at the edge of a bed or surface — upper body hanging off the edge with hands on the floor — while the other stands between their legs. A gravity-driven angle unlike anything on a flat surface.",
+      "howTo": "The receiver lies on their back with hips right at the edge of the bed, then lets their upper body hang off the edge — arms reaching toward the floor for support. The giver stands between their legs and holds their hips or thighs to keep them stable. The receiver's legs can rest on the giver's shoulders or stay loose.",
+      "benefits": "When the head is lower than the heart, blood rushes there — and that increases sensitivity across the entire body. Receivers often report that this inversion makes every sensation feel sharper and more immediate. The giver has full control of pace and depth from the standing position, while the receiver is in a completely open, surrendered state.",
+      "makeItHotter": "The receiver should take slow, steady breaths and let the head-rush build gradually rather than fighting it. That altered state amplifies everything. The giver can vary the pace significantly — slowing almost to a stop, then building again — to draw it out."
     },
     {
       "id": "ip014",
@@ -293,18 +235,14 @@
       "category": "sensual-rhythm",
       "duration": "5–15 min",
       "accessibility": "active",
-      "focus": "One partner wraps their legs around the other's hips while standing — pressed completely together, face-to-face, nowhere to go but closer.",
-      "setup": "Partner A stands firmly with arms ready to hold. Partner B steps in close, wraps their legs around Partner A's hips, and holds on with their arms around Partner A's neck or shoulders. Both faces are at the same level — close enough to kiss with every movement.",
-      "whyItWorks": "The full-body press brings everything into contact at once. Both partners are completely upright and present, faces level, nothing between them. The wrap creates a sense of being fully held while staying completely connected.",
       "mood": "magnetic",
       "heat": 3,
       "premium": true,
       "releaseWeek": 4,
-      "variants": {
-        "him-her": "He stands firmly. She wraps her legs around his hips and arms around his neck. Both faces are level, close enough to kiss throughout.",
-        "her-her": "One partner stands firmly. The other wraps her legs around her partner's hips and holds on. Use hands or toys. Both faces stay close together.",
-        "him-him": "One partner stands firmly. The other wraps his legs around his hips and holds on with arms around his neck or shoulders. Faces stay close."
-      }
+      "focus": "One partner wraps their legs around the other's hips while standing — pressed completely together, face-to-face, nowhere to go but closer.",
+      "howTo": "The giver stands with their arms ready. The receiver steps in close, wraps their legs around the giver's hips, and holds on around their neck or shoulders. Back up against a wall so the giver can brace — from there, both bodies are free to move together without worrying about balance.",
+      "benefits": "Standing face-to-face with no surface between you brings every part of your bodies into contact at once. The wrap keeps everything pressed close, and the upright angle means your faces are level and right there — close enough to kiss with every movement. It's immediate, physical, and intimate all at once.",
+      "makeItHotter": "With the wall behind the giver, both sets of hands are completely free — use them. The receiver can adjust their angle by tilting their hips forward or back to find exactly the pressure they want, and communicate it."
     },
     {
       "id": "ip015",
@@ -313,18 +251,14 @@
       "category": "trust-vulnerability",
       "duration": "10–15 min",
       "accessibility": "low-mobility",
-      "focus": "One partner drops from all fours to their forearms — lowering the angle and intensifying the depth while staying completely supported.",
-      "setup": "Partner B starts on all fours, then lowers to their forearms, forehead resting on folded arms. Partner A kneels behind. The lowered angle changes the geometry entirely — deeper, fuller, more surrendered.",
-      "whyItWorks": "Dropping to forearms shifts the angle to one of the deepest available in a rear-entry position. It requires no extra flexibility — just a willingness to let go and sink in.",
       "mood": "surrendered",
       "heat": 3,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "She drops to her forearms, forehead resting on her arms. He kneels behind. The lower angle intensifies depth and closeness.",
-        "her-her": "One partner drops to her forearms. The other kneels behind, using hands or toys. The lowered position creates a deep, surrendered angle.",
-        "him-him": "One partner drops to his forearms, head resting on his arms. The other kneels behind. The lowered angle intensifies the depth."
-      }
+      "focus": "One partner drops from all fours to their forearms — lowering the angle and intensifying the depth while staying completely supported.",
+      "howTo": "The receiver starts on all fours, then lowers down to their forearms with their forehead resting on their folded arms. The giver kneels behind them. That's it — the drop to forearms does most of the work, changing the angle immediately and completely.",
+      "benefits": "Dropping to the forearms is the fastest way to go deeper without changing positions — it tilts the hips and opens up an angle that's genuinely hard to reach any other way. No extra flexibility required, just the willingness to sink lower and surrender to it. Receivers often find this one of the most intense rear-entry variations for G-spot or P-spot stimulation.",
+      "makeItHotter": "The giver reaches around to the front with one hand while maintaining the rhythm — the position leaves it perfectly accessible. Try slowing all the way down, then building, then pulling back, then building again. The anticipation tends to take over."
     },
     {
       "id": "ip016",
@@ -333,18 +267,14 @@
       "category": "exploratory",
       "duration": "10–15 min",
       "accessibility": "low-mobility",
-      "focus": "Both partners settle into a semi-reclined position side by side — one close behind the other, bodies angled and open, deeply relaxed together.",
-      "setup": "Partner A sits and leans back slightly, legs extended or loosely bent. Partner B reclines against Partner A at a perpendicular angle — their bodies forming a rough L-shape, connected at the hips. Partner A's hands rest on Partner B's hips or thighs. Both bodies settle without needing to hold anything up.",
-      "whyItWorks": "The semi-reclined angle is effortless for both partners — no one holds their weight up. The bodies naturally settle together, creating a relaxed closeness that lets both fully let go and feel each other.",
       "mood": "cozy",
       "heat": 3,
       "premium": true,
       "releaseWeek": 0,
-      "variants": {
-        "him-her": "He leans back slightly with legs extended. She reclines against him at an angle, his hands on her hips or thighs. Both sink into the position together.",
-        "her-her": "One partner leans back with legs extended. The other reclines against her at an angle. Use hands or toys. Both relax into each other fully.",
-        "him-him": "One partner leans back with legs extended. The other reclines against him at an angle, his hands on his partner's hips. Both settle in together."
-      }
+      "focus": "Both partners settle into a semi-reclined position side by side — one close behind the other, bodies angled and open, deeply relaxed together.",
+      "howTo": "The giver sits and leans back slightly, legs extended or loosely bent. The receiver lies back against them at a perpendicular angle, bodies forming a loose L-shape and connecting at the hips. The giver rests their hands on the receiver's hips or thighs. Neither partner has to hold anything up — both just settle in together.",
+      "benefits": "This is the position for when you want deep, satisfying closeness without any effort. The semi-reclined angle means no one is holding their weight — both bodies just sink into each other. The sideways angle creates a different kind of pressure than anything head-on, and the relaxed state it puts you both in tends to make everything feel more.",
+      "makeItHotter": "The giver is positioned right behind the receiver's neck and shoulders — use that access. Slow kisses, a little teeth along the shoulder, breathing against the back of the neck — it turns this quiet position into something that builds fast."
     },
     {
       "id": "ip017",
@@ -353,18 +283,14 @@
       "category": "playful-energy",
       "duration": "5–15 min",
       "accessibility": "active",
-      "focus": "One partner bends all the way forward — hands near the floor, hips high — while the other kneels in close from behind. Intense, deep, and completely surrendered.",
-      "setup": "Partner B bends forward as far as they can, hands on the floor for support, hips elevated. Partner A kneels behind them, hands gripping Partner B's hips or waist. The extreme forward angle creates a deep, gravity-assisted connection.",
-      "whyItWorks": "Bending all the way forward shifts the body into a steep downward angle that intensifies everything. Partner A's kneeling position keeps them stable and fully in control while Partner B is completely open and surrendered.",
       "mood": "passionate",
       "heat": 3,
       "premium": true,
       "releaseWeek": 7,
-      "variants": {
-        "him-her": "She bends all the way forward, hands on the floor for support, hips high. He kneels behind, hands on her hips. The steep angle intensifies everything.",
-        "her-her": "One partner bends far forward with hands on the floor. The other kneels behind, using hands or toys. The steep angle creates deep, open access.",
-        "him-him": "One partner bends all the way forward, hands on the floor. The other kneels behind, hands on his hips or waist. The extreme angle intensifies the connection."
-      }
+      "focus": "One partner bends all the way forward — hands near the floor, hips high — while the other kneels in close from behind. Intense, deep, and completely surrendered.",
+      "howTo": "The receiver bends all the way forward — hands flat on the floor for support, hips lifted high. The giver kneels close behind them, gripping their hips or waist. The steep forward fold creates a deep, gravity-assisted angle that both partners can feel immediately.",
+      "benefits": "Bending all the way forward naturally deepens the angle, and gravity does the rest. For the giver, it's a position of total control — the receiver is fully open and the approach is completely unobstructed. For receivers who enjoy deep penetration and a sense of complete surrender, this delivers both at once.",
+      "makeItHotter": "Have the receiver place their hands on their lower back — wrists crossed — instead of reaching for the floor. It deepens the surrender and changes the dynamic noticeably. The giver controls everything from there."
     }
   ]
 }

@@ -227,7 +227,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
         {/* Editorial Header */}
         <View style={styles.header}>
           <Text style={[styles.greeting, { fontSize: layout.fontSize.title, color: t.text }]}>
-            {smartGreeting}
+            {smartGreeting} {preferredName ? `, ${preferredName}` : ''}
           </Text>
           <Text style={[styles.subGreeting, { fontSize: layout.fontSize.base, color: t.subtext }]}>
             {smartSubGreeting}
