@@ -23,6 +23,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { DataLayer } from '../services/localfirst';
@@ -39,6 +40,7 @@ import MilestoneCard from '../components/MilestoneCard';
 import YearReflectionCard from '../components/YearReflectionCard.jsx';
 import WelcomeBack from '../components/WelcomeBack';
 import OfflineIndicator from '../components/OfflineIndicator';
+import GentleCelebration from '../components/GentleCelebration';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { NicknameEngine, RelationshipMilestones } from '../services/PolishEngine';
@@ -46,6 +48,9 @@ import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { FALLBACK_PROMPT } from '../utils/contentLoader';
 import StreakBanner from '../components/StreakBanner';
 import { PromptCardSkeleton } from '../components/SkeletonLoader';
+import ConnectionMemory from '../utils/connectionMemory';
+import achievementEngine from '../utils/achievementEngine';
+import PreferenceEngine from '../services/PreferenceEngine';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:promptedPartnerShare';
@@ -105,11 +110,13 @@ const ACTIONS = [
   { label: 'Love Note', icon: 'mail-outline', key: 'note', premium: true, color: '#D2121A' }, // Sexy red
   { label: 'Ritual', icon: 'flame-outline', key: 'ritual', premium: true, color: '#7E4FA3' }, // Velvet plum
   { label: 'Jokes', icon: 'happy-outline', key: 'jokes', premium: true, color: '#D4AA7E' }, // Champagne gold
+  { label: 'Intimacy', icon: 'flame', key: 'intimacy', premium: true, color: '#C14953' }, // Deep rose
 ];
 
 export default function HomeScreen({ navigation }) {
   const { state } = useAppContext();
   const { user, userProfile } = useAuth();
+  const { data: dataLayer } = useData();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { todayPrompt, loadTodayPrompt, usageStatus, loadUsageStatus } = useContent();
   const { colors, isDark } = useTheme();
@@ -140,6 +147,15 @@ export default function HomeScreen({ navigation }) {
   const [throwback, setThrowback] = useState(null);
   const [unreadNotes, setUnreadNotes] = useState(0);
   const [selectedTone, setSelectedTone] = useState('warm');
+  const [homeLayout, setHomeLayout] = useState({
+    type: 'comfortable',
+    spacing: { padding: SPACING.screen, gap: SPACING.section },
+    fontSize: { title: 34, base: 13 },
+  });
+  const [showReward, setShowReward] = useState(false);
+  const [rewardData, setRewardData] = useState(null);
+  const [smartGreeting, setSmartGreeting] = useState('Welcome Back');
+  const [smartSubGreeting, setSmartSubGreeting] = useState('Your evening awaits.');
   const remainingFreePrompts = usageStatus?.remaining?.prompts ?? 1;
   const canWritePrompt = isPremium || !!myAnswer.trim() || remainingFreePrompts > 0;
 
@@ -156,6 +172,80 @@ export default function HomeScreen({ navigation }) {
       Animated.spring(actionsAnim, { toValue: 1, friction: 9, tension: 60, useNativeDriver: true }),
     ]).start();
   }, [headerAnim, cardAnim, actionsAnim]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadHomePersonalization = async () => {
+      try {
+        const avgSession = await ConnectionMemory.getAverageSessionLength();
+        const isCompact = avgSession != null && avgSession < 120;
+        if (active) {
+          setHomeLayout({
+            type: isCompact ? 'compact' : 'comfortable',
+            spacing: isCompact
+              ? { padding: SPACING.lg, gap: SPACING.lg }
+              : { padding: SPACING.screen, gap: SPACING.section },
+            fontSize: isCompact
+              ? { title: 28, base: 12 }
+              : { title: 34, base: 13 },
+          });
+        }
+
+        const profile = await PreferenceEngine.getContentProfile({});
+        const greeting = await PreferenceEngine.getSmartGreeting(profile);
+        const seasonGreetings = {
+          busy: 'A quick moment',
+          cozy: 'Welcome Back',
+          growth: 'Growing together',
+          adventure: 'Something new awaits',
+          rest: 'Take it slow tonight',
+        };
+        const seasonId = profile?.season?.id || 'cozy';
+        if (active) {
+          setSmartGreeting(seasonGreetings[seasonId] || 'Welcome Back');
+          setSmartSubGreeting(greeting || 'A softer place for what matters tonight.');
+        }
+      } catch (e) {
+        if (__DEV__) console.warn('[Home] personalization load:', e?.message);
+      }
+    };
+
+    loadHomePersonalization();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const checkForNewAchievements = async () => {
+      if (!user?.uid) return;
+      try {
+        const milestoneData = await achievementEngine.checkAchievements(user.uid, dataLayer);
+        const newMilestone = milestoneData?.newlyUnlocked?.[0];
+        if (active && newMilestone) {
+          setRewardData({
+            type: 'milestone',
+            title: 'A quiet milestone',
+            message: newMilestone.name,
+            icon: newMilestone.icon || 'sparkles-outline',
+          });
+          setShowReward(true);
+        }
+      } catch (e) {
+        if (__DEV__) console.warn('[Home] achievement check:', e?.message);
+      }
+    };
+
+    checkForNewAchievements();
+
+    return () => {
+      active = false;
+    };
+  }, [user, dataLayer]);
 
   useEffect(() => {
     if (user && !todayPrompt && typeof loadTodayPrompt === 'function') {
@@ -268,13 +358,6 @@ export default function HomeScreen({ navigation }) {
       };
     }, [partnerLabel])
   );
-
-  const greeting = useMemo(() => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Morning';
-    if (h < 17) return 'Afternoon';
-    return 'Evening';
-  }, []);
 
   const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
@@ -435,6 +518,19 @@ export default function HomeScreen({ navigation }) {
     } else if (key === 'jokes') {
       if (!isPremium) { showPaywall?.(PremiumFeature.INSIDE_JOKES); return; }
       navigation.navigate('InsideJokes');
+    } else if (key === 'intimacy') {
+      if (!isPremium) {
+        Alert.alert(
+          `Explore intimacy with ${partnerLabel}`,
+          `Premium unlocks illustrated intimacy positions with weekly new releases for you and ${partnerLabel}.`,
+          [
+            { text: 'Not Now', style: 'cancel' },
+            { text: 'Unlock Premium', onPress: () => showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5) },
+          ]
+        );
+        return;
+      }
+      navigation.navigate('IntimacyPositions');
     }
   }, [isPremium, showPaywall, navigation, partnerLabel]);
 
@@ -463,17 +559,18 @@ export default function HomeScreen({ navigation }) {
         <Animated.View
           style={[styles.header, {
             opacity: headerAnim,
+            paddingHorizontal: homeLayout.spacing.padding,
             transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-14, 0] }) }],
           }]}
         >
           <View style={styles.headerLeft}>
-            <Text style={styles.headerGreetingSub}>
-              {greeting}
+            <Text style={[styles.headerGreetingSub, { fontSize: homeLayout.fontSize.base }] }>
+              {smartGreeting}{preferredName ? ',' : ''}
             </Text>
             {preferredName ? (
-              <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{preferredName}</Text>
+              <Text style={[styles.headerName, { fontSize: homeLayout.fontSize.title }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{preferredName}</Text>
             ) : null}
-            <Text style={styles.headerToneLine}>{toneCopy.subheadline(partnerLabel)}</Text>
+            <Text style={styles.headerToneLine}>{smartSubGreeting || toneCopy.subheadline(partnerLabel)}</Text>
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity
@@ -505,7 +602,7 @@ export default function HomeScreen({ navigation }) {
         <OfflineIndicator />
 
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, { paddingHorizontal: homeLayout.spacing.padding, paddingTop: homeLayout.type === 'compact' ? SPACING.xs : SPACING.sm }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -625,11 +722,11 @@ export default function HomeScreen({ navigation }) {
             </View>
           </Animated.View>
 
-          <View style={{ height: SPACING.section }} />
+          <View style={{ height: homeLayout.spacing.gap }} />
 
           <RelationshipClimate compact />
 
-          <View style={{ height: SPACING.lg }} />
+          <View style={{ height: homeLayout.type === 'compact' ? SPACING.md : SPACING.lg }} />
 
           {/* ── Quick Actions (3-Column Apple Widget Layout) ── */}
           <Animated.View style={[styles.actionsRow, {
@@ -666,7 +763,7 @@ export default function HomeScreen({ navigation }) {
             })}
           </Animated.View>
 
-          <View style={{ height: SPACING.section }} />
+          <View style={{ height: homeLayout.spacing.gap }} />
 
           {/* ── Memory Lane Throwback ── */}
           {throwback && (
@@ -687,7 +784,7 @@ export default function HomeScreen({ navigation }) {
             </View>
           )}
 
-          <View style={{ height: SPACING.lg }} />
+          <View style={{ height: homeLayout.type === 'compact' ? SPACING.md : SPACING.lg }} />
 
           <SurpriseTonight navigation={navigation} />
           {isPremium && (
@@ -731,6 +828,16 @@ export default function HomeScreen({ navigation }) {
 
         </ScrollView>
       </SafeAreaView>
+
+      {rewardData && (
+        <GentleCelebration
+          visible={showReward}
+          title={rewardData.title}
+          message={rewardData.message}
+          icon={rewardData.icon}
+          onComplete={() => setShowReward(false)}
+        />
+      )}
     </View>
   );
 }
@@ -821,7 +928,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Scroll ──
   scroll: {
-    paddingHorizontal: SPACING.screen,
     paddingTop: SPACING.sm,
     paddingBottom: 160, // Clear the bottom tab bar securely
   },
@@ -956,12 +1062,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
   // ── Quick Actions ──
   actionsRow: {
     flexDirection: 'row',
-    flexWrap: 'nowrap',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: 12,
   },
   actionCard: {
-    flex: 1,
+    width: '48%',
     flexDirection: 'column', // Stack icon and label vertically
     alignItems: 'center',
     justifyContent: 'center',

@@ -29,6 +29,9 @@ import GentleCelebration from './GentleCelebration';
 import PreferenceEngine from '../services/PreferenceEngine';
 import Icon from './Icon';
 
+import { useAppContext } from '../context/AppContext';
+import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
+
 // Build personalized UI from real behavioral signals
 const uiPersonalization = {
   getPersonalizedUI: async () => {
@@ -88,7 +91,8 @@ const uiPersonalization = {
  * Sexy Red Intimacy & Apple Editorial Updates Integrated.
  */
 export default function AdaptiveHomeScreen({ navigation }) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
+  const { state } = useAppContext();
   const { colors, isDark } = useTheme();
   const { data: dataLayer } = useData();
   const { isPremiumEffective, showPaywall } = useEntitlements();
@@ -115,6 +119,9 @@ export default function AdaptiveHomeScreen({ navigation }) {
   const [rewardData, setRewardData] = useState(null);
   const [smartGreeting, setSmartGreeting] = useState('Welcome Back');
   const [smartSubGreeting, setSmartSubGreeting] = useState('Your evening awaits.');
+
+  const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
+  const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
 
   useEffect(() => {
     if (user?.uid) {
@@ -220,8 +227,11 @@ export default function AdaptiveHomeScreen({ navigation }) {
         {/* Editorial Header */}
         <View style={styles.header}>
           <Text style={[styles.greeting, { fontSize: layout.fontSize.title, color: t.text }]}>
-            {smartGreeting}
+            {smartGreeting}{preferredName ? ',' : ''}
           </Text>
+          {preferredName ? (
+            <Text style={[styles.nameTarget, { fontSize: layout.fontSize.title, color: t.text, fontWeight: "900" }]} numberOfLines={1} adjustsFontSizeToFit>{preferredName}</Text>
+          ) : null}
           <Text style={[styles.subGreeting, { fontSize: layout.fontSize.base, color: t.subtext }]}>
             {smartSubGreeting}
           </Text>
@@ -358,7 +368,8 @@ const createStyles = (t, isDark) => {
     loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
     loadingText: { fontSize: 16, fontWeight: '500', fontStyle: 'italic' },
     header: { marginBottom: SPACING.xxl, alignItems: 'flex-start', paddingHorizontal: 4 },
-    greeting: { fontFamily: systemFont, fontWeight: "800", letterSpacing: -0.8, marginBottom: 4 },
+    greeting: { fontFamily: systemFont, fontWeight: "800", letterSpacing: -0.8, marginBottom: -2 },
+    nameTarget: { fontFamily: systemFont, letterSpacing: -1.2, marginBottom: 8, lineHeight: 40 },
     subGreeting: { fontWeight: "500", lineHeight: 22 },
     section: { marginBottom: SPACING.xl },
     sectionTitle: { fontFamily: systemFont, fontWeight: "800", letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: SPACING.sm, paddingLeft: 4 },
