@@ -4,35 +4,33 @@
  * 
  * Usage: import and add to your navigator temporarily
  */
-import React, { useState, useMemo } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useMemo } from 'react';
+import { ScrollView, View, Text, StyleSheet, Image } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, withAlpha } from '../utils/theme';
-import { getIllustration } from '../assets/intimacy-illustrations';
 
-const POSITIONS = [
-  { id: 'ip001', title: 'The Lotus', commonName: 'Lotus' },
-  { id: 'ip002', title: 'The Slow Melt', commonName: 'Spooning' },
-  { id: 'ip003', title: 'The Compass', commonName: 'Reverse Cowgirl' },
-  { id: 'ip004', title: 'The Harbor', commonName: 'Doggy Style' },
-  { id: 'ip005', title: 'The Bridge', commonName: 'Bridge' },
-  { id: 'ip006', title: 'The Whisper', commonName: 'Prone Bone' },
-  { id: 'ip007', title: 'The Mirror', commonName: '69' },
-  { id: 'ip008', title: 'The Throne', commonName: 'Cowgirl' },
-  { id: 'ip009', title: 'The Drift', commonName: 'Lazy Dog' },
-  { id: 'ip010', title: 'The Pulse', commonName: 'Missionary' },
-];
-
-const VARIANTS = [
-  { key: 'him-her', label: 'Him & Her', a: 'rgba(229,229,231,0.55)', b: '#D2121A' },
-  { key: 'her-her', label: 'Her & Her', a: '#D2121A', b: '#900C0F' },
-  { key: 'him-him', label: 'Him & Him', a: 'rgba(229,229,231,0.55)', b: 'rgba(229,229,231,0.35)' },
+const ILLUSTRATIONS = [
+  { file: require('../assets/intimacy-illustrations/1.png'),  name: 'Anchor' },
+  { file: require('../assets/intimacy-illustrations/2.png'),  name: 'Bridge' },
+  { file: require('../assets/intimacy-illustrations/3.png'),  name: 'Constellation' },
+  { file: require('../assets/intimacy-illustrations/4.png'),  name: 'Gravity Well' },
+  { file: require('../assets/intimacy-illustrations/5.png'),  name: 'Harbor Alt' },
+  { file: require('../assets/intimacy-illustrations/6.png'),  name: 'Harbor' },
+  { file: require('../assets/intimacy-illustrations/7.png'),  name: 'Lotus' },
+  { file: require('../assets/intimacy-illustrations/8.png'),  name: 'Mirror' },
+  { file: require('../assets/intimacy-illustrations/9.png'),  name: 'Overlap' },
+  { file: require('../assets/intimacy-illustrations/10.png'), name: 'Pulse Alt' },
+  { file: require('../assets/intimacy-illustrations/11.png'), name: 'Pulse Close' },
+  { file: require('../assets/intimacy-illustrations/12.png'), name: 'Pulse' },
+  { file: require('../assets/intimacy-illustrations/13.png'), name: 'Reveal' },
+  { file: require('../assets/intimacy-illustrations/14.png'), name: 'Throne Alt 2' },
+  { file: require('../assets/intimacy-illustrations/15.png'), name: 'Throne Alt' },
+  { file: require('../assets/intimacy-illustrations/16.png'), name: 'Throne' },
+  { file: require('../assets/intimacy-illustrations/17.png'), name: 'Wheelbarrow' },
 ];
 
 export default function IllustrationPreview() {
   const { colors } = useTheme();
-  const [variantIdx, setVariantIdx] = useState(0);
-  const variant = VARIANTS[variantIdx];
 
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -40,46 +38,15 @@ export default function IllustrationPreview() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.heading}>Illustration Preview</Text>
 
-      {/* Variant toggle */}
-      <View style={styles.variantRow}>
-        {VARIANTS.map((v, i) => (
-          <TouchableOpacity
-            key={v.key}
-            onPress={() => setVariantIdx(i)}
-            style={[styles.pill, i === variantIdx && styles.pillActive]}
-          >
-            <Text style={[styles.pillText, i === variantIdx && styles.pillTextActive]}>
-              {v.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {POSITIONS.map(({ id, title, commonName }) => {
-        const Illustration = getIllustration(id);
-        const isImage = typeof Illustration === 'number';
-        return (
-          <View key={id} style={styles.card}>
-            <Text style={styles.label}>{id}</Text>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.commonName}>{commonName}</Text>
-            <View style={styles.illustrationBox}>
-              {Illustration ? (
-                isImage ? (
-                  <Image source={Illustration} resizeMode="contain" style={styles.illustrationImage} />
-                ) : (
-                  <Illustration
-                    width="100%"
-                    height={200}
-                    figureAColor={variant.a}
-                    figureBColor={variant.b}
-                  />
-                )
-              ) : null}
-            </View>
+      {ILLUSTRATIONS.map(({ file, name }, i) => (
+        <View key={name} style={styles.card}>
+          <Text style={styles.label}>{i + 1}</Text>
+          <Text style={styles.title}>{name}</Text>
+          <View style={styles.illustrationBox}>
+            <Image source={file} resizeMode="contain" style={styles.illustrationImage} />
           </View>
-        );
-      })}
+        </View>
+      ))}
     </ScrollView>
   );
 }

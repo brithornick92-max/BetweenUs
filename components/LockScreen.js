@@ -104,7 +104,7 @@ export default function LockScreen({ onUnlock }) {
         }
       }
     } catch (err) {
-      console.warn("[LockScreen] Initialization error:", err);
+      if (__DEV__) console.warn("[LockScreen] Initialization error:", err);
     }
   };
 
@@ -119,7 +119,7 @@ export default function LockScreen({ onUnlock }) {
         onUnlock?.();
       }
     } catch (err) {
-      console.warn("[LockScreen] Biometric auth error:", err);
+      if (__DEV__) console.warn("[LockScreen] Biometric auth error:", err);
     }
   };
 

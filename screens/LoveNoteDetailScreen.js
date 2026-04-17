@@ -148,7 +148,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
           else setLoadError(true);
         }
       } catch (err) {
-        console.warn('[LoveNoteDetail] Failed to load note:', err?.message);
+        if (__DEV__) console.warn('[LoveNoteDetail] Failed to load note:', err?.message);
         if (active) setLoadError(true);
       } finally {
         if (active) setLoading(false);
@@ -164,7 +164,7 @@ export default function LoveNoteDetailScreen({ navigation, route }) {
   useEffect(() => {
     if (envelopeOpen && note && !note.isOwn && !note.isRead) {
       DataLayer.markLoveNoteRead(note.id).catch((err) =>
-        console.warn('[LoveNoteDetail] Failed to mark read:', err?.message)
+        if (__DEV__) console.warn('[LoveNoteDetail] Failed to mark read:', err?.message)
       );
     }
   }, [envelopeOpen, note]);

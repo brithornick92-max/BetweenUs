@@ -347,7 +347,7 @@ const EditorialPrompt = ({
           Animated.spring(slideAnimation, { toValue: 0, friction: 9, tension: 60, useNativeDriver: true }),
         ]).start();
       } catch (error) {
-        console.error('Failed to load prompt:', error);
+        if (__DEV__) console.error('Failed to load prompt:', error);
       }
     };
     loadPrompt();

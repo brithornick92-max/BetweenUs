@@ -165,7 +165,7 @@ const EncryptedAttachments = {
         await this.uploadToRemote(att.id);
         results.uploaded++;
       } catch (err) {
-        console.warn(`[Attachments] Upload failed for ${att.id}:`, err.message);
+        if (__DEV__) console.warn(`[Attachments] Upload failed for ${att.id}:`, err.message);
         results.failed++;
       }
     }

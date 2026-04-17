@@ -59,10 +59,12 @@ function FadeSection({ children, delay = 0 }) {
   const translateY = useRef(new Animated.Value(15)).current;
 
   useEffect(() => {
-    Animated.parallel([
+    const anim = Animated.parallel([
       Animated.timing(opacity, { toValue: 1, duration: 900, delay, useNativeDriver: true }),
       Animated.spring(translateY, { toValue: 0, friction: 10, tension: 35, delay, useNativeDriver: true }),
-    ]).start();
+    ]);
+    anim.start();
+    return () => anim.stop();
   }, [delay]);
 
   return (

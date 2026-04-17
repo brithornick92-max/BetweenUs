@@ -18,6 +18,7 @@ import {
   getAllPremiumFeatures,
   getPaywallFeatures,
   getAccessibleHeatLevels,
+  getTimedUnlockLimits,
 } from '../../utils/featureFlags';
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
@@ -75,8 +76,8 @@ describe('FREE_LIMITS', () => {
     expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(1);
   });
 
-  it('has exactly 3 preview prompts', () => {
-    expect(FREE_LIMITS.PREVIEW_PROMPTS_TOTAL).toBe(3);
+  it('has 10 preview prompts to build habit before gating', () => {
+    expect(FREE_LIMITS.PREVIEW_PROMPTS_TOTAL).toBe(10);
   });
 
   it('restricts heat levels to 1-3', () => {
@@ -121,13 +122,13 @@ describe('PREMIUM_LIMITS', () => {
 // ─── Free Preview Prompts ────────────────────────────────────────────────────
 
 describe('FREE_PREVIEW_PROMPTS', () => {
-  it('contains exactly 3 prompts', () => {
-    expect(FREE_PREVIEW_PROMPTS.length).toBe(3);
+  it('contains exactly 10 prompts', () => {
+    expect(FREE_PREVIEW_PROMPTS.length).toBe(10);
   });
 
-  it('covers heat levels 1, 2, 3', () => {
-    const heats = FREE_PREVIEW_PROMPTS.map(p => p.heat);
-    expect(heats).toEqual([1, 2, 3]);
+  it('covers only free heat levels 1, 2, and 3', () => {
+    const heats = new Set(FREE_PREVIEW_PROMPTS.map(p => p.heat));
+    expect([...heats].sort()).toEqual([1, 2, 3]);
   });
 
   it('all have isPreview: true', () => {
@@ -264,5 +265,33 @@ describe('getAccessibleHeatLevels', () => {
 
   it('returns [1,2,3,4,5] for premium users', () => {
     expect(getAccessibleHeatLevels(true)).toEqual([1, 2, 3, 4, 5]);
+  });
+});
+
+describe('getTimedUnlockLimits', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('returns expanded free limits on Fridays', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-04-17T12:00:00Z'));
+
+    expect(getTimedUnlockLimits(false)).toEqual(
+      expect.objectContaining({
+        isUnlockDay: true,
+        unlockLabel: 'Friday Date Night',
+        VISIBLE_DATE_IDEAS: 10,
+        DATE_IDEAS_PER_DAY: 10,
+        PROMPTS_PER_DAY: 3,
+      })
+    );
+  });
+
+  it('returns null for premium users and non-Friday free users', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-04-16T12:00:00Z'));
+    expect(getTimedUnlockLimits(true)).toBeNull();
+
+    jest.useFakeTimers().setSystemTime(new Date('2026-04-16T12:00:00Z'));
+    expect(getTimedUnlockLimits(false)).toBeNull();
   });
 });

@@ -103,7 +103,7 @@ class UsageLimitsService {
       });
 
       if (error) {
-        console.warn('[UsageLimits] Remote count query failed:', error.message);
+        if (__DEV__) console.warn('[UsageLimits] Remote count query failed:', error.message);
         return null;
       }
 
@@ -112,7 +112,7 @@ class UsageLimitsService {
       this._evictStaleCache();
       return count;
     } catch (err) {
-      console.warn('[UsageLimits] Remote count exception:', err.message);
+      if (__DEV__) console.warn('[UsageLimits] Remote count exception:', err.message);
       return null;
     }
   }
@@ -133,7 +133,7 @@ class UsageLimitsService {
         });
 
       if (error) {
-        console.warn('[UsageLimits] Remote write failed:', error.message);
+        if (__DEV__) console.warn('[UsageLimits] Remote write failed:', error.message);
         return false;
       }
 
@@ -143,7 +143,7 @@ class UsageLimitsService {
 
       return true;
     } catch (err) {
-      console.warn('[UsageLimits] Remote write exception:', err.message);
+      if (__DEV__) console.warn('[UsageLimits] Remote write exception:', err.message);
       return false;
     }
   }

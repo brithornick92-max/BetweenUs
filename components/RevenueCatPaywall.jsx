@@ -117,7 +117,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
 
       onDismiss?.();
     } catch (error) {
-      console.error("Failed to present paywall:", error);
+      if (__DEV__) console.error("Failed to present paywall:", error);
       onDismiss?.();
     } finally {
       setIsLoading(false);

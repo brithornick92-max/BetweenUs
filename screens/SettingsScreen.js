@@ -337,7 +337,7 @@ export default function SettingsScreen({ navigation }) {
       try {
         await CoupleService.unlinkFromCouple();
       } catch (serverErr) {
-        console.warn('Server unlink failed (continuing):', serverErr.message);
+        if (__DEV__) console.warn('Server unlink failed (continuing):', serverErr.message);
       }
 
       const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
@@ -362,7 +362,7 @@ export default function SettingsScreen({ navigation }) {
       try {
         await CoupleService.unlinkFromCouple();
       } catch (serverErr) {
-        console.warn('Server unlink failed (continuing):', serverErr.message);
+        if (__DEV__) console.warn('Server unlink failed (continuing):', serverErr.message);
       }
 
       const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);

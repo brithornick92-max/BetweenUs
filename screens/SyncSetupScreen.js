@@ -195,7 +195,7 @@ export default function SyncSetupScreen({ navigation }) {
     try {
       await SupabaseAuthService.signOut();
     } catch (e) {
-      console.warn('[SyncSetup] signOut error (proceeding with local cleanup):', e?.message);
+      if (__DEV__) console.warn('[SyncSetup] signOut error (proceeding with local cleanup):', e?.message);
     }
     await handleDisableSync();
     setSessionEmail(null);

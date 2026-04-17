@@ -113,7 +113,7 @@ export default function CustomerCenter({ onDismiss }) {
           }
         });
       } catch (error) {
-        console.error('Failed to present customer center:', error);
+        if (__DEV__) console.error('Failed to present customer center:', error);
         notification(NotificationFeedbackType.Error);
         Alert.alert(
           'Error',

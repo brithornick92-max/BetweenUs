@@ -205,6 +205,8 @@ const NightRitualMode = ({ style, onRitualComplete, onElementComplete, onDismiss
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    let entranceAnim = null;
     const initializeRitual = async () => {
       try {
         let ritual = ritualState.currentRitual;
@@ -226,21 +228,29 @@ const NightRitualMode = ({ style, onRitualComplete, onElementComplete, onDismiss
           };
         }
 
+        if (cancelled) return;
         setCurrentRitual(ritual);
-        Animated.parallel([
+        entranceAnim = Animated.parallel([
           Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
           Animated.spring(slideAnim, { toValue: 0, bounciness: 4, useNativeDriver: true }),
-        ]).start();
+        ]);
+        entranceAnim.start();
       } catch (err) {
-        console.error('Failed to initialize night ritual:', err);
+        if (__DEV__) console.error('Failed to initialize night ritual:', err);
       }
     };
     initializeRitual();
+    return () => {
+      cancelled = true;
+      entranceAnim?.stop();
+    };
   }, []);
 
   useEffect(() => {
     const progress = (currentElement + 1) / Object.keys(RITUAL_ELEMENTS).length;
-    Animated.timing(progressAnim, { toValue: progress, duration: 600, useNativeDriver: false }).start();
+    const anim = Animated.timing(progressAnim, { toValue: progress, duration: 600, useNativeDriver: false });
+    anim.start();
+    return () => anim.stop();
   }, [currentElement]);
 
   const handleNext = async (elementId, response) => {
@@ -271,7 +281,7 @@ const NightRitualMode = ({ style, onRitualComplete, onElementComplete, onDismiss
       const completedRitual = await ritualActions.completeRitual();
       if (onRitualComplete) onRitualComplete(completedRitual, finalResponses);
     } catch (err) {
-      console.error('Failed to complete ritual:', err);
+      if (__DEV__) console.error('Failed to complete ritual:', err);
     } finally {
       setIsCompleting(false);
     }

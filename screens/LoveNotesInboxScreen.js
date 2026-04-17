@@ -127,7 +127,7 @@ export default function LoveNotesInboxScreen({ navigation }) {
       const all = await DataLayer.getLoveNotes({ limit: 200 });
       setNotes(all || []);
     } catch (err) {
-      console.warn("[LoveNotesInbox] Load failed:", err?.message);
+      if (__DEV__) console.warn("[LoveNotesInbox] Load failed:", err?.message);
     } finally {
       setLoading(false);
     }

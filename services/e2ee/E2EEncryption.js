@@ -261,7 +261,7 @@ const E2EEncryption = {
     try {
       return JSON.parse(text);
     } catch (err) {
-      console.warn('[E2EEncryption] decryptJson: JSON.parse failed after successful decryption:', err?.message);
+      if (__DEV__) console.warn('[E2EEncryption] decryptJson: JSON.parse failed after successful decryption:', err?.message);
       return null;
     }
   },

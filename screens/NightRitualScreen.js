@@ -82,7 +82,7 @@ export default function NightRitualScreen({ navigation }) {
   const slideAnimation = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
-    Animated.parallel([
+    const anim = Animated.parallel([
       Animated.timing(fadeAnimation, {
         toValue: 1,
         duration: 400,
@@ -94,7 +94,9 @@ export default function NightRitualScreen({ navigation }) {
         tension: 60,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]);
+    anim.start();
+    return () => anim.stop();
   }, [fadeAnimation, slideAnimation]);
 
   const autoNavTimerRef = useRef(null);

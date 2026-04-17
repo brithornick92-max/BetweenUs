@@ -30,7 +30,7 @@ const GlowOrb = ({
 
   useEffect(() => {
     // Apple-style sophisticated breathing animation
-    Animated.loop(
+    const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
           toValue: 1,
@@ -45,7 +45,9 @@ const GlowOrb = ({
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    loop.start();
+    return () => loop.stop();
   }, [delay, pulse]);
 
   // ── Together bloom — fades in the deeper-red orb over 1.4s ───────────────

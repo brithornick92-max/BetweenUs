@@ -206,7 +206,7 @@ const ExportDataScreen = ({ navigation }) => {
         );
       }
     } catch (error) {
-      console.error('Export error:', error?.message ?? error);
+      if (__DEV__) console.error('Export error:', error?.message ?? error);
       Alert.alert(
         'Export Failed',
         'Failed to export your data. Please try again.',

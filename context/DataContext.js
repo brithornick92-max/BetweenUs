@@ -82,7 +82,7 @@ export function DataProvider({ children }) {
             // User not returned yet — retry after backoff
             if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
           } catch (err) {
-            console.warn('[DataContext] auth.getUser attempt', attempt + 1, 'failed:', err?.message);
+            if (__DEV__) console.warn('[DataContext] auth.getUser attempt', attempt + 1, 'failed:', err?.message);
             if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
           }
         }
@@ -131,7 +131,7 @@ export function DataProvider({ children }) {
                 appActionsRef.current?.setPartnerVibe(parsed);
               }
             } catch (err) {
-              console.warn('[DataContext] Failed to fetch partner vibe:', err.message);
+              if (__DEV__) console.warn('[DataContext] Failed to fetch partner vibe:', err.message);
             }
           }
         });
@@ -151,7 +151,7 @@ export function DataProvider({ children }) {
           }
         }, 60_000);
       } catch (err) {
-        console.error('[DataContext] Init failed:', err);
+        if (__DEV__) console.error('[DataContext] Init failed:', err);
         CrashReporting.captureException(err, { source: 'datacontext_init' });
       }
     })();
@@ -182,7 +182,7 @@ export function DataProvider({ children }) {
           }
           break;
         } catch (err) {
-          console.warn('[DataContext] reconfigure auth.getUser attempt', attempt + 1, 'failed:', err?.message);
+          if (__DEV__) console.warn('[DataContext] reconfigure auth.getUser attempt', attempt + 1, 'failed:', err?.message);
           if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
         }
       }

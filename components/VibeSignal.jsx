@@ -135,7 +135,7 @@ const VibeSignal = ({
           ...anniversaryVibes
         ]);
       } catch (error) {
-        console.error('Failed to load anniversary themes:', error);
+        if (__DEV__) console.error('Failed to load anniversary themes:', error);
       }
     };
     

@@ -255,7 +255,7 @@ async function tryRestoreCoupleKey() {
     _coupleKeyAvailable = true;
     return true;
   } catch (error) {
-    console.warn('[DataLayer] Couple key restore failed:', error?.message);
+    if (__DEV__) console.warn('[DataLayer] Couple key restore failed:', error?.message);
     return false;
   }
 }
@@ -345,7 +345,7 @@ const DataLayer = {
     // Initial pull from Supabase (get partner's latest data)
     if (isPremium && coupleId) {
       SyncEngine.pullNow().catch(err =>
-        console.warn('[DataLayer] Initial pull failed:', err.message)
+        if (__DEV__) console.warn('[DataLayer] Initial pull failed:', err.message)
       );
     }
   },
@@ -542,7 +542,7 @@ const DataLayer = {
         skipped: false,
       };
     } catch (error) {
-      console.warn('[DataLayer] Legacy migration failed:', error?.message);
+      if (__DEV__) console.warn('[DataLayer] Legacy migration failed:', error?.message);
       return {
         migratedPrompts,
         migratedJournals,
@@ -695,7 +695,7 @@ const DataLayer = {
       };
     } catch (err) {
       // Decryption failed — return with locked flag
-      console.warn('[DataLayer] Journal decryption failed:', err?.message);
+      if (__DEV__) console.warn('[DataLayer] Journal decryption failed:', err?.message);
       return { ...row, mood: row.mood ?? null, title: null, body: null, tags: [], locked: true };
     }
   },
@@ -782,7 +782,7 @@ const DataLayer = {
       };
     } catch (err) {
       if (err?.message !== 'E2EE: couple key requested but no coupleId provided') {
-        console.warn('[DataLayer] Prompt answer decryption failed:', err?.message);
+        if (__DEV__) console.warn('[DataLayer] Prompt answer decryption failed:', err?.message);
       }
       return {
         ...row,
@@ -851,7 +851,7 @@ const DataLayer = {
         is_private: !!row.is_private,
       };
     } catch (err) {
-      console.warn('[DataLayer] Memory decryption failed:', err?.message);
+      if (__DEV__) console.warn('[DataLayer] Memory decryption failed:', err?.message);
       return { ...row, content: null, locked: true };
     }
   },
@@ -1079,7 +1079,7 @@ const DataLayer = {
           }
         }
       } catch (error) {
-        console.warn('[DataLayer] Calendar remote refresh failed:', error?.message);
+        if (__DEV__) console.warn('[DataLayer] Calendar remote refresh failed:', error?.message);
       }
     }
 
@@ -1185,7 +1185,7 @@ const DataLayer = {
         await notifyPartnerAboutCalendarEvent(supabase, event, inserted.id);
         pushed += 1;
       } catch (error) {
-        console.warn('[DataLayer] Pending calendar push failed:', error?.message);
+        if (__DEV__) console.warn('[DataLayer] Pending calendar push failed:', error?.message);
         failed += 1;
       }
     }
@@ -1228,7 +1228,7 @@ const DataLayer = {
           await notifyPartnerAboutCalendarEvent(supabase, event, inserted.id);
         }
       } catch (error) {
-        console.warn('[DataLayer] Calendar remote create failed:', error?.message);
+        if (__DEV__) console.warn('[DataLayer] Calendar remote create failed:', error?.message);
       }
     }
 
@@ -1291,7 +1291,7 @@ const DataLayer = {
         if (error) throw error;
         remoteSynced = true;
       } catch (error) {
-        console.warn('[DataLayer] Calendar remote update failed:', error?.message);
+        if (__DEV__) console.warn('[DataLayer] Calendar remote update failed:', error?.message);
       }
     }
 
@@ -1347,7 +1347,7 @@ const DataLayer = {
           throw error;
         }
       } catch (error) {
-        console.warn('[DataLayer] Calendar remote delete failed:', error?.message);
+        if (__DEV__) console.warn('[DataLayer] Calendar remote delete failed:', error?.message);
         throw error;
       }
     }
@@ -1436,7 +1436,7 @@ const DataLayer = {
         supabaseId: row.sync_source === 'remote' ? row.id : null,
       };
     } catch (err) {
-      console.warn('[DataLayer] Calendar event decryption failed:', err?.message);
+      if (__DEV__) console.warn('[DataLayer] Calendar event decryption failed:', err?.message);
       return {
         id: row.id,
         title: 'Locked shared event',
@@ -1525,7 +1525,7 @@ const DataLayer = {
         isRemote: row.sync_source === 'remote',
       };
     } catch (err) {
-      console.warn('[DataLayer] Date plan decryption failed:', err?.message);
+      if (__DEV__) console.warn('[DataLayer] Date plan decryption failed:', err?.message);
       return {
         id: row.id,
         title: 'Locked date plan',
@@ -1597,7 +1597,7 @@ const DataLayer = {
           [row.id, mediaRef]
         );
       } catch (err) {
-        console.warn('[DataLayer] Failed to link attachment to love note:', err?.message);
+        if (__DEV__) console.warn('[DataLayer] Failed to link attachment to love note:', err?.message);
         try { await EncryptedAttachments.deleteAttachment(mediaRef); } catch { /* ok */ }
         throw new Error('Failed to attach image to note');
       }
@@ -1672,7 +1672,7 @@ const DataLayer = {
         mediaRef, keyTier(), _coupleId
       );
     } catch (err) {
-      console.warn('[DataLayer] Love note image decryption failed:', err?.message);
+      if (__DEV__) console.warn('[DataLayer] Love note image decryption failed:', err?.message);
       return null;
     }
   },
@@ -1715,7 +1715,7 @@ const DataLayer = {
         updatedAt: new Date(row.updated_at).getTime(),
       };
     } catch (err) {
-      console.warn('[DataLayer] Love note decryption failed:', err?.message);
+      if (__DEV__) console.warn('[DataLayer] Love note decryption failed:', err?.message);
       return {
         id: row.id,
         text: null,

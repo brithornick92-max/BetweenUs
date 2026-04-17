@@ -99,7 +99,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
   const slideAnimation = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
-    Animated.parallel([
+    const anim = Animated.parallel([
       Animated.timing(fadeAnimation, {
         toValue: 1,
         duration: 500,
@@ -111,7 +111,9 @@ export default function HeatLevelSettingsScreen({ navigation }) {
         tension: 60,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]);
+    anim.start();
+    return () => anim.stop();
   }, [fadeAnimation, slideAnimation]);
 
   useEffect(() => {
@@ -148,7 +150,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
       notification(NotificationFeedbackType.Success);
       navigation.goBack();
     } catch (error) {
-      console.error('Failed to update heat level:', error);
+      if (__DEV__) console.error('Failed to update heat level:', error);
       notification(NotificationFeedbackType.Error);
       Alert.alert('Update Failed', 'We could not save your comfort level. Please try again.');
     } finally {

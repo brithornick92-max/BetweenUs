@@ -292,7 +292,7 @@ export default function OnboardingScreen({ navigation }) {
       if (__DEV__) console.log("🔑 [invite] ✅ Complete! Code expires:", result.expiresAt);
     } catch (error) {
       const msg = String(error?.message || "");
-      console.error("🔑 [invite] ❌ Error:", error?.name, msg, error?.stack?.slice(0, 500));
+      if (__DEV__) console.error("🔑 [invite] ❌ Error:", error?.name, msg, error?.stack?.slice(0, 500));
       if (msg.toLowerCase().includes("cloud pairing is not signed in yet")) {
         // Try the inline password prompt instead of navigating away
         const retrySession = await ensureSupabaseSession();
@@ -329,7 +329,7 @@ export default function OnboardingScreen({ navigation }) {
         title: "Join me on Between Us",
       });
     } catch (error) {
-      console.error(error);
+      if (__DEV__) console.error(error);
     }
   };
 
@@ -627,7 +627,7 @@ export default function OnboardingScreen({ navigation }) {
                 await updateProfile?.({ quiz: quizData });
                 await actions.updateProfile({ quiz: quizData });
               } catch (e) {
-                console.warn('Error saving quiz:', e);
+                if (__DEV__) console.warn('Error saving quiz:', e);
               }
               transitionTo(3);
             }}
@@ -818,7 +818,7 @@ export default function OnboardingScreen({ navigation }) {
                   tone: selectedTone,
                 }).catch(() => {});
               } catch (e) {
-                console.warn('Error saving onboarding preferences:', e);
+                if (__DEV__) console.warn('Error saving onboarding preferences:', e);
               }
               transitionTo(4);
             }}

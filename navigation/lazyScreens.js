@@ -35,6 +35,9 @@ export const EULA = () => withScreenErrorBoundary(require("../screens/EULAScreen
 export const ExportData = () => withScreenErrorBoundary(require("../screens/ExportDataScreen").default, "ExportData");
 export const DeleteAccount = () => withScreenErrorBoundary(require("../screens/DeleteAccountScreen").default, "DeleteAccount");
 
+// ─── Intimacy ───────────────────────────────────────────────────────
+export const IntimacyPositions = () => withScreenErrorBoundary(require("../screens/IntimacyPositionsScreen").default, "IntimacyPositions");
+
 // ─── Dev / Preview ──────────────────────────────────────────────────
 export const IllustrationPreview = () => withScreenErrorBoundary(require("../screens/IllustrationPreview").default, "IllustrationPreview");
 

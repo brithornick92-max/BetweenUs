@@ -84,7 +84,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         }
       }
     } catch (error) {
-      console.error('Failed to check biometrics:', error);
+      if (__DEV__) console.error('Failed to check biometrics:', error);
     }
   };
 
@@ -98,7 +98,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         setHidePreview(settings.hidePreview ?? false);
       }
     } catch (error) {
-      console.error('Failed to load privacy settings:', error);
+      if (__DEV__) console.error('Failed to load privacy settings:', error);
     }
   };
 
@@ -176,7 +176,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      console.error('Failed to save privacy settings:', error);
+      if (__DEV__) console.error('Failed to save privacy settings:', error);
       Alert.alert('Error', 'Failed to save settings. Please try again.');
     } finally {
       setIsSaving(false);

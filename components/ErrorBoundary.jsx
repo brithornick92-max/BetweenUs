@@ -45,7 +45,7 @@ export default class ErrorBoundary extends React.Component {
       source: 'ErrorBoundary',
     });
 
-    console.error('[ErrorBoundary] Uncaught error:', error?.message);
+    if (__DEV__) console.error('[ErrorBoundary] Uncaught error:', error?.message);
     // ErrorBoundary logs in all environments — this is the last-resort crash handler
 
     // High-end Apple-style entrance

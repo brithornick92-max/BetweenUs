@@ -69,7 +69,7 @@ export default function AuthCallbackScreen({ navigation }) {
             access_token: payload.access_token,
             refresh_token: payload.refresh_token,
           });
-          if (setErr) console.warn('AuthCallback: setSession error:', setErr.message);
+          if (setErr && __DEV__) console.warn('AuthCallback: setSession error:', setErr.message);
           session = data?.session || null;
         }
 

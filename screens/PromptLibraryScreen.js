@@ -27,7 +27,7 @@ import { useContent } from "../context/ContentContext";
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useAuth } from '../context/AuthContext';
 import { promptStorage } from "../utils/storage";
-import { PremiumFeature } from '../utils/featureFlags';
+import { PremiumFeature, FREE_LIMITS, FREE_PREVIEW_PROMPTS } from '../utils/featureFlags';
 import { withAlpha } from "../utils/theme";
 import PreferenceEngine from '../services/PreferenceEngine';
 import PromptAllocator from '../services/PromptAllocator';
@@ -180,7 +180,7 @@ export default function PromptLibraryScreen({ navigation }) {
       const saved = await promptStorage.getAnswer("favorites", "list");
       setFavorites(Array.isArray(saved?.favorites) ? saved.favorites : []);
     } catch (error) {
-      console.error("Error loading favorites:", error);
+      if (__DEV__) console.error("Error loading favorites:", error);
       setFavorites([]);
     }
   }, []);
@@ -227,7 +227,7 @@ export default function PromptLibraryScreen({ navigation }) {
       setAllPromptsCount(allPrompts.length);
       setPrompts(allPrompts.map(normalizePrompt));
     } catch (error) {
-      console.error("Error loading prompts:", error);
+      if (__DEV__) console.error("Error loading prompts:", error);
       setPrompts([]);
     } finally {
       setLoading(false);
@@ -252,6 +252,28 @@ export default function PromptLibraryScreen({ navigation }) {
     if (isLocked) {
       const match = list.map(normalizePrompt).find(p => (typeof p.heat === 'number' ? p.heat : 1) === selectedHeat);
       return match ? [{ ...match, isPreview: true }] : [];
+    }
+
+    if (!isPremium) {
+      return FREE_PREVIEW_PROMPTS
+        .map(normalizePrompt)
+        .filter((p) => {
+          if (!p) return false;
+          const heat = typeof p.heat === 'number' ? p.heat : 1;
+          if (heat !== selectedHeat) return false;
+          if (selectedCategory !== 'all') {
+            const cat = typeof p.category === 'string' ? p.category : 'general';
+            if (cat !== selectedCategory) return false;
+          }
+          if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase().trim();
+            const text = (p.text || '').toLowerCase();
+            const cat = (p.category || '').toLowerCase();
+            if (!text.includes(query) && !cat.includes(query)) return false;
+          }
+          return true;
+        })
+        .slice(0, FREE_LIMITS.PREVIEW_PROMPTS_TOTAL);
     }
 
     const base = list
@@ -303,7 +325,7 @@ export default function PromptLibraryScreen({ navigation }) {
         timestamp: Date.now(),
       });
     } catch (error) {
-      console.error("Error saving favorites:", error);
+      if (__DEV__) console.error("Error saving favorites:", error);
     }
   }, [favorites, isPremium, showPaywall]);
 

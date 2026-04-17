@@ -58,6 +58,7 @@ const uiPersonalization = {
     lovenote: { icon: 'heart-outline',       label: 'Love Notes', screen: 'LoveNotesInbox', premium: true },
       checkin:  { icon: 'pulse-outline',       label: 'Check-in',   screen: 'CheckInScreen' },
       memories: { icon: 'archive-outline',     label: 'Saved',      screen: 'SavedMoments' },
+  intimacy: { icon: 'flame-outline',       label: 'Intimacy',   screen: 'IntimacyPositions', premium: true },
     };
 
     const shortcuts = sortedFeatures
@@ -164,7 +165,7 @@ export default function AdaptiveHomeScreen({ navigation }) {
       const invitationData = await challengeSystem.generateChallenges(user.uid, { count: 3 }, dataLayer);
       setInvitations(invitationData);
     } catch (error) {
-      console.error('Failed to load personalization:', error);
+      if (__DEV__) console.error('Failed to load personalization:', error);
     } finally {
       setLoading(false);
     }

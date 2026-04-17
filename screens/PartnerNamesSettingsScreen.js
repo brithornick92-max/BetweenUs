@@ -60,7 +60,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
   const slideAnimation = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
-    Animated.parallel([
+    const anim = Animated.parallel([
       Animated.timing(fadeAnimation, {
         toValue: 1,
         duration: 500,
@@ -72,7 +72,9 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
         tension: 60,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]);
+    anim.start();
+    return () => anim.stop();
   }, [fadeAnimation, slideAnimation]);
 
   useEffect(() => {
@@ -137,7 +139,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
       notification(NotificationFeedbackType.Success);
       navigation.goBack();
     } catch (error) {
-      console.error('Failed to update partner names:', error);
+      if (__DEV__) console.error('Failed to update partner names:', error);
       notification(NotificationFeedbackType.Error);
       Alert.alert('Error', 'We could not update your names at this time. Please try again.');
     } finally {

@@ -488,7 +488,7 @@ export function AppProvider({ children }) {
 
         dispatch({ type: ACTIONS.LEAVE_COUPLE });
       } catch (error) {
-        console.error('Failed to leave couple:', error);
+        if (__DEV__) console.error('Failed to leave couple:', error);
         throw error;
       }
     },
