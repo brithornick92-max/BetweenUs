@@ -361,6 +361,62 @@ export default function HomeScreen({ navigation }) {
     }, [partnerLabel])
   );
 
+  // ── Real-time: refresh partnerAnswer when partner submits a prompt answer ──
+  useFocusEffect(
+    useCallback(() => {
+      if (!promptReady || !state?.coupleId) return;
+
+      let channelRef = null;
+      let cancelled = false;
+
+      const setup = async () => {
+        try {
+          const mod = require('../config/supabase');
+          const sb = mod.supabase;
+          if (!sb || cancelled) return;
+
+          const channel = sb
+            .channel(`partner_prompt_${state.coupleId}`)
+            .on(
+              'postgres_changes',
+              {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'couple_data',
+                filter: `couple_id=eq.${state.coupleId}`,
+              },
+              (payload) => {
+                const row = payload.new;
+                if (row?.data_type !== 'prompt_answer') return;
+                if (row?.created_by === user?.uid) return; // skip own saves
+                // Refresh partner answer from DataLayer
+                DataLayer.getPromptAnswerForToday(prompt.id)
+                  .then((row) => { if (!cancelled && row?.partnerAnswer) setPartnerAnswer(row.partnerAnswer); })
+                  .catch(() => {});
+              }
+            )
+            .subscribe();
+
+          if (cancelled) { sb.removeChannel(channel); return; }
+          channelRef = channel;
+        } catch { /* non-critical */ }
+      };
+
+      setup();
+
+      return () => {
+        cancelled = true;
+        if (channelRef) {
+          try {
+            const mod = require('../config/supabase');
+            mod.supabase?.removeChannel(channelRef);
+          } catch {}
+          channelRef = null;
+        }
+      };
+    }, [state?.coupleId, prompt?.id, promptReady, user?.uid])
+  );
+
   const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();

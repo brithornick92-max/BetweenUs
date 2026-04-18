@@ -331,6 +331,12 @@ export default function PromptAnswerScreen({ route, navigation }) {
         await loadUsageStatus?.();
       }
       notification(NotificationFeedbackType.Success);
+
+      // Notify partner that we answered this prompt
+      import('../services/PartnerNotifications').then(({ default: PN }) => {
+        PN.promptAnswered(userProfile?.displayName || user?.displayName || null);
+      }).catch(() => {});
+
       navigation.goBack();
     } catch (error) {
       Alert.alert("Moment Paused", "We couldn't lock in your reflection. Please try again.");

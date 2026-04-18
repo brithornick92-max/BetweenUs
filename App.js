@@ -171,6 +171,10 @@ const initializeRevenueCat = async () => {
 
 const navigationRef = createNavigationContainerRef();
 
+// Module-level guard — prevents cold-start notification from being handled twice
+// if navReady state ever bounces (e.g., StrictMode double-invoke in dev).
+let _coldStartNotificationHandled = false;
+
 function AppContent() {
   const { state } = useAppContext();
   const { isPremiumEffective: isPremium, paywallVisible, paywallFeature } = useEntitlements();
@@ -337,6 +341,11 @@ function AppContent() {
       if (notifData?.type === 'moment_signal') {
         impact(ImpactFeedbackStyle.Heavy).catch(() => {});
       }
+      // Clear iOS badge count when user taps a notification
+      try {
+        const Notifications = require('expo-notifications');
+        Notifications.setBadgeCountAsync(0).catch(() => {});
+      } catch {}
       getDeepLinkHandler().handleNotificationResponse(response);
     });
     return () => sub?.remove();
@@ -351,8 +360,9 @@ function AppContent() {
       try {
         const Notifications = require('expo-notifications');
         const response = await Notifications.getLastNotificationResponseAsync();
-        if (response && !handled) {
+        if (response && !handled && !_coldStartNotificationHandled) {
           handled = true;
+          _coldStartNotificationHandled = true;
           // Brief delay to ensure navigation stack is fully mounted
           setTimeout(() => {
             getDeepLinkHandler().handleNotificationResponse(response);

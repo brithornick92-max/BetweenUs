@@ -152,6 +152,42 @@ const ACHIEVEMENT_DEFS = [
     category: 'exploration',
     check: (c) => ({ unlocked: c.distinctHeatLevels >= 3, progress: Math.min(c.distinctHeatLevels / 3, 1) }),
   },
+  // ── Couple Connection Milestones ──
+  {
+    id: 'couple_10',
+    name: 'Getting Closer',
+    description: 'You two have sparked 10 conversations together',
+    icon: '💫',
+    category: 'couple',
+    check: (c) => ({ unlocked: c.prompts >= 10, progress: Math.min(c.prompts / 10, 1) }),
+  },
+  {
+    id: 'couple_50',
+    name: 'Deeply Connected',
+    description: 'Fifty conversations opened between you — that\'s rare',
+    icon: '❤️',
+    category: 'couple',
+    check: (c) => ({ unlocked: c.prompts >= 50, progress: Math.min(c.prompts / 50, 1) }),
+  },
+  {
+    id: 'couple_streak_14',
+    name: 'Two Weeks Strong',
+    description: 'Two weeks of showing up for each other, every day',
+    icon: '🌟',
+    category: 'couple',
+    check: (c) => ({ unlocked: c.checkInStreak >= 14, progress: Math.min(c.checkInStreak / 14, 1) }),
+  },
+  {
+    id: 'couple_all_features',
+    name: 'Full Spectrum',
+    description: 'Explored prompts, journal, rituals, and check-ins together',
+    icon: '🌈',
+    category: 'couple',
+    check: (c) => ({
+      unlocked: c.prompts >= 1 && c.journals >= 1 && c.rituals >= 1 && c.checkIns >= 1,
+      progress: Math.min(([c.prompts >= 1, c.journals >= 1, c.rituals >= 1, c.checkIns >= 1].filter(Boolean).length) / 4, 1),
+    }),
+  },
 ];
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -296,6 +332,7 @@ export async function checkAchievements(userId, dataLayer) {
         : 0,
       unlockedCount: unlocked.length,
       totalAchievements: ACHIEVEMENT_DEFS.length,
+      totalPoints: unlocked.length * 10,
     },
   };
 }

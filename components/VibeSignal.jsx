@@ -15,6 +15,7 @@ import { useAppContext } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 import { SPACING, withAlpha } from '../utils/theme';
+import { getMyDisplayName } from '../utils/profileNames';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -171,7 +172,7 @@ const VibeSignal = ({
 
     // Notify partner about the vibe signal
     import('../services/PartnerNotifications').then(({ default: PN }) =>
-      PN.vibeSent(null, vibe.label || vibe.name)
+      PN.vibeSent(getMyDisplayName(appState.userProfile, null, null), vibe.label || vibe.name)
     ).catch(() => {});
 
     if (vibe.isAnniversaryTheme) {

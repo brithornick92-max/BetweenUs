@@ -40,7 +40,7 @@ const MISSIONS = [
 
 export default function SurpriseTonight() {
   const { isDark } = useTheme();
-  const { isPremiumEffective: isPremium } = useEntitlements();
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const [visible, setVisible] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [mission, setMission] = useState('');
@@ -105,10 +105,43 @@ export default function SurpriseTonight() {
     }).start();
   };
 
-  if (!isPremium || !visible) return null;
+  if (!visible) return null;
 
   const glowScale = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.2] });
   const contentOpacity = revealAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0, 1] });
+
+  // Free users see a locked teaser that drives the paywall
+  if (!isPremium) {
+    return (
+      <Animated.View style={[styles.wrapper]}>
+        <TouchableOpacity
+          onPress={() => showPaywall?.('surpriseMe')}
+          activeOpacity={0.85}
+        >
+          <BlurView
+            intensity={isDark ? 50 : 90}
+            tint={isDark ? 'dark' : 'light'}
+            style={styles.card}
+          >
+            <View style={[styles.bloom, { backgroundColor: t.p3, opacity: 0.08 }]} />
+            <View style={[styles.bloomSecondary, { backgroundColor: t.p1, opacity: 0.05 }]} />
+            <View style={styles.initialContent}>
+              <View style={[styles.iconBox, { backgroundColor: withAlpha(t.p5, 0.1) }]}>
+                <Icon name="gift-outline" size={24} color={t.p5} />
+              </View>
+              <View style={styles.textWrap}>
+                <Text style={[styles.title, { color: t.text }]}>Tonight's Surprise</Text>
+                <Text style={[styles.subtitle, { color: t.subtext }]}>A small mission for the two of you — unlock premium</Text>
+              </View>
+              <View style={[styles.iconBox, { backgroundColor: withAlpha(t.p5, 0.08) }]}>
+                <Icon name="lock-closed-outline" size={18} color={t.p5} />
+              </View>
+            </View>
+          </BlurView>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  }
 
   return (
     <Animated.View style={[styles.wrapper, { transform: [{ scale: pressAnim }] }]}>

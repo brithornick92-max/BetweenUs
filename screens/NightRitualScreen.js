@@ -14,7 +14,9 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import NightRitualMode, { getNightRitualColors } from '../components/NightRitualMode';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAppContext } from '../context/AppContext';
 import { PremiumFeature } from '../utils/featureFlags';
+import { getMyDisplayName } from '../utils/profileNames';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../utils/theme';
 
 const FREE_RITUAL_KEY = '@betweenus:freeRitualUsed';
@@ -37,6 +39,7 @@ export default function NightRitualScreen({ navigation }) {
   }), [colors, NIGHT_COLORS]);
 
   const styles = useMemo(() => createStyles(t, NIGHT_COLORS), [t, NIGHT_COLORS]);
+  const { state: appState } = useAppContext();
   const {
     isPremiumEffective: isPremium,
     isLoading: entitlementsLoading,
@@ -118,6 +121,10 @@ export default function NightRitualScreen({ navigation }) {
     if (__DEV__) {
       console.log('Night ritual completed:', ritual?.id);
     }
+    // Notify partner that the ritual was completed
+    import('../services/PartnerNotifications').then(({ default: PN }) =>
+      PN.ritualCompleted(getMyDisplayName(appState?.userProfile, null, null))
+    ).catch(() => {});
     // Navigate back after a short delay so the completion overlay is visible
     autoNavTimerRef.current = setTimeout(safeGoBack, 3200);
   };

@@ -168,7 +168,7 @@ function buildCalendarPartnerNotification(event, eventId) {
     body,
     data: {
       type: 'calendar_event_created',
-      route: 'Calendar',
+      route: 'calendar',
       eventId,
       eventType,
     },

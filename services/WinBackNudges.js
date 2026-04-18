@@ -180,8 +180,13 @@ const WinBackNudges = {
     if (status !== 'granted') return;
 
     const now = new Date();
-    // ISO week identifier: year + week number
-    const yearWeek = `${now.getFullYear()}-W${Math.ceil((now.getDate() - now.getDay() + 10) / 7)}`;
+    // ISO 8601 week number: week containing the first Thursday of the year
+    const jan4 = new Date(now.getFullYear(), 0, 4);
+    const startOfWeek1 = new Date(jan4);
+    startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+    const diffDays = Math.floor((now - startOfWeek1) / (24 * 60 * 60 * 1000));
+    const isoWeek = Math.floor(diffDays / 7) + 1;
+    const yearWeek = `${now.getFullYear()}-W${String(isoWeek).padStart(2, '0')}`;
 
     try {
       const lastScheduled = await AsyncStorage.getItem(WEEKLY_RECAP_KEY);

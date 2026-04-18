@@ -262,16 +262,75 @@ export default function AdaptiveHomeScreen({ navigation }) {
         {widgets.map((widget, index) => {
           switch (widget.type) {
             case 'streak_indicator':
-              return null;
+              return milestones ? (
+                <View key={`widget_${index}`} style={{ marginBottom: layout.spacing.gap }}>
+                  <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading, color: t.subtext }]}>Current Streak</Text>
+                  <View style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border, flexDirection: 'row', alignItems: 'center', gap: 12 }]}>
+                    <Icon name="flame" size={32} color={milestones.stats.unlockedCount >= 3 ? '#FF6B00' : t.primary} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.statValue, { color: t.primary, fontSize: 28 }]}>{milestones.stats.unlockedCount * 2}</Text>
+                      <Text style={[styles.statLabel, { color: t.subtext }]}>days connected</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => navigation?.navigate?.('Achievements')}
+                      style={[styles.shortcutIconWrap, { backgroundColor: withAlpha(t.primary, 0.1) }]}
+                    >
+                      <Icon name="trophy-outline" size={18} color={t.primary} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : null;
 
             case 'achievement_badge':
-              return null;
+              return safeNewlyUnlocked.length > 0 ? (
+                <View key={`widget_${index}`} style={{ marginBottom: layout.spacing.gap }}>
+                  <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading, color: t.subtext }]}>New Milestone</Text>
+                  <View style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border, flexDirection: 'row', alignItems: 'center', gap: 12 }]}>
+                    <Text style={{ fontSize: 32 }}>{safeNewlyUnlocked[0].icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.statLabel, { color: t.text, fontWeight: '700', fontSize: 15, textTransform: 'none', letterSpacing: 0 }]}>{safeNewlyUnlocked[0].name}</Text>
+                      <Text style={[styles.statLabel, { color: t.subtext, textTransform: 'none', letterSpacing: 0 }]}>{safeNewlyUnlocked[0].description}</Text>
+                    </View>
+                  </View>
+                </View>
+              ) : null;
 
             case 'challenge_card':
-              return null;
+              return safeInvitations.length > 0 ? (
+                <View key={`widget_${index}`} style={{ marginBottom: layout.spacing.gap }}>
+                  <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading, color: t.subtext }]}>Next Challenge</Text>
+                  <TouchableOpacity
+                    onPress={() => navigation?.navigate?.('PromptsScreen')}
+                    activeOpacity={0.85}
+                    style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border, flexDirection: 'row', alignItems: 'center', gap: 12 }]}
+                  >
+                    <View style={[styles.shortcutIconWrap, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
+                      <Icon name="sparkles-outline" size={20} color={t.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.statLabel, { color: t.text, fontWeight: '700', fontSize: 14, textTransform: 'none', letterSpacing: 0 }]} numberOfLines={2}>{safeInvitations[0].title || 'A new challenge awaits'}</Text>
+                      <Text style={[styles.statLabel, { color: t.subtext, textTransform: 'none', letterSpacing: 0 }]}>{safeInvitations[0].subtitle || 'Tap to explore'}</Text>
+                    </View>
+                    <Icon name="chevron-forward" size={16} color={t.subtext} />
+                  </TouchableOpacity>
+                </View>
+              ) : null;
 
             case 'progress_tracker':
-              return null;
+              return milestones ? (
+                <View key={`widget_${index}`} style={{ marginBottom: layout.spacing.gap }}>
+                  <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading, color: t.subtext }]}>Your Progress</Text>
+                  <View style={[styles.widgetCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                      <Text style={[styles.statLabel, { color: t.subtext, textTransform: 'none', letterSpacing: 0 }]}>{milestones.stats.unlockedCount} of {milestones.stats.totalAchievements} milestones</Text>
+                      <Text style={[styles.statLabel, { color: t.primary, textTransform: 'none', letterSpacing: 0 }]}>{milestones.stats.completionPercentage}%</Text>
+                    </View>
+                    <View style={{ height: 4, backgroundColor: withAlpha(t.primary, 0.12), borderRadius: 2 }}>
+                      <View style={{ height: 4, width: `${milestones.stats.completionPercentage}%`, backgroundColor: t.primary, borderRadius: 2 }} />
+                    </View>
+                  </View>
+                </View>
+              ) : null;
 
             default:
               return null;
