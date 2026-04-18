@@ -21,10 +21,7 @@ import challengeSystem from '../utils/challengeSystem';
 import { selection } from '../utils/haptics';
 
 // Components
-import QuietMilestone from './QuietMilestone';
-import StoryProgress from './StoryProgress';
-import InvitationCard from './InvitationCard';
-import NightsConnected from './NightsConnected';
+
 import GentleCelebration from './GentleCelebration';
 import PreferenceEngine from '../services/PreferenceEngine';
 import Icon from './Icon';
@@ -265,48 +262,16 @@ export default function AdaptiveHomeScreen({ navigation }) {
         {widgets.map((widget, index) => {
           switch (widget.type) {
             case 'streak_indicator':
-              return (
-                <View key={index} style={{ marginBottom: layout.spacing.gap }}>
-                  <NightsConnected currentStreak={widget.data.streak || 0} compact={layout.type === 'compact'} />
-                </View>
-              );
+              return null;
 
             case 'achievement_badge':
-              return safeNewlyUnlocked.length > 0 ? (
-                <View key={index} style={{ marginBottom: layout.spacing.gap }}>
-                  <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading, color: t.subtext }]}>
-                    Recent Milestones
-                  </Text>
-                  {safeNewlyUnlocked.slice(0, 2).map((m) => (
-                    <QuietMilestone key={m.id} achievement={m} size={layout.type === 'compact' ? 'small' : 'medium'} />
-                  ))}
-                </View>
-              ) : null;
+              return null;
 
             case 'challenge_card':
-              return safeInvitations.length > 0 ? (
-                <View key={index} style={{ marginBottom: layout.spacing.gap }}>
-                  <Text style={[styles.sectionTitle, { fontSize: layout.fontSize.heading, color: t.subtext }]}>
-                    Invitations
-                  </Text>
-                  {safeInvitations.slice(0, 1).map((inv) => (
-                    <InvitationCard key={inv.id || inv.title} challenge={inv} compact={layout.type === 'compact'} />
-                  ))}
-                </View>
-              ) : null;
+              return null;
 
             case 'progress_tracker':
-              return milestones ? (
-                <View key={index} style={{ marginBottom: layout.spacing.gap }}>
-                  <StoryProgress
-                    title="Our story so far"
-                    progress={milestones.stats.completionPercentage / 100}
-                    current={milestones.stats.unlockedCount}
-                    target={milestones.stats.totalAchievements}
-                    unit="moments"
-                  />
-                </View>
-              ) : null;
+              return null;
 
             default:
               return null;

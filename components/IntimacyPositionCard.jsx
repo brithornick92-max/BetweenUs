@@ -3,11 +3,10 @@
  * Crisp solid widgets, heavy native typography, high contrast.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   Platform,
   TouchableOpacity,
@@ -31,50 +30,34 @@ const BODY_TYPE_OPTIONS = [
 ];
 
 const POSITION_SUPPORT_TIPS = {
-  ip001: 'Tuck a folded blanket beneath the seated partner\'s hips to lift them gently and soften any strain through the knees. The arching partner can let their arms open wide — releasing into the position rather than holding it.',
-  ip002: 'If the lower back begins to speak up, ease the arch and let the front partner settle back into their partner\'s chest — less open, more held. A pillow tucked behind the sitting partner\'s lower back gives them something solid to press into.',
-  ip003: 'If the knee angle starts to bite, lean forward and let your hands rest on your partner\'s shins or the bed. That small shift shortens the range and takes the weight off.',
-  ip004: 'If the wrists start to protest, slide down onto the forearms — the whole position softens from there. A pillow under the receiving partner\'s stomach lifts the hips just enough to ease the angle.',
-  ip005: 'The lifted-hips position draws a lot through the wrists and shoulders. If pressure builds, try propping up on fists or sliding a folded blanket under the hands.',
-  ip006: 'If breathing feels compressed, turn the head to one side and let it rest rather than pressing straight down. Widening the legs slightly gives the stomach more room to breathe.',
-  ip007: 'A folded blanket under both sets of knees takes the hardness out of any surface. The top partner can rest their hands gently on either side for stability.',
-  ip008: 'If staying upright feels like work, lean forward and let your hands rest on your partner\'s chest or the surface beside them — the weight shifts forward and the knees decompress immediately.',
-  ip009: 'A thin pillow tucked under the lying partner\'s stomach can tilt the hips into a more open, comfortable angle. The partner above can ease their weight forward gradually.',
-  ip010: 'If holding the weight on forearms becomes tiring, drop all the way down — chest to chest — and let the movement get smaller and slower.',
-  ip011: 'The lifting partner keeps their back long and bends through the knees rather than the waist. A wall just behind them lets it share the load.',
-  ip012: 'If lifting the leg fully creates tension through the hip or groin, lower it — even 45 degrees reshapes the sensation meaningfully. Hold the leg at the ankle or calf for control.',
-  ip013: 'A pillow beneath the hips, right at the edge of the bed, keeps the angle and protects the lower back. The lying partner can bend their elbows slightly rather than reaching all the way to the floor.',
-  ip014: 'If the thighs start to fatigue, loosen the leg grip and let the arms carry more — the position stays just as close. The standing partner can bend their knees slightly, lowering both bodies together.',
-  ip015: 'If the forearms need more cushion, slide a folded pillow beneath them before you begin. The receiving partner widening their knees slightly lowers the hips toward the surface.',
-  ip016: 'Before settling in, place a firm pillow behind the lower back of the reclining partner — it makes a quiet difference. Shifting slightly toward one side rather than full recline can find a sweeter angle.',
+  ip001: 'This position is usually most comfortable when the seated partner has enough back, hip, and leg support to stay relaxed. Sitting against a headboard, couch arm, wall, or sturdy cushion can help a lot. If the hips feel tight, loosen the leg wrap slightly or place a pillow underneath for height and support.',
+  ip002: 'Hip openness and lower-back support matter here. If the seated position starts to feel tiring, sit against a headboard, wall, or sturdy cushion so the body can relax into it more easily. This one usually feels best when both partners are supported enough to stay soft.',
+  ip003: 'If the foot placement on the chest feels too intense, lower it slightly or reduce pressure until it feels stable. The partner underneath may want a pillow beneath the head for support, and the top partner should keep some softness in the knees and ankles rather than locking the joints.',
+  ip004: 'Knees, wrists, and lower back usually matter most here. A pillow under the knees can help a lot, and lowering to the forearms can reduce wrist strain. If the lower back starts to feel overworked, soften the arch and bring the torso closer to the bed.',
+  ip005: 'A padded surface helps, since both partners are taking some weight through their hands and wrists. If the hamstrings or hips feel too tight, soften the bend in the extended leg or reduce the lean until the shape feels sustainable.',
+  ip006: 'This one can put extra work into the top partner\'s thighs and knees, so support matters. A pillow under the lower partner\'s hips can change the angle in a helpful way, and the top partner may want to use their hands more for balance to reduce tension in the legs. It usually feels best when the top partner stays active but not rigid.',
+  ip007: 'If the wrists or shoulders start to tire, place a pillow beneath the hands or raise the receiving partner slightly with extra cushion beneath the hips. The supporting partner may also want to come in closer to reduce strain and make the position feel more secure. This one works best when the body is supported, not forced.',
+  ip008: 'This position can ask a lot from the top partner\'s thighs and knees over time, so comfort matters. A softer surface or pillow under the knees can help, and taking breaks by leaning forward or changing the rhythm can make it much easier to sustain. It usually feels best when the body stays active but not tense.',
+  ip009: 'Neck, shoulders, and jaw can tire more quickly here than people expect. Pillows under the head, hips, or upper body can help a lot, and side-lying variations are often easier to sustain than stacked ones. If either partner feels crowded, strained, or distracted by the setup, pause and reset rather than trying to push through discomfort.',
+  ip010: 'Hip flexibility matters here. If the legs-on-shoulders version feels too intense, lower the legs slightly or rest them more loosely against the upper arms instead. A pillow under the hips can also soften the angle and make the shape easier to hold without strain.',
+  ip011: 'This one asks more from the supporting partner\'s legs, core, and grip, so it usually works best in shorter bursts rather than long stretches. A wall behind the lifted partner or a surface close by can make it far more comfortable and sustainable. If either person feels unstable, reset right away and use more support.',
+  ip012: 'This one can put more demand on the lower back, hamstrings, wrists, and hips than it first appears. A soft surface under the hands or extra support beneath the hips can help. If the lifted-leg version feels too intense, lower the legs slightly or reduce the arch until the body can stay supported without strain.',
+  ip013: 'Make sure the surface is stable and at a workable height. If the wrists or shoulders of the seated partner get tired, reduce the lean or place a pillow or folded blanket behind them for support. This one works best when the seated partner feels secure on the surface and the standing partner can stay close without overreaching.',
+  ip014: 'This one asks more from balance, legs, and grip than it first appears. A wall, bed edge, or sturdy surface nearby can make a big difference. If the lifted partner feels unstable, bring the body closer in rather than leaning farther back. This position is usually best in shorter bursts unless there is strong support.',
+  ip015: 'This one can be demanding on the wrists, shoulders, lower back, and thighs. It is usually best in shorter periods unless the partner in the bridge is already very comfortable in that shape. A padded surface under the hands and feet helps, and a modified version with the hips lowered slightly may feel better for many bodies.',
+  ip016: 'Neck, jaw, and shoulder comfort matter most here. A pillow under the giving partner\'s chest can reduce strain, and support under the receiving partner\'s hips can improve the angle without asking either body to work harder. If either person starts feeling compressed or uncomfortable, reset the height before continuing.',
   ip017: 'If the wrists tire quickly, lower down onto forearms on whatever surface you\'re using. If the lower back starts to arch uncomfortably, soften the knees slightly and let the spine settle.',
+  ip018: 'This one is usually easier on the wrists than classic doggy style, but hips, knees, and lower back can still matter. A pillow beneath the hips, stomach, or chest can help improve the angle and reduce compression. If the lower partner feels crowded or flattened, shift the torso slightly or change the bend in the leg until the shape feels softer and easier to hold.',
 };
 
-export default function IntimacyPositionCard({ position, t, isDark, defaultBodyType = 'standard', IllustrationSvg, getIllustrationForBodyType }) {
+export default function IntimacyPositionCard({ position, t, isDark, defaultBodyType = 'standard' }) {
   const [activeBodyType, setActiveBodyType] = useState(defaultBodyType);
-
-  const getIllustrationColors = (variant) => {
-    const primary = t.primary;
-    const secondary = isDark ? '#4A4A4E' : '#D1D1D6';
-    switch (variant) {
-      case 'her-her': return { figureA: primary, figureB: primary };
-      case 'him-him': return { figureA: secondary, figureB: secondary };
-      case 'him-her':
-      default:        return { figureA: secondary, figureB: primary };
-    }
-  };
-
-  const illustrationColors = useMemo(() => getIllustrationColors('him-her'), [t, isDark]);
-  const ActiveIllustration = useMemo(() => {
-    if (getIllustrationForBodyType) return getIllustrationForBodyType(position.id, activeBodyType);
-    return IllustrationSvg || null;
-  }, [getIllustrationForBodyType, IllustrationSvg, position.id, activeBodyType]);
 
   const heatIcon = HEAT_ICONS[position.heat || 1];
   const heatLabel = HEAT_LABELS[position.heat || 1];
   const moodIcon = MOOD_ICONS[position.mood] || 'ellipse-outline';
   
-  const tipBody = activeBodyType === 'support' ? POSITION_SUPPORT_TIPS[position.id] : null;
+  const comfortBody = activeBodyType === 'support' ? (position.comfort || POSITION_SUPPORT_TIPS[position.id] || null) : null;
 
   const shadowStyle = Platform.select({
     ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
@@ -90,17 +73,6 @@ export default function IntimacyPositionCard({ position, t, isDark, defaultBodyT
         <Text style={[styles.eyebrow, { color: t.primary }]}>{position.commonName || "INTIMACY"}</Text>
       </View>
       <Text style={[styles.promptText, { color: t.text }]}>{position.title}</Text>
-
-      {/* ── Illustration ── */}
-      {ActiveIllustration && (
-        <View style={[styles.illustrationWrap, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
-          {typeof ActiveIllustration === 'number' ? (
-            <Image source={ActiveIllustration} resizeMode="contain" style={styles.illustrationImage} />
-          ) : (
-            <ActiveIllustration width="100%" height={200} figureAColor={illustrationColors.figureA} figureBColor={illustrationColors.figureB} />
-          )}
-        </View>
-      )}
 
       {/* ── Body Type Selector ── */}
       <View style={styles.bodyTypeRow}>
@@ -147,13 +119,13 @@ export default function IntimacyPositionCard({ position, t, isDark, defaultBodyT
       </View>
 
       {/* ── Support Tip ── */}
-      {tipBody && (
+      {comfortBody && (
         <View style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
           <View style={styles.partnerVisibilityRow}>
             <Icon name="heart-circle-outline" size={16} color={t.primary} />
             <Text style={[styles.partnerVisibilityText, { color: t.primary }]}>A note on comfort</Text>
           </View>
-          <Text style={[styles.answerText, { color: t.text }]}>{tipBody}</Text>
+          <Text style={[styles.answerText, { color: t.text }]}>{comfortBody}</Text>
         </View>
       )}
 
@@ -186,6 +158,8 @@ export default function IntimacyPositionCard({ position, t, isDark, defaultBodyT
           </View>
         </>
       )}
+
+
 
       {/* ── Accessibility ── */}
       {position.accessibility && (

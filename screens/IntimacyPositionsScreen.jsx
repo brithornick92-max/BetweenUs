@@ -31,7 +31,6 @@ import Icon from '../components/Icon';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import IntimacyPositionCard from '../components/IntimacyPositionCard';
-import { getIllustrationForBodyType } from '../assets/intimacy-illustrations';
 import positionsData from '../content/intimacy-positions.json';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 
@@ -40,7 +39,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
 // Calculate weeks since intimacy positions launch
-const LAUNCH_DATE = new Date('2026-04-17');
+const LAUNCH_DATE = new Date('2026-04-18');
 function getCurrentWeek() {
   const now = new Date();
   return Math.floor((now - LAUNCH_DATE) / (7 * 24 * 60 * 60 * 1000));
@@ -271,7 +270,6 @@ export default function IntimacyPositionsScreen() {
                   position={position}
                   t={t}
                   isDark={isDark}
-                  getIllustrationForBodyType={getIllustrationForBodyType}
                 />
               </Animated.View>
             )}

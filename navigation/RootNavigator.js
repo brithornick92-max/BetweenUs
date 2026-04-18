@@ -190,7 +190,7 @@ export default function RootNavigator() {
         <Stack.Screen name="PartnerNamesSettings" getComponent={Screens.PartnerNamesSettings} options={{ headerShown: false }} />
         <Stack.Screen name="HeatLevelSettings" getComponent={Screens.HeatLevelSettings} options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="IntimacyPositions" getComponent={Screens.IntimacyPositions} options={{ headerShown: false }} />
-        <Stack.Screen name="IllustrationPreview" getComponent={Screens.IllustrationPreview} options={{ headerShown: false }} />
+
         <Stack.Screen name="NotificationSettings" getComponent={Screens.NotificationSettings} options={{ headerShown: false }} />
         <Stack.Screen name="RitualReminders" getComponent={Screens.RitualReminders} options={{ headerShown: false }} />
         <Stack.Screen name="PrivacySecuritySettings" getComponent={Screens.PrivacySecuritySettings} options={{ headerShown: false }} />

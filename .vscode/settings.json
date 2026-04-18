@@ -1,3 +1,11 @@
 {
-    "kiroAgent.configureMCP": "Disabled"
+    "kiroAgent.configureMCP": "Disabled",
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/ios/Pods/**": true,
+        "**/ios/build/**": true,
+        "**/android/.gradle/**": true,
+        "**/android/app/build/**": true,
+        "**/*.ipa": true
+    }
 }

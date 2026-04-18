@@ -39,7 +39,7 @@ export const DeleteAccount = () => withScreenErrorBoundary(require("../screens/D
 export const IntimacyPositions = () => withScreenErrorBoundary(require("../screens/IntimacyPositionsScreen").default, "IntimacyPositions");
 
 // ─── Dev / Preview ──────────────────────────────────────────────────
-export const IllustrationPreview = () => withScreenErrorBoundary(require("../screens/IllustrationPreview").default, "IllustrationPreview");
+
 
 // ─── Settings sub-screens ───────────────────────────────────────────
 export const PartnerNamesSettings = () => withScreenErrorBoundary(require("../screens/PartnerNamesSettingsScreen").default, "PartnerNamesSettings");
