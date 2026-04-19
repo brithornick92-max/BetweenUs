@@ -44,8 +44,8 @@ const NUDGES = [
   },
   {
     delayDays: 14,
-    title: 'New date ideas just dropped 🌹',
-    body: 'Fresh ideas are waiting for you two. Browse before the week is gone.',
+    title: 'New date ideas are waiting',
+    body: 'Fresh ideas are ready for you two whenever the moment feels right.',
     route: 'DateNight',
   },
 ];
@@ -130,8 +130,10 @@ const WinBackNudges = {
    * @param {number} currentStreak
    * @param {string} [partnerName]
    */
-  async scheduleStreakBreakAlert(currentStreak, partnerName) {
+  async scheduleStreakBreakAlert(currentStreak, partnerName, isPremium) {
     if (!Notifications || currentStreak < 3) return;
+    // Premium users don't need loss-aversion nudges
+    if (isPremium) return;
 
     const { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') return;
@@ -154,8 +156,8 @@ const WinBackNudges = {
       const partnerRef = partnerName ? `you and ${partnerName}` : 'your streak';
       const id = await Notifications.scheduleNotificationAsync({
         content: {
-          title: `${currentStreak} days in a row — keep it going`,
-          body: `You and ${partnerRef} have built something real. One more night keeps it alive.`,
+          title: `${currentStreak} days of showing up together`,
+          body: `You two have a nice rhythm going. Tonight could be another good one.`,
           data: { route: 'Home', type: 'streak_break_warning', streak: currentStreak },
         },
         trigger: { date: tomorrow },

@@ -21,10 +21,8 @@ export const HeatLevel = () => withScreenErrorBoundary(require("../screens/HeatL
 export const JournalHome = () => withScreenErrorBoundary(require("../screens/JournalHomeScreen").default, "JournalHome");
 export const JournalEntry = () => withScreenErrorBoundary(require("../screens/JournalEntryScreen").default, "JournalEntry");
 export const VibeSignal = () => withScreenErrorBoundary(require("../screens/VibeSignalScreen").default, "VibeSignal");
-export const EditorialPrompt = () => withScreenErrorBoundary(require("../screens/EditorialPromptScreen").default, "EditorialPrompt");
 export const NightRitual = () => withScreenErrorBoundary(require("../screens/NightRitualScreen").default, "NightRitual");
 export const Settings = () => withScreenErrorBoundary(require("../screens/SettingsScreen").default, "Settings");
-export const AdaptiveHome = () => withScreenErrorBoundary(require("../components/AdaptiveHomeScreen").default, "AdaptiveHome");
 export const SavedMoments = () => withScreenErrorBoundary(require("../screens/SavedMomentsScreen").default, "SavedMoments");
 
 // ─── Legal / info ───────────────────────────────────────────────────
@@ -37,6 +35,9 @@ export const DeleteAccount = () => withScreenErrorBoundary(require("../screens/D
 
 // ─── Intimacy ───────────────────────────────────────────────────────
 export const IntimacyPositions = () => withScreenErrorBoundary(require("../screens/IntimacyPositionsScreen").default, "IntimacyPositions");
+
+// ─── Couples Quiz ───────────────────────────────────────────────────
+export const CouplesQuiz = () => withScreenErrorBoundary(require("../screens/CouplesQuizScreen").default, "CouplesQuiz");
 
 // ─── Dev / Preview ──────────────────────────────────────────────────
 
@@ -62,9 +63,6 @@ export const ComposeLoveNote = () => withScreenErrorBoundary(require("../screens
 export const LoveNoteDetail = () => withScreenErrorBoundary(require("../screens/LoveNoteDetailScreen").default, "LoveNoteDetail");
 
 // ─── Premium / paywall ──────────────────────────────────────────────
-export const PromptLibrary = () => withScreenErrorBoundary(require("../screens/PromptLibraryScreen").default, "PromptLibrary");
-export const Paywall = () => withScreenErrorBoundary(require("../screens/PaywallScreen").default, "Paywall");
-export const Premium = () => withScreenErrorBoundary(require("../screens/PremiumScreen").default, "Premium");
 export const InsideJokes = () => withScreenErrorBoundary(require("../screens/InsideJokesScreen").default, "InsideJokes");
 export const YearReflection = () => withScreenErrorBoundary(require("../screens/YearReflectionScreen").default, "YearReflection");
 

@@ -168,6 +168,7 @@ export default function Tabs() {
         component={PromptsScreen}
         options={{ tabBarLabel: "Prompts" }}
       />
+      {/* Calendar tab */}
       <Tab.Screen
         name="Calendar"
         component={CalendarScreen}

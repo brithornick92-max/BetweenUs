@@ -44,15 +44,16 @@ export const GuardBehavior = Object.freeze({
 
 // ─── Free-Tier Limits ───────────────────────────────────────────────────────────
 export const FREE_LIMITS = Object.freeze({
-  PROMPTS_PER_DAY: 1,           // One guided prompt response per day
+  PROMPTS_PER_DAY: 3,           // Three guided prompt responses per day
   PREVIEW_PROMPTS_TOTAL: 10,    // 10 preview prompts to build habit before gating
-  DATE_IDEAS_PER_DAY: 3,        // 3 preview date ideas per day
-  FULL_DATE_FLOWS_PER_WEEK: 1,  // One fully planned date flow per week
-  VISIBLE_DATE_IDEAS: 3,        // 3 preview date ideas visible for free users
+  DATE_IDEAS_PER_DAY: 5,        // 5 preview date ideas per day
+  FULL_DATE_FLOWS_PER_WEEK: 2,  // Two fully planned date flows per week
+  VISIBLE_DATE_IDEAS: 5,        // 5 preview date ideas visible for free users
   JOURNAL_ENTRIES_VISIBLE: 0,   // No journal access
   FREE_HEAT_LEVELS: [1, 2, 3],
   SURPRISE_ME_ENABLED: false,
-  LOVE_NOTES_ENABLED: false,
+  LOVE_NOTES_ENABLED: true,     // 1 love note per week on free tier
+  LOVE_NOTES_PER_WEEK: 1,       // Weekly love note limit for free users
   CALENDAR_ENABLED: false,
   PARTNER_LINKING_ENABLED: true,
   PROMPT_RESPONSES_ENABLED: true,

@@ -174,10 +174,8 @@ export default function RootNavigator() {
         <Stack.Screen name="JournalHome" getComponent={Screens.JournalHome} options={{ headerShown: false }} />
         <Stack.Screen name="JournalEntry" getComponent={Screens.JournalEntry} options={{ headerShown: false }} />
         <Stack.Screen name="VibeSignal" getComponent={Screens.VibeSignal} options={{ headerShown: false }} />
-        <Stack.Screen name="EditorialPrompt" getComponent={Screens.EditorialPrompt} options={{ headerShown: false }} />
         <Stack.Screen name="NightRitual" getComponent={Screens.NightRitual} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" getComponent={Screens.Settings} options={{ headerShown: false }} />
-        <Stack.Screen name="AdaptiveHome" getComponent={Screens.AdaptiveHome} options={{ headerShown: false }} />
         <Stack.Screen name="SavedMoments" getComponent={Screens.SavedMoments} options={{ headerShown: false }} />
 
         <Stack.Screen name="Terms" getComponent={Screens.Terms} options={{ headerShown: false }} />
@@ -210,14 +208,12 @@ export default function RootNavigator() {
           />
         )}
 
+        <Stack.Screen name="CouplesQuiz" getComponent={Screens.CouplesQuiz} options={{ headerShown: false, animation: "slide_from_right", animationDuration: 400 }} />
         <Stack.Screen name="Achievements" getComponent={Screens.Achievements} options={{ headerShown: false }} />
         <Stack.Screen name="LoveNotesInbox" getComponent={Screens.LoveNotesInbox} options={{ headerShown: false }} />
         <Stack.Screen name="ComposeLoveNote" getComponent={Screens.ComposeLoveNote} options={{ headerShown: false }} />
         <Stack.Screen name="LoveNoteDetail" getComponent={Screens.LoveNoteDetail} options={{ headerShown: false }} />
 
-        <Stack.Screen name="PromptLibrary" getComponent={Screens.PromptLibrary} options={{ headerShown: false }} />
-        <Stack.Screen name="Paywall" getComponent={Screens.Paywall} options={{ headerShown: false }} />
-        <Stack.Screen name="Premium" getComponent={Screens.Premium} options={{ headerShown: false, animation: "fade", animationDuration: 500 }} />
         <Stack.Screen name="InsideJokes" getComponent={Screens.InsideJokes} options={{ headerShown: false }} />
         <Stack.Screen name="YearReflection" getComponent={Screens.YearReflection} options={{ headerShown: false }} />
 

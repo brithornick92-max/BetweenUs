@@ -64,16 +64,16 @@ describe('GuardBehavior enum', () => {
 // ─── Limits ──────────────────────────────────────────────────────────────────
 
 describe('FREE_LIMITS', () => {
-  it('allows one daily prompt response', () => {
-    expect(FREE_LIMITS.PROMPTS_PER_DAY).toBe(1);
+  it('allows three daily prompt responses', () => {
+    expect(FREE_LIMITS.PROMPTS_PER_DAY).toBe(3);
   });
 
-  it('allows three date idea previews per day', () => {
-    expect(FREE_LIMITS.DATE_IDEAS_PER_DAY).toBe(3);
+  it('allows five date idea previews per day', () => {
+    expect(FREE_LIMITS.DATE_IDEAS_PER_DAY).toBe(5);
   });
 
-  it('allows one fully planned date flow per week', () => {
-    expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(1);
+  it('allows two fully planned date flows per week', () => {
+    expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(2);
   });
 
   it('has 10 preview prompts to build habit before gating', () => {
@@ -86,7 +86,8 @@ describe('FREE_LIMITS', () => {
 
   it('disables premium-only features', () => {
     expect(FREE_LIMITS.SURPRISE_ME_ENABLED).toBe(false);
-    expect(FREE_LIMITS.LOVE_NOTES_ENABLED).toBe(false);
+    expect(FREE_LIMITS.LOVE_NOTES_ENABLED).toBe(true);
+    expect(FREE_LIMITS.LOVE_NOTES_PER_WEEK).toBe(1);
     expect(FREE_LIMITS.CALENDAR_ENABLED).toBe(false);
     expect(FREE_LIMITS.PARTNER_LINKING_ENABLED).toBe(true);
     expect(FREE_LIMITS.CLOUD_SYNC_ENABLED).toBe(false);

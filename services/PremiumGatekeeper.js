@@ -5,13 +5,14 @@ import CrashReporting from './CrashReporting';
 class PremiumGatekeeper {
   constructor() {
     this.DAILY_LIMITS = {
-      FREE_PROMPTS: 1, // Free users get 1 guided prompt response per day
-      FREE_DATES: 3,   // Free users can browse 3 date ideas per day
+      FREE_PROMPTS: 3, // Free users get 3 guided prompt responses per day
+      FREE_DATES: 5,   // Free users can browse 5 date ideas per day
       FREE_HEAT_LEVELS: [1, 2, 3], // Free preview prompts cover levels 1-3
       PREMIUM_HEAT_LEVELS: [1, 2, 3, 4, 5] // Premium gets all levels
     };
     this.WEEKLY_LIMITS = {
-      FREE_FULL_DATE_FLOWS: 1,
+      FREE_FULL_DATE_FLOWS: 2,
+      FREE_LOVE_NOTES: 1,
     };
   }
 
@@ -48,7 +49,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: 'Free users can answer 1 guided prompt per day. Discover the full experience for unlimited prompts and deeper connection.'
+          message: 'You\'ve used today\'s 3 free prompts. Discover the full experience for unlimited prompts and deeper connection.'
         };
       }
       

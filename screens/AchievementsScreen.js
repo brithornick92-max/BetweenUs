@@ -10,26 +10,13 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
 import { evaluateAchievements } from '../utils/achievementEngine';
 import DataLayer from '../services/data/DataLayer';
-
-const CATEGORY_LABELS = {
-  journal: 'Journal',
-  prompt: 'Prompts',
-  checkin: 'Check-ins',
-  lovenote: 'Love Notes',
-  memory: 'Memories',
-  ritual: 'Rituals',
-  vibe: 'Vibes',
-  exploration: 'Exploration',
-};
 
 export default function AchievementsScreen() {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { user } = useAuth();
-  const [achievements, setAchievements] = useState([]);
+  const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const styles = createStyles(colors);
@@ -38,9 +25,9 @@ export default function AchievementsScreen() {
     try {
       const dl = await DataLayer.getInstance();
       const results = await evaluateAchievements(dl);
-      setAchievements(results || []);
+      setMilestones(results || []);
     } catch {
-      setAchievements([]);
+      setMilestones([]);
     } finally {
       setLoading(false);
     }
@@ -50,31 +37,33 @@ export default function AchievementsScreen() {
     load();
   }, [load]);
 
-  const unlocked = achievements.filter((a) => a.unlocked);
-  const locked = achievements.filter((a) => !a.unlocked);
+  const reached = milestones.filter((m) => m.unlocked);
+  const ahead = milestones.filter((m) => !m.unlocked);
 
-  const renderItem = ({ item }) => {
-    const progressPercent = Math.round((item.progress || 0) * 100);
-    return (
-      <View
-        style={[styles.card, !item.unlocked && styles.cardLocked]}
-        accessibilityLabel={`${item.name}: ${item.description}. ${item.unlocked ? 'Unlocked' : `${progressPercent}% complete`}`}
-        accessibilityRole="text"
-      >
-        <Text style={styles.icon}>{item.icon}</Text>
-        <View style={styles.cardBody}>
-          <Text style={[styles.name, !item.unlocked && styles.nameLocked]}>{item.name}</Text>
-          <Text style={styles.description}>{item.description}</Text>
-          {!item.unlocked && (
-            <View style={styles.progressBar} accessibilityLabel={`${progressPercent}% progress`}>
-              <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
-            </View>
-          )}
-        </View>
-        {item.unlocked && <Text style={styles.checkmark}>✓</Text>}
+  const renderReached = ({ item }) => (
+    <View
+      style={styles.card}
+      accessibilityLabel={`${item.name}: ${item.description}`}
+      accessibilityRole="text"
+    >
+      <Text style={styles.icon}>{item.icon}</Text>
+      <View style={styles.cardBody}>
+        <Text style={styles.name}>{item.name}</Text>
+        <Text style={styles.description}>{item.description}</Text>
       </View>
-    );
-  };
+    </View>
+  );
+
+  const renderAhead = ({ item }) => (
+    <View
+      style={styles.cardAhead}
+      accessibilityLabel={item.description}
+      accessibilityRole="text"
+    >
+      <Text style={styles.iconAhead}>{item.icon}</Text>
+      <Text style={styles.descriptionAhead}>{item.description}</Text>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -87,7 +76,7 @@ export default function AchievementsScreen() {
         >
           <Text style={styles.backText}>‹ Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title} accessibilityRole="header">Achievements</Text>
+        <Text style={styles.title} accessibilityRole="header">Your Story</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -97,14 +86,23 @@ export default function AchievementsScreen() {
         </View>
       ) : (
         <FlatList
-          data={[...unlocked, ...locked]}
+          data={[
+            ...(reached.length > 0 ? [{ _type: 'section', id: '_s1', label: 'Moments you\'ve shared' }] : []),
+            ...reached.map((m) => ({ ...m, _type: 'reached' })),
+            ...(ahead.length > 0 ? [{ _type: 'section', id: '_s2', label: 'Still ahead…' }] : []),
+            ...ahead.map((m) => ({ ...m, _type: 'ahead' })),
+          ]}
           keyExtractor={(item) => item.id}
-          renderItem={renderItem}
+          renderItem={({ item }) => {
+            if (item._type === 'section') {
+              return <Text style={styles.sectionLabel}>{item.label}</Text>;
+            }
+            if (item._type === 'reached') return renderReached({ item });
+            return renderAhead({ item });
+          }}
           contentContainerStyle={styles.list}
-          ListHeaderComponent={
-            <Text style={styles.summary} accessibilityRole="text">
-              {unlocked.length} of {achievements.length} unlocked
-            </Text>
+          ListEmptyComponent={
+            <Text style={styles.empty}>Your story is just beginning.</Text>
           }
           showsVerticalScrollIndicator={false}
         />
@@ -149,14 +147,19 @@ function createStyles(colors) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    summary: {
-      fontSize: 13,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      marginBottom: 16,
-    },
     list: {
       padding: 16,
+      paddingBottom: 40,
+    },
+    sectionLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+      marginTop: 20,
+      marginBottom: 10,
+      marginLeft: 2,
     },
     card: {
       flexDirection: 'row',
@@ -165,9 +168,6 @@ function createStyles(colors) {
       borderRadius: 12,
       padding: 14,
       marginBottom: 10,
-    },
-    cardLocked: {
-      opacity: 0.55,
     },
     icon: {
       fontSize: 28,
@@ -182,29 +182,33 @@ function createStyles(colors) {
       color: colors.text,
       marginBottom: 2,
     },
-    nameLocked: {
-      color: colors.textSecondary,
-    },
     description: {
       fontSize: 13,
       color: colors.textSecondary,
     },
-    progressBar: {
-      height: 4,
-      backgroundColor: colors.border,
-      borderRadius: 2,
-      marginTop: 8,
-      overflow: 'hidden',
+    cardAhead: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 4,
+      marginBottom: 6,
     },
-    progressFill: {
-      height: '100%',
-      backgroundColor: colors.primary,
-      borderRadius: 2,
+    iconAhead: {
+      fontSize: 20,
+      marginRight: 12,
+      opacity: 0.4,
     },
-    checkmark: {
-      fontSize: 18,
-      color: colors.primary,
-      marginLeft: 8,
+    descriptionAhead: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      opacity: 0.6,
+      flex: 1,
+    },
+    empty: {
+      fontSize: 15,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: 60,
     },
   });
 }

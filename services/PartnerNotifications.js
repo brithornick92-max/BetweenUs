@@ -15,8 +15,8 @@ const PartnerNotifications = {
   async promptAnswered(senderName) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} just answered 💬`,
-      body: "Tap to see what they wrote — then share yours.",
+      title: `${name} just shared something 💬`,
+      body: 'Answer today\'s prompt to reveal what they wrote.',
       data: { type: 'prompt_answered' },
     });
   },

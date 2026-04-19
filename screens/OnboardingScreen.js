@@ -350,6 +350,19 @@ export default function OnboardingScreen({ navigation }) {
           <Text style={styles.storySubtitle}>Tell us a little about the connection you're building together.</Text>
         </ReAnimated.View>
 
+        {/* Sample prompt preview — show the value immediately */}
+        <ReAnimated.View entering={FadeInDown.delay(150).duration(600).springify()}>
+          <View style={[styles.samplePromptCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+            <Text style={[styles.samplePromptEyebrow, { color: t.primary }]}>TODAY'S MOMENT</Text>
+            <Text style={[styles.samplePromptText, { color: t.text }]}>
+              What's one small thing about your partner that still surprises you?
+            </Text>
+            <Text style={[styles.samplePromptHint, { color: t.subtext }]}>
+              Both of you answer — then reveal each other's response together.
+            </Text>
+          </View>
+        </ReAnimated.View>
+
         {/* Names Group (Apple List Style) */}
         <ReAnimated.View entering={FadeInDown.delay(200).duration(600).springify()}>
           <Text style={styles.groupLabel}>NAMES</Text>
@@ -1016,8 +1029,35 @@ const createStyles = (t, isDark) => {
     storySubtitle: {
       fontSize: 16,
       color: t.subtext,
-      marginBottom: SPACING.xxl,
+      marginBottom: SPACING.lg,
       fontWeight: '500',
+    },
+
+    // ── Sample Prompt Preview ──
+    samplePromptCard: {
+      borderRadius: 16,
+      borderWidth: 1,
+      padding: SPACING.lg,
+      marginBottom: SPACING.xl,
+    },
+    samplePromptEyebrow: {
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+      marginBottom: SPACING.sm,
+    },
+    samplePromptText: {
+      fontSize: 18,
+      fontWeight: '700',
+      lineHeight: 26,
+      letterSpacing: -0.3,
+      marginBottom: SPACING.sm,
+    },
+    samplePromptHint: {
+      fontSize: 13,
+      fontWeight: '500',
+      lineHeight: 18,
     },
 
     // ── Grouped Apple Lists ──

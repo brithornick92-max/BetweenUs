@@ -47,7 +47,7 @@ function getCurrentWeek() {
 
 export default function IntimacyPositionsScreen() {
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective } = useEntitlements();
+  const { isPremiumEffective, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
   const navigation = useNavigation();
   
@@ -97,8 +97,8 @@ export default function IntimacyPositionsScreen() {
 
   const handlePaywall = useCallback(() => {
     impact(ImpactFeedbackStyle.Medium);
-    navigation.navigate('Paywall', { source: 'intimacy_positions' });
-  }, [navigation]);
+    showPaywall?.('HEAT_LEVELS_4_5');
+  }, [showPaywall]);
 
   // ════════════════════════════════════
   //  LOCKED STATE RENDER

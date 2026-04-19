@@ -51,6 +51,7 @@ import { PromptCardSkeleton } from '../components/SkeletonLoader';
 import ConnectionMemory from '../utils/connectionMemory';
 import achievementEngine from '../utils/achievementEngine';
 import PreferenceEngine from '../services/PreferenceEngine';
+import useProgressiveDisclosure from '../hooks/useProgressiveDisclosure';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:promptedPartnerShare';
@@ -107,7 +108,8 @@ function normalizePrompt(p) {
 
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
-  { label: 'Love Note', icon: 'mail-outline', key: 'note', premium: true, color: '#D2121A' }, // Sexy red
+  { label: 'Love Note', icon: 'mail-outline', key: 'note', premium: false, color: '#D2121A' }, // Sexy red
+  { label: 'Quiz', icon: 'help-circle-outline', key: 'quiz', premium: false, color: '#D4AA7E' }, // Champagne gold
   { label: 'Ritual', icon: 'flame-outline', key: 'ritual', premium: true, color: '#7E4FA3' }, // Velvet plum
   { label: 'Jokes', icon: 'happy-outline', key: 'jokes', premium: true, color: '#D4AA7E' }, // Champagne gold
   { label: 'Intimacy', icon: 'flame', key: 'intimacy', premium: true, color: '#C14953' }, // Deep rose
@@ -159,6 +161,7 @@ export default function HomeScreen({ navigation }) {
   const [answeredCount, setAnsweredCount] = useState(0);
   const remainingFreePrompts = usageStatus?.remaining?.prompts ?? 1;
   const canWritePrompt = isPremium || !!myAnswer.trim() || remainingFreePrompts > 0;
+  const { show: disclosure } = useProgressiveDisclosure(answeredCount);
 
   // Entrance animations
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -288,7 +291,6 @@ export default function HomeScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      if (!isPremium) return;
       let active = true;
       (async () => {
         try {
@@ -297,7 +299,7 @@ export default function HomeScreen({ navigation }) {
         } catch (e) { if (__DEV__) console.warn('[Home] unread notes fetch:', e?.message); }
       })();
       return () => { active = false; };
-    }, [isPremium])
+    }, [])
   );
 
   useFocusEffect(
@@ -337,7 +339,7 @@ export default function HomeScreen({ navigation }) {
               if (daySet.has(k)) streak++; else break;
             }
             if (streak >= 3) {
-              WinBackNudges.scheduleStreakBreakAlert(streak, partnerLabel).catch(() => {});
+              WinBackNudges.scheduleStreakBreakAlert(streak, partnerLabel, isPremium).catch(() => {});
             }
             // Weekly recap
             const weekAnswers = (answers || []).filter(a => {
@@ -548,17 +550,6 @@ export default function HomeScreen({ navigation }) {
   const handleAction = useCallback(async (key) => {
     impact(ImpactFeedbackStyle.Light);
     if (key === 'note') {
-      if (!isPremium) {
-        Alert.alert(
-          `${partnerLabel} can send you love notes`,
-          `Unlock premium so ${partnerLabel} can send you private messages — and you can write them back.`,
-          [
-            { text: 'Not Now', style: 'cancel' },
-            { text: 'Unlock Premium', onPress: () => showPaywall?.(PremiumFeature.LOVE_NOTES) },
-          ]
-        );
-        return;
-      }
       navigation.navigate('LoveNotesInbox');
     } else if (key === 'ritual') {
       if (!isPremium) {
@@ -576,6 +567,8 @@ export default function HomeScreen({ navigation }) {
     } else if (key === 'jokes') {
       if (!isPremium) { showPaywall?.(PremiumFeature.INSIDE_JOKES); return; }
       navigation.navigate('InsideJokes');
+    } else if (key === 'quiz') {
+      navigation.navigate('CouplesQuiz');
     } else if (key === 'intimacy') {
       if (!isPremium) {
         Alert.alert(
@@ -663,10 +656,9 @@ export default function HomeScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
         >
           <WelcomeBack />
-          <MilestoneCard />
 
           {/* ── Partner Answered Banner (highest priority pull-back) ── */}
-          {partnerAnswer && myAnswer && !bothAnswered && (
+          {partnerAnswer && !myAnswer && (
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={handlePrimaryCTA}
@@ -674,29 +666,24 @@ export default function HomeScreen({ navigation }) {
             >
               <Icon name="chatbubble-ellipses-outline" size={18} color="#FFF" />
               <Text style={styles.partnerAnsweredText}>
-                {partnerLabel} just answered — tap to see both responses
+                {partnerLabel} answered — share yours to see their response
               </Text>
               <Icon name="arrow-forward-outline" size={16} color="#FFF" />
             </TouchableOpacity>
           )}
-          {partnerAnswer && !myAnswer && (
+          {partnerAnswer && myAnswer && bothAnswered && (
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={handlePrimaryCTA}
               style={[styles.partnerAnsweredBanner, { backgroundColor: isDark ? '#1C1C1E' : '#FFF', borderWidth: 1.5, borderColor: t.primary }]}
             >
-              <Icon name="time-outline" size={18} color={t.primary} />
+              <Icon name="heart-outline" size={18} color={t.primary} />
               <Text style={[styles.partnerAnsweredText, { color: t.primary }]}>
-                {partnerLabel} answered — your turn to share
+                You both shared — tap to see each other's answers
               </Text>
               <Icon name="arrow-forward-outline" size={16} color={t.primary} />
             </TouchableOpacity>
           )}
-
-          {/* ── Streak Counter ── */}
-          <View style={{ paddingHorizontal: SPACING.screen, marginBottom: SPACING.md }}>
-            <StreakBanner onPress={() => navigation.navigate('Achievements')} />
-          </View>
 
           {/* ── Hero Prompt Card (Crisp Apple Widget) ── */}
           <Animated.View style={{
@@ -741,7 +728,7 @@ export default function HomeScreen({ navigation }) {
                   style={[styles.input, { justifyContent: 'center' }]}
                 >
                   <Text style={styles.inputPlaceholder}>
-                    {`You’ve used today’s free reflection. ${isPremium ? '' : 'Premium unlocks all prompts across 5 heat levels.'}`}
+                    {`You’ve used today’s free prompts. ${isPremium ? '' : 'Premium unlocks all prompts across 5 heat levels.'}`}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
                     <Icon name="lock-open-outline" size={14} color={t.primary} />
@@ -780,11 +767,18 @@ export default function HomeScreen({ navigation }) {
 
           <View style={{ height: homeLayout.spacing.gap }} />
 
-          <RelationshipClimate compact />
+          {/* ── Streak + Milestone (below the fold) ── */}
+          <View style={{ marginBottom: SPACING.sm }}>
+            <StreakBanner onPress={() => navigation.navigate('Achievements')} />
+          </View>
+          <MilestoneCard />
+
+          {disclosure.relationshipClimate && <RelationshipClimate compact />}
 
           <View style={{ height: homeLayout.type === 'compact' ? SPACING.md : SPACING.lg }} />
 
           {/* ── Quick Actions (3-Column Apple Widget Layout) ── */}
+          {disclosure.quickActions && (
           <Animated.View style={[styles.actionsRow, {
             opacity: actionsAnim,
             transform: [{ translateY: actionsAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }],
@@ -818,11 +812,12 @@ export default function HomeScreen({ navigation }) {
               );
             })}
           </Animated.View>
+          )}
 
           <View style={{ height: homeLayout.spacing.gap }} />
 
           {/* ── Memory Lane Throwback ── */}
-          {throwback && (
+          {disclosure.memoryLane && throwback && (
             <View style={styles.memoryLaneCard}>
               <View style={styles.memoryLaneHeader}>
                 <Icon name="time-outline" size={16} color={t.primary} />
@@ -842,10 +837,10 @@ export default function HomeScreen({ navigation }) {
 
           <View style={{ height: homeLayout.type === 'compact' ? SPACING.md : SPACING.lg }} />
 
-          <SurpriseTonight navigation={navigation} />
+          {disclosure.surpriseTonight && <SurpriseTonight navigation={navigation} />}
 
           {/* ── Soft Upgrade Nudge (free users with 3+ shared moments) ── */}
-          {!isPremium && answeredCount >= 3 && (
+          {disclosure.softNudge && !isPremium && answeredCount >= 3 && (
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
@@ -870,6 +865,7 @@ export default function HomeScreen({ navigation }) {
           )}
 
           {/* ── Year Reflection (all users — free users hit paywall) ── */}
+          {disclosure.yearReflection && (<>
           <View style={{ height: SPACING.xl }} />
           <YearReflectionCard onPress={() => {
             impact(ImpactFeedbackStyle.Light);
@@ -879,8 +875,10 @@ export default function HomeScreen({ navigation }) {
             }
             navigation.navigate('YearReflection');
           }} />
+          </>)}
 
           {/* ── Moment Signal ── */}
+          {disclosure.momentSignal && (
           <View style={styles.momentSection}>
             <TouchableOpacity
               style={styles.momentToggle}
@@ -908,6 +906,7 @@ export default function HomeScreen({ navigation }) {
               onReceive={() => setShowMoments(true)}
             />
           </View>
+          )}
 
         </ScrollView>
       </SafeAreaView>
