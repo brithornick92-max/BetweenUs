@@ -2,8 +2,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
 import * as Crypto from 'expo-crypto';
 import { storage, STORAGE_KEYS, vibeStorage } from '../utils/storage';
-import { useEntitlements } from './EntitlementsContext';
-import { clearCouplePremiumCache } from './EntitlementsContext';
+import { useEntitlements , clearCouplePremiumCache } from './EntitlementsContext';
 import { NicknameEngine } from '../services/PolishEngine';
 import CoupleService from '../services/supabase/CoupleService';
 import CoupleKeyService from '../services/security/CoupleKeyService';
@@ -51,8 +50,8 @@ const ACTIONS = {
 
 async function persistPartnerActivity(ts) {
   const saved = await storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, ts);
-  if (!saved && __DEV__) {
-    console.warn('[AppContext] Failed to persist partner activity timestamp');
+  if (!saved) {
+    if (__DEV__) console.warn('[AppContext] Failed to persist partner activity timestamp');
   }
 }
 
@@ -253,15 +252,32 @@ export function AppProvider({ children }) {
           resolvedCoupleId = remoteCoupleId;
           await storage.set(STORAGE_KEYS.COUPLE_ID, remoteCoupleId);
         } else if (!remoteCoupleId && resolvedCoupleId) {
-          const staleCoupleId = resolvedCoupleId;
-          resolvedCoupleId = null;
-          await storage.remove(STORAGE_KEYS.COUPLE_ID);
-          await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
-          await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
-          await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
+          // Server says no couple but we have one locally — confirm with a
+          // second call before wiping.  Transient RLS glitches, timeouts, or
+          // stale sessions can return null once; clearing on a single miss
+          // causes random unpairing.
+          let confirmed = false;
           try {
-            await CoupleKeyService.clearCoupleKey(staleCoupleId);
-          } catch (_) {}
+            const recheck = await Promise.race([
+              CoupleService.getMyCouple(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('recheck timed out')), 8000)),
+            ]);
+            confirmed = !recheck?.couple_id;
+          } catch (_) {
+            // Second call also failed — do NOT clear, keep local state
+            confirmed = false;
+          }
+          if (confirmed) {
+            const staleCoupleId = resolvedCoupleId;
+            resolvedCoupleId = null;
+            await storage.remove(STORAGE_KEYS.COUPLE_ID);
+            await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
+            await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
+            await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
+            try {
+              await CoupleKeyService.clearCoupleKey(staleCoupleId);
+            } catch (_) {}
+          }
         }
       } catch (_) {}
 
@@ -460,13 +476,9 @@ export function AppProvider({ children }) {
     
     leaveCouple: async () => {
       try {
-        // Remove server-side couple_members row first
-        try {
-          await CoupleService.unlinkFromCouple();
-        } catch (serverErr) {
-          // Log but don't block local cleanup — user may be offline
-          if (__DEV__) console.warn('Server unlink failed (will retry):', serverErr?.message);
-        }
+        // Remove server-side couple_members row first — must succeed before
+        // clearing local state, otherwise we get a zombie half-unpaired state.
+        await CoupleService.unlinkFromCouple();
 
         await storage.remove(STORAGE_KEYS.COUPLE_ID);
         await storage.remove(STORAGE_KEYS.COUPLE_ROLE);

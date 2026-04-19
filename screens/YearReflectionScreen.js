@@ -18,14 +18,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-// react-native-view-shot requires a native build — load lazily so a stale dev
-// client doesn't crash the entire app if the native module is missing yet.
-let ViewShot = null;
-try {
-  ViewShot = require('react-native-view-shot').default;
-} catch (_) {
-  // Native module not compiled into this build — export feature will be disabled.
-}
 import Icon from '../components/Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { impact, selection, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -38,6 +30,14 @@ import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import SnapshotView from '../components/SnapshotView';
 import ExportService from '../services/ExportService';
+// react-native-view-shot requires a native build — load lazily so a stale dev
+// client doesn't crash the entire app if the native module is missing yet.
+let ViewShot = null;
+try {
+  ViewShot = require('react-native-view-shot').default;
+} catch (_) {
+  // Native module not compiled into this build — export feature will be disabled.
+}
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -78,7 +78,7 @@ function FadeSection({ children, delay = 0 }) {
 // MAIN SCREEN COMPONENT
 // ------------------------------------------------------------------
 export default function YearReflectionScreen({ navigation }) {
-  const { isDark } = useTheme();
+  const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const [reflection, setReflection] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,12 +94,12 @@ export default function YearReflectionScreen({ navigation }) {
   const year = new Date().getFullYear();
 
   const t = useMemo(() => ({
-    background: isDark ? '#1D1D1F' : '#F5F5F7',
-    surface: isDark ? 'rgba(44, 44, 46, 0.7)' : 'rgba(255, 255, 255, 0.85)',
-    text: isDark ? '#FFFFFF' : '#1D1D1F',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : PALETTE.textSubtle,
-    border: isDark ? 'rgba(255, 255, 255, 0.1)' : PALETTE.border,
-  }), [isDark]);
+    background: colors.background,
+    surface: colors.surface || (isDark ? 'rgba(44, 44, 46, 0.7)' : 'rgba(255, 255, 255, 0.85)'),
+    text: colors.text,
+    subtext: colors.textMuted || (isDark ? 'rgba(235, 235, 245, 0.6)' : PALETTE.textSubtle),
+    border: colors.border || (isDark ? 'rgba(255, 255, 255, 0.1)' : PALETTE.border),
+  }), [colors, isDark]);
 
   useEffect(() => {
     (async () => {

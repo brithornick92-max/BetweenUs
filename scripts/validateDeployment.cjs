@@ -8,6 +8,34 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 
+function readFlagValue(flagName) {
+  const args = process.argv.slice(2);
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === flagName) {
+      return args[index + 1] || null;
+    }
+    if (arg.startsWith(`${flagName}=`)) {
+      return arg.slice(flagName.length + 1);
+    }
+  }
+  return null;
+}
+
+function resolveValidationPlatform() {
+  const requested = (readFlagValue('--platform') || process.env.EAS_BUILD_PLATFORM || 'all').trim().toLowerCase();
+  const supportedPlatforms = new Set(['all', 'ios', 'android']);
+
+  if (!supportedPlatforms.has(requested)) {
+    console.error(`❌ Invalid platform \"${requested}\". Expected one of: all, ios, android`);
+    process.exit(1);
+  }
+
+  return requested;
+}
+
+const validationPlatform = resolveValidationPlatform();
+
 function parseEnvValue(rawValue) {
   const trimmed = rawValue.trim();
   if (!trimmed) return '';
@@ -52,12 +80,24 @@ loadEnvFile('.env');
 loadEnvFile('.env.local');
 
 // ─── 1. Required environment variables ────────────────────────────
-const requiredEnvVars = [
-  'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY',
-  'EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY',
+const sharedRequiredEnvVars = [
   'EXPO_PUBLIC_SUPABASE_URL',
   'EXPO_PUBLIC_SUPABASE_ANON_KEY',
   'EXPO_PUBLIC_SENTRY_DSN',
+];
+
+const platformRequiredEnvVars = {
+  all: [
+    'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY',
+    'EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY',
+  ],
+  ios: ['EXPO_PUBLIC_REVENUECAT_IOS_API_KEY'],
+  android: ['EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY'],
+};
+
+const requiredEnvVars = [
+  ...sharedRequiredEnvVars,
+  ...platformRequiredEnvVars[validationPlatform],
 ];
 
 const recommendedEnvVars = [
@@ -68,7 +108,7 @@ const warnings = [];
 
 const missingRequired = requiredEnvVars.filter((k) => !process.env[k]?.trim());
 if (missingRequired.length > 0) {
-  console.error('❌ Missing required env vars:', missingRequired.join(', '));
+  console.error(`❌ Missing required env vars for ${validationPlatform} validation:`, missingRequired.join(', '));
   hasErrors = true;
 }
 
@@ -177,6 +217,6 @@ if (hasErrors) {
     process.exit(1);
   }
 } else {
-  console.log('✅ Deployment validation passed');
+  console.log(`✅ Deployment validation passed for ${validationPlatform}`);
 }
 process.exit(hasErrors ? 1 : 0);

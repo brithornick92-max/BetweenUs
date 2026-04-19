@@ -13,7 +13,7 @@ import {
   Platform, 
   StatusBar,
   ActivityIndicator,
-  Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -40,14 +40,16 @@ export default function PairingScanScreen({ navigation }) {
   const [scanned, setScanned] = useState(false);
   const [status, setStatus] = useState("Position your partner's code in view.");
   const [repairingExistingCouple, setRepairingExistingCouple] = useState(false);
+  const [showPairedGuard, setShowPairedGuard] = useState(false);
   const activeRef = useRef(true);
   const scanInFlightRef = useRef(false);
   const completedRef = useRef(false);
+  const guardResolveRef = useRef(null);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
     background: colors.background || '#070509', 
-    surface: isDark ? '#131016' : '#FFFFFF',
+    surface: colors.surface || (isDark ? '#131016' : '#FFFFFF'),
     primary: colors.primary || '#D2121A', // Sexy Red
     text: colors.text || '#F2E9E6',
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
@@ -91,6 +93,20 @@ export default function PairingScanScreen({ navigation }) {
     setScanned(true);
 
     try {
+      // Guard: warn if already paired to prevent accidental re-pair
+      const existingCouple = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+      if (existingCouple) {
+        const proceed = await new Promise((resolve) => {
+          guardResolveRef.current = resolve;
+          setShowPairedGuard(true);
+        });
+        if (!proceed) {
+          scanInFlightRef.current = false;
+          setScanned(false);
+          return;
+        }
+      }
+
       const session = await ensureCloudSession();
       if (!session) {
         scanInFlightRef.current = false;
@@ -195,7 +211,36 @@ export default function PairingScanScreen({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: '#000' }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      
+
+      {/* ─── Already-paired guard modal ─── */}
+      <Modal visible={showPairedGuard} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalBadge}>
+              <Icon name="warning-outline" size={24} color={t.primary} />
+            </View>
+            <Text style={styles.modalTitle}>Already paired</Text>
+            <Text style={styles.modalBody}>
+              You’re currently connected to a partner. Scanning a new code will replace your existing pairing for both of you.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSecondary]}
+                onPress={() => { setShowPairedGuard(false); guardResolveRef.current?.(false); }}
+              >
+                <Text style={styles.modalButtonSecondaryText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                onPress={() => { setShowPairedGuard(false); guardResolveRef.current?.(true); }}
+              >
+                <Text style={styles.modalButtonPrimaryText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <CameraView
         style={StyleSheet.absoluteFill}
         onBarcodeScanned={handleScan}
@@ -388,7 +433,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
   },
   modalCard: {
-    backgroundColor: '#131016',
+    backgroundColor: t.surface,
     borderRadius: 28,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
@@ -447,7 +492,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalButtonPrimary: {
-    backgroundColor: '#D2121A',
+    backgroundColor: t.primary,
   },
   modalButtonSecondary: {
     backgroundColor: 'rgba(255,255,255,0.06)',

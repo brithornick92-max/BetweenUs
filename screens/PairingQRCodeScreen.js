@@ -11,7 +11,7 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   ActivityIndicator, 
-  Alert,
+  Modal,
   Platform, 
   StatusBar,
 } from 'react-native';
@@ -42,8 +42,12 @@ export default function PairingQRCodeScreen({ navigation }) {
   const [status, setStatus] = useState('Preparing secure link...');
   const [phase, setPhase] = useState('init');
   const [repairingExistingCouple, setRepairingExistingCouple] = useState(false);
+  const [showPairedGuard, setShowPairedGuard] = useState(false);
+  const [unlinkError, setUnlinkError] = useState(false);
+  const [successModal, setSuccessModal] = useState(null); // null | { isRepair: bool }
   const activeRef = useRef(true);
   const preparingRef = useRef(false);
+  const pairedGuardResolveRef = useRef(null);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -86,6 +90,22 @@ export default function PairingQRCodeScreen({ navigation }) {
     preparingRef.current = true;
     try {
       if (!activeRef.current) return;
+
+      // Guard: warn if already paired (non-repair) to prevent accidental re-pair
+      const existingCouple = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+      if (existingCouple) {
+        const proceed = await new Promise((resolve) => {
+          pairedGuardResolveRef.current = resolve;
+          setShowPairedGuard(true);
+        });
+        if (!proceed || !activeRef.current) {
+          preparingRef.current = false;
+          if (navigation.canGoBack()) navigation.goBack();
+          else navigation.navigate('Settings');
+          return;
+        }
+      }
+
       setQrPayload(null);
       setStatus('Preparing secure link...');
       setPhase('init');
@@ -152,23 +172,7 @@ export default function PairingQRCodeScreen({ navigation }) {
       setPhase('done');
       setTimeout(() => {
         if (!activeRef.current) return;
-        Alert.alert(
-          isRepairFlow ? 'Secure Pairing Restored' : 'Pairing Complete',
-          isRepairFlow
-            ? 'This device has restored the shared encryption key. Your partner should see the same success confirmation now.'
-            : 'Your private space is now linked on both devices.',
-          [{
-            text: 'Continue',
-            onPress: () => {
-              if (!activeRef.current) return;
-              if (navigation.canGoBack()) {
-                navigation.goBack();
-              } else {
-                navigation.navigate('Settings');
-              }
-            },
-          }]
-        );
+        setSuccessModal({ isRepair: isRepairFlow });
       }, 50);
     } catch (error) {
       if (!activeRef.current) return;
@@ -200,8 +204,16 @@ export default function PairingQRCodeScreen({ navigation }) {
       return;
     }
 
+    // Show in-app modal instead of native Alert
+    const proceed = await new Promise((resolve) => {
+      pairedGuardResolveRef.current = resolve;
+      setUnlinkError(false);
+      setShowPairedGuard('unlink');
+    });
+    if (!proceed) return;
+
     try {
-      try { await CoupleService.unlinkFromCouple(); } catch (_) {}
+      await CoupleService.unlinkFromCouple();
       const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
       if (coupleId) {
         await CoupleKeyService.clearCoupleKey(coupleId);
@@ -211,7 +223,11 @@ export default function PairingQRCodeScreen({ navigation }) {
       await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
       await clearCouplePremiumCache();
-    } catch (_) {}
+    } catch (e) {
+      setUnlinkError(true);
+      setShowPairedGuard('unlink-error');
+      return;
+    }
     if (navigation.canGoBack()) navigation.goBack();
     else navigation.navigate('Settings');
   };
@@ -223,7 +239,86 @@ export default function PairingQRCodeScreen({ navigation }) {
         colors={isDark ? ['#120206', t.background, t.background] : [t.surfaceSecondary, t.background, t.background]} 
         style={StyleSheet.absoluteFill} 
       />
-      
+
+      {/* ─── SUCCESS MODAL ─── */}
+      <Modal visible={!!successModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalIconWrap, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+              <Icon name="checkmark-circle-outline" size={28} color={t.primary} />
+            </View>
+            <Text style={[styles.modalTitle, { color: t.text }]}>
+              {successModal?.isRepair ? 'Secure Pairing Restored' : 'Pairing Complete'}
+            </Text>
+            <Text style={[styles.modalBody, { color: t.subtext }]}>
+              {successModal?.isRepair
+                ? 'This device has restored the shared encryption key. Your partner should see the same success confirmation now.'
+                : 'Your private space is now linked on both devices.'}
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: t.primary }]}
+                onPress={() => {
+                  setSuccessModal(null);
+                  if (navigation.canGoBack()) navigation.goBack();
+                  else navigation.navigate('Settings');
+                }}
+              >
+                <Text style={{ color: '#FFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── ALREADY-PAIRED / UNLINK GUARD MODAL ─── */}}
+      <Modal visible={!!showPairedGuard} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalIconWrap, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+              <Icon name={showPairedGuard === 'unlink-error' ? 'alert-circle-outline' : 'warning-outline'} size={28} color={t.primary} />
+            </View>
+            <Text style={[styles.modalTitle, { color: t.text }]}>
+              {showPairedGuard === 'unlink' ? 'Unpair from partner?' : showPairedGuard === 'unlink-error' ? 'Unpair failed' : 'Already paired'}
+            </Text>
+            <Text style={[styles.modalBody, { color: t.subtext }]}>
+              {showPairedGuard === 'unlink'
+                ? 'This will disconnect both of you. Shared data will no longer be accessible.'
+                : showPairedGuard === 'unlink-error'
+                ? 'Could not unpair at this time. Please check your connection and try again.'
+                : 'You\u2019re currently connected to a partner. Generating a new code will replace your existing pairing for both of you.'}
+            </Text>
+            {showPairedGuard === 'unlink-error' ? (
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }]}
+                  onPress={() => setShowPairedGuard(false)}
+                >
+                  <Text style={{ color: t.text, fontFamily: SYSTEM_FONT, fontWeight: '600' }}>OK</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }]}
+                  onPress={() => { setShowPairedGuard(false); pairedGuardResolveRef.current?.(false); }}
+                >
+                  <Text style={{ color: t.text, fontFamily: SYSTEM_FONT, fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalBtn, styles.modalBtnDestructive]}
+                  onPress={() => { setShowPairedGuard(false); pairedGuardResolveRef.current?.(true); }}
+                >
+                  <Text style={{ color: '#FFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>
+                    {showPairedGuard === 'unlink' ? 'Unpair' : 'Continue'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+
       <SafeAreaView style={styles.safeArea}>
         {/* Navigation */}
         <TouchableOpacity 
@@ -438,5 +533,60 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.5,
     opacity: 0.6,
-  }
+  },
+  // ─── Guard modal ───
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'center',
+    padding: SPACING.xl,
+  },
+  modalCard: {
+    borderRadius: 28,
+    padding: SPACING.xxl,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.35, shadowRadius: 40 },
+      android: { elevation: 12 },
+    }),
+  },
+  modalIconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalBody: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+  },
+  modalBtn: {
+    flex: 1,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBtnDestructive: {
+    backgroundColor: '#D2121A',
+  },
 });

@@ -484,7 +484,7 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
     marginBottom: 20,
   },
   headerEye: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold' }),
+    fontFamily: SYSTEM_FONT,
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 2,

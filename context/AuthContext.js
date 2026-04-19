@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import ConnectionMemory from '../utils/connectionMemory';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import { cloudSyncStorage } from '../utils/storage';
+import { cloudSyncStorage , storage, STORAGE_KEYS } from '../utils/storage';
 import Database from '../services/db/Database';
 import * as FileSystem from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
@@ -16,7 +16,6 @@ import ExperimentService from '../services/ExperimentService';
 import CrashReporting from '../services/CrashReporting';
 import PushNotificationService from '../services/PushNotificationService';
 import { supabase } from '../config/supabase';
-import { storage, STORAGE_KEYS } from '../utils/storage';
 import { NicknameEngine, RelationshipSeasons, SoftBoundaries } from '../services/PolishEngine';
 import { ContentIntensityMatcher, RelationshipClimateState } from '../services/ConnectionEngine';
 

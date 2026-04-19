@@ -24,6 +24,7 @@ import Database from '../db/Database';
 import E2EEncryption from '../e2ee/E2EEncryption';
 import EncryptedAttachments from '../e2ee/EncryptedAttachments';
 import PushNotificationService from '../PushNotificationService';
+import PartnerNotifications from '../PartnerNotifications';
 import CoupleKeyService from '../security/CoupleKeyService';
 import SyncEngine from '../sync/SyncEngine';
 import naclUtil from 'tweetnacl-util';
@@ -597,9 +598,14 @@ const DataLayer = {
   // ─── Journal ──────────────────────────────────────────────────
 
   async saveJournalEntry({ title, body, mood, tags, isPrivate = false, imageUri = null }) {
-    // Private entries always use device key; shared entries use couple key
-    const kt = isPrivate ? deviceTier() : keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    await ensureLocalIdentityState();
+
+    // Private entries always use device key; shared entries must resolve
+    // the active write tier and couple-key availability first.
+    const { keyTier: kt, coupleId } = isPrivate
+      ? { keyTier: deviceTier(), coupleId: null }
+      : await resolveLocalWriteTier();
+    const cid = kt === 'couple' ? coupleId : null;
     const titleCipher = await E2EEncryption.encryptString(title, kt, cid);
     const bodyCipher = await E2EEncryption.encryptString(body, kt, cid);
 
@@ -609,7 +615,7 @@ const DataLayer = {
 
     const row = await Database.insertJournal({
       user_id: _userId,
-      couple_id: isPrivate ? null : _coupleId,
+      couple_id: isPrivate ? null : coupleId,
       title_cipher: titleCipher,
       body_cipher: bodyCipher,
       mood,       // unencrypted coarse label for local calendar/filters
@@ -621,14 +627,25 @@ const DataLayer = {
     });
 
     debouncedPush();
+
+    // Notify partner when sharing a journal entry (not private)
+    if (!isPrivate) {
+      PartnerNotifications.journalShared().catch(() => {});
+    }
+
     return row;
   },
 
   async updateJournalEntry(id, { title, body, mood, tags, isPrivate, imageUri }) {
+    await ensureLocalIdentityState();
+
     const updates = {};
-    // Use device key for private entries, couple key for shared
-    const kt = isPrivate ? deviceTier() : keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    // Use device key for private entries; shared updates must resolve
+    // the active write tier and couple-key availability first.
+    const { keyTier: kt, coupleId } = isPrivate === true
+      ? { keyTier: deviceTier(), coupleId: null }
+      : await resolveLocalWriteTier();
+    const cid = kt === 'couple' ? coupleId : null;
 
     // When toggling private→shared, we must re-encrypt title and body
     // with the couple key even if the caller didn't provide new values.
@@ -649,7 +666,7 @@ const DataLayer = {
     if (tags !== undefined) updates.tags = tags;
     if (tags !== undefined) updates.tags_cipher = tags?.length ? await E2EEncryption.encryptJson(tags, kt, cid) : null;
     if (isPrivate !== undefined) updates.is_private = isPrivate;
-    if (isPrivate !== undefined) updates.couple_id = isPrivate ? null : _coupleId;
+    if (isPrivate !== undefined) updates.couple_id = isPrivate ? null : coupleId;
     if (imageUri !== undefined) updates.photo_uri = imageUri ?? null;
 
     const row = await Database.updateJournal(id, updates);
@@ -679,7 +696,7 @@ const DataLayer = {
     // Detect which key tier the envelope was encrypted with
     const info = E2EEncryption.inspect(row.title_cipher);
     const kt = info?.keyTier || keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
     try {
       const decryptedMood = row.mood_cipher
         ? await E2EEncryption.decryptString(row.mood_cipher, kt, cid).catch(() => null)

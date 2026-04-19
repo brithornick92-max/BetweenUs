@@ -14,7 +14,7 @@ import {
   Alert,
   StatusBar,
   Dimensions,
-} from 'react-native';
+ Share } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
@@ -32,7 +32,6 @@ import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage, storage, STORAGE_KEYS } from '../utils/storage';
 import { SPACING } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
-import { Share } from 'react-native';
 import MomentSignal from '../components/MomentSignal';
 import RelationshipClimate from '../components/RelationshipClimate';
 import SurpriseTonight from '../components/SurpriseTonight';
@@ -108,11 +107,10 @@ function normalizePrompt(p) {
 
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
-  { label: 'Journal', icon: 'book-outline', key: 'journal', premium: false, color: '#7E4FA3' },
+  { label: 'Journal', icon: 'book-outline', key: 'journal', premium: false, color: '#C14953' },
   { label: 'Quiz', icon: 'help-circle-outline', key: 'quiz', premium: false, color: '#D4AA7E' }, // Champagne gold
-  { label: 'Ritual', icon: 'flame-outline', key: 'ritual', premium: true, color: '#7E4FA3' }, // Velvet plum
-  { label: 'Jokes', icon: 'happy-outline', key: 'jokes', premium: true, color: '#D4AA7E' }, // Champagne gold
-  { label: 'Intimacy', icon: 'flame', key: 'intimacy', premium: true, color: '#C14953' }, // Deep rose
+  { label: 'Memories', icon: 'bookmark-outline', key: 'memories', premium: false, color: '#9B7FCA' }, // Soft lavender
+  { label: 'Intimacy', icon: 'flame', key: 'intimacy', premium: true, color: '#D2121A' }, // Sexy red — unlocks with premium
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -161,7 +159,7 @@ export default function HomeScreen({ navigation }) {
   const [answeredCount, setAnsweredCount] = useState(0);
   const remainingFreePrompts = usageStatus?.remaining?.prompts ?? 1;
   const canWritePrompt = isPremium || !!myAnswer.trim() || remainingFreePrompts > 0;
-  const { show: disclosure } = useProgressiveDisclosure(answeredCount);
+  const disclosure = useProgressiveDisclosure(answeredCount);
 
   // Entrance animations
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -258,10 +256,12 @@ export default function HomeScreen({ navigation }) {
   }, [user, todayPrompt, loadTodayPrompt]);
 
   useEffect(() => {
+    let active = true;
     (async () => {
       if (!promptReady) return;
       try {
         const row = await DataLayer.getPromptAnswerForToday(prompt.id);
+        if (!active) return;
         if (row?.answer) {
           setMyAnswer(row.answer);
           setPartnerAnswer(row?.partnerAnswer || '');
@@ -269,16 +269,20 @@ export default function HomeScreen({ navigation }) {
         }
 
         const saved = await promptStorage.getAnswer(todayKey, prompt.id);
+        if (!active) return;
         setMyAnswer(saved?.content || saved?.answer || '');
         setPartnerAnswer(row?.partnerAnswer || '');
       } catch (e) { if (__DEV__) console.warn('[Home] prompt answer fetch:', e?.message); }
     })();
+    return () => { active = false; };
   }, [prompt.id, promptReady, todayKey]);
 
   useEffect(() => {
+    let active = true;
     (async () => {
       try {
         const past = await DataLayer.getPromptAnswers({ limit: 50 });
+        if (!active) return;
         const answered = (past || []).filter(r => r.answer && r.date_key !== dateKey());
         setAnsweredCount(answered.length);
         if (answered.length > 0) {
@@ -287,7 +291,8 @@ export default function HomeScreen({ navigation }) {
         }
       } catch (e) { if (__DEV__) console.warn('[Home] throwback fetch:', e?.message); }
     })();
-  }, []);
+    return () => { active = false; };
+  }, [answeredCount]);
 
   useFocusEffect(
     useCallback(() => {
@@ -552,24 +557,10 @@ export default function HomeScreen({ navigation }) {
     impact(ImpactFeedbackStyle.Light);
     if (key === 'journal') {
       navigation.navigate('JournalHome', { initialFilter: 'shared' });
-    } else if (key === 'ritual') {
-      if (!isPremium) {
-        Alert.alert(
-          `Tonight's ritual with ${partnerLabel}`,
-          `Premium unlocks guided nightly rituals you and ${partnerLabel} can do together — check-ins, gratitude, and more.`,
-          [
-            { text: 'Not Now', style: 'cancel' },
-            { text: 'Unlock Premium', onPress: () => showPaywall?.(PremiumFeature.NIGHT_RITUAL_MODE) },
-          ]
-        );
-        return;
-      }
-      navigation.navigate('NightRitual');
-    } else if (key === 'jokes') {
-      if (!isPremium) { showPaywall?.(PremiumFeature.INSIDE_JOKES); return; }
-      navigation.navigate('InsideJokes');
     } else if (key === 'quiz') {
       navigation.navigate('CouplesQuiz');
+    } else if (key === 'memories') {
+      navigation.navigate('SavedMoments');
     } else if (key === 'intimacy') {
       if (!isPremium) {
         Alert.alert(
@@ -784,7 +775,11 @@ export default function HomeScreen({ navigation }) {
             opacity: actionsAnim,
             transform: [{ translateY: actionsAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }],
           }]}>
-            {ACTIONS.map((action, index) => {
+            {ACTIONS.filter(action => {
+              // Hide locked premium widgets until the user has some engagement (3+ answers)
+              if (action.premium && !isPremium && answeredCount < 3) return false;
+              return true;
+            }).map((action, index) => {
               const locked = action.premium && !isPremium;
               const badge = 0;
 

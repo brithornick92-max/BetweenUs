@@ -5,7 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
+  Modal,
   ActivityIndicator,
   Platform,
   KeyboardAvoidingView,
@@ -38,7 +38,9 @@ export default function JoinWithCodeScreen({ navigation }) {
   const [code, setCode] = useState('');
   const [phase, setPhase] = useState('input'); // input | joining | done | error
   const [statusMsg, setStatusMsg] = useState('');
+  const [showPairedGuard, setShowPairedGuard] = useState(false);
   const inputRef = useRef(null);
+  const guardResolveRef = useRef(null);
 
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -73,6 +75,16 @@ export default function JoinWithCodeScreen({ navigation }) {
     if (!trimmed) {
       Alert.alert('Enter a code', 'Paste or type the invite code your partner shared.');
       return;
+    }
+
+    // Guard: warn if already paired to prevent accidental re-pair
+    const existingCouple = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+    if (existingCouple) {
+      const proceed = await new Promise((resolve) => {
+        guardResolveRef.current = resolve;
+        setShowPairedGuard(true);
+      });
+      if (!proceed) return;
     }
 
     setPhase('joining');
@@ -146,6 +158,36 @@ export default function JoinWithCodeScreen({ navigation }) {
         colors={[colors.background, colors.background]}
         style={StyleSheet.absoluteFill}
       />
+
+      {/* ─── Already-paired guard modal ─── */}
+      <Modal visible={showPairedGuard} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalBadge}>
+              <Icon name="warning-outline" size={24} color={colors.primary} />
+            </View>
+            <Text style={styles.modalTitle}>Already paired</Text>
+            <Text style={styles.modalBody}>
+              You’re currently connected to a partner. Joining with a new code will replace your existing pairing for both of you.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSecondary]}
+                onPress={() => { setShowPairedGuard(false); guardResolveRef.current?.(false); }}
+              >
+                <Text style={[styles.modalButtonPrimaryText, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                onPress={() => { setShowPairedGuard(false); guardResolveRef.current?.(true); }}
+              >
+                <Text style={styles.modalButtonPrimaryText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={styles.header}>
@@ -448,7 +490,7 @@ const createStyles = (colors) =>
       borderColor: colors.border,
     },
     modalButtonPrimaryText: {
-      color: colors.text,
+      color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '700',
     },

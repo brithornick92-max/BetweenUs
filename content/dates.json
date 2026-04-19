@@ -146,11 +146,11 @@
     },
     {
       "id": "d039",
-      "title": "Love Letter Scavenger Hunt",
+      "title": "Message Scavenger Hunt",
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Write love notes",
+        "Write thoughtful notes",
         "Hide around house",
         "Take turns finding messages",
         "End with biggest surprise"
@@ -450,7 +450,7 @@
     },
     {
       "id": "d246",
-      "title": "Morning Love Notes Coffee",
+      "title": "Morning Affirmation Coffee",
       "minutes": 60,
       "location": "home",
       "steps": [
@@ -1106,13 +1106,13 @@
     },
     {
       "id": "d050",
-      "title": "Comedy Show Date Night",
+      "title": "Live Show Date Night",
       "minutes": 120,
       "location": "out",
       "steps": [
-        "Find local comedy show",
+        "Find a local live show",
         "Laugh until you cry",
-        "Quote favorite jokes",
+        "Recall your favorite moments from the set",
         "Keep mood light all night"
       ],
       "heat": 2,
@@ -1832,7 +1832,7 @@
       "steps": [
         "Get a long piece of paper or poster board",
         "Map every milestone from day one",
-        "Add inside jokes and turning points",
+        "Add recurring phrases and turning points",
         "Display it where you'll see it daily"
       ],
       "heat": 1,
@@ -2152,7 +2152,7 @@
       "steps": [
         "Sit together and write your love story",
         "Include how you met and fell in love",
-        "Add favorite memories and inside jokes",
+        "Add favorite memories and recurring phrases",
         "Read the finished story aloud together"
       ],
       "heat": 1,
@@ -2402,11 +2402,11 @@
     },
     {
       "id": "d311",
-      "title": "Love Letter Time Capsule",
+      "title": "Time Capsule Letters",
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Write deep love letters to each other",
+        "Write deep letters to each other",
         "Include current hopes and fears",
         "Seal in a box with meaningful objects",
         "Set a date to open it together"
@@ -5682,13 +5682,13 @@
     },
     {
       "id": "d419",
-      "title": "Sunrise Hike and Love Letters",
+      "title": "Sunrise Hike and Letters",
       "minutes": 150,
       "location": "out",
       "steps": [
         "Wake early and pack a small breakfast",
         "Hike to a scenic overlook for sunrise",
-        "Read love letters you wrote the night before",
+        "Read the letters you wrote the night before",
         "Take a photo to remember the moment"
       ],
       "heat": 1,
@@ -6146,11 +6146,11 @@
     },
     {
       "id": "d448",
-      "title": "Love Letter Scavenger Walk",
+      "title": "Message Scavenger Walk",
       "minutes": 90,
       "location": "out",
       "steps": [
-        "Write 5 short love notes before the date",
+        "Write 5 short surprise notes before the date",
         "Hide them along a walking route you both enjoy",
         "Walk together and 'discover' the notes along the way",
         "Read the final one together at a special spot"
@@ -8162,13 +8162,13 @@
     },
     {
       "id": "d574",
-      "title": "Comedy Club Date",
+      "title": "Live Performance Date",
       "minutes": 120,
       "location": "out",
       "steps": [
-        "Pick a local comedy show with comics you know nothing about",
+        "Pick a local live performance you know little about",
         "Order one drink or snack each and rate the room before the set starts",
-        "Notice which jokes land differently for each of you",
+        "Notice which stories and punchlines land differently for each of you",
         "Walk home trading your favorite line and your least funny moment"
       ],
       "heat": 2,

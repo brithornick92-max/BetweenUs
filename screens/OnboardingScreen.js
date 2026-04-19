@@ -4,7 +4,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   Alert,
   Modal,
   TouchableOpacity,
@@ -20,6 +19,7 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import ReAnimated, { FadeInDown } from 'react-native-reanimated';
 import naclUtil from 'tweetnacl-util';
@@ -56,14 +56,14 @@ export default function OnboardingScreen({ navigation }) {
   
   // STRICT Apple Editorial Theme Map
   const t = useMemo(() => ({
-    background: isDark ? '#000000' : '#F2F2F7', 
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#E5E5EA',
+    background: colors.background,
+    surface: colors.surface || (isDark ? '#1C1C1E' : '#FFFFFF'),
+    surfaceSecondary: colors.surface2 || (isDark ? '#2C2C2E' : '#E5E5EA'),
     primary: colors.primary,
     accent: colors.accent || '#D4AA7E',
-    text: isDark ? '#FFFFFF' : '#000000',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+    text: colors.text,
+    subtext: colors.textMuted || (isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)'),
+    border: colors.border || (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'),
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
@@ -181,7 +181,7 @@ export default function OnboardingScreen({ navigation }) {
       AnalyticsService.trackEvent(EVENT_NAMES.ONBOARDING_STARTED);
       const timer = setTimeout(() => {
         transitionTo(1);
-      }, 4000); // 4 seconds for Pulse & Quote
+      }, 12000); // 12 seconds — user can tap Get Started to skip
       return () => clearTimeout(timer);
     }
   }, [step]);
@@ -333,7 +333,49 @@ export default function OnboardingScreen({ navigation }) {
     }
   };
 
-  const renderIntro = () => <HeartbeatEntry />;
+  const renderIntro = () => (
+    <View style={{ flex: 1 }}>
+      <HeartbeatEntry />
+      <ReAnimated.View
+        entering={FadeInDown.delay(1800).duration(700).springify()}
+        style={{
+          position: 'absolute',
+          bottom: 80,
+          left: 0,
+          right: 0,
+          paddingHorizontal: SPACING.xl,
+          alignItems: 'center',
+          gap: 14,
+        }}
+      >
+        {[
+          { icon: 'chatbubbles-outline', text: 'Daily prompts to spark real conversations' },
+          { icon: 'calendar-outline', text: 'Plan dates and build shared memories' },
+          { icon: 'heart-outline', text: 'A private space that grows with you' },
+        ].map((item) => (
+          <View key={item.text} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Icon name={item.icon} size={18} color={t.primary} />
+            <Text style={{ fontSize: 15, color: t.text, fontWeight: '500', flex: 1 }}>{item.text}</Text>
+          </View>
+        ))}
+        <TouchableOpacity
+          onPress={() => transitionTo(1)}
+          activeOpacity={0.75}
+          style={{
+            marginTop: 10,
+            backgroundColor: t.text,
+            borderRadius: 14,
+            paddingVertical: 14,
+            paddingHorizontal: 40,
+            alignSelf: 'stretch',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: t.surface, fontSize: 16, fontWeight: '700' }}>Get Started</Text>
+        </TouchableOpacity>
+      </ReAnimated.View>
+    </View>
+  );
 
   const renderYourStory = () => (
     <KeyboardAvoidingView 
@@ -649,6 +691,15 @@ export default function OnboardingScreen({ navigation }) {
           >
             <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => { Keyboard.dismiss(); transitionTo(3); }}
+            style={{ marginTop: 16, alignItems: 'center' }}
+            activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel="Skip quiz for now"
+          >
+            <Text style={styles.skipLink}>Skip for now</Text>
+          </TouchableOpacity>
         </ReAnimated.View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -838,6 +889,15 @@ export default function OnboardingScreen({ navigation }) {
           >
             <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => { Keyboard.dismiss(); transitionTo(4); }}
+            style={{ marginTop: 16, alignItems: 'center' }}
+            activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel="Skip personalization for now"
+          >
+            <Text style={styles.skipLink}>Skip for now</Text>
+          </TouchableOpacity>
         </ReAnimated.View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -879,21 +939,21 @@ export default function OnboardingScreen({ navigation }) {
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={styles.joinCodeButton}
+              style={[styles.primaryButtonTouch, { backgroundColor: 'transparent', borderWidth: 1, borderColor: t.border, marginTop: 12 }]}
+              onPress={async () => { await finalizeOnboarding(); }}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel="Skip pairing and go to app"
+            >
+              <Text style={[styles.primaryButtonText, { color: t.text }]}>I'll link later</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.joinCodeButton, { marginTop: 12 }]}
               onPress={() => navigation.navigate('JoinWithCode')}
               activeOpacity={0.7}
             >
               <Text style={styles.joinCodeButtonText}>I have a code</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              onPress={async () => {
-                  await finalizeOnboarding();
-              }}
-              style={{ marginTop: 40 }}
-              activeOpacity={0.6}
-            >
-              <Text style={styles.skipLink}>I'll link later</Text>
             </TouchableOpacity>
           </ReAnimated.View>
         ) : (

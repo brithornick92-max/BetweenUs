@@ -6,9 +6,6 @@ import { NavigationContainer, createNavigationContainerRef } from "@react-naviga
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { AppState, View, Text } from "react-native";
-
-// Keep splash visible until fonts + init complete
-SplashScreen.preventAutoHideAsync();
 import { useFonts } from "expo-font";
 import {
   Lato_400Regular,
@@ -24,7 +21,6 @@ import BiometricVault from "./services/security/BiometricVault";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AppProvider, useAppContext } from "./context/AppContext";
 import { MemoryProvider } from "./context/MemoryContext";
-import { RitualProvider } from "./context/RitualContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ContentProvider } from "./context/ContentContext";
 import { SubscriptionProvider } from "./context/SubscriptionContext";
@@ -38,6 +34,9 @@ import { addNotificationResponseListener } from "./utils/notifications";
 import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
 import { cloudSyncStorage, storage, STORAGE_KEYS } from "./utils/storage";
+
+// Keep splash visible until fonts + init complete
+SplashScreen.preventAutoHideAsync();
 
 const isLightweightDevMode = __DEV__ && process.env.EXPO_PUBLIC_LIGHTWEIGHT_DEV === "1";
 
@@ -179,6 +178,14 @@ function AppContent() {
   const { state } = useAppContext();
   const { isPremiumEffective: isPremium, paywallVisible, paywallFeature } = useEntitlements();
   const { navigationTheme, isDark } = useTheme();
+  const navTheme = useMemo(
+    () => ({
+      dark: navigationTheme.dark,
+      colors: navigationTheme.colors,
+      fonts: navigationTheme.fonts,
+    }),
+    [navigationTheme]
+  );
 
   const [isLocked, setIsLocked] = useState(false);
   const [navReady, setNavReady] = useState(false);
@@ -409,15 +416,6 @@ function AppContent() {
     },
   };
 
-  const navTheme = useMemo(
-    () => ({
-      dark: navigationTheme.dark,
-      colors: navigationTheme.colors,
-      fonts: navigationTheme.fonts,
-    }),
-    [navigationTheme]
-  );
-
   return (
     <NavigationContainer
       linking={linking}
@@ -440,6 +438,7 @@ function AppContent() {
 }
 
 function App() {
+  const autoClearCleanupRef = useRef(null);
   const [fontsLoaded] = useFonts({
     "Lato-Regular": Lato_400Regular,
     Lato_400Regular: Lato_400Regular,
@@ -457,10 +456,12 @@ function App() {
 
   useEffect(() => {
     const unregisterAutoClearDecryptedCache = registerAutoClearDecryptedCache();
+    autoClearCleanupRef.current = unregisterAutoClearDecryptedCache;
 
     if (isLightweightDevMode) {
       return () => {
         unregisterAutoClearDecryptedCache?.();
+        autoClearCleanupRef.current = null;
       };
     }
 
@@ -479,7 +480,11 @@ function App() {
     Promise.race([startupTasks, timeout])
       .catch((e) => CrashReporting.captureException(e, { source: 'startup_init' }))
       .finally(() => clearTimeout(timeoutId));
-    return () => getAnalyticsService().destroy();
+    return () => {
+      unregisterAutoClearDecryptedCache?.();
+      autoClearCleanupRef.current = null;
+      getAnalyticsService().destroy();
+    };
   }, []);
 
   if (!fontsLoaded) return null;
@@ -495,11 +500,9 @@ function App() {
                 <DataProvider>
                   <ContentProvider>
                     <MemoryProvider>
-                      <RitualProvider>
                         <ThemeProvider>
                           <AppContent />
                         </ThemeProvider>
-                      </RitualProvider>
                     </MemoryProvider>
                   </ContentProvider>
                 </DataProvider>
@@ -511,7 +514,8 @@ function App() {
       </ErrorBoundary>
     );
   } catch (error) {
-          unregisterAutoClearDecryptedCache?.();
+    autoClearCleanupRef.current?.();
+    autoClearCleanupRef.current = null;
     logError('app_init', error);
     SplashScreen.hideAsync().catch(() => {});
     return (

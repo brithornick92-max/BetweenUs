@@ -166,9 +166,9 @@ export default function SavedMomentsScreen() {
   const loadEntries = useCallback(async () => {
     try {
       const [promptRows, memoryRows, journalRows] = await Promise.all([
-        DataLayer.getPromptAnswers({ limit: 500 }),
-        DataLayer.getMemories({ limit: 500 }),
-        DataLayer.getJournalEntries({ limit: 500, visibility: 'shared' }),
+        DataLayer.getPromptAnswers({ limit: 50 }),
+        DataLayer.getMemories({ limit: 50 }),
+        DataLayer.getJournalEntries({ limit: 50, visibility: 'shared' }),
       ]);
 
       const merged = [

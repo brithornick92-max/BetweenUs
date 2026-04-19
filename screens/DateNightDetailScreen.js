@@ -13,6 +13,7 @@ import {
   Dimensions,
   StatusBar
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import Icon from '../components/Icon';
@@ -188,18 +189,28 @@ export default function DateNightDetailScreen({ route, navigation }) {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  const toggleTimer = () => {
-    impact(ImpactFeedbackStyle.Medium);
-    setTimerActive((prev) => {
-      const next = !prev;
-      if (next) {
-        timerRef.current = setInterval(() => { setTimeElapsed((s) => s + 1); }, 1000);
-      } else {
+  // Drive the interval from a dedicated effect so it's never started
+  // inside a setState updater (which can run multiple times in React 18).
+  useEffect(() => {
+    if (!timerActive) {
+      if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      return next;
-    });
+      return;
+    }
+    timerRef.current = setInterval(() => setTimeElapsed((s) => s + 1), 1000);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [timerActive]);
+
+  const toggleTimer = () => {
+    impact(ImpactFeedbackStyle.Medium);
+    setTimerActive((prev) => !prev);
   };
 
   const formatTime = (seconds) => {
@@ -243,10 +254,10 @@ export default function DateNightDetailScreen({ route, navigation }) {
   if (!date) return null;
 
   return (
-    <View style={[styles.container, { backgroundColor: t.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      <GlowOrb color="#D2121A" size={400} top={-100} left={SCREEN_WIDTH - 200} opacity={0.12} />
-      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={650} left={-100} opacity={0.08} />
+      <GlowOrb color={t.primary} size={400} top={-100} left={SCREEN_WIDTH - 200} opacity={0.12} />
+      <GlowOrb color={isDark ? 'rgba(255,255,255,0.5)' : t.background} size={300} top={650} left={-100} opacity={0.08} />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
@@ -299,7 +310,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
             </Text>
           ) : null}
           <TouchableOpacity onPress={handleSchedule} activeOpacity={0.9}>
-            <LinearGradient colors={[t.primary, "#8E0D2C"]} style={styles.scheduleBtn}>
+            <LinearGradient colors={[t.primary, t.primaryMuted || '#8E0D2C']} style={styles.scheduleBtn}>
               <Icon name="calendar-outline" size={20} color="#FFF" />
               <Text style={styles.scheduleBtnText}>Schedule Moment</Text>
             </LinearGradient>
@@ -374,7 +385,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
         
         <View style={{ height: 100 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -18,9 +18,9 @@
  *   betweenus://auth-callback           → AuthCallback (existing)
  */
 
-let _navigationRef = null;
-
 import CrashReporting from './CrashReporting';
+
+let _navigationRef = null;
 
 // Only allow safe characters in deep link ID parameters
 const SAFE_ID_RE = /^[a-zA-Z0-9_\-:.]{1,128}$/;
@@ -42,10 +42,6 @@ const ROUTE_MAP = {
     screen: 'PromptAnswer',
     params: { promptId: _sanitizeId(params.id) },
   }),
-  'ritual': () => ({
-    screen: 'NightRitual',
-    params: {},
-  }),
   'calendar': () => ({
     screen: 'MainTabs',
     params: { screen: 'Calendar' },
@@ -60,6 +56,10 @@ const ROUTE_MAP = {
   }),
   'pair': () => ({
     screen: 'PairingQRCode',
+    params: {},
+  }),
+  'home': () => ({
+    screen: 'MainTabs',
     params: {},
   }),
 };
@@ -126,8 +126,17 @@ const DeepLinkHandler = {
       }
 
       const rawId = data.id || data.noteId || data.promptId || data.dateId;
+      const sanitizedId = rawId ? _sanitizeId(String(rawId)) : null;
+
+      // Routes that require an ID — bail if ID is missing or failed sanitization
+      const ID_REQUIRED_ROUTES = new Set(['love-note', 'prompt', 'date']);
+      if (ID_REQUIRED_ROUTES.has(data.route) && !sanitizedId) {
+        CrashReporting.captureMessage(`Notification route '${data.route}' missing required id`, 'warning');
+        return false;
+      }
+
       const { screen, params } = handler({
-        id: rawId ? _sanitizeId(String(rawId)) : null,
+        id: sanitizedId,
       });
       // Only merge known-safe params — don't pass arbitrary notification data to screens
       _navigationRef.navigate(screen, params);

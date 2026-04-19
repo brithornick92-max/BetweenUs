@@ -1,3 +1,15 @@
+import PreferenceEngine from '../../services/PreferenceEngine';
+import {
+  RelationshipSeasons,
+  SoftBoundaries,
+  NicknameEngine,
+} from '../../services/PolishEngine';
+import {
+  ContentIntensityMatcher,
+  ClimateInfluenceRouter,
+  RelationshipClimateState,
+} from '../../services/ConnectionEngine';
+
 jest.mock('../../services/PolishEngine', () => ({
   RelationshipSeasons: {
     get: jest.fn(),
@@ -25,18 +37,6 @@ jest.mock('../../services/ConnectionEngine', () => ({
     get: jest.fn(),
   },
 }));
-
-import PreferenceEngine from '../../services/PreferenceEngine';
-import {
-  RelationshipSeasons,
-  SoftBoundaries,
-  NicknameEngine,
-} from '../../services/PolishEngine';
-import {
-  ContentIntensityMatcher,
-  ClimateInfluenceRouter,
-  RelationshipClimateState,
-} from '../../services/ConnectionEngine';
 
 const ENERGY_PARAMS = {
   low: { maxHeat: 2, preferShort: true, tones: ['soft', 'cozy', 'gentle'] },

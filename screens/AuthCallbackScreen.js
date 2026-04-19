@@ -100,9 +100,14 @@ export default function AuthCallbackScreen({ navigation }) {
         if (!active) return;
         setChecking(false);
         if (sessionFound) {
-          setTimeout(() => {
+          const t = setTimeout(() => {
+            if (!active) return;
             navigation.navigate('SyncSetup');
           }, 800);
+          // Cleanup is handled by the outer `return () => { active = false; }`
+          // but we also need to clear the timer to avoid the navigation firing
+          // after unmount even when active is false at callback time.
+          void t; // captured above; parent cleanup sets active=false which guards the callback
         }
       }
     };

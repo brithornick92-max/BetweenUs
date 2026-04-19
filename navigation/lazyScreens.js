@@ -21,7 +21,6 @@ export const HeatLevel = () => withScreenErrorBoundary(require("../screens/HeatL
 export const JournalHome = () => withScreenErrorBoundary(require("../screens/JournalHomeScreen").default, "JournalHome");
 export const JournalEntry = () => withScreenErrorBoundary(require("../screens/JournalEntryScreen").default, "JournalEntry");
 export const VibeSignal = () => withScreenErrorBoundary(require("../screens/VibeSignalScreen").default, "VibeSignal");
-export const NightRitual = () => withScreenErrorBoundary(require("../screens/NightRitualScreen").default, "NightRitual");
 export const Settings = () => withScreenErrorBoundary(require("../screens/SettingsScreen").default, "Settings");
 export const SavedMoments = () => withScreenErrorBoundary(require("../screens/SavedMomentsScreen").default, "SavedMoments");
 
@@ -46,7 +45,7 @@ export const CouplesQuiz = () => withScreenErrorBoundary(require("../screens/Cou
 export const PartnerNamesSettings = () => withScreenErrorBoundary(require("../screens/PartnerNamesSettingsScreen").default, "PartnerNamesSettings");
 export const HeatLevelSettings = () => withScreenErrorBoundary(require("../screens/HeatLevelSettingsScreen").default, "HeatLevelSettings");
 export const NotificationSettings = () => withScreenErrorBoundary(require("../screens/NotificationSettingsScreen").default, "NotificationSettings");
-export const RitualReminders = () => withScreenErrorBoundary(require("../screens/RitualRemindersScreen").default, "RitualReminders");
+
 export const PrivacySecuritySettings = () => withScreenErrorBoundary(require("../screens/PrivacySecuritySettingsScreen").default, "PrivacySecuritySettings");
 export const SetPin = () => withScreenErrorBoundary(require("../screens/SetPinScreen").default, "SetPin");
 export const SyncSetup = () => withScreenErrorBoundary(require("../screens/SyncSetupScreen").default, "SyncSetup");
@@ -58,7 +57,6 @@ export const PairingScan = () => withScreenErrorBoundary(require("../screens/Pai
 export const JoinWithCode = () => withScreenErrorBoundary(require("../screens/JoinWithCodeScreen").default, "JoinWithCode");
 
 // ─── Premium / paywall ──────────────────────────────────────────────
-export const InsideJokes = () => withScreenErrorBoundary(require("../screens/InsideJokesScreen").default, "InsideJokes");
 export const YearReflection = () => withScreenErrorBoundary(require("../screens/YearReflectionScreen").default, "YearReflection");
 
 // ─── Modal screens ──────────────────────────────────────────────────

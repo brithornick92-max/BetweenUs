@@ -36,8 +36,12 @@ import PreferenceEngine from "../services/PreferenceEngine";
 import PromptCardDeck from "../components/PromptCardDeck";
 import { SoftBoundaries } from "../services/PolishEngine";
 import { getFilteredPromptsWithProfile, FALLBACK_PROMPT } from "../utils/contentLoader";
+import { LinearGradient } from 'expo-linear-gradient';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const SCREEN_W = SCREEN_WIDTH;
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 const HEAT_LEVELS = [
@@ -290,6 +294,15 @@ export default function PromptsScreen({ navigation }) {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={[styles.root, { backgroundColor: t.background }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+        <LinearGradient
+          colors={isDark ? [t.background, '#120206', '#0A0003', t.background] : [t.background, t.surface2 || '#F2F2F7', t.background]}
+          style={StyleSheet.absoluteFillObject}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+        />
+        <GlowOrb color={t.primary} size={460} top={-180} left={SCREEN_W - 220} opacity={isDark ? 0.18 : 0.08} />
+        <GlowOrb color={t.accent || '#D4AA7E'} size={260} top={620} left={-80} opacity={isDark ? 0.12 : 0.05} />
+        <FilmGrain opacity={0.1} />
 
         <SafeAreaView style={styles.safe} edges={["top"]}>
           {/* Editorial Header */}

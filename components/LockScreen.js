@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Animated,
-} from "react-native";
+ Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -18,7 +18,6 @@ import { verifyPin, generatePinSalt, hashPin, PIN_HASH_VERSION } from '../utils/
 import { useTheme } from "../context/ThemeContext";
 import { SPACING, TYPOGRAPHY } from "../utils/theme";
 import { storage, STORAGE_KEYS } from "../utils/storage";
-import { Platform } from "react-native";
 
 const PIN_LENGTH = 4;
 const PIN_KEY = "betweenus_app_lock_pin_v1";

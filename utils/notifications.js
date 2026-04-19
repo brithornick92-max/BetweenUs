@@ -5,7 +5,7 @@
 let Notifications = null;
 
 try {
-  // eslint-disable-next-line global-require
+   
   Notifications = require("expo-notifications");
 } catch (e) {
   Notifications = null;

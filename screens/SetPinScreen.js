@@ -9,6 +9,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   TextInput,

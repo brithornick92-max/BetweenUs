@@ -151,7 +151,7 @@ export const EntitlementsProvider = ({ children }) => {
       ]);
 
       if (error) {
-        console.warn('[Entitlements] Failed to fetch couple premium:', error.message);
+        if (__DEV__) console.warn('[Entitlements] Failed to fetch couple premium:', error.message);
         // Fallback to cache with grace window
         const cached = await _loadCachedCouplePremium();
         if (cached !== null) {
@@ -167,7 +167,7 @@ export const EntitlementsProvider = ({ children }) => {
       // Cache for offline grace window
       await _cacheCouplePremium(couplePremium);
     } catch (err) {
-      console.warn('[Entitlements] Couple premium exception:', err.message);
+      if (__DEV__) console.warn('[Entitlements] Couple premium exception:', err.message);
       const cached = await _loadCachedCouplePremium();
       if (cached !== null) {
         setIsPremiumCouple(cached);
@@ -191,7 +191,7 @@ export const EntitlementsProvider = ({ children }) => {
       });
       if (__DEV__) console.log('[Entitlements] Requested premium recompute for couple:', resolvedCoupleId);
     } catch (err) {
-      console.warn('[Entitlements] Failed to sync premium to couple:', err.message);
+      if (__DEV__) console.warn('[Entitlements] Failed to sync premium to couple:', err.message);
     }
   }, [resolvedCoupleId, isPremiumSelf, user]);
 
@@ -354,7 +354,7 @@ export const EntitlementsProvider = ({ children }) => {
     const normalizedFeatureId = normalizePremiumFeatureId(featureId);
 
     if (normalizedFeatureId === undefined) {
-      console.warn('[Entitlements] Ignoring unknown premium feature:', featureId);
+      if (__DEV__) console.warn('[Entitlements] Ignoring unknown premium feature:', featureId);
       return false;
     }
 
@@ -381,7 +381,7 @@ export const EntitlementsProvider = ({ children }) => {
       const normalizedFeatureId = normalizePremiumFeatureId(featureId);
 
       if (normalizedFeatureId === undefined) {
-        console.warn('[Entitlements] Cannot require unknown premium feature:', featureId);
+        if (__DEV__) console.warn('[Entitlements] Cannot require unknown premium feature:', featureId);
         return false;
       }
 

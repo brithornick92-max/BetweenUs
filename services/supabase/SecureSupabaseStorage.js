@@ -32,7 +32,7 @@ export const SecureSupabaseStorage = {
       // Standard single-key read
       return await SecureStore.getItemAsync(fullKey, { keychainService: SERVICE });
     } catch (error) {
-      console.error('SecureSupabaseStorage.getItem error:', error);
+      if (__DEV__) console.error('SecureSupabaseStorage.getItem error:', error);
       return null;
     }
   },
@@ -59,7 +59,7 @@ export const SecureSupabaseStorage = {
         }
       }
     } catch (error) {
-      console.error('SecureSupabaseStorage.setItem error:', error);
+      if (__DEV__) console.error('SecureSupabaseStorage.setItem error:', error);
       // Don't throw — Supabase will still work in-memory for this session
     }
   },
@@ -69,7 +69,7 @@ export const SecureSupabaseStorage = {
       await this._clearChunks(fullKey);
       await SecureStore.deleteItemAsync(fullKey, { keychainService: SERVICE });
     } catch (error) {
-      console.error('SecureSupabaseStorage.removeItem error:', error);
+      if (__DEV__) console.error('SecureSupabaseStorage.removeItem error:', error);
     }
   },
   async _clearChunks(fullKey) {

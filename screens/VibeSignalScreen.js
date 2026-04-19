@@ -9,13 +9,14 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   Text,
   TouchableOpacity,
   Animated,
   Platform,
   StatusBar,
+  Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import LiveVibeSync from '../components/LiveVibeSync';
@@ -29,7 +30,11 @@ import { SPACING, withAlpha } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
 import { NicknameEngine } from '../services/PolishEngine';
 import { getPartnerDisplayName } from '../utils/profileNames';
+import { LinearGradient } from 'expo-linear-gradient';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
 
+const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
 // ------------------------------------------------------------------
@@ -68,6 +73,8 @@ const VibeCard = ({ vibe, isSelected, onPress, styles, t }) => {
         useNativeDriver: true,
       }),
     ]).start();
+  // fadeAnim and scaleAnim are stable Animated.Value refs — intentionally excluded
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSelected]);
 
   const backgroundColor = fadeAnim.interpolate({
@@ -196,8 +203,20 @@ export default function VibeSignalScreen({ navigation }) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+        <LinearGradient
+          colors={isDark ? [t.background, '#120206', '#0A0003', t.background] : [t.background, '#F2F2F7', t.background]}
+          style={StyleSheet.absoluteFillObject}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+        />
+        <FilmGrain opacity={0.1} />
         <View style={styles.paywallContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.paywallBack}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.paywallBack}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
             <Icon name="chevron-back" size={28} color={t.text} />
           </TouchableOpacity>
           <View style={[styles.iconHero, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
@@ -223,6 +242,15 @@ export default function VibeSignalScreen({ navigation }) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <LinearGradient
+        colors={isDark ? [t.background, '#120206', '#0A0003', t.background] : [t.background, '#F2F2F7', t.background]}
+        style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+      <GlowOrb color={t.primary} size={460} top={-180} left={SCREEN_W - 220} opacity={isDark ? 0.18 : 0.08} />
+      <GlowOrb color={t.accent || '#D4AA7E'} size={260} top={620} left={-80} opacity={isDark ? 0.12 : 0.05} />
+      <FilmGrain opacity={0.1} />
       <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContent}

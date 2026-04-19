@@ -26,42 +26,24 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
-  Dimensions,
   SafeAreaView,
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
-import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import CrashReporting from '../services/CrashReporting';
-
-const { width } = Dimensions.get('window');
-
-// Premium Color Palette
-const COLORS = {
-  midnightSlate: '#0B0D12',
-  coral: '#E56B55',
-  coralMuted: 'rgba(229, 107, 85, 0.1)',
-  coralBorder: 'rgba(229, 107, 85, 0.2)',
-  white: '#FFFFFF',
-  taupe: '#9A928D',
-  glassBg: 'rgba(255, 255, 255, 0.03)',
-  glassBorder: 'rgba(255, 255, 255, 0.08)',
-};
+import { useTheme } from '../context/ThemeContext';
+import { BORDER_RADIUS, SPACING, TYPOGRAPHY, withAlpha } from '../utils/theme';
+import Icon from './Icon';
 
 const FONTS = {
   serif: Platform.select({
-    ios: 'DMSerifDisplay-Regular',
-    android: 'DMSerifDisplay_400Regular',
+    ios: 'Georgia',
+    android: 'serif',
     default: 'serif',
   }),
   body: Platform.select({
-    ios: 'Lato-Regular',
-    android: 'Lato_400Regular',
-    default: 'sans-serif',
-  }),
-  bodyBold: Platform.select({
-    ios: 'Lato-Bold',
-    android: 'Lato_700Bold',
+    ios: 'System',
+    android: 'Roboto',
     default: 'sans-serif',
   }),
   mono: Platform.select({
@@ -76,71 +58,67 @@ const FONTS = {
  * outside of the class component lifecycle.
  */
 function FallbackUI({ errorMsg, onRetry, onGoBack }) {
+  const { colors, isDark } = useTheme();
+  const t = {
+    background: colors.background,
+    surface: colors.surface || (isDark ? 'rgba(28, 28, 30, 0.9)' : 'rgba(255, 255, 255, 0.92)'),
+    surfaceSecondary: colors.surface2 || (isDark ? '#2C2C2E' : '#F2F2F7'),
+    text: colors.text,
+    subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.7)'),
+    primary: colors.primary || '#D2121A',
+    accent: colors.accent || '#D4AA7E',
+    border: colors.border || (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+  };
+  const styles = createStyles(t, isDark);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        
-        {/* Subtle Background Glow */}
-        <Animated.View 
-          entering={FadeIn.duration(1000)}
-          style={styles.backgroundGlow} 
-          pointerEvents="none"
+        <LinearGradient
+          colors={isDark ? [t.background, '#120206', '#0A0003', t.background] : [t.background, withAlpha(t.primary, 0.04), t.background]}
+          style={StyleSheet.absoluteFillObject}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
         />
 
-        <View style={styles.content}>
-          {/* Glassmorphic Icon */}
-          <Animated.View entering={FadeInDown.duration(600).springify().damping(20)}>
-            <BlurView intensity={40} tint="dark" style={styles.iconContainer}>
-              <View style={styles.iconInner}>
-                <Ionicons name="leaf-outline" size={32} color={COLORS.taupe} />
+        <Animated.View entering={FadeIn.duration(900)} style={styles.backgroundGlow} pointerEvents="none" />
+
+        <Animated.View entering={FadeInDown.duration(600).springify().damping(20)} style={styles.content}>
+          <View style={styles.eyebrowRow}>
+            <Text style={styles.eyebrow}>WE HIT A SNAG</Text>
+          </View>
+
+          <Text style={styles.title}>Something didn't load</Text>
+          <Text style={styles.subtitle}>This part of the app hit a snag. Your data is safe.</Text>
+
+          <View style={styles.card}>
+            <View style={styles.iconBadge}>
+              <Icon name="leaf-outline" size={22} color={t.primary} />
+            </View>
+
+            <Text style={styles.cardTitle}>This screen can recover without losing anything important.</Text>
+            <Text style={styles.cardBody}>Try reloading this view. If you were just exploring, you can also go back.</Text>
+
+            {__DEV__ && errorMsg ? (
+              <View style={styles.errorPanel}>
+                <Icon name="code-slash-outline" size={14} color={t.primary} />
+                <Text style={styles.errorText} numberOfLines={3} ellipsizeMode="tail">{errorMsg}</Text>
               </View>
-            </BlurView>
-          </Animated.View>
+            ) : null}
+          </View>
+        </Animated.View>
 
-          {/* Typography */}
-          <Animated.View entering={FadeInDown.delay(100).duration(600).springify().damping(20)} style={styles.textContainer}>
-            <Text style={styles.title}>Something didn't load</Text>
-            <Text style={styles.subtitle}>
-              This part of the app hit a snag. Your data is safe.
-            </Text>
-          </Animated.View>
-
-          {/* Error Details Panel (Visible in DEV) */}
-          {__DEV__ && errorMsg ? (
-            <Animated.View entering={FadeInDown.delay(200).duration(600).springify().damping(20)} style={styles.errorWrapper}>
-              <BlurView intensity={20} tint="dark" style={styles.errorGlass}>
-                <View style={styles.errorInner}>
-                  <Ionicons name="terminal-outline" size={14} color={COLORS.coral} style={styles.terminalIcon} />
-                  <Text style={styles.errorText} numberOfLines={3} ellipsizeMode="tail">
-                    {errorMsg}
-                  </Text>
-                </View>
-              </BlurView>
-            </Animated.View>
-          ) : null}
-        </View>
-
-        {/* Actions */}
-        <Animated.View entering={FadeInDown.delay(300).duration(600).springify().damping(20)} style={styles.actionsContainer}>
-          <TouchableOpacity 
-            style={styles.primaryButton} 
-            onPress={onRetry}
-            activeOpacity={0.8}
-          >
+        <Animated.View entering={FadeInDown.delay(120).duration(600).springify().damping(20)} style={styles.actionsContainer}>
+          <TouchableOpacity style={styles.primaryButton} onPress={onRetry} activeOpacity={0.85}>
             <Text style={styles.primaryButtonText}>Try Again</Text>
           </TouchableOpacity>
 
-          {onGoBack && (
-            <TouchableOpacity 
-              style={styles.secondaryButton} 
-              onPress={onGoBack}
-              activeOpacity={0.6}
-            >
+          {onGoBack ? (
+            <TouchableOpacity style={styles.secondaryButton} onPress={onGoBack} activeOpacity={0.7}>
               <Text style={styles.secondaryButtonText}>Go back</Text>
             </TouchableOpacity>
-          )}
+          ) : null}
         </Animated.View>
-
       </View>
     </SafeAreaView>
   );
@@ -207,133 +185,152 @@ export function withScreenErrorBoundary(Component, screenName) {
   return Wrapped;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (t, isDark) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.midnightSlate,
+    backgroundColor: t.background,
   },
   container: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingHorizontal: 32,
-    paddingBottom: 40,
-    paddingTop: 60,
+    paddingHorizontal: SPACING.screen,
+    paddingTop: SPACING.xxl,
+    paddingBottom: SPACING.xl,
+    backgroundColor: t.background,
   },
   backgroundGlow: {
     position: 'absolute',
-    top: '30%',
-    left: '10%',
-    right: '10%',
-    height: 300,
-    backgroundColor: COLORS.coral,
-    opacity: 0.05,
-    // Note: React Native style filter requires a relatively modern version
-    // If it throws a warning, this can be safely replaced with a static blurred PNG
-    filter: [{ blur: 100 }], 
+    top: 120,
+    right: -72,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: withAlpha(t.primary, isDark ? 0.16 : 0.08),
   },
   content: {
-    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
   },
-  iconContainer: {
-    borderRadius: 100,
-    overflow: 'hidden',
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+  eyebrowRow: {
+    marginBottom: SPACING.sm,
   },
-  iconInner: {
-    padding: 20,
-    backgroundColor: COLORS.glassBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
+  eyebrow: {
+    ...TYPOGRAPHY.caption,
+    fontFamily: FONTS.body,
+    color: t.primary,
+    fontWeight: '800',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   title: {
     fontFamily: FONTS.serif,
-    fontSize: 32,
-    color: COLORS.white,
-    textAlign: 'center',
-    marginBottom: 16,
-    letterSpacing: -0.5,
+    fontSize: 42,
+    lineHeight: 48,
+    color: t.text,
+    letterSpacing: -0.8,
+    marginBottom: SPACING.sm,
   },
   subtitle: {
+    ...TYPOGRAPHY.body,
     fontFamily: FONTS.body,
-    fontSize: 16,
-    color: COLORS.taupe,
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 20,
+    color: t.subtext,
+    maxWidth: 520,
+    marginBottom: SPACING.xl,
   },
-  errorWrapper: {
-    width: '100%',
-    maxWidth: 400,
-  },
-  errorGlass: {
-    borderRadius: 16,
-    overflow: 'hidden',
+  card: {
+    backgroundColor: t.surface,
     borderWidth: 1,
-    borderColor: COLORS.coralBorder,
+    borderColor: t.border,
+    borderRadius: BORDER_RADIUS?.xl || 24,
+    padding: SPACING.xl,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: isDark ? 0.32 : 0.08,
+        shadowRadius: 24,
+      },
+      android: { elevation: 6 },
+    }),
   },
-  errorInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: COLORS.coralMuted,
-  },
-  terminalIcon: {
-    marginRight: 12,
-    marginTop: 2,
-    opacity: 0.8,
-  },
-  errorText: {
-    fontFamily: FONTS.mono,
-    fontSize: 13,
-    color: COLORS.taupe,
-    flex: 1,
-    lineHeight: 20,
-  },
-  actionsContainer: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 24,
-  },
-  primaryButton: {
-    backgroundColor: COLORS.coral,
-    width: '100%',
-    maxWidth: 400,
-    paddingVertical: 18,
-    borderRadius: 999,
+  iconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: COLORS.coral,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 10,
+    backgroundColor: withAlpha(t.primary, 0.12),
+    marginBottom: SPACING.lg,
+  },
+  cardTitle: {
+    fontFamily: FONTS.body,
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '800',
+    color: t.text,
+    letterSpacing: -0.4,
+    marginBottom: SPACING.sm,
+  },
+  cardBody: {
+    ...TYPOGRAPHY.bodySecondary,
+    fontFamily: FONTS.body,
+    color: t.subtext,
+  },
+  errorPanel: {
+    marginTop: SPACING.lg,
+    borderRadius: BORDER_RADIUS?.lg || 18,
+    padding: SPACING.md,
+    backgroundColor: t.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: withAlpha(t.primary, 0.18),
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+  },
+  errorText: {
+    flex: 1,
+    fontFamily: FONTS.mono,
+    fontSize: 12,
+    lineHeight: 18,
+    color: t.subtext,
+  },
+  actionsContainer: {
+    paddingTop: SPACING.lg,
+    gap: SPACING.md,
+  },
+  primaryButton: {
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: t.primary,
+    ...Platform.select({
+      ios: {
+        shadowColor: t.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.28,
+        shadowRadius: 16,
+      },
+      android: { elevation: 5 },
+    }),
   },
   primaryButtonText: {
-    fontFamily: FONTS.bodyBold,
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontFamily: FONTS.body,
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
   },
   secondaryButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    alignSelf: 'center',
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
   },
   secondaryButtonText: {
-    fontFamily: FONTS.bodyBold,
-    color: COLORS.taupe,
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    fontFamily: FONTS.body,
+    fontSize: 15,
+    fontWeight: '700',
+    color: t.subtext,
     textDecorationLine: 'underline',
-    textDecorationColor: 'rgba(154, 146, 141, 0.4)',
   },
 });

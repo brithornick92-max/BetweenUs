@@ -4,7 +4,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Animated,
   TouchableOpacity,
@@ -12,6 +11,7 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     fontWeight: "300",
     lineHeight: 38,
     letterSpacing: -0.4,
-    fontFamily: Platform.select({ ios: "System", android: "serif" }),
+    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
   },
 
   // Locked State

@@ -365,7 +365,7 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
   
   introSection: { marginBottom: 40 },
   headerEye: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold' }),
+    fontFamily: SYSTEM_FONT,
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 2,
@@ -397,7 +397,7 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
 
   categoryContainer: { marginBottom: 36 },
   categoryTitle: {
-    fontFamily: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold' }),
+    fontFamily: SYSTEM_FONT,
     fontSize: 12,
     fontWeight: '900',
     letterSpacing: 1.5,

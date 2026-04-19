@@ -448,7 +448,7 @@ describe('DataLayer', () => {
           body: 'Dinner was added to your timeline.',
           data: expect.objectContaining({
             type: 'calendar_event_created',
-            route: 'Calendar',
+            route: 'calendar',
             eventId: '11111111-1111-4111-8111-111111111111',
             eventType: 'dateNight',
           }),

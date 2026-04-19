@@ -219,7 +219,7 @@ export const MomentSignalSender = {
         return { sent: true, remote: true, type: momentType, timestamp: now };
       } catch (err) {
         const errMsg = err.message || String(err) || 'Network or connection error';
-        console.warn('[MomentSignal] Send failed:', errMsg);
+        if (__DEV__) console.warn('[MomentSignal] Send failed:', errMsg);
         if (requireRemote) {
           return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: err.code };
         }
@@ -279,7 +279,7 @@ export const MomentSignalSender = {
 
       const { data, error } = await query;
       if (error) {
-        console.warn('[MomentSignal] Fetch failed:', error.message);
+        if (__DEV__) console.warn('[MomentSignal] Fetch failed:', error.message);
         return [];
       }
 
@@ -287,7 +287,7 @@ export const MomentSignalSender = {
         try { return JSON.parse(row.value); } catch { return null; }
       }).filter(Boolean);
     } catch (err) {
-      console.warn('[MomentSignal] getReceivedSignals error:', err.message);
+      if (__DEV__) console.warn('[MomentSignal] getReceivedSignals error:', err.message);
       return [];
     }
   },
@@ -530,7 +530,7 @@ export const SerendipityTrigger = {
         monthCount,
       }));
     } catch (e) {
-      console.warn('[ConnectionEngine] Surprise save failed:', e?.message);
+      if (__DEV__) console.warn('[ConnectionEngine] Surprise save failed:', e?.message);
     }
   },
 
@@ -675,7 +675,7 @@ const BinaryPromptEngine = {
       const trimmed = history.slice(-10);
       await AsyncStorage.setItem(KEYS.THIS_OR_THAT_HISTORY, JSON.stringify(trimmed));
     } catch (e) {
-      console.warn('[ConnectionEngine] ThisOrThat history save failed:', e?.message);
+      if (__DEV__) console.warn('[ConnectionEngine] ThisOrThat history save failed:', e?.message);
     }
   },
 
@@ -741,7 +741,7 @@ const FuturePromptRotation = {
       history.push(id);
       await AsyncStorage.setItem('@bu_future_history', JSON.stringify(history.slice(-8)));
     } catch (e) {
-      console.warn('[ConnectionEngine] Future history save failed:', e?.message);
+      if (__DEV__) console.warn('[ConnectionEngine] Future history save failed:', e?.message);
     }
   },
 };

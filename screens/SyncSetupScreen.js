@@ -32,10 +32,6 @@ import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 
 const { width } = Dimensions.get('window');
 
-const FONTS = {
-  bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
-};
-
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 export default function SyncSetupScreen({ navigation }) {
@@ -400,7 +396,7 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
     justifyContent: 'center',
   },
   headerEye: {
-    fontFamily: FONTS.bodyBold || SYSTEM_FONT,
+    fontFamily: SYSTEM_FONT,
     fontSize: 10,
     fontWeight: '900',
     letterSpacing: 1.8,

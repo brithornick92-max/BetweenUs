@@ -2,6 +2,8 @@
  * PremiumGatekeeper.test.js — Tests for premium access control
  */
 
+import PremiumGatekeeper from '../../services/PremiumGatekeeper';
+
 jest.mock('../../services/LocalUsageService', () => ({
   __esModule: true,
   default: {
@@ -19,8 +21,6 @@ jest.mock('../../services/storage/StorageRouter', () => ({
     getDate: jest.fn(),
   },
 }));
-
-import PremiumGatekeeper from '../../services/PremiumGatekeeper';
 
 describe('PremiumGatekeeper', () => {
   beforeEach(() => {

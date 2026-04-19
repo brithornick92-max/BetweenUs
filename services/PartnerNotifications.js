@@ -12,24 +12,24 @@ const PartnerNotifications = {
   /**
    * Partner answered today's prompt.
    */
-  async promptAnswered(senderName) {
+  async promptAnswered(senderName, promptId) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} just shared something 💬`,
+      title: `${name} just shared something \u{1F4AC}`,
       body: 'Answer today\'s prompt to reveal what they wrote.',
-      data: { type: 'prompt_answered' },
+      data: { type: 'prompt_answered', route: 'prompt', ...(promptId ? { id: promptId } : {}) },
     });
   },
 
   /**
    * Partner sent a love note.
    */
-  async loveNoteSent(senderName) {
+  async loveNoteSent(senderName, noteId) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} wrote you something 💌`,
+      title: `${name} wrote you something \u{1F48C}`,
       body: 'A private note, just for you.',
-      data: { type: 'love_note_sent' },
+      data: { type: 'love_note_sent', route: 'love-note', ...(noteId ? { id: noteId } : {}) },
     });
   },
 
@@ -42,7 +42,7 @@ const PartnerNotifications = {
     await this._send({
       title: `${name} is thinking of you`,
       body: 'They sent you a vibe. Open the app to feel it.',
-      data: { type: 'vibe_sent' },
+      data: { type: 'vibe_sent', route: 'vibe' },
     });
   },
 
@@ -55,7 +55,7 @@ const PartnerNotifications = {
     await this._send({
       title: `${name} planned something for you two 📅`,
       body: 'A date night idea is waiting in your calendar.',
-      data: { type: 'date_planned' },
+      data: { type: 'date_planned', route: 'calendar' },
     });
   },
 
@@ -67,7 +67,19 @@ const PartnerNotifications = {
     await this._send({
       title: `${name} lit tonight's ritual 🌙`,
       body: 'Join them — it only takes a moment.',
-      data: { type: 'ritual_completed' },
+      data: { type: 'ritual_completed', route: 'ritual' },
+    });
+  },
+
+  /**
+   * Partner shared a journal entry.
+   */
+  async journalShared(senderName) {
+    const name = senderName || 'Your partner';
+    await this._send({
+      title: `${name} shared a journal entry 📝`,
+      body: 'Read what\'s on their mind.',
+      data: { type: 'journal_shared', route: 'journal' },
     });
   },
 
@@ -79,7 +91,7 @@ const PartnerNotifications = {
     await this._send({
       title: `Your ${currentStreak}-day streak is at risk 🔥`,
       body: 'Check in before midnight to keep it alive.',
-      data: { type: 'streak_at_risk', streak: currentStreak },
+      data: { type: 'streak_at_risk', route: 'home', streak: currentStreak },
     });
   },
 

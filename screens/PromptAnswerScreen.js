@@ -121,20 +121,20 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   // Editorial Palette — respects dark/light mode
   const t = useMemo(() => isDark ? {
-    background: '#0A0A0A',
-    surface: '#1C1C1E',
+    background: colors.background,
+    surface: colors.surface || '#1C1C1E',
     primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
-    text: '#FFFFFF',
-    subtext: 'rgba(255,255,255,0.4)',
-    border: 'rgba(255,255,255,0.1)',
+    text: colors.text,
+    subtext: colors.textMuted || 'rgba(255,255,255,0.4)',
+    border: colors.border || 'rgba(255,255,255,0.1)',
   } : {
-    background: '#F2F2F7',
-    surface: '#FFFFFF',
+    background: colors.background,
+    surface: colors.surface || '#FFFFFF',
     primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
-    text: '#1C1C1E',
-    subtext: 'rgba(0,0,0,0.4)',
-    border: 'rgba(0,0,0,0.1)',
-  }, [isDark, prompt?.heat]);
+    text: colors.text,
+    subtext: colors.textMuted || 'rgba(0,0,0,0.4)',
+    border: colors.border || 'rgba(0,0,0,0.1)',
+  }, [isDark, colors, prompt?.heat]);
 
   const heat = prompt?.heat || 1;
   const catGradient = HEAT_COLORS[heat] || HEAT_COLORS[1];
@@ -660,10 +660,7 @@ const createStyles = (t, isDark) =>
       paddingVertical: SPACING.lg,
     },
     promptText: {
-      fontFamily: Platform.select({
-        ios: "DMSerifDisplay-Regular",
-        android: "DMSerifDisplay_400Regular",
-      }),
+      fontFamily: SERIF_FONT,
       fontSize: 24,
       lineHeight: 34,
       textAlign: "center",

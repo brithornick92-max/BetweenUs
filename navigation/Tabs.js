@@ -1,7 +1,7 @@
 // File: navigation/Tabs.js - Premium Tab Navigation
 // Fully integrated with Apple Editorial & Velvet Glass aesthetic
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
@@ -15,6 +15,7 @@ import Animated, {
 import { useTheme } from "../context/ThemeContext";
 import { SPACING } from '../utils/theme';
 import Icon from "../components/Icon";
+import { RelationshipMilestones } from '../services/PolishEngine';
 
 // Tab screens
 import HomeScreen from "../screens/HomeScreen";
@@ -111,6 +112,23 @@ function PremiumTabBarBackground({ isDark }) {
 // ------------------------------------------------------------------
 export default function Tabs() {
   const { colors, isDark } = useTheme();
+  const [daysSinceJoin, setDaysSinceJoin] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    RelationshipMilestones._getStats()
+      .then((stats) => {
+        if (!active) return;
+        if (!stats?.firstOpenDate) { setDaysSinceJoin(0); return; }
+        const days = Math.floor((Date.now() - new Date(stats.firstOpenDate).getTime()) / (1000 * 60 * 60 * 24));
+        setDaysSinceJoin(days);
+      })
+      .catch(() => { if (active) setDaysSinceJoin(Infinity); });
+    return () => { active = false; };
+  }, []);
+
+  // Show Calendar + Dates tabs only after day 2 (gives new users space to explore)
+  const showSecondaryTabs = daysSinceJoin === null || daysSinceJoin >= 2;
 
   // STRICT Apple Editorial Theme Map
   const t = useMemo(() => ({
@@ -168,17 +186,21 @@ export default function Tabs() {
         component={PromptsScreen}
         options={{ tabBarLabel: "Prompts" }}
       />
-      {/* Calendar tab */}
-      <Tab.Screen
-        name="Calendar"
-        component={CalendarScreen}
-        options={{ tabBarLabel: "Calendar" }}
-      />
-      <Tab.Screen
-        name="DatePlans"
-        component={DateNightScreen}
-        options={{ tabBarLabel: "Dates" }}
-      />
+      {/* Calendar and Dates tabs revealed after day 2 */}
+      {showSecondaryTabs && (
+        <Tab.Screen
+          name="Calendar"
+          component={CalendarScreen}
+          options={{ tabBarLabel: "Calendar" }}
+        />
+      )}
+      {showSecondaryTabs && (
+        <Tab.Screen
+          name="DatePlans"
+          component={DateNightScreen}
+          options={{ tabBarLabel: "Dates" }}
+        />
+      )}
       <Tab.Screen
         name="Settings"
         component={SettingsScreen}

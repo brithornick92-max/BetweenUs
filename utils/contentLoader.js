@@ -3,9 +3,9 @@
 // ✅ Guarantees prompt-returning functions always return an object with .text (never undefined)
 // Apple Editorial System Colors Integrated
 
-if (__DEV__) console.log("🔵 ContentLoader: Module loading started");
-
 import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
+
+if (__DEV__) console.log("🔵 ContentLoader: Module loading started");
 
 // Helper: filter items to only those released up to the current week
 const weeklyFilter = (items) =>

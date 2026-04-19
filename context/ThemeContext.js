@@ -7,8 +7,7 @@ import {
   getShadows,
   getNavigationTheme,
 } from "../utils/theme";
-import { storage } from "../utils/storage";
-import { STORAGE_KEYS } from "../utils/storage";
+import { storage , STORAGE_KEYS } from "../utils/storage";
 
 const ThemeContext = createContext(null);
 

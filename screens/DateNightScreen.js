@@ -44,15 +44,10 @@ const CARD_STACK_LIFT = height < 760 ? 56 : height < 850 ? 46 : 38;
 const SWIPE_THRESHOLD = 90;
 const FLIP_DURATION = 650;
 const DIMS = getDimensionMeta();
-const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-
 const SPRING = { damping: 20, stiffness: 150, mass: 0.8 };
 
-const FONTS = {
-  serif: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular', default: 'serif' }),
-  body: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
-  bodyBold: Platform.select({ ios: 'Lato-Bold', android: 'Lato_700Bold', default: 'sans-serif' }),
-};
+const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
+const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 const TONE_DATE_COPY = {
   warm: {
@@ -946,7 +941,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     paddingBottom: SPACING.xl,
   },
   headerEye: {
-    fontFamily: FONTS.bodyBold,
+    fontFamily: SYSTEM_FONT,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.2,
@@ -961,7 +956,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     lineHeight: 46,
   },
   headerSubtitle: {
-    fontFamily: FONTS.body,
+    fontFamily: SYSTEM_FONT,
     fontSize: 14,
     lineHeight: 20,
     marginTop: 6,
@@ -1003,7 +998,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'center',
   },
   dropdownLabel: {
-    fontFamily: FONTS.bodyBold,
+    fontFamily: SYSTEM_FONT,
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.8,
@@ -1028,7 +1023,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'center',
   },
   dropdownValueText: {
-    fontFamily: FONTS.bodyBold,
+    fontFamily: SYSTEM_FONT,
     fontSize: 11,
     fontWeight: '700',
     textAlign: 'center',
@@ -1077,7 +1072,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   },
   dropdownOptionContent: { flex: 1 },
   dropdownOptionLabel: {
-    fontFamily: FONTS.bodyBold,
+    fontFamily: SYSTEM_FONT,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -1094,7 +1089,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'rgba(150,150,150,0.08)',
   },
-  clearFiltersTxt: { fontFamily: FONTS.bodyBold, fontSize: 12, fontWeight: '700', opacity: 0.6 },
+  clearFiltersTxt: { fontFamily: SYSTEM_FONT, fontSize: 12, fontWeight: '700', opacity: 0.6 },
 
   stackWrapper: {
     alignItems: 'center',
@@ -1112,7 +1107,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     paddingHorizontal: 24,
   },
   boundaryHintText: {
-    fontFamily: FONTS.bodyBold,
+    fontFamily: SYSTEM_FONT,
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
@@ -1148,7 +1143,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     backgroundColor: 'rgba(30, 30, 35, 0.9)',
   },
   swipeHintText: {
-    fontFamily: FONTS.bodyBold,
+    fontFamily: SYSTEM_FONT,
     fontSize: 15,
     fontWeight: '800',
     color: '#FFFFFF',
@@ -1179,9 +1174,9 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     alignItems: 'center',
     width: 40,
   },
-  counterMain: { fontFamily: FONTS.bodyBold, fontSize: 18, fontWeight: '800' },
+  counterMain: { fontFamily: SYSTEM_FONT, fontSize: 18, fontWeight: '800' },
   counterLine: { width: 20, height: 2, marginVertical: 2, borderRadius: 1 },
-  counterSub: { fontFamily: FONTS.bodyBold, fontSize: 12, fontWeight: '600', opacity: 0.5 },
+  counterSub: { fontFamily: SYSTEM_FONT, fontSize: 12, fontWeight: '600', opacity: 0.5 },
   likeBtn: { 
     width: 68, height: 68, borderRadius: 34, overflow: 'hidden',
     ...Platform.select({
@@ -1224,7 +1219,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     borderRadius: 25,
     marginTop: 12,
   },
-  resetTxt: { fontFamily: FONTS.bodyBold, fontSize: 16, fontWeight: '800' },
+  resetTxt: { fontFamily: SYSTEM_FONT, fontSize: 16, fontWeight: '800' },
 
   editorialBanner: {
     borderRadius: 24,

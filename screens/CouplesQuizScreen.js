@@ -43,6 +43,8 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import Icon from '../components/Icon';
+import FilmGrain from '../components/FilmGrain';
+import GlowOrb from '../components/GlowOrb';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -52,13 +54,8 @@ import { SPACING } from '../utils/theme';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 
-const { width: SCREEN_W } = Dimensions.get('window');
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
-const SERIF_FONT = Platform.select({
-  ios: 'DMSerifDisplay-Regular',
-  android: 'DMSerifDisplay_400Regular',
-  default: 'serif',
-});
 
 // ─── Quiz question bank ────────────────────────────────────────────────────
 // Questions are phrased in 2nd person about the responder's partner.
@@ -133,18 +130,17 @@ export default function CouplesQuizScreen({ navigation }) {
   const { userProfile } = useAuth();
 
   const t = useMemo(() => ({
-    background: isDark ? '#0A0612' : '#0A0612',
-    surface: 'rgba(255,255,255,0.04)',
-    surfaceSecondary: 'rgba(255,255,255,0.08)',
-    text: '#FFFFFF',
-    subtext: 'rgba(255,255,255,0.55)',
-    border: 'rgba(255,255,255,0.08)',
-    primary: '#D4AA7E',    // champagne gold
-    accent: '#7E4FA3',     // velvet plum
-    red: '#D2121A',
-  }), [isDark]);
+    background: colors.background,
+    surface: colors.surface || (isDark ? '#1C1C1E' : '#FFFFFF'),
+    surfaceSecondary: colors.surface2 || (isDark ? '#2C2C2E' : '#F2F2F7'),
+    primary: colors.primary || '#D2121A',
+    accent: colors.accent || '#D4AA7E',
+    text: colors.text,
+    subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)'),
+    border: colors.border || (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+  }), [colors, isDark]);
 
-  const styles = useMemo(() => createStyles(t), [t]);
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const myName = getMyDisplayName(userProfile, state?.userProfile, null);
   const partnerName = getPartnerDisplayName(state?.userProfile, userProfile, null) || 'your partner';
@@ -175,9 +171,9 @@ export default function CouplesQuizScreen({ navigation }) {
     async function load() {
       try {
         // Check if I already submitted today
-        const savedKey = await storage.getString(TODAY_QUIZ_KEY);
-        const savedAnswer = await storage.getString(MY_QUIZ_ANSWER_KEY);
-        const savedQId = await storage.getString(TODAY_QUIZ_QUESTION_KEY);
+        const savedKey = await storage.get(TODAY_QUIZ_KEY);
+        const savedAnswer = await storage.get(MY_QUIZ_ANSWER_KEY);
+        const savedQId = await storage.get(TODAY_QUIZ_QUESTION_KEY);
 
         if (savedKey === todayKey && savedQId === question.id && savedAnswer) {
           setMyAnswer(savedAnswer);
@@ -218,9 +214,9 @@ export default function CouplesQuizScreen({ navigation }) {
     setIsSaving(true);
     try {
       // Persist locally
-      await storage.setString(TODAY_QUIZ_KEY, todayKey);
-      await storage.setString(TODAY_QUIZ_QUESTION_KEY, question.id);
-      await storage.setString(MY_QUIZ_ANSWER_KEY, trimmed);
+      await storage.set(TODAY_QUIZ_KEY, todayKey);
+      await storage.set(TODAY_QUIZ_QUESTION_KEY, question.id);
+      await storage.set(MY_QUIZ_ANSWER_KEY, trimmed);
 
       // Try to sync (graceful — not critical path)
       try {
@@ -266,53 +262,42 @@ export default function CouplesQuizScreen({ navigation }) {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: t.background, justifyContent: 'center', alignItems: 'center' }}>
-        <StatusBar barStyle="light-content" />
-        <Icon name="help-circle-outline" size={32} color={t.subtext} />
+      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
+        <Icon name="help-circle-outline" size={32} color={colors.textMuted} />
       </View>
     );
   }
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
       <LinearGradient
-        colors={['#0D0618', '#0A0612', '#120820']}
+        colors={isDark
+          ? [t.background, '#120206', '#0A0003', t.background]
+          : [t.background, t.surfaceSecondary, t.background]}
         style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
       />
+      <FilmGrain />
+      <GlowOrb color={accentColor} size={400} top={-150} left={SCREEN_W / 2 - 200} opacity={isDark ? 0.15 : 0.07} />
+      <GlowOrb color={t.primary} size={300} top={SCREEN_H * 0.65} left={-80} delay={1200} opacity={isDark ? 0.1 : 0.05} />
 
-      {/* Glow blob */}
-      <View
-        style={{
-          position: 'absolute',
-          top: -80,
-          left: SCREEN_W / 2 - 140,
-          width: 280,
-          height: 280,
-          borderRadius: 140,
-          backgroundColor: accentColor,
-          opacity: 0.08,
-        }}
-        pointerEvents="none"
-      />
-
-      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
 
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
-              <BlurView intensity={40} tint="dark" style={styles.circleBtn}>
-                <Icon name="chevron-back" size={22} color={t.text} />
-              </BlurView>
+          {/* ── Nav Header ── */}
+          <View style={styles.navHeader}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              hitSlop={16}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => { impact(ImpactFeedbackStyle.Light); navigation.goBack(); }}
+            >
+              <Icon name="arrow-back" size={24} color={t.text} />
             </TouchableOpacity>
-
-            <View style={styles.headerCenter}>
-              <Text style={styles.headerEyebrow}>DAILY QUIZ</Text>
-              <Text style={styles.headerTitle}>How well do you know them?</Text>
-            </View>
-
-            <View style={{ width: 44 }} />
           </View>
 
           <ScrollView
@@ -321,6 +306,14 @@ export default function CouplesQuizScreen({ navigation }) {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            {/* ── Editorial Header ── */}
+            <View style={styles.editorialHeader}>
+              <Text style={[styles.headerSubtitle, { color: t.primary }]}>DAILY QUIZ</Text>
+              <Text style={[styles.headerTitle, { color: t.text }]}>How well do you{`\n`}know them?</Text>
+              <Text style={[styles.headerToneLine, { color: t.subtext }]}>
+                Answer about {partnerName} — reveal when you're both in.
+              </Text>
+            </View>
 
             {/* Category badge */}
             <Animated.View entering={FadeIn.delay(100)} style={styles.badgeRow}>
@@ -353,7 +346,7 @@ export default function CouplesQuizScreen({ navigation }) {
             {!hasSubmitted && (
               <Animated.View entering={FadeInUp.springify().damping(18).delay(250)} style={styles.inputSection}>
                 <Text style={styles.inputLabel}>Your guess about {partnerName}</Text>
-                <BlurView intensity={30} tint="dark" style={styles.inputCard}>
+                <View style={styles.inputCard}>
                   <TextInput
                     ref={inputRef}
                     style={styles.textInput}
@@ -366,22 +359,17 @@ export default function CouplesQuizScreen({ navigation }) {
                     selectionColor={accentColor}
                     autoFocus={false}
                   />
-                </BlurView>
+                </View>
                 <TouchableOpacity
                   onPress={handleSubmit}
                   disabled={!myAnswer.trim() || isSaving}
                   activeOpacity={0.85}
-                  style={{ marginTop: SPACING.md }}
+                  style={[styles.submitBtn, { marginTop: SPACING.md, opacity: myAnswer.trim() ? 1 : 0.4, backgroundColor: t.text }]}
                 >
-                  <LinearGradient
-                    colors={myAnswer.trim() ? [accentColor, accentColor + 'CC'] : ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)']}
-                    style={styles.submitBtn}
-                  >
-                    <Text style={[styles.submitBtnText, !myAnswer.trim() && { color: t.subtext }]}>
-                      {isSaving ? 'Locking in…' : 'Lock In My Answer'}
-                    </Text>
-                    {myAnswer.trim() && <Icon name="lock-closed-outline" size={16} color="#FFF" style={{ marginLeft: 8 }} />}
-                  </LinearGradient>
+                  <Text style={[styles.submitBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
+                    {isSaving ? 'Locking in…' : 'Lock In My Answer'}
+                  </Text>
+                  {myAnswer.trim() && <Icon name="lock-closed-outline" size={16} color={isDark ? '#000000' : '#FFFFFF'} />}
                 </TouchableOpacity>
                 <Text style={styles.helperText}>
                   {partnerName}'s answer is hidden until you both submit
@@ -423,23 +411,24 @@ export default function CouplesQuizScreen({ navigation }) {
                 <TouchableOpacity
                   onPress={handleReveal}
                   activeOpacity={0.85}
-                  style={{ marginTop: SPACING.md }}
+                  style={[
+                    styles.revealBtn,
+                    {
+                      marginTop: SPACING.md,
+                      backgroundColor: partnerHasSubmitted ? t.primary : t.surface,
+                      borderWidth: partnerHasSubmitted ? 0 : 1,
+                      borderColor: t.border,
+                    },
+                  ]}
                 >
-                  <LinearGradient
-                    colors={partnerHasSubmitted
-                      ? ['#D2121A', '#8A0B11']
-                      : ['rgba(255,255,255,0.06)', 'rgba(255,255,255,0.03)']}
-                    style={styles.revealBtn}
-                  >
-                    <Icon
-                      name={partnerHasSubmitted ? 'eye-outline' : 'time-outline'}
-                      size={18}
-                      color={partnerHasSubmitted ? '#FFF' : t.subtext}
-                    />
-                    <Text style={[styles.revealBtnText, !partnerHasSubmitted && { color: t.subtext }]}>
-                      {partnerHasSubmitted ? 'Reveal Both Answers' : `Waiting for ${partnerName}…`}
-                    </Text>
-                  </LinearGradient>
+                  <Icon
+                    name={partnerHasSubmitted ? 'eye-outline' : 'time-outline'}
+                    size={18}
+                    color={partnerHasSubmitted ? '#FFF' : t.subtext}
+                  />
+                  <Text style={[styles.revealBtnText, !partnerHasSubmitted && { color: t.subtext }]}>
+                    {partnerHasSubmitted ? 'Reveal Both Answers' : `Waiting for ${partnerName}…`}
+                  </Text>
                 </TouchableOpacity>
 
                 {/* ── Reveal panel ── */}
@@ -453,8 +442,8 @@ export default function CouplesQuizScreen({ navigation }) {
                           <Text style={styles.revealCardOwner}>You guessed</Text>
                           <Text style={styles.revealCardAnswer}>{myAnswer}</Text>
                         </View>
-                        <View style={[styles.revealCard, { borderColor: t.red + '44' }]}>
-                          <Text style={[styles.revealCardOwner, { color: t.red }]}>{partnerName} said</Text>
+                        <View style={[styles.revealCard, { borderColor: t.primary + '44' }]}>
+                          <Text style={[styles.revealCardOwner, { color: t.primary }]}>{partnerName} said</Text>
                           <Text style={styles.revealCardAnswer}>{partnerAnswer || '…'}</Text>
                         </View>
                       </View>
@@ -478,49 +467,57 @@ export default function CouplesQuizScreen({ navigation }) {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────
-const createStyles = (t) => StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0A0612' },
+const createStyles = (t, isDark) => StyleSheet.create({
+  root: { flex: 1 },
   safeArea: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 24, paddingBottom: 40 },
+  scrollContent: { paddingHorizontal: SPACING.screen, paddingBottom: 160 },
 
-  header: {
+  // ── Nav Header ──
+  navHeader: {
+    paddingHorizontal: SPACING.screen,
+    paddingTop: 12,
+    paddingBottom: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
   },
-  circleBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: t.border,
-    overflow: 'hidden',
-  },
-  headerCenter: { alignItems: 'center' },
-  headerEyebrow: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2.5,
-    color: t.subtext,
-    textTransform: 'uppercase',
-  },
-  headerTitle: {
-    fontFamily: SERIF_FONT,
-    fontSize: 16,
-    color: t.text,
-    marginTop: 2,
+  iconButton: {
+    padding: 8,
+    marginLeft: -8,
   },
 
+  // ── Editorial Header ──
+  editorialHeader: {
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.xl,
+  },
+  headerSubtitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  headerTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 34,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    lineHeight: 40,
+  },
+  headerToneLine: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+    marginTop: 6,
+  },
+
+  // ── Category Badge ──
   badgeRow: {
     alignItems: 'flex-start',
-    marginTop: SPACING.md,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   categoryBadge: {
     flexDirection: 'row',
@@ -534,29 +531,34 @@ const createStyles = (t) => StyleSheet.create({
   categoryEmoji: { fontSize: 14 },
   categoryLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
     letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
 
+  // ── Question Card ──
   questionCard: {
-    borderRadius: 16,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    padding: 28,
+    borderColor: t.border,
+    backgroundColor: t.surface,
+    padding: SPACING.xl,
     marginBottom: SPACING.lg,
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.3, shadowRadius: 20 },
-      android: { elevation: 8 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
+      android: { elevation: 6 },
     }),
   },
   questionText: {
-    fontFamily: SERIF_FONT,
-    fontSize: 24,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 22,
+    fontWeight: '800',
+    lineHeight: 30,
+    letterSpacing: -0.5,
     color: t.text,
-    lineHeight: 36,
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   questionFooter: {
     flexDirection: 'row',
@@ -566,33 +568,38 @@ const createStyles = (t) => StyleSheet.create({
   questionHint: {
     fontFamily: SYSTEM_FONT,
     fontSize: 12,
+    fontWeight: '500',
     color: t.subtext,
     flexShrink: 1,
+    lineHeight: 16,
   },
 
+  // ── Input Phase ──
   inputSection: { marginBottom: SPACING.md },
   inputLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
     color: t.subtext,
     marginBottom: SPACING.sm,
   },
   inputCard: {
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: t.border,
+    backgroundColor: t.surfaceSecondary,
+    minHeight: 120,
     overflow: 'hidden',
-    minHeight: 100,
   },
   textInput: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 16,
+    fontSize: 17,
     color: t.text,
-    padding: 16,
+    padding: SPACING.lg,
     lineHeight: 24,
-    minHeight: 100,
+    minHeight: 120,
     textAlignVertical: 'top',
   },
   submitBtn: {
@@ -607,7 +614,6 @@ const createStyles = (t) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFF',
     letterSpacing: 0.3,
   },
   helperText: {
@@ -619,41 +625,52 @@ const createStyles = (t) => StyleSheet.create({
     lineHeight: 18,
   },
 
+  // ── Submitted / Wait Phase ──
   waitSection: { gap: SPACING.md },
 
   lockedCard: {
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    padding: 20,
+    borderColor: t.border,
+    backgroundColor: t.surface,
+    padding: SPACING.lg,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.2 : 0.04, shadowRadius: 12 },
+      android: { elevation: 3 },
+    }),
   },
   lockedCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
   lockedCardLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
     color: t.primary,
   },
   lockedAnswer: {
-    fontFamily: SERIF_FONT,
+    fontFamily: SYSTEM_FONT,
     fontSize: 17,
+    fontWeight: '400',
     color: t.text,
     lineHeight: 26,
   },
 
   partnerStatusCard: {
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    padding: 16,
+    backgroundColor: t.surface,
+    padding: SPACING.lg,
     gap: 8,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.2 : 0.04, shadowRadius: 12 },
+      android: { elevation: 3 },
+    }),
   },
   statusDot: {
     width: 8,
@@ -663,7 +680,7 @@ const createStyles = (t) => StyleSheet.create({
   partnerStatusText: {
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: t.text,
   },
   partnerStatusHint: {
@@ -689,21 +706,28 @@ const createStyles = (t) => StyleSheet.create({
     letterSpacing: 0.3,
   },
 
+  // ── Reveal Panel ──
   revealPanel: {
     marginTop: SPACING.lg,
   },
   revealPanelInner: {
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    padding: 24,
+    borderColor: t.border,
+    backgroundColor: t.surface,
+    padding: SPACING.xl,
     gap: SPACING.md,
     overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
+      android: { elevation: 6 },
+    }),
   },
   revealPanelTitle: {
-    fontFamily: SERIF_FONT,
+    fontFamily: SYSTEM_FONT,
     fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.5,
     color: t.text,
     textAlign: 'center',
   },
@@ -713,32 +737,33 @@ const createStyles = (t) => StyleSheet.create({
   },
   revealCard: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    padding: 14,
+    backgroundColor: t.surfaceSecondary,
+    padding: SPACING.md,
     gap: 8,
   },
   revealCardOwner: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
     letterSpacing: 1.5,
-    color: t.primary,
     textTransform: 'uppercase',
+    color: t.primary,
   },
   revealCardAnswer: {
-    fontFamily: SERIF_FONT,
+    fontFamily: SYSTEM_FONT,
     fontSize: 15,
+    fontWeight: '400',
     color: t.text,
     lineHeight: 22,
   },
   revealCta: {
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
+    fontWeight: '500',
     color: t.subtext,
     textAlign: 'center',
     lineHeight: 20,
-    fontStyle: 'italic',
   },
 });

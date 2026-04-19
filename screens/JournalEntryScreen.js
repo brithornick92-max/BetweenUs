@@ -1,4 +1,4 @@
-// screens/JournalEntryScreen.js — Private Reflections
+// screens/JournalEntryScreen.js — Shared Journal
 // Velvet Glass · Apple Editorial Vertical Rhythm · Haptic Stationery Physics
 
 import React, { useState, useRef, useMemo, useEffect } from "react";
@@ -6,7 +6,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Image,
   TextInput,
@@ -19,6 +18,7 @@ import {
   ActivityIndicator,
   Keyboard,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -31,11 +31,11 @@ import { useAuth } from "../context/AuthContext";
 import { useAppContext } from "../context/AppContext";
 import { PremiumFeature } from '../utils/featureFlags';
 import { withAlpha, SPACING } from "../utils/theme";
+import GlowOrb from "../components/GlowOrb";
+import FilmGrain from "../components/FilmGrain";
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
-import GlowOrb from "../components/GlowOrb";
-import FilmGrain from "../components/FilmGrain";
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -47,7 +47,7 @@ const moods = [
 ];
 
 export default function JournalEntryScreen({ navigation, route }) {
-  const { entry, defaultShared = false, readOnly = false } = route.params || {};
+  const { entry, readOnly = false } = route.params || {};
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user } = useAuth();
@@ -55,10 +55,6 @@ export default function JournalEntryScreen({ navigation, route }) {
   const ownerIds = useMemo(() => new Set([user?.id, user?.uid, state?.userId].filter(Boolean)), [state?.userId, user?.id, user?.uid]);
   const isOwnEntry = !!entry?.id && ownerIds.has(entry?.user_id);
   const isReadOnly = !!readOnly || (!!entry?.id && !isOwnEntry);
-  const initialIsShared = entry
-    ? (entry?.isShared ?? entry?.is_private === false)
-    : !!defaultShared;
-
   // Premium gate — redirect non-premium users without crashing
   const isPremiumGated = !isPremium;
   useEffect(() => {
@@ -76,11 +72,9 @@ export default function JournalEntryScreen({ navigation, route }) {
   const [imageUri, setImageUri] = useState(
     entry?.imageUri || entry?.photoUri || entry?.mediaUri || null
   );
-  const [isShared, setIsShared] = useState(initialIsShared);
   const [isSaving, setIsSaving] = useState(false);
-  const headerLabel = isReadOnly
-    ? (entry?.is_private ? "PRIVATE JOURNAL" : "SHARED JOURNAL")
-    : (isShared ? "SHARED JOURNAL" : "PRIVATE REFLECTION");
+  const needsReconnect = DataLayer.needsReconnect();
+  const headerLabel = 'SHARED JOURNAL';
 
   const lastHapticLength = useRef(0);
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -97,6 +91,15 @@ export default function JournalEntryScreen({ navigation, route }) {
     }
 
     Keyboard.dismiss();
+
+    if (!entry?.id && needsReconnect) {
+      Alert.alert(
+        "Reconnect Required",
+        "Shared journal is unavailable on this device until your partner encryption key is restored. Re-pair or reconnect this device first."
+      );
+      return;
+    }
+
     setIsSaving(true);
     notification(NotificationFeedbackType.Success);
 
@@ -105,7 +108,7 @@ export default function JournalEntryScreen({ navigation, route }) {
         title: title.trim(),
         body: content.trim(),
         mood,
-        isPrivate: !isShared,
+        isPrivate: false,
         imageUri: imageUri || null,
       };
 
@@ -116,7 +119,14 @@ export default function JournalEntryScreen({ navigation, route }) {
       }
       navigation.goBack();
     } catch (error) {
-      Alert.alert("Error", "Failed to save journal entry. Please try again.");
+      if (error?.message?.includes('COUPLE_KEY_MISSING')) {
+        Alert.alert(
+          "Reconnect Required",
+          "This device is missing your shared encryption key. Re-pair or reconnect before saving shared journal entries."
+        );
+      } else {
+        Alert.alert("Error", "Failed to save journal entry. Please try again.");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -345,46 +355,32 @@ export default function JournalEntryScreen({ navigation, route }) {
 
             {/* Footer Actions */}
             <Animated.View entering={FadeInUp.delay(600)} style={styles.footer}>
+              {needsReconnect ? (
+                <View style={[styles.reconnectBanner, { borderColor: withAlpha('#D2121A', 0.24), backgroundColor: withAlpha('#D2121A', 0.08) }]}>
+                  <Icon name="warning-outline" size={16} color="#D2121A" />
+                  <Text style={[styles.reconnectBannerText, { color: colors.text }]}>Reconnect pairing to restore shared journal saving on this device.</Text>
+                </View>
+              ) : null}
+
               <View style={styles.footerActions}>
-                {isReadOnly ? (
-                  <View
-                    style={[
-                      styles.shareToggle,
-                      { borderColor: withAlpha(colors.text, 0.1), backgroundColor: withAlpha(colors.text, 0.04) }
-                    ]}
-                  >
-                    <Icon
-                      name={entry?.is_private ? "eye-off-outline" : "people-outline"}
-                      size={18}
-                      color={colors.textMuted}
-                    />
-                    <Text style={[styles.shareText, { color: colors.textMuted }]}> 
-                      {entry?.is_private ? "Private archive" : "Shared journal"}
-                    </Text>
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => {
-                      setIsShared(!isShared);
-                      selection();
-                    }}
-                    activeOpacity={0.8}
-                    style={[
-                      styles.shareToggle,
-                      { borderColor: isShared ? colors.primary : withAlpha(colors.text, 0.1) },
-                      isShared && { backgroundColor: withAlpha(colors.primary, 0.08) }
-                    ]}
-                  >
-                    <Icon
-                      name={isShared ? "people-outline" : "eye-off-outline"}
-                      size={18}
-                      color={isShared ? colors.primary : colors.textMuted}
-                    />
-                    <Text style={[styles.shareText, { color: isShared ? colors.primary : colors.textMuted }]}> 
-                      {isShared ? "Shared with Partner" : "Private Archive"}
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                <View
+                  style={[
+                    styles.shareToggle,
+                    {
+                      borderColor: isReadOnly ? withAlpha(colors.text, 0.1) : colors.primary,
+                      backgroundColor: isReadOnly ? withAlpha(colors.text, 0.04) : withAlpha(colors.primary, 0.08)
+                    }
+                  ]}
+                >
+                  <Icon
+                    name="people-outline"
+                    size={18}
+                    color={isReadOnly ? colors.textMuted : colors.primary}
+                  />
+                  <Text style={[styles.shareText, { color: isReadOnly ? colors.textMuted : colors.primary }]}> 
+                    Shared journal
+                  </Text>
+                </View>
 
                 {entry && !isReadOnly && (
                   <TouchableOpacity
@@ -544,6 +540,23 @@ const createStyles = (colors) => StyleSheet.create({
     paddingTop: SPACING.xxxl,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.05)',
+  },
+  reconnectBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: SPACING.lg,
+  },
+  reconnectBannerText: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
   },
   footerActions: {
     flexDirection: "row",
