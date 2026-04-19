@@ -427,6 +427,23 @@ async function migrate(db) {
     }
   }
 
+  // v10: photo_uri on journal entries for shared photo memories
+  if (user_version < 10) {
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      try {
+        await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN photo_uri TEXT;`);
+      } catch (e) {
+        if (!e?.message?.includes('duplicate column')) throw e;
+      }
+      await db.execAsync('PRAGMA user_version = 10;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  }
+
   // v9: couple_id on journal entries for shared-feed scoping
   if (user_version < 9) {
     await db.execAsync('BEGIN TRANSACTION;');
@@ -472,12 +489,12 @@ const Database = {
     await db.runAsync(
       `INSERT INTO journal_entries
         (id, user_id, couple_id, title_cipher, body_cipher, mood, mood_cipher, tags, tags_cipher,
-         is_private, created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+         is_private, photo_uri, created_at, updated_at, sync_status, sync_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null, entry.title_cipher ?? null, entry.body_cipher ?? null,
        entry.mood ?? null, entry.mood_cipher ?? null,
        entry.tags ? JSON.stringify(entry.tags) : null, entry.tags_cipher ?? null,
-       entry.is_private ? 1 : 0, entry.created_at ?? ts, ts]
+       entry.is_private ? 1 : 0, entry.photo_uri ?? null, entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
   },
@@ -489,7 +506,7 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'is_private', 'couple_id'].includes(k)) {
+      if (['title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'is_private', 'couple_id', 'photo_uri'].includes(k)) {
         fields.push(`${k} = ?`);
         params.push(k === 'tags' ? JSON.stringify(v) : (k === 'is_private' ? (v ? 1 : 0) : v));
       }

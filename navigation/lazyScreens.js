@@ -57,11 +57,6 @@ export const PairingQRCode = () => withScreenErrorBoundary(require("../screens/P
 export const PairingScan = () => withScreenErrorBoundary(require("../screens/PairingScanScreen").default, "PairingScan");
 export const JoinWithCode = () => withScreenErrorBoundary(require("../screens/JoinWithCodeScreen").default, "JoinWithCode");
 
-// ─── Love notes ─────────────────────────────────────────────────────
-export const LoveNotesInbox = () => withScreenErrorBoundary(require("../screens/LoveNotesInboxScreen").default, "LoveNotesInbox");
-export const ComposeLoveNote = () => withScreenErrorBoundary(require("../screens/ComposeLoveNoteScreen").default, "ComposeLoveNote");
-export const LoveNoteDetail = () => withScreenErrorBoundary(require("../screens/LoveNoteDetailScreen").default, "LoveNoteDetail");
-
 // ─── Premium / paywall ──────────────────────────────────────────────
 export const InsideJokes = () => withScreenErrorBoundary(require("../screens/InsideJokesScreen").default, "InsideJokes");
 export const YearReflection = () => withScreenErrorBoundary(require("../screens/YearReflectionScreen").default, "YearReflection");

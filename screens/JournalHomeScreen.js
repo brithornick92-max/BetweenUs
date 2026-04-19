@@ -10,6 +10,7 @@ import {
   Platform,
   Dimensions,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -26,6 +27,7 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
+const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 const FILTERS = [
@@ -63,16 +65,17 @@ function buildJournalItem(row, ownerIds) {
     accent: isPrivate ? '#7E4FA3' : '#D2121A',
     meta: isPrivate ? 'Only you can read this' : (isOwn ? 'Visible to both of you' : 'Shared with both of you'),
     dateLabel: formatDateLabel(row.created_at),
+    photoUri: row.photo_uri || null,
     entry: row,
     canEdit: isOwn,
   };
 }
 
-export default function JournalHomeScreen({ navigation }) {
+export default function JournalHomeScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const { state } = useAppContext();
-  const [filter, setFilter] = useState('private');
+  const [filter, setFilter] = useState(route?.params?.initialFilter || 'private');
   const [entries, setEntries] = useState({ private: [], shared: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -93,7 +96,7 @@ export default function JournalHomeScreen({ navigation }) {
     border: colors.border || (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
   }), [colors, isDark]);
 
-  const styles = useMemo(() => createStyles(t), [t]);
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const loadEntries = useCallback(async () => {
     try {
@@ -171,7 +174,7 @@ export default function JournalHomeScreen({ navigation }) {
       <TouchableOpacity
         activeOpacity={0.88}
         onPress={() => navigation.navigate('JournalEntry', { entry: item.entry, readOnly: !item.canEdit })}
-        style={styles.card}
+        style={[styles.card, getShadow(isDark)]}
         accessibilityLabel={item.title || 'Journal entry'}
         accessibilityRole="button"
         accessibilityHint={item.canEdit ? 'Double tap to edit' : 'Double tap to read'}
@@ -185,6 +188,9 @@ export default function JournalHomeScreen({ navigation }) {
         </View>
 
         <Text style={styles.cardTitle}>{item.title}</Text>
+        {item.photoUri ? (
+          <Image source={{ uri: item.photoUri }} style={styles.cardPhoto} />
+        ) : null}
         <Text style={styles.cardBody} numberOfLines={4}>{item.body || 'Nothing saved yet.'}</Text>
 
         <View style={styles.cardFooter}>
@@ -201,10 +207,11 @@ export default function JournalHomeScreen({ navigation }) {
 
   const ListHeader = (
     <Animated.View entering={FadeIn.duration(500)}>
-      <View style={styles.header}>
+      {/* ── Fixed Nav Header ── */}
+      <View style={styles.navHeader}>
         <TouchableOpacity
-          style={styles.backButton}
-          activeOpacity={0.7}
+          style={styles.iconButton}
+          hitSlop={16}
           accessibilityLabel="Go back"
           accessibilityRole="button"
           onPress={() => {
@@ -212,23 +219,24 @@ export default function JournalHomeScreen({ navigation }) {
             navigation.goBack();
           }}
         >
-          <Icon name='chevron-back' size={28} color={t.text} />
+          <Icon name='arrow-back' size={24} color={t.text} />
         </TouchableOpacity>
-
-        <View style={styles.headerCenter}>
-          <Text style={[styles.headerSubtitle, { color: t.primary }]}>JOURNAL</Text>
-          <Text style={styles.headerTitle}>Private & Shared</Text>
-        </View>
-
         <TouchableOpacity
-          style={[styles.newButton, { backgroundColor: t.primary }]}
+          style={[styles.newEntryButton, { backgroundColor: t.primary }]}
           activeOpacity={0.85}
           accessibilityLabel="New journal entry"
           accessibilityRole="button"
           onPress={() => handleCreate()}
         >
-          <Icon name='add-outline' size={18} color='#FFF' />
+          <Icon name='add-outline' size={16} color='#FFF' />
+          <Text style={styles.newEntryText}>New Entry</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* ── Editorial Header ── */}
+      <View style={styles.editorialHeader}>
+        <Text style={[styles.headerSubtitle, { color: t.primary }]}>JOURNAL</Text>
+        <Text style={[styles.headerTitle, { color: t.text }]}>Your Reflections</Text>
       </View>
 
       <View style={styles.heroCard}>
@@ -315,86 +323,111 @@ export default function JournalHomeScreen({ navigation }) {
   );
 }
 
-const createStyles = (t) => StyleSheet.create({
+// ─── DESIGN SYSTEM HELPERS ──────────────────────────────────────────
+const getShadow = (isDark) => Platform.select({
+  ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
+  android: { elevation: 6 },
+});
+
+const createStyles = (t, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.background },
   safeArea: { flex: 1 },
   listContent: {
     paddingHorizontal: SPACING.screen,
     paddingBottom: 160,
   },
-  header: {
+
+  // ── Fixed Nav Header ──
+  navHeader: {
+    paddingHorizontal: SPACING.screen,
+    paddingTop: 12,
+    paddingBottom: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: SPACING.md,
-    marginBottom: SPACING.xl,
+    zIndex: 10,
   },
-  backButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  iconButton: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  newEntryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 20,
+  },
+  newEntryText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+
+  // ── Editorial Header ──
+  editorialHeader: {
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
+  },
+  headerSubtitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  headerTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 34,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    lineHeight: 40,
+  },
+
+  // ── Hero Card ──
+  heroCard: {
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerCenter: { alignItems: 'center' },
-  headerSubtitle: {
-    fontSize: 10,
-    letterSpacing: 2.2,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  headerTitle: {
-    fontSize: 24,
-    color: t.text,
-    fontFamily: SERIF_FONT,
-  },
-  newButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroCard: {
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: t.border,
-    backgroundColor: withAlpha(t.surface, 0.9),
-    padding: 24,
+    padding: SPACING.xl,
     marginBottom: SPACING.xl,
   },
   heroEyebrowRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 14,
+    gap: 6,
+    marginBottom: SPACING.sm,
   },
   heroEyebrow: {
-    color: t.accent,
-    fontSize: 11,
-    letterSpacing: 1.8,
-    fontWeight: '700',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    color: t.text,
   },
   heroTitle: {
-    color: t.text,
-    fontSize: 28,
-    lineHeight: 34,
     fontFamily: SERIF_FONT,
-    marginBottom: 10,
+    fontSize: 30,
+    lineHeight: 36,
+    color: t.text,
+    marginBottom: SPACING.sm,
   },
   heroBody: {
-    color: t.subtext,
+    fontFamily: SYSTEM_FONT,
     fontSize: 15,
-    lineHeight: 24,
+    lineHeight: 22,
+    color: t.subtext,
   },
   heroActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginTop: 20,
+    marginTop: SPACING.lg,
   },
   heroPrimaryAction: {
     flexDirection: 'row',
@@ -402,9 +435,10 @@ const createStyles = (t) => StyleSheet.create({
     gap: 8,
     paddingHorizontal: 18,
     paddingVertical: 12,
-    borderRadius: 999,
+    borderRadius: 28,
   },
   heroPrimaryActionText: {
+    fontFamily: SYSTEM_FONT,
     color: '#FFF',
     fontSize: 14,
     fontWeight: '700',
@@ -412,32 +446,38 @@ const createStyles = (t) => StyleSheet.create({
   heroSecondaryAction: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 999,
+    borderRadius: 28,
     borderWidth: 1,
   },
   heroSecondaryActionText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 13,
     fontWeight: '600',
   },
+
+  // ── Filters ──
   filtersRow: {
     flexDirection: 'row',
     gap: 10,
     marginBottom: SPACING.xl,
   },
   filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
+    flex: 1,
+    minHeight: 56,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: withAlpha(t.surface, 0.72),
+    backgroundColor: t.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
   },
   filterLabel: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '700',
   },
   filterCount: {
     minWidth: 24,
@@ -448,14 +488,17 @@ const createStyles = (t) => StyleSheet.create({
     paddingHorizontal: 6,
   },
   filterCountText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 11,
     fontWeight: '700',
   },
+
+  // ── Cards ──
   card: {
     borderRadius: 24,
-    padding: 20,
-    marginBottom: 14,
-    backgroundColor: withAlpha(t.surface, 0.92),
+    padding: SPACING.xl,
+    marginBottom: SPACING.md,
+    backgroundColor: t.surface,
     borderWidth: 1,
     borderColor: t.border,
   },
@@ -463,40 +506,52 @@ const createStyles = (t) => StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   eyebrowRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     flexShrink: 1,
   },
   eyebrow: {
-    fontSize: 10,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
     letterSpacing: 1.5,
-    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   dateLabel: {
+    fontFamily: SYSTEM_FONT,
     color: t.subtext,
     fontSize: 12,
+    fontWeight: '500',
   },
   cardTitle: {
-    color: t.text,
-    fontSize: 24,
-    lineHeight: 30,
     fontFamily: SERIF_FONT,
-    marginBottom: 10,
+    color: t.text,
+    fontSize: 26,
+    lineHeight: 32,
+    marginBottom: SPACING.sm,
+  },
+  cardPhoto: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+    marginBottom: SPACING.md,
+    resizeMode: 'cover',
   },
   cardBody: {
+    fontFamily: SYSTEM_FONT,
     color: t.subtext,
     fontSize: 15,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: SPACING.lg,
     gap: 10,
   },
   metaPill: {
@@ -507,6 +562,7 @@ const createStyles = (t) => StyleSheet.create({
     flexShrink: 1,
   },
   metaPillText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -517,9 +573,12 @@ const createStyles = (t) => StyleSheet.create({
     paddingVertical: 8,
   },
   actionPillText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
+
+  // ── Empty & Loading States ──
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -532,28 +591,33 @@ const createStyles = (t) => StyleSheet.create({
     borderRadius: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-    backgroundColor: withAlpha(t.primary, 0.12),
+    marginBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: t.border,
+    backgroundColor: t.surface,
   },
   emptyTitle: {
-    color: t.text,
-    fontSize: 24,
     fontFamily: SERIF_FONT,
-    marginBottom: 10,
+    color: t.text,
+    fontSize: 26,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
   },
   emptyBody: {
+    fontFamily: SYSTEM_FONT,
     color: t.subtext,
     fontSize: 15,
-    lineHeight: 24,
+    lineHeight: 22,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: SPACING.lg,
   },
   emptyButton: {
-    borderRadius: 999,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+    borderRadius: 28,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
   },
   emptyButtonText: {
+    fontFamily: SYSTEM_FONT,
     color: '#FFF',
     fontSize: 14,
     fontWeight: '700',
@@ -565,6 +629,7 @@ const createStyles = (t) => StyleSheet.create({
     gap: 12,
   },
   loadingText: {
+    fontFamily: SYSTEM_FONT,
     color: t.subtext,
     fontSize: 14,
   },

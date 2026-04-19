@@ -108,7 +108,7 @@ function normalizePrompt(p) {
 
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
-  { label: 'Love Note', icon: 'mail-outline', key: 'note', premium: false, color: '#D2121A' }, // Sexy red
+  { label: 'Journal', icon: 'book-outline', key: 'journal', premium: false, color: '#7E4FA3' },
   { label: 'Quiz', icon: 'help-circle-outline', key: 'quiz', premium: false, color: '#D4AA7E' }, // Champagne gold
   { label: 'Ritual', icon: 'flame-outline', key: 'ritual', premium: true, color: '#7E4FA3' }, // Velvet plum
   { label: 'Jokes', icon: 'happy-outline', key: 'jokes', premium: true, color: '#D4AA7E' }, // Champagne gold
@@ -147,7 +147,7 @@ export default function HomeScreen({ navigation }) {
   const [inlineText, setInlineText] = useState('');
   const [isSavingInline, setIsSavingInline] = useState(false);
   const [throwback, setThrowback] = useState(null);
-  const [unreadNotes, setUnreadNotes] = useState(0);
+  const [unreadNotes_unused, _setUnreadNotes] = useState(0); // removed Love Notes
   const [selectedTone, setSelectedTone] = useState('warm');
   const [homeLayout, setHomeLayout] = useState({
     type: 'comfortable',
@@ -295,7 +295,8 @@ export default function HomeScreen({ navigation }) {
       (async () => {
         try {
           const count = await DataLayer.getUnreadLoveNoteCount();
-          if (active) setUnreadNotes(count || 0);
+          // unread notes badge removed
+          if (__DEV__) console.log('[Home] unread notes (unused):', count);
         } catch (e) { if (__DEV__) console.warn('[Home] unread notes fetch:', e?.message); }
       })();
       return () => { active = false; };
@@ -549,8 +550,8 @@ export default function HomeScreen({ navigation }) {
 
   const handleAction = useCallback(async (key) => {
     impact(ImpactFeedbackStyle.Light);
-    if (key === 'note') {
-      navigation.navigate('LoveNotesInbox');
+    if (key === 'journal') {
+      navigation.navigate('JournalHome', { initialFilter: 'shared' });
     } else if (key === 'ritual') {
       if (!isPremium) {
         Alert.alert(
@@ -785,7 +786,7 @@ export default function HomeScreen({ navigation }) {
           }]}>
             {ACTIONS.map((action, index) => {
               const locked = action.premium && !isPremium;
-              const badge = action.key === 'note' && unreadNotes > 0 ? unreadNotes : 0;
+              const badge = 0;
 
               return (
                 <TouchableOpacity

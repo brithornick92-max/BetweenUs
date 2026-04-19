@@ -30,7 +30,10 @@ import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import { useAppContext } from "../context/AppContext";
 import { PremiumFeature } from '../utils/featureFlags';
-import { withAlpha } from "../utils/theme";
+import { withAlpha, SPACING } from "../utils/theme";
+
+const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
+const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
 
@@ -103,6 +106,7 @@ export default function JournalEntryScreen({ navigation, route }) {
         body: content.trim(),
         mood,
         isPrivate: !isShared,
+        imageUri: imageUri || null,
       };
 
       if (entry?.id) {
@@ -412,9 +416,9 @@ const createStyles = (colors) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 24,
+    paddingHorizontal: SPACING.screen,
     paddingTop: 12,
-    paddingBottom: 24,
+    paddingBottom: SPACING.lg,
   },
   backButton: {
     width: 44,
@@ -425,14 +429,17 @@ const createStyles = (colors) => StyleSheet.create({
   },
   headerCenter: { alignItems: "center" },
   headerSubtitle: {
-    fontFamily: 'Lato_700Bold',
+    fontFamily: SYSTEM_FONT,
     fontSize: 10,
-    letterSpacing: 2.5,
+    fontWeight: '800',
+    letterSpacing: 2,
     marginBottom: 4,
+    textTransform: 'uppercase',
   },
   headerDate: {
-    fontFamily: 'Lato_400Regular',
-    fontSize: 14,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '500',
     opacity: 0.7,
   },
   saveButton: {
@@ -456,30 +463,32 @@ const createStyles = (colors) => StyleSheet.create({
     borderWidth: 1,
   },
   readOnlyText: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 12,
-    fontFamily: 'Lato_700Bold',
+    fontWeight: '700',
   },
   saveText: {
+    fontFamily: SYSTEM_FONT,
     color: "#FFF",
     fontSize: 14,
-    fontFamily: 'Lato_700Bold',
+    fontWeight: '700',
   },
-  scrollView: { flex: 1, paddingHorizontal: 28 },
+  scrollView: { flex: 1, paddingHorizontal: SPACING.screen },
   titleInput: {
     fontSize: 34,
     lineHeight: 42,
-    fontFamily: Platform.select({ ios: "DMSerifDisplay-Regular", android: "DMSerifDisplay_400Regular" }),
-    fontWeight: "300",
-    marginBottom: 32,
+    fontFamily: SERIF_FONT,
+    marginBottom: SPACING.xxxl,
   },
   sectionLabel: {
-    fontFamily: 'Lato_700Bold',
+    fontFamily: SYSTEM_FONT,
     fontSize: 10,
+    fontWeight: '800',
     letterSpacing: 1.5,
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     textTransform: 'uppercase',
   },
-  moodSection: { marginBottom: 32 },
+  moodSection: { marginBottom: SPACING.xxxl },
   moodRow: { gap: 10, paddingRight: 20 },
   moodChip: {
     flexDirection: "row",
@@ -490,8 +499,8 @@ const createStyles = (colors) => StyleSheet.create({
     borderWidth: 1,
     gap: 8,
   },
-  moodText: { fontSize: 14, fontFamily: 'Lato_700Bold' },
-  mediaContainer: { marginBottom: 32 },
+  moodText: { fontFamily: SYSTEM_FONT, fontSize: 14, fontWeight: '600' },
+  mediaContainer: { marginBottom: SPACING.xxxl },
   imagePreview: { width: "100%", height: 220, borderRadius: 24 },
   previewWrapper: { position: 'relative' },
   removeImageBtn: {
@@ -515,23 +524,24 @@ const createStyles = (colors) => StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  placeholderText: { fontFamily: 'Lato_400Regular', fontSize: 14 },
-  writingSurface: { marginBottom: 40 },
+  placeholderText: { fontFamily: SYSTEM_FONT, fontSize: 14, fontWeight: '500' },
+  writingSurface: { marginBottom: SPACING.xxxl },
   writingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
-  charCount: { fontSize: 10, fontFamily: 'Lato_400Regular', opacity: 0.5 },
+  charCount: { fontFamily: SYSTEM_FONT, fontSize: 10, fontWeight: '500', opacity: 0.5 },
   contentInput: {
+    fontFamily: SYSTEM_FONT,
     fontSize: 18,
     lineHeight: 30,
+    fontWeight: '400',
     textAlignVertical: "top",
-    fontFamily: 'Lato_400Regular',
   },
   footer: {
-    paddingTop: 32,
+    paddingTop: SPACING.xxxl,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.05)',
   },
@@ -539,7 +549,7 @@ const createStyles = (colors) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
   },
   shareToggle: {
     flexDirection: "row",
@@ -550,7 +560,7 @@ const createStyles = (colors) => StyleSheet.create({
     borderWidth: 1,
     gap: 8,
   },
-  shareText: { fontSize: 13, fontFamily: 'Lato_700Bold' },
+  shareText: { fontFamily: SYSTEM_FONT, fontSize: 13, fontWeight: '700' },
   deleteButton: {
     width: 44,
     height: 44,
@@ -565,5 +575,5 @@ const createStyles = (colors) => StyleSheet.create({
     gap: 6,
     opacity: 0.5,
   },
-  securityText: { fontSize: 9, fontFamily: 'Lato_700Bold' }
+  securityText: { fontFamily: SYSTEM_FONT, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 }
 });

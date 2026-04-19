@@ -210,9 +210,6 @@ export default function RootNavigator() {
 
         <Stack.Screen name="CouplesQuiz" getComponent={Screens.CouplesQuiz} options={{ headerShown: false, animation: "slide_from_right", animationDuration: 400 }} />
         <Stack.Screen name="Achievements" getComponent={Screens.Achievements} options={{ headerShown: false }} />
-        <Stack.Screen name="LoveNotesInbox" getComponent={Screens.LoveNotesInbox} options={{ headerShown: false }} />
-        <Stack.Screen name="ComposeLoveNote" getComponent={Screens.ComposeLoveNote} options={{ headerShown: false }} />
-        <Stack.Screen name="LoveNoteDetail" getComponent={Screens.LoveNoteDetail} options={{ headerShown: false }} />
 
         <Stack.Screen name="InsideJokes" getComponent={Screens.InsideJokes} options={{ headerShown: false }} />
         <Stack.Screen name="YearReflection" getComponent={Screens.YearReflection} options={{ headerShown: false }} />

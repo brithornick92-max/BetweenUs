@@ -596,7 +596,7 @@ const DataLayer = {
 
   // ─── Journal ──────────────────────────────────────────────────
 
-  async saveJournalEntry({ title, body, mood, tags, isPrivate = false }) {
+  async saveJournalEntry({ title, body, mood, tags, isPrivate = false, imageUri = null }) {
     // Private entries always use device key; shared entries use couple key
     const kt = isPrivate ? deviceTier() : keyTier();
     const cid = kt === 'couple' ? _coupleId : null;
@@ -617,13 +617,14 @@ const DataLayer = {
       tags,
       tags_cipher: tagsCipher,  // encrypted exact value for Supabase
       is_private: isPrivate,
+      photo_uri: imageUri || null,
     });
 
     debouncedPush();
     return row;
   },
 
-  async updateJournalEntry(id, { title, body, mood, tags, isPrivate }) {
+  async updateJournalEntry(id, { title, body, mood, tags, isPrivate, imageUri }) {
     const updates = {};
     // Use device key for private entries, couple key for shared
     const kt = isPrivate ? deviceTier() : keyTier();
@@ -649,6 +650,7 @@ const DataLayer = {
     if (tags !== undefined) updates.tags_cipher = tags?.length ? await E2EEncryption.encryptJson(tags, kt, cid) : null;
     if (isPrivate !== undefined) updates.is_private = isPrivate;
     if (isPrivate !== undefined) updates.couple_id = isPrivate ? null : _coupleId;
+    if (imageUri !== undefined) updates.photo_uri = imageUri ?? null;
 
     const row = await Database.updateJournal(id, updates);
     debouncedPush();
