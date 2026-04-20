@@ -33,6 +33,7 @@ export const STORAGE_KEYS = {
 
   // Security
   APP_LOCK_ENABLED: "@betweenus:appLockEnabled",
+  /** @deprecated PIN is now stored in SecureStore (betweenus_app_lock). Only used for legacy migration in LockScreen.js. */
   APP_LOCK_PIN: "@betweenus:appLockPin",
   BIOMETRICS_AVAILABLE: "@betweenus:biometricsAvailable",
   THEME_MODE: "@betweenus:themeMode",
@@ -512,6 +513,28 @@ export const checkInStorage = {
  * Matches what AppContext expects.
  */
 export const userStorage = {
+  async getUserId() {
+    const { encryptedStorage } = await import('./encryptedStorage');
+    const secureValue = await encryptedStorage.get(STORAGE_KEYS.USER_ID, null);
+    if (secureValue) return secureValue;
+
+    const legacyRaw = await AsyncStorage.getItem(STORAGE_KEYS.USER_ID);
+    if (!legacyRaw) return null;
+
+    const legacyValue = safeParse(legacyRaw);
+    if (legacyValue) {
+      await encryptedStorage.set(STORAGE_KEYS.USER_ID, legacyValue);
+    }
+    await AsyncStorage.removeItem(STORAGE_KEYS.USER_ID).catch(() => {});
+    return legacyValue;
+  },
+
+  async setUserId(userId) {
+    const { encryptedStorage } = await import('./encryptedStorage');
+    await AsyncStorage.removeItem(STORAGE_KEYS.USER_ID).catch(() => {});
+    return encryptedStorage.set(STORAGE_KEYS.USER_ID, userId);
+  },
+
   async isOnboardingCompleted() {
     return (await storage.get(STORAGE_KEYS.ONBOARDING_COMPLETED, false)) === true;
   },

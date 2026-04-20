@@ -16,6 +16,8 @@
  *   betweenus://journal                 → JournalHome
  *   betweenus://pair                    → PairingQRCode
  *   betweenus://auth-callback           → AuthCallback (existing)
+ *   betweenus://widget                  → MainTabs (widget home tap)
+ *   betweenus://widget/prompt           → Prompts tab (widget prompt tap)
  */
 
 import CrashReporting from './CrashReporting';
@@ -61,6 +63,10 @@ const ROUTE_MAP = {
   'home': () => ({
     screen: 'MainTabs',
     params: {},
+  }),
+  'widget': (params) => ({
+    screen: 'MainTabs',
+    params: params.id === 'prompt' ? { screen: 'Prompts' } : {},
   }),
 };
 

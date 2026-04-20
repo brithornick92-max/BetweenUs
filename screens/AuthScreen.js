@@ -75,6 +75,12 @@ export default function AuthScreen() {
         Alert.alert("Missing fields", "Please enter your email and password.");
         return;
       }
+      const trimmedEmail = email.trim().toLowerCase();
+      if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+        impact(ImpactFeedbackStyle.Light);
+        Alert.alert("Invalid email", "Please enter a valid email address.");
+        return;
+      }
       if (isSignUp) {
         if (!displayName.trim()) {
           impact(ImpactFeedbackStyle.Light);
@@ -102,10 +108,10 @@ export default function AuthScreen() {
           return;
         }
         impact(ImpactFeedbackStyle.Medium);
-        await signUp(email.trim(), password, displayName.trim());
+        await signUp(trimmedEmail, password, displayName.trim());
       } else {
         impact(ImpactFeedbackStyle.Medium);
-        await signIn(email.trim(), password);
+        await signIn(trimmedEmail, password);
       }
     } catch (error) {
       impact(ImpactFeedbackStyle.Heavy);
@@ -197,6 +203,7 @@ export default function AuthScreen() {
                     value={displayName}
                     onChangeText={setDisplayName}
                     autoCapitalize="words"
+                    maxLength={50}
                     returnKeyType="next"
                     onSubmitEditing={() => emailRef.current?.focus()}
                     blurOnSubmit={false}
@@ -223,6 +230,7 @@ export default function AuthScreen() {
                   autoCorrect={false}
                   textContentType="emailAddress"
                   autoComplete="email"
+                  maxLength={254}
                   returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   blurOnSubmit={false}
@@ -246,6 +254,7 @@ export default function AuthScreen() {
                   secureTextEntry={!showPassword}
                   textContentType="password"
                   autoComplete="password"
+                  maxLength={128}
                   returnKeyType={isSignUp ? "next" : "done"}
                   onSubmitEditing={isSignUp ? () => confirmRef.current?.focus() : handleAuth}
                   blurOnSubmit={!isSignUp}

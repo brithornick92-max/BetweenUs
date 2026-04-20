@@ -291,6 +291,10 @@ export const AuthProvider = ({ children }) => {
   /**
    * Also create a Supabase account so pairing works without a second sign-in.
    * Failures are non-fatal — the user can still use the app locally.
+   *
+   * ACCEPTED RISK: Password is stored (encrypted via EncryptionService) in
+   * SecureStore to enable silent re-auth for offline-first cloud sync.
+   * Long-term: migrate to PKCE/OAuth to eliminate local password storage.
    */
   const _bridgeSupabaseAuth = async (email, password, isNewAccount) => {
     try {
@@ -516,6 +520,41 @@ export const AuthProvider = ({ children }) => {
 
       // A signed-out device should not retain plaintext account or profile data.
       await clearLocalAsyncStorage();
+
+      // Clear SecureStore auth backup and settings (same cleanup as delete-account)
+      try {
+        const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
+        const LocalStorageService = require('../services/LocalStorageService').default;
+        await SecureStore.deleteItemAsync('currentUserId', SECURE_STORE_OPTS);
+        if (user?.uid) {
+          await SecureStore.deleteItemAsync(`user_profile_${user.uid}`, SECURE_STORE_OPTS);
+          await SecureStore.deleteItemAsync(`cred_${user.uid}`, SECURE_STORE_OPTS);
+        }
+        if (user?.email) {
+          const emailKey = LocalStorageService._emailToKey(user.email);
+          await SecureStore.deleteItemAsync(`email_uid_${emailKey}`, SECURE_STORE_OPTS);
+        }
+      } catch (secErr) {
+        if (__DEV__) console.warn('SecureStore cleanup (non-fatal):', secErr?.message);
+      }
+
+      // Clear SecureStore settings keys (migrated from AsyncStorage)
+      try {
+        const { encryptedStorage } = require('../utils/encryptedStorage');
+        await Promise.all([
+          encryptedStorage.remove(STORAGE_KEYS.USER_ID),
+          encryptedStorage.remove(STORAGE_KEYS.USER_PROFILE),
+          encryptedStorage.remove(STORAGE_KEYS.COUPLE_ID),
+          encryptedStorage.remove(STORAGE_KEYS.PARTNER_PROFILE),
+          encryptedStorage.remove(STORAGE_KEYS.APP_LOCK_ENABLED),
+          encryptedStorage.remove(STORAGE_KEYS.PRIVACY_SETTINGS),
+          encryptedStorage.remove(STORAGE_KEYS.BIOMETRIC_VAULT),
+          encryptedStorage.remove(STORAGE_KEYS.THEME_MODE),
+          encryptedStorage.remove(STORAGE_KEYS.NOTIFICATION_SETTINGS),
+        ]);
+      } catch (settingsErr) {
+        if (__DEV__) console.warn('Settings SecureStore cleanup (non-fatal):', settingsErr?.message);
+      }
     } finally {
       setBusy(false);
     }

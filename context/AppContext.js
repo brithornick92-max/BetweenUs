@@ -1,7 +1,7 @@
 // context/AppContext.js
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
 import * as Crypto from 'expo-crypto';
-import { storage, STORAGE_KEYS, vibeStorage, settingsStorage } from '../utils/storage';
+import { storage, STORAGE_KEYS, vibeStorage, settingsStorage, userStorage } from '../utils/storage';
 import { useEntitlements , clearCouplePremiumCache } from './EntitlementsContext';
 import { NicknameEngine } from '../services/PolishEngine';
 import CoupleService from '../services/supabase/CoupleService';
@@ -162,10 +162,10 @@ export function AppProvider({ children }) {
 
     const init = async () => {
       await WeeklyContentScheduler.init();
-      let userId = await storage.get(STORAGE_KEYS.USER_ID, null);
+      let userId = await userStorage.getUserId();
       if (!userId) {
         userId = Crypto.randomUUID();
-        await storage.set(STORAGE_KEYS.USER_ID, userId);
+        await userStorage.setUserId(userId);
       }
 
       // Load all persisted state

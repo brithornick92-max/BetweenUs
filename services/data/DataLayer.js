@@ -128,7 +128,7 @@ async function ensureLocalIdentityState() {
     }
 
     if (!resolvedUserId) {
-      resolvedUserId = await storage.get(STORAGE_KEYS.USER_ID, null);
+      resolvedUserId = await (await import('../utils/storage')).userStorage.getUserId();
     }
 
     if (resolvedUserId) {

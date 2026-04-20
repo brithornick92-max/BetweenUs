@@ -3,7 +3,7 @@
     "name": "Between Us",
     "slug": "between-us",
     "scheme": "betweenus",
-    "version": "1.0.17",
+    "version": "1.0.22",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -129,7 +129,8 @@
           "image": "./assets/logo-transparent.png",
           "imageWidth": 220
         }
-      ]
+      ],
+      "./plugins/withHomeScreenWidgets.cjs"
     ],
     "runtimeVersion": {
       "policy": "appVersion"
