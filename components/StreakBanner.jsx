@@ -10,6 +10,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, StyleSheet, Platform } from 'react-native';
 import Icon from './Icon';
 import { useTheme } from '../context/ThemeContext';
+import { updateWidgetDaysConnected } from '../services/widgetData';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { SPACING } from '../utils/theme';
@@ -66,6 +67,7 @@ export default function StreakBanner({ onPress }) {
 
         if (active) {
           setStreak(currentStreak);
+          updateWidgetDaysConnected(currentStreak).catch(() => {});
           if (currentStreak >= 2) {
             Animated.timing(fadeAnim, {
               toValue: 1,

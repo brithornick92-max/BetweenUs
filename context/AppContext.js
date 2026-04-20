@@ -3,6 +3,7 @@ import React, { createContext, useContext, useReducer, useEffect, useMemo, useRe
 import * as Crypto from 'expo-crypto';
 import { storage, STORAGE_KEYS, vibeStorage, settingsStorage, userStorage } from '../utils/storage';
 import { useEntitlements , clearCouplePremiumCache } from './EntitlementsContext';
+import { updateWidgetPartnerName } from '../services/widgetData';
 import { NicknameEngine } from '../services/PolishEngine';
 import CoupleService from '../services/supabase/CoupleService';
 import CoupleKeyService from '../services/security/CoupleKeyService';
@@ -451,6 +452,9 @@ export function AppProvider({ children }) {
           : {}),
       };
       await storage.set(STORAGE_KEYS.USER_PROFILE, mergedProfile);
+      if (mergedProfile.partnerNames?.partnerName) {
+        updateWidgetPartnerName(mergedProfile.partnerNames.partnerName).catch(() => {});
+      }
       dispatch({ type: ACTIONS.UPDATE_PROFILE, payload: profileData });
     },
     

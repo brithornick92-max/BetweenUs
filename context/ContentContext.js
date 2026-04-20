@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import StorageRouter from '../services/storage/StorageRouter';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
+import { updateWidgetPrompt } from '../services/widgetData';
 import E2EEncryption from '../services/e2ee/E2EEncryption';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import { useAuth } from './AuthContext';
@@ -286,6 +287,7 @@ export const ContentProvider = ({ children }) => {
       const personalizedPrompt = await personalizePrompt({ ...selectedPrompt, dateKey: today });
       const resolvedPrompt = { ...personalizedPrompt, _dailyPromptScope: scope };
       setTodayPrompt(resolvedPrompt);
+      updateWidgetPrompt(resolvedPrompt.text || selectedPrompt.text).catch(() => {});
 
       return resolvedPrompt;
     } catch (error) {
