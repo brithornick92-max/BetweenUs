@@ -325,7 +325,12 @@ class LocalStorageService {
 
       return { user };
     } catch (error) {
-      if (__DEV__) console.error('Sign in error:', error);
+      // 'User not found' and 'Invalid password' are expected when the account
+      // doesn't exist locally yet — the caller will fall back to Supabase.
+      const msg = error?.message || '';
+      if (__DEV__ && !msg.includes('User not found') && !msg.includes('Invalid password')) {
+        console.error('Sign in error:', error);
+      }
       throw error;
     }
   }

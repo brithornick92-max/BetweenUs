@@ -13,10 +13,14 @@ describe('CloudEngine.joinCouple', () => {
     }));
     const insert = jest.fn().mockResolvedValue(insertResult ?? { error: null });
     const maybeSingle = jest.fn().mockResolvedValue(maybeSingleResult ?? { data: null, error: null });
-    const select = jest.fn(() => ({
+    const selectEq = jest.fn(() => ({
       eq: jest.fn(() => ({
         maybeSingle,
       })),
+      maybeSingle,
+    }));
+    const select = jest.fn(() => ({
+      eq: selectEq,
     }));
     const from = jest.fn(() => ({
       select,
@@ -44,6 +48,7 @@ describe('CloudEngine.joinCouple', () => {
       CloudEngine,
       from,
       select,
+      selectEq,
       maybeSingle,
       update,
       updateEq,
@@ -81,5 +86,20 @@ describe('CloudEngine.joinCouple', () => {
     );
 
     expect(insert).not.toHaveBeenCalled();
+  });
+
+  it('reads wrapped key material for the current membership', async () => {
+    const { CloudEngine } = loadCloudEngine({
+      maybeSingleResult: {
+        data: { public_key: 'public-key-1', wrapped_couple_key: 'wrapped-key-1' },
+        error: null,
+      },
+    });
+
+    await CloudEngine.initialize({ supabaseSessionPresent: true });
+    await expect(CloudEngine.getMyMembershipKeyMaterial('couple-1')).resolves.toEqual({
+      public_key: 'public-key-1',
+      wrapped_couple_key: 'wrapped-key-1',
+    });
   });
 });

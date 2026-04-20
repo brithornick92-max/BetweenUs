@@ -49,6 +49,7 @@ const CoupleKeyService = {
 
     const stored = await SecureStore.getItemAsync(DEVICE_KP_NAME, {
       keychainService: SERVICE,
+      keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
     });
 
     if (stored) {
@@ -79,6 +80,7 @@ const CoupleKeyService = {
     combined.set(kp.publicKey, 32);
     await SecureStore.setItemAsync(DEVICE_KP_NAME, encode(combined), {
       keychainService: SERVICE,
+      keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
     });
     _deviceKpCache = kp;
     return kp;
@@ -253,15 +255,16 @@ const CoupleKeyService = {
     if (!keyBytes || keyBytes.length !== 32) {
       throw new Error("Invalid couple key: must be exactly 32 bytes");
     }
+    const encoded = encode(keyBytes);
     await SecureStore.setItemAsync(
       `${COUPLE_KEY_PREFIX}${coupleId}`,
-      encode(keyBytes),
-      { keychainService: SERVICE }
+      encoded,
+      { keychainService: SERVICE, keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK }
     );
     await SecureStore.setItemAsync(
       `${COUPLE_KV_PREFIX}${coupleId}`,
       String(version),
-      { keychainService: SERVICE }
+      { keychainService: SERVICE, keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK }
     );
     return true;
   },
@@ -274,7 +277,7 @@ const CoupleKeyService = {
     if (!coupleId) return null;
     const stored = await SecureStore.getItemAsync(
       `${COUPLE_KEY_PREFIX}${coupleId}`,
-      { keychainService: SERVICE }
+      { keychainService: SERVICE, keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK }
     );
     if (!stored) return null;
     try {
@@ -294,7 +297,7 @@ const CoupleKeyService = {
     if (!coupleId) return 0;
     const v = await SecureStore.getItemAsync(
       `${COUPLE_KV_PREFIX}${coupleId}`,
-      { keychainService: SERVICE }
+      { keychainService: SERVICE, keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK }
     );
     return v ? parseInt(v, 10) : 1;
   },

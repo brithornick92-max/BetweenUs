@@ -99,6 +99,67 @@ class CloudEngine {
     return true;
   }
 
+  async getMyMembershipKeyMaterial(coupleId) {
+    this._ensureSession();
+    const supabase = getSupabaseOrThrow();
+    const userId = await this._getUserId();
+    const { data, error } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .select('public_key, wrapped_couple_key')
+      .eq('couple_id', coupleId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  async getPartnerMembership(coupleId) {
+    this._ensureSession();
+    const supabase = getSupabaseOrThrow();
+    const userId = await this._getUserId();
+    const { data, error } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .select('user_id, public_key, wrapped_couple_key')
+      .eq('couple_id', coupleId)
+      .neq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  async waitForPartnerMembership(coupleId, timeoutMs = 120_000, intervalMs = 3_000) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const partner = await this.getPartnerMembership(coupleId);
+      if (partner?.public_key && partner?.user_id) return partner;
+      await new Promise(r => setTimeout(r, intervalMs));
+    }
+    return null;
+  }
+
+  async setMyWrappedCoupleKey(coupleId, wrappedCoupleKey) {
+    this._ensureSession();
+    const supabase = getSupabaseOrThrow();
+    const userId = await this._getUserId();
+    const { error } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .update({ wrapped_couple_key: wrappedCoupleKey })
+      .eq('couple_id', coupleId)
+      .eq('user_id', userId);
+    if (error) throw error;
+    return true;
+  }
+
+  async waitForMyWrappedCoupleKey(coupleId, timeoutMs = 120_000, intervalMs = 3_000) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const material = await this.getMyMembershipKeyMaterial(coupleId);
+      if (material?.wrapped_couple_key) return material.wrapped_couple_key;
+      await new Promise(r => setTimeout(r, intervalMs));
+    }
+    return null;
+  }
+
   /**
    * Get the partner's public key from couple_members.
    * Returns null if the partner hasn't uploaded theirs yet.

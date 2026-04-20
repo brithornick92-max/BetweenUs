@@ -18,7 +18,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
-import naclUtil from 'tweetnacl-util';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { clearCouplePremiumCache } from '../context/EntitlementsContext';
@@ -28,6 +27,7 @@ import CloudEngine from '../services/storage/CloudEngine';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import { makePairingPayload } from '../services/security/PairingPayload';
 import CoupleService from '../services/supabase/CoupleService';
+import { backfillWrappedKeysFromLocalKey, deriveAndPersistWrappedCoupleKey } from '../services/security/WrappedCoupleKeyFlow';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, withAlpha } from '../utils/theme';
 import Icon from '../components/Icon';
@@ -154,18 +154,28 @@ export default function PairingQRCodeScreen({ navigation }) {
   setStatus(isRepairFlow ? 'Repair code ready' : 'Ready to scan');
       setPhase('waiting');
 
-      const partnerPubKeyB64 = await CloudEngine.waitForPartnerPublicKey(coupleId, 600_000, 3_000);
+      const partnerMembership = await CloudEngine.waitForPartnerMembership(coupleId, 600_000, 3_000);
       if (!activeRef.current) return;
 
-      if (!partnerPubKeyB64) {
+      if (!partnerMembership?.public_key || !partnerMembership?.user_id) {
         setStatus('Link timed out. Please try again.');
         setPhase('error');
         return;
       }
 
-      const partnerPubKey = naclUtil.decodeBase64(partnerPubKeyB64);
-      const coupleKey = await CoupleKeyService.deriveFromKeyExchange(partnerPubKey);
-      await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
+      if (isRepairFlow) {
+        await backfillWrappedKeysFromLocalKey({
+          coupleId,
+          partnerUserId: partnerMembership.user_id,
+          partnerPublicKeyB64: partnerMembership.public_key,
+        });
+      } else {
+        await deriveAndPersistWrappedCoupleKey({
+          coupleId,
+          partnerUserId: partnerMembership.user_id,
+          partnerPublicKeyB64: partnerMembership.public_key,
+        });
+      }
 
       if (!activeRef.current) return;
       setStatus(isRepairFlow ? 'Secure pairing repaired.' : 'Connected successfully!');

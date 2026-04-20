@@ -119,7 +119,7 @@ export default function Tabs() {
     RelationshipMilestones._getStats()
       .then((stats) => {
         if (!active) return;
-        if (!stats?.firstOpenDate) { setDaysSinceJoin(0); return; }
+        if (!stats?.firstOpenDate) { setDaysSinceJoin(Infinity); return; }
         const days = Math.floor((Date.now() - new Date(stats.firstOpenDate).getTime()) / (1000 * 60 * 60 * 24));
         setDaysSinceJoin(days);
       })

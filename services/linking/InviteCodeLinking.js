@@ -1,9 +1,8 @@
-import naclUtil from 'tweetnacl-util';
-
 import CoupleService from '../supabase/CoupleService';
 import CloudEngine from '../storage/CloudEngine';
 import CoupleKeyService from '../security/CoupleKeyService';
 import StorageRouter from '../storage/StorageRouter';
+import { backfillWrappedKeysFromLocalKey, deriveAndPersistWrappedCoupleKey } from '../security/WrappedCoupleKeyFlow';
 import { STORAGE_KEYS, storage } from '../../utils/storage';
 
 export async function finalizeInviteCodeLink({
@@ -33,14 +32,27 @@ export async function finalizeInviteCodeLink({
   }
   await storageApi.set(STORAGE_KEYS.COUPLE_ID, coupleId);
 
-  const partnerPubKeyB64 = await cloudEngine.waitForPartnerPublicKey(coupleId, waitTimeoutMs, waitIntervalMs);
-  if (!partnerPubKeyB64) {
+  const partnerMembership = await cloudEngine.waitForPartnerMembership(coupleId, waitTimeoutMs, waitIntervalMs);
+  if (!partnerMembership?.public_key || !partnerMembership?.user_id) {
     throw new Error('Link created, but secure setup is still finishing. Ask your partner to reopen the invite screen, then try again.');
   }
 
-  const partnerPubKey = naclUtil.decodeBase64(partnerPubKeyB64);
-  const coupleKey = await coupleKeyService.deriveFromKeyExchange(partnerPubKey);
-  await coupleKeyService.storeCoupleKey(coupleId, coupleKey);
+  const existingCoupleKey = await coupleKeyService.getCoupleKey(coupleId);
+  if (existingCoupleKey) {
+    await backfillWrappedKeysFromLocalKey({
+      coupleId,
+      partnerUserId: partnerMembership.user_id,
+      partnerPublicKeyB64: partnerMembership.public_key,
+      dependencies: { coupleKeyService, coupleService: CoupleService, cloudEngine },
+    });
+  } else {
+    await deriveAndPersistWrappedCoupleKey({
+      coupleId,
+      partnerUserId: partnerMembership.user_id,
+      partnerPublicKeyB64: partnerMembership.public_key,
+      dependencies: { coupleKeyService, coupleService: CoupleService, cloudEngine },
+    });
+  }
 
   return coupleId;
 }

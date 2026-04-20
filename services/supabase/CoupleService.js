@@ -215,6 +215,29 @@ const CoupleService = {
     };
   },
 
+  async setMyWrappedCoupleKey(coupleId, wrappedCoupleKey) {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase.rpc('set_my_wrapped_couple_key', {
+      input_couple_id: coupleId,
+      input_wrapped_couple_key: wrappedCoupleKey,
+    });
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || 'Failed to store wrapped couple key');
+    return true;
+  },
+
+  async setWrappedCoupleKeyForMember(coupleId, targetUserId, wrappedCoupleKey) {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase.rpc('set_member_wrapped_couple_key', {
+      input_couple_id: coupleId,
+      target_user_id: targetUserId,
+      input_wrapped_couple_key: wrappedCoupleKey,
+    });
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || 'Failed to share wrapped couple key');
+    return true;
+  },
+
   // ─── Couple Queries ───────────────────────────────────────────
 
   /**

@@ -128,7 +128,7 @@ async function ensureLocalIdentityState() {
     }
 
     if (!resolvedUserId) {
-      resolvedUserId = await (await import('../utils/storage')).userStorage.getUserId();
+      resolvedUserId = await (await import('../../utils/storage')).userStorage.getUserId();
     }
 
     if (resolvedUserId) {
@@ -229,14 +229,23 @@ async function tryRestoreCoupleKey() {
 
     const { data: myMembership, error: myMembershipError } = await supabase
       .from(TABLES.COUPLE_MEMBERS)
-      .select('public_key')
+      .select('public_key, wrapped_couple_key')
       .eq('couple_id', _coupleId)
       .eq('user_id', remoteUserId)
       .maybeSingle();
     if (myMembershipError) throw myMembershipError;
 
-    // Only attempt restoration if this device still has the same keypair
-    // that was originally registered for this couple membership.
+    if (myMembership?.wrapped_couple_key) {
+      const unwrapped = await CoupleKeyService.unwrapKeyForDevice(myMembership.wrapped_couple_key);
+      if (unwrapped?.length === 32) {
+        await CoupleKeyService.storeCoupleKey(_coupleId, unwrapped);
+        _coupleKeyAvailable = true;
+        return true;
+      }
+    }
+
+    // Legacy fallback: only attempt direct re-derivation if this device still
+    // has the same keypair that was originally registered for this membership.
     if (!myMembership?.public_key || myMembership.public_key !== currentPublicKey) {
       return false;
     }
@@ -335,6 +344,9 @@ const DataLayer = {
     // Check if the couple key is actually available
     if (coupleId) {
       _coupleKeyAvailable = await E2EEncryption.hasCoupleKey(coupleId);
+      if (!_coupleKeyAvailable) {
+        _coupleKeyAvailable = await tryRestoreCoupleKey();
+      }
     } else {
       _coupleKeyAvailable = false;
     }
@@ -362,6 +374,9 @@ const DataLayer = {
     // Re-check couple key availability
     if (coupleId) {
       _coupleKeyAvailable = await E2EEncryption.hasCoupleKey(coupleId);
+      if (!_coupleKeyAvailable) {
+        _coupleKeyAvailable = await tryRestoreCoupleKey();
+      }
     } else {
       _coupleKeyAvailable = false;
     }
@@ -680,6 +695,12 @@ const DataLayer = {
   },
 
   async getJournalEntries({ limit = 50, offset = 0, mood, visibility } = {}) {
+    await ensureLocalIdentityState();
+    // If the couple key isn't loaded yet, attempt to restore it once before
+    // decrypting so shared/partner entries aren't needlessly locked.
+    if (_coupleId && !_coupleKeyAvailable) {
+      await tryRestoreCoupleKey();
+    }
     const rows = visibility
       ? await Database.getJournalFeed(_userId, { coupleId: _coupleId, limit, offset, mood, visibility })
       : await Database.getJournals(_userId, { limit, offset, mood });
@@ -687,6 +708,10 @@ const DataLayer = {
   },
 
   async getJournalEntry(id) {
+    await ensureLocalIdentityState();
+    if (_coupleId && !_coupleKeyAvailable) {
+      await tryRestoreCoupleKey();
+    }
     const row = await Database.getJournalById(id);
     return row ? this._decryptJournal(row) : null;
   },
@@ -713,7 +738,6 @@ const DataLayer = {
         is_private: !!row.is_private,
       };
     } catch (err) {
-      // Decryption failed — return with locked flag
       if (__DEV__) console.warn('[DataLayer] Journal decryption failed:', err?.message);
       return { ...row, mood: row.mood ?? null, title: null, body: null, tags: [], locked: true };
     }

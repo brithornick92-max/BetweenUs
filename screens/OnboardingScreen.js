@@ -22,7 +22,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import ReAnimated, { FadeInDown } from 'react-native-reanimated';
-import naclUtil from 'tweetnacl-util';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as Clipboard from "expo-clipboard";
@@ -140,14 +139,16 @@ export default function OnboardingScreen({ navigation }) {
             const myPubKey = await CoupleKeyService.getDevicePublicKeyB64();
             await CloudEngine.joinCouple(coupleId, myPubKey);
 
-            const partnerPubKeyB64 = await CloudEngine.getPartnerPublicKey(coupleId);
-            if (!partnerPubKeyB64) {
+            const partnerMembership = await CloudEngine.getPartnerMembership(coupleId);
+            if (!partnerMembership?.public_key || !partnerMembership?.user_id) {
               return;
             }
-
-            const partnerPubKey = naclUtil.decodeBase64(partnerPubKeyB64);
-            const coupleKey = await CoupleKeyService.deriveFromKeyExchange(partnerPubKey);
-            await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
+            const { deriveAndPersistWrappedCoupleKey } = await import('../services/security/WrappedCoupleKeyFlow');
+            await deriveAndPersistWrappedCoupleKey({
+              coupleId,
+              partnerUserId: partnerMembership.user_id,
+              partnerPublicKeyB64: partnerMembership.public_key,
+            });
           } catch (err) {
             CrashReporting.captureException(err, { context: 'onboarding_key_upload' });
             return;

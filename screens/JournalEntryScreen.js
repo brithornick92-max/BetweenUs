@@ -70,7 +70,7 @@ export default function JournalEntryScreen({ navigation, route }) {
   const [content, setContent] = useState(entry?.content || entry?.body || "");
   const [mood, setMood] = useState(entry?.mood || "calm");
   const [imageUri, setImageUri] = useState(
-    entry?.imageUri || entry?.photoUri || entry?.mediaUri || null
+    entry?.imageUri || entry?.photoUri || entry?.photo_uri || entry?.mediaUri || null
   );
   const [isSaving, setIsSaving] = useState(false);
   const needsReconnect = DataLayer.needsReconnect();
@@ -146,7 +146,7 @@ export default function JournalEntryScreen({ navigation, route }) {
               impact(ImpactFeedbackStyle.Medium);
               await DataLayer.deleteJournalEntry(entry.id);
               navigation.goBack();
-            } catch (error) {
+            } catch (_error) {
               Alert.alert("Error", "Failed to delete entry. Please try again.");
             }
           },
@@ -191,7 +191,7 @@ export default function JournalEntryScreen({ navigation, route }) {
         setImageUri(asset.uri);
         impact(ImpactFeedbackStyle.Light);
       }
-    } catch (err) {
+    } catch (_err) {
       Alert.alert("Error", "Couldn't open your photo library.");
     }
   };

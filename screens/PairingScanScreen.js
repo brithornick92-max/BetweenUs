@@ -10,6 +10,7 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
+  Alert,
   Platform, 
   StatusBar,
   ActivityIndicator,
@@ -18,7 +19,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { BlurView } from 'expo-blur';
-import naclUtil from 'tweetnacl-util';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
@@ -27,6 +27,7 @@ import CloudEngine from '../services/storage/CloudEngine';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import { parsePairingPayload } from '../services/security/PairingPayload';
 import CoupleService from '../services/supabase/CoupleService';
+import { deriveAndPersistWrappedCoupleKey, restoreWrappedCoupleKeyFromCloud } from '../services/security/WrappedCoupleKeyFlow';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, withAlpha } from '../utils/theme';
 import Icon from '../components/Icon';
@@ -126,12 +127,20 @@ export default function PairingScanScreen({ navigation }) {
         setRepairingExistingCouple(isRepairFlow);
       
       const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-      const { coupleId } = await CoupleService.redeemPairingCode(pairingCode, myPublicKeyB64);
+      const { coupleId, partnerId } = await CoupleService.redeemPairingCode(pairingCode, myPublicKeyB64);
 
-      const inviterPubKey = naclUtil.decodeBase64(inviterPublicKeyB64);
-      const coupleKey = await CoupleKeyService.deriveFromKeyExchange(inviterPubKey);
-
-      await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
+      if (isRepairFlow) {
+        const restoredKey = await restoreWrappedCoupleKeyFromCloud(coupleId, { timeoutMs: 120000, intervalMs: 3000 });
+        if (!restoredKey) {
+          throw new Error('Repair started, but the wrapped key is not available yet. Ask your partner to keep the repair screen open and try again.');
+        }
+      } else {
+        await deriveAndPersistWrappedCoupleKey({
+          coupleId,
+          partnerUserId: partnerId,
+          partnerPublicKeyB64: inviterPublicKeyB64,
+        });
+      }
       await StorageRouter.setActiveCoupleId(coupleId);
       
       if (user?.uid) {

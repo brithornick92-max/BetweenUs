@@ -246,7 +246,7 @@ export default function AuthScreen() {
                 />
                 <TextInput
                   ref={passwordRef}
-                  style={styles.input}
+                  style={[styles.input, { fontFamily: undefined }]}
                   placeholder="Password"
                   placeholderTextColor={t.subtext}
                   value={password}
@@ -283,7 +283,7 @@ export default function AuthScreen() {
                   />
                   <TextInput
                     ref={confirmRef}
-                    style={styles.input}
+                    style={[styles.input, { fontFamily: undefined }]}
                     placeholder="Confirm password"
                     placeholderTextColor={t.subtext}
                     value={confirmPassword}

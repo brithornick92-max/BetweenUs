@@ -11,16 +11,24 @@ describe('InviteCodeLinking', () => {
   function createDeps({
     coupleId = 'couple-1',
     partnerKey = 'partner-public-key',
+    partnerUserId = 'partner-user-1',
   } = {}) {
     return {
       coupleService: {
         getMyCouple: jest.fn().mockResolvedValue(coupleId ? { couple_id: coupleId } : null),
+        setMyWrappedCoupleKey: jest.fn().mockResolvedValue(true),
+        setWrappedCoupleKeyForMember: jest.fn().mockResolvedValue(true),
       },
       cloudEngine: {
         joinCouple: jest.fn().mockResolvedValue(true),
-        waitForPartnerPublicKey: jest.fn().mockResolvedValue(partnerKey),
+        waitForPartnerMembership: jest.fn().mockResolvedValue(
+          partnerKey ? { user_id: partnerUserId, public_key: partnerKey } : null
+        ),
       },
       coupleKeyService: {
+        getCoupleKey: jest.fn().mockResolvedValue(null),
+        getDevicePublicKeyB64: jest.fn().mockResolvedValue('public-key-1'),
+        wrapKeyForDevice: jest.fn().mockResolvedValue('wrapped-key'),
         deriveFromKeyExchange: jest.fn().mockResolvedValue('derived-couple-key'),
         storeCoupleKey: jest.fn().mockResolvedValue(undefined),
       },

@@ -99,6 +99,23 @@ jest.mock('../../services/PushNotificationService', () => ({
   },
 }));
 
+jest.mock('../../services/PartnerNotifications', () => ({
+  __esModule: true,
+  default: {
+    journalShared: jest.fn().mockResolvedValue(undefined),
+    memorySaved: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('../../services/security/CoupleKeyService', () => ({
+  __esModule: true,
+  default: {
+    getDevicePublicKeyB64: jest.fn().mockResolvedValue('device-public-key'),
+    unwrapKeyForDevice: jest.fn().mockResolvedValue(null),
+    storeCoupleKey: jest.fn().mockResolvedValue(true),
+  },
+}));
+
 const mockGetPromptById = jest.fn((id) => {
   if (id === 'prompt-42') return { id, heat: 2 };
   if (id === 'prompt-99') return { id, heat: 4 };
@@ -117,6 +134,7 @@ const mockChannel = jest.fn(() => ({ on: mockChannelOn }));
 const mockAuthGetUser = jest.fn();
 const mockRpc = jest.fn();
 const mockSingle = jest.fn();
+const mockMaybeSingle = jest.fn();
 const mockSelect = jest.fn(() => ({ single: mockSingle }));
 const mockInsert = jest.fn(() => ({ select: mockSelect }));
 const mockUpdateEq = jest.fn();
@@ -124,8 +142,23 @@ const mockUpdate = jest.fn(() => ({ eq: mockUpdateEq }));
 const mockDeleteEq = jest.fn();
 const mockDelete = jest.fn(() => ({ eq: mockDeleteEq }));
 const mockOrder = jest.fn();
-const mockEq = jest.fn(() => ({ order: mockOrder }));
-const mockRemoteSelect = jest.fn(() => ({ eq: mockEq }));
+const mockLimit = jest.fn(() => ({ maybeSingle: mockMaybeSingle }));
+const mockRemoteEq = jest.fn(() => ({
+  eq: mockRemoteEq,
+  neq: jest.fn(() => ({ single: mockSingle, maybeSingle: mockMaybeSingle })),
+  order: mockOrder,
+  maybeSingle: mockMaybeSingle,
+  single: mockSingle,
+  limit: mockLimit,
+}));
+const mockRemoteSelect = jest.fn(() => ({
+  eq: mockRemoteEq,
+  neq: jest.fn(() => ({ single: mockSingle, maybeSingle: mockMaybeSingle })),
+  order: mockOrder,
+  maybeSingle: mockMaybeSingle,
+  single: mockSingle,
+  limit: mockLimit,
+}));
 const mockFrom = jest.fn(() => ({
   insert: mockInsert,
   update: mockUpdate,
@@ -145,6 +178,7 @@ jest.mock('../../config/supabase', () => ({
     removeChannel: mockRemoveChannel,
   },
   TABLES: {
+    COUPLE_MEMBERS: 'couple_members',
     CALENDAR_EVENTS: 'calendar_events',
   },
 }));
@@ -153,6 +187,8 @@ const DataLayer = require('../../services/data/DataLayer').default;
 const Database = require('../../services/db/Database').default;
 const E2EEncryption = require('../../services/e2ee/E2EEncryption').default;
 const PushNotificationService = require('../../services/PushNotificationService').default;
+const PartnerNotifications = require('../../services/PartnerNotifications').default;
+const CoupleKeyService = require('../../services/security/CoupleKeyService').default;
 
 describe('DataLayer', () => {
   beforeEach(() => {
@@ -161,9 +197,12 @@ describe('DataLayer', () => {
     mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' } } });
     mockRpc.mockResolvedValue({ error: null });
     mockSingle.mockResolvedValue({ data: { id: '11111111-1111-4111-8111-111111111111' }, error: null });
+    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
     mockUpdateEq.mockResolvedValue({ error: null });
     mockDeleteEq.mockResolvedValue({ error: null });
     mockOrder.mockResolvedValue({ data: [], error: null });
+    CoupleKeyService.unwrapKeyForDevice.mockResolvedValue(null);
+    CoupleKeyService.storeCoupleKey.mockResolvedValue(true);
     DataLayer.init({
       userId: 'user-1',
       coupleId: 'couple-1',
@@ -210,6 +249,44 @@ describe('DataLayer', () => {
           is_private: false,
         })
       );
+    });
+
+    it('saveJournalEntry stores a shared photo and notifies the partner', async () => {
+      await DataLayer.saveJournalEntry({
+        title: 'Beach walk',
+        body: 'Golden hour together',
+        mood: 'happy',
+        isPrivate: false,
+        imageUri: 'file:///photo.jpg',
+      });
+
+      expect(Database.insertJournal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          couple_id: 'couple-1',
+          is_private: false,
+          photo_uri: 'file:///photo.jpg',
+        })
+      );
+      expect(PartnerNotifications.journalShared).toHaveBeenCalledTimes(1);
+    });
+
+    it('saveJournalEntry keeps private photo journals local without partner notification', async () => {
+      await DataLayer.saveJournalEntry({
+        title: 'Solo note',
+        body: 'Keeping this one private',
+        mood: 'calm',
+        isPrivate: true,
+        imageUri: 'file:///private-photo.jpg',
+      });
+
+      expect(Database.insertJournal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          couple_id: null,
+          is_private: true,
+          photo_uri: 'file:///private-photo.jpg',
+        })
+      );
+      expect(PartnerNotifications.journalShared).not.toHaveBeenCalled();
     });
 
     it('getJournalEntries decrypts rows', async () => {
@@ -275,6 +352,85 @@ describe('DataLayer', () => {
         visibility: 'shared',
       });
       expect(entries).toHaveLength(1);
+    });
+
+    it('getJournalEntries keeps shared photo metadata from the visibility feed', async () => {
+      Database.getJournalFeed.mockResolvedValueOnce([
+        {
+          id: 'j_shared_photo_1',
+          user_id: 'partner-1',
+          is_private: 0,
+          title_cipher: 'enc:title',
+          body_cipher: 'enc:body',
+          mood: 'warm',
+          tags: '[]',
+          photo_uri: 'https://cdn.example.com/shared-photo.jpg',
+          created_at: '2024-01-03',
+        },
+      ]);
+
+      const entries = await DataLayer.getJournalEntries({ limit: 10, visibility: 'shared' });
+
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).toEqual(
+        expect.objectContaining({
+          id: 'j_shared_photo_1',
+          photo_uri: 'https://cdn.example.com/shared-photo.jpg',
+          title: 'title',
+          body: 'body',
+        })
+      );
+    });
+
+    it('getJournalEntries restores the couple key from wrapped_couple_key before decrypting', async () => {
+      E2EEncryption.hasCoupleKey.mockResolvedValueOnce(false);
+      CoupleKeyService.unwrapKeyForDevice.mockResolvedValueOnce(new Uint8Array(32).fill(7));
+      mockMaybeSingle.mockResolvedValueOnce({
+        data: {
+          public_key: 'stale-public-key',
+          wrapped_couple_key: JSON.stringify({ n: 'nonce', c: 'cipher', from: 'sender' }),
+        },
+        error: null,
+      });
+      Database.getJournalFeed.mockResolvedValueOnce([
+        {
+          id: 'j_wrapped_1',
+          user_id: 'partner-1',
+          is_private: 0,
+          couple_id: 'couple-1',
+          title_cipher: 'enc:title',
+          body_cipher: 'enc:body',
+          tags: '[]',
+          created_at: '2024-01-03',
+        },
+      ]);
+
+      await DataLayer.reconfigure({ userId: 'user-1', coupleId: 'couple-1', isPremium: true });
+
+      await DataLayer.getJournalEntries({ limit: 10, visibility: 'shared' });
+
+      expect(CoupleKeyService.unwrapKeyForDevice).toHaveBeenCalledWith(
+        JSON.stringify({ n: 'nonce', c: 'cipher', from: 'sender' })
+      );
+      expect(CoupleKeyService.storeCoupleKey).toHaveBeenCalledWith(
+        'couple-1',
+        expect.any(Uint8Array)
+      );
+    });
+
+    it('updateJournalEntry only changes photo_uri when a new image value is provided', async () => {
+      await DataLayer.updateJournalEntry('j_1', {
+        title: 'Edited title',
+        body: 'Edited body',
+        isPrivate: false,
+      });
+
+      expect(Database.updateJournal).toHaveBeenCalledWith(
+        'j_1',
+        expect.not.objectContaining({
+          photo_uri: expect.anything(),
+        })
+      );
     });
 
     it('deleteJournalEntry calls softDelete', async () => {
