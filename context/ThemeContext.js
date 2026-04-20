@@ -7,7 +7,7 @@ import {
   getShadows,
   getNavigationTheme,
 } from "../utils/theme";
-import { storage , STORAGE_KEYS } from "../utils/storage";
+import { settingsStorage } from "../utils/storage";
 
 const ThemeContext = createContext(null);
 
@@ -43,7 +43,7 @@ export const ThemeProvider = ({ children }) => {
     let active = true;
     const load = async () => {
       try {
-        const stored = await storage.get(STORAGE_KEYS.THEME_MODE, null);
+        const stored = await settingsStorage.getThemeMode(null);
         if (active && stored && THEME_MODES.includes(stored)) {
           setThemeModeState(stored);
         }
@@ -61,7 +61,7 @@ export const ThemeProvider = ({ children }) => {
     if (!THEME_MODES.includes(mode)) return;
     setThemeModeState(mode);
     try {
-      await storage.set(STORAGE_KEYS.THEME_MODE, mode);
+      await settingsStorage.setThemeMode(mode);
     } catch {
       // ignore
     }

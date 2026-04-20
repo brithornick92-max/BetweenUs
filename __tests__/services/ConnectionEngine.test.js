@@ -73,4 +73,56 @@ describe('MomentSignalSender', () => {
       }),
     }));
   });
+
+  it('enforces the 5-minute cooldown between signals', async () => {
+    const insert = jest.fn().mockResolvedValue({ error: null });
+    const from = jest.fn(() => ({ insert }));
+    const { MomentSignalSender, AsyncStorage } = loadConnectionEngine({
+      supabase: { from },
+      TABLES: { COUPLE_DATA: 'couple_data' },
+    });
+
+    AsyncStorage.getItem.mockImplementation(async (key) => {
+      if (key === '@bu_moment_cooldown') return null;
+      if (key === '@bu_moment_user_id') return 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+      if (key === '@bu_moment_couple_id') return 'couple-1';
+      return null;
+    });
+
+    // First send should succeed
+    const first = await MomentSignalSender.sendHeartbeat();
+    expect(first.sent).toBe(true);
+
+    // Immediate second send should be blocked by cooldown
+    const second = await MomentSignalSender.sendHeartbeat();
+    expect(second.sent).toBe(false);
+    expect(second.cooldown).toBe(true);
+    expect(second.error).toMatch(/wait/i);
+
+    // Only one insert should have reached the DB
+    expect(insert).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends non-heartbeat signal types correctly', async () => {
+    const insert = jest.fn().mockResolvedValue({ error: null });
+    const from = jest.fn(() => ({ insert }));
+    const { MomentSignalSender, AsyncStorage } = loadConnectionEngine({
+      supabase: { from },
+      TABLES: { COUPLE_DATA: 'couple_data' },
+    });
+
+    AsyncStorage.getItem.mockImplementation(async (key) => {
+      if (key === '@bu_moment_cooldown') return null;
+      if (key === '@bu_moment_user_id') return 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+      if (key === '@bu_moment_couple_id') return 'couple-1';
+      return null;
+    });
+
+    const result = await MomentSignalSender.send('thinking_of_you');
+
+    expect(result).toMatchObject({ sent: true, remote: true, type: 'thinking_of_you' });
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({
+      value: expect.objectContaining({ moment_type: 'thinking_of_you' }),
+    }));
+  });
 });

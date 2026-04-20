@@ -176,6 +176,7 @@ export default function RootNavigator() {
         <Stack.Screen name="VibeSignal" getComponent={Screens.VibeSignal} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" getComponent={Screens.Settings} options={{ headerShown: false }} />
         <Stack.Screen name="SavedMoments" getComponent={Screens.SavedMoments} options={{ headerShown: false }} />
+        <Stack.Screen name="AddMemory" getComponent={Screens.AddMemory} options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
 
         <Stack.Screen name="Terms" getComponent={Screens.Terms} options={{ headerShown: false }} />
         <Stack.Screen name="PrivacyPolicy" getComponent={Screens.PrivacyPolicy} options={{ headerShown: false }} />

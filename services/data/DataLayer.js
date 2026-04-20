@@ -849,7 +849,26 @@ const DataLayer = {
       is_private: isPrivate,
     });
 
+    // Link attachment parent_id now that we have the memory row id
+    if (mediaRef && row?.id) {
+      try {
+        const db = await Database.init();
+        await db.runAsync(
+          `UPDATE attachments SET parent_id = ? WHERE id = ?`,
+          [row.id, mediaRef]
+        );
+      } catch (attErr) {
+        if (__DEV__) console.warn('[DataLayer] Failed to link attachment to memory:', attErr?.message);
+      }
+    }
+
     debouncedPush();
+
+    // Notify partner when a shared memory is saved
+    if (!isPrivate && _coupleId) {
+      PartnerNotifications.memorySaved().catch(() => {});
+    }
+
     return row;
   },
 

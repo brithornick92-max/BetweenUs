@@ -177,7 +177,7 @@ const TermsScreen = ({ navigation, route }) => {
                 Your Content:{'\n'}
                 • You retain ownership of all content you create (journal entries, responses, etc.){'\n'}
                 • You grant us a limited license to store and display your content to you and your linked partner{'\n'}
-                • We use end-to-end encryption to protect your sensitive content{'\n'}
+                • We use client-side encryption to protect supported sensitive content{'\n'}
                 • We never sell your personal data or content to third parties{'\n\n'}
                 Content Guidelines — you agree not to post content that:{'\n'}
                 • Is illegal, harmful, or violates others' rights{'\n'}
@@ -271,6 +271,7 @@ const TermsScreen = ({ navigation, route }) => {
                 Data Protection:{'\n'}
                 • We use industry-standard client-side encryption{'\n'}
                 • Shared sensitive content is encrypted before sync, and some private content remains encrypted only on your device{'\n'}
+                • Some metadata needed for filtering, sorting, scheduling, and delivery is protected by transport security and access controls rather than end-to-end encryption{'\n'}
                 • We implement security measures to protect your data{'\n'}
                 • See our Privacy Policy for complete details{'\n\n'}
                 Important: Your encryption keys are stored on your device. If you lose access to your device without

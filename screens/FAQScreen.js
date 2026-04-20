@@ -162,7 +162,7 @@ const FAQ_DATA = [
       },
       {
         q: 'I forgot my password. What can I do?',
-        a: 'Use the Magic Link option from the Cloud Sync screen to sign in by email without entering your password. If you still need help accessing your account, contact support.',
+        a: 'Use the password recovery flow from the sign-in experience to request a 6-digit recovery code by email and set a new password. You can also use Magic Link sign-in if you prefer passwordless access. If you still need help accessing your account, contact support.',
       },
       {
         q: 'Can I use Between Us on multiple devices?',

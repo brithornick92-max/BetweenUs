@@ -22,7 +22,7 @@ import Icon from '../components/Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import * as Notifications from 'expo-notifications';
 import { useTheme } from '../context/ThemeContext';
-import { storage, STORAGE_KEYS } from '../utils/storage';
+import { settingsStorage } from '../utils/storage';
 import PushNotificationService from '../services/PushNotificationService';
 import { supabase } from '../config/supabase';
 import { SPACING, withAlpha } from '../utils/theme';
@@ -56,14 +56,14 @@ const NotificationSettingsScreen = ({ navigation }) => {
       notificationsEnabled,
       ...overrides,
     };
-    await storage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, nextSettings);
+    await settingsStorage.setNotificationSettings(nextSettings);
     return nextSettings;
   };
 
   const loadNotificationState = async () => {
     try {
       const [settings, permissionState] = await Promise.all([
-        storage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS, {}),
+        settingsStorage.getNotificationSettings(),
         Notifications.getPermissionsAsync(),
       ]);
 

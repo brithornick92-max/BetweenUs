@@ -84,6 +84,20 @@ const PartnerNotifications = {
   },
 
   /**
+   * Partner saved a shared memory (moment, anniversary, first, etc.).
+   */
+  async memorySaved(senderName, memoryType) {
+    const name = senderName || 'Your partner';
+    const typeLabel = memoryType && memoryType !== 'moment' ? memoryType : 'moment';
+    const emoji = typeLabel === 'anniversary' ? '🎉' : typeLabel === 'first' ? '⭐️' : '📸';
+    await this._send({
+      title: `${name} saved a memory ${emoji}`,
+      body: 'A new moment was added to your shared archive.',
+      data: { type: 'memory_saved', route: 'saved-moments' },
+    });
+  },
+
+  /**
    * Streak at risk — partner hasn't checked in today.
    * (Called from a scheduled check, not from partner action.)
    */

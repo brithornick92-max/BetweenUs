@@ -311,7 +311,7 @@ Check that:
 - Try unlinking and relinking if needed
 
 ### I forgot my password. What can I do?
-If you can't remember your password, use the Magic Link sign-in option from the Cloud Sync screen to sign in by email without entering your password.
+If you can't remember your password, use the password recovery flow to request a 6-digit recovery code by email and set a new password. You can also use the Magic Link sign-in option if you prefer passwordless access.
 
 If you still need help accessing your account, contact brittanyapps@outlook.com.
 

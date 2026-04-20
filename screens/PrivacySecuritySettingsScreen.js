@@ -30,7 +30,7 @@ import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { PremiumFeature } from '../utils/featureFlags';
-import { storage, STORAGE_KEYS } from '../utils/storage';
+import { settingsStorage } from '../utils/storage';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -90,7 +90,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
   const loadSettings = async () => {
     try {
-      const settings = await storage.get(STORAGE_KEYS.PRIVACY_SETTINGS, {});
+      const settings = await settingsStorage.getPrivacySettings();
       if (settings) {
         setAppLockEnabled(settings.appLockEnabled ?? false);
         setBiometricsEnabled(settings.biometricsEnabled ?? false);
@@ -164,8 +164,8 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         hidePreview,
       };
 
-      await storage.set(STORAGE_KEYS.PRIVACY_SETTINGS, settings);
-      await storage.set(STORAGE_KEYS.APP_LOCK_ENABLED, appLockEnabled);
+      await settingsStorage.setPrivacySettings(settings);
+      await settingsStorage.setAppLockEnabled(appLockEnabled);
       
       if (actions?.setAppLockEnabled) {
         actions.setAppLockEnabled(appLockEnabled);

@@ -568,12 +568,86 @@ export const coupleStorage = {
  * Matches what AppContext expects.
  */
 export const settingsStorage = {
+  async getThemeMode(defaultValue = 'dark') {
+    const { encryptedStorage } = await import('./encryptedStorage');
+    const secureValue = await encryptedStorage.get(STORAGE_KEYS.THEME_MODE, null);
+    if (typeof secureValue === 'string') return secureValue;
+
+    const legacyRaw = await AsyncStorage.getItem(STORAGE_KEYS.THEME_MODE);
+    if (!legacyRaw) return defaultValue;
+
+    const legacyValue = safeParse(legacyRaw);
+    if (typeof legacyValue === 'string') {
+      await encryptedStorage.set(STORAGE_KEYS.THEME_MODE, legacyValue);
+    }
+    await AsyncStorage.removeItem(STORAGE_KEYS.THEME_MODE).catch(() => {});
+    return typeof legacyValue === 'string' ? legacyValue : defaultValue;
+  },
+
+  async setThemeMode(mode) {
+    const { encryptedStorage } = await import('./encryptedStorage');
+    await AsyncStorage.removeItem(STORAGE_KEYS.THEME_MODE).catch(() => {});
+    return encryptedStorage.set(STORAGE_KEYS.THEME_MODE, mode);
+  },
+
   async getAppLockEnabled() {
-    return (await storage.get(STORAGE_KEYS.APP_LOCK_ENABLED, false)) === true;
+    const { encryptedStorage } = await import('./encryptedStorage');
+    const secureValue = await encryptedStorage.get(STORAGE_KEYS.APP_LOCK_ENABLED, null);
+    if (secureValue !== null) return secureValue === true;
+
+    const legacyRaw = await AsyncStorage.getItem(STORAGE_KEYS.APP_LOCK_ENABLED);
+    if (!legacyRaw) return false;
+
+    const legacyValue = safeParse(legacyRaw);
+    await encryptedStorage.set(STORAGE_KEYS.APP_LOCK_ENABLED, legacyValue === true);
+    await AsyncStorage.removeItem(STORAGE_KEYS.APP_LOCK_ENABLED).catch(() => {});
+    return legacyValue === true;
   },
 
   async setAppLockEnabled(enabled) {
-    return storage.set(STORAGE_KEYS.APP_LOCK_ENABLED, !!enabled);
+    const { encryptedStorage } = await import('./encryptedStorage');
+    await AsyncStorage.removeItem(STORAGE_KEYS.APP_LOCK_ENABLED).catch(() => {});
+    return encryptedStorage.set(STORAGE_KEYS.APP_LOCK_ENABLED, !!enabled);
+  },
+
+  async getPrivacySettings() {
+    const { encryptedStorage } = await import('./encryptedStorage');
+    const secureValue = await encryptedStorage.get(STORAGE_KEYS.PRIVACY_SETTINGS, null);
+    if (secureValue && typeof secureValue === 'object') return secureValue;
+
+    const legacyRaw = await AsyncStorage.getItem(STORAGE_KEYS.PRIVACY_SETTINGS);
+    if (!legacyRaw) return {};
+
+    const legacyValue = ensureObject(safeParse(legacyRaw));
+    await encryptedStorage.set(STORAGE_KEYS.PRIVACY_SETTINGS, legacyValue);
+    await AsyncStorage.removeItem(STORAGE_KEYS.PRIVACY_SETTINGS).catch(() => {});
+    return legacyValue;
+  },
+
+  async setPrivacySettings(settings) {
+    const { encryptedStorage } = await import('./encryptedStorage');
+    await AsyncStorage.removeItem(STORAGE_KEYS.PRIVACY_SETTINGS).catch(() => {});
+    return encryptedStorage.set(STORAGE_KEYS.PRIVACY_SETTINGS, ensureObject(settings));
+  },
+
+  async getNotificationSettings() {
+    const { encryptedStorage } = await import('./encryptedStorage');
+    const secureValue = await encryptedStorage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS, null);
+    if (secureValue && typeof secureValue === 'object') return secureValue;
+
+    const legacyRaw = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATION_SETTINGS);
+    if (!legacyRaw) return {};
+
+    const legacyValue = ensureObject(safeParse(legacyRaw));
+    await encryptedStorage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, legacyValue);
+    await AsyncStorage.removeItem(STORAGE_KEYS.NOTIFICATION_SETTINGS).catch(() => {});
+    return legacyValue;
+  },
+
+  async setNotificationSettings(settings) {
+    const { encryptedStorage } = await import('./encryptedStorage');
+    await AsyncStorage.removeItem(STORAGE_KEYS.NOTIFICATION_SETTINGS).catch(() => {});
+    return encryptedStorage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, ensureObject(settings));
   },
 
   async getDateNightDefaults() {
@@ -826,7 +900,18 @@ export const vibeStorage = {
  */
 export const biometricVaultStorage = {
   async getVaultData() {
-    const raw = ensureObject(await storage.get(STORAGE_KEYS.BIOMETRIC_VAULT, {}));
+    const { encryptedStorage } = await import('./encryptedStorage');
+    let raw = ensureObject(await encryptedStorage.get(STORAGE_KEYS.BIOMETRIC_VAULT, {}));
+
+    if (!Object.keys(raw).length) {
+      const legacyRaw = ensureObject(await storage.get(STORAGE_KEYS.BIOMETRIC_VAULT, {}));
+      if (Object.keys(legacyRaw).length) {
+        raw = legacyRaw;
+        await encryptedStorage.set(STORAGE_KEYS.BIOMETRIC_VAULT, legacyRaw);
+        await storage.remove(STORAGE_KEYS.BIOMETRIC_VAULT);
+      }
+    }
+
     if (!Object.keys(raw).length) return raw;
 
     const { default: EncryptionService } = await import('../services/EncryptionService');
@@ -857,11 +942,13 @@ export const biometricVaultStorage = {
   },
 
   async setVaultData(data) {
-    return storage.set(STORAGE_KEYS.BIOMETRIC_VAULT, data);
+    const { encryptedStorage } = await import('./encryptedStorage');
+    await storage.remove(STORAGE_KEYS.BIOMETRIC_VAULT);
+    return encryptedStorage.set(STORAGE_KEYS.BIOMETRIC_VAULT, ensureObject(data));
   },
 
   async addToVault(key, value) {
-    const vault = ensureObject(await storage.get(STORAGE_KEYS.BIOMETRIC_VAULT, {}));
+    const vault = ensureObject(await this.getVaultData());
     const { default: EncryptionService } = await import('../services/EncryptionService');
     const encryptedData = await EncryptionService.encryptJson(value);
     vault[key] = {
@@ -879,7 +966,9 @@ export const biometricVaultStorage = {
   },
 
   async clearVault() {
-    return storage.remove(STORAGE_KEYS.BIOMETRIC_VAULT);
+    const { encryptedStorage } = await import('./encryptedStorage');
+    await storage.remove(STORAGE_KEYS.BIOMETRIC_VAULT);
+    return encryptedStorage.remove(STORAGE_KEYS.BIOMETRIC_VAULT);
   },
 };
 

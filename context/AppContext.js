@@ -1,7 +1,7 @@
 // context/AppContext.js
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
 import * as Crypto from 'expo-crypto';
-import { storage, STORAGE_KEYS, vibeStorage } from '../utils/storage';
+import { storage, STORAGE_KEYS, vibeStorage, settingsStorage } from '../utils/storage';
 import { useEntitlements , clearCouplePremiumCache } from './EntitlementsContext';
 import { NicknameEngine } from '../services/PolishEngine';
 import CoupleService from '../services/supabase/CoupleService';
@@ -181,7 +181,7 @@ export function AppProvider({ children }) {
           storage.get(STORAGE_KEYS.USER_PROFILE, {}),
           storage.get(STORAGE_KEYS.PARTNER_LABEL, null),
           storage.get(STORAGE_KEYS.COUPLE_ID, null),
-          storage.get(STORAGE_KEYS.APP_LOCK_ENABLED, false),
+          settingsStorage.getAppLockEnabled(),
           storage.get(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, null),
         ]);
 
@@ -455,7 +455,7 @@ export function AppProvider({ children }) {
     },
     
     setAppLockEnabled: async (enabled) => {
-      await storage.set(STORAGE_KEYS.APP_LOCK_ENABLED, enabled);
+      await settingsStorage.setAppLockEnabled(enabled);
       dispatch({ type: ACTIONS.SET_APP_LOCK, payload: enabled });
     },
     

@@ -145,7 +145,6 @@ export default function HomeScreen({ navigation }) {
   const [inlineText, setInlineText] = useState('');
   const [isSavingInline, setIsSavingInline] = useState(false);
   const [throwback, setThrowback] = useState(null);
-  const [unreadNotes_unused, _setUnreadNotes] = useState(0); // removed Love Notes
   const [selectedTone, setSelectedTone] = useState('warm');
   const [homeLayout, setHomeLayout] = useState({
     type: 'comfortable',
@@ -294,19 +293,7 @@ export default function HomeScreen({ navigation }) {
     return () => { active = false; };
   }, [answeredCount]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      (async () => {
-        try {
-          const count = await DataLayer.getUnreadLoveNoteCount();
-          // unread notes badge removed
-          if (__DEV__) console.log('[Home] unread notes (unused):', count);
-        } catch (e) { if (__DEV__) console.warn('[Home] unread notes fetch:', e?.message); }
-      })();
-      return () => { active = false; };
-    }, [])
-  );
+
 
   useFocusEffect(
     useCallback(() => {

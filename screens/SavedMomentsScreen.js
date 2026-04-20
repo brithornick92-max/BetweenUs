@@ -1,7 +1,7 @@
 // screens/SavedMomentsScreen.js
 /**
  * BETWEEN US - SAVED MOMENTS ENGINE (EDITORIAL V3)
- * High-End Apple Editorial Layout + Sexy Red (#D2121A)
+ * High-End Apple Editorial Layout + Velvet Glass + Original Sexy Red (#D2121A)
  */
 
 import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
@@ -16,11 +16,14 @@ import {
   Dimensions,
   ActivityIndicator,
   Animated as RNAnimated,
+  Image,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 
 // Context & Services
 import Icon from '../components/Icon';
@@ -35,6 +38,9 @@ import { getPromptById } from '../utils/contentLoader';
 // Utilities
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
+import { storage } from '../utils/storage';
+
+const HEARTS_KEY = '@betweenus:moment_hearts';
 
 const { width: SCREEN_W, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -45,6 +51,7 @@ const FILTERS = [
   { id: 'all', label: 'All', icon: 'albums-outline' },
   { id: 'prompt', label: 'Prompts', icon: 'chatbubbles-outline' },
   { id: 'memory', label: 'Moments', icon: 'images-outline' },
+  { id: 'photo', label: 'Photos', icon: 'camera-outline' },
   { id: 'journal', label: 'Journal', icon: 'book-outline' },
 ];
 
@@ -53,6 +60,8 @@ const MEMORY_TYPE_META = {
   anniversary: { label: 'Anniversary', icon: 'heart-outline' },
   milestone: { label: 'Milestone', icon: 'ribbon-outline' },
   memory: { label: 'Memory', icon: 'time-outline' },
+  first: { label: 'A First', icon: 'star-outline' },
+  inside_joke: { label: 'Inside Joke', icon: 'happy-outline' },
 };
 
 function formatDateLabel(value) {
@@ -108,6 +117,8 @@ function buildMemoryItem(row) {
     meta: row.mood ? String(row.mood).toUpperCase() : 'Moment',
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.created_at || row.date,
+    mediaRef: row.media_ref || null,
+    rawDate: row.created_at || row.date || null,
   };
 }
 
@@ -128,6 +139,7 @@ function buildJournalItem(row, ownerIds) {
     entry: row,
     canOpen: true,
     canEdit: isOwn,
+    photoUri: row.photo_uri || row.photoUri || row.imageUri || null,
   };
 }
 
@@ -141,6 +153,8 @@ export default function SavedMomentsScreen() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [photoUris, setPhotoUris] = useState({}); // itemId → decrypted local URI
+  const [hearts, setHearts] = useState({}); // itemId → { count: number, hearted: bool }
   const scrollY = useRef(new RNAnimated.Value(0)).current;
 
   const ownerIds = useMemo(
@@ -148,16 +162,16 @@ export default function SavedMomentsScreen() {
     [state?.userId, user?.id, user?.uid]
   );
 
-  // ─── THEME MAP ───
+  // ─── THEME MAP (Original Colors, Glass Opacities) ───
   const t = useMemo(() => ({
     background: colors.background,
-    surface: colors.surface || (isDark ? '#1C1C1E' : '#FFFFFF'),
-    surfaceSecondary: colors.surface2 || (isDark ? '#2C2C2E' : '#F2F2F7'),
-    primary: colors.primary || '#D2121A', // Sexy Red
+    surface: isDark ? 'rgba(28, 28, 30, 0.45)' : 'rgba(255, 255, 255, 0.65)',
+    surfaceSecondary: isDark ? 'rgba(44, 44, 46, 0.8)' : 'rgba(242, 242, 247, 0.8)',
+    primary: colors.primary || '#D2121A',
     accent: colors.accent || '#D4AA7E',
     text: colors.text,
     subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.6)'),
-    border: colors.border || (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
@@ -194,8 +208,59 @@ export default function SavedMomentsScreen() {
     }, [loadEntries])
   );
 
+  // ─── LOAD HEARTS FROM STORAGE ───
+  useEffect(() => {
+    storage.get(HEARTS_KEY, {}).then((saved) => {
+      if (saved && typeof saved === 'object') setHearts(saved);
+    });
+  }, []);
+
+  // ─── LOAD PHOTO URIS FOR MEMORY ITEMS ───
+  useEffect(() => {
+    if (!entries.length) return;
+    const memoryItemsWithPhotos = entries.filter(
+      (e) => e.kind === 'memory' && e.mediaRef
+    );
+    if (!memoryItemsWithPhotos.length) return;
+
+    let cancelled = false;
+    (async () => {
+      const newUris = {};
+      for (const item of memoryItemsWithPhotos) {
+        try {
+          const uri = await DataLayer.getDecryptedAttachment(item.mediaRef);
+          if (uri) newUris[item.id] = uri;
+        } catch (err) {
+          if (__DEV__) console.warn('[SavedMoments] Photo decrypt failed:', err?.message);
+        }
+      }
+      if (!cancelled) {
+        setPhotoUris((prev) => ({ ...prev, ...newUris }));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [entries]);
+
+  // ─── HEART TOGGLE ───
+  const handleHeartToggle = useCallback(async (itemId) => {
+    impact(ImpactFeedbackStyle.Light);
+    setHearts((prev) => {
+      const current = prev[itemId] || { count: 0, hearted: false };
+      const updated = {
+        ...prev,
+        [itemId]: {
+          count: current.hearted ? Math.max(0, current.count - 1) : current.count + 1,
+          hearted: !current.hearted,
+        },
+      };
+      storage.set(HEARTS_KEY, updated);
+      return updated;
+    });
+  }, []);
+
   const filteredEntries = useMemo(() => {
     if (filter === 'all') return entries;
+    if (filter === 'photo') return entries.filter((item) => item.kind === 'memory' && item.mediaRef);
     return entries.filter((item) => item.kind === filter);
   }, [entries, filter]);
 
@@ -203,8 +268,26 @@ export default function SavedMomentsScreen() {
     all: entries.length,
     prompt: entries.filter((item) => item.kind === 'prompt').length,
     memory: entries.filter((item) => item.kind === 'memory').length,
+    photo: entries.filter((item) => item.kind === 'memory' && item.mediaRef).length,
     journal: entries.filter((item) => item.kind === 'journal').length,
   }), [entries]);
+
+  // ─── ON THIS DAY ───
+  const onThisDay = useMemo(() => {
+    const today = new Date();
+    const todayM = today.getMonth();
+    const todayD = today.getDate();
+    const thisYear = today.getFullYear();
+    return entries.find((item) => {
+      const raw = item.sortAt;
+      if (!raw) return false;
+      const d = typeof raw === 'string' && raw.length === 10
+        ? new Date(`${raw}T00:00:00`)
+        : new Date(raw);
+      if (Number.isNaN(d.getTime())) return false;
+      return d.getMonth() === todayM && d.getDate() === todayD && d.getFullYear() < thisYear;
+    }) || null;
+  }, [entries]);
 
   const onRefresh = useCallback(() => {
     selection();
@@ -244,7 +327,7 @@ export default function SavedMomentsScreen() {
         key={id}
         style={[
           styles.filterChip,
-          active && { borderColor: t.primary, backgroundColor: withAlpha(t.primary, 0.12) },
+          active && { borderColor: t.primary, backgroundColor: withAlpha(t.primary, 0.15) },
         ]}
         activeOpacity={0.8}
         onPress={() => {
@@ -254,50 +337,100 @@ export default function SavedMomentsScreen() {
       >
         <Icon name={icon} size={14} color={active ? t.primary : t.subtext} />
         <Text style={[styles.filterLabel, { color: active ? t.text : t.subtext }]}>{label}</Text>
-        <View style={[styles.filterCount, { backgroundColor: active ? withAlpha(t.primary, 0.18) : t.surfaceSecondary }]}> 
+        <View style={[styles.filterCount, { backgroundColor: active ? 'transparent' : t.surfaceSecondary }]}> 
           <Text style={[styles.filterCountText, { color: active ? t.primary : t.subtext }]}>{counts[id]}</Text>
         </View>
       </TouchableOpacity>
     );
   };
 
-  const renderItem = ({ item, index }) => (
-    <ReAnimated.View entering={FadeInDown.delay(index * 35).springify().damping(18)}>
-      <TouchableOpacity
-        activeOpacity={item.canOpen ? 0.86 : 1}
-        disabled={!item.canOpen}
-        onPress={() => {
-          if (item.kind === 'journal') {
-            impact(ImpactFeedbackStyle.Light);
-            navigation.navigate('JournalEntry', { entry: item.entry, readOnly: !item.canEdit });
-          }
-        }}
-        style={[styles.card, getShadow(isDark)]}
+  const renderItem = ({ item, index }) => {
+    const photoUri = item.kind === 'journal' ? (item.photoUri || null) : (item.mediaRef ? (photoUris[item.id] || null) : null);
+    const heartState = hearts[item.id] || { count: 0, hearted: false };
+    const isMemory = item.kind === 'memory';
+
+    return (
+      <ReAnimated.View
+        entering={FadeInDown.delay(index * 35).springify().damping(18)}
+        style={isMemory ? styles.timelineRow : undefined}
       >
-        <View style={styles.cardTopRow}>
-          <View style={styles.cardEyebrowRow}>
-            <Icon name={item.icon} size={14} color={item.accent} />
-            <Text style={[styles.cardEyebrow, { color: item.accent }]}>{item.eyebrow}</Text>
+        {/* Timeline spine + dot */}
+        {isMemory && (
+          <View style={styles.timelineSpine}>
+            <View style={[styles.timelineDot, { backgroundColor: item.accent }]} />
+            <View style={[styles.timelineLine, { backgroundColor: t.border }]} />
           </View>
-          <Text style={styles.dateLabel}>{item.dateLabel}</Text>
-        </View>
+        )}
 
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardBody}>{item.body || 'Nothing saved yet.'}</Text>
+        <TouchableOpacity
+          activeOpacity={item.canOpen ? 0.86 : 1}
+          disabled={!item.canOpen}
+          onPress={() => {
+            if (item.kind === 'journal') {
+              impact(ImpactFeedbackStyle.Light);
+              navigation.navigate('JournalEntry', { entry: item.entry, readOnly: !item.canEdit });
+            }
+          }}
+          style={[styles.cardContainer, isMemory && styles.cardTimeline, getShadow(isDark)]}
+        >
+          <BlurView intensity={isDark ? 55 : 30} tint={isDark ? 'dark' : 'light'} style={styles.cardBlur}>
+            {/* Photo thumbnail */}
+            {photoUri && (
+              <View style={styles.photoWrapper}>
+                <Image
+                  source={{ uri: photoUri }}
+                  style={styles.photoThumb}
+                  resizeMode="cover"
+                />
+                <View style={[styles.photoOverlay, { backgroundColor: withAlpha(item.accent, 0.18) }]} />
+              </View>
+            )}
 
-        <View style={styles.cardFooter}>
-          <View style={[styles.metaPill, { backgroundColor: withAlpha(item.accent, 0.12), borderColor: withAlpha(item.accent, 0.22) }]}>
-            <Text style={[styles.metaPillText, { color: item.accent }]}>{item.meta}</Text>
-          </View>
-          {item.kind === 'journal' && (
-            <View style={[styles.openPill, { borderColor: t.border }]}> 
-              <Text style={[styles.openPillText, { color: t.text }]}>{item.canEdit ? 'Open' : 'Read'}</Text>
+            <View style={styles.cardTopRow}>
+              <View style={styles.cardEyebrowRow}>
+                <Icon name={item.icon} size={14} color={item.accent} />
+                <Text style={[styles.cardEyebrow, { color: item.accent }]}>{item.eyebrow}</Text>
+              </View>
+              <Text style={styles.dateLabel}>{item.dateLabel}</Text>
             </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    </ReAnimated.View>
-  );
+
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardBody}>{item.body || 'Nothing saved yet.'}</Text>
+
+            <View style={styles.cardFooter}>
+              <View style={[styles.metaPill, { backgroundColor: withAlpha(item.accent, 0.08), borderColor: withAlpha(item.accent, 0.2) }]}>
+                <Text style={[styles.metaPillText, { color: item.accent }]}>{item.meta}</Text>
+              </View>
+              <View style={styles.cardFooterRight}>
+                {item.kind === 'journal' && (
+                  <View style={[styles.openPill, { borderColor: t.border }]}> 
+                    <Text style={[styles.openPillText, { color: t.text }]}>{item.canEdit ? 'Open' : 'Read'}</Text>
+                  </View>
+                )}
+                {/* Heart reaction */}
+                <TouchableOpacity
+                  onPress={() => handleHeartToggle(item.id)}
+                  hitSlop={12}
+                  style={styles.heartButton}
+                >
+                  <Icon
+                    name="heart-outline"
+                    size={18}
+                    color={heartState.hearted ? t.primary : t.subtext}
+                  />
+                  {heartState.count > 0 && (
+                    <Text style={[styles.heartCount, { color: heartState.hearted ? t.primary : t.subtext }]}>
+                      {heartState.count}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </BlurView>
+        </TouchableOpacity>
+      </ReAnimated.View>
+    );
+  };
 
   const ListHeader = (
     <ReAnimated.View entering={FadeIn.duration(500)}>
@@ -309,24 +442,53 @@ export default function SavedMomentsScreen() {
         }]}
       >
         <Text style={[styles.headerSubtitle, { color: t.primary }]}>SAVED SPACE</Text>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Moments, Prompts & Journal</Text>
+        <Text style={[styles.headerTitle, { color: t.text }]}>Shared Moments</Text>
       </RNAnimated.View>
 
+      {/* ── On This Day Banner ── */}
+      {onThisDay && (
+        <ReAnimated.View entering={FadeInDown.springify().damping(18)}>
+          <View style={[styles.onThisDayContainer, getShadow(isDark)]}>
+            <BlurView intensity={isDark ? 55 : 30} tint={isDark ? 'dark' : 'light'} style={[styles.onThisDayCard, { borderColor: withAlpha(t.primary, 0.15) }]}>
+              <View style={styles.onThisDayLeft}>
+                <Icon name="time-outline" size={18} color={t.primary} />
+              </View>
+              <View style={styles.onThisDayContent}>
+                <Text style={[styles.onThisDayEyebrow, { color: t.primary }]}>ON THIS DAY</Text>
+                <Text style={[styles.onThisDayTitle, { color: t.text }]} numberOfLines={2}>
+                  {onThisDay.title}
+                </Text>
+                <Text style={[styles.onThisDayDate, { color: t.subtext }]}>{onThisDay.dateLabel}</Text>
+              </View>
+              <Icon name="chevron-forward" size={16} color={t.subtext} />
+            </BlurView>
+          </View>
+        </ReAnimated.View>
+      )}
+
       {/* ── Hero Card ── */}
-      <View style={[styles.heroCard, getShadow(isDark)]}>
-        <View style={styles.heroEyebrowRow}>
-          <Icon name="archive-outline" size={15} color={t.text} />
-          <Text style={[styles.heroEyebrow, { color: t.text }]}>YOUR SHARED ARCHIVE</Text>
-        </View>
-        <Text style={[styles.heroTitle, { color: t.text }]}>Everything you’ve saved, kept in one place.</Text>
-        <Text style={styles.heroBody}>
-          Browse earlier reflections, shared journal entries, and captured moments without leaving the app’s main rhythm.
-        </Text>
+      <View style={[styles.heroCardContainer, getShadow(isDark)]}>
+        <BlurView intensity={isDark ? 65 : 45} tint={isDark ? 'dark' : 'light'} style={styles.heroCardBlur}>
+          <View style={styles.heroEyebrowRow}>
+            <Icon name="archive-outline" size={15} color={t.text} />
+            <Text style={[styles.heroEyebrow, { color: t.text }]}>YOUR SHARED ARCHIVE</Text>
+          </View>
+          <Text style={[styles.heroTitle, { color: t.text }]}>Everything you've saved, kept in one place.</Text>
+          <Text style={styles.heroBody}>
+            Browse earlier reflections, shared journal entries, and captured moments without leaving the app's main rhythm.
+          </Text>
+        </BlurView>
       </View>
 
-      <View style={styles.filtersRow}>
-        {FILTERS.map(renderFilter)}
-      </View>
+      {/* ── Filters (scrollable) ── */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtersRow}
+        style={styles.filtersScroll}
+      >
+        {FILTERS.map((f) => renderFilter(f))}
+      </ScrollView>
     </ReAnimated.View>
   );
 
@@ -388,6 +550,17 @@ export default function SavedMomentsScreen() {
           scrollEventThrottle={16}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.primary} />}
         />
+
+        {/* ── Velvet Glass FAB ── */}
+        <TouchableOpacity
+          style={styles.fabContainer}
+          onPress={() => navigation.navigate('AddMemory')}
+          activeOpacity={0.85}
+        >
+          <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={[styles.fabBlur, { backgroundColor: withAlpha(t.primary, 0.8) }]}>
+            <Icon name="add" size={26} color="#FFF" />
+          </BlurView>
+        </TouchableOpacity>
       </SafeAreaView>
     </View>
   );
@@ -395,7 +568,7 @@ export default function SavedMomentsScreen() {
 
 // ─── HIGH-END DESIGN SYSTEM STYLES ───
 const getShadow = (isDark) => Platform.select({
-  ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
+  ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: isDark ? 0.35 : 0.08, shadowRadius: 32 },
   android: { elevation: 6 },
 });
 
@@ -405,6 +578,29 @@ const createStyles = (t, isDark) => StyleSheet.create({
   listContent: {
     paddingHorizontal: SPACING.screen,
     paddingBottom: 160,
+  },
+
+  // ── Floating Action Button ──
+  fabContainer: {
+    position: 'absolute',
+    bottom: 32,
+    right: SPACING.screen,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    ...Platform.select({
+      ios: { shadowColor: t.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 16 },
+      android: { elevation: 8 },
+    }),
+  },
+  fabBlur: {
+    flex: 1,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   
   // ── Fixed Nav Header ──
@@ -434,7 +630,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     textTransform: 'uppercase',
   },
   headerTitle: {
-    fontFamily: SYSTEM_FONT,
+    fontFamily: SERIF_FONT,
     fontSize: 34,
     fontWeight: '800',
     letterSpacing: -0.5,
@@ -442,13 +638,17 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
 
   // ── Hero Card ──
-  heroCard: {
-    borderRadius: 24, // Deep squircle
-    borderWidth: 1,
-    borderColor: t.border,
-    backgroundColor: t.surface,
-    padding: SPACING.xl,
+  heroCardContainer: {
+    borderRadius: 24,
     marginBottom: SPACING.xl,
+  },
+  heroCardBlur: {
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: t.border,
+    padding: SPACING.xl,
+    overflow: 'hidden',
+    backgroundColor: t.surface,
   },
   heroEyebrowRow: {
     flexDirection: 'row',
@@ -471,42 +671,44 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   heroBody: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 26, // Breathed out for editorial feel
     color: t.subtext,
   },
 
   // ── Filters ──
+  filtersScroll: {
+    marginBottom: SPACING.xl,
+  },
   filtersRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: SPACING.xl,
+    paddingRight: SPACING.screen,
   },
   filterChip: {
-    flex: 1,
-    minHeight: 56, // Apple standard touch target
-    borderRadius: 20,
-    borderWidth: 1,
+    height: 42,
+    borderRadius: 999, // Perfect pill shape
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: t.border,
     backgroundColor: t.surface,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    gap: 6,
+    paddingHorizontal: 16,
   },
   filterLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   filterCount: {
-    minWidth: 28,
+    minWidth: 24,
     height: 20,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 7,
+    paddingHorizontal: 6,
   },
   filterCountText: {
     fontFamily: SYSTEM_FONT,
@@ -515,13 +717,17 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
 
   // ── Content Cards ──
-  card: {
+  cardContainer: {
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: t.border,
-    backgroundColor: t.surface,
-    padding: SPACING.xl,
     marginBottom: SPACING.lg,
+  },
+  cardBlur: {
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: t.border,
+    padding: SPACING.xl,
+    overflow: 'hidden',
+    backgroundColor: t.surface,
   },
   cardTopRow: {
     flexDirection: 'row',
@@ -550,10 +756,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.subtext,
   },
   cardTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 20,
+    fontFamily: SERIF_FONT,
+    fontSize: 22,
     lineHeight: 28,
-    fontWeight: '800',
+    fontWeight: '700',
     color: t.text,
     marginBottom: SPACING.sm,
   },
@@ -561,7 +767,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 16,
     lineHeight: 24,
-    color: t.text,
+    color: t.subtext, // Softened from primary text for better hierarchy
   },
   cardFooter: {
     flexDirection: 'row',
@@ -571,22 +777,22 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   metaPill: {
     borderRadius: 999,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   metaPillText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   openPill: {
     borderRadius: 999,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   openPillText: {
     fontFamily: SYSTEM_FONT,
@@ -605,7 +811,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.lg,
@@ -617,8 +823,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   emptyBody: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 24,
     color: t.subtext,
     textAlign: 'center',
   },
@@ -633,5 +839,115 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: t.subtext,
+  },
+
+  // ── On This Day ──
+  onThisDayContainer: {
+    marginBottom: SPACING.lg,
+    borderRadius: 20,
+  },
+  onThisDayCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: SPACING.md,
+    overflow: 'hidden',
+    backgroundColor: t.surface,
+  },
+  onThisDayLeft: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: withAlpha(t.primary, 0.12),
+  },
+  onThisDayContent: {
+    flex: 1,
+  },
+  onThisDayEyebrow: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.8,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  onThisDayTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '700',
+    color: t.text,
+    lineHeight: 20,
+  },
+  onThisDayDate: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+
+  // ── Photo thumbnail ──
+  photoWrapper: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: SPACING.md,
+    position: 'relative',
+  },
+  photoThumb: {
+    width: '100%',
+    height: 180,
+    borderRadius: 16,
+  },
+  photoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 16,
+  },
+
+  // ── Timeline layout ──
+  timelineRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  timelineSpine: {
+    width: 20,
+    alignItems: 'center',
+    paddingTop: SPACING.xl + 4,
+  },
+  timelineDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginBottom: 4,
+  },
+  timelineLine: {
+    flex: 1,
+    width: 2,
+    borderRadius: 1,
+  },
+  cardTimeline: {
+    flex: 1,
+  },
+
+  // ── Heart reaction ──
+  cardFooterRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  heartButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+  heartCount: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

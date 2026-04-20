@@ -59,7 +59,7 @@ The Service is for thriving couples only.
 ### 4.1 Your Content
 - You retain ownership of all content you create (journal entries, responses, etc.)
 - You grant us a limited license to store and display your content to you and your linked partner
-- We use end-to-end encryption to protect your sensitive content
+- We use client-side encryption to protect supported sensitive content
 - We never sell your personal data or content to third parties
 
 ### 4.2 Content Guidelines
@@ -143,7 +143,8 @@ You agree to use Between Us only for its intended purpose: deepening your connec
 
 ### 8.1 Data Protection
 - We use industry-standard client-side encryption
-- Your sensitive content is encrypted end-to-end
+- Shared sensitive content is encrypted before sync, and some private content remains encrypted only on your device
+- Some metadata needed for filtering, sorting, scheduling, and delivery is protected by transport security and access controls rather than end-to-end encryption
 - We implement security measures to protect your data
 - See our Privacy Policy for complete details
 

@@ -23,6 +23,7 @@ export const JournalEntry = () => withScreenErrorBoundary(require("../screens/Jo
 export const VibeSignal = () => withScreenErrorBoundary(require("../screens/VibeSignalScreen").default, "VibeSignal");
 export const Settings = () => withScreenErrorBoundary(require("../screens/SettingsScreen").default, "Settings");
 export const SavedMoments = () => withScreenErrorBoundary(require("../screens/SavedMomentsScreen").default, "SavedMoments");
+export const AddMemory = () => withScreenErrorBoundary(require("../screens/AddMemoryScreen").default, "AddMemory");
 
 // ─── Legal / info ───────────────────────────────────────────────────
 export const Terms = () => withScreenErrorBoundary(require("../screens/TermsScreen").default, "Terms");

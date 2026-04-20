@@ -128,4 +128,15 @@ describe('prompts catalog integrity', () => {
 
     expect(mismatches).toEqual(LEGACY_HEAT_PREFIX_MISMATCH_IDS);
   });
+
+  it('has at least 10 prompts per declared category', () => {
+    const counts = {};
+    Object.keys(categories).forEach((c) => (counts[c] = 0));
+    items.forEach((prompt) => {
+      if (counts[prompt.category] !== undefined) counts[prompt.category]++;
+    });
+    Object.entries(counts).forEach(([category, count]) => {
+      expect(count).toBeGreaterThanOrEqual(10);
+    });
+  });
 });

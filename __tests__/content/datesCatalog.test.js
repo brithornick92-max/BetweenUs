@@ -42,4 +42,12 @@ describe('dates catalog integrity', () => {
       });
     });
   });
+
+  it('has a non-negative integer releaseWeek on every date', () => {
+    items.forEach((date) => {
+      expect(typeof date.releaseWeek).toBe('number');
+      expect(Number.isInteger(date.releaseWeek)).toBe(true);
+      expect(date.releaseWeek).toBeGreaterThanOrEqual(0);
+    });
+  });
 });

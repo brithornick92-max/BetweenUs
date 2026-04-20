@@ -73,8 +73,10 @@ describe('DeepLinkHandler.handleNotificationResponse', () => {
       },
     });
 
-    expect(handled).toBe(true);
-    expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: null });
+    // 'prompt' is an ID-required route — a sanitized-to-null ID means the
+    // handler should refuse to navigate rather than pass null to the screen.
+    expect(handled).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('returns false for unknown notification routes', () => {
