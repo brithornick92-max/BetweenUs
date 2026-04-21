@@ -10,19 +10,17 @@ import {
   Platform,
   KeyboardAvoidingView,
   Keyboard,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { notification, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import CloudEngine from '../services/storage/CloudEngine';
-import StorageRouter from '../services/storage/StorageRouter';
 import CoupleKeyService from '../services/security/CoupleKeyService';
-import { finalizeInviteCodeLink, recoverExistingInviteCodeLink } from '../services/linking/InviteCodeLinking';
-import CoupleService from '../services/supabase/CoupleService';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+import { recoverExistingInviteCodeLink } from '../services/linking/InviteCodeLinking';
+import { joinWithInviteCode } from '../services/linking/CoupleLinkingService';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
 
@@ -41,41 +39,19 @@ export default function JoinWithCodeScreen({ navigation }) {
   const [showPairedGuard, setShowPairedGuard] = useState(false);
   const inputRef = useRef(null);
   const guardResolveRef = useRef(null);
+  const joinInFlightRef = useRef(false);
 
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const ensureCloudSession = async () => {
-    const session = await SupabaseAuthService.getSession().catch((error) => {
-      if (String(error?.message || '').includes('Supabase is not configured')) {
-        setStatusMsg("Sync isn't available in this build.");
-        return null;
-      }
-      return null;
-    });
-
-    if (session) {
-      await StorageRouter.setSupabaseSession(session);
-      return session;
-    }
-
-    // Fall back to anonymous sign-in
-    const retrySession = await SupabaseAuthService.signInAnonymously().catch(() => null);
-    if (retrySession) {
-      await StorageRouter.setSupabaseSession(retrySession);
-      return retrySession;
-    }
-
-    setStatusMsg('Cloud session expired. Please sign in again via Cloud Sync.');
-    return null;
-  };
-
   const handleJoin = async () => {
+    if (joinInFlightRef.current || phase === 'joining') return;
     Keyboard.dismiss();
     const trimmed = code.trim();
     if (!trimmed) {
       Alert.alert('Enter a code', 'Paste or type the invite code your partner shared.');
       return;
     }
+    joinInFlightRef.current = true;
 
     // Guard: warn if already paired to prevent accidental re-pair
     const existingCouple = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
@@ -91,27 +67,17 @@ export default function JoinWithCodeScreen({ navigation }) {
     setStatusMsg('Connecting...');
 
     try {
-      const session = await ensureCloudSession();
+      const result = await joinWithInviteCode({
+        code: trimmed,
+        userId: user?.id ?? user?.uid,
+        updateProfile,
+        onStatus: setStatusMsg,
+      });
 
-      if (!session) {
+      if (!result) {
         setPhase('error');
         return;
       }
-
-      await CloudEngine.initialize({ supabaseSessionPresent: true });
-      await StorageRouter.setSupabaseSession(session);
-
-      // Generate our device keypair
-      const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-
-      // Redeem the invite code via CoupleService (hashes code → calls redeem_partner_code RPC)
-      const { coupleId } = await CoupleService.redeemInviteCode(trimmed);
-      await finalizeInviteCodeLink({
-        coupleId,
-        userId: user?.uid,
-        updateProfile,
-        myPublicKeyB64,
-      });
 
       notification(NotificationFeedbackType.Success);
       setPhase('done');
@@ -130,7 +96,7 @@ export default function JoinWithCodeScreen({ navigation }) {
       } else if (msg.includes('duplicate key') || msg.includes('already exists')) {
         try {
           const resolvedCoupleId = await recoverExistingInviteCodeLink({
-            userId: user?.uid,
+            userId: user?.id ?? user?.uid,
             updateProfile,
             myPublicKeyB64: await CoupleKeyService.getDevicePublicKeyB64(),
           });
@@ -148,6 +114,8 @@ export default function JoinWithCodeScreen({ navigation }) {
         setStatusMsg(msg || 'Unable to join. Check the code and try again.');
       }
       setPhase('error');
+    } finally {
+      joinInFlightRef.current = false;
     }
   };
 

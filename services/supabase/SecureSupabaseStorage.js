@@ -23,7 +23,11 @@ export const SecureSupabaseStorage = {
         const chunks = [];
         for (let i = 0; i < chunkCount; i++) {
           const chunk = await SecureStore.getItemAsync(`${fullKey}__chunk_${i}`, { keychainService: SERVICE });
-          if (chunk === null) return null; // Corrupted chunks
+          if (chunk === null) {
+            // Corrupted chunks, clean them up
+            await this._clearChunks(fullKey);
+            return null;
+          }
           chunks.push(chunk);
         }
         return chunks.join('');
@@ -39,17 +43,22 @@ export const SecureSupabaseStorage = {
   async setItem(key, value) {
     const fullKey = KEY_PREFIX + key;
     try {
+      const stringValue = String(value);
+
       // Clean up any previous chunks for this key
       await this._clearChunks(fullKey);
 
-      if (value.length <= CHUNK_SIZE) {
+      if (stringValue.length <= CHUNK_SIZE) {
         // Fits in a single SecureStore entry
-        await SecureStore.setItemAsync(fullKey, value, { keychainService: SERVICE });
+        await SecureStore.setItemAsync(fullKey, stringValue, { keychainService: SERVICE });
       } else {
+        // Clean up stale single-key entry if switching to chunked
+        await SecureStore.deleteItemAsync(fullKey, { keychainService: SERVICE });
+
         // Value too large — split into chunks
         const chunks = [];
-        for (let i = 0; i < value.length; i += CHUNK_SIZE) {
-          chunks.push(value.substring(i, i + CHUNK_SIZE));
+        for (let i = 0; i < stringValue.length; i += CHUNK_SIZE) {
+          chunks.push(stringValue.substring(i, i + CHUNK_SIZE));
         }
         // Store chunk count
         await SecureStore.setItemAsync(fullKey + CHUNK_COUNT_SUFFIX, String(chunks.length), { keychainService: SERVICE });

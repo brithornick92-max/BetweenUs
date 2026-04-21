@@ -34,19 +34,19 @@ const NUDGES = [
     delayDays: 3,
     title: 'A little nudge from Between Us',
     body: "Something you two started is still here. Come back and finish it together.",
-    route: 'Home',
+    route: 'home',
   },
   {
     delayDays: 7,
     title: 'Your reflection is waiting',
     body: "One honest answer a day — that's all it takes. Tonight's prompt is ready.",
-    route: 'Home',
+    route: 'home',
   },
   {
     delayDays: 14,
     title: 'New date ideas are waiting',
     body: 'Fresh ideas are ready for you two whenever the moment feels right.',
-    route: 'DateNight',
+    route: 'date',
   },
 ];
 
@@ -158,7 +158,7 @@ const WinBackNudges = {
         content: {
           title: `${currentStreak} days of showing up together`,
           body: `You two have a nice rhythm going. Tonight could be another good one.`,
-          data: { route: 'Home', type: 'streak_break_warning', streak: currentStreak },
+          data: { route: 'home', type: 'streak_break_warning', streak: currentStreak },
         },
         trigger: { date: tomorrow },
       });
@@ -212,7 +212,7 @@ const WinBackNudges = {
         content: {
           title: 'Your week together',
           body: `${promptLine}${streakLine}. Open Between Us to reflect on it together.`,
-          data: { route: 'Home', type: 'weekly_recap' },
+          data: { route: 'home', type: 'weekly_recap' },
         },
         trigger: { date: next },
       });

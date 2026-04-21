@@ -13,6 +13,7 @@ import { RevenueCatUI, CUSTOMER_CENTER_ACTION } from 'react-native-purchases-ui'
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useTheme } from '../context/ThemeContext';
+import { useEntitlements } from '../context/EntitlementsContext';
 import AnalyticsService from '../services/AnalyticsService';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { SPACING } from '../utils/theme';
@@ -22,9 +23,16 @@ import { SPACING } from '../utils/theme';
  * Provides subscription management UI for existing subscribers
  * Handles: View subscription, manage billing, cancel, restore, contact support
  */
-export default function CustomerCenter({ onDismiss }) {
+export default function CustomerCenter({ onDismiss, navigation }) {
   const { checkSubscriptionStatus } = useSubscription();
   const { colors, isDark } = useTheme();
+  const { hidePaywall } = useEntitlements();
+
+  const dismiss = () => {
+    hidePaywall?.();
+    if (onDismiss) { onDismiss(); return; }
+    navigation?.goBack?.();
+  };
 
   // STRICT Apple Editorial Theme Map
   const t = useMemo(() => ({
@@ -118,7 +126,7 @@ export default function CustomerCenter({ onDismiss }) {
         Alert.alert(
           'Error',
           'Failed to load subscription management. Please try again.',
-          [{ text: 'OK', onPress: () => { if (onDismiss) onDismiss(); } }]
+          [{ text: 'OK', onPress: () => dismiss() }]
         );
       }
     };

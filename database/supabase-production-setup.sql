@@ -802,7 +802,30 @@ BEGIN
   -- Auto-leave any existing couple so re-pairing always works
   SELECT couple_id INTO old_redeemer_couple
     FROM couple_members WHERE user_id = redeemer_id LIMIT 1;
+    
   IF old_redeemer_couple IS NOT NULL THEN
+    IF old_redeemer_couple = code_row.couple_id THEN
+      -- User is repairing to the SAME couple (e.g. device change)
+      -- Just update their public key for the new device key exchange
+      UPDATE couple_members 
+         SET public_key = input_public_key,
+             wrapped_couple_key = NULL
+       WHERE couple_id = code_row.couple_id
+         AND user_id = redeemer_id;
+         
+      UPDATE partner_link_codes
+         SET used_at = now(),
+             used_by = redeemer_id
+       WHERE id = code_row.id;
+
+      RETURN jsonb_build_object(
+        'success', true,
+        'couple_id', code_row.couple_id,
+        'creator_id', creator_id,
+        'redeemer_id', redeemer_id
+      );
+    END IF;
+
     SELECT COALESCE(array_agg(user_id), ARRAY[]::uuid[]) INTO affected_member_ids
       FROM couple_members
      WHERE couple_id = old_redeemer_couple;
@@ -1298,8 +1321,6 @@ BEGIN
       );
     WHEN 'vibe'          THEN notif_title := '💗 New Heartbeat';
                               notif_body  := sender_name || ' just sent a heartbeat';
-    WHEN 'love_note'     THEN notif_title := '💌 Love Note';
-                              notif_body  := sender_name || ' sent you a love note';
     WHEN 'journal'       THEN notif_title := '📝 Journal Entry';
                               notif_body  := sender_name || ' shared a journal entry';
     WHEN 'prompt_answer' THEN notif_title := '💬 Prompt Answer';
@@ -1308,8 +1329,6 @@ BEGIN
                               notif_body  := sender_name || ' checked in';
     WHEN 'memory'        THEN notif_title := '📸 New Memory';
                               notif_body  := sender_name || ' shared a memory';
-    WHEN 'custom_ritual' THEN notif_title := '🌙 New Ritual';
-                              notif_body  := sender_name || ' created a ritual';
     ELSE                      notif_title := '💕 Between Us';
                               notif_body  := sender_name || ' shared something new';
   END CASE;
@@ -1572,9 +1591,7 @@ CREATE POLICY "Couple data insert (premium-aware)" ON couple_data
     AND (
       is_user_premium()
       OR data_type IN ('journal', 'prompt_answer', 'check_in', 'vibe', 'couple_state', 'moment_signal', 'attachment_meta')
-      OR (data_type = 'memory'       AND user_data_count(couple_id, 'memory')       < 10)
-      OR (data_type = 'custom_ritual' AND user_data_count(couple_id, 'custom_ritual') < 2)
-      OR (data_type = 'love_note'     AND user_data_count(couple_id, 'love_note')     < 20)
+      OR (data_type = 'memory' AND user_data_count(couple_id, 'memory') < 10)
     )
   );
 

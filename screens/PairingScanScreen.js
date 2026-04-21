@@ -4,7 +4,7 @@
  * * Handles secure QR scanning and X25519 shared secret derivation.
  */
 
-import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -21,16 +21,10 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import StorageRouter from '../services/storage/StorageRouter';
-import CloudEngine from '../services/storage/CloudEngine';
-import CoupleKeyService from '../services/security/CoupleKeyService';
-import { parsePairingPayload } from '../services/security/PairingPayload';
-import CoupleService from '../services/supabase/CoupleService';
-import { deriveAndPersistWrappedCoupleKey, restoreWrappedCoupleKeyFromCloud } from '../services/security/WrappedCoupleKeyFlow';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, withAlpha } from '../utils/theme';
 import Icon from '../components/Icon';
+import { scanPairingCode } from '../services/linking/CoupleLinkingService';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -40,7 +34,6 @@ export default function PairingScanScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [status, setStatus] = useState("Position your partner's code in view.");
-  const [repairingExistingCouple, setRepairingExistingCouple] = useState(false);
   const [showPairedGuard, setShowPairedGuard] = useState(false);
   const activeRef = useRef(true);
   const scanInFlightRef = useRef(false);
@@ -59,34 +52,11 @@ export default function PairingScanScreen({ navigation }) {
 
   useEffect(() => {
     activeRef.current = true;
-    if (!permission) requestPermission();
+    if (permission && permission.status === 'undetermined') {
+      requestPermission();
+    }
     return () => { activeRef.current = false; };
   }, [permission, requestPermission]);
-
-  const ensureCloudSession = useCallback(async () => {
-    const session = await SupabaseAuthService.getSession().catch((error) => {
-      if (String(error?.message || '').includes('Supabase is not configured')) {
-        setStatus("Sync isn't available in this build.");
-        return null;
-      }
-      return null;
-    });
-
-    if (session) {
-      await StorageRouter.setSupabaseSession(session);
-      return session;
-    }
-
-    // Fall back to anonymous sign-in
-    const retrySession = await SupabaseAuthService.signInAnonymously().catch(() => null);
-    if (retrySession) {
-      await StorageRouter.setSupabaseSession(retrySession);
-      return retrySession;
-    }
-
-    setStatus('Cloud session expired. Please sign in again via Cloud Sync.');
-    return null;
-  }, []);
 
   const handleScan = async ({ data }) => {
     if (scanInFlightRef.current || completedRef.current) return;
@@ -108,54 +78,26 @@ export default function PairingScanScreen({ navigation }) {
         }
       }
 
-      const session = await ensureCloudSession();
-      if (!session) {
+      const result = await scanPairingCode({
+        rawPayload: data,
+        userId: user?.uid,
+        updateProfile,
+        onStatus: (message) => {
+          if (activeRef.current) setStatus(message);
+        },
+      });
+      if (!result) {
         scanInFlightRef.current = false;
         setScanned(false);
         return;
       }
 
-      await CloudEngine.initialize({ supabaseSessionPresent: true });
-
-      const parsed = parsePairingPayload(data);
-      if (!parsed.ok) throw new Error(parsed.error);
-      const { pairingCode, publicKey: inviterPublicKeyB64 } = parsed.payload;
-
-      setStatus('Establishing secure bridge...');
-      const existingCoupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
-        const isRepairFlow = !!existingCoupleId;
-        setRepairingExistingCouple(isRepairFlow);
-      
-      const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-      const { coupleId, partnerId } = await CoupleService.redeemPairingCode(pairingCode, myPublicKeyB64);
-
-      if (isRepairFlow) {
-        const restoredKey = await restoreWrappedCoupleKeyFromCloud(coupleId, { timeoutMs: 120000, intervalMs: 3000 });
-        if (!restoredKey) {
-          throw new Error('Repair started, but the wrapped key is not available yet. Ask your partner to keep the repair screen open and try again.');
-        }
-      } else {
-        await deriveAndPersistWrappedCoupleKey({
-          coupleId,
-          partnerUserId: partnerId,
-          partnerPublicKeyB64: inviterPublicKeyB64,
-        });
-      }
-      await StorageRouter.setActiveCoupleId(coupleId);
-      
-      if (user?.uid) {
-        await StorageRouter.updateUserDocument(user.uid, { coupleId });
-        await updateProfile?.({ coupleId });
-      }
-      await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
-
       completedRef.current = true;
-      setStatus(isRepairFlow ? 'Secure pairing repaired.' : 'Successfully paired.');
       setTimeout(() => {
         if (!activeRef.current) return;
         Alert.alert(
-          isRepairFlow ? 'Secure Pairing Restored' : 'Pairing Complete',
-          isRepairFlow
+          result.isRepairFlow ? 'Secure Pairing Restored' : 'Pairing Complete',
+          result.isRepairFlow
             ? 'This device has restored the shared encryption key. Your partner should see the same success confirmation now.'
             : 'Your private space is now linked on both devices.',
           [{
@@ -252,7 +194,7 @@ export default function PairingScanScreen({ navigation }) {
 
       <CameraView
         style={StyleSheet.absoluteFill}
-        onBarcodeScanned={handleScan}
+        onBarcodeScanned={scanned ? undefined : handleScan}
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       />
 
@@ -295,7 +237,6 @@ export default function PairingScanScreen({ navigation }) {
               onPress={() => {
                 completedRef.current = false;
                 scanInFlightRef.current = false;
-                setRepairingExistingCouple(false);
                 setStatus("Position your partner's code in view.");
                 setScanned(false);
               }}
@@ -442,7 +383,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
   },
   modalCard: {
-    backgroundColor: t.surface,
+    backgroundColor: '#131016',
     borderRadius: 28,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
@@ -501,7 +442,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalButtonPrimary: {
-    backgroundColor: t.primary,
+    backgroundColor: '#D2121A',
   },
   modalButtonSecondary: {
     backgroundColor: 'rgba(255,255,255,0.06)',

@@ -6,7 +6,6 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -16,18 +15,17 @@ import {
   Alert,
   Animated,
   Platform,
-  StatusBar,
   ActivityIndicator,
 } from 'react-native';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle, NotificationFeedbackType, notification } from '../utils/haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -71,7 +69,6 @@ const HEAT_LEVELS = [
 ];
 
 export default function HeatLevelSettingsScreen({ navigation }) {
-  const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
@@ -85,7 +82,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
-  const styles = useMemo(() => createStyles(t, isDark, insets), [t, isDark, insets]);
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   
   const { userProfile, updateProfile } = useAuth();
   const { loadContentProfile } = useContent();
@@ -164,26 +161,30 @@ export default function HeatLevelSettingsScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-
-      {/* Velvet background gradient */}
-      <LinearGradient
-        colors={[t.background, isDark ? '#120206' : '#F9F6F4', t.background]}
-        style={StyleSheet.absoluteFillObject}
-      />
-
-      {/* Editorial Header */}
-      <Animated.View style={[styles.header, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Icon name="chevron-back" size={28} color={t.text} />
-        </TouchableOpacity>
-        <View style={styles.headerEditorial}>
-          <Text style={styles.headerTitle}>Intensity</Text>
-          <Text style={styles.headerSubtitle}>Set your boundary for closeness.</Text>
-        </View>
-      </Animated.View>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Intensity"
+      heroTitle="Intensity"
+      heroSubtitle="Set your boundary for closeness."
+      scroll={false}
+      onBack={handleBack}
+      footer={(
+        <Animated.View style={[styles.actionSection, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}> 
+          <TouchableOpacity
+            style={[styles.primaryButton, isSaving && { opacity: 0.7 }]}
+            onPress={handleSave}
+            disabled={isSaving}
+            activeOpacity={0.9}
+          >
+            {isSaving ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Apply Changes</Text>
+            )}
+          </TouchableOpacity>
+        </Animated.View>
+      )}
+    >
       <ScrollView 
         style={styles.scrollView} 
         contentContainerStyle={styles.scrollContent}
@@ -245,34 +246,14 @@ export default function HeatLevelSettingsScreen({ navigation }) {
 
         </Animated.View>
       </ScrollView>
-
-      {/* Sticky Save Button */}
-      <Animated.View style={[styles.actionSection, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
-        <TouchableOpacity
-          style={[styles.primaryButton, isSaving && { opacity: 0.7 }]}
-          onPress={handleSave}
-          disabled={isSaving}
-          activeOpacity={0.9}
-        >
-          {isSaving ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.primaryButtonText}>Apply Changes</Text>
-          )}
-        </TouchableOpacity>
-      </Animated.View>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 
 // ------------------------------------------------------------------
 // STYLES - Apple Editorial (Native Dashboard Look)
 // ------------------------------------------------------------------
-const createStyles = (t, isDark, insets) => StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: t.background,
-  },
+const createStyles = (t, isDark) => StyleSheet.create({
   scrollView: {
     flex: 1,
   },
@@ -281,37 +262,6 @@ const createStyles = (t, isDark, insets) => StyleSheet.create({
     paddingTop: SPACING.sm,
     paddingBottom: 100,
   },
-
-  // ── Header ──
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: Math.max(insets.top, Platform.OS === 'android' ? 40 : 20),
-    paddingBottom: 24,
-  },
-  backButton: {
-    padding: 8,
-    marginBottom: 8,
-  },
-  headerEditorial: {
-    paddingHorizontal: 8, 
-  },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
-    color: t.text,
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    color: t.subtext,
-    fontWeight: '500',
-    lineHeight: 22,
-  },
-
   // ── Widgets ──
   sectionTitle: {
     fontFamily: SYSTEM_FONT,

@@ -1,7 +1,11 @@
 export function extractAuthPayloadFromUrl(url) {
   if (!url) return null;
 
-  const [basePart, fragment = ''] = String(url).split('#');
+  const urlStr = String(url);
+  const hashIndex = urlStr.indexOf('#');
+  const basePart = hashIndex >= 0 ? urlStr.substring(0, hashIndex) : urlStr;
+  const fragment = hashIndex >= 0 ? urlStr.substring(hashIndex + 1) : '';
+
   const queryIndex = basePart.indexOf('?');
   const query = queryIndex >= 0 ? basePart.substring(queryIndex + 1) : '';
   const queryParams = new URLSearchParams(query);

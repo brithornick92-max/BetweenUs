@@ -15,13 +15,9 @@ import {
   Alert,
   Animated,
   Platform,
-  StatusBar,
-  KeyboardAvoidingView,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
-import { LinearGradient } from 'expo-linear-gradient';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -29,6 +25,7 @@ import { useAppContext } from '../context/AppContext';
 import { NicknameEngine } from '../services/PolishEngine';
 import { SPACING, withAlpha } from '../utils/theme';
 import Input from '../components/Input';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -148,28 +145,31 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-
-      {/* Velvet background gradient */}
-      <LinearGradient
-        colors={[t.background, isDark ? '#120206' : '#F9F6F4', t.background]}
-        style={StyleSheet.absoluteFillObject}
-      />
-
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Editorial Header */}
-        <Animated.View style={[styles.header, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Icon name="chevron-back" size={28} color={t.text} />
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Identity"
+      heroTitle="Identity"
+      heroSubtitle="Customize how you appear in prompts and notifications."
+      scroll={false}
+      keyboardAvoiding
+      onBack={handleBack}
+      footer={(
+        <Animated.View style={[styles.actionSection, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}> 
+          <TouchableOpacity
+            style={[styles.primaryButton, isSaving && { opacity: 0.7 }]}
+            onPress={handleSave}
+            disabled={isSaving}
+            activeOpacity={0.9}
+          >
+            {isSaving ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Apply Changes</Text>
+            )}
           </TouchableOpacity>
-          <View style={styles.headerEditorial}>
-            <Text style={styles.headerTitle}>Identity</Text>
-            <Text style={styles.headerSubtitle}>Customize how you appear in prompts and notifications.</Text>
-          </View>
         </Animated.View>
-
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      )}
+    >
           <ScrollView 
             style={styles.scrollView} 
             contentContainerStyle={styles.scrollContent}
@@ -246,25 +246,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
 
             </Animated.View>
           </ScrollView>
-        </KeyboardAvoidingView>
-
-        {/* Sticky Save Button */}
-        <Animated.View style={[styles.actionSection, { opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }]}>
-          <TouchableOpacity
-            style={[styles.primaryButton, isSaving && { opacity: 0.7 }]}
-            onPress={handleSave}
-            disabled={isSaving}
-            activeOpacity={0.9}
-          >
-            {isSaving ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Apply Changes</Text>
-            )}
-          </TouchableOpacity>
-        </Animated.View>
-      </SafeAreaView>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 
@@ -272,13 +254,6 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
 // STYLES - Apple Editorial (Native Dashboard Look)
 // ------------------------------------------------------------------
 const createStyles = (t, isDark) => StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: t.background,
-  },
-  safeArea: {
-    flex: 1,
-  },
   scrollView: {
     flex: 1,
   },
@@ -287,36 +262,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     paddingTop: SPACING.sm,
     paddingBottom: 100,
   },
-
-  // ── Header ──
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? 40 : 20,
-    paddingBottom: 24,
-  },
-  backButton: {
-    padding: 8,
-    marginBottom: 8,
-  },
-  headerEditorial: {
-    paddingHorizontal: 8, 
-  },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 34,
-    fontWeight: '900',
-    letterSpacing: -1,
-    color: t.text,
-    marginBottom: 6,
-  },
-  headerSubtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    color: t.subtext,
-    fontWeight: '500',
-    lineHeight: 22,
-  },
-
   // ── Widgets ──
   sectionTitle: {
     fontFamily: SYSTEM_FONT,

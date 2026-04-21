@@ -13,21 +13,15 @@ import {
   TouchableOpacity,
   Linking,
   Platform,
-  StatusBar,
-  Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import Icon from '../components/Icon';
-import GlowOrb from '../components/GlowOrb';
-import FilmGrain from '../components/FilmGrain';
 import { selection } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SUPPORT_EMAIL, SUPPORT_RESPONSE_TIME } from '../config/constants';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
-const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
 const APPLE_EULA_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
@@ -47,37 +41,20 @@ const EULAScreen = ({ navigation }) => {
   const styles = useMemo(() => createStyles(colors, isDark, theme), [colors, isDark, theme]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
-      <LinearGradient
-        colors={isDark ? [theme.obsidian, '#1A0205', theme.obsidian] : ['#FFFFFF', '#F9F4F4', '#FFFFFF']}
-        style={StyleSheet.absoluteFillObject}
-      />
-      {/* Crimson Ambient Glow */}
-      <GlowOrb color={theme.crimson} size={400} top={-100} left={SCREEN_W - 250} opacity={0.08} />
-      <GlowOrb color={theme.silver} size={300} top={800} left={-100} opacity={isDark ? 0.04 : 0.08} />
-      <FilmGrain opacity={0.035} />
-
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Editorial Top Navigation */}
-        <View style={styles.navHeader}>
-          <TouchableOpacity
-            onPress={() => {
-              selection();
-              navigation.goBack();
-            }}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <Icon name="chevron-back" size={28} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="EULA"
+      onBack={() => {
+        selection();
+        navigation.goBack();
+      }}
+      scroll={false}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
           {/* Editorial Header Block */}
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
             <Text style={[styles.headerEye, { color: theme.crimson }]}>LICENSE AGREEMENT</Text>
@@ -140,7 +117,7 @@ const EULAScreen = ({ navigation }) => {
               <Text style={[styles.subTitle, { color: colors.text }]}>3. Content & Intellectual Property</Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 All prompts, designs, features, and app content are the intellectual property of Between Us.
-                You retain ownership of your personal content (journal entries, responses, love notes, etc.).
+                You retain ownership of your personal content (journal entries, responses, etc.).
                 You may not copy, modify, distribute, or reverse engineer any part of the app.
               </Text>
 
@@ -227,32 +204,14 @@ const EULAScreen = ({ navigation }) => {
           </Animated.View>
 
           <View style={{ height: 100 }} />
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+      </ScrollView>
+    </EditorialScreenScaffold>
   );
 };
 
 const createStyles = (colors, isDark, theme) => StyleSheet.create({
-  container: { flex: 1 },
-  safeArea: { flex: 1 },
-  
-  navHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  backButton: { 
-    width: 44, 
-    height: 44, 
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 22,
-    backgroundColor: theme.glass,
-  },
-
   scrollView: { flex: 1 },
-  scrollContent: { paddingHorizontal: 24, paddingTop: 16 },
+  scrollContent: { paddingHorizontal: 24, paddingBottom: 120 },
 
   introSection: { marginBottom: 30 },
   headerEye: {

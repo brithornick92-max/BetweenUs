@@ -22,22 +22,7 @@ export const PREMIUM_FEATURES = {
     emotionalValue: 'Preserve your love story forever',
     icon: '🏛️',
   },
-  CUSTOM_RITUALS: {
-    id: 'custom_rituals',
-    name: 'Custom Rituals',
-    description: 'Create personalized bedtime ritual flows',
-    category: 'ritual',
-    emotionalValue: 'Design intimate moments that are uniquely yours',
-    icon: '🌙',
-  },
-  SCHEDULED_REMINDERS: {
-    id: 'scheduled_reminders',
-    name: 'Ritual Reminders',
-    description: 'Never miss your special moments together',
-    category: 'ritual',
-    emotionalValue: 'Build consistent connection habits',
-    icon: '⏰',
-  },
+
   BIOMETRIC_VAULT: {
     id: 'biometric_vault',
     name: 'Private Vault',
@@ -67,7 +52,6 @@ export const SUBSCRIPTION_TIERS = {
     features: Object.values(PREMIUM_FEATURES),
     emotionalBenefits: [
       'Protect your love story forever',
-      'Create deeper intimacy through custom rituals',
       'Never lose precious memories',
       'Build stronger connection habits',
     ],
@@ -181,14 +165,6 @@ export class PremiumGatekeeper {
   // Feature access with automatic paywall
   async requireMemoryExport(isPremium) {
     return this.validateFeatureAccess('memory_export', isPremium, true);
-  }
-
-  async requireCustomRituals(isPremium) {
-    return this.validateFeatureAccess('custom_rituals', isPremium, true);
-  }
-
-  async requireScheduledReminders(isPremium) {
-    return this.validateFeatureAccess('scheduled_reminders', isPremium, true);
   }
 
   async requireBiometricVault(isPremium) {

@@ -10,13 +10,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Alert,
   ActivityIndicator,
   Modal,
   Switch,
   Platform,
-  StatusBar,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -28,6 +26,7 @@ import DataLayer from '../services/data/DataLayer';
 import Constants from 'expo-constants';
 import Icon from '../components/Icon';
 import { SPACING, withAlpha, SYSTEM_FONT } from '../utils/theme';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 // ─── Sub-component ───────────────────────────────────────────────────────────
 
@@ -223,41 +222,19 @@ const ExportDataScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="chevron-back" size={28} color={t.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Data Portability</Text>
-        <View style={{ width: 44 }} />
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Icon Hero */}
-        <View style={[styles.iconHero, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
-          <Icon name="download-outline" size={42} color={t.primary} />
-        </View>
-
-        {/* Title */}
-        <Text style={[styles.title, { color: t.text }]}>Export Your Story</Text>
-        <Text style={[styles.subtitle, { color: t.subtext }]}>
-          Download a complete archive of your shared moments and personal reflections.
-        </Text>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Data Portability"
+      heroIcon="download-outline"
+      heroTitle="Export Your Story"
+      heroSubtitle="Download a complete archive of your shared moments and personal reflections."
+    >
         {/* Archive Contents */}
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <Text style={[styles.cardTitle, { color: t.text }]}>Archive Contents</Text>
           <View style={styles.list}>
             <FeatureRow icon="book-outline" text="All Journal Entries" color={t.primary} textColor={t.text} />
             <FeatureRow icon="chatbubbles-outline" text="Reflection & Prompt Answers" color={t.primary} textColor={t.text} />
-            <FeatureRow icon="heart-outline" text="Love Notes & Rituals" color={t.primary} textColor={t.text} />
             <FeatureRow icon="calendar-outline" text="Check-ins, Vibes & Date Night Plans" color={t.primary} textColor={t.text} />
             <FeatureRow icon="person-outline" text="Account & Relationship Preferences" color={t.primary} textColor={t.text} />
           </View>
@@ -290,7 +267,7 @@ const ExportDataScreen = ({ navigation }) => {
           <Text style={[styles.statLabel, { color: t.subtext }]}>Captured Memories</Text>
         </View>
         <Text style={[styles.cardText, { color: t.subtext, textAlign: 'center', marginBottom: 32, paddingHorizontal: 16 }]}>
-          Journal entries, prompt responses, rituals, check-ins, vibes, love notes, calendar events, and date-night plans will also be included.
+          Journal entries, prompt responses, check-ins, vibes, calendar events, and date-night plans will also be included.
         </Text>
 
         {/* Export Button */}
@@ -314,7 +291,7 @@ const ExportDataScreen = ({ navigation }) => {
           Archive generated in compliance with GDPR and CCPA data portability standards.
           You have the right to receive your personal data in a structured, commonly used format.
         </Text>
-      </ScrollView>
+      
 
       {/* Confirm Modal */}
       <Modal visible={showConfirm} transparent animationType="fade">
@@ -361,55 +338,11 @@ const ExportDataScreen = ({ navigation }) => {
           </View>
         </BlurView>
       </Modal>
-    </View>
+    </EditorialScreenScaffold>
   );
 };
 
 const createStyles = (t, isDark) => StyleSheet.create({
-  container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 20,
-  },
-  backButton: { width: 44, height: 44, justifyContent: 'center' },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
-  },
-  scrollView: { flex: 1 },
-  scrollContent: { padding: 24, paddingBottom: 60 },
-  iconHero: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 32,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: -0.8,
-  },
-  subtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
-  },
   card: {
     padding: 24,
     borderRadius: 24,

@@ -176,7 +176,7 @@ let _coldStartNotificationHandled = false;
 
 function AppContent() {
   const { state } = useAppContext();
-  const { isPremiumEffective: isPremium, paywallVisible, paywallFeature } = useEntitlements();
+  const { isPremiumEffective: isPremium, paywallVisible, paywallFeature, hidePaywall } = useEntitlements();
   const { navigationTheme, isDark } = useTheme();
   const navTheme = useMemo(
     () => ({
@@ -330,12 +330,27 @@ function AppContent() {
     if (!navReady || !paywallVisible || !navigationRef.isReady()) return;
     if (paywallNavPending.current) return;
     const currentRoute = navigationRef.getCurrentRoute()?.name;
-    if (currentRoute !== "Paywall") {
+    if (currentRoute !== "RevenueCatPaywall") {
       paywallNavPending.current = true;
-      navigationRef.navigate("Paywall", { feature: paywallFeature || null });
-      setTimeout(() => { paywallNavPending.current = false; }, 500);
+      navigationRef.navigate("RevenueCatPaywall", { feature: paywallFeature || null });
+      setTimeout(() => { paywallNavPending.current = false; }, 800);
     }
   }, [navReady, paywallVisible, paywallFeature]);
+
+  // When the user swipes/back-gestures away from RevenueCatPaywall without going
+  // through our dismiss() handler (e.g. native back gesture), clear paywallState
+  // so it cannot re-trigger the navigation effect.
+  useEffect(() => {
+    if (!navReady || !navigationRef.isReady()) return;
+    return navigationRef.addListener('state', () => {
+      if (paywallVisible) {
+        const currentRoute = navigationRef.getCurrentRoute()?.name;
+        if (currentRoute !== 'RevenueCatPaywall') {
+          hidePaywall?.();
+        }
+      }
+    });
+  }, [navReady, paywallVisible, hidePaywall]);
 
   // Wire up notification tap → deep link routing
   useEffect(() => {
@@ -398,12 +413,11 @@ function AppContent() {
         AuthCallback: "auth-callback",
         PairingQRCode: "pairing-qr",
         PairingScan: "pairing-scan",
-        LoveNoteDetail: "love-note/:noteId",
         VibeSignal: "vibe",
         PromptAnswer: "prompt/:promptId",
-        NightRitual: "ritual",
         JournalHome: "journal",
         JournalEntry: "journal/new",
+        SavedMoments: "saved-moments",
         DateNightDetail: "date/:dateId",
         MainTabs: {
           screens: {

@@ -26,6 +26,7 @@ import EncryptedAttachments from '../e2ee/EncryptedAttachments';
 import PushNotificationService from '../PushNotificationService';
 import PartnerNotifications from '../PartnerNotifications';
 import CoupleKeyService from '../security/CoupleKeyService';
+import CouplePresenceService from '../couple/CouplePresenceService';
 import SyncEngine from '../sync/SyncEngine';
 import naclUtil from 'tweetnacl-util';
 import { storage, promptStorage, journalStorage, STORAGE_KEYS } from '../../utils/storage';
@@ -145,6 +146,27 @@ async function ensureLocalIdentityState() {
   }
 
   return { userId: _userId, coupleId: _coupleId };
+}
+
+async function ensureVerifiedCoupleState({ requireRemoteCheck = false } = {}) {
+  await ensureLocalIdentityState();
+
+  if (!_coupleId) {
+    _coupleKeyAvailable = false;
+    return { coupleId: null, hasCoupleKey: false, status: 'unpaired' };
+  }
+
+  const verified = await CouplePresenceService.getVerifiedCoupleState({
+    currentCoupleId: _coupleId,
+    userId: _userId,
+    requireRemoteCheck,
+  });
+
+  _coupleId = verified.coupleId || null;
+  _coupleKeyAvailable = !!verified.hasCoupleKey;
+  SyncEngine.configure({ userId: _userId, coupleId: _coupleId, isPremium: _isPremium });
+
+  return verified;
 }
 
 function serializeDatePlanForMetadata(plan) {
@@ -586,6 +608,10 @@ const DataLayer = {
     return !!_coupleId && !_coupleKeyAvailable;
   },
 
+  async getCoupleStateStatus({ requireRemoteCheck = false } = {}) {
+    return ensureVerifiedCoupleState({ requireRemoteCheck });
+  },
+
   /**
    * Full reset (sign-out / account delete).
    */
@@ -612,7 +638,7 @@ const DataLayer = {
 
   // ─── Journal ──────────────────────────────────────────────────
 
-  async saveJournalEntry({ title, body, mood, tags, isPrivate = false, imageUri = null }) {
+  async saveJournalEntry({ title, body, mood, tags, isPrivate = false, imageUri = null, mediaUri, mimeType, fileName }) {
     await ensureLocalIdentityState();
 
     // Private entries always use device key; shared entries must resolve
@@ -628,6 +654,21 @@ const DataLayer = {
     const moodCipher = mood ? await E2EEncryption.encryptString(mood, kt, cid) : null;
     const tagsCipher = tags?.length ? await E2EEncryption.encryptJson(tags, kt, cid) : null;
 
+    let mediaRef = null;
+    if (mediaUri) {
+      const att = await EncryptedAttachments.encryptAndStore({
+        sourceUri: mediaUri,
+        fileName: fileName || 'journal_attachment',
+        mimeType: mimeType || 'video/quicktime',
+        userId: _userId,
+        coupleId: cid,
+        parentType: 'journal',
+        parentId: null,
+        keyTier: kt,
+      });
+      mediaRef = att.id;
+    }
+
     const row = await Database.insertJournal({
       user_id: _userId,
       couple_id: isPrivate ? null : coupleId,
@@ -638,8 +679,23 @@ const DataLayer = {
       tags,
       tags_cipher: tagsCipher,  // encrypted exact value for Supabase
       is_private: isPrivate,
-      photo_uri: imageUri || null,
+      photo_uri: mediaRef ? null : (imageUri || null),
+      media_ref: mediaRef,
     });
+
+    if (mediaRef && row?.id) {
+      try {
+        const db = await Database.init();
+        await db.runAsync(
+          `UPDATE attachments SET parent_id = ? WHERE id = ?`,
+          [row.id, mediaRef]
+        );
+      } catch (err) {
+        if (__DEV__) console.warn('[DataLayer] Failed to link attachment to journal:', err?.message);
+        try { await EncryptedAttachments.deleteAttachment(mediaRef); } catch { /* ok */ }
+        throw new Error('Failed to attach media to journal');
+      }
+    }
 
     debouncedPush();
 
@@ -651,7 +707,7 @@ const DataLayer = {
     return row;
   },
 
-  async updateJournalEntry(id, { title, body, mood, tags, isPrivate, imageUri }) {
+  async updateJournalEntry(id, { title, body, mood, tags, isPrivate, imageUri, mediaUri, mimeType, fileName }) {
     await ensureLocalIdentityState();
 
     const updates = {};
@@ -674,6 +730,10 @@ const DataLayer = {
       }
     }
 
+    const existingRow = (mediaUri !== undefined || imageUri !== undefined)
+      ? await Database.getJournalById(id)
+      : null;
+
     if (effectiveTitle !== undefined) updates.title_cipher = await E2EEncryption.encryptString(effectiveTitle, kt, cid);
     if (effectiveBody !== undefined) updates.body_cipher = await E2EEncryption.encryptString(effectiveBody, kt, cid);
     if (mood !== undefined) updates.mood = mood;
@@ -682,20 +742,75 @@ const DataLayer = {
     if (tags !== undefined) updates.tags_cipher = tags?.length ? await E2EEncryption.encryptJson(tags, kt, cid) : null;
     if (isPrivate !== undefined) updates.is_private = isPrivate;
     if (isPrivate !== undefined) updates.couple_id = isPrivate ? null : coupleId;
-    if (imageUri !== undefined) updates.photo_uri = imageUri ?? null;
+
+    let replacementMediaRef = null;
+    if (mediaUri !== undefined) {
+      if (mediaUri) {
+        const att = await EncryptedAttachments.encryptAndStore({
+          sourceUri: mediaUri,
+          fileName: fileName || 'journal_attachment',
+          mimeType: mimeType || 'video/quicktime',
+          userId: _userId,
+          coupleId: cid,
+          parentType: 'journal',
+          parentId: id,
+          keyTier: kt,
+        });
+        replacementMediaRef = att.id;
+        updates.media_ref = replacementMediaRef;
+      } else {
+        updates.media_ref = null;
+      }
+      updates.photo_uri = null;
+    }
+
+    if (imageUri !== undefined) {
+      updates.photo_uri = imageUri ?? null;
+      updates.media_ref = null;
+    }
 
     const row = await Database.updateJournal(id, updates);
+
+    if (replacementMediaRef && row?.id) {
+      try {
+        const db = await Database.init();
+        await db.runAsync(
+          `UPDATE attachments SET parent_id = ? WHERE id = ?`,
+          [row.id, replacementMediaRef]
+        );
+      } catch (err) {
+        if (__DEV__) console.warn('[DataLayer] Failed to relink journal attachment:', err?.message);
+        try { await EncryptedAttachments.deleteAttachment(replacementMediaRef); } catch { /* ok */ }
+        throw new Error('Failed to attach media to journal');
+      }
+    }
+
+    const previousMediaRef = existingRow?.media_ref || null;
+    if (previousMediaRef && previousMediaRef !== replacementMediaRef && (mediaUri !== undefined || imageUri !== undefined)) {
+      try { await EncryptedAttachments.deleteAttachment(previousMediaRef); } catch { /* ok */ }
+    }
+
     debouncedPush();
     return row;
   },
 
   async deleteJournalEntry(id) {
+    const entry = await Database.getJournalById(id);
+    if (entry?.media_ref) {
+      try { await EncryptedAttachments.deleteAttachment(entry.media_ref); } catch { /* ok */ }
+    }
     await Database.softDeleteJournal(id);
     debouncedPush();
   },
 
   async getJournalEntries({ limit = 50, offset = 0, mood, visibility } = {}) {
     await ensureLocalIdentityState();
+    const verifiedCoupleState = await ensureVerifiedCoupleState({ requireRemoteCheck: true });
+
+    if (visibility === 'shared' && verifiedCoupleState.status === 'unpaired') {
+      return [];
+    }
+
     // If the couple key isn't loaded yet, attempt to restore it once before
     // decrypting so shared/partner entries aren't needlessly locked.
     if (_coupleId && !_coupleKeyAvailable) {
@@ -709,6 +824,7 @@ const DataLayer = {
 
   async getJournalEntry(id) {
     await ensureLocalIdentityState();
+    await ensureVerifiedCoupleState({ requireRemoteCheck: true });
     if (_coupleId && !_coupleKeyAvailable) {
       await tryRestoreCoupleKey();
     }
@@ -723,6 +839,17 @@ const DataLayer = {
     const kt = info?.keyTier || keyTier();
     const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
     try {
+      let decryptedMediaUri = null;
+      let attachmentMimeType = null;
+      if (row.media_ref) {
+        try {
+          const attachment = await Database.getAttachmentById(row.media_ref);
+          attachmentMimeType = attachment?.mime_type || null;
+          decryptedMediaUri = await EncryptedAttachments.getDecryptedUri(row.media_ref, kt, cid);
+        } catch (mediaErr) {
+          if (__DEV__) console.warn('[DataLayer] Journal media decrypt failed:', mediaErr?.message);
+        }
+      }
       const decryptedMood = row.mood_cipher
         ? await E2EEncryption.decryptString(row.mood_cipher, kt, cid).catch(() => null)
         : null;
@@ -736,6 +863,10 @@ const DataLayer = {
         mood: row.mood ?? decryptedMood ?? null,
         tags: row.tags ? JSON.parse(row.tags) : (decryptedTags || []),
         is_private: !!row.is_private,
+        mediaRef: row.media_ref || null,
+        mediaUri: decryptedMediaUri,
+        mediaType: attachmentMimeType,
+        mediaKind: attachmentMimeType?.startsWith('video/') ? 'video' : (decryptedMediaUri ? 'image' : null),
       };
     } catch (err) {
       if (__DEV__) console.warn('[DataLayer] Journal decryption failed:', err?.message);
@@ -747,8 +878,7 @@ const DataLayer = {
 
   async savePromptAnswer({ promptId, answer, heatLevel }) {
     await ensureLocalIdentityState();
-    const kt = keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
     const resolvedHeatLevel = typeof heatLevel === 'number'
       ? heatLevel
       : (getPromptById(promptId)?.heat || 1);
@@ -765,7 +895,7 @@ const DataLayer = {
         })
       : await Database.insertPromptAnswer({
           user_id: _userId,
-          couple_id: _coupleId,
+          couple_id: cid,
           prompt_id: promptId,
           date_key: dk,
           answer_cipher: answerCipher,
@@ -840,8 +970,11 @@ const DataLayer = {
   // ─── Memories ─────────────────────────────────────────────────
 
   async saveMemory({ content, type = 'moment', mood, isPrivate = false, mediaUri, mimeType, fileName }) {
-    const kt = isPrivate ? deviceTier() : keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    await ensureLocalIdentityState();
+    const { keyTier: kt, coupleId: cid } = isPrivate 
+      ? { keyTier: deviceTier(), coupleId: null } 
+      : await resolveLocalWriteTier();
+
     const bodyCipher = await E2EEncryption.encryptString(content, kt, cid);
     const moodCipher = mood ? await E2EEncryption.encryptString(mood, kt, cid) : null;
 
@@ -854,7 +987,7 @@ const DataLayer = {
         fileName: fileName || 'attachment',
         mimeType: mimeType || 'image/jpeg',
         userId: _userId,
-        coupleId: _coupleId,
+        coupleId: cid,
         parentType: 'memory',
         parentId: null, // will link after insert
         keyTier: kt,
@@ -864,7 +997,7 @@ const DataLayer = {
 
     const row = await Database.insertMemory({
       user_id: _userId,
-      couple_id: _coupleId,
+      couple_id: isPrivate ? null : cid,
       type,
       body_cipher: bodyCipher,
       media_ref: mediaRef,
@@ -926,13 +1059,13 @@ const DataLayer = {
   // ─── Rituals ──────────────────────────────────────────────────
 
   async saveRitual({ flowId, responses, streakDay = 1 }) {
-    const kt = keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    await ensureLocalIdentityState();
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
     const bodyCipher = await E2EEncryption.encryptJson(responses, kt, cid);
 
     const row = await Database.insertRitual({
       user_id: _userId,
-      couple_id: _coupleId,
+      couple_id: cid,
       flow_id: flowId,
       body_cipher: bodyCipher,
       streak_day: streakDay,
@@ -962,8 +1095,8 @@ const DataLayer = {
   // ─── Check-ins ────────────────────────────────────────────────
 
   async saveCheckIn({ mood, intimacy, notes, touch }) {
-    const kt = keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    await ensureLocalIdentityState();
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
     const bodyCipher = await E2EEncryption.encryptJson(
       { mood, intimacy, notes, touch },
       kt, cid
@@ -972,7 +1105,7 @@ const DataLayer = {
 
     const row = await Database.insertCheckIn({
       user_id: _userId,
-      couple_id: _coupleId,
+      couple_id: cid,
       body_cipher: bodyCipher,
       mood,                // unencrypted label for local calendar display
       mood_cipher: moodCipher,  // encrypted for Supabase
@@ -1015,15 +1148,15 @@ const DataLayer = {
   // ─── Vibes ────────────────────────────────────────────────────
 
   async saveVibe({ vibe, note }) {
-    const kt = keyTier();
-    const cid = kt === 'couple' ? _coupleId : null;
+    await ensureLocalIdentityState();
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
     const noteCipher = note
       ? await E2EEncryption.encryptString(note, kt, cid)
       : null;
 
     const row = await Database.insertVibe({
       user_id: _userId,
-      couple_id: _coupleId,
+      couple_id: cid,
       vibe,
       note_cipher: noteCipher,
     });
@@ -1086,7 +1219,7 @@ const DataLayer = {
     const row = await Database.upsertCalendarEvent({
       id: event?.id,
       user_id: _userId,
-      couple_id: _coupleId,
+      couple_id: cid,
       title_cipher: titleCipher,
       location_cipher: locationCipher,
       notes_cipher: notesCipher,
@@ -1541,7 +1674,7 @@ const DataLayer = {
     const row = await Database.upsertDatePlan({
       id: plan?.id,
       user_id: _userId,
-      couple_id: _coupleId,
+      couple_id: cid,
       source_event_id: plan?.sourceEventId || null,
       title_cipher: titleCipher,
       body_cipher: bodyCipher,
@@ -1631,7 +1764,7 @@ const DataLayer = {
         fileName: `love_note_${Date.now()}.jpg`,
         mimeType: 'image/jpeg',
         userId: _userId,
-        coupleId: _coupleId,
+        coupleId: cid,
         parentType: 'love_note',
         parentId: null, // linked after insert
         keyTier: kt,
@@ -1641,7 +1774,7 @@ const DataLayer = {
 
     const row = await Database.insertLoveNote({
       user_id: _userId,
-      couple_id: _coupleId,
+      couple_id: cid,
       text_cipher: textCipher,
       stationery_id: stationeryId || null,
       sender_name_cipher: senderCipher,
@@ -1797,17 +1930,19 @@ const DataLayer = {
   // ─── Attachments ──────────────────────────────────────────────
 
   async addAttachment(opts) {
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
     return EncryptedAttachments.encryptAndStore({
       ...opts,
       userId: _userId,
-      coupleId: _coupleId,
-      keyTier: keyTier(),
+      coupleId: cid,
+      keyTier: kt,
     });
   },
 
   async getDecryptedAttachment(attachmentId) {
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier().catch(() => ({ keyTier: keyTier(), coupleId: _coupleId }));
     return EncryptedAttachments.getDecryptedUri(
-      attachmentId, keyTier(), _coupleId
+      attachmentId, kt, cid
     );
   },
 

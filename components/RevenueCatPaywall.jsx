@@ -5,6 +5,7 @@ import { RevenueCatUI } from "react-native-purchases-ui";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useTheme } from "../context/ThemeContext";
+import { useEntitlements } from "../context/EntitlementsContext";
 import AnalyticsService from "../services/AnalyticsService";
 import { SPACING } from "../utils/theme";
 import Icon from "../components/Icon";
@@ -22,9 +23,18 @@ const FALLBACK_COLORS = {
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
-const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
+const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation }) => {
   const { checkSubscriptionStatus } = useSubscription();
   const { colors, isDark } = useTheme();
+  const { hidePaywall } = useEntitlements();
+
+  // When mounted as a navigation screen, navigation.goBack() is the dismiss path.
+  // Always call hidePaywall() to clear global paywallState regardless of how we exit.
+  const dismiss = () => {
+    hidePaywall?.();
+    if (onDismiss) { onDismiss(); return; }
+    navigation?.goBack?.();
+  };
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -46,7 +56,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
       Alert.alert(
         "Pro Feature",
         "The Pro experience requires a native build. Please use the TestFlight version to explore premium features.",
-        [{ text: "OK", onPress: () => onDismiss?.() }]
+        [{ text: "OK", onPress: () => dismiss() }]
       );
       setIsLoading(false);
       return;
@@ -80,7 +90,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
               text: "Begin Pro Journey",
               onPress: () => {
                 onPurchaseSuccess?.();
-                onDismiss?.();
+                dismiss();
               },
             },
           ]
@@ -95,7 +105,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
         Alert.alert("Purchases Restored", "Your premium membership has been successfully restored.", [
           {
             text: "Continue",
-            onPress: () => onDismiss?.(),
+            onPress: () => dismiss(),
           },
         ]);
         return;
@@ -103,22 +113,22 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess }) => {
 
       if (result === RevenueCatUI.PAYWALL_RESULT.CANCELLED) {
         AnalyticsService.trackPaywall('revenueCatNative', 'dismissed');
-        onDismiss?.();
+        dismiss();
         return;
       }
 
       if (result === RevenueCatUI.PAYWALL_RESULT.ERROR) {
         AnalyticsService.trackPurchase('failed', { source: 'revenueCatNative', reason: 'store_error' });
         Alert.alert("Connection Issue", "We couldn't connect to the store. Please check your connection and try again.", [
-          { text: "OK", onPress: () => onDismiss?.() },
+          { text: "OK", onPress: () => dismiss() },
         ]);
         return;
       }
 
-      onDismiss?.();
+      dismiss();
     } catch (error) {
       if (__DEV__) console.error("Failed to present paywall:", error);
-      onDismiss?.();
+      dismiss();
     } finally {
       setIsLoading(false);
     }

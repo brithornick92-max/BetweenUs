@@ -164,6 +164,12 @@ export default function HomeScreen({ navigation }) {
   const headerAnim = useRef(new Animated.Value(0)).current;
   const cardAnim = useRef(new Animated.Value(0)).current;
   const actionsAnim = useRef(new Animated.Value(0)).current;
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   useEffect(() => {
     RelationshipMilestones.initFirstOpen().catch(() => {});
@@ -466,7 +472,8 @@ export default function HomeScreen({ navigation }) {
         const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
         if (!hasPromptedShare && !coupleId) {
           await storage.set(PROMPTED_PARTNER_SHARE_KEY, true);
-          setTimeout(() => {
+          const shareTimerId = setTimeout(() => {
+            if (!mountedRef.current) return;
             Alert.alert(
               'Share with your partner?',
               'Invite them to Between Us so they can answer too \u2014 and you can reveal each other\u2019s responses.',

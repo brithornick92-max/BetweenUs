@@ -860,10 +860,15 @@ class LocalStorageService {
     }
   }
 
-  // Clear all data (for testing/reset)
+  // Clear all data (for testing/reset) — only removes @betweenus: keys to avoid
+  // wiping third-party SDK state (RevenueCat, Expo modules, etc.)
   async clearAllData() {
     try {
-      await AsyncStorage.clear();
+      const allKeys = await AsyncStorage.getAllKeys();
+      const appKeys = allKeys.filter((k) => k.startsWith('@betweenus:'));
+      if (appKeys.length > 0) {
+        await AsyncStorage.multiRemove(appKeys);
+      }
       this.currentUser = null;
       this.notifyAuthListeners(null);
     } catch (error) {

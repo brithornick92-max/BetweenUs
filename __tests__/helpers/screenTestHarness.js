@@ -91,6 +91,10 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: mockCreateHostComponent('LinearGradient'),
 }));
 
+jest.mock('expo-av', () => ({
+  Video: mockCreateHostComponent('Video'),
+}));
+
 jest.mock('react-native-reanimated', () => ({
   __esModule: true,
   default: {
@@ -189,7 +193,17 @@ jest.mock('../../utils/theme', () => ({
     md: 12,
     sm: 8,
     xs: 4,
+    xxxl: 32,
   },
+  SYSTEM_FONT: 'System',
+  SCREEN_TITLE_STYLE: {
+    fontFamily: 'System',
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  getGradients: (colors) => ({
+    screenBackground: [colors?.background || '#fff8f5', colors?.surface2 || '#f7efeb', colors?.background || '#fff8f5'],
+  }),
   withAlpha: (color, alpha) => `${color}:${alpha}`,
 }));
 

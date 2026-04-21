@@ -4,22 +4,19 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Alert,
   ActivityIndicator,
   TextInput,
-  KeyboardAvoidingView,
   Platform,
   Linking,
-  StatusBar,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
-import { impact, ImpactFeedbackStyle } from '../utils/haptics';
+import { ImpactFeedbackStyle } from '../utils/haptics';
 import Icon from '../components/Icon';
 import { SPACING, withAlpha } from '../utils/theme';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 /**
  * Delete Account Screen
@@ -28,7 +25,6 @@ import { SPACING, withAlpha } from '../utils/theme';
  */
 export default function DeleteAccountScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const insets = useSafeAreaInsets();
   const { deleteUserAccount, signOutLocal } = useAuth();
   const { isPremiumEffective: isPremium } = useEntitlements();
   
@@ -47,7 +43,7 @@ export default function DeleteAccountScreen({ navigation }) {
     danger: colors.primary || '#D2121A',
   }), [colors]);
 
-  const styles = useMemo(() => createStyles(t, isDark, insets), [t, isDark, insets]);
+  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const handleTextChange = (text) => {
     setConfirmText(text);
@@ -99,41 +95,17 @@ export default function DeleteAccountScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-
-      {/* ─── Header ─── */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => {
-            impact(ImpactFeedbackStyle.Light);
-            navigation.goBack();
-          }} 
-          style={styles.backButton}
-          hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-        >
-          <Icon name="arrow-back-outline" size={24} color={t.text} />
-        </TouchableOpacity>
-      </View>
-
-      <KeyboardAvoidingView style={styles.keyboardAvoid} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView 
-          style={styles.scrollView} 
-          contentContainerStyle={styles.scrollContent} 
-          showsVerticalScrollIndicator={false} 
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* ─── Title & Warning Icon ─── */}
-          <View style={styles.heroSection}>
-            <View style={[styles.iconContainer, { backgroundColor: withAlpha(t.danger, 0.15) }]}>
-              <Icon name="warning-outline" size={42} color={t.danger} />
-            </View>
-            <Text style={[styles.title, { color: t.danger }]}>Delete Account</Text>
-            <Text style={[styles.subtitle, { color: t.subtext }]}>
-              This action is permanent and cannot be undone.
-            </Text>
-          </View>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Delete Account"
+      heroIcon="warning-outline"
+      heroTitle="Delete Account"
+      heroSubtitle="This action is permanent and cannot be undone."
+      heroTint={t.danger}
+      heroTitleColor={t.danger}
+      keyboardAvoiding
+      backIconName="arrow-back-outline"
+    >
           {/* ─── What Will Be Deleted (Danger Card) ─── */}
           <View style={[styles.card, { backgroundColor: withAlpha(t.danger, 0.05), borderColor: withAlpha(t.danger, 0.2) }]}>
             <Text style={[styles.cardTitle, { color: t.danger }]}>What Will Be Deleted</Text>
@@ -144,7 +116,7 @@ export default function DeleteAccountScreen({ navigation }) {
               'Account information and preferences',
               'Partner connection (your partner will be notified)',
               'Premium subscription access',
-              'All custom rituals and date night plans'
+              'All date night plans'
             ].map((item, idx) => (
               <View key={idx} style={styles.listItem}>
                 <Icon name="close-circle" size={18} color={t.danger} />
@@ -307,69 +279,13 @@ export default function DeleteAccountScreen({ navigation }) {
             be retained for legal and security purposes.
           </Text>
 
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
-const createStyles = (t, isDark, insets) => StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: t.background,
-  },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingTop: insets.top + SPACING.sm,
-    paddingBottom: SPACING.md,
-  },
-  backButton: {
-    padding: SPACING.xs,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: SPACING.screen,
-    paddingBottom: 120,
-  },
-
-  // Hero Section
-  heroSection: {
-    alignItems: 'center',
-    marginVertical: SPACING.xl,
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.lg,
-  },
-  title: {
-    fontFamily: systemFont,
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: SPACING.xs,
-  },
-  subtitle: {
-    fontFamily: systemFont,
-    fontSize: 15,
-    fontWeight: '500',
-    textAlign: 'center',
-    paddingHorizontal: SPACING.xl,
-  },
-
-  // Cards
+const createStyles = (t, isDark) => StyleSheet.create({
   card: {
     backgroundColor: t.surface,
     borderRadius: 24,

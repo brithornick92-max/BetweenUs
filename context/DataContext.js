@@ -36,6 +36,22 @@ import { useAppContext as useApp } from './AppContext';
 
 const DataContext = createContext(null);
 
+const resolveActiveSupabaseUserId = async (fallbackId) => {
+  let syncUserId = fallbackId;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      if (!supabase) break;
+      const { data } = await supabase.auth.getUser();
+      if (data?.user?.id) { syncUserId = data.user.id; break; }
+      if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+    } catch (err) {
+      if (__DEV__) console.warn('[DataContext] auth.getUser attempt', attempt + 1, 'failed:', err?.message);
+      if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+    }
+  }
+  return syncUserId;
+};
+
 export function DataProvider({ children }) {
   const { user } = useAuth();
   const { isPremiumEffective: isPremium } = useEntitlements();
@@ -73,19 +89,7 @@ export function DataProvider({ children }) {
         // SyncEngine so that `created_by` matches `auth.uid()` in RLS policies.
         // The local Crypto.randomUUID() from AppContext does NOT match and
         // causes every couple_data INSERT to be silently rejected by RLS.
-        let syncUserId = userId;
-        for (let attempt = 0; attempt < 3; attempt++) {
-          try {
-            if (!supabase) break; // supabase is null — no point retrying
-            const { data } = await supabase.auth.getUser();
-            if (data?.user?.id) { syncUserId = data.user.id; break; }
-            // User not returned yet — retry after backoff
-            if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-          } catch (err) {
-            if (__DEV__) console.warn('[DataContext] auth.getUser attempt', attempt + 1, 'failed:', err?.message);
-            if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-          }
-        }
+        const syncUserId = await resolveActiveSupabaseUserId(userId);
 
         await DataLayer.init({
           userId: syncUserId,
@@ -173,19 +177,7 @@ export function DataProvider({ children }) {
     let cancelled = false;
     // Re-resolve Supabase UUID on reconfigure
     (async () => {
-      let syncUserId = userId;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          if (supabase) {
-            const { data } = await supabase.auth.getUser();
-            if (data?.user?.id) { syncUserId = data.user.id; break; }
-          }
-          break;
-        } catch (err) {
-          if (__DEV__) console.warn('[DataContext] reconfigure auth.getUser attempt', attempt + 1, 'failed:', err?.message);
-          if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-        }
-      }
+      const syncUserId = await resolveActiveSupabaseUserId(userId);
       if (cancelled) return;
 
       try {

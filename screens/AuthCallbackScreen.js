@@ -4,7 +4,7 @@
  * * Handles tokens from deep-link URL fragments for Supabase Auth.
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -37,6 +37,7 @@ export default function AuthCallbackScreen({ navigation }) {
   const [hasSession, setHasSession] = useState(null);
   const [checking, setChecking] = useState(true);
   const [retryKey, setRetryKey] = useState(0);
+  const timerRef = useRef(null);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -104,16 +105,17 @@ export default function AuthCallbackScreen({ navigation }) {
             if (!active) return;
             navigation.navigate('SyncSetup');
           }, 800);
-          // Cleanup is handled by the outer `return () => { active = false; }`
-          // but we also need to clear the timer to avoid the navigation firing
-          // after unmount even when active is false at callback time.
-          void t; // captured above; parent cleanup sets active=false which guards the callback
+          // Store timer ID so cleanup can cancel it explicitly
+          timerRef.current = t;
         }
       }
     };
 
     handleCallback();
-    return () => { active = false; };
+    return () => {
+      active = false;
+      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    };
   }, [isPremium, navigation, retryKey]);
 
   const handleRetry = () => {

@@ -7,11 +7,9 @@
  * Deep link format: betweenus://<route>?<params>
  *
  * Supported routes:
- *   betweenus://love-note/:noteId       → LoveNoteDetail
  *   betweenus://vibe                    → VibeSignal
  *   betweenus://prompt/:promptId        → PromptAnswer
- *   betweenus://ritual                  → NightRitual
- *   betweenus://calendar                → Calendar (tab)
+ *   betweenus://calendar                → Calendar (tab, day 2+)
  *   betweenus://date/:dateId            → DateNightDetail
  *   betweenus://journal                 → JournalHome
  *   betweenus://pair                    → PairingQRCode
@@ -23,6 +21,8 @@
 import CrashReporting from './CrashReporting';
 
 let _navigationRef = null;
+// Set by AppContext/Tabs when day-2 tabs are mounted so deep links can guard accordingly
+let _showSecondaryTabs = false;
 
 // Only allow safe characters in deep link ID parameters
 const SAFE_ID_RE = /^[a-zA-Z0-9_\-:.]{1,128}$/;
@@ -31,11 +31,18 @@ const _sanitizeId = (id) => {
   return SAFE_ID_RE.test(id) ? id : null;
 };
 
+// Navigate, falling back to MainTabs home if a secondary tab isn't mounted yet
+const _navigateSafe = (screen, params) => {
+  if (screen === 'MainTabs' && params?.screen && ['Calendar', 'DatePlans'].includes(params.screen)) {
+    if (!_showSecondaryTabs) {
+      _navigationRef.navigate('MainTabs', {});
+      return;
+    }
+  }
+  _navigationRef.navigate(screen, params);
+};
+
 const ROUTE_MAP = {
-  'love-note': (params) => ({
-    screen: 'LoveNoteDetail',
-    params: { noteId: _sanitizeId(params.id) },
-  }),
   'vibe': () => ({
     screen: 'VibeSignal',
     params: {},
@@ -64,6 +71,10 @@ const ROUTE_MAP = {
     screen: 'MainTabs',
     params: {},
   }),
+  'saved-moments': () => ({
+    screen: 'SavedMoments',
+    params: {},
+  }),
   'widget': (params) => ({
     screen: 'MainTabs',
     params: params.id === 'prompt' ? { screen: 'Prompts' } : {},
@@ -79,8 +90,17 @@ const DeepLinkHandler = {
   },
 
   /**
+   * Called by navigation/Tabs.js (or AppContext) when the day-2 secondary tabs
+   * become available, so Calendar/DatePlans deep links can safely resolve.
+   * @param {boolean} value
+   */
+  setShowSecondaryTabs(value) {
+    _showSecondaryTabs = !!value;
+  },
+
+  /**
    * Handle a deep link URL.
-   * @param {string} url - e.g. "betweenus://love-note/abc123"
+   * @param {string} url - e.g. "betweenus://calendar"
    * @returns {boolean} true if handled
    */
   handleUrl(url) {
@@ -103,7 +123,7 @@ const DeepLinkHandler = {
       }
 
       const { screen, params } = handler({ id });
-      _navigationRef.navigate(screen, params);
+      _navigateSafe(screen, params);
       return true;
     } catch (err) {
       CrashReporting.captureException(err, { source: 'deepLinkUrl' });
@@ -135,7 +155,7 @@ const DeepLinkHandler = {
       const sanitizedId = rawId ? _sanitizeId(String(rawId)) : null;
 
       // Routes that require an ID — bail if ID is missing or failed sanitization
-      const ID_REQUIRED_ROUTES = new Set(['love-note', 'prompt', 'date']);
+      const ID_REQUIRED_ROUTES = new Set(['prompt', 'date']);
       if (ID_REQUIRED_ROUTES.has(data.route) && !sanitizedId) {
         CrashReporting.captureMessage(`Notification route '${data.route}' missing required id`, 'warning');
         return false;
@@ -145,7 +165,7 @@ const DeepLinkHandler = {
         id: sanitizedId,
       });
       // Only merge known-safe params — don't pass arbitrary notification data to screens
-      _navigationRef.navigate(screen, params);
+      _navigateSafe(screen, params);
       return true;
     } catch (err) {
       CrashReporting.captureException(err, { source: 'deepLinkNotification' });

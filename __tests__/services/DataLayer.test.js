@@ -14,6 +14,7 @@ jest.mock('../../services/db/Database', () => ({
     getJournals: jest.fn().mockResolvedValue([]),
     getJournalFeed: jest.fn().mockResolvedValue([]),
     getJournalById: jest.fn().mockResolvedValue(null),
+    getAttachmentById: jest.fn().mockResolvedValue(null),
     insertPromptAnswer: jest.fn().mockResolvedValue(undefined),
     updatePromptAnswer: jest.fn().mockResolvedValue(undefined),
     getPromptAnswers: jest.fn().mockResolvedValue([]),
@@ -72,9 +73,9 @@ jest.mock('../../services/e2ee/E2EEncryption', () => ({
 jest.mock('../../services/e2ee/EncryptedAttachments', () => ({
   __esModule: true,
   default: {
-    encryptAndStore: jest.fn().mockResolvedValue({ ref: 'att-ref-1' }),
-    decryptAndReturn: jest.fn().mockResolvedValue(new Uint8Array(10)),
-    delete: jest.fn().mockResolvedValue(undefined),
+    encryptAndStore: jest.fn().mockResolvedValue({ id: 'att-ref-1', ref: 'att-ref-1' }),
+    getDecryptedUri: jest.fn().mockResolvedValue('file:///decrypted-media.mp4'),
+    deleteAttachment: jest.fn().mockResolvedValue(undefined),
     clearDecryptedCache: jest.fn(),
   },
 }));
@@ -186,6 +187,7 @@ jest.mock('../../config/supabase', () => ({
 const DataLayer = require('../../services/data/DataLayer').default;
 const Database = require('../../services/db/Database').default;
 const E2EEncryption = require('../../services/e2ee/E2EEncryption').default;
+const EncryptedAttachments = require('../../services/e2ee/EncryptedAttachments').default;
 const PushNotificationService = require('../../services/PushNotificationService').default;
 const PartnerNotifications = require('../../services/PartnerNotifications').default;
 const CoupleKeyService = require('../../services/security/CoupleKeyService').default;
@@ -289,6 +291,34 @@ describe('DataLayer', () => {
       expect(PartnerNotifications.journalShared).not.toHaveBeenCalled();
     });
 
+    it('saveJournalEntry stores shared videos as encrypted attachments', async () => {
+      Database.init.mockResolvedValueOnce({ runAsync: jest.fn().mockResolvedValue(undefined) });
+
+      await DataLayer.saveJournalEntry({
+        title: 'Concert clip',
+        body: 'Saved the video too',
+        mood: 'energized',
+        isPrivate: false,
+        mediaUri: 'file:///clip.mov',
+        mimeType: 'video/quicktime',
+        fileName: 'clip.mov',
+      });
+
+      expect(EncryptedAttachments.encryptAndStore).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sourceUri: 'file:///clip.mov',
+          mimeType: 'video/quicktime',
+          parentType: 'journal',
+        })
+      );
+      expect(Database.insertJournal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          media_ref: 'att-ref-1',
+          photo_uri: null,
+        })
+      );
+    });
+
     it('getJournalEntries decrypts rows', async () => {
       Database.getJournals.mockResolvedValueOnce([
         {
@@ -382,6 +412,37 @@ describe('DataLayer', () => {
       );
     });
 
+    it('getJournalEntries decrypts shared video attachments from media_ref', async () => {
+      Database.getJournalFeed.mockResolvedValueOnce([
+        {
+          id: 'j_shared_video_1',
+          user_id: 'partner-1',
+          is_private: 0,
+          couple_id: 'couple-1',
+          title_cipher: 'enc:title',
+          body_cipher: 'enc:body',
+          mood: 'warm',
+          tags: '[]',
+          media_ref: 'att-video-1',
+          created_at: '2024-01-03',
+        },
+      ]);
+      Database.getAttachmentById.mockResolvedValueOnce({ id: 'att-video-1', mime_type: 'video/mp4' });
+      EncryptedAttachments.getDecryptedUri.mockResolvedValueOnce('file:///decrypted-video.mp4');
+
+      const entries = await DataLayer.getJournalEntries({ limit: 10, visibility: 'shared' });
+
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).toEqual(
+        expect.objectContaining({
+          mediaRef: 'att-video-1',
+          mediaUri: 'file:///decrypted-video.mp4',
+          mediaType: 'video/mp4',
+          mediaKind: 'video',
+        })
+      );
+    });
+
     it('getJournalEntries restores the couple key from wrapped_couple_key before decrypting', async () => {
       E2EEncryption.hasCoupleKey.mockResolvedValueOnce(false);
       CoupleKeyService.unwrapKeyForDevice.mockResolvedValueOnce(new Uint8Array(32).fill(7));
@@ -431,6 +492,29 @@ describe('DataLayer', () => {
           photo_uri: expect.anything(),
         })
       );
+    });
+
+    it('updateJournalEntry replaces journal video attachments via media_ref', async () => {
+      Database.getJournalById.mockResolvedValueOnce({ id: 'j_1', media_ref: 'att-old-1' });
+      Database.init.mockResolvedValueOnce({ runAsync: jest.fn().mockResolvedValue(undefined) });
+
+      await DataLayer.updateJournalEntry('j_1', {
+        title: 'Edited title',
+        body: 'Edited body',
+        isPrivate: false,
+        mediaUri: 'file:///updated.mp4',
+        mimeType: 'video/mp4',
+        fileName: 'updated.mp4',
+      });
+
+      expect(Database.updateJournal).toHaveBeenCalledWith(
+        'j_1',
+        expect.objectContaining({
+          media_ref: 'att-ref-1',
+          photo_uri: null,
+        })
+      );
+      expect(EncryptedAttachments.deleteAttachment).toHaveBeenCalledWith('att-old-1');
     });
 
     it('deleteJournalEntry calls softDelete', async () => {

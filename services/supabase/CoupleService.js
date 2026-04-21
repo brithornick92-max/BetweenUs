@@ -70,17 +70,21 @@ const CoupleService = {
       }
 
       // Solo couple (no partner joined yet) — clean it up so a new invite can be generated
-      await supabase
+      const { error: cleanCoupleError } = await supabase
         .from('couple_members')
         .delete()
         .eq('user_id', user.id);
 
+      if (cleanCoupleError) throw cleanCoupleError;
+
       // Also remove any outstanding partner_link_codes from this user
-      await supabase
+      const { error: cleanCodesError } = await supabase
         .from('partner_link_codes')
         .delete()
         .eq('created_by', user.id)
         .is('used_at', null);
+
+      if (cleanCodesError) throw cleanCodesError;
     }
 
     const { code, codeHash } = await generateHashedLinkCode();
@@ -315,7 +319,7 @@ const CoupleService = {
     const supabase = getSupabaseOrThrow();
 
     const ext = mimeType === 'image/png' ? 'png' : 'jpg';
-    const fileName = `${crypto.randomUUID?.() || Date.now()}.${ext}`;
+    const fileName = `${ExpoCrypto.randomUUID()}.${ext}`;
     const storagePath = `couples/${coupleId}/${fileName}`;
 
     // Read the file as blob

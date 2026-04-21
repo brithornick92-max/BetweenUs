@@ -9,6 +9,7 @@ import CoupleService from '../services/supabase/CoupleService';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import StorageRouter from '../services/storage/StorageRouter';
 import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
+import CouplePresenceService from '../services/couple/CouplePresenceService';
 
 const initialState = {
   userId: null,
@@ -243,43 +244,12 @@ export function AppProvider({ children }) {
       });
 
       try {
-        const remoteCouple = await Promise.race([
-          CoupleService.getMyCouple(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('getMyCouple timed out')), 10000)),
-        ]);
-        const remoteCoupleId = remoteCouple?.couple_id || null;
-
-        if (remoteCoupleId && remoteCoupleId !== resolvedCoupleId) {
-          resolvedCoupleId = remoteCoupleId;
-          await storage.set(STORAGE_KEYS.COUPLE_ID, remoteCoupleId);
-        } else if (!remoteCoupleId && resolvedCoupleId) {
-          // Server says no couple but we have one locally — confirm with a
-          // second call before wiping.  Transient RLS glitches, timeouts, or
-          // stale sessions can return null once; clearing on a single miss
-          // causes random unpairing.
-          let confirmed = false;
-          try {
-            const recheck = await Promise.race([
-              CoupleService.getMyCouple(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('recheck timed out')), 8000)),
-            ]);
-            confirmed = !recheck?.couple_id;
-          } catch (_) {
-            // Second call also failed — do NOT clear, keep local state
-            confirmed = false;
-          }
-          if (confirmed) {
-            const staleCoupleId = resolvedCoupleId;
-            resolvedCoupleId = null;
-            await storage.remove(STORAGE_KEYS.COUPLE_ID);
-            await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
-            await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
-            await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
-            try {
-              await CoupleKeyService.clearCoupleKey(staleCoupleId);
-            } catch (_) {}
-          }
-        }
+        const verifiedCoupleState = await CouplePresenceService.getVerifiedCoupleState({
+          currentCoupleId: resolvedCoupleId,
+          userId,
+          requireRemoteCheck: true,
+        });
+        resolvedCoupleId = verifiedCoupleState.coupleId;
       } catch (_) {}
 
       let supabaseUserId = null;
@@ -482,25 +452,11 @@ export function AppProvider({ children }) {
       try {
         // Remove server-side couple_members row first — must succeed before
         // clearing local state, otherwise we get a zombie half-unpaired state.
-        await CoupleService.unlinkFromCouple();
-
-        await storage.remove(STORAGE_KEYS.COUPLE_ID);
-        await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
-        await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
-        await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
-
-        // Clear the couple premium offline cache so the former partner's
-        // premium does not bleed through the 72-hour grace window.
-        await clearCouplePremiumCache();
-
-        // Clear coupleId from the persisted user document so AuthContext
-        // propagates the change to EntitlementsContext on the next read.
         const userId = stateRef.current.userId;
-        if (userId) {
-          try {
-            await StorageRouter.updateUserDocument(userId, { coupleId: null });
-          } catch (_) {}
-        }
+        await CouplePresenceService.unlinkCouple({
+          coupleId: stateRef.current.coupleId,
+          userId,
+        });
 
         dispatch({ type: ACTIONS.LEAVE_COUPLE });
       } catch (error) {

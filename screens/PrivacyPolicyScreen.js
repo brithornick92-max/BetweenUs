@@ -102,7 +102,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.subTitle, { color: colors.text }]}>Content You Create</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               We protect different categories of content in different ways:{'\n\n'}
-              • Journal entries, prompt responses, love notes, and memories are encrypted before any premium cloud sync{'\n'}
+              • Journal entries, prompt responses, and memories are encrypted before any premium cloud sync{'\n'}
               • Photo attachments are encrypted before upload{'\n'}
               • Voice notes are encrypted before upload{'\n'}
               • Some preferences and sensitive controls stay only on your device{'\n'}
@@ -124,7 +124,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.subTitle, { color: colors.text }]}>Device Permissions</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Camera: Used for QR code scanning during partner linking.{"\n"}
-              • Photo Library: Used only when you choose to attach a photo to supported features such as love notes or journal entries. Photos are encrypted before upload.{'\n'}
+              • Photo Library: Used only when you choose to attach a photo to journal entries. Photos are encrypted before upload.{'\n'}
               • Microphone: Used only when you choose to record an encrypted voice note for your partner.{"\n"}
               • Push Notifications: Your device push token is sent to our server to deliver notifications such as partner activity and reminders. You can disable notifications in your device settings at any time.{'\n'}
               • Biometrics (Face ID / Touch ID): Used optionally to lock the app. Biometric data never leaves your device — we only receive a success/failure result from your device's secure enclave. We do not collect, store, or transmit biometric data.
@@ -170,7 +170,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               Between Us protects different kinds of content in different ways. Shared synced content uses client-side encryption with your couple key, while device-only content stays encrypted locally on your phone.{'\n\n'}
               • Private entries use a key only your device holds unless you explicitly share or sync them{'\n'}
-              • Shared entries such as synced journals, prompt responses, memories, and love notes are encrypted with a couple key derived between both partners' devices{'\n'}
+              • Shared entries such as synced journals, prompt responses, and memories are encrypted with a couple key derived between both partners' devices{'\n'}
               • Device-only features such as soft boundaries, inside jokes, relationship climate, and year reflections stay local unless the feature explicitly says otherwise{'\n'}
               • We cannot read content protected by your device-only or couple encryption keys{'\n'}
               • Encryption keys are stored in your device's secure hardware keychain when available{'\n\n'}

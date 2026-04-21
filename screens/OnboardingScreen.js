@@ -8,7 +8,6 @@ import {
   Modal,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Dimensions,
   Animated,
   Share,
   TextInput,
@@ -23,7 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import ReAnimated, { FadeInDown } from 'react-native-reanimated';
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { notification, selection, NotificationFeedbackType } from '../utils/haptics';
 import * as Clipboard from "expo-clipboard";
 import Icon from '../components/Icon';
 import { useAppContext } from "../context/AppContext";
@@ -44,8 +43,6 @@ import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
 import { STORAGE_KEYS, storage } from "../utils/storage";
 import { getSupabaseOrThrow } from "../config/supabase";
 import AnalyticsService, { EVENT_NAMES } from "../services/AnalyticsService";
-
-const { width } = Dimensions.get("window");
 
 export default function OnboardingScreen({ navigation }) {
   const { actions, state } = useAppContext();
@@ -81,7 +78,6 @@ export default function OnboardingScreen({ navigation }) {
   // Quiz state (step 2)
   const [loveLanguage, setLoveLanguage] = useState(null);
   const [relationshipGoal, setRelationshipGoal] = useState(null);
-  const [promptFrequency, setPromptFrequency] = useState('daily');
   const [hasKids, setHasKids] = useState(null);
   const [idealDateStyle, setIdealDateStyle] = useState(null);
   const [communicationStyle, setCommunicationStyle] = useState(null);
@@ -93,11 +89,13 @@ export default function OnboardingScreen({ navigation }) {
   // Invitation state
   const [inviteCode, setInviteCode] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [linkedCoupleIdOverride, setLinkedCoupleIdOverride] = useState(null);
+  const inviteInFlightRef = useRef(false);
 
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
-  const alreadyLinked = !!(state?.coupleId || userProfile?.coupleId);
+  const alreadyLinked = !!(linkedCoupleIdOverride || state?.coupleId || userProfile?.coupleId);
 
   useEffect(() => {
     const profileMyName = userProfile?.partnerNames?.myName || '';
@@ -125,7 +123,9 @@ export default function OnboardingScreen({ navigation }) {
   useEffect(() => {
     if (!inviteCode) return;
     let active = true;
-    const poll = setInterval(async () => {
+    let timer = null;
+
+    const doPoll = async () => {
       try {
         const couple = await CoupleService.getMyCouple();
         if (couple?.couple_id && active) {
@@ -134,6 +134,7 @@ export default function OnboardingScreen({ navigation }) {
           // Store couple ID locally
           await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
           await StorageRouter.setActiveCoupleId(coupleId);
+          setLinkedCoupleIdOverride(coupleId);
           // Upload our public key to the new couple membership
           try {
             const myPubKey = await CoupleKeyService.getDevicePublicKeyB64();
@@ -170,10 +171,14 @@ export default function OnboardingScreen({ navigation }) {
             'You\'re linked! 💕',
             'Your partner has joined. You\'re now connected on Between Us.'
           );
+          return; // stop polling after success
         }
       } catch (_) {}
-    }, 3000);
-    return () => { active = false; clearInterval(poll); };
+      if (active) timer = setTimeout(doPoll, 3000);
+    };
+
+    timer = setTimeout(doPoll, 3000);
+    return () => { active = false; clearTimeout(timer); };
   }, [inviteCode]);
 
   // 1. Intro Transition
@@ -214,7 +219,7 @@ export default function OnboardingScreen({ navigation }) {
   }, [step]);
 
   const daysCounting = useMemo(() => {
-    const diffTime = Math.abs(new Date() - anniversaryDate);
+    const diffTime = Math.abs(Date.now() - anniversaryDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays.toLocaleString();
   }, [anniversaryDate]);
@@ -238,6 +243,9 @@ export default function OnboardingScreen({ navigation }) {
   };
 
   const handleGenerateInvitation = async () => {
+    // Hard guard — prevent overlapping attempts (button tap or any async re-entry)
+    if (inviteInFlightRef.current || isGenerating) return;
+    inviteInFlightRef.current = true;
     setIsGenerating(true);
     notification(NotificationFeedbackType.Success);
 
@@ -270,10 +278,18 @@ export default function OnboardingScreen({ navigation }) {
       if (__DEV__) console.log("🔑 [invite] Step 2c: session =", !!session);
 
       if (!session) {
-        if (__DEV__) console.log("🔑 [invite] Step 3: No session — prompting for password");
+        if (__DEV__) console.log("🔑 [invite] Step 3: No session — trying anonymous sign-in");
         session = await ensureSupabaseSession();
         if (!session) {
-          setIsGenerating(false);
+          // Session still unavailable after recovery attempt — surface error, do not retry
+          Alert.alert(
+            "Sign-in required",
+            "We couldn't establish a session. Please open Sync Setup and sign in, then try again.",
+            [
+              { text: "Open Sync Setup", onPress: () => navigation?.navigate?.("SyncSetup") },
+              { text: "OK", style: "cancel" },
+            ]
+          );
           return;
         }
       }
@@ -294,17 +310,6 @@ export default function OnboardingScreen({ navigation }) {
     } catch (error) {
       const msg = String(error?.message || "");
       if (__DEV__) console.error("🔑 [invite] ❌ Error:", error?.name, msg, error?.stack?.slice(0, 500));
-      if (msg.toLowerCase().includes("cloud pairing is not signed in yet")) {
-        // Try the inline password prompt instead of navigating away
-        const retrySession = await ensureSupabaseSession();
-        if (retrySession) {
-          // Retry the whole flow
-          setIsGenerating(false);
-          handleGenerateInvitation();
-        }
-        return;
-      }
-
       Alert.alert(
         "Couldn't generate invitation",
         error?.message || "Please try again.",
@@ -318,6 +323,7 @@ export default function OnboardingScreen({ navigation }) {
       );
     } finally {
       setIsGenerating(false);
+      inviteInFlightRef.current = false;
     }
   };
 

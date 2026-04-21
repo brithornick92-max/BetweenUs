@@ -37,7 +37,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What is Between Us?',
-        a: 'Between Us is a private digital sanctuary built for couples to deepen their closeness. Through daily prompts, shared journaling, and intimate rituals, it provides a safe space to connect meaningfully beyond the noise of everyday life.',
+        a: 'Between Us is a private digital sanctuary built for couples to deepen their closeness. Through daily prompts, shared journaling, and meaningful connection tools, it provides a safe space to connect meaningfully beyond the noise of everyday life.',
       },
       {
         q: 'Who is Between Us for?',
@@ -75,7 +75,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Absolutely. Shared content such as synced journal entries, prompt responses, memories, and love notes is encrypted before sync, and some private preferences stay only on your device. We also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data, and we cannot read content protected by your device-only or couple encryption keys.',
+        a: 'Absolutely. Shared content such as synced journal entries, prompt responses, and memories is encrypted before sync, and some private preferences stay only on your device. We also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data, and we cannot read content protected by your device-only or couple encryption keys.',
       },
       {
         q: 'Can my partner see everything I write?',
@@ -129,7 +129,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Unlimited prompt responses\n• Love notes with photo attachments\n• Unlimited date planning tools\n• Night rituals and custom routines\n• Calendar and scheduling\n• Encrypted cloud sync for linked couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Shared premium access for linked partners',
+        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Unlimited prompt responses\n• Unlimited date planning tools\n• Calendar and scheduling\n• Encrypted cloud sync for linked couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Shared premium access for linked partners',
       },
       {
         q: 'How do I subscribe?',

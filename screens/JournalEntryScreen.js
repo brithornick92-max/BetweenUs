@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
+import { Video } from 'expo-av';
 import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as ImagePicker from "expo-image-picker";
@@ -69,12 +70,14 @@ export default function JournalEntryScreen({ navigation, route }) {
   const [title, setTitle] = useState(entry?.title || "");
   const [content, setContent] = useState(entry?.content || entry?.body || "");
   const [mood, setMood] = useState(entry?.mood || "calm");
-  const [imageUri, setImageUri] = useState(
-    entry?.imageUri || entry?.photoUri || entry?.photo_uri || entry?.mediaUri || null
-  );
+  const initialLegacyImageUri = entry?.imageUri || entry?.photoUri || entry?.photo_uri || null;
+  const [mediaUri, setMediaUri] = useState(entry?.mediaUri || initialLegacyImageUri || null);
+  const [mediaType, setMediaType] = useState(entry?.mediaType || (initialLegacyImageUri ? 'image/jpeg' : null));
+  const [mediaFileName, setMediaFileName] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const needsReconnect = DataLayer.needsReconnect();
   const headerLabel = 'SHARED JOURNAL';
+  const isVideoMedia = typeof mediaType === 'string' && mediaType.startsWith('video/');
 
   const lastHapticLength = useRef(0);
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -109,8 +112,22 @@ export default function JournalEntryScreen({ navigation, route }) {
         body: content.trim(),
         mood,
         isPrivate: false,
-        imageUri: imageUri || null,
       };
+
+      const isExistingVideoUnchanged = !!entry?.mediaRef
+        && !!entry?.mediaUri
+        && mediaUri === entry.mediaUri
+        && mediaType === entry.mediaType;
+
+      if (isVideoMedia) {
+        if (!isExistingVideoUnchanged) {
+          entryData.mediaUri = mediaUri || null;
+          entryData.mimeType = mediaType || 'video/quicktime';
+          entryData.fileName = mediaFileName || `journal_${Date.now()}.mov`;
+        }
+      } else {
+        entryData.imageUri = mediaUri || null;
+      }
 
       if (entry?.id) {
         await DataLayer.updateJournalEntry(entry.id, entryData);
@@ -167,32 +184,38 @@ export default function JournalEntryScreen({ navigation, route }) {
     }
   };
 
-  const handlePickImage = async () => {
+  const handlePickMedia = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permission needed", "Allow photo access to add a background image.");
+        Alert.alert("Permission needed", "Allow library access to attach a photo or video.");
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
         quality: 0.85,
-        allowsEditing: true,
-        aspect: [4, 5],
+        allowsEditing: false,
       });
 
       if (!result.canceled && result.assets?.[0]?.uri) {
         const asset = result.assets[0];
-        if (asset.fileSize && asset.fileSize > 5_000_000) {
-          Alert.alert("Image Too Large", "Please choose a photo under 5 MB.");
+        const assetMimeType = asset.mimeType || (asset.type === 'video' ? 'video/quicktime' : 'image/jpeg');
+        const maxBytes = asset.type === 'video' ? 25_000_000 : 5_000_000;
+        if (asset.fileSize && asset.fileSize > maxBytes) {
+          Alert.alert(
+            asset.type === 'video' ? 'Video Too Large' : 'Image Too Large',
+            asset.type === 'video' ? 'Please choose a video under 25 MB.' : 'Please choose a photo under 5 MB.'
+          );
           return;
         }
-        setImageUri(asset.uri);
+        setMediaUri(asset.uri);
+        setMediaType(assetMimeType);
+        setMediaFileName(asset.fileName || (asset.type === 'video' ? `journal_${Date.now()}.mov` : `journal_${Date.now()}.jpg`));
         impact(ImpactFeedbackStyle.Light);
       }
     } catch (_err) {
-      Alert.alert("Error", "Couldn't open your photo library.");
+      Alert.alert("Error", "Couldn't open your library.");
     }
   };
 
@@ -309,13 +332,34 @@ export default function JournalEntryScreen({ navigation, route }) {
 
             {/* Visual Anchor - Media Card */}
             <Animated.View entering={FadeInDown.delay(300).duration(600)} style={styles.mediaContainer}>
-              {imageUri ? (
+              {mediaUri ? (
                 <View style={styles.previewWrapper}>
-                  <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                  {isVideoMedia ? (
+                    <Video
+                      source={{ uri: mediaUri }}
+                      style={styles.imagePreview}
+                      resizeMode="cover"
+                      useNativeControls
+                      shouldPlay={false}
+                    />
+                  ) : (
+                    <Image source={{ uri: mediaUri }} style={styles.imagePreview} />
+                  )}
+                  {isVideoMedia ? (
+                    <View style={styles.videoBadge}>
+                      <Icon name="play-circle-outline" size={16} color="#FFF" />
+                      <Text style={styles.videoBadgeText}>Video</Text>
+                    </View>
+                  ) : null}
                   {!isReadOnly && (
                     <TouchableOpacity 
                       style={styles.removeImageBtn} 
-                      onPress={() => { selection(); setImageUri(null); }}
+                      onPress={() => {
+                        selection();
+                        setMediaUri(null);
+                        setMediaType(null);
+                        setMediaFileName(null);
+                      }}
                     >
                       <Icon name="close-outline" size={16} color="#FFF" />
                     </TouchableOpacity>
@@ -324,11 +368,11 @@ export default function JournalEntryScreen({ navigation, route }) {
               ) : (
                 <TouchableOpacity 
                   style={[styles.imagePlaceholder, { borderColor: withAlpha(colors.text, 0.1) }]} 
-                  onPress={handlePickImage}
+                  onPress={handlePickMedia}
                   disabled={isReadOnly}
                 >
-                  <Icon name="camera-plus-outline" size={24} color={colors.primary} />
-                  <Text style={[styles.placeholderText, { color: colors.textMuted }]}>Add a visual memory</Text>
+                  <Icon name="images-outline" size={24} color={colors.primary} />
+                  <Text style={[styles.placeholderText, { color: colors.textMuted }]}>Add a photo or video</Text>
                 </TouchableOpacity>
               )}
             </Animated.View>
@@ -499,6 +543,24 @@ const createStyles = (colors) => StyleSheet.create({
   mediaContainer: { marginBottom: SPACING.xxxl },
   imagePreview: { width: "100%", height: 220, borderRadius: 24 },
   previewWrapper: { position: 'relative' },
+  videoBadge: {
+    position: 'absolute',
+    left: 14,
+    bottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.62)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  videoBadgeText: {
+    color: '#FFF',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '700',
+  },
   removeImageBtn: {
     position: 'absolute',
     top: 12,

@@ -118,7 +118,7 @@ async function resolveKey(keyTier, coupleId) {
       throw new Error(`E2EE: couple key not found for ${coupleId}. Re-pairing required.`);
     }
     const version = await CoupleKeyService.getKeyVersion(coupleId);
-    return { key: k, kid: `couple-${version}` };
+    return { key: k, kid: `couple-${version || 1}` };
   }
   throw new Error(`E2EE: unknown keyTier "${keyTier}"`);
 }
@@ -207,6 +207,13 @@ function decryptBytesRaw(envelope, keyBytes, aadString) {
   // For legacy v2 envelopes without AAD binding, skip unbind
   if (parsed.v < ENVELOPE_VERSION || !parsed.aad) {
     return opened;
+  }
+
+  if (!aadString) {
+    throw new Error('E2EE: envelope requires AAD but none was provided');
+  }
+  if (parsed.aad !== b64(toBytes(aadString))) {
+    throw new Error('E2EE: provided AAD does not match envelope AAD metadata');
   }
 
   return unbindAad(opened, aadString);
@@ -331,11 +338,13 @@ const E2EEncryption = {
   /** Clear cached device key (call on sign-out). */
   clearCache() {
     _deviceKeyCache = null;
+    _deviceKeyPromise = null;
   },
 
   /** Delete device key from SecureStore (call on account delete). */
   async destroyDeviceKey() {
     _deviceKeyCache = null;
+    _deviceKeyPromise = null;
     await SecureStore.deleteItemAsync(DEVICE_KEY_NAME, {
       keychainService: 'betweenus',
     });

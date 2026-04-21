@@ -11,24 +11,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-  StatusBar,
   Platform,
-  Dimensions,
   ActivityIndicator,
   Animated as RNAnimated,
   Image,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 
 // Context & Services
 import Icon from '../components/Icon';
-import FilmGrain from '../components/FilmGrain';
-import GlowOrb from '../components/GlowOrb';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
@@ -39,10 +33,9 @@ import { getPromptById } from '../utils/contentLoader';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { storage } from '../utils/storage';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const HEARTS_KEY = '@betweenus:moment_hearts';
-
-const { width: SCREEN_W, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
@@ -512,29 +505,12 @@ export default function SavedMomentsScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
-      
-      <LinearGradient
-        colors={isDark 
-          ? [t.background, '#120206', '#0A0003', t.background] 
-          : [t.background, t.surfaceSecondary, t.background]}
-        style={StyleSheet.absoluteFillObject}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-      <GlowOrb color={t.primary} size={460} top={-180} left={SCREEN_W - 220} opacity={isDark ? 0.18 : 0.08} />
-      <GlowOrb color={t.accent} size={260} top={620} left={-80} opacity={isDark ? 0.12 : 0.05} />
-      <FilmGrain opacity={0.1} />
-
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* ── Fixed Apple Nav Header ── */}
-        <View style={styles.navHeader}>
-          <TouchableOpacity onPress={handleBack} hitSlop={16} style={styles.iconButton}>
-            <Icon name="arrow-back" size={24} color={t.text} />
-          </TouchableOpacity>
-        </View>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Saved"
+      scroll={false}
+      onBack={handleBack}
+    >
         <RNAnimated.FlatList
           data={filteredEntries}
           keyExtractor={(item) => item.id}
@@ -561,8 +537,7 @@ export default function SavedMomentsScreen() {
             <Icon name="add" size={26} color="#FFF" />
           </BlurView>
         </TouchableOpacity>
-      </SafeAreaView>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 
@@ -573,8 +548,6 @@ const getShadow = (isDark) => Platform.select({
 });
 
 const createStyles = (t, isDark) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.background },
-  safeArea: { flex: 1 },
   listContent: {
     paddingHorizontal: SPACING.screen,
     paddingBottom: 160,
@@ -603,22 +576,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.2)',
   },
   
-  // ── Fixed Nav Header ──
-  navHeader: {
-    paddingHorizontal: SPACING.screen,
-    paddingTop: 12,
-    paddingBottom: 4,
-    flexDirection: 'row',
-    zIndex: 10,
-  },
-  iconButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-
   // ── Editorial Header ──
   editorialHeader: {
-    paddingTop: SPACING.md,
     paddingBottom: SPACING.lg,
   },
   headerSubtitle: {

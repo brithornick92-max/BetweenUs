@@ -102,10 +102,14 @@ export const SupabaseAuthService = {
    * Password is encrypted with the device key before storage.
    */
   async storeCredentials(email, password) {
-    const encrypted = await EncryptionService.encryptJson({ email, password });
-    await SecureStore.setItemAsync(SUPABASE_CRED_KEY, encrypted, {
-      keychainService: 'betweenus',
-    });
+    try {
+      const encrypted = await EncryptionService.encryptJson({ email, password });
+      await SecureStore.setItemAsync(SUPABASE_CRED_KEY, encrypted, {
+        keychainService: 'betweenus',
+      });
+    } catch (error) {
+      if (__DEV__) console.error('Failed to store credentials:', error);
+    }
   },
 
   async clearStoredCredentials() {
@@ -140,7 +144,7 @@ export const SupabaseAuthService = {
       }
       const { email, password } = creds || {};
       if (!email || !password) return null;
-      return await this.signInWithPassword(email, password);
+      return await SupabaseAuthService.signInWithPassword(email, password);
     } catch {
       return null;
     }
@@ -184,7 +188,7 @@ export const SupabaseAuthService = {
    * Sign out this device only. Other sessions remain active.
    */
   async signOutLocal() {
-    return this.signOut('local');
+    return SupabaseAuthService.signOut('local');
   },
 
   /**
@@ -192,7 +196,7 @@ export const SupabaseAuthService = {
    * Recommended when a phone is lost or account may be compromised.
    */
   async signOutGlobal() {
-    return this.signOut('global');
+    return SupabaseAuthService.signOut('global');
   },
 
   /**

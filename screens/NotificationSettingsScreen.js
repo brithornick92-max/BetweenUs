@@ -10,14 +10,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  ScrollView,
   Switch,
   Alert,
   Platform,
-  StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import * as Notifications from 'expo-notifications';
@@ -26,6 +22,7 @@ import { settingsStorage } from '../utils/storage';
 import PushNotificationService from '../services/PushNotificationService';
 import { supabase } from '../config/supabase';
 import { SPACING, withAlpha } from '../utils/theme';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -104,27 +101,13 @@ const NotificationSettingsScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="chevron-back" size={28} color={t.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Communications</Text>
-        <View style={{ width: 44 }} />
-      </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.iconHero, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
-          <Icon name="notifications-outline" size={42} color={t.primary} />
-        </View>
-
-        <Text style={[styles.title, { color: t.text }]}>Stay Connected</Text>
-        <Text style={[styles.subtitle, { color: t.subtext }]}>
-          Turn partner notifications on or off for this device.
-        </Text>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Communications"
+      heroIcon="notifications-outline"
+      heroTitle="Stay Connected"
+      heroSubtitle="Turn partner notifications on or off for this device."
+    >
         <View style={[styles.masterToggle, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={styles.settingInfo}>
             <Text style={[styles.settingTitle, { color: t.text }]}>Push Notifications</Text>
@@ -155,56 +138,11 @@ const NotificationSettingsScreen = ({ navigation }) => {
             </Text>
           </View>
         )}
-      </ScrollView>
-    </View>
+    </EditorialScreenScaffold>
   );
 };
 
 const createStyles = (t, isDark) => StyleSheet.create({
-  container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 20,
-  },
-  backButton: { width: 44, height: 44, justifyContent: 'center' },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
-  },
-  scrollView: { flex: 1 },
-  scrollContent: { padding: 24, paddingBottom: 60 },
-  iconHero: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 32,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: -0.8,
-  },
-  subtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
-  },
   masterToggle: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -11,13 +11,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
-  Dimensions,
-  StatusBar,
   Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 // Context & Services
 import { useTheme } from '../context/ThemeContext';
@@ -28,13 +24,10 @@ import { getPartnerDisplayName } from '../utils/profileNames';
 // Utilities & Components
 import { SPACING } from '../utils/theme';
 import Icon from '../components/Icon';
-import GlowOrb from '../components/GlowOrb';
-import FilmGrain from '../components/FilmGrain';
 import IntimacyPositionCard from '../components/IntimacyPositionCard';
 import positionsData from '../content/intimacy-positions.json';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -105,27 +98,14 @@ export default function IntimacyPositionsScreen() {
   // ════════════════════════════════════
   if (!isPremiumEffective) {
     return (
-      <View style={[styles.root, { backgroundColor: t.background }]}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
-        <LinearGradient
-          colors={isDark 
-            ? [t.background, '#120206', '#0A0003', t.background] 
-            : [t.background, t.surfaceSecondary, t.background]}
-          style={StyleSheet.absoluteFillObject}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-        />
-        <FilmGrain />
-        <GlowOrb color={t.primary} size={500} top={-200} left={SCREEN_WIDTH - 200} opacity={isDark ? 0.2 : 0.08} />
-        <GlowOrb color="#8E8E93" size={300} top={SCREEN_HEIGHT * 0.7} left={-100} delay={1500} opacity={isDark ? 0.12 : 0.07} />
-
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
-          <View style={styles.navHeader}>
-            <TouchableOpacity onPress={handleBack} hitSlop={16} style={styles.iconButton}>
-              <Icon name="arrow-back" size={24} color={t.text} />
-            </TouchableOpacity>
-          </View>
-
+      <EditorialScreenScaffold
+        navigation={navigation}
+        headerTitle="Intimacy"
+        heroTitle="Unlock Intimacy"
+        heroSubtitle="Discover beautifully illustrated, high-end intimacy positions designed for deep connection. New releases added every week."
+        scroll={false}
+        onBack={handleBack}
+      >
           <View style={styles.lockedWrap}>
             <Animated.View style={{
               opacity: cardAnim,
@@ -143,7 +123,7 @@ export default function IntimacyPositionsScreen() {
                 
                 <View style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
                   <Text style={[styles.answerText, { color: t.text }]}>
-                    Discover beautifully illustrated, high-end intimacy positions designed for deep connection. New releases added every week.
+                                    Discover beautifully illustrated, high-end intimacy positions designed for deep connection. New releases added every week.
                   </Text>
                 </View>
 
@@ -158,8 +138,7 @@ export default function IntimacyPositionsScreen() {
               </View>
             </Animated.View>
           </View>
-        </SafeAreaView>
-      </View>
+      </EditorialScreenScaffold>
     );
   }
 
@@ -167,54 +146,29 @@ export default function IntimacyPositionsScreen() {
   //  UNLOCKED STATE RENDER
   // ════════════════════════════════════
   return (
-    <View style={[styles.root, { backgroundColor: t.background }]}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
-      <LinearGradient
-        colors={isDark 
-          ? [t.background, '#120206', '#0A0003', t.background] 
-          : [t.background, t.surfaceSecondary, t.background]}
-        style={StyleSheet.absoluteFillObject}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-      <FilmGrain />
-      <GlowOrb color={t.primary} size={500} top={-200} left={SCREEN_WIDTH - 200} opacity={isDark ? 0.2 : 0.08} />
-      <GlowOrb color="#8E8E93" size={300} top={SCREEN_HEIGHT * 0.7} left={-100} delay={1500} opacity={isDark ? 0.12 : 0.07} />
-
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        
-        {/* ── Header ── */}
-        <Animated.View
-          style={[styles.header, {
-            opacity: headerAnim,
-            transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-14, 0] }) }],
-          }]}
-        >
-          <View style={styles.headerLeft}>
-            <Text style={[styles.headerGreetingSub, { color: t.primary }]}>
-              WEEKLY RELEASES
-            </Text>
-            <Text style={[styles.headerName, { color: t.text }]} numberOfLines={1}>Intimacy</Text>
-            <Text style={[styles.headerToneLine, { color: t.subtext }]}>
-              A closer space for you and {partnerLabel}.
-            </Text>
-          </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={handleBack}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              style={[styles.vibeButton, { backgroundColor: t.surface, borderColor: t.border, ...getShadow(isDark) }]}
-            >
-              <Icon name="close" size={24} color={t.text} />
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Intimacy"
+      heroTitle="Intimacy"
+      heroSubtitle={`A closer space for you and ${partnerLabel}.`}
+      scroll={false}
+      onBack={handleBack}
+    >
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
+          <Animated.View
+            style={{
+              opacity: headerAnim,
+              transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-14, 0] }) }],
+              paddingHorizontal: SPACING.screen,
+              paddingBottom: SPACING.lg,
+            }}
+          >
+            <Text style={[styles.headerGreetingSub, { color: t.primary }]}>WEEKLY RELEASES</Text>
+          </Animated.View>
+
           {/* ── Position Picker (Pills) ── */}
           <Animated.View style={{
             opacity: pickerAnim,
@@ -276,8 +230,7 @@ export default function IntimacyPositionsScreen() {
           </View>
 
         </ScrollView>
-      </SafeAreaView>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 
@@ -288,35 +241,7 @@ const getShadow = (isDark) => Platform.select({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  safeArea: { flex: 1 },
   scrollContent: { paddingBottom: 160 },
-  
-  navHeader: {
-    paddingHorizontal: SPACING.screen,
-    paddingTop: 12,
-    paddingBottom: 4,
-    flexDirection: 'row',
-  },
-  iconButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-
-  // ── Header ──
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.screen,
-    paddingTop: SPACING.xl,
-    paddingBottom: SPACING.lg,
-  },
-  headerLeft: { flex: 1 },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
   headerGreetingSub: {
     fontFamily: systemFont,
     fontSize: 13,
@@ -325,29 +250,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textTransform: 'uppercase',
   },
-  headerName: {
-    fontFamily: systemFont,
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    lineHeight: 40,
-  },
-  headerToneLine: {
-    fontFamily: systemFont,
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  vibeButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
   // ── Picker ──
   pickerScroll: {
     flexGrow: 0,

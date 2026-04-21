@@ -22,18 +22,6 @@ const PartnerNotifications = {
   },
 
   /**
-   * Partner sent a love note.
-   */
-  async loveNoteSent(senderName, noteId) {
-    const name = senderName || 'Your partner';
-    await this._send({
-      title: `${name} wrote you something \u{1F48C}`,
-      body: 'A private note, just for you.',
-      data: { type: 'love_note_sent', route: 'love-note', ...(noteId ? { id: noteId } : {}) },
-    });
-  },
-
-  /**
    * Partner sent a vibe signal.
    */
   async vibeSent(senderName, vibeLabel) {
@@ -56,18 +44,6 @@ const PartnerNotifications = {
       title: `${name} planned something for you two 📅`,
       body: 'A date night idea is waiting in your calendar.',
       data: { type: 'date_planned', route: 'calendar' },
-    });
-  },
-
-  /**
-   * Partner completed a ritual check-in.
-   */
-  async ritualCompleted(senderName) {
-    const name = senderName || 'Your partner';
-    await this._send({
-      title: `${name} lit tonight's ritual 🌙`,
-      body: 'Join them — it only takes a moment.',
-      data: { type: 'ritual_completed', route: 'ritual' },
     });
   },
 

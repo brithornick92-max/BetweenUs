@@ -20,17 +20,11 @@ export async function finalizeInviteCodeLink({
 
   const cloudEngine = dependencies.cloudEngine ?? CloudEngine;
   const coupleKeyService = dependencies.coupleKeyService ?? CoupleKeyService;
+  const coupleService = dependencies.coupleService ?? CoupleService;
   const storageRouter = dependencies.storageRouter ?? StorageRouter;
   const storageApi = dependencies.storageApi ?? storage;
 
   await cloudEngine.joinCouple(coupleId, myPublicKeyB64);
-
-  await storageRouter.setActiveCoupleId(coupleId);
-  if (userId) {
-    await storageRouter.updateUserDocument(userId, { coupleId });
-    await updateProfile?.({ coupleId });
-  }
-  await storageApi.set(STORAGE_KEYS.COUPLE_ID, coupleId);
 
   const partnerMembership = await cloudEngine.waitForPartnerMembership(coupleId, waitTimeoutMs, waitIntervalMs);
   if (!partnerMembership?.public_key || !partnerMembership?.user_id) {
@@ -43,16 +37,23 @@ export async function finalizeInviteCodeLink({
       coupleId,
       partnerUserId: partnerMembership.user_id,
       partnerPublicKeyB64: partnerMembership.public_key,
-      dependencies: { coupleKeyService, coupleService: CoupleService, cloudEngine },
+      dependencies: { coupleKeyService, coupleService, cloudEngine },
     });
   } else {
     await deriveAndPersistWrappedCoupleKey({
       coupleId,
       partnerUserId: partnerMembership.user_id,
       partnerPublicKeyB64: partnerMembership.public_key,
-      dependencies: { coupleKeyService, coupleService: CoupleService, cloudEngine },
+      dependencies: { coupleKeyService, coupleService, cloudEngine },
     });
   }
+
+  await storageRouter.setActiveCoupleId(coupleId);
+  if (userId) {
+    await storageRouter.updateUserDocument(userId, { coupleId });
+    await updateProfile?.({ coupleId });
+  }
+  await storageApi.set(STORAGE_KEYS.COUPLE_ID, coupleId);
 
   return coupleId;
 }

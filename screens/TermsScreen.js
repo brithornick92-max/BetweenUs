@@ -128,11 +128,9 @@ const TermsScreen = ({ navigation, route }) => {
                 • Daily conversation prompts across 5 heat levels{'\n'}
                 • Journaling and prompt responses{'\n'}
                 • Date night ideas and planning{'\n'}
-                • Love notes with optional photo attachments{'\n'}
-                • Night rituals and shared routines{'\n'}
                 • Relationship memories and milestones{'\n'}
                 • Vibe Signals and Moment Signals (mood sharing when connected){'\n'}
-                • Inside Jokes vault (private nicknames, jokes, and rituals){'\n'}
+                • Inside Jokes vault (private nicknames and jokes){'\n'}
                 • Reveal Together (simultaneous answer sharing){'\n'}
                 • Energy Matcher and Relationship Climate (personalized content){'\n'}
                 • Year Reflection narratives{'\n'}
@@ -201,7 +199,7 @@ const TermsScreen = ({ navigation, route }) => {
                 Free and Premium Features:{'\n'}
                 • Free users can answer 1 guided prompt per day at Heat levels 1–3{'\n'}
                 • Free users can link with a partner and fully plan 1 date per week{'\n'}
-                • Premium adds unlimited date planning, love notes, calendar features, and secure cloud sync{'\n'}
+                • Premium adds unlimited date planning, calendar features, and secure cloud sync{'\n'}
                 • Premium subscription is per couple (both partners get access when linked){'\n\n'}
                 Current pricing:{'\n'}
                 • Monthly: {FALLBACK_PRICES.monthly}/month{'\n'}

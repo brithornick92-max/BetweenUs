@@ -6,19 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  StatusBar,
   Platform,
-  Dimensions,
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import Icon from '../components/Icon';
-import FilmGrain from '../components/FilmGrain';
-import GlowOrb from '../components/GlowOrb';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
@@ -26,8 +20,8 @@ import { DataLayer } from '../services/localfirst';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { storage } from '../utils/storage';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
-const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 const SHARED_JOURNAL_NOTICE_KEY = '@betweenus:sharedJournalNoticeDismissed';
@@ -61,6 +55,9 @@ function buildJournalItem(row, ownerIds) {
     meta: isOwn ? 'Visible to both of you' : 'Shared with both of you',
     dateLabel: formatDateLabel(row.created_at),
     photoUri: row.photo_uri || null,
+    mediaUri: row.mediaUri || null,
+    mediaType: row.mediaType || null,
+    mediaKind: row.mediaKind || (row.mediaType?.startsWith('video/') ? 'video' : null),
     entry: row,
     canEdit: isOwn,
   };
@@ -172,7 +169,12 @@ export default function JournalHomeScreen({ navigation }) {
         </View>
 
         <Text style={styles.cardTitle}>{item.title}</Text>
-        {item.photoUri ? <Image source={{ uri: item.photoUri }} style={styles.cardPhoto} /> : null}
+        {item.mediaKind === 'video' ? (
+          <View style={[styles.videoCardPreview, { backgroundColor: withAlpha(item.accent, 0.12), borderColor: withAlpha(item.accent, 0.22) }]}>
+            <Icon name='play-circle-outline' size={24} color={item.accent} />
+            <Text style={[styles.videoCardLabel, { color: item.accent }]}>Video attached</Text>
+          </View>
+        ) : item.photoUri ? <Image source={{ uri: item.photoUri }} style={styles.cardPhoto} /> : null}
         <Text style={styles.cardBody} numberOfLines={4}>{item.body || 'Nothing saved yet.'}</Text>
 
         <View style={styles.cardFooter}>
@@ -189,21 +191,6 @@ export default function JournalHomeScreen({ navigation }) {
 
   const ListHeader = (
     <Animated.View entering={FadeIn.duration(500)}>
-      <View style={styles.navHeader}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          hitSlop={16}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-          onPress={() => {
-            impact(ImpactFeedbackStyle.Light);
-            navigation.goBack();
-          }}
-        >
-          <Icon name='arrow-back' size={24} color={t.text} />
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.editorialHeader}>
         <Text style={[styles.headerSubtitle, { color: t.primary }]}>JOURNAL</Text>
         <Text style={[styles.headerTitle, { color: t.text }]}>Your Shared Story</Text>
@@ -284,19 +271,11 @@ export default function JournalHomeScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <LinearGradient
-        colors={isDark ? [t.background, '#120206', '#0A0003', t.background] : [t.background, t.surfaceSecondary, t.background]}
-        style={StyleSheet.absoluteFillObject}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-      <GlowOrb color={t.primary} size={460} top={-180} left={SCREEN_W - 220} opacity={isDark ? 0.18 : 0.08} />
-      <GlowOrb color={t.accent} size={260} top={620} left={-80} opacity={isDark ? 0.12 : 0.05} />
-      <FilmGrain opacity={0.1} />
-
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Journal"
+      scroll={false}
+    >
         <FlatList
           data={entries}
           keyExtractor={(item) => item.id}
@@ -307,8 +286,7 @@ export default function JournalHomeScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.primary} />}
         />
-      </SafeAreaView>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 
@@ -318,27 +296,11 @@ const getShadow = (isDark) => Platform.select({
 });
 
 const createStyles = (t) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.background },
-  safeArea: { flex: 1 },
   listContent: {
     paddingHorizontal: SPACING.screen,
     paddingBottom: 160,
   },
-  navHeader: {
-    paddingHorizontal: SPACING.screen,
-    paddingTop: 12,
-    paddingBottom: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    zIndex: 10,
-  },
-  iconButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
   editorialHeader: {
-    paddingTop: SPACING.md,
     paddingBottom: SPACING.lg,
   },
   headerSubtitle: {
@@ -486,6 +448,21 @@ const createStyles = (t) => StyleSheet.create({
     borderRadius: 12,
     marginBottom: SPACING.md,
     resizeMode: 'cover',
+  videoCardPreview: {
+    width: '100%',
+    height: 140,
+    borderRadius: 18,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  videoCardLabel: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '700',
+  },
   },
   cardBody: {
     fontFamily: SYSTEM_FONT,

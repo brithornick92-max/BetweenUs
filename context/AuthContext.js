@@ -141,7 +141,13 @@ async function applyCloudPreferenceState(remoteProfile) {
 
 async function clearLocalAsyncStorage() {
   try {
-    await AsyncStorage.clear();
+    // Only remove app-owned keys — AsyncStorage.clear() would wipe third-party
+    // SDK keys (RevenueCat, Expo modules, etc.) which causes silent failures.
+    const allKeys = await AsyncStorage.getAllKeys();
+    const appKeys = allKeys.filter((k) => k.startsWith('@betweenus:'));
+    if (appKeys.length > 0) {
+      await AsyncStorage.multiRemove(appKeys);
+    }
   } catch (_) {}
 }
 

@@ -150,7 +150,15 @@ const PushNotificationService = {
       }
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        // Already signed out — still clean up local state so the stale token
+        // doesn't carry over into the next login session.
+        this._token = null;
+        await SecureCacheStore.removeItem(PUSH_TOKEN_CACHE_KEY, {
+          service: PUSH_TOKEN_SERVICE,
+        });
+        return;
+      }
 
       const { error } = await supabase
         .from('push_tokens')

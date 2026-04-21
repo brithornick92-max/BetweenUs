@@ -16,7 +16,7 @@ import { randomUUID } from 'expo-crypto';
 import CrashReporting from '../CrashReporting';
 
 const DB_NAME = 'betweenus.db';
-const DB_VERSION = 1;
+const DB_VERSION = 11;
 
 let _db = null;
 let _dbPromise = null;
@@ -32,6 +32,7 @@ const makeId = (prefix = 'row') => {
 const VALID_SYNC_TABLES = new Set([
   'journal_entries', 'prompt_answers', 'memories',
   'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes',
+  'calendar_events_local', 'date_plans'
 ]);
 
 function assertValidTable(tableName) {
@@ -444,6 +445,23 @@ async function migrate(db) {
     }
   }
 
+  // v11: media_ref on journal entries for encrypted media attachments
+  if (user_version < 11) {
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      try {
+        await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN media_ref TEXT;`);
+      } catch (e) {
+        if (!e?.message?.includes('duplicate column')) throw e;
+      }
+      await db.execAsync('PRAGMA user_version = 11;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  }
+
   // v9: couple_id on journal entries for shared-feed scoping
   if (user_version < 9) {
     await db.execAsync('BEGIN TRANSACTION;');
@@ -489,12 +507,12 @@ const Database = {
     await db.runAsync(
       `INSERT INTO journal_entries
         (id, user_id, couple_id, title_cipher, body_cipher, mood, mood_cipher, tags, tags_cipher,
-         is_private, photo_uri, created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+         is_private, photo_uri, media_ref, created_at, updated_at, sync_status, sync_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null, entry.title_cipher ?? null, entry.body_cipher ?? null,
        entry.mood ?? null, entry.mood_cipher ?? null,
        entry.tags ? JSON.stringify(entry.tags) : null, entry.tags_cipher ?? null,
-       entry.is_private ? 1 : 0, entry.photo_uri ?? null, entry.created_at ?? ts, ts]
+       entry.is_private ? 1 : 0, entry.photo_uri ?? null, entry.media_ref ?? null, entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
   },
@@ -506,7 +524,7 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'is_private', 'couple_id', 'photo_uri'].includes(k)) {
+      if (['title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'is_private', 'couple_id', 'photo_uri', 'media_ref'].includes(k)) {
         fields.push(`${k} = ?`);
         params.push(k === 'tags' ? JSON.stringify(v) : (k === 'is_private' ? (v ? 1 : 0) : v));
       }
@@ -796,7 +814,7 @@ const Database = {
   async getVibes(userId, { limit = 100 } = {}) {
     const db = await getDb();
     return db.getAllAsync(
-      'SELECT * FROM vibes WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
+      'SELECT * FROM vibes WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ?',
       [userId, limit]
     );
   },
@@ -804,7 +822,7 @@ const Database = {
   async getLatestVibe(userId) {
     const db = await getDb();
     return db.getFirstAsync(
-      'SELECT * FROM vibes WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
+      'SELECT * FROM vibes WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1',
       [userId]
     );
   },
@@ -864,6 +882,14 @@ const Database = {
     );
   },
 
+  async getAttachmentById(id) {
+    const db = await getDb();
+    return db.getFirstAsync(
+      'SELECT * FROM attachments WHERE id = ? AND deleted_at IS NULL',
+      [id]
+    );
+  },
+
   async getPendingAttachmentUploads() {
     const db = await getDb();
     return db.getAllAsync(
@@ -894,7 +920,7 @@ const Database = {
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
   },
 
-  async getLoveNotes(userId, coupleId, { limit = 100, offset = 0 } = {}) {
+  async getLoveNotes(_userId, coupleId, { limit = 100, offset = 0 } = {}) {
     const db = await getDb();
     return db.getAllAsync(
       `SELECT * FROM love_notes
@@ -1334,7 +1360,7 @@ const Database = {
   async purgeDeleted(daysOld = 30) {
     const db = await getDb();
     const cutoff = new Date(Date.now() - daysOld * 86400000).toISOString();
-    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'attachments', 'love_notes'];
+    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes', 'calendar_events_local', 'date_plans'];
     let total = 0;
     for (const t of tables) {
       const result = await db.runAsync(
@@ -1350,7 +1376,7 @@ const Database = {
 
   async wipeAll() {
     const db = await getDb();
-    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes', 'sync_meta'];
+    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes', 'calendar_events_local', 'date_plans', 'sync_meta'];
     for (const t of tables) {
       await db.runAsync(`DELETE FROM ${t}`);
     }

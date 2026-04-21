@@ -52,8 +52,8 @@ export const FREE_LIMITS = Object.freeze({
   JOURNAL_ENTRIES_VISIBLE: 0,   // No journal access
   FREE_HEAT_LEVELS: [1, 2, 3],
   SURPRISE_ME_ENABLED: false,
-  LOVE_NOTES_ENABLED: true,     // 1 love note per week on free tier
-  LOVE_NOTES_PER_WEEK: 1,       // Weekly love note limit for free users
+  LOVE_NOTES_ENABLED: true,     // legacy key — Love Notes feature removed
+  LOVE_NOTES_PER_WEEK: 0,       // legacy key — Love Notes feature removed
   CALENDAR_ENABLED: false,
   PARTNER_LINKING_ENABLED: true,
   PROMPT_RESPONSES_ENABLED: true,
@@ -227,22 +227,6 @@ export const FEATURE_META = Object.freeze({
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Keep your private moments truly private',
   },
-  [PremiumFeature.CUSTOM_RITUALS]: {
-    name: 'Custom Rituals',
-    description: 'Create personalized bedtime ritual flows',
-    icon: '🌙',
-    category: 'ritual',
-    guardBehavior: GuardBehavior.HIDE,
-    emotionalValue: 'Design intimate moments uniquely yours',
-  },
-  [PremiumFeature.RITUAL_REMINDERS]: {
-    name: 'Ritual Reminders',
-    description: 'Scheduled reminders for your rituals',
-    icon: '⏰',
-    category: 'ritual',
-    guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Build consistent connection habits',
-  },
   [PremiumFeature.CLOUD_SYNC]: {
     name: 'Privacy & Cloud Sync',
     description: 'Encrypted storage for synced content, premium cloud sync for linked couples, and backup-based recovery for synced data',
@@ -267,14 +251,6 @@ export const FEATURE_META = Object.freeze({
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Stay in tune with your partner',
   },
-  [PremiumFeature.NIGHT_RITUAL_MODE]: {
-    name: 'Night Ritual Mode',
-    description: 'Guided bedtime connection rituals for winding down together',
-    icon: '🌜',
-    category: 'ritual',
-    guardBehavior: GuardBehavior.LOCK,
-    emotionalValue: 'End every day connected',
-  },
   [PremiumFeature.PROMPT_REFRESH]: {
     name: 'Prompt Refresh',
     description: 'Swap for a different prompt on demand',
@@ -290,14 +266,6 @@ export const FEATURE_META = Object.freeze({
     category: 'quality',
     guardBehavior: GuardBehavior.HIDE,
     emotionalValue: 'Uninterrupted connection',
-  },
-  [PremiumFeature.LOVE_NOTES]: {
-    name: 'Love Notes',
-    description: 'Send and receive private love notes with encrypted sync, optional notifications, and access across linked devices',
-    icon: '💌',
-    category: 'connection',
-    guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Express your love in your own words',
   },
   [PremiumFeature.CALENDAR]: {
     name: 'Shared Calendar',
@@ -346,8 +314,6 @@ export const FEATURE_META = Object.freeze({
 export const PAYWALL_FEATURE_IDS = Object.freeze([
   PremiumFeature.UNLIMITED_PROMPTS,
   PremiumFeature.UNLIMITED_DATE_IDEAS,
-  PremiumFeature.LOVE_NOTES,
-  PremiumFeature.NIGHT_RITUAL_MODE,
   PremiumFeature.CLOUD_SYNC,
   PremiumFeature.CALENDAR,
   PremiumFeature.VAULT_AND_BIOMETRIC,
@@ -361,9 +327,7 @@ const LEGACY_PREMIUM_FEATURE_ALIASES = Object.freeze({
   DATE_NIGHT_BROWSE: PremiumFeature.UNLIMITED_DATE_IDEAS,
   DATE_NIGHT_DETAILS: PremiumFeature.UNLIMITED_DATE_IDEAS,
   UNLIMITED_DATE_IDEAS: PremiumFeature.UNLIMITED_DATE_IDEAS,
-  NIGHT_RITUAL_MODE: PremiumFeature.NIGHT_RITUAL_MODE,
   heatLevels4to5: PremiumFeature.HEAT_LEVELS_4_5,
-  ritualReminders: PremiumFeature.RITUAL_REMINDERS,
   vaultAndBiometric: PremiumFeature.VAULT_AND_BIOMETRIC,
 });
 

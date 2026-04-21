@@ -11,14 +11,13 @@ import { useEntitlements } from './EntitlementsContext';
 import PreferenceEngine from '../services/PreferenceEngine';
 import { NicknameEngine, SoftBoundaries } from '../services/PolishEngine';
 import PromptAllocator from '../services/PromptAllocator';
+import CoupleStateService from '../services/couple/CoupleStateService';
+import ContentCoupleService from '../services/content/ContentCoupleService';
 import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 
 const ContentContext = createContext({});
-const SHARED_ANNIVERSARY_KEY = 'relationship_start_date';
-const PENDING_SHARED_ANNIVERSARY_KEY = 'pending_shared_anniversary_date';
 const DAILY_PROMPT_CACHE_KEY = '@betweenus:dailyPromptSelection';
-const SHARED_DAILY_PROMPT_KEY_PREFIX = 'daily_prompt';
 
 function getTodayDateKey() {
   const now = new Date();
@@ -27,10 +26,6 @@ function getTodayDateKey() {
 
 function getDailyPromptScope(userId, coupleId) {
   return coupleId ? `couple:${coupleId}` : `user:${userId}`;
-}
-
-function getSharedDailyPromptKey(dateKey) {
-  return `${SHARED_DAILY_PROMPT_KEY_PREFIX}_${dateKey}`;
 }
 
 function getStableHash(value) {
@@ -100,22 +95,11 @@ export const ContentProvider = ({ children }) => {
   }, []);
 
   const syncSharedAnniversary = useCallback(async (startDate) => {
-    if (!user?.uid) return false;
-
-    const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
-    if (!coupleId) return false;
-
-    await ensureSupabaseSession();
-
-    return StorageRouter.upsertCoupleData(
-      coupleId,
-      SHARED_ANNIVERSARY_KEY,
-      { startDate },
-      user.uid,
-      false,
-      'couple_state'
-    );
-  }, [ensureSupabaseSession, user]);
+    return CoupleStateService.syncSharedAnniversary(startDate, user?.uid, {
+      fallbackCoupleId: userProfile?.coupleId || null,
+      ensureSession: ensureSupabaseSession,
+    });
+  }, [ensureSupabaseSession, user?.uid, userProfile?.coupleId]);
 
   const applyRelationshipStartDate = useCallback(async (startDate) => {
     const normalizedDate = normalizeRelationshipStartDate(startDate);
@@ -163,7 +147,9 @@ export const ContentProvider = ({ children }) => {
         loadingPromptRef.current = true;
 
       const today = getTodayDateKey();
-      const coupleId = (await storage.get(STORAGE_KEYS.COUPLE_ID, null)) || userProfile?.coupleId || null;
+      const coupleId = await CoupleStateService.getActiveCoupleId({
+        fallbackCoupleId: userProfile?.coupleId || null,
+      });
       const scope = getDailyPromptScope(user.uid, coupleId);
 
       if (todayPrompt?.dateKey === today && todayPrompt?._dailyPromptScope === scope) {
@@ -187,8 +173,10 @@ export const ContentProvider = ({ children }) => {
       }
 
       if (coupleId) {
-        await ensureSupabaseSession();
-        const sharedPromptSelection = await StorageRouter.getCoupleData(coupleId, getSharedDailyPromptKey(today)).catch(() => null);
+        const sharedPromptSelection = await ContentCoupleService.getSharedDailyPromptSelection(today, {
+          fallbackCoupleId: coupleId,
+          ensureSession: ensureSupabaseSession,
+        });
         const sharedPromptId = sharedPromptSelection?.value?.promptId;
         if (sharedPromptId) {
           const sharedPrompt = getPromptById(sharedPromptId);
@@ -272,14 +260,10 @@ export const ContentProvider = ({ children }) => {
       });
 
       if (coupleId) {
-        await StorageRouter.upsertCoupleData(
-          coupleId,
-          getSharedDailyPromptKey(today),
-          { promptId: selectedPrompt.id, dateKey: today },
-          user.uid,
-          false,
-          'daily_prompt'
-        ).catch((error) => {
+        await ContentCoupleService.saveSharedDailyPromptSelection(today, selectedPrompt.id, user.uid, {
+          fallbackCoupleId: coupleId,
+          ensureSession: ensureSupabaseSession,
+        }).catch((error) => {
           if (__DEV__) console.warn('[ContentContext] Shared daily prompt sync failed:', error?.message);
         });
       }
@@ -407,9 +391,9 @@ export const ContentProvider = ({ children }) => {
       const synced = await syncSharedAnniversary(normalizedDate);
 
       if (!synced) {
-        await storage.set(PENDING_SHARED_ANNIVERSARY_KEY, normalizedDate);
+        await CoupleStateService.setPendingSharedAnniversary(normalizedDate);
       } else {
-        await storage.remove(PENDING_SHARED_ANNIVERSARY_KEY);
+        await CoupleStateService.clearPendingSharedAnniversary();
       }
 
       return true;
@@ -425,14 +409,14 @@ export const ContentProvider = ({ children }) => {
     const reconcileSharedAnniversary = async () => {
       if (!user?.uid) return;
 
-      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+      const coupleId = await CoupleStateService.getActiveCoupleId({
+        fallbackCoupleId: userProfile?.coupleId || null,
+      });
       if (!coupleId) return;
 
-      await ensureSupabaseSession();
-
-      const shared = await StorageRouter.getCoupleData(coupleId, SHARED_ANNIVERSARY_KEY).catch((err) => {
-        if (__DEV__) console.warn('[ContentContext] Shared anniversary fetch failed:', err?.message);
-        return null;
+      const shared = await CoupleStateService.getSharedAnniversary({
+        fallbackCoupleId: coupleId,
+        ensureSession: ensureSupabaseSession,
       });
 
       if (!active) return;
@@ -457,7 +441,7 @@ export const ContentProvider = ({ children }) => {
     return () => {
       active = false;
     };
-  }, [applyRelationshipStartDate, ensureSupabaseSession, syncSharedAnniversary, user?.uid, userProfile?.relationshipStartDate]);
+  }, [applyRelationshipStartDate, ensureSupabaseSession, syncSharedAnniversary, user?.uid, userProfile?.coupleId, userProfile?.relationshipStartDate]);
 
   useEffect(() => {
     let active = true;
@@ -465,12 +449,12 @@ export const ContentProvider = ({ children }) => {
     const flushPendingSharedAnniversary = async () => {
       if (!user?.uid) return;
 
-      const pendingDate = await storage.get(PENDING_SHARED_ANNIVERSARY_KEY, null);
+      const pendingDate = await CoupleStateService.getPendingSharedAnniversary();
       if (!pendingDate || !active) return;
 
       const synced = await syncSharedAnniversary(pendingDate);
       if (synced && active) {
-        await storage.remove(PENDING_SHARED_ANNIVERSARY_KEY);
+        await CoupleStateService.clearPendingSharedAnniversary();
       }
     };
 
@@ -488,45 +472,17 @@ export const ContentProvider = ({ children }) => {
     const subscribeToSharedAnniversary = async () => {
       if (!user?.uid) return;
 
-      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
-      if (!coupleId) return;
-
       try {
-        const session = await ensureSupabaseSession();
-        if (!session || !active) return;
-
-        const { supabase, TABLES } = await import('../config/supabase');
-        if (!supabase || !active) return;
-
-        const channel = supabase
-          .channel(`shared_anniversary_${coupleId}`)
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: TABLES.COUPLE_DATA,
-              filter: `couple_id=eq.${coupleId}`,
-            },
-            async (payload) => {
-              if (!active) return;
-
-              const row = payload?.new;
-              if (!row || row.key !== SHARED_ANNIVERSARY_KEY || row.created_by === user.uid) {
-                return;
-              }
-
-              const nextDate = normalizeRelationshipStartDate(row?.value?.startDate || row?.value?.relationshipStartDate || row?.value);
-              const currentDate = normalizeRelationshipStartDate(userProfile?.relationshipStartDate);
-
-              if (!nextDate || nextDate === currentDate) return;
-
-              await applyRelationshipStartDate(nextDate);
-            }
-          )
-          .subscribe();
-
-        unsubscribe = () => supabase.removeChannel(channel);
+        unsubscribe = await CoupleStateService.subscribeToSharedAnniversary({
+          userId: user.uid,
+          currentRelationshipStartDate: userProfile?.relationshipStartDate,
+          ensureSession: ensureSupabaseSession,
+          normalizeRelationshipStartDate,
+          onRemoteUpdate: async (nextDate) => {
+            if (!active) return;
+            await applyRelationshipStartDate(nextDate);
+          },
+        });
       } catch (err) {
         if (__DEV__) console.warn('[ContentContext] Shared anniversary realtime unavailable:', err?.message);
       }
@@ -580,32 +536,10 @@ export const ContentProvider = ({ children }) => {
   const saveResponse = async (promptId, response, isPrivate = true) => {
     try {
       if (!user || !promptId || !response) return;
-
-      let responseData = {
-        content: response,
-        timestamp: Date.now(),
-        promptId,
-      };
-
-      // Encrypt private responses
-      if (isPrivate) {
-        const coupleId = userProfile?.coupleId || null;
-        const keyTier = coupleId ? 'couple' : 'device';
-        const encryptedPayload = await E2EEncryption.encryptJson(
-          responseData,
-          keyTier,
-          coupleId,
-          `prompt_response:${promptId}`
-        );
-        responseData = {
-          encryptedData: encryptedPayload,
-          isEncrypted: true,
-          encryptedAt: Date.now(),
-          promptId,
-        };
-      }
-
-      await StorageRouter.saveMemory(user.uid, responseData, userProfile?.coupleId || null);
+      await ContentCoupleService.savePromptResponse(user.uid, promptId, response, {
+        isPrivate,
+        fallbackCoupleId: userProfile?.coupleId || null,
+      });
 
       // Keep the allocator cache in sync
       PromptAllocator.recordAnswer(promptId);
@@ -627,30 +561,9 @@ export const ContentProvider = ({ children }) => {
   const loadUserResponses = async () => {
     try {
       if (!user) return;
-
-      const responses = await StorageRouter.getUserMemories(user.uid);
-
-      // Decrypt encrypted responses
-      const decryptedResponses = await Promise.all(
-        (responses || []).map(async (response) => {
-          if (response.isEncrypted) {
-            try {
-              const coupleId = userProfile?.coupleId || null;
-              const keyTier = coupleId ? 'couple' : 'device';
-              const decrypted = await E2EEncryption.decryptJson(
-                response.encryptedData,
-                keyTier,
-                coupleId
-              );
-              return decrypted ? { ...response, decryptedContent: decrypted } : response;
-            } catch (error) {
-              if (__DEV__) console.error('Error decrypting response:', error);
-              return response;
-            }
-          }
-          return response;
-        })
-      );
+      const decryptedResponses = await ContentCoupleService.loadPromptResponses(user.uid, {
+        fallbackCoupleId: userProfile?.coupleId || null,
+      });
 
       setUserResponses(decryptedResponses);
       return decryptedResponses;

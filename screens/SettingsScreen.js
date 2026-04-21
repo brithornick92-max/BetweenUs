@@ -53,6 +53,7 @@ import CrashReporting from '../services/CrashReporting';
 import RevenueCatService from '../services/RevenueCatService';
 import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
+import CouplePresenceService from '../services/couple/CouplePresenceService';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import StorageRouter from '../services/storage/StorageRouter';
 import CloudEngine from '../services/storage/CloudEngine';
@@ -156,6 +157,7 @@ export default function SettingsScreen({ navigation }) {
   const [inviteCode, setInviteCode] = useState(null);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [codeLoading, setCodeLoading] = useState(false);
+  const unlinkInFlightRef = useRef(false);
 
   const [selectedDate, setSelectedDate] = useState(
     userProfile?.relationshipStartDate ? new Date(userProfile.relationshipStartDate) : new Date()
@@ -178,37 +180,28 @@ export default function SettingsScreen({ navigation }) {
     try {
       const status = await cloudSyncStorage.getSyncStatus();
       setSyncStatus(status || { enabled: false });
-      
-      let coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
-      try {
-        const remoteCouple = await CoupleService.getMyCouple();
-        const remoteCoupleId = remoteCouple?.couple_id || null;
 
-        if (remoteCoupleId) {
-          coupleId = remoteCoupleId;
-          await storage.set(STORAGE_KEYS.COUPLE_ID, remoteCoupleId);
-          await StorageRouter.setActiveCoupleId(remoteCoupleId);
-        } else if (coupleId) {
-          const staleCoupleId = coupleId;
-          coupleId = null;
-          await storage.remove(STORAGE_KEYS.COUPLE_ID);
-          await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
-          await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
-          await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
-          try {
-            await CoupleKeyService.clearCoupleKey(staleCoupleId);
-          } catch (_) {}
-        }
-      } catch (_) {
-        // Keep local state when the server cannot be reached.
+      // Use the double-confirmed verification helper so a single transient remote
+      // miss does not silently clear local couple state.
+      const verified = await CouplePresenceService.getVerifiedCoupleState({
+        currentCoupleId: await storage.get(STORAGE_KEYS.COUPLE_ID, null),
+        userId: user?.id,
+        updateProfile,
+        requireRemoteCheck: true,
+        confirmMiss: true,
+      });
+
+      if (verified.coupleId) {
+        await StorageRouter.setActiveCoupleId(verified.coupleId);
       }
 
-      setPaired(!!coupleId);
+      setPaired(!!verified.coupleId);
     } catch (err) {
-      setPaired(false);
+      // Do not force setPaired(false) on a transient refresh failure — the user
+      // may still be linked and flipping paired state incorrectly would be misleading.
       CrashReporting.captureException(err, { context: 'settings_refresh' });
     }
-  }, []);
+  }, [user?.id, updateProfile]);
 
   useEffect(() => {
     refreshSyncStatus();
@@ -220,7 +213,11 @@ export default function SettingsScreen({ navigation }) {
   useEffect(() => {
     if (!inviteCode) return;
     let active = true;
-    const poll = setInterval(async () => {
+    let timer = null;
+
+    const doPoll = async () => {
+      // Do not poll while an unlink is in-flight — it could restore stale pairing state
+      if (unlinkInFlightRef.current) return;
       try {
         const couple = await CoupleService.getMyCouple();
         if (couple?.couple_id && active) {
@@ -233,6 +230,7 @@ export default function SettingsScreen({ navigation }) {
 
           const partnerPubKeyB64 = await CloudEngine.getPartnerPublicKey(coupleId);
           if (!partnerPubKeyB64) {
+            if (active) timer = setTimeout(doPoll, 3000);
             return;
           }
 
@@ -244,15 +242,18 @@ export default function SettingsScreen({ navigation }) {
           // and can sync premium status between partners immediately.
           await updateProfile?.({ coupleId });
 
-          clearInterval(poll);
           setInviteCode(null);
           notification(NotificationFeedbackType.Success);
           Alert.alert('Linked! 💕', 'You are now connected with your partner.');
           refreshSyncStatus();
+          return; // stop polling
         }
       } catch (_) {}
-    }, 3000);
-    return () => { active = false; clearInterval(poll); };
+      if (active) timer = setTimeout(doPoll, 3000);
+    };
+
+    timer = setTimeout(doPoll, 3000);
+    return () => { active = false; clearTimeout(timer); };
   }, [inviteCode, refreshSyncStatus]);
 
   // ─── HANDLERS ───
@@ -332,54 +333,95 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const handleUnlink = async () => {
+    if (unlinkInFlightRef.current) return;
+    unlinkInFlightRef.current = true;
     try {
-      // Remove server-side membership so a new invite code can be generated
-      try {
-        await CoupleService.unlinkFromCouple();
-      } catch (serverErr) {
-        if (__DEV__) console.warn('Server unlink failed (continuing):', serverErr.message);
+      const currentCoupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+      // Server unlink must succeed before we clear any local state
+      await CoupleService.unlinkFromCouple();
+      // Clear local couple state only after successful server unlink
+      if (currentCoupleId) {
+        try {
+          await CoupleKeyService.clearCoupleKey(currentCoupleId);
+        } catch (keyErr) {
+          if (__DEV__) console.warn('Failed clearing local couple key:', keyErr?.message || keyErr);
+        }
       }
-
-      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
-      if (coupleId) {
-        await CoupleKeyService.clearCoupleKey(coupleId);
-        await storage.remove(STORAGE_KEYS.COUPLE_ID);
-        await updateProfile?.({ coupleId: null });
-      }
+      await storage.remove(STORAGE_KEYS.COUPLE_ID);
       await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
-      await clearCouplePremiumCache();
+      await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
+      // Clear stale invite state so polling cannot re-link immediately
+      setInviteCode(null);
+      try {
+        await updateProfile?.({ coupleId: null });
+      } catch (profileErr) {
+        if (__DEV__) console.warn('Failed updating local profile after unlink:', profileErr?.message || profileErr);
+      }
+      try {
+        await clearCouplePremiumCache();
+      } catch (premiumErr) {
+        if (__DEV__) console.warn('Failed clearing couple premium cache:', premiumErr?.message || premiumErr);
+      }
       setPaired(false);
       setShowUnlinkConfirm(false);
-      notification(NotificationFeedbackType.Success);
+      Alert.alert('Unpaired', 'You have been unpaired successfully.');
     } catch (err) {
-      Alert.alert('Error', 'Could not unlink at this time.');
+      if (__DEV__) console.warn('Unlink failed:', err?.message || err);
+      Alert.alert(
+        'Could not unpair',
+        "We couldn't complete the unpair request right now, so your connection was left unchanged. Please try again."
+      );
+    } finally {
+      unlinkInFlightRef.current = false;
     }
   };
 
   const handleUnlinkAndReconnect = async () => {
+    if (unlinkInFlightRef.current) return;
+    unlinkInFlightRef.current = true;
     try {
-      try {
-        await CoupleService.unlinkFromCouple();
-      } catch (serverErr) {
-        if (__DEV__) console.warn('Server unlink failed (continuing):', serverErr.message);
+      const currentCoupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+      // Do not proceed to reconnect unless server unlink succeeds
+      await CoupleService.unlinkFromCouple();
+      if (currentCoupleId) {
+        try {
+          await CoupleKeyService.clearCoupleKey(currentCoupleId);
+        } catch (keyErr) {
+          if (__DEV__) console.warn('Failed clearing local couple key:', keyErr?.message || keyErr);
+        }
       }
-
-      const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
-      if (coupleId) {
-        await CoupleKeyService.clearCoupleKey(coupleId);
-        await storage.remove(STORAGE_KEYS.COUPLE_ID);
-        await updateProfile?.({ coupleId: null });
-      }
+      await storage.remove(STORAGE_KEYS.COUPLE_ID);
       await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
-      await clearCouplePremiumCache();
+      await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
+      // Prevent stale invite polling from restoring the old pairing
+      setInviteCode(null);
+      try {
+        await updateProfile?.({ coupleId: null });
+      } catch (profileErr) {
+        if (__DEV__) console.warn('Failed updating local profile after unlink:', profileErr?.message || profileErr);
+      }
+      try {
+        await clearCouplePremiumCache();
+      } catch (premiumErr) {
+        if (__DEV__) console.warn('Failed clearing couple premium cache:', premiumErr?.message || premiumErr);
+      }
       setPaired(false);
       setShowUnlinkConfirm(false);
-      notification(NotificationFeedbackType.Success);
+      Alert.alert(
+        'Unpaired',
+        'You have been unpaired. You can now connect with a different partner.'
+      );
       navigation.navigate('PairingQRCode');
     } catch (err) {
-      Alert.alert('Error', 'Could not unlink at this time.');
+      if (__DEV__) console.warn('Unlink and reconnect failed:', err?.message || err);
+      Alert.alert(
+        'Could not unpair',
+        "We couldn't complete the unpair request, so your connection was left unchanged. Please try again."
+      );
+    } finally {
+      unlinkInFlightRef.current = false;
     }
   };
 

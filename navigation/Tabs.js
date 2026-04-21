@@ -16,6 +16,7 @@ import { useTheme } from "../context/ThemeContext";
 import { SPACING } from '../utils/theme';
 import Icon from "../components/Icon";
 import { RelationshipMilestones } from '../services/PolishEngine';
+import DeepLinkHandler from '../services/DeepLinkHandler';
 
 // Tab screens
 import HomeScreen from "../screens/HomeScreen";
@@ -129,6 +130,11 @@ export default function Tabs() {
 
   // Show Calendar + Dates tabs only after day 2 (gives new users space to explore)
   const showSecondaryTabs = daysSinceJoin === null || daysSinceJoin >= 2;
+
+  // Keep DeepLinkHandler in sync so calendar deep links are guarded correctly
+  useEffect(() => {
+    DeepLinkHandler.setShowSecondaryTabs(showSecondaryTabs);
+  }, [showSecondaryTabs]);
 
   // STRICT Apple Editorial Theme Map
   const t = useMemo(() => ({

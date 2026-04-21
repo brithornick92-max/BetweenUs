@@ -13,24 +13,17 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  StatusBar,
   ActivityIndicator,
-  Dimensions
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
-import GlowOrb from '../components/GlowOrb';
-import FilmGrain from '../components/FilmGrain';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { cloudSyncStorage } from '../utils/storage';
 import StorageRouter from '../services/storage/StorageRouter';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-
-const { width } = Dimensions.get('window');
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -198,37 +191,19 @@ export default function SyncSetupScreen({ navigation }) {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
-      <LinearGradient
-        colors={isDark ? [theme.obsidian, '#1A0205', theme.obsidian] : ['#FFFFFF', '#F9F4F4', '#FFFFFF']}
-        style={StyleSheet.absoluteFillObject}
-      />
-      {/* Crimson Ambient Glow */}
-      <GlowOrb color={theme.crimson} size={450} top={-150} left={width - 200} opacity={0.08} />
-      <FilmGrain opacity={0.035} />
-
-      <SafeAreaView style={styles.container} edges={['top']}>
-        {/* Apple Editorial Header */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <Icon name="chevron-back" size={26} color={colors.text} />
-          </TouchableOpacity>
-          <View>
-            <Text style={[styles.headerEye, { color: theme.crimson }]}>Security & Continuity</Text>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Cloud Sync</Text>
-          </View>
-        </View>
-
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
-        >
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Cloud Sync"
+      heroTitle="Cloud Sync"
+      heroSubtitle="Sign in to enable encrypted backup and continuity across devices."
+      keyboardAvoiding
+      scroll={false}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+      >
           <ScrollView 
             contentContainerStyle={styles.scrollContent} 
             showsVerticalScrollIndicator={false}
@@ -369,8 +344,7 @@ export default function SyncSetupScreen({ navigation }) {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 

@@ -4,28 +4,18 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   Platform,
-  Dimensions,
-  StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 import { evaluateAchievements } from '../utils/achievementEngine';
 import DataLayer from '../services/data/DataLayer';
 import Icon from '../components/Icon';
-import GlowOrb from '../components/GlowOrb';
-import FilmGrain from '../components/FilmGrain';
-import { impact, ImpactFeedbackStyle } from '../utils/haptics';
-import { SPACING, withAlpha } from '../utils/theme';
-
-const { width: SCREEN_W } = Dimensions.get('window');
+import { SPACING } from '../utils/theme';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
-const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 export default function AchievementsScreen() {
   const navigation = useNavigation();
@@ -86,31 +76,13 @@ export default function AchievementsScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <LinearGradient
-        colors={isDark ? [t.background, '#120206', '#0A0003', t.background] : [t.background, t.surfaceSecondary, t.background]}
-        style={StyleSheet.absoluteFillObject}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-      <GlowOrb color={t.primary} size={460} top={-180} left={SCREEN_W - 220} opacity={isDark ? 0.18 : 0.08} />
-      <GlowOrb color={t.accent} size={260} top={580} left={-80} opacity={isDark ? 0.12 : 0.05} />
-      <FilmGrain opacity={0.1} />
-
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.navHeader}>
-          <TouchableOpacity
-            onPress={() => { impact(ImpactFeedbackStyle.Light); navigation.goBack(); }}
-            style={styles.iconButton}
-            hitSlop={16}
-            accessibilityLabel="Go back"
-            accessibilityRole="button"
-          >
-            <Icon name="arrow-back" size={24} color={t.text} />
-          </TouchableOpacity>
-        </View>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Achievements"
+      heroTitle="Your Story"
+      heroSubtitle="The milestones you have already reached and the ones still ahead."
+      scroll={false}
+    >
         {loading ? (
           <View style={styles.loader}>
             <ActivityIndicator size="large" color={t.primary} />
@@ -147,25 +119,13 @@ export default function AchievementsScreen() {
             showsVerticalScrollIndicator={false}
           />
         )}
-      </SafeAreaView>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 
 function createStyles(t, isDark) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.background },
-    safeArea: { flex: 1 },
-    navHeader: {
-      paddingHorizontal: SPACING.screen,
-      paddingTop: 12,
-      paddingBottom: 4,
-      flexDirection: 'row',
-      zIndex: 10,
-    },
-    iconButton: { padding: 8, marginLeft: -8 },
     editorialHeader: {
-      paddingTop: SPACING.md,
       paddingBottom: SPACING.lg,
     },
     headerSubtitle: {

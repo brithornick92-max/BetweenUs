@@ -16,10 +16,8 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
-  StatusBar,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
@@ -29,6 +27,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const PIN_KEY = 'betweenus_app_lock_pin_v1';
 const PIN_SALT_KEY = 'betweenus_app_lock_salt_v1';
@@ -121,23 +120,15 @@ const SetPinScreen = ({ navigation }) => {
   // ─── PREMIUM PAYWALL STATE ───
   if (!isPremium) {
     return (
-      <View style={[styles.container, { backgroundColor: t.background }]}>
-        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Icon name="chevron-back" size={28} color={t.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: t.text }]}>Vault Protection</Text>
-          <View style={{ width: 44 }} />
-        </View>
+      <EditorialScreenScaffold
+        navigation={navigation}
+        headerTitle="Vault Protection"
+        heroIcon="lock-closed-outline"
+        heroTitle="Secure Your World"
+        heroSubtitle="App Lock is a pro security feature. Protect your intimacy with localized PIN and biometric authentication."
+        scroll={false}
+      >
         <View style={styles.paywallContent}>
-          <View style={[styles.iconHero, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
-            <Icon name="lock-closed-outline" size={42} color={t.primary} />
-          </View>
-          <Text style={[styles.title, { color: t.text }]}>Secure Your World</Text>
-          <Text style={[styles.subtitle, { color: t.subtext }]}>
-            App Lock is a pro security feature. Protect your intimacy with localized PIN and biometric authentication.
-          </Text>
           <TouchableOpacity
             onPress={() => showPaywall(PremiumFeature.VAULT_AND_BIOMETRIC)}
             style={[styles.primaryButton, { backgroundColor: t.primary }]}
@@ -147,22 +138,18 @@ const SetPinScreen = ({ navigation }) => {
             <Text style={styles.primaryButtonText}>Unlock Pro Experience</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </EditorialScreenScaffold>
     );
   }
 
   // ─── ACTIVE SETTING STATE ───
   return (
-    <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="chevron-back" size={28} color={t.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: t.text }]}>App Lock</Text>
-        <View style={{ width: 44 }} />
-      </View>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="App Lock"
+      keyboardAvoiding
+      scroll={false}
+    >
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
           
@@ -232,48 +219,15 @@ const SetPinScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </EditorialScreenScaffold>
   );
 };
 
 const createStyles = (t, isDark) => StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 20,
-  },
-  backButton: { width: 44, height: 44, justifyContent: 'center' },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
-  },
   scrollView: { flex: 1 },
   scrollContent: { padding: 24, paddingBottom: 60 },
   paywallContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 },
-  iconHero: { width: 80, height: 80, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-  title: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 32,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: -0.8,
-  },
-  subtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
-  },
   formCard: {
     padding: 24,
     borderRadius: 24, // High-end Apple Squircle

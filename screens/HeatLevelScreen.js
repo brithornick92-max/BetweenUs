@@ -6,9 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -18,6 +16,7 @@ import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 export default function HeatLevelScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -189,37 +188,14 @@ export default function HeatLevelScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      <LinearGradient
-        colors={[colors.background, colors.surface2 || colors.background, colors.background]}
-        style={StyleSheet.absoluteFill}
-        locations={[0, 0.5, 1]}
-      />
-
-      <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.8}
-          >
-            <Icon
-              name="arrow-back-outline"
-              size={24}
-              color={colors.text}
-            />
-          </TouchableOpacity>
-
-          <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Set the Mood</Text>
-            <Text style={styles.headerSubtitle}>
-              How deep do you want to go tonight?
-            </Text>
-          </View>
-        </View>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Set the Mood"
+      heroTitle="Set the Mood"
+      heroSubtitle="How deep do you want to go tonight?"
+      scroll={false}
+      backIconName="arrow-back-outline"
+    >
         {/* Usage Status */}
         {usageStatus && !isPremium && (
           <View style={styles.usageStatus}>
@@ -264,49 +240,13 @@ export default function HeatLevelScreen({ navigation }) {
             </TouchableOpacity>
           )}
         </ScrollView>
-      </SafeAreaView>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 
 const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface2 || 'rgba(255,255,255,0.05)',
-    marginRight: SPACING.md,
-  },
-  headerContent: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
-    color: colors.text,
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    ...TYPOGRAPHY.body,
-    fontSize: 14,
-    color: colors.textSecondary,
   },
   usageStatus: {
     flexDirection: 'row',

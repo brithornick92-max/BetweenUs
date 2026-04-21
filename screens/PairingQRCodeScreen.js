@@ -20,14 +20,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { clearCouplePremiumCache } from '../context/EntitlementsContext';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import StorageRouter from '../services/storage/StorageRouter';
-import CloudEngine from '../services/storage/CloudEngine';
-import CoupleKeyService from '../services/security/CoupleKeyService';
-import { makePairingPayload } from '../services/security/PairingPayload';
-import CoupleService from '../services/supabase/CoupleService';
-import { backfillWrappedKeysFromLocalKey, deriveAndPersistWrappedCoupleKey } from '../services/security/WrappedCoupleKeyFlow';
+import {
+  completePairingQrHandshake,
+  preparePairingQrCode,
+} from '../services/linking/CoupleLinkingService';
+import CouplePresenceService from '../services/couple/CouplePresenceService';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, withAlpha } from '../utils/theme';
 import Icon from '../components/Icon';
@@ -42,8 +39,7 @@ export default function PairingQRCodeScreen({ navigation }) {
   const [status, setStatus] = useState('Preparing secure link...');
   const [phase, setPhase] = useState('init');
   const [repairingExistingCouple, setRepairingExistingCouple] = useState(false);
-  const [showPairedGuard, setShowPairedGuard] = useState(false);
-  const [unlinkError, setUnlinkError] = useState(false);
+  const [showPairedGuard, setShowPairedGuard] = useState(null);
   const [successModal, setSuccessModal] = useState(null); // null | { isRepair: bool }
   const activeRef = useRef(true);
   const preparingRef = useRef(false);
@@ -60,31 +56,6 @@ export default function PairingQRCodeScreen({ navigation }) {
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
-  const ensureCloudSession = useCallback(async () => {
-    // 1. Use existing session if available
-    const existing = await SupabaseAuthService.getSession().catch((error) => {
-      if (String(error?.message || '').includes('Supabase is not configured')) {
-        setStatus("Sync isn't available in this build.");
-        setPhase('error');
-        return null;
-      }
-      throw error;
-    });
-
-    if (existing) {
-      await StorageRouter.setSupabaseSession(existing);
-      return existing;
-    }
-
-    // 2. Fall back to anonymous sign-in
-    setStatus('Creating secure session...');
-    const session = await SupabaseAuthService.signInAnonymously();
-    if (session) {
-      await StorageRouter.setSupabaseSession(session);
-    }
-    return session;
-  }, []);
-
   const prepare = useCallback(async () => {
     if (preparingRef.current) return;
     preparingRef.current = true;
@@ -96,7 +67,7 @@ export default function PairingQRCodeScreen({ navigation }) {
       if (existingCouple) {
         const proceed = await new Promise((resolve) => {
           pairedGuardResolveRef.current = resolve;
-          setShowPairedGuard(true);
+          setShowPairedGuard('already-paired');
         });
         if (!proceed || !activeRef.current) {
           preparingRef.current = false;
@@ -110,79 +81,33 @@ export default function PairingQRCodeScreen({ navigation }) {
       setStatus('Preparing secure link...');
       setPhase('init');
 
-      const session = await ensureCloudSession();
-      if (!session || !activeRef.current) {
-        return;
-      }
-
-      await CloudEngine.initialize({ supabaseSessionPresent: true });
-
-      const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-      const storedCoupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
-      let coupleId = storedCoupleId || null;
-      let isRepairFlow = false;
-
-      if (!coupleId) {
-        const membership = await CoupleService.getMyCouple().catch(() => null);
-        coupleId = membership?.couple_id || null;
-      }
-
-      if (coupleId) {
-        isRepairFlow = true;
-        setRepairingExistingCouple(true);
-        await CloudEngine.joinCouple(coupleId, myPublicKeyB64);
-        await StorageRouter.setActiveCoupleId(coupleId);
-        await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
-        setStatus('Preparing repair code...');
-      } else {
-        setRepairingExistingCouple(false);
-        coupleId = await CloudEngine.createCouple(myPublicKeyB64);
-
-        await StorageRouter.setActiveCoupleId(coupleId);
-        if (user?.uid) {
-          await StorageRouter.updateUserDocument(user.uid, { coupleId });
-          await updateProfile?.({ coupleId });
-        }
-        await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
-      }
-
-      const { code: pairingCode } = await CoupleService.generatePairingCode(coupleId);
-      const payload = makePairingPayload({ pairingCode, publicKey: myPublicKeyB64 });
+      const prepared = await preparePairingQrCode({
+        userId: user?.id ?? user?.uid,
+        updateProfile,
+        onStatus: (message) => {
+          if (activeRef.current) setStatus(message);
+        },
+      });
+      if (!prepared || !activeRef.current) return;
 
       if (!activeRef.current) return;
-      setQrPayload(JSON.stringify(payload));
-  setStatus(isRepairFlow ? 'Repair code ready' : 'Ready to scan');
+      setRepairingExistingCouple(prepared.isRepairFlow);
+      setQrPayload(prepared.qrPayload);
+      setStatus(prepared.isRepairFlow ? 'Repair code ready' : 'Ready to scan');
       setPhase('waiting');
 
-      const partnerMembership = await CloudEngine.waitForPartnerMembership(coupleId, 600_000, 3_000);
+      await completePairingQrHandshake({
+        coupleId: prepared.coupleId,
+        isRepairFlow: prepared.isRepairFlow,
+        onStatus: (message) => {
+          if (activeRef.current) setStatus(message);
+        },
+      });
       if (!activeRef.current) return;
-
-      if (!partnerMembership?.public_key || !partnerMembership?.user_id) {
-        setStatus('Link timed out. Please try again.');
-        setPhase('error');
-        return;
-      }
-
-      if (isRepairFlow) {
-        await backfillWrappedKeysFromLocalKey({
-          coupleId,
-          partnerUserId: partnerMembership.user_id,
-          partnerPublicKeyB64: partnerMembership.public_key,
-        });
-      } else {
-        await deriveAndPersistWrappedCoupleKey({
-          coupleId,
-          partnerUserId: partnerMembership.user_id,
-          partnerPublicKeyB64: partnerMembership.public_key,
-        });
-      }
-
-      if (!activeRef.current) return;
-      setStatus(isRepairFlow ? 'Secure pairing repaired.' : 'Connected successfully!');
       setPhase('done');
       setTimeout(() => {
         if (!activeRef.current) return;
-        setSuccessModal({ isRepair: isRepairFlow });
+        setSuccessModal({ isRepair: prepared.isRepairFlow });
       }, 50);
     } catch (error) {
       if (!activeRef.current) return;
@@ -191,7 +116,7 @@ export default function PairingQRCodeScreen({ navigation }) {
     } finally {
       preparingRef.current = false;
     }
-  }, [ensureCloudSession, navigation, updateProfile, user?.uid]);
+  }, [navigation, updateProfile, user?.id, user?.uid]);
 
   useEffect(() => {
     activeRef.current = true;
@@ -217,24 +142,18 @@ export default function PairingQRCodeScreen({ navigation }) {
     // Show in-app modal instead of native Alert
     const proceed = await new Promise((resolve) => {
       pairedGuardResolveRef.current = resolve;
-      setUnlinkError(false);
       setShowPairedGuard('unlink');
     });
     if (!proceed) return;
 
     try {
-      await CoupleService.unlinkFromCouple();
       const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
-      if (coupleId) {
-        await CoupleKeyService.clearCoupleKey(coupleId);
-        await storage.remove(STORAGE_KEYS.COUPLE_ID);
-        await updateProfile?.({ coupleId: null });
-      }
-      await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
-      await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
-      await clearCouplePremiumCache();
+      await CouplePresenceService.unlinkCouple({
+        coupleId,
+        userId: user?.id ?? user?.uid,
+        onProfileCleared: updateProfile,
+      });
     } catch (e) {
-      setUnlinkError(true);
       setShowPairedGuard('unlink-error');
       return;
     }
@@ -281,7 +200,7 @@ export default function PairingQRCodeScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* ─── ALREADY-PAIRED / UNLINK GUARD MODAL ─── */}}
+      {/* ─── ALREADY-PAIRED / UNLINK GUARD MODAL ─── */}
       <Modal visible={!!showPairedGuard} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { backgroundColor: t.surface }]}>
@@ -302,7 +221,7 @@ export default function PairingQRCodeScreen({ navigation }) {
               <View style={styles.modalActions}>
                 <TouchableOpacity
                   style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }]}
-                  onPress={() => setShowPairedGuard(false)}
+                  onPress={() => setShowPairedGuard(null)}
                 >
                   <Text style={{ color: t.text, fontFamily: SYSTEM_FONT, fontWeight: '600' }}>OK</Text>
                 </TouchableOpacity>
@@ -311,13 +230,13 @@ export default function PairingQRCodeScreen({ navigation }) {
               <View style={styles.modalActions}>
                 <TouchableOpacity
                   style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }]}
-                  onPress={() => { setShowPairedGuard(false); pairedGuardResolveRef.current?.(false); }}
+                  onPress={() => { setShowPairedGuard(null); pairedGuardResolveRef.current?.(false); }}
                 >
                   <Text style={{ color: t.text, fontFamily: SYSTEM_FONT, fontWeight: '600' }}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalBtn, styles.modalBtnDestructive]}
-                  onPress={() => { setShowPairedGuard(false); pairedGuardResolveRef.current?.(true); }}
+                  onPress={() => { setShowPairedGuard(null); pairedGuardResolveRef.current?.(true); }}
                 >
                   <Text style={{ color: '#FFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>
                     {showPairedGuard === 'unlink' ? 'Unpair' : 'Continue'}
