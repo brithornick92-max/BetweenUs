@@ -92,7 +92,7 @@ let _flushing = false;
 let _supabase = null;
 
 // Simple session ID (random per app launch)
-const _sessionId = (() => {
+let _sessionId = (() => {
   try {
     return require('expo-crypto').randomUUID();
   } catch {
@@ -264,6 +264,15 @@ const AnalyticsService = {
 
   /** Set user ID (call after auth) */
   setUser(userId) {
+    if (_userId && _userId !== userId) {
+      _queue = []; // Drop the queue to prevent mixed-user flushes
+      SecureCacheStore.removeItem(ANALYTICS_QUEUE_KEY, { service: ANALYTICS_QUEUE_SERVICE }).catch(() => {});
+      try {
+        _sessionId = require('expo-crypto').randomUUID();
+      } catch {
+        _sessionId = Date.now().toString(36) + '_anon';
+      }
+    }
     _userId = userId;
   },
 

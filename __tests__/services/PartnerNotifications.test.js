@@ -41,31 +41,13 @@ describe('PartnerNotifications', () => {
     );
   });
 
-  it('loveNoteSent — includes note id in data', async () => {
-    await PartnerNotifications.loveNoteSent('Alex', 'note-99');
-
-    expect(mockNotifyPartner).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
-        data: expect.objectContaining({ route: 'love-note', type: 'love_note_sent', id: 'note-99' }),
-      })
-    );
-  });
-
-  it('loveNoteSent — omits id when none is provided', async () => {
-    await PartnerNotifications.loveNoteSent('Alex', null);
-
-    const payload = mockNotifyPartner.mock.calls[0][1];
-    expect(payload.data).not.toHaveProperty('id');
-  });
-
   it('vibeSent — sends correct route', async () => {
     await PartnerNotifications.vibeSent('Alex', 'thinking of you');
 
     expect(mockNotifyPartner).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        data: expect.objectContaining({ route: 'vibe', type: 'vibe_sent' }),
+        data: expect.objectContaining({ route: 'vibe', type: 'vibe_sent', vibeLabel: 'thinking of you' }),
       })
     );
   });
@@ -76,7 +58,7 @@ describe('PartnerNotifications', () => {
     expect(mockNotifyPartner).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        data: expect.objectContaining({ route: 'calendar', type: 'date_planned' }),
+        data: expect.objectContaining({ route: 'calendar', type: 'date_planned', title: 'Movie Night' }),
       })
     );
   });

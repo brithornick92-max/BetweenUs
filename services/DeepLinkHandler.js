@@ -24,6 +24,8 @@ let _navigationRef = null;
 // Set by AppContext/Tabs when day-2 tabs are mounted so deep links can guard accordingly
 let _showSecondaryTabs = false;
 
+const ID_REQUIRED_ROUTES = new Set(['prompt', 'date']);
+
 // Only allow safe characters in deep link ID parameters
 const SAFE_ID_RE = /^[a-zA-Z0-9_\-:.]{1,128}$/;
 const _sanitizeId = (id) => {
@@ -155,7 +157,6 @@ const DeepLinkHandler = {
       const sanitizedId = rawId ? _sanitizeId(String(rawId)) : null;
 
       // Routes that require an ID — bail if ID is missing or failed sanitization
-      const ID_REQUIRED_ROUTES = new Set(['prompt', 'date']);
       if (ID_REQUIRED_ROUTES.has(data.route) && !sanitizedId) {
         CrashReporting.captureMessage(`Notification route '${data.route}' missing required id`, 'warning');
         return false;

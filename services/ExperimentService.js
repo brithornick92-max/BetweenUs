@@ -193,6 +193,9 @@ const ExperimentService = {
 
   /** Set user ID (call after auth) */
   setUser(userId) {
+    if (_userId && _userId !== userId) {
+      _assignments = {}; // clear assignment cache when switching users
+    }
     _userId = userId;
   },
 

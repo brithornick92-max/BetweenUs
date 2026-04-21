@@ -11,8 +11,7 @@ class PremiumGatekeeper {
       PREMIUM_HEAT_LEVELS: [1, 2, 3, 4, 5] // Premium gets all levels
     };
     this.WEEKLY_LIMITS = {
-      FREE_FULL_DATE_FLOWS: 2,
-      FREE_LOVE_NOTES: 1,
+      FREE_FULL_DATE_FLOWS: 2
     };
   }
 
@@ -49,7 +48,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: 'You\'ve used today\'s 3 free prompts. Discover the full experience for unlimited prompts and deeper connection.'
+          message: `You've used today's ${this.DAILY_LIMITS.FREE_PROMPTS} free prompts. Discover the full experience for unlimited prompts and deeper connection.`
         };
       }
       
@@ -86,7 +85,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: 'Free users can explore 3 date ideas per day. Discover the full date night catalog for unlimited inspiration.'
+          message: `Free users can explore ${this.DAILY_LIMITS.FREE_DATES} date ideas per day. Discover the full date night catalog for unlimited inspiration.`
         };
       }
       
@@ -108,13 +107,14 @@ class PremiumGatekeeper {
   async getAccessiblePrompts(userId, filters = {}, isPremiumFlag = false) {
     try {
       const isPremium = this.isPremiumUser(isPremiumFlag);
+      const clonedFilters = { ...filters };
       
       // Add heat level filter for free users
       if (!isPremium) {
-        filters.heatLevels = this.DAILY_LIMITS.FREE_HEAT_LEVELS;
+        clonedFilters.heatLevels = this.DAILY_LIMITS.FREE_HEAT_LEVELS;
       }
       
-      const prompts = await StorageRouter.getPrompts(filters);
+      const prompts = await StorageRouter.getPrompts(clonedFilters);
       
       return {
         prompts,
@@ -198,7 +198,7 @@ class PremiumGatekeeper {
       return {
         canAccess: false,
         reason: 'weekly_limit_reached',
-        message: 'Free users can fully plan 1 date per week. Discover premium for unlimited date nights.'
+        message: `Free users can fully plan ${this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS} dates per week. Discover premium for unlimited date nights.`
       };
     } catch (error) {
       CrashReporting.captureException(error, { source: 'PremiumGatekeeper.canAccessDateFlow' });

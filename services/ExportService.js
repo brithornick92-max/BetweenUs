@@ -6,6 +6,7 @@
 import { Platform, Alert } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
 import CrashReporting from './CrashReporting';
 
 const EXPORT_CONTEXT = 'ExportService_exportParagraphSnapshot';
@@ -19,6 +20,7 @@ const ExportService = {
    * @returns {{ success: boolean, cancelled?: boolean }}
    */
   async exportParagraphSnapshot(snapshotRef, year) {
+    let uri = null;
     try {
       if (!snapshotRef?.current) {
         throw new Error('Snapshot ref is not mounted');
@@ -35,7 +37,7 @@ const ExportService = {
       }
 
       // 1. Capture the off-screen ViewShot at 2× pixel ratio for crisp sharing.
-      const uri = await snapshotRef.current.capture({
+      uri = await snapshotRef.current.capture({
         format: 'jpg',
         quality: 0.92,
         result: 'tmpfile',
@@ -107,6 +109,14 @@ const ExportService = {
       });
 
       throw error;
+    } finally {
+      if (uri) {
+        try {
+          await FileSystem.deleteAsync(uri, { idempotent: true });
+        } catch (e) {
+          // Fire and forget, no hard failure if tmp file delete fails
+        }
+      }
     }
   },
 };

@@ -12,10 +12,10 @@ beforeEach(() => {
 
 describe('DeepLinkHandler.handleUrl', () => {
   it('routes custom-scheme host URLs correctly', () => {
-    const handled = DeepLinkHandler.handleUrl('betweenus://love-note/note-123');
+    const handled = DeepLinkHandler.handleUrl('betweenus://prompt/p-123');
 
     expect(handled).toBe(true);
-    expect(navigate).toHaveBeenCalledWith('LoveNoteDetail', { noteId: 'note-123' });
+    expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: 'p-123' });
   });
 
   it('routes path-style custom URLs correctly', () => {
@@ -47,8 +47,8 @@ describe('DeepLinkHandler.handleNotificationResponse', () => {
         request: {
           content: {
             data: {
-              route: 'love-note',
-              noteId: 'note-456',
+              route: 'prompt',
+              id: 'p-456',
             },
           },
         },
@@ -56,7 +56,7 @@ describe('DeepLinkHandler.handleNotificationResponse', () => {
     });
 
     expect(handled).toBe(true);
-    expect(navigate).toHaveBeenCalledWith('LoveNoteDetail', { noteId: 'note-456' });
+    expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: 'p-456' });
   });
 
   it('rejects unsafe notification ids', () => {

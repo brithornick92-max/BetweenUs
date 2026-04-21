@@ -14,7 +14,6 @@
  *   journal_entries  →  couple_data (type='journal')
  *   prompt_answers   →  couple_data (type='prompt_answer')
  *   memories         →  couple_data (type='memory')
- *   rituals          →  couple_data (type='ritual')
  *   check_ins        →  couple_data (type='check_in')
  *   vibes            →  couple_data (type='vibe')
  *   attachments      →  couple_data (type='attachment_meta') + Storage bucket
@@ -35,10 +34,8 @@ const SYNC_TABLES = [
   'journal_entries',
   'prompt_answers',
   'memories',
-  'rituals',
   'check_ins',
   'vibes',
-  'love_notes',
 ];
 
 const PULL_TABLES = [...SYNC_TABLES, 'attachments'];
@@ -54,10 +51,8 @@ const TABLE_TO_TYPE = {
   journal_entries: 'journal',
   prompt_answers: 'prompt_answer',
   memories: 'memory',
-  rituals: 'ritual',
   check_ins: 'check_in',
   vibes: 'vibe',
-  love_notes: 'love_note',
   attachments: 'attachment_meta',
 };
 
@@ -218,8 +213,7 @@ function toRemoteRow(tableName, row) {
     // RLS requires created_by = auth.uid(). Local rows may have a different
     // UUID stored in user_id (legacy Crypto.randomUUID from AppContext).
     created_by: _userId,
-    // love_notes are always couple-shared; the table has no is_private column
-    is_private: tableName === 'love_notes' ? false : !!row.is_private,
+    is_private: !!row.is_private,
     // Metadata object — passed as a plain JS object so PostgREST stores it
     // as a JSONB object (not a JSONB string). Returning it as an object
     // ensures fromRemoteRow can read it back without JSON.parse.
@@ -485,13 +479,18 @@ const SyncEngine = {
 
       const results = { pushed: 0, pulled: 0, failed: 0, attachments: { uploaded: 0, failed: 0 } };
 
+      const abortController = new AbortController();
+
       let timer;
       const timeout = new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error('Sync timed out (30s)')), SYNC_TIMEOUT_MS);
+        timer = setTimeout(() => {
+          abortController.abort();
+          reject(new Error('Sync timed out (30s)'));
+        }, SYNC_TIMEOUT_MS);
       });
 
       try {
-        await Promise.race([this._performSyncCycle(results), timeout]);
+        await Promise.race([this._performSyncCycle(results, { signal: abortController.signal }), timeout]);
         emit('sync:complete', results);
       } catch (err) {
         emit('sync:error', { error: err.message });
@@ -506,9 +505,12 @@ const SyncEngine = {
   },
 
   /** @private Internal sync logic — called by sync() under timeout guard. */
-  async _performSyncCycle(results) {
-      // 1. Upload pending attachment files FIRST so they exist in Storage
-      //    before love_notes rows (which reference media_ref) reach the partner.
+  async _performSyncCycle(results, options = {}) {
+    const { signal } = options;
+
+      // 1. Upload pending attachment files first so remote metadata never
+      //    points at a missing blob in Storage.
+      if (signal?.aborted) return;
       let attachmentUploadOk = false;
       try {
         results.attachments = await EncryptedAttachments.uploadAllPending();
@@ -519,6 +521,7 @@ const SyncEngine = {
 
       // 2. Push attachment metadata ONLY if uploads succeeded
       //    (prevents partner from seeing broken media_ref references)
+      if (signal?.aborted) return;
       if (attachmentUploadOk) {
         try {
           const attPush = await pushTable('attachments');
@@ -531,9 +534,7 @@ const SyncEngine = {
       }
 
       // 3. Push all other local changes (journals, etc.)
-      //    Skip love_notes if attachments failed — prevents partner seeing broken media_ref
       for (const table of SYNC_TABLES) {
-        if (table === 'love_notes' && !attachmentUploadOk) continue;
         const r = await pushTable(table);
         results.pushed += r.pushed;
         results.failed += r.failed;
@@ -554,8 +555,8 @@ const SyncEngine = {
     return enqueueSyncOperation(async () => {
       if (!canSync()) return { skipped: true, reason: 'not configured' };
 
-      // Upload encrypted attachment files FIRST so they exist in Storage
-      // before love_notes rows (which reference media_ref) reach the partner.
+      // Upload encrypted attachment files first so remote metadata never
+      // points at a missing blob in Storage.
       let attachmentsOk = false;
       try {
         await EncryptedAttachments.uploadAllPending();
@@ -572,9 +573,7 @@ const SyncEngine = {
         }
       }
       // Now push all other tables (journals, etc.)
-      // Skip love_notes if attachments failed — prevents partner seeing broken media_ref
       for (const table of SYNC_TABLES) {
-        if (table === 'love_notes' && !attachmentsOk) continue;
         await pushTable(table);
       }
 

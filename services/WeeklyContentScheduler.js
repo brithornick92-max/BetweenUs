@@ -59,7 +59,11 @@ class WeeklyContentScheduler {
 
   /** How many full weeks since install (0-based). Uses cached value after init. */
   getCurrentWeek() {
-    if (this._ready) return this._currentWeek;
+    if (this._ready) {
+      // Re-compute dynamically instead of returning the static init-time value
+      // so if the app stays open across a week boundary, content unlocks.
+      return this._computeWeek();
+    }
     return 0; // Before init, only week-0 content is available
   }
 

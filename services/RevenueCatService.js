@@ -69,6 +69,7 @@ class RevenueCatService {
           missingKeyName,
         };
         if (__DEV__) console.warn(`⚠️ RevenueCat API key missing. Set ${missingKeyName}.`);
+        this._initPromise = null;
         return;
       }
 

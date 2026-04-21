@@ -24,9 +24,9 @@ import {
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
 describe('PremiumFeature enum', () => {
-  it('contains all 21 features', () => {
+  it('contains all 17 features', () => {
     const features = Object.keys(PremiumFeature);
-    expect(features.length).toBe(21);
+    expect(features.length).toBe(17);
   });
 
   it('is frozen (immutable)', () => {
@@ -42,7 +42,6 @@ describe('PremiumFeature enum', () => {
     expect(PremiumFeature.UNLIMITED_PROMPTS).toBe('unlimitedPrompts');
     expect(PremiumFeature.HEAT_LEVELS_4_5).toBe('heatLevels4to5');
     expect(PremiumFeature.CLOUD_SYNC).toBe('cloudSync');
-    expect(PremiumFeature.LOVE_NOTES).toBe('loveNotes');
     expect(PremiumFeature.PARTNER_LINKING).toBe('partnerLinking');
   });
 });
@@ -86,8 +85,6 @@ describe('FREE_LIMITS', () => {
 
   it('disables premium-only features', () => {
     expect(FREE_LIMITS.SURPRISE_ME_ENABLED).toBe(false);
-    expect(FREE_LIMITS.LOVE_NOTES_ENABLED).toBe(true);
-    expect(FREE_LIMITS.LOVE_NOTES_PER_WEEK).toBe(1);
     expect(FREE_LIMITS.CALENDAR_ENABLED).toBe(false);
     expect(FREE_LIMITS.PARTNER_LINKING_ENABLED).toBe(true);
     expect(FREE_LIMITS.CLOUD_SYNC_ENABLED).toBe(false);
@@ -113,7 +110,6 @@ describe('PREMIUM_LIMITS', () => {
 
   it('enables all premium features', () => {
     expect(PREMIUM_LIMITS.SURPRISE_ME_ENABLED).toBe(true);
-    expect(PREMIUM_LIMITS.LOVE_NOTES_ENABLED).toBe(true);
     expect(PREMIUM_LIMITS.CALENDAR_ENABLED).toBe(true);
     expect(PREMIUM_LIMITS.PARTNER_LINKING_ENABLED).toBe(true);
     expect(PREMIUM_LIMITS.CLOUD_SYNC_ENABLED).toBe(true);
@@ -206,7 +202,6 @@ describe('getGuardBehavior', () => {
     expect(getGuardBehavior(PremiumFeature.HEAT_LEVELS_4_5)).toBe(GuardBehavior.LOCK);
     expect(getGuardBehavior(PremiumFeature.SURPRISE_ME)).toBe(GuardBehavior.BLOCK);
     expect(getGuardBehavior(PremiumFeature.UNLIMITED_JOURNAL_HISTORY)).toBe(GuardBehavior.BLUR);
-    expect(getGuardBehavior(PremiumFeature.CUSTOM_RITUALS)).toBe(GuardBehavior.HIDE);
   });
 
   it('returns BLOCK for unknown features', () => {

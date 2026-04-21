@@ -16,15 +16,11 @@ export const PremiumFeature = Object.freeze({
   UNLIMITED_JOURNAL_HISTORY: 'unlimitedJournalHistory',
   PDF_EXPORT: 'pdfExport',
   VAULT_AND_BIOMETRIC: 'vaultAndBiometric',
-  CUSTOM_RITUALS: 'customRituals',
-  RITUAL_REMINDERS: 'ritualReminders',
   CLOUD_SYNC: 'cloudSync',
   EDITORIAL_PROMPTS: 'editorialPrompts',
   VIBE_SIGNAL: 'vibeSignal',
-  NIGHT_RITUAL_MODE: 'nightRitualMode',
   PROMPT_REFRESH: 'promptRefresh',
   AD_FREE: 'adFree',
-  LOVE_NOTES: 'loveNotes',
   CALENDAR: 'calendar',
   PARTNER_LINKING: 'partnerLinking',
   PROMPT_RESPONSES: 'promptResponses',
@@ -52,8 +48,6 @@ export const FREE_LIMITS = Object.freeze({
   JOURNAL_ENTRIES_VISIBLE: 0,   // No journal access
   FREE_HEAT_LEVELS: [1, 2, 3],
   SURPRISE_ME_ENABLED: false,
-  LOVE_NOTES_ENABLED: true,     // legacy key — Love Notes feature removed
-  LOVE_NOTES_PER_WEEK: 0,       // legacy key — Love Notes feature removed
   CALENDAR_ENABLED: false,
   PARTNER_LINKING_ENABLED: true,
   PROMPT_RESPONSES_ENABLED: true,
@@ -70,7 +64,6 @@ export const PREMIUM_LIMITS = Object.freeze({
   JOURNAL_ENTRIES_VISIBLE: Infinity,
   ALL_HEAT_LEVELS: [1, 2, 3, 4, 5],
   SURPRISE_ME_ENABLED: true,
-  LOVE_NOTES_ENABLED: true,
   CALENDAR_ENABLED: true,
   PARTNER_LINKING_ENABLED: true,
   PROMPT_RESPONSES_ENABLED: true,

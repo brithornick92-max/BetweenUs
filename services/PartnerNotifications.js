@@ -7,6 +7,7 @@
 
 import { getSupabaseOrThrow } from '../config/supabase';
 import PushNotificationService from './PushNotificationService';
+import DeepLinkHandler from './DeepLinkHandler';
 
 const PartnerNotifications = {
   /**
@@ -15,9 +16,12 @@ const PartnerNotifications = {
   async promptAnswered(senderName, promptId) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} just shared something \u{1F4AC}`,
-      body: 'Answer today\'s prompt to reveal what they wrote.',
-      data: { type: 'prompt_answered', route: 'prompt', ...(promptId ? { id: promptId } : {}) },
+      title: `${name} just shared something 💬`,
+      body: "Answer today's prompt to reveal what they wrote.",
+      data: {
+        type: 'prompt_answered',
+        ...DeepLinkHandler.buildNotificationData('prompt', promptId ? { id: promptId } : {}),
+      },
     });
   },
 
@@ -26,11 +30,14 @@ const PartnerNotifications = {
    */
   async vibeSent(senderName, vibeLabel) {
     const name = senderName || 'Your partner';
-    const suffix = vibeLabel ? `: ${vibeLabel}` : '';
     await this._send({
       title: `${name} is thinking of you`,
       body: 'They sent you a vibe. Open the app to feel it.',
-      data: { type: 'vibe_sent', route: 'vibe' },
+      data: {
+        type: 'vibe_sent',
+        ...(vibeLabel ? { vibeLabel } : {}),
+        ...DeepLinkHandler.buildNotificationData('vibe'),
+      },
     });
   },
 
@@ -39,11 +46,14 @@ const PartnerNotifications = {
    */
   async datePlanned(senderName, dateTitle) {
     const name = senderName || 'Your partner';
-    const suffix = dateTitle ? ` — ${dateTitle}` : '';
     await this._send({
       title: `${name} planned something for you two 📅`,
       body: 'A date night idea is waiting in your calendar.',
-      data: { type: 'date_planned', route: 'calendar' },
+      data: {
+        type: 'date_planned',
+        ...(dateTitle ? { title: dateTitle } : {}),
+        ...DeepLinkHandler.buildNotificationData('calendar'),
+      },
     });
   },
 
@@ -54,8 +64,11 @@ const PartnerNotifications = {
     const name = senderName || 'Your partner';
     await this._send({
       title: `${name} shared a journal entry 📝`,
-      body: 'Read what\'s on their mind.',
-      data: { type: 'journal_shared', route: 'journal' },
+      body: "Read what's on their mind.",
+      data: {
+        type: 'journal_shared',
+        ...DeepLinkHandler.buildNotificationData('journal'),
+      },
     });
   },
 
@@ -66,10 +79,15 @@ const PartnerNotifications = {
     const name = senderName || 'Your partner';
     const typeLabel = memoryType && memoryType !== 'moment' ? memoryType : 'moment';
     const emoji = typeLabel === 'anniversary' ? '🎉' : typeLabel === 'first' ? '⭐️' : '📸';
+
     await this._send({
       title: `${name} saved a memory ${emoji}`,
       body: 'A new moment was added to your shared archive.',
-      data: { type: 'memory_saved', route: 'saved-moments' },
+      data: {
+        type: 'memory_saved',
+        memoryType: typeLabel,
+        ...DeepLinkHandler.buildNotificationData('saved-moments'),
+      },
     });
   },
 
@@ -81,7 +99,11 @@ const PartnerNotifications = {
     await this._send({
       title: `Your ${currentStreak}-day streak is at risk 🔥`,
       body: 'Check in before midnight to keep it alive.',
-      data: { type: 'streak_at_risk', route: 'home', streak: currentStreak },
+      data: {
+        type: 'streak_at_risk',
+        streak: currentStreak,
+        ...DeepLinkHandler.buildNotificationData('home'),
+      },
     });
   },
 

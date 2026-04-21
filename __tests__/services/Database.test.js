@@ -21,13 +21,15 @@ jest.mock('expo-sqlite', () => ({
   openDatabaseAsync: jest.fn().mockResolvedValue(mockDb),
 }));
 
-const Database = require('../../services/db/Database').default;
+let Database;
 
 describe('Database', () => {
   beforeEach(() => {
+    jest.resetModules();
     jest.clearAllMocks();
     // Reset user_version to 0 to trigger migrations
     mockGetFirstAsync.mockResolvedValue({ user_version: 0 });
+    Database = require('../../services/db/Database').default;
   });
 
   describe('init', () => {
@@ -38,6 +40,20 @@ describe('Database', () => {
       // Should set WAL mode and foreign keys
       expect(mockExecAsync).toHaveBeenCalledWith('PRAGMA journal_mode = WAL;');
       expect(mockExecAsync).toHaveBeenCalledWith('PRAGMA foreign_keys = ON;');
+    });
+
+    it('runs journal v9 migration before v10 and v11 for older databases', async () => {
+      await Database.init();
+
+      const pragmaCalls = mockExecAsync.mock.calls
+        .map(([sql]) => sql)
+        .filter((sql) => typeof sql === 'string' && sql.startsWith('PRAGMA user_version = '));
+
+      expect(pragmaCalls).toContain('PRAGMA user_version = 9;');
+      expect(pragmaCalls).toContain('PRAGMA user_version = 10;');
+      expect(pragmaCalls).toContain('PRAGMA user_version = 11;');
+      expect(pragmaCalls.indexOf('PRAGMA user_version = 9;')).toBeLessThan(pragmaCalls.indexOf('PRAGMA user_version = 10;'));
+      expect(pragmaCalls.indexOf('PRAGMA user_version = 10;')).toBeLessThan(pragmaCalls.indexOf('PRAGMA user_version = 11;'));
     });
   });
 

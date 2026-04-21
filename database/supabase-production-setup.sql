@@ -1370,7 +1370,7 @@ BEGIN
     NEW.created_by,
     '📅 ' || COALESCE(NEW.title, 'New Date Plan'),
     sender_name || ' planned something special',
-    jsonb_build_object('type', 'calendar_event', 'event_id', NEW.id, 'couple_id', NEW.couple_id)
+    jsonb_build_object('type', 'calendar_event', 'route', 'calendar', 'id', NEW.id, 'event_id', NEW.id, 'couple_id', NEW.couple_id)
   );
 
   RETURN NEW;
@@ -1405,7 +1405,7 @@ BEGIN
     NEW.created_by,
     '✨ New Moment',
     sender_name || ' shared a ' || COALESCE(NEW.moment_type, 'moment'),
-    jsonb_build_object('type', 'moment', 'moment_id', NEW.id, 'couple_id', NEW.couple_id)
+    jsonb_build_object('type', 'moment', 'route', 'journal', 'id', NEW.id, 'moment_id', NEW.id, 'couple_id', NEW.couple_id)
   );
 
   RETURN NEW;

@@ -169,16 +169,17 @@ const PushNotificationService = {
       if (error) throw error;
 
       if (__DEV__) console.log('[Push] Token removed');
-      this._token = null;
-      await SecureCacheStore.removeItem(PUSH_TOKEN_CACHE_KEY, {
-        service: PUSH_TOKEN_SERVICE,
-      });
     } catch (error) {
       if (__DEV__) console.error('[Push] Remove token error:', error.message);
       try {
         const { default: CrashReporting } = await import('../services/CrashReporting');
         CrashReporting.captureException(error, { source: 'push_token_remove' });
       } catch {}
+    } finally {
+      this._token = null;
+      await SecureCacheStore.removeItem(PUSH_TOKEN_CACHE_KEY, {
+        service: PUSH_TOKEN_SERVICE,
+      });
     }
   },
 

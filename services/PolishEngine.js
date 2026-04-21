@@ -71,7 +71,6 @@ export const RelationshipMilestones = {
         totalPrompts: 0,
         totalDates: 0,
         totalMoments: 0,
-        totalLoveNotes: 0,
         firstDateSaved: null,
         firstPromptAnswered: null,
       };
@@ -567,7 +566,7 @@ export const OfflineGrace = {
     try {
       const queue = await this._readQueue();
       queue.push({
-        id: Date.now().toString(),
+        id: `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         action, // { type: 'loveNote' | 'moment' | 'answer', payload: ... }
         createdAt: Date.now(),
         synced: false,
@@ -629,7 +628,8 @@ export const YearReflection = {
     try {
       const stats = await RelationshipMilestones._getStats();
       const seasonRaw = await AsyncStorage.getItem(KEYS.RELATIONSHIP_SEASON);
-      const season = seasonRaw ? JSON.parse(seasonRaw) : null;
+      const parsedSeason = seasonRaw ? JSON.parse(seasonRaw) : null;
+      const season = parsedSeason ? await _decrypt(parsedSeason) : null;
 
       // Build narrative from available data
       const sections = [];
@@ -663,14 +663,6 @@ export const YearReflection = {
         sections.push({
           type: 'dates',
           text: `You planned ${stats.totalDates} date ${stats.totalDates === 1 ? 'night' : 'nights'}. The kind of intentional time that matters.`,
-        });
-      }
-
-      // Love Notes
-      if (stats.totalLoveNotes > 0) {
-        sections.push({
-          type: 'loveNotes',
-          text: `${stats.totalLoveNotes} love ${stats.totalLoveNotes === 1 ? 'note' : 'notes'} sent. Words you wanted to put somewhere permanent.`,
         });
       }
 

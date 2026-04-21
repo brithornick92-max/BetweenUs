@@ -547,8 +547,6 @@ BEGIN
       );
     WHEN 'vibe'          THEN notif_title := '💗 New Heartbeat';
                               notif_body  := sender_name || ' just sent a heartbeat';
-    WHEN 'love_note'     THEN notif_title := '💌 Love Note';
-                              notif_body  := sender_name || ' sent you a love note';
     WHEN 'journal'       THEN notif_title := '📝 Journal Entry';
                               notif_body  := sender_name || ' shared a journal entry';
     WHEN 'prompt_answer' THEN notif_title := '💬 Prompt Answer';
@@ -557,8 +555,6 @@ BEGIN
                               notif_body  := sender_name || ' checked in';
     WHEN 'memory'        THEN notif_title := '📸 New Memory';
                               notif_body  := sender_name || ' shared a memory';
-    WHEN 'custom_ritual' THEN notif_title := '🌙 New Ritual';
-                              notif_body  := sender_name || ' created a ritual';
     ELSE                      notif_title := '💕 Between Us';
                               notif_body  := sender_name || ' shared something new';
   END CASE;

@@ -58,13 +58,17 @@ export default function JournalEntryScreen({ navigation, route }) {
   const isReadOnly = !!readOnly || (!!entry?.id && !isOwnEntry);
   // Premium gate — redirect non-premium users without crashing
   const isPremiumGated = !isPremium;
+  
   useEffect(() => {
-    if (isPremiumGated) {
-      let active = true;
-      showPaywall?.(PremiumFeature.UNLIMITED_JOURNAL_HISTORY);
-      const timeout = setTimeout(() => { if (active) navigation.goBack(); }, 100);
-      return () => { active = false; clearTimeout(timeout); };
-    }
+    if (!isPremiumGated) return;
+  
+    showPaywall?.(PremiumFeature.UNLIMITED_JOURNAL_HISTORY);
+  
+    const id = requestAnimationFrame(() => {
+      navigation.canGoBack() ? navigation.goBack() : navigation.navigate('JournalHome');
+    });
+  
+    return () => cancelAnimationFrame(id);
   }, [isPremiumGated, navigation, showPaywall]);
 
   const [title, setTitle] = useState(entry?.title || "");

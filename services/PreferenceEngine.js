@@ -339,14 +339,17 @@ function filterPrompts(allPrompts, profile, options = {}) {
     if (rating === 'neutral') score += 0;
     if (rating === 'hate') score -= 2;
 
-    // Small random jitter so same-score prompts shuffle
-    score += Math.random() * 0.2;
-
     return { prompt, score };
   });
 
-  // Sort by score descending
-  scored.sort((a, b) => b.score - a.score);
+  // Sort by score descending. Include a deterministic tie-breaker so the
+  // same prompts with the same score don't shuffle arbitrarily on re-render.
+  scored.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+    return a.prompt.id.localeCompare(b.prompt.id);
+  });
 
   return scored.map((s) => s.prompt);
 }

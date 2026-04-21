@@ -100,6 +100,24 @@ jest.mock('../../services/PushNotificationService', () => ({
   },
 }));
 
+jest.mock('react-native-purchases', () => ({
+  __esModule: true,
+  default: {
+    configure: jest.fn(),
+    logIn: jest.fn(),
+    logOut: jest.fn(),
+    getOfferings: jest.fn().mockResolvedValue({ current: null, all: {} }),
+    purchasePackage: jest.fn(),
+    restorePurchases: jest.fn(),
+    getCustomerInfo: jest.fn().mockResolvedValue({ entitlements: { active: {} } }),
+    getAppUserID: jest.fn().mockResolvedValue(null),
+    setLogLevel: jest.fn(),
+    addCustomerInfoUpdateListener: jest.fn(() => jest.fn()),
+    checkTrialOrIntroPriceEligibility: jest.fn().mockResolvedValue({}),
+  },
+  LOG_LEVEL: { WARN: 2, DEBUG: 4, VERBOSE: 5 },
+}));
+
 jest.mock('../../services/PartnerNotifications', () => ({
   __esModule: true,
   default: {
@@ -114,6 +132,18 @@ jest.mock('../../services/security/CoupleKeyService', () => ({
     getDevicePublicKeyB64: jest.fn().mockResolvedValue('device-public-key'),
     unwrapKeyForDevice: jest.fn().mockResolvedValue(null),
     storeCoupleKey: jest.fn().mockResolvedValue(true),
+  },
+}));
+
+jest.mock('../../services/couple/CouplePresenceService', () => ({
+  __esModule: true,
+  default: {
+    getVerifiedCoupleState: jest.fn().mockResolvedValue({
+      coupleId: 'couple-1',
+      partnerId: 'partner-1',
+      hasCoupleKey: true,
+      status: 'paired',
+    }),
   },
 }));
 
@@ -196,6 +226,7 @@ describe('DataLayer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    E2EEncryption.hasCoupleKey.mockResolvedValue(true);
     mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' } } });
     mockRpc.mockResolvedValue({ error: null });
     mockSingle.mockResolvedValue({ data: { id: '11111111-1111-4111-8111-111111111111' }, error: null });
@@ -628,31 +659,21 @@ describe('DataLayer', () => {
   });
 
   describe('Love Notes', () => {
-    it('saveLoveNote encrypts text', async () => {
-      await DataLayer.saveLoveNote({
-        text: 'I love you',
-        stationeryId: 'default',
-        senderName: 'Alice',
-      });
-      expect(E2EEncryption.encryptString).toHaveBeenCalled();
-      expect(Database.insertLoveNote).toHaveBeenCalled();
-    });
-
-    it('saveLoveNote still rejects when the couple key is unavailable and cannot be restored', async () => {
-      E2EEncryption.hasCoupleKey.mockResolvedValue(false);
-      await DataLayer.reconfigure({ userId: 'user-1', coupleId: 'couple-1', isPremium: true });
-
+    it('saveLoveNote rejects because the feature is retired', async () => {
       await expect(DataLayer.saveLoveNote({
         text: 'I love you',
         stationeryId: 'default',
         senderName: 'Alice',
-      })).rejects.toThrow('COUPLE_KEY_MISSING');
+      })).rejects.toThrow('Love Notes are no longer supported');
     });
 
-    it('getUnreadLoveNoteCount returns count', async () => {
-      Database.getUnreadLoveNoteCount.mockResolvedValueOnce(5);
+    it('getLoveNotes returns an empty list for the retired feature', async () => {
+      await expect(DataLayer.getLoveNotes()).resolves.toEqual([]);
+    });
+
+    it('getUnreadLoveNoteCount returns zero for the retired feature', async () => {
       const count = await DataLayer.getUnreadLoveNoteCount();
-      expect(count).toBe(5);
+      expect(count).toBe(0);
     });
   });
 

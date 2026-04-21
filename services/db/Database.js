@@ -31,7 +31,7 @@ const makeId = (prefix = 'row') => {
 /** Whitelist of tables that sync helpers may reference via string interpolation. */
 const VALID_SYNC_TABLES = new Set([
   'journal_entries', 'prompt_answers', 'memories',
-  'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes',
+  'check_ins', 'vibes', 'attachments',
   'calendar_events_local', 'date_plans'
 ]);
 
@@ -155,24 +155,6 @@ async function migrate(db) {
       CREATE INDEX IF NOT EXISTS idx_mem_sync  ON memories(sync_status);
       CREATE INDEX IF NOT EXISTS idx_mem_date  ON memories(created_at);
 
-      -- Rituals & streaks
-      CREATE TABLE IF NOT EXISTS rituals (
-        id              TEXT PRIMARY KEY,
-        user_id         TEXT NOT NULL,
-        couple_id       TEXT,
-        flow_id         TEXT,
-        body_cipher     TEXT,            -- encrypted responses
-        completed_at    TEXT NOT NULL,
-        streak_day      INTEGER DEFAULT 1,
-        created_at      TEXT NOT NULL,
-        updated_at      TEXT NOT NULL,
-        deleted_at      TEXT,
-        sync_status     TEXT DEFAULT 'pending',
-        sync_version    INTEGER DEFAULT 0
-      );
-      CREATE INDEX IF NOT EXISTS idx_rit_user  ON rituals(user_id);
-      CREATE INDEX IF NOT EXISTS idx_rit_sync  ON rituals(sync_status);
-
       -- Check-ins
       CREATE TABLE IF NOT EXISTS check_ins (
         id              TEXT PRIMARY KEY,
@@ -247,7 +229,7 @@ async function migrate(db) {
     try {
       const tables = [
         'journal_entries', 'prompt_answers', 'memories',
-        'rituals', 'check_ins', 'vibes', 'attachments',
+        'check_ins', 'vibes', 'attachments',
       ];
       for (const t of tables) {
         try {
@@ -312,51 +294,14 @@ async function migrate(db) {
     }
   }
 
-  // v5: Love notes table (E2EE text + sender + photo attachment)
+  // v5: retired feature slot
   if (user_version < 5) {
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS love_notes (
-        id                TEXT PRIMARY KEY,
-        user_id           TEXT NOT NULL,
-        couple_id         TEXT,
-        text_cipher       TEXT,
-        stationery_id     TEXT,
-        sender_name_cipher TEXT,
-        media_ref         TEXT,
-        is_read           INTEGER DEFAULT 0,
-        read_at           TEXT,
-        created_at        TEXT NOT NULL,
-        updated_at        TEXT NOT NULL,
-        deleted_at        TEXT,
-        sync_status       TEXT DEFAULT 'pending',
-        sync_version      INTEGER DEFAULT 0,
-        sync_source       TEXT DEFAULT 'local'
-      );
-      CREATE INDEX IF NOT EXISTS idx_ln_user   ON love_notes(user_id);
-      CREATE INDEX IF NOT EXISTS idx_ln_couple ON love_notes(couple_id);
-      CREATE INDEX IF NOT EXISTS idx_ln_sync   ON love_notes(sync_status);
-      CREATE INDEX IF NOT EXISTS idx_ln_date   ON love_notes(created_at);
-    `);
     await db.execAsync('PRAGMA user_version = 5;');
   }
 
-  // v6: Invisible Ink flag on love notes
+  // v6: retired feature slot
   if (user_version < 6) {
-    await db.execAsync('BEGIN TRANSACTION;');
-    try {
-      try {
-        await db.execAsync(
-          `ALTER TABLE love_notes ADD COLUMN is_invisible_ink INTEGER DEFAULT 0;`
-        );
-      } catch (e) {
-        if (!e?.message?.includes('duplicate column')) throw e;
-      }
-      await db.execAsync('PRAGMA user_version = 6;');
-      await db.execAsync('COMMIT;');
-    } catch (err) {
-      await db.execAsync('ROLLBACK;');
-      throw err;
-    }
+    await db.execAsync('PRAGMA user_version = 6;');
   }
 
   // v7: Calendar events + date plans tables
@@ -409,18 +354,22 @@ async function migrate(db) {
     `);
   }
 
-  // v8: Ephemeral love notes — expires_at field
+  // v8: retired feature slot
   if (user_version < 8) {
+    await db.execAsync('PRAGMA user_version = 8;');
+  }
+
+  // v9: couple_id on journal entries for shared-feed scoping
+  if (user_version < 9) {
     await db.execAsync('BEGIN TRANSACTION;');
     try {
       try {
-        await db.execAsync(
-          `ALTER TABLE love_notes ADD COLUMN expires_at TEXT;`
-        );
+        await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN couple_id TEXT;`);
       } catch (e) {
         if (!e?.message?.includes('duplicate column')) throw e;
       }
-      await db.execAsync('PRAGMA user_version = 8;');
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_journal_couple ON journal_entries(couple_id);`);
+      await db.execAsync('PRAGMA user_version = 9;');
       await db.execAsync('COMMIT;');
     } catch (err) {
       await db.execAsync('ROLLBACK;');
@@ -462,23 +411,6 @@ async function migrate(db) {
     }
   }
 
-  // v9: couple_id on journal entries for shared-feed scoping
-  if (user_version < 9) {
-    await db.execAsync('BEGIN TRANSACTION;');
-    try {
-      try {
-        await db.execAsync(`ALTER TABLE journal_entries ADD COLUMN couple_id TEXT;`);
-      } catch (e) {
-        if (!e?.message?.includes('duplicate column')) throw e;
-      }
-      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_journal_couple ON journal_entries(couple_id);`);
-      await db.execAsync('PRAGMA user_version = 9;');
-      await db.execAsync('COMMIT;');
-    } catch (err) {
-      await db.execAsync('ROLLBACK;');
-      throw err;
-    }
-  }
 }
 
 // ─── Generic CRUD ───────────────────────────────────────────────────
@@ -1360,7 +1292,7 @@ const Database = {
   async purgeDeleted(daysOld = 30) {
     const db = await getDb();
     const cutoff = new Date(Date.now() - daysOld * 86400000).toISOString();
-    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes', 'calendar_events_local', 'date_plans'];
+    const tables = ['journal_entries', 'prompt_answers', 'memories', 'check_ins', 'vibes', 'attachments', 'calendar_events_local', 'date_plans'];
     let total = 0;
     for (const t of tables) {
       const result = await db.runAsync(
@@ -1376,7 +1308,7 @@ const Database = {
 
   async wipeAll() {
     const db = await getDb();
-    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes', 'calendar_events_local', 'date_plans', 'sync_meta'];
+    const tables = ['journal_entries', 'prompt_answers', 'memories', 'check_ins', 'vibes', 'attachments', 'calendar_events_local', 'date_plans', 'sync_meta'];
     for (const t of tables) {
       await db.runAsync(`DELETE FROM ${t}`);
     }

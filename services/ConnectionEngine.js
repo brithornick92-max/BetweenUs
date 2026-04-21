@@ -38,7 +38,7 @@ const _resolveSupabaseUserId = async (fallbackUserId) => {
     if (__DEV__ && error) console.warn('[MomentSignal] getUser() error:', error.message);
     // Session may have expired — attempt silent re-auth via stored credentials
     try {
-      const { SupabaseAuthService } = require('./supabase/SupabaseAuthService');
+      const SupabaseAuthService = require('./supabase/SupabaseAuthService').default || require('./supabase/SupabaseAuthService');
       if (SupabaseAuthService?.signInWithStoredCredentials) {
         const session = await SupabaseAuthService.signInWithStoredCredentials();
         if (session?.user?.id) return session.user.id;
@@ -89,6 +89,7 @@ const _setStoredContextValue = (key, value) => {
 };
 
 const KEYS = {
+  MOMENT_LAST_SENT: '@bu_moment_last_sent',
   MOMENT_COOLDOWN: '@bu_moment_cooldown',
   MOMENT_USER_ID: '@bu_moment_user_id',
   MOMENT_COUPLE_ID: '@bu_moment_couple_id',
@@ -123,7 +124,19 @@ export const HEARTBEAT_SIGNAL = {
 
 // 5-minute cooldown — keeps each signal intentional and prevents notification fatigue
 const MOMENT_COOLDOWN_MS = 5 * 60 * 1000;
-let _lastMomentSentAt = 0;
+let _lastMomentSentAt = null;
+
+const _getLastMomentSentAt = async () => {
+  if (_lastMomentSentAt !== null) return _lastMomentSentAt;
+  const stored = await AsyncStorage.getItem(KEYS.MOMENT_LAST_SENT);
+  _lastMomentSentAt = stored ? parseInt(stored, 10) : 0;
+  return _lastMomentSentAt;
+};
+
+const _setLastMomentSentAt = async (timestamp) => {
+  _lastMomentSentAt = timestamp;
+  await AsyncStorage.setItem(KEYS.MOMENT_LAST_SENT, timestamp.toString());
+};
 
 export const MomentSignalSender = {
   /**
@@ -137,7 +150,8 @@ export const MomentSignalSender = {
 
   /** Returns true if cooldown has elapsed since last send */
   async canSend() {
-    return Date.now() - _lastMomentSentAt >= MOMENT_COOLDOWN_MS;
+    const lastSent = await _getLastMomentSentAt();
+    return Date.now() - lastSent >= MOMENT_COOLDOWN_MS;
   },
 
   /**
@@ -152,9 +166,10 @@ export const MomentSignalSender = {
   async send(momentType, options = {}) {
     const { requireRemote = false } = options;
     const now = Date.now();
+    const lastSent = await _getLastMomentSentAt();
 
-    if (now - _lastMomentSentAt < MOMENT_COOLDOWN_MS) {
-      const remaining = Math.ceil((MOMENT_COOLDOWN_MS - (now - _lastMomentSentAt)) / 1000);
+    if (now - lastSent < MOMENT_COOLDOWN_MS) {
+      const remaining = Math.ceil((MOMENT_COOLDOWN_MS - (now - lastSent)) / 1000);
       return { sent: false, remote: false, type: momentType, timestamp: now, cooldown: true, error: `Wait ${remaining}s before sending again.` };
     }
 
@@ -208,14 +223,14 @@ export const MomentSignalSender = {
             return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
           }
           // Still counts as "sent" locally — the user saw the confirmation
-          _lastMomentSentAt = now;
+          await _setLastMomentSentAt(now);
           return { sent: true, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
         }
 
         // Push notification is handled by the DB trigger on couple_data insert
         // (notify_on_couple_data_insert) — no client-side call needed.
 
-        _lastMomentSentAt = now;
+        await _setLastMomentSentAt(now);
         return { sent: true, remote: true, type: momentType, timestamp: now };
       } catch (err) {
         const errMsg = err.message || String(err) || 'Network or connection error';
@@ -238,7 +253,7 @@ export const MomentSignalSender = {
     }
 
     // ── Local-only fallback (no Supabase / not linked) ──
-    _lastMomentSentAt = now;
+    await _setLastMomentSentAt(now);
     return { sent: true, remote: false, type: momentType, timestamp: now };
   },
 
@@ -284,7 +299,11 @@ export const MomentSignalSender = {
       }
 
       return (data || []).map(row => {
-        try { return JSON.parse(row.value); } catch { return null; }
+        try {
+          return typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+        } catch {
+          return null;
+        }
       }).filter(Boolean);
     } catch (err) {
       if (__DEV__) console.warn('[MomentSignal] getReceivedSignals error:', err.message);
@@ -370,7 +389,8 @@ export const MomentSignalSender = {
 
   /** Returns milliseconds remaining before the next signal can be sent (0 if ready) */
   async getCooldownRemaining() {
-    const elapsed = Date.now() - _lastMomentSentAt;
+    const lastSent = await _getLastMomentSentAt();
+    const elapsed = Date.now() - lastSent;
     return Math.max(0, MOMENT_COOLDOWN_MS - elapsed);
   },
 };
@@ -536,7 +556,7 @@ export const SerendipityTrigger = {
 
   /** Get a random surprise type */
   getRandomType() {
-    const types = ['prompt', 'date', 'memory', 'loveNote'];
+    const types = ['prompt', 'date', 'memory'];
     return types[Math.floor(Math.random() * types.length)];
   },
 
@@ -544,24 +564,22 @@ export const SerendipityTrigger = {
   getPreferenceAwareType(profile) {
     if (!profile) return this.getRandomType();
 
-    const weights = { prompt: 1, date: 1, memory: 1, loveNote: 1 };
+    const weights = { prompt: 1, date: 1, memory: 1 };
 
-    // Energy: low → memory/loveNote; open → date/prompt
-    if (profile.energyLevel === 'low') {
+    // Energy: low → memory; open → date/prompt
+    if (profile.energy?.level === 'low') {
       weights.memory += 1;
-      weights.loveNote += 1;
-    } else if (profile.energyLevel === 'open') {
+    } else if (profile.energy?.level === 'open') {
       weights.date += 1;
       weights.prompt += 0.5;
     }
 
     // Season: adventure → date; rest/healing → memory; growth → prompt
-    const season = profile.season;
+    const season = profile.season?.id;
     if (season === 'adventure' || season === 'honeymoon') {
       weights.date += 1.5;
     } else if (season === 'rest' || season === 'healing') {
       weights.memory += 1;
-      weights.loveNote += 1;
     } else if (season === 'growth') {
       weights.prompt += 1;
     }
@@ -602,8 +620,9 @@ export const PrivateLanguageVault = {
 
   async add(item) {
     const all = await this.getAll();
+    const crypto = require('expo-crypto');
     const newItem = {
-      id: Date.now().toString(),
+      id: `joke_${Date.now()}_${crypto.randomUUID().slice(0, 9)}`,
       title: item.title || item.text || '',
       text: item.text || item.title || '',
       story: item.story || '',
@@ -743,64 +762,6 @@ const FuturePromptRotation = {
     } catch (e) {
       if (__DEV__) console.warn('[ConnectionEngine] Future history save failed:', e?.message);
     }
-  },
-};
-
-// ═══════════════════════════════════════════════════════
-// 9. RitualCycleManager — Connection rituals
-// ═══════════════════════════════════════════════════════
-
-const RITUAL_TYPES_CYCLE = [
-  { id: 'weekly_appreciation', label: 'Weekly Appreciation', cadence: 'weekly', description: 'Share something you appreciate about each other' },
-  { id: 'monthly_reflection', label: 'Monthly Reflection', cadence: 'monthly', description: 'Reflect on what felt alive between you this month' },
-  { id: 'seasonal_intention', label: 'Seasonal Intention', cadence: 'seasonal', description: 'Set an intention for the season together' },
-  { id: 'anniversary_prompt', label: 'Anniversary Reflection', cadence: 'anniversary', description: 'A private, tasteful reflection on your journey' },
-];
-
-const RitualCycleManager = {
-  async getActiveRituals() {
-    try {
-      const raw = await AsyncStorage.getItem(KEYS.RITUAL_CYCLE);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  },
-
-  async toggleRitual(ritualId, enabled) {
-    const rituals = await this.getActiveRituals();
-    const index = rituals.findIndex(r => r.id === ritualId);
-    if (enabled && index === -1) {
-      rituals.push({ id: ritualId, enabled: true, lastTriggered: null });
-    } else if (!enabled && index !== -1) {
-      rituals.splice(index, 1);
-    }
-    await AsyncStorage.setItem(KEYS.RITUAL_CYCLE, JSON.stringify(rituals));
-  },
-
-  /** Check if any ritual is due */
-  async getDueRituals() {
-    const active = await this.getActiveRituals();
-    const now = Date.now();
-    const due = [];
-
-    for (const ritual of active) {
-      if (!ritual.enabled) continue;
-      const type = RITUAL_TYPES_CYCLE.find(t => t.id === ritual.id);
-      if (!type) continue;
-
-      const lastTriggered = ritual.lastTriggered || 0;
-      const daysSince = (now - lastTriggered) / (1000 * 60 * 60 * 24);
-
-      let isDue = false;
-      if (type.cadence === 'weekly' && daysSince >= 7) isDue = true;
-      if (type.cadence === 'monthly' && daysSince >= 30) isDue = true;
-      if (type.cadence === 'seasonal' && daysSince >= 90) isDue = true;
-
-      if (isDue) due.push(type);
-    }
-
-    return due;
   },
 };
 

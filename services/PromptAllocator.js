@@ -43,11 +43,17 @@ const PromptAllocator = {
    * Call once after login / app foreground.
    */
   async load(userId) {
-    if (!userId) return;
-    _userId = userId;
     _dailyPromptId = null;
     _todayAnsweredIds = new Set();
     _allAnsweredIds = new Set();
+    _loaded = false;
+
+    if (!userId) {
+      _userId = null;
+      return;
+    }
+    
+    _userId = userId;
 
     try {
       const d = new Date();

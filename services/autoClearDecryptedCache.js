@@ -3,10 +3,10 @@ import EncryptedAttachments from './e2ee/EncryptedAttachments';
 
 let currentState = AppState.currentState;
 
-function handleAppStateChange(nextAppState) {
+async function handleAppStateChange(nextAppState) {
   if (currentState.match(/active/) && nextAppState.match(/inactive|background/)) {
     // App is going to background, clear decrypted cache
-    EncryptedAttachments.clearDecryptedCache();
+    await EncryptedAttachments.clearDecryptedCache();
   }
   currentState = nextAppState;
 }

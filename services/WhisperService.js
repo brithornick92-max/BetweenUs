@@ -128,8 +128,8 @@ async function upload({ fileUri, coupleId, senderId, durationMs, coupleKey }) {
     .insert({
       couple_id: coupleId,
       data_type: 'whisper',
-      data_key: whisperId,
-      data_value: {
+      key: whisperId,
+      value: {
         whisper_id: whisperId,
         storage_path: storagePath,
         nonce: nonceB64,
@@ -169,7 +169,7 @@ async function getPending({ coupleId, userId }) {
   if (error || !data) return [];
 
   return data
-    .map((row) => row.data_value)
+    .map((row) => row.value)
     .filter((w) => w && w.sender_id !== userId && !w.played);
 }
 
@@ -212,18 +212,22 @@ async function deleteAfterPlay({ whisper, coupleId, localUri }) {
 
   if (!supabase) return;
 
+  // Mark as played in metadata first to avoid un-decryptable phantom rows
+  const { error: metaError } = await supabase
+    .from(TABLES.COUPLE_DATA)
+    .update({ value: { ...whisper, played: true } })
+    .eq('couple_id', coupleId)
+    .eq('key', whisper.whisper_id);
+
+  if (metaError) {
+    console.warn(`[WhisperService] Failed to mark whisper as played: ${metaError.message}`);
+    return; // Don't delete storage if we couldn't mark it played, otherwise it becomes a phantom
+  }
+
   // Delete from Supabase Storage (the ciphertext blob)
   await supabase.storage
     .from(WHISPER_BUCKET)
     .remove([whisper.storage_path])
-    .catch(() => {});
-
-  // Mark as played in metadata (so it doesn't re-appear for the sender)
-  await supabase
-    .from(TABLES.COUPLE_DATA)
-    .update({ data_value: { ...whisper, played: true } })
-    .eq('couple_id', coupleId)
-    .eq('data_key', whisper.whisper_id)
     .catch(() => {});
 }
 
