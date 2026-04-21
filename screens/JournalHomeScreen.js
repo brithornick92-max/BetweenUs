@@ -73,8 +73,8 @@ export default function JournalHomeScreen({ navigation }) {
   const [showSharedNotice, setShowSharedNotice] = useState(false);
 
   const ownerIds = useMemo(
-    () => new Set([user?.id, user?.uid, state?.userId].filter(Boolean)),
-    [state?.userId, user?.id, user?.uid]
+    () => new Set([user?.id, state?.userId].filter(Boolean)),
+    [state?.userId, user?.id]
   );
 
   const t = useMemo(() => ({
@@ -448,6 +448,7 @@ const createStyles = (t) => StyleSheet.create({
     borderRadius: 12,
     marginBottom: SPACING.md,
     resizeMode: 'cover',
+  },
   videoCardPreview: {
     width: '100%',
     height: 140,
@@ -462,7 +463,6 @@ const createStyles = (t) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
     fontWeight: '700',
-  },
   },
   cardBody: {
     fontFamily: SYSTEM_FONT,
