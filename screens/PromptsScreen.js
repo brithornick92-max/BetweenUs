@@ -32,7 +32,7 @@ import { SPACING, withAlpha } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
-import PreferenceEngine from "../services/PreferenceEngine";
+import * as PreferenceEngine from "../services/PreferenceEngine";
 import PromptCardDeck from "../components/PromptCardDeck";
 import { SoftBoundaries } from "../services/PolishEngine";
 import { getFilteredPromptsWithProfile, FALLBACK_PROMPT } from "../utils/contentLoader";

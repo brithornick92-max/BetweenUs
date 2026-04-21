@@ -53,9 +53,7 @@ export const SyncSetup = () => withScreenErrorBoundary(require("../screens/SyncS
 export const ResetPassword = () => withScreenErrorBoundary(require("../screens/ResetPasswordScreen").default, "ResetPassword");
 
 // ─── Pairing ────────────────────────────────────────────────────────
-export const PairingQRCode = () => withScreenErrorBoundary(require("../screens/PairingQRCodeScreen").default, "PairingQRCode");
-export const PairingScan = () => withScreenErrorBoundary(require("../screens/PairingScanScreen").default, "PairingScan");
-export const JoinWithCode = () => withScreenErrorBoundary(require("../screens/JoinWithCodeScreen").default, "JoinWithCode");
+export const ConnectPartner = () => withScreenErrorBoundary(require("../screens/ConnectPartnerScreen").default, "ConnectPartner");
 
 // ─── Premium / paywall ──────────────────────────────────────────────
 export const YearReflection = () => withScreenErrorBoundary(require("../screens/YearReflectionScreen").default, "YearReflection");

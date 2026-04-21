@@ -154,9 +154,7 @@ export default function SettingsScreen({ navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [syncStatus, setSyncStatus] = useState({ enabled: false });
   const [paired, setPaired] = useState(false);
-  const [inviteCode, setInviteCode] = useState(null);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
-  const [codeLoading, setCodeLoading] = useState(false);
   const unlinkInFlightRef = useRef(false);
 
   const [selectedDate, setSelectedDate] = useState(
@@ -209,52 +207,6 @@ export default function SettingsScreen({ navigation }) {
     return unsubscribe;
   }, [navigation, refreshSyncStatus]);
 
-  // ─── PARTNER LINKING LOGIC ───
-  useEffect(() => {
-    if (!inviteCode) return;
-    let active = true;
-    let timer = null;
-
-    const doPoll = async () => {
-      // Do not poll while an unlink is in-flight — it could restore stale pairing state
-      if (unlinkInFlightRef.current) return;
-      try {
-        const couple = await CoupleService.getMyCouple();
-        if (couple?.couple_id && active) {
-          const coupleId = couple.couple_id;
-          await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
-          await StorageRouter.setActiveCoupleId(coupleId);
-
-          const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-          await CloudEngine.joinCouple(coupleId, myPublicKeyB64);
-
-          const partnerPubKeyB64 = await CloudEngine.getPartnerPublicKey(coupleId);
-          if (!partnerPubKeyB64) {
-            if (active) timer = setTimeout(doPoll, 3000);
-            return;
-          }
-
-          const partnerPubKey = naclUtil.decodeBase64(partnerPubKeyB64);
-          const coupleKey = await CoupleKeyService.deriveFromKeyExchange(partnerPubKey);
-          await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
-
-          // Update auth profile so EntitlementsContext picks up the new coupleId
-          // and can sync premium status between partners immediately.
-          await updateProfile?.({ coupleId });
-
-          setInviteCode(null);
-          notification(NotificationFeedbackType.Success);
-          Alert.alert('Linked! 💕', 'You are now connected with your partner.');
-          refreshSyncStatus();
-          return; // stop polling
-        }
-      } catch (_) {}
-      if (active) timer = setTimeout(doPoll, 3000);
-    };
-
-    timer = setTimeout(doPoll, 3000);
-    return () => { active = false; clearTimeout(timer); };
-  }, [inviteCode, refreshSyncStatus]);
 
   // ─── HANDLERS ───
   const handleDatePickerDismiss = useCallback(() => {
@@ -271,66 +223,6 @@ export default function SettingsScreen({ navigation }) {
     ]);
   };
 
-  const ensureInviteSession = useCallback(async () => {
-    const session = await SupabaseAuthService.getSession().catch((error) => {
-      if (String(error?.message || '').includes('Supabase is not configured')) {
-        Alert.alert('Sync unavailable', "Invite codes aren't available in this build.");
-        return null;
-      }
-      throw error;
-    });
-
-    if (session) {
-      await StorageRouter.setSupabaseSession(session);
-      return session;
-    }
-
-    // Fall back to anonymous sign-in
-    const retrySession = await SupabaseAuthService.signInAnonymously().catch(() => null);
-    if (retrySession) {
-      await StorageRouter.setSupabaseSession(retrySession);
-      return retrySession;
-    }
-
-    Alert.alert(
-      'Sign in required',
-      'Your cloud session has expired. Open Cloud Sync to sign in again.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Open Cloud Sync', onPress: () => navigation.navigate('SyncSetup') },
-      ]
-    );
-    return null;
-  }, [navigation]);
-
-  const generateInviteCode = async () => {
-    if (codeLoading) return;
-    setCodeLoading(true);
-    try {
-      const session = await ensureInviteSession();
-      if (!session) return;
-
-      const result = await CoupleService.generateInviteCode();
-      setInviteCode(result.code);
-      impact(ImpactFeedbackStyle.Medium);
-    } catch (error) {
-      const message = String(error?.message || 'Unable to generate an invite code.');
-      if (message.includes('Not authenticated')) {
-        Alert.alert(
-          'Sign in required',
-          'Your cloud session has expired. Open Cloud Sync to sign in again, then try again.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Open Cloud Sync', onPress: () => navigation.navigate('SyncSetup') },
-          ]
-        );
-      } else {
-        Alert.alert('Error', message);
-      }
-    } finally {
-      setCodeLoading(false);
-    }
-  };
 
   const handleUnlink = async () => {
     if (unlinkInFlightRef.current) return;
@@ -352,7 +244,7 @@ export default function SettingsScreen({ navigation }) {
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
       await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
       // Clear stale invite state so polling cannot re-link immediately
-      setInviteCode(null);
+      
       try {
         await updateProfile?.({ coupleId: null });
       } catch (profileErr) {
@@ -396,7 +288,7 @@ export default function SettingsScreen({ navigation }) {
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
       await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
       // Prevent stale invite polling from restoring the old pairing
-      setInviteCode(null);
+      
       try {
         await updateProfile?.({ coupleId: null });
       } catch (profileErr) {
@@ -525,67 +417,14 @@ export default function SettingsScreen({ navigation }) {
                   Pair with your partner for a shared space. Premium adds cloud sync, shared planning, and live couple features.
                 </Text>
                 
-                {inviteCode ? (
-                  <ReAnimated.View entering={FadeIn.duration(400)} style={[styles.codeDisplay, { backgroundColor: t.surfaceSecondary }]}>
-                    <Text style={[styles.codeText, { color: t.text }]}>{inviteCode}</Text>
-                    <TouchableOpacity onPress={() => Clipboard.setStringAsync(inviteCode)} style={styles.copyBtn} accessibilityLabel="Copy invite code" accessibilityRole="button">
-                      <Icon name="copy-outline" size={20} color={t.primary} />
-                    </TouchableOpacity>
-                  </ReAnimated.View>
-                ) : (
-                  <TouchableOpacity 
-                    style={[styles.actionBtn, { backgroundColor: t.primary }, codeLoading && styles.actionBtnDisabled]}
-                    onPress={generateInviteCode}
-                    disabled={codeLoading}
-                    accessibilityLabel="Generate invite code"
-                    accessibilityRole="button"
-                  >
-                    {codeLoading ? (
-                      <ActivityIndicator color="#FFFFFF" />
-                    ) : (
-                      <Text style={styles.actionBtnText}>Generate Invite Code</Text>
-                    )}
-                  </TouchableOpacity>
-                )}
-                
-                {!inviteCode && (
-                  <>
-                    <TouchableOpacity 
-                      style={[styles.actionBtn, styles.qrActionBtn, { borderColor: t.primary }]}
-                      onPress={() => navigation.navigate('PairingQRCode')}
-                      accessibilityLabel="Generate QR code"
-                      accessibilityRole="button"
-                    >
-                      <Icon name="qr-code-outline" size={18} color={t.primary} />
-                      <Text style={[styles.actionBtnText, { color: t.primary }]}>Generate QR Code</Text>
-                    </TouchableOpacity>
-                    <View style={styles.orDividerRow}>
-                      <View style={[styles.orDividerLine, { backgroundColor: t.border }]} />
-                      <Text style={[styles.orDividerText, { color: t.subtext }]}>OR</Text>
-                      <View style={[styles.orDividerLine, { backgroundColor: t.border }]} />
-                    </View>
-                    <View style={styles.scanOptionsRow}>
-                      <TouchableOpacity
-                        style={[styles.scanOptionBtn, { borderColor: t.border }]}
-                        onPress={() => navigation.navigate('PairingScan')}
-                        accessibilityLabel="Scan partner's QR code"
-                        accessibilityRole="button"
-                      >
-                        <Icon name="scan-outline" size={16} color={t.subtext} />
-                        <Text style={[styles.scanOptionText, { color: t.subtext }]}>Scan Their QR</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.scanOptionBtn, { borderColor: t.border }]}
-                        onPress={() => navigation.navigate('JoinWithCode')}
-                        accessibilityLabel="Join with invite code"
-                        accessibilityRole="button"
-                      >
-                        <Icon name="keypad-outline" size={16} color={t.subtext} />
-                        <Text style={[styles.scanOptionText, { color: t.subtext }]}>I Have a Code</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </>
-                )}
+                <TouchableOpacity 
+                  style={[styles.actionBtn, { backgroundColor: t.primary }]}
+                  onPress={() => navigation.navigate('ConnectPartner')}
+                  accessibilityLabel="Connect with partner"
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.actionBtnText}>Connect with Partner</Text>
+                </TouchableOpacity>
               </View>
             ) : (
               <EditorialRow 

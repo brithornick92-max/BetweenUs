@@ -81,12 +81,17 @@ function getSortTime(item) {
 
 function buildPromptItem(row) {
   const prompt = getPromptById(row.prompt_id);
+  const body = row.locked
+    ? 'This reflection is locked on this device.'
+    : (row.is_revealed && row.partnerAnswer
+      ? `You: ${row.answer || ''}\n\nPartner: ${row.partnerAnswer}`.trim()
+      : (row.answer || ''));
   return {
     id: `prompt:${row.id}`,
     kind: 'prompt',
     sourceId: row.id,
     title: prompt?.text || 'Saved reflection',
-    body: row.locked ? 'This reflection is locked on this device.' : (row.answer || ''),
+    body,
     eyebrow: row.is_revealed ? 'REFLECTION' : 'SEALED REFLECTION',
     icon: row.is_revealed ? 'chatbubbles-outline' : 'lock-closed-outline',
     accent: '#D2121A',
@@ -173,8 +178,8 @@ export default function SavedMomentsScreen() {
   const loadEntries = useCallback(async () => {
     try {
       const [promptRows, memoryRows, journalRows] = await Promise.all([
-        DataLayer.getPromptAnswers({ limit: 50 }),
-        DataLayer.getMemories({ limit: 50 }),
+        DataLayer.getSharedPromptAnswers({ limit: 50 }),
+        DataLayer.getSharedMemories({ limit: 50 }),
         DataLayer.getJournalEntries({ limit: 50, visibility: 'shared' }),
       ]);
 

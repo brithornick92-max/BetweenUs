@@ -51,7 +51,7 @@ import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import { NicknameEngine } from "../services/PolishEngine";
-import PreferenceEngine from "../services/PreferenceEngine";
+import * as PreferenceEngine from "../services/PreferenceEngine";
 import { getPromptById } from "../utils/contentLoader";
 import { SPACING, withAlpha } from "../utils/theme";
 

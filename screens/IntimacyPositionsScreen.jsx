@@ -100,7 +100,7 @@ export default function IntimacyPositionsScreen() {
     return (
       <EditorialScreenScaffold
         navigation={navigation}
-        headerTitle="Intimacy"
+        headerTitle=""
         heroTitle="Unlock Intimacy"
         heroSubtitle="Discover beautifully illustrated, high-end intimacy positions designed for deep connection. New releases added every week."
         scroll={false}
@@ -148,7 +148,7 @@ export default function IntimacyPositionsScreen() {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Intimacy"
+      headerTitle=""
       heroTitle="Intimacy"
       heroSubtitle={`A closer space for you and ${partnerLabel}.`}
       scroll={false}

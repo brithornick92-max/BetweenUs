@@ -924,6 +924,22 @@ const DataLayer = {
     return Promise.all((rows || []).map(r => this._decryptPromptAnswer(r)));
   },
 
+  async getSharedPromptAnswers({ dateKey: dk, promptId, limit = 100 } = {}) {
+    await ensureLocalIdentityState();
+    const verifiedCoupleState = await ensureVerifiedCoupleState({ requireRemoteCheck: true });
+
+    if (verifiedCoupleState.status === 'unpaired' || !_coupleId) {
+      return [];
+    }
+
+    if (_coupleId && !_coupleKeyAvailable) {
+      await tryRestoreCoupleKey();
+    }
+
+    const rows = await Database.getSharedPromptAnswers(_coupleId, { dateKey: dk, promptId, limit });
+    return Promise.all((rows || []).map(r => this._decryptPromptAnswer(r)));
+  },
+
   async getPromptAnswerForToday(promptId) {
     const dk = dateKey();
     const row = await Database.getPromptAnswerByPromptAndDate(_userId, promptId, dk);
@@ -1034,6 +1050,22 @@ const DataLayer = {
 
   async getMemories({ type, limit = 100, offset = 0 } = {}) {
     const rows = await Database.getMemories(_userId, { type, limit, offset });
+    return Promise.all((rows || []).map(r => this._decryptMemory(r)));
+  },
+
+  async getSharedMemories({ type, limit = 100, offset = 0 } = {}) {
+    await ensureLocalIdentityState();
+    const verifiedCoupleState = await ensureVerifiedCoupleState({ requireRemoteCheck: true });
+
+    if (verifiedCoupleState.status === 'unpaired' || !_coupleId) {
+      return [];
+    }
+
+    if (_coupleId && !_coupleKeyAvailable) {
+      await tryRestoreCoupleKey();
+    }
+
+    const rows = await Database.getSharedMemories(_coupleId, { type, limit, offset });
     return Promise.all((rows || []).map(r => this._decryptMemory(r)));
   },
 

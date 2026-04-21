@@ -8,7 +8,7 @@ import E2EEncryption from '../services/e2ee/E2EEncryption';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import { useAuth } from './AuthContext';
 import { useEntitlements } from './EntitlementsContext';
-import PreferenceEngine from '../services/PreferenceEngine';
+import * as PreferenceEngine from '../services/PreferenceEngine';
 import { NicknameEngine, SoftBoundaries } from '../services/PolishEngine';
 import PromptAllocator from '../services/PromptAllocator';
 import CoupleStateService from '../services/couple/CoupleStateService';

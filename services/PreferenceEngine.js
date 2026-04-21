@@ -781,7 +781,7 @@ function shouldShowDate(date, profile) {
   return getDateVisibilityState(date, profile).visible;
 }
 
-module.exports = {
+export {
   getContentProfile,
   filterPrompts,
   filterDatesWithProfile,

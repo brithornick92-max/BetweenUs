@@ -3,12 +3,6 @@ import StorageRouter from '../storage/StorageRouter';
 import CloudEngine from '../storage/CloudEngine';
 import CoupleKeyService from '../security/CoupleKeyService';
 import CoupleService from '../supabase/CoupleService';
-import { makePairingPayload, parsePairingPayload } from '../security/PairingPayload';
-import {
-  backfillWrappedKeysFromLocalKey,
-  deriveAndPersistWrappedCoupleKey,
-  restoreWrappedCoupleKeyFromCloud,
-} from '../security/WrappedCoupleKeyFlow';
 import { finalizeInviteCodeLink } from './InviteCodeLinking';
 import { STORAGE_KEYS, storage } from '../../utils/storage';
 
@@ -59,89 +53,6 @@ async function initializeLinking({ onStatus, dependencies = {} } = {}) {
   return session;
 }
 
-export async function preparePairingQrCode({ userId, updateProfile, onStatus, dependencies = {} } = {}) {
-  const { cloudEngine, coupleKeyService, coupleService, storageRouter, storageApi } = getDependencies(dependencies);
-
-  onStatus?.('Preparing secure link...');
-  const session = await initializeLinking({ onStatus, dependencies });
-  if (!session) return null;
-
-  const myPublicKeyB64 = await coupleKeyService.getDevicePublicKeyB64();
-  const storedCoupleId = await storageApi.get(STORAGE_KEYS.COUPLE_ID, null);
-  let coupleId = storedCoupleId || null;
-  let isRepairFlow = false;
-
-  if (!coupleId) {
-    const membership = await coupleService.getMyCouple().catch(() => null);
-    coupleId = membership?.couple_id || null;
-  }
-
-  if (coupleId) {
-    isRepairFlow = true;
-    await cloudEngine.joinCouple(coupleId, myPublicKeyB64);
-    await storageRouter.setActiveCoupleId(coupleId);
-    await storageApi.set(STORAGE_KEYS.COUPLE_ID, coupleId);
-    onStatus?.('Preparing repair code...');
-  } else {
-    coupleId = await cloudEngine.createCouple(myPublicKeyB64);
-    await storageRouter.setActiveCoupleId(coupleId);
-    if (userId) {
-      await storageRouter.updateUserDocument(userId, { coupleId });
-      await updateProfile?.({ coupleId });
-    }
-    await storageApi.set(STORAGE_KEYS.COUPLE_ID, coupleId);
-  }
-
-  const generated = await coupleService.generatePairingCode(coupleId);
-  if (!generated || !generated.code) {
-    throw new Error('Unable to generate pairing code. Please try again.');
-  }
-  const pairingCode = generated.code;
-
-  const payload = makePairingPayload({ pairingCode, publicKey: myPublicKeyB64 });
-
-  return {
-    coupleId,
-    isRepairFlow,
-    qrPayload: JSON.stringify(payload),
-  };
-}
-
-export async function completePairingQrHandshake({
-  coupleId,
-  isRepairFlow = false,
-  onStatus,
-  waitTimeoutMs = 600000,
-  waitIntervalMs = 3000,
-  dependencies = {},
-} = {}) {
-  const { cloudEngine } = getDependencies(dependencies);
-
-  const partnerMembership = await cloudEngine.waitForPartnerMembership(coupleId, waitTimeoutMs, waitIntervalMs);
-  if (!partnerMembership?.public_key || !partnerMembership?.user_id) {
-    throw new Error('Link timed out. Please try again.');
-  }
-
-  if (isRepairFlow) {
-    await backfillWrappedKeysFromLocalKey({
-      coupleId,
-      partnerUserId: partnerMembership.user_id,
-      partnerPublicKeyB64: partnerMembership.public_key,
-      dependencies,
-    });
-  } else {
-    await deriveAndPersistWrappedCoupleKey({
-      coupleId,
-      partnerUserId: partnerMembership.user_id,
-      partnerPublicKeyB64: partnerMembership.public_key,
-      dependencies,
-    });
-  }
-
-  onStatus?.(isRepairFlow ? 'Secure pairing repaired.' : 'Connected successfully!');
-  return partnerMembership;
-}
-
 export async function joinWithInviteCode({ code, userId, updateProfile, onStatus, dependencies = {} } = {}) {
   const { coupleKeyService, coupleService } = getDependencies(dependencies);
 
@@ -150,6 +61,7 @@ export async function joinWithInviteCode({ code, userId, updateProfile, onStatus
   if (!session) return null;
 
   const myPublicKeyB64 = await coupleKeyService.getDevicePublicKeyB64();
+  // Server-side RPC handles removing the code and setting up the couple ID
   const { coupleId } = await coupleService.redeemInviteCode(code.trim());
 
   await finalizeInviteCodeLink({
@@ -164,59 +76,7 @@ export async function joinWithInviteCode({ code, userId, updateProfile, onStatus
   return { coupleId };
 }
 
-export async function scanPairingCode({ rawPayload, userId, updateProfile, onStatus, dependencies = {} } = {}) {
-  const { coupleKeyService, coupleService, storageRouter, storageApi } = getDependencies(dependencies);
-
-  const session = await initializeLinking({ onStatus, dependencies });
-  if (!session) return null;
-
-  const parsed = parsePairingPayload(rawPayload);
-  if (!parsed.ok) throw new Error(parsed.error);
-
-  const { pairingCode, publicKey: inviterPublicKeyB64 } = parsed.payload;
-  const existingCoupleId = await storageApi.get(STORAGE_KEYS.COUPLE_ID, null);
-
-  onStatus?.('Establishing secure bridge...');
-  const myPublicKeyB64 = await coupleKeyService.getDevicePublicKeyB64();
-  const { coupleId, partnerId } = await coupleService.redeemPairingCode(pairingCode, myPublicKeyB64);
-
-  // A true repair flow means we are re-syncing keys for the SAME couple. 
-  // If the couple IDs differ, the user is joining a completely new couple, overriding old local state.
-  const isRepairFlow = !!existingCoupleId && existingCoupleId === coupleId;
-
-  if (isRepairFlow) {
-    const restoredKey = await restoreWrappedCoupleKeyFromCloud(coupleId, {
-      timeoutMs: 120000,
-      intervalMs: 3000,
-      dependencies,
-    });
-    if (!restoredKey) {
-      throw new Error('Repair started, but the wrapped key is not available yet. Ask your partner to keep the repair screen open and try again.');
-    }
-  } else {
-    await deriveAndPersistWrappedCoupleKey({
-      coupleId,
-      partnerUserId: partnerId,
-      partnerPublicKeyB64: inviterPublicKeyB64,
-      dependencies,
-    });
-  }
-
-  await storageRouter.setActiveCoupleId(coupleId);
-  if (userId) {
-    await storageRouter.updateUserDocument(userId, { coupleId });
-    await updateProfile?.({ coupleId });
-  }
-  await storageApi.set(STORAGE_KEYS.COUPLE_ID, coupleId);
-
-  onStatus?.(isRepairFlow ? 'Secure pairing repaired.' : 'Successfully paired.');
-  return { coupleId, isRepairFlow };
-}
-
 export default {
   ensureLinkingSession,
-  preparePairingQrCode,
-  completePairingQrHandshake,
   joinWithInviteCode,
-  scanPairingCode,
 };

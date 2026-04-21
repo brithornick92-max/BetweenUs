@@ -21,7 +21,7 @@ import * as ExpoCrypto from 'expo-crypto';
 const CODE_EXPIRY_MINUTES = 15;
 const SIGNED_URL_EXPIRY_SECONDS = 300; // 5 minutes
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
-const CODE_LENGTH = 6;
+const CODE_LENGTH = 8;
 
 async function generateHashedLinkCode() {
   const randomBytes = await ExpoCrypto.getRandomBytesAsync(CODE_LENGTH);

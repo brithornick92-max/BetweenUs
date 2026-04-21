@@ -28,7 +28,7 @@ import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import GlowOrb from "../components/GlowOrb";
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
-import PreferenceEngine from '../services/PreferenceEngine';
+import * as PreferenceEngine from '../services/PreferenceEngine';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { getDateCardPalette } from '../components/dateCardPalette';
 

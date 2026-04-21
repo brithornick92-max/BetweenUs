@@ -42,7 +42,7 @@ import StorageRouter from "../services/storage/StorageRouter";
 import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
 import { STORAGE_KEYS, storage } from "../utils/storage";
 import { getSupabaseOrThrow } from "../config/supabase";
-import AnalyticsService, { EVENT_NAMES } from "../services/AnalyticsService";
+import AnalyticsService, { AnalyticsEvent } from "../services/AnalyticsService";
 
 export default function OnboardingScreen({ navigation }) {
   const { actions, state } = useAppContext();
@@ -114,7 +114,7 @@ export default function OnboardingScreen({ navigation }) {
   }, [userProfile]);
 
   const finalizeOnboarding = async () => {
-    AnalyticsService.trackEvent(EVENT_NAMES.ONBOARDING_COMPLETED);
+    AnalyticsService.trackEvent(AnalyticsEvent.ONBOARDING_COMPLETED);
     await actions.completeOnboarding();
     await markOnboardingComplete?.();
   };
@@ -155,7 +155,7 @@ export default function OnboardingScreen({ navigation }) {
             return;
           }
 
-          clearInterval(poll);
+          clearTimeout(timer);
           notification(NotificationFeedbackType.Success);
           // Complete onboarding immediately — don't wait for Alert button
           try {
@@ -184,7 +184,7 @@ export default function OnboardingScreen({ navigation }) {
   // 1. Intro Transition
   useEffect(() => {
     if (step === 0) {
-      AnalyticsService.trackEvent(EVENT_NAMES.ONBOARDING_STARTED);
+      AnalyticsService.trackEvent(AnalyticsEvent.ONBOARDING_STARTED);
       const timer = setTimeout(() => {
         transitionTo(1);
       }, 12000); // 12 seconds — user can tap Get Started to skip
@@ -193,7 +193,7 @@ export default function OnboardingScreen({ navigation }) {
   }, [step]);
 
   const transitionTo = (nextStep) => {
-    AnalyticsService.trackEvent(EVENT_NAMES.ONBOARDING_STEP_COMPLETED, { step: nextStep - 1 });
+    AnalyticsService.trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, { step: nextStep - 1 });
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: -20, duration: 300, useNativeDriver: true }),
@@ -957,7 +957,7 @@ export default function OnboardingScreen({ navigation }) {
 
             <TouchableOpacity 
               style={[styles.joinCodeButton, { marginTop: 12 }]}
-              onPress={() => navigation.navigate('JoinWithCode')}
+              onPress={() => navigation.navigate('ConnectPartner')}
               activeOpacity={0.7}
             >
               <Text style={styles.joinCodeButtonText}>I have a code</Text>

@@ -579,6 +579,17 @@ const Database = {
     return db.getAllAsync(sql, params);
   },
 
+  async getSharedPromptAnswers(coupleId, { dateKey, promptId, limit = 100 } = {}) {
+    const db = await getDb();
+    let sql = 'SELECT * FROM prompt_answers WHERE couple_id = ? AND deleted_at IS NULL';
+    const params = [coupleId];
+    if (dateKey) { sql += ' AND date_key = ?'; params.push(dateKey); }
+    if (promptId) { sql += ' AND prompt_id = ?'; params.push(promptId); }
+    sql += ' ORDER BY created_at DESC LIMIT ?';
+    params.push(limit);
+    return db.getAllAsync(sql, params);
+  },
+
   async getPromptAnswerByPromptAndDate(userId, promptId, dateKey) {
     const db = await getDb();
     return db.getFirstAsync(
@@ -648,6 +659,16 @@ const Database = {
     const db = await getDb();
     let sql = 'SELECT * FROM memories WHERE user_id = ? AND deleted_at IS NULL';
     const params = [userId];
+    if (type) { sql += ' AND type = ?'; params.push(type); }
+    sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+    return db.getAllAsync(sql, params);
+  },
+
+  async getSharedMemories(coupleId, { type, limit = 100, offset = 0 } = {}) {
+    const db = await getDb();
+    let sql = 'SELECT * FROM memories WHERE couple_id = ? AND is_private = 0 AND deleted_at IS NULL';
+    const params = [coupleId];
     if (type) { sql += ' AND type = ?'; params.push(type); }
     sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);

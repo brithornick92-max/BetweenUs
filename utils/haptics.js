@@ -1,9 +1,13 @@
 import * as Haptics from 'expo-haptics';
+import * as Device from 'expo-device';
+
+const isHapticsSupported = () => Device.isDevice;
 
 // Safe wrappers — silently swallow errors on devices without Taptic Engine (older iPads)
 // Try/catch guards against synchronous JSI throws in the new architecture in addition
 // to the .catch() which guards against async (Promise) rejections.
 export const impact = (style = Haptics.ImpactFeedbackStyle.Light) => {
+  if (!isHapticsSupported()) return Promise.resolve();
   try {
     return Haptics.impactAsync(style).catch(() => {});
   } catch {
@@ -12,6 +16,7 @@ export const impact = (style = Haptics.ImpactFeedbackStyle.Light) => {
 };
 
 export const notification = (type = Haptics.NotificationFeedbackType.Success) => {
+  if (!isHapticsSupported()) return Promise.resolve();
   try {
     return Haptics.notificationAsync(type).catch(() => {});
   } catch {
@@ -20,6 +25,7 @@ export const notification = (type = Haptics.NotificationFeedbackType.Success) =>
 };
 
 export const selection = () => {
+  if (!isHapticsSupported()) return Promise.resolve();
   try {
     const result = Haptics.selectionAsync();
     return result && typeof result.catch === 'function'
@@ -56,7 +62,7 @@ export const playRhythm = (
   offsets,
   style = Haptics.ImpactFeedbackStyle.Heavy,
 ) => {
-  if (!Array.isArray(offsets) || offsets.length === 0) return () => {};
+  if (!isHapticsSupported() || !Array.isArray(offsets) || offsets.length === 0) return () => {};
   const timers = offsets.map((offset) =>
     setTimeout(() => Haptics.impactAsync(style).catch(() => {}), offset),
   );

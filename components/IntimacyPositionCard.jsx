@@ -178,7 +178,7 @@ export default function IntimacyPositionCard({ position, t, isDark, defaultBodyT
 const styles = StyleSheet.create({
   heroCardWrap: { 
     borderRadius: 24, 
-    borderWidth: 1,
+    borderWidth: 3,
     padding: SPACING.xl,
     marginBottom: SPACING.xl,
   },

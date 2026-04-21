@@ -1,4 +1,4 @@
-import PreferenceEngine from '../../services/PreferenceEngine';
+import * as PreferenceEngine from '../../services/PreferenceEngine';
 import {
   RelationshipSeasons,
   SoftBoundaries,

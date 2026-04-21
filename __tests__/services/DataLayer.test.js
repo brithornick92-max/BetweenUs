@@ -18,9 +18,11 @@ jest.mock('../../services/db/Database', () => ({
     insertPromptAnswer: jest.fn().mockResolvedValue(undefined),
     updatePromptAnswer: jest.fn().mockResolvedValue(undefined),
     getPromptAnswers: jest.fn().mockResolvedValue([]),
+    getSharedPromptAnswers: jest.fn().mockResolvedValue([]),
     getPromptAnswerByPromptAndDate: jest.fn().mockResolvedValue(null),
     insertMemory: jest.fn().mockResolvedValue(undefined),
     getMemories: jest.fn().mockResolvedValue([]),
+    getSharedMemories: jest.fn().mockResolvedValue([]),
     softDeleteMemory: jest.fn().mockResolvedValue(undefined),
     insertRitual: jest.fn().mockResolvedValue(undefined),
     getRituals: jest.fn().mockResolvedValue([]),
@@ -551,6 +553,79 @@ describe('DataLayer', () => {
     it('deleteJournalEntry calls softDelete', async () => {
       await DataLayer.deleteJournalEntry('j_1');
       expect(Database.softDeleteJournal).toHaveBeenCalledWith('j_1');
+    });
+  });
+
+  describe('Shared archive queries', () => {
+    it('getSharedPromptAnswers uses the couple-scoped prompt feed', async () => {
+      Database.getSharedPromptAnswers.mockResolvedValueOnce([
+        {
+          id: 'pa_shared_1',
+          prompt_id: 'prompt-42',
+          couple_id: 'couple-1',
+          answer_cipher: 'enc:Shared answer',
+          partner_answer_cipher: 'enc:Partner answer',
+          heat_level: 2,
+          is_revealed: 1,
+        },
+      ]);
+
+      const rows = await DataLayer.getSharedPromptAnswers({ limit: 10 });
+
+      expect(Database.getSharedPromptAnswers).toHaveBeenCalledWith('couple-1', {
+        dateKey: undefined,
+        promptId: undefined,
+        limit: 10,
+      });
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toEqual(expect.objectContaining({
+        answer: 'Shared answer',
+        partnerAnswer: 'Partner answer',
+      }));
+    });
+
+    it('getSharedPromptAnswers returns an empty list when unpaired', async () => {
+      await DataLayer.reconfigure({ userId: 'user-1', coupleId: null, isPremium: false });
+
+      const rows = await DataLayer.getSharedPromptAnswers({ limit: 10 });
+
+      expect(rows).toEqual([]);
+      expect(Database.getSharedPromptAnswers).not.toHaveBeenCalled();
+    });
+
+    it('getSharedMemories uses the couple-scoped memory feed', async () => {
+      Database.getSharedMemories.mockResolvedValueOnce([
+        {
+          id: 'mem_shared_1',
+          couple_id: 'couple-1',
+          is_private: 0,
+          body_cipher: 'enc:Shared moment',
+          type: 'moment',
+          created_at: '2024-01-15',
+        },
+      ]);
+
+      const rows = await DataLayer.getSharedMemories({ limit: 10, offset: 0 });
+
+      expect(Database.getSharedMemories).toHaveBeenCalledWith('couple-1', {
+        type: undefined,
+        limit: 10,
+        offset: 0,
+      });
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toEqual(expect.objectContaining({
+        content: 'Shared moment',
+        is_private: false,
+      }));
+    });
+
+    it('getSharedMemories returns an empty list when unpaired', async () => {
+      await DataLayer.reconfigure({ userId: 'user-1', coupleId: null, isPremium: false });
+
+      const rows = await DataLayer.getSharedMemories({ limit: 10, offset: 0 });
+
+      expect(rows).toEqual([]);
+      expect(Database.getSharedMemories).not.toHaveBeenCalled();
     });
   });
 

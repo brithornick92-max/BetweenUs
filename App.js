@@ -1,4 +1,3 @@
-import "./polyfills"; // MUST be first — crypto polyfill for tweetnacl/Supabase
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -411,8 +410,7 @@ function AppContent() {
     config: {
       screens: {
         AuthCallback: "auth-callback",
-        PairingQRCode: "pairing-qr",
-        PairingScan: "pairing-scan",
+        ConnectPartner: "connect-partner",
         VibeSignal: "vibe",
         PromptAnswer: "prompt/:promptId",
         JournalHome: "journal",

@@ -3,9 +3,14 @@
     "name": "Between Us",
     "slug": "between-us",
     "scheme": "betweenus",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/logo-transparent.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#A30F11"
+    },
     "version": "1.0.22",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "assetBundlePatterns": [
       "assets/**",
@@ -88,9 +93,7 @@
     "android": {
       "package": "com.brittany.betweenus"
     },
-    "web": {
-      "favicon": "./assets/icon.png"
-    },
+    "web": {},
     "description": "Between Us — Where closeness deepens. A private space for thriving couples to deepen connection, intimacy, and meaningful moments.",
     "extra": {
       "appName": "Between Us",
@@ -102,7 +105,6 @@
     "experiments": {},
     "newArchEnabled": true,
     "plugins": [
-      "./plugins/withSentryAlwaysOutOfDate.cjs",
       "expo-font",
       "@react-native-community/datetimepicker",
       "expo-camera",
@@ -110,7 +112,6 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
           "color": "#1a0614"
         }
       ],
@@ -125,12 +126,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#A30F11",
           "image": "./assets/logo-transparent.png",
+          "backgroundColor": "#A30F11",
           "imageWidth": 220
         }
       ],
-      "./plugins/withHomeScreenWidgets.cjs"
+      "@sentry/react-native"
     ],
     "runtimeVersion": {
       "policy": "appVersion"

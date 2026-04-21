@@ -197,7 +197,7 @@ export default function JournalEntryScreen({ navigation, route }) {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        mediaTypes: [ImagePicker.MediaType.images, ImagePicker.MediaType.videos],
         quality: 0.85,
         allowsEditing: false,
       });

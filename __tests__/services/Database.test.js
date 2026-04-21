@@ -137,6 +137,39 @@ describe('Database', () => {
       const result = await Database.getPromptAnswerByPromptAndDate('user-1', 'prompt-42', '2024-01-15');
       expect(result).toBeNull();
     });
+
+    it('getSharedPromptAnswers queries by couple', async () => {
+      mockAllAsync.mockResolvedValueOnce([
+        { id: 'pa_1', couple_id: 'couple-1', created_at: '2024-01-15' },
+      ]);
+
+      const result = await Database.getSharedPromptAnswers('couple-1', { limit: 10 });
+
+      expect(mockAllAsync).toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(mockAllAsync.mock.calls[0][0]).toContain('couple_id = ?');
+      expect(mockAllAsync.mock.calls[0][0]).not.toContain('user_id = ?');
+    });
+  });
+
+  describe('Memories', () => {
+    beforeEach(async () => {
+      await Database.init();
+      jest.clearAllMocks();
+    });
+
+    it('getSharedMemories queries shared non-private memories by couple', async () => {
+      mockAllAsync.mockResolvedValueOnce([
+        { id: 'mem_1', couple_id: 'couple-1', is_private: 0, created_at: '2024-01-15' },
+      ]);
+
+      const result = await Database.getSharedMemories('couple-1', { limit: 10, offset: 0 });
+
+      expect(mockAllAsync).toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(mockAllAsync.mock.calls[0][0]).toContain('couple_id = ?');
+      expect(mockAllAsync.mock.calls[0][0]).toContain('is_private = 0');
+    });
   });
 
   describe('Sync helpers', () => {

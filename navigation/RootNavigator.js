@@ -195,9 +195,7 @@ export default function RootNavigator() {
         <Stack.Screen name="SyncSetup" getComponent={Screens.SyncSetup} options={{ headerShown: false }} />
         <Stack.Screen name="ResetPassword" getComponent={Screens.ResetPassword} options={{ headerShown: false }} />
         <Stack.Screen name="AuthCallback" component={AuthCallbackScreen} options={{ headerShown: false, animation: "fade", animationDuration: 300 }} />
-        <Stack.Screen name="PairingQRCode" getComponent={Screens.PairingQRCode} options={{ headerShown: false }} />
-        <Stack.Screen name="PairingScan" getComponent={Screens.PairingScan} options={{ headerShown: false }} />
-        <Stack.Screen name="JoinWithCode" getComponent={Screens.JoinWithCode} options={{ headerShown: false }} />
+        <Stack.Screen name="ConnectPartner" getComponent={Screens.ConnectPartner} options={{ headerShown: false }} />
 
         {__DEV__ && (
           <Stack.Screen

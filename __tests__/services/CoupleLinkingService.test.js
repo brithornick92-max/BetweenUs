@@ -1,17 +1,3 @@
-jest.mock('../../services/security/PairingPayload', () => ({
-  makePairingPayload: jest.fn(({ pairingCode, publicKey }) => ({
-    v: 3,
-    t: 'betweenus_pair',
-    pairingCode,
-    publicKey,
-    createdAt: 123,
-  })),
-  parsePairingPayload: jest.fn((raw) => ({
-    ok: true,
-    payload: typeof raw === 'string' ? JSON.parse(raw) : raw,
-  })),
-}));
-
 jest.mock('../../services/linking/InviteCodeLinking', () => ({
   finalizeInviteCodeLink: jest.fn().mockResolvedValue('couple-joined'),
 }));
@@ -73,33 +59,6 @@ describe('CoupleLinkingService', () => {
     };
   }
 
-  it('prepares a new QR pairing flow through the shared orchestrator', async () => {
-    const { preparePairingQrCode } = require('../../services/linking/CoupleLinkingService');
-    const deps = createDeps();
-    const updateProfile = jest.fn();
-
-    const result = await preparePairingQrCode({
-      userId: 'user-1',
-      updateProfile,
-      dependencies: deps,
-    });
-
-    expect(result).toEqual({
-      coupleId: 'new-couple-id',
-      isRepairFlow: false,
-      qrPayload: JSON.stringify({
-        v: 3,
-        t: 'betweenus_pair',
-        pairingCode: 'ABC123',
-        publicKey: 'device-public-key',
-        createdAt: 123,
-      }),
-    });
-    expect(deps.cloudEngine.createCouple).toHaveBeenCalledWith('device-public-key');
-    expect(deps.storageRouter.updateUserDocument).toHaveBeenCalledWith('user-1', { coupleId: 'new-couple-id' });
-    expect(updateProfile).toHaveBeenCalledWith({ coupleId: 'new-couple-id' });
-  });
-
   it('joins from invite code through the shared orchestrator', async () => {
     const { joinWithInviteCode } = require('../../services/linking/CoupleLinkingService');
     const deps = createDeps();
@@ -117,27 +76,5 @@ describe('CoupleLinkingService', () => {
       coupleId: 'invite-couple-id',
       userId: 'user-1',
     }));
-  });
-
-  it('scans a QR pairing payload through the shared orchestrator', async () => {
-    const { scanPairingCode } = require('../../services/linking/CoupleLinkingService');
-    const deps = createDeps();
-
-    const result = await scanPairingCode({
-      rawPayload: JSON.stringify({ pairingCode: 'QR1234', publicKey: 'inviter-public-key' }),
-      userId: 'user-1',
-      updateProfile: jest.fn(),
-      dependencies: deps,
-    });
-
-    expect(result).toEqual({ coupleId: 'scan-couple-id', isRepairFlow: false });
-    expect(deps.coupleService.redeemPairingCode).toHaveBeenCalledWith('QR1234', 'device-public-key');
-    expect(deriveAndPersistWrappedCoupleKey).toHaveBeenCalledWith(expect.objectContaining({
-      coupleId: 'scan-couple-id',
-      partnerUserId: 'partner-user-2',
-      partnerPublicKeyB64: 'inviter-public-key',
-    }));
-    expect(backfillWrappedKeysFromLocalKey).not.toHaveBeenCalled();
-    expect(restoreWrappedCoupleKeyFromCloud).not.toHaveBeenCalled();
   });
 });

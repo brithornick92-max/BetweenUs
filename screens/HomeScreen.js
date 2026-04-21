@@ -49,7 +49,7 @@ import StreakBanner from '../components/StreakBanner';
 import { PromptCardSkeleton } from '../components/SkeletonLoader';
 import ConnectionMemory from '../utils/connectionMemory';
 import achievementEngine from '../utils/achievementEngine';
-import PreferenceEngine from '../services/PreferenceEngine';
+import * as PreferenceEngine from '../services/PreferenceEngine';
 import useProgressiveDisclosure from '../hooks/useProgressiveDisclosure';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');

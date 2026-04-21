@@ -30,7 +30,7 @@ import { FREE_LIMITS, PremiumFeature, getTimedUnlockLimits } from '../utils/feat
 import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme'; // BORDER_RADIUS kept for styles
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
-import PreferenceEngine from '../services/PreferenceEngine';
+import * as PreferenceEngine from '../services/PreferenceEngine';
 import { useAuth } from '../context/AuthContext';
 import DateCardFront from '../components/DateCardFront';
 import DateCardBack from '../components/DateCardBack';
