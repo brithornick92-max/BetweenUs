@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "MySky",
-    "slug": "mysky",
-    "scheme": "mysky",
+    "name": "Between Us",
+    "slug": "between-us",
+    "scheme": "betweenus",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/logo-transparent.png",
       "resizeMode": "contain",
-      "backgroundColor": "#020817"
+      "backgroundColor": "#A30F11"
     },
-    "version": "1.0.0",
+    "version": "1.0.22",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "assetBundlePatterns": [
@@ -18,40 +18,126 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.brittany.mysky",
-      "buildNumber": "1",
+      "bundleIdentifier": "com.brittany.betweenus",
+      "buildNumber": "10",
       "infoPlist": {
+        "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing.",
+        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes, journal entries, and memories.",
+        "NSMicrophoneUsageDescription": "Microphone access lets you record encrypted voice notes for your partner.",
+        "NSFaceIDUsageDescription": "Between Us uses Face ID to protect your private content with biometric authentication.",
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "C617.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "E174.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
+          }
+        ],
+        "NSPrivacyCollectedDataTypes": [
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeDeviceID",
+            "NSPrivacyCollectedDataTypeLinked": true,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAnalytics"
+            ]
+          },
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeCrashData",
+            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          },
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePerformanceData",
+            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          },
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeOtherDiagnosticData",
+            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          }
+        ]
       }
     },
     "android": {
-      "package": "com.brittany.mysky"
+      "package": "com.brittany.betweenus"
     },
-    "description": "MySky — private self-reflection journal for mood, sleep, dreams, patterns, and inner insight.",
+    "web": {},
+    "description": "Between Us — Where closeness deepens. A private space for thriving couples to deepen connection, intimacy, and meaningful moments.",
     "extra": {
-      "appName": "MySky",
+      "appName": "Between Us",
+      "tagline": "Where closeness deepens.",
       "eas": {
-        "projectId": "YOUR-MYSKY-PROJECT-ID"
+        "projectId": "ab5503ed-b0de-4bf0-aabc-6c46d0c00ec1"
       }
     },
-    "newArchEnabled": false,
+    "experiments": {},
+    "newArchEnabled": true,
     "plugins": [
       "expo-font",
+      "@react-native-community/datetimepicker",
+      "expo-camera",
       "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "color": "#1a0614"
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "between-us",
+          "organization": "brittany-hornick"
+        }
+      ],
       [
         "expo-splash-screen",
         {
           "image": "./assets/logo-transparent.png",
-          "backgroundColor": "#020817",
+          "backgroundColor": "#A30F11",
           "imageWidth": 220
         }
-      ]
+      ],
+      "@sentry/react-native"
     ],
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/YOUR-MYSKY-PROJECT-ID"
+      "url": "https://u.expo.dev/ab5503ed-b0de-4bf0-aabc-6c46d0c00ec1"
     }
   }
 }

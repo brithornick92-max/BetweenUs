@@ -1,41 +1,40 @@
-export default ({ config }) => {
-  const variant = process.env.APP_VARIANT ?? "production";
-  const isDevelopment = variant === "development";
-  const isPreview = variant === "preview";
+const { expo: baseConfig } = require('./app.json');
 
-  let name = "Between Us";
-  let scheme = "betweenus";
-  let bundleIdentifier = "com.brittany.betweenus";
-  let androidPackage = "com.brittany.betweenus";
+const APP_VARIANT = process.env.APP_VARIANT ?? 'production';
+const isDevVariant = APP_VARIANT === 'development';
+const isPreviewVariant = APP_VARIANT === 'preview';
 
-  if (isDevelopment) {
-    name = "Between Us Dev";
-    scheme = "betweenusdev";
-    bundleIdentifier = "com.brittany.betweenus.dev";
-    androidPackage = "com.brittany.betweenus.dev";
-  } else if (isPreview) {
-    name = "Between Us Preview";
-    scheme = "betweenuspreview";
-    bundleIdentifier = "com.brittany.betweenus.preview";
-    androidPackage = "com.brittany.betweenus.preview";
-  }
+let name = baseConfig.name;
+let scheme = baseConfig.scheme;
+let iosBundleIdentifier = baseConfig.ios?.bundleIdentifier;
+let androidPackage = baseConfig.android?.package;
 
-  return {
-    ...config,
-    name,
-    scheme,
-    ios: {
-      ...config.ios,
-      bundleIdentifier
-    },
-    android: {
-      ...config.android,
-      package: androidPackage
-    },
-    extra: {
-      ...config.extra,
-      appName: name,
-      appVariant: variant
-    }
-  };
-};
+if (isDevVariant) {
+  name = 'Between Us Dev';
+  scheme = 'betweenus-dev';
+  iosBundleIdentifier = 'com.brittany.betweenus.dev';
+  androidPackage = 'com.brittany.betweenus.dev';
+} else if (isPreviewVariant) {
+  name = 'Between Us Preview';
+  scheme = 'betweenus-preview';
+  iosBundleIdentifier = 'com.brittany.betweenus.preview';
+  androidPackage = 'com.brittany.betweenus.preview';
+}
+
+module.exports = () => ({
+  ...baseConfig,
+  name,
+  scheme,
+  ios: {
+    ...baseConfig.ios,
+    bundleIdentifier: iosBundleIdentifier,
+  },
+  android: {
+    ...baseConfig.android,
+    package: androidPackage,
+  },
+  extra: {
+    ...baseConfig.extra,
+    appVariant: APP_VARIANT,
+  },
+});
