@@ -20,7 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 
@@ -185,28 +185,8 @@ export default function AddMemoryScreen() {
       if (err?.message?.includes('COUPLE_KEY_MISSING')) {
         Alert.alert(
           'Sync needed',
-          'Your partner encryption key is unavailable. Save as private, or reconnect with your partner first.',
-          [
-            { text: 'Save as Private', onPress: async () => {
-              try {
-                await DataLayer.saveMemory({
-                  content: trimmed || '',
-                  type: selectedType,
-                  mood: selectedMood,
-                  isPrivate: true,
-                  mediaUri: media?.uri || undefined,
-                  mimeType: media?.mimeType || undefined,
-                  fileName: media ? `memory_${Date.now()}.${media.type === 'video' ? 'mp4' : 'jpg'}` : undefined,
-                });
-                notification(NotificationFeedbackType.Success);
-                navigation.goBack();
-              } catch (e2) {
-                Alert.alert('Error', 'Could not save. Please try again.');
-                setSaving(false);
-              }
-            }},
-            { text: 'Cancel', style: 'cancel' },
-          ]
+          'Your shared encryption key is unavailable on this device. Reconnect with your partner before saving memories.',
+          [{ text: 'OK' }]
         );
       } else {
         Alert.alert('Error', 'Could not save your memory. Please try again.');

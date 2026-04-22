@@ -324,23 +324,23 @@ describe('DataLayer', () => {
       expect(PartnerNotifications.journalShared).toHaveBeenCalledTimes(1);
     });
 
-    it('saveJournalEntry keeps private photo journals local without partner notification', async () => {
+    it('saveJournalEntry always writes journals as shared with couple_id and no private flag', async () => {
       await DataLayer.saveJournalEntry({
         title: 'Solo note',
-        body: 'Keeping this one private',
+        body: 'Keeping this one',
         mood: 'calm',
-        isPrivate: true,
-        imageUri: 'file:///private-photo.jpg',
+        imageUri: 'file:///photo.jpg',
       });
 
       expect(Database.insertJournal).toHaveBeenCalledWith(
         expect.objectContaining({
-          couple_id: null,
-          is_private: true,
-          photo_uri: 'file:///private-photo.jpg',
+          couple_id: 'couple-1',
+          photo_uri: 'file:///photo.jpg',
         })
       );
-      expect(PartnerNotifications.journalShared).not.toHaveBeenCalled();
+      expect(Database.insertJournal).toHaveBeenCalledWith(
+        expect.not.objectContaining({ is_private: true })
+      );
     });
 
     it('saveJournalEntry stores shared videos as encrypted attachments', async () => {
@@ -635,7 +635,6 @@ describe('DataLayer', () => {
       expect(rows).toHaveLength(1);
       expect(rows[0]).toEqual(expect.objectContaining({
         content: 'Shared moment',
-        is_private: false,
       }));
     });
 

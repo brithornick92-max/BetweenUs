@@ -169,9 +169,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               <Text style={{ color: theme.crimson }}>3.</Text> End-to-End Encryption
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              Between Us protects different kinds of content in different ways. Shared synced content uses client-side encryption with your couple key, while device-only content stays encrypted locally on your phone.{'\n\n'}
-              • Private entries use a key only your device holds unless you explicitly share or sync them{'\n'}
-              • Shared entries such as synced journals, prompt responses, and memories are encrypted with a couple key derived between both partners' devices{'\n'}
+              Between Us protects different kinds of content in different ways. Relationship content uses client-side encryption with your couple key, while device-only features stay encrypted locally on your phone.{"\n\n"}
+              • Journals, prompt responses, memories, and love notes are encrypted with a couple key derived between both partners' devices{"\n"}
               • Device-only features such as soft boundaries, inside jokes, relationship climate, and year reflections stay local unless the feature explicitly says otherwise{'\n'}
               • We cannot read content protected by your device-only or couple encryption keys{'\n'}
               • Encryption keys are stored in your device's secure hardware keychain when available{'\n\n'}

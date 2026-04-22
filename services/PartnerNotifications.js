@@ -107,6 +107,24 @@ const PartnerNotifications = {
     });
   },
 
+  /**
+   * Partner sent a "Thinking of You" photo.
+   */
+  async thinkingOfYouPhoto(senderName, reactionLabel) {
+    const name = senderName || 'Your partner';
+    const body = reactionLabel
+      ? `"${reactionLabel}" — they sent you a photo.`
+      : 'They sent you a photo. Open to see it.';
+    await this._send({
+      title: `${name} is thinking of you 📸`,
+      body,
+      data: {
+        type: 'thinking_of_you_photo',
+        ...DeepLinkHandler.buildNotificationData('saved-moments'),
+      },
+    });
+  },
+
   /** Internal: send via PushNotificationService.notifyPartner */
   async _send({ title, body, data }) {
     try {

@@ -32,7 +32,6 @@ describe('ContentCoupleService', () => {
     const deps = createDeps();
 
     const record = await buildPromptResponseRecord('prompt-1', 'hello', {
-      isPrivate: true,
       fallbackCoupleId: 'profile-couple-id',
       dependencies: deps,
     });
@@ -50,7 +49,6 @@ describe('ContentCoupleService', () => {
     );
 
     await savePromptResponse('user-1', 'prompt-1', 'hello', {
-      isPrivate: true,
       fallbackCoupleId: 'profile-couple-id',
       dependencies: deps,
     });

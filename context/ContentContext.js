@@ -533,7 +533,7 @@ export const ContentProvider = ({ children }) => {
   };
 
   // Save user response with encryption
-  const saveResponse = async (promptId, response, isPrivate = true) => {
+  const saveResponse = async (promptId, response, isPrivate = false) => {
     try {
       if (!user || !promptId || !response) return;
       await ContentCoupleService.savePromptResponse(user.uid, promptId, response, {

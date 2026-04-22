@@ -46,6 +46,7 @@ const ACTIONS = {
   COMPLETE_ONBOARDING: 'COMPLETE_ONBOARDING',
   UPDATE_PROFILE: 'UPDATE_PROFILE',
   LEAVE_COUPLE: 'LEAVE_COUPLE',
+  JOIN_COUPLE: 'JOIN_COUPLE',
   SET_APP_LOCK: 'SET_APP_LOCK',
   UPDATE_PARTNER_ACTIVITY: 'UPDATE_PARTNER_ACTIVITY',
 };
@@ -111,6 +112,12 @@ function reducer(state, action) {
         ...state, 
         coupleId: null,
         isLinked: false 
+      };
+    case ACTIONS.JOIN_COUPLE:
+      return {
+        ...state,
+        coupleId: action.payload.coupleId,
+        isLinked: true,
       };
     case ACTIONS.SET_APP_LOCK:
       return { ...state, appLockEnabled: action.payload };
@@ -448,6 +455,11 @@ export function AppProvider({ children }) {
       return (now - s.lastPartnerActivity) < twentyFourHours;
     },
     
+    joinCouple: async (coupleId) => {
+      if (!coupleId) return;
+      dispatch({ type: ACTIONS.JOIN_COUPLE, payload: { coupleId } });
+    },
+
     leaveCouple: async () => {
       try {
         // Remove server-side couple_members row first — must succeed before

@@ -464,7 +464,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
               </ScrollView>
             </View>
 
-            {/* Private Reflection Input */}
+            {/* Shared Reflection Input */}
             <Animated.View
               entering={FadeIn.duration(800).delay(800)}
               style={styles.inputWrapper}
@@ -479,7 +479,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
               <TextInput
                 value={answer}
                 onChangeText={handleTextChange}
-                placeholder="Share your heart privately..."
+                placeholder="Share your heart..."
                 placeholderTextColor={withAlpha(t.text, 0.3)}
                 multiline
                 autoFocus

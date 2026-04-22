@@ -609,19 +609,6 @@ export default function HomeScreen({ navigation }) {
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity
-              onPress={() => { selection(); navigation.navigate('SavedMoments'); }}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessible
-              accessibilityRole="button"
-              accessibilityLabel="Open saved moments and prompts"
-              testID="open-saved-moments-button"
-              style={styles.archiveButton}
-            >
-              <Icon name="archive-outline" size={24} color={t.text} />
-              <Text style={styles.archiveButtonText}>Saved</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               onPress={() => { selection(); navigation.navigate('VibeSignal'); }}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -630,6 +617,16 @@ export default function HomeScreen({ navigation }) {
               style={styles.vibeButton}
             >
               <Icon name="heart-outline" size={30} color={t.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { selection(); navigation.navigate('ThinkingOfYou'); }}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Send a thinking of you photo"
+              style={styles.vibeButton}
+            >
+              <Icon name="camera-outline" size={26} color={t.primary} />
             </TouchableOpacity>
           </View>
         </Animated.View>

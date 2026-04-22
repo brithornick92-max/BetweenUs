@@ -14,18 +14,14 @@ import {
   Platform,
   ActivityIndicator,
   Animated as RNAnimated,
-  Image,
   ScrollView,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
-import { Video, ResizeMode } from 'expo-av';
 
 // Context & Services
 import Icon from '../components/Icon';
-import { useAuth } from '../context/AuthContext';
-import { useAppContext } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
 import { getPromptById } from '../utils/contentLoader';
@@ -45,14 +41,13 @@ const FILTERS = [
   { id: 'all', label: 'All', icon: 'albums-outline' },
   { id: 'prompt', label: 'Prompts', icon: 'chatbubbles-outline' },
   { id: 'memory', label: 'Moments', icon: 'images-outline' },
-  { id: 'photo', label: 'Photos', icon: 'camera-outline' },
-  { id: 'journal', label: 'Journal', icon: 'book-outline' },
 ];
 
 const MEMORY_TYPE_META = {
   moment: { label: 'Saved Moment', icon: 'sparkles-outline' },
   anniversary: { label: 'Anniversary', icon: 'heart-outline' },
   milestone: { label: 'Milestone', icon: 'ribbon-outline' },
+  intimacy_favorite: { label: 'Intimacy Favorite', icon: 'heart-outline' },
   memory: { label: 'Memory', icon: 'time-outline' },
   first: { label: 'A First', icon: 'star-outline' },
   inside_joke: { label: 'Inside Joke', icon: 'happy-outline' },
@@ -93,7 +88,7 @@ function buildPromptItem(row) {
     sourceId: row.id,
     title: prompt?.text || 'Saved reflection',
     body,
-    eyebrow: row.is_revealed ? 'REFLECTION' : 'SEALED REFLECTION',
+    eyebrow: row.is_revealed ? 'REFLECTION' : 'SEALED\nREFLECTION',
     icon: row.is_revealed ? 'chatbubbles-outline' : 'lock-closed-outline',
     accent: '#D2121A',
     meta: row.heat_level ? `Heat ${row.heat_level}` : 'Prompt',
@@ -104,16 +99,17 @@ function buildPromptItem(row) {
 
 function buildMemoryItem(row) {
   const memoryType = MEMORY_TYPE_META[row.type] || MEMORY_TYPE_META.moment;
+  const isIntimacyFavorite = row.type === 'intimacy_favorite';
   return {
     id: `memory:${row.id}`,
     kind: 'memory',
     sourceId: row.id,
     title: memoryType.label,
     body: row.locked ? 'This moment is locked on this device.' : (row.content || ''),
-    eyebrow: row.is_private ? 'PRIVATE MOMENT' : 'SHARED MOMENT',
+    eyebrow: isIntimacyFavorite ? 'SHARED INTIMACY FAVORITE' : (row.is_private ? 'PRIVATE MOMENT' : 'SHARED MOMENT'),
     icon: memoryType.icon,
     accent: row.is_private ? '#7E4FA3' : '#D2121A',
-    meta: row.mood ? String(row.mood).toUpperCase() : 'Moment',
+    meta: isIntimacyFavorite ? 'Shared intimacy' : (row.mood ? String(row.mood).toUpperCase() : 'Moment'),
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.created_at || row.date,
     mediaRef: row.media_ref || null,
@@ -122,45 +118,16 @@ function buildMemoryItem(row) {
   };
 }
 
-function buildJournalItem(row, ownerIds) {
-  const isOwn = ownerIds.has(row.user_id);
-  return {
-    id: `journal:${row.id}`,
-    kind: 'journal',
-    sourceId: row.id,
-    title: row.locked ? 'Locked shared journal' : (row.title || 'Shared reflection'),
-    body: row.locked ? 'This shared journal entry is locked on this device.' : (row.body || ''),
-    eyebrow: isOwn ? 'SHARED JOURNAL' : 'PARTNER JOURNAL',
-    icon: 'book-outline',
-    accent: '#D2121A',
-    meta: isOwn ? 'Visible to both of you' : 'Shared by your partner',
-    dateLabel: formatDateLabel(row.created_at),
-    sortAt: row.created_at,
-    entry: row,
-    canOpen: true,
-    canEdit: isOwn,
-    photoUri: row.photo_uri || row.photoUri || row.imageUri || null,
-  };
-}
-
 export default function SavedMomentsScreen() {
   const navigation = useNavigation();
-  const { user } = useAuth();
-  const { state } = useAppContext();
   const { colors, isDark } = useTheme();
   
   const [filter, setFilter] = useState('all');
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [photoUris, setPhotoUris] = useState({}); // itemId → decrypted local URI
   const [hearts, setHearts] = useState({}); // itemId → { count: number, hearted: bool }
   const scrollY = useRef(new RNAnimated.Value(0)).current;
-
-  const ownerIds = useMemo(
-    () => new Set([user?.id, user?.uid, state?.userId].filter(Boolean)),
-    [state?.userId, user?.id, user?.uid]
-  );
 
   // ─── THEME MAP (Original Colors, Glass Opacities) ───
   const t = useMemo(() => ({
@@ -179,16 +146,16 @@ export default function SavedMomentsScreen() {
   // ─── DATA LOADING ───
   const loadEntries = useCallback(async () => {
     try {
-      const [promptRows, memoryRows, journalRows] = await Promise.all([
+      const [promptRows, memoryRows] = await Promise.all([
         DataLayer.getSharedPromptAnswers({ limit: 50 }),
         DataLayer.getSharedMemories({ limit: 50 }),
-        DataLayer.getJournalEntries({ limit: 50, visibility: 'shared' }),
       ]);
 
       const merged = [
         ...(promptRows || []).map(buildPromptItem),
-        ...(memoryRows || []).map(buildMemoryItem),
-        ...(journalRows || []).map((row) => buildJournalItem(row, ownerIds)),
+        ...(memoryRows || [])
+          .filter((row) => !row.media_ref && !row.mediaRef && !(row.mime_type || row.mimeType || '').startsWith('image/') && !(row.mime_type || row.mimeType || '').startsWith('video/'))
+          .map(buildMemoryItem),
       ].sort((a, b) => getSortTime(b) - getSortTime(a));
 
       setEntries(merged);
@@ -199,7 +166,7 @@ export default function SavedMomentsScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [ownerIds]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -214,32 +181,6 @@ export default function SavedMomentsScreen() {
       if (saved && typeof saved === 'object') setHearts(saved);
     });
   }, []);
-
-  // ─── LOAD PHOTO URIS FOR MEMORY ITEMS ───
-  useEffect(() => {
-    if (!entries.length) return;
-    const memoryItemsWithPhotos = entries.filter(
-      (e) => e.kind === 'memory' && e.mediaRef
-    );
-    if (!memoryItemsWithPhotos.length) return;
-
-    let cancelled = false;
-    (async () => {
-      const newUris = {};
-      for (const item of memoryItemsWithPhotos) {
-        try {
-          const uri = await DataLayer.getDecryptedAttachment(item.mediaRef);
-          if (uri) newUris[item.id] = uri;
-        } catch (err) {
-          if (__DEV__) console.warn('[SavedMoments] Photo decrypt failed:', err?.message);
-        }
-      }
-      if (!cancelled) {
-        setPhotoUris((prev) => ({ ...prev, ...newUris }));
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [entries]);
 
   // ─── HEART TOGGLE ───
   const handleHeartToggle = useCallback(async (itemId) => {
@@ -260,7 +201,6 @@ export default function SavedMomentsScreen() {
 
   const filteredEntries = useMemo(() => {
     if (filter === 'all') return entries;
-    if (filter === 'photo') return entries.filter((item) => item.kind === 'memory' && item.mediaRef);
     return entries.filter((item) => item.kind === filter);
   }, [entries, filter]);
 
@@ -268,8 +208,6 @@ export default function SavedMomentsScreen() {
     all: entries.length,
     prompt: entries.filter((item) => item.kind === 'prompt').length,
     memory: entries.filter((item) => item.kind === 'memory').length,
-    photo: entries.filter((item) => item.kind === 'memory' && item.mediaRef).length,
-    journal: entries.filter((item) => item.kind === 'journal').length,
   }), [entries]);
 
   // ─── ON THIS DAY ───
@@ -345,7 +283,6 @@ export default function SavedMomentsScreen() {
   };
 
   const renderItem = ({ item, index }) => {
-    const photoUri = item.kind === 'journal' ? (item.photoUri || null) : (item.mediaRef ? (photoUris[item.id] || null) : null);
     const heartState = hearts[item.id] || { count: 0, hearted: false };
     const isMemory = item.kind === 'memory';
 
@@ -363,42 +300,12 @@ export default function SavedMomentsScreen() {
         )}
 
         <TouchableOpacity
-          activeOpacity={item.canOpen ? 0.86 : 1}
-          disabled={!item.canOpen}
-          onPress={() => {
-            if (item.kind === 'journal') {
-              impact(ImpactFeedbackStyle.Light);
-              navigation.navigate('JournalEntry', { entry: item.entry, readOnly: !item.canEdit });
-            }
-          }}
+          activeOpacity={1}
+          disabled
           style={[styles.cardContainer, isMemory && styles.cardTimeline]}
         >
           <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass, padding: 0 }, !isDark && styles.lightShadow]}>
-            {/* Photo/Video thumbnail */}
-            {photoUri && (
-              <View style={styles.photoWrapper}>
-                {item.mimeType?.startsWith('video/') || item.mediaRef?.endsWith('.mp4') || item.mediaRef?.endsWith('.mov') ? (
-                  <Video
-                    source={{ uri: photoUri }}
-                    style={styles.photoThumb}
-                    resizeMode={ResizeMode.COVER}
-                    useNativeControls
-                    isLooping={false}
-                  />
-                ) : (
-                  <Image
-                    source={{ uri: photoUri }}
-                    style={styles.photoThumb}
-                    resizeMode="cover"
-                  />
-                )}
-                {!(item.mimeType?.startsWith('video/') || item.mediaRef?.endsWith('.mp4') || item.mediaRef?.endsWith('.mov')) && (
-                  <View style={[styles.photoOverlay, { backgroundColor: withAlpha(item.accent, 0.18) }]} />
-                )}
-              </View>
-            )}
-
-            <View style={{ paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl, paddingTop: photoUri ? 0 : SPACING.xl, width: '100%' }}>
+            <View style={{ paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl, paddingTop: SPACING.xl, width: '100%' }}>
             <View style={styles.cardTopRow}>
               <View style={styles.cardEyebrowRow}>
                 <Icon name={item.icon} size={14} color={item.accent} />
@@ -415,11 +322,6 @@ export default function SavedMomentsScreen() {
                 <Text style={[styles.metaPillText, { color: item.accent }]}>{item.meta}</Text>
               </View>
               <View style={styles.cardFooterRight}>
-                {item.kind === 'journal' && (
-                  <View style={[styles.openPill, { borderColor: t.border }]}> 
-                    <Text style={[styles.openPillText, { color: t.text }]}>{item.canEdit ? 'Open' : 'Read'}</Text>
-                  </View>
-                )}
                 {/* Heart reaction */}
                 <TouchableOpacity
                   onPress={() => handleHeartToggle(item.id)}
@@ -492,7 +394,7 @@ export default function SavedMomentsScreen() {
           </View>
           <Text style={[styles.heroTitle, { color: t.text }]}>Everything you've saved, kept in one place.</Text>
           <Text style={styles.heroBody}>
-            Browse earlier reflections, shared journal entries, and captured moments without leaving the app's main rhythm.
+            Browse earlier reflections and text-based moments here, while journal entries and media stay in their dedicated spaces.
           </Text>
           </View>
         </View>
@@ -517,7 +419,7 @@ export default function SavedMomentsScreen() {
       </View>
       <Text style={[styles.emptyTitle, { color: t.text }]}>Nothing saved yet</Text>
       <Text style={styles.emptyBody}>
-        Reflections, shared journal entries, and captured moments will collect here once you start saving them.
+        Shared reflections and text moments will collect here once you start saving them.
       </Text>
     </ReAnimated.View>
   );
@@ -567,11 +469,6 @@ export default function SavedMomentsScreen() {
 }
 
 // ─── HIGH-END DESIGN SYSTEM STYLES ───
-const getShadow = (isDark) => Platform.select({
-  ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: isDark ? 0.35 : 0.08, shadowRadius: 32 },
-  android: { elevation: 6 },
-});
-
 const createStyles = (t, isDark) => StyleSheet.create({
   editorialCard: {
     borderRadius: 28,
@@ -685,12 +582,29 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Filters ──
   filtersScroll: {
-    marginBottom: SPACING.xl,
+    marginBottom: 0,
   },
   filtersRow: {
     flexDirection: 'row',
     gap: 10,
     paddingRight: SPACING.screen,
+  },
+  wallBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    marginBottom: SPACING.xl,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+  },
+  wallBannerText: {
+    fontSize: 13,
+    fontWeight: '600',
+    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
   },
   filterChip: {
     height: 42,

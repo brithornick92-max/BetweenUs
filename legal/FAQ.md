@@ -101,10 +101,9 @@ Absolutely. We take privacy seriously:
 - Only you and your linked partner can see shared content
 
 ### Can my partner see everything I write?
-No! You control what you share:
-- Private entries stay private
-- You choose what to share and when
-- Your partner can't access your private thoughts
+Between Us is built for shared relationship content:
+- Journal entries, memories, love notes, and shared prompt content belong to the relationship space
+- Only you and your linked partner can access that shared space while linked
 - You can delete shared content anytime
 
 ### What happens if we break up?

@@ -14,7 +14,6 @@ import {
   ActivityIndicator,
   Modal,
   Switch,
-  Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -25,7 +24,7 @@ import { useMemoryContext } from '../context/MemoryContext';
 import DataLayer from '../services/data/DataLayer';
 import Constants from 'expo-constants';
 import Icon from '../components/Icon';
-import { SPACING, withAlpha, SYSTEM_FONT } from '../utils/theme';
+import { withAlpha, SYSTEM_FONT } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 // ─── Sub-component ───────────────────────────────────────────────────────────
@@ -67,20 +66,14 @@ const ExportDataScreen = ({ navigation }) => {
 
   const [isExporting, setIsExporting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [includeSharedEntries, setIncludeSharedEntries] = useState(false);
   const [includeAccountDetails, setIncludeAccountDetails] = useState(false);
 
   /**
    * Gather all user data from the local-first DataLayer (SQLite + E2EE decrypt).
    * Returns decrypted plaintext so the export is human-readable.
    */
-  const gatherAllData = async ({ includeShared }) => {
-    const filterPrivate = (rows) => {
-      if (includeShared) return rows || [];
-      return (rows || []).filter(r =>
-        !(r?.shared === true || r?.isShared === true || r?.partnerShared === true || r?.is_private === false)
-      );
-    };
+  const gatherAllData = async () => {
+    const keepAllRows = (rows) => rows || [];
 
     // Fetch from each data type via DataLayer (handles decryption)
     const loadErrors = [];
@@ -121,13 +114,13 @@ const ExportDataScreen = ({ navigation }) => {
     });
 
     return {
-      journalEntries: sanitize(filterPrivate(journalEntries)),
-      promptAnswers: sanitize(filterPrivate(promptAnswers)),
-      memories: sanitize(filterPrivate(memoryRows)),
+      journalEntries: sanitize(keepAllRows(journalEntries)),
+      promptAnswers: sanitize(keepAllRows(promptAnswers)),
+      memories: sanitize(keepAllRows(memoryRows)),
       rituals: sanitize(rituals),
       checkIns: sanitize(checkIns),
       vibes: sanitize(vibes),
-      loveNotes: sanitize(filterPrivate(loveNotes)),
+      loveNotes: sanitize(keepAllRows(loveNotes)),
       calendarEvents: sanitize(calendarEvents),
       myDates: sanitize(myDates),
     };
@@ -138,11 +131,10 @@ const ExportDataScreen = ({ navigation }) => {
     try {
       setIsExporting(true);
 
-      const includeShared = !!options.includeSharedEntries;
       const includeAccount = !!options.includeAccountDetails;
 
       // Gather all data from DataLayer (decrypted)
-      const allData = await gatherAllData({ includeShared });
+      const allData = await gatherAllData();
 
       const exportPayload = {
         exportDate: new Date().toISOString(),
@@ -299,18 +291,9 @@ const ExportDataScreen = ({ navigation }) => {
           <View style={[styles.modalCard, { backgroundColor: t.surface, borderColor: t.border }]}>
             <Text style={[styles.cardTitle, { color: t.text, textAlign: 'center' }]}>Configure Export</Text>
             <Text style={[styles.modalSub, { color: t.subtext }]}>
-              Your export may include personal and shared entries. Shared entries may contain your
-              partner's words. Choose what to include before continuing.
+              Your export includes your relationship data, which may contain your partner's words.
+              Choose whether to include account metadata before continuing.
             </Text>
-
-            <View style={styles.switchRow}>
-              <Text style={[styles.switchLabel, { color: t.text }]}>Include shared partner data</Text>
-              <Switch
-                value={includeSharedEntries}
-                onValueChange={setIncludeSharedEntries}
-                trackColor={{ true: t.primary }}
-              />
-            </View>
 
             <View style={styles.switchRow}>
               <Text style={[styles.switchLabel, { color: t.text }]}>Include account metadata</Text>
@@ -328,7 +311,7 @@ const ExportDataScreen = ({ navigation }) => {
               <TouchableOpacity
                 onPress={() => {
                   setShowConfirm(false);
-                  exportData({ includeSharedEntries, includeAccountDetails });
+                  exportData({ includeAccountDetails });
                 }}
                 style={[styles.confirmBtn, { backgroundColor: t.primary }]}
               >

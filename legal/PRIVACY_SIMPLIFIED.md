@@ -89,7 +89,6 @@
 - No new shared activity after you unlink
 
 ### Your Partner Cannot See
-- Your private entries
 - Your soft boundary settings
 - Your deleted content
 - Your account password

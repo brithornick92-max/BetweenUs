@@ -442,6 +442,20 @@ async function migrate(db) {
     }
   }
 
+  // v13: normalize any lingering is_private=1 rows to 0
+  if (user_version < 13) {
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      await db.execAsync(`UPDATE journal_entries SET is_private = 0 WHERE is_private != 0;`);
+      await db.execAsync(`UPDATE memories SET is_private = 0 WHERE is_private != 0;`);
+      await db.execAsync('PRAGMA user_version = 13;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  }
+
 }
 
 const USER_SCOPED_TABLES = [
@@ -503,11 +517,11 @@ const Database = {
       `INSERT INTO journal_entries
         (id, user_id, couple_id, title_cipher, body_cipher, mood, mood_cipher, tags, tags_cipher,
          is_private, photo_uri, media_ref, created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null, entry.title_cipher ?? null, entry.body_cipher ?? null,
        entry.mood ?? null, entry.mood_cipher ?? null,
        entry.tags ? JSON.stringify(entry.tags) : null, entry.tags_cipher ?? null,
-       entry.is_private ? 1 : 0, entry.photo_uri ?? null, entry.media_ref ?? null, entry.created_at ?? ts, ts]
+       entry.photo_uri ?? null, entry.media_ref ?? null, entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
   },
@@ -519,9 +533,9 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'is_private', 'couple_id', 'photo_uri', 'media_ref'].includes(k)) {
+      if (['title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'couple_id', 'photo_uri', 'media_ref'].includes(k)) {
         fields.push(`${k} = ?`);
-        params.push(k === 'tags' ? JSON.stringify(v) : (k === 'is_private' ? (v ? 1 : 0) : v));
+        params.push(k === 'tags' ? JSON.stringify(v) : v);
       }
     }
     if (!fields.length) return null;
@@ -557,22 +571,21 @@ const Database = {
     const params = [];
 
     if (visibility === 'private') {
-      sql += ' AND user_id = ? AND is_private = 1';
-      params.push(userId);
-    } else if (visibility === 'shared') {
-      sql += ' AND is_private = 0';
-      if (coupleId) {
-        sql += ' AND couple_id = ?';
-        params.push(coupleId);
-      }
+      return [];
+    }
+
+    if (visibility === 'shared') {
+      if (!coupleId) return [];
+      sql += ' AND couple_id = ?';
+      params.push(coupleId);
     } else {
-      sql += ' AND (user_id = ? OR (is_private = 0';
+      sql += ' AND (user_id = ?';
       params.push(userId);
       if (coupleId) {
-        sql += ' AND couple_id = ?';
+        sql += ' OR couple_id = ?';
         params.push(coupleId);
       }
-      sql += '))';
+      sql += ')';
     }
 
     if (mood) {
@@ -685,10 +698,10 @@ const Database = {
       `INSERT INTO memories
          (id, user_id, couple_id, type, body_cipher, media_ref,
           mood, mood_cipher, is_private, created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null, entry.type ?? 'moment',
        entry.body_cipher ?? null, entry.media_ref ?? null,
-       entry.mood ?? null, entry.mood_cipher ?? null, entry.is_private ? 1 : 0,
+       entry.mood ?? null, entry.mood_cipher ?? null,
        entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
@@ -701,9 +714,9 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['body_cipher', 'media_ref', 'mood', 'mood_cipher', 'type', 'is_private'].includes(k)) {
+      if (['body_cipher', 'media_ref', 'mood', 'mood_cipher', 'type'].includes(k)) {
         fields.push(`${k} = ?`);
-        params.push(k === 'is_private' ? (v ? 1 : 0) : v);
+        params.push(v);
       }
     }
     if (!fields.length) return null;
@@ -735,7 +748,7 @@ const Database = {
 
   async getSharedMemories(coupleId, { type, limit = 100, offset = 0 } = {}) {
     const db = await getDb();
-    let sql = 'SELECT * FROM memories WHERE couple_id = ? AND is_private = 0 AND deleted_at IS NULL';
+    let sql = 'SELECT * FROM memories WHERE couple_id = ? AND deleted_at IS NULL';
     const params = [coupleId];
     if (type) { sql += ' AND type = ?'; params.push(type); }
     sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
@@ -837,6 +850,24 @@ const Database = {
     return db.getAllAsync(
       'SELECT * FROM vibes WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ?',
       [userId, limit]
+    );
+  },
+
+  async softDeleteVibe(id) {
+    const db = await getDb();
+    const ts = now();
+    await db.runAsync(
+      `UPDATE vibes SET deleted_at = ?, updated_at = ?, sync_status = 'pending', sync_version = sync_version + 1 WHERE id = ?`,
+      [ts, ts, id]
+    );
+  },
+
+  async softDeleteCheckIn(id) {
+    const db = await getDb();
+    const ts = now();
+    await db.runAsync(
+      `UPDATE check_ins SET deleted_at = ?, updated_at = ?, sync_status = 'pending', sync_version = sync_version + 1 WHERE id = ?`,
+      [ts, ts, id]
     );
   },
 

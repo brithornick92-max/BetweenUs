@@ -75,11 +75,11 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Absolutely. Shared content such as synced journal entries, prompt responses, and memories is encrypted before sync, and some private preferences stay only on your device. We also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data, and we cannot read content protected by your device-only or couple encryption keys.',
+        a: 'Absolutely. Your relationship content such as synced journal entries, prompt responses, memories, and love notes is encrypted before sync. Some device settings and local-only features stay on your device, and we also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data, and we cannot read content protected by your device-only or couple encryption keys.',
       },
       {
         q: 'Can my partner see everything I write?',
-        a: 'No! You control what you share. Private entries stay private, you choose what to share and when, and your partner can\'t access your private thoughts.',
+        a: 'Between Us is built for shared relationship content. Journal entries, prompt responses, memories, and love notes belong to the relationship space for both partners to see while you are linked.',
       },
       {
         q: 'What happens if we break up?',

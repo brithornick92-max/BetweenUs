@@ -218,7 +218,7 @@ export const FEATURE_META = Object.freeze({
     icon: '🔒',
     category: 'security',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Keep your private moments truly private',
+    emotionalValue: 'Keep your relationship memories secure and protected',
   },
   [PremiumFeature.CLOUD_SYNC]: {
     name: 'Privacy & Cloud Sync',

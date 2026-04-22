@@ -148,8 +148,6 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Identity"
-      heroTitle="Identity"
-      heroSubtitle="Customize how you appear in prompts and notifications."
       scroll={false}
       keyboardAvoiding
       onBack={handleBack}

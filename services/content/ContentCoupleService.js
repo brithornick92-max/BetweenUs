@@ -30,7 +30,7 @@ export async function saveSharedDailyPromptSelection(dateKey, promptId, userId, 
 }
 
 export async function buildPromptResponseRecord(promptId, response, {
-  isPrivate = true,
+  isPrivate = false,
   fallbackCoupleId = null,
   dependencies = {},
 } = {}) {
@@ -41,10 +41,6 @@ export async function buildPromptResponseRecord(promptId, response, {
     timestamp: Date.now(),
     promptId,
   };
-
-  if (!isPrivate) {
-    return responseData;
-  }
 
   const { coupleId, keyTier } = await getPromptCoupleContext({ fallbackCoupleId, dependencies });
   const encryptedPayload = await encryptionService.encryptJson(
@@ -63,7 +59,7 @@ export async function buildPromptResponseRecord(promptId, response, {
 }
 
 export async function savePromptResponse(userId, promptId, response, {
-  isPrivate = true,
+  isPrivate = false,
   fallbackCoupleId = null,
   dependencies = {},
 } = {}) {

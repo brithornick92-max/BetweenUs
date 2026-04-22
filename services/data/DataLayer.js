@@ -655,7 +655,6 @@ const DataLayer = {
             body_cipher: bodyCipher,
             mood: entry?.mood ?? null,
             mood_cipher: moodCipher,
-            is_private: isPrivate,
             created_at: entry?.createdAt ? new Date(entry.createdAt).toISOString() : undefined,
           });
           migratedJournals += 1;
@@ -803,8 +802,8 @@ const DataLayer = {
 
     const forceShared = true;
 
-    // Private entries always use device key; shared entries must resolve
-    // the active write tier and couple-key availability first.
+    // Journal entries are shared content and must resolve the active
+    // write tier and couple-key availability first.
     const { keyTier: kt, coupleId } = await resolveLocalWriteTier();
     const cid = kt === 'couple' ? coupleId : null;
     const titleCipher = await E2EEncryption.encryptString(title, kt, cid);
@@ -871,27 +870,17 @@ const DataLayer = {
     return row;
   },
 
-  async updateJournalEntry(id, { title, body, mood, tags, isPrivate, imageUri, mediaUri, mimeType, fileName }) {
+  async updateJournalEntry(id, { title, body, mood, tags, imageUri, mediaUri, mimeType, fileName }) {
     await ensureLocalIdentityState();
 
     const updates = {};
-    const forceShared = true;
-    // Use device key for private entries; shared updates must resolve
-    // the active write tier and couple-key availability first.
+    // Journal updates are shared content and must resolve the active
+    // write tier and couple-key availability first.
     const { keyTier: kt, coupleId } = await resolveLocalWriteTier();
     const cid = kt === 'couple' ? coupleId : null;
 
-    // When toggling private→shared, we must re-encrypt title and body
-    // with the couple key even if the caller didn't provide new values.
     let effectiveTitle = title;
     let effectiveBody = body;
-    if (isPrivate === false && (effectiveTitle === undefined || effectiveBody === undefined)) {
-      const existing = await this.getJournalEntry(id);
-      if (existing && existing.is_private) {
-        if (effectiveTitle === undefined) effectiveTitle = existing.title;
-        if (effectiveBody === undefined) effectiveBody = existing.body;
-      }
-    }
 
     const existingRow = (mediaUri !== undefined || imageUri !== undefined)
       ? await Database.getJournalById(id)
@@ -903,7 +892,6 @@ const DataLayer = {
     if (mood !== undefined) updates.mood_cipher = mood ? await E2EEncryption.encryptString(mood, kt, cid) : null;
     if (tags !== undefined) updates.tags = tags;
     if (tags !== undefined) updates.tags_cipher = tags?.length ? await E2EEncryption.encryptJson(tags, kt, cid) : null;
-    updates.is_private = false;
     updates.couple_id = coupleId;
 
     let replacementMediaRef = null;
@@ -974,6 +962,10 @@ const DataLayer = {
     await ensureLocalIdentityState();
     const verifiedCoupleState = await ensureVerifiedCoupleState({ requireRemoteCheck: true });
 
+    if (visibility === 'private') {
+      return [];
+    }
+
     if (visibility === 'shared' && verifiedCoupleState.status === 'unpaired') {
       return [];
     }
@@ -1029,7 +1021,6 @@ const DataLayer = {
         body: await E2EEncryption.decryptString(row.body_cipher, kt, cid),
         mood: row.mood ?? decryptedMood ?? null,
         tags: row.tags ? JSON.parse(row.tags) : (decryptedTags || []),
-        is_private: !!row.is_private,
         mediaRef: row.media_ref || null,
         mediaUri: decryptedMediaUri,
         mediaType: attachmentMimeType,
@@ -1255,7 +1246,6 @@ const DataLayer = {
       return {
         ...row,
         content: await E2EEncryption.decryptString(row.body_cipher, kt, cid),
-        is_private: !!row.is_private,
       };
     } catch (err) {
       if (__DEV__) console.warn('[DataLayer] Memory decryption failed:', err?.message);

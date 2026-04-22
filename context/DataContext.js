@@ -28,6 +28,7 @@ import React, {
 } from 'react';
 import { AppState } from 'react-native';
 import { DataLayer, SyncEngine, Database } from '../services/localfirst';
+import MemoryResurfacingService from '../services/MemoryResurfacingService';
 import { MomentSignalSender } from '../services/ConnectionEngine';
 import { supabase } from '../config/supabase';
 import { useAuth } from './AuthContext';
@@ -99,6 +100,7 @@ export function DataProvider({ children }) {
         });
 
         await DataLayer.migrateLegacyStorage();
+        MemoryResurfacingService.schedule(DataLayer).catch(() => {});
 
         // Configure MomentSignalSender with the same Supabase UUID
         MomentSignalSender.configure({ userId: syncUserId, coupleId: coupleId || null });

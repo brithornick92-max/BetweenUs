@@ -98,8 +98,14 @@ describe('Database', () => {
 
       expect(mockAllAsync).toHaveBeenCalled();
       expect(result).toHaveLength(1);
-      expect(mockAllAsync.mock.calls[0][0]).toContain('is_private = 0');
       expect(mockAllAsync.mock.calls[0][0]).toContain('couple_id = ?');
+    });
+
+    it('getJournalFeed returns an empty list for private visibility', async () => {
+      const result = await Database.getJournalFeed('user-1', { visibility: 'private', coupleId: 'couple-1', limit: 10, offset: 0 });
+
+      expect(result).toEqual([]);
+      expect(mockAllAsync).not.toHaveBeenCalled();
     });
 
     it('softDeleteJournal sets deleted_at and sync_status', async () => {
@@ -168,7 +174,6 @@ describe('Database', () => {
       expect(mockAllAsync).toHaveBeenCalled();
       expect(result).toHaveLength(1);
       expect(mockAllAsync.mock.calls[0][0]).toContain('couple_id = ?');
-      expect(mockAllAsync.mock.calls[0][0]).toContain('is_private = 0');
     });
   });
 

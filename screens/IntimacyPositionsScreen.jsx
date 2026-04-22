@@ -28,9 +28,9 @@ import IntimacyPositionCard from '../components/IntimacyPositionCard';
 import positionsData from '../content/intimacy-positions.json';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
+import { getIntimacyFavorites, toggleIntimacyFavorite } from '../utils/intimacyFavorites';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
-const serifFont = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 // Calculate weeks since intimacy positions launch
 const LAUNCH_DATE = new Date('2026-04-18');
@@ -46,6 +46,8 @@ export default function IntimacyPositionsScreen() {
   const navigation = useNavigation();
   
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [favorites, setFavorites] = useState({});
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
 
   // ─── THEME MAP ───
   const t = useMemo(() => ({
@@ -70,6 +72,10 @@ export default function IntimacyPositionsScreen() {
   }, [currentWeek]);
 
   const position = availablePositions[selectedIndex];
+  const favoritePositions = useMemo(
+    () => availablePositions.filter((item) => favorites[item.id]),
+    [availablePositions, favorites]
+  );
 
   // ─── ANIMATIONS ───
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -84,6 +90,24 @@ export default function IntimacyPositionsScreen() {
     ]).start();
   }, [headerAnim, pickerAnim, cardAnim]);
 
+  useEffect(() => {
+    let active = true;
+
+    getIntimacyFavorites().then((saved) => {
+      if (active) setFavorites(saved);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (selectedIndex >= availablePositions.length) {
+      setSelectedIndex(0);
+    }
+  }, [availablePositions.length, selectedIndex]);
+
   // ─── HANDLERS ───
   const handleBack = useCallback(() => {
     impact(ImpactFeedbackStyle.Light);
@@ -94,6 +118,21 @@ export default function IntimacyPositionsScreen() {
     impact(ImpactFeedbackStyle.Medium);
     showPaywall?.('HEAT_LEVELS_4_5');
   }, [showPaywall]);
+
+  const handleToggleFavorite = useCallback(async () => {
+    if (!position || favoriteBusy) return;
+
+    setFavoriteBusy(true);
+    try {
+      impact(ImpactFeedbackStyle.Light);
+      const next = await toggleIntimacyFavorite(position, {
+        currentlyFavorite: !!favorites[position.id],
+      });
+      setFavorites(next.favorites);
+    } finally {
+      setFavoriteBusy(false);
+    }
+  }, [favoriteBusy, favorites, position]);
 
   // ════════════════════════════════════
   //  LOCKED STATE RENDER
@@ -190,6 +229,36 @@ export default function IntimacyPositionsScreen() {
                   <Text style={[styles.cardEmail, { color: t.subtext }]}>A closer space for you and {partnerLabel}.</Text>
                 </View>
 
+                {!!favoritePositions.length && (
+                  <View style={styles.favoritesBlock}>
+                    <Text style={[styles.favoritesLabel, { color: t.subtext }]}>YOUR FAVORITES</Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.favoriteRow}
+                      style={styles.favoriteScroll}
+                    >
+                      {favoritePositions.map((item) => (
+                        <TouchableOpacity
+                          key={item.id}
+                          activeOpacity={0.75}
+                          onPress={() => {
+                            const nextIndex = availablePositions.findIndex((candidate) => candidate.id === item.id);
+                            if (nextIndex >= 0) {
+                              selection();
+                              setSelectedIndex(nextIndex);
+                            }
+                          }}
+                          style={[styles.favoritePill, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}
+                        >
+                          <Icon name="heart" size={14} color={t.primary} />
+                          <Text style={[styles.favoritePillText, { color: t.text }]}>{item.title}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -239,6 +308,9 @@ export default function IntimacyPositionsScreen() {
                       position={position}
                       t={t}
                       isDark={isDark}
+                      isFavorite={!!favorites[position.id]}
+                      onToggleFavorite={handleToggleFavorite}
+                      favoriteBusy={favoriteBusy}
                     />
                   </Animated.View>
                 )}
@@ -250,11 +322,6 @@ export default function IntimacyPositionsScreen() {
     </EditorialScreenScaffold>
   );
 }
-
-const getShadow = (isDark) => Platform.select({
-  ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
-  android: { elevation: 6 },
-});
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
@@ -328,6 +395,38 @@ const styles = StyleSheet.create({
     fontFamily: systemFont,
     fontWeight: '500',
     fontSize: 14,
+  },
+  favoritesBlock: {
+    width: '100%',
+    marginBottom: SPACING.lg,
+  },
+  favoritesLabel: {
+    fontFamily: systemFont,
+    fontWeight: '800',
+    fontSize: 11,
+    letterSpacing: 1.5,
+    marginBottom: 10,
+  },
+  favoriteScroll: {
+    flexGrow: 0,
+  },
+  favoriteRow: {
+    gap: 8,
+  },
+  favoritePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  favoritePillText: {
+    fontFamily: systemFont,
+    fontWeight: '700',
+    fontSize: 13,
+    letterSpacing: -0.2,
   },
   // ── Picker ──
   pickerScroll: {

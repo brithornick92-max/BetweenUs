@@ -31,6 +31,10 @@ import { useContent } from '../context/ContentContext';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { getDateCardPalette } from '../components/dateCardPalette';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const DATE_HISTORY_KEY = '@betweenus:dateGoneOn';
+const AUTO_LOG_THRESHOLD_SECONDS = 300; // 5 minutes
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -184,6 +188,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const [timerActive, setTimerActive] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerRef = useRef(null);
+  const autoLoggedRef = useRef(false);
 
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
@@ -207,6 +212,22 @@ export default function DateNightDetailScreen({ route, navigation }) {
       }
     };
   }, [timerActive]);
+
+  // Auto-log to history once the timer passes 5 minutes
+  useEffect(() => {
+    if (autoLoggedRef.current) return;
+    if (timeElapsed < AUTO_LOG_THRESHOLD_SECONDS) return;
+    if (!date?.id) return;
+    autoLoggedRef.current = true;
+    AsyncStorage.getItem(DATE_HISTORY_KEY)
+      .then(raw => {
+        const prev = raw ? JSON.parse(raw) : [];
+        if (prev.find(d => d.id === date.id)) return;
+        const next = [{ id: date.id, title: date.title, heat: date.heat, addedAt: Date.now(), rating: null }, ...prev];
+        return AsyncStorage.setItem(DATE_HISTORY_KEY, JSON.stringify(next));
+      })
+      .catch(() => {});
+  }, [timeElapsed, date]);
 
   const toggleTimer = () => {
     impact(ImpactFeedbackStyle.Medium);

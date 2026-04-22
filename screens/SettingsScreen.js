@@ -645,7 +645,7 @@ export default function SettingsScreen({ navigation }) {
           <ReAnimated.View entering={FadeInDown} style={[styles.modalCard, { backgroundColor: t.surface }]}>
             <Text style={[styles.modalTitle, { color: t.text }]}>Unlink Partner?</Text>
             <Text style={[styles.modalBody, { color: t.subtext }]}>
-              This will stop all shared syncing. Your private data remains safe.
+              This will stop shared syncing between you and your partner. Content created after unlinking will belong only to the account that creates it.
             </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }]} onPress={() => setShowUnlinkConfirm(false)}>

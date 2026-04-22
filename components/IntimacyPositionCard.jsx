@@ -50,7 +50,15 @@ const POSITION_SUPPORT_TIPS = {
   ip018: 'This one is usually easier on the wrists than classic doggy style, but hips, knees, and lower back can still matter. A pillow beneath the hips, stomach, or chest can help improve the angle and reduce compression. If the lower partner feels crowded or flattened, shift the torso slightly or change the bend in the leg until the shape feels softer and easier to hold.',
 };
 
-export default function IntimacyPositionCard({ position, t, isDark, defaultBodyType = 'standard' }) {
+export default function IntimacyPositionCard({
+  position,
+  t,
+  isDark,
+  defaultBodyType = 'standard',
+  isFavorite = false,
+  onToggleFavorite,
+  favoriteBusy = false,
+}) {
   const [activeBodyType, setActiveBodyType] = useState(defaultBodyType);
 
   const heatIcon = HEAT_ICONS[position.heat || 1];
@@ -68,9 +76,30 @@ export default function IntimacyPositionCard({ position, t, isDark, defaultBodyT
     <View style={[styles.heroCardWrap, { backgroundColor: t.surface, borderColor: t.border, ...shadowStyle }]}>
       
       {/* ── Eyebrow & Title ── */}
-      <View style={styles.eyebrowRow}>
-        <Icon name="star-outline" size={14} color={t.primary} />
-        <Text style={[styles.eyebrow, { color: t.primary }]}>{position.commonName || "INTIMACY"}</Text>
+      <View style={styles.headerRow}>
+        <View style={styles.eyebrowRow}>
+          <Icon name="star-outline" size={14} color={t.primary} />
+          <Text style={[styles.eyebrow, { color: t.primary }]}>{position.commonName || "INTIMACY"}</Text>
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={isFavorite ? 'Remove intimacy favorite' : 'Save intimacy favorite'}
+          activeOpacity={0.8}
+          disabled={favoriteBusy || !onToggleFavorite}
+          onPress={onToggleFavorite}
+          style={[
+            styles.favoriteButton,
+            {
+              backgroundColor: isFavorite ? t.primary : t.surfaceSecondary,
+              borderColor: isFavorite ? t.primary : t.border,
+            },
+          ]}
+        >
+          <Icon name={isFavorite ? 'heart' : 'heart-outline'} size={14} color={isFavorite ? '#FFFFFF' : t.text} />
+          <Text style={[styles.favoriteLabel, { color: isFavorite ? '#FFFFFF' : t.text }]}>
+            {isFavorite ? 'Saved' : 'Save'}
+          </Text>
+        </TouchableOpacity>
       </View>
       <Text style={[styles.promptText, { color: t.text }]}>{position.title}</Text>
 
@@ -182,11 +211,32 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
     marginBottom: SPACING.xl,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: SPACING.sm,
+  },
   eyebrowRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: SPACING.sm,
+  },
+  favoriteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  favoriteLabel: {
+    fontFamily: systemFont,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   eyebrow: {
     fontFamily: systemFont,

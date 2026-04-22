@@ -28,7 +28,7 @@ export const PREMIUM_FEATURES = {
     name: 'Private Vault',
     description: 'Secure storage for your most intimate memories',
     category: 'security',
-    emotionalValue: 'Keep your private moments truly private',
+    emotionalValue: 'Keep your relationship memories secure and protected',
     icon: '🔒',
   },
   CLOUD_SYNC: {

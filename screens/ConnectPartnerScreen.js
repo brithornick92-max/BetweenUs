@@ -18,6 +18,7 @@ import * as Clipboard from 'expo-clipboard';
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 import { notification, NotificationFeedbackType, impact, ImpactFeedbackStyle } from '../utils/haptics';
 import CoupleService from '../services/supabase/CoupleService';
 import CoupleKeyService from '../services/security/CoupleKeyService';
@@ -32,6 +33,7 @@ import * as naclUtil from 'tweetnacl-util';
 export default function ConnectPartnerScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { user, updateProfile } = useAuth();
+  const { actions } = useAppContext();
 
   const [myCode, setMyCode] = useState(null);
   const [partnerCode, setPartnerCode] = useState('');
@@ -93,7 +95,11 @@ export default function ConnectPartnerScreen({ navigation }) {
         setMyCode(result.code);
       }
     } catch (err) {
-      if (__DEV__) console.warn('Code gen failed:', err?.message);
+      // "already in a couple" is an expected state when the screen is visited
+      // by a paired user — not a real error, so skip the warning.
+      if (err?.message !== 'You are already in a couple' && __DEV__) {
+        console.warn('Code gen failed:', err?.message);
+      }
     } finally {
       if (activeRef.current) setCodeLoading(false);
     }
@@ -135,6 +141,7 @@ export default function ConnectPartnerScreen({ navigation }) {
           await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
 
           await updateProfile?.({ coupleId });
+          await actions.joinCouple(coupleId);
           
           if (localActive) {
             notification(NotificationFeedbackType.Success);
@@ -196,6 +203,7 @@ export default function ConnectPartnerScreen({ navigation }) {
       notification(NotificationFeedbackType.Success);
       setJoinPhase('done');
       setJoinStatus('Linked successfully!');
+      await actions.joinCouple(result.coupleId);
 
       Alert.alert(
         'You\'re linked! 💕',

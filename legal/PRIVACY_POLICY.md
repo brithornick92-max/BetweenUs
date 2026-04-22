@@ -156,11 +156,10 @@ We implement industry-standard security:
 ## 4. Data Sharing and Disclosure
 
 ### 4.1 With Your Partner
-- Content you choose to share is visible to your linked partner
+- Relationship content such as journals, memories, love notes, and synced prompt content is visible to your linked partner while you are linked
 - Vibe signals and moment signals are sent to your linked partner as connectivity allows
 - Prompt responses can be shared via the Reveal Together feature (both partners must opt in)
-- You control what you share and when
-- Your partner cannot access your private entries or soft boundary settings
+- Your partner cannot access your soft boundary settings
 - Unlinking stops new data sharing and removes access to the shared couple space
 
 ### 4.2 With Service Providers
