@@ -15,6 +15,7 @@ jest.mock('../../services/db/Database', () => ({
     getSyncMeta: jest.fn().mockResolvedValue(null),
     setSyncMeta: jest.fn().mockResolvedValue(undefined),
     wipeAll: jest.fn().mockResolvedValue(undefined),
+      wipeUserData: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -272,6 +273,7 @@ describe('SyncEngine', () => {
       );
       expect(Database.setSyncMeta).toHaveBeenCalledWith(
         'journal_entries',
+        'user-1',
         expect.objectContaining({
           last_pulled_at: '2024-01-01T00:00:00.000Z',
           cursor: JSON.stringify({
@@ -326,6 +328,32 @@ describe('SyncEngine', () => {
       });
       await SyncEngine.reset();
       expect(SyncEngine.isConfigured).toBe(false);
+    });
+
+    it('does not wipe local rows when resetting for account switch', async () => {
+      SyncEngine.configure({
+        userId: 'user-1',
+        coupleId: 'couple-1',
+        isPremium: true,
+      });
+
+      await SyncEngine.reset();
+
+      expect(Database.wipeAll).not.toHaveBeenCalled();
+      expect(Database.wipeUserData).not.toHaveBeenCalled();
+    });
+
+    it('wipes only the active user rows when explicitly clearing local data', async () => {
+      SyncEngine.configure({
+        userId: 'user-1',
+        coupleId: 'couple-1',
+        isPremium: true,
+      });
+
+      await SyncEngine.reset({ clearLocalData: true });
+
+      expect(Database.wipeUserData).toHaveBeenCalledWith('user-1');
+      expect(Database.wipeAll).not.toHaveBeenCalled();
     });
   });
 });

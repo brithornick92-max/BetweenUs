@@ -97,7 +97,7 @@ const TermsScreen = ({ navigation, route }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>RULES OF ENGAGEMENT</Text>
             <Text style={[styles.title, { color: colors.text }]}>Terms of Service</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              EFFECTIVE: APRIL 6, 2026
+                EFFECTIVE: APRIL 21, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Welcome to Between Us. These Terms of Service ("Terms") govern your use of the Between Us mobile
@@ -128,6 +128,8 @@ const TermsScreen = ({ navigation, route }) => {
                 • Daily conversation prompts across 5 heat levels{'\n'}
                 • Journaling and prompt responses{'\n'}
                 • Date night ideas and planning{'\n'}
+                • Love notes with optional photo attachments{'\n'}
+                • Night rituals and shared routines{'\n'}
                 • Relationship memories and milestones{'\n'}
                 • Vibe Signals and Moment Signals (mood sharing when connected){'\n'}
                 • Inside Jokes vault (private nicknames and jokes){'\n'}
@@ -198,8 +200,8 @@ const TermsScreen = ({ navigation, route }) => {
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Free and Premium Features:{'\n'}
                 • Free users can answer 1 guided prompt per day at Heat levels 1–3{'\n'}
-                • Free users can link with a partner and fully plan 1 date per week{'\n'}
-                • Premium adds unlimited date planning, calendar features, and secure cloud sync{'\n'}
+                • Free users can link with a partner, fully plan 1 date per week, and export their data{'\n'}
+                • Premium adds unlimited prompts, unlimited date ideas, love notes, calendar features, and secure cloud sync{'\n'}
                 • Premium subscription is per couple (both partners get access when linked){'\n\n'}
                 Current pricing:{'\n'}
                 • Monthly: {FALLBACK_PRICES.monthly}/month{'\n'}

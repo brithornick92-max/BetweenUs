@@ -77,7 +77,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>SECURITY & TRUST</Text>
             <Text style={[styles.title, { color: colors.text }]}>Privacy Policy</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              Last Updated: April 6, 2026
+              Last Updated: April 21, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Your privacy is critically important to us. This Privacy Policy explains how we collect, use, 
@@ -134,8 +134,9 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               The app stores data locally on your device for offline access:{'\n\n'}
               • An encrypted SQLite database containing your content{'\n'}
-              • Preferences and settings in local storage{'\n'}
-              • Encryption keys and credentials in your device's secure Keychain
+              • Preferences and settings in local storage and secure device storage{'\n'}
+              • Encryption keys and credentials in your device's secure Keychain{'\n\n'}
+              Signing out removes local session credentials on this device and may clear cached local data. Your account and cloud data remain on our servers until you delete the account.
             </Text>
 
             <Text style={[styles.subTitle, { color: colors.text }]}>Information We Don't Collect</Text>
@@ -208,6 +209,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Account data: Retained while your account is active{'\n'}
+              • Signing out removes local credentials from this device but does not delete your account or cloud data{'\n'}
               • Journal entries and linked-partner metadata: Retained until you delete them or remove access through unlinking or account deletion{'\n'}
               • Usage and diagnostic data: Retained for a limited period based on operational needs{'\n'}
               • Deleted data: Removed from active systems promptly; backup copies may persist for a limited period before routine purge
@@ -222,6 +224,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               • Correct inaccurate data{'\n'}
               • Delete your account and data{'\n'}
               • Export your data{'\n'}
+              • Receive a temporary JSON export through the system share sheet; the app removes its temporary copy after the export flow completes{'\n'}
               • Disable optional notifications{'\n'}
               • Withdraw consent at any time
             </Text>

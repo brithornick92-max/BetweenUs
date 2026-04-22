@@ -285,7 +285,7 @@ async function sleep(ms) {
 }
 
 async function pushTable(tableName) {
-  const pending = await Database.getPendingSync(tableName);
+  const pending = await Database.getPendingSync(tableName, { userId: _userId });
   if (!pending.length) return { pushed: 0, failed: 0 };
 
   const sb = supabase;
@@ -345,7 +345,7 @@ async function pushTable(tableName) {
 
 async function pullTable(tableName) {
   const dataType = TABLE_TO_TYPE[tableName];
-  const meta = await Database.getSyncMeta(tableName);
+  const meta = await Database.getSyncMeta(tableName, _userId);
   let cursor = parsePullCursor(meta);
 
   const sb = supabase;
@@ -427,7 +427,7 @@ async function pullTable(tableName) {
     if (rows.length < PULL_PAGE_SIZE) break;
   }
 
-  await Database.setSyncMeta(tableName, {
+  await Database.setSyncMeta(tableName, _userId, {
     last_pulled_at: cursor.updatedAt,
     cursor: JSON.stringify(cursor),
   });
@@ -547,8 +547,40 @@ const SyncEngine = {
       }
   },
 
+/**
+   * Pushes a single record synchronously to Supabase (Server-First).
+   * If it succeeds, the record is fully ACK'd by the server.
+   * Throws if the server rejects it.
+   */
+  async pushSingleRecord(tableName, row) {
+    if (!canSync()) throw new Error('Sync not configured');
+    const remote = toRemoteRow(tableName, row);
+
+    // Tombstone: if soft-deleted locally, mark as deleted on remote
+    if (row.deleted_at) {
+      remote.is_deleted = true;
+      remote.deleted_at = row.deleted_at;
+    }
+
+    const { data, error } = await supabase
+      .from(TABLES.COUPLE_DATA)
+      .upsert(remote, { onConflict: 'couple_id,key' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    const local = fromRemoteRow(tableName, data);
+    if (!local) throw new Error('Failed to parse remote row');
+    
+    // Directly hydrate the SQLite cache to avoid redundant pull loops
+    await Database.upsertFromRemote(tableName, local);
+    return local;
+  },
+
   /**
    * Push only (useful right after a write).
+
    */
   async pushNow() {
     if (!canSync()) return;
@@ -658,16 +690,23 @@ const SyncEngine = {
   /**
    * Full reset (sign-out / delete account).
    */
-  async reset() {
+  async reset({ clearLocalData = false, userId = null } = {}) {
     clearRealtimeChannel();
     _syncing = false;
+    const resetUserId = userId || _userId;
     _coupleId = null;
     _userId = null;
     _isPremium = false;
     _listeners = [];
     _lastSyncAt = 0;
     _operationChain = Promise.resolve();
-    await Database.wipeAll();
+    if (clearLocalData) {
+      if (resetUserId) {
+        await Database.wipeUserData(resetUserId);
+      } else {
+        await Database.wipeAll();
+      }
+    }
   },
 
   /** Check if sync is currently running. */

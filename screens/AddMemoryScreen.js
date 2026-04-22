@@ -90,7 +90,7 @@ export default function AddMemoryScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: [ImagePicker.MediaType.images],
+        mediaTypes: ['images'],
         quality: 0.85,
         allowsEditing: true,
         aspect: [4, 3],

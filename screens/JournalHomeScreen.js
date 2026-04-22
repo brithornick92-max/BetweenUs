@@ -86,6 +86,7 @@ export default function JournalHomeScreen({ navigation }) {
     text: colors.text,
     subtext: colors.textMuted || (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(60,60,67,0.6)'),
     border: colors.border || (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+    borderGlass: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t), [t]);
@@ -155,34 +156,41 @@ export default function JournalHomeScreen({ navigation }) {
       <TouchableOpacity
         activeOpacity={0.88}
         onPress={() => navigation.navigate('JournalEntry', { entry: item.entry, readOnly: !item.canEdit })}
-        style={[styles.card, getShadow(isDark)]}
+        style={styles.cardContainer}
         accessibilityLabel={item.title || 'Journal entry'}
         accessibilityRole="button"
         accessibilityHint={item.canEdit ? 'Double tap to edit' : 'Double tap to read'}
       >
-        <View style={styles.cardTopRow}>
-          <View style={styles.eyebrowRow}>
-            <Icon name={item.icon} size={14} color={item.accent} />
-            <Text style={[styles.eyebrow, { color: item.accent }]}>{item.eyebrow}</Text>
-          </View>
-          <Text style={styles.dateLabel}>{item.dateLabel}</Text>
-        </View>
+        <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass }, !isDark && styles.lightShadow]}>
+          <View style={styles.cardContent}>
+            <View style={styles.cardTopRow}>
+              <View style={styles.eyebrowRow}>
+                <Icon name={item.icon} size={14} color={item.accent} />
+                <Text style={[styles.eyebrow, { color: item.accent }]}>{item.eyebrow}</Text>
+              </View>
+              <Text style={styles.dateLabel}>{item.dateLabel}</Text>
+            </View>
 
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        {item.mediaKind === 'video' ? (
-          <View style={[styles.videoCardPreview, { backgroundColor: withAlpha(item.accent, 0.12), borderColor: withAlpha(item.accent, 0.22) }]}>
-            <Icon name='play-circle-outline' size={24} color={item.accent} />
-            <Text style={[styles.videoCardLabel, { color: item.accent }]}>Video attached</Text>
+            <Text style={styles.cardTitle}>{item.title}</Text>
           </View>
-        ) : item.photoUri ? <Image source={{ uri: item.photoUri }} style={styles.cardPhoto} /> : null}
-        <Text style={styles.cardBody} numberOfLines={4}>{item.body || 'Nothing saved yet.'}</Text>
+            
+          <View style={{ paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl, width: '100%' }}>
+            {item.mediaKind === 'video' ? (
+              <View style={[styles.videoCardPreview, { backgroundColor: withAlpha(item.accent, 0.12), borderColor: withAlpha(item.accent, 0.22) }]}>
+                <Icon name='play-circle-outline' size={24} color={item.accent} />
+                <Text style={[styles.videoCardLabel, { color: item.accent }]}>Video attached</Text>
+              </View>
+            ) : item.photoUri ? <Image source={{ uri: item.photoUri }} style={styles.cardPhoto} /> : null}
+            <Text style={styles.cardBody} numberOfLines={4}>{item.body || 'Nothing saved yet.'}</Text>
 
-        <View style={styles.cardFooter}>
-          <View style={[styles.metaPill, { backgroundColor: withAlpha(item.accent, 0.12), borderColor: withAlpha(item.accent, 0.22) }]}>
-            <Text style={[styles.metaPillText, { color: item.accent }]}>{item.meta}</Text>
-          </View>
-          <View style={[styles.actionPill, { borderColor: t.border }]}> 
-            <Text style={[styles.actionPillText, { color: t.text }]}>{item.canEdit ? 'Edit' : 'Read'}</Text>
+            <View style={styles.cardFooter}>
+              <View style={[styles.metaPill, { backgroundColor: withAlpha(item.accent, 0.12), borderColor: withAlpha(item.accent, 0.22) }]}>
+                <Text style={[styles.metaPillText, { color: item.accent }]}>{item.meta}</Text>
+              </View>
+              <View style={[styles.actionPill, { borderColor: t.border }]}> 
+                <Text style={[styles.actionPillText, { color: t.text }]}>{item.canEdit ? 'Edit' : 'Read'}</Text>
+              </View>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -191,52 +199,62 @@ export default function JournalHomeScreen({ navigation }) {
 
   const ListHeader = (
     <Animated.View entering={FadeIn.duration(500)}>
-      <View style={styles.editorialHeader}>
-        <Text style={[styles.headerSubtitle, { color: t.primary }]}>JOURNAL</Text>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Your Shared Story</Text>
+      <View style={styles.headerBlock}>
+        <Text style={[styles.headerEyebrow, { color: t.primary }]}>YOUR SHARED STORY</Text>
+        <Text style={[styles.headerTitle, { color: t.text }]}>Journal</Text>
       </View>
 
-      <View style={styles.heroCard}>
-        <View style={styles.heroEyebrowRow}>
-          <Icon name='book-outline' size={15} color={t.accent} />
-          <Text style={styles.heroEyebrow}>VISIBLE TO BOTH OF YOU</Text>
-        </View>
-        <Text style={styles.heroTitle}>A shared shelf for the entries you write together.</Text>
-        <Text style={styles.heroBody}>
-          Shared entries are readable by both partners and belong to the relationship story, not just your private notes.
-        </Text>
+      <View style={styles.cardContainer}>
+        <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass }, !isDark && styles.lightShadow]}>
+          <View style={styles.cardContent}>
+            <View style={styles.heroEyebrowRow}>
+              <Icon name='book-outline' size={15} color={t.accent} />
+              <Text style={[styles.heroEyebrow, { color: t.text }]}>VISIBLE TO BOTH OF YOU</Text>
+            </View>
+            <Text style={[styles.heroTitle, { color: t.text }]}>A shared shelf for the entries you write together.</Text>
+            <Text style={[styles.heroBody, { color: t.subtext }]}>
+              Shared entries are readable by both partners and belong to the relationship story, not just your private notes.
+            </Text>
+          </View>
 
-        <View style={styles.heroActions}>
-          <TouchableOpacity
-            style={[styles.heroPrimaryAction, { backgroundColor: t.primary }]}
-            activeOpacity={0.85}
-            onPress={handleCreate}
-            accessibilityLabel="New shared entry"
-            accessibilityRole="button"
-          >
-            <Icon name='create-outline' size={16} color='#FFF' />
-            <Text style={styles.heroPrimaryActionText}>New Shared Entry</Text>
-          </TouchableOpacity>
+          <View style={{ paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl, width: '100%' }}>
+            <View style={styles.heroActions}>
+              <TouchableOpacity
+                style={[styles.heroPrimaryAction, { backgroundColor: t.primary }]}
+                activeOpacity={0.85}
+                onPress={handleCreate}
+                accessibilityLabel="New shared entry"
+                accessibilityRole="button"
+              >
+                <Icon name='create-outline' size={16} color='#FFF' />
+                <Text style={styles.heroPrimaryActionText}>New Shared Entry</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
 
       {showSharedNotice ? (
-        <View style={[styles.noticeCard, { backgroundColor: withAlpha(t.primary, isDark ? 0.12 : 0.08), borderColor: withAlpha(t.primary, 0.22) }]}>
-          <View style={styles.noticeHeader}>
-            <View style={styles.noticeTitleRow}>
-              <Icon name='megaphone-outline' size={16} color={t.primary} />
-              <Text style={[styles.noticeTitle, { color: t.text }]}>Journal is now shared</Text>
+        <View style={styles.cardContainer}>
+          <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: withAlpha(t.primary, isDark ? 0.12 : 0.08), borderColor: t.borderGlass }]}>
+            <View style={{ paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl, paddingBottom: SPACING.lg, width: '100%' }}>
+              <View style={styles.noticeHeader}>
+                <View style={styles.noticeTitleRow}>
+                  <Icon name='megaphone-outline' size={16} color={t.primary} />
+                  <Text style={[styles.noticeTitle, { color: t.text }]}>Journal is now shared</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={dismissSharedNotice}
+                  hitSlop={12}
+                  accessibilityLabel="Dismiss journal notice"
+                  accessibilityRole="button"
+                >
+                  <Icon name='close-outline' size={18} color={t.subtext} />
+                </TouchableOpacity>
+              </View>
+              <Text style={[styles.noticeBody, { color: t.subtext }]}>New journal entries are visible to both partners, so memories and reflections live in one shared relationship space.</Text>
             </View>
-            <TouchableOpacity
-              onPress={dismissSharedNotice}
-              hitSlop={12}
-              accessibilityLabel="Dismiss journal notice"
-              accessibilityRole="button"
-            >
-              <Icon name='close-outline' size={18} color={t.subtext} />
-            </TouchableOpacity>
           </View>
-          <Text style={[styles.noticeBody, { color: t.subtext }]}>New journal entries are visible to both partners, so memories and reflections live in one shared relationship space.</Text>
         </View>
       ) : null}
     </Animated.View>
@@ -270,11 +288,17 @@ export default function JournalHomeScreen({ navigation }) {
     </View>
   );
 
+  const handleBack = useCallback(() => {
+    impact(ImpactFeedbackStyle.Light);
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Journal"
+      headerTitle=""
       scroll={false}
+      onBack={handleBack}
     >
         <FlatList
           data={entries}
@@ -297,13 +321,15 @@ const getShadow = (isDark) => Platform.select({
 
 const createStyles = (t) => StyleSheet.create({
   listContent: {
-    paddingHorizontal: SPACING.screen,
+    paddingHorizontal: 0,
     paddingBottom: 160,
   },
-  editorialHeader: {
-    paddingBottom: SPACING.lg,
+  headerBlock: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
   },
-  headerSubtitle: {
+  headerEyebrow: {
     fontFamily: SYSTEM_FONT,
     fontSize: 12,
     fontWeight: '800',
@@ -313,18 +339,37 @@ const createStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    lineHeight: 40,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
-  heroCard: {
-    borderRadius: 24,
+  cardContainer: {
+    paddingHorizontal: 0,
+    marginVertical: SPACING.md,
+  },
+  editorialCard: {
+    borderRadius: 28,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: t.border,
-    backgroundColor: t.surface,
-    padding: SPACING.xl,
-    marginBottom: SPACING.xl,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  editorialCardColumn: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
+  cardContent: {
+    width: '100%',
+  },
+  lightShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 4,
   },
   heroEyebrowRow: {
     flexDirection: 'row',
@@ -373,12 +418,6 @@ const createStyles = (t) => StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  noticeCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: SPACING.lg,
-    marginBottom: SPACING.xl,
-  },
   noticeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -401,14 +440,6 @@ const createStyles = (t) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
     lineHeight: 20,
-  },
-  card: {
-    borderRadius: 24,
-    padding: SPACING.xl,
-    marginBottom: SPACING.md,
-    backgroundColor: t.surface,
-    borderWidth: 1,
-    borderColor: t.border,
   },
   cardTopRow: {
     flexDirection: 'row',

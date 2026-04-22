@@ -182,9 +182,11 @@ describe('Database', () => {
       mockAllAsync.mockResolvedValueOnce([
         { id: 'j_1', sync_status: 'pending' },
       ]);
-      const result = await Database.getPendingSync('journal_entries');
+      const result = await Database.getPendingSync('journal_entries', { userId: 'user-1' });
       expect(mockAllAsync).toHaveBeenCalled();
       expect(result).toHaveLength(1);
+      expect(mockAllAsync.mock.calls[0][0]).toContain('user_id = ?');
+      expect(mockAllAsync.mock.calls[0][1]).toEqual(['user-1', 50]);
     });
 
     it('markSynced updates sync_status to synced', async () => {
@@ -229,6 +231,15 @@ describe('Database', () => {
       await Database.wipeAll();
       // wipeAll uses runAsync to DELETE from each table
       expect(mockRunAsync).toHaveBeenCalled();
+    });
+
+    it('wipeUserData deletes only the active user rows and sync metadata', async () => {
+      await Database.wipeUserData('user-1');
+
+      expect(mockRunAsync).toHaveBeenCalledWith('DELETE FROM journal_entries WHERE user_id = ?', ['user-1']);
+      expect(mockRunAsync).toHaveBeenCalledWith('DELETE FROM rituals WHERE user_id = ?', ['user-1']);
+      expect(mockRunAsync).toHaveBeenCalledWith('DELETE FROM love_notes WHERE user_id = ?', ['user-1']);
+      expect(mockRunAsync).toHaveBeenCalledWith('DELETE FROM sync_meta WHERE user_id = ?', ['user-1']);
     });
   });
 

@@ -14,6 +14,7 @@ import WeeklyContentScheduler from './WeeklyContentScheduler';
 
 const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
 const PASSWORD_ITERATIONS = 60000;
+const CURRENT_USER_EMAIL_KEY = 'currentUserEmail';
 
 /** Convert Uint8Array to lowercase hex string */
 function bytesToHex(bytes) {
@@ -62,9 +63,13 @@ class LocalStorageService {
       if (__DEV__) console.warn('SecureStore email index persist failed:', e);
     }
     try {
-      await SecureStore.setItemAsync('currentUserId', user.uid, SECURE_STORE_OPTS);
+      await SecureStore.setItemAsync(
+        CURRENT_USER_EMAIL_KEY,
+        user.email.toLowerCase(),
+        SECURE_STORE_OPTS
+      );
     } catch (e) {
-      if (__DEV__) console.warn('SecureStore currentUserId persist failed:', e);
+      if (__DEV__) console.warn('SecureStore current user email persist failed:', e);
     }
   }
 
@@ -89,28 +94,6 @@ class LocalStorageService {
       return user;
     } catch (e) {
       if (__DEV__) console.warn('SecureStore user recovery by email failed:', e);
-      return null;
-    }
-  }
-
-  // Recover the last signed-in user from SecureStore
-  async _recoverCurrentUser() {
-    try {
-      const uid = await SecureStore.getItemAsync('currentUserId', SECURE_STORE_OPTS);
-      if (!uid) return null;
-
-      const raw = await SecureStore.getItemAsync(`user_profile_${uid}`, SECURE_STORE_OPTS);
-      if (!raw) return null;
-
-      const user = JSON.parse(raw);
-      // Restore to AsyncStorage
-      await AsyncStorage.setItem(`user_${uid}`, JSON.stringify(user));
-      await AsyncStorage.setItem('currentUserId', uid);
-      await this._setEmailIndex(user.email, uid);
-
-      return user;
-    } catch (e) {
-      if (__DEV__) console.warn('SecureStore current user recovery failed:', e);
       return null;
     }
   }
@@ -398,7 +381,7 @@ class LocalStorageService {
     try {
       await AsyncStorage.removeItem('currentUserId');
       try {
-        await SecureStore.deleteItemAsync('currentUserId', SECURE_STORE_OPTS);
+        await SecureStore.deleteItemAsync(CURRENT_USER_EMAIL_KEY, SECURE_STORE_OPTS);
       } catch { /* non-critical */ }
       // Clear couple state so a different account doesn't inherit a stale couple ID
       await AsyncStorage.multiRemove([
@@ -434,11 +417,13 @@ class LocalStorageService {
 
       const userId = await AsyncStorage.getItem('currentUserId');
       if (!userId) {
-        // AsyncStorage wiped (dev build reinstall) — try SecureStore recovery
-        const recovered = await this._recoverCurrentUser();
-        if (recovered) {
-          this.currentUser = recovered;
-          return recovered;
+        const currentEmail = await SecureStore.getItemAsync(CURRENT_USER_EMAIL_KEY, SECURE_STORE_OPTS);
+        if (currentEmail) {
+          const recovered = await this._recoverUserByEmail(currentEmail);
+          if (recovered) {
+            this.currentUser = recovered;
+            return recovered;
+          }
         }
         return null;
       }

@@ -2,6 +2,8 @@ describe('LocalStorageService.hydrateRemoteAccount', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
+    const { sha256 } = require('@noble/hashes/sha2.js');
+    sha256.mockReturnValue(new Uint8Array(32).fill(7));
   });
 
   it('creates a local session for a clean-device remote sign-in', async () => {
@@ -77,6 +79,48 @@ describe('LocalStorageService.hydrateRemoteAccount', () => {
     expect(AsyncStorage.setItem).toHaveBeenCalledWith(
       'user_remote-user-1',
       expect.stringContaining('"review@example.com"')
+    );
+  });
+
+  it('restores the current user from SecureStore email state instead of the stale currentUserId key', async () => {
+    const AsyncStorage = require('@react-native-async-storage/async-storage');
+    const SecureStore = require('expo-secure-store');
+    const LocalStorageService = require('../../services/LocalStorageService').default;
+
+    AsyncStorage.getItem.mockImplementation(async (key) => {
+      if (key === 'currentUserId') return null;
+      return null;
+    });
+    SecureStore.getItemAsync.mockImplementation(async (key) => {
+      if (key === 'currentUserEmail') return 'review@example.com';
+      if (key.startsWith('email_uid_')) return 'remote-user-1';
+      if (key === 'user_profile_remote-user-1') {
+        return JSON.stringify({
+          uid: 'remote-user-1',
+          email: 'review@example.com',
+          displayName: 'Reviewer',
+        });
+      }
+      return null;
+    });
+
+    const user = await LocalStorageService.getCurrentUser();
+
+    expect(user).toEqual(
+      expect.objectContaining({
+        uid: 'remote-user-1',
+        email: 'review@example.com',
+        displayName: 'Reviewer',
+      })
+    );
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'user_remote-user-1',
+      expect.stringContaining('"review@example.com"')
+    );
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith('currentUserId', 'remote-user-1');
+    expect(SecureStore.getItemAsync).not.toHaveBeenCalledWith(
+      'currentUserId',
+      expect.objectContaining({ keychainService: 'betweenus' })
     );
   });
 });

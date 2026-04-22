@@ -157,7 +157,11 @@ const EncryptedAttachments = {
    * Upload all pending attachments (called by SyncEngine).
    */
   async uploadAllPending() {
-    const pending = await Database.getPendingAttachmentUploads();
+    const { data } = await supabase.auth.getUser();
+    const activeUserId = data?.user?.id || null;
+    if (!activeUserId) return { uploaded: 0, failed: 0 };
+
+    const pending = await Database.getPendingAttachmentUploads(activeUserId);
     const results = { uploaded: 0, failed: 0 };
 
     for (const att of pending) {

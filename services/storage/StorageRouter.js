@@ -75,6 +75,70 @@ function buildCloudProfileUpdates(localProfile = {}) {
   return updates;
 }
 
+function buildCanonicalLocalProfile(localProfile = {}, remoteProfile = null) {
+  const safeLocal = localProfile && typeof localProfile === 'object' ? localProfile : {};
+  if (!remoteProfile || typeof remoteProfile !== 'object') {
+    return safeLocal;
+  }
+
+  const remotePrefs = remoteProfile.preferences && typeof remoteProfile.preferences === 'object'
+    ? remoteProfile.preferences
+    : {};
+  const localPrefs = safeLocal.preferences && typeof safeLocal.preferences === 'object'
+    ? safeLocal.preferences
+    : {};
+
+  return {
+    ...safeLocal,
+    ...(remoteProfile.email ? { email: remoteProfile.email } : {}),
+    ...(remoteProfile.display_name
+      ? {
+          displayName: remoteProfile.display_name,
+          display_name: remoteProfile.display_name,
+        }
+      : {}),
+    ...(typeof remotePrefs.heatLevelPreference !== 'undefined'
+      ? { heatLevelPreference: remotePrefs.heatLevelPreference }
+      : {}),
+    ...(typeof remotePrefs.onboardingCompleted === 'boolean'
+      ? { onboardingCompleted: remotePrefs.onboardingCompleted }
+      : {}),
+    ...(typeof remotePrefs.tone === 'string' && remotePrefs.tone.trim()
+      ? { tone: remotePrefs.tone.trim() }
+      : {}),
+    ...(remotePrefs.nicknameConfig && typeof remotePrefs.nicknameConfig === 'object'
+      ? { nicknameConfig: remotePrefs.nicknameConfig }
+      : {}),
+    ...(remotePrefs.relationshipSeason && typeof remotePrefs.relationshipSeason === 'object'
+      ? { relationshipSeason: remotePrefs.relationshipSeason }
+      : {}),
+    ...(remotePrefs.relationshipClimate && typeof remotePrefs.relationshipClimate === 'object'
+      ? { relationshipClimate: remotePrefs.relationshipClimate }
+      : {}),
+    ...(typeof remotePrefs.energyLevel === 'string' && remotePrefs.energyLevel.trim()
+      ? { energyLevel: remotePrefs.energyLevel.trim() }
+      : {}),
+    ...(remotePrefs.softBoundaries && typeof remotePrefs.softBoundaries === 'object'
+      ? { softBoundaries: remotePrefs.softBoundaries }
+      : {}),
+    ...(remotePrefs.relationshipStartDate
+      ? { relationshipStartDate: remotePrefs.relationshipStartDate }
+      : {}),
+    ...(remotePrefs.partnerNames && typeof remotePrefs.partnerNames === 'object'
+      ? {
+          partnerNames: {
+            ...(safeLocal.partnerNames && typeof safeLocal.partnerNames === 'object' ? safeLocal.partnerNames : {}),
+            ...remotePrefs.partnerNames,
+          },
+        }
+      : {}),
+    preferences: {
+      ...localPrefs,
+      ...remotePrefs,
+    },
+  };
+}
+
 class StorageRouter {
   constructor() {
     this.isPremium = false;
@@ -169,16 +233,24 @@ class StorageRouter {
   }
 
   async updateUserDocument(userId, updates) {
-    const local = await LocalEngine.updateUserDocument(userId, updates);
     if (this.sessionPresent) {
       try {
         const cloudUserId = await CloudEngine.getCurrentUserId();
-        await CloudEngine.upsertProfile(cloudUserId, buildCloudProfileUpdates(local));
+        const existingLocal = await LocalEngine.getUserDocument(userId);
+        const localCandidate = {
+          ...(existingLocal && typeof existingLocal === 'object' ? existingLocal : {}),
+          ...(updates && typeof updates === 'object' ? updates : {}),
+          updatedAt: new Date().toISOString(),
+        };
+        const remoteProfile = await CloudEngine.upsertProfile(cloudUserId, buildCloudProfileUpdates(localCandidate));
+        const canonicalLocal = buildCanonicalLocalProfile(localCandidate, remoteProfile);
+        return await LocalEngine.updateUserDocument(userId, canonicalLocal);
       } catch (err) {
         if (__DEV__) console.warn('[StorageRouter] Cloud profile upsert failed:', err?.message);
+        throw err;
       }
     }
-    return local;
+    return LocalEngine.updateUserDocument(userId, updates);
   }
 
   async getCoupleData(coupleId, key, coupleKey = null) {

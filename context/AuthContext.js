@@ -26,6 +26,9 @@ function mergeCloudProfile(localProfile, remoteProfile) {
   const remotePrefs = remoteProfile?.preferences && typeof remoteProfile.preferences === 'object'
     ? remoteProfile.preferences
     : {};
+  const localPrefs = safeLocal.preferences && typeof safeLocal.preferences === 'object'
+    ? safeLocal.preferences
+    : {};
 
   return {
     ...safeLocal,
@@ -71,7 +74,7 @@ function mergeCloudProfile(localProfile, remoteProfile) {
         }
       : {}),
     preferences: {
-      ...(safeLocal.preferences && typeof safeLocal.preferences === 'object' ? safeLocal.preferences : {}),
+      ...localPrefs,
       ...remotePrefs,
     },
   };
@@ -524,14 +527,22 @@ export const AuthProvider = ({ children }) => {
       E2EEncryption.clearCache();
       await ConnectionMemory.clear();
 
-      // A signed-out device should not retain plaintext account or profile data.
+      // A signed-out device should not retain active-session account state,
+      // and backend-canonical content should be rehydrated from the server on next login.
       await clearLocalAsyncStorage();
+      if (user?.uid) {
+        try {
+          await Database.wipeUserData(user.uid);
+        } catch (dbErr) {
+          console.warn('SQLite sign-out cleanup (non-fatal):', dbErr?.message);
+        }
+      }
 
       // Clear SecureStore auth backup and settings (same cleanup as delete-account)
       try {
         const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
         const LocalStorageService = require('../services/LocalStorageService').default;
-        await SecureStore.deleteItemAsync('currentUserId', SECURE_STORE_OPTS);
+        await SecureStore.deleteItemAsync('currentUserEmail', SECURE_STORE_OPTS);
         if (user?.uid) {
           await SecureStore.deleteItemAsync(`user_profile_${user.uid}`, SECURE_STORE_OPTS);
           await SecureStore.deleteItemAsync(`cred_${user.uid}`, SECURE_STORE_OPTS);
@@ -656,7 +667,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
         const LocalStorageService = require('../services/LocalStorageService').default;
-        await SecureStore.deleteItemAsync('currentUserId', SECURE_STORE_OPTS);
+        await SecureStore.deleteItemAsync('currentUserEmail', SECURE_STORE_OPTS);
         if (user.uid) {
           await SecureStore.deleteItemAsync(`user_profile_${user.uid}`, SECURE_STORE_OPTS);
           await SecureStore.deleteItemAsync(`cred_${user.uid}`, SECURE_STORE_OPTS);
@@ -669,11 +680,9 @@ export const AuthProvider = ({ children }) => {
         if (__DEV__) console.warn('SecureStore cleanup (non-fatal):', secErr?.message);
       }
 
-      // 7. Purge SQLite database file from disk
+      // 7. Purge this user's local SQLite rows from disk
       try {
-        await Database.close();
-        const dbPath = `${FileSystem.documentDirectory}SQLite/betweenus.db`;
-        await FileSystem.deleteAsync(dbPath, { idempotent: true });
+        await Database.wipeUserData(user.uid);
       } catch (dbErr) {
         console.warn('SQLite cleanup (non-fatal):', dbErr?.message);
       }

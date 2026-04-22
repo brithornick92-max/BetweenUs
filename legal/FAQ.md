@@ -1,6 +1,6 @@
 # Frequently Asked Questions (FAQ)
 
-**Last Updated: April 6, 2026**
+**Last Updated: April 21, 2026**
 
 ---
 
@@ -474,7 +474,7 @@ Yes! You can export your data (available to both free and premium users):
 - Love notes
 - Account details (optional)
 
-Exports are provided as a plaintext JSON file that you can save locally or share.
+Exports are prepared as a plaintext JSON file for the system share sheet. Between Us removes the temporary export file from app storage after the export flow completes, and any copy you save or share from the share sheet is then controlled by the destination you choose.
 
 ### Do you have a desktop version?
 Currently iOS only:

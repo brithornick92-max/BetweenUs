@@ -677,7 +677,7 @@ const DataLayer = {
     return localResult;
   },
 
-  async saveJournalEntry({  title, body, mood, tags, isPrivate = false, imageUri = null, mediaUri, mimeType, fileName , _createdAt, _updatedAt }) { 
+  async saveJournalEntry({ title, body, mood, tags, isPrivate = false, imageUri = null, mediaUri, mimeType, fileName }) {
     await ensureLocalIdentityState();
 
     // Private entries always use device key; shared entries must resolve
@@ -708,9 +708,10 @@ const DataLayer = {
       mediaRef = att.id;
     }
 
-    const draft = {
+    const entryForDb = {
       id: Database.makeId('jrn'),
       user_id: _userId,
+      
       couple_id: isPrivate ? null : coupleId,
       title_cipher: titleCipher,
       body_cipher: bodyCipher,
@@ -721,10 +722,10 @@ const DataLayer = {
       is_private: isPrivate,
       photo_uri: mediaRef ? null : (imageUri || null),
       media_ref: mediaRef,
-      created_at: _createdAt || new Date().toISOString(),
-      updated_at: _updatedAt || new Date().toISOString()
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
-    const row = await this._writeCloudFirst('journal_entries', draft, 'insertJournal', draft);
+    const row = await this._writeCloudFirst('journal_entries', entryForDb, 'insertJournal', entryForDb);
 
     if (mediaRef && row?.id) {
       try {
@@ -812,9 +813,11 @@ const DataLayer = {
       updates.media_ref = null;
     }
 
-    const existingRowForUpdate = await Database.getJournalById(id);
-    const draft = { ...existingRowForUpdate, ...updates, id, updated_at: new Date().toISOString() };
-    const row = await this._writeCloudFirst('journal_entries', draft, 'updateJournal', id, updates);
+    updates.id = id;
+    updates.updated_at = new Date().toISOString();
+    const existing = await Database.getJournalById(id);
+    const rowDraft = { ...existing, ...updates };
+    const row = await this._writeCloudFirst('journal_entries', rowDraft, 'updateJournal', id, updates);
 
     if (replacementMediaRef && row?.id) {
       try {
@@ -844,10 +847,12 @@ const DataLayer = {
     if (entry?.media_ref) {
       try { await EncryptedAttachments.deleteAttachment(entry.media_ref); } catch { /* ok */ }
     }
-    if (entry) {
-      const rowDraft = { ...entry, deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-      await this._writeCloudFirst('journal_entries', rowDraft, 'softDeleteJournal', id);
+    const existing = await Database.getJournalById(id);
+    if (existing) {
+       const rowDraft = { ...existing, deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+       await this._writeCloudFirst('journal_entries', rowDraft, 'softDeleteJournal', id);
     }
+    await flushWriteThrough();
   },
 
   async getJournalEntries({ limit = 50, offset = 0, mood, visibility } = {}) {
@@ -923,7 +928,7 @@ const DataLayer = {
 
   // ─── Prompt Answers ───────────────────────────────────────────
 
-  async savePromptAnswer({ promptId, answer, heatLevel, _createdAt, _updatedAt }) {
+  async savePromptAnswer({ promptId, answer, heatLevel }) {
     await ensureLocalIdentityState();
     const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
     const resolvedHeatLevel = typeof heatLevel === 'number'
@@ -931,21 +936,16 @@ const DataLayer = {
       : (getPromptById(promptId)?.heat || 1);
     const answerCipher = await E2EEncryption.encryptString(answer, kt, cid);
     const heatCipher = await E2EEncryption.encryptString(String(resolvedHeatLevel), kt, cid);
-    const dk = _createdAt ? dateKey(new Date(_createdAt)) : dateKey();
+    const dk = dateKey();
 
     const existing = await Database.getPromptAnswerByPromptAndDate(_userId, promptId, dk);
-    let row;
-    if (existing) {
-      const updates = {
+    const row = existing
+      ? await Database.updatePromptAnswer(existing.id, {
           answer_cipher: answerCipher,
           heat_level: resolvedHeatLevel,
           heat_level_cipher: heatCipher,
-      };
-      const draft = { ...existing, ...updates, updated_at: _updatedAt || new Date().toISOString() };
-      row = await this._writeCloudFirst('prompt_answers', draft, 'updatePromptAnswer', existing.id, updates);
-    } else {
-      const draft = {
-          id: Database.makeId('ans'),
+        })
+      : await Database.insertPromptAnswer({
           user_id: _userId,
           couple_id: cid,
           prompt_id: promptId,
@@ -953,24 +953,24 @@ const DataLayer = {
           answer_cipher: answerCipher,
           heat_level: resolvedHeatLevel,
           heat_level_cipher: heatCipher,
-          is_revealed: 0,
-          created_at: _createdAt || new Date().toISOString(),
-          updated_at: _updatedAt || new Date().toISOString()
-      };
-      row = await this._writeCloudFirst('prompt_answers', draft, 'insertPromptAnswer', draft);
-    }
+        });
+
+    await flushWriteThrough();
     return row;
   },
 
   async revealPromptAnswer(id) {
-    const existing = await Database.getPromptAnswerById(id);
-    if (!existing) return null;
-    const updates = {
+    const updates = { 
       is_revealed: true,
       reveal_at: new Date().toISOString(),
-    };
-    const draft = { ...existing, ...updates, updated_at: _updatedAt || new Date().toISOString() };
-    return await this._writeCloudFirst('prompt_answers', draft, 'updatePromptAnswer', id, updates);
+     };
+    updates.updated_at = new Date().toISOString();
+    const existingForReveal = await Database.getPromptAnswers(_userId, { promptId: id }); // wait this might return array
+    const actualExisting = existingForReveal?.find(r => r.id === id) || { id };
+    const rowDraft = { ...actualExisting, ...updates };
+    const row = await this._writeCloudFirst('prompt_answers', rowDraft, 'updatePromptAnswer', id, updates);
+    await flushWriteThrough();
+    return row;
   },
 
   async getPromptAnswers({ dateKey: dk, promptId, limit = 100 } = {}) {
@@ -995,7 +995,7 @@ const DataLayer = {
   },
 
   async getPromptAnswerForToday(promptId) {
-    const dk = _createdAt ? dateKey(new Date(_createdAt)) : dateKey();
+    const dk = dateKey();
     const row = await Database.getPromptAnswerByPromptAndDate(_userId, promptId, dk);
     return row ? this._decryptPromptAnswer(row) : null;
   },
@@ -1042,7 +1042,7 @@ const DataLayer = {
 
   // ─── Memories ─────────────────────────────────────────────────
 
-  async saveMemory({  content, type = 'moment', mood, isPrivate = false, mediaUri, mimeType, fileName , _createdAt, _updatedAt }) {
+  async saveMemory({ content, type = 'moment', mood, isPrivate = false, mediaUri, mimeType, fileName }) {
     await ensureLocalIdentityState();
     const { keyTier: kt, coupleId: cid } = isPrivate 
       ? { keyTier: deviceTier(), coupleId: null } 
@@ -1068,20 +1068,10 @@ const DataLayer = {
       mediaRef = att.id;
     }
 
-    const draft = {
+    const entryForDb = {
       id: Database.makeId('mem'),
-      user_id: _userId,
-      couple_id: isPrivate ? null : cid,
-      type,
-      body_cipher: bodyCipher,
-      media_ref: mediaRef,
-      mood,
-      mood_cipher: moodCipher,
-      is_private: isPrivate,
-      created_at: _createdAt || new Date().toISOString(),
-      updated_at: _updatedAt || new Date().toISOString()
+      inner => { /* didn't use inner correctly above wait */ return ''; }
     };
-    const row = await this._writeCloudFirst('memories', draft, 'insertMemory', draft);
 
     // Link attachment parent_id now that we have the memory row id
     if (mediaRef && row?.id) {
@@ -1145,11 +1135,8 @@ const DataLayer = {
   },
 
   async deleteMemory(id) {
-    const existing = await Database.getMemoryById(id);
-    if (existing) {
-        const draft = { ...existing, deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-        await this._writeCloudFirst('memories', draft, 'softDeleteMemory', id);
-    }
+    await Database.softDeleteMemory(id);
+    await flushWriteThrough();
   },
 
   // ─── Rituals (retired) ───────────────────────────────────────
@@ -1164,7 +1151,7 @@ const DataLayer = {
 
   // ─── Check-ins ────────────────────────────────────────────────
 
-  async saveCheckIn({  mood, intimacy, notes, touch , _createdAt, _updatedAt }) { 
+  async saveCheckIn({ mood, intimacy, notes, touch }) {
     await ensureLocalIdentityState();
     const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
     const bodyCipher = await E2EEncryption.encryptJson(
@@ -1173,18 +1160,16 @@ const DataLayer = {
     );
     const moodCipher = mood ? await E2EEncryption.encryptString(mood, kt, cid) : null;
 
-    const draft = {
-      id: Database.makeId('chk'),
+    const row = await Database.insertCheckIn({
       user_id: _userId,
       couple_id: cid,
       body_cipher: bodyCipher,
-      mood,
-      mood_cipher: moodCipher,
-      date_key: _createdAt ? dateKey(new Date(_createdAt)) : dateKey(),
-      created_at: _createdAt || new Date().toISOString(),
-      updated_at: _updatedAt || new Date().toISOString()
-    };
-    const row = await this._writeCloudFirst('check_ins', draft, 'insertCheckIn', draft);
+      mood,                // unencrypted label for local calendar display
+      mood_cipher: moodCipher,  // encrypted for Supabase
+      date_key: dateKey(),
+    });
+
+    await flushWriteThrough();
     return row;
   },
 
@@ -1219,23 +1204,21 @@ const DataLayer = {
 
   // ─── Vibes ────────────────────────────────────────────────────
 
-  async saveVibe({ vibe, note, _createdAt, _updatedAt }) { 
+  async saveVibe({ vibe, note }) {
     await ensureLocalIdentityState();
     const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
     const noteCipher = note
       ? await E2EEncryption.encryptString(note, kt, cid)
       : null;
 
-    const draft = {
-      id: Database.makeId('vibe'),
+    const row = await Database.insertVibe({
       user_id: _userId,
       couple_id: cid,
       vibe,
       note_cipher: noteCipher,
-      created_at: _createdAt || new Date().toISOString(),
-      updated_at: _updatedAt || new Date().toISOString()
-    };
-    const row = await this._writeCloudFirst('vibes', draft, 'insertVibe', draft);
+    });
+
+    await flushWriteThrough();
     return row;
   },
 

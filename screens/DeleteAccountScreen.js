@@ -148,7 +148,7 @@ export default function DeleteAccountScreen({ navigation }) {
           <View style={styles.card}>
             <Text style={[styles.cardTitle, { color: t.text }]}>Need a Break Instead?</Text>
             <Text style={[styles.cardText, { color: t.subtext, marginBottom: SPACING.md }]}>
-              Your data will be safe and waiting when you return. Consider these alternatives:
+              Your account stays on our servers, but signing out clears this device's session and local cache. Consider these alternatives:
             </Text>
             
             <TouchableOpacity

@@ -37,6 +37,8 @@ import ReAnimated, {
 
 // Context & Services
 import { useAuth } from '../context/AuthContext';
+import { seedReviewerData } from '../utils/DemoSeeder';
+import { supabase } from '../config/supabase';
 import { useEntitlements, clearCouplePremiumCache } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
@@ -546,6 +548,23 @@ export default function SettingsScreen({ navigation }) {
           </EditorialSection>
 
           {/* ═══ ACCOUNT DESTRUCTION ═══ */}
+          
+          {user?.email?.toLowerCase().includes('betweenusreviewer') && (
+            <EditorialSection title="Reviewer Tools" t={t} delay={800}>
+              <EditorialRow 
+                icon="flask-outline" 
+                title="Seed Demo Data (90 Days)" 
+                onPress={async () => {
+                  Alert.alert('Seeding Data', 'Generating 90 days of content...');
+                  const stats = await seedReviewerData();
+                  if (stats.success) Alert.alert('Success', 'Demo data injected successfully.');
+                }}
+                t={t}
+                isLast
+              />
+            </EditorialSection>
+          )}
+
           <EditorialSection title="Account" t={t} delay={900}>
             <EditorialRow 
               icon="log-out-outline" 

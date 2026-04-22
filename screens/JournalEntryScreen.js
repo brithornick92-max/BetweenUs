@@ -197,7 +197,7 @@ export default function JournalEntryScreen({ navigation, route }) {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: [ImagePicker.MediaType.images, ImagePicker.MediaType.videos],
+        mediaTypes: ['images', 'videos'],
         quality: 0.85,
         allowsEditing: false,
       });
@@ -218,7 +218,8 @@ export default function JournalEntryScreen({ navigation, route }) {
         setMediaFileName(asset.fileName || (asset.type === 'video' ? `journal_${Date.now()}.mov` : `journal_${Date.now()}.jpg`));
         impact(ImpactFeedbackStyle.Light);
       }
-    } catch (_err) {
+    } catch (err) {
+      if (__DEV__) console.warn('[JournalEntry] Media pick failed:', err?.message);
       Alert.alert("Error", "Couldn't open your library.");
     }
   };

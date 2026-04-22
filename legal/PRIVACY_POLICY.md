@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last Updated: April 6, 2026**
+**Last Updated: April 21, 2026**
 
 At Between Us, your privacy is our top priority. This Privacy Policy explains how we collect, use, protect, and share your information when you use our app.
 
@@ -200,6 +200,8 @@ We'll notify you unless legally prohibited.
 - Download your account information
 - Request a copy of your data
 
+**Export note:** When you start an export, the app generates a temporary JSON file for the system share sheet and then removes that temporary file from app storage after the export flow completes.
+
 ### 5.2 Control Your Data
 - Edit or delete entries anytime
 - Unlink from your partner
@@ -376,4 +378,4 @@ We aim to communicate material privacy and security changes through updated lega
 
 **Your privacy matters to us. If you have any questions or concerns, please reach out.**
 
-*Last Updated: April 6, 2026*
+*Last Updated: April 21, 2026*

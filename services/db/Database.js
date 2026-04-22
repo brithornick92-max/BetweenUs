@@ -16,7 +16,7 @@ import { randomUUID } from 'expo-crypto';
 import CrashReporting from '../CrashReporting';
 
 const DB_NAME = 'betweenus.db';
-const DB_VERSION = 11;
+const DB_VERSION = 12;
 
 let _db = null;
 let _dbPromise = null;
@@ -213,10 +213,12 @@ async function migrate(db) {
 
       -- Sync metadata (tracks remote cursor per table)
       CREATE TABLE IF NOT EXISTS sync_meta (
-        table_name      TEXT PRIMARY KEY,
+        table_name      TEXT NOT NULL,
+        user_id         TEXT NOT NULL,
         last_pulled_at  TEXT,
         last_pushed_at  TEXT,
-        cursor          TEXT
+        cursor          TEXT,
+        PRIMARY KEY (table_name, user_id)
       );
 
       PRAGMA user_version = 1;
@@ -411,11 +413,72 @@ async function migrate(db) {
     }
   }
 
+  // v12: scope sync metadata per user so multiple local accounts can coexist
+  if (user_version < 12) {
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      await db.execAsync(`ALTER TABLE sync_meta RENAME TO sync_meta_legacy;`);
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS sync_meta (
+          table_name      TEXT NOT NULL,
+          user_id         TEXT NOT NULL,
+          last_pulled_at  TEXT,
+          last_pushed_at  TEXT,
+          cursor          TEXT,
+          PRIMARY KEY (table_name, user_id)
+        );
+      `);
+      await db.execAsync(`
+        INSERT INTO sync_meta (table_name, user_id, last_pulled_at, last_pushed_at, cursor)
+        SELECT table_name, '__legacy__', last_pulled_at, last_pushed_at, cursor
+        FROM sync_meta_legacy;
+      `);
+      await db.execAsync(`DROP TABLE sync_meta_legacy;`);
+      await db.execAsync('PRAGMA user_version = 12;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  }
+
+}
+
+const USER_SCOPED_TABLES = [
+  'journal_entries',
+  'prompt_answers',
+  'memories',
+  'rituals',
+  'check_ins',
+  'vibes',
+  'attachments',
+  'love_notes',
+  'calendar_events_local',
+  'date_plans',
+];
+
+function assertUserId(userId, operation) {
+  if (!userId) {
+    throw new Error(`[Database] ${operation} requires userId`);
+  }
+}
+
+async function runDeleteIgnoringMissingTable(db, sql, params = []) {
+  try {
+    return await db.runAsync(sql, params);
+  } catch (err) {
+    if (err?.message?.includes('no such table')) {
+      return { changes: 0 };
+    }
+    throw err;
+  }
 }
 
 // ─── Generic CRUD ───────────────────────────────────────────────────
 
 const Database = {
+  makeId,
+
   /** Resolve the singleton connection. Call once at app start. */
   async init() {
     return getDb();
@@ -566,6 +629,11 @@ const Database = {
 
     await db.runAsync(`UPDATE prompt_answers SET ${fields.join(', ')} WHERE id = ? AND deleted_at IS NULL`, params);
     return { id, updated_at: ts };
+  },
+
+  async getPromptAnswerById(id) {
+    const db = await getDb();
+    return db.getFirstAsync('SELECT * FROM prompt_answers WHERE id = ?', [id]);
   },
 
   async getPromptAnswers(userId, { dateKey, promptId, limit = 100 } = {}) {
@@ -843,10 +911,12 @@ const Database = {
     );
   },
 
-  async getPendingAttachmentUploads() {
+  async getPendingAttachmentUploads(userId) {
+    assertUserId(userId, 'getPendingAttachmentUploads');
     const db = await getDb();
     return db.getAllAsync(
-      "SELECT * FROM attachments WHERE upload_status = 'pending' AND deleted_at IS NULL ORDER BY created_at LIMIT 20"
+      "SELECT * FROM attachments WHERE user_id = ? AND upload_status = 'pending' AND deleted_at IS NULL ORDER BY created_at LIMIT 20",
+      [userId]
     );
   },
 
@@ -1189,15 +1259,17 @@ const Database = {
    * Return rows that need to be pushed upstream.
    * Excludes rows from remote origin (prevents pull→push loops).
    */
-  async getPendingSync(tableName, limit = 50) {
+  async getPendingSync(tableName, { userId, limit = 50 } = {}) {
     assertValidTable(tableName);
+    assertUserId(userId, 'getPendingSync');
     const db = await getDb();
     return db.getAllAsync(
       `SELECT * FROM ${tableName}
-       WHERE sync_status = 'pending'
+       WHERE user_id = ?
+         AND sync_status = 'pending'
          AND (sync_source IS NULL OR sync_source != 'remote')
        ORDER BY updated_at LIMIT ?`,
-      [limit]
+      [userId, limit]
     );
   },
 
@@ -1240,8 +1312,8 @@ const Database = {
       return 'inserted';
     }
 
-    // Existing row — last-write-wins (only overwrite if remote is newer)
-    if (row.updated_at > existing.updated_at) {
+    // Existing row — backend is canonical, so remote rows win ties.
+    if (row.updated_at >= existing.updated_at) {
       const cols = Object.keys(row).filter(k => k !== 'id' && k !== 'sync_status' && k !== 'sync_source');
       const sets = cols.map(k => `${k} = ?`).join(', ');
       const vals = cols.map(k => row[k]);
@@ -1282,14 +1354,16 @@ const Database = {
 
   // ─── Sync metadata ─────────────────────────────────────────────
 
-  async getSyncMeta(tableName) {
+  async getSyncMeta(tableName, userId) {
+    assertUserId(userId, 'getSyncMeta');
     const db = await getDb();
-    return db.getFirstAsync('SELECT * FROM sync_meta WHERE table_name = ?', [tableName]);
+    return db.getFirstAsync('SELECT * FROM sync_meta WHERE table_name = ? AND user_id = ?', [tableName, userId]);
   },
 
-  async setSyncMeta(tableName, updates) {
+  async setSyncMeta(tableName, userId, updates) {
+    assertUserId(userId, 'setSyncMeta');
     const db = await getDb();
-    const existing = await db.getFirstAsync('SELECT * FROM sync_meta WHERE table_name = ?', [tableName]);
+    const existing = await db.getFirstAsync('SELECT * FROM sync_meta WHERE table_name = ? AND user_id = ?', [tableName, userId]);
     if (existing) {
       const fields = [];
       const params = [];
@@ -1297,12 +1371,12 @@ const Database = {
         fields.push(`${k} = ?`);
         params.push(v);
       }
-      params.push(tableName);
-      await db.runAsync(`UPDATE sync_meta SET ${fields.join(', ')} WHERE table_name = ?`, params);
+      params.push(tableName, userId);
+      await db.runAsync(`UPDATE sync_meta SET ${fields.join(', ')} WHERE table_name = ? AND user_id = ?`, params);
     } else {
       await db.runAsync(
-        'INSERT INTO sync_meta (table_name, last_pulled_at, last_pushed_at, cursor) VALUES (?, ?, ?, ?)',
-        [tableName, updates.last_pulled_at ?? null, updates.last_pushed_at ?? null, updates.cursor ?? null]
+        'INSERT INTO sync_meta (table_name, user_id, last_pulled_at, last_pushed_at, cursor) VALUES (?, ?, ?, ?, ?)',
+        [tableName, userId, updates.last_pulled_at ?? null, updates.last_pushed_at ?? null, updates.cursor ?? null]
       );
     }
   },
@@ -1313,10 +1387,11 @@ const Database = {
   async purgeDeleted(daysOld = 30) {
     const db = await getDb();
     const cutoff = new Date(Date.now() - daysOld * 86400000).toISOString();
-    const tables = ['journal_entries', 'prompt_answers', 'memories', 'check_ins', 'vibes', 'attachments', 'calendar_events_local', 'date_plans'];
+    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes', 'calendar_events_local', 'date_plans'];
     let total = 0;
     for (const t of tables) {
-      const result = await db.runAsync(
+      const result = await runDeleteIgnoringMissingTable(
+        db,
         `DELETE FROM ${t} WHERE deleted_at IS NOT NULL AND deleted_at < ? AND sync_status = 'synced'`,
         [cutoff]
       );
@@ -1329,10 +1404,19 @@ const Database = {
 
   async wipeAll() {
     const db = await getDb();
-    const tables = ['journal_entries', 'prompt_answers', 'memories', 'check_ins', 'vibes', 'attachments', 'calendar_events_local', 'date_plans', 'sync_meta'];
+    const tables = ['journal_entries', 'prompt_answers', 'memories', 'rituals', 'check_ins', 'vibes', 'attachments', 'love_notes', 'calendar_events_local', 'date_plans', 'sync_meta'];
     for (const t of tables) {
-      await db.runAsync(`DELETE FROM ${t}`);
+      await runDeleteIgnoringMissingTable(db, `DELETE FROM ${t}`);
     }
+  },
+
+  async wipeUserData(userId) {
+    assertUserId(userId, 'wipeUserData');
+    const db = await getDb();
+    for (const table of USER_SCOPED_TABLES) {
+      await runDeleteIgnoringMissingTable(db, `DELETE FROM ${table} WHERE user_id = ?`, [userId]);
+    }
+    await db.runAsync('DELETE FROM sync_meta WHERE user_id = ?', [userId]);
   },
 };
 

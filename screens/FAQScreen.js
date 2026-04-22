@@ -87,7 +87,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can Between Us read my journal?',
-        a: 'No. Encryption happens on your device before any data reaches our servers. Your intimacy is yours alone.',
+        a: 'No. Shared content such as synced journal entries, prompt responses, memories, and love notes is encrypted on your device before sync, and we cannot read content protected by your device-only or couple encryption keys. Some metadata needed for features like filtering, sorting, scheduling, and delivery is protected with transport security and access controls rather than end-to-end encryption.',
       },
       {
         q: 'Can I lock the app with Face ID or a PIN?',
@@ -129,7 +129,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Unlimited prompt responses\n• Unlimited date planning tools\n• Calendar and scheduling\n• Encrypted cloud sync for linked couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Shared premium access for linked partners',
+        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Unlimited prompt responses\n• Love notes\n• Unlimited date planning tools\n• Night rituals\n• Calendar and scheduling\n• Encrypted cloud sync for linked couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Shared premium access for linked partners',
       },
       {
         q: 'How do I subscribe?',
@@ -167,6 +167,10 @@ const FAQ_DATA = [
       {
         q: 'Can I use Between Us on multiple devices?',
         a: 'Yes. You can sign in on multiple devices with the same account. Synced cloud data can appear across devices after sign-in and sync, but device-only encrypted content may not be recoverable on a new device unless cloud sync is enabled.',
+      },
+      {
+        q: 'What happens when I export my data?',
+        a: 'Between Us prepares a plaintext JSON export for the system share sheet. After the export flow completes, the app removes its temporary export file from app storage. If you save or share the file elsewhere, that destination controls the copy you created.',
       },
     ],
   },
@@ -255,7 +259,7 @@ export default function FAQScreen({ navigation }) {
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
             <Text style={[styles.headerEye, { color: theme.crimson }]}>KNOWLEDGE BASE</Text>
             <Text style={[styles.introTitle, { color: colors.text }]}>Assistance</Text>
-            <Text style={[styles.introDate, { color: colors.textMuted }]}>Updated April 6, 2026</Text>
+            <Text style={[styles.introDate, { color: colors.textMuted }]}>Updated April 21, 2026</Text>
             <Text style={[styles.introText, { color: colors.textMuted }]}>
               Explore how to make the most of your shared sanctuary. If you need further guidance, our concierge team is available.
             </Text>

@@ -369,9 +369,9 @@ export default function SavedMomentsScreen() {
               navigation.navigate('JournalEntry', { entry: item.entry, readOnly: !item.canEdit });
             }
           }}
-          style={[styles.cardContainer, isMemory && styles.cardTimeline, getShadow(isDark)]}
+          style={[styles.cardContainer, isMemory && styles.cardTimeline]}
         >
-          <BlurView intensity={isDark ? 55 : 30} tint={isDark ? 'dark' : 'light'} style={styles.cardBlur}>
+          <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass, padding: 0 }, !isDark && styles.lightShadow]}>
             {/* Photo thumbnail */}
             {photoUri && (
               <View style={styles.photoWrapper}>
@@ -384,6 +384,7 @@ export default function SavedMomentsScreen() {
               </View>
             )}
 
+            <View style={{ paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl, paddingTop: photoUri ? 0 : SPACING.xl, width: '100%' }}>
             <View style={styles.cardTopRow}>
               <View style={styles.cardEyebrowRow}>
                 <Icon name={item.icon} size={14} color={item.accent} />
@@ -424,7 +425,8 @@ export default function SavedMomentsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </BlurView>
+          </View>
+          </View>
         </TouchableOpacity>
       </ReAnimated.View>
     );
@@ -446,8 +448,9 @@ export default function SavedMomentsScreen() {
       {/* ── On This Day Banner ── */}
       {onThisDay && (
         <ReAnimated.View entering={FadeInDown.springify().damping(18)}>
-          <View style={[styles.onThisDayContainer, getShadow(isDark)]}>
-            <BlurView intensity={isDark ? 55 : 30} tint={isDark ? 'dark' : 'light'} style={[styles.onThisDayCard, { borderColor: withAlpha(t.primary, 0.15) }]}>
+          <View style={styles.onThisDayContainer}>
+            <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: withAlpha(t.primary, 0.15), padding: 0 }, !isDark && styles.lightShadow]}>
+              <View style={{ padding: SPACING.lg, paddingVertical: SPACING.xl, flexDirection: 'row', alignItems: 'center', width: '100%' }}>
               <View style={styles.onThisDayLeft}>
                 <Icon name="time-outline" size={18} color={t.primary} />
               </View>
@@ -459,15 +462,17 @@ export default function SavedMomentsScreen() {
                 <Text style={[styles.onThisDayDate, { color: t.subtext }]}>{onThisDay.dateLabel}</Text>
               </View>
               <Icon name="chevron-forward" size={16} color={t.subtext} />
-            </BlurView>
+              </View>
+            </View>
           </View>
         </ReAnimated.View>
       )}
 
       {/* ── Hero Card ── */}
-      <View style={[styles.heroCardContainer, getShadow(isDark)]}>
-        <BlurView intensity={isDark ? 65 : 45} tint={isDark ? 'dark' : 'light'} style={styles.heroCardBlur}>
-          <View style={styles.heroEyebrowRow}>
+      <View style={styles.heroCardContainer}>
+        <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass, padding: 0 }, !isDark && styles.lightShadow]}>
+          <View style={{ padding: SPACING.xl, width: '100%' }}>
+            <View style={styles.heroEyebrowRow}>
             <Icon name="archive-outline" size={15} color={t.text} />
             <Text style={[styles.heroEyebrow, { color: t.text }]}>YOUR SHARED ARCHIVE</Text>
           </View>
@@ -475,7 +480,8 @@ export default function SavedMomentsScreen() {
           <Text style={styles.heroBody}>
             Browse earlier reflections, shared journal entries, and captured moments without leaving the app's main rhythm.
           </Text>
-        </BlurView>
+          </View>
+        </View>
       </View>
 
       {/* ── Filters (scrollable) ── */}
@@ -512,7 +518,7 @@ export default function SavedMomentsScreen() {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Saved"
+      headerTitle=""
       scroll={false}
       onBack={handleBack}
     >
@@ -553,8 +559,31 @@ const getShadow = (isDark) => Platform.select({
 });
 
 const createStyles = (t, isDark) => StyleSheet.create({
+  editorialCard: {
+    borderRadius: 28,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  editorialCardColumn: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
+  cardContent: {
+    width: '100%',
+  },
+  lightShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 4,
+  },
   listContent: {
-    paddingHorizontal: SPACING.screen,
+    paddingHorizontal: 0,
     paddingBottom: 160,
   },
 
@@ -855,19 +884,25 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Photo thumbnail ──
   photoWrapper: {
-    borderRadius: 16,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     overflow: 'hidden',
-    marginBottom: SPACING.md,
+    marginBottom: 0,
     position: 'relative',
+    width: '100%',
   },
   photoThumb: {
     width: '100%',
     height: 180,
-    borderRadius: 16,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   photoOverlay: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 16,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
 
   // ── Timeline layout ──

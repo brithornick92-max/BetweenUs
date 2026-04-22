@@ -7,6 +7,7 @@
 jest.mock('../../services/db/Database', () => ({
   __esModule: true,
   default: {
+    makeId: jest.fn(prefix => `${prefix}_mock-id`),
     init: jest.fn().mockResolvedValue(undefined),
     insertJournal: jest.fn().mockResolvedValue(undefined),
     updateJournal: jest.fn().mockResolvedValue(undefined),
@@ -56,6 +57,7 @@ jest.mock('../../services/db/Database', () => ({
     markDatePlansSyncedBySourceEvent: jest.fn().mockResolvedValue(undefined),
     purgeDeleted: jest.fn().mockResolvedValue(undefined),
     wipeAll: jest.fn().mockResolvedValue(undefined),
+    wipeUserData: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -86,6 +88,7 @@ jest.mock('../../services/sync/SyncEngine', () => ({
   __esModule: true,
   default: {
     configure: jest.fn(),
+    isConfigured: false,
     pushNow: jest.fn().mockResolvedValue(undefined),
     pullNow: jest.fn().mockResolvedValue(undefined),
     sync: jest.fn().mockResolvedValue(undefined),
@@ -223,11 +226,13 @@ const EncryptedAttachments = require('../../services/e2ee/EncryptedAttachments')
 const PushNotificationService = require('../../services/PushNotificationService').default;
 const PartnerNotifications = require('../../services/PartnerNotifications').default;
 const CoupleKeyService = require('../../services/security/CoupleKeyService').default;
+const SyncEngine = require('../../services/sync/SyncEngine').default;
 
 describe('DataLayer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    SyncEngine.isConfigured = false;
     E2EEncryption.hasCoupleKey.mockResolvedValue(true);
     mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' } } });
     mockRpc.mockResolvedValue({ error: null });
@@ -267,6 +272,20 @@ describe('DataLayer', () => {
   });
 
   describe('Journal operations', () => {
+    it('saveJournalEntry pushes immediately when sync is configured', async () => {
+      SyncEngine.isConfigured = true;
+
+      await DataLayer.saveJournalEntry({
+        title: 'My Day',
+        body: 'It was great',
+        mood: 'happy',
+        tags: ['love'],
+        isPrivate: false,
+      });
+
+      expect(SyncEngine.pushNow).toHaveBeenCalled();
+    });
+
     it('saveJournalEntry encrypts and inserts', async () => {
       await DataLayer.saveJournalEntry({
         title: 'My Day',
@@ -551,6 +570,7 @@ describe('DataLayer', () => {
     });
 
     it('deleteJournalEntry calls softDelete', async () => {
+      Database.getJournalById.mockResolvedValueOnce({ id: 'j_1' });
       await DataLayer.deleteJournalEntry('j_1');
       expect(Database.softDeleteJournal).toHaveBeenCalledWith('j_1');
     });
@@ -1094,6 +1114,24 @@ describe('DataLayer', () => {
   describe('clearCache / reset', () => {
     it('clearCache resets internal encryption cache', () => {
       expect(() => DataLayer.clearCache()).not.toThrow();
+    });
+
+    it('reset keeps local SQLite rows on account switch by default', async () => {
+      const SyncEngine = require('../../services/sync/SyncEngine').default;
+
+      await DataLayer.reset();
+
+      expect(SyncEngine.reset).toHaveBeenCalledWith({ clearLocalData: false, userId: 'user-1' });
+      expect(Database.wipeAll).not.toHaveBeenCalled();
+      expect(Database.wipeUserData).not.toHaveBeenCalled();
+    });
+
+    it('reset forwards explicit account deletion to user-scoped cleanup', async () => {
+      const SyncEngine = require('../../services/sync/SyncEngine').default;
+
+      await DataLayer.reset({ clearLocalData: true });
+
+      expect(SyncEngine.reset).toHaveBeenCalledWith({ clearLocalData: true, userId: 'user-1' });
     });
   });
 });
