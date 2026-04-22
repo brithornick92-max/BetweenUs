@@ -20,6 +20,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import { Video, ResizeMode } from 'expo-av';
 
 // Context & Services
 import Icon from '../components/Icon';
@@ -116,6 +117,7 @@ function buildMemoryItem(row) {
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.created_at || row.date,
     mediaRef: row.media_ref || null,
+    mimeType: row.mime_type || null,
     rawDate: row.created_at || row.date || null,
   };
 }
@@ -372,15 +374,27 @@ export default function SavedMomentsScreen() {
           style={[styles.cardContainer, isMemory && styles.cardTimeline]}
         >
           <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass, padding: 0 }, !isDark && styles.lightShadow]}>
-            {/* Photo thumbnail */}
+            {/* Photo/Video thumbnail */}
             {photoUri && (
               <View style={styles.photoWrapper}>
-                <Image
-                  source={{ uri: photoUri }}
-                  style={styles.photoThumb}
-                  resizeMode="cover"
-                />
-                <View style={[styles.photoOverlay, { backgroundColor: withAlpha(item.accent, 0.18) }]} />
+                {item.mimeType?.startsWith('video/') || item.mediaRef?.endsWith('.mp4') || item.mediaRef?.endsWith('.mov') ? (
+                  <Video
+                    source={{ uri: photoUri }}
+                    style={styles.photoThumb}
+                    resizeMode={ResizeMode.COVER}
+                    useNativeControls
+                    isLooping={false}
+                  />
+                ) : (
+                  <Image
+                    source={{ uri: photoUri }}
+                    style={styles.photoThumb}
+                    resizeMode="cover"
+                  />
+                )}
+                {!(item.mimeType?.startsWith('video/') || item.mediaRef?.endsWith('.mp4') || item.mediaRef?.endsWith('.mov')) && (
+                  <View style={[styles.photoOverlay, { backgroundColor: withAlpha(item.accent, 0.18) }]} />
+                )}
               </View>
             )}
 

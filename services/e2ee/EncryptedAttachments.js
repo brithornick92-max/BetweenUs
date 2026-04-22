@@ -14,7 +14,7 @@
  */
 
 import * as FileSystem from 'expo-file-system/legacy';
-import naclUtil from 'tweetnacl-util';
+import * as naclUtil from 'tweetnacl-util';
 import E2EEncryption from './E2EEncryption';
 import Database from '../db/Database';
 import { supabase } from '../../config/supabase';

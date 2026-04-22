@@ -1,18 +1,24 @@
+import "react-native-get-random-values";
+import "./polyfills"; // MUST be first
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { AppState, View, Text } from "react-native";
 import { useFonts } from "expo-font";
-import {
-  Lato_400Regular,
-  Lato_700Bold,
-} from "@expo-google-fonts/lato";
-import {
-  DMSerifDisplay_400Regular,
-} from "@expo-google-fonts/dm-serif-display";
+import { Lato_400Regular, Lato_700Bold } from "@expo-google-fonts/lato";
+import { DMSerifDisplay_400Regular } from "@expo-google-fonts/dm-serif-display";
 
 import RootNavigator from "./navigation/RootNavigator";
 import { registerAutoClearDecryptedCache } from "./services/autoClearDecryptedCache";
@@ -23,7 +29,10 @@ import { MemoryProvider } from "./context/MemoryContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ContentProvider } from "./context/ContentContext";
 import { SubscriptionProvider } from "./context/SubscriptionContext";
-import { EntitlementsProvider, useEntitlements } from "./context/EntitlementsContext";
+import {
+  EntitlementsProvider,
+  useEntitlements,
+} from "./context/EntitlementsContext";
 import { DataProvider } from "./context/DataContext";
 import LockScreen from "./components/LockScreen";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -37,7 +46,8 @@ import { cloudSyncStorage, storage, STORAGE_KEYS } from "./utils/storage";
 // Keep splash visible until fonts + init complete
 SplashScreen.preventAutoHideAsync();
 
-const isLightweightDevMode = __DEV__ && process.env.EXPO_PUBLIC_LIGHTWEIGHT_DEV === "1";
+const isLightweightDevMode =
+  __DEV__ && process.env.EXPO_PUBLIC_LIGHTWEIGHT_DEV === "1";
 
 let analyticsServiceInstance = null;
 let experimentServiceInstance = null;
@@ -75,7 +85,8 @@ function getRevenueCatService() {
 
 function getPushNotificationService() {
   if (!pushNotificationServiceInstance) {
-    pushNotificationServiceInstance = require("./services/PushNotificationService").default;
+    pushNotificationServiceInstance =
+      require("./services/PushNotificationService").default;
   }
   return pushNotificationServiceInstance;
 }
@@ -92,7 +103,10 @@ if (!isLightweightDevMode) {
 if (global?.ErrorUtils?.setGlobalHandler) {
   const defaultHandler = global.ErrorUtils.getGlobalHandler?.();
   global.ErrorUtils.setGlobalHandler((error, isFatal) => {
-    CrashReporting.captureException(error, { isFatal, source: 'globalHandler' });
+    CrashReporting.captureException(error, {
+      isFatal,
+      source: "globalHandler",
+    });
     // Always forward to the default handler so the system can show
     // a crash dialog / restart the app instead of silently swallowing.
     defaultHandler?.(error, isFatal);
@@ -104,9 +118,27 @@ if (__DEV__) {
   const originalConsoleError = console.error;
   console.error = (...args) => {
     try {
-      const msg = args.map(a => (a instanceof Error ? `${a.name}: ${a.message}` : String(a ?? ''))).join(' ');
-      if (msg.includes("Cannot read property 'map'") || msg.includes("Cannot read properties of undefined (reading 'map')")) {
-        console.log("🔴 MAP ERROR! Full args:", JSON.stringify(args.map(a => a instanceof Error ? { name: a.name, message: a.message, stack: a.stack } : a), null, 2));
+      const msg = args
+        .map((a) =>
+          a instanceof Error ? `${a.name}: ${a.message}` : String(a ?? "")
+        )
+        .join(" ");
+      if (
+        msg.includes("Cannot read property 'map'") ||
+        msg.includes("Cannot read properties of undefined (reading 'map')")
+      ) {
+        console.log(
+          "🔴 MAP ERROR! Full args:",
+          JSON.stringify(
+            args.map((a) =>
+              a instanceof Error
+                ? { name: a.name, message: a.message, stack: a.stack }
+                : a
+            ),
+            null,
+            2
+          )
+        );
         console.log("🔴 Call site:", new Error().stack);
       }
     } catch (e) {
@@ -123,12 +155,22 @@ if (__DEV__ && global?.ErrorUtils?.setGlobalHandler) {
   const defaultHandler = global.ErrorUtils.getGlobalHandler?.();
   global.ErrorUtils.setGlobalHandler((error, isFatal) => {
     try {
-      const msg = String(error?.message || '');
-      console.error('[global_error]', error?.name, msg.slice(0, 200), { isFatal });
-      if (msg.includes("map") || msg.includes("undefined") || msg.includes("doesn't exist") || isFatal) {
-        console.log('🔴 GLOBAL CRASH — full stack:');
+      const msg = String(error?.message || "");
+      console.error("[global_error]", error?.name, msg.slice(0, 200), {
+        isFatal,
+      });
+      if (
+        msg.includes("map") ||
+        msg.includes("undefined") ||
+        msg.includes("doesn't exist") ||
+        isFatal
+      ) {
+        console.log("🔴 GLOBAL CRASH — full stack:");
         console.log(error?.stack);
-        console.log('🔴 Component stack (if any):', error?.componentStack || '(none)');
+        console.log(
+          "🔴 Component stack (if any):",
+          error?.componentStack || "(none)"
+        );
       }
     } catch (e) {
       // ignore
@@ -141,10 +183,10 @@ if (__DEV__ && global?.ErrorUtils?.setGlobalHandler) {
 const isDev = __DEV__;
 
 function safeErrorMessage(err) {
-  if (!err) return 'unknown';
-  if (typeof err === 'string') return err.slice(0, 120);
-  const name = err.name ? String(err.name) : 'Error';
-  const msg = err.message ? String(err.message) : 'Something went wrong';
+  if (!err) return "unknown";
+  if (typeof err === "string") return err.slice(0, 120);
+  const name = err.name ? String(err.name) : "Error";
+  const msg = err.message ? String(err.message) : "Something went wrong";
   return `${name}: ${msg}`.slice(0, 160);
 }
 
@@ -161,9 +203,9 @@ const initializeRevenueCat = async () => {
 
   try {
     await getRevenueCatService().init();
-    if (isDev) console.log('✅ RevenueCat initialized via service');
+    if (isDev) console.log("✅ RevenueCat initialized via service");
   } catch (error) {
-    logError('revenuecat_init', error);
+    logError("revenuecat_init", error);
   }
 };
 
@@ -175,7 +217,12 @@ let _coldStartNotificationHandled = false;
 
 function AppContent() {
   const { state } = useAppContext();
-  const { isPremiumEffective: isPremium, paywallVisible, paywallFeature, hidePaywall } = useEntitlements();
+  const {
+    isPremiumEffective: isPremium,
+    paywallVisible,
+    paywallFeature,
+    hidePaywall,
+  } = useEntitlements();
   const { navigationTheme, isDark } = useTheme();
   const navTheme = useMemo(
     () => ({
@@ -196,7 +243,10 @@ function AppContent() {
   useEffect(() => {
     if (state.appLockEnabled && appStateVisible === "active") {
       const lastBackgroundTime = backgroundTimeRef.current;
-      if (!lastBackgroundTime || Date.now() - lastBackgroundTime > LOCK_GRACE_PERIOD) {
+      if (
+        !lastBackgroundTime ||
+        Date.now() - lastBackgroundTime > LOCK_GRACE_PERIOD
+      ) {
         setIsLocked(true);
       }
     }
@@ -208,9 +258,15 @@ function AppContent() {
         if (nextAppState.match(/inactive|background/)) {
           backgroundTimeRef.current = Date.now();
           BiometricVault.lock();
-        } else if (nextAppState === "active" && appStateVisible.match(/inactive|background/)) {
+        } else if (
+          nextAppState === "active" &&
+          appStateVisible.match(/inactive|background/)
+        ) {
           const backgroundTime = backgroundTimeRef.current;
-          if (backgroundTime && Date.now() - backgroundTime > LOCK_GRACE_PERIOD) {
+          if (
+            backgroundTime &&
+            Date.now() - backgroundTime > LOCK_GRACE_PERIOD
+          ) {
             setIsLocked(true);
           }
         }
@@ -218,7 +274,10 @@ function AppContent() {
       setAppStateVisible(nextAppState);
     };
 
-    const subscription = AppState.addEventListener("change", handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
     return () => subscription?.remove();
   }, [appStateVisible, state.appLockEnabled]);
 
@@ -228,22 +287,26 @@ function AppContent() {
 
     const subscribe = async () => {
       try {
-        const result = SupabaseAuthService.onAuthStateChange(async (session) => {
-          try {
-            const status = await cloudSyncStorage.getSyncStatus();
-            const syncEnabled = !!status?.enabled && !!isPremium;
-            if (!active) return;
+        const result = SupabaseAuthService.onAuthStateChange(
+          async (session) => {
+            try {
+              const status = await cloudSyncStorage.getSyncStatus();
+              const syncEnabled = !!status?.enabled && !!isPremium;
+              if (!active) return;
 
-            await StorageRouter.setSupabaseSession(session);
-            await StorageRouter.configureSync({
-              isPremium: !!isPremium,
-              syncEnabled,
-              supabaseSessionPresent: !!session,
-            });
-          } catch (syncErr) {
-            CrashReporting.captureException(syncErr, { source: 'auth_state_sync' });
+              await StorageRouter.setSupabaseSession(session);
+              await StorageRouter.configureSync({
+                isPremium: !!isPremium,
+                syncEnabled,
+                supabaseSessionPresent: !!session,
+              });
+            } catch (syncErr) {
+              CrashReporting.captureException(syncErr, {
+                source: "auth_state_sync",
+              });
+            }
           }
-        });
+        );
 
         unsubscribe =
           result?.data?.subscription?.unsubscribe ||
@@ -251,7 +314,7 @@ function AppContent() {
           (typeof result === "function" ? result : null);
       } catch (subErr) {
         // Supabase not configured — log but don't crash
-        CrashReporting.captureException(subErr, { source: 'auth_subscribe' });
+        CrashReporting.captureException(subErr, { source: "auth_subscribe" });
       }
     };
 
@@ -275,14 +338,18 @@ function AppContent() {
         const { supabase } = require("./config/supabase");
         if (!supabase || !active) return;
 
-        const notificationSettings = await storage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS, {});
+        const notificationSettings = await storage.get(
+          STORAGE_KEYS.NOTIFICATION_SETTINGS,
+          {}
+        );
         if (notificationSettings?.notificationsEnabled === false) {
           await getPushNotificationService().removeToken(supabase);
           return;
         }
 
         if (session && active) {
-          const shouldRequestPermissions = notificationSettings?.notificationsEnabled !== false;
+          const shouldRequestPermissions =
+            notificationSettings?.notificationsEnabled !== false;
           await getPushNotificationService().initialize(supabase, {
             requestPermissions: shouldRequestPermissions,
           });
@@ -290,7 +357,9 @@ function AppContent() {
           await getPushNotificationService().removeToken(supabase);
         }
       } catch (pushErr) {
-        CrashReporting.captureException(pushErr, { source: 'push_registration' });
+        CrashReporting.captureException(pushErr, {
+          source: "push_registration",
+        });
       }
     };
 
@@ -299,12 +368,16 @@ function AppContent() {
         const { supabase } = require("./config/supabase");
         if (!supabase || !active) return;
 
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         await syncPushRegistration(session);
 
-        const authListener = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
-          await syncPushRegistration(nextSession);
-        });
+        const authListener = supabase.auth.onAuthStateChange(
+          async (_event, nextSession) => {
+            await syncPushRegistration(nextSession);
+          }
+        );
 
         unsubscribe =
           authListener?.data?.subscription?.unsubscribe ||
@@ -312,7 +385,9 @@ function AppContent() {
           authListener?.unsubscribe ||
           null;
       } catch (pushErr) {
-        CrashReporting.captureException(pushErr, { source: 'push_registration_subscribe' });
+        CrashReporting.captureException(pushErr, {
+          source: "push_registration_subscribe",
+        });
       }
     };
 
@@ -320,7 +395,7 @@ function AppContent() {
 
     return () => {
       active = false;
-      if (typeof unsubscribe === 'function') unsubscribe();
+      if (typeof unsubscribe === "function") unsubscribe();
     };
   }, []);
 
@@ -331,8 +406,12 @@ function AppContent() {
     const currentRoute = navigationRef.getCurrentRoute()?.name;
     if (currentRoute !== "RevenueCatPaywall") {
       paywallNavPending.current = true;
-      navigationRef.navigate("RevenueCatPaywall", { feature: paywallFeature || null });
-      setTimeout(() => { paywallNavPending.current = false; }, 800);
+      navigationRef.navigate("RevenueCatPaywall", {
+        feature: paywallFeature || null,
+      });
+      setTimeout(() => {
+        paywallNavPending.current = false;
+      }, 800);
     }
   }, [navReady, paywallVisible, paywallFeature]);
 
@@ -341,10 +420,10 @@ function AppContent() {
   // so it cannot re-trigger the navigation effect.
   useEffect(() => {
     if (!navReady || !navigationRef.isReady()) return;
-    return navigationRef.addListener('state', () => {
+    return navigationRef.addListener("state", () => {
       if (paywallVisible) {
         const currentRoute = navigationRef.getCurrentRoute()?.name;
-        if (currentRoute !== 'RevenueCatPaywall') {
+        if (currentRoute !== "RevenueCatPaywall") {
           hidePaywall?.();
         }
       }
@@ -359,12 +438,12 @@ function AppContent() {
       // Fire a haptic burst when the partner taps a heartbeat notification
       // (covers the background/killed-app case where Realtime isn't running)
       const notifData = response?.notification?.request?.content?.data;
-      if (notifData?.type === 'moment_signal') {
+      if (notifData?.type === "moment_signal") {
         impact(ImpactFeedbackStyle.Heavy).catch(() => {});
       }
       // Clear iOS badge count when user taps a notification
       try {
-        const Notifications = require('expo-notifications');
+        const Notifications = require("expo-notifications");
         Notifications.setBadgeCountAsync(0).catch(() => {});
       } catch {}
       getDeepLinkHandler().handleNotificationResponse(response);
@@ -379,7 +458,7 @@ function AppContent() {
     let handled = false;
     const checkInitialNotification = async () => {
       try {
-        const Notifications = require('expo-notifications');
+        const Notifications = require("expo-notifications");
         const response = await Notifications.getLastNotificationResponseAsync();
         if (response && !handled && !_coldStartNotificationHandled) {
           handled = true;
@@ -440,7 +519,10 @@ function AppContent() {
         }
       }}
       onUnhandledAction={(action) => {
-        CrashReporting.captureMessage(`Unhandled nav action: ${action?.type}`, 'warning');
+        CrashReporting.captureMessage(
+          `Unhandled nav action: ${action?.type}`,
+          "warning"
+        );
       }}
     >
       <StatusBar style={isDark ? "light" : "dark"} />
@@ -482,15 +564,28 @@ function App() {
     const STARTUP_TIMEOUT_MS = 15000;
     let timeoutId;
     const startupTasks = Promise.all([
-      getAnalyticsService().init({}).catch((e) => CrashReporting.captureException(e, { source: 'analytics_init' })),
-      getExperimentService().init({}).catch((e) => CrashReporting.captureException(e, { source: 'experiments_init' })),
+      getAnalyticsService()
+        .init({})
+        .catch((e) =>
+          CrashReporting.captureException(e, { source: "analytics_init" })
+        ),
+      getExperimentService()
+        .init({})
+        .catch((e) =>
+          CrashReporting.captureException(e, { source: "experiments_init" })
+        ),
       initializeRevenueCat(),
     ]);
     const timeout = new Promise((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error('Startup tasks timed out (15s)')), STARTUP_TIMEOUT_MS);
+      timeoutId = setTimeout(
+        () => reject(new Error("Startup tasks timed out (15s)")),
+        STARTUP_TIMEOUT_MS
+      );
     });
     Promise.race([startupTasks, timeout])
-      .catch((e) => CrashReporting.captureException(e, { source: 'startup_init' }))
+      .catch((e) =>
+        CrashReporting.captureException(e, { source: "startup_init" })
+      )
       .finally(() => clearTimeout(timeoutId));
     return () => {
       unregisterAutoClearDecryptedCache?.();
@@ -505,34 +600,43 @@ function App() {
     return (
       <ErrorBoundary>
         <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
-        <AuthProvider>
-          <SubscriptionProvider>
-            <EntitlementsProvider>
-              <AppProvider>
-                <DataProvider>
-                  <ContentProvider>
-                    <MemoryProvider>
+          <AuthProvider>
+            <SubscriptionProvider>
+              <EntitlementsProvider>
+                <AppProvider>
+                  <DataProvider>
+                    <ContentProvider>
+                      <MemoryProvider>
                         <ThemeProvider>
                           <AppContent />
                         </ThemeProvider>
-                    </MemoryProvider>
-                  </ContentProvider>
-                </DataProvider>
-              </AppProvider>
-            </EntitlementsProvider>
-          </SubscriptionProvider>
-        </AuthProvider>
+                      </MemoryProvider>
+                    </ContentProvider>
+                  </DataProvider>
+                </AppProvider>
+              </EntitlementsProvider>
+            </SubscriptionProvider>
+          </AuthProvider>
         </GestureHandlerRootView>
       </ErrorBoundary>
     );
   } catch (error) {
     autoClearCleanupRef.current?.();
     autoClearCleanupRef.current = null;
-    logError('app_init', error);
+    logError("app_init", error);
     SplashScreen.hideAsync().catch(() => {});
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#070509' }}>
-        <Text style={{ color: '#F2E9E6', padding: 20 }}>Something didn’t work. Please restart the app.</Text>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#070509",
+        }}
+      >
+        <Text style={{ color: "#F2E9E6", padding: 20 }}>
+          Something didn’t work. Please restart the app.
+        </Text>
       </View>
     );
   }

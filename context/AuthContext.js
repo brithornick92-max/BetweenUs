@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import StorageRouter from '../services/storage/StorageRouter';
 import CloudEngine from '../services/storage/CloudEngine';
-import EncryptionService from '../services/EncryptionService';
 import E2EEncryption from '../services/e2ee/E2EEncryption';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CoupleKeyService from '../services/security/CoupleKeyService';
@@ -195,6 +194,7 @@ export const AuthProvider = ({ children }) => {
           ExperimentService.setUser(null);
           setUserProfile(null);
           finishBootstrap(active);
+          const { default: EncryptionService } = await import('../services/EncryptionService');
           await EncryptionService.clearKey();
           E2EEncryption.clearCache();
           await StorageRouter.initialize({ user: null, supabaseSessionPresent: false });
@@ -238,6 +238,40 @@ export const AuthProvider = ({ children }) => {
               const cloudUserId = supabaseSession.user?.id;
               if (!cloudUserId) {
                 throw new Error('Supabase user not found in session');
+              }
+
+              // MIGRATION: Ensure email/account ID is the global source of truth.
+              // If the local user ID is a legacy device ID (e.g. user_xxx), migrate them to the cloud ID.
+              if (localUser.uid !== cloudUserId) {
+                if (__DEV__) console.log(`[AuthContext] Migrating legacy user ${localUser.uid} to canonical ID ${cloudUserId}`);
+                
+                // 1. Migrate SQLite local data so they don't lose pending offline changes
+                try {
+                  await Database.migrateUserId(localUser.uid, cloudUserId);
+                } catch (e) {
+                  if (__DEV__) console.warn('[AuthContext] SQLite migration failed:', e?.message);
+                }
+                
+                // 2. Migrate AsyncStorage/SecureStore
+                const LocalStorageService = require('../services/LocalStorageService').default;
+                const migratedUserResult = await LocalStorageService.hydrateRemoteAccount({
+                  uid: cloudUserId,
+                  email: supabaseSession.user.email || localUser.email,
+                  password: 'ignored_by_hydrate_if_exists',
+                  displayName: profile?.displayName || localUser.displayName,
+                  emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at)
+                });
+                
+                localUser = migratedUserResult.user;
+                profile = await StorageRouter.getUserDocument(localUser.uid);
+                
+                if (active) {
+                  setUser(localUser);
+                  setUserProfile(profile);
+                  await persistAppUserProfile(profile);
+                  AnalyticsService.setUser(localUser.uid);
+                  ExperimentService.setUser(localUser.uid);
+                }
               }
 
               const remoteProfile = await Promise.race([
@@ -390,22 +424,63 @@ export const AuthProvider = ({ children }) => {
   const signUp = async (email, password, displayName) => {
     try {
       setBusy(true);
-      // Yield to the render cycle so the loading UI renders before the
-      // blocking PBKDF2 hash computation begins on the JS thread.
+      
+      // Yield to the render cycle
       await new Promise(resolve => setTimeout(resolve, 0));
-      const createdUser = await StorageRouter.createAccount(email, password, displayName);
+
+      // 1. ALWAYS sign up via Supabase first to ensure email is the global source of truth
+      // and we get the canonical UUID immediately.
+      let supabaseSession = null;
+      try {
+        supabaseSession = await SupabaseAuthService.signUp(email, password);
+        // If confirmation is required, signUp returns null session
+        if (!supabaseSession) {
+          supabaseSession = await SupabaseAuthService.signInWithPassword(email, password).catch(() => null);
+        }
+      } catch (err) {
+        if (String(err?.message || '').includes('User already registered')) {
+          supabaseSession = await SupabaseAuthService.signInWithPassword(email, password).catch(() => null);
+        } else {
+          throw err;
+        }
+      }
+
+      if (!supabaseSession?.user?.id) {
+        throw new Error('Could not create cloud account. Please check your connection.');
+      }
+
+      // 2. Use the canonical Auth UUID for the local user as well
+      const canonicalUid = supabaseSession.user.id;
+
+      // Create local account but we MUST pass the uid, OR we just hydrate it?
+      // StorageRouter.createAccount doesn't take uid. We should use hydrateRemoteAccount!
+      await StorageRouter.setSupabaseSession(supabaseSession);
+      const createdUser = await StorageRouter.hydrateRemoteAccount({
+        uid: canonicalUid,
+        email,
+        password,
+        displayName,
+        emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at)
+      });
+
+      await SupabaseAuthService.storeCredentials(email, password);
+
+      const syncStatus = await cloudSyncStorage.getSyncStatus();
+      await cloudSyncStorage.setSyncStatus({
+        ...syncStatus,
+        email,
+      });
+
       await Promise.all([
         storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, false),
         storage.set(STORAGE_KEYS.PENDING_ONBOARDING, true),
       ]);
       setRequiresOnboarding(true);
 
-      // Bridge Supabase auth so pairing is ready immediately (fire-and-forget — non-fatal)
-      _bridgeSupabaseAuth(email, password, true).catch(() => {});
-
       // Verify encryption is working for this user
       if (__DEV__) {
         try {
+          const { default: EncryptionService } = await import('../services/EncryptionService');
           const encrypted = await EncryptionService.encryptString('encryption_test');
           await EncryptionService.decryptString(encrypted);
           console.log('✅ Encryption verified for new account');
@@ -523,7 +598,7 @@ export const AuthProvider = ({ children }) => {
         await CoupleKeyService.clearCoupleKey(coupleId);
       }
       await AnalyticsService.clearLocalCache();
-      await EncryptionService.clearKey();
+      { const { default: ES } = await import('../services/EncryptionService'); await ES.clearKey(); }
       E2EEncryption.clearCache();
       await ConnectionMemory.clear();
 
@@ -648,7 +723,7 @@ export const AuthProvider = ({ children }) => {
       await SupabaseAuthService.clearStoredCredentials();
 
       // 4. Clean up local encryption / couple key material
-      await EncryptionService.clearKey();
+      { const { default: ES } = await import('../services/EncryptionService'); await ES.clearKey(); }
       E2EEncryption.clearCache();
       await ConnectionMemory.clear();
       await AnalyticsService.clearLocalCache();

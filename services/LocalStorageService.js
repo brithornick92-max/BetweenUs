@@ -164,7 +164,10 @@ class LocalStorageService {
         existingUser = await this._recoverUserByEmail(email);
       }
 
-      const localUid = existingUser?.uid || uid;
+      // ENFORCE: Email is the global source of truth.
+      // If we found an existing local user with a different UID, we must transition them to use the remote UID.
+      const localUid = uid;
+      
       let storedCredentials = null;
 
       try {
@@ -213,6 +216,15 @@ class LocalStorageService {
         this._setEmailIndex(email, localUid),
         this._persistUserToSecureStore(user),
       ]);
+
+      // Clear out the old user ID if it existed and was different
+      if (existingUser && existingUser.uid && existingUser.uid !== uid) {
+        try {
+          await AsyncStorage.removeItem(`user_${existingUser.uid}`);
+          await SecureStore.deleteItemAsync(`cred_${existingUser.uid}`, SECURE_STORE_OPTS);
+          await SecureStore.deleteItemAsync(`user_profile_${existingUser.uid}`, SECURE_STORE_OPTS);
+        } catch (_) {}
+      }
 
       this.currentUser = user;
       this.notifyAuthListeners(user);

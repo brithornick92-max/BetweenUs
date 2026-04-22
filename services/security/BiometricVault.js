@@ -27,8 +27,8 @@
 
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
-import nacl from 'tweetnacl';
-import naclUtil from 'tweetnacl-util';
+import * as nacl from 'tweetnacl';
+import * as naclUtil from 'tweetnacl-util';
 
 const VAULT_KEY_NAME = 'betweenus_vault_key_v1';
 const VAULT_SERVICE = 'betweenus_vault';

@@ -1418,6 +1418,23 @@ const Database = {
     }
     await db.runAsync('DELETE FROM sync_meta WHERE user_id = ?', [userId]);
   },
+
+  async migrateUserId(oldUserId, newUserId) {
+    if (!oldUserId || !newUserId || oldUserId === newUserId) return;
+    const db = await getDb();
+    for (const table of USER_SCOPED_TABLES) {
+      try {
+        await db.runAsync(`UPDATE ${table} SET user_id = ? WHERE user_id = ?`, [newUserId, oldUserId]);
+      } catch (err) {
+        if (__DEV__) console.warn(`[Database] Failed to migrate user_id in ${table}:`, err?.message);
+      }
+    }
+    try {
+      await db.runAsync('UPDATE sync_meta SET user_id = ? WHERE user_id = ?', [newUserId, oldUserId]);
+    } catch (err) {
+      if (__DEV__) console.warn('[Database] Failed to migrate user_id in sync_meta:', err?.message);
+    }
+  },
 };
 
 export default Database;

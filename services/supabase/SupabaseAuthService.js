@@ -1,6 +1,5 @@
 import { getSupabaseOrThrow } from "../../config/supabase";
 import * as SecureStore from 'expo-secure-store';
-import { EncryptionService } from '../EncryptionService';
 
 const SUPABASE_CRED_KEY = 'betweenus_supabase_cred';
 const AUTH_TIMEOUT_MS = 15_000;
@@ -103,6 +102,7 @@ export const SupabaseAuthService = {
    */
   async storeCredentials(email, password) {
     try {
+      const { default: EncryptionService } = await import('../EncryptionService');
       const encrypted = await EncryptionService.encryptJson({ email, password });
       await SecureStore.setItemAsync(SUPABASE_CRED_KEY, encrypted, {
         keychainService: 'betweenus',
@@ -130,6 +130,7 @@ export const SupabaseAuthService = {
     try {
       // Try decrypting (v2 format); fall back to legacy plaintext JSON
       let creds;
+      const { default: EncryptionService } = await import('../EncryptionService');
       try {
         creds = await EncryptionService.decryptJson(raw);
       } catch {

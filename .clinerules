@@ -1,0 +1,170 @@
+# Between Us — Project Rules
+
+You are working on Between Us, a production Expo + React Native app for couples.
+
+## Core behavior
+- Act by default: when asked to fix, build, refactor, or implement, make the code changes directly instead of only explaining.
+- Fix root causes, not surface symptoms.
+- Keep changes minimal, targeted, and production-safe.
+- Do not rewrite unrelated files.
+- Do not remove existing functionality unless explicitly asked.
+- Preserve current architecture unless there is a strong technical reason to change it.
+- Prefer stable, boring solutions over clever ones.
+
+## Code output preferences
+- Return full updated files when changes are substantial.
+- For small changes, keep edits precise and localized.
+- Do not leave placeholder code, pseudo-code, or TODOs unless requested.
+- Do not stop at diagnosis if the fix is clear; implement it.
+- Briefly summarize what changed after edits.
+
+## Stack assumptions
+- Expo + React Native
+- JavaScript and TypeScript may both exist; follow the local file pattern unless asked to migrate
+- Functional components and hooks only
+- Respect existing navigation, auth, and subscription flows
+
+## High-risk areas
+Be especially careful with:
+- navigation
+- auth and session handling
+- RevenueCat / subscriptions / premium access
+- Supabase or backend calls
+- async state and race conditions
+- deep links
+- push notifications
+- iOS release-build behavior
+- native modules and anything that may affect prebuild or App Store review
+
+## UI and product expectations
+- Keep the experience polished, premium, emotionally warm, and production-ready.
+- Maintain consistency with the current design language.
+- Avoid cluttered UI.
+- Prefer smooth, readable, elegant layouts over overly busy ones.
+- Do not introduce harsh or inconsistent styling.
+
+## Debugging expectations
+When debugging:
+1. inspect the relevant files first
+2. identify the most likely root cause
+3. implement the fix
+4. note any follow-up risks briefly
+
+## Dependency rules
+- Do not add new dependencies unless necessary.
+- Before adding a dependency, prefer existing libraries already in the project.
+- Avoid changes that increase native complexity unless clearly needed.
+
+## Safety / privacy / product sensitivity
+- Treat user data, relationship content, journals, notes, and private content as sensitive.
+- Avoid risky logging of personal or intimate user data.
+- Preserve privacy-oriented behavior.
+
+## Request style
+Unless the user asks otherwise:
+- do the work directly
+- keep explanations concise
+- prioritize shipping-quality results
+
+# Between Us — Workflow
+
+For every task, use this workflow:
+
+## 1. Understand the task
+- Determine whether the request is a bug fix, UI improvement, refactor, feature, or build issue.
+- Infer the most relevant files without asking unnecessary questions.
+
+## 2. Inspect before editing
+- Read the files most likely involved.
+- Trace related state, services, hooks, navigation, and side effects.
+- For build issues, inspect config, package dependencies, native-sensitive code, and recent changes.
+
+## 3. Make the smallest correct change
+- Prefer the narrowest fix that fully resolves the issue.
+- Avoid broad rewrites unless they are clearly justified.
+
+## 4. Validate mentally against production risk
+Before finalizing, check for likely issues involving:
+- iOS release builds
+- navigation regressions
+- premium gating
+- auth/session timing
+- stale state
+- race conditions
+- null/undefined failures
+- async effects
+- edge-case rendering
+
+## 5. Deliver clearly
+- Apply the edits directly.
+- Then provide a short summary:
+  - root cause
+  - files changed
+  - what was fixed
+  - any testing steps if useful
+
+## 6. For UI tasks
+- Keep the output premium, emotionally intelligent, and visually clean.
+- Preserve product tone: intimate, warm, elevated, not clinical.
+
+## 7. For refactors
+- Preserve behavior unless explicitly asked to change behavior.
+- Do not silently break analytics, notifications, premium logic, or saved user data.
+
+## 8. For large tasks
+If the task is large:
+- still begin implementation
+- break work into logical chunks
+- finish the highest-value parts first
+- do not stall in planning mode unless explicitly asked for a plan only
+
+# Between Us — Hooks
+
+## Bug Fix Hook
+When I ask for a fix:
+- inspect the relevant files
+- identify the root cause
+- implement the fix directly
+- avoid explanation-heavy responses
+- include full updated files if the edits are substantial
+
+## UI Hook
+When I ask to improve a screen:
+- edit the actual component code
+- keep the design premium, polished, and emotionally warm
+- reduce clutter
+- preserve usability and responsiveness
+- avoid changing product behavior unless requested
+
+## Build Error Hook
+When I mention a build error:
+- assume I want active debugging, not just advice
+- trace likely causes across config, imports, native-sensitive libraries, and recent code paths
+- implement the safest likely fix first
+- call out any follow-up test steps briefly
+
+## Refactor Hook
+When I ask for a refactor:
+- preserve behavior
+- improve readability, maintainability, and stability
+- avoid unnecessary architectural churn
+- do not change public behavior unless requested
+
+## New Feature Hook
+When I ask for a feature:
+- implement the simplest production-ready version
+- connect it to the existing architecture cleanly
+- avoid speculative abstractions
+- keep code maintainable
+
+## Full File Hook
+If a file needs meaningful edits:
+- return the full updated file
+- do not provide fragmented snippets unless the change is tiny
+
+## Production Hook
+Assume this app is for real users:
+- avoid hacky shortcuts
+- avoid debug-only patterns
+- avoid brittle timing-based fixes
+- prefer release-safe behavior

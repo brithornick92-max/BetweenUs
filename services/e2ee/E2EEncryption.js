@@ -42,8 +42,8 @@
  *   the error by queuing locally + showing a "Reconnect" banner.
  */
 
-import nacl from 'tweetnacl';
-import naclUtil from 'tweetnacl-util';
+import * as nacl from 'tweetnacl';
+import * as naclUtil from 'tweetnacl-util';
 import * as SecureStore from 'expo-secure-store';
 import CoupleKeyService from '../security/CoupleKeyService';
 

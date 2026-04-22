@@ -24,7 +24,7 @@
 
 import * as SecureStore from "expo-secure-store";
 import nacl from "tweetnacl";
-import naclUtil from "tweetnacl-util";
+import * as naclUtil from 'tweetnacl-util';
 
 const COUPLE_KEY_PREFIX = "betweenus_couple_key_";
 const COUPLE_KV_PREFIX = "betweenus_couple_kv_";

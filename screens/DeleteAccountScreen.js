@@ -13,7 +13,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
-import { ImpactFeedbackStyle } from '../utils/haptics';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import Icon from '../components/Icon';
 import { SPACING, withAlpha } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';

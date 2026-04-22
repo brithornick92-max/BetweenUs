@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
-import { selection } from '../utils/haptics';
+import { selection } from "../utils/haptics";
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -13,10 +13,10 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { useTheme } from "../context/ThemeContext";
-import { SPACING } from '../utils/theme';
+import { SPACING } from "../utils/theme";
 import Icon from "../components/Icon";
-import { RelationshipMilestones } from '../services/PolishEngine';
-import DeepLinkHandler from '../services/DeepLinkHandler';
+import { RelationshipMilestones } from "../services/PolishEngine";
+import DeepLinkHandler from "../services/DeepLinkHandler";
 
 // Tab screens
 import HomeScreen from "../screens/HomeScreen";
@@ -46,10 +46,7 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
   }, [focused]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { translateY: translateY.value }
-    ],
+    transform: [{ scale: scale.value }, { translateY: translateY.value }],
   }));
 
   const getIconName = () => {
@@ -71,11 +68,7 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
 
   return (
     <Animated.View style={[styles.iconContainer, animatedStyle]}>
-      <Icon
-        name={getIconName()}
-        size={size}
-        color={color}
-      />
+      <Icon name={getIconName()} size={size} color={color} />
     </Animated.View>
   );
 }
@@ -92,7 +85,9 @@ function PremiumTabBarBackground({ isDark }) {
           {
             backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF",
             borderTopWidth: StyleSheet.hairlineWidth,
-            borderTopColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+            borderTopColor: isDark
+              ? "rgba(255,255,255,0.1)"
+              : "rgba(0,0,0,0.1)",
           },
         ]}
       />
@@ -102,7 +97,7 @@ function PremiumTabBarBackground({ isDark }) {
   return (
     <BlurView
       intensity={isDark ? 80 : 95}
-      tint={isDark ? 'dark' : 'light'}
+      tint={isDark ? "dark" : "light"}
       style={StyleSheet.absoluteFill}
     />
   );
@@ -120,16 +115,26 @@ export default function Tabs() {
     RelationshipMilestones._getStats()
       .then((stats) => {
         if (!active) return;
-        if (!stats?.firstOpenDate) { setDaysSinceJoin(Infinity); return; }
-        const days = Math.floor((Date.now() - new Date(stats.firstOpenDate).getTime()) / (1000 * 60 * 60 * 24));
+        if (!stats?.firstOpenDate) {
+          setDaysSinceJoin(Infinity);
+          return;
+        }
+        const days = Math.floor(
+          (Date.now() - new Date(stats.firstOpenDate).getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
         setDaysSinceJoin(days);
       })
-      .catch(() => { if (active) setDaysSinceJoin(Infinity); });
-    return () => { active = false; };
+      .catch(() => {
+        if (active) setDaysSinceJoin(Infinity);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Show Calendar + Dates tabs only after day 2 (gives new users space to explore)
-  const showSecondaryTabs = daysSinceJoin === null || daysSinceJoin >= 2;
+  const showSecondaryTabs = true; // Show Calendar + Dates immediately
 
   // Keep DeepLinkHandler in sync so calendar deep links are guarded correctly
   useEffect(() => {
@@ -137,13 +142,16 @@ export default function Tabs() {
   }, [showSecondaryTabs]);
 
   // STRICT Apple Editorial Theme Map
-  const t = useMemo(() => ({
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    primary: colors.primary,
-    text: isDark ? '#FFFFFF' : '#000000',
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-  }), [colors, isDark]);
+  const t = useMemo(
+    () => ({
+      surface: isDark ? "#1C1C1E" : "#FFFFFF",
+      primary: colors.primary,
+      text: isDark ? "#FFFFFF" : "#000000",
+      subtext: isDark ? "rgba(235, 235, 245, 0.6)" : "rgba(60, 60, 67, 0.6)",
+      border: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+    }),
+    [colors, isDark]
+  );
 
   const handleTabPress = () => {
     selection(); // Precise high-end tactile feedback on every tab tap
@@ -167,10 +175,7 @@ export default function Tabs() {
         tabBarActiveTintColor: t.primary,
         tabBarInactiveTintColor: t.subtext,
 
-        tabBarStyle: [
-          styles.tabBar, 
-          { borderTopColor: t.border }
-        ],
+        tabBarStyle: [styles.tabBar, { borderTopColor: t.border }],
         tabBarLabelStyle: styles.label,
         tabBarItemStyle: styles.tabItem,
 

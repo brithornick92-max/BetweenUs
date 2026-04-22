@@ -20,7 +20,7 @@
  */
 
 import * as FileSystem from 'expo-file-system';
-import nacl from 'tweetnacl';
+import * as nacl from 'tweetnacl';
 import { encodeBase64, decodeBase64, encodeUTF8 } from 'tweetnacl-util';
 import { supabase, TABLES } from '../config/supabase';
 

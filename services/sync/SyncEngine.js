@@ -271,6 +271,10 @@ function fromRemoteRow(tableName, remoteRow) {
   return {
     ...metadata,
     couple_id: remoteRow.couple_id ?? metadata.couple_id ?? null,
+    // OVERRIDE user_id: ensure the local database associates this row with the
+    // active, canonical Supabase auth ID, preventing queries from missing rows
+    // that were originally created with a legacy local UID on another device.
+    user_id: _userId,
     ...cipherFields,
     sync_status: 'synced',
     sync_source: 'remote',

@@ -28,7 +28,7 @@ import PartnerNotifications from '../PartnerNotifications';
 import CoupleKeyService from '../security/CoupleKeyService';
 import CouplePresenceService from '../couple/CouplePresenceService';
 import SyncEngine from '../sync/SyncEngine';
-import naclUtil from 'tweetnacl-util';
+import * as naclUtil from 'tweetnacl-util';
 import { storage, promptStorage, journalStorage, STORAGE_KEYS } from '../../utils/storage';
 import { getPromptById } from '../../utils/contentLoader';
 
@@ -370,6 +370,128 @@ async function flushWriteThrough() {
   debouncedPush();
 }
 
+async function enforceCoupleVisibilityPolicy() {
+  if (!_userId || !_coupleId) return;
+
+  try {
+    if (!_coupleKeyAvailable) {
+      _coupleKeyAvailable = await E2EEncryption.hasCoupleKey(_coupleId);
+      if (!_coupleKeyAvailable) {
+        _coupleKeyAvailable = await tryRestoreCoupleKey();
+      }
+    }
+    if (!_coupleKeyAvailable) return;
+
+    const db = await Database.init();
+    const ts = new Date().toISOString();
+
+    const journalRows = await db.getAllAsync(
+      `SELECT id, title_cipher, body_cipher, mood, mood_cipher, tags, tags_cipher, couple_id
+       FROM journal_entries
+       WHERE user_id = ?
+         AND deleted_at IS NULL
+         AND (is_private = 1 OR couple_id IS NULL)`,
+      [_userId]
+    );
+
+    for (const row of journalRows || []) {
+      try {
+        const titleInfo = E2EEncryption.inspect(row.title_cipher);
+        const sourceKt = titleInfo?.keyTier || 'device';
+        const sourceCid = sourceKt === 'couple' ? (row.couple_id || _coupleId) : null;
+
+        const title = await E2EEncryption.decryptString(row.title_cipher, sourceKt, sourceCid);
+        const body = await E2EEncryption.decryptString(row.body_cipher, sourceKt, sourceCid);
+        const moodPlain = row.mood_cipher
+          ? await E2EEncryption.decryptString(row.mood_cipher, sourceKt, sourceCid).catch(() => row.mood ?? null)
+          : (row.mood ?? null);
+        const tagsPlain = row.tags_cipher
+          ? await E2EEncryption.decryptJson(row.tags_cipher, sourceKt, sourceCid).catch(() => (row.tags ? JSON.parse(row.tags) : []))
+          : (row.tags ? JSON.parse(row.tags) : []);
+
+        const titleCipher = await E2EEncryption.encryptString(title || '', 'couple', _coupleId);
+        const bodyCipher = await E2EEncryption.encryptString(body || '', 'couple', _coupleId);
+        const moodCipher = moodPlain ? await E2EEncryption.encryptString(moodPlain, 'couple', _coupleId) : null;
+        const tagsCipher = tagsPlain?.length ? await E2EEncryption.encryptJson(tagsPlain, 'couple', _coupleId) : null;
+
+        await db.runAsync(
+          `UPDATE journal_entries
+           SET title_cipher = ?,
+               body_cipher = ?,
+               mood = ?,
+               mood_cipher = ?,
+               tags = ?,
+               tags_cipher = ?,
+               is_private = 0,
+               couple_id = ?,
+               updated_at = ?,
+               sync_status = 'pending',
+               sync_version = sync_version + 1
+           WHERE id = ?`,
+          [
+            titleCipher,
+            bodyCipher,
+            moodPlain,
+            moodCipher,
+            tagsPlain ? JSON.stringify(tagsPlain) : null,
+            tagsCipher,
+            _coupleId,
+            ts,
+            row.id,
+          ]
+        );
+      } catch (rowErr) {
+        if (__DEV__) console.warn('[DataLayer] Journal visibility migration skipped row:', rowErr?.message);
+      }
+    }
+
+    const memoryRows = await db.getAllAsync(
+      `SELECT id, body_cipher, mood, mood_cipher, couple_id
+       FROM memories
+       WHERE user_id = ?
+         AND deleted_at IS NULL
+         AND (is_private = 1 OR couple_id IS NULL)`,
+      [_userId]
+    );
+
+    for (const row of memoryRows || []) {
+      try {
+        const info = E2EEncryption.inspect(row.body_cipher);
+        const sourceKt = info?.keyTier || 'device';
+        const sourceCid = sourceKt === 'couple' ? (row.couple_id || _coupleId) : null;
+
+        const content = await E2EEncryption.decryptString(row.body_cipher, sourceKt, sourceCid);
+        const moodPlain = row.mood_cipher
+          ? await E2EEncryption.decryptString(row.mood_cipher, sourceKt, sourceCid).catch(() => row.mood ?? null)
+          : (row.mood ?? null);
+
+        const bodyCipher = await E2EEncryption.encryptString(content || '', 'couple', _coupleId);
+        const moodCipher = moodPlain ? await E2EEncryption.encryptString(moodPlain, 'couple', _coupleId) : null;
+
+        await db.runAsync(
+          `UPDATE memories
+           SET body_cipher = ?,
+               mood = ?,
+               mood_cipher = ?,
+               is_private = 0,
+               couple_id = ?,
+               updated_at = ?,
+               sync_status = 'pending',
+               sync_version = sync_version + 1
+           WHERE id = ?`,
+          [bodyCipher, moodPlain, moodCipher, _coupleId, ts, row.id]
+        );
+      } catch (rowErr) {
+        if (__DEV__) console.warn('[DataLayer] Memory visibility migration skipped row:', rowErr?.message);
+      }
+    }
+
+    debouncedPush();
+  } catch (error) {
+    if (__DEV__) console.warn('[DataLayer] Failed enforcing shared visibility policy:', error?.message);
+  }
+}
+
 // ─── Init / teardown ────────────────────────────────────────────────
 
 const DataLayer = {
@@ -393,8 +515,10 @@ const DataLayer = {
     }
 
     await Database.init();
+    await enforceCoupleVisibilityPolicy();
 
-    SyncEngine.configure({ userId, coupleId, isPremium });
+    SyncEngine.configure({ userId: _userId, coupleId: _coupleId, isPremium: _isPremium });
+    await enforceCoupleVisibilityPolicy();
 
     // Initial pull from Supabase (get partner's latest data)
     if (isPremium && coupleId) {
@@ -513,12 +637,8 @@ const DataLayer = {
           const body = entry?.body || entry?.content || '';
           if (!title.trim() && !body.trim()) continue;
 
-          const isPrivate = entry?.isPrivate === true
-            ? true
-            : entry?.isShared === true
-              ? false
-              : true;
-          const journalKt = isPrivate ? deviceTier() : keyTier();
+          const isPrivate = false;
+          const journalKt = keyTier();
           const journalCid = journalKt === 'couple' ? _coupleId : null;
 
           const titleCipher = await E2EEncryption.encryptString(title, journalKt, journalCid);
@@ -530,6 +650,7 @@ const DataLayer = {
           await Database.insertJournal({
             id: entry.id,
             user_id: _userId,
+            couple_id: _coupleId || null,
             title_cipher: titleCipher,
             body_cipher: bodyCipher,
             mood: entry?.mood ?? null,
@@ -680,11 +801,11 @@ const DataLayer = {
   async saveJournalEntry({  title, body, mood, tags, isPrivate = false, imageUri = null, mediaUri, mimeType, fileName , _createdAt, _updatedAt }) { 
     await ensureLocalIdentityState();
 
+    const forceShared = true;
+
     // Private entries always use device key; shared entries must resolve
     // the active write tier and couple-key availability first.
-    const { keyTier: kt, coupleId } = isPrivate
-      ? { keyTier: deviceTier(), coupleId: null }
-      : await resolveLocalWriteTier();
+    const { keyTier: kt, coupleId } = await resolveLocalWriteTier();
     const cid = kt === 'couple' ? coupleId : null;
     const titleCipher = await E2EEncryption.encryptString(title, kt, cid);
     const bodyCipher = await E2EEncryption.encryptString(body, kt, cid);
@@ -711,14 +832,14 @@ const DataLayer = {
     const draft = {
       id: Database.makeId('jrn'),
       user_id: _userId,
-      couple_id: isPrivate ? null : coupleId,
+      couple_id: coupleId,
       title_cipher: titleCipher,
       body_cipher: bodyCipher,
       mood,       // unencrypted coarse label for local calendar/filters
       mood_cipher: moodCipher,  // encrypted exact value for Supabase
       tags,
       tags_cipher: tagsCipher,  // encrypted exact value for Supabase
-      is_private: isPrivate,
+      is_private: false,
       photo_uri: mediaRef ? null : (imageUri || null),
       media_ref: mediaRef,
       created_at: _createdAt || new Date().toISOString(),
@@ -743,7 +864,7 @@ const DataLayer = {
     await flushWriteThrough();
 
     // Notify partner when sharing a journal entry (not private)
-    if (!isPrivate) {
+    if (forceShared) {
       PartnerNotifications.journalShared().catch(() => {});
     }
 
@@ -754,11 +875,10 @@ const DataLayer = {
     await ensureLocalIdentityState();
 
     const updates = {};
+    const forceShared = true;
     // Use device key for private entries; shared updates must resolve
     // the active write tier and couple-key availability first.
-    const { keyTier: kt, coupleId } = isPrivate === true
-      ? { keyTier: deviceTier(), coupleId: null }
-      : await resolveLocalWriteTier();
+    const { keyTier: kt, coupleId } = await resolveLocalWriteTier();
     const cid = kt === 'couple' ? coupleId : null;
 
     // When toggling private→shared, we must re-encrypt title and body
@@ -783,8 +903,8 @@ const DataLayer = {
     if (mood !== undefined) updates.mood_cipher = mood ? await E2EEncryption.encryptString(mood, kt, cid) : null;
     if (tags !== undefined) updates.tags = tags;
     if (tags !== undefined) updates.tags_cipher = tags?.length ? await E2EEncryption.encryptJson(tags, kt, cid) : null;
-    if (isPrivate !== undefined) updates.is_private = isPrivate;
-    if (isPrivate !== undefined) updates.couple_id = isPrivate ? null : coupleId;
+    updates.is_private = false;
+    updates.couple_id = coupleId;
 
     let replacementMediaRef = null;
     if (mediaUri !== undefined) {
@@ -917,7 +1037,7 @@ const DataLayer = {
       };
     } catch (err) {
       if (__DEV__) console.warn('[DataLayer] Journal decryption failed:', err?.message);
-      return { ...row, mood: row.mood ?? null, title: null, body: null, tags: [], locked: true };
+      return { ...row, mood: row.mood ?? null, title: null, body: null, tags: [], locked: false };
     }
   },
 
@@ -969,7 +1089,7 @@ const DataLayer = {
       is_revealed: true,
       reveal_at: new Date().toISOString(),
     };
-    const draft = { ...existing, ...updates, updated_at: _updatedAt || new Date().toISOString() };
+    const draft = { ...existing, ...updates, updated_at: new Date().toISOString() };
     return await this._writeCloudFirst('prompt_answers', draft, 'updatePromptAnswer', id, updates);
   },
 
@@ -995,7 +1115,7 @@ const DataLayer = {
   },
 
   async getPromptAnswerForToday(promptId) {
-    const dk = _createdAt ? dateKey(new Date(_createdAt)) : dateKey();
+    const dk = dateKey();
     const row = await Database.getPromptAnswerByPromptAndDate(_userId, promptId, dk);
     return row ? this._decryptPromptAnswer(row) : null;
   },
@@ -1044,9 +1164,8 @@ const DataLayer = {
 
   async saveMemory({  content, type = 'moment', mood, isPrivate = false, mediaUri, mimeType, fileName , _createdAt, _updatedAt }) {
     await ensureLocalIdentityState();
-    const { keyTier: kt, coupleId: cid } = isPrivate 
-      ? { keyTier: deviceTier(), coupleId: null } 
-      : await resolveLocalWriteTier();
+    const forceShared = true;
+    const { keyTier: kt, coupleId: cid } = await resolveLocalWriteTier();
 
     const bodyCipher = await E2EEncryption.encryptString(content, kt, cid);
     const moodCipher = mood ? await E2EEncryption.encryptString(mood, kt, cid) : null;
@@ -1071,13 +1190,13 @@ const DataLayer = {
     const draft = {
       id: Database.makeId('mem'),
       user_id: _userId,
-      couple_id: isPrivate ? null : cid,
+      couple_id: cid,
       type,
       body_cipher: bodyCipher,
       media_ref: mediaRef,
       mood,
       mood_cipher: moodCipher,
-      is_private: isPrivate,
+      is_private: false,
       created_at: _createdAt || new Date().toISOString(),
       updated_at: _updatedAt || new Date().toISOString()
     };
@@ -1099,7 +1218,7 @@ const DataLayer = {
     await flushWriteThrough();
 
     // Notify partner when a shared memory is saved
-    if (!isPrivate && _coupleId) {
+    if (forceShared && _coupleId) {
       PartnerNotifications.memorySaved(null, type).catch(() => {});
     }
 
@@ -1140,7 +1259,7 @@ const DataLayer = {
       };
     } catch (err) {
       if (__DEV__) console.warn('[DataLayer] Memory decryption failed:', err?.message);
-      return { ...row, content: null, locked: true };
+      return { ...row, content: null, locked: false };
     }
   },
 

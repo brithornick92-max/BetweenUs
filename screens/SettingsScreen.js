@@ -25,7 +25,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
-import naclUtil from 'tweetnacl-util';
+import * as naclUtil from 'tweetnacl-util';
 import ReAnimated, { 
   FadeInDown, 
   FadeInRight, 

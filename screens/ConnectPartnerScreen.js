@@ -27,7 +27,7 @@ import { joinWithInviteCode } from '../services/linking/CoupleLinkingService';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, BORDER_RADIUS, SYSTEM_FONT, withAlpha } from '../utils/theme';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import naclUtil from 'tweetnacl-util';
+import * as naclUtil from 'tweetnacl-util';
 
 export default function ConnectPartnerScreen({ navigation }) {
   const { colors, isDark } = useTheme();

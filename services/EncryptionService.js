@@ -6,7 +6,7 @@
 
 import * as SecureStore from "expo-secure-store";
 import nacl from "tweetnacl";
-import naclUtil from "tweetnacl-util";
+import * as naclUtil from 'tweetnacl-util';
 
 const KEY_NAME = "betweenus_enc_key_v1";
 

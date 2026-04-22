@@ -215,7 +215,8 @@ class CloudEngine {
         return { ...data, locked: true };
       }
       try {
-        const decrypted = await E2EEncryption.decryptJson(
+        const { default: E2EEncryption } = await import('../e2ee/E2EEncryption');
+      const decrypted = await E2EEncryption.decryptJson(
           data.encrypted_value, 'couple', coupleId
         );
         return { ...data, value: decrypted, encrypted_value: null, locked: false };

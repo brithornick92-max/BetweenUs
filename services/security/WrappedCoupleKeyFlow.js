@@ -1,4 +1,4 @@
-import naclUtil from 'tweetnacl-util';
+import * as naclUtil from 'tweetnacl-util';
 
 import CoupleKeyService from './CoupleKeyService';
 import CoupleService from '../supabase/CoupleService';

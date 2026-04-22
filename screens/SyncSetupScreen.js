@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useEntitlements } from '../context/EntitlementsContext';

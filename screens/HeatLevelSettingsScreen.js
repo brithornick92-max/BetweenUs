@@ -350,7 +350,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 40) : 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     paddingTop: 16,
   },
   primaryButton: {

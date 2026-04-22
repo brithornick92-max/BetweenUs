@@ -61,7 +61,7 @@ export default function AddMemoryScreen() {
   const [content, setContent] = useState('');
   const [selectedType, setSelectedType] = useState('moment');
   const [selectedMood, setSelectedMood] = useState(null);
-  const [imageUri, setImageUri] = useState(null);
+  const [media, setMedia] = useState(null); // { uri, type, mimeType }
   const [saving, setSaving] = useState(false);
 
   const inputRef = useRef(null);
@@ -90,7 +90,7 @@ export default function AddMemoryScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ['images', 'videos'],
         quality: 0.85,
         allowsEditing: true,
         aspect: [4, 3],
@@ -98,11 +98,15 @@ export default function AddMemoryScreen() {
 
       if (!result.canceled && result.assets?.[0]) {
         const asset = result.assets[0];
-        if (asset.fileSize && asset.fileSize > 10_000_000) {
-          Alert.alert('Image Too Large', 'Please choose a photo under 10 MB.');
+        if (asset.fileSize && asset.fileSize > 50_000_000) {
+          Alert.alert('File Too Large', 'Please choose a file under 50 MB.');
           return;
         }
-        setImageUri(asset.uri);
+        setMedia({
+          uri: asset.uri,
+          type: asset.type,
+          mimeType: asset.type === 'video' ? 'video/mp4' : 'image/jpeg'
+        });
         impact(ImpactFeedbackStyle.Light);
       }
     } catch (err) {
@@ -121,13 +125,19 @@ export default function AddMemoryScreen() {
       }
 
       const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images', 'videos'],
         quality: 0.85,
         allowsEditing: true,
         aspect: [4, 3],
       });
 
       if (!result.canceled && result.assets?.[0]) {
-        setImageUri(result.assets[0].uri);
+        const asset = result.assets[0];
+        setMedia({
+          uri: asset.uri,
+          type: asset.type,
+          mimeType: asset.type === 'video' ? 'video/mp4' : 'image/jpeg'
+        });
         impact(ImpactFeedbackStyle.Light);
       }
     } catch (err) {
@@ -137,8 +147,8 @@ export default function AddMemoryScreen() {
   }, []);
 
   const handlePhotoPress = useCallback(() => {
-    Alert.alert('Add Photo', 'Choose how to add a photo', [
-      { text: 'Take Photo', onPress: handleTakePhoto },
+    Alert.alert('Add Media', 'Choose how to add a photo or video', [
+      { text: 'Take Photo/Video', onPress: handleTakePhoto },
       { text: 'Choose from Library', onPress: handlePickPhoto },
       { text: 'Cancel', style: 'cancel' },
     ]);
@@ -147,8 +157,8 @@ export default function AddMemoryScreen() {
   // ─── SAVE ───
   const handleSave = useCallback(async () => {
     const trimmed = content.trim();
-    if (!trimmed && !imageUri) {
-      Alert.alert('Add something', 'Write a note or attach a photo to save this memory.');
+    if (!trimmed && !media) {
+      Alert.alert('Add something', 'Write a note or attach a photo/video to save this memory.');
       return;
     }
 
@@ -161,9 +171,9 @@ export default function AddMemoryScreen() {
         type: selectedType,
         mood: selectedMood,
         isPrivate: false,
-        mediaUri: imageUri || undefined,
-        mimeType: imageUri ? 'image/jpeg' : undefined,
-        fileName: imageUri ? `memory_${Date.now()}.jpg` : undefined,
+        mediaUri: media?.uri || undefined,
+        mimeType: media?.mimeType || undefined,
+        fileName: media ? `memory_${Date.now()}.${media.type === 'video' ? 'mp4' : 'jpg'}` : undefined,
       });
 
       notification(NotificationFeedbackType.Success);
@@ -184,9 +194,9 @@ export default function AddMemoryScreen() {
                   type: selectedType,
                   mood: selectedMood,
                   isPrivate: true,
-                  mediaUri: imageUri || undefined,
-                  mimeType: imageUri ? 'image/jpeg' : undefined,
-                  fileName: imageUri ? `memory_${Date.now()}.jpg` : undefined,
+                  mediaUri: media?.uri || undefined,
+                  mimeType: media?.mimeType || undefined,
+                  fileName: media ? `memory_${Date.now()}.${media.type === 'video' ? 'mp4' : 'jpg'}` : undefined,
                 });
                 notification(NotificationFeedbackType.Success);
                 navigation.goBack();
@@ -202,9 +212,9 @@ export default function AddMemoryScreen() {
         Alert.alert('Error', 'Could not save your memory. Please try again.');
       }
     }
-  }, [content, imageUri, navigation, selectedMood, selectedType]);
+  }, [content, media, navigation, selectedMood, selectedType]);
 
-  const canSave = (content.trim().length > 0 || !!imageUri) && !saving;
+  const canSave = (content.trim().length > 0 || !!media) && !saving;
 
   return (
     <View style={styles.container}>
@@ -259,14 +269,19 @@ export default function AddMemoryScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* ── Photo Drop-Zone ── */}
+            {/* ── Photo/Video Drop-Zone ── */}
             <Animated.View entering={FadeInDown.delay(50).springify().damping(18)}>
-              {imageUri ? (
+              {media ? (
                 <View style={styles.photoContainer}>
-                  <Image source={{ uri: imageUri }} style={styles.photoPreview} resizeMode="cover" />
+                  <Image source={{ uri: media.uri }} style={styles.photoPreview} resizeMode="cover" />
+                  {media.type === 'video' && (
+                    <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
+                      <Icon name="play-circle-outline" size={48} color="#FFF" />
+                    </View>
+                  )}
                   <TouchableOpacity
                     style={[styles.removePhotoBtn, { backgroundColor: 'rgba(0,0,0,0.55)' }]}
-                    onPress={() => { selection(); setImageUri(null); }}
+                    onPress={() => { selection(); setMedia(null); }}
                     hitSlop={10}
                   >
                     <Icon name="close-outline" size={16} color="#FFF" />
@@ -280,7 +295,7 @@ export default function AddMemoryScreen() {
                 >
                   <BlurView intensity={isDark ? 45 : 25} tint={isDark ? 'dark' : 'light'} style={[styles.photoPlaceholderBlur, { backgroundColor: t.surface }]}>
                     <Icon name="camera-outline" size={32} color={t.text} />
-                    <Text style={[styles.photoPlaceholderText, { color: t.text }]}>Add a Photo</Text>
+                    <Text style={[styles.photoPlaceholderText, { color: t.text }]}>Add a Photo or Video</Text>
                     <Text style={[styles.photoPlaceholderSub, { color: t.subtext }]}>
                       Optional · stays encrypted
                     </Text>
