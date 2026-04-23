@@ -1,37 +1,41 @@
 const { expo: baseConfig } = require('./app.json');
 
-const APP_VARIANT = process.env.APP_VARIANT ?? 'production';
-const isDevVariant = APP_VARIANT === 'development';
-const isPreviewVariant = APP_VARIANT === 'preview';
+const APP_VARIANT = process.env.APP_VARIANT || 'production';
 
-let name = baseConfig.name;
-let scheme = baseConfig.scheme;
-let iosBundleIdentifier = baseConfig.ios?.bundleIdentifier;
-let androidPackage = baseConfig.android?.package;
+const variants = {
+  production: {
+    name: baseConfig.name,
+    scheme: baseConfig.scheme,
+    iosBundleIdentifier: 'com.brittany.betweenus',
+    androidPackage: 'com.brittany.betweenus',
+  },
+  development: {
+    name: 'Between Us Dev',
+    scheme: 'betweenus-dev',
+    iosBundleIdentifier: 'com.brittany.betweenus.dev',
+    androidPackage: 'com.brittany.betweenus.dev',
+  },
+  preview: {
+    name: 'Between Us Preview',
+    scheme: 'betweenus-preview',
+    iosBundleIdentifier: 'com.brittany.betweenus.preview',
+    androidPackage: 'com.brittany.betweenus.preview',
+  },
+};
 
-if (isDevVariant) {
-  name = 'Between Us Dev';
-  scheme = 'betweenus-dev';
-  iosBundleIdentifier = 'com.brittany.betweenus.dev';
-  androidPackage = 'com.brittany.betweenus.dev';
-} else if (isPreviewVariant) {
-  name = 'Between Us Preview';
-  scheme = 'betweenus-preview';
-  iosBundleIdentifier = 'com.brittany.betweenus.preview';
-  androidPackage = 'com.brittany.betweenus.preview';
-}
+const selectedVariant = variants[APP_VARIANT] || variants.production;
 
 module.exports = () => ({
   ...baseConfig,
-  name,
-  scheme,
+  name: selectedVariant.name,
+  scheme: selectedVariant.scheme,
   ios: {
     ...baseConfig.ios,
-    bundleIdentifier: iosBundleIdentifier,
+    bundleIdentifier: selectedVariant.iosBundleIdentifier,
   },
   android: {
     ...baseConfig.android,
-    package: androidPackage,
+    package: selectedVariant.androidPackage,
   },
   extra: {
     ...baseConfig.extra,

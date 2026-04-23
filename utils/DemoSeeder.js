@@ -9,8 +9,21 @@ const DEMO_IMAGE_MODULES = [
   require('../assets/simulator-media/between-us-date-night-1.png'),
   require('../assets/simulator-media/between-us-date-night-2.png'),
   require('../assets/simulator-media/between-us-date-night-3.png'),
+  require('../assets/simulator-media/between-us-date-night-4.png'),
+  require('../assets/simulator-media/between-us-date-night-5.png'),
+  require('../assets/simulator-media/between-us-date-night-6.png'),
+  require('../assets/simulator-media/between-us-date-night-7.png'),
+  require('../assets/simulator-media/between-us-date-night-8.png'),
+  require('../assets/simulator-media/between-us-date-night-9.png'),
+  require('../assets/simulator-media/between-us-date-night-10.png'),
 ];
-const DEMO_VIDEO_MODULE = require('../assets/simulator-media/between-us-date-night-video.mp4');
+const DEMO_VIDEO_MODULES = [
+  require('../assets/simulator-media/between-us-date-night-video.mp4'),
+  require('../assets/simulator-media/between-us-date-night-video-2.mp4'),
+  require('../assets/simulator-media/between-us-date-night-video-3.mp4'),
+  require('../assets/simulator-media/between-us-date-night-video-4.mp4'),
+  require('../assets/simulator-media/between-us-date-night-video-5.mp4'),
+];
 
 let _demoAssets = null;
 function resolveDemoAssets() {
@@ -20,22 +33,24 @@ function resolveDemoAssets() {
       const src = Image.resolveAssetSource(mod);
       return src?.uri ? { uri: src.uri, name: `date-night-${idx + 1}.png`, mimeType: 'image/png' } : null;
     }).filter(Boolean);
-    const videoSrc = Image.resolveAssetSource(DEMO_VIDEO_MODULE);
-    const video = videoSrc?.uri ? { uri: videoSrc.uri, name: 'date-night.mp4', mimeType: 'video/mp4' } : null;
-    _demoAssets = { images, video };
+    const videos = DEMO_VIDEO_MODULES.map((mod, idx) => {
+      const src = Image.resolveAssetSource(mod);
+      return src?.uri ? { uri: src.uri, name: `date-night-video-${idx + 1}.mp4`, mimeType: 'video/mp4' } : null;
+    }).filter(Boolean);
+    _demoAssets = { images, videos };
   } catch {
-    _demoAssets = { images: [], video: null };
+    _demoAssets = { images: [], videos: [] };
   }
   return _demoAssets;
 }
 
-async function attachDemoMedia({ parentType, parentId, userId, coupleId, kt, preferVideo = false }) {
+async function attachDemoMedia({ parentType, parentId, userId, coupleId, kt, preferVideo = false, assetIndex = 0 }) {
   try {
-    const assets = await resolveDemoAssets();
-    const useVideo = preferVideo && !!assets.video;
+    const assets = resolveDemoAssets();
+    const useVideo = preferVideo && assets.videos.length > 0;
     const asset = useVideo
-      ? assets.video
-      : assets.images[Math.floor(Math.random() * assets.images.length)];
+      ? assets.videos[assetIndex % assets.videos.length]
+      : assets.images[assetIndex % assets.images.length];
     if (!asset?.uri) return null;
     const att = await EncryptedAttachments.encryptAndStore({
       sourceUri: asset.uri,
@@ -342,6 +357,7 @@ export async function seedReviewerData() {
               coupleId: rowCoupleId,
               kt,
               preferVideo: shouldCreate(i, 10, 3),
+              assetIndex: dayIndex,
             })
           : null;
         const journalDraft = {
@@ -399,6 +415,7 @@ export async function seedReviewerData() {
               coupleId: rowCoupleId,
               kt,
               preferVideo: shouldCreate(i, 8, 2),
+              assetIndex: dayIndex + 5,
             })
           : null;
         const memoryDraft = {
