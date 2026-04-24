@@ -12,7 +12,7 @@
  *   • Calendar events use their dedicated `calendar_events` table.
  *   • Media files are uploaded to Supabase Storage (`couple-media` for images,
  *     `attachments` for videos) and referenced by path in `value.mediaPath`.
- *   • No SQLite, no encryption, no sync queue.
+ *   • Local storage is used only for cache and offline mutation queueing.
  */
 
 import { supabase, TABLES } from '../../config/supabase';
@@ -20,16 +20,35 @@ import { randomUUID } from 'expo-crypto';
 import * as FileSystem from 'expo-file-system/legacy';
 import PartnerNotifications from '../PartnerNotifications';
 import { getPromptById } from '../../utils/contentLoader';
+import { storage, STORAGE_KEYS } from '../../utils/storage';
 
 // ─── Module state ────────────────────────────────────────────────────────────
 
 let _userId = null;
 let _coupleId = null;
 let _calendarChannel = null;
+let _isFlushingQueue = false;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const now = () => new Date().toISOString();
+const CACHE_SCOPES = Object.freeze({
+  journals: 'journals',
+  prompts: 'prompts',
+  memories: 'memories',
+  checkIns: 'checkIns',
+  vibes: 'vibes',
+  calendar: 'calendar',
+  datePlans: 'datePlans',
+});
+
+function offlineQueueKey(userId) {
+  return `${STORAGE_KEYS.CLOUD_SYNC_QUEUE}:${userId || 'anonymous'}`;
+}
+
+function cacheKey(userId, scope) {
+  return `@betweenus:dataCache:${userId || 'anonymous'}:${scope}`;
+}
 
 function makeId(prefix = 'row') {
   return `${prefix}_${randomUUID()}`;
@@ -44,6 +63,77 @@ function dateKey(date = new Date()) {
 
 function getSupabaseOrNull() {
   return supabase;
+}
+
+function isOfflineCapableError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return (
+    !supabase
+    || message.includes('network')
+    || message.includes('fetch')
+    || message.includes('offline')
+    || message.includes('timeout')
+    || message.includes('failed to fetch')
+  );
+}
+
+async function getOfflineQueue() {
+  return storage.get(offlineQueueKey(_userId), []);
+}
+
+async function setOfflineQueue(queue) {
+  await storage.set(offlineQueueKey(_userId), Array.isArray(queue) ? queue : []);
+}
+
+async function enqueueOfflineMutation(mutation) {
+  const queue = await getOfflineQueue();
+  queue.push({
+    mutationId: randomUUID(),
+    queuedAt: now(),
+    ...mutation,
+  });
+  await setOfflineQueue(queue);
+}
+
+async function loadCache(scope) {
+  return storage.get(cacheKey(_userId, scope), []);
+}
+
+async function saveCache(scope, rows) {
+  await storage.set(cacheKey(_userId, scope), Array.isArray(rows) ? rows : []);
+}
+
+async function replaceCache(scope, rows) {
+  await saveCache(scope, rows);
+  return rows;
+}
+
+async function upsertCacheRow(scope, row, { sortBy = 'created_at', descending = true } = {}) {
+  const rows = await loadCache(scope);
+  const next = [row, ...rows.filter((item) => item?.id !== row?.id)];
+  next.sort((a, b) => {
+    const av = a?.[sortBy] ?? '';
+    const bv = b?.[sortBy] ?? '';
+    if (av === bv) return 0;
+    return descending ? String(bv).localeCompare(String(av)) : String(av).localeCompare(String(bv));
+  });
+  await saveCache(scope, next);
+  return row;
+}
+
+async function removeCacheRow(scope, id) {
+  const rows = await loadCache(scope);
+  await saveCache(scope, rows.filter((item) => item?.id !== id));
+}
+
+async function runCloudOperation({ perform, onSuccess, onOffline }) {
+  try {
+    const result = await perform();
+    return onSuccess ? await onSuccess(result) : result;
+  } catch (error) {
+    if (!isOfflineCapableError(error) || !onOffline) throw error;
+    return onOffline(error);
+  }
 }
 
 /**
@@ -353,6 +443,136 @@ function mapDatePlanRow(row) {
   };
 }
 
+function makeOfflineJournalRow(id, value, base = {}) {
+  const timestamp = now();
+  return {
+    id,
+    user_id: _userId,
+    couple_id: _coupleId,
+    title: value.title || '',
+    body: value.body || '',
+    mood: value.mood || null,
+    tags: value.tags || [],
+    is_private: false,
+    photo_uri: value.photoUri || null,
+    mediaRef: value.mediaPath || null,
+    mediaUri: value.photoUri || base.mediaUri || null,
+    mediaType: value.mimeType || base.mediaType || null,
+    mediaKind: (value.mimeType || base.mediaType || '').startsWith('video/')
+      ? 'video'
+      : ((value.photoUri || base.mediaUri) ? 'image' : null),
+    created_at: base.created_at || timestamp,
+    updated_at: timestamp,
+    sync_status: 'pending',
+  };
+}
+
+function makeOfflinePromptRow(id, value, base = {}) {
+  const timestamp = now();
+  const promptHeat = getPromptById(value.promptId)?.heat;
+  return {
+    id,
+    user_id: _userId,
+    couple_id: _coupleId,
+    prompt_id: value.promptId,
+    date_key: value.dateKey,
+    answer: value.answer || null,
+    partnerAnswer: base.partnerAnswer || null,
+    heat_level: typeof promptHeat === 'number' ? promptHeat : (value.heatLevel ?? 1),
+    is_revealed: !!value.isRevealed,
+    reveal_at: value.revealAt || null,
+    created_at: base.created_at || timestamp,
+    updated_at: timestamp,
+    sync_status: 'pending',
+  };
+}
+
+function makeOfflineMemoryRow(id, value, base = {}) {
+  const timestamp = now();
+  return {
+    id,
+    user_id: _userId,
+    couple_id: _coupleId,
+    type: value.type || 'moment',
+    content: value.content || '',
+    mood: value.mood || null,
+    is_private: false,
+    media_ref: value.mediaPath || null,
+    mime_type: value.mimeType || null,
+    mediaUri: base.mediaUri || null,
+    created_at: base.created_at || timestamp,
+    updated_at: timestamp,
+    sync_status: 'pending',
+  };
+}
+
+function makeOfflineCheckInRow(id, value, base = {}) {
+  const timestamp = now();
+  return {
+    id,
+    user_id: _userId,
+    couple_id: _coupleId,
+    ...value,
+    created_at: base.created_at || timestamp,
+    updated_at: timestamp,
+    sync_status: 'pending',
+  };
+}
+
+function makeOfflineVibeRow(id, value, base = {}) {
+  const timestamp = now();
+  return {
+    id,
+    user_id: _userId,
+    couple_id: _coupleId,
+    ...value,
+    created_at: base.created_at || timestamp,
+    updated_at: timestamp,
+    sync_status: 'pending',
+  };
+}
+
+function makeOfflineCalendarRow(id, event, base = {}) {
+  const ts = Date.now();
+  return {
+    id,
+    title: event?.title || '',
+    location: event?.location || '',
+    notes: event?.notes || '',
+    eventType: event?.eventType || 'general',
+    isDateNight: !!(event?.isDateNight || event?.eventType === 'dateNight'),
+    whenTs: event?.whenTs,
+    notify: !!event?.notify,
+    notifyMins: Number(event?.notifyMins ?? 60) || 60,
+    notificationId: event?.notificationId || null,
+    metadata: event?.metadata || {},
+    createdAt: base.createdAt || ts,
+    updatedAt: ts,
+    isRemote: false,
+    remoteSynced: false,
+    sync_status: 'pending',
+  };
+}
+
+function makeOfflineDatePlanRow(id, plan, base = {}) {
+  const ts = Date.now();
+  return {
+    id,
+    title: plan?.title || '',
+    sourceEventId: plan?.sourceEventId || null,
+    locationType: plan?.locationType || 'home',
+    heat: plan?.heat ?? 2,
+    load: plan?.load ?? 2,
+    style: plan?.style || 'mixed',
+    steps: Array.isArray(plan?.steps) ? plan.steps : [],
+    createdAt: base.createdAt || ts,
+    updatedAt: ts,
+    isRemote: false,
+    remoteSynced: false,
+    sync_status: 'pending',
+  };
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 const SupabaseDataLayer = {
@@ -362,12 +582,13 @@ const SupabaseDataLayer = {
   async init({ userId, coupleId, isPremium = false }) {
     _userId = userId;
     _coupleId = coupleId || null;
+    await this.flushOfflineQueue();
   },
 
   async reconfigure({ userId, coupleId, isPremium }) {
     if (userId !== undefined) _userId = userId;
     if (coupleId !== undefined) _coupleId = coupleId || null;
-
+    await this.flushOfflineQueue();
   },
 
   async reset() {
@@ -378,6 +599,7 @@ const SupabaseDataLayer = {
     }
     _userId = null;
     _coupleId = null;
+    _isFlushingQueue = false;
   },
 
   // No E2EE — these always resolve cleanly
@@ -413,9 +635,26 @@ const SupabaseDataLayer = {
       mimeType: mediaData?.mimeType || null,
     };
 
-    const row = await cdInsert('journal', id, value);
-    PartnerNotifications.journalShared().catch(() => {});
-    return mapJournalRow(row);
+    return runCloudOperation({
+      perform: async () => cdInsert('journal', id, value),
+      onSuccess: async (row) => {
+        const mapped = await mapJournalRow(row);
+        await upsertCacheRow(CACHE_SCOPES.journals, mapped);
+        PartnerNotifications.journalShared().catch(() => {});
+        return mapped;
+      },
+      onOffline: async () => {
+        const mapped = makeOfflineJournalRow(id, value);
+        await enqueueOfflineMutation({
+          entity: 'journal',
+          action: 'insert',
+          id,
+          payload: value,
+        });
+        await upsertCacheRow(CACHE_SCOPES.journals, mapped);
+        return mapped;
+      },
+    });
   },
 
   async updateJournalEntry(id, { title, body, mood, tags, imageUri, mediaUri, mimeType }) {
@@ -446,12 +685,47 @@ const SupabaseDataLayer = {
       patch.mediaPath = null;
     }
 
-    const row = await cdUpdate(id, patch);
-    return mapJournalRow(row);
+    return runCloudOperation({
+      perform: async () => cdUpdate(id, patch),
+      onSuccess: async (row) => {
+        const mapped = await mapJournalRow(row);
+        await upsertCacheRow(CACHE_SCOPES.journals, mapped);
+        return mapped;
+      },
+      onOffline: async () => {
+        const existing = await this.getJournalEntry(id);
+        const mapped = makeOfflineJournalRow(id, {
+          title: patch.title ?? existing?.title ?? '',
+          body: patch.body ?? existing?.body ?? '',
+          mood: patch.mood ?? existing?.mood ?? null,
+          tags: patch.tags ?? existing?.tags ?? [],
+          photoUri: patch.photoUri ?? existing?.photo_uri ?? null,
+          mediaPath: patch.mediaPath ?? existing?.mediaRef ?? null,
+          mimeType: patch.mimeType ?? existing?.mediaType ?? null,
+        }, existing || {});
+        await enqueueOfflineMutation({
+          entity: 'journal',
+          action: 'update',
+          id,
+          payload: patch,
+        });
+        await upsertCacheRow(CACHE_SCOPES.journals, mapped);
+        return mapped;
+      },
+    });
   },
 
   async deleteJournalEntry(id) {
-    await cdSoftDelete(id);
+    return runCloudOperation({
+      perform: async () => cdSoftDelete(id),
+      onSuccess: async () => {
+        await removeCacheRow(CACHE_SCOPES.journals, id);
+      },
+      onOffline: async () => {
+        await enqueueOfflineMutation({ entity: 'journal', action: 'delete', id });
+        await removeCacheRow(CACHE_SCOPES.journals, id);
+      },
+    });
   },
 
   async getJournalEntries({ limit = 50, offset = 0, mood, visibility } = {}) {
@@ -463,10 +737,7 @@ const SupabaseDataLayer = {
       offset,
       filter: (q) => {
         let query = q;
-        if (visibility === 'shared') {
-          // Both partners' entries are visible in shared mode
-          query = query;
-        } else {
+        if (visibility !== 'shared') {
           query = query.eq('created_by', _userId);
         }
         if (mood) {
@@ -476,19 +747,37 @@ const SupabaseDataLayer = {
       },
     });
 
-    return Promise.all(rows.map(r => mapJournalRow(r)));
+    if (rows.length) {
+      const mapped = await Promise.all(rows.map(r => mapJournalRow(r)));
+      await replaceCache(CACHE_SCOPES.journals, mapped);
+      return mapped;
+    }
+
+    const cached = await loadCache(CACHE_SCOPES.journals);
+    return cached
+      .filter((entry) => visibility === 'shared' || entry?.user_id === _userId)
+      .filter((entry) => !mood || entry?.mood === mood)
+      .slice(offset, offset + limit);
   },
 
   async getJournalEntry(id) {
     const sb = getSupabaseOrNull();
-    if (!sb) return null;
+    if (!sb) {
+      const cached = await loadCache(CACHE_SCOPES.journals);
+      return cached.find((entry) => entry?.id === id) || null;
+    }
     const { data, error } = await sb
       .from(TABLES.COUPLE_DATA)
       .select('*')
       .eq('id', id)
       .single();
-    if (error || !data) return null;
-    return mapJournalRow(data);
+    if (error || !data) {
+      const cached = await loadCache(CACHE_SCOPES.journals);
+      return cached.find((entry) => entry?.id === id) || null;
+    }
+    const mapped = await mapJournalRow(data);
+    await upsertCacheRow(CACHE_SCOPES.journals, mapped);
+    return mapped;
   },
 
   // ─── Prompt Answers ──────────────────────────────────────────────────────
@@ -512,19 +801,54 @@ const SupabaseDataLayer = {
     };
 
     let row;
-    if (existing) {
-      row = await cdUpdate(existing.id, value);
-    } else {
-      const id = makeId('ans');
-      row = await cdInsert('prompt_answer', id, value);
-    }
+    const id = existing?.id || makeId('ans');
 
-    return mapPromptRow(row);
+    return runCloudOperation({
+      perform: async () => (existing ? cdUpdate(existing.id, value) : cdInsert('prompt_answer', id, value)),
+      onSuccess: async (remoteRow) => {
+        const mapped = await mapPromptRow(remoteRow);
+        await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
+        return mapped;
+      },
+      onOffline: async () => {
+        const cached = existing ? (await this.getPromptAnswerForToday(promptId)) : null;
+        const mapped = makeOfflinePromptRow(id, value, cached || {});
+        await enqueueOfflineMutation({
+          entity: 'prompt_answer',
+          action: existing ? 'update' : 'insert',
+          id,
+          payload: value,
+        });
+        await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
+        return mapped;
+      },
+    });
   },
 
   async revealPromptAnswer(id) {
-    const row = await cdUpdate(id, { isRevealed: true, revealAt: now() });
-    return mapPromptRow(row);
+    const patch = { isRevealed: true, revealAt: now() };
+    return runCloudOperation({
+      perform: async () => cdUpdate(id, patch),
+      onSuccess: async (row) => {
+        const mapped = await mapPromptRow(row);
+        await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
+        return mapped;
+      },
+      onOffline: async () => {
+        const cached = await loadCache(CACHE_SCOPES.prompts);
+        const existing = cached.find((row) => row?.id === id) || {};
+        const mapped = makeOfflinePromptRow(id, {
+          promptId: existing.prompt_id,
+          dateKey: existing.date_key,
+          answer: existing.answer,
+          heatLevel: existing.heat_level,
+          ...patch,
+        }, existing);
+        await enqueueOfflineMutation({ entity: 'prompt_answer', action: 'update', id, payload: patch });
+        await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
+        return mapped;
+      },
+    });
   },
 
   async getPromptAnswers({ dateKey: dk, promptId, limit = 100 } = {}) {
@@ -537,7 +861,17 @@ const SupabaseDataLayer = {
         return query;
       },
     });
-    return Promise.all(rows.map(r => mapPromptRow(r)));
+    if (rows.length) {
+      const mapped = await Promise.all(rows.map(r => mapPromptRow(r)));
+      await replaceCache(CACHE_SCOPES.prompts, mapped);
+      return mapped;
+    }
+    const cached = await loadCache(CACHE_SCOPES.prompts);
+    return cached
+      .filter((row) => row?.user_id === _userId)
+      .filter((row) => !dk || row?.date_key === dk)
+      .filter((row) => !promptId || row?.prompt_id === promptId)
+      .slice(0, limit);
   },
 
   async getSharedPromptAnswers({ dateKey: dk, promptId, limit = 100 } = {}) {
@@ -554,21 +888,26 @@ const SupabaseDataLayer = {
     });
 
     // Pair up my answers with partner's answers for the same prompt+date
-    const myRows = rows.filter(r => r.created_by === _userId);
-    const partnerRows = rows.filter(r => r.created_by !== _userId);
+    const sourceRows = rows.length ? rows : await loadCache(CACHE_SCOPES.prompts);
+    const myRows = sourceRows.filter(r => (r.created_by || r.user_id) === _userId);
+    const partnerRows = sourceRows.filter(r => (r.created_by || r.user_id) !== _userId);
 
     return Promise.all(myRows.map(r => {
       const partner = partnerRows.find(p =>
-        p.value?.promptId === r.value?.promptId && p.value?.dateKey === r.value?.dateKey
+        (p.value?.promptId || p.prompt_id) === (r.value?.promptId || r.prompt_id)
+        && (p.value?.dateKey || p.date_key) === (r.value?.dateKey || r.date_key)
       ) || null;
-      return mapPromptRow(r, partner);
+      return r.value ? mapPromptRow(r, partner) : r;
     }));
   },
 
   async getPromptAnswerForToday(promptId) {
     const dk = dateKey();
     const row = await this._findPromptAnswer(promptId, dk, _userId);
-    if (!row) return null;
+    if (!row) {
+      const cached = await loadCache(CACHE_SCOPES.prompts);
+      return cached.find((entry) => entry?.prompt_id === promptId && entry?.date_key === dk && entry?.user_id === _userId) || null;
+    }
     // Also look for partner's answer to attach it
     const partnerRow = await this._findPartnerPromptAnswer(promptId, dk);
     return mapPromptRow(row, partnerRow);
@@ -625,13 +964,28 @@ const SupabaseDataLayer = {
       mimeType: mediaData?.mimeType || null,
     };
 
-    const row = await cdInsert('memory', id, value, { isPrivate: false });
-
-    if (_coupleId) {
-      PartnerNotifications.memorySaved(null, type).catch(() => {});
-    }
-
-    return mapMemoryRow(row);
+    return runCloudOperation({
+      perform: async () => cdInsert('memory', id, value, { isPrivate: false }),
+      onSuccess: async (row) => {
+        const mapped = await mapMemoryRow(row);
+        await upsertCacheRow(CACHE_SCOPES.memories, mapped);
+        if (_coupleId) {
+          PartnerNotifications.memorySaved(null, type).catch(() => {});
+        }
+        return mapped;
+      },
+      onOffline: async () => {
+        const mapped = makeOfflineMemoryRow(id, value, { mediaUri });
+        await enqueueOfflineMutation({
+          entity: 'memory',
+          action: 'insert',
+          id,
+          payload: value,
+        });
+        await upsertCacheRow(CACHE_SCOPES.memories, mapped);
+        return mapped;
+      },
+    });
   },
 
   async getMemories({ type, limit = 100, offset = 0 } = {}) {
@@ -644,7 +998,16 @@ const SupabaseDataLayer = {
         return query;
       },
     });
-    return Promise.all(rows.map(r => mapMemoryRow(r)));
+    if (rows.length) {
+      const mapped = await Promise.all(rows.map(r => mapMemoryRow(r)));
+      await replaceCache(CACHE_SCOPES.memories, mapped);
+      return mapped;
+    }
+    const cached = await loadCache(CACHE_SCOPES.memories);
+    return cached
+      .filter((row) => row?.user_id === _userId)
+      .filter((row) => !type || row?.type === type)
+      .slice(offset, offset + limit);
   },
 
   async getSharedMemories({ type, limit = 100, offset = 0 } = {}) {
@@ -658,11 +1021,28 @@ const SupabaseDataLayer = {
         return query;
       },
     });
-    return Promise.all(rows.map(r => mapMemoryRow(r)));
+    if (rows.length) {
+      const mapped = await Promise.all(rows.map(r => mapMemoryRow(r)));
+      await replaceCache(CACHE_SCOPES.memories, mapped);
+      return mapped;
+    }
+    const cached = await loadCache(CACHE_SCOPES.memories);
+    return cached
+      .filter((row) => !type || row?.type === type)
+      .slice(offset, offset + limit);
   },
 
   async deleteMemory(id) {
-    await cdSoftDelete(id);
+    return runCloudOperation({
+      perform: async () => cdSoftDelete(id),
+      onSuccess: async () => {
+        await removeCacheRow(CACHE_SCOPES.memories, id);
+      },
+      onOffline: async () => {
+        await enqueueOfflineMutation({ entity: 'memory', action: 'delete', id });
+        await removeCacheRow(CACHE_SCOPES.memories, id);
+      },
+    });
   },
 
   // ─── Check-ins ───────────────────────────────────────────────────────────
@@ -674,15 +1054,25 @@ const SupabaseDataLayer = {
 
     // Upsert by replacing any existing check-in for today
     const existing = await this._findCheckInByDate(dk);
-    let row;
-    if (existing) {
-      row = await cdUpdate(existing.id, value);
-    } else {
-      row = await cdInsert('check_in', id, value);
-    }
-
-    const v = row.value || {};
-    return { ...row, ...v };
+    return runCloudOperation({
+      perform: async () => (existing ? cdUpdate(existing.id, value) : cdInsert('check_in', id, value)),
+      onSuccess: async (row) => {
+        const mapped = { ...row, ...(row.value || {}) };
+        await upsertCacheRow(CACHE_SCOPES.checkIns, mapped);
+        return mapped;
+      },
+      onOffline: async () => {
+        const mapped = makeOfflineCheckInRow(existing?.id || id, value);
+        await enqueueOfflineMutation({
+          entity: 'check_in',
+          action: existing ? 'update' : 'insert',
+          id: existing?.id || id,
+          payload: value,
+        });
+        await upsertCacheRow(CACHE_SCOPES.checkIns, mapped);
+        return mapped;
+      },
+    });
   },
 
   async getCheckIns({ limit = 100, offset = 0 } = {}) {
@@ -691,13 +1081,24 @@ const SupabaseDataLayer = {
       offset,
       filter: (q) => q.eq('created_by', _userId),
     });
-    return rows.map(r => ({ ...r, ...(r.value || {}) }));
+    if (rows.length) {
+      const mapped = rows.map(r => ({ ...r, ...(r.value || {}) }));
+      await replaceCache(CACHE_SCOPES.checkIns, mapped);
+      return mapped;
+    }
+    const cached = await loadCache(CACHE_SCOPES.checkIns);
+    return cached.filter((row) => row?.user_id === _userId).slice(offset, offset + limit);
   },
 
   async getCheckInForToday() {
     const row = await this._findCheckInByDate(dateKey());
-    if (!row) return null;
-    return { ...row, ...(row.value || {}) };
+    if (!row) {
+      const cached = await loadCache(CACHE_SCOPES.checkIns);
+      return cached.find((entry) => entry?.dateKey === dateKey()) || null;
+    }
+    const mapped = { ...row, ...(row.value || {}) };
+    await upsertCacheRow(CACHE_SCOPES.checkIns, mapped);
+    return mapped;
   },
 
   async _findCheckInByDate(dk) {
@@ -720,8 +1121,20 @@ const SupabaseDataLayer = {
   async saveVibe({ vibe, note, _createdAt }) {
     const id = makeId('vibe');
     const value = { vibe, note: note || null };
-    const row = await cdInsert('vibe', id, value);
-    return { ...row, ...(row.value || {}) };
+    return runCloudOperation({
+      perform: async () => cdInsert('vibe', id, value),
+      onSuccess: async (row) => {
+        const mapped = { ...row, ...(row.value || {}) };
+        await upsertCacheRow(CACHE_SCOPES.vibes, mapped);
+        return mapped;
+      },
+      onOffline: async () => {
+        const mapped = makeOfflineVibeRow(id, value);
+        await enqueueOfflineMutation({ entity: 'vibe', action: 'insert', id, payload: value });
+        await upsertCacheRow(CACHE_SCOPES.vibes, mapped);
+        return mapped;
+      },
+    });
   },
 
   async getVibes({ limit = 100 } = {}) {
@@ -729,12 +1142,21 @@ const SupabaseDataLayer = {
       limit,
       filter: (q) => q.eq('created_by', _userId),
     });
-    return rows.map(r => ({ ...r, ...(r.value || {}) }));
+    if (rows.length) {
+      const mapped = rows.map(r => ({ ...r, ...(r.value || {}) }));
+      await replaceCache(CACHE_SCOPES.vibes, mapped);
+      return mapped;
+    }
+    const cached = await loadCache(CACHE_SCOPES.vibes);
+    return cached.filter((row) => row?.user_id === _userId).slice(0, limit);
   },
 
   async getLatestVibe() {
     const sb = getSupabaseOrNull();
-    if (!sb || !_coupleId) return null;
+    if (!sb || !_coupleId) {
+      const cached = await loadCache(CACHE_SCOPES.vibes);
+      return cached.find((row) => row?.user_id === _userId) || null;
+    }
     const { data } = await sb
       .from(TABLES.COUPLE_DATA)
       .select('*')
@@ -745,8 +1167,13 @@ const SupabaseDataLayer = {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!data) return null;
-    return { ...data, ...(data.value || {}) };
+    if (!data) {
+      const cached = await loadCache(CACHE_SCOPES.vibes);
+      return cached.find((row) => row?.user_id === _userId) || null;
+    }
+    const mapped = { ...data, ...(data.value || {}) };
+    await upsertCacheRow(CACHE_SCOPES.vibes, mapped);
+    return mapped;
   },
 
   // ─── Rituals / Love Notes (retired) ─────────────────────────────────────
@@ -766,64 +1193,108 @@ const SupabaseDataLayer = {
 
   async createCalendarEvent(event) {
     const sb = getSupabaseOrNull();
-    if (!sb || !_coupleId || !_userId) throw new Error('Not configured for calendar');
+    if (!_coupleId || !_userId) throw new Error('Not configured for calendar');
 
     const metadata = this._buildCalendarMetadata(event);
-    const { data, error } = await sb
-      .from(TABLES.CALENDAR_EVENTS)
-      .insert({
-        couple_id: _coupleId,
-        title: event?.title?.trim() || '',
-        description: event?.notes || null,
-        event_date: new Date(event.whenTs).toISOString(),
-        event_type: event?.eventType || 'general',
-        location: event?.location || null,
-        metadata,
-        created_by: _userId,
-      })
-      .select('*')
-      .single();
-
-    if (error) throw error;
-
-    if (event?.isDateNight || event?.eventType === 'dateNight') {
-      await this._saveDatePlanForEvent(event, data.id).catch(() => {});
-    }
-
-    PartnerNotifications.calendarEventCreated?.().catch(() => {});
-    return { ...mapCalendarRow(data), remoteSynced: true };
+    const id = event?.id || randomUUID();
+    return runCloudOperation({
+      perform: async () => {
+        if (!sb) throw new Error('Supabase not configured');
+        const { data, error } = await sb
+          .from(TABLES.CALENDAR_EVENTS)
+          .insert({
+            id,
+            couple_id: _coupleId,
+            title: event?.title?.trim() || '',
+            description: event?.notes || null,
+            event_date: new Date(event.whenTs).toISOString(),
+            event_type: event?.eventType || 'general',
+            location: event?.location || null,
+            metadata,
+            created_by: _userId,
+          })
+          .select('*')
+          .single();
+        if (error) throw error;
+        return data;
+      },
+      onSuccess: async (data) => {
+        if (event?.isDateNight || event?.eventType === 'dateNight') {
+          await this._saveDatePlanForEvent(event, data.id).catch(() => {});
+        }
+        const mapped = { ...mapCalendarRow(data), remoteSynced: true };
+        await upsertCacheRow(CACHE_SCOPES.calendar, mapped, { sortBy: 'whenTs', descending: false });
+        PartnerNotifications.calendarEventCreated?.().catch(() => {});
+        return mapped;
+      },
+      onOffline: async () => {
+        const mapped = makeOfflineCalendarRow(id, event);
+        await enqueueOfflineMutation({ entity: 'calendar', action: 'insert', id, payload: event });
+        await upsertCacheRow(CACHE_SCOPES.calendar, mapped, { sortBy: 'whenTs', descending: false });
+        if (event?.isDateNight || event?.eventType === 'dateNight') {
+          await this.saveDatePlan({
+            title: event?.title || '',
+            sourceEventId: id,
+            locationType: event?.location ? 'out' : 'home',
+            heat: 2,
+            load: 2,
+            style: 'mixed',
+            steps: event?.notes ? [event.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
+          });
+        }
+        return mapped;
+      },
+    });
   },
 
   async updateCalendarEvent(event) {
     const sb = getSupabaseOrNull();
-    if (!sb) throw new Error('Supabase not configured');
     const eventId = event?.id;
     if (!eventId) throw new Error('Calendar event id required');
 
     const metadata = this._buildCalendarMetadata(event);
-    const { data, error } = await sb
-      .from(TABLES.CALENDAR_EVENTS)
-      .update({
-        title: event?.title?.trim() || '',
-        description: event?.notes || null,
-        event_date: new Date(event.whenTs).toISOString(),
-        event_type: event?.eventType || 'general',
-        location: event?.location || null,
-        metadata,
-        updated_at: now(),
-      })
-      .eq('id', eventId)
-      .select('*')
-      .single();
-
-    if (error) throw error;
-    await this._saveDatePlanForEvent(event, eventId).catch(() => {});
-    return { ...mapCalendarRow(data), remoteSynced: true };
+    return runCloudOperation({
+      perform: async () => {
+        if (!sb) throw new Error('Supabase not configured');
+        const { data, error } = await sb
+          .from(TABLES.CALENDAR_EVENTS)
+          .update({
+            title: event?.title?.trim() || '',
+            description: event?.notes || null,
+            event_date: new Date(event.whenTs).toISOString(),
+            event_type: event?.eventType || 'general',
+            location: event?.location || null,
+            metadata,
+            updated_at: now(),
+          })
+          .eq('id', eventId)
+          .select('*')
+          .single();
+        if (error) throw error;
+        return data;
+      },
+      onSuccess: async (data) => {
+        await this._saveDatePlanForEvent(event, eventId).catch(() => {});
+        const mapped = { ...mapCalendarRow(data), remoteSynced: true };
+        await upsertCacheRow(CACHE_SCOPES.calendar, mapped, { sortBy: 'whenTs', descending: false });
+        return mapped;
+      },
+      onOffline: async () => {
+        const cached = (await loadCache(CACHE_SCOPES.calendar)).find((row) => row?.id === eventId) || {};
+        const mapped = makeOfflineCalendarRow(eventId, event, cached);
+        await enqueueOfflineMutation({ entity: 'calendar', action: 'update', id: eventId, payload: event });
+        await upsertCacheRow(CACHE_SCOPES.calendar, mapped, { sortBy: 'whenTs', descending: false });
+        return mapped;
+      },
+    });
   },
 
   async getCalendarEvents({ limit = 1000 } = {}) {
     const sb = getSupabaseOrNull();
-    if (!sb || !_coupleId) return [];
+    if (!sb || !_coupleId) {
+      const cached = await loadCache(CACHE_SCOPES.calendar);
+      return cached.slice(0, limit);
+    }
 
     const { data, error } = await sb
       .from(TABLES.CALENDAR_EVENTS)
@@ -834,27 +1305,37 @@ const SupabaseDataLayer = {
 
     if (error) {
       if (__DEV__) console.warn('[SupabaseDataLayer] getCalendarEvents failed:', error?.message);
-      return [];
+      const cached = await loadCache(CACHE_SCOPES.calendar);
+      return cached.slice(0, limit);
     }
-    return (data || []).map(mapCalendarRow);
+    const mapped = (data || []).map(mapCalendarRow);
+    await replaceCache(CACHE_SCOPES.calendar, mapped);
+    return mapped;
   },
 
   async deleteCalendarEvent(id, { deleteRemote = false } = {}) {
     const sb = getSupabaseOrNull();
-    if (!sb) return;
+    await runCloudOperation({
+      perform: async () => {
+        if (!sb) throw new Error('Supabase not configured');
+        const { error } = await sb.from(TABLES.CALENDAR_EVENTS).delete().eq('id', id);
+        if (error) throw error;
+      },
+      onSuccess: async () => {
+        await removeCacheRow(CACHE_SCOPES.calendar, id);
+      },
+      onOffline: async () => {
+        await enqueueOfflineMutation({ entity: 'calendar', action: 'delete', id });
+        await removeCacheRow(CACHE_SCOPES.calendar, id);
+      },
+    });
 
-    if (deleteRemote || true) { // always delete from Supabase since there's no local cache
-      const { error } = await sb
-        .from(TABLES.CALENDAR_EVENTS)
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-    }
-
-    // Clean up any date plans linked to this event
-    await cdQuery('date_plan', {
-      filter: (q) => q.eq('value->>sourceEventId', id),
-    }).then(plans => Promise.all(plans.map(p => cdSoftDelete(p.id)))).catch(() => {});
+    const cachedPlans = await loadCache(CACHE_SCOPES.datePlans);
+    await Promise.all(
+      cachedPlans
+        .filter((plan) => plan?.sourceEventId === id)
+        .map((plan) => this.deleteDatePlan(plan.id))
+    );
   },
 
   async refreshCalendarEventsFromRemote({ limit = 5000 } = {}) {
@@ -934,17 +1415,44 @@ const SupabaseDataLayer = {
       style: plan?.style || 'mixed',
       steps: Array.isArray(plan?.steps) ? plan.steps : [],
     };
-    const row = await cdUpsert('date_plan', id, value);
-    return mapDatePlanRow(row);
+    return runCloudOperation({
+      perform: async () => cdUpsert('date_plan', id, value),
+      onSuccess: async (row) => {
+        const mapped = mapDatePlanRow(row);
+        await upsertCacheRow(CACHE_SCOPES.datePlans, mapped);
+        return mapped;
+      },
+      onOffline: async () => {
+        const mapped = makeOfflineDatePlanRow(id, plan);
+        await enqueueOfflineMutation({ entity: 'date_plan', action: 'upsert', id, payload: value });
+        await upsertCacheRow(CACHE_SCOPES.datePlans, mapped);
+        return mapped;
+      },
+    });
   },
 
   async getDatePlans({ limit = 1000 } = {}) {
     const rows = await cdQuery('date_plan', { limit });
-    return rows.map(mapDatePlanRow);
+    if (rows.length) {
+      const mapped = rows.map(mapDatePlanRow);
+      await replaceCache(CACHE_SCOPES.datePlans, mapped);
+      return mapped;
+    }
+    const cached = await loadCache(CACHE_SCOPES.datePlans);
+    return cached.slice(0, limit);
   },
 
   async deleteDatePlan(id) {
-    await cdSoftDelete(id);
+    return runCloudOperation({
+      perform: async () => cdSoftDelete(id),
+      onSuccess: async () => {
+        await removeCacheRow(CACHE_SCOPES.datePlans, id);
+      },
+      onOffline: async () => {
+        await enqueueOfflineMutation({ entity: 'date_plan', action: 'delete', id });
+        await removeCacheRow(CACHE_SCOPES.datePlans, id);
+      },
+    });
   },
 
   // ─── Attachments ─────────────────────────────────────────────────────────
@@ -975,8 +1483,69 @@ const SupabaseDataLayer = {
 
   // ─── Sync stubs (no-ops — everything is cloud-first) ─────────────────────
 
-  async sync() { return null; },
-  async pullNow() { return null; },
+  async flushOfflineQueue() {
+    if (_isFlushingQueue || !_userId || !_coupleId || !supabase) return { flushed: 0, remaining: 0 };
+    _isFlushingQueue = true;
+    let flushed = 0;
+    try {
+      const queue = await getOfflineQueue();
+      const remaining = [];
+
+      for (const item of queue) {
+        try {
+          switch (item.entity) {
+            case 'journal':
+              if (item.action === 'insert') await cdInsert('journal', item.id, item.payload);
+              if (item.action === 'update') await cdUpdate(item.id, item.payload);
+              if (item.action === 'delete') await cdSoftDelete(item.id);
+              break;
+            case 'prompt_answer':
+              if (item.action === 'insert') await cdInsert('prompt_answer', item.id, item.payload);
+              if (item.action === 'update') await cdUpdate(item.id, item.payload);
+              break;
+            case 'memory':
+              if (item.action === 'insert') await cdInsert('memory', item.id, item.payload);
+              if (item.action === 'delete') await cdSoftDelete(item.id);
+              break;
+            case 'check_in':
+              if (item.action === 'insert') await cdInsert('check_in', item.id, item.payload);
+              if (item.action === 'update') await cdUpdate(item.id, item.payload);
+              break;
+            case 'vibe':
+              if (item.action === 'insert') await cdInsert('vibe', item.id, item.payload);
+              break;
+            case 'calendar':
+              if (item.action === 'insert') await this.createCalendarEvent({ ...item.payload, id: item.id });
+              if (item.action === 'update') await this.updateCalendarEvent({ ...item.payload, id: item.id });
+              if (item.action === 'delete') {
+                const { error } = await supabase.from(TABLES.CALENDAR_EVENTS).delete().eq('id', item.id);
+                if (error) throw error;
+              }
+              break;
+            case 'date_plan':
+              if (item.action === 'upsert') await cdUpsert('date_plan', item.id, item.payload);
+              if (item.action === 'delete') await cdSoftDelete(item.id);
+              break;
+            default:
+              break;
+          }
+          flushed += 1;
+        } catch (error) {
+          remaining.push(item);
+          if (!isOfflineCapableError(error)) {
+            if (__DEV__) console.warn('[SupabaseDataLayer] Queue flush failed:', error?.message);
+          }
+        }
+      }
+
+      await setOfflineQueue(remaining);
+      return { flushed, remaining: remaining.length };
+    } finally {
+      _isFlushingQueue = false;
+    }
+  },
+  async sync() { return this.flushOfflineQueue(); },
+  async pullNow() { return this.flushOfflineQueue(); },
   subscribeRealtime() { return () => {}; },
   onSyncEvent() { return () => {}; },
   async purgeOldData() { return null; },

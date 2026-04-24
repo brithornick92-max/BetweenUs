@@ -269,13 +269,12 @@ const TermsScreen = ({ navigation, route }) => {
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Data Protection:{'\n'}
-                • We use industry-standard client-side encryption{'\n'}
-                • Shared sensitive content is encrypted before sync, and some private content remains encrypted only on your device{'\n'}
-                • Some metadata needed for filtering, sorting, scheduling, and delivery is protected by transport security and access controls rather than end-to-end encryption{'\n'}
+                • We use authentication, secure transport, and server-side access controls{'\n'}
+                • Shared sensitive content is stored in a private account and couple space, and some private content remains device-local only{'\n'}
+                • Some metadata is stored to support filtering, sorting, scheduling, and delivery{'\n'}
                 • We implement security measures to protect your data{'\n'}
                 • See our Privacy Policy for complete details{'\n\n'}
-                Important: Your encryption keys are stored on your device. If you lose access to your device without
-                having cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable.
+                Important: If you lose access to a device without cloud sync enabled, device-local cached content may be permanently unrecoverable.
                 We cannot recover encrypted data on your behalf.{'\n\n'}
                 Data Retention:{'\n'}
                 • We retain your data while your account is active{'\n'}

@@ -196,7 +196,7 @@ export default function SyncSetupScreen({ navigation }) {
       navigation={navigation}
       headerTitle="Cloud Sync"
       heroTitle="Cloud Sync"
-      heroSubtitle="Sign in to enable encrypted backup and continuity across devices."
+      heroSubtitle="Sign in to enable cloud backup, offline recovery, and continuity across devices."
       keyboardAvoiding
       scroll={false}
     >
@@ -225,7 +225,7 @@ export default function SyncSetupScreen({ navigation }) {
                     {syncEnabled ? 'Vault Synchronized' : 'Local Storage'}
                   </Text>
                   <Text style={[styles.statusSubtext, { color: colors.textMuted }]}>
-                    {sessionEmail ? `Linked to ${sessionEmail}` : 'Sign in to enable encrypted backup'}
+                    {sessionEmail ? `Linked to ${sessionEmail}` : 'Sign in to enable cloud backup'}
                   </Text>
                 </View>
                 <TouchableOpacity 

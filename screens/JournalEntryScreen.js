@@ -79,7 +79,6 @@ export default function JournalEntryScreen({ navigation, route }) {
   const [mediaType, setMediaType] = useState(entry?.mediaType || (initialLegacyImageUri ? 'image/jpeg' : null));
   const [mediaFileName, setMediaFileName] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  const needsReconnect = DataLayer.needsReconnect();
   const headerLabel = 'SHARED JOURNAL';
   const isVideoMedia = typeof mediaType === 'string' && mediaType.startsWith('video/');
 
@@ -98,14 +97,6 @@ export default function JournalEntryScreen({ navigation, route }) {
     }
 
     Keyboard.dismiss();
-
-    if (!entry?.id && needsReconnect) {
-      Alert.alert(
-        "Reconnect Required",
-        "Shared journal is unavailable on this device until your partner encryption key is restored. Re-pair or reconnect this device first."
-      );
-      return;
-    }
 
     setIsSaving(true);
     notification(NotificationFeedbackType.Success);
@@ -140,14 +131,7 @@ export default function JournalEntryScreen({ navigation, route }) {
       }
       navigation.goBack();
     } catch (error) {
-      if (error?.message?.includes('COUPLE_KEY_MISSING')) {
-        Alert.alert(
-          "Reconnect Required",
-          "This device is missing your shared encryption key. Re-pair or reconnect before saving shared journal entries."
-        );
-      } else {
-        Alert.alert("Error", "Failed to save journal entry. Please try again.");
-      }
+      Alert.alert("Error", "Failed to save journal entry. Please try again.");
     } finally {
       setIsSaving(false);
     }

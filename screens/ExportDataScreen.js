@@ -21,7 +21,7 @@ import * as Sharing from 'expo-sharing';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useMemoryContext } from '../context/MemoryContext';
-import DataLayer from '../services/data/DataLayer';
+import { DataLayer } from '../services/localfirst';
 import Constants from 'expo-constants';
 import Icon from '../components/Icon';
 import { withAlpha, SYSTEM_FONT } from '../utils/theme';

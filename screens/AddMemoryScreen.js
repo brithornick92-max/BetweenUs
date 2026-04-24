@@ -181,16 +181,7 @@ export default function AddMemoryScreen() {
     } catch (err) {
       setSaving(false);
       if (__DEV__) console.warn('[AddMemory] Save failed:', err?.message);
-
-      if (err?.message?.includes('COUPLE_KEY_MISSING')) {
-        Alert.alert(
-          'Sync needed',
-          'Your shared encryption key is unavailable on this device. Reconnect with your partner before saving memories.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        Alert.alert('Error', 'Could not save your memory. Please try again.');
-      }
+      Alert.alert('Error', 'Could not save your memory. Please try again.');
     }
   }, [content, media, navigation, selectedMood, selectedType]);
 

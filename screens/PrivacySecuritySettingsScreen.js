@@ -377,9 +377,9 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                   <Icon name="lock-closed" size={20} color={theme.crimson} />
                 </View>
                 <View style={styles.infoContent}>
-                  <Text style={[styles.infoTitle, { color: colors.text }]}>End-to-End Encryption</Text>
+                  <Text style={[styles.infoTitle, { color: colors.text }]}>Protected Sync</Text>
                   <Text style={[styles.infoText, { color: colors.textMuted || 'gray' }]}>
-                    Synced data is encrypted in transit and protected at rest. Sensitive shared content is encrypted before sync. One shared space. Nothing public. Ever.
+                    Synced data is protected in transit and at rest. Shared content lives in one Supabase-backed space, with local storage used only for cache and offline recovery.
                   </Text>
                 </View>
               </View>

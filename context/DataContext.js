@@ -1,13 +1,13 @@
 import CrashReporting from '../services/CrashReporting';
 
 /**
- * DataContext.js — React context for the local-first + E2EE data layer
+ * DataContext.js — React context for the active data layer
  *
  * Provides:
  *   • DataLayer instance (configured with current user/couple)
- *   • Sync status (syncing, lastSynced, error)
- *   • Auto-sync on app foreground + periodic (every 60s)
- *   • Realtime subscription for partner changes
+ *   • Sync status (queue flush / connectivity status)
+ *   • Offline queue flush on app foreground + periodic (every 60s)
+ *   • Realtime subscription when provided by the active DataLayer
  *
  * Wrap your app with <DataProvider> after <AuthProvider> and
  * <SubscriptionProvider> so it can read userId, coupleId, isPremium.
@@ -21,13 +21,13 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useRef,
   useState,
   useMemo,
   useCallback,
+  useRef,
 } from 'react';
 import { AppState } from 'react-native';
-import { DataLayer, SyncEngine, Database } from '../services/localfirst';
+import { DataLayer } from '../services/localfirst';
 import MemoryResurfacingService from '../services/MemoryResurfacingService';
 import { MomentSignalSender } from '../services/ConnectionEngine';
 import { supabase } from '../config/supabase';
@@ -56,13 +56,10 @@ const resolveActiveSupabaseUserId = async (fallbackId) => {
 export function DataProvider({ children }) {
   const { user } = useAuth();
   const { isPremiumEffective: isPremium } = useEntitlements();
-  const { state: appState, actions: appActions } = useApp();
+  const { state: appState } = useApp();
 
   const userId = user?.id || user?.uid || appState?.userId;
   const coupleId = appState?.coupleId;
-  const appActionsRef = useRef(appActions);
-  appActionsRef.current = appActions;
-
   const [syncStatus, setSyncStatus] = useState({
     syncing: false,
     lastSynced: null,
@@ -86,10 +83,8 @@ export function DataProvider({ children }) {
 
     (async () => {
       try {
-        // Resolve the Supabase auth UUID — this MUST be used as userId for
-        // SyncEngine so that `created_by` matches `auth.uid()` in RLS policies.
-        // The local Crypto.randomUUID() from AppContext does NOT match and
-        // causes every couple_data INSERT to be silently rejected by RLS.
+        // Resolve the Supabase auth UUID so all canonical writes line up with
+        // Supabase auth/RLS expectations.
         const syncUserId = await resolveActiveSupabaseUserId(userId);
 
         await DataLayer.init({
@@ -109,8 +104,8 @@ export function DataProvider({ children }) {
         initializedRef.current = true;
         setIsReady(true);
 
-        // Listen to sync events
-        unsubSyncEventRef.current = SyncEngine.onSyncEvent(async (event, data) => {
+        // Listen to data-layer sync events when supported
+        unsubSyncEventRef.current = DataLayer.onSyncEvent(async (event, data) => {
           if (event === 'sync:start') {
             setSyncStatus(s => ({ ...s, syncing: true }));
           } else if (event === 'sync:complete') {
@@ -127,30 +122,18 @@ export function DataProvider({ children }) {
               syncing: false,
               lastError: data?.error || 'Sync failed',
             }));
-          } else if (event === 'sync:realtime' && data?.table === 'vibes') {
-            // Partner sent a new vibe — fetch it and push to AppContext
-            try {
-              const { Database } = await import('../services/localfirst');
-              const partnerVibe = await Database.getPartnerLatestVibe(userId, coupleId);
-              if (partnerVibe?.vibe) {
-                const parsed = (() => { try { return JSON.parse(partnerVibe.vibe); } catch { return partnerVibe.vibe; } })();
-                appActionsRef.current?.setPartnerVibe(parsed);
-              }
-            } catch (err) {
-              if (__DEV__) console.warn('[DataContext] Failed to fetch partner vibe:', err.message);
-            }
           }
         });
 
-        // Subscribe to realtime if coupled + premium
-        if (coupleId && isPremium) {
-          unsubRealtimeRef.current = SyncEngine.subscribeRealtime();
+        // Subscribe to realtime if the active data layer supports it
+        if (coupleId) {
+          unsubRealtimeRef.current = DataLayer.subscribeRealtime();
         }
 
-        // Periodic sync every 60s
+        // Periodic queue flush every 60s
         syncIntervalRef.current = setInterval(() => {
           if (initializedRef.current) {
-            SyncEngine.sync().catch((e) => {
+            DataLayer.sync().catch((e) => {
               if (__DEV__) console.warn('[DataContext] Periodic sync failed:', e?.message);
               CrashReporting.captureException(e, { source: 'periodic_sync' });
             });
@@ -202,7 +185,7 @@ export function DataProvider({ children }) {
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active' && initializedRef.current) {
-        SyncEngine.sync().catch((e) => {
+        DataLayer.sync().catch((e) => {
           if (__DEV__) console.warn('[DataContext] Foreground sync failed:', e?.message);
           CrashReporting.captureException(e, { source: 'foreground_sync' });
         });
@@ -220,7 +203,7 @@ export function DataProvider({ children }) {
 
   const triggerSync = useCallback(async () => {
     if (!initializedRef.current) return;
-    return SyncEngine.sync();
+    return DataLayer.sync();
   }, []);
 
   // ─── Context value ─────────────────────────────────────────

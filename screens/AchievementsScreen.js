@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 import { evaluateAchievements } from '../utils/achievementEngine';
-import DataLayer from '../services/data/DataLayer';
+import { DataLayer } from '../services/localfirst';
 import Icon from '../components/Icon';
 import { SPACING } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';

@@ -62,7 +62,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How do I link with my partner?',
-        a: '1. Both partners create accounts\n2. One partner generates an invite code or QR code\n3. The other partner scans the QR code or enters the code manually\n4. Both partners confirm the link\n5. You\'re connected!\n\nPartner linking is free. Premium adds encrypted sync and more shared features.',
+        a: '1. Both partners create accounts\n2. One partner generates an invite code or QR code\n3. The other partner scans the QR code or enters the code manually\n4. Both partners confirm the link\n5. You\'re connected!\n\nPartner linking is free. Premium adds cloud sync, offline recovery, and more shared features.',
       },
       {
         q: 'Can I unlink from my partner?',
@@ -75,7 +75,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Absolutely. Your relationship content such as synced journal entries, prompt responses, memories, and love notes is encrypted before sync. Some device settings and local-only features stay on your device, and we also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data, and we cannot read content protected by your device-only or couple encryption keys.',
+        a: 'Absolutely. Your relationship content such as synced journal entries, prompt responses, memories, and love notes is protected by account access controls, transport security, and server-side policies. Some device settings and local-only features stay on your device, and we also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data.',
       },
       {
         q: 'Can my partner see everything I write?',
@@ -87,7 +87,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can Between Us read my journal?',
-        a: 'No. Shared content such as synced journal entries, prompt responses, memories, and love notes is encrypted on your device before sync, and we cannot read content protected by your device-only or couple encryption keys. Some metadata needed for features like filtering, sorting, scheduling, and delivery is protected with transport security and access controls rather than end-to-end encryption.',
+        a: 'No. Shared content is stored in your private account and couple space with transport security, authentication, and server-side access controls. Some metadata is also stored to support filtering, sorting, scheduling, and delivery.',
       },
       {
         q: 'Can I lock the app with Face ID or a PIN?',
@@ -95,7 +95,7 @@ const FAQ_DATA = [
       },
       {
         q: 'What happens if I lose my phone?',
-        a: 'If you have cloud sync enabled, your encrypted data is backed up to the cloud and can be restored on a new device by signing in.\n\nIf you don\'t have cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable. We strongly recommend enabling cloud sync in Settings.',
+        a: 'If you have cloud sync enabled, your data is backed up to the cloud and can be restored on a new device by signing in.\n\nIf you don\'t have cloud sync enabled, device-local cached content may not be recoverable. We strongly recommend enabling cloud sync in Settings.',
       },
     ],
   },

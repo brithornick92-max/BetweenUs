@@ -102,11 +102,11 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.subTitle, { color: colors.text }]}>Content You Create</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               We protect different categories of content in different ways:{'\n\n'}
-              • Journal entries, prompt responses, and memories are encrypted before any premium cloud sync{'\n'}
-              • Photo attachments are encrypted before upload{'\n'}
-              • Voice notes are encrypted before upload{'\n'}
+              • Journal entries, prompt responses, and memories are stored in your private account and couple space when sync is enabled{'\n'}
+              • Photo attachments are protected in transit and at rest{'\n'}
+              • Voice notes are protected in transit and at rest{'\n'}
               • Some preferences and sensitive controls stay only on your device{'\n'}
-              • Some metadata used for filtering, sorting, and scheduling is protected but not end-to-end encrypted{'\n'}
+              • Some metadata is stored to support filtering, sorting, and scheduling{'\n'}
               • Shared content is only visible to your linked partner when you choose to share it
             </Text>
 
@@ -124,18 +124,18 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.subTitle, { color: colors.text }]}>Device Permissions</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Camera: Used for QR code scanning during partner linking.{"\n"}
-              • Photo Library: Used only when you choose to attach a photo to journal entries. Photos are encrypted before upload.{'\n'}
-              • Microphone: Used only when you choose to record an encrypted voice note for your partner.{"\n"}
+              • Photo Library: Used only when you choose to attach a photo to journal entries. Photos are uploaded only when you choose to share them.{'\n'}
+              • Microphone: Used only when you choose to record a voice note for your partner.{"\n"}
               • Push Notifications: Your device push token is sent to our server to deliver notifications such as partner activity and reminders. You can disable notifications in your device settings at any time.{'\n'}
               • Biometrics (Face ID / Touch ID): Used optionally to lock the app. Biometric data never leaves your device — we only receive a success/failure result from your device's secure enclave. We do not collect, store, or transmit biometric data.
             </Text>
 
             <Text style={[styles.subTitle, { color: colors.text }]}>On-Device Storage</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              The app stores data locally on your device for offline access:{'\n\n'}
-              • An encrypted SQLite database containing your content{'\n'}
+              The app stores data locally on your device for offline access and recovery:{'\n\n'}
+              • Cached synced content and pending offline writes{'\n'}
               • Preferences and settings in local storage and secure device storage{'\n'}
-              • Encryption keys and credentials in your device's secure Keychain{'\n\n'}
+              • Credentials and app-lock secrets in your device's secure storage when available{'\n\n'}
               Signing out removes local session credentials on this device and may clear cached local data. Your account and cloud data remain on our servers until you delete the account.
             </Text>
 
@@ -166,16 +166,16 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              <Text style={{ color: theme.crimson }}>3.</Text> End-to-End Encryption
+              <Text style={{ color: theme.crimson }}>3.</Text> Data Protection
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              Between Us protects different kinds of content in different ways. Relationship content uses client-side encryption with your couple key, while device-only features stay encrypted locally on your phone.{"\n\n"}
-              • Journals, prompt responses, memories, and love notes are encrypted with a couple key derived between both partners' devices{"\n"}
+              Between Us protects different kinds of content in different ways. Shared relationship content is stored in your private account and couple space, while device-only features stay local unless a feature explicitly says otherwise.{"\n\n"}
+              • Journals, prompt responses, memories, and love notes are protected by authentication and row-level access controls{"\n"}
               • Device-only features such as soft boundaries, inside jokes, relationship climate, and year reflections stay local unless the feature explicitly says otherwise{'\n'}
-              • We cannot read content protected by your device-only or couple encryption keys{'\n'}
-              • Encryption keys are stored in your device's secure hardware keychain when available{'\n\n'}
-              Important: If you lose access to your device without having cloud sync enabled, content encrypted with your device-only key may be permanently unrecoverable.{'\n\n'}
-              Note: Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored without end-to-end encryption so we can provide features like filtering, sorting, scheduling, and delivery. This metadata is still protected by TLS in transit and access controls at rest.
+              • Secure transport (TLS) is used whenever data is sent between your device and our services{'\n'}
+              • App-lock secrets and similar local protections stay on your device when supported{'\n\n'}
+              Important: If you lose access to your device without cloud sync enabled, device-local cached content may be permanently unrecoverable.{'\n\n'}
+              Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored so we can provide features like filtering, sorting, scheduling, and delivery.
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -340,7 +340,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               3. Storage Limitation — Data deleted when no longer needed{'\n'}
               4. Accuracy — You can correct your data anytime{'\n'}
               5. Integrity — Strong security measures protect your data{'\n'}
-              6. Confidentiality — End-to-end encryption for intimate content{'\n'}
+              6. Confidentiality — Private account and couple access controls for intimate content{'\n'}
               7. Accountability — We're responsible for protecting your privacy
             </Text>
           </Animated.View>

@@ -34,7 +34,7 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { PremiumFeature } from '../utils/featureFlags';
 import { useAppContext } from '../context/AppContext';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
-import DataLayer from '../services/data/DataLayer';
+import { DataLayer } from '../services/localfirst';
 import CrashReporting from '../services/CrashReporting';
 import { SPACING, withAlpha } from '../utils/theme';
 import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';

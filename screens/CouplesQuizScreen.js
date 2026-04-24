@@ -49,7 +49,7 @@ import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedb
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
-import DataLayer from '../services/data/DataLayer';
+import { DataLayer } from '../services/localfirst';
 import { SPACING } from '../utils/theme';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { storage, STORAGE_KEYS } from '../utils/storage';
