@@ -2,10 +2,10 @@
  * SyncEngine.js — Bidirectional sync between SQLite ↔ Supabase
  *
  * Design:
- *   • Push: scan SQLite rows where sync_status='pending', encrypt
- *     sensitive fields with couple key, upsert into Supabase.
- *   • Pull: query Supabase rows WHERE updated_at > last_pulled_at,
- *     decrypt, upsert into SQLite.
+ *   • Push: scan SQLite rows where sync_status='pending' and upsert the
+ *     plain cached payload to Supabase.
+ *   • Pull: query Supabase rows WHERE updated_at > last_pulled_at and
+ *     rehydrate the local cache from server truth.
  *   • Conflict resolution: last-write-wins by `updated_at`.
  *   • Attachments: upload encrypted blobs to Supabase Storage.
  *   • Runs on demand + periodic (AppState 'active', NetInfo 'connected').
@@ -18,12 +18,11 @@
  *   vibes            →  couple_data (type='vibe')
  *   attachments      →  couple_data (type='attachment_meta') + Storage bucket
  *
- * Only ciphertext goes to Supabase. Metadata (timestamps, type, mood labels)
- * goes unencrypted so Supabase RLS + sorting works.
+ * Canonical content now goes to Supabase as plain JSONB in `value`.
+ * `encrypted_value` is retained only for legacy backward-compatibility.
  */
 
 import Database from '../db/Database';
-import E2EEncryption from '../e2ee/E2EEncryption';
 import EncryptedAttachments from '../e2ee/EncryptedAttachments';
 import { supabase, TABLES } from '../../config/supabase';
 import CrashReporting from '../CrashReporting';
@@ -56,19 +55,28 @@ const TABLE_TO_TYPE = {
   attachments: 'attachment_meta',
 };
 
-/** Columns that contain ciphertext (don't re-encrypt; pass through). */
-const CIPHER_COLUMNS = new Set([
+/** Legacy ciphertext columns retained only so older unsynced rows can still push. */
+const LEGACY_CIPHER_COLUMNS = new Set([
   'title_cipher', 'body_cipher', 'answer_cipher', 'partner_answer_cipher',
   'note_cipher', 'file_name_cipher',
   'mood_cipher', 'tags_cipher', 'heat_level_cipher',
   'text_cipher', 'sender_name_cipher',
 ]);
 
+const LEGACY_CIPHER_PLAINTEXT_EQUIVALENTS = {
+  title_cipher: 'title',
+  body_cipher: 'body',
+  answer_cipher: 'answer',
+  partner_answer_cipher: 'partner_answer',
+  note_cipher: 'note',
+  mood_cipher: 'mood',
+  tags_cipher: 'tags',
+  heat_level_cipher: 'heat_level',
+};
+
 /** Columns that should NOT be sent to Supabase. */
 const LOCAL_ONLY_COLUMNS = new Set([
   'sync_status', 'sync_version', 'sync_source', 'local_uri',
-  // Sensitive metadata — only cipher versions go to remote
-  'mood', 'tags', 'heat_level',
   // Per-device read state — each device tracks independently.
   // Syncing sender's is_read:true would make the partner's copy appear already-read.
   'is_read', 'read_at',
@@ -186,23 +194,28 @@ function clearRealtimeChannel() {
 
 /**
  * Build the Supabase couple_data row from a local SQLite row.
- * Cipher columns are already encrypted locally — pass them through.
- * Non-cipher data stays as unencrypted metadata.
+ * New writes store canonical content in plain local columns, which sync to
+ * Supabase `value`. Legacy `*_cipher` columns are ignored unless a row still
+ * lacks its plaintext equivalent.
  */
 function toRemoteRow(tableName, row) {
   const dataType = TABLE_TO_TYPE[tableName];
   if (!dataType) throw new Error(`[Sync] Unknown table: ${tableName}`);
   if (!row?.id) throw new Error(`[Sync] Row missing id for ${tableName}`);
   const metadata = {};
-  const encryptedPayload = {};
+  const legacyEncryptedPayload = {};
 
   for (const [k, v] of Object.entries(row)) {
     if (LOCAL_ONLY_COLUMNS.has(k)) continue;
-    if (CIPHER_COLUMNS.has(k)) {
-      encryptedPayload[k] = v;
-    } else {
-      metadata[k] = v;
+    if (LEGACY_CIPHER_COLUMNS.has(k)) {
+      const plainKey = LEGACY_CIPHER_PLAINTEXT_EQUIVALENTS[k];
+      const plainValue = plainKey ? row[plainKey] : undefined;
+      if ((plainValue === undefined || plainValue === null || plainValue === '') && v != null) {
+        legacyEncryptedPayload[k] = v;
+      }
+      continue;
     }
+    metadata[k] = v;
   }
 
   return {
@@ -218,9 +231,8 @@ function toRemoteRow(tableName, row) {
     // as a JSONB object (not a JSONB string). Returning it as an object
     // ensures fromRemoteRow can read it back without JSON.parse.
     value: metadata,
-    // Encrypted payload is text, not JSONB — must stay as a JSON string.
-    encrypted_value: Object.keys(encryptedPayload).length
-      ? JSON.stringify(encryptedPayload)
+    encrypted_value: Object.keys(legacyEncryptedPayload).length
+      ? JSON.stringify(legacyEncryptedPayload)
       : null,
     updated_at: row.updated_at || new Date().toISOString(),
   };

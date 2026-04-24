@@ -283,7 +283,11 @@ async function uploadMedia({ localUri, mimeType, coupleId }) {
   const bucket = isVideo ? VIDEO_BUCKET : IMAGE_BUCKET;
   const ext = mimeType?.split('/')[1]?.replace('quicktime', 'mov') || 'jpg';
   const fileId = randomUUID();
-  const storagePath = `${coupleId}/${fileId}.${ext}`;
+  // couple-media RLS policy requires path: couples/{couple_id}/{file}
+  // attachments RLS policy requires path: {couple_id}/{file}
+  const storagePath = isVideo
+    ? `${coupleId}/${fileId}.${ext}`
+    : `couples/${coupleId}/${fileId}.${ext}`;
 
   try {
     const b64 = await FileSystem.readAsStringAsync(localUri, {

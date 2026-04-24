@@ -168,7 +168,7 @@ describe('SyncEngine', () => {
 
     it('pushes pending rows from all sync tables', async () => {
       Database.getPendingSync.mockResolvedValueOnce([
-        { id: 'j_1', user_id: 'user-1', body_cipher: 'enc', sync_status: 'pending' },
+        { id: 'j_1', user_id: 'user-1', body: 'hello', sync_status: 'pending' },
       ]);
 
       await SyncEngine.pushNow();
@@ -183,7 +183,7 @@ describe('SyncEngine', () => {
 
     it('reports push failures to CrashReporting', async () => {
       Database.getPendingSync.mockResolvedValueOnce([
-        { id: 'j_1', user_id: 'user-1', body_cipher: 'enc', sync_status: 'pending' },
+        { id: 'j_1', user_id: 'user-1', body: 'hello', sync_status: 'pending' },
       ]);
       mockUpsert.mockResolvedValueOnce({ data: null, error: { message: 'network error' } });
 

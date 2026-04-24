@@ -1,16 +1,15 @@
 /**
- * EncryptedAttachments.js — E2EE file encrypt-before-upload for Between Us
+ * EncryptedAttachments.js — Attachment storage helper for Between Us
  *
  * Flow:
  *   1. Pick / capture image or file
- *   2. Read bytes → encrypt with nacl.secretbox (couple or device key)
- *   3. Write encrypted blob to local cache (expo-file-system)
- *   4. Record in SQLite attachments table (local_uri, nonce, upload_status)
- *   5. Upload encrypted blob to Supabase Storage when online
- *   6. On download: fetch ciphertext → decrypt → return local URI
+ *   2. Copy the local file into app-managed cache
+ *   3. Record it in SQLite attachments table
+ *   4. Upload raw bytes to Supabase Storage when online
+ *   5. On download: fetch and cache locally for display
  *
- * Supabase Storage never sees plaintext. The nonce is stored in SQLite
- * (and synced to Supabase couple_data for cross-device access).
+ * Legacy encrypted attachments are still supported on read/download paths so
+ * older rows remain accessible during the migration.
  */
 
 import * as FileSystem from 'expo-file-system/legacy';
@@ -19,15 +18,15 @@ import E2EEncryption from './E2EEncryption';
 import Database from '../db/Database';
 import { supabase } from '../../config/supabase';
 
-const ENCRYPTED_DIR = `${FileSystem.documentDirectory}encrypted_attachments/`;
+const ATTACHMENT_DIR = `${FileSystem.documentDirectory}attachments/`;
 const STORAGE_BUCKET = 'attachments';
 
-// ─── Ensure local encrypted cache directory exists ──────────────────
+// ─── Ensure local attachment directory exists ───────────────────────
 
 async function ensureDir() {
-  const info = await FileSystem.getInfoAsync(ENCRYPTED_DIR);
+  const info = await FileSystem.getInfoAsync(ATTACHMENT_DIR);
   if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(ENCRYPTED_DIR, { intermediates: true });
+    await FileSystem.makeDirectoryAsync(ATTACHMENT_DIR, { intermediates: true });
   }
 }
 
@@ -59,11 +58,24 @@ async function writeBytesToFile(bytes, destUri) {
   });
 }
 
+function extensionFromName(fileName) {
+  if (!fileName || typeof fileName !== 'string') return '';
+  const lastDot = fileName.lastIndexOf('.');
+  if (lastDot < 0) return '';
+  return fileName.slice(lastDot);
+}
+
+function extensionFromMime(mimeType) {
+  if (!mimeType || typeof mimeType !== 'string' || !mimeType.includes('/')) return '';
+  const ext = mimeType.split('/')[1] || '';
+  return ext ? `.${ext}` : '';
+}
+
 // ─── Public API ─────────────────────────────────────────────────────
 
 const EncryptedAttachments = {
   /**
-   * Encrypt a local file and store the ciphertext locally.
+   * Store a local file in app-managed cache.
    * Returns the SQLite attachment row.
    *
    * @param {Object} opts
@@ -74,51 +86,38 @@ const EncryptedAttachments = {
    * @param {string|null} opts.coupleId
    * @param {string} opts.parentType    — 'journal' | 'memory' | 'ritual'
    * @param {string} opts.parentId      — FK to parent row
-   * @param {'device'|'couple'} opts.keyTier — which key to use
+   * @param {'device'|'couple'} opts.keyTier — retained for backward-compatible call sites
    */
   async encryptAndStore({
     sourceUri, fileName, mimeType, userId, coupleId = null,
     parentType, parentId, keyTier = 'couple',
   }) {
     await ensureDir();
-
-    // 1. Read source file
-    const plainBytes = await readFileAsBytes(sourceUri);
-
-    // 2. Encrypt
-    const { ciphertext, nonce } = await E2EEncryption.encryptFile(
-      plainBytes, keyTier, coupleId
-    );
-
-    // 3. Write encrypted blob to local cache
     const attId = makeAttachmentId();
-    const localUri = `${ENCRYPTED_DIR}${attId}.enc`;
-    await writeBytesToFile(ciphertext, localUri);
+    const ext = extensionFromName(fileName) || extensionFromMime(mimeType);
+    const localUri = `${ATTACHMENT_DIR}${attId}${ext}`;
+    await FileSystem.copyAsync({ from: sourceUri, to: localUri });
+    const info = await FileSystem.getInfoAsync(localUri);
 
-    // 4. Encrypt the file name
-    const fileNameCipher = await E2EEncryption.encryptString(
-      fileName, keyTier, coupleId
-    );
-
-    // 5. Record in SQLite
     const row = await Database.insertAttachment({
       id: attId,
       user_id: userId,
       couple_id: coupleId,
       parent_type: parentType,
       parent_id: parentId,
-      file_name_cipher: fileNameCipher,
+      file_name: fileName || `${attId}${ext}`,
+      file_name_cipher: null,
       mime_type: mimeType,
-      file_size: plainBytes.length,
+      file_size: info?.size ?? null,
       local_uri: localUri,
-      encryption_nonce: nonce,
+      encryption_nonce: null,
     });
 
-    return { ...row, id: attId, local_uri: localUri, nonce };
+    return { ...row, id: attId, local_uri: localUri, keyTier };
   },
 
   /**
-   * Upload an encrypted attachment to Supabase Storage.
+   * Upload an attachment to Supabase Storage.
    * Returns the remote storage key.
    */
   async uploadToRemote(attachmentId) {
@@ -132,18 +131,19 @@ const EncryptedAttachments = {
     if (!att) throw new Error(`Attachment ${attachmentId} not found`);
     if (!att.local_uri) throw new Error('No local file to upload');
 
-    // Read encrypted bytes
+    // Read local file bytes
     const encryptedB64 = await FileSystem.readAsStringAsync(att.local_uri, {
       encoding: FileSystem.EncodingType.Base64,
     });
     const encryptedBytes = naclUtil.decodeBase64(encryptedB64);
 
     // Upload to Supabase Storage
-    const remoteKey = `${att.couple_id}/${att.user_id}/${attachmentId}.enc`;
+    const suffix = att.encryption_nonce ? '.enc' : (extensionFromName(att.file_name) || extensionFromMime(att.mime_type));
+    const remoteKey = `${att.couple_id}/${att.user_id}/${attachmentId}${suffix}`;
     const { error } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(remoteKey, encryptedBytes, {
-        contentType: 'application/octet-stream',
+        contentType: att.mime_type || 'application/octet-stream',
         upsert: true,
       });
     if (error) throw error;
@@ -177,8 +177,9 @@ const EncryptedAttachments = {
   },
 
   /**
-   * Decrypt and return a local file URI for display.
+   * Return a local file URI for display.
    * If the file isn't cached locally, downloads from Supabase first.
+   * Legacy encrypted blobs are still decrypted on demand.
    *
    * @param {string} attachmentId
    * @param {'device'|'couple'} keyTier
@@ -194,15 +195,15 @@ const EncryptedAttachments = {
     );
     if (!att) throw new Error(`Attachment ${attachmentId} not found`);
 
-    // Check if we have the encrypted file locally
-    let encryptedUri = att.local_uri;
-    if (encryptedUri) {
-      const info = await FileSystem.getInfoAsync(encryptedUri);
-      if (!info.exists) encryptedUri = null;
+    // Check if we have the file locally
+    let localUri = att.local_uri;
+    if (localUri) {
+      const info = await FileSystem.getInfoAsync(localUri);
+      if (!info.exists) localUri = null;
     }
 
     // If not local, download from Supabase
-    if (!encryptedUri && att.remote_key && supabase) {
+    if (!localUri && att.remote_key && supabase) {
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKET)
         .download(att.remote_key);
@@ -224,14 +225,21 @@ const EncryptedAttachments = {
         reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
         reader.readAsDataURL(data);
       });
-      encryptedUri = `${ENCRYPTED_DIR}${attachmentId}.enc`;
-      await writeBytesToFile(bytes, encryptedUri);
+      const ext = extensionFromName(att.file_name) || extensionFromMime(att.mime_type) || '.bin';
+      localUri = att.encryption_nonce
+        ? `${ATTACHMENT_DIR}${attachmentId}.enc`
+        : `${FileSystem.cacheDirectory}${attachmentId}_cache${ext}`;
+      await writeBytesToFile(bytes, localUri);
     }
 
-    if (!encryptedUri) throw new Error('Attachment file not available');
+    if (!localUri) throw new Error('Attachment file not available');
+
+    if (!att.encryption_nonce) {
+      return localUri;
+    }
 
     // Decrypt to a temp file
-    const cipherBytes = await readFileAsBytes(encryptedUri);
+    const cipherBytes = await readFileAsBytes(localUri);
     const plainBytes = await E2EEncryption.decryptFile(
       cipherBytes, att.encryption_nonce, keyTier, coupleId
     );
@@ -253,7 +261,7 @@ const EncryptedAttachments = {
       [attachmentId]
     );
 
-    // Clean up local encrypted file
+    // Clean up local cached file
     if (att?.local_uri) {
       try { await FileSystem.deleteAsync(att.local_uri, { idempotent: true }); } catch { /* ok */ }
     }
@@ -274,7 +282,7 @@ const EncryptedAttachments = {
       const cacheDir = FileSystem.cacheDirectory;
       const files = await FileSystem.readDirectoryAsync(cacheDir);
       for (const file of files) {
-        if (file.includes('_dec.')) {
+        if (file.includes('_dec.') || file.includes('_cache.')) {
           await FileSystem.deleteAsync(`${cacheDir}${file}`, { idempotent: true });
         }
       }

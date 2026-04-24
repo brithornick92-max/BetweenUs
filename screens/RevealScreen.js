@@ -1,5 +1,5 @@
 // screens/RevealScreen.js
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,46 +7,23 @@ import {
   ScrollView,
   Animated,
   TouchableOpacity,
-  Dimensions,
   Platform,
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { notification, selection, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { promptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
-import { NicknameEngine } from "../services/PolishEngine";
-import { SPACING, BORDER_RADIUS, SHADOWS } from "../utils/theme";
-import { getPartnerDisplayName } from '../utils/profileNames';
+import PartnerNotifications from "../services/PartnerNotifications";
+import { SPACING } from "../utils/theme";
+import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import Button from "../components/Button";
-
-const { width } = Dimensions.get("window");
-
-const TONE_REVEAL_COPY = {
-  warm: {
-    locked: (partner) => `This is your moment. When you reveal, you’ll see how ${partner} answered with their whole heart.`,
-    insight: 'Start with what felt tender. Then tell them the line that stayed with you.',
-  },
-  playful: {
-    locked: (partner) => `This is where the spark lands. Reveal and see how ${partner} played it back.`,
-    insight: 'Start with what surprised you. Then say the part that made you grin.',
-  },
-  intimate: {
-    locked: (partner) => `This is your moment. When you reveal, you’ll step into the answer ${partner} kept closest.`,
-    insight: 'Start with what opened you. Then say the part that pulled you closer.',
-  },
-  minimal: {
-    locked: (partner) => `Reveal when you're ready. ${partner}'s answer will meet you there.`,
-    insight: 'Keep it simple. Say what surprised you, then what mattered most.',
-  },
-};
 
 export default function RevealScreen({ route, navigation }) {
   const { prompt, userAnswer, partnerAnswer: initialPartnerAnswer, bothAnswered } = route?.params || {};
@@ -63,31 +40,11 @@ export default function RevealScreen({ route, navigation }) {
     }
   }, [prompt, navigation]);
 
-  const [isRevealed, setIsRevealed] = useState(false);
-  const [selectedTone, setSelectedTone] = useState('warm');
+  const [isRevealed, setIsRevealed] = useState(!!userAnswer?.isRevealed);
 
   // Handle partner states
   const hasPartnerAnswer = !!initialPartnerAnswer;
-  const isWaitingForPartner = !initialPartnerAnswer || bothAnswered === false;
   const [partnerAnswer] = useState(() => initialPartnerAnswer || null);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-
-      NicknameEngine.getConfig()
-        .then((config) => {
-          if (active) setSelectedTone(config?.tone || 'warm');
-        })
-        .catch(() => {
-          if (active) setSelectedTone('warm');
-        });
-
-      return () => {
-        active = false;
-      };
-    }, [])
-  );
 
   // High-End Animation Refs
   const revealAnim = useRef(new Animated.Value(0)).current;
@@ -167,8 +124,52 @@ export default function RevealScreen({ route, navigation }) {
   if (!prompt || !prompt.text) return null;
 
   const partnerName = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
-  const partnerLabel = partnerName.toUpperCase();
-  const toneCopy = TONE_REVEAL_COPY[selectedTone] || TONE_REVEAL_COPY.warm;
+  const myName = getMyDisplayName(userProfile, state?.userProfile, 'You');
+  const revealStage = isRevealed
+    ? 'revealed'
+    : hasPartnerAnswer && bothAnswered !== false
+      ? 'ready_to_reveal'
+      : 'waiting_for_partner';
+  const revealCopy = {
+    waiting_for_partner: {
+      eyebrow: 'WAITING',
+      title: `Waiting for ${partnerName}`,
+      body: 'Your answer is in. The reveal unlocks after you both answer.',
+      primaryLabel: `Nudge ${partnerName}`,
+      helper: "Today's reveal starts after both of you answer.",
+    },
+    ready_to_reveal: {
+      eyebrow: 'READY TO REVEAL',
+      title: 'You both answered',
+      body: "Open today's reveal and see what each of you said.",
+      primaryLabel: 'Reveal together',
+      helper: "Open today's reveal when you're ready.",
+    },
+    revealed: {
+      eyebrow: 'REVEALED',
+      title: "Here's what you both said",
+      body: 'A small moment like this is worth keeping.',
+      primaryLabel: 'Save this moment',
+      secondaryLabel: 'Plan a date from this',
+    },
+  }[revealStage];
+
+  const handleNudgePartner = async () => {
+    if (!prompt?.id) return;
+    selection();
+    await PartnerNotifications.promptAnswered(myName, prompt.id);
+    notification(NotificationFeedbackType.Success);
+  };
+
+  const handleSaveMoment = () => {
+    selection();
+    navigation.navigate("AddMemory", {
+      source: 'prompt_reveal',
+      promptText: prompt.text,
+      myAnswer: userAnswer?.answer || '',
+      partnerAnswer: partnerAnswer || '',
+    });
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
@@ -204,12 +205,12 @@ export default function RevealScreen({ route, navigation }) {
           <View style={[styles.promptContainer, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
             <View style={styles.eyebrowRow}>
               <Icon name="sparkles-outline" size={12} color={t.accent} />
-              <Text style={[styles.questionLabel, { color: t.accent }]}>THE DAILY PROMPT</Text>
+              <Text style={[styles.questionLabel, { color: t.accent }]}>TODAY'S QUESTION</Text>
             </View>
             <Text style={[styles.questionText, { color: t.text }]}>{prompt.text}</Text>
           </View>
 
-          {!isRevealed ? (
+          {revealStage !== 'revealed' ? (
             /* LOCKED STATE */
             <View style={styles.lockedStage}>
               <View style={{ width: '100%', alignItems: 'center' }}>
@@ -223,17 +224,22 @@ export default function RevealScreen({ route, navigation }) {
                 </Animated.View>
               </View>
 
-              <Text style={[styles.lockedTitle, { color: t.text }]}>Ready to connect?</Text>
+              <Text style={[styles.lockedEyebrow, { color: t.accent }]}>{revealCopy.eyebrow}</Text>
+              <Text style={[styles.lockedTitle, { color: t.text }]}>{revealCopy.title}</Text>
               <Text style={[styles.lockedSub, { color: t.subtext }]}>
-                {toneCopy.locked(partnerName)}
+                {revealCopy.body}
               </Text>
 
-              <Button title="Reveal Together" onPress={handleReveal} style={styles.revealAction} />
+              <Button
+                title={revealCopy.primaryLabel}
+                onPress={revealStage === 'waiting_for_partner' ? handleNudgePartner : handleReveal}
+                style={styles.revealAction}
+              />
               
               <View style={styles.privacyNoteContainer}>
                 <Icon name="shield-outline" size={14} color={t.subtext} />
                 <Text style={[styles.miniNote, { color: t.subtext }]}>
-                  {isWaitingForPartner ? 'Your answer stays sealed until both share' : 'Shared reflections are just between you two'}
+                  {revealCopy.helper}
                 </Text>
               </View>
             </View>
@@ -247,17 +253,17 @@ export default function RevealScreen({ route, navigation }) {
             >
               {/* My Reflection */}
               <View style={styles.answerCard}>
-                <Text style={[styles.tagText, { color: t.subtext }]}>YOU</Text>
+                <Text style={[styles.tagText, { color: t.subtext }]}>You said</Text>
                 <View style={[styles.bubble, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: t.border }]}>
                   <Text style={[styles.bubbleText, { color: t.text }]}>
-                    {userAnswer?.answer || "Your thought has been safely stored."}
+                    {userAnswer?.answer || "Your answer is saved."}
                   </Text>
                 </View>
               </View>
 
               {/* Partner Reflection */}
               <View style={styles.answerCard}>
-                <Text style={[styles.tagText, { color: t.accent }]}>{partnerLabel}</Text>
+                <Text style={[styles.tagText, { color: t.accent }]}>{partnerName} said</Text>
                 {hasPartnerAnswer ? (
                   <LinearGradient
                     colors={isDark ? [t.accent + "15", '#1C1C1E'] : [t.accent + "10", '#FFFFFF']}
@@ -287,23 +293,35 @@ export default function RevealScreen({ route, navigation }) {
                 style={[styles.insightBox, { borderColor: t.border }]}
               >
                 <View style={styles.insightHeader}>
-                  <Icon name="color-wand-outline" size={20} color={t.accent} />
-                  <Text style={[styles.insightTitle, { color: t.text }]}>Keep Going</Text>
+                  <Icon name="bookmark-outline" size={20} color={t.accent} />
+                  <Text style={[styles.insightTitle, { color: t.text }]}>Worth keeping</Text>
                 </View>
                 <Text style={[styles.insightText, { color: t.subtext }]}>
-                  {toneCopy.insight}
+                  {revealCopy.body}
                 </Text>
               </BlurView>
 
               <Button
-                title="Save to Journal"
+                title={revealCopy.primaryLabel}
                 variant="outline"
-                onPress={() => {
-                  selection();
-                  navigation.navigate("JournalEntry");
-                }}
+                onPress={handleSaveMoment}
                 style={styles.journalAction}
               />
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={() => {
+                  selection();
+                  navigation.navigate("DatePlans", {
+                    source: 'prompt_reveal',
+                    promptText: prompt.text,
+                  });
+                }}
+                style={styles.secondaryAction}
+              >
+                <Text style={[styles.secondaryActionText, { color: t.primary }]}>
+                  {revealCopy.secondaryLabel}
+                </Text>
+              </TouchableOpacity>
             </Animated.View>
           )}
         </ScrollView>
@@ -392,8 +410,15 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "800",
     letterSpacing: -0.5,
-    marginTop: SPACING.xxl,
+    marginTop: SPACING.md,
     marginBottom: SPACING.sm,
+  },
+  lockedEyebrow: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginTop: SPACING.xl,
   },
   lockedSub: {
     fontSize: 16,
@@ -473,8 +498,16 @@ const styles = StyleSheet.create({
 
   journalAction: { 
     marginTop: SPACING.xxl, 
-    marginBottom: SPACING.xl,
     height: 56,
     borderRadius: 28,
+  },
+  secondaryAction: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.md,
+  },
+  secondaryActionText: {
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

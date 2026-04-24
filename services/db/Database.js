@@ -4,9 +4,9 @@
  * Every table carries `sync_status` + `updated_at` columns so the
  * SyncEngine can push deltas to Supabase without scanning full tables.
  *
- * Sensitive columns (body / answer / content) store **ciphertext only**.
- * Plain-text metadata (timestamps, type, mood-label) stays unencrypted
- * so we can sort, filter, and index locally without decrypting.
+ * Canonical app content now stores in plain local cache columns, with
+ * sync metadata kept alongside it. Legacy `*_cipher` columns remain only
+ * for backward-compatible reads and migration.
  *
  * Uses expo-sqlite (synchronous API, WAL mode) — zero network required.
  */
@@ -16,7 +16,7 @@ import { randomUUID } from 'expo-crypto';
 import CrashReporting from '../CrashReporting';
 
 const DB_NAME = 'betweenus.db';
-const DB_VERSION = 12;
+const DB_VERSION = 15;
 
 let _db = null;
 let _dbPromise = null;
@@ -456,6 +456,62 @@ async function migrate(db) {
     }
   }
 
+  // v14: add plaintext cache columns for canonical local content storage
+  if (user_version < 14) {
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      const columns = [
+        ['journal_entries', 'title TEXT'],
+        ['journal_entries', 'body TEXT'],
+        ['prompt_answers', 'answer TEXT'],
+        ['prompt_answers', 'partner_answer TEXT'],
+        ['memories', 'body TEXT'],
+        ['check_ins', 'payload_json TEXT'],
+        ['vibes', 'note TEXT'],
+      ];
+      for (const [table, column] of columns) {
+        try {
+          await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column};`);
+        } catch (e) {
+          if (!e?.message?.includes('duplicate column')) throw e;
+        }
+      }
+      await db.execAsync('PRAGMA user_version = 14;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  }
+
+  // v15: add plaintext cache columns for calendar/date plans and attachments
+  if (user_version < 15) {
+    await db.execAsync('BEGIN TRANSACTION;');
+    try {
+      const columns = [
+        ['attachments', 'file_name TEXT'],
+        ['calendar_events_local', 'title TEXT'],
+        ['calendar_events_local', 'location TEXT'],
+        ['calendar_events_local', 'notes TEXT'],
+        ['calendar_events_local', 'metadata_json TEXT'],
+        ['date_plans', 'title TEXT'],
+        ['date_plans', 'body_json TEXT'],
+      ];
+      for (const [table, column] of columns) {
+        try {
+          await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column};`);
+        } catch (e) {
+          if (!e?.message?.includes('duplicate column')) throw e;
+        }
+      }
+      await db.execAsync('PRAGMA user_version = 15;');
+      await db.execAsync('COMMIT;');
+    } catch (err) {
+      await db.execAsync('ROLLBACK;');
+      throw err;
+    }
+  }
+
 }
 
 const USER_SCOPED_TABLES = [
@@ -515,10 +571,11 @@ const Database = {
     const ts = now();
     await db.runAsync(
       `INSERT INTO journal_entries
-        (id, user_id, couple_id, title_cipher, body_cipher, mood, mood_cipher, tags, tags_cipher,
+        (id, user_id, couple_id, title, body, title_cipher, body_cipher, mood, mood_cipher, tags, tags_cipher,
          is_private, photo_uri, media_ref, created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 'pending', 0)`,
-      [id, entry.user_id, entry.couple_id ?? null, entry.title_cipher ?? null, entry.body_cipher ?? null,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 'pending', 0)`,
+      [id, entry.user_id, entry.couple_id ?? null, entry.title ?? null, entry.body ?? null,
+       entry.title_cipher ?? null, entry.body_cipher ?? null,
        entry.mood ?? null, entry.mood_cipher ?? null,
        entry.tags ? JSON.stringify(entry.tags) : null, entry.tags_cipher ?? null,
        entry.photo_uri ?? null, entry.media_ref ?? null, entry.created_at ?? ts, ts]
@@ -533,7 +590,7 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'couple_id', 'photo_uri', 'media_ref'].includes(k)) {
+      if (['title', 'body', 'title_cipher', 'body_cipher', 'mood', 'mood_cipher', 'tags', 'tags_cipher', 'couple_id', 'photo_uri', 'media_ref'].includes(k)) {
         fields.push(`${k} = ?`);
         params.push(k === 'tags' ? JSON.stringify(v) : v);
       }
@@ -611,12 +668,12 @@ const Database = {
     const ts = now();
     await db.runAsync(
       `INSERT INTO prompt_answers
-         (id, user_id, couple_id, prompt_id, date_key, answer_cipher,
+         (id, user_id, couple_id, prompt_id, date_key, answer, partner_answer, answer_cipher,
           heat_level, heat_level_cipher, is_revealed, reveal_at, created_at, updated_at,
           sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null, entry.prompt_id,
-       entry.date_key, entry.answer_cipher ?? null,
+       entry.date_key, entry.answer ?? null, entry.partner_answer ?? null, entry.answer_cipher ?? null,
        entry.heat_level ?? 1, entry.heat_level_cipher ?? null,
        entry.is_revealed ? 1 : 0,
        entry.reveal_at ?? null, entry.created_at ?? ts, ts]
@@ -631,7 +688,7 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['answer_cipher', 'partner_answer_cipher', 'is_revealed', 'reveal_at', 'heat_level', 'heat_level_cipher'].includes(k)) {
+      if (['answer', 'partner_answer', 'answer_cipher', 'partner_answer_cipher', 'is_revealed', 'reveal_at', 'heat_level', 'heat_level_cipher'].includes(k)) {
         fields.push(`${k} = ?`);
         params.push(k === 'is_revealed' ? (v ? 1 : 0) : v);
       }
@@ -696,11 +753,11 @@ const Database = {
     const ts = now();
     await db.runAsync(
       `INSERT INTO memories
-         (id, user_id, couple_id, type, body_cipher, media_ref,
+         (id, user_id, couple_id, type, body, body_cipher, media_ref,
           mood, mood_cipher, is_private, created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending', 0)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null, entry.type ?? 'moment',
-       entry.body_cipher ?? null, entry.media_ref ?? null,
+       entry.body ?? null, entry.body_cipher ?? null, entry.media_ref ?? null,
        entry.mood ?? null, entry.mood_cipher ?? null,
        entry.created_at ?? ts, ts]
     );
@@ -714,7 +771,7 @@ const Database = {
     const params = [];
 
     for (const [k, v] of Object.entries(updates)) {
-      if (['body_cipher', 'media_ref', 'mood', 'mood_cipher', 'type'].includes(k)) {
+      if (['body', 'body_cipher', 'media_ref', 'mood', 'mood_cipher', 'type'].includes(k)) {
         fields.push(`${k} = ?`);
         params.push(v);
       }
@@ -804,11 +861,11 @@ const Database = {
     const ts = now();
     await db.runAsync(
       `INSERT INTO check_ins
-         (id, user_id, couple_id, body_cipher, mood, mood_cipher, date_key,
+         (id, user_id, couple_id, payload_json, body_cipher, mood, mood_cipher, date_key,
           created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null,
-       entry.body_cipher ?? null, entry.mood ?? null, entry.mood_cipher ?? null,
+       entry.payload_json ?? null, entry.body_cipher ?? null, entry.mood ?? null, entry.mood_cipher ?? null,
        entry.date_key, entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
@@ -837,10 +894,10 @@ const Database = {
     const id = entry.id || makeId('vib');
     const ts = now();
     await db.runAsync(
-      `INSERT INTO vibes (id, user_id, couple_id, vibe, note_cipher, created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
+      `INSERT INTO vibes (id, user_id, couple_id, vibe, note, note_cipher, created_at, updated_at, sync_status, sync_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null, entry.vibe,
-       entry.note_cipher ?? null, entry.created_at ?? ts, ts]
+       entry.note ?? null, entry.note_cipher ?? null, entry.created_at ?? ts, ts]
     );
     return { id, created_at: entry.created_at ?? ts, updated_at: ts };
   },
@@ -903,13 +960,13 @@ const Database = {
     await db.runAsync(
       `INSERT INTO attachments
          (id, user_id, couple_id, parent_type, parent_id,
-          file_name_cipher, mime_type, file_size, local_uri,
+          file_name, file_name_cipher, mime_type, file_size, local_uri,
           remote_key, encryption_nonce, upload_status,
           created_at, updated_at, sync_status, sync_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, 'pending', 0)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, 'pending', 0)`,
       [id, entry.user_id, entry.couple_id ?? null,
        entry.parent_type ?? null, entry.parent_id ?? null,
-       entry.file_name_cipher ?? null, entry.mime_type ?? null,
+       entry.file_name ?? null, entry.file_name_cipher ?? null, entry.mime_type ?? null,
        entry.file_size ?? null, entry.local_uri ?? null,
        entry.remote_key ?? null, entry.encryption_nonce ?? null,
        entry.created_at ?? ts, ts]
@@ -1063,15 +1120,18 @@ const Database = {
 
     await db.runAsync(
       `INSERT OR REPLACE INTO calendar_events_local
-         (id, user_id, couple_id, title_cipher, location_cipher, notes_cipher,
+         (id, user_id, couple_id, title, location, notes, title_cipher, location_cipher, notes_cipher,
           event_type, when_ts, is_date_night, notify, notify_mins, notification_id,
-          metadata_cipher, created_at, updated_at, deleted_at,
+          metadata_json, metadata_cipher, created_at, updated_at, deleted_at,
           sync_status, sync_version, sync_source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         entry.user_id,
         entry.couple_id ?? null,
+        entry.title ?? null,
+        entry.location ?? null,
+        entry.notes ?? null,
         entry.title_cipher ?? null,
         entry.location_cipher ?? null,
         entry.notes_cipher ?? null,
@@ -1081,6 +1141,7 @@ const Database = {
         entry.notify ? 1 : 0,
         entry.notify_mins ?? 60,
         entry.notification_id ?? null,
+        entry.metadata_json ?? null,
         entry.metadata_cipher ?? null,
         createdAt,
         ts,
@@ -1202,14 +1263,16 @@ const Database = {
 
     await db.runAsync(
       `INSERT OR REPLACE INTO date_plans
-         (id, user_id, couple_id, source_event_id, title_cipher, body_cipher,
+         (id, user_id, couple_id, source_event_id, title, body_json, title_cipher, body_cipher,
           created_at, updated_at, deleted_at, sync_status, sync_version, sync_source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         entry.user_id,
         entry.couple_id ?? null,
         entry.source_event_id ?? null,
+        entry.title ?? null,
+        entry.body_json ?? null,
         entry.title_cipher ?? null,
         entry.body_cipher ?? null,
         createdAt,

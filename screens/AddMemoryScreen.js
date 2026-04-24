@@ -21,7 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 
 import Icon from '../components/Icon';
@@ -56,10 +56,27 @@ const MOODS = [
 
 export default function AddMemoryScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
   const { colors, isDark } = useTheme();
+  const promptRevealDraft = useMemo(() => {
+    if (route.params?.source !== 'prompt_reveal') {
+      return { content: '', type: 'moment' };
+    }
 
-  const [content, setContent] = useState('');
-  const [selectedType, setSelectedType] = useState('moment');
+    const sections = [
+      route.params?.promptText ? `Today's question: ${route.params.promptText}` : null,
+      route.params?.myAnswer ? `You said: ${route.params.myAnswer}` : null,
+      route.params?.partnerAnswer ? `Your partner said: ${route.params.partnerAnswer}` : null,
+    ].filter(Boolean);
+
+    return {
+      content: sections.join('\n\n'),
+      type: 'moment',
+    };
+  }, [route.params]);
+
+  const [content, setContent] = useState(promptRevealDraft.content);
+  const [selectedType, setSelectedType] = useState(promptRevealDraft.type);
   const [selectedMood, setSelectedMood] = useState(null);
   const [media, setMedia] = useState(null); // { uri, type, mimeType }
   const [saving, setSaving] = useState(false);

@@ -286,7 +286,7 @@ describe('DataLayer', () => {
       expect(SyncEngine.pushNow).toHaveBeenCalled();
     });
 
-    it('saveJournalEntry encrypts and inserts', async () => {
+    it('saveJournalEntry stores plaintext content and inserts', async () => {
       await DataLayer.saveJournalEntry({
         title: 'My Day',
         body: 'It was great',
@@ -295,11 +295,12 @@ describe('DataLayer', () => {
         isPrivate: false,
       });
 
-      expect(E2EEncryption.encryptString).toHaveBeenCalled();
       expect(Database.insertJournal).toHaveBeenCalledWith(
         expect.objectContaining({
           user_id: 'user-1',
           couple_id: 'couple-1',
+          title: 'My Day',
+          body: 'It was great',
           is_private: false,
         })
       );
@@ -649,15 +650,20 @@ describe('DataLayer', () => {
   });
 
   describe('Prompt Answers', () => {
-    it('savePromptAnswer encrypts answer', async () => {
+    it('savePromptAnswer stores plaintext answer', async () => {
       await DataLayer.savePromptAnswer({
         promptId: 'prompt-42',
         answer: 'My answer',
         heatLevel: 2,
       });
 
-      expect(E2EEncryption.encryptString).toHaveBeenCalled();
-      expect(Database.insertPromptAnswer).toHaveBeenCalled();
+      expect(Database.insertPromptAnswer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt_id: 'prompt-42',
+          answer: 'My answer',
+          heat_level: 2,
+        })
+      );
     });
 
     it('savePromptAnswer infers heat from prompt metadata when omitted', async () => {
@@ -670,7 +676,8 @@ describe('DataLayer', () => {
         expect.objectContaining({
           prompt_id: 'prompt-42',
           heat_level: 2,
-          heat_level_cipher: 'enc:2',
+          answer: 'My answer',
+          heat_level_cipher: null,
         })
       );
     });
@@ -688,8 +695,9 @@ describe('DataLayer', () => {
         'pa_existing',
         expect.objectContaining({
           heat_level: 3,
-          answer_cipher: 'enc:Updated answer',
-          heat_level_cipher: 'enc:3',
+          answer: 'Updated answer',
+          answer_cipher: null,
+          heat_level_cipher: null,
         })
       );
       expect(Database.insertPromptAnswer).not.toHaveBeenCalled();
@@ -744,11 +752,12 @@ describe('DataLayer', () => {
       Database.getLatestVibe.mockResolvedValueOnce({
         id: 'v_1',
         vibe: 'connected',
-        note_cipher: 'enc:feeling close',
+        note: 'feeling close',
         created_at: '2024-01-01',
       });
       const result = await DataLayer.getLatestVibe();
       expect(result).toBeTruthy();
+      expect(result.note).toBe('feeling close');
     });
   });
 
@@ -1039,7 +1048,7 @@ describe('DataLayer', () => {
       unsubscribe();
     });
 
-    it('saveCalendarEvent caches remote events with the device key when the couple key is unavailable', async () => {
+    it('saveCalendarEvent stores plaintext fields when the couple key is unavailable', async () => {
       E2EEncryption.hasCoupleKey.mockResolvedValue(false);
       await DataLayer.reconfigure({ userId: 'user-1', coupleId: 'couple-1', isPremium: true });
 
@@ -1051,12 +1060,22 @@ describe('DataLayer', () => {
         whenTs: new Date('2024-01-15T19:00:00Z').getTime(),
       }, { syncSource: 'remote', markSynced: true });
 
-      expect(E2EEncryption.encryptString).toHaveBeenCalledWith('Remote dinner', 'device', null);
-      expect(E2EEncryption.encryptString).toHaveBeenCalledWith('Remote spot', 'device', null);
-      expect(E2EEncryption.encryptString).toHaveBeenCalledWith('Remote notes', 'device', null);
+      expect(Database.upsertCalendarEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: '33333333-3333-4333-8333-333333333333',
+          couple_id: 'couple-1',
+          title: 'Remote dinner',
+          location: 'Remote spot',
+          notes: 'Remote notes',
+          title_cipher: null,
+          metadata_json: JSON.stringify({}),
+          metadata_cipher: null,
+        }),
+        expect.objectContaining({ syncStatus: 'synced', syncSource: 'remote' })
+      );
     });
 
-    it('saveDatePlan caches remote plans with the device key when the couple key is unavailable', async () => {
+    it('saveDatePlan stores plaintext body when the couple key is unavailable', async () => {
       E2EEncryption.hasCoupleKey.mockResolvedValue(false);
       await DataLayer.reconfigure({ userId: 'user-1', coupleId: 'couple-1', isPremium: true });
 
@@ -1070,27 +1089,43 @@ describe('DataLayer', () => {
         steps: [],
       }, { syncSource: 'remote', markSynced: true });
 
-      expect(E2EEncryption.encryptJson).toHaveBeenCalledWith(
+      expect(Database.upsertDatePlan).toHaveBeenCalledWith(
         expect.objectContaining({
-          locationType: 'home',
-          heat: 2,
-          load: 2,
-          style: 'mixed',
-          steps: [],
+          id: 'dp-remote-1',
+          couple_id: 'couple-1',
+          title: 'Plan title',
+          body_json: JSON.stringify({
+            locationType: 'home',
+            heat: 2,
+            load: 2,
+            style: 'mixed',
+            steps: [],
+          }),
+          title_cipher: null,
+          body_cipher: null,
         }),
-        'device',
-        null
+        expect.objectContaining({ syncStatus: 'synced', syncSource: 'remote' })
       );
     });
 
-    it('saveCalendarEvent still rejects unsynced shared writes when the couple key is unavailable', async () => {
+    it('saveCalendarEvent allows unsynced shared writes without a couple key', async () => {
       E2EEncryption.hasCoupleKey.mockResolvedValue(false);
       await DataLayer.reconfigure({ userId: 'user-1', coupleId: 'couple-1', isPremium: true });
 
       await expect(DataLayer.saveCalendarEvent({
         title: 'Dinner',
         whenTs: new Date('2024-01-15T19:00:00Z').getTime(),
-      })).rejects.toThrow('COUPLE_KEY_MISSING');
+      })).resolves.toEqual(
+        expect.objectContaining({ id: 'cal-1' })
+      );
+      expect(Database.upsertCalendarEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          couple_id: 'couple-1',
+          title: 'Dinner',
+          title_cipher: null,
+        }),
+        expect.objectContaining({ syncStatus: 'pending', syncSource: 'local' })
+      );
     });
   });
 

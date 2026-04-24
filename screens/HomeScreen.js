@@ -60,42 +60,28 @@ function dateKey(date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function getMomentLabel() {
-  const hour = new Date().getHours(); // uses device locale time automatically
-  if (hour >= 5 && hour < 17) return "TODAY'S MOMENT";
-  return "TONIGHT'S MOMENT";
-}
-
 const TONE_HOME_COPY = {
   warm: {
     subheadline: (partner) => `A softer place for you and ${partner}.`,
-    ctaDraft: 'Share My Heart',
-    ctaEmpty: 'Share Your Thoughts',
-    ctaDone: 'Reveal Connection',
-    waiting: (partner) => `Waiting gently on ${partner}`,
   },
   playful: {
     subheadline: (partner) => `A little spark for you and ${partner}.`,
-    ctaDraft: 'Send the Spark',
-    ctaEmpty: 'Start the Spark',
-    ctaDone: 'See the Spark',
-    waiting: (partner) => `${partner} is up next`,
   },
   intimate: {
     subheadline: (partner) => `A closer space for you and ${partner}.`,
-    ctaDraft: 'Open My Heart',
-    ctaEmpty: 'Open Up',
-    ctaDone: 'Reveal Closeness',
-    waiting: (partner) => `Holding for ${partner}`,
   },
   minimal: {
     subheadline: () => 'A quieter space for what matters.',
-    ctaDraft: 'Save Reflection',
-    ctaEmpty: 'Write Reflection',
-    ctaDone: 'Open Reflection',
-    waiting: (partner) => `Waiting on ${partner}`,
   },
 };
+
+function deriveRitualState({ isLinked, myAnswer, partnerAnswer, isRevealed }) {
+  if (isRevealed) return 'revealed';
+  if (myAnswer && partnerAnswer) return 'both_answered_ready';
+  if (myAnswer) return 'answered_waiting';
+  if (isLinked) return 'linked_unanswered';
+  return 'solo_unanswered';
+}
 
 function normalizePrompt(p) {
   if (!p || typeof p !== 'object') return FALLBACK_PROMPT;
@@ -141,6 +127,7 @@ export default function HomeScreen({ navigation }) {
 
   const [myAnswer, setMyAnswer] = useState('');
   const [partnerAnswer, setPartnerAnswer] = useState('');
+  const [isRevealed, setIsRevealed] = useState(false);
   const [showMoments, setShowMoments] = useState(false);
   const [inlineText, setInlineText] = useState('');
   const [isSavingInline, setIsSavingInline] = useState(false);
@@ -270,6 +257,7 @@ export default function HomeScreen({ navigation }) {
         if (row?.answer) {
           setMyAnswer(row.answer);
           setPartnerAnswer(row?.partnerAnswer || '');
+          setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
           return;
         }
 
@@ -277,6 +265,7 @@ export default function HomeScreen({ navigation }) {
         if (!active) return;
         setMyAnswer(saved?.content || saved?.answer || '');
         setPartnerAnswer(row?.partnerAnswer || '');
+        setIsRevealed(!!saved?.isRevealed);
       } catch (e) { if (__DEV__) console.warn('[Home] prompt answer fetch:', e?.message); }
     })();
     return () => { active = false; };
@@ -392,7 +381,11 @@ export default function HomeScreen({ navigation }) {
                 if (row?.created_by === user?.uid) return; // skip own saves
                 // Refresh partner answer from DataLayer
                 DataLayer.getPromptAnswerForToday(prompt.id)
-                  .then((row) => { if (!cancelled && row?.partnerAnswer) setPartnerAnswer(row.partnerAnswer); })
+                  .then((row) => {
+                    if (cancelled || !row) return;
+                    if (row?.partnerAnswer) setPartnerAnswer(row.partnerAnswer);
+                    setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
+                  })
                   .catch(() => {});
               }
             )
@@ -420,8 +413,52 @@ export default function HomeScreen({ navigation }) {
 
   const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
+  const isLinked = !!state?.coupleId;
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
   const toneCopy = TONE_HOME_COPY[selectedTone] || TONE_HOME_COPY.warm;
+  const ritualState = useMemo(() => deriveRitualState({
+    isLinked,
+    myAnswer: myAnswer.trim(),
+    partnerAnswer: partnerAnswer.trim(),
+    isRevealed,
+  }), [isLinked, myAnswer, partnerAnswer, isRevealed]);
+  const ritualCopy = useMemo(() => ({
+    solo_unanswered: {
+      eyebrow: 'TODAY',
+      title: promptReady ? prompt.text : 'A small moment for today',
+      body: "Answer first. Reveal once you're both in.",
+      primaryLabel: "Answer today's question",
+      secondaryLabel: 'Invite your partner',
+    },
+    linked_unanswered: {
+      eyebrow: 'TODAY',
+      title: promptReady ? prompt.text : `A small moment for you and ${partnerLabel}`,
+      body: "Answer first. Reveal once you're both in.",
+      primaryLabel: "Answer today's question",
+      secondaryLabel: null,
+    },
+    answered_waiting: {
+      eyebrow: 'YOUR ANSWER IS IN',
+      title: `Waiting for ${partnerLabel}`,
+      body: `Your answer is saved. Once ${partnerLabel} answers, your reveal will be ready.`,
+      primaryLabel: `Nudge ${partnerLabel}`,
+      secondaryLabel: 'Edit my answer',
+    },
+    both_answered_ready: {
+      eyebrow: 'READY TO REVEAL',
+      title: 'Your reveal is ready',
+      body: "You both answered today's question. Open the reveal when you're ready.",
+      primaryLabel: 'Reveal together',
+      secondaryLabel: null,
+    },
+    revealed: {
+      eyebrow: 'REVEALED',
+      title: 'You showed up for each other today',
+      body: 'A small moment like this is worth keeping.',
+      primaryLabel: 'Save this moment',
+      secondaryLabel: 'Plan a date from this',
+    },
+  }[ritualState]), [partnerLabel, prompt.text, promptReady, ritualState]);
 
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
@@ -439,6 +476,7 @@ export default function HomeScreen({ navigation }) {
       await promptStorage.setAnswer(todayKey, prompt.id, {
         answer: finalText,
         timestamp: Date.now(),
+        isRevealed: false,
       });
 
       let savedOffline = false;
@@ -455,6 +493,7 @@ export default function HomeScreen({ navigation }) {
       }
       notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
+      setIsRevealed(false);
       setInlineText('');
 
       if (savedOffline) {
@@ -472,7 +511,7 @@ export default function HomeScreen({ navigation }) {
         const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
         if (!hasPromptedShare && !coupleId) {
           await storage.set(PROMPTED_PARTNER_SHARE_KEY, true);
-          const shareTimerId = setTimeout(() => {
+          setTimeout(() => {
             if (!mountedRef.current) return;
             Alert.alert(
               'Share with your partner?',
@@ -497,11 +536,28 @@ export default function HomeScreen({ navigation }) {
     } finally {
       setIsSavingInline(false);
     }
-  }, [inlineText, prompt, user, isPremium, myAnswer, showPaywall, loadUsageStatus, isSavingInline]);
+  }, [inlineText, prompt, user, isPremium, myAnswer, showPaywall, loadUsageStatus, isSavingInline, state?.userProfile, userProfile]);
 
   const handlePrimaryCTA = useCallback(async () => {
     impact(ImpactFeedbackStyle.Medium);
     if (!promptReady) { navigation.navigate('HeatLevel'); return; }
+    if (ritualState === 'answered_waiting') {
+      try {
+        const { default: PN } = await import('../services/PartnerNotifications');
+        await PN.promptAnswered(preferredName, prompt.id);
+        notification(NotificationFeedbackType.Success);
+      } catch {}
+      return;
+    }
+    if (ritualState === 'revealed') {
+      navigation.navigate('AddMemory', {
+        source: 'prompt_reveal',
+        promptText: prompt.text,
+        myAnswer,
+        partnerAnswer,
+      });
+      return;
+    }
     if (!myAnswer && inlineText.trim()) { await handleInlineSave(); return; }
     if (!myAnswer && !isPremium && remainingFreePrompts <= 0) {
       showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
@@ -515,7 +571,7 @@ export default function HomeScreen({ navigation }) {
     }
     navigation.navigate('Reveal', {
       prompt: { id: prompt.id, text: prompt.text, dateKey: todayKey },
-      userAnswer: { answer: myAnswer },
+      userAnswer: { answer: myAnswer, isRevealed },
       partnerAnswer: partnerAnswer || null,
       bothAnswered,
     });
@@ -525,27 +581,53 @@ export default function HomeScreen({ navigation }) {
     myAnswer,
     partnerAnswer,
     bothAnswered,
+    isRevealed,
     prompt,
+    preferredName,
     todayKey,
     navigation,
     inlineText,
     handleInlineSave,
     remainingFreePrompts,
     showPaywall,
+    ritualState,
   ]);
 
   const primaryCTALabel = useMemo(() => {
     if (!promptReady) return 'Customize Content';
-    if (!myAnswer && inlineText.trim()) return isSavingInline ? 'Saving…' : toneCopy.ctaDraft;
-    if (!myAnswer) return toneCopy.ctaEmpty;
-    if (bothAnswered) return toneCopy.ctaDone;
-    return 'See Your Response';
-  }, [promptReady, myAnswer, bothAnswered, inlineText, isSavingInline, toneCopy]);
+    if ((ritualState === 'solo_unanswered' || ritualState === 'linked_unanswered') && inlineText.trim()) {
+      return isSavingInline ? 'Saving...' : 'Save my answer';
+    }
+    return ritualCopy?.primaryLabel || "Answer today's question";
+  }, [promptReady, ritualCopy, ritualState, inlineText, isSavingInline]);
 
   const statusText = useMemo(() => {
-    if (!promptReady || !myAnswer) return null;
-    return bothAnswered ? 'Both of you have shared' : toneCopy.waiting(partnerLabel);
-  }, [promptReady, myAnswer, bothAnswered, partnerLabel, toneCopy]);
+    if (!promptReady) return null;
+    return ritualCopy?.body || null;
+  }, [promptReady, ritualCopy]);
+
+  const handleSecondaryCTA = useCallback(() => {
+    if (!promptReady) return;
+
+    if (ritualState === 'solo_unanswered') {
+      navigation.navigate('ConnectPartner');
+      return;
+    }
+
+    if (ritualState === 'answered_waiting') {
+      navigation.navigate('PromptAnswer', {
+        prompt: { id: prompt.id, text: prompt.text, dateKey: todayKey, heat: prompt.heat, category: prompt.category },
+      });
+      return;
+    }
+
+    if (ritualState === 'revealed') {
+      navigation.navigate('DatePlans', {
+        source: 'prompt_reveal',
+        promptText: prompt.text,
+      });
+    }
+  }, [navigation, prompt, promptReady, ritualState, todayKey]);
 
   const handleAction = useCallback(async (key) => {
     impact(ImpactFeedbackStyle.Light);
@@ -640,34 +722,6 @@ export default function HomeScreen({ navigation }) {
         >
           <WelcomeBack />
 
-          {/* ── Partner Answered Banner (highest priority pull-back) ── */}
-          {partnerAnswer && !myAnswer && (
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handlePrimaryCTA}
-              style={[styles.partnerAnsweredBanner, { backgroundColor: t.primary }]}
-            >
-              <Icon name="chatbubble-ellipses-outline" size={18} color="#FFF" />
-              <Text style={styles.partnerAnsweredText}>
-                {partnerLabel} answered — share yours to see their response
-              </Text>
-              <Icon name="arrow-forward-outline" size={16} color="#FFF" />
-            </TouchableOpacity>
-          )}
-          {partnerAnswer && myAnswer && bothAnswered && (
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handlePrimaryCTA}
-              style={[styles.partnerAnsweredBanner, { backgroundColor: isDark ? '#1C1C1E' : '#FFF', borderWidth: 1.5, borderColor: t.primary }]}
-            >
-              <Icon name="heart-outline" size={18} color={t.primary} />
-              <Text style={[styles.partnerAnsweredText, { color: t.primary }]}>
-                You both shared — tap to see each other's answers
-              </Text>
-              <Icon name="arrow-forward-outline" size={16} color={t.primary} />
-            </TouchableOpacity>
-          )}
-
           {/* ── Hero Prompt Card (Crisp Apple Widget) ── */}
           <Animated.View style={{
             opacity: cardAnim,
@@ -676,11 +730,11 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.heroCardWrap}>
               <View style={styles.eyebrowRow}>
                 <Icon name="star-outline" size={14} color={t.accent} />
-                <Text style={styles.eyebrow}>{getMomentLabel()}</Text>
+                <Text style={styles.eyebrow}>{ritualCopy?.eyebrow || 'TODAY'}</Text>
               </View>
 
               <Text style={styles.promptText}>
-                {promptReady ? prompt.text : ''}
+                {promptReady ? ritualCopy?.title || prompt.text : ''}
               </Text>
 
               {!promptReady && <PromptCardSkeleton />}
@@ -689,8 +743,8 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.answerBubble}>
                   <Text style={styles.answerText}>{myAnswer}</Text>
                   <View style={styles.partnerVisibilityRow}>
-                    <Icon name="eye-outline" size={13} color={t.primary} />
-                    <Text style={styles.partnerVisibilityText}>{partnerLabel} can see this</Text>
+                    <Icon name="lock-closed-outline" size={13} color={t.primary} />
+                    <Text style={styles.partnerVisibilityText}>Hidden until both of you answer</Text>
                   </View>
                 </View>
               ) : canWritePrompt ? (
@@ -699,7 +753,7 @@ export default function HomeScreen({ navigation }) {
                   placeholderTextColor={t.subtext}
                   value={inlineText}
                   onChangeText={setInlineText}
-                  placeholder="What comes to mind…"
+                  placeholder="Write your answer here..."
                   multiline
                   maxLength={1000}
                   textAlignVertical="top"
@@ -723,7 +777,13 @@ export default function HomeScreen({ navigation }) {
               {statusText && (
                 <View style={styles.statusRow}>
                   <Icon
-                    name={bothAnswered ? 'checkmark-outline' : 'time-outline'}
+                    name={
+                      ritualState === 'both_answered_ready' || ritualState === 'revealed'
+                        ? 'checkmark-outline'
+                        : ritualState === 'answered_waiting'
+                          ? 'time-outline'
+                          : 'chatbubble-outline'
+                    }
                     size={16}
                     color={t.primary}
                   />
@@ -745,6 +805,18 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
                 <Icon name="arrow-forward-outline" size={20} color={isDark ? "#000000" : "#FFFFFF"} />
               </TouchableOpacity>
+
+              {ritualCopy?.secondaryLabel ? (
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  onPress={handleSecondaryCTA}
+                  style={styles.secondaryCTA}
+                  accessibilityRole="button"
+                  accessibilityLabel={ritualCopy.secondaryLabel}
+                >
+                  <Text style={styles.secondaryCTALabel}>{ritualCopy.secondaryLabel}</Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
           </Animated.View>
 
@@ -1064,23 +1136,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.primary,
     opacity: 0.75,
   },
-  partnerAnsweredBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginHorizontal: SPACING.screen,
-    marginBottom: SPACING.md,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
-  },
-  partnerAnsweredText: {
-    flex: 1,
-    fontFamily: systemFont,
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
   input: {
     minHeight: 120,
     borderRadius: 20,
@@ -1126,6 +1181,18 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.3,
     color: isDark ? '#000000' : '#FFFFFF',
+  },
+  secondaryCTA: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.md,
+    paddingVertical: SPACING.sm,
+  },
+  secondaryCTALabel: {
+    fontFamily: systemFont,
+    fontSize: 15,
+    fontWeight: '700',
+    color: t.primary,
   },
 
   // ── Quick Actions ──

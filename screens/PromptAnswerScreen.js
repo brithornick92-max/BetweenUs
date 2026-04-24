@@ -4,7 +4,7 @@
  * Velvet Glass · Hand-drawn reflection · Physics-based Card-flip
  */
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -20,7 +20,6 @@ import {
   ActivityIndicator,
   Keyboard,
 } from "react-native";
-import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
@@ -42,6 +41,7 @@ import Animated, {
   Easing,
   interpolate,
 } from "react-native-reanimated";
+import { useAppContext } from "../context/AppContext";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useContent } from "../context/ContentContext";
@@ -50,9 +50,9 @@ import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
-import { NicknameEngine } from "../services/PolishEngine";
 import * as PreferenceEngine from "../services/PreferenceEngine";
 import { getPromptById } from "../utils/contentLoader";
+import { getPartnerDisplayName } from "../utils/profileNames";
 import { SPACING, withAlpha } from "../utils/theme";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -92,15 +92,9 @@ const INSPIRATION_CHIPS = [
   "One thing I've learned...",
 ];
 
-const TONE_PROMPT_ANSWER_COPY = {
-  warm: 'Let the answer arrive softly. There is no rush here.',
-  playful: 'Start loose, follow the spark, and let it surprise you.',
-  intimate: 'Say the quiet part. The deeper truth is usually the one worth keeping.',
-  minimal: 'Keep it direct. One honest sentence is enough to begin.',
-};
-
 export default function PromptAnswerScreen({ route, navigation }) {
   const { prompt: routePrompt, promptId } = route.params || {};
+  const { state } = useAppContext();
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
@@ -110,7 +104,6 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const [answer, setAnswer] = useState("");
   const [existingAnswer, setExistingAnswer] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedTone, setSelectedTone] = useState('warm');
   const lastHapticLength = useRef(0);
 
   // Card Physics
@@ -140,6 +133,14 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const catGradient = HEAT_COLORS[heat] || HEAT_COLORS[1];
   const catIcon = HEAT_ICONS[heat] || "heart-outline";
   const catLabel = HEAT_LABELS[heat] || "Emotional";
+  const hasLinkedPartner = !!state?.coupleId;
+  const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
+  const helperCopy = hasLinkedPartner
+    ? "Answer in your own words. This usually takes about 30 seconds. Your answer stays hidden until you both answer."
+    : "Answer in your own words. Save it now, then invite your partner to answer too.";
+  const privacyCopy = hasLinkedPartner
+    ? "Hidden until both of you answer."
+    : `Save your answer now, then invite ${partnerLabel} to answer too.`;
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
@@ -229,26 +230,6 @@ export default function PromptAnswerScreen({ route, navigation }) {
     if (prompt) loadExistingAnswer();
   }, [prompt]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-
-      NicknameEngine.getConfig()
-        .then((config) => {
-          if (active) setSelectedTone(config?.tone || 'warm');
-        })
-        .catch(() => {
-          if (active) setSelectedTone('warm');
-        });
-
-      return () => {
-        active = false;
-      };
-    }, [])
-  );
-
-  const toneCopy = TONE_PROMPT_ANSWER_COPY[selectedTone] || TONE_PROMPT_ANSWER_COPY.warm;
-
   const loadExistingAnswer = async () => {
     if (!prompt?.id) return;
     // Try DataLayer first (E2EE, synced); fall back to legacy AsyncStorage
@@ -334,12 +315,12 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
       // Notify partner that we answered this prompt
       import('../services/PartnerNotifications').then(({ default: PN }) => {
-        PN.promptAnswered(userProfile?.displayName || user?.displayName || null);
+        PN.promptAnswered(userProfile?.displayName || user?.displayName || null, prompt.id);
       }).catch(() => {});
 
       navigation.goBack();
     } catch (error) {
-      Alert.alert("Moment Paused", "We couldn't lock in your reflection. Please try again.");
+      Alert.alert("We couldn't save your answer", "Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -369,8 +350,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <View style={[styles.headerStatus, { backgroundColor: withAlpha(t.primary, 0.1), borderColor: withAlpha(t.primary, 0.2) }]}>
-            <Icon name="shield-checkmark" size={12} color={t.primary} />
-            <Text style={[styles.statusText, { color: t.primary }]}>SECURE SPACE</Text>
+            <Icon name="chatbubble-ellipses-outline" size={12} color={t.primary} />
+            <Text style={[styles.statusText, { color: t.primary }]}>TODAY'S QUESTION</Text>
           </View>
 
           <View style={{ width: 44 }} />
@@ -439,11 +420,11 @@ export default function PromptAnswerScreen({ route, navigation }) {
               </Animated.View>
             </Animated.View>
 
-            <Text style={[styles.toneLead, { color: t.subtext }]}>{toneCopy}</Text>
+            <Text style={[styles.toneLead, { color: t.subtext }]}>{helperCopy}</Text>
 
             {/* Starting Lines / Inspiration Chips */}
             <View style={styles.chipsContainer}>
-              <Text style={[styles.sectionLabel, { color: t.subtext }]}>Spark your thoughts</Text>
+              <Text style={[styles.sectionLabel, { color: t.subtext }]}>Need a starting line?</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -470,7 +451,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
               style={styles.inputWrapper}
             >
               <View style={styles.charCountRow}>
-                <Text style={[styles.inputLabel, { color: t.primary }]}>YOUR REFLECTION</Text>
+                <Text style={[styles.inputLabel, { color: t.primary }]}>YOUR ANSWER</Text>
                 <Text style={[styles.charCount, { color: answer.length >= MAX_LEN ? t.primary : t.subtext }]}>
                   {answer.length}/{MAX_LEN}
                 </Text>
@@ -479,7 +460,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
               <TextInput
                 value={answer}
                 onChangeText={handleTextChange}
-                placeholder="Share your heart..."
+                placeholder="Write your answer here..."
                 placeholderTextColor={withAlpha(t.text, 0.3)}
                 multiline
                 autoFocus
@@ -497,7 +478,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
               <View style={styles.privacyHint}>
                 <Icon name="lock-closed-outline" size={14} color={t.subtext} />
                 <Text style={[styles.privacyText, { color: t.subtext }]}>
-                  Encrypted. Locked until you both choose to reveal.
+                  {privacyCopy}
                 </Text>
               </View>
 
@@ -515,7 +496,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
                   <ActivityIndicator color="#FFF" />
                 ) : (
                   <Text style={styles.saveButtonText}>
-                    {existingAnswer ? "UPDATE REFLECTION" : "LOCK IN REFLECTION"}
+                    {existingAnswer ? "Update my answer" : "Save my answer"}
                   </Text>
                 )}
               </TouchableOpacity>
