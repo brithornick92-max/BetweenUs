@@ -1,7 +1,6 @@
 import SupabaseAuthService from '../supabase/SupabaseAuthService';
 import StorageRouter from '../storage/StorageRouter';
 import CloudEngine from '../storage/CloudEngine';
-import CoupleKeyService from '../security/CoupleKeyService';
 import CoupleService from '../supabase/CoupleService';
 import { finalizeInviteCodeLink } from './InviteCodeLinking';
 import { STORAGE_KEYS, storage } from '../../utils/storage';
@@ -11,7 +10,6 @@ function getDependencies(dependencies = {}) {
     supabaseAuthService: dependencies.supabaseAuthService ?? SupabaseAuthService,
     storageRouter: dependencies.storageRouter ?? StorageRouter,
     cloudEngine: dependencies.cloudEngine ?? CloudEngine,
-    coupleKeyService: dependencies.coupleKeyService ?? CoupleKeyService,
     coupleService: dependencies.coupleService ?? CoupleService,
     storageApi: dependencies.storageApi ?? storage,
   };
@@ -54,21 +52,19 @@ async function initializeLinking({ onStatus, dependencies = {} } = {}) {
 }
 
 export async function joinWithInviteCode({ code, userId, updateProfile, onStatus, dependencies = {} } = {}) {
-  const { coupleKeyService, coupleService } = getDependencies(dependencies);
+  const { coupleService } = getDependencies(dependencies);
 
   onStatus?.('Connecting...');
   const session = await initializeLinking({ onStatus, dependencies });
   if (!session) return null;
 
-  const myPublicKeyB64 = await coupleKeyService.getDevicePublicKeyB64();
-  // Server-side RPC handles removing the code and setting up the couple ID
+  // Server-side RPC handles removing the code and setting up the couple
   const { coupleId } = await coupleService.redeemInviteCode(code.trim());
 
   await finalizeInviteCodeLink({
     coupleId,
     userId,
     updateProfile,
-    myPublicKeyB64,
     dependencies,
   });
 

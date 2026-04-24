@@ -1,17 +1,12 @@
 import CoupleService from '../supabase/CoupleService';
 import CloudEngine from '../storage/CloudEngine';
-import CoupleKeyService from '../security/CoupleKeyService';
 import StorageRouter from '../storage/StorageRouter';
-import { backfillWrappedKeysFromLocalKey, deriveAndPersistWrappedCoupleKey } from '../security/WrappedCoupleKeyFlow';
 import { STORAGE_KEYS, storage } from '../../utils/storage';
 
 export async function finalizeInviteCodeLink({
   coupleId,
   userId,
   updateProfile,
-  myPublicKeyB64,
-  waitTimeoutMs = 20000,
-  waitIntervalMs = 1000,
   dependencies = {},
 }) {
   if (!coupleId) {
@@ -19,34 +14,11 @@ export async function finalizeInviteCodeLink({
   }
 
   const cloudEngine = dependencies.cloudEngine ?? CloudEngine;
-  const coupleKeyService = dependencies.coupleKeyService ?? CoupleKeyService;
-  const coupleService = dependencies.coupleService ?? CoupleService;
   const storageRouter = dependencies.storageRouter ?? StorageRouter;
   const storageApi = dependencies.storageApi ?? storage;
 
-  await cloudEngine.joinCouple(coupleId, myPublicKeyB64);
-
-  const partnerMembership = await cloudEngine.waitForPartnerMembership(coupleId, waitTimeoutMs, waitIntervalMs);
-  if (!partnerMembership?.public_key || !partnerMembership?.user_id) {
-    throw new Error('Link created, but secure setup is still finishing. Ask your partner to reopen the invite screen, then try again.');
-  }
-
-  const existingCoupleKey = await coupleKeyService.getCoupleKey(coupleId);
-  if (existingCoupleKey) {
-    await backfillWrappedKeysFromLocalKey({
-      coupleId,
-      partnerUserId: partnerMembership.user_id,
-      partnerPublicKeyB64: partnerMembership.public_key,
-      dependencies: { coupleKeyService, coupleService, cloudEngine },
-    });
-  } else {
-    await deriveAndPersistWrappedCoupleKey({
-      coupleId,
-      partnerUserId: partnerMembership.user_id,
-      partnerPublicKeyB64: partnerMembership.public_key,
-      dependencies: { coupleKeyService, coupleService, cloudEngine },
-    });
-  }
+  // Join the couple in Supabase (inserts couple_members row if not already present)
+  await cloudEngine.joinCouple(coupleId);
 
   await storageRouter.setActiveCoupleId(coupleId);
   if (userId) {
@@ -61,9 +33,6 @@ export async function finalizeInviteCodeLink({
 export async function recoverExistingInviteCodeLink({
   userId,
   updateProfile,
-  myPublicKeyB64,
-  waitTimeoutMs = 20000,
-  waitIntervalMs = 1000,
   dependencies = {},
 }) {
   const coupleService = dependencies.coupleService ?? CoupleService;
@@ -78,9 +47,6 @@ export async function recoverExistingInviteCodeLink({
     coupleId,
     userId,
     updateProfile,
-    myPublicKeyB64,
-    waitTimeoutMs,
-    waitIntervalMs,
     dependencies,
   });
 }

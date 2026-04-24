@@ -21,8 +21,6 @@ import { Lato_400Regular, Lato_700Bold } from "@expo-google-fonts/lato";
 import { DMSerifDisplay_400Regular } from "@expo-google-fonts/dm-serif-display";
 
 import RootNavigator from "./navigation/RootNavigator";
-import { registerAutoClearDecryptedCache } from "./services/autoClearDecryptedCache";
-import BiometricVault from "./services/security/BiometricVault";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AppProvider, useAppContext } from "./context/AppContext";
 import { MemoryProvider } from "./context/MemoryContext";
@@ -257,7 +255,6 @@ function AppContent() {
       if (state.appLockEnabled) {
         if (nextAppState.match(/inactive|background/)) {
           backgroundTimeRef.current = Date.now();
-          BiometricVault.lock();
         } else if (
           nextAppState === "active" &&
           appStateVisible.match(/inactive|background/)
@@ -532,7 +529,6 @@ function AppContent() {
 }
 
 function App() {
-  const autoClearCleanupRef = useRef(null);
   const [fontsLoaded] = useFonts({
     "Lato-Regular": Lato_400Regular,
     Lato_400Regular: Lato_400Regular,
@@ -549,14 +545,8 @@ function App() {
   }, [fontsLoaded]);
 
   useEffect(() => {
-    const unregisterAutoClearDecryptedCache = registerAutoClearDecryptedCache();
-    autoClearCleanupRef.current = unregisterAutoClearDecryptedCache;
-
     if (isLightweightDevMode) {
-      return () => {
-        unregisterAutoClearDecryptedCache?.();
-        autoClearCleanupRef.current = null;
-      };
+      return () => {};
     }
 
     // Parallelize independent startup tasks with a timeout guard
@@ -588,8 +578,6 @@ function App() {
       )
       .finally(() => clearTimeout(timeoutId));
     return () => {
-      unregisterAutoClearDecryptedCache?.();
-      autoClearCleanupRef.current = null;
       getAnalyticsService().destroy();
     };
   }, []);
@@ -621,8 +609,6 @@ function App() {
       </ErrorBoundary>
     );
   } catch (error) {
-    autoClearCleanupRef.current?.();
-    autoClearCleanupRef.current = null;
     logError("app_init", error);
     SplashScreen.hideAsync().catch(() => {});
     return (

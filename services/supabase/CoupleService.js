@@ -190,58 +190,6 @@ const CoupleService = {
   /**
    * Redeem a QR pairing code and join the inviter's existing couple.
    */
-  async redeemPairingCode(plainCode, publicKey) {
-    const supabase = getSupabaseOrThrow();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-    if (!publicKey) throw new Error('publicKey is required');
-
-    const codeHash = await ExpoCrypto.digestStringAsync(
-      ExpoCrypto.CryptoDigestAlgorithm.SHA256,
-      plainCode.toUpperCase().trim(),
-    );
-
-    const { data, error } = await supabase.rpc('redeem_pairing_code', {
-      input_code_hash: codeHash,
-      input_public_key: publicKey,
-    });
-
-    if (error) throw error;
-
-    if (!data?.success) {
-      throw new Error(data?.error || 'Failed to redeem pairing code');
-    }
-
-    return {
-      coupleId: data.couple_id,
-      partnerId: data.creator_id,
-    };
-  },
-
-  async setMyWrappedCoupleKey(coupleId, wrappedCoupleKey) {
-    const supabase = getSupabaseOrThrow();
-    const { data, error } = await supabase.rpc('set_my_wrapped_couple_key', {
-      input_couple_id: coupleId,
-      input_wrapped_couple_key: wrappedCoupleKey,
-    });
-    if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || 'Failed to store wrapped couple key');
-    return true;
-  },
-
-  async setWrappedCoupleKeyForMember(coupleId, targetUserId, wrappedCoupleKey) {
-    const supabase = getSupabaseOrThrow();
-    const { data, error } = await supabase.rpc('set_member_wrapped_couple_key', {
-      input_couple_id: coupleId,
-      target_user_id: targetUserId,
-      input_wrapped_couple_key: wrappedCoupleKey,
-    });
-    if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || 'Failed to share wrapped couple key');
-    return true;
-  },
-
   // ─── Couple Queries ───────────────────────────────────────────
 
   /**

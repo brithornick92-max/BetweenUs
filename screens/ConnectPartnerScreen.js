@@ -21,14 +21,11 @@ import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { notification, NotificationFeedbackType, impact, ImpactFeedbackStyle } from '../utils/haptics';
 import CoupleService from '../services/supabase/CoupleService';
-import CoupleKeyService from '../services/security/CoupleKeyService';
-import CloudEngine from '../services/storage/CloudEngine';
 import StorageRouter from '../services/storage/StorageRouter';
 import { joinWithInviteCode } from '../services/linking/CoupleLinkingService';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, BORDER_RADIUS, SYSTEM_FONT, withAlpha } from '../utils/theme';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import * as naclUtil from 'tweetnacl-util';
 
 export default function ConnectPartnerScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -95,8 +92,6 @@ export default function ConnectPartnerScreen({ navigation }) {
         setMyCode(result.code);
       }
     } catch (err) {
-      // "already in a couple" is an expected state when the screen is visited
-      // by a paired user — not a real error, so skip the warning.
       if (err?.message !== 'You are already in a couple' && __DEV__) {
         console.warn('Code gen failed:', err?.message);
       }
@@ -114,6 +109,7 @@ export default function ConnectPartnerScreen({ navigation }) {
     };
   }, [generateCode]);
 
+  // Poll for partner joining after code is shown
   useEffect(() => {
     if (!myCode) return;
     let localActive = true;
@@ -126,23 +122,9 @@ export default function ConnectPartnerScreen({ navigation }) {
           const coupleId = couple.couple_id;
           await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
           await StorageRouter.setActiveCoupleId(coupleId);
-
-          const myPublicKeyB64 = await CoupleKeyService.getDevicePublicKeyB64();
-          await CloudEngine.joinCouple(coupleId, myPublicKeyB64);
-
-          const partnerPubKeyB64 = await CloudEngine.getPartnerPublicKey(coupleId);
-          if (!partnerPubKeyB64) {
-            if (localActive) timer = setTimeout(doPoll, 3000);
-            return;
-          }
-
-          const partnerPubKey = naclUtil.decodeBase64(partnerPubKeyB64);
-          const coupleKey = await CoupleKeyService.deriveFromKeyExchange(partnerPubKey);
-          await CoupleKeyService.storeCoupleKey(coupleId, coupleKey);
-
           await updateProfile?.({ coupleId });
           await actions.joinCouple(coupleId);
-          
+
           if (localActive) {
             notification(NotificationFeedbackType.Success);
             setJoinPhase('done');
@@ -152,7 +134,7 @@ export default function ConnectPartnerScreen({ navigation }) {
           }
           return;
         }
-      } catch (err) {
+      } catch {
         // silently fail polling
       }
       if (localActive) timer = setTimeout(doPoll, 3000);
@@ -228,9 +210,9 @@ export default function ConnectPartnerScreen({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      <LinearGradient 
-        colors={isDark ? ['#120206', t.background, t.background] : [t.surfaceSecondary, t.background, t.background]} 
-        style={StyleSheet.absoluteFill} 
+      <LinearGradient
+        colors={isDark ? ['#120206', t.background, t.background] : [t.surfaceSecondary, t.background, t.background]}
+        style={StyleSheet.absoluteFill}
       />
 
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -241,22 +223,22 @@ export default function ConnectPartnerScreen({ navigation }) {
         </View>
 
         <KeyboardAvoidingView style={styles.body} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          
+
           <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
             <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
               <Icon name={joinPhase === 'done' ? "heart-outline" : "link-outline"} size={36} color={t.primary} />
             </View>
 
             <Text style={[styles.title, { color: t.text }]}>Connect with Partner</Text>
-            
+
             <View style={[styles.codeSection, { backgroundColor: t.surfaceSecondary }]}>
-              <Text style={[styles.codeLabel, { color: t.subtext }]}>YOUR SECURE CODE</Text>
+              <Text style={[styles.codeLabel, { color: t.subtext }]}>YOUR INVITE CODE</Text>
               {codeLoading ? (
                 <ActivityIndicator color={t.primary} size="small" style={{ marginVertical: 10 }} />
               ) : (
                 <Text style={[styles.codeDisplay, { color: t.text }]}>{formatCode(myCode)}</Text>
               )}
-              
+
               <View style={styles.codeActions}>
                 <TouchableOpacity style={[styles.actionBtn, { borderColor: t.border }]} onPress={handleCopyCode} disabled={!myCode}>
                   <Icon name="copy-outline" size={16} color={t.text} />
@@ -276,64 +258,63 @@ export default function ConnectPartnerScreen({ navigation }) {
             </View>
 
             <View style={styles.inputSection}>
-               <TextInput
-                  style={[
-                    styles.codeInput, 
-                    { 
-                      backgroundColor: t.background, 
-                      borderColor: joinPhase === 'error' ? '#C8605A' : (partnerCode ? t.primary : t.border),
-                      color: t.text
-                    }
-                  ]}
-                  placeholder="e.g. 7K4P-9M9X"
-                  placeholderTextColor={t.subtext}
-                  value={partnerCode}
-                  onChangeText={(val) => {
-                    // Auto dash format for smooth typing
-                    let cleansed = val.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-                    if (cleansed.length > 4) {
-                      cleansed = cleansed.slice(0, 4) + '-' + cleansed.slice(4);
-                    }
-                    setPartnerCode(cleansed);
-                    if (joinPhase === 'error') setJoinPhase('idle');
-                  }}
-                  maxLength={9}
-                  autoCapitalize="characters"
-                  autoCorrect={false}
-                  editable={joinPhase === 'idle' || joinPhase === 'error'}
-                  returnKeyType="go"
-                  onSubmitEditing={handleJoin}
-                />
-                
-                {(joinStatus !== '' || joinPhase === 'error') && (
-                  <Text style={[
-                      styles.statusText, 
-                      { color: joinPhase === 'error' ? '#C8605A' : t.primary }
-                    ]}>
-                    {joinStatus}
-                  </Text>
-                )}
+              <TextInput
+                style={[
+                  styles.codeInput,
+                  {
+                    backgroundColor: t.background,
+                    borderColor: joinPhase === 'error' ? '#C8605A' : (partnerCode ? t.primary : t.border),
+                    color: t.text
+                  }
+                ]}
+                placeholder="e.g. 7K4P-9M9X"
+                placeholderTextColor={t.subtext}
+                value={partnerCode}
+                onChangeText={(val) => {
+                  let cleansed = val.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                  if (cleansed.length > 4) {
+                    cleansed = cleansed.slice(0, 4) + '-' + cleansed.slice(4);
+                  }
+                  setPartnerCode(cleansed);
+                  if (joinPhase === 'error') setJoinPhase('idle');
+                }}
+                maxLength={9}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                editable={joinPhase === 'idle' || joinPhase === 'error'}
+                returnKeyType="go"
+                onSubmitEditing={handleJoin}
+              />
 
-                <TouchableOpacity
-                  style={[
-                    styles.joinButton, 
-                    { backgroundColor: t.primary },
-                    (!partnerCode || joinPhase === 'joining') && { opacity: 0.5 }
-                  ]}
-                  onPress={handleJoin}
-                  disabled={!partnerCode || joinPhase === 'joining'}
-                >
-                  {joinPhase === 'joining' ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.joinButtonText}>Link Up</Text>
-                  )}
-                </TouchableOpacity>
+              {(joinStatus !== '' || joinPhase === 'error') && (
+                <Text style={[
+                  styles.statusText,
+                  { color: joinPhase === 'error' ? '#C8605A' : t.primary }
+                ]}>
+                  {joinStatus}
+                </Text>
+              )}
+
+              <TouchableOpacity
+                style={[
+                  styles.joinButton,
+                  { backgroundColor: t.primary },
+                  (!partnerCode || joinPhase === 'joining') && { opacity: 0.5 }
+                ]}
+                onPress={handleJoin}
+                disabled={!partnerCode || joinPhase === 'joining'}
+              >
+                {joinPhase === 'joining' ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.joinButtonText}>Link Up</Text>
+                )}
+              </TouchableOpacity>
             </View>
           </View>
-          
+
           <Text style={[styles.footerStatus, { color: t.subtext }]}>
-            End-to-End Encrypted Handshake
+            Secured by Supabase Auth + HTTPS
           </Text>
         </KeyboardAvoidingView>
       </SafeAreaView>

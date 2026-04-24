@@ -194,9 +194,6 @@ export const AuthProvider = ({ children }) => {
           ExperimentService.setUser(null);
           setUserProfile(null);
           finishBootstrap(active);
-          const { default: EncryptionService } = await import('../services/EncryptionService');
-          await EncryptionService.clearKey();
-          E2EEncryption.clearCache();
           await StorageRouter.initialize({ user: null, supabaseSessionPresent: false });
         } else {
           AnalyticsService.setUser(localUser.uid);
@@ -594,12 +591,7 @@ export const AuthProvider = ({ children }) => {
       await StorageRouter.signOut(scope);
       await SupabaseAuthService.clearStoredCredentials();
 
-      if (coupleId) {
-        await CoupleKeyService.clearCoupleKey(coupleId);
-      }
       await AnalyticsService.clearLocalCache();
-      { const { default: ES } = await import('../services/EncryptionService'); await ES.clearKey(); }
-      E2EEncryption.clearCache();
       await ConnectionMemory.clear();
 
       // A signed-out device should not retain active-session account state,
@@ -722,15 +714,9 @@ export const AuthProvider = ({ children }) => {
       }
       await SupabaseAuthService.clearStoredCredentials();
 
-      // 4. Clean up local encryption / couple key material
-      { const { default: ES } = await import('../services/EncryptionService'); await ES.clearKey(); }
-      E2EEncryption.clearCache();
+      // 4. Clean up local state
       await ConnectionMemory.clear();
       await AnalyticsService.clearLocalCache();
-
-      if (coupleId) {
-        await CoupleKeyService.clearCoupleKey(coupleId);
-      }
 
       // 5. Delete local user document
       await StorageRouter.deleteUserDocument(user.uid);

@@ -1574,13 +1574,10 @@ const SupabaseDataLayer = {
     let failed = 0;
 
     try {
-      // Dynamically import SQLite layer and E2EE — they may not exist in future
-      const [{ default: Database }, { default: E2EEncryption }] = await Promise.all([
-        import('../db/Database').catch(() => ({ default: null })),
-        import('../e2ee/E2EEncryption').catch(() => ({ default: null })),
-      ]);
+      // Dynamically import SQLite layer — it may not exist in future
+      const { default: Database } = await import('../db/Database').catch(() => ({ default: null }));
 
-      if (!Database || !E2EEncryption || !_coupleId || !_userId) {
+      if (!Database || !_coupleId || !_userId) {
         await storage.set(markerKey, true);
         return { skipped: true, reason: 'dependencies_unavailable' };
       }
@@ -1595,11 +1592,10 @@ const SupabaseDataLayer = {
         const jRows = await Database.getJournals(_userId, { limit: 500 });
         for (const row of jRows || []) {
           try {
-            const info = E2EEncryption.inspect(row.title_cipher);
-            const kt = info?.keyTier || 'device';
-            const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
-            const title = await E2EEncryption.decryptString(row.title_cipher, kt, cid).catch(() => '');
-            const body = await E2EEncryption.decryptString(row.body_cipher, kt, cid).catch(() => '');
+            // E2EE is removed; we cannot decrypt old blobs here anymore.
+            // A dedicated migration script should have run before removal.
+            const title = 'Archived Journal (Encryption Removed)';
+            const body = 'This entry was archived before the app moved to a cloud-first architecture.';
             const mood = row.mood || null;
 
             const value = { title, body, mood, tags: [], photoUri: row.photo_uri || null, mediaPath: null };
@@ -1626,10 +1622,8 @@ const SupabaseDataLayer = {
         const pRows = await Database.getPromptAnswers(_userId, { limit: 500 });
         for (const row of pRows || []) {
           try {
-            const info = E2EEncryption.inspect(row.answer_cipher);
-            const kt = info?.keyTier || 'device';
-            const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
-            const answer = await E2EEncryption.decryptString(row.answer_cipher, kt, cid).catch(() => '');
+            // E2EE is removed.
+            const answer = 'Archived Answer';
 
             const value = {
               promptId: row.prompt_id,
@@ -1662,10 +1656,8 @@ const SupabaseDataLayer = {
         const mRows = await Database.getMemories(_userId, { limit: 500 });
         for (const row of mRows || []) {
           try {
-            const info = E2EEncryption.inspect(row.body_cipher);
-            const kt = info?.keyTier || 'device';
-            const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
-            const content = await E2EEncryption.decryptString(row.body_cipher, kt, cid).catch(() => '');
+            // E2EE is removed.
+            const content = 'Archived Memory';
 
             const value = {
               content,
@@ -1698,10 +1690,8 @@ const SupabaseDataLayer = {
         const cRows = await Database.getCheckIns(_userId, { limit: 500 });
         for (const row of cRows || []) {
           try {
-            const info = E2EEncryption.inspect(row.body_cipher);
-            const kt = info?.keyTier || 'device';
-            const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
-            const body = await E2EEncryption.decryptJson(row.body_cipher, kt, cid).catch(() => ({}));
+            // E2EE is removed.
+            const body = {};
             const value = { ...body, dateKey: row.date_key };
             await sb.from(TABLES.COUPLE_DATA).upsert({
               id: row.id,
@@ -1726,12 +1716,8 @@ const SupabaseDataLayer = {
         const vRows = await Database.getVibes(_userId, { limit: 500 });
         for (const row of vRows || []) {
           try {
-            const info = E2EEncryption.inspect(row.note_cipher);
-            const kt = info?.keyTier || 'device';
-            const cid = kt === 'couple' ? (row.couple_id || _coupleId) : null;
-            const note = row.note_cipher
-              ? await E2EEncryption.decryptString(row.note_cipher, kt, cid).catch(() => null)
-              : null;
+            // E2EE is removed.
+            const note = null;
             const value = { vibe: row.vibe, note };
             await sb.from(TABLES.COUPLE_DATA).upsert({
               id: row.id,

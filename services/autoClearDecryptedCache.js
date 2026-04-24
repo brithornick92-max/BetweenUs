@@ -1,17 +1,12 @@
-import { AppState } from 'react-native';
-import EncryptedAttachments from './e2ee/EncryptedAttachments';
-
-let currentState = AppState.currentState;
-
-async function handleAppStateChange(nextAppState) {
-  if (currentState.match(/active/) && nextAppState.match(/inactive|background/)) {
-    // App is going to background, clear decrypted cache
-    await EncryptedAttachments.clearDecryptedCache();
-  }
-  currentState = nextAppState;
-}
+/**
+ * autoClearDecryptedCache.js
+ *
+ * Previously cleared E2EE-decrypted temp files on app background.
+ * E2EE has been removed — this is now a no-op stub kept so App.js
+ * import doesn't break.
+ */
 
 export function registerAutoClearDecryptedCache() {
-  const subscription = AppState.addEventListener('change', handleAppStateChange);
-  return () => subscription.remove();
+  // No-op: no decrypted cache to clear without E2EE.
+  return () => {};
 }

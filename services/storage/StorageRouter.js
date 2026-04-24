@@ -1,7 +1,6 @@
 import LocalEngine from './LocalEngine';
 import CloudEngine from './CloudEngine';
 import { cloudSyncStorage, storage, STORAGE_KEYS } from '../../utils/storage';
-import { SENSITIVE_TYPES } from '../security/Sensitivity';
 
 function buildCloudProfileUpdates(localProfile = {}) {
   const preferences = {
@@ -54,9 +53,7 @@ function buildCloudProfileUpdates(localProfile = {}) {
     preferences.softBoundaries = localProfile.softBoundaries;
   }
 
-  const updates = {
-    preferences,
-  };
+  const updates = { preferences };
 
   const displayName =
     localProfile?.partnerNames?.myName ||
@@ -156,9 +153,6 @@ class StorageRouter {
     this.sessionPresent = !!supabaseSessionPresent;
     await LocalEngine.initialize?.();
     await this._syncCloudSessionState();
-    if (this._useCloud()) {
-      await this.flushRitualSyncQueue();
-    }
   }
 
   async configureSync({ isPremium, syncEnabled, supabaseSessionPresent } = {}) {
@@ -166,9 +160,6 @@ class StorageRouter {
     if (typeof syncEnabled === 'boolean') this.syncEnabled = syncEnabled;
     if (typeof supabaseSessionPresent === 'boolean') this.sessionPresent = supabaseSessionPresent;
     await this._syncCloudSessionState();
-    if (this._useCloud()) {
-      await this.flushRitualSyncQueue();
-    }
   }
 
   _useCloud() {
@@ -199,9 +190,6 @@ class StorageRouter {
   async setSupabaseSession(session) {
     this.sessionPresent = !!session;
     await this._syncCloudSessionState();
-    if (this._useCloud()) {
-      await this.flushRitualSyncQueue();
-    }
   }
 
   onAuthStateChanged(callback) {
@@ -253,10 +241,10 @@ class StorageRouter {
     return LocalEngine.updateUserDocument(userId, updates);
   }
 
-  async getCoupleData(coupleId, key, coupleKey = null) {
+  async getCoupleData(coupleId, key) {
     if (!this._canUseAuthenticatedCloud() || !coupleId || !key) return null;
     try {
-      return await CloudEngine.getCoupleData(coupleId, key, coupleKey);
+      return await CloudEngine.getCoupleData(coupleId, key);
     } catch (err) {
       const message = String(err?.message || '');
       const isMissingRow =
@@ -345,26 +333,14 @@ class StorageRouter {
     const local = await LocalEngine.saveMemory(userId, memoryData);
     if (this._useCloud() && coupleId) {
       try {
-        const dataType = 'memory';
-        if (SENSITIVE_TYPES.includes(dataType)) {
-          await CloudEngine.saveCoupleDataEncrypted(
-            coupleId,
-            `memory_${local.id}`,
-            memoryData,
-            userId,
-            memoryData.isPrivate,
-            dataType
-          );
-        } else {
-          await CloudEngine.saveCoupleData(
-            coupleId,
-            `memory_${local.id}`,
-            memoryData,
-            userId,
-            memoryData.isPrivate,
-            dataType
-          );
-        }
+        await CloudEngine.saveCoupleData(
+          coupleId,
+          `memory_${local.id}`,
+          memoryData,
+          userId,
+          memoryData.isPrivate,
+          'memory'
+        );
       } catch (err) {
         if (__DEV__) console.warn('[StorageRouter] Cloud memory save failed:', err?.message);
       }
@@ -380,12 +356,7 @@ class StorageRouter {
     const local = await LocalEngine.updateMemory(memoryId, updates);
     if (this._useCloud() && coupleId) {
       try {
-        const dataType = 'memory';
-        if (SENSITIVE_TYPES.includes(dataType)) {
-          await CloudEngine.updateCoupleDataEncrypted(coupleId, `memory_${memoryId}`, updates);
-        } else {
-          await CloudEngine.updateCoupleData(coupleId, `memory_${memoryId}`, updates);
-        }
+        await CloudEngine.updateCoupleData(coupleId, `memory_${memoryId}`, updates);
       } catch (err) {
         if (__DEV__) console.warn('[StorageRouter] Cloud memory update failed:', err?.message);
       }
@@ -458,68 +429,6 @@ class StorageRouter {
     }
 
     await cloudSyncStorage.setSyncQueue(updatedQueue);
-    if (hadSuccess) {
-      await cloudSyncStorage.setLastSyncTime(Date.now());
-    }
-    return true;
-  }
-
-  async queueRitualSync(payload) {
-    const queue = await storage.get(STORAGE_KEYS.RITUAL_SYNC_QUEUE, []);
-    const item = {
-      ...payload,
-      id: payload?.id || `ritual_sync_${Date.now()}`,
-      queuedAt: payload?.queuedAt || Date.now(),
-      attempts: payload?.attempts || 0,
-    };
-    await storage.set(STORAGE_KEYS.RITUAL_SYNC_QUEUE, [item, ...queue]);
-    if (this._useCloud()) {
-      await this.flushRitualSyncQueue();
-    }
-    return item;
-  }
-
-  async flushRitualSyncQueue() {
-    if (!this._useCloud()) return false;
-    const queue = await storage.get(STORAGE_KEYS.RITUAL_SYNC_QUEUE, []);
-    if (!queue.length) return true;
-
-    const coupleId = await this.getCoupleId();
-    if (!coupleId) return false;
-
-    const userId = await CloudEngine.getCurrentUserId();
-
-    const updatedQueue = [];
-    const maxRetries = 3;
-    let hadSuccess = false;
-
-    for (const item of queue) {
-      if (item?.attempts >= maxRetries) {
-        updatedQueue.push(item);
-        continue;
-      }
-
-      try {
-        await CloudEngine.saveCoupleDataEncrypted(
-          coupleId,
-          `ritual_${item.id}`,
-          item,
-          userId,
-          true,
-          'ritual'
-        );
-        hadSuccess = true;
-      } catch (error) {
-        updatedQueue.push({
-          ...item,
-          attempts: (item.attempts || 0) + 1,
-          lastError: error?.message || 'Ritual sync failed',
-          lastAttemptAt: Date.now(),
-        });
-      }
-    }
-
-    await storage.set(STORAGE_KEYS.RITUAL_SYNC_QUEUE, updatedQueue);
     if (hadSuccess) {
       await cloudSyncStorage.setLastSyncTime(Date.now());
     }
