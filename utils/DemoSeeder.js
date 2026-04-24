@@ -399,8 +399,9 @@ async function insertPromptAnswerRow({ userId, coupleId, promptId, answer, heat,
   return draft.id;
 }
 
-async function insertDatePlanRow({ userId, coupleId, sourceEventId, title, variant, createdAt, kt, encCoupleId }) {
+async function insertDatePlanRow({ userId, coupleId, sourceEventId, title, variant, createdAt, kt, encCoupleId, dayIndex = 0, isCompleted = false }) {
   const titleCipher = await E2EEncryption.encryptString(title, kt, encCoupleId);
+  const completedAt = isCompleted ? createdAt : null;
   const bodyCipher = await E2EEncryption.encryptJson(
     {
       locationType: variant.locationType,
@@ -408,6 +409,21 @@ async function insertDatePlanRow({ userId, coupleId, sourceEventId, title, varia
       load: variant.load,
       style: variant.style,
       steps: variant.steps,
+      status: isCompleted ? 'completed' : 'planned',
+      completedAt,
+      reflection: isCompleted
+        ? pick([
+            'We actually followed through on this one and it felt grounding.',
+            'This date left us feeling more connected than either of us expected.',
+            'Small plan, big payoff. It ended up being one of our favorite nights lately.',
+            'We kept this simple and still made it memorable.',
+          ], dayIndex)
+        : pick([
+            'Looking forward to this one already.',
+            'This feels like exactly the kind of plan we need this week.',
+            'Built to be easy to say yes to even on a busy day.',
+            'Saving this as something warm to look forward to together.',
+          ], dayIndex, 1),
     },
     kt,
     encCoupleId,
@@ -613,7 +629,7 @@ export async function seedReviewerData() {
     const dateKey = dateKeyFromIso(baseIso);
 
     try {
-      if (!boolEvery(dayIndex, 9, 4)) {
+      {
         const vibe = pick(VIBES, dayIndex, rowIsPartner ? 2 : 0);
         const vibeNote = boolEvery(dayIndex, 2, rowIsPartner ? 1 : 0)
           ? pick(VIBE_NOTES, dayIndex, rowIsPartner ? 2 : 0)
@@ -633,7 +649,7 @@ export async function seedReviewerData() {
         stats.vibes += 1;
       }
 
-      if (!boolEvery(dayIndex, 4, 3)) {
+      {
         const mood = pick(MOODS, dayIndex, rowIsPartner ? 2 : 0);
         const checkInPayload = {
           mood,
@@ -658,7 +674,7 @@ export async function seedReviewerData() {
         stats.checkIns += 1;
       }
 
-      if (!boolEvery(dayIndex, 5, 4)) {
+      {
         const journalId = Database.makeId('jrn');
         const journalMood = pick(MOODS, dayIndex, rowIsPartner ? 1 : 0);
         const tags = buildJournalTags(dayIndex + (rowIsPartner ? 1 : 0));
@@ -698,7 +714,7 @@ export async function seedReviewerData() {
         stats.journals += 1;
       }
 
-      if (boolEvery(dayIndex, 2, 0)) {
+      {
         const prompt = pick(PROMPT_PAIRS, promptIndex, 0);
         const myAnswer = pick(prompt.answers, dayIndex, rowIsPartner ? 1 : 0);
         await insertPromptAnswerRow({
@@ -714,40 +730,35 @@ export async function seedReviewerData() {
         });
         stats.prompts += 1;
 
-        if (boolEvery(dayIndex, 4, 1)) {
-          const partnerReply = pick(prompt.answers, dayIndex, rowIsPartner ? 0 : 1);
-          await insertPromptAnswerRow({
-            userId: otherUserId,
-            coupleId: coupleScopedId,
-            promptId: prompt.id,
-            answer: partnerReply,
-            heat: prompt.heat,
-            dateKey,
-            createdAt: isoDaysAgo(daysAgo, 22, (dayIndex * 13) % 60),
-            kt,
-            encCoupleId,
-          });
-          stats.prompts += 1;
-        }
+        const partnerReply = pick(prompt.answers, dayIndex, rowIsPartner ? 0 : 1);
+        await insertPromptAnswerRow({
+          userId: otherUserId,
+          coupleId: coupleScopedId,
+          promptId: prompt.id,
+          answer: partnerReply,
+          heat: prompt.heat,
+          dateKey,
+          createdAt: isoDaysAgo(daysAgo, 22, (dayIndex * 13) % 60),
+          kt,
+          encCoupleId,
+        });
+        stats.prompts += 1;
 
         promptIndex += 1;
       }
 
-      if (boolEvery(dayIndex, 3, 1)) {
+      {
         const memoryType = chooseMemoryType(dayIndex);
         const memoryId = Database.makeId('mem');
-        const wantsMedia = memoryType === 'thinking_of_you' || boolEvery(dayIndex, 5, 0);
-        const mediaRef = wantsMedia
-          ? await attachDemoMedia({
-              parentType: 'memory',
-              parentId: memoryId,
-              userId: rowUserId,
-              coupleId: coupleScopedId,
-              kt,
-              preferVideo: memoryType === 'thinking_of_you' ? boolEvery(dayIndex, 4, 0) : boolEvery(dayIndex, 9, 2),
-              assetIndex: dayIndex + 5,
-            })
-          : null;
+        const mediaRef = await attachDemoMedia({
+          parentType: 'memory',
+          parentId: memoryId,
+          userId: rowUserId,
+          coupleId: coupleScopedId,
+          kt,
+          preferVideo: boolEvery(dayIndex, 2, 0),
+          assetIndex: dayIndex + 5,
+        });
 
         const body = buildMemoryBody(memoryType, dayIndex, rowIsPartner ? 2 : 0);
         const mood = buildMemoryMood(dayIndex, rowIsPartner ? 3 : 0);
@@ -801,9 +812,12 @@ export async function seedReviewerData() {
         stats.rituals += 1;
       }
 
-      if (boolEvery(dayIndex, 4, 0) || boolEvery(dayIndex, 9, 2)) {
-        const event = pick(CALENDAR_EVENTS, dayIndex, rowIsPartner ? 1 : 0);
-        const eventWhen = tsDaysAgo(daysAgo, event.type === 'dateNight' ? 19 : 11 + (dayIndex % 4), event.type === 'dateNight' ? 0 : 30);
+      {
+        const event = {
+          ...pick(CALENDAR_EVENTS, dayIndex, rowIsPartner ? 1 : 0),
+          type: 'dateNight',
+        };
+        const eventWhen = tsDaysAgo(daysAgo, 19, (dayIndex * 3) % 60);
         const eventIso = eventWhen.toISOString();
         const calendarDraft = {
           id: Database.makeId('cal'),
@@ -840,19 +854,19 @@ export async function seedReviewerData() {
         await Database.upsertCalendarEvent(calendarDraft, { syncStatus: 'synced', syncSource: 'remote' });
         stats.calendar += 1;
 
-        if (event.type === 'dateNight') {
-          await insertDatePlanRow({
-            userId: rowUserId,
-            coupleId: coupleScopedId,
-            sourceEventId: calendarDraft.id,
-            title: event.title,
-            variant: pick(DATE_PLAN_VARIANTS, dayIndex, rowIsPartner ? 1 : 0),
-            createdAt: eventIso,
-            kt,
-            encCoupleId,
-          });
-          stats.datePlans += 1;
-        }
+        await insertDatePlanRow({
+          userId: rowUserId,
+          coupleId: coupleScopedId,
+          sourceEventId: calendarDraft.id,
+          title: event.title,
+          variant: pick(DATE_PLAN_VARIANTS, dayIndex, rowIsPartner ? 1 : 0),
+          createdAt: eventIso,
+          kt,
+          encCoupleId,
+          dayIndex,
+          isCompleted: daysAgo > 0,
+        });
+        stats.datePlans += 1;
       }
 
       if (boolEvery(dayIndex, 6, 2)) {

@@ -34,14 +34,14 @@
   "items": [
     {
       "id": "d004",
-      "title": "Sunrise Photography Walk",
+      "title": "Golden Hour Walk + 3 Forever Photos",
       "minutes": 120,
       "location": "out",
       "steps": [
-        "Wake up early together",
-        "Find perfect sunrise spot",
-        "Take photos of each other",
-        "Share coffee and quiet conversation"
+        "Wake up early and leave before the world feels awake",
+        "Find a sunrise spot with a good view",
+        "Take three photos of each other you actually want to keep",
+        "Grab coffee after and trade your favorite shot"
       ],
       "heat": 1,
       "load": 2,
@@ -50,14 +50,14 @@
     },
     {
       "id": "d013",
-      "title": "Candlelit Letter Writing",
+      "title": "Candlelit Letters for Next Year",
       "minutes": 60,
       "location": "home",
       "steps": [
-        "Light candles, turn off phones",
-        "Write letters to future selves",
-        "Share what you wrote",
-        "Seal to open in one year"
+        "Light candles and put both phones away",
+        "Each write a letter to yourselves one year from now",
+        "Read one favorite paragraph out loud",
+        "Seal them and set a calendar reminder to open them together"
       ],
       "heat": 1,
       "load": 1,
@@ -66,14 +66,14 @@
     },
     {
       "id": "d017",
-      "title": "Chocolate Tasting Ceremony",
+      "title": "Chocolate Tasting + Favorite Bite Challenge",
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Buy variety of chocolates",
-        "Create tasting notes",
-        "Feed each other slowly",
-        "Discuss flavors and feelings"
+        "Pick 4-6 chocolates with very different flavors",
+        "Taste each one slowly and rate it from 1-10",
+        "Feed each other your favorite bite",
+        "Decide which one feels most like your relationship tonight"
       ],
       "heat": 1,
       "load": 1,
@@ -82,14 +82,14 @@
     },
     {
       "id": "d023",
-      "title": "Bedroom Picnic Feast",
+      "title": "Bedroom Picnic + Dream Date Draft",
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Prepare finger foods",
-        "Set up picnic in bedroom",
-        "Feed each other",
-        "Share dreams and desires"
+        "Set up an easy finger-food picnic in the bedroom",
+        "Take turns building a plate for each other",
+        "Share one dream date you'd plan with no budget limit",
+        "End by choosing one tiny version you could actually do soon"
       ],
       "heat": 2,
       "load": 1,
@@ -130,14 +130,14 @@
     },
     {
       "id": "d036",
-      "title": "Drive-In Movie Experience",
+      "title": "Drive-In Movie + Backseat Review",
       "minutes": 120,
       "location": "out",
       "steps": [
-        "Find drive-in theater",
-        "Bring cozy blankets",
-        "Share movie snacks",
-        "Cuddle during film"
+        "Find a drive-in or recreate the vibe in the car",
+        "Bring blankets and two favorite movie snacks",
+        "Watch from the front seat, then move closer halfway through",
+        "Give the movie and the date your backseat review after"
       ],
       "heat": 2,
       "load": 1,
@@ -146,14 +146,14 @@
     },
     {
       "id": "d039",
-      "title": "Message Scavenger Hunt",
+      "title": "Love Note Hunt Around the House",
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Write thoughtful notes",
-        "Hide around house",
-        "Take turns finding messages",
-        "End with biggest surprise"
+        "Write 6-8 short notes your partner would want to find",
+        "Hide them around the house in everyday places",
+        "Take turns following the trail and reading each one out loud",
+        "End with one final note that leads to a kiss, dessert, or surprise"
       ],
       "heat": 1,
       "load": 3,
@@ -210,14 +210,14 @@
     },
     {
       "id": "d059",
-      "title": "Slow Dance Marathon",
+      "title": "Three-Song Slow Dance Night",
       "minutes": 60,
       "location": "home",
       "steps": [
-        "Create romantic playlist",
-        "Dim lights and light candles",
-        "Dance to every song",
-        "End with passionate kiss"
+        "Pick three songs that each set a different mood",
+        "Dim the lights and make the room feel dressed up",
+        "Slow dance through all three without checking your phones",
+        "After the last song, say one thing you wanted to tell each other tonight"
       ],
       "heat": 1,
       "load": 1,
@@ -242,14 +242,14 @@
     },
     {
       "id": "d067",
-      "title": "Outdoor Movie Night",
+      "title": "Outdoor Movie Night + Cozy Ratings",
       "minutes": 135,
       "location": "out",
       "steps": [
-        "Find outdoor movie screening",
-        "Bring cozy blankets",
-        "Share movie snacks",
-        "Cuddle under stars"
+        "Find an outdoor movie or project one yourselves",
+        "Bring the coziest blanket setup you can manage",
+        "Split snacks and pick one scene you'll both remember tomorrow",
+        "Give the movie, the setup, and the cuddling separate ratings after"
       ],
       "heat": 2,
       "load": 1,
@@ -391,9 +391,9 @@
       "location": "home",
       "steps": [
         "Hide 6-8 notes around your space",
-        "Each note reveals a flirty compliment",
-        "Follow the trail together",
-        "End with a cozy cuddle spot"
+        "Make each note a compliment your partner doesn't hear often enough",
+        "Follow the trail together and read every note out loud",
+        "End at a cozy spot with one final bold compliment in person"
       ],
       "heat": 2,
       "load": 1,
@@ -450,14 +450,14 @@
     },
     {
       "id": "d246",
-      "title": "Morning Affirmation Coffee",
+      "title": "Morning Coffee + 3 Things I Adore",
       "minutes": 60,
       "location": "home",
       "steps": [
-        "Brew favorite coffee or tea together",
-        "Write three things you adore about partner",
-        "Read notes aloud over warm drinks",
-        "Save notes in a keepsake box"
+        "Brew your favorite coffee or tea together",
+        "Each write three things you adore about your partner right now",
+        "Read them out loud before the drinks are gone",
+        "Save the notes somewhere you can stumble on them later"
       ],
       "heat": 1,
       "load": 1,
@@ -818,14 +818,14 @@
     },
     {
       "id": "d269",
-      "title": "First Date Recreation",
+      "title": "Recreate Your First Date, Then Compare Notes",
       "minutes": 90,
       "location": "out",
       "steps": [
-        "Go back to where you first met or dated",
-        "Recreate the experience as closely as possible",
-        "Compare memories of the original",
-        "Appreciate how far you've come"
+        "Go back to where you first met or had an early date",
+        "Recreate one or two details as closely as you can",
+        "Compare what each of you remembers differently",
+        "End by naming the moment you knew this had real potential"
       ],
       "heat": 1,
       "load": 3,
@@ -1810,14 +1810,14 @@
     },
     {
       "id": "d274",
-      "title": "Letters to Future Selves",
+      "title": "Letters to Your Future Us",
       "minutes": 60,
       "location": "home",
       "steps": [
-        "Write letters to yourselves five years from now",
-        "Include hopes for your relationship",
+        "Write letters to the two of you five years from now",
+        "Include one hope, one promise, and one prediction",
         "Seal and date the envelopes",
-        "Set a calendar reminder to open them"
+        "Set a calendar reminder to open them together"
       ],
       "heat": 1,
       "load": 2,

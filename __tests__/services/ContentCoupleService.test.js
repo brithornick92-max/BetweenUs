@@ -5,15 +5,14 @@ describe('ContentCoupleService', () => {
 
   function createDeps({ coupleId = 'couple-1' } = {}) {
     return {
-      encryptionService: {
-        encryptJson: jest.fn().mockResolvedValue('encrypted-payload'),
-        decryptJson: jest.fn().mockResolvedValue({ content: 'decrypted response' }),
-      },
       storageRouter: {
         saveMemory: jest.fn().mockResolvedValue({ id: 'memory-1' }),
-        getUserMemories: jest.fn().mockResolvedValue([
-          { id: 'memory-1', isEncrypted: true, encryptedData: 'encrypted-payload' },
-          { id: 'memory-2', isEncrypted: false, content: 'plain' },
+      },
+      dataLayer: {
+        savePromptAnswer: jest.fn().mockResolvedValue({ id: 'answer-1', prompt_id: 'prompt-1', answer: 'hello' }),
+        getPromptAnswers: jest.fn().mockResolvedValue([
+          { id: 'answer-1', prompt_id: 'prompt-1', answer: 'hello' },
+          { id: 'answer-2', prompt_id: 'prompt-2', answer: 'plain' },
         ]),
       },
       coupleStateService: {
@@ -24,7 +23,7 @@ describe('ContentCoupleService', () => {
     };
   }
 
-  it('builds and saves encrypted prompt responses using the couple tier when linked', async () => {
+   it('builds and saves plain prompt responses using the cloud data layer', async () => {
     const {
       buildPromptResponseRecord,
       savePromptResponse,
@@ -37,30 +36,23 @@ describe('ContentCoupleService', () => {
     });
 
     expect(record).toEqual(expect.objectContaining({
-      encryptedData: 'encrypted-payload',
-      isEncrypted: true,
+      content: 'hello',
       promptId: 'prompt-1',
+      isPrivate: false,
     }));
-    expect(deps.encryptionService.encryptJson).toHaveBeenCalledWith(
-      expect.objectContaining({ content: 'hello', promptId: 'prompt-1' }),
-      'couple',
-      'couple-1',
-      'prompt_response:prompt-1'
-    );
 
     await savePromptResponse('user-1', 'prompt-1', 'hello', {
       fallbackCoupleId: 'profile-couple-id',
       dependencies: deps,
     });
 
-    expect(deps.storageRouter.saveMemory).toHaveBeenCalledWith(
-      'user-1',
-      expect.objectContaining({ encryptedData: 'encrypted-payload', promptId: 'prompt-1' }),
-      'couple-1'
-    );
+    expect(deps.dataLayer.savePromptAnswer).toHaveBeenCalledWith({
+      promptId: 'prompt-1',
+      answer: 'hello',
+    });
   });
 
-  it('loads and decrypts prompt responses using the resolved tier', async () => {
+  it('loads prompt responses from the cloud data layer', async () => {
     const { loadPromptResponses } = require('../../services/content/ContentCoupleService');
     const deps = createDeps();
 
@@ -69,16 +61,9 @@ describe('ContentCoupleService', () => {
       dependencies: deps,
     });
 
-    expect(deps.storageRouter.getUserMemories).toHaveBeenCalledWith('user-1');
-    expect(deps.encryptionService.decryptJson).toHaveBeenCalledWith(
-      'encrypted-payload',
-      'couple',
-      'couple-1'
-    );
-    expect(responses[0]).toEqual(expect.objectContaining({
-      decryptedContent: { content: 'decrypted response' },
-    }));
-    expect(responses[1]).toEqual(expect.objectContaining({ id: 'memory-2', content: 'plain' }));
+    expect(deps.dataLayer.getPromptAnswers).toHaveBeenCalledWith({ limit: 365 });
+    expect(responses[0]).toEqual(expect.objectContaining({ id: 'answer-1', answer: 'hello' }));
+    expect(responses[1]).toEqual(expect.objectContaining({ id: 'answer-2', answer: 'plain' }));
   });
 
   it('delegates shared daily prompt access through the content service boundary', async () => {

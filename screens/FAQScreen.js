@@ -120,7 +120,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Does it work offline?',
-        a: 'Yes. Between Us is built local-first. You can reflect and write anytime; your data will sync securely the next time you are online.',
+        a: 'Yes. Between Us keeps a local cache for speed and temporary offline continuity, but Supabase is the source of truth. When you reconnect, pending changes sync to your account and shared data is restored from the server.',
       },
     ],
   },
@@ -129,7 +129,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Unlimited prompt responses\n• Love notes\n• Unlimited date planning tools\n• Night rituals\n• Calendar and scheduling\n• Encrypted cloud sync for linked couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Shared premium access for linked partners',
+        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Unlimited prompt responses\n• Love notes\n• Unlimited date planning tools\n• Night rituals\n• Calendar and scheduling\n• Cloud sync for linked couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Shared premium access for linked partners',
       },
       {
         q: 'How do I subscribe?',

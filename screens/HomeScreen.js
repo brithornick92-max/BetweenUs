@@ -426,14 +426,14 @@ export default function HomeScreen({ navigation }) {
     solo_unanswered: {
       eyebrow: 'TODAY',
       title: promptReady ? prompt.text : 'A small moment for today',
-      body: "Answer first. Reveal once you're both in.",
+      body: `Answer first. ${partnerLabel} won't see it until they answer too!`,
       primaryLabel: "Answer today's question",
       secondaryLabel: 'Invite your partner',
     },
     linked_unanswered: {
       eyebrow: 'TODAY',
       title: promptReady ? prompt.text : `A small moment for you and ${partnerLabel}`,
-      body: "Answer first. Reveal once you're both in.",
+      body: `Answer first. ${partnerLabel} won't see it until they answer too!`,
       primaryLabel: "Answer today's question",
       secondaryLabel: null,
     },
@@ -776,18 +776,25 @@ export default function HomeScreen({ navigation }) {
 
               {statusText && (
                 <View style={styles.statusRow}>
-                  <Icon
-                    name={
-                      ritualState === 'both_answered_ready' || ritualState === 'revealed'
-                        ? 'checkmark-outline'
-                        : ritualState === 'answered_waiting'
-                          ? 'time-outline'
-                          : 'chatbubble-outline'
-                    }
-                    size={16}
-                    color={t.primary}
-                  />
-                  <Text style={styles.statusText}>{statusText}</Text>
+                  <View style={styles.statusLine1}>
+                    <Icon
+                      name={
+                        ritualState === 'both_answered_ready' || ritualState === 'revealed'
+                          ? 'checkmark-outline'
+                          : ritualState === 'answered_waiting'
+                            ? 'time-outline'
+                            : 'chatbubble-outline'
+                      }
+                      size={14}
+                      color={t.primary}
+                    />
+                    <Text style={styles.statusTextLine1}>
+                      {statusText.split('.')[0]}.
+                    </Text>
+                  </View>
+                  <Text style={styles.statusTextLine2}>
+                    {statusText.split('.').slice(1).join('.').trim()}
+                  </Text>
                 </View>
               )}
 
@@ -1155,16 +1162,31 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.subtext 
   },
   statusRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  statusLine1: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: SPACING.lg,
+    justifyContent: 'center',
+    gap: 4,
   },
-  statusText: {
+  statusTextLine1: {
     fontFamily: systemFont,
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '600',
     color: t.subtext,
+    textAlign: 'center',
+  },
+  statusTextLine2: {
+    fontFamily: systemFont,
+    fontSize: 11,
+    fontWeight: '600',
+    color: t.subtext,
+    textAlign: 'center',
+    marginTop: 2,
   },
   cta: {
     flexDirection: 'row',
