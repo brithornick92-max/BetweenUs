@@ -3,11 +3,8 @@ import SyncEngine from '../services/sync/SyncEngine';
 import Database from '../services/db/Database';
 import E2EEncryption from '../services/e2ee/E2EEncryption';
 import EncryptedAttachments from '../services/e2ee/EncryptedAttachments';
-import storage, { STORAGE_KEYS } from './storage';
-import settingsStorage from '../services/settings/settingsStorage';
-import NicknameEngine from '../services/relationship/NicknameEngine';
-import RelationshipSeasons from '../services/relationship/RelationshipSeasons';
-import SoftBoundaries from '../services/relationship/SoftBoundaries';
+import { storage, STORAGE_KEYS, settingsStorage } from './storage';
+import { NicknameEngine, RelationshipSeasons, SoftBoundaries } from '../services/PolishEngine';
 import { Image } from 'react-native';
 
 const ME = 'Alex';

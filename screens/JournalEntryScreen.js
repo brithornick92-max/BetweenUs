@@ -388,13 +388,6 @@ export default function JournalEntryScreen({ navigation, route }) {
 
             {/* Footer Actions */}
             <Animated.View entering={FadeInUp.delay(600)} style={styles.footer}>
-              {needsReconnect ? (
-                <View style={[styles.reconnectBanner, { borderColor: withAlpha('#D2121A', 0.24), backgroundColor: withAlpha('#D2121A', 0.08) }]}>
-                  <Icon name="warning-outline" size={16} color="#D2121A" />
-                  <Text style={[styles.reconnectBannerText, { color: colors.text }]}>Reconnect pairing to restore shared journal saving on this device.</Text>
-                </View>
-              ) : null}
-
               <View style={styles.footerActions}>
                 <View
                   style={[
