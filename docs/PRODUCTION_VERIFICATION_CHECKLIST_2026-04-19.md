@@ -1,6 +1,6 @@
 # Production Verification Checklist
 
-Last updated: April 19, 2026
+Last updated: April 24, 2026
 
 Use this after applying the pending hosted Supabase migrations.
 
@@ -29,11 +29,10 @@ Use this after applying the pending hosted Supabase migrations.
 
 - Upload a couple photo and confirm signed URL viewing works.
 - Delete that couple photo and confirm it is no longer accessible.
-- Create an encrypted attachment and sync it.
-- Open that attachment on the partner side and confirm decryption works.
-- Send an encrypted whisper.
-- Play the whisper on the partner side.
-- Confirm the whisper object is deleted after playback.
+- Create a media attachment and sync it.
+- Open that attachment on the partner side and confirm access controls and viewing work.
+- If an encrypted whisper/voice-note feature is exposed in the shipped build, send one.
+- If that feature is exposed, play the whisper on the partner side and confirm the remote object is deleted after playback.
 
 ## Notifications
 

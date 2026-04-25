@@ -215,7 +215,7 @@ const SetPinScreen = ({ navigation }) => {
 
           <View style={styles.securityBadge}>
             <Icon name="shield-checkmark-outline" size={14} color={t.subtext} />
-            <Text style={[styles.securityText, { color: t.subtext }]}>E2EE LOCAL STORAGE</Text>
+            <Text style={[styles.securityText, { color: t.subtext }]}>DEVICE APP LOCK</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

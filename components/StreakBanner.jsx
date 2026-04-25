@@ -1,8 +1,8 @@
 /**
- * StreakBanner — Gentle rhythm indicator for the home screen
+ * StreakBanner — Gentle private-moments indicator for the home screen
  *
- * Shows consecutive days of connection with warm, non-gamified language.
- * Hidden until 2+ consecutive days to avoid "1 day" noise.
+ * Shows the number of small connection moments created this month.
+ * Hidden until 2+ moments to avoid noise.
  * Uses a subtle pulse icon instead of fire. No milestone alerts.
  */
 
@@ -13,21 +13,20 @@ import { useTheme } from '../context/ThemeContext';
 import { updateWidgetDaysConnected } from '../services/widgetData';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
-import { SPACING } from '../utils/theme';
 
-function getRhythmLabel(days) {
-  if (days >= 30) return 'Deeply connected';
-  if (days >= 14) return 'A beautiful rhythm';
-  if (days >= 7) return 'Showing up together';
-  if (days >= 3) return 'Finding your rhythm';
-  return 'Connected';
+function getRhythmLabel(moments) {
+  if (moments >= 30) return 'Your archive is alive';
+  if (moments >= 14) return 'A beautiful rhythm';
+  if (moments >= 7) return 'Choosing each other';
+  if (moments >= 3) return 'Small moments adding up';
+  return 'A private start';
 }
 
 export default function StreakBanner({ onPress }) {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const { isPremiumEffective: isPremium } = useEntitlements();
-  const [streak, setStreak] = useState(0);
+  const [moments, setMoments] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -36,39 +35,27 @@ export default function StreakBanner({ onPress }) {
       try {
         const { DataLayer } = await import('../services/localfirst');
         const checkIns = await DataLayer.getCheckIns?.({ limit: 90 }) || [];
-
-        const daySet = new Set();
-        for (const ci of checkIns) {
-          const d = new Date(ci.created_at || ci.date_key);
-          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-          daySet.add(key);
-        }
-
         const answers = await DataLayer.getPromptAnswers?.({ limit: 90 }) || [];
-        for (const a of answers) {
-          if (a.date_key) daySet.add(a.date_key);
-        }
 
-        const sorted = [...daySet].sort().reverse();
-        let currentStreak = 0;
-        const today = new Date();
+        const now = new Date();
+        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        const countThisMonth = (items) => items.reduce((total, item) => {
+          const rawDate = item.date_key || item.created_at;
+          if (!rawDate) return total;
+          const raw = String(rawDate);
+          const normalized = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw;
+          const d = new Date(normalized);
+          if (Number.isNaN(d.getTime())) return total;
+          const itemMonthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          return itemMonthKey === monthKey ? total + 1 : total;
+        }, 0);
 
-        for (let i = 0; i < sorted.length + 1; i++) {
-          const expected = new Date(today);
-          expected.setDate(expected.getDate() - i);
-          const expectedKey = `${expected.getFullYear()}-${String(expected.getMonth() + 1).padStart(2, '0')}-${String(expected.getDate()).padStart(2, '0')}`;
-
-          if (daySet.has(expectedKey)) {
-            currentStreak++;
-          } else {
-            break;
-          }
-        }
+        const currentMoments = countThisMonth(checkIns) + countThisMonth(answers);
 
         if (active) {
-          setStreak(currentStreak);
-          updateWidgetDaysConnected(currentStreak).catch(() => {});
-          if (currentStreak >= 2) {
+          setMoments(currentMoments);
+          updateWidgetDaysConnected(currentMoments).catch(() => {});
+          if (currentMoments >= 2) {
             Animated.timing(fadeAnim, {
               toValue: 1,
               duration: 500,
@@ -81,10 +68,10 @@ export default function StreakBanner({ onPress }) {
       }
     })();
     return () => { active = false; };
-  }, [user?.uid, isPremium]);
+  }, [user?.uid, isPremium, fadeAnim]);
 
-  // Hidden until 2+ consecutive days
-  if (streak < 2) return null;
+  // Hidden until 2+ private moments this month
+  if (moments < 2) return null;
 
   const bg = isDark ? '#1C1C1E' : '#FFFFFF';
   const textColor = isDark ? '#FFFFFF' : '#000000';
@@ -96,15 +83,17 @@ export default function StreakBanner({ onPress }) {
         activeOpacity={0.75}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${streak} nights connected. Tap to view moments.`}
+        accessibilityLabel={`${moments} private moments this month. Tap to view your story.`}
       >
         <Icon name="pulse-outline" size={18} color={colors.primary} />
-        <Text style={[styles.label, { color: textColor }]}>
-          {streak} nights connected
-        </Text>
-        <Text style={[styles.rhythm, { color: colors.textMuted }]}>
-          {getRhythmLabel(streak)}
-        </Text>
+        <View style={styles.textWrap}>
+          <Text style={[styles.label, { color: textColor }]}>
+            {moments} private moments this month
+          </Text>
+          <Text style={[styles.rhythm, { color: colors.textMuted }]}>
+            {getRhythmLabel(moments)}
+          </Text>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -130,9 +119,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: -0.2,
   },
+  textWrap: {
+    flexShrink: 1,
+  },
   rhythm: {
     fontSize: 12,
     fontWeight: '500',
-    marginLeft: 2,
+    marginTop: 2,
   },
 });

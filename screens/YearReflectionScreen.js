@@ -153,15 +153,15 @@ export default function YearReflectionScreen({ navigation }) {
         <LinearGradient colors={[PALETTE.sexyRed, '#9A0D12']} style={styles.premiumHeaderGrad} />
         <SafeAreaView style={styles.premiumGate}>
           <Icon name="sparkles-outline" size={48} color="#FFF" />
-          <Text style={[styles.gateTitle, { color: '#FFF' }]}>The Year in Review</Text>
+          <Text style={[styles.gateTitle, { color: '#FFF' }]}>Annual Recap</Text>
           <Text style={[styles.gateSub, { color: 'rgba(255,255,255,0.8)' }]}>
-            Experience a curated journey of your love. Unlock your private narrative with Pro.
+            Premium turns your answers, memories, and milestones into a private recap of the love you are building.
           </Text>
           <TouchableOpacity
             style={styles.premiumButton}
             onPress={() => { selection(); showPaywall(PremiumFeature.YEAR_REFLECTION); }}
           >
-            <Text style={styles.premiumButtonText}>Unlock Your Story</Text>
+            <Text style={styles.premiumButtonText}>Open Recap</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </View>

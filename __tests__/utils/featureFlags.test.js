@@ -63,8 +63,8 @@ describe('GuardBehavior enum', () => {
 // ─── Limits ──────────────────────────────────────────────────────────────────
 
 describe('FREE_LIMITS', () => {
-  it('allows three daily prompt responses', () => {
-    expect(FREE_LIMITS.PROMPTS_PER_DAY).toBe(3);
+  it('allows one daily prompt response', () => {
+    expect(FREE_LIMITS.PROMPTS_PER_DAY).toBe(1);
   });
 
   it('allows five date idea previews per day', () => {

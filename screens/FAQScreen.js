@@ -37,7 +37,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What is Between Us?',
-        a: 'Between Us is a private digital sanctuary built for couples to deepen their closeness. Through daily prompts, shared journaling, and meaningful connection tools, it provides a safe space to connect meaningfully beyond the noise of everyday life.',
+        a: 'Between Us is a private relationship space for couples who already love each other and want to keep choosing each other on purpose. Answer privately, reveal together, save favorite moments, and build a shared archive that feels like yours.',
       },
       {
         q: 'Who is Between Us for?',
@@ -45,11 +45,11 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `Pro membership includes:\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly} (Best Value)\n\nFree users can still link with a partner, answer 1 prompt per day, and fully plan 1 date per week. One subscription covers both you and your linked partner. Access to data export is always free for all users.`,
+        a: `Premium includes:\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}\n\nFree users can still link with a partner, answer 1 prompt per day, and fully plan 2 date flows per week. One subscription can cover both you and your linked partner after entitlement sync completes. Access to supported data export is always free for all users.`,
       },
       {
         q: 'How do I get started?',
-        a: '1. Create your account\n2. Customize your partner names\n3. Link with your partner (optional)\n4. Start exploring prompts!',
+        a: '1. Create your account\n2. Add your names and preferred tone\n3. Link with your partner\n4. Answer today\'s prompt privately\n5. Reveal together when both answers are in',
       },
     ],
   },
@@ -58,15 +58,15 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Do I need my partner to use the app?',
-        a: 'No! You can use Between Us solo to journal, reflect, and prepare conversation topics. However, linking with your partner unlocks shared features and makes the experience more interactive.',
+        a: 'You can start solo by saving answers and notes, but Between Us is strongest when both partners are linked. The shared reveal, date ideas, memories, signals, and archive are designed for the two of you.',
       },
       {
         q: 'How do I link with my partner?',
-        a: '1. Both partners create accounts\n2. One partner generates an invite code or QR code\n3. The other partner scans the QR code or enters the code manually\n4. Both partners confirm the link\n5. You\'re connected!\n\nPartner linking is free. Premium adds cloud sync, offline recovery, and more shared features.',
+        a: '1. Both partners create accounts\n2. One partner generates an invite code or QR code\n3. The other partner scans the QR code or enters the code manually\n4. Both accounts are linked into one couple space\n\nPartner linking is free. Premium adds expanded prompts, date planning, recaps, signals, and more shared features.',
       },
       {
         q: 'Can I unlink from my partner?',
-        a: 'Yes, either partner can unlink at any time. Your individual data remains private, couple sharing stops, and you can relink later if desired.',
+        a: 'Yes, either partner can unlink at any time. Unlinking dissolves the shared couple connection, stops future shared syncing, and leaves your separate account in place.',
       },
     ],
   },
@@ -75,27 +75,27 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Absolutely. Your relationship content such as synced journal entries, prompt responses, memories, and love notes is protected by account access controls, transport security, and server-side policies. Some device settings and local-only features stay on your device, and we also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data.',
+        a: 'Your relationship content such as synced journal entries, prompt responses, memories, check-ins, vibes, calendar events, date plans, and media attachments is protected by account access controls, transport security, row-level security, and provider-side policies. Core synced content is not currently end-to-end encrypted. We also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data.',
       },
       {
         q: 'Can my partner see everything I write?',
-        a: 'Between Us is built for shared relationship content. Journal entries, prompt responses, memories, and love notes belong to the relationship space for both partners to see while you are linked.',
+        a: 'Between Us is built around shared couple-space content. Your linked partner may be able to access content stored in that shared couple space according to the feature flow. Prompt answers are designed to show through the shared reveal experience.',
       },
       {
         q: 'What happens if we break up?',
-        a: 'You can unlink from your partner, your data remains yours, couple sharing stops, and you can delete your account if desired. Your ex-partner cannot access content you create after unlinking.',
+        a: 'You can unlink from your partner. Unlinking dissolves the shared couple connection, stops future shared syncing, and leaves your separate account in place. You can also delete your account if desired.',
       },
       {
         q: 'Can Between Us read my journal?',
-        a: 'No. Shared content is stored in your private account and couple space with transport security, authentication, and server-side access controls. Some metadata is also stored to support filtering, sorting, scheduling, and delivery.',
+        a: 'Core synced journal entries are not currently end-to-end encrypted. We restrict access with authentication, row-level security, secure transport, and provider-side controls, but we cannot accurately claim that our systems are technically unable to access core synced content.',
       },
       {
         q: 'Can I lock the app with Face ID or a PIN?',
-        a: 'Yes! Go to Settings > Privacy & Security to set up a PIN code and optionally enable Face ID or Touch ID. Your biometric data never leaves your device — we only check whether your device confirms your identity.',
+        a: 'Yes. Go to Settings > Privacy & Security to set up a PIN code and optionally enable Face ID or Touch ID. Biometric matching is handled by your device; we receive only a success/failure result and do not collect biometric templates.',
       },
       {
         q: 'What happens if I lose my phone?',
-        a: 'If you have cloud sync enabled, your data is backed up to the cloud and can be restored on a new device by signing in.\n\nIf you don\'t have cloud sync enabled, device-local cached content may not be recoverable. We strongly recommend enabling cloud sync in Settings.',
+        a: 'If your account data has synced, it can appear on a new device after you sign in and sync completes.\n\nUnsynced local drafts, local-only settings, or cached data may not be recoverable from a lost device.',
       },
     ],
   },
@@ -104,11 +104,11 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What are Heat Levels?',
-        a: 'Heat levels range from Level 1 (Pure Emotional Connection) to Level 5 (Intense Passion). You can adjust this setting anytime to match your current relationship vibe.',
+        a: 'Heat levels range from emotional to explicit. You can adjust this anytime, and higher heat works best when both partners choose it together.',
       },
       {
         q: 'How do prompts work?',
-        a: '1. Open the app to see your daily prompt\n2. Read and reflect on the question\n3. Write your response\n4. Share with your partner (optional)\n5. Read their response when ready\n6. Continue the conversation!',
+        a: '1. Open the app to see today\'s Between Us prompt\n2. Write your answer privately\n3. Your partner sees that something is waiting\n4. They add their answer\n5. Both answers reveal together\n6. The moment can be saved to your archive',
       },
       {
         q: 'Can I skip prompts I don\'t like?',
@@ -129,11 +129,11 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: '• All heat levels (1-5)\n• Unlimited daily prompts\n• Unlimited prompt responses\n• Love notes\n• Unlimited date planning tools\n• Night rituals\n• Calendar and scheduling\n• Cloud sync for linked couples\n• Vibe Signals (share your mood)\n• Moment Signals (thinking of you taps)\n• Energy Matcher (content for your energy level)\n• Inside Jokes vault\n• Year Reflection narratives\n• Surprise Tonight (spontaneous date ideas)\n• Reveal Together (simultaneous answer sharing)\n• Shared premium access for linked partners',
+        a: '• Deeper reveal prompts and prompt packs\n• Romantic, sensual, steamy, and explicit heat levels\n• Personalized date ideas\n• Memory wall and keepsake recaps\n• Calendar and scheduling\n• Vibe and moment signals\n• Inside jokes vault\n• Surprise Tonight invitations\n• Expanded archive and personalization features\n• Shared premium access for linked partners when entitlement sync is available',
       },
       {
         q: 'How do I subscribe?',
-        a: '1. Tap "Upgrade to Premium" in the app\n2. Choose your plan (Monthly or Yearly)\n3. Confirm through the App Store\n4. Premium activates after purchase confirmation\n5. If you\'re linked, your partner can receive shared access too',
+        a: '1. Open a premium experience in the app\n2. Choose your plan (Monthly or Yearly)\n3. Confirm through the App Store\n4. Premium activates after purchase confirmation\n5. If you\'re linked, your partner can receive shared access too',
       },
       {
         q: 'Can I cancel anytime?',
@@ -141,7 +141,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can I share Premium with my partner?',
-        a: 'Yes. Premium is priced per couple. When one partner subscribes, linked partners can share premium access. Linking itself is free, so one subscription supports the shared premium experience for the linked couple.',
+        a: 'Premium is intended to support the linked-couple premium experience. When one partner subscribes, the linked partner may receive shared premium access after entitlement sync completes. Linking itself is free.',
       },
     ],
   },
@@ -158,7 +158,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How do I delete my account?',
-        a: '1. Go to Settings > Privacy & Security\n2. Tap "Delete Account"\n3. Confirm your decision\n4. Your data will be permanently deleted\n\nWarning: This cannot be undone!',
+        a: '1. Go to Settings > Account\n2. Tap "Delete Account"\n3. Type DELETE when prompted\n4. Confirm your decision\n\nAccount deletion is permanent once completed. Active data is removed according to the deletion flow and Privacy Policy; backup copies may persist for a limited period before routine purge.',
       },
       {
         q: 'I forgot my password. What can I do?',
@@ -166,7 +166,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can I use Between Us on multiple devices?',
-        a: 'Yes. You can sign in on multiple devices with the same account. Synced cloud data can appear across devices after sign-in and sync, but device-only encrypted content may not be recoverable on a new device unless cloud sync is enabled.',
+        a: 'Yes. You can sign in on multiple devices with the same account. Synced data can appear across devices after sign-in and sync, but unsynced local drafts, local-only settings, or cached data may not be recoverable on a new device.',
       },
       {
         q: 'What happens when I export my data?',
@@ -259,7 +259,7 @@ export default function FAQScreen({ navigation }) {
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
             <Text style={[styles.headerEye, { color: theme.crimson }]}>KNOWLEDGE BASE</Text>
             <Text style={[styles.introTitle, { color: colors.text }]}>Assistance</Text>
-            <Text style={[styles.introDate, { color: colors.textMuted }]}>Updated April 21, 2026</Text>
+            <Text style={[styles.introDate, { color: colors.textMuted }]}>Updated April 24, 2026</Text>
             <Text style={[styles.introText, { color: colors.textMuted }]}>
               Explore how to make the most of your shared sanctuary. If you need further guidance, our concierge team is available.
             </Text>

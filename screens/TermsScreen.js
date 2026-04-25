@@ -97,7 +97,7 @@ const TermsScreen = ({ navigation, route }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>RULES OF ENGAGEMENT</Text>
             <Text style={[styles.title, { color: colors.text }]}>Terms of Service</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-                EFFECTIVE: APRIL 21, 2026
+                EFFECTIVE: APRIL 24, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Welcome to Between Us. These Terms of Service ("Terms") govern your use of the Between Us mobile
@@ -128,8 +128,8 @@ const TermsScreen = ({ navigation, route }) => {
                 • Daily conversation prompts across 5 heat levels{'\n'}
                 • Journaling and prompt responses{'\n'}
                 • Date night ideas and planning{'\n'}
-                • Love notes with optional photo attachments{'\n'}
-                • Night rituals and shared routines{'\n'}
+                • Media attachments where supported{'\n'}
+                • Daily prompt and reveal rituals{'\n'}
                 • Relationship memories and milestones{'\n'}
                 • Vibe Signals and Moment Signals (mood sharing when connected){'\n'}
                 • Inside Jokes vault (private nicknames and jokes){'\n'}
@@ -164,7 +164,7 @@ const TermsScreen = ({ navigation, route }) => {
                 • You can link your account with your partner's account{'\n'}
                 • Both partners must consent to linking{'\n'}
                 • Either partner can unlink at any time{'\n'}
-                • Unlinking does not delete your individual data
+                • Unlinking dissolves the shared couple connection and stops future shared syncing without automatically deleting your separate account
               </Text>
             </View>
 
@@ -176,8 +176,8 @@ const TermsScreen = ({ navigation, route }) => {
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Your Content:{'\n'}
                 • You retain ownership of all content you create (journal entries, responses, etc.){'\n'}
-                • You grant us a limited license to store and display your content to you and your linked partner{'\n'}
-                • We use client-side encryption to protect supported sensitive content{'\n'}
+                • You grant us a limited license to host, store, process, display, sync, transmit, and back up your content as needed to operate the Service{'\n'}
+                • We use authentication, row-level security, transport security, and provider-side controls to protect synced content{'\n'}
                 • We never sell your personal data or content to third parties{'\n\n'}
                 Content Guidelines — you agree not to post content that:{'\n'}
                 • Is illegal, harmful, or violates others' rights{'\n'}
@@ -185,10 +185,9 @@ const TermsScreen = ({ navigation, route }) => {
                 • Harasses, threatens, or abuses others{'\n'}
                 • Violates any applicable laws or regulations{'\n\n'}
                 Partner Access:{'\n'}
-                • Your linked partner can see content you choose to share{'\n'}
-                • You control what you share and when{'\n'}
-                • You can delete your content at any time{'\n'}
-                • Deleting content removes it from both partners' views
+                • Your linked partner can access shared couple-space content according to the feature flow{'\n'}
+                • Supported delete and unlink controls are described in the app and Privacy Policy{'\n'}
+                • Deleting supported content removes it from active app views where technically feasible
               </Text>
             </View>
 
@@ -200,13 +199,13 @@ const TermsScreen = ({ navigation, route }) => {
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Free and Premium Features:{'\n'}
                 • Free users can answer 1 guided prompt per day at Heat levels 1–3{'\n'}
-                • Free users can link with a partner, fully plan 1 date per week, and export their data{'\n'}
-                • Premium adds unlimited prompts, unlimited date ideas, love notes, calendar features, and secure cloud sync{'\n'}
-                • Premium subscription is per couple (both partners get access when linked){'\n\n'}
+                • Free users can link with a partner, fully plan 2 date flows per week, and export supported data{'\n'}
+                • Premium adds expanded prompts, Heat levels 4–5, expanded date ideas, calendar features, recaps, signals, and other premium experiences shown in the app{'\n'}
+                • A premium subscription may extend access to your linked partner when entitlement sync is available and your accounts are linked{'\n\n'}
                 Current pricing:{'\n'}
                 • Monthly: {FALLBACK_PRICES.monthly}/month{'\n'}
                 • Yearly: {FALLBACK_PRICES.yearly}/year{'\n'}
-                • Prices may change with 30 days notice{'\n\n'}
+                • Actual prices, trials, offers, taxes, and currency are shown by the App Store or RevenueCat purchase flow and may vary by region or store configuration{'\n\n'}
                 Billing:{'\n'}
                 • Payment is charged to your Apple ID account at confirmation of purchase{'\n'}
                 • Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period{'\n'}
@@ -215,12 +214,12 @@ const TermsScreen = ({ navigation, route }) => {
 
                 • Depending on your location, you may have additional cancellation or withdrawal rights under applicable law and App Store policies{'\n\n'}
                 Partner Access:{'\n'}
-                • When you subscribe, your linked partner automatically gets premium access{'\n'}
-                • If you unlink, your partner loses premium access unless they subscribe separately{'\n'}
+                • When you subscribe, your linked partner may receive premium access after entitlement sync completes{'\n'}
+                • If you unlink, your partner may lose premium access unless they subscribe separately{'\n'}
                 • You retain your premium subscription regardless of linking status{'\n\n'}
                 Cancellation:{'\n'}
                 • You can cancel monthly or yearly subscriptions anytime through your app store account settings{'\n'}
-                • Access to premium features continues until the end of your billing period{'\n'}
+                • Access to premium features generally continues until the end of your billing period unless the App Store indicates otherwise{'\n'}
 
                 • Your data remains accessible after cancellation{'\n'}
                 • You can resubscribe at any time
@@ -258,7 +257,7 @@ const TermsScreen = ({ navigation, route }) => {
                 Your Content:{'\n'}
                 • You own your journal entries and responses{'\n'}
                 • We don't claim ownership of your personal content{'\n'}
-                • You can export or delete your content at any time
+                • You can export or delete supported content as described in the app and Privacy Policy
               </Text>
             </View>
 
@@ -269,18 +268,19 @@ const TermsScreen = ({ navigation, route }) => {
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Data Protection:{'\n'}
-                • We use authentication, secure transport, and server-side access controls{'\n'}
-                • Shared sensitive content is stored in a private account and couple space, and some private content remains device-local only{'\n'}
-                • Some metadata is stored to support filtering, sorting, scheduling, and delivery{'\n'}
+                • We use authentication, secure transport, row-level security, and provider-side access controls{'\n'}
+                • Core synced content is stored in a private account and couple space, but is not currently end-to-end encrypted before upload{'\n'}
+                • Some local data, app-lock secrets, and cached data remain device-local unless a feature explicitly syncs them{'\n'}
+                • Some metadata and content fields are stored to support filtering, sorting, scheduling, syncing, and delivery{'\n'}
                 • We implement security measures to protect your data{'\n'}
                 • See our Privacy Policy for complete details{'\n\n'}
-                Important: If you lose access to a device without cloud sync enabled, device-local cached content may be permanently unrecoverable.
-                We cannot recover encrypted data on your behalf.{'\n\n'}
+                Important: If you lose access to a device, unsynced local drafts, local-only settings, or cached data may be unrecoverable.
+                App lock protects access on your device; it does not make synced server content end-to-end encrypted.{'\n\n'}
                 Data Retention:{'\n'}
                 • We retain your data while your account is active{'\n'}
-                • You can request data deletion at any time{'\n'}
+                • You can delete your account and supported data through the app{'\n'}
                 • Some data may be retained for legal compliance{'\n'}
-                • Deleted data cannot be recovered
+                • Backup copies may persist for a limited period before routine purge
               </Text>
             </View>
 

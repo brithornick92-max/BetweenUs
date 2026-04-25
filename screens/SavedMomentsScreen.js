@@ -14,16 +14,20 @@ import {
   Platform,
   ActivityIndicator,
   Animated as RNAnimated,
-  ScrollView,
+  Image,
+  Modal,
+  Dimensions,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import { Video, ResizeMode } from 'expo-av';
 
 // Context & Services
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
+import EncryptedAttachments from '../services/e2ee/EncryptedAttachments';
 import { getPromptById } from '../utils/contentLoader';
 
 // Utilities
@@ -34,14 +38,9 @@ import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const HEARTS_KEY = '@betweenus:moment_hearts';
 
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
-
-const FILTERS = [
-  { id: 'all', label: 'All', icon: 'albums-outline' },
-  { id: 'prompt', label: 'Prompts', icon: 'chatbubbles-outline' },
-  { id: 'memory', label: 'Moments', icon: 'images-outline' },
-];
 
 const MEMORY_TYPE_META = {
   moment: { label: 'Saved Moment', icon: 'sparkles-outline' },
@@ -75,7 +74,60 @@ function getSortTime(item) {
   return Number.isNaN(value) ? 0 : value;
 }
 
-function buildPromptItem(row) {
+function getMediaKind(mimeType, uri) {
+  if (mimeType?.startsWith('video/')) return 'video';
+  if (mimeType?.startsWith('image/')) return 'image';
+  return uri ? 'image' : null;
+}
+
+async function resolveRowMedia(row) {
+  const directUri = row.mediaUri || row.photo_uri || row.photoUri || null;
+  const directMimeType = row.mediaType || row.mime_type || row.mimeType || null;
+  if (directUri) {
+    return {
+      uri: directUri,
+      mimeType: directMimeType || 'image/jpeg',
+      kind: row.mediaKind || getMediaKind(directMimeType, directUri),
+    };
+  }
+
+  const mediaRef = row.media_ref || row.mediaRef || null;
+  if (!mediaRef) return null;
+
+  try {
+    const kt = row.couple_id ? 'couple' : 'device';
+    const cid = kt === 'couple' ? row.couple_id : null;
+    const uri = await EncryptedAttachments.getDecryptedUri(mediaRef, kt, cid);
+    let attachment = null;
+    try {
+      const { default: Database } = await import('../services/db/Database');
+      attachment = await Database.getAttachmentById(mediaRef);
+    } catch {}
+    const mimeType = attachment?.mime_type || directMimeType || 'image/jpeg';
+    return { uri, mimeType, kind: getMediaKind(mimeType, uri) };
+  } catch {
+    return null;
+  }
+}
+
+function dedupeRows(rows) {
+  const seen = new Set();
+  return (rows || []).filter((row) => {
+    if (!row?.id || seen.has(row.id)) return false;
+    seen.add(row.id);
+    return true;
+  });
+}
+
+async function safeLoad(loader) {
+  try {
+    return await loader();
+  } catch {
+    return [];
+  }
+}
+
+function buildPromptItem(row, media = null) {
   const prompt = getPromptById(row.prompt_id);
   const body = row.locked
     ? 'This reflection is locked on this device.'
@@ -88,16 +140,17 @@ function buildPromptItem(row) {
     sourceId: row.id,
     title: prompt?.text || 'Saved reflection',
     body,
-    eyebrow: row.is_revealed ? 'REFLECTION' : 'SEALED\nREFLECTION',
+    eyebrow: row.is_revealed ? 'Prompt' : 'Sealed prompt',
     icon: row.is_revealed ? 'chatbubbles-outline' : 'lock-closed-outline',
     accent: '#D2121A',
     meta: row.heat_level ? `Heat ${row.heat_level}` : 'Prompt',
     dateLabel: formatDateLabel(row.date_key || row.created_at),
     sortAt: row.created_at || row.date_key,
+    media,
   };
 }
 
-function buildMemoryItem(row) {
+function buildMemoryItem(row, media = null) {
   const memoryType = MEMORY_TYPE_META[row.type] || MEMORY_TYPE_META.moment;
   const isIntimacyFavorite = row.type === 'intimacy_favorite';
   return {
@@ -106,7 +159,7 @@ function buildMemoryItem(row) {
     sourceId: row.id,
     title: memoryType.label,
     body: row.locked ? 'This moment is locked on this device.' : (row.content || ''),
-    eyebrow: isIntimacyFavorite ? 'SHARED INTIMACY FAVORITE' : (row.is_private ? 'PRIVATE MOMENT' : 'SHARED MOMENT'),
+    eyebrow: isIntimacyFavorite ? 'Intimacy favorite' : (row.is_private ? 'Private moment' : 'Memory'),
     icon: memoryType.icon,
     accent: row.is_private ? '#7E4FA3' : '#D2121A',
     meta: isIntimacyFavorite ? 'Shared intimacy' : (row.mood ? String(row.mood).toUpperCase() : 'Moment'),
@@ -115,19 +168,39 @@ function buildMemoryItem(row) {
     mediaRef: row.media_ref || null,
     mimeType: row.mime_type || null,
     rawDate: row.created_at || row.date || null,
+    media,
+  };
+}
+
+function buildJournalItem(row, media = null) {
+  return {
+    id: `journal:${row.id}`,
+    kind: 'journal',
+    sourceId: row.id,
+    title: row.locked ? 'Journal entry' : (row.title || 'Journal entry'),
+    body: row.locked ? 'This entry is locked on this device.' : (row.body || ''),
+    eyebrow: 'Journal',
+    icon: 'book-outline',
+    accent: '#D2121A',
+    meta: row.mood ? String(row.mood).toUpperCase() : 'Journal',
+    dateLabel: formatDateLabel(row.created_at || row.date),
+    sortAt: row.created_at || row.date,
+    rawDate: row.created_at || row.date || null,
+    media,
   };
 }
 
 export default function SavedMomentsScreen() {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
-  
-  const [filter, setFilter] = useState('all');
+
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [lightbox, setLightbox] = useState(null);
   const [hearts, setHearts] = useState({}); // itemId → { count: number, hearted: bool }
   const scrollY = useRef(new RNAnimated.Value(0)).current;
+  const videoRef = useRef(null);
 
   // ─── THEME MAP (Original Colors, Glass Opacities) ───
   const t = useMemo(() => ({
@@ -146,16 +219,37 @@ export default function SavedMomentsScreen() {
   // ─── DATA LOADING ───
   const loadEntries = useCallback(async () => {
     try {
-      const [promptRows, memoryRows] = await Promise.all([
-        DataLayer.getSharedPromptAnswers({ limit: 50 }),
-        DataLayer.getSharedMemories({ limit: 50 }),
+      const [
+        sharedPrompts,
+        personalPrompts,
+        sharedMemories,
+        personalMemories,
+        sharedJournals,
+        personalJournals,
+      ] = await Promise.all([
+        safeLoad(() => DataLayer.getSharedPromptAnswers({ limit: 200 })),
+        safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
+        safeLoad(() => DataLayer.getSharedMemories({ limit: 200 })),
+        safeLoad(() => DataLayer.getMemories({ limit: 200 })),
+        safeLoad(() => DataLayer.getJournalEntries({ limit: 200, visibility: 'shared' })),
+        safeLoad(() => DataLayer.getJournalEntries({ limit: 200 })),
       ]);
 
+      const promptItems = dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
+        .map((row) => buildPromptItem(row));
+      const memoryItems = await Promise.all(
+        dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
+          .map(async (row) => buildMemoryItem(row, await resolveRowMedia(row)))
+      );
+      const journalItems = await Promise.all(
+        dedupeRows([...(sharedJournals || []), ...(personalJournals || [])])
+          .map(async (row) => buildJournalItem(row, await resolveRowMedia(row)))
+      );
+
       const merged = [
-        ...(promptRows || []).map(buildPromptItem),
-        ...(memoryRows || [])
-          .filter((row) => !row.media_ref && !row.mediaRef && !(row.mime_type || row.mimeType || '').startsWith('image/') && !(row.mime_type || row.mimeType || '').startsWith('video/'))
-          .map(buildMemoryItem),
+        ...promptItems,
+        ...memoryItems,
+        ...journalItems,
       ].sort((a, b) => getSortTime(b) - getSortTime(a));
 
       setEntries(merged);
@@ -199,34 +293,6 @@ export default function SavedMomentsScreen() {
     });
   }, []);
 
-  const filteredEntries = useMemo(() => {
-    if (filter === 'all') return entries;
-    return entries.filter((item) => item.kind === filter);
-  }, [entries, filter]);
-
-  const counts = useMemo(() => ({
-    all: entries.length,
-    prompt: entries.filter((item) => item.kind === 'prompt').length,
-    memory: entries.filter((item) => item.kind === 'memory').length,
-  }), [entries]);
-
-  // ─── ON THIS DAY ───
-  const onThisDay = useMemo(() => {
-    const today = new Date();
-    const todayM = today.getMonth();
-    const todayD = today.getDate();
-    const thisYear = today.getFullYear();
-    return entries.find((item) => {
-      const raw = item.sortAt;
-      if (!raw) return false;
-      const d = typeof raw === 'string' && raw.length === 10
-        ? new Date(`${raw}T00:00:00`)
-        : new Date(raw);
-      if (Number.isNaN(d.getTime())) return false;
-      return d.getMonth() === todayM && d.getDate() === todayD && d.getFullYear() < thisYear;
-    }) || null;
-  }, [entries]);
-
   const onRefresh = useCallback(() => {
     selection();
     setRefreshing(true);
@@ -237,6 +303,17 @@ export default function SavedMomentsScreen() {
     impact(ImpactFeedbackStyle.Light);
     navigation.goBack();
   }, [navigation]);
+
+  const openLightbox = useCallback((item) => {
+    if (!item?.media?.uri) return;
+    impact(ImpactFeedbackStyle.Medium);
+    setLightbox(item);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setLightbox(null);
+    videoRef.current?.pauseAsync?.().catch(() => {});
+  }, []);
 
   // ─── ANIMATION VALUES ───
   const headerOpacity = scrollY.interpolate({
@@ -258,52 +335,22 @@ export default function SavedMomentsScreen() {
   });
 
   // ─── RENDERERS ───
-  const renderFilter = ({ id, label, icon }) => {
-    const active = filter === id;
-    return (
-      <TouchableOpacity
-        key={id}
-        style={[
-          styles.filterChip,
-          active && { borderColor: t.primary, backgroundColor: withAlpha(t.primary, 0.15) },
-        ]}
-        activeOpacity={0.8}
-        onPress={() => {
-          selection();
-          setFilter(id);
-        }}
-      >
-        <Icon name={icon} size={14} color={active ? t.primary : t.subtext} />
-        <Text style={[styles.filterLabel, { color: active ? t.text : t.subtext }]}>{label}</Text>
-        <View style={[styles.filterCount, { backgroundColor: active ? 'transparent' : t.surfaceSecondary }]}> 
-          <Text style={[styles.filterCountText, { color: active ? t.primary : t.subtext }]}>{counts[id]}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
   const renderItem = ({ item, index }) => {
     const heartState = hearts[item.id] || { count: 0, hearted: false };
-    const isMemory = item.kind === 'memory';
+    const isVideo = item.media?.kind === 'video' || item.media?.mimeType?.startsWith('video/');
 
     return (
       <ReAnimated.View
         entering={FadeInDown.delay(index * 35).springify().damping(18)}
-        style={isMemory ? styles.timelineRow : undefined}
+        style={styles.timelineRow}
       >
         {/* Timeline spine + dot */}
-        {isMemory && (
-          <View style={styles.timelineSpine}>
-            <View style={[styles.timelineDot, { backgroundColor: item.accent }]} />
-            <View style={[styles.timelineLine, { backgroundColor: t.border }]} />
-          </View>
-        )}
+        <View style={styles.timelineSpine}>
+          <View style={[styles.timelineDot, { backgroundColor: item.accent }]} />
+          <View style={[styles.timelineLine, { backgroundColor: t.border }]} />
+        </View>
 
-        <TouchableOpacity
-          activeOpacity={1}
-          disabled
-          style={[styles.cardContainer, isMemory && styles.cardTimeline]}
-        >
+        <View style={[styles.cardContainer, styles.cardTimeline]}>
           <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass, padding: 0 }, !isDark && styles.lightShadow]}>
             <View style={{ paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl, paddingTop: SPACING.xl, width: '100%' }}>
             <View style={styles.cardTopRow}>
@@ -315,12 +362,26 @@ export default function SavedMomentsScreen() {
             </View>
 
             <Text style={styles.cardTitle}>{item.title}</Text>
+            {item.media?.uri ? (
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => openLightbox(item)}
+                style={styles.mediaButton}
+              >
+                {isVideo ? (
+                  <View style={[styles.videoPreview, { backgroundColor: withAlpha(item.accent, 0.1), borderColor: withAlpha(item.accent, 0.18) }]}>
+                    <Icon name="play-circle-outline" size={34} color={item.accent} />
+                    <Text style={[styles.videoPreviewText, { color: item.accent }]}>Video</Text>
+                  </View>
+                ) : (
+                  <Image source={{ uri: item.media.uri }} style={styles.storyImage} resizeMode="cover" />
+                )}
+              </TouchableOpacity>
+            ) : null}
             <Text style={styles.cardBody}>{item.body || 'Nothing saved yet.'}</Text>
 
             <View style={styles.cardFooter}>
-              <View style={[styles.metaPill, { backgroundColor: withAlpha(item.accent, 0.08), borderColor: withAlpha(item.accent, 0.2) }]}>
-                <Text style={[styles.metaPillText, { color: item.accent }]}>{item.meta}</Text>
-              </View>
+              <Text style={[styles.cardMetaText, { color: t.subtext }]}>{item.meta}</Text>
               <View style={styles.cardFooterRight}>
                 {/* Heart reaction */}
                 <TouchableOpacity
@@ -343,72 +404,25 @@ export default function SavedMomentsScreen() {
             </View>
           </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </ReAnimated.View>
     );
   };
 
   const ListHeader = (
     <ReAnimated.View entering={FadeIn.duration(500)}>
-      {/* ── Editorial Header ── */}
       <RNAnimated.View
         style={[styles.editorialHeader, {
           opacity: headerOpacity,
           transform: [{ scale: headerScale }, { translateY: headerTranslateY }],
         }]}
       >
-        <Text style={[styles.headerSubtitle, { color: t.primary }]}>SAVED SPACE</Text>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Shared Moments</Text>
+        <Text style={[styles.headerSubtitle, { color: t.primary }]}>ARCHIVE</Text>
+        <Text style={[styles.headerTitle, { color: t.text }]}>Your Story</Text>
+        <Text style={styles.headerIntro}>
+          {entries.length ? `${entries.length} moments, newest first` : 'Newest first'}
+        </Text>
       </RNAnimated.View>
-
-      {/* ── On This Day Banner ── */}
-      {onThisDay && (
-        <ReAnimated.View entering={FadeInDown.springify().damping(18)}>
-          <View style={styles.onThisDayContainer}>
-            <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: withAlpha(t.primary, 0.15), padding: 0 }, !isDark && styles.lightShadow]}>
-              <View style={{ padding: SPACING.lg, paddingVertical: SPACING.xl, flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-              <View style={styles.onThisDayLeft}>
-                <Icon name="time-outline" size={18} color={t.primary} />
-              </View>
-              <View style={styles.onThisDayContent}>
-                <Text style={[styles.onThisDayEyebrow, { color: t.primary }]}>ON THIS DAY</Text>
-                <Text style={[styles.onThisDayTitle, { color: t.text }]} numberOfLines={2}>
-                  {onThisDay.title}
-                </Text>
-                <Text style={[styles.onThisDayDate, { color: t.subtext }]}>{onThisDay.dateLabel}</Text>
-              </View>
-              <Icon name="chevron-forward" size={16} color={t.subtext} />
-              </View>
-            </View>
-          </View>
-        </ReAnimated.View>
-      )}
-
-      {/* ── Hero Card ── */}
-      <View style={styles.heroCardContainer}>
-        <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass, padding: 0 }, !isDark && styles.lightShadow]}>
-          <View style={{ padding: SPACING.xl, width: '100%' }}>
-            <View style={styles.heroEyebrowRow}>
-            <Icon name="archive-outline" size={15} color={t.text} />
-            <Text style={[styles.heroEyebrow, { color: t.text }]}>YOUR SHARED ARCHIVE</Text>
-          </View>
-          <Text style={[styles.heroTitle, { color: t.text }]}>Everything you've saved, kept in one place.</Text>
-          <Text style={styles.heroBody}>
-            Browse earlier reflections and text-based moments here, while journal entries and media stay in their dedicated spaces.
-          </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* ── Filters (scrollable) ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersRow}
-        style={styles.filtersScroll}
-      >
-        {FILTERS.map((f) => renderFilter(f))}
-      </ScrollView>
     </ReAnimated.View>
   );
 
@@ -417,9 +431,9 @@ export default function SavedMomentsScreen() {
       <View style={[styles.emptyIconCircle, { borderColor: t.border, backgroundColor: t.surface }]}>
         <Icon name="archive-outline" size={42} color={t.primary} />
       </View>
-      <Text style={[styles.emptyTitle, { color: t.text }]}>Nothing saved yet</Text>
+      <Text style={[styles.emptyTitle, { color: t.text }]}>Your story starts here</Text>
       <Text style={styles.emptyBody}>
-        Shared reflections and text moments will collect here once you start saving them.
+        Reflections, memories, journals, photos, and videos will collect here together.
       </Text>
     </ReAnimated.View>
   );
@@ -427,7 +441,7 @@ export default function SavedMomentsScreen() {
   const LoadingState = (
     <View style={styles.loadingState}>
       <ActivityIndicator size="small" color={t.primary} />
-      <Text style={styles.loadingText}>Gathering your saved history…</Text>
+      <Text style={styles.loadingText}>Gathering your story...</Text>
     </View>
   );
 
@@ -439,7 +453,7 @@ export default function SavedMomentsScreen() {
       onBack={handleBack}
     >
         <RNAnimated.FlatList
-          data={filteredEntries}
+          data={entries}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           ListHeaderComponent={ListHeader}
@@ -464,6 +478,50 @@ export default function SavedMomentsScreen() {
             <Icon name="add" size={26} color="#FFF" />
           </BlurView>
         </TouchableOpacity>
+
+        <Modal
+          visible={!!lightbox}
+          transparent
+          animationType="fade"
+          statusBarTranslucent
+          onRequestClose={closeLightbox}
+        >
+          <View style={styles.lightboxBg}>
+            <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeLightbox} activeOpacity={1} />
+
+            {lightbox?.media?.kind === 'video' || lightbox?.media?.mimeType?.startsWith('video/') ? (
+              <Video
+                ref={videoRef}
+                source={{ uri: lightbox?.media?.uri }}
+                style={styles.lightboxMedia}
+                resizeMode={ResizeMode.CONTAIN}
+                useNativeControls
+                shouldPlay
+              />
+            ) : lightbox?.media?.uri ? (
+              <Image
+                source={{ uri: lightbox.media.uri }}
+                style={styles.lightboxMedia}
+                resizeMode="contain"
+              />
+            ) : null}
+
+            {lightbox ? (
+              <BlurView intensity={60} tint="dark" style={styles.lightboxMeta}>
+                <Text style={styles.lightboxCaption}>{lightbox.body || lightbox.title}</Text>
+                <Text style={styles.lightboxDate}>{lightbox.dateLabel}</Text>
+              </BlurView>
+            ) : null}
+
+            <View style={styles.lightboxClose}>
+              <TouchableOpacity onPress={closeLightbox} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <BlurView intensity={50} tint="dark" style={styles.closeBtn}>
+                  <Icon name="close-outline" size={22} color="#fff" />
+                </BlurView>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
     </EditorialScreenScaffold>
   );
 }
@@ -482,9 +540,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
   editorialCardColumn: {
     flexDirection: 'column',
     alignItems: 'stretch',
-  },
-  cardContent: {
-    width: '100%',
   },
   lightShadow: {
     shadowColor: '#000',
@@ -537,104 +592,15 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SERIF_FONT,
     fontSize: 34,
     fontWeight: '800',
-    letterSpacing: -0.5,
     lineHeight: 40,
   },
-
-  // ── Hero Card ──
-  heroCardContainer: {
-    borderRadius: 24,
-    marginBottom: SPACING.xl,
-  },
-  heroCardBlur: {
-    borderRadius: 24,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: t.border,
-    padding: SPACING.xl,
-    overflow: 'hidden',
-    backgroundColor: t.surface,
-  },
-  heroEyebrowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: SPACING.sm,
-  },
-  heroEyebrow: {
+  headerIntro: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  heroTitle: {
-    fontFamily: SERIF_FONT,
-    fontSize: 30,
-    lineHeight: 36,
-    marginBottom: SPACING.sm,
-  },
-  heroBody: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    lineHeight: 26, // Breathed out for editorial feel
-    color: t.subtext,
-  },
-
-  // ── Filters ──
-  filtersScroll: {
-    marginBottom: 0,
-  },
-  filtersRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingRight: SPACING.screen,
-  },
-  wallBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 10,
-    marginBottom: SPACING.xl,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignSelf: 'flex-start',
-  },
-  wallBannerText: {
-    fontSize: 13,
+    fontSize: 15,
+    lineHeight: 22,
     fontWeight: '600',
-    fontFamily: Platform.select({ ios: 'System', android: 'Roboto' }),
-  },
-  filterChip: {
-    height: 42,
-    borderRadius: 999, // Perfect pill shape
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: t.border,
-    backgroundColor: t.surface,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-  },
-  filterLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  filterCount: {
-    minWidth: 24,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-  },
-  filterCountText: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '800',
+    color: t.subtext,
+    marginTop: 8,
   },
 
   // ── Content Cards ──
@@ -690,35 +656,44 @@ const createStyles = (t, isDark) => StyleSheet.create({
     lineHeight: 24,
     color: t.subtext, // Softened from primary text for better hierarchy
   },
+  mediaButton: {
+    width: '100%',
+    marginBottom: SPACING.lg,
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  storyImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: 18,
+    backgroundColor: withAlpha(t.text, 0.06),
+  },
+  videoPreview: {
+    height: 180,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  videoPreviewText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: SPACING.lg,
   },
-  metaPill: {
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  metaPillText: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-  },
-  openPill: {
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  openPillText: {
+  cardMetaText: {
     fontFamily: SYSTEM_FONT,
     fontSize: 12,
     fontWeight: '700',
+    textTransform: 'uppercase',
+    flexShrink: 1,
   },
 
   // ── Empty / Loading States ──
@@ -760,77 +735,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: t.subtext,
-  },
-
-  // ── On This Day ──
-  onThisDayContainer: {
-    marginBottom: SPACING.lg,
-    borderRadius: 20,
-  },
-  onThisDayCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderRadius: 20,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: SPACING.md,
-    overflow: 'hidden',
-    backgroundColor: t.surface,
-  },
-  onThisDayLeft: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: withAlpha(t.primary, 0.12),
-  },
-  onThisDayContent: {
-    flex: 1,
-  },
-  onThisDayEyebrow: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.8,
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  onThisDayTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    fontWeight: '700',
-    color: t.text,
-    lineHeight: 20,
-  },
-  onThisDayDate: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 2,
-  },
-
-  // ── Photo thumbnail ──
-  photoWrapper: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    overflow: 'hidden',
-    marginBottom: 0,
-    position: 'relative',
-    width: '100%',
-  },
-  photoThumb: {
-    width: '100%',
-    height: 180,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
-  photoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
   },
 
   // ── Timeline layout ──
@@ -876,5 +780,50 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 13,
     fontWeight: '700',
+  },
+  lightboxBg: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.94)',
+    justifyContent: 'center',
+  },
+  lightboxMedia: {
+    width: SCREEN_W,
+    height: SCREEN_H * 0.72,
+    alignSelf: 'center',
+  },
+  lightboxMeta: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 34,
+  },
+  lightboxCaption: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '500',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  lightboxDate: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.62)',
+  },
+  lightboxClose: {
+    position: 'absolute',
+    top: 18,
+    right: 18,
+  },
+  closeBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
 });

@@ -26,7 +26,7 @@ describe('PartnerNotifications', () => {
       expect.anything(),
       expect.objectContaining({
         title: expect.stringContaining('Alex'),
-        body: expect.stringContaining('Answer'),
+        body: expect.stringContaining('reveal'),
         data: expect.objectContaining({ route: 'prompt', type: 'prompt_answered', id: 'h2_042' }),
       })
     );
@@ -63,20 +63,22 @@ describe('PartnerNotifications', () => {
     );
   });
 
-  it('memorySaved — uses anniversary emoji for anniversary type', async () => {
+  it('memorySaved — names anniversary type without revealing private details', async () => {
     await PartnerNotifications.memorySaved('Alex', 'anniversary');
 
     const payload = mockNotifyPartner.mock.calls[0][1];
-    expect(payload.title).toContain('🎉');
+    expect(payload.title).toContain('anniversary');
+    expect(payload.body).toContain('archive');
   });
 
-  it('streakAtRisk — includes streak count in title', async () => {
+  it('streakAtRisk — includes connected day count without guilt copy', async () => {
     await PartnerNotifications.streakAtRisk(14);
 
     expect(mockNotifyPartner).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         title: expect.stringContaining('14'),
+        body: expect.stringContaining('small moment'),
         data: expect.objectContaining({ route: 'home', type: 'streak_at_risk', streak: 14 }),
       })
     );

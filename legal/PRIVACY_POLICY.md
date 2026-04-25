@@ -1,19 +1,22 @@
 # Privacy Policy
 
-**Last Updated: April 21, 2026**
+**Last Updated: April 24, 2026**
 
-At Between Us, your privacy is our top priority. This Privacy Policy explains how we collect, use, protect, and share your information when you use our app.
+At Between Us, your privacy matters. This Privacy Policy explains what we collect, how we use it, how we protect it, and the choices you have when you use the Between Us mobile app and related services.
 
 ---
 
 ## Our Privacy Commitment
 
-**We believe your intimate moments should stay private.** That's why we:
-- ✅ Use end-to-end encryption for sensitive content (journals, prompts, intimate answers)
-- ✅ Never sell your personal data
-- ✅ Never share your content with advertisers or data brokers
-- ✅ Process data on your device whenever possible
-- ✅ Give you full control over your data
+We believe relationship content should be handled carefully. That's why we:
+
+- Do not sell your personal data
+- Do not use advertising networks or track you across other apps or websites
+- Protect synced data with account authentication, Supabase row-level security, HTTPS/TLS, provider access controls, and platform security tools
+- Give you in-app tools to export data, delete data, unlink from a partner, and delete your account
+- Use only limited analytics, diagnostics, and crash reporting to improve reliability
+
+**Important security clarification:** Between Us does not currently provide end-to-end encryption for core synced content such as journals, prompt answers, memories, check-ins, vibes, calendar events, or date plans. Core content is stored in Supabase as structured data and protected by authentication, row-level access controls, transport security, and provider-side security controls. App lock, PIN, Face ID, and Touch ID help protect access on your device, but they are not a promise that synced content is encrypted end-to-end.
 
 ---
 
@@ -21,267 +24,236 @@ At Between Us, your privacy is our top priority. This Privacy Policy explains ho
 
 ### 1.1 Information You Provide
 
-**Account Information:**
+**Account information**
+
 - Email address
 - Display name
-- Partner names (what you call each other)
-- Relationship start date (optional)
+- Partner names or nicknames
+- Relationship start date, if you add one
+- Password or authentication credentials handled through Supabase Auth
 
-**Content You Create:**
-- Journal entries and responses to prompts
+**Relationship content and preferences**
+
+- Journal entries and prompt answers
 - Shared memories and milestones
-- Love notes (text and optional photo attachments)
-- Optional encrypted voice notes
-- Inside jokes, nicknames, and shared references
-- Custom rituals and preferences
-- Heat level and energy level preferences
-- Relationship climate selections (e.g., connected, playful, calm)
-- Soft boundary settings (hidden categories, paused content)
-- Calendar events (title, date, time, optional location, notes)
-- Vibe signal selections (e.g., passionate, tender, adventurous)
-- Relationship duration
-
-**Usage Preferences:**
-- Content filtering preferences
-- Notification settings
-- App customization choices
-- Voice note permission choices
+- Check-ins, vibes, and moment signals
+- Date plans, calendar events, titles, dates, optional locations, and notes
+- Optional media attachments that you choose to add to journals or memories
+- Heat level, energy level, relationship climate, tone, and content preferences
+- Soft boundary settings, hidden categories, and paused content
+- Inside jokes, nicknames, shared references, and local preference history
+- Data export requests and support messages you send us
 
 ### 1.2 Information Collected Automatically
 
-**Device Information:**
+**Device and app information**
+
 - Device type and model
 - Operating system version
-- App version
-- App and authentication identifiers used by our infrastructure
+- App version and build information
+- App, authentication, subscription, session, and push notification identifiers used to operate the service
 
-**Usage Data:**
-- Features you use
-- Prompts you respond to (tracked locally for deduplication)
-- Daily usage counts (prompts viewed, dates viewed)
-- Error logs and crash reports
+**Usage, analytics, and diagnostics**
 
-### 1.3 Information We Don't Collect
+- Screen views, paywall events, feature usage, export events, and similar product interaction events
+- Daily usage counts used to enforce free-tier limits
+- Crash reports, performance traces, error logs, limited Sentry session replays, and optional user feedback
+- Notification delivery records and push tokens if notifications are enabled
 
-We **never** collect:
-- ❌ Your sexual orientation
-- ❌ Precise location data
-- ❌ Contact lists
-- ❌ Photos or media (unless you explicitly share)
-- ❌ Biometric data (we use Face ID/Touch ID for app lock via your device's built-in authentication, but no biometric data is collected, stored, or transmitted by Between Us — authentication happens entirely within your device's secure hardware)
-- ❌ Financial information (handled by app stores)
+### 1.3 Device Permissions
+
+We request device permissions only when needed:
+
+- **Camera:** QR code scanning for partner linking and optional photo capture where the app offers it
+- **Photo Library:** Choosing media attachments and, on Android, saving certain exported snapshot images when you request it
+- **Microphone:** Recording a voice note only if a build exposes that feature and you choose to use it
+- **Notifications:** Sending reminders, partner activity alerts, weekly recaps, milestone celebrations, and other app notifications if enabled
+- **Face ID / Touch ID:** Optional app lock. Biometric matching is handled by your device. Between Us receives only a success/failure result and does not collect, store, or transmit biometric templates
+
+### 1.4 Information We Do Not Collect
+
+We do not intentionally collect:
+
+- Precise location data
+- Contact lists
+- Biometric templates
+- Credit card numbers or payment credentials
+- Advertising identifiers for cross-app tracking
+- Your sexual orientation as an account field
+
+Payments are handled by Apple and RevenueCat. We receive subscription status and entitlement information, not your full payment details.
 
 ---
 
 ## 2. How We Use Your Information
 
-### 2.1 To Provide the Service
-- Display personalized prompts based on relationship duration
-- Sync data between you and your partner
-- Save your journal entries and responses
-- Send notifications (if enabled): daily prompt reminders, partner activity alerts, weekly relationship recaps, and milestone celebrations
-- Collect limited pseudonymous analytics events (such as screen views, paywall events, feature usage, and exports) to improve the app
-- Provide customer support
+We use your information to:
 
-### 2.2 To Improve the Service
-- Fix bugs and improve performance
-- Develop new features
-- Optimize user experience
-
-### 2.3 To Communicate With You
-- Send important service updates
-- Respond to your support requests
-- Send account, billing, and support-related messages
-
-### 2.4 For Security and Compliance
-- Prevent fraud and abuse
-- Enforce our Terms of Service
-- Comply with legal obligations
-- Protect user safety
-- Maintain service security
+- Create and manage your account
+- Link and unlink partner accounts
+- Save, display, sync, and recover your relationship content
+- Provide prompts, date ideas, calendar features, memories, signals, recaps, and personalization
+- Enforce free-tier limits and premium entitlements
+- Send notifications if you enable them
+- Process subscriptions through Apple and RevenueCat
+- Respond to support, privacy, and data requests
+- Fix bugs, monitor crashes, improve performance, and understand feature usage
+- Prevent fraud, abuse, unauthorized access, and Terms violations
+- Comply with legal obligations and protect rights, safety, and security
 
 ---
 
-## 3. Data Security and Encryption
+## 3. Storage, Security, and Local Data
 
-### 3.1 End-to-End Encryption (Couple Key)
-**Shared synced content is protected with E2EE:**
-- Shared journal entries, prompt responses, memories, and love notes are encrypted on your device before upload
-- Only you and your linked partner can decrypt couple-encrypted content
-- We cannot read content protected by your couple encryption key
-- Encryption keys are derived via X25519 key exchange during partner pairing and never stored on our servers
-- Partner pairing uses a one-time linking payload and device public keys rather than personal profile data
+### 3.1 Core Synced Content
 
-### 3.2 Device-Level Encryption
-**Additional local data is encrypted with a device-specific key:**
-- Daily check-ins (mood, closeness, and notes)
-- Local-only memories and milestones
-- Inside jokes and shared references
-- Relationship climate selections
+The active storage architecture uses Supabase as the canonical source of truth for core app content. When you are signed in and paired, core relationship content can be stored in Supabase tables and Supabase Storage so it can be synced, recovered, and shown to authorized account or couple members.
 
-This data is encrypted on your device using a key stored in your device's secure Keychain. It cannot be read by extracting the app's storage files.
+Core synced content is protected by:
 
-This data is encrypted on your device using a key stored in your device's secure Keychain and is intended to protect local data at rest.
+- Supabase Auth
+- Row-level security policies
+- HTTPS/TLS in transit
+- Provider-side storage security and access controls
+- Access controls in our app and backend functions
 
-**Note:** Some metadata (such as timestamps, event types, mood labels, heat-level preferences, calendar scheduling fields, and push tokens when notifications are enabled) is stored without end-to-end encryption so we can provide features like filtering, sorting, delivery, and scheduling. This metadata is still protected by TLS in transit and access controls at rest.
+Core synced content is **not** currently encrypted end-to-end before upload.
 
-### 3.3 Security Measures
-We implement industry-standard security:
-- TLS/SSL encryption for data in transit
-- Client-side encryption using XSalsa20-Poly1305 (NaCl secretbox)
-- Encrypted storage at rest by our cloud provider
-- Secure authentication protocols
-- Access controls and monitoring
+### 3.2 Local Storage and Offline Use
 
-### 3.4 Device-Only Data
-**The following data is stored exclusively on your device and never uploaded:**
-- Soft boundary settings (hidden categories, paused content)
-- Energy level and relationship climate selections
-- Inside jokes and shared references
-- Year reflection narratives
-- Content preference history (This or That choices, prompt engagement)
-- Welcome back and return-detection timestamps
-- Biometric vault key (stored in device secure hardware)
+Between Us also stores data locally for responsiveness, offline continuity, settings, auth/session handling, and pending offline writes. Local storage may include:
 
-### 3.5 Client-Side Processing
-**Privacy by design:**
-- Personalization and content recommendations are processed on your device
-- No intimate content is sent to servers for analysis
-- Prompt selection, energy matching, and filtering happen locally
-- Your preference data stays on your device
-- Surprise Tonight and content personalization algorithms run locally
+- Cached synced content
+- Drafts or queued writes waiting to sync
+- App settings and privacy settings
+- App-lock PIN hash and salt in secure storage
+- Auth/session credentials and push tokens in secure platform storage where available
+- Local-only features such as certain inside-joke and preference history data
+
+Some preferences that feel local, including energy level, relationship climate, and soft boundaries, may also sync to your profile so they can be restored across devices.
+
+### 3.3 App Lock and Biometrics
+
+App lock, PIN, Face ID, and Touch ID are device-access controls. They help prevent someone using your device from opening Between Us without authorization. They do not change how synced data is stored on our servers.
+
+### 3.4 Media Attachments
+
+Media you choose to attach may be stored locally and/or uploaded to Supabase Storage so the feature can work across devices or with your linked partner. Uploaded media is protected by access controls and transport security, but is not currently promised to be end-to-end encrypted.
+
+### 3.5 Analytics and Diagnostics
+
+We use first-party analytics stored through Supabase and Sentry diagnostics to understand reliability and product usage. Sentry is configured without default PII, uses limited session replay sampling, and scrubs known token-like URL values before sending events where our code can do so.
 
 ---
 
-## 4. Data Sharing and Disclosure
+## 4. Sharing and Disclosure
 
-### 4.1 With Your Partner
-- Relationship content such as journals, memories, love notes, and synced prompt content is visible to your linked partner while you are linked
-- Vibe signals and moment signals are sent to your linked partner as connectivity allows
-- Prompt responses can be shared via the Reveal Together feature (both partners must opt in)
-- Your partner cannot access your soft boundary settings
-- Unlinking stops new data sharing and removes access to the shared couple space
+### 4.1 With Your Linked Partner
+
+When you link with a partner, content in your shared couple space may be available to the linked partner according to the feature flow. For example:
+
+- Shared journals, prompt answers, memories, vibes, calendar events, date plans, and similar couple-space content are stored in the linked couple space
+- Prompt answers are designed to reveal through the app's shared reveal flow
+- Vibe and moment signals are sent to your linked partner as connectivity allows
+- Soft boundaries are intended as your private content controls, though some related settings may sync to your profile for restoration
+
+Unlinking dissolves the shared couple connection and stops future shared syncing. It does not delete your separate account automatically.
 
 ### 4.2 With Service Providers
-We work with trusted partners who help us operate:
-- **Cloud hosting:** Supabase (journal content is E2E encrypted; metadata such as timestamps, mood labels, and couple IDs is stored with standard server-side encryption)
-- **Subscription management:** RevenueCat (subscription status, entitlement IDs, and app user identifiers — no personal content)
-- **Error monitoring:** Sentry (crash reports, performance traces, limited session replays, and optional user feedback to diagnose bugs)
-- **Payment processing:** Handled by Apple (we don't see payment details)
-- **Customer support:** Only if you contact us
 
-These providers process data under their own terms and applicable agreements with us.
+We use service providers to operate the app:
 
-### 4.3 We Never Share
-We **never** sell or share your data with:
-- ❌ Advertisers
-- ❌ Data brokers
-- ❌ Marketing companies
-- ❌ Social media platforms
-- ❌ Third-party apps
+- **Supabase:** Authentication, database, storage, row-level access controls, backend functions, and push-token related data
+- **RevenueCat:** Subscription management, entitlement status, app user identifiers, and purchase-related metadata
+- **Sentry:** Crash reporting, performance monitoring, limited session replays, and optional user feedback
+- **Expo:** Push notification delivery, app updates, and Expo platform services
+- **Apple:** App distribution, in-app purchases, subscriptions, and payment processing
 
-### 4.4 Legal Requirements
-We may disclose information if required by law:
-- Valid court orders or subpoenas
-- Legal process or government requests
-- To protect rights, property, or safety
-- To prevent fraud or abuse
+These providers process data under their own terms and privacy policies and may collect data independently as needed to provide their services.
 
-We'll notify you unless legally prohibited.
+### 4.3 We Do Not Sell or Share for Advertising
+
+We do not sell your personal data. We do not share your relationship content with advertisers, data brokers, marketing companies, social media platforms, or ad networks.
+
+### 4.4 Legal, Safety, and Business Transfers
+
+We may disclose information if reasonably necessary to:
+
+- Comply with valid legal process
+- Protect rights, property, safety, and security
+- Prevent fraud, abuse, or unauthorized use
+- Investigate or enforce Terms violations
+- Complete a merger, acquisition, financing, or sale of assets, subject to appropriate protections
+
+We will try to notify you of legal requests unless prohibited by law or if notification would create risk.
 
 ---
 
-## 5. Your Privacy Rights
+## 5. Your Privacy Rights and Choices
 
-### 5.1 Access Your Data
-- View all your data in the app
-- Export your data (journal entries, prompt answers, memories, rituals, check-ins, vibes, and love notes)
-- Download your account information
-- Request a copy of your data
+Depending on where you live, you may have rights to access, correct, delete, export, restrict, object to, or receive a copy of personal data. You can contact us to exercise those rights.
 
-**Export note:** When you start an export, the app generates a temporary JSON file for the system share sheet and then removes that temporary file from app storage after the export flow completes.
+### 5.1 Access and Export
 
-### 5.2 Control Your Data
-- Edit or delete entries anytime
+- View your content in the app
+- Export supported data through the in-app export flow
+- Request a copy of personal data by contacting support
+
+**Export note:** The app prepares a plaintext JSON export for the system share sheet and removes its temporary export file from app storage after the export flow completes. Copies you save or share from the share sheet are controlled by the destination you choose.
+
+### 5.2 Control and Deletion
+
+- Edit or delete supported entries in the app
+- Disable notifications in app or device settings
+- Change privacy and soft-boundary settings
 - Unlink from your partner
-- Change privacy settings
-- Configure soft boundaries to hide content categories
+- Delete your account from Settings
 
-### 5.3 Delete Your Data
-- Delete individual entries
-- Delete your entire account
-- Request complete data deletion
-- Deletion is permanent, but backup copies may persist for a limited period before routine purge
+Account deletion removes active account data, profile records, your couple membership, your user-created couple data, push tokens, analytics events tied to your user ID, local cache, secure local credentials, and the Supabase auth user as described in the app's deletion flow. Backup copies may persist for a limited period before routine purge, and some information may be retained where required for legal, security, fraud-prevention, or accounting reasons.
 
-### 5.4 Opt-Out Rights
-- Disable notifications
-- Decline optional data collection (e.g., relationship start date)
+### 5.3 Regional Disclosures
 
-### 5.5 Regional Rights
-**For EU/UK users (GDPR):**
-- Right to access
-- Right to rectification
-- Right to erasure
-- Right to data portability
-- Right to object
-- Right to restrict processing
+**EU/UK users:** GDPR rights may include access, rectification, erasure, portability, restriction, objection, withdrawal of consent where processing is based on consent, and lodging a complaint with a supervisory authority.
 
-**For California users (CCPA):**
-- Right to know
-- Right to delete
-- Right to opt-out of sale (we don't sell data)
-- Right to non-discrimination
+**California users:** CCPA/CPRA rights may include the right to know, delete, correct, opt out of sale or sharing, limit use/disclosure of sensitive personal information where applicable, and non-discrimination for exercising rights. We do not sell personal information and do not share it for cross-context behavioral advertising.
 
 ---
 
 ## 6. Data Retention
 
-### 6.1 Active Accounts
-- We retain your data while your account is active
-- You can delete data anytime
-- Deleted data is removed from active systems promptly; backup copies may persist for a limited period before routine purge
-
-### 6.2 Deleted Accounts
-- Account deletion is permanent
-- Most active data is deleted promptly
-- Some data may be retained for legal compliance or fraud prevention for a limited period
+- We retain account data while your account is active
+- We retain relationship content until you delete it, unlink where the shared couple space is dissolved, or delete your account
+- We retain analytics, diagnostics, notification logs, rate-limit records, and security records for operational periods appropriate to their purpose
+- Deleted data is removed from active systems promptly where technically feasible
 - Backup copies may persist for a limited period before routine purge
-
-### 6.3 Partner Data
-- Your partner's data remains separate
-- Deleting your account doesn't affect their data
-- Account deletion removes your access and ends future sharing from your account
+- Some records may be retained where needed for legal, tax, billing, security, fraud-prevention, or dispute purposes
 
 ---
 
 ## 7. Children's Privacy
 
-Between Us is **not for children:**
-- You must be 18+ to use the app
-- We don't knowingly collect data from minors
-- If we discover underage use, we delete the account
-- Parents: Please monitor your children's device usage
+Between Us is for adults only. You must be at least 18 years old to use the app. We do not knowingly collect personal information from minors. If we learn that a minor has created an account, we will take steps to delete it.
 
 ---
 
 ## 8. International Data Transfers
 
-- Our app and service providers may process data in the United States and other countries where they operate
-- Data may be transferred internationally when required to provide the service
-- Transfer protections depend on the provider, the destination country, and applicable law
+Our app and service providers may process data in the United States and other countries where they operate. International transfer protections depend on the provider, destination country, and applicable law.
 
 ---
 
 ## 9. Third-Party Services
 
 ### 9.1 Services We Use
-- **Supabase:** Encrypted data storage and authentication
-- **RevenueCat:** Subscription management
-- **Sentry:** Crash reporting, performance monitoring, limited session replays (10% of sessions; 100% of sessions where an error occurs), and optional user feedback submission
-- **Expo:** Push notification delivery and over-the-air updates
-- **Apple:** Payment processing and app distribution
+
+- **Supabase:** Authentication, database, storage, backend functions, and realtime features
+- **RevenueCat:** Subscription management and entitlement status
+- **Sentry:** Crash reporting, performance monitoring, limited session replays, and optional feedback
+- **Expo:** Push notifications, app updates, and Expo services
+- **Apple:** App distribution, subscriptions, in-app purchases, and payments
 
 ### 9.2 Their Privacy Policies
+
 - [Supabase Privacy Policy](https://supabase.com/privacy)
 - [RevenueCat Privacy Policy](https://www.revenuecat.com/privacy)
 - [Sentry Privacy Policy](https://sentry.io/privacy/)
@@ -292,89 +264,40 @@ Between Us is **not for children:**
 
 ## 10. Changes to This Policy
 
-- We may update this policy from time to time
-- Material changes will be notified via email or app
-- Continued use means you accept changes
-- Previous versions available upon request
+We may update this policy from time to time. Material changes may be communicated by updated legal documents, in-app notice, email, App Store metadata updates, or support communications where appropriate. Continued use after an update means you accept the updated policy to the extent permitted by law.
 
 ---
 
-## 11. Your Choices
+## 11. Contact Us
 
-### You Control Your Privacy:
+**Privacy questions and data requests**
+Email: brittanyapps@outlook.com
 
-**Minimize Data Collection:**
-- Skip optional fields (e.g., relationship start date)
-- Disable notifications
+**Support**
+Email: brittanyapps@outlook.com
 
-**Protect Your Account:**
-- Use a strong, unique password
-- Enable device security (passcode, biometrics)
-- Don't share your login credentials
-
-**Manage Sharing:**
-- Choose what to share with your partner
-- Keep entries private
-- Unlink when needed
-
----
-
-## 12. Contact Us
-
-**Privacy Questions:**
-- Email: brittanyapps@outlook.com
-- Support: brittanyapps@outlook.com
-
-**Data Requests:**
-- Email: brittanyapps@outlook.com
-- Include: Your email and request type
-
-**Email:**
-Between Us Privacy Team  
-brittanyapps@outlook.com
-
-**Response Time:** We respond within 30 days
-
----
-
-## 13. Transparency Report
-
-We aim to communicate material privacy and security changes through updated legal documents, in-app notices, or direct support responses when appropriate.
-
----
-
-## 14. Privacy by Design
-
-**Our Principles:**
-
-1. **Data Minimization:** We only collect what's necessary
-2. **Purpose Limitation:** Data used only for stated purposes
-3. **Storage Limitation:** Data deleted when no longer needed
-4. **Accuracy:** You can correct your data anytime
-5. **Integrity:** Strong security measures protect your data
-6. **Confidentiality:** End-to-end encryption for intimate content
-7. **Accountability:** We're responsible for protecting your privacy
+For data requests, include the email address associated with your account and the type of request. We aim to respond to data requests within 30 days.
 
 ---
 
 ## Summary
 
-**What we do:**
-✅ Encrypt your intimate content  
-✅ Process data on your device  
-✅ Give you full control  
-✅ Never sell your data  
-✅ Respect your privacy  
+**What we do**
 
-**What we don't do:**
-❌ Sell your data  
-❌ Share with advertisers  
-❌ Track you across apps  
-❌ Read your encrypted content  
-❌ Collect unnecessary information  
+- Protect synced content with authentication, row-level access controls, HTTPS/TLS, and provider security controls
+- Let you export and delete supported data
+- Use app-lock controls on your device when enabled
+- Use limited analytics and diagnostics to improve reliability
+- Never sell your data
 
----
+**What we do not do**
 
-**Your privacy matters to us. If you have any questions or concerns, please reach out.**
+- Provide end-to-end encryption for core synced content at this time
+- Sell your data
+- Share relationship content with advertisers or data brokers
+- Track you across other apps or websites for advertising
+- Collect biometric templates or payment card details
 
-*Last Updated: April 21, 2026*
+**Your privacy matters to us. If you have questions or concerns, please reach out.**
+
+*Last Updated: April 24, 2026*

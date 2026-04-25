@@ -101,7 +101,7 @@ export default function RevealScreen({ route, navigation }) {
     selection();
     
     try {
-      // Mark as revealed in DataLayer (primary E2EE store)
+      // Mark as revealed in the active DataLayer.
       const row = await DataLayer.getPromptAnswerForToday(prompt.id);
       if (row?.id) {
         await DataLayer.revealPromptAnswer(row.id);
@@ -116,7 +116,7 @@ export default function RevealScreen({ route, navigation }) {
         });
       }
       triggerRevealLogic(true);
-    } catch (e) {
+    } catch {
       triggerRevealLogic(true);
     }
   };
@@ -132,25 +132,25 @@ export default function RevealScreen({ route, navigation }) {
       : 'waiting_for_partner';
   const revealCopy = {
     waiting_for_partner: {
-      eyebrow: 'WAITING',
-      title: `Waiting for ${partnerName}`,
-      body: 'Your answer is in. The reveal unlocks after you both answer.',
-      primaryLabel: `Nudge ${partnerName}`,
-      helper: "Today's reveal starts after both of you answer.",
+      eyebrow: 'SAVED PRIVATELY',
+      title: 'A reveal is forming',
+      body: `Your answer is in. ${partnerName} can add theirs whenever they're ready.`,
+      primaryLabel: `Let ${partnerName} know`,
+      helper: 'Nothing is shown until both answers are in.',
     },
     ready_to_reveal: {
-      eyebrow: 'READY TO REVEAL',
-      title: 'You both answered',
-      body: "Open today's reveal and see what each of you said.",
+      eyebrow: 'PRIVATE REVEAL',
+      title: 'You both left something',
+      body: 'Open the reveal and see where you met today.',
       primaryLabel: 'Reveal together',
-      helper: "Open today's reveal when you're ready.",
+      helper: 'The app shows both answers together when you open this moment.',
     },
     revealed: {
       eyebrow: 'REVEALED',
-      title: "Here's what you both said",
-      body: 'A small moment like this is worth keeping.',
-      primaryLabel: 'Save this moment',
-      secondaryLabel: 'Plan a date from this',
+      title: "Here's what you both left",
+      body: 'You both made a small private moment today. Save it to your archive or turn it into time together.',
+      primaryLabel: 'Save to our archive',
+      secondaryLabel: 'Plan something from this',
     },
   }[revealStage];
 
@@ -205,7 +205,7 @@ export default function RevealScreen({ route, navigation }) {
           <View style={[styles.promptContainer, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
             <View style={styles.eyebrowRow}>
               <Icon name="sparkles-outline" size={12} color={t.accent} />
-              <Text style={[styles.questionLabel, { color: t.accent }]}>TODAY'S QUESTION</Text>
+              <Text style={[styles.questionLabel, { color: t.accent }]}>TODAY BETWEEN US</Text>
             </View>
             <Text style={[styles.questionText, { color: t.text }]}>{prompt.text}</Text>
           </View>
@@ -280,7 +280,7 @@ export default function RevealScreen({ route, navigation }) {
                       {partnerName || 'Your partner'} hasn't shared their thoughts yet.
                     </Text>
                     <Text style={[styles.miniNote, { color: t.subtext, marginTop: 12 }]}>
-                      They'll see yours once they answer too ✨
+                      They can reveal yours after they answer too.
                     </Text>
                   </View>
                 )}

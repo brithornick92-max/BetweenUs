@@ -70,7 +70,7 @@ const ACHIEVEMENT_DEFS = [
   {
     id: 'checkin_7_streak',
     name: 'Week of Connection',
-    description: 'Checked in 7 days in a row',
+    description: 'Made space for seven connected days',
     icon: '🔥',
     category: 'checkin',
     check: (c) => ({ unlocked: c.checkInStreak >= 7, progress: Math.min(c.checkInStreak / 7, 1) }),
@@ -78,7 +78,7 @@ const ACHIEVEMENT_DEFS = [
   {
     id: 'checkin_30_streak',
     name: 'Steady Pulse',
-    description: 'Checked in 30 days in a row',
+    description: 'Made space for thirty connected days',
     icon: '💗',
     category: 'checkin',
     check: (c) => ({ unlocked: c.checkInStreak >= 30, progress: Math.min(c.checkInStreak / 30, 1) }),
@@ -129,7 +129,7 @@ const ACHIEVEMENT_DEFS = [
   {
     id: 'ritual_7_streak',
     name: 'Nightly Devotion',
-    description: '7-night ritual streak',
+    description: 'Shared seven ritual nights',
     icon: '🕯️',
     category: 'ritual',
     check: (c) => ({ unlocked: c.ritualMaxStreak >= 7, progress: Math.min(c.ritualMaxStreak / 7, 1) }),

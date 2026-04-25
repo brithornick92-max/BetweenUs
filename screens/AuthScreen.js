@@ -401,7 +401,7 @@ export default function AuthScreen() {
             <View style={styles.securityBadge}>
               <Icon name="lock-closed-outline" size={14} color={t.subtext} />
               <Text style={styles.securityText}>
-                Your intimate responses are encrypted between you and your partner
+                Your private space is protected by account security and app controls
               </Text>
             </View>
           </ScrollView>

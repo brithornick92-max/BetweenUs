@@ -18,9 +18,9 @@ Use:
 - "when connected"
 - "can receive shared access"
 - "linked partner"
-- "encrypted sync"
+- "protected by account access controls"
 - "removed from active systems promptly"
-- "backup purge may take up to 90 days"
+- "backup copies may persist for a limited period before routine purge"
 - "device-only"
 - "private on this device"
 - "sensitive content"
@@ -78,11 +78,12 @@ Avoid:
 ### Privacy / Encryption
 
 Prefer:
-- "shared synced content is encrypted before upload"
+- "synced content is protected by authentication, row-level security, HTTPS/TLS, and provider-side controls"
 - "device-only content stays on your phone"
-- "some metadata is protected but not end-to-end encrypted"
+- "core synced content is not currently end-to-end encrypted"
 
 Avoid:
+- "shared synced content is encrypted before upload"
 - "all user-created content is end-to-end encrypted"
 - "all data is encrypted at rest on our servers" when referring to client-side secrets
 
@@ -91,7 +92,7 @@ Avoid:
 Prefer:
 - "unlinking stops new sharing"
 - "removed from active systems promptly"
-- "backup purge may take up to 90 days"
+- "backup copies may persist for a limited period before routine purge"
 
 Avoid:
 - "nothing after you unlink"

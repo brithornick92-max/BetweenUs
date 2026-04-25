@@ -1,8 +1,5 @@
-import { supabase } from '../config/supabase';
-import SyncEngine from '../services/sync/SyncEngine';
-import Database from '../services/db/Database';
-import E2EEncryption from '../services/e2ee/E2EEncryption';
-import EncryptedAttachments from '../services/e2ee/EncryptedAttachments';
+import { randomUUID } from 'expo-crypto';
+import { supabase, TABLES } from '../config/supabase';
 import { storage, STORAGE_KEYS, settingsStorage } from './storage';
 import { NicknameEngine, RelationshipSeasons, SoftBoundaries } from '../services/PolishEngine';
 import { Image } from 'react-native';
@@ -13,6 +10,7 @@ const RELATIONSHIP_START_DATE = '2023-02-14';
 const DEFAULT_TONE = 'warm';
 const DEFAULT_HEAT_LEVEL = 3;
 const DEFAULT_SEASON = 'steady_and_close';
+const SEEDED_DATA_TYPES = ['journal', 'prompt_answer', 'memory', 'check_in', 'vibe', 'date_plan'];
 
 const DEMO_IMAGE_MODULES = [
   require('../assets/simulator-media/between-us-date-night-1.png'),
@@ -351,133 +349,141 @@ function buildMemoryMood(dayIndex, voiceShift = 0) {
   return pick(MEMORY_MOODS, dayIndex, voiceShift);
 }
 
-async function attachDemoMedia({ parentType, parentId, userId, coupleId, kt, preferVideo = false, assetIndex = 0 }) {
+function pickDemoAsset({ preferVideo = false, assetIndex = 0 } = {}) {
   try {
     const assets = resolveDemoAssets();
     const useVideo = preferVideo && assets.videos.length > 0;
     const pool = useVideo ? assets.videos : assets.images;
     const asset = pool[assetIndex % pool.length];
-    if (!asset?.uri) return null;
-
-    const attachment = await EncryptedAttachments.encryptAndStore({
-      sourceUri: asset.uri,
-      fileName: asset.name,
-      mimeType: asset.mimeType,
-      userId,
-      coupleId,
-      parentType,
-      parentId,
-      keyTier: kt,
-    });
-
-    await Database.markAttachmentUploaded(attachment.id, `demo://${attachment.id}`);
-    await Database.markSynced('attachments', [attachment.id]);
-    return attachment.id;
-  } catch {
+    if (!asset?.uri) {
+      console.warn('Seeder: No asset URI found for', { assetIndex, poolSize: pool.length });
+      return null;
+    }
+    return asset;
+  } catch (err) {
+    console.warn('Seeder: Media asset resolution failed:', err?.message);
     return null;
   }
 }
 
-async function insertPromptAnswerRow({ userId, coupleId, promptId, answer, heat, dateKey, createdAt, kt, encCoupleId }) {
-  const answerCipher = await E2EEncryption.encryptString(answer, kt, encCoupleId);
-  const heatCipher = await E2EEncryption.encryptString(String(heat), kt, encCoupleId);
-  const draft = {
-    id: Database.makeId('ans'),
-    user_id: userId,
-    couple_id: coupleId,
-    prompt_id: promptId,
-    date_key: dateKey,
-    answer_cipher: answerCipher,
-    heat_level: heat,
-    heat_level_cipher: heatCipher,
-    created_at: createdAt,
-    updated_at: createdAt,
-  };
-
-  await Database.insertPromptAnswer(draft);
-  await Database.markSynced('prompt_answers', [draft.id]);
-  return draft.id;
+function makeId(prefix = 'row') {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-async function insertDatePlanRow({ userId, coupleId, sourceEventId, title, variant, createdAt, kt, encCoupleId, dayIndex = 0, isCompleted = false }) {
-  const titleCipher = await E2EEncryption.encryptString(title, kt, encCoupleId);
-  const completedAt = isCompleted ? createdAt : null;
-  const bodyCipher = await E2EEncryption.encryptJson(
-    {
-      locationType: variant.locationType,
-      heat: variant.heat,
-      load: variant.load,
-      style: variant.style,
-      steps: variant.steps,
-      status: isCompleted ? 'completed' : 'planned',
-      completedAt,
-      reflection: isCompleted
-        ? pick([
-            'We actually followed through on this one and it felt grounding.',
-            'This date left us feeling more connected than either of us expected.',
-            'Small plan, big payoff. It ended up being one of our favorite nights lately.',
-            'We kept this simple and still made it memorable.',
-          ], dayIndex)
-        : pick([
-            'Looking forward to this one already.',
-            'This feels like exactly the kind of plan we need this week.',
-            'Built to be easy to say yes to even on a busy day.',
-            'Saving this as something warm to look forward to together.',
-          ], dayIndex, 1),
+async function insertCoupleDataRow({ dataType, coupleId, createdBy, value, createdAt, updatedAt = createdAt, isPrivate = false }) {
+  const rowId = value?.id || makeId(dataType);
+  const { error } = await supabase.from(TABLES.COUPLE_DATA).insert({
+    couple_id: coupleId,
+    key: `${dataType}_${rowId}`,
+    value: {
+      ...value,
+      id: rowId,
+      user_id: createdBy,
+      couple_id: coupleId,
+      created_at: createdAt,
+      updated_at: updatedAt,
     },
-    kt,
-    encCoupleId,
-  );
-
-  const draft = {
-    id: Database.makeId('dp'),
-    user_id: userId,
-    couple_id: coupleId,
-    source_event_id: sourceEventId,
-    title_cipher: titleCipher,
-    body_cipher: bodyCipher,
+    data_type: dataType,
+    created_by: createdBy,
+    is_private: isPrivate,
     created_at: createdAt,
-    updated_at: createdAt,
-  };
+    updated_at: updatedAt,
+  });
 
-  await Database.upsertDatePlan(draft, { syncStatus: 'synced', syncSource: 'remote' });
-  return draft.id;
+  if (error) {
+    console.warn(`Seeder: Failed to insert ${dataType}:`, error.message);
+    throw error;
+  }
+
+  return rowId;
 }
 
-async function clearReviewerData(myUserId, partnerId) {
-  const userIds = [myUserId, partnerId].filter(Boolean);
+async function insertPromptAnswerRow({ userId, coupleId, promptId, answer, partnerAnswer = null, heat, dateKey, createdAt }) {
+  return insertCoupleDataRow({
+    dataType: 'prompt_answer',
+    coupleId,
+    createdBy: userId,
+    createdAt,
+    value: {
+      id: makeId('ans'),
+      promptId,
+      dateKey,
+      answer,
+      partnerAnswer,
+      heatLevel: heat,
+      isRevealed: !!partnerAnswer,
+      revealAt: partnerAnswer ? createdAt : null,
+    },
+  });
+}
 
-  for (const uid of userIds) {
-    try {
-      const journals = await Database.getJournals(uid, { limit: 3000 });
-      for (const row of journals) await Database.softDeleteJournal(row.id);
+async function insertDatePlanRow({ userId, coupleId, sourceEventId, title, variant, createdAt, dayIndex = 0, isCompleted = false }) {
+  const completedAt = isCompleted ? createdAt : null;
+  const planBody = {
+    locationType: variant.locationType,
+    heat: variant.heat,
+    load: variant.load,
+    style: variant.style,
+    steps: variant.steps,
+    status: isCompleted ? 'completed' : 'planned',
+    completedAt,
+    reflection: isCompleted
+      ? pick([
+          'We actually followed through on this one and it felt grounding.',
+          'This date left us feeling more connected than either of us expected.',
+          'Small plan, big payoff. It ended up being one of our favorite nights lately.',
+          'We kept this simple and still made it memorable.',
+        ], dayIndex)
+      : pick([
+          'Looking forward to this one already.',
+          'This feels like exactly the kind of plan we need this week.',
+          'Built to be easy to say yes to even on a busy day.',
+          'Saving this as something warm to look forward to together.',
+        ], dayIndex, 1),
+  };
 
-      const prompts = await Database.getPromptAnswers(uid, { limit: 3000 });
-      for (const row of prompts) await Database.softDeletePromptAnswer(row.id);
+  return insertCoupleDataRow({
+    dataType: 'date_plan',
+    coupleId,
+    createdBy: userId,
+    createdAt,
+    value: {
+      id: makeId('dp'),
+      title,
+      sourceEventId,
+      ...planBody,
+    },
+  });
+}
 
-      const memories = await Database.getMemories(uid, { limit: 3000 });
-      for (const row of memories) await Database.softDeleteMemory(row.id);
+async function clearReviewerData(myUserId, coupleId) {
+  console.log('Seeder: Clearing data from Supabase...');
 
-      const checkIns = await Database.getCheckIns(uid, { limit: 3000 });
-      for (const row of checkIns) await Database.softDeleteCheckIn(row.id);
+  try {
+    const { error: coupleDataError } = await supabase
+      .from(TABLES.COUPLE_DATA)
+      .delete()
+      .eq('couple_id', coupleId)
+      .eq('created_by', myUserId)
+      .in('data_type', SEEDED_DATA_TYPES);
 
-      const vibes = await Database.getVibes(uid, { limit: 3000 });
-      for (const row of vibes) await Database.softDeleteVibe(row.id);
-
-      try {
-        const rituals = await Database.getRituals(uid, { limit: 3000 });
-        for (const row of rituals) await Database.softDeleteRitual(row.id);
-      } catch {
-      }
-
-      const events = await Database.getCalendarEvents(uid, { limit: 3000 });
-      for (const row of events) await Database.softDeleteCalendarEvent(row.id);
-
-      const plans = await Database.getDatePlans(uid, { limit: 3000 });
-      for (const row of plans) await Database.softDeleteDatePlan(row.id);
-    } catch (err) {
-      console.warn('Seeder: partial clear failure for', uid, err?.message);
+    if (coupleDataError && !coupleDataError.message?.includes('no rows')) {
+      console.warn(`Seeder: Failed to clear ${TABLES.COUPLE_DATA}:`, coupleDataError.message);
     }
+
+    const { error: calendarError } = await supabase
+      .from(TABLES.CALENDAR_EVENTS)
+      .delete()
+      .eq('couple_id', coupleId)
+      .eq('created_by', myUserId);
+
+    if (calendarError && !calendarError.message?.includes('no rows')) {
+      console.warn(`Seeder: Failed to clear ${TABLES.CALENDAR_EVENTS}:`, calendarError.message);
+    }
+
+    console.log('Seeder: Data cleared successfully');
+  } catch (err) {
+    console.warn('Seeder: Clear failed:', err?.message);
   }
 }
 
@@ -562,354 +568,296 @@ function chooseMemoryType(dayIndex) {
 }
 
 export async function seedReviewerData() {
-  const user = await supabase.auth.getUser();
-  if (!user?.data?.user?.email?.toLowerCase().includes('betweenusreviewer')) {
-    console.warn('Seeder: This script is restricted to reviewer accounts only.');
-    return { success: false, error: 'Restricted' };
-  }
-
-  const myUserId = user.data.user.id;
-  const membershipResult = await supabase
-    .from('couple_members')
-    .select('couple_id, user_id')
-    .eq(
-      'couple_id',
-      (
-        await supabase
-          .from('couple_members')
-          .select('couple_id')
-          .eq('user_id', myUserId)
-          .single()
-      ).data?.couple_id,
-    );
-
-  const coupleId = membershipResult?.data?.[0]?.couple_id || '00000000-0000-0000-0000-000000000000';
-  const partnerId = membershipResult?.data?.find((m) => m.user_id !== myUserId)?.user_id || '99999999-9999-9999-9999-999999999999';
-
-  let kt = 'device';
-  if (coupleId !== '00000000-0000-0000-0000-000000000000') {
-    try {
-      const { default: CoupleKeyService } = await import('../services/security/CoupleKeyService');
-      const ck = await CoupleKeyService.getCoupleKey(coupleId);
-      kt = ck ? 'couple' : 'device';
-    } catch {
-      kt = 'device';
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user?.data?.user?.email?.toLowerCase().includes('betweenusreviewer')) {
+      console.warn('Seeder: This script is restricted to reviewer accounts only.');
+      return { success: false, error: 'Restricted to reviewer accounts only' };
     }
-  }
 
-  const encCoupleId = kt === 'couple' ? coupleId : null;
+    const myUserId = user.data.user.id;
+    console.log('Seeder: Starting for user', myUserId);
 
-  await clearReviewerData(myUserId, partnerId);
-  await seedCurrentState({ myUserId, partnerId, coupleId });
+    const { data: myMembership, error: membershipError } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .select('couple_id, user_id')
+      .eq('user_id', myUserId)
+      .maybeSingle();
 
-  const stats = {
-    vibes: 0,
-    checkIns: 0,
-    journals: 0,
-    prompts: 0,
-    quizzes: 0,
-    memories: 0,
-    rituals: 0,
-    calendar: 0,
-    datePlans: 0,
-    media: 0,
-  };
+    if (membershipError) throw membershipError;
+    if (!myMembership?.couple_id) {
+      const message = 'Reviewer account must be linked to a couple before seeding Supabase demo data.';
+      console.warn('Seeder:', message);
+      return { success: false, error: message };
+    }
 
-  let promptIndex = 0;
-  let quizIndex = 0;
+    const { data: memberships, error: membersError } = await supabase
+      .from(TABLES.COUPLE_MEMBERS)
+      .select('couple_id, user_id')
+      .eq('couple_id', myMembership.couple_id);
 
-  for (let daysAgo = 89; daysAgo >= 0; daysAgo -= 1) {
-    const dayIndex = 89 - daysAgo;
-    const rowIsPartner = dayIndex % 2 === 1;
-    const rowUserId = rowIsPartner ? partnerId : myUserId;
-    const otherUserId = rowIsPartner ? myUserId : partnerId;
-    const coupleScopedId = coupleId !== '00000000-0000-0000-0000-000000000000' ? coupleId : null;
+    if (membersError) throw membersError;
 
-    const baseIso = isoDaysAgo(daysAgo, 8 + (dayIndex % 4), (dayIndex * 7) % 60);
-    const dateKey = dateKeyFromIso(baseIso);
+    const coupleId = myMembership.couple_id;
+    const partnerId = memberships?.find((m) => m.user_id !== myUserId)?.user_id || '99999999-9999-4999-9999-999999999999';
 
-    try {
-      {
-        const vibe = pick(VIBES, dayIndex, rowIsPartner ? 2 : 0);
-        const vibeNote = boolEvery(dayIndex, 2, rowIsPartner ? 1 : 0)
-          ? pick(VIBE_NOTES, dayIndex, rowIsPartner ? 2 : 0)
-          : '';
+    console.log('Seeder: Couple ID:', coupleId);
+    console.log('Seeder: Partner ID:', partnerId);
+    console.log('Seeder: Using plaintext Supabase tables:', `${TABLES.COUPLE_DATA}, ${TABLES.CALENDAR_EVENTS}`);
 
-        const vibeDraft = {
-          id: Database.makeId('vib'),
-          user_id: rowUserId,
-          couple_id: coupleScopedId,
-          vibe,
-          note_cipher: vibeNote ? await E2EEncryption.encryptString(vibeNote, kt, encCoupleId) : null,
-          created_at: baseIso,
-          updated_at: baseIso,
-        };
-        await Database.insertVibe(vibeDraft);
-        await Database.markSynced('vibes', [vibeDraft.id]);
-        stats.vibes += 1;
-      }
+    console.log('Seeder: Clearing existing data...');
+    await clearReviewerData(myUserId, coupleId);
 
-      {
-        const mood = pick(MOODS, dayIndex, rowIsPartner ? 2 : 0);
-        const checkInPayload = {
-          mood,
-          intimacy: pick(INTIMACY_LEVELS, dayIndex, rowIsPartner ? 1 : 0),
-          notes: pick(CHECKIN_NOTES, dayIndex, rowIsPartner ? 2 : 0),
-          touch: !boolEvery(dayIndex, 5, 2),
-        };
+    console.log('Seeder: Setting up current state...');
+    await seedCurrentState({ myUserId, partnerId, coupleId });
 
-        const checkInDraft = {
-          id: Database.makeId('chk'),
-          user_id: rowUserId,
-          couple_id: coupleScopedId,
-          body_cipher: await E2EEncryption.encryptJson(checkInPayload, kt, encCoupleId),
-          mood,
-          mood_cipher: await E2EEncryption.encryptString(mood, kt, encCoupleId),
-          date_key: dateKey,
-          created_at: baseIso,
-          updated_at: baseIso,
-        };
-        await Database.insertCheckIn(checkInDraft);
-        await Database.markSynced('check_ins', [checkInDraft.id]);
-        stats.checkIns += 1;
-      }
+    const stats = {
+      vibes: 0,
+      checkIns: 0,
+      journals: 0,
+      prompts: 0,
+      quizzes: 0,
+      memories: 0,
+      rituals: 0,
+      calendar: 0,
+      datePlans: 0,
+      media: 0,
+    };
 
-      {
-        const journalId = Database.makeId('jrn');
-        const journalMood = pick(MOODS, dayIndex, rowIsPartner ? 1 : 0);
-        const tags = buildJournalTags(dayIndex + (rowIsPartner ? 1 : 0));
-        const includeMedia = boolEvery(dayIndex, 8, 2);
-        const mediaRef = includeMedia
-          ? await attachDemoMedia({
-              parentType: 'journal',
-              parentId: journalId,
-              userId: rowUserId,
-              coupleId: coupleScopedId,
-              kt,
-              preferVideo: boolEvery(dayIndex, 16, 3),
-              assetIndex: dayIndex,
-            })
-          : null;
+    let promptIndex = 0;
+    let quizIndex = 0;
+    let canSeedMemories = true;
+    let canSeedCalendar = true;
+    let canSeedDatePlans = true;
 
-        const journalIso = isoDaysAgo(daysAgo, 21, (dayIndex * 11) % 60);
-        const journalDraft = {
-          id: journalId,
-          user_id: rowUserId,
-          couple_id: coupleScopedId,
-          title_cipher: await E2EEncryption.encryptString(pick(JOURNAL_TITLES, dayIndex, rowIsPartner ? 2 : 0), kt, encCoupleId),
-          body_cipher: await E2EEncryption.encryptString(buildJournalBody(dayIndex, rowIsPartner ? 3 : 0), kt, encCoupleId),
-          mood: journalMood,
-          mood_cipher: await E2EEncryption.encryptString(journalMood, kt, encCoupleId),
-          tags,
-          tags_cipher: await E2EEncryption.encryptJson(tags, kt, encCoupleId),
-          is_private: false,
-          photo_uri: null,
-          media_ref: mediaRef,
-          created_at: journalIso,
-          updated_at: journalIso,
-        };
-        await Database.insertJournal(journalDraft);
-        await Database.markSynced('journal_entries', [journalDraft.id]);
-        if (mediaRef) stats.media += 1;
-        stats.journals += 1;
-      }
+    for (let daysAgo = 89; daysAgo >= 0; daysAgo -= 1) {
+      const dayIndex = 89 - daysAgo;
+      const rowIsPartner = dayIndex % 2 === 1;
+      const demoAuthorName = rowIsPartner ? PARTNER : ME;
+      const demoAuthorId = rowIsPartner ? partnerId : myUserId;
 
-      {
-        const prompt = pick(PROMPT_PAIRS, promptIndex, 0);
-        const myAnswer = pick(prompt.answers, dayIndex, rowIsPartner ? 1 : 0);
-        await insertPromptAnswerRow({
-          userId: rowUserId,
-          coupleId: coupleScopedId,
-          promptId: prompt.id,
-          answer: myAnswer,
-          heat: prompt.heat,
-          dateKey,
-          createdAt: isoDaysAgo(daysAgo, 20, (dayIndex * 9) % 60),
-          kt,
-          encCoupleId,
-        });
-        stats.prompts += 1;
+      const baseIso = isoDaysAgo(daysAgo, 8 + (dayIndex % 4), (dayIndex * 7) % 60);
+      const dateKey = dateKeyFromIso(baseIso);
 
-        const partnerReply = pick(prompt.answers, dayIndex, rowIsPartner ? 0 : 1);
-        await insertPromptAnswerRow({
-          userId: otherUserId,
-          coupleId: coupleScopedId,
-          promptId: prompt.id,
-          answer: partnerReply,
-          heat: prompt.heat,
-          dateKey,
-          createdAt: isoDaysAgo(daysAgo, 22, (dayIndex * 13) % 60),
-          kt,
-          encCoupleId,
-        });
-        stats.prompts += 1;
+      try {
+        {
+          const vibe = pick(VIBES, dayIndex, rowIsPartner ? 2 : 0);
+          const vibeNote = boolEvery(dayIndex, 2, rowIsPartner ? 1 : 0)
+            ? pick(VIBE_NOTES, dayIndex, rowIsPartner ? 2 : 0)
+            : '';
 
-        promptIndex += 1;
-      }
+          await insertCoupleDataRow({
+            dataType: 'vibe',
+            coupleId,
+            createdBy: myUserId,
+            createdAt: baseIso,
+            value: {
+              id: makeId('vib'),
+              vibe,
+              note: vibeNote || null,
+              demoAuthorId,
+              demoAuthorName,
+            },
+          });
+          stats.vibes += 1;
+        }
 
-      {
-        const memoryType = chooseMemoryType(dayIndex);
-        const memoryId = Database.makeId('mem');
-        const mediaRef = await attachDemoMedia({
-          parentType: 'memory',
-          parentId: memoryId,
-          userId: rowUserId,
-          coupleId: coupleScopedId,
-          kt,
-          preferVideo: boolEvery(dayIndex, 2, 0),
-          assetIndex: dayIndex + 5,
-        });
+        {
+          const mood = pick(MOODS, dayIndex, rowIsPartner ? 2 : 0);
+          await insertCoupleDataRow({
+            dataType: 'check_in',
+            coupleId,
+            createdBy: myUserId,
+            createdAt: baseIso,
+            value: {
+              id: makeId('chk'),
+              mood,
+              intimacy: pick(INTIMACY_LEVELS, dayIndex, rowIsPartner ? 1 : 0),
+              notes: pick(CHECKIN_NOTES, dayIndex, rowIsPartner ? 2 : 0),
+              touch: !boolEvery(dayIndex, 5, 2),
+              dateKey,
+              demoAuthorId,
+              demoAuthorName,
+            },
+          });
+          stats.checkIns += 1;
+        }
 
-        const body = buildMemoryBody(memoryType, dayIndex, rowIsPartner ? 2 : 0);
-        const mood = buildMemoryMood(dayIndex, rowIsPartner ? 3 : 0);
-        const memoryIso = isoDaysAgo(daysAgo, 18, (dayIndex * 5) % 60);
-        const memoryDraft = {
-          id: memoryId,
-          user_id: rowUserId,
-          couple_id: coupleScopedId,
-          type: memoryType,
-          body_cipher: await E2EEncryption.encryptString(body, kt, encCoupleId),
-          media_ref: mediaRef,
-          mood,
-          mood_cipher: await E2EEncryption.encryptString(mood, kt, encCoupleId),
-          is_private: 0,
-          created_at: memoryIso,
-          updated_at: memoryIso,
-        };
-        await Database.insertMemory(memoryDraft);
-        await Database.markSynced('memories', [memoryDraft.id]);
-        if (mediaRef) stats.media += 1;
-        stats.memories += 1;
-      }
+        {
+          const journalId = makeId('jrn');
+          const journalMood = pick(MOODS, dayIndex, rowIsPartner ? 1 : 0);
+          const tags = buildJournalTags(dayIndex + (rowIsPartner ? 1 : 0));
+          const journalTitle = pick(JOURNAL_TITLES, dayIndex, rowIsPartner ? 2 : 0);
+          const journalBody = buildJournalBody(dayIndex, rowIsPartner ? 3 : 0);
+          const includeMedia = boolEvery(dayIndex, 6, 1);
+          const asset = includeMedia ? pickDemoAsset({ assetIndex: dayIndex }) : null;
+          const journalIso = isoDaysAgo(daysAgo, 21, (dayIndex * 11) % 60);
 
-      if (Database?.insertRitual && boolEvery(dayIndex, 14, 6)) {
-        const ritualIso = isoDaysAgo(daysAgo, 22, (dayIndex * 3) % 60);
-        const ritualPayload = {
-          title: pick(['Check-in walk', 'Phone-free dinner', 'Goodnight reset', 'Weekly debrief'], dayIndex),
-          feeling: pick(['grounded', 'closer', 'calmer', 'more connected'], dayIndex, 2),
-          note: pick(
-            [
-              'This helped us soften before the week got away from us.',
-              'A small ritual, but it changed the tone of the whole evening.',
-              'We kept it simple and that was exactly why it worked.',
-              'It felt good to have one thing that belonged to us.',
-            ],
-            dayIndex,
-            1,
-          ),
-        };
+          await insertCoupleDataRow({
+            dataType: 'journal',
+            coupleId,
+            createdBy: myUserId,
+            createdAt: journalIso,
+            value: {
+              id: journalId,
+              title: journalTitle,
+              body: journalBody,
+              mood: journalMood,
+              tags,
+              photoUri: asset?.mimeType?.startsWith('image/') ? asset.uri : null,
+              mediaPath: null,
+              mediaBucket: null,
+              mimeType: asset?.mimeType || null,
+              demoAuthorId,
+              demoAuthorName,
+            },
+            isPrivate: false,
+          });
+          if (asset) stats.media += 1;
+          stats.journals += 1;
+        }
 
-        await Database.insertRitual({
-          id: Database.makeId('rit'),
-          user_id: rowUserId,
-          couple_id: coupleScopedId,
-          flow_id: pick(['evening_reset', 'connection_checkin', 'slow_morning', 'weekly_touchpoint'], dayIndex),
-          body_cipher: await E2EEncryption.encryptJson(ritualPayload, kt, encCoupleId),
-          completed_at: ritualIso,
-          streak_day: (dayIndex % 5) + 1,
-          created_at: ritualIso,
-        });
-        stats.rituals += 1;
-      }
+        {
+          const prompt = pick(PROMPT_PAIRS, promptIndex, 0);
+          const myAnswer = pick(prompt.answers, dayIndex, rowIsPartner ? 1 : 0);
+          const partnerReply = pick(prompt.answers, dayIndex, rowIsPartner ? 0 : 1);
+          await insertPromptAnswerRow({
+            userId: myUserId,
+            coupleId,
+            promptId: prompt.id,
+            answer: myAnswer,
+            partnerAnswer: partnerReply,
+            heat: prompt.heat,
+            dateKey,
+            createdAt: isoDaysAgo(daysAgo, 20, (dayIndex * 9) % 60),
+          });
+          stats.prompts += 2;
+          promptIndex += 1;
+        }
 
-      {
-        const event = {
-          ...pick(CALENDAR_EVENTS, dayIndex, rowIsPartner ? 1 : 0),
-          type: 'dateNight',
-        };
-        const eventWhen = tsDaysAgo(daysAgo, 19, (dayIndex * 3) % 60);
-        const eventIso = eventWhen.toISOString();
-        const calendarDraft = {
-          id: Database.makeId('cal'),
-          user_id: rowUserId,
-          couple_id: coupleScopedId,
-          title_cipher: await E2EEncryption.encryptString(event.title, kt, encCoupleId),
-          location_cipher: await E2EEncryption.encryptString(pick(CALENDAR_LOCATIONS, dayIndex, rowIsPartner ? 3 : 0), kt, encCoupleId),
-          notes_cipher: await E2EEncryption.encryptString(
-            event.type === 'dateNight'
-              ? 'Planned together after talking about what would help us reconnect this week.'
-              : 'A shared plan that reflects how often we keep choosing little rhythms together.',
-            kt,
-            encCoupleId,
-          ),
-          event_type: event.type,
-          is_date_night: event.type === 'dateNight' ? 1 : 0,
-          when_ts: eventWhen.getTime(),
-          notify: 0,
-          notify_mins: 60,
-          notification_id: null,
-          metadata_cipher: await E2EEncryption.encryptJson(
-            {
+        if (canSeedMemories) {
+          const memoryType = chooseMemoryType(dayIndex);
+          const body = buildMemoryBody(memoryType, dayIndex, rowIsPartner ? 2 : 0);
+          const mood = buildMemoryMood(dayIndex, rowIsPartner ? 3 : 0);
+          const memoryIso = isoDaysAgo(daysAgo, 18, (dayIndex * 5) % 60);
+
+          try {
+            await insertCoupleDataRow({
+              dataType: 'memory',
+              coupleId,
+              createdBy: myUserId,
+              createdAt: memoryIso,
+              value: {
+                id: makeId('mem'),
+                type: memoryType,
+                content: body,
+                mood,
+                mediaPath: null,
+                mediaBucket: null,
+                mimeType: null,
+                demoAuthorId,
+                demoAuthorName,
+              },
+              isPrivate: false,
+            });
+            stats.memories += 1;
+          } catch (err) {
+            canSeedMemories = false;
+            console.warn('Seeder: Skipping remaining memories:', err?.message);
+          }
+        }
+
+        if (canSeedCalendar) {
+          const event = {
+            ...pick(CALENDAR_EVENTS, dayIndex, rowIsPartner ? 1 : 0),
+            type: 'dateNight',
+          };
+          const eventWhen = tsDaysAgo(daysAgo, 19, (dayIndex * 3) % 60);
+          const eventIso = eventWhen.toISOString();
+          const eventTitle = event.title;
+          const eventLocation = pick(CALENDAR_LOCATIONS, dayIndex, rowIsPartner ? 3 : 0);
+          const eventNotes = event.type === 'dateNight'
+            ? 'Planned together after talking about what would help us reconnect this week.'
+            : 'A shared plan that reflects how often we keep choosing little rhythms together.';
+          const variant = pick(DATE_PLAN_VARIANTS, dayIndex, rowIsPartner ? 1 : 0);
+          const calendarId = randomUUID();
+
+          const { error: calendarError } = await supabase.from(TABLES.CALENDAR_EVENTS).insert({
+            id: calendarId,
+            couple_id: coupleId,
+            title: eventTitle,
+            description: eventNotes,
+            event_date: eventIso,
+            event_type: event.type,
+            location: eventLocation,
+            heat_level: variant.heat,
+            is_completed: daysAgo > 0,
+            metadata: {
               isDateNight: event.type === 'dateNight',
               notify: false,
               notifyMins: 60,
               notificationId: null,
+              demoAuthorId,
+              demoAuthorName,
             },
-            kt,
-            encCoupleId,
-          ),
-          created_at: eventIso,
-          updated_at: eventIso,
-        };
-        await Database.upsertCalendarEvent(calendarDraft, { syncStatus: 'synced', syncSource: 'remote' });
-        stats.calendar += 1;
+            created_by: myUserId,
+            created_at: eventIso,
+            updated_at: eventIso,
+          });
 
-        await insertDatePlanRow({
-          userId: rowUserId,
-          coupleId: coupleScopedId,
-          sourceEventId: calendarDraft.id,
-          title: event.title,
-          variant: pick(DATE_PLAN_VARIANTS, dayIndex, rowIsPartner ? 1 : 0),
-          createdAt: eventIso,
-          kt,
-          encCoupleId,
-          dayIndex,
-          isCompleted: daysAgo > 0,
-        });
-        stats.datePlans += 1;
+          if (calendarError) {
+            canSeedCalendar = false;
+            console.warn('Seeder: Skipping remaining calendar events:', calendarError.message);
+          } else {
+            stats.calendar += 1;
+
+            if (canSeedDatePlans) {
+              try {
+                await insertDatePlanRow({
+                  userId: myUserId,
+                  coupleId,
+                  sourceEventId: calendarId,
+                  title: eventTitle,
+                  variant,
+                  createdAt: eventIso,
+                  dayIndex,
+                  isCompleted: daysAgo > 0,
+                });
+                stats.datePlans += 1;
+              } catch (err) {
+                canSeedDatePlans = false;
+                console.warn('Seeder: Skipping remaining date plans:', err?.message);
+              }
+            }
+          }
+        }
+
+        if (boolEvery(dayIndex, 6, 2)) {
+          const quiz = pick(QUIZ_PAIRS, quizIndex, 0);
+          await insertPromptAnswerRow({
+            userId: myUserId,
+            coupleId,
+            promptId: quiz.id,
+            answer: quiz.mine,
+            partnerAnswer: quiz.partner,
+            heat: 1,
+            dateKey,
+            createdAt: isoDaysAgo(daysAgo, 20, (dayIndex * 9) % 60),
+          });
+
+          stats.quizzes += 2;
+          quizIndex += 1;
+        }
+      } catch (err) {
+        console.warn('Seeder err at day', daysAgo, err?.message);
       }
-
-      if (boolEvery(dayIndex, 6, 2)) {
-        const quiz = pick(QUIZ_PAIRS, quizIndex, 0);
-        await insertPromptAnswerRow({
-          userId: myUserId,
-          coupleId: coupleScopedId,
-          promptId: quiz.id,
-          answer: quiz.mine,
-          heat: 1,
-          dateKey,
-          createdAt: isoDaysAgo(daysAgo, 20, (dayIndex * 9) % 60),
-          kt,
-          encCoupleId,
-        });
-
-        await insertPromptAnswerRow({
-          userId: partnerId,
-          coupleId: coupleScopedId,
-          promptId: quiz.id,
-          answer: quiz.partner,
-          heat: 1,
-          dateKey,
-          createdAt: isoDaysAgo(daysAgo, 20, ((dayIndex * 9) + 17) % 60),
-          kt,
-          encCoupleId,
-        });
-
-        stats.quizzes += 2;
-        quizIndex += 1;
-      }
-    } catch (err) {
-      console.warn('Seeder err at day', daysAgo, err?.message);
     }
-  }
 
-  if (SyncEngine.isConfigured) {
-    try {
-      await SyncEngine.sync();
-    } catch {
-    }
+    console.log(`Seeder Complete: ${JSON.stringify(stats)}`);
+    console.log('Seeder: Data written directly to Supabase couple_data/calendar_events. Refresh the app to see changes.');
+    return { success: true, ...stats };
+  } catch (err) {
+    console.error('Seeder: Fatal error:', err);
+    return { success: false, error: err?.message || 'Unknown error occurred' };
   }
-
-  console.log(`Seeder Complete: ${JSON.stringify(stats)}`);
-  return { success: true, ...stats };
 }

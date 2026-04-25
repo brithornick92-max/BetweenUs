@@ -136,10 +136,10 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const hasLinkedPartner = !!state?.coupleId;
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const helperCopy = hasLinkedPartner
-    ? "Answer in your own words. This usually takes about 30 seconds. Your answer stays hidden until you both answer."
-    : "Answer in your own words. Save it now, then invite your partner to answer too.";
+    ? "Leave one honest answer. It stays private until your shared reveal."
+    : "Save this for your private space, then invite your partner to answer too.";
   const privacyCopy = hasLinkedPartner
-    ? "Hidden until both of you answer."
+    ? "Private until your shared reveal."
     : `Save your answer now, then invite ${partnerLabel} to answer too.`;
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
@@ -232,7 +232,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   const loadExistingAnswer = async () => {
     if (!prompt?.id) return;
-    // Try DataLayer first (E2EE, synced); fall back to legacy AsyncStorage
+    // Try the active DataLayer first; fall back to legacy AsyncStorage.
     try {
       const row = await DataLayer.getPromptAnswerForToday(prompt.id);
       if (row?.answer) {
@@ -288,7 +288,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     try {
       Keyboard.dismiss();
       // Save locally first so prompt answering still works even if the
-      // E2EE/sync layer is still initializing or temporarily unavailable.
+      // sync layer is still initializing or temporarily unavailable.
       if (prompt?.dateKey) {
         await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
           answer: finalText,
@@ -319,7 +319,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
       }).catch(() => {});
 
       navigation.goBack();
-    } catch (error) {
+    } catch {
       Alert.alert("We couldn't save your answer", "Please try again.");
     } finally {
       setIsSaving(false);
@@ -351,7 +351,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
           <View style={[styles.headerStatus, { backgroundColor: withAlpha(t.primary, 0.1), borderColor: withAlpha(t.primary, 0.2) }]}>
             <Icon name="chatbubble-ellipses-outline" size={12} color={t.primary} />
-            <Text style={[styles.statusText, { color: t.primary }]}>TODAY'S QUESTION</Text>
+            <Text style={[styles.statusText, { color: t.primary }]}>TODAY BETWEEN US</Text>
           </View>
 
           <View style={{ width: 44 }} />
@@ -460,7 +460,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
               <TextInput
                 value={answer}
                 onChangeText={handleTextChange}
-                placeholder="Write your answer here..."
+                placeholder="Leave them one small piece of your heart..."
                 placeholderTextColor={withAlpha(t.text, 0.3)}
                 multiline
                 autoFocus
@@ -496,7 +496,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
                   <ActivityIndicator color="#FFF" />
                 ) : (
                   <Text style={styles.saveButtonText}>
-                    {existingAnswer ? "Update my answer" : "Save my answer"}
+                    {existingAnswer ? "Update my answer" : "Save for reveal"}
                   </Text>
                 )}
               </TouchableOpacity>

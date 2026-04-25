@@ -71,16 +71,16 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
         {/* Content */}
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          
+
           {/* Editorial Header Block */}
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
             <Text style={[styles.headerEye, { color: theme.crimson }]}>SECURITY & TRUST</Text>
             <Text style={[styles.title, { color: colors.text }]}>Privacy Policy</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              Last Updated: April 21, 2026
+              Last Updated: April 24, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
-              Your privacy is critically important to us. This Privacy Policy explains how we collect, use, 
+              Your privacy is critically important to us. This Privacy Policy explains how we collect, use,
               protect, and share your information when you use Between Us.
             </Text>
           </Animated.View>
@@ -89,7 +89,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               <Text style={{ color: theme.crimson }}>1.</Text> Information We Collect
             </Text>
-            
+
             <Text style={[styles.subTitle, { color: colors.text }]}>Account Information</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Email address{'\n'}
@@ -102,12 +102,11 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.subTitle, { color: colors.text }]}>Content You Create</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               We protect different categories of content in different ways:{'\n\n'}
-              • Journal entries, prompt responses, and memories are stored in your private account and couple space when sync is enabled{'\n'}
-              • Photo attachments are protected in transit and at rest{'\n'}
-              • Voice notes are protected in transit and at rest{'\n'}
-              • Some preferences and sensitive controls stay only on your device{'\n'}
-              • Some metadata is stored to support filtering, sorting, and scheduling{'\n'}
-              • Shared content is only visible to your linked partner when you choose to share it
+              • Journal entries, prompt responses, memories, check-ins, vibes, calendar events, and date plans may be stored in your private account and couple space{'\n'}
+              • Photo and media attachments are protected in transit and by server-side access controls{'\n'}
+              • Some settings and cached data stay only on your device{'\n'}
+              • Some preferences, including soft boundaries, energy level, and relationship climate, may sync to your profile for restoration across devices{'\n'}
+              • Shared couple-space content may be visible to your linked partner according to the feature flow
             </Text>
 
             <Text style={[styles.subTitle, { color: colors.text }]}>Usage Information</Text>
@@ -124,10 +123,10 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.subTitle, { color: colors.text }]}>Device Permissions</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Camera: Used for QR code scanning during partner linking.{"\n"}
-              • Photo Library: Used only when you choose to attach a photo to journal entries. Photos are uploaded only when you choose to share them.{'\n'}
-              • Microphone: Used only when you choose to record a voice note for your partner.{"\n"}
+              • Photo Library: Used only when you choose to attach media to supported journals, memories, or similar features. Media is uploaded only when you choose to add it to a synced feature.{'\n'}
+              • Microphone: Used only if a build exposes voice-note features and you choose to record one.{"\n"}
               • Push Notifications: Your device push token is sent to our server to deliver notifications such as partner activity and reminders. You can disable notifications in your device settings at any time.{'\n'}
-              • Biometrics (Face ID / Touch ID): Used optionally to lock the app. Biometric data never leaves your device — we only receive a success/failure result from your device's secure enclave. We do not collect, store, or transmit biometric data.
+              • Biometrics (Face ID / Touch ID): Used optionally to lock the app. Biometric matching is handled by your device; we receive only a success/failure result. We do not collect, store, or transmit biometric templates.
             </Text>
 
             <Text style={[styles.subTitle, { color: colors.text }]}>On-Device Storage</Text>
@@ -136,7 +135,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               • Cached synced content and pending offline writes{'\n'}
               • Preferences and settings in local storage and secure device storage{'\n'}
               • Credentials and app-lock secrets in your device's secure storage when available{'\n\n'}
-              Signing out removes local session credentials on this device and may clear cached local data. Your account and cloud data remain on our servers until you delete the account.
+              Signing out removes local session credentials on this device and may clear cached local data. Your account and synced data remain on our servers until you delete them, unlink where the shared couple space is dissolved, or delete the account.
             </Text>
 
             <Text style={[styles.subTitle, { color: colors.text }]}>Information We Don't Collect</Text>
@@ -169,13 +168,14 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               <Text style={{ color: theme.crimson }}>3.</Text> Data Protection
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              Between Us protects different kinds of content in different ways. Shared relationship content is stored in your private account and couple space, while device-only features stay local unless a feature explicitly says otherwise.{"\n\n"}
-              • Journals, prompt responses, memories, and love notes are protected by authentication and row-level access controls{"\n"}
-              • Device-only features such as soft boundaries, inside jokes, relationship climate, and year reflections stay local unless the feature explicitly says otherwise{'\n'}
+              Between Us protects different kinds of content in different ways. Core synced content is stored in Supabase as structured app data and is protected by account authentication, row-level security, HTTPS/TLS, and provider-side access controls.{"\n\n"}
+              • Journals, prompt responses, memories, check-ins, vibes, calendar events, date plans, and media attachments are not currently end-to-end encrypted before upload{"\n"}
+              • Device-only features and local caches stay local unless a feature explicitly says otherwise{'\n'}
+              • Some settings, including soft boundaries, relationship climate, and energy level, may sync to your profile for account continuity{'\n'}
               • Secure transport (TLS) is used whenever data is sent between your device and our services{'\n'}
               • App-lock secrets and similar local protections stay on your device when supported{'\n\n'}
-              Important: If you lose access to your device without cloud sync enabled, device-local cached content may be permanently unrecoverable.{'\n\n'}
-              Some metadata (such as timestamps, event types, mood labels, and heat-level preferences) is stored so we can provide features like filtering, sorting, scheduling, and delivery.
+              Important: App lock, PIN, Face ID, and Touch ID protect access on your device; they do not make synced server content end-to-end encrypted.{'\n\n'}
+              Some metadata and content fields are stored so we can provide features like filtering, sorting, scheduling, syncing, and delivery.
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -195,7 +195,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               We use the following third-party services:{'\n\n'}
-              • Supabase - Authentication, partner linking, and optional premium cloud sync{'\n'}
+              • Supabase - Authentication, database, storage, partner linking, backend functions, and realtime features{'\n'}
               • RevenueCat - Subscription management{'\n'}
               • Sentry - Crash reporting, performance monitoring, and session replays (10% of sessions; 100% on error) to help fix bugs. Also powers optional user feedback.{'\n'}
               • Expo - Push notification delivery and over-the-air updates{'\n'}
@@ -209,7 +209,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Account data: Retained while your account is active{'\n'}
               • Signing out removes local credentials from this device but does not delete your account or cloud data{'\n'}
-              • Journal entries and linked-partner metadata: Retained until you delete them or remove access through unlinking or account deletion{'\n'}
+              • Core synced content: Retained until you delete it, unlink where the shared couple space is dissolved, or delete your account{'\n'}
               • Usage and diagnostic data: Retained for a limited period based on operational needs{'\n'}
               • Deleted data: Removed from active systems promptly; backup copies may persist for a limited period before routine purge
             </Text>
@@ -225,7 +225,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               • Export your data{'\n'}
               • Receive a temporary JSON export through the system share sheet; the app removes its temporary copy after the export flow completes{'\n'}
               • Disable optional notifications{'\n'}
-              • Withdraw consent at any time
+              • Withdraw consent where processing is based on consent
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -249,7 +249,9 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               If you are a California resident, you have rights under CCPA:{'\n\n'}
               • Right to know what personal information is collected{'\n'}
               • Right to delete personal information{'\n'}
-              • Right to opt-out of sale (we don't sell your data){'\n'}
+              • Right to correct inaccurate personal information{'\n'}
+              • Right to opt-out of sale or sharing for cross-context behavioral advertising (we don't sell your data or share it for that purpose){'\n'}
+              • Right to limit certain uses of sensitive personal information where applicable{'\n'}
               • Right to non-discrimination for exercising your rights
             </Text>
 
@@ -264,7 +266,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               <Text style={{ color: theme.crimson }}>11.</Text> Children's Privacy
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              Between Us is not for children. You must be 18+ to use the app. We do not knowingly collect 
+              Between Us is not for children. You must be 18+ to use the app. We do not knowingly collect
               information from minors. If we discover underage use, we will delete the account immediately.
             </Text>
 
@@ -273,10 +275,10 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               We implement industry-standard security measures:{'\n\n'}
-              • End-to-end or device-key encryption for supported intimate content{'\n'}
+              • Account authentication and row-level access controls for synced content{'\n'}
               • Secure data transmission (HTTPS/TLS){'\n'}
-              • Access controls and authentication{'\n'}
-              • Encrypted data storage
+              • Provider-side security controls and encrypted storage where supplied by our providers{'\n'}
+              • Optional app lock with PIN, Face ID, or Touch ID on your device
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -291,8 +293,9 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               <Text style={{ color: theme.crimson }}>14.</Text> Changes to This Policy
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              We may update this Privacy Policy from time to time. We will notify you of significant changes 
-              via email or in-app notification. Continued use after changes constitutes acceptance.
+              We may update this Privacy Policy from time to time. We may notify you of significant changes
+              via email, in-app notification, updated legal documents, or App Store metadata where appropriate.
+              Continued use after changes means you accept the updated policy to the extent permitted by law.
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -309,7 +312,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               • Don't share your login credentials{'\n\n'}
               Manage sharing:{'\n'}
               • Choose what to share with your partner{'\n'}
-              • Keep entries private{'\n'}
+              • Use available sharing controls carefully{'\n'}
               • Unlink when needed
             </Text>
 
@@ -340,7 +343,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               3. Storage Limitation — Data deleted when no longer needed{'\n'}
               4. Accuracy — You can correct your data anytime{'\n'}
               5. Integrity — Strong security measures protect your data{'\n'}
-              6. Confidentiality — Private account and couple access controls for intimate content{'\n'}
+              6. Confidentiality — Private account and couple access controls for relationship content{'\n'}
               7. Accountability — We're responsible for protecting your privacy
             </Text>
           </Animated.View>
@@ -349,12 +352,12 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <Animated.View entering={FadeInDown.delay(400).duration(800)}>
             <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.summaryCard, { borderColor: theme.glassBorder }]}>
               <Text style={[styles.summaryTitle, { color: colors.text }]}>The Bottom Line</Text>
-              
+
               <View style={styles.summaryGrid}>
                 <View style={styles.summaryColumn}>
                   <Text style={[styles.summaryColTitle, { color: colors.text }]}>What we do</Text>
-                  <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Encrypt intimate content</Text></View>
-                  <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Process data on device</Text></View>
+                  <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Protect synced content</Text></View>
+                  <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Use device controls</Text></View>
                   <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Give you full control</Text></View>
                 </View>
 
@@ -362,7 +365,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
                   <Text style={[styles.summaryColTitle, { color: colors.text }]}>What we don't do</Text>
                   <View style={styles.summaryRow}><Icon name="close-circle" size={16} color={theme.crimson} /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Sell your data</Text></View>
                   <View style={styles.summaryRow}><Icon name="close-circle" size={16} color={theme.crimson} /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Share with advertisers</Text></View>
-                  <View style={styles.summaryRow}><Icon name="close-circle" size={16} color={theme.crimson} /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Read encrypted content</Text></View>
+                  <View style={styles.summaryRow}><Icon name="close-circle" size={16} color={theme.crimson} /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Track you for ads</Text></View>
                 </View>
               </View>
             </BlurView>
@@ -378,15 +381,15 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 const createStyles = (colors, isDark, theme) => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  
+
   navHeader: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 4,
   },
-  backButton: { 
-    width: 44, 
-    height: 44, 
+  backButton: {
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 22,

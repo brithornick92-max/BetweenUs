@@ -285,7 +285,7 @@ export default function AddMemoryScreen() {
                     <Icon name="camera-outline" size={32} color={t.text} />
                     <Text style={[styles.photoPlaceholderText, { color: t.text }]}>Add a Photo or Video</Text>
                     <Text style={[styles.photoPlaceholderSub, { color: t.subtext }]}>
-                      Optional · stays encrypted
+                      Optional · protected in your account
                     </Text>
                   </BlurView>
                 </TouchableOpacity>

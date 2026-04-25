@@ -1,6 +1,33 @@
 import LocalEngine from './LocalEngine';
 import CloudEngine from './CloudEngine';
+import { SupabaseAuthService } from '../supabase/SupabaseAuthService';
+import CoupleService from '../supabase/CoupleService';
 import { cloudSyncStorage, storage, STORAGE_KEYS } from '../../utils/storage';
+
+function isCloudUnavailableError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return (
+    message.includes('not configured')
+    || message.includes('network')
+    || message.includes('fetch')
+    || message.includes('offline')
+    || message.includes('timeout')
+    || message.includes('timed out')
+    || message.includes('failed to fetch')
+    || message.includes('network request failed')
+  );
+}
+
+function isMissingRowError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return (
+    error?.code === 'PGRST116'
+    || message.includes('0 rows')
+    || message.includes('no rows')
+    || message.includes('multiple (or no) rows returned')
+    || message.includes('json object requested')
+  );
+}
 
 function buildCloudProfileUpdates(localProfile = {}) {
   const preferences = {
@@ -70,6 +97,15 @@ function buildCloudProfileUpdates(localProfile = {}) {
   }
 
   return updates;
+}
+
+async function cacheSupabaseCredentials(email, password, session) {
+  await SupabaseAuthService.storeCredentials(email, password);
+  const syncStatus = await cloudSyncStorage.getSyncStatus();
+  await cloudSyncStorage.setSyncStatus({
+    ...syncStatus,
+    email: session?.user?.email || email,
+  });
 }
 
 function buildCanonicalLocalProfile(localProfile = {}, remoteProfile = null) {
@@ -196,16 +232,58 @@ class StorageRouter {
     return LocalEngine.onAuthStateChanged(callback);
   }
 
-  createAccount(email, password, displayName) {
-    return LocalEngine.createAccount(email, password, displayName);
+  async createAccount(email, password, displayName) {
+    let session = await SupabaseAuthService.signUp(email, password);
+    if (!session) {
+      session = await SupabaseAuthService.signInWithPassword(email, password);
+    }
+    if (!session?.user?.id) {
+      throw new Error('Cloud account creation did not return a Supabase session');
+    }
+
+    await this.setSupabaseSession(session);
+    await cacheSupabaseCredentials(email, password, session);
+    return LocalEngine.hydrateRemoteAccount({
+      uid: session.user.id,
+      email: session.user.email || email,
+      password,
+      displayName,
+      emailVerified: !!(session.user?.email_confirmed_at || session.user?.confirmed_at),
+    });
   }
 
   hydrateRemoteAccount(params) {
     return LocalEngine.hydrateRemoteAccount(params);
   }
 
-  signInWithEmailAndPassword(email, password) {
-    return LocalEngine.signInWithEmailAndPassword(email, password);
+  async signInWithEmailAndPassword(email, password, { localOnly = false, allowCacheFallback = true } = {}) {
+    if (localOnly) {
+      return LocalEngine.signInWithEmailAndPassword(email, password);
+    }
+
+    try {
+      const session = await SupabaseAuthService.signInWithPassword(email, password);
+      if (!session?.user?.id) throw new Error('Supabase session required');
+
+      await this.setSupabaseSession(session);
+      await cacheSupabaseCredentials(email, password, session);
+      return LocalEngine.hydrateRemoteAccount({
+        uid: session.user.id,
+        email: session.user.email || email,
+        password,
+        displayName:
+          session.user?.user_metadata?.display_name ||
+          session.user?.user_metadata?.full_name ||
+          (session.user.email || email).split('@')[0],
+        emailVerified: !!(session.user?.email_confirmed_at || session.user?.confirmed_at),
+      });
+    } catch (error) {
+      if (!allowCacheFallback || !isCloudUnavailableError(error)) {
+        throw error;
+      }
+      if (__DEV__) console.warn('[StorageRouter] Using cached local sign-in:', error?.message);
+      return LocalEngine.signInWithEmailAndPassword(email, password);
+    }
   }
 
   updatePasswordForEmail(email, password) {
@@ -216,8 +294,52 @@ class StorageRouter {
     return LocalEngine.signOut(scope);
   }
 
+  async _getRemoteProfileOrCreate(cloudUserId, localProfile = {}) {
+    try {
+      return await CloudEngine.getProfile(cloudUserId);
+    } catch (error) {
+      if (!isMissingRowError(error)) throw error;
+      return CloudEngine.upsertProfile(cloudUserId, buildCloudProfileUpdates(localProfile));
+    }
+  }
+
+  async _readRemoteCoupleId() {
+    const membership = await CoupleService.getMyCouple();
+    return membership?.couple_id || null;
+  }
+
   async getUserDocument(userId) {
-    return LocalEngine.getUserDocument(userId);
+    const localProfile = await LocalEngine.getUserDocument(userId);
+    if (!this.sessionPresent) {
+      return localProfile;
+    }
+
+    try {
+      const cloudUserId = await CloudEngine.getCurrentUserId();
+      const [remoteProfile, remoteCoupleIdResult] = await Promise.all([
+        this._getRemoteProfileOrCreate(cloudUserId, localProfile),
+        this._readRemoteCoupleId()
+          .then((coupleId) => ({ ok: true, coupleId }))
+          .catch((error) => ({ ok: false, error })),
+      ]);
+
+      const canonicalLocal = buildCanonicalLocalProfile(localProfile, remoteProfile);
+      if (remoteCoupleIdResult.ok) {
+        canonicalLocal.coupleId = remoteCoupleIdResult.coupleId || null;
+        if (remoteCoupleIdResult.coupleId) {
+          await storage.set(STORAGE_KEYS.COUPLE_ID, remoteCoupleIdResult.coupleId);
+        } else {
+          await storage.remove(STORAGE_KEYS.COUPLE_ID);
+        }
+      }
+
+      return await LocalEngine.updateUserDocument(userId, canonicalLocal);
+    } catch (err) {
+      if (!isCloudUnavailableError(err)) {
+        if (__DEV__) console.warn('[StorageRouter] Cloud profile read failed:', err?.message);
+      }
+      return localProfile;
+    }
   }
 
   async updateUserDocument(userId, updates) {
@@ -225,13 +347,15 @@ class StorageRouter {
       try {
         const cloudUserId = await CloudEngine.getCurrentUserId();
         const existingLocal = await LocalEngine.getUserDocument(userId);
+        const remoteProfile = await this._getRemoteProfileOrCreate(cloudUserId, existingLocal);
+        const remoteBackedLocal = buildCanonicalLocalProfile(existingLocal, remoteProfile);
         const localCandidate = {
-          ...(existingLocal && typeof existingLocal === 'object' ? existingLocal : {}),
+          ...(remoteBackedLocal && typeof remoteBackedLocal === 'object' ? remoteBackedLocal : {}),
           ...(updates && typeof updates === 'object' ? updates : {}),
           updatedAt: new Date().toISOString(),
         };
-        const remoteProfile = await CloudEngine.upsertProfile(cloudUserId, buildCloudProfileUpdates(localCandidate));
-        const canonicalLocal = buildCanonicalLocalProfile(localCandidate, remoteProfile);
+        const savedRemoteProfile = await CloudEngine.upsertProfile(cloudUserId, buildCloudProfileUpdates(localCandidate));
+        const canonicalLocal = buildCanonicalLocalProfile(localCandidate, savedRemoteProfile);
         return await LocalEngine.updateUserDocument(userId, canonicalLocal);
       } catch (err) {
         if (__DEV__) console.warn('[StorageRouter] Cloud profile upsert failed:', err?.message);

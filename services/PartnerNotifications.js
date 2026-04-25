@@ -16,8 +16,8 @@ const PartnerNotifications = {
   async promptAnswered(senderName, promptId) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} just shared something 💬`,
-      body: "Answer today's prompt to reveal what they wrote.",
+      title: `${name} answered today's question`,
+      body: 'A private answer is waiting. Add yours to reveal.',
       data: {
         type: 'prompt_answered',
         ...DeepLinkHandler.buildNotificationData('prompt', promptId ? { id: promptId } : {}),
@@ -31,8 +31,8 @@ const PartnerNotifications = {
   async vibeSent(senderName, vibeLabel) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} is thinking of you`,
-      body: 'They sent you a vibe. Open the app to feel it.',
+      title: `${name} left a small moment for you`,
+      body: 'Open it whenever you want to feel close.',
       data: {
         type: 'vibe_sent',
         ...(vibeLabel ? { vibeLabel } : {}),
@@ -47,8 +47,8 @@ const PartnerNotifications = {
   async datePlanned(senderName, dateTitle) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} planned something for you two 📅`,
-      body: 'A date night idea is waiting in your calendar.',
+      title: `${name} picked a date idea`,
+      body: 'Something for the two of you is waiting.',
       data: {
         type: 'date_planned',
         ...(dateTitle ? { title: dateTitle } : {}),
@@ -63,8 +63,8 @@ const PartnerNotifications = {
   async journalShared(senderName) {
     const name = senderName || 'Your partner';
     await this._send({
-      title: `${name} shared a journal entry 📝`,
-      body: "Read what's on their mind.",
+      title: `${name} left a private note`,
+      body: 'A thought from your partner is waiting.',
       data: {
         type: 'journal_shared',
         ...DeepLinkHandler.buildNotificationData('journal'),
@@ -78,11 +78,10 @@ const PartnerNotifications = {
   async memorySaved(senderName, memoryType) {
     const name = senderName || 'Your partner';
     const typeLabel = memoryType && memoryType !== 'moment' ? memoryType : 'moment';
-    const emoji = typeLabel === 'anniversary' ? '🎉' : typeLabel === 'first' ? '⭐️' : '📸';
 
     await this._send({
-      title: `${name} saved a memory ${emoji}`,
-      body: 'A new moment was added to your shared archive.',
+      title: `${name} saved a ${typeLabel === 'moment' ? 'moment' : typeLabel}`,
+      body: 'A new piece of your story was added to your archive.',
       data: {
         type: 'memory_saved',
         memoryType: typeLabel,
@@ -92,13 +91,13 @@ const PartnerNotifications = {
   },
 
   /**
-   * Streak at risk — partner hasn't checked in today.
+   * Soft rhythm invitation.
    * (Called from a scheduled check, not from partner action.)
    */
   async streakAtRisk(currentStreak) {
     await this._send({
-      title: `Your ${currentStreak}-day streak is at risk 🔥`,
-      body: 'Check in before midnight to keep it alive.',
+      title: `${currentStreak} connected days between you`,
+      body: "Tonight could be another small moment, if you want one.",
       data: {
         type: 'streak_at_risk',
         streak: currentStreak,
@@ -110,14 +109,11 @@ const PartnerNotifications = {
   /**
    * Partner sent a "Thinking of You" photo.
    */
-  async thinkingOfYouPhoto(senderName, reactionLabel) {
+  async thinkingOfYouPhoto(senderName) {
     const name = senderName || 'Your partner';
-    const body = reactionLabel
-      ? `"${reactionLabel}" — they sent you a photo.`
-      : 'They sent you a photo. Open to see it.';
     await this._send({
-      title: `${name} is thinking of you 📸`,
-      body,
+      title: `${name} left you a photo`,
+      body: 'A private photo is waiting.',
       data: {
         type: 'thinking_of_you_photo',
         ...DeepLinkHandler.buildNotificationData('saved-moments'),

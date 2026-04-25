@@ -95,10 +95,10 @@ export default function YearReflectionCard({ onPress }) {
             </View>
 
             <View style={styles.textWrap}>
-              <Text style={[styles.kicker, { color: t.primary }]}>PREMIUM NARRATIVE</Text>
-              <Text style={[styles.title, { color: t.text }]}>Year Reflection</Text>
+              <Text style={[styles.kicker, { color: t.primary }]}>PRIVATE RECAP</Text>
+              <Text style={[styles.title, { color: t.text }]}>Annual Recap</Text>
               <Text style={[styles.subtitle, { color: t.subtext }]}>
-                A curated journey through 2026.
+                A keepsake of the moments you have made together.
               </Text>
             </View>
 

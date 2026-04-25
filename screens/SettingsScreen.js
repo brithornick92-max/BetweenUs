@@ -401,7 +401,7 @@ export default function SettingsScreen({ navigation }) {
               {isPremium && (
                 <View style={[styles.premiumPill, { backgroundColor: t.primary }]}>
                   <Icon name="sparkles-outline" size={10} color="#FFF" />
-                  <Text style={styles.premiumText}>PRO</Text>
+                  <Text style={styles.premiumText}>PREMIUM</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -416,7 +416,7 @@ export default function SettingsScreen({ navigation }) {
                 </View>
                 <Text style={[styles.promoTitle, { color: t.text }]}>Connect With Your Partner</Text>
                 <Text style={[styles.promoBody, { color: t.subtext }]}>
-                  Pair with your partner for a shared space. Premium adds cloud sync, shared planning, and live couple features.
+                  Pair with your partner for a shared space. Premium adds private archive sync, shared planning, and live couple moments.
                 </Text>
                 
                 <TouchableOpacity 
@@ -555,9 +555,29 @@ export default function SettingsScreen({ navigation }) {
                 icon="flask-outline" 
                 title="Seed Demo Data (90 Days)" 
                 onPress={async () => {
-                  Alert.alert('Seeding Data', 'Generating 90 days of content...');
-                  const stats = await seedReviewerData();
-                  if (stats.success) Alert.alert('Success', 'Demo data injected successfully.');
+                  try {
+                    Alert.alert('Seeding Data', 'Generating 90 days of content. This may take a minute...');
+                    const stats = await seedReviewerData();
+                    if (stats?.success) {
+                      Alert.alert(
+                        'Success',
+                        `Demo data seeded successfully!\n\n` +
+                        `Vibes: ${stats.vibes || 0}\n` +
+                        `Check-ins: ${stats.checkIns || 0}\n` +
+                        `Journals: ${stats.journals || 0}\n` +
+                        `Prompts: ${stats.prompts || 0}\n` +
+                        `Memories: ${stats.memories || 0}\n` +
+                        `Calendar: ${stats.calendar || 0}\n` +
+                        `Date Plans: ${stats.datePlans || 0}\n` +
+                        `Media: ${stats.media || 0}`
+                      );
+                    } else {
+                      Alert.alert('Error', stats?.error || 'Failed to seed demo data. Check console for details.');
+                    }
+                  } catch (err) {
+                    console.error('Seeding error:', err);
+                    Alert.alert('Error', `Seeding failed: ${err.message}`);
+                  }
                 }}
                 t={t}
                 isLast

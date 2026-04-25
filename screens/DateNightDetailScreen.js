@@ -340,7 +340,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
         <ReAnimated.View entering={FadeInDown.delay(200)} style={styles.centerAction}>
           {!isPremium && freeDateFlowRemaining !== null ? (
             <Text style={[styles.freeAccessNote, { color: t.subtext }]}>
-              {freeDateFlowRemaining > 0 ? '1 free date plan available this week.' : 'Your free weekly date plan is used. Unlock more anytime.'}
+              {freeDateFlowRemaining > 0 ? '1 free date plan available this week.' : 'Your free weekly date plan is used. More can open anytime.'}
             </Text>
           ) : null}
           <TouchableOpacity onPress={handleSchedule} activeOpacity={0.9}>

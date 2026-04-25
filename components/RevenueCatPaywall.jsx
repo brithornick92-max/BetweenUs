@@ -54,8 +54,8 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation }) => {
     // Expo Go cannot run native RevenueCat UI
     if (Constants.appOwnership === "expo") {
       Alert.alert(
-        "Pro Feature",
-        "The Pro experience requires a native build. Please use the TestFlight version to explore premium features.",
+        "Premium Experience",
+        "The full Between Us experience requires a native build. Please use the TestFlight version to explore premium.",
         [{ text: "OK", onPress: () => dismiss() }]
       );
       setIsLoading(false);
@@ -83,11 +83,11 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation }) => {
         await checkSubscriptionStatus();
 
         Alert.alert(
-          "🎉 Welcome to Between Us Pro",
-          "Full access is now yours. If your accounts are linked, your partner can receive shared Pro access after entitlement sync completes.",
+          "Welcome to Between Us Premium",
+          "Full access is now yours. When your accounts are linked, one subscription can cover both partners after entitlement sync completes.",
           [
             {
-              text: "Begin Pro Journey",
+              text: "Continue",
               onPress: () => {
                 onPurchaseSuccess?.();
                 dismiss();
@@ -151,10 +151,10 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation }) => {
           <ActivityIndicator size="small" color={t.primary} />
           
           <Text style={[styles.loadingText, { color: t.text }]}>
-            Preparing your Pro experience...
+            Preparing your private space...
           </Text>
           <Text style={[styles.loadingSubtext, { color: t.subtext }]}>
-            Intimacy is just a moment away.
+            More play, memory, and spark are just ahead.
           </Text>
         </View>
       </View>

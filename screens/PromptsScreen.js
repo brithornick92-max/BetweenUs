@@ -28,7 +28,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { PremiumFeature } from '../utils/featureFlags';
-import { SPACING, withAlpha } from "../utils/theme";
+import { withAlpha } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
@@ -136,7 +136,7 @@ function applyRawBoundaryFilter(items, bounds) {
 
 export default function PromptsScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
 
@@ -357,7 +357,7 @@ export default function PromptsScreen({ navigation }) {
                         {label}
                       </Text>
                       {locked && !aboveMax && (
-                        <Text style={[styles.heatPremiumTag, { color: withAlpha(heatColor, 0.6) }]}>PRO</Text>
+                        <Text style={[styles.heatPremiumTag, { color: withAlpha(heatColor, 0.6) }]}>FULL</Text>
                       )}
                     </TouchableOpacity>
                     {locked && !aboveMax && (
@@ -404,7 +404,7 @@ export default function PromptsScreen({ navigation }) {
                 >
                   <Icon name="flame" size={16} color="#D2121A" />
                   <Text style={[styles.premiumTeaserText, { color: isDark ? '#FF6B6B' : '#D2121A' }]}>
-                    Heat levels 4 & 5 unlocked for couples going deeper — unlock premium
+                    Heat levels 4 and 5 are part of your shared premium space.
                   </Text>
                   <Icon name="chevron-forward" size={14} color="#D2121A" />
                 </TouchableOpacity>

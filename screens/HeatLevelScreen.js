@@ -9,18 +9,18 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
 import { PremiumFeature } from '../utils/featureFlags';
-import { SPACING, TYPOGRAPHY, BORDER_RADIUS, SYSTEM_FONT } from '../utils/theme';
+import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 export default function HeatLevelScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective: isPremium, showPaywall, canConsumePrompt } = useEntitlements();
+  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { loadTodayPrompt, usageStatus, loadContentProfile } = useContent();
   const { updateProfile } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -96,7 +96,7 @@ export default function HeatLevelScreen({ navigation }) {
       if (!isPremium && usageStatus?.remaining?.prompts === 0) {
         Alert.alert(
           'There\'s more waiting for you',
-          'Free users can answer 1 guided prompt per day. Discover the full experience for unlimited prompts and deeper connection.',
+          'Free users can answer one private prompt per day. Premium opens deeper reveals, date ideas, memories, recaps, and your full archive.',
           [
             { text: 'Maybe Later', style: 'cancel' },
             { text: 'Discover more', onPress: () => showPaywall(PremiumFeature.UNLIMITED_PROMPTS) }
@@ -205,7 +205,7 @@ export default function HeatLevelScreen({ navigation }) {
               color={colors.primary}
             />
             <Text style={styles.usageText}>
-              {usageStatus.remaining.prompts} prompt{usageStatus.remaining.prompts !== 1 ? 's' : ''} remaining today
+              {usageStatus.remaining.prompts} private moment{usageStatus.remaining.prompts !== 1 ? 's' : ''} remaining today
             </Text>
           </View>
         )}

@@ -1,7 +1,7 @@
 # Between Us — iOS App Store Runbook
 
-**Date:** March 22, 2026  
-**Scope:** iOS App Store only  
+**Date:** April 24, 2026
+**Scope:** iOS App Store only
 **Audience:** Release operator / app owner
 
 ## Goal
@@ -89,9 +89,9 @@ After build completion:
 
 ### Export Compliance Check
 
-For this app, the production IPA should contain `ITSAppUsesNonExemptEncryption = false` because App Store Connect currently classifies the implementation on the exempt documentation path.
+The production IPA should contain an `ITSAppUsesNonExemptEncryption` value that matches the App Store Connect export-compliance answers for the exact shipped build and enabled features.
 
-If App Store Connect raises `ITMS-90592`, assume the questionnaire answers are out of sync with the binary before changing code. Verify the built IPA first, then make sure the questionnaire answers and the plist both stay on the same exempt path.
+If App Store Connect raises `ITMS-90592`, assume the questionnaire answers are out of sync with the binary before changing code. Verify the built IPA first, then make sure the questionnaire answers and the plist use the same classification.
 
 ## Phase 5 — Real Device Smoke Test
 
@@ -157,7 +157,7 @@ Recommended rating from the audit:
 
 ### Encryption Compliance
 
-The app is on the exempt export compliance path (`ITSAppUsesNonExemptEncryption = false`). Confirm the App Store Connect questionnaire answers are aligned to the exempt path before final submission.
+Confirm the App Store Connect questionnaire answers align with the shipped build's `ITSAppUsesNonExemptEncryption` value before final submission.
 
 ### Native Privacy Manifest Check
 

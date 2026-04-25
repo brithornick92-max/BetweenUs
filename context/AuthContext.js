@@ -1,18 +1,14 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import StorageRouter from '../services/storage/StorageRouter';
 import CloudEngine from '../services/storage/CloudEngine';
-import E2EEncryption from '../services/e2ee/E2EEncryption';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import CoupleKeyService from '../services/security/CoupleKeyService';
 import ConnectionMemory from '../utils/connectionMemory';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+import { SupabaseAuthService } from '../services/supabase/SupabaseAuthService';
 import { cloudSyncStorage , storage, STORAGE_KEYS } from '../utils/storage';
 import Database from '../services/db/Database';
-import * as FileSystem from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 import AnalyticsService from '../services/AnalyticsService';
 import ExperimentService from '../services/ExperimentService';
-import CrashReporting from '../services/CrashReporting';
 import PushNotificationService from '../services/PushNotificationService';
 import { supabase } from '../config/supabase';
 import { NicknameEngine, RelationshipSeasons, SoftBoundaries } from '../services/PolishEngine';
@@ -153,6 +149,20 @@ async function clearLocalAsyncStorage() {
   } catch (_) {}
 }
 
+function isCloudUnavailableError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return (
+    message.includes('not configured')
+    || message.includes('network')
+    || message.includes('fetch')
+    || message.includes('offline')
+    || message.includes('timeout')
+    || message.includes('timed out')
+    || message.includes('failed to fetch')
+    || message.includes('network request failed')
+  );
+}
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within an AuthProvider');
@@ -212,9 +222,8 @@ export const AuthProvider = ({ children }) => {
             setRequiresOnboarding(false);
           }
 
-          finishBootstrap(active);
-
           let supabaseSession = null;
+          let sessionLookupUnavailable = false;
           try {
             supabaseSession = await Promise.race([
               SupabaseAuthService.getSession(),
@@ -222,7 +231,32 @@ export const AuthProvider = ({ children }) => {
             ]);
           } catch (e) {
             if (__DEV__) console.warn('[AuthContext] getSession failed (non-fatal):', e?.message);
+            sessionLookupUnavailable = isCloudUnavailableError(e);
             supabaseSession = null;
+          }
+
+          if (!supabaseSession) {
+            try {
+              supabaseSession = await SupabaseAuthService.signInWithStoredCredentials({ throwOnError: true });
+            } catch (e) {
+              sessionLookupUnavailable = sessionLookupUnavailable || isCloudUnavailableError(e);
+              if (__DEV__ && !sessionLookupUnavailable) {
+                console.warn('[AuthContext] stored credential restore failed:', e?.message);
+              }
+            }
+          }
+
+          if (!supabaseSession && !sessionLookupUnavailable) {
+            await StorageRouter.signOut('local').catch(() => {});
+            if (!active) return;
+            AnalyticsService.setUser(null);
+            ExperimentService.setUser(null);
+            setUser(null);
+            setUserProfile(null);
+            setRequiresOnboarding(false);
+            await StorageRouter.initialize({ user: null, supabaseSessionPresent: false });
+            finishBootstrap(active);
+            return;
           }
 
           await StorageRouter.initialize({
@@ -327,68 +361,6 @@ export const AuthProvider = ({ children }) => {
       if (typeof unsubscribe === 'function') unsubscribe();
     };
   }, []);
-
-  /**
-   * Also create a Supabase account so pairing works without a second sign-in.
-   * Failures are non-fatal — the user can still use the app locally.
-   *
-   * ACCEPTED RISK: Password is stored (encrypted via EncryptionService) in
-   * SecureStore to enable silent re-auth for offline-first cloud sync.
-   * Long-term: migrate to PKCE/OAuth to eliminate local password storage.
-   */
-  const _bridgeSupabaseAuth = async (email, password, isNewAccount) => {
-    try {
-      let session;
-      if (isNewAccount) {
-        session = await SupabaseAuthService.signUp(email, password);
-        // Some Supabase projects require email confirmation — signUp returns
-        // null session in that case. Immediately try signIn as fallback.
-        if (!session) {
-          try {
-            session = await SupabaseAuthService.signInWithPassword(email, password);
-          } catch (e) {
-              if (__DEV__) console.warn('[AuthContext] Post-signup signIn failed (confirmation may be required):', e?.message);
-            }
-        }
-      } else {
-        session = await SupabaseAuthService.signInWithPassword(email, password);
-      }
-      if (session) {
-        await StorageRouter.setSupabaseSession(session);
-        await SupabaseAuthService.storeCredentials(email, password);
-        const syncStatus = await cloudSyncStorage.getSyncStatus();
-        await cloudSyncStorage.setSyncStatus({
-          ...syncStatus,
-          email: session.user?.email || email,
-        });
-        if (__DEV__) console.log('✅ Supabase session bridged for', email);
-      }
-    } catch (err) {
-      // If sign-up gets "User already registered", try sign-in instead
-      if (isNewAccount && String(err?.message || '').includes('User already registered')) {
-        try {
-          const session = await SupabaseAuthService.signInWithPassword(email, password);
-          if (session) {
-            await StorageRouter.setSupabaseSession(session);
-            await SupabaseAuthService.storeCredentials(email, password);
-            const syncStatus = await cloudSyncStorage.getSyncStatus();
-            await cloudSyncStorage.setSyncStatus({
-              ...syncStatus,
-              email: session.user?.email || email,
-            });
-          }
-        } catch (e) {
-          if (__DEV__) console.warn('[AuthContext] Retry signIn after "already registered" failed:', e?.message);
-        }
-      }
-      if (__DEV__) console.warn('⚠️ Supabase bridge (non-fatal):', err?.message);
-    }
-  };
-
-  const _restoreSupabaseAccount = async (email, password) => {
-    const session = await SupabaseAuthService.signInWithPassword(email, password);
-    return _restoreSupabaseSession(email, password, session);
-  };
 
   const _restoreSupabaseSession = async (email, password, session) => {
     const remoteUser = session?.user;
@@ -497,67 +469,34 @@ export const AuthProvider = ({ children }) => {
       setBusy(true);
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      // Run local and remote sign-in in parallel so the faster path wins.
-      // Local is pure crypto (no network) and typically completes in ~1s.
-      // Remote requires a round-trip and can take several seconds.
-      const localPromise = StorageRouter.signInWithEmailAndPassword(email, password)
-        .then(u => ({ ok: true, user: u }))
-        .catch(e => ({ ok: false, error: e }));
-
-      const remotePromise = Promise.race([
-        SupabaseAuthService.signInWithPassword(email, password),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Remote sign-in timed out')), 5000)),
-      ])
-        .then(s => ({ ok: !!s, session: s }))
-        .catch(e => ({ ok: false, error: e }));
-
-      const localResult = await localPromise;
-
       let signedInUser;
-      let shouldBridgeSupabase = true;
 
-      if (localResult.ok) {
-        // Local succeeded — use it immediately, bridge Supabase in background.
-        signedInUser = localResult.user;
-        remotePromise.then(r => {
-          if (r.ok && r.session) {
-            StorageRouter.setSupabaseSession(r.session).catch(() => {});
-            SupabaseAuthService.storeCredentials(email, password).catch(() => {});
-          }
-        }).catch(() => {});
-        shouldBridgeSupabase = false;
-      } else {
-        // Local failed — wait for remote and attempt full cloud restore.
-        const localMessage = String(localResult.error?.message || '');
-        const mightExistRemotely =
-          localMessage.includes('User not found') ||
-          localMessage.includes('Invalid password');
+      try {
+        const session = await Promise.race([
+          SupabaseAuthService.signInWithPassword(email, password),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Remote sign-in timed out')), 10000)),
+        ]);
 
-        const remoteResult = await remotePromise;
-
-        if (remoteResult.ok && remoteResult.session) {
-          signedInUser = await _restoreSupabaseSession(email, password, remoteResult.session);
-          shouldBridgeSupabase = false;
-        } else if (mightExistRemotely) {
-          // Remote also failed — surface the most useful error
-          const remoteMessage = String(remoteResult.error?.message || '');
-          if (remoteMessage && !remoteMessage.includes('Supabase is not configured')) {
-            throw remoteResult.error;
-          }
-          throw localResult.error;
-        } else {
-          throw localResult.error;
+        if (!session?.user?.id) {
+          throw new Error('Supabase session required');
         }
+
+        signedInUser = await _restoreSupabaseSession(email, password, session);
+      } catch (remoteError) {
+        if (!isCloudUnavailableError(remoteError)) {
+          throw remoteError;
+        }
+
+        if (__DEV__) console.warn('[AuthContext] Using cached local sign-in because Supabase is unavailable:', remoteError?.message);
+        signedInUser = await StorageRouter.signInWithEmailAndPassword(email, password, {
+          localOnly: true,
+        });
       }
 
       if (!signedInUser) throw new Error('Sign-in failed');
 
       await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
       setRequiresOnboarding(false);
-
-      if (shouldBridgeSupabase) {
-        _bridgeSupabaseAuth(email, password, false).catch(() => {});
-      }
 
       return signedInUser;
     } finally {
@@ -576,9 +515,6 @@ export const AuthProvider = ({ children }) => {
     try {
       setBusy(true);
       setRequiresOnboarding(false);
-
-      // Get coupleId BEFORE signing out so it's still accessible
-      const coupleId = await StorageRouter.getCoupleId();
 
       try {
         if (supabase) {
@@ -677,9 +613,6 @@ export const AuthProvider = ({ children }) => {
     try {
       if (!user) throw new Error('No user logged in');
       setBusy(true);
-
-      // 1. Get coupleId before we start tearing things down
-      const coupleId = await StorageRouter.getCoupleId();
 
       try {
         if (supabase) {

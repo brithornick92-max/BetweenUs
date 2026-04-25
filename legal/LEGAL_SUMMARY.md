@@ -1,6 +1,6 @@
 # Legal Documents Summary
 
-**Last Updated: April 6, 2026**
+**Last Updated: April 24, 2026**
 
 This document provides an overview of all legal documents for the Between Us app.
 
@@ -9,7 +9,7 @@ This document provides an overview of all legal documents for the Between Us app
 ## Documents Overview
 
 ### 1. Terms of Service
-**Purpose:** Defines the rules and agreements for using Between Us  
+**Purpose:** Defines the rules and agreements for using Between Us
 **Key Points:**
 - User responsibilities
 - Account requirements (18+)
@@ -23,11 +23,12 @@ This document provides an overview of all legal documents for the Between Us app
 ---
 
 ### 2. Privacy Policy
-**Purpose:** Explains how we collect, use, and protect your data  
+**Purpose:** Explains how we collect, use, and protect your data
 **Key Points:**
-- Encryption for shared synced intimate content
+- Supabase-backed account and couple-space data handling
+- No current end-to-end encryption for core synced content
 - We never sell your data
-- Client-side processing
+- Local cache, offline queue, and device-level app controls
 - Your privacy rights (including GDPR and CCPA disclosures)
 - Data retention and deletion
 - Security measures
@@ -37,7 +38,7 @@ This document provides an overview of all legal documents for the Between Us app
 ---
 
 ### 3. FAQ (Frequently Asked Questions)
-**Purpose:** Answers common questions about the app  
+**Purpose:** Answers common questions about the app
 **Sections:**
 - Getting Started
 - Account & Setup
@@ -56,46 +57,46 @@ This document provides an overview of all legal documents for the Between Us app
 ## Quick Reference
 
 ### User Rights
-✅ Access your data anytime  
-✅ Delete your data anytime  
-✅ Export your journal entries  
-✅ Control what you share  
-✅ Unlink from partner anytime  
-✅ Cancel subscription anytime  
+✅ Access supported data in the app
+✅ Delete your account and supported data
+✅ Export supported data
+✅ Use available sharing and unlink controls
+✅ Unlink from partner anytime
+✅ Cancel subscription anytime
 
 ### Our Commitments
-✅ End-to-end encryption  
-✅ Never sell your data  
-✅ Client-side processing  
-✅ Transparent practices  
-✅ GDPR & CCPA rights documented  
-✅ 24-48 hour support response  
+✅ Account access controls and row-level security
+✅ Never sell your data
+✅ Limited analytics and diagnostics disclosed
+✅ Transparent practices
+✅ GDPR & CCPA rights documented
+✅ 24-48 hour support response
 
 ### Age Requirement
 🔞 **18+ Only** - Between Us is for adults only
 
 ### Data Protection
-🔒 **Encrypted Sync** - Shared synced intimate content is protected before upload  
-🔒 **Client-Side Processing** - Personalization and content selection happen on your device  
-🔒 **No Third-Party Sharing** - We never sell your data  
+🔒 **Synced Content Controls** - Core synced content is protected by authentication, row-level security, HTTPS/TLS, and provider-side controls
+🔒 **Device Controls** - App lock helps protect access on supported devices
+🔒 **No Third-Party Sharing** - We never sell your data
 
 ---
 
 ## Contact Information
 
 ### General Support
-**Email:** brittanyapps@outlook.com  
+**Email:** brittanyapps@outlook.com
 **Response Time:** 24-48 hours
 
 ### Privacy Questions
-**Email:** brittanyapps@outlook.com  
+**Email:** brittanyapps@outlook.com
 **Data Requests:** brittanyapps@outlook.com
 
 ### Legal Inquiries
 **Email:** brittanyapps@outlook.com
 
 ### Safety Concerns
-**Email:** brittanyapps@outlook.com  
+**Email:** brittanyapps@outlook.com
 **Urgent:** Contact as soon as possible for harassment or abuse
 
 ### Feedback
@@ -112,9 +113,9 @@ This document provides an overview of all legal documents for the Between Us app
 - ✅ App Store Guidelines
 
 ### Security
-- Industry-standard client-side encryption (XSalsa20-Poly1305)
+- Supabase Auth and row-level security for synced content
 - TLS/SSL for data in transit
-- Encryption keys stored in device secure hardware
+- Platform secure storage for auth/session data and app-lock secrets where available
 
 ---
 
@@ -157,6 +158,9 @@ All legal documents are:
 
 | Document | Version | Date | Changes |
 |----------|---------|------|---------|
+| Terms of Service | 1.5 | Apr 24, 2026 | Aligned security model, free-tier limits, subscriptions, and active features |
+| Privacy Policy | 1.5 | Apr 24, 2026 | Removed E2EE claims for core synced content; clarified Supabase, local cache, analytics, and rights |
+| FAQ | 1.5 | Apr 24, 2026 | Updated storage/security answers, feature list, prompt/date counts, deletion, and billing |
 | Terms of Service | 1.3 | Mar 21, 2026 | Apple-only, accuracy audit |
 | Privacy Policy | 1.3 | Mar 21, 2026 | Apple-only, accuracy audit |
 | FAQ | 1.3 | Mar 21, 2026 | Updated prompt count (697), Apple-only, local-first offline |

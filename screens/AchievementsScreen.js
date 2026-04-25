@@ -78,9 +78,9 @@ export default function AchievementsScreen() {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Achievements"
+      headerTitle="Milestones"
       heroTitle="Your Story"
-      heroSubtitle="The milestones you have already reached and the ones still ahead."
+      heroSubtitle="The private moments you have created and the ones still waiting to happen."
       scroll={false}
     >
         {loading ? (
@@ -91,9 +91,9 @@ export default function AchievementsScreen() {
           <FlatList
             data={[
               { _type: 'header', id: '_header' },
-              ...(reached.length > 0 ? [{ _type: 'section', id: '_s1', label: "Moments you've shared" }] : []),
+              ...(reached.length > 0 ? [{ _type: 'section', id: '_s1', label: 'Already part of your story' }] : []),
               ...reached.map((m) => ({ ...m, _type: 'reached' })),
-              ...(ahead.length > 0 ? [{ _type: 'section', id: '_s2', label: 'Still ahead…' }] : []),
+              ...(ahead.length > 0 ? [{ _type: 'section', id: '_s2', label: 'Still ahead' }] : []),
               ...ahead.map((m) => ({ ...m, _type: 'ahead' })),
             ]}
             keyExtractor={(item) => item.id}
@@ -101,7 +101,7 @@ export default function AchievementsScreen() {
               if (item._type === 'header') {
                 return (
                   <Animated.View entering={FadeIn.duration(500)} style={styles.editorialHeader}>
-                    <Text style={[styles.headerSubtitle, { color: t.primary }]}>YOUR JOURNEY</Text>
+                    <Text style={[styles.headerSubtitle, { color: t.primary }]}>YOUR PRIVATE ARCHIVE</Text>
                     <Text style={[styles.headerTitle, { color: t.text }]}>Your Story</Text>
                   </Animated.View>
                 );

@@ -1,7 +1,7 @@
 # Between Us — Production Readiness Audit
 
-**Date:** February 25, 2026 (updated March 22, 2026)  
-**Scope:** iOS App Store submission, full codebase + database SQL review  
+**Date:** April 24, 2026
+**Scope:** iOS App Store submission, full codebase + database SQL review
 **Status:** Repo green for iOS submission; remaining items are external App Store / production-environment follow-ups
 
 ## March 22, 2026 Addendum
@@ -12,7 +12,7 @@
    - Attachment sync now pulls remote attachment metadata instead of being upload-only.
    - RevenueCat selects the correct platform API key at runtime.
    - Startup no longer triggers the push notification permission prompt automatically; permission is requested from explicit user action in notification settings.
-   - Deep-link parsing for custom scheme URLs was fixed for paths like `betweenus://love-note/:id`.
+   - Deep-link parsing for custom scheme URLs was fixed for supported paths like `betweenus://prompt/:id` and `betweenus://date/:id`.
    - Push token persistence and partner notification RPC calls now surface Supabase write failures instead of silently succeeding.
    - Jest coverage was repaired for SecureStore-backed auth/session storage and expanded for deep-link and push flows.
 - Validation after these fixes:
@@ -36,8 +36,8 @@
 | **B — Privacy, Compliance, Metadata** |||
 | B1 | Privacy Policy + Terms links in-app | **PASS** | `PrivacyPolicyScreen` and `TermsScreen` exist; accessible from settings and onboarding |
 | B2 | iOS Privacy Manifest (PrivacyInfo.xcprivacy) | **PASS** | `privacyManifests` declared in app.json under `ios` and mirrored in `ios/BetweenUs/PrivacyInfo.xcprivacy`. Covers 4 API types (UserDefaults CA92.1, FileTimestamp C617.1, DiskSpace E174.1, SystemBootTime 35F9.1) and 4 verified collected data types (DeviceID, CrashData, PerformanceData, OtherDiagnosticData). |
-| B3 | App Store privacy answers match reality | **WARN** | Repo metadata now reflects analytics + diagnostics, but App Store Connect still needs to include account email plus user content categories used by encrypted sync/export flows. Declare: **Contact Info: Email**, **Usage Data: Product Interaction**, **Diagnostics: crash/performance**, **Identifiers: Device ID**, plus user content categories for encrypted text/photos/audio as applicable. |
-| B4 | Encryption claim + specifics | **PASS** | `ITSAppUsesNonExemptEncryption: false` in app.json to match the exempt export-compliance path currently indicated by App Store Connect. The app still uses E2EE with XSalsa20-Poly1305 (nacl.secretbox), 256-bit keys, SecureStore-backed device keys, and X25519 ECDH for couple key exchange. Data is encrypted before Supabase upload and stored remotely as ciphertext. |
+| B3 | App Store privacy answers match reality | **WARN** | App Store Connect should include account email plus user content categories used by sync/export flows. Declare: **Contact Info: Email**, **Usage Data: Product Interaction**, **Diagnostics: crash/performance**, **Identifiers: Device ID**, plus user content categories for text/photos/audio as applicable. |
+| B4 | Encryption claim + specifics | **STALE** | Superseded by the 2026-04-23 storage ADR. Core synced content is not currently end-to-end encrypted before upload; do not claim E2EE for journals, prompt answers, memories, check-ins, vibes, calendar events, date plans, or media attachments. |
 | B5 | Account deletion path | **PASS** | `DeleteAccountScreen` exists; calls `delete_own_account` RPC which cascades: removes couple_data, couple_members, orphaned couples, push_tokens, analytics, then deletes `auth.users` row. |
 | **C — Notification UX + Deep Links** |||
 | C1 | Permission prompt not on first render | **PASS** | Startup push registration is now silent-only and exits if permission has not already been granted. Notification permissions are requested from explicit user actions in `NotificationSettingsScreen` and `CalendarScreen`. |
@@ -45,7 +45,7 @@
 | C3 | Graceful fallback when disabled | **PASS** | Permission check returns early if not granted; Alert shown to open Settings; `ensureNotificationPermissions()` returns `{ ok: false }` gracefully. |
 | C4 | Deep links from notification → correct screen (cold start) | **PASS** | `getLastNotificationResponseAsync()` called in AppContent `useEffect` gated on `navReady`. 500ms delay ensures navigation stack is mounted. Guard flag prevents double-processing. Covers killed-app scenario. |
 | **D — Offline & Conflict Handling** |||
-| D1 | Offline writes queued and retried | **PASS** | SyncEngine has push queue: SQLite rows with `sync_status='pending'` are pushed with exponential backoff (3 retries, 1s/2s/4s). `OfflineGrace` in PolishEngine queues love notes / moment signals to AsyncStorage. Sync triggered on `AppState → active` and every 60s interval. |
+| D1 | Offline writes queued and retried | **PASS** | Active SupabaseDataLayer queues pending writes locally and flushes when connectivity/account state allows. Sync is triggered on `AppState → active` and every 60s interval. |
 | D2 | Conflict resolution strategy | **PASS** | Last-write-wins by `updated_at` column. SyncEngine pulls with `gt('updated_at', cursor)` in ascending order. `batchUpsertFromRemote` overwrites local rows with newer remote rows. Soft-delete tombstones are handled. |
 | D3 | Duplicate send prevention | **PASS** | `MomentSignalSender` has 5-minute cooldown (`COOLDOWN_MS = 5 * 60 * 1000`). SyncEngine has `_syncing` guard for re-entrancy + 10s throttle. `sync_source = 'remote'` prevents pull→push loops. |
 | **E — Realtime Listener Hygiene** |||
@@ -93,7 +93,7 @@ All four FAIL items from the original audit have been fixed. Details below for r
 
 | # | Item | Action |
 |---|------|--------|
-| B3 | App Store privacy answers | In App Store Connect → App Privacy: include **Contact Info: Email**, **Usage Data: Product Interaction**, **Diagnostics: crash/performance**, **Identifiers: Device ID**, and user content categories used by encrypted sync/export flows. See detailed answers below. |
+| B3 | App Store privacy answers | In App Store Connect → App Privacy: include **Contact Info: Email**, **Usage Data: Product Interaction**, **Diagnostics: crash/performance**, **Identifiers: Device ID**, and user content categories used by sync/export flows. See detailed answers below. |
 
 ### B3 — App Store Connect Privacy Answers (step-by-step)
 
@@ -107,7 +107,7 @@ In **App Store Connect → Your App → App Privacy**, answer:
    - **Diagnostics → Performance Data** — Sentry tracing (10% session sample). **Not linked.**
    - **Diagnostics → Other Diagnostic Data** — Sentry logs/replay metadata used for debugging. **Not linked.**
    - **Usage Data → Product Interaction** — Screen views and feature engagement via AnalyticsService. **Linked to user** because events are attached to the signed-in user ID. **Not used for tracking.**
-   - **User Content categories** — App Store Connect should include the encrypted text/photo/audio categories actually used by your sync/export features even though their content is encrypted before upload.
+   - **User Content categories** — App Store Connect should include the text/photo/audio categories actually used by your sync/export features. Do not describe core synced content as end-to-end encrypted.
 3. **Do you or your third-party partners use data for tracking?** → **No**
 4. **Contact Info / Email** → Collected for authentication only → **Linked to identity** → Purpose: **App Functionality**
 
@@ -134,26 +134,27 @@ KEY FEATURES TO TEST:
 - Vibe signal (tap heart on Vibe tab to send "thinking of you")
 - Date night ideas (browse Date tab)
 - Calendar (shared event planning)
-- Night ritual (premium bedtime check-in)
+- Shared reveal flow and recap features
 
 PREMIUM: Subscription unlocks heat levels 4-5, unlimited prompts,
-cloud sync with E2E encryption, and night ritual mode.
+expanded date planning, calendar features, recaps, signals, and more.
 
-ENCRYPTION: End-to-end encryption uses XSalsa20-Poly1305 (NaCl). 
-Couple key derived via X25519 ECDH during pairing. Only ciphertext 
-stored on our servers. App Store Connect currently classifies this on the exempt path, so the shipped plist should use ITSAppUsesNonExemptEncryption=NO.
+SECURITY: Core synced content is protected by Supabase Auth, row-level
+security, HTTPS/TLS, and provider-side controls. It is not currently
+end-to-end encrypted before upload.
 
-DATA DELETION: Settings → Privacy & Security → Delete Account
-(immediately deletes all user data, couple data, and auth record).
+DATA DELETION: Settings → Account → Delete Account
+(removes active account data according to the in-app deletion flow).
 ```
 
 ### Encryption Documentation
-App Store Connect currently classifies this app on the exempt documentation path. Keep the questionnaire answers and shipped plist aligned with `ITSAppUsesNonExemptEncryption: false`.
+Keep the App Store Connect export-compliance questionnaire answers and shipped plist aligned for the exact shipped build and enabled features. `ITSAppUsesNonExemptEncryption: false` is appropriate only if the build is exempt from export-compliance documentation.
 
 Keep these details handy in case Apple requests clarification:
-1. XSalsa20-Poly1305 for end-to-end encrypted content
-2. X25519 ECDH for couple key exchange
-3. 256-bit key material used for user data confidentiality
+1. HTTPS/TLS for all network traffic
+2. Supabase Auth and row-level security for synced content
+3. Platform secure storage for auth/session data and app-lock secrets where available
+4. Core synced content is not currently client-side encrypted before upload
 
 ---
 
@@ -170,7 +171,7 @@ Keep these details handy in case Apple requests clarification:
 - [x] Run full automated validation (`23/23` test suites passing; deployment validator passing)
 - [ ] Verify cron jobs are running: `SELECT * FROM cron.job`
 - [ ] Verify App Store Connect privacy answers match B3 recommendations
-- [ ] Confirm export compliance questionnaire in App Store Connect is answered on the exempt path
+- [ ] Confirm export compliance questionnaire in App Store Connect matches the shipped build and plist value
 - [ ] Build → inspect PrivacyInfo.xcprivacy in .app bundle
 - [ ] Test: kill app → send notification → tap → verify correct screen opens
 - [ ] Test: airplane mode → create content → restore network → verify sync
@@ -180,6 +181,6 @@ Keep these details handy in case Apple requests clarification:
 For **App Store submission only**, there are no known repo-side blockers remaining from this audit. The remaining work is:
 
 1. App Store Connect privacy declarations
-2. Export compliance questionnaire in App Store Connect (exempt path)
+2. Export compliance questionnaire in App Store Connect matched to the shipped build
 3. Production Supabase verification (cron jobs / migrations / RPC availability)
 4. Real-device notification and offline-sync verification on an iOS release build

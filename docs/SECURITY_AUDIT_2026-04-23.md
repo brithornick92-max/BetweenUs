@@ -1,5 +1,5 @@
 # Security Audit — Between Us
-Date: 2026-04-23
+Date: 2026-04-24
 
 ## Summary
 
@@ -33,7 +33,7 @@ The app's security posture is solid. All critical controls are in place. This do
 - `autoRefreshToken: true` and `persistSession: true` are set on the Supabase client.
 - Sign-out uses `scope: 'global'` by default, revoking all refresh tokens across devices.
 - Account deletion uses the `delete_own_account()` server-side RPC, which cascades cleanly.
-- Stored credentials (for silent re-auth) are encrypted via `EncryptionService` before being written to SecureStore. Legacy plaintext credentials are auto-migrated to encrypted format on first read.
+- Stored credentials (for silent re-auth) are written to platform SecureStore by `SupabaseAuthService`. `EncryptionService` is currently a compatibility no-op, so do not describe this path as application-layer encrypted.
 - Auth timeout is 15 seconds with a `Promise.race` guard on all auth calls.
 
 ---
@@ -119,6 +119,6 @@ The app's security posture is solid. All critical controls are in place. This do
 
 2. **`promptStorage`, `journalStorage`, `checkInStorage` in `utils/storage.js` are marked `@deprecated`** and encrypt with a device-local key. They are only read during `migrateLegacyStorage()`. No new writes go through them.
 
-3. **Stored credentials in SecureStore.** The `SupabaseAuthService.storeCredentials()` path stores an encrypted email+password for silent re-auth. This is noted as a known accepted risk in `AuthContext.js` with a comment to migrate to PKCE/OAuth long-term. The credentials are encrypted with the device key before storage, which is the correct mitigation for now.
+3. **Stored credentials in SecureStore.** The `SupabaseAuthService.storeCredentials()` path stores email+password for silent re-auth in platform SecureStore. This is noted as a known accepted risk in `AuthContext.js` with a comment to migrate to PKCE/OAuth long-term. Because `EncryptionService` is currently a compatibility no-op, there is no additional application-layer encryption on top of SecureStore.
 
 4. **`vibeStorage`, `memoryStorage`, `ritualStorage` in `utils/storage.js`** still write to AsyncStorage with device-local encryption. These are legacy local-only features. If any of these need to become Supabase-backed, they should go through `SupabaseDataLayer` like the other content types.

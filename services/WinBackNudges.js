@@ -12,7 +12,7 @@
  *   • All nudges cancelled when user goes premium
  *
  * Also includes:
- *   • scheduleStreakBreakAlert — loss-aversion alert when streak >= 3
+ *   • scheduleStreakBreakAlert — soft rhythm invitation when connected days >= 3
  *   • scheduleWeeklyRecap — Sunday evening relationship recap notification
  */
 
@@ -32,19 +32,19 @@ try {
 const NUDGES = [
   {
     delayDays: 3,
-    title: 'A little nudge from Between Us',
-    body: "Something you two started is still here. Come back and finish it together.",
+    title: 'A small moment with your person',
+    body: 'A private prompt is waiting whenever you want to feel close.',
     route: 'home',
   },
   {
     delayDays: 7,
-    title: 'Your reflection is waiting',
-    body: "One honest answer a day — that's all it takes. Tonight's prompt is ready.",
+    title: 'Something for the two of you',
+    body: 'Leave one answer, reveal together, and keep it in your story.',
     route: 'home',
   },
   {
     delayDays: 14,
-    title: 'New date ideas are waiting',
+    title: 'A date idea is waiting',
     body: 'Fresh ideas are ready for you two whenever the moment feels right.',
     route: 'date',
   },
@@ -122,10 +122,10 @@ const WinBackNudges = {
   },
 
   /**
-   * Schedule a streak-break loss-aversion alert.
-   * Fires tomorrow evening if the user doesn't open the app today.
-   * Only schedules when streak >= 3.
-   * Call this when user's streak is loaded and they're leaving the home screen.
+   * Schedule a soft rhythm invitation.
+   * Fires tomorrow evening if the user does not open the app today.
+   * Only schedules when connected days >= 3.
+   * Call this when the user's rhythm is loaded and they are leaving the home screen.
    *
    * @param {number} currentStreak
    * @param {string} [partnerName]
@@ -138,7 +138,7 @@ const WinBackNudges = {
     const { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') return;
 
-    // Cancel any previously scheduled streak alert
+    // Cancel any previously scheduled rhythm invitation
     try {
       const existingId = await AsyncStorage.getItem(STREAK_ALERT_ID_KEY);
       if (existingId) {
@@ -153,11 +153,12 @@ const WinBackNudges = {
 
       if (tomorrow.getTime() <= Date.now() + 2000) return;
 
-      const partnerRef = partnerName ? `you and ${partnerName}` : 'your streak';
       const id = await Notifications.scheduleNotificationAsync({
         content: {
-          title: `${currentStreak} days of showing up together`,
-          body: `You two have a nice rhythm going. Tonight could be another good one.`,
+          title: `${currentStreak} connected days between you`,
+          body: partnerName
+            ? `You and ${partnerName} have a nice rhythm. Tonight can be another small moment, if it feels good.`
+            : 'You two have a nice rhythm. Tonight can be another small moment, if it feels good.',
           data: { route: 'home', type: 'streak_break_warning', streak: currentStreak },
         },
         trigger: { date: tomorrow },
@@ -173,7 +174,7 @@ const WinBackNudges = {
    * Schedule a weekly relationship recap notification every Sunday at 7pm.
    * Safe to call on every app open — reschedules if not already set for this week.
    *
-   * @param {{ prompts: number, streak: number, partnerName: string }} summary
+   * @param {{ prompts: number, partnerName: string }} summary
    */
   async scheduleWeeklyRecap(summary) {
     if (!Notifications) return;
@@ -204,14 +205,16 @@ const WinBackNudges = {
 
       if (next.getTime() <= Date.now() + 2000) return;
 
-      const { prompts = 0, streak = 0, partnerName = 'your partner' } = summary || {};
-      const promptLine = prompts > 0 ? `${prompts} prompt${prompts !== 1 ? 's' : ''} answered together` : 'a week of connection';
-      const streakLine = streak > 0 ? ` · ${streak}-day streak` : '';
+      const { prompts = 0, partnerName = 'your partner' } = summary || {};
+      const partnerLine = partnerName && partnerName !== 'your partner' ? ` with ${partnerName}` : '';
+      const promptLine = prompts > 0
+        ? `${prompts} private moment${prompts !== 1 ? 's' : ''}${partnerLine} this week`
+        : `Your week${partnerLine} is ready`;
 
       await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Your week together',
-          body: `${promptLine}${streakLine}. Open Between Us to reflect on it together.`,
+          body: `${promptLine}. Open Between Us when you want to revisit it together.`,
           data: { route: 'home', type: 'weekly_recap' },
         },
         trigger: { date: next },

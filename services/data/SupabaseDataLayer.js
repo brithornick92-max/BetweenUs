@@ -28,6 +28,7 @@ let _userId = null;
 let _coupleId = null;
 let _calendarChannel = null;
 let _isFlushingQueue = false;
+const CACHE_FALLBACK = Symbol('CACHE_FALLBACK');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -50,8 +51,8 @@ function cacheKey(userId, scope) {
   return `@betweenus:dataCache:${userId || 'anonymous'}:${scope}`;
 }
 
-function makeId(prefix = 'row') {
-  return `${prefix}_${randomUUID()}`;
+function makeId() {
+  return randomUUID();
 }
 
 function dateKey(date = new Date()) {
@@ -69,11 +70,25 @@ function isOfflineCapableError(error) {
   const message = String(error?.message || '').toLowerCase();
   return (
     !supabase
+    || message.includes('not configured')
     || message.includes('network')
     || message.includes('fetch')
     || message.includes('offline')
     || message.includes('timeout')
+    || message.includes('timed out')
     || message.includes('failed to fetch')
+    || message.includes('network request failed')
+  );
+}
+
+function isMissingRowError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return (
+    error?.code === 'PGRST116'
+    || message.includes('0 rows')
+    || message.includes('no rows')
+    || message.includes('multiple (or no) rows returned')
+    || message.includes('json object requested')
   );
 }
 
@@ -242,7 +257,7 @@ async function cdSoftDelete(id) {
  */
 async function cdQuery(dataType, { limit = 100, offset = 0, filter } = {}) {
   const sb = getSupabaseOrNull();
-  if (!sb) return [];
+  if (!sb) return CACHE_FALLBACK;
   if (!_coupleId) return [];
 
   let query = sb
@@ -260,10 +275,17 @@ async function cdQuery(dataType, { limit = 100, offset = 0, filter } = {}) {
 
   const { data, error } = await query;
   if (error) {
-    if (__DEV__) console.warn(`[SupabaseDataLayer] cdQuery(${dataType}) failed:`, error?.message);
-    return [];
+    if (isOfflineCapableError(error)) {
+      if (__DEV__) console.warn(`[SupabaseDataLayer] cdQuery(${dataType}) using cache fallback:`, error?.message);
+      return CACHE_FALLBACK;
+    }
+    throw error;
   }
   return data || [];
+}
+
+function isCacheFallback(value) {
+  return value === CACHE_FALLBACK;
 }
 
 // ─── Media upload helpers ─────────────────────────────────────────────────────
@@ -374,7 +396,7 @@ async function mapPromptRow(row, partnerRow = null) {
     prompt_id: v.promptId,
     date_key: v.dateKey,
     answer: v.answer || null,
-    partnerAnswer: pv?.answer || null,
+    partnerAnswer: pv?.answer || v.partnerAnswer || null,
     heat_level: typeof promptHeat === 'number' ? promptHeat : (v.heatLevel ?? 1),
     is_revealed: !!v.isRevealed,
     reveal_at: v.revealAt || null,
@@ -751,7 +773,7 @@ const SupabaseDataLayer = {
       },
     });
 
-    if (rows.length) {
+    if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map(r => mapJournalRow(r)));
       await replaceCache(CACHE_SCOPES.journals, mapped);
       return mapped;
@@ -775,13 +797,45 @@ const SupabaseDataLayer = {
       .select('*')
       .eq('id', id)
       .single();
-    if (error || !data) {
-      const cached = await loadCache(CACHE_SCOPES.journals);
-      return cached.find((entry) => entry?.id === id) || null;
+    if (error) {
+      if (isOfflineCapableError(error)) {
+        const cached = await loadCache(CACHE_SCOPES.journals);
+        return cached.find((entry) => entry?.id === id) || null;
+      }
+      if (isMissingRowError(error)) {
+        await removeCacheRow(CACHE_SCOPES.journals, id);
+        return null;
+      }
+      throw error;
     }
-    const mapped = await mapJournalRow(data);
-    await upsertCacheRow(CACHE_SCOPES.journals, mapped);
-    return mapped;
+    if (!data) {
+      await removeCacheRow(CACHE_SCOPES.journals, id);
+      return null;
+    }
+    {
+      const mapped = await mapJournalRow(data);
+      await upsertCacheRow(CACHE_SCOPES.journals, mapped);
+      return mapped;
+    }
+  },
+
+  async _getCachedPromptAnswer(promptId, dk, userId) {
+    const cached = await loadCache(CACHE_SCOPES.prompts);
+    return cached.find((entry) =>
+      entry?.prompt_id === promptId
+      && entry?.date_key === dk
+      && entry?.user_id === userId
+    ) || null;
+  },
+
+  async _getCachedCheckInByDate(dk) {
+    const cached = await loadCache(CACHE_SCOPES.checkIns);
+    return cached.find((entry) => entry?.dateKey === dk && entry?.user_id === _userId) || null;
+  },
+
+  async _getCachedLatestVibe() {
+    const cached = await loadCache(CACHE_SCOPES.vibes);
+    return cached.find((row) => row?.user_id === _userId) || null;
   },
 
   // ─── Prompt Answers ──────────────────────────────────────────────────────
@@ -793,19 +847,22 @@ const SupabaseDataLayer = {
     const dk = _createdAt ? dateKey(new Date(_createdAt)) : dateKey();
 
     // Check for existing answer for this prompt/date by this user
-    const existing = await this._findPromptAnswer(promptId, dk, _userId);
+    const found = await this._findPromptAnswer(promptId, dk, _userId);
+    const cachedExisting = isCacheFallback(found)
+      ? await this._getCachedPromptAnswer(promptId, dk, _userId)
+      : null;
+    const existing = isCacheFallback(found) ? null : found;
 
     const value = {
       promptId,
       dateKey: dk,
       answer,
       heatLevel: resolvedHeatLevel,
-      isRevealed: existing?.value?.isRevealed || false,
-      revealAt: existing?.value?.revealAt || null,
+      isRevealed: existing?.value?.isRevealed ?? cachedExisting?.is_revealed ?? false,
+      revealAt: existing?.value?.revealAt ?? cachedExisting?.reveal_at ?? null,
     };
 
-    let row;
-    const id = existing?.id || makeId('ans');
+    const id = existing?.id || cachedExisting?.id || makeId('ans');
 
     return runCloudOperation({
       perform: async () => (existing ? cdUpdate(existing.id, value) : cdInsert('prompt_answer', id, value)),
@@ -815,11 +872,10 @@ const SupabaseDataLayer = {
         return mapped;
       },
       onOffline: async () => {
-        const cached = existing ? (await this.getPromptAnswerForToday(promptId)) : null;
-        const mapped = makeOfflinePromptRow(id, value, cached || {});
+        const mapped = makeOfflinePromptRow(id, value, cachedExisting || {});
         await enqueueOfflineMutation({
           entity: 'prompt_answer',
-          action: existing ? 'update' : 'insert',
+          action: existing || cachedExisting ? 'update' : 'insert',
           id,
           payload: value,
         });
@@ -865,7 +921,7 @@ const SupabaseDataLayer = {
         return query;
       },
     });
-    if (rows.length) {
+    if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map(r => mapPromptRow(r)));
       await replaceCache(CACHE_SCOPES.prompts, mapped);
       return mapped;
@@ -892,7 +948,11 @@ const SupabaseDataLayer = {
     });
 
     // Pair up my answers with partner's answers for the same prompt+date
-    const sourceRows = rows.length ? rows : await loadCache(CACHE_SCOPES.prompts);
+    const sourceRows = isCacheFallback(rows) ? await loadCache(CACHE_SCOPES.prompts) : rows;
+    if (!isCacheFallback(rows)) {
+      const mapped = await Promise.all(rows.map(r => mapPromptRow(r)));
+      await replaceCache(CACHE_SCOPES.prompts, mapped);
+    }
     const myRows = sourceRows.filter(r => (r.created_by || r.user_id) === _userId);
     const partnerRows = sourceRows.filter(r => (r.created_by || r.user_id) !== _userId);
 
@@ -908,19 +968,22 @@ const SupabaseDataLayer = {
   async getPromptAnswerForToday(promptId) {
     const dk = dateKey();
     const row = await this._findPromptAnswer(promptId, dk, _userId);
+    if (isCacheFallback(row)) {
+      return this._getCachedPromptAnswer(promptId, dk, _userId);
+    }
     if (!row) {
-      const cached = await loadCache(CACHE_SCOPES.prompts);
-      return cached.find((entry) => entry?.prompt_id === promptId && entry?.date_key === dk && entry?.user_id === _userId) || null;
+      return null;
     }
     // Also look for partner's answer to attach it
     const partnerRow = await this._findPartnerPromptAnswer(promptId, dk);
-    return mapPromptRow(row, partnerRow);
+    return mapPromptRow(row, isCacheFallback(partnerRow) ? null : partnerRow);
   },
 
   async _findPromptAnswer(promptId, dk, userId) {
     const sb = getSupabaseOrNull();
-    if (!sb || !_coupleId) return null;
-    const { data } = await sb
+    if (!sb) return CACHE_FALLBACK;
+    if (!_coupleId) return null;
+    const { data, error } = await sb
       .from(TABLES.COUPLE_DATA)
       .select('*')
       .eq('couple_id', _coupleId)
@@ -930,13 +993,19 @@ const SupabaseDataLayer = {
       .eq('value->>dateKey', dk)
       .or('is_deleted.is.null,is_deleted.eq.false')
       .maybeSingle();
+    if (error) {
+      if (isOfflineCapableError(error)) return CACHE_FALLBACK;
+      if (isMissingRowError(error)) return null;
+      throw error;
+    }
     return data || null;
   },
 
   async _findPartnerPromptAnswer(promptId, dk) {
     const sb = getSupabaseOrNull();
-    if (!sb || !_coupleId || !_userId) return null;
-    const { data } = await sb
+    if (!sb) return CACHE_FALLBACK;
+    if (!_coupleId || !_userId) return null;
+    const { data, error } = await sb
       .from(TABLES.COUPLE_DATA)
       .select('*')
       .eq('couple_id', _coupleId)
@@ -946,6 +1015,11 @@ const SupabaseDataLayer = {
       .eq('value->>dateKey', dk)
       .or('is_deleted.is.null,is_deleted.eq.false')
       .maybeSingle();
+    if (error) {
+      if (isOfflineCapableError(error)) return CACHE_FALLBACK;
+      if (isMissingRowError(error)) return null;
+      throw error;
+    }
     return data || null;
   },
 
@@ -1002,7 +1076,7 @@ const SupabaseDataLayer = {
         return query;
       },
     });
-    if (rows.length) {
+    if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map(r => mapMemoryRow(r)));
       await replaceCache(CACHE_SCOPES.memories, mapped);
       return mapped;
@@ -1025,7 +1099,7 @@ const SupabaseDataLayer = {
         return query;
       },
     });
-    if (rows.length) {
+    if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map(r => mapMemoryRow(r)));
       await replaceCache(CACHE_SCOPES.memories, mapped);
       return mapped;
@@ -1057,7 +1131,9 @@ const SupabaseDataLayer = {
     const value = { mood, intimacy, notes, touch, dateKey: dk };
 
     // Upsert by replacing any existing check-in for today
-    const existing = await this._findCheckInByDate(dk);
+    const found = await this._findCheckInByDate(dk);
+    const cachedExisting = isCacheFallback(found) ? await this._getCachedCheckInByDate(dk) : null;
+    const existing = isCacheFallback(found) ? null : found;
     return runCloudOperation({
       perform: async () => (existing ? cdUpdate(existing.id, value) : cdInsert('check_in', id, value)),
       onSuccess: async (row) => {
@@ -1066,11 +1142,12 @@ const SupabaseDataLayer = {
         return mapped;
       },
       onOffline: async () => {
-        const mapped = makeOfflineCheckInRow(existing?.id || id, value);
+        const pendingId = existing?.id || cachedExisting?.id || id;
+        const mapped = makeOfflineCheckInRow(pendingId, value, cachedExisting || {});
         await enqueueOfflineMutation({
           entity: 'check_in',
-          action: existing ? 'update' : 'insert',
-          id: existing?.id || id,
+          action: existing || cachedExisting ? 'update' : 'insert',
+          id: pendingId,
           payload: value,
         });
         await upsertCacheRow(CACHE_SCOPES.checkIns, mapped);
@@ -1085,7 +1162,7 @@ const SupabaseDataLayer = {
       offset,
       filter: (q) => q.eq('created_by', _userId),
     });
-    if (rows.length) {
+    if (!isCacheFallback(rows)) {
       const mapped = rows.map(r => ({ ...r, ...(r.value || {}) }));
       await replaceCache(CACHE_SCOPES.checkIns, mapped);
       return mapped;
@@ -1095,10 +1172,13 @@ const SupabaseDataLayer = {
   },
 
   async getCheckInForToday() {
-    const row = await this._findCheckInByDate(dateKey());
+    const dk = dateKey();
+    const row = await this._findCheckInByDate(dk);
+    if (isCacheFallback(row)) {
+      return this._getCachedCheckInByDate(dk);
+    }
     if (!row) {
-      const cached = await loadCache(CACHE_SCOPES.checkIns);
-      return cached.find((entry) => entry?.dateKey === dateKey()) || null;
+      return null;
     }
     const mapped = { ...row, ...(row.value || {}) };
     await upsertCacheRow(CACHE_SCOPES.checkIns, mapped);
@@ -1107,8 +1187,9 @@ const SupabaseDataLayer = {
 
   async _findCheckInByDate(dk) {
     const sb = getSupabaseOrNull();
-    if (!sb || !_coupleId) return null;
-    const { data } = await sb
+    if (!sb) return CACHE_FALLBACK;
+    if (!_coupleId) return null;
+    const { data, error } = await sb
       .from(TABLES.COUPLE_DATA)
       .select('*')
       .eq('couple_id', _coupleId)
@@ -1117,6 +1198,11 @@ const SupabaseDataLayer = {
       .eq('value->>dateKey', dk)
       .or('is_deleted.is.null,is_deleted.eq.false')
       .maybeSingle();
+    if (error) {
+      if (isOfflineCapableError(error)) return CACHE_FALLBACK;
+      if (isMissingRowError(error)) return null;
+      throw error;
+    }
     return data || null;
   },
 
@@ -1146,7 +1232,7 @@ const SupabaseDataLayer = {
       limit,
       filter: (q) => q.eq('created_by', _userId),
     });
-    if (rows.length) {
+    if (!isCacheFallback(rows)) {
       const mapped = rows.map(r => ({ ...r, ...(r.value || {}) }));
       await replaceCache(CACHE_SCOPES.vibes, mapped);
       return mapped;
@@ -1157,11 +1243,11 @@ const SupabaseDataLayer = {
 
   async getLatestVibe() {
     const sb = getSupabaseOrNull();
-    if (!sb || !_coupleId) {
-      const cached = await loadCache(CACHE_SCOPES.vibes);
-      return cached.find((row) => row?.user_id === _userId) || null;
+    if (!sb) {
+      return this._getCachedLatestVibe();
     }
-    const { data } = await sb
+    if (!_coupleId) return null;
+    const { data, error } = await sb
       .from(TABLES.COUPLE_DATA)
       .select('*')
       .eq('couple_id', _coupleId)
@@ -1171,9 +1257,15 @@ const SupabaseDataLayer = {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
+    if (error) {
+      if (isOfflineCapableError(error)) {
+        return this._getCachedLatestVibe();
+      }
+      if (isMissingRowError(error)) return null;
+      throw error;
+    }
     if (!data) {
-      const cached = await loadCache(CACHE_SCOPES.vibes);
-      return cached.find((row) => row?.user_id === _userId) || null;
+      return null;
     }
     const mapped = { ...data, ...(data.value || {}) };
     await upsertCacheRow(CACHE_SCOPES.vibes, mapped);
@@ -1295,10 +1387,11 @@ const SupabaseDataLayer = {
 
   async getCalendarEvents({ limit = 1000 } = {}) {
     const sb = getSupabaseOrNull();
-    if (!sb || !_coupleId) {
+    if (!sb) {
       const cached = await loadCache(CACHE_SCOPES.calendar);
       return cached.slice(0, limit);
     }
+    if (!_coupleId) return [];
 
     const { data, error } = await sb
       .from(TABLES.CALENDAR_EVENTS)
@@ -1308,9 +1401,12 @@ const SupabaseDataLayer = {
       .limit(limit);
 
     if (error) {
-      if (__DEV__) console.warn('[SupabaseDataLayer] getCalendarEvents failed:', error?.message);
-      const cached = await loadCache(CACHE_SCOPES.calendar);
-      return cached.slice(0, limit);
+      if (isOfflineCapableError(error)) {
+        if (__DEV__) console.warn('[SupabaseDataLayer] getCalendarEvents using cache fallback:', error?.message);
+        const cached = await loadCache(CACHE_SCOPES.calendar);
+        return cached.slice(0, limit);
+      }
+      throw error;
     }
     const mapped = (data || []).map(mapCalendarRow);
     await replaceCache(CACHE_SCOPES.calendar, mapped);
@@ -1399,7 +1495,7 @@ const SupabaseDataLayer = {
       style: 'mixed',
       steps: event?.notes ? [event.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
     };
-    if (existing?.[0]) {
+    if (Array.isArray(existing) && existing[0]) {
       await cdUpdate(existing[0].id, plan);
     } else {
       await cdInsert('date_plan', makeId('dp'), plan);
@@ -1437,7 +1533,7 @@ const SupabaseDataLayer = {
 
   async getDatePlans({ limit = 1000 } = {}) {
     const rows = await cdQuery('date_plan', { limit });
-    if (rows.length) {
+    if (!isCacheFallback(rows)) {
       const mapped = rows.map(mapDatePlanRow);
       await replaceCache(CACHE_SCOPES.datePlans, mapped);
       return mapped;

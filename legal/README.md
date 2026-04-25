@@ -51,7 +51,8 @@ This directory contains all legal documents for the Between Us app.
 
 **Need to know:**
 - ✅ You must be 18+ to use Between Us
-- ✅ Shared synced intimate content is encrypted before upload
+- ✅ Core synced content is protected by authentication, row-level security, HTTPS/TLS, and provider-side controls
+- ✅ Core synced content is not currently end-to-end encrypted
 - ✅ We never sell your data
 - ✅ You can delete your data anytime
 - ✅ You control what you share with your partner
@@ -86,7 +87,7 @@ This directory contains all legal documents for the Between Us app.
 - ✅ Privacy Policy available
 - ✅ Age rating: 18+
 - ✅ Data collection disclosed
-- ✅ Encryption documented
+- ✅ Security model documented
 - ✅ Contact information provided
 
 ### Legal Requirements
@@ -221,8 +222,8 @@ We communicate material privacy and security changes through updated legal docum
 - Secure distribution
 
 ### User Data Security
-- End-to-end encryption
-- Client-side encryption (XSalsa20-Poly1305)
+- Supabase Auth and row-level security
+- HTTPS/TLS in transit
 - TLS/SSL in transit
 - Incident response plan
 
@@ -328,7 +329,7 @@ Before launching Between Us:
 ## 📚 Additional Resources
 
 ### External Links
-- [GDPR Official Site](https://gdpr.eu/)
+- [European Commission Data Protection Rights](https://commission.europa.eu/law/law-topic/data-protection/information-individuals_en)
 - [CCPA Official Site](https://oag.ca.gov/privacy/ccpa)
 - [Apple App Store Guidelines](https://developer.apple.com/app-store/review/guidelines/)
 
@@ -340,11 +341,11 @@ Before launching Between Us:
 
 ---
 
-**Last Updated:** April 6, 2026  
-**Version:** 1.1  
+**Last Updated:** April 24, 2026
+**Version:** 1.1
 **Status:** ✅ Ready for Production
 
 ---
 
-**Questions about these documents?**  
+**Questions about these documents?**
 Contact: brittanyapps@outlook.com

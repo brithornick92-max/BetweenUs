@@ -69,17 +69,17 @@ const ExportDataScreen = ({ navigation }) => {
   const [includeAccountDetails, setIncludeAccountDetails] = useState(false);
 
   /**
-   * Gather all user data from the local-first DataLayer (SQLite + E2EE decrypt).
-   * Returns decrypted plaintext so the export is human-readable.
+   * Gather all user data from the active DataLayer.
+   * Returns plaintext so the export is human-readable.
    */
   const gatherAllData = async () => {
     const keepAllRows = (rows) => rows || [];
 
-    // Fetch from each data type via DataLayer (handles decryption)
+    // Fetch from each data type via DataLayer.
     const loadErrors = [];
     const safeLoad = (fn, label) => fn.catch(e => { loadErrors.push(label); return []; });
 
-    const [journalEntries, promptAnswers, memoryRows, rituals, checkIns, vibes, loveNotes, calendarEvents, myDates] =
+    const [journalEntries, promptAnswers, memoryRows, rituals, checkIns, vibes, calendarEvents, myDates] =
       await Promise.all([
         safeLoad(DataLayer.getJournalEntries({ limit: 10000 }), 'Journal'),
         safeLoad(DataLayer.getPromptAnswers({ limit: 10000 }), 'Prompts'),
@@ -87,7 +87,6 @@ const ExportDataScreen = ({ navigation }) => {
         safeLoad(DataLayer.getRituals({ limit: 10000 }), 'Rituals'),
         safeLoad(DataLayer.getCheckIns({ limit: 10000 }), 'Check-ins'),
         safeLoad(DataLayer.getVibes({ limit: 10000 }), 'Vibes'),
-        safeLoad(DataLayer.getLoveNotes({ limit: 10000 }), 'Love Notes'),
         safeLoad(DataLayer.getCalendarEvents({ limit: 10000 }), 'Calendar'),
         safeLoad(DataLayer.getDatePlans({ limit: 10000 }), 'Dates'),
       ]);
@@ -99,7 +98,7 @@ const ExportDataScreen = ({ navigation }) => {
       );
     }
 
-    // Strip cipher columns and internal sync metadata from output
+    // Strip legacy cipher columns and internal sync metadata from output.
     const sanitize = (rows) => (rows || []).map(r => {
       if (!r) return r;
       const clean = { ...r };
@@ -120,7 +119,6 @@ const ExportDataScreen = ({ navigation }) => {
       rituals: sanitize(rituals),
       checkIns: sanitize(checkIns),
       vibes: sanitize(vibes),
-      loveNotes: sanitize(keepAllRows(loveNotes)),
       calendarEvents: sanitize(calendarEvents),
       myDates: sanitize(myDates),
     };
@@ -155,7 +153,6 @@ const ExportDataScreen = ({ navigation }) => {
           rituals: allData.rituals.length,
           checkIns: allData.checkIns.length,
           vibes: allData.vibes.length,
-          loveNotes: allData.loveNotes.length,
           calendarEvents: allData.calendarEvents.length,
           myDates: allData.myDates.length,
         },

@@ -102,7 +102,7 @@ export const SupabaseAuthService = {
   /**
    * Silently re-authenticate using stored credentials.
    */
-  async signInWithStoredCredentials() {
+  async signInWithStoredCredentials({ throwOnError = false } = {}) {
     const raw = await SecureStore.getItemAsync(SUPABASE_CRED_KEY, {
       keychainService: 'betweenus',
     });
@@ -112,7 +112,8 @@ export const SupabaseAuthService = {
       const { email, password } = creds || {};
       if (!email || !password) return null;
       return await SupabaseAuthService.signInWithPassword(email, password);
-    } catch {
+    } catch (error) {
+      if (throwOnError) throw error;
       return null;
     }
   },

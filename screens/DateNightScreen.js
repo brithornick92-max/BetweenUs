@@ -27,7 +27,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { getAllDates, filterDates, getDimensionMeta, getFilteredDatesWithProfile } from '../utils/contentLoader';
 import { FREE_LIMITS, PremiumFeature, getTimedUnlockLimits } from '../utils/featureFlags';
-import { SPACING, BORDER_RADIUS, withAlpha } from '../utils/theme'; // BORDER_RADIUS kept for styles
+import { SPACING, withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import * as PreferenceEngine from '../services/PreferenceEngine';
@@ -50,27 +50,25 @@ const DIMS = getDimensionMeta();
 const SPRING = { damping: 20, stiffness: 150, mass: 0.8 };
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
-const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
-
 const TONE_DATE_COPY = {
   warm: {
-    subtitle: 'Tender plans with softness, comfort, and room to land.',
-    emptySetup: 'Choose the mood above to reveal warm plans shaped around your night.',
+    subtitle: 'Tender plans with softness, comfort, and room to land together.',
+    emptySetup: 'Choose the mood above to reveal warm plans shaped around what you both want tonight.',
     emptyResults: 'No warm matches surfaced. Try easing the filters or choosing a gentler lane.',
   },
   playful: {
     subtitle: 'Lighter plans with movement, spark, and surprise.',
-    emptySetup: 'Choose the mood above to reveal playful plans shaped around your night.',
+    emptySetup: 'Choose the mood above to reveal playful plans shaped around what you both want tonight.',
     emptyResults: 'Nothing playful matched that mix. Shift the filters and see what opens up.',
   },
   intimate: {
     subtitle: 'Closer plans for slower tension and deeper connection.',
-    emptySetup: 'Choose the mood above to reveal intimate plans shaped around your night.',
+    emptySetup: 'Choose the mood above to reveal intimate plans shaped around what you both want tonight.',
     emptyResults: 'No intimate matches yet. Try a neighboring mood or a softer effort level.',
   },
   minimal: {
     subtitle: 'Clean plans with less friction and more clarity.',
-    emptySetup: 'Choose the mood above to reveal simple plans shaped around your night.',
+    emptySetup: 'Choose the mood above to reveal simple plans shaped around what you both want tonight.',
     emptyResults: 'No minimal matches appeared. Reset or simplify the filter mix.',
   },
 };
@@ -591,15 +589,15 @@ export default function DateNightScreen({ navigation }) {
         <View style={styles.header}>
           <View>
             <Text style={[styles.headerEye, { color: t.primary }]}>
-              {!ready ? 'Preparing Decks...' : !allSelected ? allDates.length + '+ Curated Ideas' : !isPremium && remaining > 0 ? remaining + ' Previews Remaining' : remaining > 0 ? remaining + ' Potential Plans' : deck.length > 0 ? 'All Cards Drawn' : allDates.length + '+ Curated Ideas'}
+              {!ready ? 'Preparing ideas...' : !allSelected ? allDates.length + '+ private date ideas' : !isPremium && remaining > 0 ? remaining + ' previews left today' : remaining > 0 ? remaining + ' possible plans' : deck.length > 0 ? 'All ideas drawn' : allDates.length + '+ private date ideas'}
             </Text>
-            <Text style={[styles.headerTitle, { color: t.text }]}>The Deck</Text>
+            <Text style={[styles.headerTitle, { color: t.text }]}>Tonight</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>{toneCopy.subtitle}</Text>
             {!isPremium && getTimedUnlockLimits(false) && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: colors.primary + '15', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start' }}>
                 <Icon name="sparkles" size={14} color={colors.primary} />
                 <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>
-                  Friday Date Night — Extra ideas unlocked free today!
+                  Friday date night - extra ideas are open today
                 </Text>
               </View>
             )}
@@ -838,7 +836,7 @@ export default function DateNightScreen({ navigation }) {
               <View style={styles.emptyIconCircle}>
                 <Icon name="sparkles-outline" size={32} color={colors.primary} />
               </View>
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>Craft Your Night</Text>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>Choose Tonight's Mood</Text>
               <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
                 {toneCopy.emptySetup}
               </Text>
@@ -856,14 +854,14 @@ export default function DateNightScreen({ navigation }) {
                   <Icon name="lock-closed-outline" size={42} color={colors.primary} />
                   <Text style={[styles.emptyTitle, { color: colors.text }]}>Explore More</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                    Unlock {allDates.length}+ high-end date nights and curated intimacy exercises.
+                    Premium opens {allDates.length}+ date ideas shaped by mood, budget, energy, and spark.
                   </Text>
                   <TouchableOpacity
                     style={[styles.resetBtn, { backgroundColor: colors.primary }]}
                     onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS)}
                     activeOpacity={0.85}
                   >
-                    <Text style={[styles.resetTxt, { color: '#FFFFFF' }]}>Unlock Everything</Text>
+                    <Text style={[styles.resetTxt, { color: '#FFFFFF' }]}>Open Premium</Text>
                   </TouchableOpacity>
                 </>
               ) : (
@@ -945,11 +943,11 @@ export default function DateNightScreen({ navigation }) {
             activeOpacity={0.8}
           >
             <View style={styles.editorialTag}>
-              <Text style={[styles.editorialTagText, { color: colors.primary }]}>PREMIUM ACCESS</Text>
+              <Text style={[styles.editorialTagText, { color: colors.primary }]}>MADE FOR YOU TWO</Text>
             </View>
-            <Text style={[styles.editorialTitle, { color: colors.text }]}>Unlock {allDates.length}+ Date Ideas</Text>
+            <Text style={[styles.editorialTitle, { color: colors.text }]}>More date ideas made for you</Text>
             <Text style={[styles.editorialBody, { color: colors.textMuted }]}>
-              You've seen {deck.length} of {allDates.length}+ curated plans. Upgrade to browse the full catalog with mood, budget, and heat filters.
+              You've seen {deck.length} of {allDates.length}+ curated plans. Premium opens the full catalog with mood, budget, and heat filters.
             </Text>
           </TouchableOpacity>
         )}

@@ -29,7 +29,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
-const MISSIONS = [
+const INVITATIONS = [
   "Tonight, no phones after 9 PM. Just eye contact and conversation.",
   "A 30-second hug before you go to bed. Don't let go first.",
   "Whisper one thing you're grateful for about them tonight.",
@@ -43,7 +43,7 @@ export default function SurpriseTonight() {
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const [visible, setVisible] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
-  const [mission, setMission] = useState('');
+  const [invitation, setInvitation] = useState('');
 
   const breatheAnim = useRef(new Animated.Value(0)).current;
   const revealAnim = useRef(new Animated.Value(0)).current;
@@ -68,7 +68,7 @@ export default function SurpriseTonight() {
     const shouldShow = await SerendipityTrigger.shouldShow();
     if (!shouldShow) return;
 
-    setMission(MISSIONS[Math.floor(Math.random() * MISSIONS.length)]);
+    setInvitation(INVITATIONS[Math.floor(Math.random() * INVITATIONS.length)]);
     setVisible(true);
     await SerendipityTrigger.recordShown();
 
@@ -131,7 +131,7 @@ export default function SurpriseTonight() {
               </View>
               <View style={styles.textWrap}>
                 <Text style={[styles.title, { color: t.text }]}>Tonight's Surprise</Text>
-                <Text style={[styles.subtitle, { color: t.subtext }]}>A small mission for the two of you — unlock premium</Text>
+                <Text style={[styles.subtitle, { color: t.subtext }]}>A small invitation for the two of you</Text>
               </View>
               <View style={[styles.iconBox, { backgroundColor: withAlpha(t.p5, 0.08) }]}>
                 <Icon name="lock-closed-outline" size={18} color={t.p5} />
@@ -178,17 +178,17 @@ export default function SurpriseTonight() {
               <View style={styles.textWrap}>
                 <Text style={[styles.title, { color: t.text }]}>Tonight's Surprise</Text>
                 <Text style={[styles.subtitle, { color: t.subtext }]}>
-                  Tap to unwrap a small mission
+                  Tap to unwrap a small invitation
                 </Text>
               </View>
             </View>
           ) : (
             <Animated.View style={[styles.revealedContent, { opacity: contentOpacity }]}>
-              <Text style={[styles.missionLabel, { color: t.p3 }]}>YOUR MISSION</Text>
-              <Text style={[styles.missionText, { color: t.text }]}>{mission}</Text>
+              <Text style={[styles.missionLabel, { color: t.p3 }]}>TONIGHT'S INVITATION</Text>
+              <Text style={[styles.missionText, { color: t.text }]}>{invitation}</Text>
               <View style={styles.bottomBar}>
                 <Icon name="checkmark-circle" size={16} color={t.p5} />
-                <Text style={[styles.acceptedText, { color: t.subtext }]}>Challenge Accepted</Text>
+                <Text style={[styles.acceptedText, { color: t.subtext }]}>Saved for tonight</Text>
               </View>
             </Animated.View>
           )}

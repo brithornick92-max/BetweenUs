@@ -48,7 +48,7 @@ import { FALLBACK_PROMPT } from '../utils/contentLoader';
 import StreakBanner from '../components/StreakBanner';
 import { PromptCardSkeleton } from '../components/SkeletonLoader';
 import ConnectionMemory from '../utils/connectionMemory';
-import achievementEngine from '../utils/achievementEngine';
+import { checkAchievements } from '../utils/achievementEngine';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import useProgressiveDisclosure from '../hooks/useProgressiveDisclosure';
 
@@ -62,16 +62,16 @@ function dateKey(date) {
 
 const TONE_HOME_COPY = {
   warm: {
-    subheadline: (partner) => `A softer place for you and ${partner}.`,
+    subheadline: (partner) => `A private room for you and ${partner}.`,
   },
   playful: {
-    subheadline: (partner) => `A little spark for you and ${partner}.`,
+    subheadline: (partner) => `A little spark, just for you and ${partner}.`,
   },
   intimate: {
-    subheadline: (partner) => `A closer space for you and ${partner}.`,
+    subheadline: (partner) => `A closer space only you and ${partner} share.`,
   },
   minimal: {
-    subheadline: () => 'A quieter space for what matters.',
+    subheadline: () => 'A private space for the two of you.',
   },
 };
 
@@ -93,10 +93,10 @@ function normalizePrompt(p) {
 
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
-  { label: 'Journal', icon: 'book-outline', key: 'journal', premium: false, color: '#C14953' },
-  { label: 'Quiz', icon: 'help-circle-outline', key: 'quiz', premium: false, color: '#D4AA7E' }, // Champagne gold
-  { label: 'Memories', icon: 'bookmark-outline', key: 'memories', premium: false, color: '#9B7FCA' }, // Soft lavender
-  { label: 'Intimacy', icon: 'flame', key: 'intimacy', premium: true, color: '#D2121A' }, // Sexy red — unlocks with premium
+  { label: 'Notes', icon: 'book-outline', key: 'journal', premium: false, color: '#C14953' },
+  { label: 'Play', icon: 'help-circle-outline', key: 'quiz', premium: false, color: '#D4AA7E' }, // Champagne gold
+  { label: 'Archive', icon: 'bookmark-outline', key: 'memories', premium: false, color: '#9B7FCA' }, // Soft lavender
+  { label: 'Spark', icon: 'flame', key: 'intimacy', premium: true, color: '#D2121A' }, // Sexy red — opens with premium
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -117,7 +117,7 @@ export default function HomeScreen({ navigation }) {
     text: colors.text,
     subtext: colors.textMuted,
     border: colors.border,
-  }), [colors, isDark]);
+  }), [colors]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
@@ -146,6 +146,9 @@ export default function HomeScreen({ navigation }) {
   const remainingFreePrompts = usageStatus?.remaining?.prompts ?? 1;
   const canWritePrompt = isPremium || !!myAnswer.trim() || remainingFreePrompts > 0;
   const disclosure = useProgressiveDisclosure(answeredCount);
+  const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
+  const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
+  const isLinked = !!state?.coupleId;
 
   // Entrance animations
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -190,15 +193,15 @@ export default function HomeScreen({ navigation }) {
         const greeting = await PreferenceEngine.getSmartGreeting(profile);
         const seasonGreetings = {
           busy: 'A quick moment',
-          cozy: 'Welcome Back',
-          growth: 'Growing together',
-          adventure: 'Something new awaits',
-          rest: 'Take it slow tonight',
+          cozy: 'Just us',
+          growth: 'Choosing each other',
+          adventure: 'A new spark',
+          rest: 'Take it slow',
         };
         const seasonId = profile?.season?.id || 'cozy';
         if (active) {
           setSmartGreeting(seasonGreetings[seasonId] || 'Welcome Back');
-          setSmartSubGreeting(greeting || 'A softer place for what matters tonight.');
+          setSmartSubGreeting(greeting || 'A private room for small moments together.');
         }
       } catch (e) {
         if (__DEV__) console.warn('[Home] personalization load:', e?.message);
@@ -218,7 +221,7 @@ export default function HomeScreen({ navigation }) {
     const checkForNewAchievements = async () => {
       if (!user?.uid) return;
       try {
-        const milestoneData = await achievementEngine.checkAchievements(user.uid, dataLayer);
+        const milestoneData = await checkAchievements(user.uid, dataLayer);
         const newMilestone = milestoneData?.newlyUnlocked?.[0];
         if (active && newMilestone) {
           setRewardData({
@@ -302,10 +305,9 @@ export default function HomeScreen({ navigation }) {
           if (active) setSelectedTone('warm');
         });
 
-      // Schedule engagement notifications (streak-break alert + weekly recap)
+      // Schedule soft return invitations and the weekly recap.
       import('../services/WinBackNudges').then(({ default: WinBackNudges }) => {
         if (!active) return;
-        // Streak-break loss-aversion alert
         import('../services/localfirst').then(({ DataLayer: DL }) => {
           Promise.all([
             DL.getCheckIns?.({ limit: 90 }).catch(() => []),
@@ -348,7 +350,7 @@ export default function HomeScreen({ navigation }) {
       return () => {
         active = false;
       };
-    }, [partnerLabel])
+    }, [partnerLabel, isPremium])
   );
 
   // ── Real-time: refresh partnerAnswer when partner submits a prompt answer ──
@@ -411,9 +413,6 @@ export default function HomeScreen({ navigation }) {
     }, [state?.coupleId, prompt?.id, promptReady, user?.uid])
   );
 
-  const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
-  const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
-  const isLinked = !!state?.coupleId;
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
   const toneCopy = TONE_HOME_COPY[selectedTone] || TONE_HOME_COPY.warm;
   const ritualState = useMemo(() => deriveRitualState({
@@ -424,39 +423,39 @@ export default function HomeScreen({ navigation }) {
   }), [isLinked, myAnswer, partnerAnswer, isRevealed]);
   const ritualCopy = useMemo(() => ({
     solo_unanswered: {
-      eyebrow: 'TODAY',
+      eyebrow: 'TODAY BETWEEN US',
       title: promptReady ? prompt.text : 'A small moment for today',
-      body: `Answer first. ${partnerLabel} won't see it until they answer too!`,
+      body: `Answer privately. ${partnerLabel} can reveal it after they answer too.`,
       primaryLabel: "Answer today's question",
       secondaryLabel: 'Invite your partner',
     },
     linked_unanswered: {
-      eyebrow: 'TODAY',
+      eyebrow: 'TODAY BETWEEN US',
       title: promptReady ? prompt.text : `A small moment for you and ${partnerLabel}`,
-      body: `Answer first. ${partnerLabel} won't see it until they answer too!`,
+      body: `Answer privately. ${partnerLabel} can reveal it after they answer too.`,
       primaryLabel: "Answer today's question",
       secondaryLabel: null,
     },
     answered_waiting: {
-      eyebrow: 'YOUR ANSWER IS IN',
-      title: `Waiting for ${partnerLabel}`,
-      body: `Your answer is saved. Once ${partnerLabel} answers, your reveal will be ready.`,
-      primaryLabel: `Nudge ${partnerLabel}`,
+      eyebrow: 'SAVED FOR REVEAL',
+      title: `Something is waiting for ${partnerLabel}`,
+      body: `Your answer is saved. They can add theirs whenever they're ready.`,
+      primaryLabel: 'Let them know',
       secondaryLabel: 'Edit my answer',
     },
     both_answered_ready: {
-      eyebrow: 'READY TO REVEAL',
-      title: 'Your reveal is ready',
-      body: "You both answered today's question. Open the reveal when you're ready.",
+      eyebrow: 'PRIVATE REVEAL',
+      title: 'Your private reveal is ready',
+      body: "You both answered. Open the moment when you're ready.",
       primaryLabel: 'Reveal together',
       secondaryLabel: null,
     },
     revealed: {
       eyebrow: 'REVEALED',
       title: 'You showed up for each other today',
-      body: 'A small moment like this is worth keeping.',
-      primaryLabel: 'Save this moment',
-      secondaryLabel: 'Plan a date from this',
+      body: 'This is the kind of small moment that keeps your connection alive.',
+      primaryLabel: 'Save to our archive',
+      secondaryLabel: 'Plan something from this',
     },
   }[ritualState]), [partnerLabel, prompt.text, promptReady, ritualState]);
 
@@ -515,14 +514,14 @@ export default function HomeScreen({ navigation }) {
             if (!mountedRef.current) return;
             Alert.alert(
               'Share with your partner?',
-              'Invite them to Between Us so they can answer too \u2014 and you can reveal each other\u2019s responses.',
+              'Invite them into your private space so you can answer and reveal together.',
               [
                 { text: 'Not Now', style: 'cancel' },
                 {
-                  text: 'Invite Partner',
+                  text: 'Invite',
                   onPress: () => {
                     Share.share({
-                      message: 'I just answered a relationship prompt on Between Us \u2014 download it so we can share our answers together! https://apps.apple.com/app/between-us',
+                      message: 'I left something for us on Between Us. Join our private space so we can reveal our answers together: https://apps.apple.com/app/between-us',
                     }).catch(() => {});
                   },
                 },
@@ -536,7 +535,7 @@ export default function HomeScreen({ navigation }) {
     } finally {
       setIsSavingInline(false);
     }
-  }, [inlineText, prompt, user, isPremium, myAnswer, showPaywall, loadUsageStatus, isSavingInline, state?.userProfile, userProfile]);
+  }, [inlineText, prompt, user, isPremium, myAnswer, showPaywall, loadUsageStatus, isSavingInline, state?.userProfile, userProfile, todayKey]);
 
   const handlePrimaryCTA = useCallback(async () => {
     impact(ImpactFeedbackStyle.Medium);
@@ -640,11 +639,11 @@ export default function HomeScreen({ navigation }) {
     } else if (key === 'intimacy') {
       if (!isPremium) {
         Alert.alert(
-          `Explore intimacy with ${partnerLabel}`,
-          `Premium unlocks illustrated intimacy positions with weekly new releases for you and ${partnerLabel}.`,
+          `More spark with ${partnerLabel}`,
+          `Premium opens sensual prompts, illustrated intimacy ideas, and date-night moments for the two of you.`,
           [
             { text: 'Not Now', style: 'cancel' },
-            { text: 'Unlock Premium', onPress: () => showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5) },
+            { text: 'Discover Premium', onPress: () => showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5) },
           ]
         );
         return;
@@ -744,7 +743,7 @@ export default function HomeScreen({ navigation }) {
                   <Text style={styles.answerText}>{myAnswer}</Text>
                   <View style={styles.partnerVisibilityRow}>
                     <Icon name="lock-closed-outline" size={13} color={t.primary} />
-                    <Text style={styles.partnerVisibilityText}>Hidden until both of you answer</Text>
+                    <Text style={styles.partnerVisibilityText}>Private until your shared reveal</Text>
                   </View>
                 </View>
               ) : canWritePrompt ? (
@@ -753,7 +752,7 @@ export default function HomeScreen({ navigation }) {
                   placeholderTextColor={t.subtext}
                   value={inlineText}
                   onChangeText={setInlineText}
-                  placeholder="Write your answer here..."
+                  placeholder="Leave them one small piece of your heart..."
                   multiline
                   maxLength={1000}
                   textAlignVertical="top"
@@ -765,11 +764,11 @@ export default function HomeScreen({ navigation }) {
                   style={[styles.input, { justifyContent: 'center' }]}
                 >
                   <Text style={styles.inputPlaceholder}>
-                    {`You’ve used today’s free prompts. ${isPremium ? '' : 'Premium unlocks all prompts across 5 heat levels.'}`}
+                    {`Today's free moment is used. ${isPremium ? '' : 'Premium opens deeper prompts, private notes, date ideas, and your full archive.'}`}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
                     <Icon name="lock-open-outline" size={14} color={t.primary} />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: t.primary }}>Unlock more</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: t.primary }}>Discover more</Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -829,9 +828,9 @@ export default function HomeScreen({ navigation }) {
 
           <View style={{ height: homeLayout.spacing.gap }} />
 
-          {/* ── Streak + Milestone (below the fold) ── */}
+          {/* ── Private moments + milestones (below the fold) ── */}
           <View style={{ marginBottom: SPACING.sm }}>
-            <StreakBanner onPress={() => navigation.navigate('Achievements')} />
+            <StreakBanner onPress={() => navigation.navigate('SavedMoments')} />
           </View>
           <MilestoneCard />
 
@@ -916,15 +915,15 @@ export default function HomeScreen({ navigation }) {
                 <Icon name="heart-circle-outline" size={28} color={t.primary} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.softNudgeTitle, { color: t.text }]}>
-                    You've shared {answeredCount} moments together
+                    You've created {answeredCount} private moments
                   </Text>
                   <Text style={[styles.softNudgeBody, { color: t.subtext }]}>
-                    A year from now, you'll have a vault of every answer, every memory, every spark. Premium keeps your story safe — and growing.
+                    Premium turns them into a fuller private world: deeper reveals, date ideas, memories, signals, and recaps made for the two of you.
                   </Text>
                 </View>
               </View>
               <View style={styles.softNudgeCTA}>
-                <Text style={[styles.softNudgeCTAText, { color: t.primary }]}>Protect your story</Text>
+                <Text style={[styles.softNudgeCTAText, { color: t.primary }]}>Keep building this</Text>
                 <Icon name="arrow-forward-outline" size={14} color={t.primary} />
               </View>
             </TouchableOpacity>

@@ -40,7 +40,7 @@ export const GuardBehavior = Object.freeze({
 
 // ─── Free-Tier Limits ───────────────────────────────────────────────────────────
 export const FREE_LIMITS = Object.freeze({
-  PROMPTS_PER_DAY: 3,           // Three guided prompt responses per day
+  PROMPTS_PER_DAY: 1,           // One daily prompt response to prove the shared reveal loop
   PREVIEW_PROMPTS_TOTAL: 10,    // 10 preview prompts to build habit before gating
   DATE_IDEAS_PER_DAY: 5,        // 5 preview date ideas per day
   FULL_DATE_FLOWS_PER_WEEK: 2,  // Two fully planned date flows per week
@@ -165,52 +165,52 @@ export const PremiumSource = Object.freeze({
 // Rich metadata for paywall display & analytics. Keyed by PremiumFeature value.
 export const FEATURE_META = Object.freeze({
   [PremiumFeature.UNLIMITED_PROMPTS]: {
-    name: 'Unlimited Prompts',
-    description: 'Unlimited prompts with full access to Heat Levels 1–5, prompt history & favorites, and Surprise Me generator',
+    name: 'Daily Reveals',
+    description: 'Deeper emotional, romantic, sensual, and custom prompt packs with the shared reveal ritual',
     icon: '🔥',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
-    emotionalValue: 'Never run out of things to talk about',
+    emotionalValue: 'Keep leaving small pieces of your heart for each other',
   },
   [PremiumFeature.HEAT_LEVELS_4_5]: {
-    name: 'All Heat Levels',
-    description: 'Explore levels 4 (Steamy) & 5 (Explicit)',
+    name: 'Shared Heat Levels',
+    description: 'Sensual, steamy, and explicit prompt lanes when both partners want more heat',
     icon: '🔥',
     category: 'content',
     guardBehavior: GuardBehavior.LOCK,
-    emotionalValue: 'Take your intimacy to the next level',
+    emotionalValue: 'Keep desire playful, private, and chosen together',
   },
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
-    name: 'Unlimited Date Ideas',
-    description: 'Full catalog of date ideas with multi-dimensional filtering by mood, style, and budget',
+    name: 'Personalized Date Ideas',
+    description: 'Date ideas shaped by your answers, mood, budget, heat level, and favorite ways to connect',
     icon: '🌹',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
-    emotionalValue: 'Never have a boring date night again',
+    emotionalValue: 'Turn what you both want into time together',
   },
   [PremiumFeature.SURPRISE_ME]: {
-    name: 'Surprise Me',
-    description: 'Curated date picker for spontaneous moments',
+    name: 'Tonight Mode',
+    description: 'A focused connection moment for cozy, playful, romantic, sensual, or after-a-long-day nights',
     icon: '🎲',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Add spontaneity to your connection',
+    emotionalValue: 'Make intimacy easier to start',
   },
   [PremiumFeature.UNLIMITED_JOURNAL_HISTORY]: {
-    name: 'Full Journal History',
-    description: 'Full journal access — write, save, and revisit all your entries',
+    name: 'Private Notes',
+    description: 'Write, save, and revisit notes, reflections, and open-when messages',
     icon: '📖',
     category: 'memory',
     guardBehavior: GuardBehavior.BLUR,
-    emotionalValue: 'Relive every precious memory',
+    emotionalValue: 'Keep the little things your partner leaves for you',
   },
   [PremiumFeature.PDF_EXPORT]: {
-    name: 'Memory Export',
-    description: 'Export your shared timeline as PDF',
+    name: 'Keepsake Export',
+    description: 'Export your private story, favorite answers, notes, and memories as a keepsake',
     icon: '🏛️',
     category: 'memory',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Preserve your love story forever',
+    emotionalValue: 'Preserve the story only you two share',
   },
   [PremiumFeature.VAULT_AND_BIOMETRIC]: {
     name: 'Private Vault',
@@ -221,28 +221,28 @@ export const FEATURE_META = Object.freeze({
     emotionalValue: 'Keep your relationship memories secure and protected',
   },
   [PremiumFeature.CLOUD_SYNC]: {
-    name: 'Privacy & Cloud Sync',
-    description: 'Encrypted storage for synced content, premium cloud sync for linked couples, and backup-based recovery for synced data',
+    name: 'Private Archive Sync',
+    description: 'Encrypted sync for your shared archive, linked devices, and backup-based recovery',
     icon: '🔐',
     category: 'sync',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Your data is never sold or shared',
+    emotionalValue: 'Keep your private world safe across both phones',
   },
   [PremiumFeature.EDITORIAL_PROMPTS]: {
-    name: 'Editorial Prompts',
-    description: 'Editorially curated deep-conversation prompts with themed seasons and partner reveal',
+    name: 'Prompt Packs',
+    description: 'Curated packs for busy weeks, date nights, long-term love, reconnection, romance, and spark',
     icon: '✍️',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Deeper conversations that matter',
+    emotionalValue: 'Keep the ritual fresh without making it feel like work',
   },
   [PremiumFeature.VIBE_SIGNAL]: {
-    name: 'Vibe Signal',
-    description: 'Share your emotional state with your partner and stay in tune throughout the day',
+    name: 'Love Signals',
+    description: 'Send low-friction notes, photos, moods, and thinking-of-you moments',
     icon: '📡',
     category: 'connection',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Stay in tune with your partner',
+    emotionalValue: 'Let them feel chosen in the middle of ordinary life',
   },
   [PremiumFeature.PROMPT_REFRESH]: {
     name: 'Prompt Refresh',
@@ -261,12 +261,12 @@ export const FEATURE_META = Object.freeze({
     emotionalValue: 'Uninterrupted connection',
   },
   [PremiumFeature.CALENDAR]: {
-    name: 'Shared Calendar',
-    description: 'Add, edit, and schedule date nights, anniversaries, and special moments with reminders and shared visibility',
+    name: 'Shared Date Calendar',
+    description: 'Plan date nights, rituals, anniversaries, and reminders in your private couple space',
     icon: '📅',
     category: 'planning',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Protect time for what matters most',
+    emotionalValue: 'Make time together easier to choose',
   },
   [PremiumFeature.PARTNER_LINKING]: {
     name: 'Partner Connection',
@@ -277,12 +277,12 @@ export const FEATURE_META = Object.freeze({
     emotionalValue: 'Build your shared love story together',
   },
   [PremiumFeature.PROMPT_RESPONSES]: {
-    name: 'Prompt Responses',
-    description: 'Write, save, and share your responses with your partner',
+    name: 'Shared Reveals',
+    description: 'Write privately, reveal together, and save favorite answers to your story',
     icon: '✏️',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Capture your thoughts and grow together',
+    emotionalValue: 'Feel known without turning connection into homework',
   },
   [PremiumFeature.INSIDE_JOKES]: {
     name: 'Inside Jokes Vault',
@@ -293,12 +293,12 @@ export const FEATURE_META = Object.freeze({
     emotionalValue: 'Celebrate the language only you two share',
   },
   [PremiumFeature.YEAR_REFLECTION]: {
-    name: 'Year in Review',
-    description: 'A personalized recap of your milestones, memories, and growth together over the year',
+    name: 'Couple Recaps',
+    description: 'Weekly, monthly, and annual recaps of your sweetest answers, themes, spark, and memories',
     icon: '📆',
     category: 'memory',
     guardBehavior: GuardBehavior.HIDE,
-    emotionalValue: 'See how far you\'ve come together',
+    emotionalValue: 'See the love you are still building',
   },
 });
 
@@ -408,6 +408,6 @@ export function getTimedUnlockLimits(isPremiumEffective) {
     unlockLabel: 'Friday Date Night',
     VISIBLE_DATE_IDEAS: 10,        // 10 instead of 3
     DATE_IDEAS_PER_DAY: 10,        // 10 instead of 3
-    PROMPTS_PER_DAY: 3,            // 3 instead of 1
+    PROMPTS_PER_DAY: 3,            // expanded preview instead of the usual 1
   };
 }

@@ -21,10 +21,10 @@
       "bundleIdentifier": "com.brittany.betweenus",
       "buildNumber": "10",
       "infoPlist": {
-        "NSCameraUsageDescription": "Camera access is required to scan your partner’s QR code for secure pairing.",
-        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to love notes, journal entries, and memories.",
-        "NSMicrophoneUsageDescription": "Microphone access lets you record encrypted voice notes for your partner.",
-        "NSFaceIDUsageDescription": "Between Us uses Face ID to protect your private content with biometric authentication.",
+        "NSCameraUsageDescription": "Camera access is used to scan your partner’s QR code and to capture optional media when you choose.",
+        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to journal entries, memories, and other supported media features.",
+        "NSMicrophoneUsageDescription": "Microphone access lets you record voice notes if you choose to use a voice feature.",
+        "NSFaceIDUsageDescription": "Between Us uses Face ID for optional app lock on this device.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {

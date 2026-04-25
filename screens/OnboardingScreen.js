@@ -19,7 +19,6 @@ import {
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from "expo-linear-gradient";
 import ReAnimated, { FadeInDown } from 'react-native-reanimated';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { notification, selection, NotificationFeedbackType } from '../utils/haptics';
@@ -48,7 +47,7 @@ export default function OnboardingScreen({ navigation }) {
   const { actions, state } = useAppContext();
   const { colors, isDark } = useTheme();
   const { updateRelationshipStartDate } = useContent();
-  const { user, userProfile, updateProfile, markOnboardingComplete } = useAuth();
+  const { userProfile, updateProfile, markOnboardingComplete } = useAuth();
   
   // STRICT Apple Editorial Theme Map
   const t = useMemo(() => ({
@@ -66,7 +65,6 @@ export default function OnboardingScreen({ navigation }) {
 
   // Steps: 0 (Intro), 1 (Your Story), 2 (Relationship Quiz), 3 (Preferences), 4 (Pairing)
   const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(false);
 
   // Form state
   const [myName, setMyName] = useState("");
@@ -82,8 +80,8 @@ export default function OnboardingScreen({ navigation }) {
   const [idealDateStyle, setIdealDateStyle] = useState(null);
   const [communicationStyle, setCommunicationStyle] = useState(null);
   // Preference state (collected in step 2)
-  const [selectedSeason, setSelectedSeason] = useState(null);
-  const [selectedHeatLevel, setSelectedHeatLevel] = useState(5);
+  const [, setSelectedSeason] = useState(null);
+  const [selectedHeatLevel, setSelectedHeatLevel] = useState(2);
   const [selectedTone, setSelectedTone] = useState('warm');
   
   // Invitation state
@@ -168,8 +166,8 @@ export default function OnboardingScreen({ navigation }) {
             } catch (_) {}
           }
           Alert.alert(
-            'You\'re linked! 💕',
-            'Your partner has joined. You\'re now connected on Between Us.'
+            'You\'re linked',
+            'Your partner has joined. Your private space is ready.'
           );
           return; // stop polling after success
         }
@@ -328,7 +326,7 @@ export default function OnboardingScreen({ navigation }) {
   };
 
   const handleShare = async () => {
-    const shareMessage = `Reach across the digital void. ${myName || "I"} am inviting you to Between Us. Join our private space here:\n\nInvite Code: ${inviteCode}\n\nhttps://betweenus.app/join/${inviteCode}`;
+    const shareMessage = `${myName || "I"} made a private space for us on Between Us. Join me so we can answer, reveal, and save our moments together:\n\nInvite Code: ${inviteCode}\n\nhttps://betweenus.app/join/${inviteCode}`;
     
     try {
       await Share.share({
@@ -356,9 +354,9 @@ export default function OnboardingScreen({ navigation }) {
         }}
       >
         {[
-          { icon: 'chatbubbles-outline', text: 'Daily prompts to spark real conversations' },
-          { icon: 'calendar-outline', text: 'Plan dates and build shared memories' },
-          { icon: 'heart-outline', text: 'A private space that grows with you' },
+          { icon: 'chatbubbles-outline', text: 'Answer privately, then reveal together' },
+          { icon: 'calendar-outline', text: 'Turn ordinary days into date ideas and memories' },
+          { icon: 'heart-outline', text: 'A private space that becomes your story' },
         ].map((item) => (
           <View key={item.text} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Icon name={item.icon} size={18} color={t.primary} />
@@ -378,7 +376,7 @@ export default function OnboardingScreen({ navigation }) {
             alignItems: 'center',
           }}
         >
-          <Text style={{ color: t.surface, fontSize: 16, fontWeight: '700' }}>Get Started</Text>
+          <Text style={{ color: t.surface, fontSize: 16, fontWeight: '700' }}>Make This Ours</Text>
         </TouchableOpacity>
       </ReAnimated.View>
     </View>
@@ -395,8 +393,8 @@ export default function OnboardingScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <ReAnimated.View entering={FadeInDown.delay(100).duration(600).springify()}>
-          <Text style={styles.title}>Your Story</Text>
-          <Text style={styles.storySubtitle}>Tell us a little about the connection you're building together.</Text>
+          <Text style={styles.title}>Just the Two of You</Text>
+          <Text style={styles.storySubtitle}>Between Us is not relationship homework. It is a private room for the love you are still choosing.</Text>
         </ReAnimated.View>
 
         {/* Sample prompt preview — show the value immediately */}
@@ -407,7 +405,7 @@ export default function OnboardingScreen({ navigation }) {
               What's one small thing about your partner that still surprises you?
             </Text>
             <Text style={[styles.samplePromptHint, { color: t.subtext }]}>
-              Both of you answer — then reveal each other's response together.
+              Answer privately. Reveal together. Save the moment to your story.
             </Text>
           </View>
         </ReAnimated.View>
@@ -532,7 +530,7 @@ export default function OnboardingScreen({ navigation }) {
             }}
             disabled={showDatePicker}
             accessibilityRole="button"
-            accessibilityLabel="Continue to relationship quiz"
+            accessibilityLabel="Continue to personalization"
           >
             <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
           </TouchableOpacity>
@@ -550,11 +548,11 @@ export default function OnboardingScreen({ navigation }) {
   ];
 
   const RELATIONSHIP_GOALS = [
-    { id: 'deeper', icon: 'heart-outline', label: 'Deepen our connection' },
-    { id: 'communicate', icon: 'chatbubbles-outline', label: 'Communicate better' },
+    { id: 'deeper', icon: 'heart-outline', label: 'Keep choosing each other' },
+    { id: 'communicate', icon: 'chatbubbles-outline', label: 'Feel close on busy days' },
     { id: 'fun', icon: 'happy-outline', label: 'Have more fun together' },
-    { id: 'intimacy', icon: 'flame-outline', label: 'Reignite intimacy' },
-    { id: 'grow', icon: 'leaf-outline', label: 'Grow together' },
+    { id: 'intimacy', icon: 'flame-outline', label: 'Keep intimacy alive' },
+    { id: 'grow', icon: 'leaf-outline', label: 'Build our private story' },
   ];
 
   const DATE_STYLES = [
@@ -602,8 +600,8 @@ export default function OnboardingScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <ReAnimated.View entering={FadeInDown.delay(100).duration(600).springify()}>
-          <Text style={styles.title}>About You Two</Text>
-          <Text style={styles.storySubtitle}>Help us personalize your experience. These shape what you see.</Text>
+          <Text style={styles.title}>What Feels Like Us</Text>
+          <Text style={styles.storySubtitle}>These shape the prompts, date ideas, and little moments in your private space.</Text>
         </ReAnimated.View>
 
         {/* Love Language */}
@@ -647,7 +645,7 @@ export default function OnboardingScreen({ navigation }) {
 
         {/* Communication Style */}
         <ReAnimated.View entering={FadeInDown.delay(500).duration(600).springify()}>
-          <Text style={styles.groupLabel}>HOW DO YOU COMMUNICATE?</Text>
+          <Text style={styles.groupLabel}>HOW SHOULD THIS FEEL?</Text>
           <View style={styles.groupCard}>
             {COMMUNICATION_STYLES.map((item, index) => (
               <View key={item.id}>
@@ -713,11 +711,11 @@ export default function OnboardingScreen({ navigation }) {
   );
 
   const HEAT_LABELS = [
-    { level: 1, icon: 'heart-outline',        color: '#FF85C2', name: 'Emotional',   description: 'Intimacy & trust' },
-    { level: 2, icon: 'heart-outline',        color: '#FF1493', name: 'Romantic',    description: 'Flirty & tender' },
-    { level: 3, icon: 'flame-outline',         color: '#FF006E', name: 'Sensual',     description: 'Desire & closeness' },
-    { level: 4, icon: 'flame-outline',         color: '#F00049', name: 'Steamy',      description: 'Adventurous & heated' },
-    { level: 5, icon: 'flame-outline',         color: '#D2121A', name: 'Explicit',    description: 'Intensely passionate' },
+    { level: 1, icon: 'heart-outline',         color: '#FF85C2', name: 'Emotional',   description: 'Sweet, honest, and safe' },
+    { level: 2, icon: 'heart-outline',         color: '#FF1493', name: 'Romantic',    description: 'Flirty, tender, and warm' },
+    { level: 3, icon: 'flame-outline',         color: '#FF006E', name: 'Sensual',     description: 'Desire, touch, and closeness' },
+    { level: 4, icon: 'flame-outline',         color: '#F00049', name: 'Steamy',      description: 'Adventurous and heated' },
+    { level: 5, icon: 'flame-outline',         color: '#D2121A', name: 'Explicit',    description: 'Only if you both want explicit' },
   ];
 
   const TONE_OPTIONS = NicknameEngine.TONE_OPTIONS;
@@ -755,7 +753,7 @@ export default function OnboardingScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>Personalize</Text>
-        <Text style={styles.prefSubtitle}>These shape what the app suggests. Change anytime in Settings.</Text>
+        <Text style={styles.prefSubtitle}>Choose a starting tone. You can change this together anytime in Settings.</Text>
 
         {/* Season Selector */}
         <View style={styles.prefSection}>
@@ -764,7 +762,8 @@ export default function OnboardingScreen({ navigation }) {
 
         {/* Heat Level */}
         <View style={styles.prefSection}>
-          <Text style={styles.groupLabel}>COMFORT LEVEL</Text>
+          <Text style={styles.groupLabel}>SHARED HEAT LEVEL</Text>
+          <Text style={styles.prefSubtitle}>Start where you both feel good. Higher heat works best when you choose it together.</Text>
           <View style={styles.groupCard}>
             {HEAT_LABELS.map((h, index) => {
               const isActive = selectedHeatLevel === h.level;
@@ -913,7 +912,7 @@ export default function OnboardingScreen({ navigation }) {
   const renderPairing = () => (
     <View style={styles.content}>
       <ReAnimated.View entering={FadeInDown.delay(100).duration(800).springify()}>
-        <Text style={styles.title}>Pairing</Text>
+        <Text style={styles.title}>Your Private Space</Text>
       </ReAnimated.View>
       
       <View style={styles.pairingContainer}>
@@ -924,9 +923,9 @@ export default function OnboardingScreen({ navigation }) {
             color={t.primary} 
             style={{ marginBottom: 24, alignSelf: 'center' }} 
           />
-          <Text style={styles.pairingSubtitle}>Reach across the digital void.</Text>
+          <Text style={styles.pairingSubtitle}>This is just for you two.</Text>
           <Text style={styles.pairingBody}>
-            Invite your partner to connect their app to yours. Your shared memory starts here.
+            Invite your partner so answers reveal together and your moments save to one shared archive.
           </Text>
         </ReAnimated.View>
         
@@ -970,7 +969,7 @@ export default function OnboardingScreen({ navigation }) {
               <View style={styles.previewBox}>
                 <Text style={styles.previewLabel}>MESSAGE PREVIEW</Text>
                 <Text style={styles.previewText}>
-                  "I am inviting you to connect on Between Us. Use my code to join our private space."
+                  "Join our private space on Between Us. I want us to answer, reveal, and save little moments together."
                 </Text>
               </View>
 

@@ -278,9 +278,9 @@ export const ContentProvider = ({ children }) => {
         // Don't log as an error if it's just the expected free user limit
         const errorString = String(error?.message || error);
         if (
-          errorString.includes('Free users can answer 1 guided prompt') ||
+          errorString.includes('free moment is used') ||
           errorString.includes('Free users can preview 3') ||
-          errorString.includes('Heat levels 4 and 5 require premium access')
+          errorString.includes('Higher heat levels are part of the deeper experience')
         ) {
           if (__DEV__) console.log("[ContentContext] Setting fallback daily prompt for free user.");
         } else {

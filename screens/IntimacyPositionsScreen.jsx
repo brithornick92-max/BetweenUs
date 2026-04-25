@@ -154,7 +154,7 @@ export default function IntimacyPositionsScreen() {
             >
               <View style={styles.headerBlock}>
                 <Text style={[styles.headerEyebrow, { color: t.primary }]}>INTIMACY</Text>
-                <Text style={[styles.headerTitle, { color: t.text }]}>Unlock Intimacy</Text>
+                <Text style={[styles.headerTitle, { color: t.text }]}>Private Spark</Text>
               </View>
             </Animated.View>
             <Animated.View style={{
@@ -164,13 +164,13 @@ export default function IntimacyPositionsScreen() {
               <View style={styles.cardContainer}>
                 <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass }, !isDark && styles.lightShadow]}>
                   <View style={styles.cardContent}>
-                    <Text style={[styles.cardTag, { color: t.subtext }]}>PREMIUM ACCESS</Text>
-                    <Text style={[styles.cardTitle, { color: t.text }]}>Unlock Intimacy</Text>
+                    <Text style={[styles.cardTag, { color: t.subtext }]}>SHARED PREMIUM</Text>
+                    <Text style={[styles.cardTitle, { color: t.text }]}>More Spark Together</Text>
                     <Text style={[styles.cardEmail, { color: t.subtext }]}>A closer space for you and {partnerLabel}.</Text>
                   </View>
 
                   <View style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }] }>
-                    <Text style={[styles.answerText, { color: t.text }]}>Discover beautifully illustrated, high-end intimacy positions designed for deep connection. New releases added every week.</Text>
+                    <Text style={[styles.answerText, { color: t.text }]}>Explore illustrated intimacy ideas designed for closeness, play, and desire. New releases arrive every week.</Text>
                   </View>
 
                   <TouchableOpacity
@@ -178,7 +178,7 @@ export default function IntimacyPositionsScreen() {
                     onPress={handlePaywall}
                     activeOpacity={0.85}
                   >
-                    <Text style={[styles.ctaLabel, { color: isDark ? '#000000' : '#FFFFFF' }]}>Unlock Premium</Text>
+                    <Text style={[styles.ctaLabel, { color: isDark ? '#000000' : '#FFFFFF' }]}>Discover Premium</Text>
                     <Icon name="arrow-forward-outline" size={20} color={isDark ? '#000000' : '#FFFFFF'} />
                   </TouchableOpacity>
                 </View>

@@ -1,7 +1,7 @@
 # Between Us — App Store Submission Checklist
 
-**Date:** April 6, 2026  
-**Submission scope:** iOS App Store only  
+**Date:** April 24, 2026
+**Submission scope:** iOS App Store only
 **Repo status:** Automated checks passing (`23/23` test suites, deployment validator passing)
 
 ## Release Verdict
@@ -11,7 +11,7 @@ There are no known **repo-side** blockers remaining for iOS App Store submission
 The remaining work is operational and store-side:
 
 1. Complete App Store Connect privacy answers
-2. Complete export compliance questionnaire in App Store Connect (exempt path)
+2. Complete the export compliance questionnaire in App Store Connect and confirm the correct exempt or documentation-required path for the shipped build
 3. Verify production Supabase environment state
 4. Perform final real-device iOS smoke tests
 
@@ -19,7 +19,7 @@ The remaining work is operational and store-side:
 
 - App name: `Between Us`
 - Bundle ID: `com.brittany.betweenus`
-- Version: `1.0.0`
+- Version: `1.0.22`
 - Build number: `10` in `app.json`, with EAS `appVersionSource: remote` and production `autoIncrement: true`
 - iOS deployment target: `17.1`
 - URL scheme: `betweenus`
@@ -108,12 +108,12 @@ KEY FEATURES:
 - Daily shared prompts
 - Shared calendar and date planning
 - Partner “vibe signal” interactions
-- Love notes and relationship reflections
-- Optional premium subscription for expanded content and sync features
+- Journals, memories, and relationship reflections
+- Optional premium subscription for expanded content and planning features
 
 DATA HANDLING:
-- Private synced content is encrypted before upload
-- Optional photo and voice-note attachments are encrypted before upload
+- Core synced content is protected by authentication, row-level security, HTTPS/TLS, and provider-side controls; it is not currently end-to-end encrypted before upload
+- Optional media attachments are protected by account/storage access controls and secure transport; do not describe them as end-to-end encrypted
 - The app uses limited pseudonymous analytics plus crash/performance diagnostics, including limited Sentry session replay, to improve reliability
 - The app includes an in-app Privacy Policy, Terms, and account deletion flow
 - Account deletion is available in Settings → Privacy & Security → Delete Account
@@ -122,33 +122,32 @@ NOTIFICATIONS:
 - Push notification permission is requested only from explicit user action in-app
 
 ENCRYPTION:
-The app uses client-side encryption for private synced data before upload. App Store Connect currently classifies this implementation on the exempt path, so `ITSAppUsesNonExemptEncryption` should be set to `NO` in the shipped plist.
+The app uses standard platform, HTTPS/TLS, and provider-side encryption/security controls. Core synced app content is not currently client-side encrypted before upload. App Store Connect export-compliance answers must be based on the actual shipped build, including any encryption used by HTTPS/TLS, platform APIs, Supabase, RevenueCat, Sentry, Expo, Apple frameworks, and any enabled app feature.
 ```
 
 ## Encryption / Export Compliance Checklist
 
-App Store Connect currently classifies this app on the exempt documentation path. Keep the following aligned for submission:
+Apple requires App Store Connect export-compliance answers for apps that use, access, contain, implement, or incorporate encryption. Keep the following aligned for submission:
 
-1. `ITSAppUsesNonExemptEncryption = false` in the shipped plist
-2. Export compliance answers in App Store Connect aligned to the exempt path
+1. `ITSAppUsesNonExemptEncryption = false` in the shipped plist only if the shipped build is exempt from export-compliance documentation
+2. Export compliance answers in App Store Connect aligned to the actual shipped build
 
 Keep the following details handy:
 
-- Encryption used for confidential user data
-- NaCl-based encrypted payload flow
-- 256-bit key material
-- Ciphertext stored remotely, plaintext kept off the server
+- Core synced content is not currently client-side encrypted before upload
+- Standard HTTPS/TLS and provider-side security controls protect core synced content in transit and at the provider layer
+- Any enabled feature-specific encryption, such as an exposed whisper/voice-note feature, must be included in the export-compliance answers for the shipped build
 
 ## ITMS-90592 Fix
 
 If App Store Connect rejects the upload with `ITMS-90592: Invalid Export Compliance Code`, treat it as a metadata mismatch first.
 
-For this app, the App Store Connect questionnaire currently resolves to the exempt path, so the shipped IPA must match that classification:
+The App Store Connect questionnaire and shipped IPA must match the actual build classification:
 
 1. Open the app in App Store Connect
 2. Go to the export compliance / encryption questionnaire for the rejected build
-3. Answer the encryption questions so they resolve to the exempt path
-4. Ensure the next uploaded binary ships with `ITSAppUsesNonExemptEncryption = false`
+3. Answer the encryption questions based on the exact shipped build and enabled features
+4. Ensure the next uploaded binary ships with the matching `ITSAppUsesNonExemptEncryption` value
 5. Re-upload the build if the rejected binary already contains the wrong plist value
 
 This is not usually a code-signing or plist-generation bug unless the IPA itself is missing the key.
@@ -197,20 +196,18 @@ These are not repo changes, but they still need confirmation:
 - Privacy Policy URL field (App Store Connect → App Information)
 - In-app subscription flow already shows: subscription title, length, price, and links to Terms, Privacy Policy, and EULA
 
-### Guideline 2.3.2 — Accurate Metadata: Cloud Sync
+### Guideline 2.3.2 — Accurate Metadata: Sync And Premium Claims
 
-**Issue:** App description and/or screenshots reference cloud sync without indicating it requires a premium subscription.
+**Issue:** App description and/or screenshots can overstate sync, recovery, encryption, or premium-only behavior.
 
 **Required App Store Connect Changes:**
 
-1. Update the App Store description to clearly mark cloud sync as a premium feature. Example wording:
+1. Update the App Store description to clearly mark any premium-only features and avoid unsupported sync, recovery, or encryption claims. Example wording:
    ```
    Premium features (available via in-app subscription) include unlimited prompts,
-   love notes, date night planning, cloud sync, and more.
+   expanded date planning, calendar features, recaps, signals, and more.
    ```
-2. If screenshots show cloud sync, either:
-   - Remove cloud sync from screenshots, or
-   - Add a visible "Premium" badge or label in the screenshot
+2. If screenshots show a premium-only feature, add a visible "Premium" badge or label in the screenshot.
 
 ### Review Notes Update
 
@@ -221,13 +218,13 @@ Changes made for this resubmission:
 
 1. [3.1.2(c)] Added the Terms of Use (EULA) link to the in-app subscription purchase flow, and the App Store description has been updated to include the EULA link as well.
 
-2. [2.3.2] Updated App Store metadata to clearly identify cloud sync as a premium subscription feature.
+2. [2.3.2] Updated App Store metadata to avoid unsupported cloud-sync and encryption claims and to clearly identify premium features.
 
 3. Improved pairing and shared-content reliability for review testing:
    - fixed QR/invite linking and existing-couple repair behavior
    - fixed shared prompt consistency so both partners see the same daily prompt for the day
    - fixed prompt reflection saving from both the home prompt entry point and the full prompt screen
-   - fixed shared love note and calendar sync reliability for paired users
+   - fixed calendar and shared-content reliability for paired users
 
 4. Notification behavior remains user-initiated only:
    push permission is requested only after explicit in-app action.
@@ -246,7 +243,7 @@ If needed for review, the core test flow is: create two accounts, link them as p
 3. Real-device smoke tests pass
 4. Production Supabase environment is verified
 5. App Store description includes Terms of Use (EULA) link
-6. App Store description clearly marks cloud sync as a premium feature
+6. App Store description avoids unsupported cloud-sync and end-to-end-encryption claims
 7. Privacy Policy URL is set in App Store Connect
 
 ## Residual Risk

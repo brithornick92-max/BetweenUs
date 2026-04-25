@@ -16,28 +16,25 @@ Browse date ideas filtered by mood, budget, and style. Find something spontaneou
 Write journal entries. Save inside jokes. Turn a great date into a memory you can revisit. Your shared timeline grows with you.
 
 **FEEL CONNECTED, EVEN APART**
-Send encrypted love notes your partner discovers on their own time. Share how you're feeling with a gentle vibe signal — no pressure, no performance.
+Share how you're feeling with a gentle vibe signal or save a moment for later — no pressure, no performance.
 
 **PRIVATE BY DESIGN**
-Journal entries, prompt responses, and love notes are encrypted end-to-end. Face ID and Touch ID protect your most personal content. Your data is never sold. Shared content stays between you and your partner. Encrypted content isn't readable by us. Delete your account anytime.
+Your data is never sold, and Between Us does not use advertising networks or cross-app tracking. Synced relationship content is protected by account access controls, secure transport, and server-side policies; it is not currently end-to-end encrypted. Face ID, Touch ID, and PIN app lock help protect access on your device. Delete your account anytime.
 
 — 
 
 **FREE FEATURES**
 • Daily guided prompts (Heat Levels 1–3)
-• Browse date ideas & plan one date per week
+• Browse date ideas & plan two date flows per week
 • Partner linking with a private code
 
 **PREMIUM FEATURES (available via in-app subscription)**
 • Unlimited prompts with Heat Levels 4 & 5
 • Unlimited date night planning & Surprise Me generator
-• Love notes with encrypted delivery
 • Shared calendar for date nights & anniversaries
-• Nightly ritual mode with reminders
-• Cloud sync for linked couples
 • Vibe Signal — share your emotional state
 • Inside Jokes vault & Year in Review
-• Biometric-protected private vault
+• Optional app lock on supported devices
 • Ad-free experience
 • One subscription covers both partners
 

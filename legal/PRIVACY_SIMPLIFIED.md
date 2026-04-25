@@ -1,162 +1,115 @@
 # Privacy in Plain English
 
-**Your privacy matters. Here's what you need to know.**
+**Last Updated: April 24, 2026**
+
+Your privacy matters. This is the short version of how Between Us handles data. The full Privacy Policy controls if anything here conflicts with it.
 
 ---
 
-## 🔒 Your Data is Protected
+## How Your Data Is Protected
 
-### What We Encrypt (End-to-End)
-✅ Your journal entries
-✅ Your responses to prompts
-✅ Shared love notes and photo attachments
-✅ Shared memories and milestones
+### Core synced content
 
-### What We Encrypt (Device-Level)
-✅ Daily check-ins (mood, closeness, notes)
-✅ Local-only memories
-✅ Inside jokes and shared references
-✅ Relationship climate selections
+Journal entries, prompt answers, memories, check-ins, vibes, calendar events, date plans, and media attachments may sync through Supabase so the app can work across linked partners and devices.
 
-### What We Don't Encrypt (But Still Protect)
-⚠️ Metadata like timestamps, mood labels, and heat-level preferences  
-⚠️ Calendar events and date plans  
-⚠️ Nickname and tone settings  
+Core synced content is protected by:
 
-**Why:** Metadata isn’t encrypted so the app can filter, sort, and display your content. It’s still protected by access controls and standard server encryption — just not end-to-end.
+- Account login
+- Supabase row-level security
+- HTTPS/TLS in transit
+- Provider-side storage security
+- App and backend access controls
 
-**How E2EE works:** Your journal entries are encrypted on your device before upload. Only you and your partner can read them. Not even we can see them.
+Core synced content is **not currently end-to-end encrypted**.
 
----
+### Local protection
 
-## 🚫 What We Never Do
+Some data is stored locally for speed, offline use, settings, and app lock. PIN hashes, auth/session items, and certain cached values may use platform secure storage where available.
 
-❌ **Sell your data** - Never. Not to anyone.  
-❌ **Share with advertisers** - Your intimate moments aren't for sale.  
-❌ **Track you across apps** - We only care about Between Us.  
-❌ **Read your journal** - It's encrypted. We literally can't.  
-❌ **Ask about your orientation** - Love is love. That's all we need to know.
-❌ **Store your biometrics** - Face ID/Touch ID runs on your device's hardware only.
+Face ID and Touch ID are handled by your device. We do not collect biometric templates.
 
 ---
 
-## ✅ What We Do
+## What We Never Do
 
-### We Collect (Only What's Needed)
-- Your email (to log you in)
-- Partner names (what you call each other)
-- Relationship start date (optional, for better prompts)
-- Your responses and shared content (encrypted where supported)
-- Daily usage counts (for free-tier limits)
-- Limited analytics, crash, and performance data to improve reliability
-
-### We Use It To
-- Show you personalized prompts
-- Sync with your partner
-- Improve the app
-- Fix bugs
-- Send you notifications (if you want them)
-
-### What Never Leaves Your Device
-- Soft boundary settings (hidden categories, paused prompts)
-- Energy level and relationship climate choices
-- Inside jokes and shared references
-- Year reflection narratives
-- Content preference history
-- Biometric vault key
-
-### We Process On Your Device
-- Personalization and prompt selection happen on your phone
-- Energy matching and content recommendations run locally
-- Your preference data stays on your device
-- Privacy by design
+- Sell your data
+- Share relationship content with advertisers
+- Use ad networks
+- Track you across apps or websites for advertising
+- Collect biometric templates
+- Store your credit card number
 
 ---
 
-## 👥 Sharing With Your Partner
+## What We Collect
 
-### You Control Everything
-- Choose what to share
-- Keep entries private
-- Delete anytime
-- Unlink when needed
-
-### Your Partner Can See
-- Only what you choose to share
-- Your Vibe Signals and Moment Signals (when you send them)
-- Revealed prompt answers (only when both opt in)
-- Nothing private
-- No new shared activity after you unlink
-
-### Your Partner Cannot See
-- Your soft boundary settings
-- Your deleted content
-- Your account password
-- Your payment info
+- Email address and account identifiers
+- Partner names, display names, and optional relationship start date
+- Journals, prompt answers, memories, check-ins, vibes, calendar/date content, and media you choose to add
+- Preferences such as heat level, energy level, relationship climate, tone, and soft boundaries
+- Limited analytics, usage counts, crash reports, performance data, session replay samples, and support messages
+- Push tokens if you enable notifications
 
 ---
 
-## 🗑️ Deleting Your Data
+## What May Stay Local
 
-### You Can Delete
-- Individual entries (anytime)
-- Your entire account (permanent)
-- Shared content (removes for both)
-- Everything (no questions asked)
+Some data may stay local or cached on your device, including:
 
-### What Happens
-- Removed from active systems promptly
-- Backup copies may persist for a limited period before routine purge
-- Cannot be recovered after deletion finishes processing
-- Your partner's data stays separate
+- App-lock PIN hash and salt
+- Local cache and pending offline writes
+- Some inside-joke and preference history data
+- Device session data
+
+Some settings that feel local, like energy level, relationship climate, and soft boundaries, may also sync to your profile so they can be restored across devices.
 
 ---
 
-## 🛡️ Your Rights
+## Sharing With Your Partner
 
-### You Can
-✅ See all your data
-✅ Export your journal
-✅ Delete everything
-✅ Control notifications  
+When you link with a partner, content in your couple space may be available to that linked partner according to the feature flow.
 
-### We Must
-✅ Protect your data  
-✅ Respect your choices  
-✅ Be transparent  
-✅ Honor the rights described in our policies  
-✅ Respond to your requests  
+Your partner does not receive your password, payment information, or biometric data.
+
+Unlinking dissolves the shared couple connection and stops future shared syncing. It does not automatically delete your separate account.
 
 ---
 
-## 🌍 Privacy Laws
+## Deleting and Exporting
 
-We provide privacy-rights disclosures for:
-- **GDPR** (Europe)
-- **CCPA** (California)
-- Adult-only use (18+)
+You can:
+
+- Export supported data
+- Delete supported entries
+- Unlink from a partner
+- Delete your account
+- Turn notifications off
+
+Exports are plaintext JSON files prepared for the system share sheet. The app removes its temporary export file after the export flow completes, but copies you save or share are controlled by the destination you choose.
+
+Account deletion removes active account data according to the deletion flow and Privacy Policy. Backup copies may persist for a limited period before routine purge.
 
 ---
 
-## 📧 Questions?
+## Your Rights
 
-**Privacy concerns:** brittanyapps@outlook.com  
-**Data requests:** brittanyapps@outlook.com  
+Depending on where you live, you may have rights to access, correct, delete, export, restrict, object to, or receive a copy of personal data.
+
+We provide privacy-rights disclosures for GDPR/UK GDPR and California CCPA/CPRA. Contact us to exercise your rights.
+
+---
+
+## Questions?
+
+**Privacy and data requests:** brittanyapps@outlook.com
 **General support:** brittanyapps@outlook.com
 
-**We respond within 24-48 hours.**
+We aim to respond to data requests within 30 days. General support usually responds within 24-48 hours.
 
 ---
 
-## 🎯 Bottom Line
+## Bottom Line
 
-**Your intimate moments are yours.**
-
-We built Between Us with privacy at the core. Your journal entries are encrypted, your data isn't sold, and you're always in control.
-
-We make money from subscriptions, not from your data.
-
----
+We make money from subscriptions, not from selling your data. Between Us protects your content with authentication, access controls, transport security, and device-level controls, but core synced content is not currently end-to-end encrypted.
 
 **Read the full Privacy Policy:** See PRIVACY_POLICY.md
-**Last Updated:** April 6, 2026
