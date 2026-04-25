@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Platform,
   Animated,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -28,7 +29,13 @@ import IntimacyPositionCard from '../components/IntimacyPositionCard';
 import positionsData from '../content/intimacy-positions.json';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
-import { getIntimacyFavorites, toggleIntimacyFavorite } from '../utils/intimacyFavorites';
+import {
+  getIntimacyFavorites,
+  getIntimacyTried,
+  rateIntimacyTried,
+  toggleIntimacyFavorite,
+  toggleIntimacyTried,
+} from '../utils/intimacyFavorites';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -44,10 +51,14 @@ export default function IntimacyPositionsScreen() {
   const { isPremiumEffective, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 390;
   
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [favorites, setFavorites] = useState({});
+  const [triedPositions, setTriedPositions] = useState({});
   const [favoriteBusy, setFavoriteBusy] = useState(false);
+  const [triedBusy, setTriedBusy] = useState(false);
 
   // ─── THEME MAP ───
   const t = useMemo(() => ({
@@ -93,8 +104,11 @@ export default function IntimacyPositionsScreen() {
   useEffect(() => {
     let active = true;
 
-    getIntimacyFavorites().then((saved) => {
-      if (active) setFavorites(saved);
+    Promise.all([getIntimacyFavorites(), getIntimacyTried()]).then(([savedFavorites, savedTried]) => {
+      if (active) {
+        setFavorites(savedFavorites);
+        setTriedPositions(savedTried);
+      }
     });
 
     return () => {
@@ -134,6 +148,29 @@ export default function IntimacyPositionsScreen() {
     }
   }, [favoriteBusy, favorites, position]);
 
+  const handleToggleTried = useCallback(async () => {
+    if (!position || triedBusy) return;
+
+    setTriedBusy(true);
+    try {
+      impact(ImpactFeedbackStyle.Light);
+      const next = await toggleIntimacyTried(position, {
+        currentlyTried: !!triedPositions[position.id],
+      });
+      setTriedPositions(next.tried);
+    } finally {
+      setTriedBusy(false);
+    }
+  }, [position, triedBusy, triedPositions]);
+
+  const handleRateTried = useCallback(async (rating) => {
+    if (!position) return;
+
+    selection();
+    const next = await rateIntimacyTried(position, rating);
+    setTriedPositions(next.tried);
+  }, [position]);
+
   // ════════════════════════════════════
   //  LOCKED STATE RENDER
   // ════════════════════════════════════
@@ -144,6 +181,7 @@ export default function IntimacyPositionsScreen() {
         headerTitle=""
         scroll={false}
         onBack={handleBack}
+        bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge
       >
           <View style={styles.lockedWrap}>
             <Animated.View
@@ -198,6 +236,7 @@ export default function IntimacyPositionsScreen() {
       headerTitle=""
       scroll={false}
       onBack={handleBack}
+      bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge
     >
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -251,7 +290,7 @@ export default function IntimacyPositionsScreen() {
                           }}
                           style={[styles.favoritePill, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}
                         >
-                          <Icon name="heart" size={14} color={t.primary} />
+                          <Icon name="heart-outline" size={14} color={t.primary} />
                           <Text style={[styles.favoritePillText, { color: t.text }]}>{item.title}</Text>
                         </TouchableOpacity>
                       ))}
@@ -288,6 +327,7 @@ export default function IntimacyPositionsScreen() {
                             styles.pickerText,
                             { color: active ? '#FFFFFF' : t.text },
                           ]}
+                          numberOfLines={2}
                         >
                           {p.title}
                         </Text>
@@ -311,6 +351,12 @@ export default function IntimacyPositionsScreen() {
                       isFavorite={!!favorites[position.id]}
                       onToggleFavorite={handleToggleFavorite}
                       favoriteBusy={favoriteBusy}
+                      isTried={!!triedPositions[position.id]}
+                      onToggleTried={handleToggleTried}
+                      triedBusy={triedBusy}
+                      rating={triedPositions[position.id]?.rating || null}
+                      onRate={handleRateTried}
+                      compact={isCompact}
                     />
                   </Animated.View>
                 )}
@@ -325,9 +371,12 @@ export default function IntimacyPositionsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scrollContent: { paddingBottom: 160 },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 160,
+  },
   headerBlock: {
-    paddingHorizontal: SPACING.xl,
+    paddingHorizontal: SPACING.screen,
     paddingTop: SPACING.xl,
     paddingBottom: SPACING.md,
   },
@@ -335,27 +384,31 @@ const styles = StyleSheet.create({
     fontFamily: systemFont,
     fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
   headerTitle: {
     fontFamily: systemFont,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
+    fontSize: 34,
+    fontWeight: '800',
+    letterSpacing: -1.2,
+    lineHeight: 40,
   },
   cardContainer: {
-    paddingHorizontal: 0,
     marginVertical: SPACING.md,
+    marginHorizontal: -SPACING.screen, // Extend to screen edges
   },
   editorialCard: {
-    borderRadius: 28,
-    padding: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
+    borderRadius: 0, // Remove border radius for edge-to-edge
+    paddingHorizontal: SPACING.screen, // Add horizontal padding for content
+    paddingVertical: SPACING.lg, 
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    borderTopWidth: 3,
+    borderBottomWidth: 3,
+    borderLeftWidth: 3, // Double border on left
+    borderRightWidth: 3, // Double border on right
     position: 'relative',
     overflow: 'hidden',
   },
@@ -364,37 +417,44 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
   },
   positionCardShell: {
-    paddingBottom: SPACING.xl,
+    paddingBottom: SPACING.lg, 
   },
   lightShadow: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
     elevation: 4,
   },
   cardContent: {
     width: '100%',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.xl, // Expanded breathing room above the picker
   },
   cardTag: {
     fontFamily: systemFont,
     fontWeight: '800',
     fontSize: 11,
     letterSpacing: 1.5,
-    marginBottom: 6,
+    marginBottom: 8,
+    paddingLeft: SPACING.md, // Extra padding on left
+    paddingRight: SPACING.sm,
   },
   cardTitle: {
     fontFamily: systemFont,
     fontWeight: '800',
-    fontSize: 24,
-    letterSpacing: -0.3,
-    marginBottom: 4,
+    fontSize: 22, 
+    lineHeight: 28,
+    letterSpacing: -0.4,
+    marginBottom: 6,
+    paddingLeft: SPACING.md, // Extra padding on left
+    paddingRight: SPACING.sm,
   },
   cardEmail: {
     fontFamily: systemFont,
     fontWeight: '500',
-    fontSize: 14,
+    fontSize: 15,
+    paddingLeft: SPACING.md, // Extra padding on left
+    paddingRight: SPACING.sm,
   },
   favoritesBlock: {
     width: '100%',
@@ -411,15 +471,15 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   favoriteRow: {
-    gap: 8,
+    gap: 8, 
   },
   favoritePill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 14,
+    borderRadius: 100,
+    paddingHorizontal: 16,
     paddingVertical: 10,
   },
   favoritePillText: {
@@ -434,20 +494,24 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   pickerRow: {
-    paddingHorizontal: 0,
-    gap: 8,
+    gap: 10,
   },
   pickerPill: {
-    paddingHorizontal: 16,
+    minHeight: 54,
+    paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 20, 
+    borderRadius: 18,
     borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pickerText: {
     fontFamily: systemFont,
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.2,
+    lineHeight: 18,
+    textAlign: 'center',
   },
   // ── Hero Card (Locked State) ──
   lockedWrap: {
@@ -464,16 +528,16 @@ const styles = StyleSheet.create({
   answerText: {
     fontFamily: systemFont,
     fontSize: 17,
-    lineHeight: 24,
+    lineHeight: 24, 
     fontWeight: '400',
   },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 56, 
-    borderRadius: 28,
-    gap: 8,
+    height: 60, 
+    borderRadius: 100,
+    gap: 10,
   },
   ctaLabel: {
     fontFamily: systemFont,

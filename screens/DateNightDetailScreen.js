@@ -32,8 +32,13 @@ import * as PreferenceEngine from '../services/PreferenceEngine';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  getDateHistory,
+  rateDateHistoryEntry,
+  removeDateHistoryEntry,
+  saveDateHistoryEntry,
+} from '../utils/dateHistory';
 
-const DATE_HISTORY_KEY = '@betweenus:dateGoneOn';
 const AUTO_LOG_THRESHOLD_SECONDS = 300; // 5 minutes
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -71,6 +76,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const { loadUsageStatus } = useContent();
   const [date, setDate] = useState(routeDate || null);
   const [freeDateFlowRemaining, setFreeDateFlowRemaining] = useState(null);
+  const [dateHistoryEntry, setDateHistoryEntry] = useState(null);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -190,6 +196,31 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const timerRef = useRef(null);
   const autoLoggedRef = useRef(false);
 
+  const logDateComplete = React.useCallback(async () => {
+    if (!date?.id) return;
+    autoLoggedRef.current = true;
+    const result = await saveDateHistoryEntry(date, AsyncStorage);
+    setDateHistoryEntry(result.entry);
+  }, [date]);
+
+  const loadDateHistoryEntry = React.useCallback(async () => {
+    if (!date?.id) {
+      setDateHistoryEntry(null);
+      return;
+    }
+
+    const history = await getDateHistory(AsyncStorage);
+    setDateHistoryEntry(history.find((entry) => entry.id === date.id) || null);
+  }, [date?.id]);
+
+  useEffect(() => {
+    loadDateHistoryEntry().catch(() => {});
+  }, [loadDateHistoryEntry]);
+
+  useEffect(() => {
+    autoLoggedRef.current = false;
+  }, [date?.id]);
+
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
@@ -218,20 +249,36 @@ export default function DateNightDetailScreen({ route, navigation }) {
     if (autoLoggedRef.current) return;
     if (timeElapsed < AUTO_LOG_THRESHOLD_SECONDS) return;
     if (!date?.id) return;
-    autoLoggedRef.current = true;
-    AsyncStorage.getItem(DATE_HISTORY_KEY)
-      .then(raw => {
-        const prev = raw ? JSON.parse(raw) : [];
-        if (prev.find(d => d.id === date.id)) return;
-        const next = [{ id: date.id, title: date.title, heat: date.heat, addedAt: Date.now(), rating: null }, ...prev];
-        return AsyncStorage.setItem(DATE_HISTORY_KEY, JSON.stringify(next));
-      })
+    logDateComplete()
       .catch(() => {});
-  }, [timeElapsed, date]);
+  }, [timeElapsed, date?.id, logDateComplete]);
 
   const toggleTimer = () => {
     impact(ImpactFeedbackStyle.Medium);
     setTimerActive((prev) => !prev);
+  };
+
+  const handleToggleTried = async () => {
+    if (!date?.id) return;
+    selection();
+
+    if (dateHistoryEntry) {
+      await removeDateHistoryEntry(date.id, AsyncStorage);
+      setDateHistoryEntry(null);
+      autoLoggedRef.current = true;
+      return;
+    }
+
+    const result = await saveDateHistoryEntry(date, AsyncStorage);
+    setDateHistoryEntry(result.entry);
+  };
+
+  const handleRateDate = async (rating) => {
+    if (!date?.id) return;
+    selection();
+    const result = await rateDateHistoryEntry(date, rating, AsyncStorage);
+    setDateHistoryEntry(result.entry);
+    autoLoggedRef.current = true;
   };
 
   const formatTime = (seconds) => {
@@ -351,6 +398,53 @@ export default function DateNightDetailScreen({ route, navigation }) {
           </TouchableOpacity>
         </ReAnimated.View>
 
+        <View style={styles.triedPanelWrap}>
+          <BlurView intensity={isDark ? 20 : 35} tint={isDark ? "dark" : "light"} style={[styles.triedPanel, { borderColor: t.border }]}>
+            <TouchableOpacity
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: !!dateHistoryEntry }}
+              accessibilityLabel={dateHistoryEntry ? 'Date marked as tried' : 'Mark date as tried'}
+              activeOpacity={0.8}
+              onPress={handleToggleTried}
+              style={[
+                styles.triedToggle,
+                { backgroundColor: dateHistoryEntry ? t.primary : t.surfaceSecondary, borderColor: dateHistoryEntry ? t.primary : t.border },
+              ]}
+            >
+              <Icon name={dateHistoryEntry ? 'checkmark-circle' : 'checkmark-circle-outline'} size={18} color={dateHistoryEntry ? '#FFFFFF' : t.text} />
+              <Text style={[styles.triedToggleText, { color: dateHistoryEntry ? '#FFFFFF' : t.text }]}>
+                {dateHistoryEntry ? 'Tried' : 'Mark Tried'}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.dateRatingRow}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Thumbs up for this date"
+                activeOpacity={0.75}
+                onPress={() => handleRateDate('up')}
+                style={[
+                  styles.dateRatingButton,
+                  { borderColor: dateHistoryEntry?.rating === 'up' ? '#22C55E60' : t.border, backgroundColor: dateHistoryEntry?.rating === 'up' ? '#22C55E20' : t.surfaceSecondary },
+                ]}
+              >
+                <Text style={styles.dateRatingEmoji}>👍</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Thumbs down for this date"
+                activeOpacity={0.75}
+                onPress={() => handleRateDate('down')}
+                style={[
+                  styles.dateRatingButton,
+                  { borderColor: dateHistoryEntry?.rating === 'down' ? '#EF444460' : t.border, backgroundColor: dateHistoryEntry?.rating === 'down' ? '#EF444420' : t.surfaceSecondary },
+                ]}
+              >
+                <Text style={styles.dateRatingEmoji}>👎</Text>
+              </TouchableOpacity>
+            </View>
+          </BlurView>
+        </View>
+
         {/* Presence Module (Velvet Glass) */}
         <View style={styles.modulePadding}>
           <BlurView intensity={isDark ? 25 : 40} tint={isDark ? "dark" : "light"} style={[styles.timerModule, { borderColor: t.border }]}>
@@ -406,8 +500,12 @@ export default function DateNightDetailScreen({ route, navigation }) {
             onPress={() => {
               if (currentStep === steps.length - 1) {
                 impact(ImpactFeedbackStyle.Success);
-                Alert.alert("Date Complete!", "A new memory has been shared.");
-                navigation.goBack();
+                logDateComplete()
+                  .catch(() => {})
+                  .finally(() => {
+                    Alert.alert("Date Complete!", "A new memory has been shared.");
+                    navigation.goBack();
+                  });
               } else {
                 impact(ImpactFeedbackStyle.Light);
                 setCurrentStep((s) => s + 1);
@@ -503,7 +601,55 @@ const styles = StyleSheet.create({
   },
   scheduleBtnText: { color: '#FFF', fontWeight: '800', fontSize: 15, marginLeft: 10, textTransform: 'uppercase' },
 
-  modulePadding: { paddingHorizontal: 24, marginTop: 40 },
+  triedPanelWrap: {
+    paddingHorizontal: 24,
+    marginTop: 24,
+  },
+  triedPanel: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 12,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  triedToggle: {
+    height: 44,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  triedToggleText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  dateRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dateRatingButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateRatingEmoji: {
+    fontSize: 18,
+  },
+
+  modulePadding: { paddingHorizontal: 24, marginTop: 24 },
   timerModule: {
     padding: 32,
     borderRadius: 32,

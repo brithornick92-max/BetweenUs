@@ -37,8 +37,7 @@ import DateCardBack from '../components/DateCardBack';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import { SoftBoundaries } from '../services/PolishEngine';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const DATE_HISTORY_KEY = '@betweenus:dateGoneOn';
+import { DATE_HISTORY_KEY } from '../utils/dateHistory';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;

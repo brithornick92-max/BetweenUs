@@ -35,6 +35,9 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { storage } from '../utils/storage';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDateHistory } from '../utils/dateHistory';
+import { getIntimacyTried } from '../utils/intimacyFavorites';
 
 const HEARTS_KEY = '@betweenus:moment_hearts';
 
@@ -47,6 +50,8 @@ const MEMORY_TYPE_META = {
   anniversary: { label: 'Anniversary', icon: 'heart-outline' },
   milestone: { label: 'Milestone', icon: 'ribbon-outline' },
   intimacy_favorite: { label: 'Intimacy Favorite', icon: 'heart-outline' },
+  intimacy_tried: { label: 'Position Tried', icon: 'checkmark-circle-outline' },
+  date_tried: { label: 'Date Tried', icon: 'calendar-outline' },
   memory: { label: 'Memory', icon: 'time-outline' },
   first: { label: 'A First', icon: 'star-outline' },
   inside_joke: { label: 'Inside Joke', icon: 'happy-outline' },
@@ -190,6 +195,46 @@ function buildJournalItem(row, media = null) {
   };
 }
 
+function buildDateItem(row) {
+  const parts = [];
+  if (row.minutes) parts.push(`${row.minutes} min`);
+  if (row.location) parts.push(row.location === 'home' ? 'At home' : 'Out');
+  const meta = parts.length ? parts.join(' • ') : 'Date night';
+
+  return {
+    id: `date:${row.id}`,
+    kind: 'date',
+    sourceId: row.id,
+    title: row.title || 'Date tried',
+    body: 'A date you tried together.',
+    eyebrow: 'Date tried',
+    icon: 'calendar-outline',
+    accent: '#D2121A',
+    meta,
+    dateLabel: formatDateLabel(row.addedAt),
+    sortAt: row.addedAt,
+    memoryId: row.memoryId || null,
+  };
+}
+
+function buildPositionTriedItem(row) {
+  const label = row.commonName ? `${row.commonName}: ${row.title}` : row.title;
+  return {
+    id: `position-tried:${row.positionId}`,
+    kind: 'position_tried',
+    sourceId: row.positionId,
+    title: label || 'Position tried',
+    body: 'An intimacy position you tried together.',
+    eyebrow: 'Position tried',
+    icon: 'checkmark-circle-outline',
+    accent: '#7E4FA3',
+    meta: row.mood ? String(row.mood).toUpperCase() : 'Intimacy',
+    dateLabel: formatDateLabel(row.triedAt),
+    sortAt: row.triedAt,
+    memoryId: row.memoryId || null,
+  };
+}
+
 export default function SavedMomentsScreen() {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
@@ -226,6 +271,8 @@ export default function SavedMomentsScreen() {
         personalMemories,
         sharedJournals,
         personalJournals,
+        dateHistory,
+        triedPositionHistory,
       ] = await Promise.all([
         safeLoad(() => DataLayer.getSharedPromptAnswers({ limit: 200 })),
         safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
@@ -233,6 +280,8 @@ export default function SavedMomentsScreen() {
         safeLoad(() => DataLayer.getMemories({ limit: 200 })),
         safeLoad(() => DataLayer.getJournalEntries({ limit: 200, visibility: 'shared' })),
         safeLoad(() => DataLayer.getJournalEntries({ limit: 200 })),
+        safeLoad(() => getDateHistory(AsyncStorage)),
+        safeLoad(() => getIntimacyTried()),
       ]);
 
       const promptItems = dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
@@ -245,11 +294,21 @@ export default function SavedMomentsScreen() {
         dedupeRows([...(sharedJournals || []), ...(personalJournals || [])])
           .map(async (row) => buildJournalItem(row, await resolveRowMedia(row)))
       );
+      const memoryIds = new Set(memoryItems.map((item) => item.sourceId).filter(Boolean));
+      const dateItems = (dateHistory || [])
+        .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
+        .map((row) => buildDateItem(row));
+      const triedPositionItems = Object.values(triedPositionHistory || {})
+        .filter((row) => row?.positionId)
+        .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
+        .map((row) => buildPositionTriedItem(row));
 
       const merged = [
         ...promptItems,
         ...memoryItems,
         ...journalItems,
+        ...dateItems,
+        ...triedPositionItems,
       ].sort((a, b) => getSortTime(b) - getSortTime(a));
 
       setEntries(merged);

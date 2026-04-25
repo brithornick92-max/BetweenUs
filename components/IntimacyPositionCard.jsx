@@ -1,6 +1,6 @@
 /**
- * IntimacyPositionCard — Apple Editorial Format
- * Crisp solid widgets, heavy native typography, high contrast.
+ * IntimacyPositionCard — Premium Velvet Glass Format
+ * Sleek segmented controls, grouped actions, balanced typography.
  */
 
 import React, { useState } from 'react';
@@ -58,6 +58,12 @@ export default function IntimacyPositionCard({
   isFavorite = false,
   onToggleFavorite,
   favoriteBusy = false,
+  isTried = false,
+  onToggleTried,
+  triedBusy = false,
+  rating = null,
+  onRate,
+  compact = false,
 }) {
   const [activeBodyType, setActiveBodyType] = useState(defaultBodyType);
 
@@ -68,43 +74,106 @@ export default function IntimacyPositionCard({
   const comfortBody = activeBodyType === 'support' ? (position.comfort || POSITION_SUPPORT_TIPS[position.id] || null) : null;
 
   const shadowStyle = Platform.select({
-    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
-    android: { elevation: 6 },
+    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.2 : 0.04, shadowRadius: 16 },
+    android: { elevation: 2 },
   });
 
   return (
-    <View style={[styles.heroCardWrap, { backgroundColor: t.surface, borderColor: t.border, ...shadowStyle }]}>
-      
+    <View style={[
+      styles.heroCardWrap,
+      compact && styles.heroCardWrapCompact,
+      { backgroundColor: t.surface, borderColor: t.border, ...shadowStyle },
+    ]}>
+
       {/* ── Eyebrow & Title ── */}
       <View style={styles.headerRow}>
         <View style={styles.eyebrowRow}>
           <Icon name="star-outline" size={14} color={t.primary} />
-          <Text style={[styles.eyebrow, { color: t.primary }]}>{position.commonName || "INTIMACY"}</Text>
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel={isFavorite ? 'Remove intimacy favorite' : 'Save intimacy favorite'}
-          activeOpacity={0.8}
-          disabled={favoriteBusy || !onToggleFavorite}
-          onPress={onToggleFavorite}
-          style={[
-            styles.favoriteButton,
-            {
-              backgroundColor: isFavorite ? t.primary : t.surfaceSecondary,
-              borderColor: isFavorite ? t.primary : t.border,
-            },
-          ]}
-        >
-          <Icon name={isFavorite ? 'heart' : 'heart-outline'} size={14} color={isFavorite ? '#FFFFFF' : t.text} />
-          <Text style={[styles.favoriteLabel, { color: isFavorite ? '#FFFFFF' : t.text }]}>
-            {isFavorite ? 'Saved' : 'Save'}
+          <Text style={[styles.eyebrow, { color: t.primary }]} numberOfLines={1}>
+            {position.commonName || "INTIMACY"}
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
-      <Text style={[styles.promptText, { color: t.text }]}>{position.title}</Text>
+      <Text style={[styles.promptText, compact && styles.promptTextCompact, { color: t.text }]}>
+        {position.title}
+      </Text>
 
-      {/* ── Body Type Selector ── */}
-      <View style={styles.bodyTypeRow}>
+      {/* ── Grouped Control Panel: Actions & Ratings ── */}
+      <View style={styles.controlPanel}>
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? 'Remove intimacy favorite' : 'Save intimacy favorite'}
+            activeOpacity={0.8}
+            disabled={favoriteBusy || !onToggleFavorite}
+            onPress={onToggleFavorite}
+            style={[
+              styles.actionButton,
+              {
+                backgroundColor: isFavorite ? t.primary : t.surfaceSecondary,
+                borderColor: isFavorite ? t.primary : t.border,
+              },
+            ]}
+          >
+            <Icon name="heart-outline" size={16} color={isFavorite ? t.background : t.text} />
+            <Text style={[styles.actionLabel, { color: isFavorite ? t.background : t.text }]}>
+              {isFavorite ? 'Saved' : 'Save'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={isTried ? 'Remove tried position' : 'Mark position as tried'}
+            activeOpacity={0.8}
+            disabled={triedBusy || !onToggleTried}
+            onPress={onToggleTried}
+            style={[
+              styles.actionButton,
+              {
+                backgroundColor: isTried ? t.text : t.surfaceSecondary,
+                borderColor: isTried ? t.text : t.border,
+              },
+            ]}
+          >
+            <Icon name="checkmark-circle-outline" size={16} color={isTried ? t.background : t.text} />
+            <Text style={[styles.actionLabel, { color: isTried ? t.background : t.text }]}>
+              {isTried ? 'Tried' : 'Tried'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.ratingRow}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Thumbs up for this position"
+            activeOpacity={0.75}
+            disabled={!onRate}
+            onPress={() => onRate?.('up')}
+            style={[
+              styles.ratingButton,
+              { borderColor: rating === 'up' ? '#22C55E60' : t.border, backgroundColor: rating === 'up' ? '#22C55E20' : t.surfaceSecondary },
+            ]}
+          >
+            <Icon name="thumbs-up-outline" size={18} color={rating === 'up' ? '#22C55E' : t.text} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Thumbs down for this position"
+            activeOpacity={0.75}
+            disabled={!onRate}
+            onPress={() => onRate?.('down')}
+            style={[
+              styles.ratingButton,
+              { borderColor: rating === 'down' ? '#EF444460' : t.border, backgroundColor: rating === 'down' ? '#EF444420' : t.surfaceSecondary },
+            ]}
+          >
+            <Icon name="thumbs-down-outline" size={18} color={rating === 'down' ? '#EF4444' : t.text} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* ── Sleek Segmented Control for Body Type ── */}
+      <View style={[styles.segmentedControl, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
         {BODY_TYPE_OPTIONS.map(bt => {
           const isActive = activeBodyType === bt.key;
           return (
@@ -113,14 +182,18 @@ export default function IntimacyPositionCard({
               onPress={() => setActiveBodyType(bt.key)}
               activeOpacity={0.7}
               style={[
-                styles.bodyTypePill,
-                {
-                  backgroundColor: isActive ? t.text : t.surfaceSecondary,
-                  borderColor: isActive ? t.text : t.border,
-                },
+                styles.segmentButton,
+                isActive && { backgroundColor: t.text, ...shadowStyle }, // Added subtle shadow to the active thumb
               ]}
             >
-              <Text style={[styles.bodyTypeText, { color: isActive ? t.background : t.subtext }]}>
+              <Text
+                style={[
+                  styles.segmentText,
+                  compact && styles.segmentTextCompact,
+                  { color: isActive ? t.background : t.subtext },
+                ]}
+                numberOfLines={1}
+              >
                 {bt.label}
               </Text>
             </TouchableOpacity>
@@ -128,23 +201,9 @@ export default function IntimacyPositionCard({
         })}
       </View>
 
-      {/* ── Tags ── */}
+      {/* ── Refined Tags Row ── */}
       <View style={styles.tagRow}>
-        <View style={[styles.tag, { backgroundColor: isDark ? '#3A1015' : '#FCE8EA', borderColor: t.primary }]}>
-          <Icon name={heatIcon} size={14} color={t.primary} />
-          <Text style={[styles.tagText, { color: t.primary }]}>{heatLabel}</Text>
-        </View>
-        <View style={[styles.tag, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
-          <Text style={[styles.tagText, { color: t.subtext }]}>{position.duration}</Text>
-        </View>
-        {position.mood && (
-          <View style={[styles.tag, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
-            <Icon name={moodIcon} size={14} color={t.subtext} />
-            <Text style={[styles.tagText, { color: t.subtext }]}>
-              {position.mood.charAt(0).toUpperCase() + position.mood.slice(1)}
-            </Text>
-          </View>
-        )}
+        {/* Tags removed per user request - Heated, min, intimate pills no longer shown */}
       </View>
 
       {/* ── Support Tip ── */}
@@ -188,8 +247,6 @@ export default function IntimacyPositionCard({
         </>
       )}
 
-
-
       {/* ── Accessibility ── */}
       {position.accessibility && (
         <View style={styles.statusRow}>
@@ -205,132 +262,171 @@ export default function IntimacyPositionCard({
 }
 
 const styles = StyleSheet.create({
-  heroCardWrap: { 
-    borderRadius: 24, 
-    borderWidth: 1,
-    padding: SPACING.xl,
-    marginBottom: SPACING.xl,
+  heroCardWrap: {
+    borderRadius: 0, // Remove border radius for edge-to-edge
+    borderTopWidth: 3,
+    borderBottomWidth: 3,
+    borderLeftWidth: 3, // Double border on left
+    borderRightWidth: 3, // Double border on right
+    paddingHorizontal: SPACING.screen, // Add horizontal padding for text content
+    paddingVertical: 18,
+    marginBottom: 0,
+  },
+  heroCardWrapCompact: {
+    padding: 14,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: SPACING.sm,
+    marginBottom: 8, // Tighter to title
   },
   eyebrowRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-  },
-  favoriteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  favoriteLabel: {
-    fontFamily: systemFont,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: -0.2,
+    flex: 1,
+    minWidth: 0,
   },
   eyebrow: {
     fontFamily: systemFont,
     fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 1.5,
+    letterSpacing: 2, // Pushed tracking for premium feel
     textTransform: 'uppercase',
   },
   promptText: {
     fontFamily: systemFont,
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '800',
-    lineHeight: 32,
-    letterSpacing: -0.5,
-    marginBottom: SPACING.lg,
+    lineHeight: 28,
+    letterSpacing: -0.3,
+    marginBottom: 20,
   },
-  illustrationWrap: {
-    width: '100%',
-    height: 200,
-    borderRadius: 16,
-    borderWidth: 1,
+  promptTextCompact: {
+    fontSize: 20,
+    lineHeight: 26,
+  },
+  controlPanel: {
+    marginBottom: 22,
+    gap: 14,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SPACING.lg,
-    overflow: 'hidden',
-  },
-  illustrationImage: {
-    width: '100%',
-    height: 200,
-  },
-  bodyTypeRow: {
-    flexDirection: 'row',
     gap: 8,
-    marginBottom: SPACING.lg,
-  },
-  bodyTypePill: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
     borderWidth: 1,
+    borderRadius: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    minHeight: 46,
   },
-  bodyTypeText: {
+  actionLabel: {
     fontFamily: systemFont,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
-  tagRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: SPACING.xl,
-  },
-  tag: {
+  ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    alignSelf: 'center',
+  },
+  ratingButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 100,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentedControl: {
+    flexDirection: 'row',
+    borderRadius: 100,
+    borderWidth: 1,
+    padding: 3,
+    marginBottom: 20,
+  },
+  segmentButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 8,
+    borderRadius: 100,
+  },
+  segmentText: {
+    fontFamily: systemFont,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  segmentTextCompact: {
+    fontSize: 11,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 24,
+  },
+  tag: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    minWidth: 0,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 100,
     borderWidth: 1,
   },
   tagText: {
     fontFamily: systemFont,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
+  tagTextCompact: {
+    fontSize: 11,
+  },
   section: {
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   sectionLabel: {
     fontFamily: systemFont,
     fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 1.5,
+    letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: SPACING.sm,
+    marginBottom: 10,
   },
   answerText: {
     fontFamily: systemFont,
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 26,
     fontWeight: '400',
+    letterSpacing: 0.15,
   },
   divider: {
-    height: 1,
-    marginVertical: SPACING.lg,
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 24,
   },
   answerBubble: {
     borderRadius: 20,
     borderWidth: 1,
-    padding: SPACING.lg,
-    marginBottom: SPACING.xl,
+    padding: 16,
+    marginBottom: 24,
   },
   partnerVisibilityRow: {
     flexDirection: 'row',
@@ -340,7 +436,7 @@ const styles = StyleSheet.create({
   },
   partnerVisibilityText: {
     fontFamily: systemFont,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
