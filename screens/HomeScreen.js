@@ -14,7 +14,8 @@ import {
   Alert,
   StatusBar,
   Dimensions,
- Share } from 'react-native';
+  Share,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
@@ -86,7 +87,13 @@ function normalizePrompt(p) {
   const id = p.id ? String(p.id) : FALLBACK_PROMPT.id;
   const raw = typeof p.text === 'string' ? p.text : '';
   const text = raw.trim() ? raw : FALLBACK_PROMPT.text;
-  return { ...p, id, text, heat: typeof p.heat === 'number' ? p.heat : 1, category: typeof p.category === 'string' ? p.category : 'romance' };
+  return {
+    ...p,
+    id,
+    text,
+    heat: typeof p.heat === 'number' ? p.heat : 1,
+    category: typeof p.category === 'string' ? p.category : 'romance',
+  };
 }
 
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
@@ -174,6 +181,7 @@ export default function HomeScreen({ navigation }) {
       try {
         const avgSession = await ConnectionMemory.getAverageSessionLength();
         const isCompact = avgSession != null && avgSession < 120;
+
         if (active) {
           setHomeLayout({
             type: isCompact ? 'compact' : 'comfortable',
@@ -196,6 +204,7 @@ export default function HomeScreen({ navigation }) {
           rest: 'Take it slow',
         };
         const seasonId = profile?.season?.id || 'cozy';
+
         if (active) {
           setSmartGreeting(seasonGreetings[seasonId] || 'Welcome Back');
           setSmartSubGreeting(greeting || 'A private room for small moments together.');
@@ -217,9 +226,11 @@ export default function HomeScreen({ navigation }) {
 
     const checkForNewAchievements = async () => {
       if (!user?.uid) return;
+
       try {
         const milestoneData = await checkAchievements(user.uid, dataLayer);
         const newMilestone = milestoneData?.newlyUnlocked?.[0];
+
         if (active && newMilestone) {
           setRewardData({
             type: 'milestone',
@@ -249,11 +260,14 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     let active = true;
+
     (async () => {
       if (!promptReady) return;
+
       try {
         const row = await DataLayer.getPromptAnswerForToday(prompt.id);
         if (!active) return;
+
         if (row?.answer) {
           setMyAnswer(row.answer);
           setPartnerAnswer(row?.partnerAnswer || '');
@@ -263,32 +277,44 @@ export default function HomeScreen({ navigation }) {
 
         const saved = await promptStorage.getAnswer(todayKey, prompt.id);
         if (!active) return;
+
         setMyAnswer(saved?.content || saved?.answer || '');
         setPartnerAnswer(row?.partnerAnswer || '');
         setIsRevealed(!!saved?.isRevealed);
-      } catch (e) { if (__DEV__) console.warn('[Home] prompt answer fetch:', e?.message); }
+      } catch (e) {
+        if (__DEV__) console.warn('[Home] prompt answer fetch:', e?.message);
+      }
     })();
-    return () => { active = false; };
+
+    return () => {
+      active = false;
+    };
   }, [prompt.id, promptReady, todayKey]);
 
   useEffect(() => {
     let active = true;
+
     (async () => {
       try {
         const past = await DataLayer.getPromptAnswers({ limit: 50 });
         if (!active) return;
-        const answered = (past || []).filter(r => r.answer && r.date_key !== dateKey());
+
+        const answered = (past || []).filter((r) => r.answer && r.date_key !== dateKey());
         setAnsweredCount(answered.length);
+
         if (answered.length > 0) {
           const pick = answered[Math.floor(Math.random() * answered.length)];
           setThrowback(pick);
         }
-      } catch (e) { if (__DEV__) console.warn('[Home] throwback fetch:', e?.message); }
+      } catch (e) {
+        if (__DEV__) console.warn('[Home] throwback fetch:', e?.message);
+      }
     })();
-    return () => { active = false; };
+
+    return () => {
+      active = false;
+    };
   }, [answeredCount]);
-
-
 
   useFocusEffect(
     useCallback(() => {
@@ -305,36 +331,49 @@ export default function HomeScreen({ navigation }) {
       // Schedule soft return invitations and the weekly recap.
       import('../services/WinBackNudges').then(({ default: WinBackNudges }) => {
         if (!active) return;
+
         import('../services/localfirst').then(({ DataLayer: DL }) => {
           Promise.all([
             DL.getCheckIns?.({ limit: 90 }).catch(() => []),
             DL.getPromptAnswers?.({ limit: 90 }).catch(() => []),
           ]).then(([checkIns, answers]) => {
             if (!active) return;
+
             const daySet = new Set();
+
             for (const ci of (checkIns || [])) {
               const d = new Date(ci.created_at || ci.date_key);
-              daySet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+              daySet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
             }
-            for (const a of (answers || [])) { if (a.date_key) daySet.add(a.date_key); }
+
+            for (const a of (answers || [])) {
+              if (a.date_key) daySet.add(a.date_key);
+            }
+
             const sorted = [...daySet].sort().reverse();
             let streak = 0;
             const today = new Date();
-            for (let i = 0; i < sorted.length; i++) {
-              const exp = new Date(today); exp.setDate(exp.getDate() - i);
-              const k = `${exp.getFullYear()}-${String(exp.getMonth()+1).padStart(2,'0')}-${String(exp.getDate()).padStart(2,'0')}`;
-              if (daySet.has(k)) streak++; else break;
+
+            for (let i = 0; i < sorted.length; i += 1) {
+              const exp = new Date(today);
+              exp.setDate(exp.getDate() - i);
+              const k = `${exp.getFullYear()}-${String(exp.getMonth() + 1).padStart(2, '0')}-${String(exp.getDate()).padStart(2, '0')}`;
+
+              if (daySet.has(k)) streak += 1;
+              else break;
             }
+
             if (streak >= 3) {
               WinBackNudges.scheduleStreakBreakAlert(streak, partnerLabel, isPremium).catch(() => {});
             }
-            // Weekly recap
-            const weekAnswers = (answers || []).filter(a => {
+
+            const weekAnswers = (answers || []).filter((a) => {
               if (!a.date_key) return false;
-              const d = new Date(a.date_key + 'T00:00:00');
+              const d = new Date(`${a.date_key}T00:00:00`);
               const diff = (today - d) / (1000 * 60 * 60 * 24);
               return diff <= 7;
             });
+
             WinBackNudges.scheduleWeeklyRecap({
               prompts: weekAnswers.length,
               streak,
@@ -353,7 +392,7 @@ export default function HomeScreen({ navigation }) {
   // ── Real-time: refresh partnerAnswer when partner submits a prompt answer ──
   useFocusEffect(
     useCallback(() => {
-      if (!promptReady || !state?.coupleId) return;
+      if (!promptReady || !state?.coupleId) return undefined;
 
       let channelRef = null;
       let cancelled = false;
@@ -377,8 +416,8 @@ export default function HomeScreen({ navigation }) {
               (payload) => {
                 const row = payload.new;
                 if (row?.data_type !== 'prompt_answer') return;
-                if (row?.created_by === user?.uid) return; // skip own saves
-                // Refresh partner answer from DataLayer
+                if (row?.created_by === user?.uid) return;
+
                 DataLayer.getPromptAnswerForToday(prompt.id)
                   .then((row) => {
                     if (cancelled || !row) return;
@@ -390,20 +429,28 @@ export default function HomeScreen({ navigation }) {
             )
             .subscribe();
 
-          if (cancelled) { sb.removeChannel(channel); return; }
+          if (cancelled) {
+            sb.removeChannel(channel);
+            return;
+          }
+
           channelRef = channel;
-        } catch { /* non-critical */ }
+        } catch {
+          // non-critical
+        }
       };
 
       setup();
 
       return () => {
         cancelled = true;
+
         if (channelRef) {
           try {
             const mod = require('../config/supabase');
             mod.supabase?.removeChannel(channelRef);
           } catch {}
+
           channelRef = null;
         }
       };
@@ -412,12 +459,14 @@ export default function HomeScreen({ navigation }) {
 
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
   const toneCopy = TONE_HOME_COPY[selectedTone] || TONE_HOME_COPY.warm;
+
   const ritualState = useMemo(() => deriveRitualState({
     isLinked,
     myAnswer: myAnswer.trim(),
     partnerAnswer: partnerAnswer.trim(),
     isRevealed,
   }), [isLinked, myAnswer, partnerAnswer, isRevealed]);
+
   const ritualCopy = useMemo(() => ({
     solo_unanswered: {
       eyebrow: 'TODAY BETWEEN US',
@@ -459,10 +508,13 @@ export default function HomeScreen({ navigation }) {
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
     if (!finalText || !prompt?.id || !user?.uid || isSavingInline) return;
+
     setIsSavingInline(true);
+
     try {
       if (!isPremium && !myAnswer) {
         const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, prompt.heat || 1, isPremium);
+
         if (!accessCheck.canAccess) {
           showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
           return;
@@ -476,8 +528,13 @@ export default function HomeScreen({ navigation }) {
       });
 
       let savedOffline = false;
+
       try {
-        await DataLayer.savePromptAnswer({ promptId: prompt.id, answer: finalText, heatLevel: prompt.heat || 1 });
+        await DataLayer.savePromptAnswer({
+          promptId: prompt.id,
+          answer: finalText,
+          heatLevel: prompt.heat || 1,
+        });
       } catch (dataLayerError) {
         savedOffline = true;
         if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);
@@ -487,6 +544,7 @@ export default function HomeScreen({ navigation }) {
         await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt.heat || 1);
         await loadUsageStatus?.();
       }
+
       notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
       setIsRevealed(false);
@@ -496,19 +554,20 @@ export default function HomeScreen({ navigation }) {
         Alert.alert('Saved locally', "Your answer will sync with your partner when you're back online.");
       }
 
-      // Notify partner that we answered the prompt
       import('../services/PartnerNotifications').then(({ default: PN }) =>
         PN.promptAnswered(getMyDisplayName(userProfile, state?.userProfile, null))
       ).catch(() => {});
 
-      // Viral loop: prompt free users to invite partner after first answer
       if (!isPremium) {
         const hasPromptedShare = await storage.get(PROMPTED_PARTNER_SHARE_KEY, false);
         const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
+
         if (!hasPromptedShare && !coupleId) {
           await storage.set(PROMPTED_PARTNER_SHARE_KEY, true);
+
           setTimeout(() => {
             if (!mountedRef.current) return;
+
             Alert.alert(
               'Share with your partner?',
               'Invite them into your private space so you can answer and reveal together.',
@@ -532,19 +591,38 @@ export default function HomeScreen({ navigation }) {
     } finally {
       setIsSavingInline(false);
     }
-  }, [inlineText, prompt, user, isPremium, myAnswer, showPaywall, loadUsageStatus, isSavingInline, state?.userProfile, userProfile, todayKey]);
+  }, [
+    inlineText,
+    prompt,
+    user,
+    isPremium,
+    myAnswer,
+    showPaywall,
+    loadUsageStatus,
+    isSavingInline,
+    state?.userProfile,
+    userProfile,
+    todayKey,
+  ]);
 
   const handlePrimaryCTA = useCallback(async () => {
     impact(ImpactFeedbackStyle.Medium);
-    if (!promptReady) { navigation.navigate('HeatLevel'); return; }
+
+    if (!promptReady) {
+      navigation.navigate('HeatLevel');
+      return;
+    }
+
     if (ritualState === 'answered_waiting') {
       try {
         const { default: PN } = await import('../services/PartnerNotifications');
         await PN.promptAnswered(preferredName, prompt.id);
         notification(NotificationFeedbackType.Success);
       } catch {}
+
       return;
     }
+
     if (ritualState === 'revealed') {
       navigation.navigate('AddMemory', {
         source: 'prompt_reveal',
@@ -554,17 +632,30 @@ export default function HomeScreen({ navigation }) {
       });
       return;
     }
-    if (!myAnswer && inlineText.trim()) { await handleInlineSave(); return; }
+
+    if (!myAnswer && inlineText.trim()) {
+      await handleInlineSave();
+      return;
+    }
+
     if (!myAnswer && !isPremium && remainingFreePrompts <= 0) {
       showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
       return;
     }
+
     if (!myAnswer) {
       navigation.navigate('PromptAnswer', {
-        prompt: { id: prompt.id, text: prompt.text, dateKey: todayKey, heat: prompt.heat, category: prompt.category },
+        prompt: {
+          id: prompt.id,
+          text: prompt.text,
+          dateKey: todayKey,
+          heat: prompt.heat,
+          category: prompt.category,
+        },
       });
       return;
     }
+
     navigation.navigate('Reveal', {
       prompt: { id: prompt.id, text: prompt.text, dateKey: todayKey },
       userAnswer: { answer: myAnswer, isRevealed },
@@ -591,9 +682,11 @@ export default function HomeScreen({ navigation }) {
 
   const primaryCTALabel = useMemo(() => {
     if (!promptReady) return 'Customize Content';
+
     if ((ritualState === 'solo_unanswered' || ritualState === 'linked_unanswered') && inlineText.trim()) {
       return isSavingInline ? 'Saving...' : 'Save my answer';
     }
+
     return ritualCopy?.primaryLabel || "Answer today's question";
   }, [promptReady, ritualCopy, ritualState, inlineText, isSavingInline]);
 
@@ -612,7 +705,13 @@ export default function HomeScreen({ navigation }) {
 
     if (ritualState === 'answered_waiting') {
       navigation.navigate('PromptAnswer', {
-        prompt: { id: prompt.id, text: prompt.text, dateKey: todayKey, heat: prompt.heat, category: prompt.category },
+        prompt: {
+          id: prompt.id,
+          text: prompt.text,
+          dateKey: todayKey,
+          heat: prompt.heat,
+          category: prompt.category,
+        },
       });
       return;
     }
@@ -627,6 +726,7 @@ export default function HomeScreen({ navigation }) {
 
   const handleAction = useCallback(async (key) => {
     impact(ImpactFeedbackStyle.Light);
+
     if (key === 'journal') {
       navigation.navigate('JournalHome', { initialFilter: 'shared' });
     } else if (key === 'quiz') {
@@ -640,18 +740,22 @@ export default function HomeScreen({ navigation }) {
           `Premium opens sensual prompts, illustrated intimacy ideas, and date-night moments for the two of you.`,
           [
             { text: 'Not Now', style: 'cancel' },
-            { text: 'Discover Premium', onPress: () => showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5) },
+            {
+              text: 'Discover Premium',
+              onPress: () => showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5),
+            },
           ]
         );
         return;
       }
+
       navigation.navigate('IntimacyPositions');
     }
   }, [isPremium, showPaywall, navigation, partnerLabel]);
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
 
       {/* Deep velvet background gradient */}
       <LinearGradient
@@ -669,7 +773,6 @@ export default function HomeScreen({ navigation }) {
       <FilmGrain />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-
         {/* ── Header ── */}
         <Animated.View
           style={[styles.header, {
@@ -680,10 +783,17 @@ export default function HomeScreen({ navigation }) {
           <Text style={[styles.headerGreetingSub, { color: t.primary }]}>
             {smartGreeting}
           </Text>
+
           <View style={styles.headerRow}>
-            <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{preferredName || 'You'}</Text>
+            <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
+              {preferredName || 'You'}
+            </Text>
+
             <TouchableOpacity
-              onPress={() => { selection(); navigation.navigate('VibeSignal'); }}
+              onPress={() => {
+                selection();
+                navigation.navigate('VibeSignal');
+              }}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
@@ -693,13 +803,19 @@ export default function HomeScreen({ navigation }) {
               <Icon name="heart-outline" size={30} color={t.primary} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.headerToneLine}>{smartSubGreeting || toneCopy.subheadline(partnerLabel)}</Text>
+
+          <Text style={styles.headerToneLine}>
+            {smartSubGreeting || toneCopy.subheadline(partnerLabel)}
+          </Text>
         </Animated.View>
 
         <OfflineIndicator />
 
         <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingHorizontal: homeLayout.spacing.padding, paddingTop: homeLayout.type === 'compact' ? SPACING.xs : SPACING.sm }]}
+          contentContainerStyle={[styles.scroll, {
+            paddingHorizontal: homeLayout.spacing.padding,
+            paddingTop: homeLayout.type === 'compact' ? SPACING.xs : SPACING.sm,
+          }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -709,7 +825,8 @@ export default function HomeScreen({ navigation }) {
           <Animated.View style={{
             opacity: cardAnim,
             transform: [{ translateY: cardAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-          }}>
+          }}
+          >
             <View style={styles.heroCardWrap}>
               <View style={styles.eyebrowRow}>
                 <Icon name="star-outline" size={14} color={t.primary} />
@@ -725,6 +842,7 @@ export default function HomeScreen({ navigation }) {
               {myAnswer ? (
                 <View style={styles.answerBubble}>
                   <Text style={styles.answerText}>{myAnswer}</Text>
+
                   <View style={styles.partnerVisibilityRow}>
                     <Icon name="lock-closed-outline" size={13} color={t.primary} />
                     <Text style={styles.partnerVisibilityText}>Private until your shared reveal</Text>
@@ -750,6 +868,7 @@ export default function HomeScreen({ navigation }) {
                   <Text style={styles.inputPlaceholder}>
                     {`Today's free moment is used. ${isPremium ? '' : 'Premium opens deeper prompts, private notes, date ideas, and your full archive.'}`}
                   </Text>
+
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
                     <Icon name="lock-open-outline" size={14} color={t.primary} />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: t.primary }}>Discover more</Text>
@@ -771,10 +890,12 @@ export default function HomeScreen({ navigation }) {
                       size={14}
                       color={t.primary}
                     />
+
                     <Text style={styles.statusTextLine1}>
                       {statusText.split('.')[0]}.
                     </Text>
                   </View>
+
                   <Text style={styles.statusTextLine2}>
                     {statusText.split('.').slice(1).join('.').trim()}
                   </Text>
@@ -793,7 +914,7 @@ export default function HomeScreen({ navigation }) {
                 accessibilityLabel={primaryCTALabel}
               >
                 <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
-                <Icon name="arrow-forward-outline" size={20} color={isDark ? "#000000" : "#FFFFFF"} />
+                <Icon name="arrow-forward-outline" size={20} color={isDark ? '#000000' : '#FFFFFF'} />
               </TouchableOpacity>
 
               {ritualCopy?.secondaryLabel ? (
@@ -819,43 +940,45 @@ export default function HomeScreen({ navigation }) {
 
           {/* ── Quick Actions (3-Column Apple Widget Layout) ── */}
           {disclosure.quickActions && (
-          <Animated.View style={[styles.actionsRow, {
-            opacity: actionsAnim,
-            transform: [{ translateY: actionsAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }],
-          }]}>
-            {ACTIONS.filter(action => {
-              // Hide locked premium widgets until the user has some engagement (3+ answers)
-              if (action.premium && !isPremium && answeredCount < 3) return false;
-              return true;
-            }).map((action, index) => {
-              const locked = action.premium && !isPremium;
-              const badge = 0;
+            <Animated.View style={[styles.actionsRow, {
+              opacity: actionsAnim,
+              transform: [{ translateY: actionsAnim.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }],
+            }]}
+            >
+              {ACTIONS.filter((action) => {
+                if (action.premium && !isPremium && answeredCount < 3) return false;
+                return true;
+              }).map((action) => {
+                const locked = action.premium && !isPremium;
+                const badge = 0;
 
-              return (
-                <TouchableOpacity
-                  key={action.key}
-                  activeOpacity={0.75}
-                  onPress={() => handleAction(action.key)}
-                  accessibilityRole="button"
-                  accessibilityLabel={action.label}
-                  style={styles.actionCard}
-                >
-                  {locked && (
-                    <View style={styles.lockBadge}>
-                      <Icon name="lock-closed-outline" size={12} color={action.color} />
-                    </View>
-                  )}
-                  {badge > 0 && (
-                    <View style={[styles.noteBadge, { backgroundColor: action.color }]}>
-                      <Text style={styles.noteBadgeText}>{badge > 9 ? '9+' : badge}</Text>
-                    </View>
-                  )}
-                  <Icon name={action.icon} size={28} color={action.color} />
-                  <Text style={styles.actionLabel}>{action.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </Animated.View>
+                return (
+                  <TouchableOpacity
+                    key={action.key}
+                    activeOpacity={0.75}
+                    onPress={() => handleAction(action.key)}
+                    accessibilityRole="button"
+                    accessibilityLabel={action.label}
+                    style={styles.actionCard}
+                  >
+                    {locked && (
+                      <View style={styles.lockBadge}>
+                        <Icon name="lock-closed-outline" size={12} color={action.color} />
+                      </View>
+                    )}
+
+                    {badge > 0 && (
+                      <View style={[styles.noteBadge, { backgroundColor: action.color }]}>
+                        <Text style={styles.noteBadgeText}>{badge > 9 ? '9+' : badge}</Text>
+                      </View>
+                    )}
+
+                    <Icon name={action.icon} size={28} color={action.color} />
+                    <Text style={styles.actionLabel}>{action.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </Animated.View>
           )}
 
           <View style={{ height: homeLayout.spacing.gap }} />
@@ -867,14 +990,23 @@ export default function HomeScreen({ navigation }) {
                 <Icon name="time-outline" size={16} color={t.primary} />
                 <Text style={styles.memoryLaneLabel}>MEMORY LANE</Text>
               </View>
+
               <Text style={styles.memoryLanePrompt}>
                 {throwback.prompt_text || 'A past moment together'}
               </Text>
+
               <Text style={styles.memoryLaneAnswer}>
                 "{throwback.answer}"
               </Text>
+
               <Text style={styles.memoryLaneDate}>
-                {throwback.date_key ? new Date(throwback.date_key + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : ''}
+                {throwback.date_key
+                  ? new Date(`${throwback.date_key}T00:00:00`).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : ''}
               </Text>
             </View>
           )}
@@ -892,22 +1024,24 @@ export default function HomeScreen({ navigation }) {
             >
               <View style={styles.softNudgeInner}>
                 <Icon name="heart-circle-outline" size={28} color={t.primary} />
+
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.softNudgeTitle, { color: t.text }]}>
                     You've created {answeredCount} private moments
                   </Text>
+
                   <Text style={[styles.softNudgeBody, { color: t.subtext }]}>
                     Premium opens deeper reveals, date ideas, memories, and signals made for the two of you.
                   </Text>
                 </View>
               </View>
+
               <View style={styles.softNudgeCTA}>
                 <Text style={[styles.softNudgeCTAText, { color: t.primary }]}>Keep building this</Text>
                 <Icon name="arrow-forward-outline" size={14} color={t.primary} />
               </View>
             </TouchableOpacity>
           )}
-
         </ScrollView>
       </SafeAreaView>
 
@@ -924,7 +1058,7 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+const systemFont = Platform.select({ ios: 'System', android: 'Roboto' });
 
 const createStyles = (t, isDark) => StyleSheet.create({
   root: { flex: 1 },
@@ -978,7 +1112,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 8 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: 8,
+      },
       android: { elevation: 2 },
     }),
   },
@@ -995,7 +1134,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 8 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: 8,
+      },
       android: { elevation: 2 },
     }),
   },
@@ -1009,18 +1153,23 @@ const createStyles = (t, isDark) => StyleSheet.create({
   // ── Scroll ──
   scroll: {
     paddingTop: SPACING.sm,
-    paddingBottom: 160, // Clear the bottom tab bar securely
+    paddingBottom: 160,
   },
 
   // ── Hero Card ──
-  heroCardWrap: { 
-    borderRadius: 24, // Deep Apple squircle
+  heroCardWrap: {
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,
     padding: SPACING.xl,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: isDark ? 0.4 : 0.08,
+        shadowRadius: 24,
+      },
       android: { elevation: 6 },
     }),
   },
@@ -1088,10 +1237,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderColor: t.border,
     backgroundColor: t.surfaceSecondary,
   },
-  inputPlaceholder: { 
+  inputPlaceholder: {
     fontFamily: systemFont,
-    fontSize: 17, 
-    color: t.subtext 
+    fontSize: 17,
+    color: t.subtext,
   },
   statusRow: {
     alignItems: 'center',
@@ -1124,7 +1273,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 56, // Tall Apple Action Button
+    height: 56,
     borderRadius: 28,
     backgroundColor: t.text,
     gap: 8,
@@ -1158,7 +1307,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   actionCard: {
     width: '48%',
-    flexDirection: 'column', // Stack icon and label vertically
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: SPACING.lg,
@@ -1169,7 +1318,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
     backgroundColor: t.surface,
     gap: 8,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.05, shadowRadius: 12 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.3 : 0.05,
+        shadowRadius: 12,
+      },
       android: { elevation: 2 },
     }),
   },
@@ -1206,7 +1360,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: systemFont,
     fontSize: 10,
     fontWeight: '800',
-    color: '#FFFFFF', 
+    color: '#FFFFFF',
   },
 
   // ── Moment Signal ──
@@ -1218,7 +1372,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderColor: t.border,
     backgroundColor: t.surface,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 16 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: 16,
+      },
       android: { elevation: 2 },
     }),
   },
@@ -1247,7 +1406,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
     backgroundColor: t.surface,
     padding: SPACING.xl,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 16 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: 16,
+      },
       android: { elevation: 3 },
     }),
   },
@@ -1281,13 +1445,19 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '400',
     color: t.subtext,
     marginBottom: SPACING.md,
+    textAlign: 'center',
+    alignSelf: 'center',
   },
   memoryLaneDate: {
     fontFamily: systemFont,
-    fontSize: 13,
+    fontSize: 11,
+    lineHeight: 15,
     fontWeight: '600',
     color: t.subtext,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
+    textAlign: 'right',
+    alignSelf: 'stretch',
+    opacity: 0.78,
   },
 
   // ── Soft Upgrade Nudge ──
@@ -1297,7 +1467,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
     padding: SPACING.lg,
     marginBottom: SPACING.md,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.25 : 0.05, shadowRadius: 12 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.25 : 0.05,
+        shadowRadius: 12,
+      },
       android: { elevation: 2 },
     }),
   },
