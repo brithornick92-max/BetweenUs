@@ -1,7 +1,8 @@
 // screens/OurStoryScreen.js
 /**
- * BETWEEN US - OUR STORY (EDITORIAL V3)
- * High-End Apple Editorial Layout + Velvet Glass + Original Sexy Red (#D2121A)
+ * BETWEEN US - KEEPSAKE / OUR STORY
+ * Premium grouped Snapshot cards + timeline moments.
+ * Long press a Keepsake card to edit or delete.
  */
 
 import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
@@ -16,19 +17,18 @@ import {
   Animated as RNAnimated,
   Image,
   Modal,
+  Alert,
+  ScrollView,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 
-// Context & Services
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
 import EncryptedAttachments from '../services/e2ee/EncryptedAttachments';
 import { getPromptById } from '../utils/contentLoader';
-
-// Utilities
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { storage } from '../utils/storage';
@@ -45,6 +45,7 @@ const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 const MEMORY_TYPE_META = {
+  snapshot: { label: 'Snapshot', icon: 'images-outline' },
   moment: { label: 'Saved Moment', icon: 'sparkles-outline' },
   anniversary: { label: 'Anniversary', icon: 'heart-outline' },
   milestone: { label: 'Milestone', icon: 'ribbon-outline' },
@@ -88,6 +89,15 @@ function getMediaKind(mimeType, uri) {
   if (mimeType?.startsWith('video/')) return 'video';
   if (mimeType?.startsWith('image/')) return 'image';
   return uri ? 'image' : null;
+}
+
+function getSnapshotGroupId(row) {
+  return row?.snapshot_id || null;
+}
+
+function getSnapshotIndex(row) {
+  const index = row?.snapshot_index ?? 0;
+  return Number.isFinite(Number(index)) ? Number(index) : 0;
 }
 
 async function resolveRowMedia(row) {
@@ -171,6 +181,8 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     dateLabel: formatDateLabel(row.date_key || row.created_at),
     sortAt: row.created_at || row.date_key,
     media,
+    editable: false,
+    deletable: false,
   };
 }
 
@@ -187,14 +199,95 @@ function buildMemoryItem(row, media = null) {
     eyebrow: isIntimacyFavorite ? 'Intimacy favorite' : (row.is_private ? 'Private moment' : 'Memory'),
     icon: memoryType.icon,
     accent: row.is_private ? '#7E4FA3' : '#D2121A',
-    meta: isIntimacyFavorite ? 'Shared intimacy' : (row.mood ? String(row.mood).toUpperCase() : 'Moment'),
+    meta: isIntimacyFavorite ? 'Shared intimacy' : (row.mood ? String(row.mood).toUpperCase() : memoryType.label),
     dateLabel: formatDateLabel(row.created_at || row.date),
-    sortAt: row.created_at || row.date,
+    sortAt: row.snapshot_created_at || row.created_at || row.date,
     mediaRef: row.media_ref || null,
     mimeType: row.mime_type || null,
     rawDate: row.created_at || row.date || null,
+    snapshotGroupId: getSnapshotGroupId(row),
+    snapshotIndex: getSnapshotIndex(row),
     media,
+    row,
+    editable: true,
+    deletable: true,
   };
+}
+
+function buildSnapshotItem(groupId, items) {
+  const sortedItems = [...items].sort((a, b) => a.snapshotIndex - b.snapshotIndex);
+  const first = sortedItems[0];
+  const body = first?.body || '';
+
+  const mediaItems = sortedItems
+    .filter((item) => item.media?.uri)
+    .map((item, index) => ({
+      id: `${item.id}:media:${index}`,
+      uri: item.media.uri,
+      mimeType: item.media.mimeType,
+      mime: item.media.mimeType,
+      kind: item.media.kind,
+      media: item.media,
+      caption: body,
+      body,
+      title: 'Snapshot',
+      date: item.rawDate || item.sortAt,
+      dateLabel: item.dateLabel,
+      sourceItem: item,
+    }));
+
+  return {
+    id: `snapshot:${groupId}`,
+    kind: 'snapshot',
+    sourceId: groupId,
+    title: 'Snapshot',
+    body,
+    eyebrow: 'Snapshot',
+    icon: 'images-outline',
+    accent: '#D2121A',
+    meta: mediaItems.length === 1 ? '1 item' : `${mediaItems.length} items`,
+    dateLabel: first?.dateLabel || '',
+    sortAt: first?.sortAt || null,
+    mediaItems,
+    rawItems: sortedItems,
+    editable: true,
+    deletable: true,
+  };
+}
+
+function groupMemoryItems(memoryItems) {
+  const grouped = new Map();
+  const standalone = [];
+
+  for (const item of memoryItems || []) {
+    if (item.snapshotGroupId) {
+      if (!grouped.has(item.snapshotGroupId)) {
+        grouped.set(item.snapshotGroupId, []);
+      }
+
+      grouped.get(item.snapshotGroupId).push(item);
+      continue;
+    }
+
+    const isLegacyUngroupedSnapshot =
+      item.row?.type === 'snapshot'
+      || item.title === 'Snapshot'
+      || item.kind === 'snapshot';
+
+    if (isLegacyUngroupedSnapshot) {
+      // Old Snapshot rows created before snapshot_id existed.
+      // Hide them so they do not appear as separate broken Keepsake cards.
+      continue;
+    }
+
+    standalone.push(item);
+  }
+
+  const snapshots = Array.from(grouped.entries()).map(([groupId, items]) =>
+    buildSnapshotItem(groupId, items)
+  );
+
+  return [...snapshots, ...standalone];
 }
 
 function buildDateItem(row) {
@@ -218,6 +311,8 @@ function buildDateItem(row) {
     dateLabel: formatDateLabel(row.addedAt),
     sortAt: row.addedAt,
     memoryId: row.memoryId || null,
+    editable: false,
+    deletable: false,
   };
 }
 
@@ -237,6 +332,8 @@ function buildPositionTriedItem(row) {
     dateLabel: formatDateLabel(row.triedAt),
     sortAt: row.triedAt,
     memoryId: row.memoryId || null,
+    editable: false,
+    deletable: false,
   };
 }
 
@@ -279,8 +376,8 @@ export default function OurStoryScreen() {
       ] = await Promise.all([
         safeLoad(() => DataLayer.getSharedPromptAnswers({ limit: 200 })),
         safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
-        safeLoad(() => DataLayer.getSharedMemories({ limit: 200 })),
-        safeLoad(() => DataLayer.getMemories({ limit: 200 })),
+        safeLoad(() => DataLayer.getSharedMemories({ limit: 500 })),
+        safeLoad(() => DataLayer.getMemories({ limit: 500 })),
         safeLoad(() => getDateHistory(AsyncStorage)),
         safeLoad(() => getIntimacyTried()),
         NicknameEngine.getMyName('You'),
@@ -290,13 +387,15 @@ export default function OurStoryScreen() {
       const promptItems = dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
         .map((row) => buildPromptItem(row, null, myName, partnerName));
 
-      const memoryItems = await Promise.all(
+      const rawMemoryItems = await Promise.all(
         dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
           .map(async (row) => buildMemoryItem(row, await resolveRowMedia(row)))
       );
 
+      const memoryItems = groupMemoryItems(rawMemoryItems);
+
       const memoryIds = new Set(
-        memoryItems
+        rawMemoryItems
           .map((item) => item.sourceId)
           .filter(Boolean)
       );
@@ -315,7 +414,13 @@ export default function OurStoryScreen() {
         ...memoryItems,
         ...dateItems,
         ...triedPositionItems,
-      ].sort((a, b) => getSortTime(b) - getSortTime(a));
+      ].sort((a, b) => {
+        // Show grouped Snapshots first so new uploads do not get buried under old legacy moments.
+        if (a.kind === 'snapshot' && b.kind !== 'snapshot') return -1;
+        if (a.kind !== 'snapshot' && b.kind === 'snapshot') return 1;
+
+        return getSortTime(b) - getSortTime(a);
+      });
 
       setEntries(merged);
     } catch (error) {
@@ -373,18 +478,209 @@ export default function OurStoryScreen() {
   }, [navigation]);
 
   const openLightbox = useCallback((item) => {
-    if (!item?.media?.uri) return;
+    const lightboxItem = item?.media ? item : item?.mediaItems?.[0];
+
+    if (!lightboxItem?.media?.uri && !lightboxItem?.uri) return;
 
     impact(ImpactFeedbackStyle.Medium);
-    setLightbox(item);
+    setLightbox(lightboxItem);
   }, []);
 
   const closeLightbox = useCallback(() => {
     setLightbox(null);
   }, []);
 
+  const confirmDeleteItem = useCallback((item) => {
+    const isSnapshot = item.kind === 'snapshot';
+
+    Alert.alert(
+      isSnapshot ? 'Delete Snapshot?' : 'Delete Memory?',
+      isSnapshot
+        ? 'This will remove all photos and videos in this snapshot from Keepsake.'
+        : 'This will remove this memory from Keepsake.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              impact(ImpactFeedbackStyle.Medium);
+
+              if (isSnapshot) {
+                await Promise.all(
+                  (item.rawItems || [])
+                    .filter((rawItem) => rawItem?.sourceId)
+                    .map((rawItem) => DataLayer.deleteMemory(rawItem.sourceId))
+                );
+              } else {
+                await DataLayer.deleteMemory(item.sourceId);
+              }
+
+              await loadEntries();
+            } catch (error) {
+              if (__DEV__) console.warn('[OurStory] Delete failed:', error?.message);
+              Alert.alert('Could not delete', 'Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  }, [loadEntries]);
+
+  const handleEditItem = useCallback((item) => {
+    if (!item?.editable) return;
+
+    impact(ImpactFeedbackStyle.Light);
+
+    navigation.navigate('AddMemory', {
+      mode: 'edit',
+      editItem: item,
+      editKind: item.kind,
+      sourceId: item.sourceId,
+    });
+  }, [navigation]);
+
+  const handleLongPressItem = useCallback((item) => {
+    if (!item?.editable && !item?.deletable) return;
+
+    impact(ImpactFeedbackStyle.Medium);
+
+    const isSnapshot = item.kind === 'snapshot';
+
+    Alert.alert(
+      isSnapshot ? 'Snapshot Options' : 'Keepsake Options',
+      null,
+      [
+        item.editable ? {
+          text: isSnapshot ? 'Edit Snapshot' : 'Edit Memory',
+          onPress: () => handleEditItem(item),
+        } : null,
+        item.deletable ? {
+          text: isSnapshot ? 'Delete Snapshot' : 'Delete Memory',
+          style: 'destructive',
+          onPress: () => confirmDeleteItem(item),
+        } : null,
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ].filter(Boolean)
+    );
+  }, [confirmDeleteItem, handleEditItem]);
+
+  const renderSnapshotGrid = (item) => {
+    const mediaItems = item.mediaItems || [];
+
+    if (mediaItems.length === 0) return null;
+
+    const featured = mediaItems[0];
+    const sideItems = mediaItems.slice(1, 4);
+    const remaining = Math.max(0, mediaItems.length - 4);
+    const isFeaturedVideo = featured.kind === 'video' || featured.mimeType?.startsWith('video/');
+
+    return (
+      <View style={styles.snapshotMediaBlock}>
+        <View style={styles.snapshotHeroGrid}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => openLightbox(featured)}
+            style={[
+              styles.snapshotHeroTile,
+              sideItems.length === 0 && styles.snapshotHeroTileFull,
+            ]}
+          >
+            {isFeaturedVideo ? (
+              <View style={styles.snapshotVideoTile}>
+                <Icon name="play-circle-outline" size={46} color="#FFF" />
+                <Text style={styles.snapshotVideoText}>Video</Text>
+              </View>
+            ) : (
+              <Image
+                source={{ uri: featured.uri }}
+                style={styles.snapshotImage}
+                resizeMode="cover"
+              />
+            )}
+          </TouchableOpacity>
+
+          {sideItems.length > 0 ? (
+            <View style={styles.snapshotSideStack}>
+              {sideItems.map((media, index) => {
+                const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/');
+                const showRemaining = index === sideItems.length - 1 && remaining > 0;
+
+                return (
+                  <TouchableOpacity
+                    key={media.id}
+                    activeOpacity={0.9}
+                    onPress={() => openLightbox(media)}
+                    style={styles.snapshotSideTile}
+                  >
+                    {isVideo ? (
+                      <View style={styles.snapshotVideoTile}>
+                        <Icon name="play-circle-outline" size={28} color="#FFF" />
+                      </View>
+                    ) : (
+                      <Image
+                        source={{ uri: media.uri }}
+                        style={styles.snapshotGridImage}
+                        resizeMode="cover"
+                      />
+                    )}
+
+                    {showRemaining ? (
+                      <View style={styles.remainingOverlay}>
+                        <Text style={styles.remainingText}>+{remaining}</Text>
+                      </View>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ) : null}
+        </View>
+
+        {mediaItems.length > 1 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.snapshotFilmstrip}
+          >
+            {mediaItems.map((media, index) => {
+              const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/');
+
+              return (
+                <TouchableOpacity
+                  key={`${media.id}:thumb:${index}`}
+                  activeOpacity={0.88}
+                  onPress={() => openLightbox(media)}
+                  style={styles.snapshotThumb}
+                >
+                  {isVideo ? (
+                    <View style={styles.snapshotThumbVideo}>
+                      <Icon name="play" size={15} color="#FFF" />
+                    </View>
+                  ) : (
+                    <Image
+                      source={{ uri: media.uri }}
+                      style={styles.snapshotThumbImage}
+                      resizeMode="cover"
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        ) : null}
+      </View>
+    );
+  };
+
   const renderItem = ({ item, index }) => {
+
     const heartState = hearts[item.id] || { count: 0, hearted: false };
+    const isSnapshot = item.kind === 'snapshot';
     const isVideo = item.media?.kind === 'video' || item.media?.mimeType?.startsWith('video/');
 
     return (
@@ -397,7 +693,12 @@ export default function OurStoryScreen() {
           <View style={[styles.timelineLine, { backgroundColor: t.border }]} />
         </View>
 
-        <View style={[styles.cardContainer, styles.cardTimeline]}>
+        <TouchableOpacity
+          activeOpacity={0.96}
+          delayLongPress={360}
+          onLongPress={() => handleLongPressItem(item)}
+          style={[styles.cardContainer, styles.cardTimeline]}
+        >
           <View
             style={[
               styles.editorialCard,
@@ -433,7 +734,9 @@ export default function OurStoryScreen() {
                 {item.title}
               </Text>
 
-              {item.media?.uri ? (
+              {isSnapshot ? (
+                renderSnapshotGrid(item)
+              ) : item.media?.uri ? (
                 <TouchableOpacity
                   activeOpacity={0.88}
                   onPress={() => openLightbox(item)}
@@ -464,9 +767,11 @@ export default function OurStoryScreen() {
                 </TouchableOpacity>
               ) : null}
 
-              <Text style={styles.cardBody}>
-                {item.body || 'Nothing saved yet.'}
-              </Text>
+              {item.body ? (
+                <Text style={[styles.cardBody, isSnapshot && styles.snapshotBody]}>
+                  {item.body}
+                </Text>
+              ) : null}
 
               <View style={styles.cardFooter}>
                 <Text style={[styles.cardMetaText, { color: t.subtext }]} numberOfLines={1}>
@@ -474,6 +779,12 @@ export default function OurStoryScreen() {
                 </Text>
 
                 <View style={styles.cardFooterRight}>
+                  {item.editable || item.deletable ? (
+                    <Text style={[styles.longPressHint, { color: t.subtext }]}>
+                      Hold for options
+                    </Text>
+                  ) : null}
+
                   <TouchableOpacity
                     onPress={() => handleHeartToggle(item.id)}
                     hitSlop={12}
@@ -500,7 +811,7 @@ export default function OurStoryScreen() {
               </View>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </ReAnimated.View>
     );
   };
@@ -509,7 +820,7 @@ export default function OurStoryScreen() {
     <ReAnimated.View entering={FadeIn.duration(500)}>
       <View style={styles.headerIntroContainer}>
         <Text style={styles.headerIntro}>
-          {entries.length ? `${entries.length} moments, newest first` : 'Newest first'}
+          {entries.length ? `${entries.length} keepsakes, newest first` : 'Newest first'}
         </Text>
       </View>
     </ReAnimated.View>
@@ -526,7 +837,7 @@ export default function OurStoryScreen() {
       </Text>
 
       <Text style={styles.emptyBody}>
-        Prompts, memories, photos, dates, and moments will collect here as you build your story together.
+        Prompts, snapshots, dates, and memories will collect here as you build your story together.
       </Text>
     </ReAnimated.View>
   );
@@ -572,7 +883,7 @@ export default function OurStoryScreen() {
 
       <TouchableOpacity
         style={styles.fabContainer}
-        onPress={() => navigation.navigate('AddMemory', { autoLaunchCamera: true })}
+        onPress={() => navigation.navigate('AddMemory')}
         activeOpacity={0.85}
       >
         <BlurView
@@ -583,7 +894,7 @@ export default function OurStoryScreen() {
             { backgroundColor: withAlpha(t.primary, 0.8) },
           ]}
         >
-          <Icon name="camera" size={26} color="#FFF" />
+          <Icon name="add-outline" size={28} color="#FFF" />
         </BlurView>
       </TouchableOpacity>
 
@@ -630,7 +941,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     paddingBottom: 160,
   },
 
-  // ── Floating Action Button ──
   fabContainer: {
     position: 'absolute',
     right: SPACING.screen,
@@ -658,7 +968,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.2)',
   },
 
-  // ── Header Intro ──
   headerIntroContainer: {
     paddingHorizontal: SPACING.screen,
     paddingBottom: SPACING.md,
@@ -671,7 +980,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.subtext,
   },
 
-  // ── Content Cards ──
   cardContainer: {
     borderRadius: 24,
     marginBottom: SPACING.lg,
@@ -725,6 +1033,106 @@ const createStyles = (t, isDark) => StyleSheet.create({
     lineHeight: 24,
     color: t.subtext,
   },
+  snapshotBody: {
+    marginTop: SPACING.lg,
+    color: t.text,
+  },
+
+  snapshotMediaBlock: {
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.sm,
+    width: '100%',
+  },
+  snapshotHeroGrid: {
+    width: '100%',
+    height: 292,
+    borderRadius: 22,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.14)',
+  },
+  snapshotHeroTile: {
+    flex: 1.35,
+    height: '100%',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+  snapshotHeroTileFull: {
+    flex: 1,
+  },
+  snapshotSideStack: {
+    flex: 0.9,
+    height: '100%',
+    gap: 4,
+  },
+  snapshotSideTile: {
+    flex: 1,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+  snapshotImage: {
+    width: '100%',
+    height: '100%',
+  },
+  snapshotGridImage: {
+    width: '100%',
+    height: '100%',
+  },
+  snapshotVideoTile: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.54)',
+    gap: 8,
+  },
+  snapshotVideoText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    color: '#FFF',
+  },
+  remainingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.52)',
+  },
+  remainingText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#FFF',
+  },
+  snapshotFilmstrip: {
+    paddingTop: 10,
+    gap: 8,
+  },
+  snapshotThumb: {
+    width: 54,
+    height: 54,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  snapshotThumbImage: {
+    width: '100%',
+    height: '100%',
+  },
+  snapshotThumbVideo: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+
   mediaButton: {
     width: '100%',
     marginBottom: SPACING.lg,
@@ -766,7 +1174,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     textTransform: 'uppercase',
   },
 
-  // ── Empty / Loading States ──
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -807,7 +1214,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.subtext,
   },
 
-  // ── Timeline layout ──
   timelineRow: {
     flexDirection: 'row',
     gap: 12,
@@ -833,12 +1239,17 @@ const createStyles = (t, isDark) => StyleSheet.create({
     flex: 1,
   },
 
-  // ── Heart reaction ──
   cardFooterRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     flexShrink: 0,
+  },
+  longPressHint: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 10,
+    fontWeight: '700',
+    opacity: 0.55,
   },
   heartButton: {
     flexDirection: 'row',

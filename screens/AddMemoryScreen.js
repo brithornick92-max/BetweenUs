@@ -1,8 +1,9 @@
 // screens/AddMemoryScreen.js
-// Capture a shared snapshot with optional photo attachment.
-// Apple Editorial aesthetic — Velvet Glass Materials + Original Palette.
+// Premium shared snapshot composer.
+// Multi-photo/video upload → one grouped Snapshot → saves into Our Story / Keepsake.
+// Supports create + edit mode.
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,6 +17,7 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -30,17 +32,160 @@ import FilmGrain from '../components/FilmGrain';
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
-import { impact, selection, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import {
+  impact,
+  selection,
+  notification,
+  ImpactFeedbackStyle,
+  NotificationFeedbackType,
+} from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 
-const { width: SCREEN_W } = require('react-native').Dimensions.get('window');
+const { width: SCREEN_W } = Dimensions.get('window');
+
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
+
+const MAX_MEDIA_ITEMS = 10;
+const MAX_FILE_BYTES = 50_000_000;
+const MAX_VIDEO_DURATION_MS = 180_000;
+
+function buildSnapshotId() {
+  return `snapshot_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getSnapshotGroupId(item) {
+  return item?.sourceId
+    || item?.snapshotGroupId
+    || item?.snapshotId
+    || item?.snapshot_id
+    || item?.groupId
+    || item?.group_id
+    || null;
+}
+
+function getMediaTypeFromMime(mimeType) {
+  return mimeType?.startsWith('video/') ? 'video' : 'image';
+}
+
+function buildMediaItem(asset, index = 0) {
+  const isVideo = asset.type === 'video';
+  const fallbackExtension = isVideo ? 'mp4' : 'jpg';
+
+  return {
+    id: `${asset.assetId || asset.uri || Date.now()}-${index}`,
+    uri: asset.uri,
+    type: isVideo ? 'video' : 'image',
+    mimeType: asset.mimeType || (isVideo ? 'video/mp4' : 'image/jpeg'),
+    fileName: asset.fileName || `snapshot_${Date.now()}_${index}.${fallbackExtension}`,
+    duration: asset.duration || null,
+    sourceId: null,
+    isExisting: false,
+  };
+}
+
+function buildExistingMediaItem(mediaItem, index = 0) {
+  const mimeType = mediaItem?.mimeType
+    || mediaItem?.mime
+    || mediaItem?.media?.mimeType
+    || 'image/jpeg';
+
+  const uri = mediaItem?.uri || mediaItem?.media?.uri || null;
+  const type = mediaItem?.kind || mediaItem?.media?.kind || getMediaTypeFromMime(mimeType);
+  const sourceId = mediaItem?.sourceItem?.sourceId || mediaItem?.sourceId || null;
+
+  if (!uri) return null;
+
+  return {
+    id: `existing:${sourceId || uri}:${index}`,
+    uri,
+    type: type === 'video' ? 'video' : 'image',
+    mimeType,
+    fileName: `snapshot_existing_${index}.${type === 'video' ? 'mp4' : 'jpg'}`,
+    duration: null,
+    sourceId,
+    isExisting: true,
+  };
+}
+
+function getInitialMediaItems(editItem) {
+  if (!editItem) return [];
+
+  if (editItem.kind === 'snapshot' && Array.isArray(editItem.mediaItems)) {
+    return editItem.mediaItems
+      .map((mediaItem, index) => buildExistingMediaItem(mediaItem, index))
+      .filter(Boolean);
+  }
+
+  if (editItem.media?.uri) {
+    const one = buildExistingMediaItem(
+      {
+        uri: editItem.media.uri,
+        mimeType: editItem.media.mimeType,
+        kind: editItem.media.kind,
+        sourceId: editItem.sourceId,
+      },
+      0
+    );
+
+    return one ? [one] : [];
+  }
+
+  return [];
+}
+
+function getOriginalMemoryIds(editItem) {
+  if (!editItem) return [];
+
+  if (editItem.kind === 'snapshot') {
+    return (editItem.rawItems || [])
+      .map((item) => item?.sourceId)
+      .filter(Boolean);
+  }
+
+  return editItem.sourceId ? [editItem.sourceId] : [];
+}
+
+async function deleteMemoryById(memoryId) {
+  if (!memoryId) return;
+
+  if (typeof DataLayer.deleteMemory === 'function') {
+    await DataLayer.deleteMemory(memoryId);
+    return;
+  }
+
+  if (typeof DataLayer.deleteMemoryById === 'function') {
+    await DataLayer.deleteMemoryById(memoryId);
+    return;
+  }
+
+  if (typeof DataLayer.deleteMemoryEntry === 'function') {
+    await DataLayer.deleteMemoryEntry(memoryId);
+    return;
+  }
+
+  if (typeof DataLayer.deleteSavedMemory === 'function') {
+    await DataLayer.deleteSavedMemory(memoryId);
+    return;
+  }
+
+  throw new Error('No supported memory delete method found on DataLayer.');
+}
 
 export default function AddMemoryScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors, isDark } = useTheme();
+
+  const editItem = route.params?.editItem || null;
+  const isEditMode = route.params?.mode === 'edit' && !!editItem;
+  const originalMemoryIds = useMemo(() => getOriginalMemoryIds(editItem), [editItem]);
+
+  const editSnapshotId = useMemo(() => {
+    if (!isEditMode) return null;
+    return getSnapshotGroupId(editItem) || buildSnapshotId();
+  }, [editItem, isEditMode]);
+
   const promptRevealDraft = useMemo(() => {
     if (route.params?.source !== 'prompt_reveal') {
       return { content: '', type: 'moment' };
@@ -58,14 +203,25 @@ export default function AddMemoryScreen() {
     };
   }, [route.params]);
 
-  const [content, setContent] = useState(promptRevealDraft.content);
-  const [media, setMedia] = useState(null); // { uri, type, mimeType }
+  const initialContent = useMemo(() => {
+    if (isEditMode) {
+      return editItem?.body || editItem?.content || '';
+    }
+
+    return promptRevealDraft.content;
+  }, [editItem, isEditMode, promptRevealDraft.content]);
+
+  const initialMediaItems = useMemo(
+    () => getInitialMediaItems(editItem),
+    [editItem]
+  );
+
+  const [content, setContent] = useState(initialContent);
+  const [mediaItems, setMediaItems] = useState(initialMediaItems);
   const [saving, setSaving] = useState(false);
 
   const inputRef = useRef(null);
-  const autoLaunchCamera = useRef(route.params?.autoLaunchCamera || false);
 
-  // ─── VELVET GLASS THEME MAP ───
   const t = useMemo(() => ({
     background: colors.background,
     surface: isDark ? 'rgba(28, 28, 30, 0.45)' : 'rgba(255, 255, 255, 0.65)',
@@ -79,106 +235,140 @@ export default function AddMemoryScreen() {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
-  // ─── PICK PHOTO ───
-  const handlePickPhoto = useCallback(async () => {
+  const validateAssets = useCallback((assets) => {
+    for (const asset of assets) {
+      if (asset.fileSize && asset.fileSize > MAX_FILE_BYTES) {
+        Alert.alert('File Too Large', 'Please choose photos or videos under 50 MB.');
+        return false;
+      }
+
+      if (asset.type === 'video' && asset.duration && asset.duration > MAX_VIDEO_DURATION_MS) {
+        Alert.alert('Video Too Long', 'Please choose videos under 3 minutes.');
+        return false;
+      }
+    }
+
+    return true;
+  }, []);
+
+  const addAssetsToComposer = useCallback((assets) => {
+    if (!assets?.length) return;
+
+    if (!validateAssets(assets)) return;
+
+    const normalized = assets
+      .filter((asset) => !!asset?.uri)
+      .map((asset, index) => buildMediaItem(asset, index));
+
+    if (!normalized.length) return;
+
+    setMediaItems((current) => {
+      const existingUris = new Set(current.map((item) => item.uri));
+      const uniqueNewItems = normalized.filter((item) => !existingUris.has(item.uri));
+
+      const remainingSlots = Math.max(0, MAX_MEDIA_ITEMS - current.length);
+      const itemsToAdd = uniqueNewItems.slice(0, remainingSlots);
+
+      if (uniqueNewItems.length > remainingSlots) {
+        Alert.alert(
+          'Limit Reached',
+          `You can add up to ${MAX_MEDIA_ITEMS} photos or videos to one snapshot.`
+        );
+      }
+
+      return [...current, ...itemsToAdd];
+    });
+
+    impact(ImpactFeedbackStyle.Light);
+  }, [validateAssets]);
+
+  const handlePickMedia = useCallback(async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
       if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Allow photo access to attach a photo to this memory.');
+        Alert.alert('Permission needed', 'Allow photo access to add photos or videos to this keepsake.');
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'videos'],
-        quality: 0.85,
-        allowsEditing: true,
-        aspect: [4, 3],
-        videoMaxDuration: 180, // 3 minutes max
+        quality: 0.88,
+        allowsEditing: false,
+        allowsMultipleSelection: true,
+        selectionLimit: MAX_MEDIA_ITEMS,
+        videoMaxDuration: 180,
       });
 
-      if (!result.canceled && result.assets?.[0]) {
-        const asset = result.assets[0];
-        if (asset.fileSize && asset.fileSize > 50_000_000) {
-          Alert.alert('File Too Large', 'Please choose a file under 50 MB.');
-          return;
-        }
-        // Check video duration (3 minutes = 180 seconds)
-        if (asset.type === 'video' && asset.duration && asset.duration > 180000) {
-          Alert.alert('Video Too Long', 'Please choose a video under 3 minutes.');
-          return;
-        }
-        setMedia({
-          uri: asset.uri,
-          type: asset.type,
-          mimeType: asset.type === 'video' ? 'video/mp4' : 'image/jpeg'
-        });
-        impact(ImpactFeedbackStyle.Light);
+      if (!result.canceled && result.assets?.length) {
+        addAssetsToComposer(result.assets);
       }
     } catch (err) {
-      if (__DEV__) console.warn('[AddMemory] Photo pick failed:', err?.message);
+      if (__DEV__) console.warn('[AddMemory] Media pick failed:', err?.message);
       Alert.alert('Error', "Couldn't open your photo library.");
     }
+  }, [addAssetsToComposer]);
+
+  const handleRemoveMedia = useCallback((itemId) => {
+    selection();
+    setMediaItems((current) => current.filter((item) => item.id !== itemId));
   }, []);
 
-  // ─── TAKE PHOTO ───
-  const handleTakePhoto = useCallback(async () => {
-    try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Allow camera access to capture a photo.');
-        return;
-      }
+  const handleClearAllMedia = useCallback(() => {
+    selection();
+    setMediaItems([]);
+  }, []);
 
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ['images', 'videos'],
-        quality: 0.85,
-        allowsEditing: true,
-        aspect: [4, 3],
-        videoMaxDuration: 180, // 3 minutes max
-      });
+  const saveSnapshotItems = useCallback(async ({ snapshotId, trimmed, items }) => {
+    const now = new Date().toISOString();
 
-      if (!result.canceled && result.assets?.[0]) {
-        const asset = result.assets[0];
-        // Check video duration (3 minutes = 180 seconds)
-        if (asset.type === 'video' && asset.duration && asset.duration > 180000) {
-          Alert.alert('Video Too Long', 'Please choose a video under 3 minutes.');
-          return;
-        }
-        setMedia({
-          uri: asset.uri,
-          type: asset.type,
-          mimeType: asset.type === 'video' ? 'video/mp4' : 'image/jpeg'
+    if (items.length > 0) {
+      for (let index = 0; index < items.length; index += 1) {
+        const item = items[index];
+
+        await DataLayer.saveMemory({
+          content: trimmed || '',
+          type: 'snapshot',
+          mood: null,
+          isPrivate: false,
+
+          snapshot_id: snapshotId,
+          snapshot_index: index,
+          snapshot_count: items.length,
+          snapshot_created_at: now,
+
+          mediaUri: item.uri,
+          mimeType: item.mimeType,
+          fileName: item.fileName || `memory_${Date.now()}_${index}.${item.type === 'video' ? 'mp4' : 'jpg'}`,
+
+          // Notify only after the final media row saves successfully.
+          notifyPartner: index === items.length - 1,
         });
-        impact(ImpactFeedbackStyle.Light);
       }
-    } catch (err) {
-      if (__DEV__) console.warn('[AddMemory] Camera failed:', err?.message);
-      Alert.alert('Error', "Couldn't open the camera.");
+
+      return;
     }
+
+    await DataLayer.saveMemory({
+      content: trimmed || '',
+      type: 'snapshot',
+      mood: null,
+      isPrivate: false,
+
+      snapshot_id: snapshotId,
+      snapshot_index: 0,
+      snapshot_count: 1,
+      snapshot_created_at: now,
+
+      notifyPartner: true,
+    });
   }, []);
 
-  useEffect(() => {
-    if (autoLaunchCamera.current) {
-      autoLaunchCamera.current = false; // Only launch once
-      setTimeout(() => {
-        handlePhotoPress();
-      }, 500); // Wait for screen transition
-    }
-  }, [handlePhotoPress]);
-
-  const handlePhotoPress = useCallback(() => {
-    Alert.alert('Add Media', 'Choose how to add a photo or video', [
-      { text: 'Take Photo/Video', onPress: handleTakePhoto },
-      { text: 'Choose from Library', onPress: handlePickPhoto },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  }, [handlePickPhoto, handleTakePhoto]);
-
-  // ─── SAVE ───
   const handleSave = useCallback(async () => {
     const trimmed = content.trim();
-    if (!trimmed && !media) {
-      Alert.alert('Add something', 'Write a note or attach a photo/video to save this memory.');
+
+    if (!trimmed && mediaItems.length === 0) {
+      Alert.alert('Add something', 'Add photos/videos or write a note to save this keepsake.');
       return;
     }
 
@@ -186,14 +376,16 @@ export default function AddMemoryScreen() {
     impact(ImpactFeedbackStyle.Medium);
 
     try {
-      await DataLayer.saveMemory({
-        content: trimmed || '',
-        type: 'moment',
-        mood: null,
-        isPrivate: false,
-        mediaUri: media?.uri || undefined,
-        mimeType: media?.mimeType || undefined,
-        fileName: media ? `memory_${Date.now()}.${media.type === 'video' ? 'mp4' : 'jpg'}` : undefined,
+      const snapshotId = editSnapshotId || buildSnapshotId();
+
+      if (isEditMode && originalMemoryIds.length > 0) {
+        await Promise.all(originalMemoryIds.map((memoryId) => deleteMemoryById(memoryId)));
+      }
+
+      await saveSnapshotItems({
+        snapshotId,
+        trimmed,
+        items: mediaItems,
       });
 
       notification(NotificationFeedbackType.Success);
@@ -201,15 +393,35 @@ export default function AddMemoryScreen() {
     } catch (err) {
       setSaving(false);
       if (__DEV__) console.warn('[AddMemory] Save failed:', err?.message);
-      Alert.alert('Error', 'Could not save your memory. Please try again.');
-    }
-  }, [content, media, navigation]);
 
-  const canSave = (content.trim().length > 0 || !!media) && !saving;
+      Alert.alert(
+        isEditMode ? 'Could not update keepsake' : 'Could not save keepsake',
+        isEditMode
+          ? 'The edit could not be saved. Please try again.'
+          : 'Could not save your keepsake. Please try again.'
+      );
+    }
+  }, [
+    content,
+    editSnapshotId,
+    isEditMode,
+    mediaItems,
+    navigation,
+    originalMemoryIds,
+    saveSnapshotItems,
+  ]);
+
+  const canSave = (content.trim().length > 0 || mediaItems.length > 0) && !saving;
+  const hasMedia = mediaItems.length > 0;
+  const mediaCountLabel = mediaItems.length === 1 ? '1 item selected' : `${mediaItems.length} items selected`;
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        translucent
+        backgroundColor="transparent"
+      />
 
       <LinearGradient
         colors={isDark
@@ -219,13 +431,21 @@ export default function AddMemoryScreen() {
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
       />
-      <GlowOrb color={t.primary} size={400} top={-160} left={SCREEN_W - 200} opacity={isDark ? 0.16 : 0.07} />
+
+      <GlowOrb
+        color={t.primary}
+        size={400}
+        top={-160}
+        left={SCREEN_W - 200}
+        opacity={isDark ? 0.16 : 0.07}
+      />
+
       <FilmGrain opacity={0.08} />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <CloseScreenHeader
-          title="New Snapshot"
-          subtitle="CAPTURE THE MOMENT"
+          title={isEditMode ? 'Edit Snapshot' : 'New Snapshot'}
+          subtitle={isEditMode ? 'UPDATE KEEPSAKE' : 'ADD TO KEEPSAKE'}
           titleColor={t.text}
           closeColor={t.text}
           onClose={() => navigation.goBack()}
@@ -233,15 +453,21 @@ export default function AddMemoryScreen() {
             <TouchableOpacity
               onPress={handleSave}
               disabled={!canSave}
-              style={[styles.saveButton, {
-                backgroundColor: canSave ? withAlpha(t.primary, 0.15) : 'transparent',
-                borderColor: canSave ? withAlpha(t.primary, 0.3) : 'transparent'
-              }]}
+              style={[
+                styles.saveButton,
+                {
+                  backgroundColor: canSave ? withAlpha(t.primary, 0.15) : 'transparent',
+                  borderColor: canSave ? withAlpha(t.primary, 0.3) : 'transparent',
+                },
+              ]}
             >
-              {saving
-                ? <ActivityIndicator size="small" color={t.primary} />
-                : <Text style={[styles.saveButtonText, { color: canSave ? t.primary : t.subtext }]}>Save</Text>
-              }
+              {saving ? (
+                <ActivityIndicator size="small" color={t.primary} />
+              ) : (
+                <Text style={[styles.saveButtonText, { color: canSave ? t.primary : t.subtext }]}>
+                  {isEditMode ? 'Update' : 'Save'}
+                </Text>
+              )}
             </TouchableOpacity>
           )}
         />
@@ -257,48 +483,151 @@ export default function AddMemoryScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* ── Photo/Video Drop-Zone ── */}
             <Animated.View entering={FadeInDown.delay(50).springify().damping(18)}>
-              {media ? (
-                <View style={styles.photoContainer}>
-                  <Image source={{ uri: media.uri }} style={styles.photoPreview} resizeMode="cover" />
-                  {media.type === 'video' && (
-                    <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
-                      <Icon name="play-circle-outline" size={48} color="#FFF" />
-                    </View>
-                  )}
-                  <TouchableOpacity
-                    style={[styles.removePhotoBtn, { backgroundColor: 'rgba(0,0,0,0.55)' }]}
-                    onPress={() => { selection(); setMedia(null); }}
-                    hitSlop={10}
-                  >
-                    <Icon name="close-outline" size={16} color="#FFF" />
-                  </TouchableOpacity>
-                </View>
-              ) : (
+              {!hasMedia ? (
                 <TouchableOpacity
-                  style={styles.photoPlaceholderContainer}
-                  onPress={handlePhotoPress}
-                  activeOpacity={0.8}
+                  style={styles.uploadCardContainer}
+                  onPress={handlePickMedia}
+                  activeOpacity={0.84}
                 >
-                  <BlurView intensity={isDark ? 45 : 25} tint={isDark ? 'dark' : 'light'} style={[styles.photoPlaceholderBlur, { backgroundColor: t.surface }]}>
-                    <Icon name="camera-outline" size={32} color={t.text} />
-                    <Text style={[styles.photoPlaceholderText, { color: t.text }]}>Add a Photo or Video</Text>
-                    <Text style={[styles.photoPlaceholderSub, { color: t.subtext }]}>
-                      Videos under 3 min · protected in your account
+                  <BlurView
+                    intensity={isDark ? 48 : 28}
+                    tint={isDark ? 'dark' : 'light'}
+                    style={[
+                      styles.uploadCard,
+                      { backgroundColor: t.surface, borderColor: t.border },
+                    ]}
+                  >
+                    <View style={[styles.uploadIconCircle, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+                      <Icon name="images-outline" size={34} color={t.primary} />
+                    </View>
+
+                    <Text style={[styles.uploadTitle, { color: t.text }]}>
+                      Upload Photos or Videos
                     </Text>
+
+                    <Text style={[styles.uploadBody, { color: t.subtext }]}>
+                      Select one or many from your library.
+                    </Text>
+
+                    <View
+                      style={[
+                        styles.uploadPill,
+                        {
+                          backgroundColor: withAlpha(t.primary, 0.1),
+                          borderColor: withAlpha(t.primary, 0.22),
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.uploadPillText, { color: t.primary }]}>
+                        Choose from Library
+                      </Text>
+                    </View>
                   </BlurView>
                 </TouchableOpacity>
+              ) : (
+                <View style={styles.mediaSection}>
+                  <View style={styles.mediaHeaderRow}>
+                    <View>
+                      <Text style={[styles.mediaEyebrow, { color: t.primary }]}>
+                        SELECTED MEDIA
+                      </Text>
+                      <Text style={[styles.mediaCount, { color: t.subtext }]}>
+                        {mediaCountLabel}
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={handleClearAllMedia}
+                      activeOpacity={0.75}
+                      style={[
+                        styles.clearButton,
+                        {
+                          borderColor: withAlpha(t.text, 0.12),
+                          backgroundColor: withAlpha(t.text, 0.04),
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.clearButtonText, { color: t.subtext }]}>
+                        Clear
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.mediaCarouselContent}
+                  >
+                    {mediaItems.map((item) => {
+                      const isItemVideo = item.type === 'video';
+
+                      return (
+                        <View key={item.id} style={styles.mediaTile}>
+                          {isItemVideo ? (
+                            <View style={styles.videoTileFallback}>
+                              <Icon name="play-circle-outline" size={44} color="#FFF" />
+                              <Text style={styles.videoTileText}>Video</Text>
+                            </View>
+                          ) : (
+                            <Image
+                              source={{ uri: item.uri }}
+                              style={styles.mediaTileImage}
+                              resizeMode="cover"
+                            />
+                          )}
+
+                          <TouchableOpacity
+                            style={styles.removeMediaButton}
+                            onPress={() => handleRemoveMedia(item.id)}
+                            hitSlop={10}
+                          >
+                            <Icon name="close-outline" size={15} color="#FFF" />
+                          </TouchableOpacity>
+                        </View>
+                      );
+                    })}
+
+                    {mediaItems.length < MAX_MEDIA_ITEMS && (
+                      <TouchableOpacity
+                        activeOpacity={0.82}
+                        onPress={handlePickMedia}
+                        style={[
+                          styles.addMoreTile,
+                          {
+                            borderColor: withAlpha(t.primary, 0.22),
+                            backgroundColor: withAlpha(t.primary, 0.08),
+                          },
+                        ]}
+                      >
+                        <Icon name="add-outline" size={28} color={t.primary} />
+                        <Text style={[styles.addMoreText, { color: t.primary }]}>
+                          Add More
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </ScrollView>
+                </View>
               )}
             </Animated.View>
 
-            {/* ── Text input ── */}
-            <Animated.View entering={FadeInDown.delay(80).springify().damping(18)} style={styles.inputContainer}>
-              <BlurView intensity={isDark ? 45 : 25} tint={isDark ? 'dark' : 'light'} style={[styles.inputBlur, { backgroundColor: t.surface }]}>
+            <Animated.View
+              entering={FadeInDown.delay(80).springify().damping(18)}
+              style={styles.inputContainer}
+            >
+              <BlurView
+                intensity={isDark ? 45 : 25}
+                tint={isDark ? 'dark' : 'light'}
+                style={[styles.inputBlur, { backgroundColor: t.surface, borderColor: t.border }]}
+              >
+                <Text style={[styles.noteLabel, { color: t.primary }]}>
+                  NOTE
+                </Text>
+
                 <TextInput
                   ref={inputRef}
                   style={[styles.input, { color: t.text }]}
-                  placeholder="What happened? How did it feel?"
+                  placeholder="What do you want to remember about this moment?"
                   placeholderTextColor={withAlpha(t.text, 0.4)}
                   value={content}
                   onChangeText={setContent}
@@ -307,7 +636,10 @@ export default function AddMemoryScreen() {
                   autoFocus={false}
                   textAlignVertical="top"
                 />
-                <Text style={[styles.charCount, { color: withAlpha(t.subtext, 0.5) }]}>{content.length}/1000</Text>
+
+                <Text style={[styles.charCount, { color: withAlpha(t.subtext, 0.5) }]}>
+                  {content.length}/1000
+                </Text>
               </BlurView>
             </Animated.View>
           </ScrollView>
@@ -318,13 +650,23 @@ export default function AddMemoryScreen() {
 }
 
 const getShadow = (isDark) => Platform.select({
-  ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 20 },
+  ios: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: isDark ? 0.28 : 0.08,
+    shadowRadius: 22,
+  },
   android: { elevation: 6 },
 });
 
 const createStyles = (t, isDark) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.background },
-  safeArea: { flex: 1 },
+  container: {
+    flex: 1,
+    backgroundColor: t.background,
+  },
+  safeArea: {
+    flex: 1,
+  },
 
   navHeader: CLOSE_HEADER_STYLES.header,
   iconButton: CLOSE_HEADER_STYLES.closeButton,
@@ -336,6 +678,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     pointerEvents: 'none',
   },
   navTitle: CLOSE_HEADER_STYLES.title,
+
   saveButton: {
     borderRadius: 999,
     paddingHorizontal: 16,
@@ -358,71 +701,171 @@ const createStyles = (t, isDark) => StyleSheet.create({
     gap: 24,
   },
 
-  // ── Photo Drop-Zone ──
-  photoPlaceholderContainer: {
-    borderRadius: 24,
+  uploadCardContainer: {
+    borderRadius: 30,
     ...getShadow(isDark),
   },
-  photoPlaceholderBlur: {
-    borderRadius: 24,
+  uploadCard: {
+    borderRadius: 30,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: t.border,
-    paddingVertical: 46,
+    paddingVertical: 44,
+    paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     overflow: 'hidden',
   },
-  photoContainer: {
-    borderRadius: 24,
-    overflow: 'hidden',
-    position: 'relative',
-    ...getShadow(isDark),
-  },
-  photoPreview: {
-    width: '100%',
-    height: 240,
-    borderRadius: 24,
-  },
-  removePhotoBtn: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  uploadIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 18,
   },
-  photoPlaceholderText: {
+  uploadTitle: {
     fontFamily: SERIF_FONT,
-    fontSize: 18,
+    fontSize: 23,
+    lineHeight: 29,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  uploadBody: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  uploadPill: {
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  uploadPillText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+
+  mediaSection: {
+    marginHorizontal: -SPACING.screen,
+  },
+  mediaHeaderRow: {
+    paddingHorizontal: SPACING.screen,
+    marginBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  mediaEyebrow: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.6,
+  },
+  mediaCount: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
     fontWeight: '600',
     marginTop: 4,
   },
-  photoPlaceholderSub: {
+  clearButton: {
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  clearButtonText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  mediaCarouselContent: {
+    paddingHorizontal: SPACING.screen,
+    gap: 12,
+  },
+  mediaTile: {
+    width: SCREEN_W * 0.7,
+    height: 335,
+    borderRadius: 28,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: 'rgba(0,0,0,0.18)',
+    ...getShadow(isDark),
+  },
+  mediaTileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 28,
+  },
+  videoTileFallback: {
+    flex: 1,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.52)',
+    gap: 8,
+  },
+  videoTileText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    color: '#FFF',
+  },
+  removeMediaButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 31,
+    height: 31,
+    borderRadius: 15.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.58)',
+  },
+  addMoreTile: {
+    width: 128,
+    height: 335,
+    borderRadius: 28,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  addMoreText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    textAlign: 'center',
   },
 
-  // ── Text input ──
   inputContainer: {
-    borderRadius: 24,
+    borderRadius: 26,
     ...getShadow(isDark),
   },
   inputBlur: {
-    borderRadius: 24,
+    borderRadius: 26,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: t.border,
     padding: SPACING.xl,
     overflow: 'hidden',
+  },
+  noteLabel: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.6,
+    marginBottom: 12,
   },
   input: {
     fontFamily: SYSTEM_FONT,
     fontSize: 17,
     lineHeight: 25,
-    minHeight: 120,
+    minHeight: 126,
     textAlignVertical: 'top',
   },
   charCount: {
