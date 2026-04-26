@@ -1,8 +1,8 @@
 // screens/MemoryWallScreen.js
-// Shared photo/video wall — chronological masonry grid of all couple media.
+// Shared photo/video wall — newest-first masonry grid of all couple media.
 // Apple Editorial aesthetic — Velvet Glass palette, full-bleed lightbox on tap.
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import Icon from '../components/Icon';
@@ -32,18 +31,25 @@ import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import MediaLightbox from '../components/MediaLightbox';
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const { width: SCREEN_W } = Dimensions.get('window');
+
 const COL = 2;
 const GAP = 2;
 const THUMB_W = (SCREEN_W - GAP * (COL + 1)) / COL;
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
-function formatDate(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+function getSortTime(value) {
+  if (!value) return 0;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
+function getMediaKind(mimeType) {
+  if (mimeType?.startsWith('video/')) return 'video';
+  if (mimeType?.startsWith('image/')) return 'image';
+  return 'image';
 }
 
 export default function MemoryWallScreen() {
@@ -54,7 +60,7 @@ export default function MemoryWallScreen() {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [lightbox, setLightbox] = useState(null); // { uri, mimeType, caption, date }
+  const [lightbox, setLightbox] = useState(null);
 
   const t = {
     bg: colors.background,
@@ -68,39 +74,61 @@ export default function MemoryWallScreen() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      // Get both personal and shared memories
+
       const [personal, shared] = await Promise.all([
         DataLayer.getMemories({ limit: 500 }),
-        state.isLinked ? DataLayer.getSharedMemories({ limit: 500 }) : Promise.resolve([]),
+        state?.isLinked ? DataLayer.getSharedMemories({ limit: 500 }) : Promise.resolve([]),
       ]);
 
-      // Merge, dedup by id, filter to those with media_ref
-      const all = [...personal, ...shared];
+      const all = [...(personal || []), ...(shared || [])];
       const seen = new Set();
-      const withMedia = all.filter(m => {
-        if (!m.media_ref || seen.has(m.id)) return false;
-        seen.add(m.id);
+
+      const withMedia = all.filter((memory) => {
+        if (!memory?.id || !memory?.media_ref || seen.has(memory.id)) return false;
+        seen.add(memory.id);
         return true;
       });
 
-      // Sort newest first
-      withMedia.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      withMedia.sort((a, b) => getSortTime(b.created_at) - getSortTime(a.created_at));
 
-      // Resolve decrypted URIs in batches
       const resolved = await Promise.all(
-        withMedia.map(async (m) => {
+        withMedia.map(async (memory) => {
           try {
-            const kt = m.couple_id ? 'couple' : 'device';
-            const cid = kt === 'couple' ? m.couple_id : null;
-            const uri = await EncryptedAttachments.getDecryptedUri(m.media_ref, kt, cid);
-            const att = await (async () => {
-              try {
-                const { default: Database } = await import('../services/db/Database');
-                return await Database.getAttachmentById(m.media_ref);
-              } catch { return null; }
-            })();
-            const mime = att?.mime_type || 'image/jpeg';
-            return { id: m.id, uri, mime, caption: m.content || '', date: m.created_at, type: m.type };
+            const keyType = memory.couple_id ? 'couple' : 'device';
+            const coupleId = keyType === 'couple' ? memory.couple_id : null;
+            const uri = await EncryptedAttachments.getDecryptedUri(
+              memory.media_ref,
+              keyType,
+              coupleId
+            );
+
+            let attachment = null;
+
+            try {
+              const { default: Database } = await import('../services/db/Database');
+              attachment = await Database.getAttachmentById(memory.media_ref);
+            } catch {
+              attachment = null;
+            }
+
+            const mimeType = attachment?.mime_type || memory.mime_type || 'image/jpeg';
+            const kind = getMediaKind(mimeType);
+
+            return {
+              id: `memory-wall:${memory.id}`,
+              sourceId: memory.id,
+              uri,
+              mime: mimeType,
+              mimeType,
+              caption: memory.content || '',
+              date: memory.created_at || memory.date || null,
+              type: memory.type || 'memory',
+              media: {
+                uri,
+                mimeType,
+                kind,
+              },
+            };
           } catch {
             return null;
           }
@@ -108,14 +136,19 @@ export default function MemoryWallScreen() {
       );
 
       setItems(resolved.filter(Boolean));
-    } catch (err) {
-      if (__DEV__) console.warn('[MemoryWallScreen] load error:', err?.message);
+    } catch (error) {
+      if (__DEV__) console.warn('[MemoryWallScreen] load error:', error?.message);
+      setItems([]);
     } finally {
       setLoading(false);
     }
-  }, [state.isLinked]);
+  }, [state?.isLinked]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const openLightbox = useCallback((item) => {
     impact(ImpactFeedbackStyle.Medium);
@@ -127,8 +160,9 @@ export default function MemoryWallScreen() {
   }, []);
 
   const renderThumb = useCallback(({ item, index }) => {
-    const isVideo = item.mime?.startsWith('video/');
+    const isVideo = item.media?.kind === 'video' || item.mimeType?.startsWith('video/');
     const height = index % 3 === 0 ? THUMB_W * 1.3 : THUMB_W;
+
     return (
       <Animated.View entering={FadeIn.delay(index * 30).duration(300)}>
         <TouchableOpacity
@@ -136,22 +170,33 @@ export default function MemoryWallScreen() {
           activeOpacity={0.88}
           style={[styles.thumb, { width: THUMB_W, height }]}
         >
-          <Image
-            source={{ uri: item.uri }}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
-          />
+          {isVideo ? (
+            <View style={styles.videoPlaceholder}>
+              <Icon name="play-circle-outline" size={36} color="#fff" />
+              <Text style={styles.videoPlaceholderText}>Video</Text>
+            </View>
+          ) : (
+            <Image
+              source={{ uri: item.uri }}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
+          )}
+
           {isVideo && (
             <View style={styles.playBadge}>
               <Icon name="play-circle-outline" size={28} color="#fff" />
             </View>
           )}
+
           {item.caption ? (
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.55)']}
               style={styles.thumbGradient}
             >
-              <Text style={styles.thumbCaption} numberOfLines={2}>{item.caption}</Text>
+              <Text style={styles.thumbCaption} numberOfLines={2}>
+                {item.caption}
+              </Text>
             </LinearGradient>
           ) : null}
         </TouchableOpacity>
@@ -165,12 +210,12 @@ export default function MemoryWallScreen() {
     <View style={[styles.root, { backgroundColor: t.bg }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      {/* Header */}
       <SafeAreaView edges={['top']} style={{ backgroundColor: t.bg }}>
         <CloseScreenHeader
           title="Our Photos"
           subtitle="MEMORY WALL"
           titleColor={t.text}
+          subtitleColor={t.primary}
           closeColor={t.text}
           closeIcon="close"
           onClose={() => navigation.goBack()}
@@ -189,7 +234,6 @@ export default function MemoryWallScreen() {
         />
       </SafeAreaView>
 
-      {/* Grid */}
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={t.primary} />
@@ -197,13 +241,19 @@ export default function MemoryWallScreen() {
       ) : items.length === 0 ? (
         <Animated.View entering={FadeInDown.duration(400)} style={styles.empty}>
           <Icon name="images-outline" size={52} color={withAlpha(t.text, 0.25)} />
-          <Text style={[styles.emptyTitle, { color: t.text }]}>No photos yet</Text>
+
+          <Text style={[styles.emptyTitle, { color: t.text }]}>
+            No photos yet
+          </Text>
+
           <Text style={[styles.emptyBody, { color: t.subtext }]}>
             Tap the camera icon to send your partner a photo right now.
           </Text>
+
           <TouchableOpacity
             style={[styles.emptyBtn, { backgroundColor: t.primary }]}
             onPress={() => navigation.navigate('ThinkingOfYou')}
+            activeOpacity={0.85}
           >
             <Text style={styles.emptyBtnText}>Send a Photo</Text>
           </TouchableOpacity>
@@ -221,7 +271,6 @@ export default function MemoryWallScreen() {
         />
       )}
 
-      {/* FAB — send thinking-of-you photo */}
       {!loading && items.length > 0 && (
         <TouchableOpacity
           style={[styles.fab, { backgroundColor: t.primary, bottom: insets.bottom + 24 }]}
@@ -235,7 +284,6 @@ export default function MemoryWallScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Lightbox modal */}
       <Modal
         visible={!!lightbox}
         transparent
@@ -243,7 +291,11 @@ export default function MemoryWallScreen() {
         statusBarTranslucent
         onRequestClose={closeLightbox}
       >
-        <MediaLightbox item={lightbox} onClose={closeLightbox} showCloseButton={true} />
+        <MediaLightbox
+          item={lightbox}
+          onClose={closeLightbox}
+          showCloseButton
+        />
       </Modal>
     </View>
   );
@@ -269,6 +321,22 @@ const styles = StyleSheet.create({
   thumb: {
     overflow: 'hidden',
     backgroundColor: '#1c1c1e',
+  },
+  videoPlaceholder: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1c1c1e',
+    gap: 6,
+  },
+  videoPlaceholderText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#fff',
+    textTransform: 'uppercase',
+    opacity: 0.85,
   },
   playBadge: {
     ...StyleSheet.absoluteFillObject,

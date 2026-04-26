@@ -16,7 +16,6 @@ import {
   Animated as RNAnimated,
   Image,
   Modal,
-  Dimensions,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
@@ -42,7 +41,6 @@ import { NicknameEngine } from '../services/PolishEngine';
 
 const HEARTS_KEY = '@betweenus:moment_hearts';
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
@@ -60,10 +58,13 @@ const MEMORY_TYPE_META = {
 
 function formatDateLabel(value) {
   if (!value) return '';
+
   const date = typeof value === 'string' && value.length === 10
     ? new Date(`${value}T00:00:00`)
     : new Date(value);
+
   if (Number.isNaN(date.getTime())) return '';
+
   return date.toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -73,10 +74,13 @@ function formatDateLabel(value) {
 
 function getSortTime(item) {
   const raw = item.sortAt || item.created_at || item.date_key || item.date;
+
   if (!raw) return 0;
+
   const value = typeof raw === 'string' && raw.length === 10
     ? new Date(`${raw}T00:00:00`).getTime()
     : new Date(raw).getTime();
+
   return Number.isNaN(value) ? 0 : value;
 }
 
@@ -89,6 +93,7 @@ function getMediaKind(mimeType, uri) {
 async function resolveRowMedia(row) {
   const directUri = row.mediaUri || row.photo_uri || row.photoUri || null;
   const directMimeType = row.mediaType || row.mime_type || row.mimeType || null;
+
   if (directUri) {
     return {
       uri: directUri,
@@ -101,16 +106,26 @@ async function resolveRowMedia(row) {
   if (!mediaRef) return null;
 
   try {
-    const kt = row.couple_id ? 'couple' : 'device';
-    const cid = kt === 'couple' ? row.couple_id : null;
-    const uri = await EncryptedAttachments.getDecryptedUri(mediaRef, kt, cid);
+    const keyType = row.couple_id ? 'couple' : 'device';
+    const coupleId = keyType === 'couple' ? row.couple_id : null;
+    const uri = await EncryptedAttachments.getDecryptedUri(mediaRef, keyType, coupleId);
+
     let attachment = null;
+
     try {
       const { default: Database } = await import('../services/db/Database');
       attachment = await Database.getAttachmentById(mediaRef);
-    } catch {}
+    } catch {
+      attachment = null;
+    }
+
     const mimeType = attachment?.mime_type || directMimeType || 'image/jpeg';
-    return { uri, mimeType, kind: getMediaKind(mimeType, uri) };
+
+    return {
+      uri,
+      mimeType,
+      kind: getMediaKind(mimeType, uri),
+    };
   } catch {
     return null;
   }
@@ -118,6 +133,7 @@ async function resolveRowMedia(row) {
 
 function dedupeRows(rows) {
   const seen = new Set();
+
   return (rows || []).filter((row) => {
     if (!row?.id || seen.has(row.id)) return false;
     seen.add(row.id);
@@ -135,11 +151,13 @@ async function safeLoad(loader) {
 
 function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partner') {
   const prompt = getPromptById(row.prompt_id);
+
   const body = row.locked
     ? 'This reflection is locked on this device.'
     : (row.is_revealed && row.partnerAnswer
       ? `${myName}: ${row.answer || ''}\n\n${partnerName}: ${row.partnerAnswer}`.trim()
       : (row.answer || ''));
+
   return {
     id: `prompt:${row.id}`,
     kind: 'prompt',
@@ -159,6 +177,7 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
 function buildMemoryItem(row, media = null) {
   const memoryType = MEMORY_TYPE_META[row.type] || MEMORY_TYPE_META.moment;
   const isIntimacyFavorite = row.type === 'intimacy_favorite';
+
   return {
     id: `memory:${row.id}`,
     kind: 'memory',
@@ -178,28 +197,12 @@ function buildMemoryItem(row, media = null) {
   };
 }
 
-function buildJournalItem(row, media = null) {
-  return {
-    id: `journal:${row.id}`,
-    kind: 'journal',
-    sourceId: row.id,
-    title: row.locked ? 'Journal entry' : (row.title || 'Journal entry'),
-    body: row.locked ? 'This entry is locked on this device.' : (row.body || ''),
-    eyebrow: 'Journal',
-    icon: 'book-outline',
-    accent: '#D2121A',
-    meta: row.mood ? String(row.mood).toUpperCase() : 'Journal',
-    dateLabel: formatDateLabel(row.created_at || row.date),
-    sortAt: row.created_at || row.date,
-    rawDate: row.created_at || row.date || null,
-    media,
-  };
-}
-
 function buildDateItem(row) {
   const parts = [];
+
   if (row.minutes) parts.push(`${row.minutes} min`);
   if (row.location) parts.push(row.location === 'home' ? 'At home' : 'Out');
+
   const meta = parts.length ? parts.join(' • ') : 'Date night';
 
   return {
@@ -220,6 +223,7 @@ function buildDateItem(row) {
 
 function buildPositionTriedItem(row) {
   const label = row.commonName ? `${row.commonName}: ${row.title}` : row.title;
+
   return {
     id: `position-tried:${row.positionId}`,
     kind: 'position_tried',
@@ -244,10 +248,9 @@ export default function OurStoryScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lightbox, setLightbox] = useState(null);
-  const [hearts, setHearts] = useState({}); // itemId → { count: number, hearted: bool }
+  const [hearts, setHearts] = useState({});
   const scrollY = useRef(new RNAnimated.Value(0)).current;
 
-  // ─── THEME MAP (Original Colors, Glass Opacities) ───
   const t = useMemo(() => ({
     background: colors.background,
     surface: isDark ? 'rgba(28, 28, 30, 0.45)' : 'rgba(255, 255, 255, 0.65)',
@@ -257,11 +260,11 @@ export default function OurStoryScreen() {
     text: colors.text,
     subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.6)'),
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+    borderGlass: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
-  // ─── DATA LOADING ───
   const loadEntries = useCallback(async () => {
     try {
       const [
@@ -286,14 +289,22 @@ export default function OurStoryScreen() {
 
       const promptItems = dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
         .map((row) => buildPromptItem(row, null, myName, partnerName));
+
       const memoryItems = await Promise.all(
         dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
           .map(async (row) => buildMemoryItem(row, await resolveRowMedia(row)))
       );
-      const memoryIds = new Set(memoryItems.map((item) => item.sourceId).filter(Boolean));
+
+      const memoryIds = new Set(
+        memoryItems
+          .map((item) => item.sourceId)
+          .filter(Boolean)
+      );
+
       const dateItems = (dateHistory || [])
         .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
         .map((row) => buildDateItem(row));
+
       const triedPositionItems = Object.values(triedPositionHistory || {})
         .filter((row) => row?.positionId)
         .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
@@ -323,18 +334,20 @@ export default function OurStoryScreen() {
     }, [loadEntries])
   );
 
-  // ─── LOAD HEARTS FROM STORAGE ───
   useEffect(() => {
     storage.get(HEARTS_KEY, {}).then((saved) => {
-      if (saved && typeof saved === 'object') setHearts(saved);
+      if (saved && typeof saved === 'object') {
+        setHearts(saved);
+      }
     });
   }, []);
 
-  // ─── HEART TOGGLE ───
   const handleHeartToggle = useCallback(async (itemId) => {
     impact(ImpactFeedbackStyle.Light);
+
     setHearts((prev) => {
       const current = prev[itemId] || { count: 0, hearted: false };
+
       const updated = {
         ...prev,
         [itemId]: {
@@ -342,6 +355,7 @@ export default function OurStoryScreen() {
           hearted: !current.hearted,
         },
       };
+
       storage.set(HEARTS_KEY, updated);
       return updated;
     });
@@ -360,6 +374,7 @@ export default function OurStoryScreen() {
 
   const openLightbox = useCallback((item) => {
     if (!item?.media?.uri) return;
+
     impact(ImpactFeedbackStyle.Medium);
     setLightbox(item);
   }, []);
@@ -368,7 +383,6 @@ export default function OurStoryScreen() {
     setLightbox(null);
   }, []);
 
-  // ─── RENDERERS ───
   const renderItem = ({ item, index }) => {
     const heartState = hearts[item.id] || { count: 0, hearted: false };
     const isVideo = item.media?.kind === 'video' || item.media?.mimeType?.startsWith('video/');
@@ -378,65 +392,113 @@ export default function OurStoryScreen() {
         entering={FadeInDown.delay(index * 35).springify().damping(18)}
         style={styles.timelineRow}
       >
-        {/* Timeline spine + dot */}
         <View style={styles.timelineSpine}>
           <View style={[styles.timelineDot, { backgroundColor: item.accent }]} />
           <View style={[styles.timelineLine, { backgroundColor: t.border }]} />
         </View>
 
         <View style={[styles.cardContainer, styles.cardTimeline]}>
-          <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass, padding: 0 }, !isDark && styles.lightShadow]}>
-            <View style={{ paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl, paddingTop: SPACING.xl, width: '100%' }}>
-            <View style={styles.cardTopRow}>
-              <View style={styles.cardEyebrowRow}>
-                <Icon name={item.icon} size={14} color={item.accent} />
-                <Text style={[styles.cardEyebrow, { color: item.accent }]}>{item.eyebrow}</Text>
+          <View
+            style={[
+              styles.editorialCard,
+              styles.editorialCardColumn,
+              {
+                backgroundColor: t.surface,
+                borderColor: t.borderGlass,
+                padding: 0,
+              },
+              !isDark && styles.lightShadow,
+            ]}
+          >
+            <View style={styles.cardInner}>
+              <View style={styles.cardTopRow}>
+                <View style={styles.cardEyebrowRow}>
+                  <Icon name={item.icon} size={14} color={item.accent} />
+                  <Text
+                    style={[styles.cardEyebrow, { color: item.accent }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.78}
+                  >
+                    {item.eyebrow}
+                  </Text>
+                </View>
+
+                <Text style={styles.dateLabel} numberOfLines={1}>
+                  {item.dateLabel}
+                </Text>
               </View>
-              <Text style={styles.dateLabel}>{item.dateLabel}</Text>
-            </View>
 
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            {item.media?.uri ? (
-              <TouchableOpacity
-                activeOpacity={0.88}
-                onPress={() => openLightbox(item)}
-                style={styles.mediaButton}
-              >
-                {isVideo ? (
-                  <View style={[styles.videoPreview, { backgroundColor: withAlpha(item.accent, 0.1), borderColor: withAlpha(item.accent, 0.18) }]}>
-                    <Icon name="play-circle-outline" size={34} color={item.accent} />
-                    <Text style={[styles.videoPreviewText, { color: item.accent }]}>Video</Text>
-                  </View>
-                ) : (
-                  <Image source={{ uri: item.media.uri }} style={styles.storyImage} resizeMode="cover" />
-                )}
-              </TouchableOpacity>
-            ) : null}
-            <Text style={styles.cardBody}>{item.body || 'Nothing saved yet.'}</Text>
+              <Text style={styles.cardTitle}>
+                {item.title}
+              </Text>
 
-            <View style={styles.cardFooter}>
-              <Text style={[styles.cardMetaText, { color: t.subtext }]}>{item.meta}</Text>
-              <View style={styles.cardFooterRight}>
-                {/* Heart reaction */}
+              {item.media?.uri ? (
                 <TouchableOpacity
-                  onPress={() => handleHeartToggle(item.id)}
-                  hitSlop={12}
-                  style={styles.heartButton}
+                  activeOpacity={0.88}
+                  onPress={() => openLightbox(item)}
+                  style={styles.mediaButton}
                 >
-                  <Icon
-                    name="heart-outline"
-                    size={18}
-                    color={heartState.hearted ? t.primary : t.subtext}
-                  />
-                  {heartState.count > 0 && (
-                    <Text style={[styles.heartCount, { color: heartState.hearted ? t.primary : t.subtext }]}>
-                      {heartState.count}
-                    </Text>
+                  {isVideo ? (
+                    <View
+                      style={[
+                        styles.videoPreview,
+                        {
+                          backgroundColor: withAlpha(item.accent, 0.1),
+                          borderColor: withAlpha(item.accent, 0.18),
+                        },
+                      ]}
+                    >
+                      <Icon name="play-circle-outline" size={34} color={item.accent} />
+                      <Text style={[styles.videoPreviewText, { color: item.accent }]}>
+                        Video
+                      </Text>
+                    </View>
+                  ) : (
+                    <Image
+                      source={{ uri: item.media.uri }}
+                      style={styles.storyImage}
+                      resizeMode="cover"
+                    />
                   )}
                 </TouchableOpacity>
+              ) : null}
+
+              <Text style={styles.cardBody}>
+                {item.body || 'Nothing saved yet.'}
+              </Text>
+
+              <View style={styles.cardFooter}>
+                <Text style={[styles.cardMetaText, { color: t.subtext }]} numberOfLines={1}>
+                  {item.meta}
+                </Text>
+
+                <View style={styles.cardFooterRight}>
+                  <TouchableOpacity
+                    onPress={() => handleHeartToggle(item.id)}
+                    hitSlop={12}
+                    style={styles.heartButton}
+                  >
+                    <Icon
+                      name="heart-outline"
+                      size={18}
+                      color={heartState.hearted ? t.primary : t.subtext}
+                    />
+
+                    {heartState.count > 0 && (
+                      <Text
+                        style={[
+                          styles.heartCount,
+                          { color: heartState.hearted ? t.primary : t.subtext },
+                        ]}
+                      >
+                        {heartState.count}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
           </View>
         </View>
       </ReAnimated.View>
@@ -458,7 +520,11 @@ export default function OurStoryScreen() {
       <View style={[styles.emptyIconCircle, { borderColor: t.border, backgroundColor: t.surface }]}>
         <Icon name="archive-outline" size={42} color={t.primary} />
       </View>
-      <Text style={[styles.emptyTitle, { color: t.text }]}>Your story begins here</Text>
+
+      <Text style={[styles.emptyTitle, { color: t.text }]}>
+        Your story begins here
+      </Text>
+
       <Text style={styles.emptyBody}>
         Prompts, memories, photos, dates, and moments will collect here as you build your story together.
       </Text>
@@ -468,7 +534,9 @@ export default function OurStoryScreen() {
   const LoadingState = (
     <View style={styles.loadingState}>
       <ActivityIndicator size="small" color={t.primary} />
-      <Text style={styles.loadingText}>Gathering your story...</Text>
+      <Text style={styles.loadingText}>
+        Gathering your story...
+      </Text>
     </View>
   );
 
@@ -480,47 +548,62 @@ export default function OurStoryScreen() {
       scroll={false}
       onBack={handleBack}
     >
-        <RNAnimated.FlatList
-          data={entries}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          ListHeaderComponent={ListHeader}
-          ListEmptyComponent={loading ? LoadingState : EmptyState}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          onScroll={RNAnimated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
-          )}
-          scrollEventThrottle={16}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.primary} />}
+      <RNAnimated.FlatList
+        data={entries}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={loading ? LoadingState : EmptyState}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        onScroll={RNAnimated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+        refreshControl={(
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={t.primary}
+          />
+        )}
+      />
+
+      <TouchableOpacity
+        style={styles.fabContainer}
+        onPress={() => navigation.navigate('AddMemory', { autoLaunchCamera: true })}
+        activeOpacity={0.85}
+      >
+        <BlurView
+          intensity={70}
+          tint={isDark ? 'dark' : 'light'}
+          style={[
+            styles.fabBlur,
+            { backgroundColor: withAlpha(t.primary, 0.8) },
+          ]}
+        >
+          <Icon name="camera" size={26} color="#FFF" />
+        </BlurView>
+      </TouchableOpacity>
+
+      <Modal
+        visible={!!lightbox}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeLightbox}
+      >
+        <MediaLightbox
+          item={lightbox}
+          onClose={closeLightbox}
+          showCloseButton={false}
         />
-
-        {/* Camera FAB for adding photos/videos */}
-        <TouchableOpacity
-          style={styles.fabContainer}
-          onPress={() => navigation.navigate('AddMemory', { autoLaunchCamera: true })}
-          activeOpacity={0.85}
-        >
-          <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={[styles.fabBlur, { backgroundColor: withAlpha(t.primary, 0.8) }]}>
-            <Icon name="camera" size={26} color="#FFF" />
-          </BlurView>
-        </TouchableOpacity>
-
-        <Modal
-          visible={!!lightbox}
-          transparent
-          animationType="fade"
-          statusBarTranslucent
-          onRequestClose={closeLightbox}
-        >
-          <MediaLightbox item={lightbox} onClose={closeLightbox} showCloseButton={false} />
-        </Modal>
+      </Modal>
     </EditorialScreenScaffold>
   );
 }
 
-// ─── HIGH-END DESIGN SYSTEM STYLES ───
 const createStyles = (t, isDark) => StyleSheet.create({
   editorialCard: {
     borderRadius: 28,
@@ -556,7 +639,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
     height: 56,
     borderRadius: 28,
     ...Platform.select({
-      ios: { shadowColor: t.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 16 },
+      ios: {
+        shadowColor: t.primary,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 16,
+      },
       android: { elevation: 8 },
     }),
   },
@@ -569,7 +657,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(255,255,255,0.2)',
   },
-  
+
   // ── Header Intro ──
   headerIntroContainer: {
     paddingHorizontal: SPACING.screen,
@@ -588,28 +676,28 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderRadius: 24,
     marginBottom: SPACING.lg,
   },
-  cardBlur: {
-    borderRadius: 24,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: t.border,
-    padding: SPACING.xl,
-    overflow: 'hidden',
-    backgroundColor: t.surface,
+  cardInner: {
+    paddingHorizontal: SPACING.xl,
+    paddingBottom: SPACING.xl,
+    paddingTop: SPACING.xl,
+    width: '100%',
   },
   cardTopRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 10,
     marginBottom: SPACING.md,
   },
   cardEyebrowRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    flexShrink: 1,
+    flex: 1,
+    minWidth: 0,
   },
   cardEyebrow: {
+    flexShrink: 1,
     fontFamily: SYSTEM_FONT,
     fontSize: 11,
     fontWeight: '800',
@@ -618,9 +706,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   dateLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: t.subtext,
+    flexShrink: 0,
   },
   cardTitle: {
     fontFamily: SERIF_FONT,
@@ -634,7 +723,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 16,
     lineHeight: 24,
-    color: t.subtext, // Softened from primary text for better hierarchy
+    color: t.subtext,
   },
   mediaButton: {
     width: '100%',
@@ -667,13 +756,14 @@ const createStyles = (t, isDark) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: SPACING.lg,
+    gap: 12,
   },
   cardMetaText: {
+    flex: 1,
     fontFamily: SYSTEM_FONT,
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
-    flexShrink: 1,
   },
 
   // ── Empty / Loading States ──
@@ -748,6 +838,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    flexShrink: 0,
   },
   heartButton: {
     flexDirection: 'row',
