@@ -239,7 +239,7 @@ export default function CouplesQuizScreen({ navigation }) {
       <EditorialScreenScaffold
         navigation={navigation}
         headerTitle="Daily Quiz"
-        headerSubtitle="DAILY QUIZ"
+        headerSubtitle="KNOW YOUR PARTNER?"
         scroll={false}
         onBack={handleBack}
       >
@@ -253,8 +253,8 @@ export default function CouplesQuizScreen({ navigation }) {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="How Well Do You Know Them?"
-      headerSubtitle="DAILY QUIZ"
+      headerTitle="Daily Quiz"
+      headerSubtitle="KNOW YOUR PARTNER?"
       scroll={false}
       onBack={handleBack}
       keyboardAvoiding
@@ -267,7 +267,7 @@ export default function CouplesQuizScreen({ navigation }) {
         >
             {/* Category badge */}
             <Animated.View entering={FadeIn.duration(800).delay(400)} style={styles.badgeRow}>
-              <View style={[styles.categoryBadge, { borderColor: withAlpha(accentColor, 0.3), backgroundColor: withAlpha(accentColor, 0.08) }]}>
+              <View style={styles.categoryBadge}>
                 <Icon name={question.icon || 'sparkles-outline'} size={12} color={accentColor} />
                 <Text style={[styles.categoryLabel, { color: accentColor }]}>
                   {(question.category || 'about them').toUpperCase()}
@@ -275,133 +275,130 @@ export default function CouplesQuizScreen({ navigation }) {
               </View>
             </Animated.View>
 
-            {/* Question card */}
-            <Animated.View entering={FadeInDown.duration(800).delay(600)} style={[styles.questionCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-              <Text style={[styles.questionText, { color: t.text }]}>{questionText}</Text>
-              <View style={styles.questionFooter}>
-                <Icon name="people-outline" size={14} color={t.subtext} />
-                <Text style={[styles.questionHint, { color: t.subtext }]}>
-                  Both answer — then reveal and see how close you were
-                </Text>
+            <Animated.View entering={FadeInDown.duration(800).delay(600)} style={[styles.mainContainer, { backgroundColor: '#111111', borderColor: t.border }]}>
+              
+              {/* Question card */}
+              <View style={[styles.questionCard, { backgroundColor: t.surfaceSecondary }]}>
+                <Text style={[styles.questionText, { color: t.text, marginBottom: 0 }]}>{questionText}</Text>
               </View>
-            </Animated.View>
 
-            {/* ── Phase A: Input (not yet submitted) ── */}
-            {!hasSubmitted && (
-              <Animated.View entering={FadeInUp.duration(600).delay(800)} style={styles.inputSection}>
-                <Text style={[styles.inputLabel, { color: t.subtext }]}>YOUR GUESS ABOUT {partnerName.toUpperCase()}</Text>
-                <View style={[styles.inputCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-                  <TextInput
-                    ref={inputRef}
-                    style={[styles.textInput, { color: t.text }]}
-                    placeholder={`What do you think ${partnerName} would say…`}
-                    placeholderTextColor={t.subtext}
-                    value={myAnswer}
-                    onChangeText={setMyAnswer}
-                    multiline
-                    maxLength={400}
-                    selectionColor={accentColor}
-                    autoFocus={false}
-                  />
-                </View>
-                <TouchableOpacity
-                  onPress={handleSubmit}
-                  disabled={!myAnswer.trim() || isSaving}
-                  activeOpacity={0.85}
-                  style={[styles.submitBtn, { marginTop: SPACING.md, opacity: myAnswer.trim() ? 1 : 0.4, backgroundColor: t.text }]}
-                >
-                  <Text style={[styles.submitBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
-                    {isSaving ? 'Locking in…' : 'Lock In My Answer'}
-                  </Text>
-                  {myAnswer.trim() && <Icon name="lock-closed-outline" size={16} color={isDark ? '#000000' : '#FFFFFF'} />}
-                </TouchableOpacity>
-                <Text style={[styles.helperText, { color: t.subtext }]}>
-                  {partnerName}'s answer is hidden until you both submit
-                </Text>
-              </Animated.View>
-            )}
-
-            {/* ── Phase B: Waiting / Reveal ── */}
-            {hasSubmitted && (
-              <Animated.View entering={FadeInUp.duration(600)} style={styles.waitSection}>
-
-                {/* Your locked answer */}
-                <View style={styles.lockedCard}>
-                  <View style={styles.lockedCardHeader}>
-                    <Icon name="lock-closed" size={14} color={t.primary} />
-                    <Text style={styles.lockedCardLabel}>YOUR GUESS</Text>
+              {/* ── Phase A: Input (not yet submitted) ── */}
+              {!hasSubmitted && (
+                <View style={styles.inputSection}>
+                  <Text style={[styles.inputLabel, { color: t.subtext }]}>YOUR GUESS ABOUT {partnerName.toUpperCase()}</Text>
+                  <View style={[styles.inputCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                    <TextInput
+                      ref={inputRef}
+                      style={[styles.textInput, { color: t.text }]}
+                      placeholder={`What do you think ${partnerName} would say…`}
+                      placeholderTextColor={t.subtext}
+                      value={myAnswer}
+                      onChangeText={setMyAnswer}
+                      multiline
+                      maxLength={400}
+                      selectionColor={accentColor}
+                      autoFocus={false}
+                    />
                   </View>
-                  <Text style={styles.lockedAnswer}>{myAnswer}</Text>
-                </View>
-
-                {/* Partner status */}
-                <View style={[styles.partnerStatusCard, { borderColor: partnerHasSubmitted ? accentColor + '55' : t.border }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <View style={[styles.statusDot, { backgroundColor: partnerHasSubmitted ? '#34C759' : '#FF9F0A' }]} />
-                    <Text style={styles.partnerStatusText}>
-                      {partnerHasSubmitted
-                        ? `${partnerName} answered`
-                        : `Waiting for ${partnerName}…`}
+                  <TouchableOpacity
+                    onPress={handleSubmit}
+                    disabled={!myAnswer.trim() || isSaving}
+                    activeOpacity={0.85}
+                    style={[styles.submitBtn, { opacity: myAnswer.trim() ? 1 : 0.4, backgroundColor: t.text }]}
+                  >
+                    <Text style={[styles.submitBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
+                      {isSaving ? 'Locking in…' : 'Lock In My Answer'}
                     </Text>
-                    {partnerHasSubmitted && <Icon name="checkmark-circle" size={18} color="#34C759" />}
-                  </View>
-                  {!partnerHasSubmitted && (
-                    <Text style={styles.partnerStatusHint}>
-                      Their answer is locked — the reveal happens when you're both in.
-                    </Text>
-                  )}
-                </View>
-
-                {/* Reveal button */}
-                <TouchableOpacity
-                  onPress={handleReveal}
-                  activeOpacity={0.85}
-                  style={[
-                    styles.revealBtn,
-                    {
-                      marginTop: SPACING.md,
-                      backgroundColor: partnerHasSubmitted ? t.primary : t.surface,
-                      borderWidth: partnerHasSubmitted ? 0 : 1,
-                      borderColor: t.border,
-                    },
-                  ]}
-                >
-                  <Icon
-                    name={partnerHasSubmitted ? 'eye-outline' : 'time-outline'}
-                    size={18}
-                    color={partnerHasSubmitted ? '#FFF' : t.subtext}
-                  />
-                  <Text style={[styles.revealBtnText, !partnerHasSubmitted && { color: t.subtext }]}>
-                    {partnerHasSubmitted ? 'Reveal Both Answers' : `Waiting for ${partnerName}…`}
+                    {myAnswer.trim() && <Icon name="lock-closed-outline" size={16} color={isDark ? '#000000' : '#FFFFFF'} />}
+                  </TouchableOpacity>
+                  <Text style={[styles.helperText, { color: t.subtext }]}>
+                    {partnerName}'s answer is hidden until you both submit
                   </Text>
-                </TouchableOpacity>
+                </View>
+              )}
 
-                {/* ── Reveal panel ── */}
-                {isRevealed && (
-                  <Animated.View style={[styles.revealPanel, revealStyle]}>
-                    <View style={styles.revealPanelInner}>
-                      <Text style={styles.revealPanelTitle}>The Big Reveal</Text>
+              {/* ── Phase B: Waiting / Reveal ── */}
+              {hasSubmitted && (
+                <View style={styles.waitSection}>
 
-                      <View style={styles.revealRow}>
-                        <View style={[styles.revealCard, { borderColor: accentColor + '44' }]}>
-                          <Text style={styles.revealCardOwner}>You guessed</Text>
-                          <Text style={styles.revealCardAnswer}>{myAnswer}</Text>
-                        </View>
-                        <View style={[styles.revealCard, { borderColor: t.primary + '44' }]}>
-                          <Text style={[styles.revealCardOwner, { color: t.primary }]}>{partnerName} said</Text>
-                          <Text style={styles.revealCardAnswer}>{partnerAnswer || '…'}</Text>
-                        </View>
-                      </View>
-
-                      <Text style={styles.revealCta}>
-                        How close were you? Talk about it tonight.
-                      </Text>
+                  {/* Your locked answer */}
+                  <View style={styles.lockedCard}>
+                    <View style={styles.lockedCardHeader}>
+                      <Icon name="lock-closed" size={14} color={t.primary} />
+                      <Text style={styles.lockedCardLabel}>YOUR GUESS</Text>
                     </View>
-                  </Animated.View>
-                )}
+                    <Text style={styles.lockedAnswer}>{myAnswer}</Text>
+                  </View>
 
-              </Animated.View>
-            )}
+                  {/* Partner status */}
+                  <View style={[styles.partnerStatusCard, { borderColor: partnerHasSubmitted ? accentColor + '55' : t.border }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                      <View style={[styles.statusDot, { backgroundColor: partnerHasSubmitted ? '#34C759' : '#FF9F0A' }]} />
+                      <Text style={styles.partnerStatusText}>
+                        {partnerHasSubmitted
+                          ? `${partnerName} answered`
+                          : `Waiting for ${partnerName}…`}
+                      </Text>
+                      {partnerHasSubmitted && <Icon name="checkmark-circle" size={18} color="#34C759" />}
+                    </View>
+                    {!partnerHasSubmitted && (
+                      <Text style={styles.partnerStatusHint}>
+                        Their answer is locked — the reveal happens when you're both in.
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* Reveal button */}
+                  <TouchableOpacity
+                    onPress={handleReveal}
+                    activeOpacity={0.85}
+                    style={[
+                      styles.revealBtn,
+                      {
+                        marginTop: SPACING.md,
+                        backgroundColor: partnerHasSubmitted ? t.primary : t.surface,
+                        borderWidth: partnerHasSubmitted ? 0 : 1,
+                        borderColor: t.border,
+                      },
+                    ]}
+                  >
+                    <Icon
+                      name={partnerHasSubmitted ? 'eye-outline' : 'time-outline'}
+                      size={18}
+                      color={partnerHasSubmitted ? '#FFF' : t.subtext}
+                    />
+                    <Text style={[styles.revealBtnText, !partnerHasSubmitted && { color: t.subtext }]}>
+                      {partnerHasSubmitted ? 'Reveal Both Answers' : `Waiting for ${partnerName}…`}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* ── Reveal panel ── */}
+                  {isRevealed && (
+                    <Animated.View style={[styles.revealPanel, revealStyle]}>
+                      <View style={styles.revealPanelInner}>
+                        <Text style={styles.revealPanelTitle}>The Big Reveal</Text>
+
+                        <View style={styles.revealRow}>
+                          <View style={[styles.revealCard, { borderColor: accentColor + '44' }]}>
+                            <Text style={styles.revealCardOwner}>You guessed</Text>
+                            <Text style={styles.revealCardAnswer}>{myAnswer}</Text>
+                          </View>
+                          <View style={[styles.revealCard, { borderColor: t.primary + '44' }]}>
+                            <Text style={[styles.revealCardOwner, { color: t.primary }]}>{partnerName} said</Text>
+                            <Text style={styles.revealCardAnswer}>{partnerAnswer || '…'}</Text>
+                          </View>
+                        </View>
+
+                        <Text style={styles.revealCta}>
+                          How close were you? Talk about it tonight.
+                        </Text>
+                      </View>
+                    </Animated.View>
+                  )}
+
+                </View>
+              )}
+            </Animated.View>
 
             <View style={{ height: 60 }} />
           </ScrollView>
@@ -416,17 +413,16 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Category Badge ──
   badgeRow: {
-    paddingHorizontal: SPACING.screen,
-    marginBottom: SPACING.lg,
+    paddingHorizontal: 2,
+    marginBottom: SPACING.xl,
   },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 14,
+    paddingHorizontal: 0,
     paddingVertical: 8,
     borderRadius: 100,
-    borderWidth: 1,
     gap: 6,
   },
   categoryLabel: {
@@ -436,18 +432,28 @@ const createStyles = (t, isDark) => StyleSheet.create({
     letterSpacing: 1.5,
   },
 
-  // ── Question Card ──
-  questionCard: {
-    marginHorizontal: SPACING.screen,
-    borderRadius: 28,
-    borderWidth: 1,
-    padding: SPACING.xl,
-    marginBottom: SPACING.lg,
+  // ── Main Container ──
+  mainContainer: {
+    marginHorizontal: 2,
+    borderRadius: 36,
+    borderWidth: 2,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.xxxl,
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
-      android: { elevation: 4 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.15, shadowRadius: 20 },
+      android: { elevation: 6 },
     }),
+  },
+
+  // ── Question Card ──
+  questionCard: {
+    marginHorizontal: SPACING.xl,
+    borderRadius: 24,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xl,
+    marginBottom: SPACING.xxxl,
+    overflow: 'hidden',
   },
   questionText: {
     fontFamily: SYSTEM_FONT,
@@ -473,8 +479,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Input Phase ──
   inputSection: {
-    paddingHorizontal: SPACING.screen,
-    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.xl,
   },
   inputLabel: {
     fontFamily: SYSTEM_FONT,
@@ -482,15 +487,16 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   inputCard: {
     borderRadius: 28,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: t.border,
     backgroundColor: t.surface,
     minHeight: 120,
     overflow: 'hidden',
+    marginBottom: SPACING.xl,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
       android: { elevation: 4 },
@@ -528,13 +534,13 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Submitted / Wait Phase ──
   waitSection: { 
-    paddingHorizontal: SPACING.screen,
+    paddingHorizontal: SPACING.xl,
     gap: SPACING.md,
   },
 
   lockedCard: {
     borderRadius: 28,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: t.border,
     backgroundColor: t.surface,
     padding: SPACING.xl,
@@ -567,7 +573,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   partnerStatusCard: {
     borderRadius: 28,
-    borderWidth: 1,
+    borderWidth: 2,
     backgroundColor: t.surface,
     padding: SPACING.xl,
     gap: SPACING.sm,
@@ -616,7 +622,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   revealPanelInner: {
     borderRadius: 28,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: t.border,
     backgroundColor: t.surface,
     padding: SPACING.xl,
@@ -642,7 +648,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
   revealCard: {
     flex: 1,
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: 2,
     backgroundColor: t.surfaceSecondary,
     padding: SPACING.md,
     gap: 8,
