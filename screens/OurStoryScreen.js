@@ -34,6 +34,7 @@ import { getPromptById } from '../utils/contentLoader';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { storage } from '../utils/storage';
+import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDateHistory } from '../utils/dateHistory';
@@ -132,12 +133,12 @@ async function safeLoad(loader) {
   }
 }
 
-function buildPromptItem(row, media = null) {
+function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partner') {
   const prompt = getPromptById(row.prompt_id);
   const body = row.locked
     ? 'This reflection is locked on this device.'
     : (row.is_revealed && row.partnerAnswer
-      ? `You: ${row.answer || ''}\n\nPartner: ${row.partnerAnswer}`.trim()
+      ? `${myName}: ${row.answer || ''}\n\n${partnerName}: ${row.partnerAnswer}`.trim()
       : (row.answer || ''));
   return {
     id: `prompt:${row.id}`,
@@ -536,14 +537,6 @@ export default function OurStoryScreen() {
                 <Text style={styles.lightboxDate}>{lightbox.dateLabel}</Text>
               </BlurView>
             ) : null}
-
-            <View style={styles.lightboxClose}>
-              <TouchableOpacity onPress={closeLightbox} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                <BlurView intensity={50} tint="dark" style={styles.closeBtn}>
-                  <Icon name="close-outline" size={22} color="#fff" />
-                </BlurView>
-              </TouchableOpacity>
-            </View>
           </View>
         </Modal>
     </EditorialScreenScaffold>
@@ -822,18 +815,5 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 13,
     color: 'rgba(255,255,255,0.62)',
-  },
-  lightboxClose: {
-    position: 'absolute',
-    top: 18,
-    right: 18,
-  },
-  closeBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
   },
 });
