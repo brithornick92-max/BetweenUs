@@ -38,6 +38,7 @@ import MediaLightbox from '../components/MediaLightbox';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDateHistory } from '../utils/dateHistory';
 import { getIntimacyTried } from '../utils/intimacyFavorites';
+import { NicknameEngine } from '../services/PolishEngine';
 
 const HEARTS_KEY = '@betweenus:moment_hearts';
 
@@ -270,6 +271,8 @@ export default function OurStoryScreen() {
         personalMemories,
         dateHistory,
         triedPositionHistory,
+        myName,
+        partnerName,
       ] = await Promise.all([
         safeLoad(() => DataLayer.getSharedPromptAnswers({ limit: 200 })),
         safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
@@ -277,10 +280,12 @@ export default function OurStoryScreen() {
         safeLoad(() => DataLayer.getMemories({ limit: 200 })),
         safeLoad(() => getDateHistory(AsyncStorage)),
         safeLoad(() => getIntimacyTried()),
+        NicknameEngine.getMyName('You'),
+        NicknameEngine.getPartnerName('Partner'),
       ]);
 
       const promptItems = dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
-        .map((row) => buildPromptItem(row));
+        .map((row) => buildPromptItem(row, null, myName, partnerName));
       const memoryItems = await Promise.all(
         dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
           .map(async (row) => buildMemoryItem(row, await resolveRowMedia(row)))
