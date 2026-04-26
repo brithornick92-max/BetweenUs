@@ -2,7 +2,7 @@
 // Capture a shared memory with optional photo attachment.
 // Apple Editorial aesthetic — Velvet Glass Materials + Original Palette.
 
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -113,12 +113,18 @@ export default function AddMemoryScreen() {
         quality: 0.85,
         allowsEditing: true,
         aspect: [4, 3],
+        videoMaxDuration: 180, // 3 minutes max
       });
 
       if (!result.canceled && result.assets?.[0]) {
         const asset = result.assets[0];
         if (asset.fileSize && asset.fileSize > 50_000_000) {
           Alert.alert('File Too Large', 'Please choose a file under 50 MB.');
+          return;
+        }
+        // Check video duration (3 minutes = 180 seconds)
+        if (asset.type === 'video' && asset.duration && asset.duration > 180000) {
+          Alert.alert('Video Too Long', 'Please choose a video under 3 minutes.');
           return;
         }
         setMedia({
@@ -148,10 +154,16 @@ export default function AddMemoryScreen() {
         quality: 0.85,
         allowsEditing: true,
         aspect: [4, 3],
+        videoMaxDuration: 180, // 3 minutes max
       });
 
       if (!result.canceled && result.assets?.[0]) {
         const asset = result.assets[0];
+        // Check video duration (3 minutes = 180 seconds)
+        if (asset.type === 'video' && asset.duration && asset.duration > 180000) {
+          Alert.alert('Video Too Long', 'Please choose a video under 3 minutes.');
+          return;
+        }
         setMedia({
           uri: asset.uri,
           type: asset.type,
@@ -293,7 +305,7 @@ export default function AddMemoryScreen() {
                     <Icon name="camera-outline" size={32} color={t.text} />
                     <Text style={[styles.photoPlaceholderText, { color: t.text }]}>Add a Photo or Video</Text>
                     <Text style={[styles.photoPlaceholderSub, { color: t.subtext }]}>
-                      Optional · protected in your account
+                      Videos under 3 min · protected in your account
                     </Text>
                   </BlurView>
                 </TouchableOpacity>

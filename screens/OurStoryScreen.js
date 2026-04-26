@@ -284,7 +284,7 @@ export default function OurStoryScreen() {
         .map((row) => buildPromptItem(row));
       const memoryItems = await Promise.all(
         dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
-          .map(async (row) => buildMemoryItem(row, null)) // we skip media display
+          .map(async (row) => buildMemoryItem(row, await resolveRowMedia(row)))
       );
       const memoryIds = new Set(memoryItems.map((item) => item.sourceId).filter(Boolean));
       const dateItems = (dateHistory || [])
@@ -472,7 +472,7 @@ export default function OurStoryScreen() {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Everything Together"
+      headerTitle="Keepsake"
       headerSubtitle="OUR STORY"
       scroll={false}
       onBack={handleBack}
@@ -493,26 +493,16 @@ export default function OurStoryScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.primary} />}
         />
 
-        <View style={styles.fabWrapper}>
-          <TouchableOpacity
-            style={styles.fabContainer}
-            onPress={() => navigation.navigate('AddMemory')}
-            activeOpacity={0.85}
-          >
-            <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={[styles.fabBlur, { backgroundColor: withAlpha(t.primary, 0.8) }]}>
-              <Icon name="add" size={26} color="#FFF" />
-            </BlurView>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.fabContainer, { bottom: 100 }]}
-            onPress={() => navigation.navigate('AddMemory', { autoLaunchCamera: true })}
-            activeOpacity={0.85}
-          >
-            <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={[styles.fabBlur, { backgroundColor: withAlpha(t.primary, 0.8) }]}>
-              <Icon name="camera" size={26} color="#FFF" />
-            </BlurView>
-          </TouchableOpacity>
-        </View>
+        {/* Camera FAB for adding photos/videos */}
+        <TouchableOpacity
+          style={styles.fabContainer}
+          onPress={() => navigation.navigate('AddMemory', { autoLaunchCamera: true })}
+          activeOpacity={0.85}
+        >
+          <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={[styles.fabBlur, { backgroundColor: withAlpha(t.primary, 0.8) }]}>
+            <Icon name="camera" size={26} color="#FFF" />
+          </BlurView>
+        </TouchableOpacity>
 
         <Modal
           visible={!!lightbox}
@@ -589,15 +579,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
 
   // ── Floating Action Button ──
-  fabWrapper: {
+  fabContainer: {
     position: 'absolute',
     right: SPACING.screen,
     bottom: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fabContainer: {
-    position: 'absolute',
     width: 56,
     height: 56,
     borderRadius: 28,
