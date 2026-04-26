@@ -1,5 +1,5 @@
 // screens/AddMemoryScreen.js
-// Capture a shared memory with optional photo attachment.
+// Capture a shared snapshot with optional photo attachment.
 // Apple Editorial aesthetic — Velvet Glass Materials + Original Palette.
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
@@ -37,24 +37,6 @@ const { width: SCREEN_W } = require('react-native').Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
-const MEMORY_TYPES = [
-  { id: 'moment',      label: 'Moment',      icon: 'star-outline' },
-  { id: 'first',       label: 'A First',     icon: 'star-outline' },
-  { id: 'anniversary', label: 'Anniversary', icon: 'heart-outline' },
-  { id: 'milestone',   label: 'Milestone',   icon: 'ribbon-outline' },
-  { id: 'inside_joke', label: 'Inside Joke', icon: 'happy-outline' },
-];
-
-const MOODS = [
-  { id: 'love',      icon: 'heart-outline',        label: 'Love' },
-  { id: 'happy',     icon: 'happy-outline',        label: 'Happy' },
-  { id: 'passionate',icon: 'flame-outline',         label: 'Passionate' },
-  { id: 'playful',   icon: 'game-controller-outline', label: 'Playful' },
-  { id: 'tender',    icon: 'rose-outline',          label: 'Tender' },
-  { id: 'calm',      icon: 'moon-outline',          label: 'Calm' },
-  { id: 'grateful',  icon: 'sparkles-outline',      label: 'Grateful' },
-];
-
 export default function AddMemoryScreen() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -77,8 +59,6 @@ export default function AddMemoryScreen() {
   }, [route.params]);
 
   const [content, setContent] = useState(promptRevealDraft.content);
-  const [selectedType, setSelectedType] = useState(promptRevealDraft.type);
-  const [selectedMood, setSelectedMood] = useState(null);
   const [media, setMedia] = useState(null); // { uri, type, mimeType }
   const [saving, setSaving] = useState(false);
 
@@ -208,8 +188,8 @@ export default function AddMemoryScreen() {
     try {
       await DataLayer.saveMemory({
         content: trimmed || '',
-        type: selectedType,
-        mood: selectedMood,
+        type: 'moment',
+        mood: null,
         isPrivate: false,
         mediaUri: media?.uri || undefined,
         mimeType: media?.mimeType || undefined,
@@ -223,7 +203,7 @@ export default function AddMemoryScreen() {
       if (__DEV__) console.warn('[AddMemory] Save failed:', err?.message);
       Alert.alert('Error', 'Could not save your memory. Please try again.');
     }
-  }, [content, media, navigation, selectedMood, selectedType]);
+  }, [content, media, navigation]);
 
   const canSave = (content.trim().length > 0 || !!media) && !saving;
 
@@ -244,8 +224,8 @@ export default function AddMemoryScreen() {
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <CloseScreenHeader
-          title="New Memory"
-          subtitle="PRIVATE ARCHIVE"
+          title="New Snapshot"
+          subtitle="CAPTURE THE MOMENT"
           titleColor={t.text}
           closeColor={t.text}
           onClose={() => navigation.goBack()}
@@ -329,65 +309,6 @@ export default function AddMemoryScreen() {
                 />
                 <Text style={[styles.charCount, { color: withAlpha(t.subtext, 0.5) }]}>{content.length}/1000</Text>
               </BlurView>
-            </Animated.View>
-
-            {/* ── Memory type ── */}
-            <Animated.View entering={FadeInDown.delay(110).springify().damping(18)}>
-              <Text style={[styles.sectionLabel, { color: t.subtext }]}>TYPE</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.typeRow}>
-                {MEMORY_TYPES.map((mt) => {
-                  const active = selectedType === mt.id;
-                  return (
-                    <TouchableOpacity
-                      key={mt.id}
-                      style={styles.chipContainer}
-                      onPress={() => { selection(); setSelectedType(mt.id); }}
-                      activeOpacity={0.7}
-                    >
-                      <BlurView 
-                        intensity={isDark ? 40 : 20} 
-                        tint={isDark ? 'dark' : 'light'} 
-                        style={[styles.typeChipBlur, {
-                          backgroundColor: active ? withAlpha(t.primary, 0.15) : t.surface,
-                          borderColor: active ? withAlpha(t.primary, 0.3) : t.border,
-                        }]}
-                      >
-                        <Icon name={mt.icon} size={14} color={active ? t.primary : t.subtext} />
-                        <Text style={[styles.typeChipLabel, { color: active ? t.text : t.subtext }]}>{mt.label}</Text>
-                      </BlurView>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </Animated.View>
-
-            {/* ── Mood ── */}
-            <Animated.View entering={FadeInDown.delay(140).springify().damping(18)}>
-              <Text style={[styles.sectionLabel, { color: t.subtext }]}>MOOD</Text>
-              <View style={styles.moodRow}>
-                {MOODS.map((mood) => {
-                  const active = selectedMood === mood.id;
-                  return (
-                    <TouchableOpacity
-                      key={mood.id}
-                      style={styles.chipContainer}
-                      onPress={() => { selection(); setSelectedMood(active ? null : mood.id); }}
-                      activeOpacity={0.7}
-                    >
-                      <BlurView 
-                        intensity={isDark ? 40 : 20} 
-                        tint={isDark ? 'dark' : 'light'} 
-                        style={[styles.moodChipBlur, {
-                          backgroundColor: active ? withAlpha(t.primary, 0.15) : t.surface,
-                          borderColor: active ? withAlpha(t.primary, 0.3) : t.border,
-                        }]}
-                      >
-                        <Icon name={mood.icon} size={22} color={active ? t.primary : t.subtext} />
-                      </BlurView>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
             </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -510,54 +431,5 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '600',
     textAlign: 'right',
     marginTop: 10,
-  },
-
-  // ── Sections ──
-  sectionLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1.8,
-    textTransform: 'uppercase',
-    marginBottom: 12,
-  },
-
-  // ── Type & Mood Chips ──
-  chipContainer: {
-    // Allows shadow to exist outside the overflow: hidden of the blur view
-  },
-  typeRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingRight: SPACING.screen,
-  },
-  typeChipBlur: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    overflow: 'hidden',
-  },
-  typeChipLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  moodRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  moodChipBlur: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
   },
 });
