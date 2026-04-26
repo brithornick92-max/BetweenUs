@@ -18,7 +18,6 @@ import {
   Image,
   Modal,
   Alert,
-  ScrollView,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
@@ -162,6 +161,18 @@ async function safeLoad(loader) {
 function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partner') {
   const prompt = getPromptById(row.prompt_id);
 
+  const answers = [];
+  if (row.locked) {
+    // No structured answers for locked items.
+  } else if (row.is_revealed && row.partnerAnswer) {
+    if (row.answer) {
+      answers.push({ name: myName, text: row.answer });
+    }
+    answers.push({ name: partnerName, text: row.partnerAnswer });
+  } else if (row.answer) {
+    answers.push({ name: myName, text: row.answer });
+  }
+
   const body = row.locked
     ? 'This reflection is locked on this device.'
     : (row.is_revealed && row.partnerAnswer
@@ -174,6 +185,7 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     sourceId: row.id,
     title: prompt?.text || 'Saved reflection',
     body,
+    answers,
     eyebrow: row.is_revealed ? 'Prompt' : 'Sealed prompt',
     icon: row.is_revealed ? 'chatbubbles-outline' : 'lock-closed-outline',
     accent: '#D2121A',
@@ -477,17 +489,78 @@ export default function OurStoryScreen() {
     navigation.goBack();
   }, [navigation]);
 
-  const openLightbox = useCallback((item) => {
-    const lightboxItem = item?.media ? item : item?.mediaItems?.[0];
+  const normalizeLightboxItem = useCallback((item) => {
+    if (!item) return null;
 
-    if (!lightboxItem?.media?.uri && !lightboxItem?.uri) return;
+    if (item.uri) {
+      return item;
+    }
+
+    if (item.media?.uri) {
+      return {
+        ...item,
+        uri: item.media.uri,
+        mimeType: item.media.mimeType,
+        mime: item.media.mimeType,
+        kind: item.media.kind,
+      };
+    }
+
+    return null;
+  }, []);
+
+  const openLightbox = useCallback((item, allItems = null, startIndex = 0) => {
+    const normalizedItems = Array.isArray(allItems) && allItems.length > 0
+      ? allItems.map(normalizeLightboxItem).filter(Boolean)
+      : [normalizeLightboxItem(item)].filter(Boolean);
+
+    if (normalizedItems.length === 0) return;
+
+    const safeIndex = Math.min(
+      Math.max(Number(startIndex) || 0, 0),
+      normalizedItems.length - 1
+    );
 
     impact(ImpactFeedbackStyle.Medium);
-    setLightbox(lightboxItem);
-  }, []);
+
+    setLightbox({
+      items: normalizedItems,
+      index: safeIndex,
+    });
+  }, [normalizeLightboxItem]);
 
   const closeLightbox = useCallback(() => {
     setLightbox(null);
+  }, []);
+
+  const goToPreviousLightboxItem = useCallback(() => {
+    setLightbox((current) => {
+      if (!current?.items?.length) return current;
+
+      const nextIndex = current.index <= 0
+        ? current.items.length - 1
+        : current.index - 1;
+
+      return {
+        ...current,
+        index: nextIndex,
+      };
+    });
+  }, []);
+
+  const goToNextLightboxItem = useCallback(() => {
+    setLightbox((current) => {
+      if (!current?.items?.length) return current;
+
+      const nextIndex = current.index >= current.items.length - 1
+        ? 0
+        : current.index + 1;
+
+      return {
+        ...current,
+        index: nextIndex,
+      };
+    });
   }, []);
 
   const confirmDeleteItem = useCallback((item) => {
@@ -569,116 +642,104 @@ export default function OurStoryScreen() {
     );
   }, [confirmDeleteItem, handleEditItem]);
 
+  const renderSnapshotTile = (media, index, mediaItems, tileStyle, options = {}) => {
+    const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/');
+    const hasMoreOverlay = options.remaining > 0;
+
+    return (
+      <TouchableOpacity
+        key={media.id}
+        activeOpacity={0.9}
+        onPress={() => openLightbox(media, mediaItems, index)}
+        style={[styles.snapshotGridTile, tileStyle]}
+      >
+        {isVideo ? (
+          <View style={styles.snapshotVideoTile}>
+            <Icon
+              name="play-circle-outline"
+              size={options.small ? 30 : 46}
+              color="#FFF"
+            />
+            {!options.small ? (
+              <Text style={styles.snapshotVideoText}>Video</Text>
+            ) : null}
+          </View>
+        ) : (
+          <Image
+            source={{ uri: media.uri }}
+            style={styles.snapshotImage}
+            resizeMode="cover"
+          />
+        )}
+
+        {hasMoreOverlay ? (
+          <View pointerEvents="none" style={styles.remainingOverlay}>
+            <Text style={styles.remainingText}>+{options.remaining}</Text>
+          </View>
+        ) : null}
+      </TouchableOpacity>
+    );
+  };
+
   const renderSnapshotGrid = (item) => {
     const mediaItems = item.mediaItems || [];
+    const count = mediaItems.length;
 
-    if (mediaItems.length === 0) return null;
+    if (count === 0) return null;
 
-    const featured = mediaItems[0];
-    const sideItems = mediaItems.slice(1, 4);
-    const remaining = Math.max(0, mediaItems.length - 4);
-    const isFeaturedVideo = featured.kind === 'video' || featured.mimeType?.startsWith('video/');
+    if (count === 1) {
+      return (
+        <View style={styles.snapshotMediaBlock}>
+          <View style={[styles.facebookGrid, styles.facebookGridSingle]}>
+            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.singleTile)}
+          </View>
+        </View>
+      );
+    }
+
+    if (count === 2) {
+      return (
+        <View style={styles.snapshotMediaBlock}>
+          <View style={[styles.facebookGrid, styles.facebookGridTwo]}>
+            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.twoTile)}
+            {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.twoTile)}
+          </View>
+        </View>
+      );
+    }
+
+    if (count === 3) {
+      return (
+        <View style={styles.snapshotMediaBlock}>
+          <View style={[styles.facebookGrid, styles.facebookGridThree]}>
+            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.threeLargeTile)}
+            <View style={styles.threeSideStack}>
+              {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.threeSmallTile, { small: true })}
+              {renderSnapshotTile(mediaItems[2], 2, mediaItems, styles.threeSmallTile, { small: true })}
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    const remaining = Math.max(0, count - 4);
 
     return (
       <View style={styles.snapshotMediaBlock}>
-        <View style={styles.snapshotHeroGrid}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => openLightbox(featured)}
-            style={[
-              styles.snapshotHeroTile,
-              sideItems.length === 0 && styles.snapshotHeroTileFull,
-            ]}
-          >
-            {isFeaturedVideo ? (
-              <View style={styles.snapshotVideoTile}>
-                <Icon name="play-circle-outline" size={46} color="#FFF" />
-                <Text style={styles.snapshotVideoText}>Video</Text>
-              </View>
-            ) : (
-              <Image
-                source={{ uri: featured.uri }}
-                style={styles.snapshotImage}
-                resizeMode="cover"
-              />
-            )}
-          </TouchableOpacity>
-
-          {sideItems.length > 0 ? (
-            <View style={styles.snapshotSideStack}>
-              {sideItems.map((media, index) => {
-                const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/');
-                const showRemaining = index === sideItems.length - 1 && remaining > 0;
-
-                return (
-                  <TouchableOpacity
-                    key={media.id}
-                    activeOpacity={0.9}
-                    onPress={() => openLightbox(media)}
-                    style={styles.snapshotSideTile}
-                  >
-                    {isVideo ? (
-                      <View style={styles.snapshotVideoTile}>
-                        <Icon name="play-circle-outline" size={28} color="#FFF" />
-                      </View>
-                    ) : (
-                      <Image
-                        source={{ uri: media.uri }}
-                        style={styles.snapshotGridImage}
-                        resizeMode="cover"
-                      />
-                    )}
-
-                    {showRemaining ? (
-                      <View style={styles.remainingOverlay}>
-                        <Text style={styles.remainingText}>+{remaining}</Text>
-                      </View>
-                    ) : null}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          ) : null}
+        <View style={[styles.facebookGrid, styles.facebookGridFour]}>
+          {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.fourTile, { small: true })}
+          {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.fourTile, { small: true })}
+          {renderSnapshotTile(mediaItems[2], 2, mediaItems, styles.fourTile, { small: true })}
+          {renderSnapshotTile(mediaItems[3], 3, mediaItems, styles.fourTile, {
+            small: true,
+            remaining,
+          })}
         </View>
-
-        {mediaItems.length > 1 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.snapshotFilmstrip}
-          >
-            {mediaItems.map((media, index) => {
-              const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/');
-
-              return (
-                <TouchableOpacity
-                  key={`${media.id}:thumb:${index}`}
-                  activeOpacity={0.88}
-                  onPress={() => openLightbox(media)}
-                  style={styles.snapshotThumb}
-                >
-                  {isVideo ? (
-                    <View style={styles.snapshotThumbVideo}>
-                      <Icon name="play" size={15} color="#FFF" />
-                    </View>
-                  ) : (
-                    <Image
-                      source={{ uri: media.uri }}
-                      style={styles.snapshotThumbImage}
-                      resizeMode="cover"
-                    />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        ) : null}
       </View>
     );
   };
 
   const renderItem = ({ item, index }) => {
-
     const heartState = hearts[item.id] || { count: 0, hearted: false };
     const isSnapshot = item.kind === 'snapshot';
     const isVideo = item.media?.kind === 'video' || item.media?.mimeType?.startsWith('video/');
@@ -767,7 +828,18 @@ export default function OurStoryScreen() {
                 </TouchableOpacity>
               ) : null}
 
-              {item.body ? (
+              {item.answers && item.answers.length > 0 ? (
+                <View style={[styles.answersContainer, isSnapshot && styles.snapshotBody]}>
+                  {item.answers.map((answer, idx) => (
+                    <View key={`${item.id}:answer:${idx}`} style={idx > 0 ? styles.answerSpacing : undefined}>
+                      <Text style={styles.cardBody}>
+                        <Text style={styles.answerName}>{answer.name}: </Text>
+                        {answer.text}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : item.body ? (
                 <Text style={[styles.cardBody, isSnapshot && styles.snapshotBody]}>
                   {item.body}
                 </Text>
@@ -815,6 +887,10 @@ export default function OurStoryScreen() {
       </ReAnimated.View>
     );
   };
+
+  const currentLightboxItem = lightbox?.items?.[lightbox.index] || null;
+  const lightboxTotal = lightbox?.items?.length || 0;
+  const lightboxPosition = lightbox ? lightbox.index + 1 : 0;
 
   const ListHeader = (
     <ReAnimated.View entering={FadeIn.duration(500)}>
@@ -899,17 +975,51 @@ export default function OurStoryScreen() {
       </TouchableOpacity>
 
       <Modal
-        visible={!!lightbox}
+        visible={!!currentLightboxItem}
         transparent
         animationType="fade"
         statusBarTranslucent
         onRequestClose={closeLightbox}
       >
-        <MediaLightbox
-          item={lightbox}
-          onClose={closeLightbox}
-          showCloseButton={false}
-        />
+        <View style={styles.lightboxShell}>
+          <MediaLightbox
+            item={currentLightboxItem}
+            onClose={closeLightbox}
+            showCloseButton
+          />
+
+          {lightboxTotal > 1 ? (
+            <>
+              <View pointerEvents="none" style={styles.lightboxCounter}>
+                <BlurView intensity={55} tint="dark" style={styles.lightboxCounterPill}>
+                  <Text style={styles.lightboxCounterText}>
+                    {lightboxPosition} of {lightboxTotal}
+                  </Text>
+                </BlurView>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={goToPreviousLightboxItem}
+                style={[styles.lightboxNavButton, styles.lightboxNavLeft]}
+              >
+                <BlurView intensity={55} tint="dark" style={styles.lightboxNavBlur}>
+                  <Icon name="chevron-back-outline" size={28} color="#FFF" />
+                </BlurView>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={goToNextLightboxItem}
+                style={[styles.lightboxNavButton, styles.lightboxNavRight]}
+              >
+                <BlurView intensity={55} tint="dark" style={styles.lightboxNavBlur}>
+                  <Icon name="chevron-forward-outline" size={28} color="#FFF" />
+                </BlurView>
+              </TouchableOpacity>
+            </>
+          ) : null}
+        </View>
       </Modal>
     </EditorialScreenScaffold>
   );
@@ -1033,6 +1143,17 @@ const createStyles = (t, isDark) => StyleSheet.create({
     lineHeight: 24,
     color: t.subtext,
   },
+  answersContainer: {
+    gap: 0,
+  },
+  answerSpacing: {
+    marginTop: SPACING.md,
+  },
+  answerName: {
+    fontFamily: SYSTEM_FONT,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
   snapshotBody: {
     marginTop: SPACING.lg,
     color: t.text,
@@ -1043,40 +1164,63 @@ const createStyles = (t, isDark) => StyleSheet.create({
     marginBottom: SPACING.sm,
     width: '100%',
   },
-  snapshotHeroGrid: {
+
+  facebookGrid: {
     width: '100%',
-    height: 292,
     borderRadius: 22,
     overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.16)',
+  },
+  facebookGridSingle: {
+    height: 320,
+  },
+  facebookGridTwo: {
+    height: 292,
     flexDirection: 'row',
-    gap: 4,
-    backgroundColor: 'rgba(0,0,0,0.14)',
+    gap: 3,
   },
-  snapshotHeroTile: {
-    flex: 1.35,
-    height: '100%',
-    overflow: 'hidden',
-    backgroundColor: 'rgba(0,0,0,0.18)',
+  facebookGridThree: {
+    height: 292,
+    flexDirection: 'row',
+    gap: 3,
   },
-  snapshotHeroTileFull: {
-    flex: 1,
+  facebookGridFour: {
+    height: 292,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 3,
   },
-  snapshotSideStack: {
-    flex: 0.9,
-    height: '100%',
-    gap: 4,
-  },
-  snapshotSideTile: {
-    flex: 1,
+  snapshotGridTile: {
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: 'rgba(0,0,0,0.18)',
   },
-  snapshotImage: {
+  singleTile: {
     width: '100%',
     height: '100%',
   },
-  snapshotGridImage: {
+  twoTile: {
+    flex: 1,
+    height: '100%',
+  },
+  threeLargeTile: {
+    flex: 1.15,
+    height: '100%',
+  },
+  threeSideStack: {
+    flex: 0.85,
+    height: '100%',
+    gap: 3,
+  },
+  threeSmallTile: {
+    flex: 1,
+    width: '100%',
+  },
+  fourTile: {
+    width: '49.55%',
+    height: '49.55%',
+  },
+  snapshotImage: {
     width: '100%',
     height: '100%',
   },
@@ -1103,34 +1247,14 @@ const createStyles = (t, isDark) => StyleSheet.create({
     bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.52)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
   },
   remainingText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 26,
+    fontSize: 30,
     fontWeight: '900',
     color: '#FFF',
-  },
-  snapshotFilmstrip: {
-    paddingTop: 10,
-    gap: 8,
-  },
-  snapshotThumb: {
-    width: 54,
-    height: 54,
-    borderRadius: 14,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(0,0,0,0.2)',
-  },
-  snapshotThumbImage: {
-    width: '100%',
-    height: '100%',
-  },
-  snapshotThumbVideo: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    letterSpacing: -0.8,
   },
 
   mediaButton: {
@@ -1262,5 +1386,55 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 13,
     fontWeight: '700',
+  },
+
+  lightboxShell: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  lightboxCounter: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 58 : 32,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  lightboxCounterPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  lightboxCounterText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  lightboxNavButton: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -24,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  lightboxNavLeft: {
+    left: 16,
+  },
+  lightboxNavRight: {
+    right: 16,
+  },
+  lightboxNavBlur: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
 });
