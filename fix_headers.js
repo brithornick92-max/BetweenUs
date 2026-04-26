@@ -1,4 +1,4 @@
-/* global require, __dirname, console */
+/* global __dirname */
 
 const fs = require('fs');
 const path = require('path');
