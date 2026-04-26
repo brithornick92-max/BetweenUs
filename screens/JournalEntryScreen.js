@@ -54,17 +54,21 @@ export default function JournalEntryScreen({ navigation, route }) {
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user } = useAuth();
   const { state } = useAppContext();
-  const ownerIds = useMemo(() => new Set([user?.id, user?.uid, state?.userId].filter(Boolean)), [state?.userId, user?.id, user?.uid]);
+
+  const ownerIds = useMemo(
+    () => new Set([user?.id, user?.uid, state?.userId].filter(Boolean)),
+    [state?.userId, user?.id, user?.uid]
+  );
+
   const isOwnEntry = !!entry?.id && ownerIds.has(entry?.user_id);
   const isReadOnly = !!readOnly || (!!entry?.id && !isOwnEntry);
-  // Premium gate — redirect non-premium users without crashing
   const isPremiumGated = !isPremium;
-  
+
   useEffect(() => {
-    if (!isPremiumGated) return;
-  
+    if (!isPremiumGated) return undefined;
+
     showPaywall?.(PremiumFeature.UNLIMITED_JOURNAL_HISTORY);
-  
+
     const id = requestAnimationFrame(() => {
       if (navigation.canGoBack()) {
         navigation.goBack();
@@ -72,25 +76,27 @@ export default function JournalEntryScreen({ navigation, route }) {
         navigation.navigate('JournalHome');
       }
     });
-  
+
     return () => cancelAnimationFrame(id);
   }, [isPremiumGated, navigation, showPaywall]);
 
   const [title, setTitle] = useState(entry?.title || "");
   const [content, setContent] = useState(entry?.content || entry?.body || "");
   const [mood, setMood] = useState(entry?.mood || "calm");
+
   const initialLegacyImageUri = entry?.imageUri || entry?.photoUri || entry?.photo_uri || null;
   const [mediaUri, setMediaUri] = useState(entry?.mediaUri || initialLegacyImageUri || null);
   const [mediaType, setMediaType] = useState(entry?.mediaType || (initialLegacyImageUri ? 'image/jpeg' : null));
   const [mediaFileName, setMediaFileName] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+
   const headerLabel = 'SHARED JOURNAL';
   const isVideoMedia = typeof mediaType === 'string' && mediaType.startsWith('video/');
 
   const lastHapticLength = useRef(0);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const videoPlayer = useVideoPlayer(mediaUri || null, player => {
+  const videoPlayer = useVideoPlayer(mediaUri || null, (player) => {
     player.loop = false;
   });
 
@@ -138,8 +144,9 @@ export default function JournalEntryScreen({ navigation, route }) {
       } else {
         await DataLayer.saveJournalEntry(entryData);
       }
+
       navigation.goBack();
-    } catch (error) {
+    } catch (_error) {
       Alert.alert("Error", "Failed to save journal entry. Please try again.");
     } finally {
       setIsSaving(false);
@@ -171,10 +178,11 @@ export default function JournalEntryScreen({ navigation, route }) {
 
   const handleContentChange = (text) => {
     setContent(text);
+
     if (
-      text.length > 0 &&
-      text.length % 50 === 0 &&
-      text.length !== lastHapticLength.current
+      text.length > 0
+      && text.length % 50 === 0
+      && text.length !== lastHapticLength.current
     ) {
       impact(ImpactFeedbackStyle.Light);
       lastHapticLength.current = text.length;
@@ -184,6 +192,7 @@ export default function JournalEntryScreen({ navigation, route }) {
   const handlePickMedia = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
       if (status !== "granted") {
         Alert.alert("Permission needed", "Allow library access to attach a photo or video.");
         return;
@@ -199,6 +208,7 @@ export default function JournalEntryScreen({ navigation, route }) {
         const asset = result.assets[0];
         const assetMimeType = asset.mimeType || (asset.type === 'video' ? 'video/quicktime' : 'image/jpeg');
         const maxBytes = asset.type === 'video' ? 25_000_000 : 5_000_000;
+
         if (asset.fileSize && asset.fileSize > maxBytes) {
           Alert.alert(
             asset.type === 'video' ? 'Video Too Large' : 'Image Too Large',
@@ -206,9 +216,13 @@ export default function JournalEntryScreen({ navigation, route }) {
           );
           return;
         }
+
         setMediaUri(asset.uri);
         setMediaType(assetMimeType);
-        setMediaFileName(asset.fileName || (asset.type === 'video' ? `journal_${Date.now()}.mov` : `journal_${Date.now()}.jpg`));
+        setMediaFileName(
+          asset.fileName || (asset.type === 'video' ? `journal_${Date.now()}.mov` : `journal_${Date.now()}.jpg`)
+        );
+
         impact(ImpactFeedbackStyle.Light);
       }
     } catch (err) {
@@ -220,10 +234,25 @@ export default function JournalEntryScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+
       <FilmGrain opacity={0.1} />
-      <GlowOrb color={colors.primary} size={400} top={-150} left={SCREEN_W - 200} opacity={0.1} />
-      <GlowOrb color={isDark ? '#FFFFFF' : '#F2F2F7'} size={300} top={650} left={-100} opacity={isDark ? 0.1 : 0.06} />
-      
+
+      <GlowOrb
+        color={colors.primary}
+        size={400}
+        top={-150}
+        left={SCREEN_W - 200}
+        opacity={0.1}
+      />
+
+      <GlowOrb
+        color={isDark ? '#FFFFFF' : '#F2F2F7'}
+        size={300}
+        top={650}
+        left={-100}
+        opacity={isDark ? 0.1 : 0.06}
+      />
+
       <LinearGradient
         colors={[isDark ? "#0F0514" : "#FAF7F5", colors.background]}
         style={StyleSheet.absoluteFillObject}
@@ -247,9 +276,19 @@ export default function JournalEntryScreen({ navigation, route }) {
               closeColor={colors.text}
               onClose={() => navigation.goBack()}
               rightAccessory={isReadOnly ? (
-                <View style={[styles.readOnlyBadge, { borderColor: withAlpha(colors.text, 0.12), backgroundColor: withAlpha(colors.text, 0.05) }]}>
+                <View
+                  style={[
+                    styles.readOnlyBadge,
+                    {
+                      borderColor: withAlpha(colors.text, 0.12),
+                      backgroundColor: withAlpha(colors.text, 0.05),
+                    },
+                  ]}
+                >
                   <Icon name="book-outline" size={14} color={colors.textMuted} />
-                  <Text style={[styles.readOnlyText, { color: colors.textMuted }]}>Read Only</Text>
+                  <Text style={[styles.readOnlyText, { color: colors.textMuted }]}>
+                    Read Only
+                  </Text>
                 </View>
               ) : (
                 <TouchableOpacity
@@ -274,7 +313,6 @@ export default function JournalEntryScreen({ navigation, route }) {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: 100 }}
           >
-            {/* Title Block - Large Editorial Serif */}
             <Animated.View entering={FadeInDown.delay(100).duration(800)}>
               <TextInput
                 style={[styles.titleInput, { color: colors.text }]}
@@ -288,39 +326,53 @@ export default function JournalEntryScreen({ navigation, route }) {
               />
             </Animated.View>
 
-            {/* Mood Selector - Tactile Chips */}
             <Animated.View entering={FadeInDown.delay(200).duration(600)} style={styles.moodSection}>
-              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>VIBE</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moodRow}>
+              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>
+                VIBE
+              </Text>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.moodRow}
+              >
                 {moods.map((m) => {
-                    const active = mood === m.id;
-                    return (
-                        <TouchableOpacity
-                            key={m.id}
-                          disabled={isReadOnly}
-                            onPress={() => {
-                                setMood(m.id);
-                                impact(ImpactFeedbackStyle.Light);
-                            }}
-                            style={[
-                                styles.moodChip,
-                                active && { backgroundColor: colors.primary, borderColor: colors.primary },
-                                !active && { borderColor: withAlpha(colors.text, 0.1) }
-                            ]}
-                        >
-                            <Icon
-                                name={m.icon}
-                                size={14}
-                                color={active ? "#FFF" : colors.primary}
-                            />
-                            <Text style={[styles.moodText, { color: active ? "#FFF" : colors.text }]}>{m.label}</Text>
-                        </TouchableOpacity>
-                    );
+                  const active = mood === m.id;
+
+                  return (
+                    <TouchableOpacity
+                      key={m.id}
+                      disabled={isReadOnly}
+                      onPress={() => {
+                        setMood(m.id);
+                        impact(ImpactFeedbackStyle.Light);
+                      }}
+                      style={[
+                        styles.moodChip,
+                        active && {
+                          backgroundColor: colors.primary,
+                          borderColor: colors.primary,
+                        },
+                        !active && {
+                          borderColor: withAlpha(colors.text, 0.1),
+                        },
+                      ]}
+                    >
+                      <Icon
+                        name={m.icon}
+                        size={14}
+                        color={active ? "#FFF" : colors.primary}
+                      />
+
+                      <Text style={[styles.moodText, { color: active ? "#FFF" : colors.text }]}>
+                        {m.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
                 })}
               </ScrollView>
             </Animated.View>
 
-            {/* Visual Anchor - Media Card */}
             <Animated.View entering={FadeInDown.delay(300).duration(600)} style={styles.mediaContainer}>
               {mediaUri ? (
                 <View style={styles.previewWrapper}>
@@ -334,15 +386,17 @@ export default function JournalEntryScreen({ navigation, route }) {
                   ) : (
                     <Image source={{ uri: mediaUri }} style={styles.imagePreview} />
                   )}
+
                   {isVideoMedia ? (
                     <View style={styles.videoBadge}>
                       <Icon name="play-circle-outline" size={16} color="#FFF" />
                       <Text style={styles.videoBadgeText}>Video</Text>
                     </View>
                   ) : null}
+
                   {!isReadOnly && (
-                    <TouchableOpacity 
-                      style={styles.removeImageBtn} 
+                    <TouchableOpacity
+                      style={styles.removeImageBtn}
                       onPress={() => {
                         selection();
                         setMediaUri(null);
@@ -355,38 +409,47 @@ export default function JournalEntryScreen({ navigation, route }) {
                   )}
                 </View>
               ) : (
-                <TouchableOpacity 
-                  style={[styles.imagePlaceholder, { borderColor: withAlpha(colors.text, 0.1) }]} 
+                <TouchableOpacity
+                  style={[
+                    styles.imagePlaceholder,
+                    { borderColor: withAlpha(colors.text, 0.1) },
+                  ]}
                   onPress={handlePickMedia}
                   disabled={isReadOnly}
                 >
                   <Icon name="images-outline" size={24} color={colors.primary} />
-                  <Text style={[styles.placeholderText, { color: colors.textMuted }]}>Add a photo or video</Text>
+                  <Text style={[styles.placeholderText, { color: colors.textMuted }]}>
+                    Add a photo or video
+                  </Text>
                 </TouchableOpacity>
               )}
             </Animated.View>
 
-            {/* Writing Surface - High Contrast Stationery */}
             <Animated.View entering={FadeInDown.delay(400).duration(800)} style={styles.writingSurface}>
-                <View style={styles.writingHeader}>
-                    <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>THE REFLECTION</Text>
-                    <Text style={[styles.charCount, { color: colors.textMuted }]}>{content.length} characters</Text>
-                </View>
-                <TextInput
-                    style={[styles.contentInput, { color: colors.text }]}
-                    placeholder="Let your story flow here..."
-                    placeholderTextColor={withAlpha(colors.text, 0.25)}
-                    value={content}
-                    onChangeText={handleContentChange}
-                    multiline
-                    scrollEnabled={false}
-                    editable={!isReadOnly}
-                    selectionColor={colors.primary}
-                    autoFocus={!entry && !isReadOnly}
-                />
+              <View style={styles.writingHeader}>
+                <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>
+                  THE REFLECTION
+                </Text>
+
+                <Text style={[styles.charCount, { color: colors.textMuted }]}>
+                  {content.length} characters
+                </Text>
+              </View>
+
+              <TextInput
+                style={[styles.contentInput, { color: colors.text }]}
+                placeholder="Let your story flow here..."
+                placeholderTextColor={withAlpha(colors.text, 0.25)}
+                value={content}
+                onChangeText={handleContentChange}
+                multiline
+                scrollEnabled={false}
+                editable={!isReadOnly}
+                selectionColor={colors.primary}
+                autoFocus={!entry && !isReadOnly}
+              />
             </Animated.View>
 
-            {/* Footer Actions */}
             <Animated.View entering={FadeInUp.delay(600)} style={styles.footer}>
               <View style={styles.footerActions}>
                 <View
@@ -394,8 +457,8 @@ export default function JournalEntryScreen({ navigation, route }) {
                     styles.shareToggle,
                     {
                       borderColor: isReadOnly ? withAlpha(colors.text, 0.1) : colors.primary,
-                      backgroundColor: isReadOnly ? withAlpha(colors.text, 0.04) : withAlpha(colors.primary, 0.08)
-                    }
+                      backgroundColor: isReadOnly ? withAlpha(colors.text, 0.04) : withAlpha(colors.primary, 0.08),
+                    },
                   ]}
                 >
                   <Icon
@@ -403,7 +466,8 @@ export default function JournalEntryScreen({ navigation, route }) {
                     size={18}
                     color={isReadOnly ? colors.textMuted : colors.primary}
                   />
-                  <Text style={[styles.shareText, { color: isReadOnly ? colors.textMuted : colors.primary }]}> 
+
+                  <Text style={[styles.shareText, { color: isReadOnly ? colors.textMuted : colors.primary }]}>
                     Shared journal
                   </Text>
                 </View>
@@ -418,10 +482,12 @@ export default function JournalEntryScreen({ navigation, route }) {
                   </TouchableOpacity>
                 )}
               </View>
-              
+
               <View style={styles.securityBanner}>
                 <Icon name="shield-checkmark-outline" size={12} color={colors.textMuted} />
-                <Text style={[styles.securityText, { color: colors.textMuted }]}>END-TO-END ENCRYPTED</Text>
+                <Text style={[styles.securityText, { color: colors.textMuted }]}>
+                  END-TO-END ENCRYPTED
+                </Text>
               </View>
             </Animated.View>
           </ScrollView>
@@ -451,9 +517,14 @@ const createStyles = (colors) => StyleSheet.create({
     minWidth: 70,
     alignItems: 'center',
     ...Platform.select({
-        ios: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
-        android: { elevation: 4 }
-    })
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: { elevation: 4 },
+    }),
   },
   readOnlyBadge: {
     flexDirection: 'row',
@@ -475,7 +546,10 @@ const createStyles = (colors) => StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  scrollView: { flex: 1, paddingHorizontal: SPACING.screen },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: SPACING.screen,
+  },
   titleInput: {
     fontSize: 34,
     lineHeight: 42,
@@ -490,8 +564,13 @@ const createStyles = (colors) => StyleSheet.create({
     marginBottom: SPACING.md,
     textTransform: 'uppercase',
   },
-  moodSection: { marginBottom: SPACING.xxxl },
-  moodRow: { gap: 10, paddingRight: 20 },
+  moodSection: {
+    marginBottom: SPACING.xxxl,
+  },
+  moodRow: {
+    gap: 10,
+    paddingRight: 20,
+  },
   moodChip: {
     flexDirection: "row",
     alignItems: "center",
@@ -501,10 +580,22 @@ const createStyles = (colors) => StyleSheet.create({
     borderWidth: 1,
     gap: 8,
   },
-  moodText: { fontFamily: SYSTEM_FONT, fontSize: 14, fontWeight: '600' },
-  mediaContainer: { marginBottom: SPACING.xxxl },
-  imagePreview: { width: "100%", height: 220, borderRadius: 24 },
-  previewWrapper: { position: 'relative' },
+  moodText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  mediaContainer: {
+    marginBottom: SPACING.xxxl,
+  },
+  imagePreview: {
+    width: "100%",
+    height: 220,
+    borderRadius: 24,
+  },
+  previewWrapper: {
+    position: 'relative',
+  },
   videoBadge: {
     position: 'absolute',
     left: 14,
@@ -544,15 +635,26 @@ const createStyles = (colors) => StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  placeholderText: { fontFamily: SYSTEM_FONT, fontSize: 14, fontWeight: '500' },
-  writingSurface: { marginBottom: SPACING.xxxl },
+  placeholderText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  writingSurface: {
+    marginBottom: SPACING.xxxl,
+  },
   writingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: SPACING.lg,
   },
-  charCount: { fontFamily: SYSTEM_FONT, fontSize: 10, fontWeight: '500', opacity: 0.5 },
+  charCount: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 10,
+    fontWeight: '500',
+    opacity: 0.5,
+  },
   contentInput: {
     fontFamily: SYSTEM_FONT,
     fontSize: 18,
@@ -597,7 +699,11 @@ const createStyles = (colors) => StyleSheet.create({
     borderWidth: 1,
     gap: 8,
   },
-  shareText: { fontFamily: SYSTEM_FONT, fontSize: 13, fontWeight: '700' },
+  shareText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '700',
+  },
   deleteButton: {
     width: 44,
     height: 44,
@@ -612,5 +718,10 @@ const createStyles = (colors) => StyleSheet.create({
     gap: 6,
     opacity: 0.5,
   },
-  securityText: { fontFamily: SYSTEM_FONT, fontSize: 9, fontWeight: '800', letterSpacing: 1.5 }
+  securityText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+  },
 });

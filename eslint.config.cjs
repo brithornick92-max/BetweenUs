@@ -2,7 +2,22 @@ const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
 
 module.exports = defineConfig([
+  {
+    ignores: [
+      'android/**',
+      'ios/**',
+      'coverage/**',
+      'dist/**',
+      'build/**',
+      'output/**',
+      '.expo/**',
+      'node_modules/**',
+      'supabase/functions/**',
+    ],
+  },
+
   expoConfig,
+
   {
     settings: {
       'import/resolver': {
@@ -15,17 +30,8 @@ module.exports = defineConfig([
       'import/namespace': 'off',
       'react/no-unescaped-entities': 'off',
     },
-    ignores: [
-      'android/**',
-      'ios/**',
-      'coverage/**',
-      'dist/**',
-      'build/**',
-      'output/**',
-      '.expo/**',
-      'node_modules/**',
-    ],
   },
+
   {
     files: ['**/*.cjs'],
     languageOptions: {
@@ -40,6 +46,7 @@ module.exports = defineConfig([
       },
     },
   },
+
   {
     files: ['__tests__/**/*.js', '__tests__/**/*.jsx', 'jest.setup.cjs'],
     languageOptions: {

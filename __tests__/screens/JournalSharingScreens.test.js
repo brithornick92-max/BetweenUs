@@ -16,7 +16,7 @@ const {
 
 const JournalEntryScreen = require('../../screens/JournalEntryScreen').default;
 const JournalHomeScreen = require('../../screens/JournalHomeScreen').default;
-const { VideoView, useVideoPlayer } = require('expo-video');
+const { VideoView } = require('expo-video');
 
 describe('Journal sharing screens', () => {
   beforeEach(() => {
@@ -118,7 +118,7 @@ describe('Journal sharing screens', () => {
     };
 
     const tree = await renderScreen(JournalEntryScreen, { navigation, route });
-    expect(tree.root.findAllByType(Video)).toHaveLength(1);
+    expect(tree.root.findAllByType(VideoView)).toHaveLength(1);
 
     const [saveButton] = findTouchablesByText(tree.root, 'Save');
     await renderer.act(async () => {
