@@ -83,6 +83,7 @@ export default function AddMemoryScreen() {
   const [saving, setSaving] = useState(false);
 
   const inputRef = useRef(null);
+  const autoLaunchCamera = useRef(route.params?.autoLaunchCamera || false);
 
   // ─── VELVET GLASS THEME MAP ───
   const t = useMemo(() => ({
@@ -163,6 +164,15 @@ export default function AddMemoryScreen() {
       Alert.alert('Error', "Couldn't open the camera.");
     }
   }, []);
+
+  useEffect(() => {
+    if (autoLaunchCamera.current) {
+      autoLaunchCamera.current = false; // Only launch once
+      setTimeout(() => {
+        handlePhotoPress();
+      }, 500); // Wait for screen transition
+    }
+  }, [handlePhotoPress]);
 
   const handlePhotoPress = useCallback(() => {
     Alert.alert('Add Media', 'Choose how to add a photo or video', [

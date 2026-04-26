@@ -175,12 +175,6 @@ export default function JournalHomeScreen({ navigation }) {
           </View>
             
           <View style={{ paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl, width: '100%' }}>
-            {item.mediaKind === 'video' ? (
-              <View style={[styles.videoCardPreview, { backgroundColor: withAlpha(item.accent, 0.12), borderColor: withAlpha(item.accent, 0.22) }]}>
-                <Icon name='play-circle-outline' size={24} color={item.accent} />
-                <Text style={[styles.videoCardLabel, { color: item.accent }]}>Video attached</Text>
-              </View>
-            ) : item.photoUri ? <Image source={{ uri: item.photoUri }} style={styles.cardPhoto} /> : null}
             <Text style={styles.cardBody} numberOfLines={4}>{item.body || 'Nothing saved yet.'}</Text>
 
             <View style={styles.cardFooter}>
