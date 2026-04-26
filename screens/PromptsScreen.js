@@ -54,14 +54,33 @@ const HEAT_LEVELS = [
 ];
 
 const loadAllBundledPrompts = () => {
-  try {
-    const WeeklyContentScheduler = require('../services/WeeklyContentScheduler').default;
-    const bundled = require("../content/prompts.json");
-    const items = Array.isArray(bundled?.items) ? bundled.items : [];
-    return items.filter(i => i.releaseWeek == null || i.releaseWeek <= WeeklyContentScheduler.getCurrentWeek());
-  } catch {
-    return [];
+  const bundled = require("../content/prompts.json");
+
+  if (Array.isArray(bundled)) {
+    return bundled;
   }
+
+  if (Array.isArray(bundled?.items)) {
+    return bundled.items;
+  }
+
+  if (Array.isArray(bundled?.prompts)) {
+    return bundled.prompts;
+  }
+
+  if (Array.isArray(bundled?.default)) {
+    return bundled.default;
+  }
+
+  if (Array.isArray(bundled?.default?.items)) {
+    return bundled.default.items;
+  }
+
+  if (Array.isArray(bundled?.default?.prompts)) {
+    return bundled.default.prompts;
+  }
+
+  return [];
 };
 
 const ALL_BUNDLED = loadAllBundledPrompts();
@@ -103,11 +122,22 @@ const normalizeHeatLevel = (heat, fallback = 5) => {
   return Math.min(5, Math.max(1, Math.floor(numeric)));
 };
 
-const resolveExplicitMaxHeat = (profile, fallbackHeat = 5) => {
-  const caps = [normalizeHeatLevel(fallbackHeat)];
-  if (typeof profile?.heatLevel === 'number') caps.push(profile.heatLevel);
-  if (profile?.boundaries?.hideSpicy) caps.push(3);
-  else if (typeof profile?.boundaries?.maxHeatOverride === 'number') caps.push(profile.boundaries.maxHeatOverride);
+const resolveExplicitMaxHeat = (profile) => {
+  const boundaries = profile?.boundaries || {};
+  const caps = [5];
+
+  if (boundaries.hideSpicy === true) {
+    caps.push(3);
+  }
+
+  if (
+    typeof boundaries.maxHeatOverride === 'number' &&
+    boundaries.maxHeatOverride >= 1 &&
+    boundaries.maxHeatOverride <= 5
+  ) {
+    caps.push(boundaries.maxHeatOverride);
+  }
+
   return Math.min(...caps.map((heat) => normalizeHeatLevel(heat)));
 };
 
@@ -115,6 +145,8 @@ const clampHeatSelection = (profile, selectedHeat) => {
   const normalizedHeat = normalizeHeatLevel(selectedHeat, 1);
   return Math.min(normalizedHeat, resolveExplicitMaxHeat(profile));
 };
+
+
 
 function shuffleArray(arr) {
   const a = [...arr];
@@ -203,8 +235,8 @@ export default function PromptsScreen({ navigation }) {
 
   const toneCopy = TONE_PROMPT_COPY[selectedTone] || TONE_PROMPT_COPY.warm;
   const maxSelectableHeat = useMemo(
-    () => resolveExplicitMaxHeat(contentProfile, userProfile?.heatLevelPreference || 5),
-    [contentProfile, userProfile?.heatLevelPreference]
+    () => resolveExplicitMaxHeat(contentProfile),
+    [contentProfile]
   );
 
   const loadPrompts = useCallback(async () => {
@@ -212,11 +244,14 @@ export default function PromptsScreen({ navigation }) {
     setLoading(true);
     try {
       const allPrompts = ALL_BUNDLED.map(normalizePrompt);
+
       const access = await contentAccessService.getAccessiblePrompts(allPrompts, {
         userId: user?.uid,
         isPremium,
         userSettings: contentProfile || userProfile || {},
+        includeAll: true,
       });
+
       setPrompts(access.prompts || []);
     } catch {
       setPrompts([]);
@@ -231,14 +266,20 @@ export default function PromptsScreen({ navigation }) {
 
   const deckPrompts = useMemo(() => {
     const heat = selectedHeat ?? 1;
-    const selectableMaxHeat = Math.min(resolveExplicitMaxHeat(contentProfile), heat);
     const basePrompts = contentProfile ? prompts : applyRawBoundaryFilter(prompts, rawBoundaries);
     const byHeat = basePrompts.map(normalizePrompt).filter((p) => (p.heat || 1) === heat);
+
     if (!contentProfile) return shuffleArray(byHeat);
-    return PreferenceEngine.filterPrompts(byHeat, {
+
+    const personalized = PreferenceEngine.filterPrompts(byHeat, {
       ...contentProfile,
-      maxHeat: selectableMaxHeat,
+      maxHeat: heat,
     });
+
+    const personalizedIds = new Set(personalized.map((prompt) => String(prompt?.id)));
+    const remaining = byHeat.filter((prompt) => !personalizedIds.has(String(prompt?.id)));
+
+    return [...personalized, ...shuffleArray(remaining)];
   }, [prompts, selectedHeat, contentProfile, rawBoundaries]);
 
   const handlePromptSelect = useCallback((prompt) => {

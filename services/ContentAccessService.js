@@ -484,16 +484,25 @@ class ContentAccessService {
     };
   }
 
-  async getAccessiblePrompts(allPrompts, { userId, isPremium = false, userSettings = {} } = {}) {
+  async getAccessiblePrompts(allPrompts, { userId, isPremium = false, userSettings = {}, includeAll = false } = {}) {
     try {
-      const eligible = this.getEligibleReleasedItems(allPrompts, CONTENT_TYPES.PROMPTS, {
-        isPremium,
-        userSettings,
-      });
-      const available = this.applyWeeklyPreviewLimit(eligible, CONTENT_TYPES.PROMPTS, {
-        isPremium,
-        userSettings,
-      });
+      const eligible = includeAll
+        ? this.filterByUserBoundaries(
+            this.filterByTier(allPrompts, isPremium),
+            userSettings,
+            CONTENT_TYPES.PROMPTS
+          )
+        : this.getEligibleReleasedItems(allPrompts, CONTENT_TYPES.PROMPTS, {
+            isPremium,
+            userSettings,
+          });
+
+      const available = includeAll
+        ? eligible
+        : this.applyWeeklyPreviewLimit(eligible, CONTENT_TYPES.PROMPTS, {
+            isPremium,
+            userSettings,
+          });
 
       const [dailyUsage, weeklyUsage] = await Promise.all([
         this.getDailyUsage(userId),
