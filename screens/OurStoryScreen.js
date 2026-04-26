@@ -269,8 +269,6 @@ export default function OurStoryScreen() {
         personalPrompts,
         sharedMemories,
         personalMemories,
-        sharedJournals,
-        personalJournals,
         dateHistory,
         triedPositionHistory,
       ] = await Promise.all([
@@ -278,8 +276,6 @@ export default function OurStoryScreen() {
         safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
         safeLoad(() => DataLayer.getSharedMemories({ limit: 200 })),
         safeLoad(() => DataLayer.getMemories({ limit: 200 })),
-        safeLoad(() => DataLayer.getJournalEntries({ limit: 200, visibility: 'shared' })),
-        safeLoad(() => DataLayer.getJournalEntries({ limit: 200 })),
         safeLoad(() => getDateHistory(AsyncStorage)),
         safeLoad(() => getIntimacyTried()),
       ]);
@@ -288,11 +284,7 @@ export default function OurStoryScreen() {
         .map((row) => buildPromptItem(row));
       const memoryItems = await Promise.all(
         dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
-          .map(async (row) => buildMemoryItem(row, await resolveRowMedia(row)))
-      );
-      const journalItems = await Promise.all(
-        dedupeRows([...(sharedJournals || []), ...(personalJournals || [])])
-          .map(async (row) => buildJournalItem(row, await resolveRowMedia(row)))
+          .map(async (row) => buildMemoryItem(row, null)) // we skip media display
       );
       const memoryIds = new Set(memoryItems.map((item) => item.sourceId).filter(Boolean));
       const dateItems = (dateHistory || [])
@@ -306,7 +298,6 @@ export default function OurStoryScreen() {
       const merged = [
         ...promptItems,
         ...memoryItems,
-        ...journalItems,
         ...dateItems,
         ...triedPositionItems,
       ].sort((a, b) => getSortTime(b) - getSortTime(a));
@@ -502,16 +493,26 @@ export default function OurStoryScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.primary} />}
         />
 
-        {/* ── Velvet Glass FAB ── */}
-        <TouchableOpacity
-          style={styles.fabContainer}
-          onPress={() => navigation.navigate('AddMemory')}
-          activeOpacity={0.85}
-        >
-          <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={[styles.fabBlur, { backgroundColor: withAlpha(t.primary, 0.8) }]}>
-            <Icon name="add" size={26} color="#FFF" />
-          </BlurView>
-        </TouchableOpacity>
+        <View style={styles.fabWrapper}>
+          <TouchableOpacity
+            style={styles.fabContainer}
+            onPress={() => navigation.navigate('AddMemory')}
+            activeOpacity={0.85}
+          >
+            <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={[styles.fabBlur, { backgroundColor: withAlpha(t.primary, 0.8) }]}>
+              <Icon name="add" size={26} color="#FFF" />
+            </BlurView>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.fabContainer, { bottom: 100 }]}
+            onPress={() => navigation.navigate('AddMemory', { autoLaunchCamera: true })}
+            activeOpacity={0.85}
+          >
+            <BlurView intensity={70} tint={isDark ? 'dark' : 'light'} style={[styles.fabBlur, { backgroundColor: withAlpha(t.primary, 0.8) }]}>
+              <Icon name="camera" size={26} color="#FFF" />
+            </BlurView>
+          </TouchableOpacity>
+        </View>
 
         <Modal
           visible={!!lightbox}
@@ -588,10 +589,15 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
 
   // ── Floating Action Button ──
+  fabWrapper: {
+    position: 'absolute',
+    right: SPACING.screen,
+    bottom: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   fabContainer: {
     position: 'absolute',
-    bottom: 32,
-    right: SPACING.screen,
     width: 56,
     height: 56,
     borderRadius: 28,

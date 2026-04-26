@@ -292,7 +292,7 @@ export default function JournalHomeScreen({ navigation }) {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Journal"
-      headerSubtitle="YOUR SHARED STORY"
+      headerSubtitle="SHARED NOTES"
       scroll={false}
       onBack={handleBack}
     >
