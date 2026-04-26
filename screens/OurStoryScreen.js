@@ -374,25 +374,6 @@ export default function OurStoryScreen() {
     videoRef.current?.pauseAsync?.().catch(() => {});
   }, []);
 
-  // ─── ANIMATION VALUES ───
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 50],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
-
-  const headerScale = scrollY.interpolate({
-    inputRange: [-100, 0],
-    outputRange: [1.1, 1],
-    extrapolate: 'clamp',
-  });
-
-  const headerTranslateY = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, -20],
-    extrapolate: 'clamp',
-  });
-
   // ─── RENDERERS ───
   const renderItem = ({ item, index }) => {
     const heartState = hearts[item.id] || { count: 0, hearted: false };
@@ -470,18 +451,11 @@ export default function OurStoryScreen() {
 
   const ListHeader = (
     <ReAnimated.View entering={FadeIn.duration(500)}>
-      <RNAnimated.View
-        style={[styles.editorialHeader, {
-          opacity: headerOpacity,
-          transform: [{ scale: headerScale }, { translateY: headerTranslateY }],
-        }]}
-      >
-        <Text style={[styles.headerSubtitle, { color: t.primary }]}>OUR STORY</Text>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Everything Together</Text>
+      <View style={styles.headerIntroContainer}>
         <Text style={styles.headerIntro}>
           {entries.length ? `${entries.length} moments, newest first` : 'Newest first'}
         </Text>
-      </RNAnimated.View>
+      </View>
     </ReAnimated.View>
   );
 
@@ -507,7 +481,8 @@ export default function OurStoryScreen() {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle=""
+      headerTitle="Everything Together"
+      headerSubtitle="OUR STORY"
       scroll={false}
       onBack={handleBack}
     >
@@ -635,23 +610,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.2)',
   },
   
-  // ── Editorial Header ──
-  editorialHeader: {
-    paddingBottom: SPACING.lg,
-  },
-  headerSubtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
+  // ── Header Intro ──
+  headerIntroContainer: {
+    paddingHorizontal: SPACING.screen,
+    paddingBottom: SPACING.md,
   },
   headerIntro: {
     fontFamily: SYSTEM_FONT,
@@ -659,7 +621,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     lineHeight: 22,
     fontWeight: '600',
     color: t.subtext,
-    marginTop: 8,
   },
 
   // ── Content Cards ──

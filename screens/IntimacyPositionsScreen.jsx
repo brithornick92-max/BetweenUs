@@ -179,23 +179,13 @@ export default function IntimacyPositionsScreen() {
     return (
       <EditorialScreenScaffold
         navigation={navigation}
-        headerTitle=""
+        headerTitle="Private Spark"
+        headerSubtitle="INTIMACY"
         scroll={false}
         onBack={handleBack}
         bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge
       >
           <View style={styles.lockedWrap}>
-            <Animated.View
-              style={{
-                opacity: headerAnim,
-                transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-14, 0] }) }],
-              }}
-            >
-              <View style={styles.headerBlock}>
-                <Text style={[styles.headerEyebrow, { color: t.primary }]}>INTIMACY</Text>
-                <Text style={[styles.headerTitle, { color: t.text }]}>Private Spark</Text>
-              </View>
-            </Animated.View>
             <Animated.View style={{
               opacity: cardAnim,
               transform: [{ translateY: cardAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
@@ -234,7 +224,8 @@ export default function IntimacyPositionsScreen() {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle=""
+      headerTitle="Intimacy"
+      headerSubtitle="WEEKLY RELEASES"
       scroll={false}
       onBack={handleBack}
       bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge
@@ -243,17 +234,6 @@ export default function IntimacyPositionsScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          <Animated.View
-            style={{
-              opacity: headerAnim,
-              transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-14, 0] }) }],
-            }}
-          >
-            <View style={styles.headerBlock}>
-              <Text style={[styles.headerEyebrow, { color: t.primary }]}>WEEKLY RELEASES</Text>
-              <Text style={[styles.headerTitle, { color: t.text }]}>Intimacy</Text>
-            </View>
-          </Animated.View>
 
           <Animated.View
             style={{
@@ -292,7 +272,7 @@ export default function IntimacyPositionsScreen() {
                           style={[styles.favoritePill, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}
                         >
                           <Icon name="heart-outline" size={14} color={t.primary} />
-                          <Text style={[styles.favoritePillText, { color: t.text }]}>{item.title}</Text>
+                          <Text style={[styles.favoritePillText, { color: t.primary }]}>{item.title}</Text>
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
@@ -326,7 +306,7 @@ export default function IntimacyPositionsScreen() {
                         <Text
                           style={[
                             styles.pickerText,
-                            { color: active ? '#FFFFFF' : t.text },
+                            { color: active ? '#FFFFFF' : t.primary },
                           ]}
                           numberOfLines={2}
                         >
@@ -369,26 +349,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 160,
   },
-  headerBlock: {
-    paddingHorizontal: SPACING.screen,
-    paddingTop: SPACING.xl,
-    paddingBottom: SPACING.md,
-  },
-  headerEyebrow: {
-    fontFamily: systemFont,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
-  },
+
   cardContainer: {
     marginVertical: SPACING.md,
     marginHorizontal: -SPACING.screen, // Extend to screen edges
@@ -475,6 +436,8 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     paddingHorizontal: 16,
     paddingVertical: 10,
+    borderColor: 'rgba(210, 18, 26, 0.3)',
+    backgroundColor: 'rgba(210, 18, 26, 0.08)',
   },
   favoritePillText: {
     fontFamily: systemFont,

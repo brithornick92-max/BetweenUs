@@ -199,11 +199,6 @@ export default function JournalHomeScreen({ navigation }) {
 
   const ListHeader = (
     <Animated.View entering={FadeIn.duration(500)}>
-      <View style={styles.headerBlock}>
-        <Text style={[styles.headerEyebrow, { color: t.primary }]}>YOUR SHARED STORY</Text>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Journal</Text>
-      </View>
-
       <View style={styles.cardContainer}>
         <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass }, !isDark && styles.lightShadow]}>
           <View style={styles.cardContent}>
@@ -296,7 +291,8 @@ export default function JournalHomeScreen({ navigation }) {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle=""
+      headerTitle="Journal"
+      headerSubtitle="YOUR SHARED STORY"
       scroll={false}
       onBack={handleBack}
     >
@@ -323,26 +319,6 @@ const createStyles = (t) => StyleSheet.create({
   listContent: {
     paddingHorizontal: 0,
     paddingBottom: 160,
-  },
-  headerBlock: {
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.xl,
-    paddingBottom: SPACING.md,
-  },
-  headerEyebrow: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 2,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
   },
   cardContainer: {
     paddingHorizontal: 0,

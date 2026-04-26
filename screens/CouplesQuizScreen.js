@@ -23,12 +23,8 @@ import {
   Platform,
   Alert,
   Keyboard,
-  KeyboardAvoidingView,
-  StatusBar,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -39,9 +35,7 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import Icon from '../components/Icon';
-import FilmGrain from '../components/FilmGrain';
-import GlowOrb from '../components/GlowOrb';
-import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -71,13 +65,8 @@ const loadQuizQuestions = () => {
 
 const QUIZ_QUESTIONS = loadQuizQuestions();
 
-const CATEGORY_COLORS = {
-  personality: '#FF9500',
-  love: '#D2121A',
-  future: '#5856D6',
-  playful: '#32ADE6',
-  deep: '#AF52DE',
-};
+// All category pills use primary red for consistency
+const PRIMARY_RED = '#D2121A';
 
 const TODAY_QUIZ_KEY = '@betweenus:quizDateKey';
 const TODAY_QUIZ_QUESTION_KEY = '@betweenus:quizQuestionId';
@@ -127,7 +116,8 @@ export default function CouplesQuizScreen({ navigation }) {
   const todayKey = useMemo(() => getTodayKey(), []);
   const question = useMemo(() => getDailyQuestion(todayKey), [todayKey]);
   const questionText = substitutePartnerName(question.text, partnerName);
-  const accentColor = CATEGORY_COLORS[question.category] || t.primary;
+  // All category pills use primary red for consistency
+  const accentColor = t.primary;
 
   const [myAnswer, setMyAnswer] = useState('');
   const [partnerAnswer, setPartnerAnswer] = useState('');
@@ -239,50 +229,42 @@ export default function CouplesQuizScreen({ navigation }) {
 
   // ── Render phases ──────────────────────────────────────────────────
 
+  const handleBack = useCallback(() => {
+    impact(ImpactFeedbackStyle.Light);
+    navigation.goBack();
+  }, [navigation]);
+
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
-        <Icon name="help-circle-outline" size={32} color={colors.textMuted} />
-      </View>
+      <EditorialScreenScaffold
+        navigation={navigation}
+        headerTitle="Daily Quiz"
+        headerSubtitle="DAILY QUIZ"
+        scroll={false}
+        onBack={handleBack}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Icon name="help-circle-outline" size={32} color={colors.textMuted} />
+        </View>
+      </EditorialScreenScaffold>
     );
   }
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} translucent backgroundColor="transparent" />
-      <LinearGradient
-        colors={isDark
-          ? [t.background, '#120206', '#0A0003', t.background]
-          : [t.background, t.surfaceSecondary, t.background]}
-        style={StyleSheet.absoluteFillObject}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-      <FilmGrain />
-      <GlowOrb color={accentColor} size={400} top={-150} left={SCREEN_W / 2 - 200} opacity={isDark ? 0.15 : 0.07} />
-      <GlowOrb color={t.primary} size={300} top={SCREEN_H * 0.65} left={-80} delay={1200} opacity={isDark ? 0.1 : 0.05} />
-
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <Animated.View entering={FadeInDown.duration(800).delay(200)}>
-              <CloseScreenHeader
-                title="Daily Quiz"
-                subtitle="PLAY TOGETHER"
-                titleColor={t.text}
-                subtitleColor={t.subtext}
-                closeColor={t.text}
-                onClose={() => navigation.goBack()}
-                accessibilityLabel="Go back"
-              />
-            </Animated.View>
-
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle="Daily Quiz"
+      headerSubtitle="DAILY QUIZ"
+      scroll={false}
+      onBack={handleBack}
+      keyboardAvoiding
+    >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
             {/* Category badge */}
             <Animated.View entering={FadeIn.duration(800).delay(400)} style={styles.badgeRow}>
               <View style={[styles.categoryBadge, { borderColor: accentColor, backgroundColor: withAlpha(accentColor, 0.1) }]}>
@@ -295,12 +277,6 @@ export default function CouplesQuizScreen({ navigation }) {
 
             {/* Question card */}
             <Animated.View entering={FadeInDown.duration(800).delay(600)} style={[styles.questionCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-              <LinearGradient
-                colors={[accentColor + '22', accentColor + '08', 'transparent']}
-                style={StyleSheet.absoluteFillObject}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              />
               <Text style={styles.questionText}>{questionText}</Text>
               <View style={styles.questionFooter}>
                 <Icon name="people-outline" size={14} color={t.subtext} />
@@ -429,45 +405,27 @@ export default function CouplesQuizScreen({ navigation }) {
 
             <View style={{ height: 60 }} />
           </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+    </EditorialScreenScaffold>
   );
 }
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
 const createStyles = (t, isDark) => StyleSheet.create({
-  root: { flex: 1 },
-  container: { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 120 },
 
-  // Header - matching VibeSignalScreen exactly
-  header: CLOSE_HEADER_STYLES.header,
-  headerTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    marginLeft: -8,
-  },
-  backButton: CLOSE_HEADER_STYLES.closeButton,
-  headerEditorial: { paddingRight: SPACING.xl },
-  headerTitle: CLOSE_HEADER_STYLES.title,
-  headerSubtitle: CLOSE_HEADER_STYLES.subtitle,
-
   // ── Category Badge ──
   badgeRow: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
+    paddingHorizontal: SPACING.screen,
+    marginBottom: SPACING.lg,
   },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 100,
     borderWidth: 1,
     gap: 6,
   },
@@ -480,15 +438,15 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Question Card ──
   questionCard: {
-    marginHorizontal: 24,
-    borderRadius: 24,
+    marginHorizontal: SPACING.screen,
+    borderRadius: 28,
     borderWidth: 1,
-    padding: 20,
-    marginBottom: 24,
+    padding: SPACING.xl,
+    marginBottom: SPACING.lg,
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.06, shadowRadius: 12 },
-      android: { elevation: isDark ? 0 : 2 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
+      android: { elevation: 4 },
     }),
   },
   questionText: {
@@ -516,8 +474,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Input Phase ──
   inputSection: {
-    paddingHorizontal: 24,
-    marginBottom: 16,
+    paddingHorizontal: SPACING.screen,
+    marginBottom: SPACING.md,
   },
   inputLabel: {
     fontFamily: SYSTEM_FONT,
@@ -529,12 +487,16 @@ const createStyles = (t, isDark) => StyleSheet.create({
     marginBottom: 12,
   },
   inputCard: {
-    borderRadius: 24,
+    borderRadius: 28,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,
     minHeight: 120,
     overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
+      android: { elevation: 4 },
+    }),
   },
   textInput: {
     fontFamily: SYSTEM_FONT,
@@ -570,19 +532,19 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Submitted / Wait Phase ──
   waitSection: { 
-    paddingHorizontal: 24,
-    gap: 16,
+    paddingHorizontal: SPACING.screen,
+    gap: SPACING.md,
   },
 
   lockedCard: {
-    borderRadius: 20,
+    borderRadius: 28,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,
-    padding: SPACING.lg,
+    padding: SPACING.xl,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.2 : 0.04, shadowRadius: 12 },
-      android: { elevation: 3 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
+      android: { elevation: 4 },
     }),
   },
   lockedCardHeader: {
@@ -608,14 +570,14 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
 
   partnerStatusCard: {
-    borderRadius: 20,
+    borderRadius: 28,
     borderWidth: 1,
     backgroundColor: t.surface,
-    padding: SPACING.lg,
-    gap: 8,
+    padding: SPACING.xl,
+    gap: SPACING.sm,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.2 : 0.04, shadowRadius: 12 },
-      android: { elevation: 3 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
+      android: { elevation: 4 },
     }),
   },
   statusDot: {
@@ -657,7 +619,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     marginTop: SPACING.lg,
   },
   revealPanelInner: {
-    borderRadius: 24,
+    borderRadius: 28,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,
@@ -665,8 +627,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     gap: SPACING.md,
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
-      android: { elevation: 6 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
+      android: { elevation: 4 },
     }),
   },
   revealPanelTitle: {
