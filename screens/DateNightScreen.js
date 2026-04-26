@@ -39,6 +39,11 @@ import { SoftBoundaries } from '../services/PolishEngine';
 import contentAccessService from '../services/ContentAccessService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DATE_HISTORY_KEY } from '../utils/dateHistory';
+import {
+  getDateShortlist,
+  addDateToShortlist,
+  removeDateFromShortlist,
+} from '../services/supabase/dateShortlistService';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
@@ -370,6 +375,7 @@ export default function DateNightScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
+  const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || null;
 
   const t = useMemo(() => ({
     background: colors.background,
@@ -409,7 +415,18 @@ export default function DateNightScreen({ navigation }) {
         .then(raw => { if (raw) setDateHistory(JSON.parse(raw)); })
         .catch(() => {});
       const task = InteractionManager.runAfterInteractions(() => {
-        setAllDates(getAllDates());
+        const dates = getAllDates();
+        setAllDates(dates);
+
+        if (userId) {
+          getDateShortlist(userId)
+            .then((rows) => {
+              const ids = new Set((rows || []).map((row) => row.date_id));
+              setLikedDates(dates.filter((date) => ids.has(date.id)));
+            })
+            .catch(() => {});
+        }
+
         Promise.all([
           PreferenceEngine.getContentProfile(userProfile || {}),
           SoftBoundaries.getAll(),
@@ -424,14 +441,13 @@ export default function DateNightScreen({ navigation }) {
           .finally(() => setReady(true));
       });
       return () => task.cancel();
-    }, [userProfile])
+    }, [userProfile, userId])
   );
 
   // Reset deck position whenever the filtered deck changes
   // (filter change, profile load, premium status change)
   useEffect(() => {
     setDeckIndex(0);
-    setLikedDates([]);
   }, [selectedHeat, selectedLoad, selectedStyle, contentProfile, isPremium]);
 
   const activeFilters = useMemo(() => {
@@ -505,9 +521,24 @@ export default function DateNightScreen({ navigation }) {
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
 
   const handleSwipeRight = useCallback((date) => {
-    setLikedDates(prev => [...prev, date]);
+    if (!date?.id) {
+      setDeckIndex(prev => prev + 1);
+      return;
+    }
+
+    setLikedDates(prev => {
+      const exists = prev.some(item => item.id === date.id);
+      return exists ? prev : [...prev, date];
+    });
+
+    if (userId) {
+      addDateToShortlist(userId, date.id).catch(() => {
+        setLikedDates(prev => prev.filter(item => item.id !== date.id));
+      });
+    }
+
     setDeckIndex(prev => prev + 1);
-  }, []);
+  }, [userId]);
 
   const handleSwipeLeft = useCallback(() => {
     setDeckIndex(prev => prev + 1);
@@ -520,7 +551,6 @@ export default function DateNightScreen({ navigation }) {
   const handleReset = useCallback(async () => {
     impact(ImpactFeedbackStyle.Light);
     setDeckIndex(0);
-    setLikedDates([]);
   }, []);
 
   const handleFilterPress = useCallback(async (dim, value) => {
@@ -564,13 +594,16 @@ export default function DateNightScreen({ navigation }) {
           text: 'Pause Date',
           onPress: async () => {
             await SoftBoundaries.pauseDate(date.id);
+            if (userId) {
+              await removeDateFromShortlist(userId, date.id).catch(() => {});
+            }
             setLikedDates((prev) => prev.filter((entry) => entry.id !== date.id));
             await refreshBoundaryProfile();
           },
         },
       ]
     );
-  }, [refreshBoundaryProfile]);
+  }, [refreshBoundaryProfile, userId]);
 
   return (
     <View style={[styles.root, { backgroundColor: t.background }]}>
