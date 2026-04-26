@@ -39,6 +39,18 @@ function formatDateLabel(value) {
   });
 }
 
+function formatTimeLabel(value) {
+  if (!value) return '';
+  const date = typeof value === 'string' && value.length === 10
+    ? new Date(`${value}T00:00:00`)
+    : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 function buildJournalItem(row, ownerIds) {
   const isOwn = ownerIds.has(row.user_id);
   const preview = row.locked
@@ -54,6 +66,7 @@ function buildJournalItem(row, ownerIds) {
     accent: '#D2121A',
     meta: isOwn ? 'Visible to both of you' : 'Shared with both of you',
     dateLabel: formatDateLabel(row.created_at),
+    timeLabel: formatTimeLabel(row.created_at),
     photoUri: row.photo_uri || null,
     mediaUri: row.mediaUri || null,
     mediaType: row.mediaType || null,
@@ -181,8 +194,11 @@ export default function JournalHomeScreen({ navigation }) {
               <View style={[styles.metaPill, { backgroundColor: withAlpha(item.accent, 0.12), borderColor: withAlpha(item.accent, 0.22) }]}>
                 <Text style={[styles.metaPillText, { color: item.accent }]}>{item.meta}</Text>
               </View>
-              <View style={[styles.actionPill, { borderColor: t.border }]}> 
-                <Text style={[styles.actionPillText, { color: t.text }]}>{item.canEdit ? 'Edit' : 'Read'}</Text>
+              <View style={styles.cardFooterRight}>
+                <Text style={styles.cardTimestamp}>{item.dateLabel} · {item.timeLabel}</Text>
+                <View style={[styles.actionPill, { borderColor: t.border }]}> 
+                  <Text style={[styles.actionPillText, { color: t.text }]}>{item.canEdit ? 'Edit' : 'Read'}</Text>
+                </View>
               </View>
             </View>
           </View>
@@ -202,7 +218,7 @@ export default function JournalHomeScreen({ navigation }) {
             </View>
             <Text style={[styles.heroTitle, { color: t.text }]}>A shared shelf for the entries you write together.</Text>
             <Text style={[styles.heroBody, { color: t.subtext }]}>
-              Shared entries are readable by both partners and belong to the relationship story, not just your private notes.
+              Everything here is shared with your partner — a transparent space where your reflections live together.
             </Text>
           </View>
 
@@ -477,6 +493,17 @@ const createStyles = (t) => StyleSheet.create({
     alignItems: 'center',
     marginTop: SPACING.lg,
     gap: 10,
+  },
+  cardFooterRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cardTimestamp: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11,
+    fontWeight: '500',
+    color: t.subtext,
   },
   metaPill: {
     borderRadius: 999,

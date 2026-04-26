@@ -92,7 +92,7 @@ function normalizePrompt(p) {
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
   { label: 'Notes', icon: 'document-text-outline', key: 'journal', premium: false, color: '#8E8E93' },
-  { label: 'Play', icon: 'game-controller-outline', key: 'quiz', premium: false, color: '#8E8E93' },
+  { label: 'Play', icon: 'chatbubbles-outline', key: 'quiz', premium: false, color: '#8E8E93' },
   { label: 'Our Story', icon: 'images-outline', key: 'memories', premium: false, color: '#8E8E93' },
   { label: 'Spark', icon: 'flame', key: 'intimacy', premium: true, color: '#8E8E93' },
 ];

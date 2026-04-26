@@ -253,7 +253,7 @@ export default function CouplesQuizScreen({ navigation }) {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Daily Quiz"
+      headerTitle="How Well Do You Know Them?"
       headerSubtitle="DAILY QUIZ"
       scroll={false}
       onBack={handleBack}
@@ -267,20 +267,20 @@ export default function CouplesQuizScreen({ navigation }) {
         >
             {/* Category badge */}
             <Animated.View entering={FadeIn.duration(800).delay(400)} style={styles.badgeRow}>
-              <View style={[styles.categoryBadge, { borderColor: accentColor, backgroundColor: withAlpha(accentColor, 0.1) }]}>
-                <Icon name={question.icon} size={14} color={accentColor} />
+              <View style={[styles.categoryBadge, { borderColor: withAlpha(accentColor, 0.3), backgroundColor: withAlpha(accentColor, 0.08) }]}>
+                <Icon name={question.icon || 'sparkles-outline'} size={12} color={accentColor} />
                 <Text style={[styles.categoryLabel, { color: accentColor }]}>
-                  {question.category.toUpperCase()}
+                  {(question.category || 'about them').toUpperCase()}
                 </Text>
               </View>
             </Animated.View>
 
             {/* Question card */}
             <Animated.View entering={FadeInDown.duration(800).delay(600)} style={[styles.questionCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-              <Text style={styles.questionText}>{questionText}</Text>
+              <Text style={[styles.questionText, { color: t.text }]}>{questionText}</Text>
               <View style={styles.questionFooter}>
                 <Icon name="people-outline" size={14} color={t.subtext} />
-                <Text style={styles.questionHint}>
+                <Text style={[styles.questionHint, { color: t.subtext }]}>
                   Both answer — then reveal and see how close you were
                 </Text>
               </View>
@@ -289,11 +289,11 @@ export default function CouplesQuizScreen({ navigation }) {
             {/* ── Phase A: Input (not yet submitted) ── */}
             {!hasSubmitted && (
               <Animated.View entering={FadeInUp.duration(600).delay(800)} style={styles.inputSection}>
-                <Text style={styles.inputLabel}>Your guess about {partnerName}</Text>
-                <View style={styles.inputCard}>
+                <Text style={[styles.inputLabel, { color: t.subtext }]}>YOUR GUESS ABOUT {partnerName.toUpperCase()}</Text>
+                <View style={[styles.inputCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                   <TextInput
                     ref={inputRef}
-                    style={styles.textInput}
+                    style={[styles.textInput, { color: t.text }]}
                     placeholder={`What do you think ${partnerName} would say…`}
                     placeholderTextColor={t.subtext}
                     value={myAnswer}
@@ -315,7 +315,7 @@ export default function CouplesQuizScreen({ navigation }) {
                   </Text>
                   {myAnswer.trim() && <Icon name="lock-closed-outline" size={16} color={isDark ? '#000000' : '#FFFFFF'} />}
                 </TouchableOpacity>
-                <Text style={styles.helperText}>
+                <Text style={[styles.helperText, { color: t.subtext }]}>
                   {partnerName}'s answer is hidden until you both submit
                 </Text>
               </Animated.View>
@@ -451,12 +451,11 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   questionText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    lineHeight: 28,
-    letterSpacing: -0.3,
-    color: t.text,
-    marginBottom: 16,
+    lineHeight: 30,
+    letterSpacing: -0.4,
+    marginBottom: 20,
   },
   questionFooter: {
     flexDirection: 'row',
@@ -481,9 +480,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    color: t.subtext,
     marginBottom: 12,
   },
   inputCard: {
@@ -501,10 +499,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
   textInput: {
     fontFamily: SYSTEM_FONT,
     fontSize: 17,
-    color: t.text,
     padding: 20,
     lineHeight: 24,
-    minHeight: 120,
+    minHeight: 100,
     textAlignVertical: 'top',
   },
   submitBtn: {
@@ -523,10 +520,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   helperText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    color: t.subtext,
+    fontSize: 13,
     textAlign: 'center',
-    marginTop: 12,
+    marginTop: 14,
     lineHeight: 18,
   },
 
