@@ -21,9 +21,9 @@
       "deep": "Vulnerable and transformative"
     },
     "heat": {
-      "1": "Heart \u2014 Emotional, romantic, deep connection",
-      "2": "Play \u2014 Fun, lighthearted, adventurous",
-      "3": "Heat \u2014 Sensual, steamy, passionate"
+      "1": "Heart — Emotional, romantic, deep connection",
+      "2": "Play — Fun, lighthearted, adventurous",
+      "3": "Heat — Sensual, steamy, passionate"
     },
     "dimensions": {
       "mood": "1-3 (Heart, Play, Heat)",
@@ -268,7 +268,7 @@
         "Float and stargaze"
       ],
       "heat": 1,
-      "load": 2,
+      "load": 3,
       "style": "mixed",
       "releaseWeek": 0
     },
@@ -284,8 +284,8 @@
         "Share dreams under stars"
       ],
       "heat": 1,
-      "load": 2,
-      "style": "talking",
+      "load": 3,
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -589,7 +589,7 @@
       ],
       "heat": 1,
       "load": 2,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -749,7 +749,7 @@
       ],
       "heat": 1,
       "load": 3,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -796,8 +796,8 @@
         "Feel the breeze together"
       ],
       "heat": 1,
-      "load": 2,
-      "style": "talking",
+      "load": 3,
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -1053,7 +1053,7 @@
       ],
       "heat": 2,
       "load": 3,
-      "style": "doing",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -1213,7 +1213,7 @@
       ],
       "heat": 2,
       "load": 3,
-      "style": "doing",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -1517,7 +1517,7 @@
       ],
       "heat": 2,
       "load": 3,
-      "style": "doing",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -1565,7 +1565,7 @@
       ],
       "heat": 2,
       "load": 3,
-      "style": "doing",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -1709,7 +1709,7 @@
       ],
       "heat": 1,
       "load": 2,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -1789,7 +1789,7 @@
       ],
       "heat": 1,
       "load": 1,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -1997,7 +1997,7 @@
       ],
       "heat": 1,
       "load": 2,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -2077,7 +2077,7 @@
       ],
       "heat": 1,
       "load": 2,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -2189,7 +2189,7 @@
       ],
       "heat": 1,
       "load": 2,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -2253,7 +2253,7 @@
       ],
       "heat": 1,
       "load": 2,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -2269,7 +2269,7 @@
       ],
       "heat": 1,
       "load": 1,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 0
     },
     {
@@ -2551,7 +2551,7 @@
       "location": "home",
       "steps": [
         "Fill the tub with bubbles and candles",
-        "Take turns washing each other\u2019s shoulders",
+        "Take turns washing each other’s shoulders",
         "Share a warm drink",
         "Finish with soft towels and cuddles"
       ],
@@ -3421,7 +3421,7 @@
       ],
       "heat": 3,
       "load": 3,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 8
     },
     {
@@ -3533,7 +3533,7 @@
       ],
       "heat": 3,
       "load": 1,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 9
     },
     {
@@ -3659,7 +3659,7 @@
         "Try to lip-read and guess what they said",
         "Act out the ones you guess correctly"
       ],
-      "heat": 2,
+      "heat": 3,
       "load": 1,
       "style": "mixed",
       "releaseWeek": 10
@@ -3805,7 +3805,7 @@
       ],
       "heat": 3,
       "load": 1,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 12
     },
     {
@@ -4914,12 +4914,12 @@
     },
     {
       "id": "d056",
-      "title": "Bookstore Caf\u00e9 Philosophy",
+      "title": "Bookstore Café Philosophy",
       "minutes": 90,
       "location": "out",
       "steps": [
         "Browse bookstore together",
-        "Find caf\u00e9 corner",
+        "Find café corner",
         "Read passages aloud",
         "Discuss favorite authors"
       ],
@@ -5001,7 +5001,7 @@
         "Explore historic neighborhood",
         "Learn local history",
         "Imagine past lives",
-        "Find romantic caf\u00e9"
+        "Find romantic café"
       ],
       "heat": 2,
       "load": 3,
@@ -5522,11 +5522,11 @@
     },
     {
       "id": "d408",
-      "title": "Couples Macram\u00e9 Class",
+      "title": "Couples Macramé Class",
       "minutes": 90,
       "location": "home",
       "steps": [
-        "Watch a macram\u00e9 tutorial together",
+        "Watch a macramé tutorial together",
         "Knot a plant hanger or wall hanging",
         "Help each other with tricky knots",
         "Hang your creation proudly"
@@ -5800,7 +5800,7 @@
       "steps": [
         "Pack a basket with midnight snacks and a blanket",
         "Find a quiet park or garden after dark",
-        "Read poems aloud \u2014 ones you wrote or favorites",
+        "Read poems aloud — ones you wrote or favorites",
         "Lie together and listen to the night sounds"
       ],
       "heat": 1,
@@ -6029,7 +6029,7 @@
       ],
       "heat": 2,
       "load": 3,
-      "style": "talking",
+      "style": "mixed",
       "releaseWeek": 31
     },
     {
@@ -6070,7 +6070,7 @@
       "minutes": 90,
       "location": "home",
       "steps": [
-        "Play improv games \u2014 yes-and scenes about your life",
+        "Play improv games — yes-and scenes about your life",
         "Open a bottle of wine between each round",
         "Act out your first date, wedding, or dream vacation",
         "Award each other superlatives like 'Best Drama'"
@@ -6199,7 +6199,7 @@
       "location": "out",
       "steps": [
         "Walk together in silence until the sun fully sets",
-        "Hold hands but don't speak \u2014 just be present",
+        "Hold hands but don't speak — just be present",
         "Sit down and journal about what you noticed",
         "Read your journals aloud to each other"
       ],
@@ -6237,7 +6237,7 @@
       ],
       "heat": 3,
       "load": 3,
-      "style": "doing",
+      "style": "mixed",
       "releaseWeek": 33
     },
     {
@@ -6248,7 +6248,7 @@
       "steps": [
         "Set up two easels or canvases side by side",
         "Mix craft cocktails to sip while painting",
-        "Paint portraits of each other \u2014 no peeking",
+        "Paint portraits of each other — no peeking",
         "Reveal your masterpieces with dramatic flair"
       ],
       "heat": 2,
@@ -6381,7 +6381,7 @@
       ],
       "heat": 2,
       "load": 3,
-      "style": "doing",
+      "style": "mixed",
       "releaseWeek": 35
     },
     {
@@ -6855,7 +6855,7 @@
       "location": "home",
       "steps": [
         "Warm massage oil and lay out towels",
-        "Give a slow, thorough full-body massage\u2014no rushing",
+        "Give a slow, thorough full-body massage—no rushing",
         "Pay attention to reactions and linger where it feels best",
         "Let the massage evolve naturally into whatever feels right"
       ],
@@ -7005,7 +7005,7 @@
       ],
       "heat": 3,
       "load": 3,
-      "style": "mixed",
+      "style": "doing",
       "releaseWeek": 40
     },
     {
@@ -7014,7 +7014,7 @@
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Prepare a tray of sensual foods\u2014chocolate, fruit, honey",
+        "Prepare a tray of sensual foods—chocolate, fruit, honey",
         "Blindfold your partner and feed them slowly",
         "Mix feeding with gentle, unexpected touches",
         "Switch roles and see who gets more creative"
@@ -7032,7 +7032,7 @@
       "steps": [
         "Set the mood with candles and music",
         "Take turns showing each other exactly what feels best",
-        "Communicate openly\u2014guide hands and movements",
+        "Communicate openly—guide hands and movements",
         "Focus on discovery rather than any destination"
       ],
       "heat": 3,
@@ -7048,7 +7048,7 @@
       "steps": [
         "Each write 10 bold, explicit questions on slips of paper",
         "Take turns drawing and answering with total honesty",
-        "No deflecting\u2014lean into vulnerability and openness",
+        "No deflecting—lean into vulnerability and openness",
         "Let the conversation build heat naturally"
       ],
       "heat": 3,
@@ -7064,7 +7064,7 @@
       "steps": [
         "Pick playful 'would you rather' topics",
         "Take turns arguing each side passionately",
-        "Add stakes \u2014 loser gives winner a massage",
+        "Add stakes — loser gives winner a massage",
         "End with your favorite answers about each other"
       ],
       "heat": 2,
@@ -7127,13 +7127,13 @@
       "location": "home",
       "steps": [
         "Build a playful obstacle course at home",
-        "Add sensory challenges \u2014 blindfolds, textures",
+        "Add sensory challenges — blindfolds, textures",
         "Guide each other through with only touch and voice",
         "Celebrate finishing together"
       ],
       "heat": 3,
       "load": 3,
-      "style": "mixed",
+      "style": "doing",
       "releaseWeek": 41
     },
     {
@@ -7147,9 +7147,9 @@
         "Paint designs on each other's skin",
         "Photograph your art before washing off together"
       ],
-      "heat": 2,
+      "heat": 3,
       "load": 3,
-      "style": "mixed",
+      "style": "doing",
       "releaseWeek": 41
     },
     {
@@ -7160,7 +7160,7 @@
       "steps": [
         "Pick a challenging trail with privacy",
         "Take turns sharing your deepest desires",
-        "No judgments \u2014 only curiosity and openness",
+        "No judgments — only curiosity and openness",
         "Discuss what you'd love to explore together"
       ],
       "heat": 3,
@@ -7176,7 +7176,7 @@
       "steps": [
         "Each write down your top 3 fantasies",
         "Read them aloud to each other with confidence",
-        "Discuss openly \u2014 no holding back",
+        "Discuss openly — no holding back",
         "Pick one to plan together in detail"
       ],
       "heat": 3,
@@ -7209,7 +7209,7 @@
         "Write daring challenges on cards",
         "Shuffle and draw one at a time",
         "Complete each challenge together",
-        "The final card is dealer's choice \u2014 go all in"
+        "The final card is dealer's choice — go all in"
       ],
       "heat": 2,
       "load": 3,
@@ -7916,7 +7916,7 @@
         "Head home talking about what felt cinematic, awkward, or unexpectedly intimate"
       ],
       "heat": 1,
-      "load": 2,
+      "load": 3,
       "style": "mixed",
       "releaseWeek": 48
     },
