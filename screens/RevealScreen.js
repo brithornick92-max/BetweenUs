@@ -201,8 +201,8 @@ export default function RevealScreen({ route, navigation }) {
           {/* Hero Prompt Card (Glass Style) */}
           <View style={[styles.promptContainer, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
             <View style={styles.eyebrowRow}>
-              <Icon name="sparkles-outline" size={12} color={t.accent} />
-              <Text style={[styles.questionLabel, { color: t.accent }]}>TODAY BETWEEN US</Text>
+              <Icon name="sparkles-outline" size={12} color={t.primary} />
+              <Text style={[styles.questionLabel, { color: t.primary }]}>TODAY BETWEEN US</Text>
             </View>
             <Text style={[styles.questionText, { color: t.text }]}>{prompt.text}</Text>
           </View>
