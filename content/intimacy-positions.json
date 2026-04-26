@@ -18,7 +18,7 @@
       "standard": "Average flexibility and comfort",
       "active": "Requires some strength or balance"
     },
-    "totalPositions": 50
+    "totalPositions": 150
   },
   "items": [
     {
@@ -6119,6 +6119,3056 @@
         "Pillow-Supported",
         "Hug",
         "Grounded"
+      ]
+    },
+    {
+      "id": "ip102",
+      "title": "The Fireside",
+      "commonName": "Seated Sofa Closeness",
+      "category": "deep-connection",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "warm",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 91,
+      "focus": "The Fireside is a guided intimacy position built around warm connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into seated sofa closeness slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Sofa",
+        "Seated",
+        "Close",
+        "Warm"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Seated Sofa Closeness, warm energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Warm",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Fireside is a warm, guided variation of seated sofa closeness designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Sofa",
+        "Seated",
+        "Close",
+        "Warm"
+      ]
+    },
+    {
+      "id": "ip103",
+      "title": "The Folded Blanket",
+      "commonName": "Side Spooning with Knee Support",
+      "category": "deep-connection",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "cozy",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 92,
+      "focus": "The Folded Blanket is a guided intimacy position built around cozy connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into side spooning with knee support slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Spooning",
+        "Knee Support",
+        "Soft",
+        "Low Effort"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Side Spooning with Knee Support, cozy energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Cozy",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Folded Blanket is a cozy, guided variation of side spooning with knee support designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Spooning",
+        "Knee Support",
+        "Soft",
+        "Low Effort"
+      ]
+    },
+    {
+      "id": "ip104",
+      "title": "The Murmur",
+      "commonName": "Whispering Hold",
+      "category": "deep-connection",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "tender",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 93,
+      "focus": "The Murmur is a guided intimacy position built around tender connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into whispering hold slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Whispering",
+        "Stillness",
+        "Close",
+        "Emotional"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Whispering Hold, tender energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Tender",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Murmur is a tender, guided variation of whispering hold designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Whispering",
+        "Stillness",
+        "Close",
+        "Emotional"
+      ]
+    },
+    {
+      "id": "ip105",
+      "title": "The Slow Window",
+      "commonName": "Edge Recline Gentle Pace",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "soft",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 94,
+      "focus": "The Slow Window is a guided intimacy position built around soft connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into edge recline gentle pace slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Edge-Supported",
+        "Reclined",
+        "Gentle",
+        "Slow"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Edge Recline Gentle Pace, soft energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Soft",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Slow Window is a soft, guided variation of edge recline gentle pace designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Edge-Supported",
+        "Reclined",
+        "Gentle",
+        "Slow"
+      ]
+    },
+    {
+      "id": "ip106",
+      "title": "The Rest",
+      "commonName": "Low-Effort Full Contact",
+      "category": "deep-connection",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "restful",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 95,
+      "focus": "The Rest is a guided intimacy position built around restful connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into low-effort full contact slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Full Contact",
+        "Low Effort",
+        "Soft",
+        "Grounded"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Low-Effort Full Contact, restful energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Restful",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Rest is a restful, guided variation of low-effort full contact designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Full Contact",
+        "Low Effort",
+        "Soft",
+        "Grounded"
+      ]
+    },
+    {
+      "id": "ip107",
+      "title": "The Gentle Thread",
+      "commonName": "Loose Leg Tangle",
+      "category": "deep-connection",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "gentle",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 96,
+      "focus": "The Gentle Thread is a guided intimacy position built around gentle connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into loose leg tangle slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Leg Tangle",
+        "Soft",
+        "Side-Lying",
+        "Connected"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Loose Leg Tangle, gentle energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Gentle",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Gentle Thread is a gentle, guided variation of loose leg tangle designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Leg Tangle",
+        "Soft",
+        "Side-Lying",
+        "Connected"
+      ]
+    },
+    {
+      "id": "ip108",
+      "title": "The Sway",
+      "commonName": "Soft Hip Rocking",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "sensual",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 97,
+      "focus": "The Sway is a guided intimacy position built around sensual connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into soft hip rocking slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Rocking",
+        "Slow",
+        "Rhythm",
+        "Soft"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Soft Hip Rocking, sensual energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Sensual",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Sway is a sensual, guided variation of soft hip rocking designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Rocking",
+        "Slow",
+        "Rhythm",
+        "Soft"
+      ]
+    },
+    {
+      "id": "ip109",
+      "title": "The Drowsy Flame",
+      "commonName": "Sleepy Spooning",
+      "category": "deep-connection",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "sleepy",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 98,
+      "focus": "The Drowsy Flame is a guided intimacy position built around sleepy connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into sleepy spooning slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Spooning",
+        "Sleepy",
+        "Cozy",
+        "Low Effort"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Sleepy Spooning, sleepy energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Sleepy",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Drowsy Flame is a sleepy, guided variation of sleepy spooning designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Spooning",
+        "Sleepy",
+        "Cozy",
+        "Low Effort"
+      ]
+    },
+    {
+      "id": "ip110",
+      "title": "The Quiet Shore",
+      "commonName": "Side Recline",
+      "category": "deep-connection",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "calm",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 99,
+      "focus": "The Quiet Shore is a guided intimacy position built around calm connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into side recline slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Side-Lying",
+        "Reclined",
+        "Gentle",
+        "Soft"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Side Recline, calm energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Calm",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Quiet Shore is a calm, guided variation of side recline designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Side-Lying",
+        "Reclined",
+        "Gentle",
+        "Soft"
+      ]
+    },
+    {
+      "id": "ip111",
+      "title": "The Held Breath",
+      "commonName": "Chest-to-Back Stillness",
+      "category": "trust-vulnerability",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "vulnerable",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 100,
+      "focus": "The Held Breath is a guided intimacy position built around vulnerable connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into chest-to-back stillness slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Chest-to-Back",
+        "Stillness",
+        "Held",
+        "Slow"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Chest-to-Back Stillness, vulnerable energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Vulnerable",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Held Breath is a vulnerable, guided variation of chest-to-back stillness designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Chest-to-Back",
+        "Stillness",
+        "Held",
+        "Slow"
+      ]
+    },
+    {
+      "id": "ip112",
+      "title": "The Compass",
+      "commonName": "Angled Missionary",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "focused",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 101,
+      "focus": "The Compass is a guided intimacy position built around focused connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into angled missionary slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Face-to-Face",
+        "Angled",
+        "Classic",
+        "Focused"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Angled Missionary, focused energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Focused",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Compass is a focused, guided variation of angled missionary designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Face-to-Face",
+        "Angled",
+        "Classic",
+        "Focused"
+      ]
+    },
+    {
+      "id": "ip113",
+      "title": "The Tilt",
+      "commonName": "Hip Pillow Lift",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "heated",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 102,
+      "focus": "The Tilt is a guided intimacy position built around heated connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into hip pillow lift slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Pillow-Supported",
+        "Hips Lifted",
+        "Open",
+        "Focused"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Hip Pillow Lift, heated energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Heated",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Tilt is a heated, guided variation of hip pillow lift designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Pillow-Supported",
+        "Hips Lifted",
+        "Open",
+        "Focused"
+      ]
+    },
+    {
+      "id": "ip114",
+      "title": "The Spiral",
+      "commonName": "Circular Hip Rhythm",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "sensual",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 103,
+      "focus": "The Spiral is a guided intimacy position built around sensual connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into circular hip rhythm slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Circular Rhythm",
+        "Slow Burn",
+        "Body-Led",
+        "Responsive"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Circular Hip Rhythm, sensual energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Sensual",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Spiral is a sensual, guided variation of circular hip rhythm designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Circular Rhythm",
+        "Slow Burn",
+        "Body-Led",
+        "Responsive"
+      ]
+    },
+    {
+      "id": "ip115",
+      "title": "The Pressed Bloom",
+      "commonName": "Prone with Pillow",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "mood": "grounded",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 104,
+      "focus": "The Pressed Bloom is a guided intimacy position built around grounded connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into prone with pillow slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Prone",
+        "Pillow-Supported",
+        "Grounded",
+        "Slow"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Prone with Pillow, grounded energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Grounded",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Pressed Bloom is a grounded, guided variation of prone with pillow designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Prone",
+        "Pillow-Supported",
+        "Grounded",
+        "Slow"
+      ]
+    },
+    {
+      "id": "ip116",
+      "title": "The Arc",
+      "commonName": "One Leg Lifted",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "open",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 105,
+      "focus": "The Arc is a guided intimacy position built around open connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into one leg lifted slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Leg Lift",
+        "Open",
+        "Supported",
+        "Focused"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "One Leg Lifted, open energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Open",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Arc is a open, guided variation of one leg lifted designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Leg Lift",
+        "Open",
+        "Supported",
+        "Focused"
+      ]
+    },
+    {
+      "id": "ip117",
+      "title": "The Slope",
+      "commonName": "Reclined Hip Elevation",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "heated",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 106,
+      "focus": "The Slope is a guided intimacy position built around heated connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into reclined hip elevation slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Reclined",
+        "Hips Elevated",
+        "Open",
+        "Supported"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Reclined Hip Elevation, heated energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Heated",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Slope is a heated, guided variation of reclined hip elevation designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Reclined",
+        "Hips Elevated",
+        "Open",
+        "Supported"
+      ]
+    },
+    {
+      "id": "ip118",
+      "title": "The Line",
+      "commonName": "Straight-Leg Missionary",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "steady",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 107,
+      "focus": "The Line is a guided intimacy position built around steady connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into straight-leg missionary slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Face-to-Face",
+        "Straight Legs",
+        "Classic",
+        "Steady"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Straight-Leg Missionary, steady energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Steady",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Line is a steady, guided variation of straight-leg missionary designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Face-to-Face",
+        "Straight Legs",
+        "Classic",
+        "Steady"
+      ]
+    },
+    {
+      "id": "ip119",
+      "title": "The Pendulum",
+      "commonName": "Slow Forward-Back Rhythm",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "rhythmic",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 108,
+      "focus": "The Pendulum is a guided intimacy position built around rhythmic connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into slow forward-back rhythm slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Forward-Back",
+        "Slow",
+        "Rhythm",
+        "Controlled"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Slow Forward-Back Rhythm, rhythmic energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Rhythmic",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Pendulum is a rhythmic, guided variation of slow forward-back rhythm designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Forward-Back",
+        "Slow",
+        "Rhythm",
+        "Controlled"
+      ]
+    },
+    {
+      "id": "ip120",
+      "title": "The Counterpoint",
+      "commonName": "Alternating Pace",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "playful",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 109,
+      "focus": "The Counterpoint is a guided intimacy position built around playful connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into alternating pace slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Pace Play",
+        "Responsive",
+        "Rhythm",
+        "Interactive"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Alternating Pace, playful energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Playful",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Counterpoint is a playful, guided variation of alternating pace designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Pace Play",
+        "Responsive",
+        "Rhythm",
+        "Interactive"
+      ]
+    },
+    {
+      "id": "ip121",
+      "title": "The Tempo",
+      "commonName": "Guided Rhythm Hold",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "connected",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 110,
+      "focus": "The Tempo is a guided intimacy position built around connected connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into guided rhythm hold slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Guided Rhythm",
+        "Hands-On",
+        "Responsive",
+        "Close"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Guided Rhythm Hold, connected energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Connected",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Tempo is a connected, guided variation of guided rhythm hold designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Guided Rhythm",
+        "Hands-On",
+        "Responsive",
+        "Close"
+      ]
+    },
+    {
+      "id": "ip122",
+      "title": "The Undercurrent",
+      "commonName": "Low Grinding Rhythm",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "sensual",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 111,
+      "focus": "The Undercurrent is a guided intimacy position built around sensual connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into low grinding rhythm slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Low Rhythm",
+        "Grinding",
+        "Slow Burn",
+        "Close"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Low Grinding Rhythm, sensual energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Sensual",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Undercurrent is a sensual, guided variation of low grinding rhythm designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Low Rhythm",
+        "Grinding",
+        "Slow Burn",
+        "Close"
+      ]
+    },
+    {
+      "id": "ip123",
+      "title": "The Rise",
+      "commonName": "Hip-Lift Support",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "heated",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 112,
+      "focus": "The Rise is a guided intimacy position built around heated connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into hip-lift support slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Hip Lift",
+        "Supported",
+        "Open",
+        "Focused"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Hip-Lift Support, heated energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Heated",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Rise is a heated, guided variation of hip-lift support designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Hip Lift",
+        "Supported",
+        "Open",
+        "Focused"
+      ]
+    },
+    {
+      "id": "ip124",
+      "title": "The Lower Flame",
+      "commonName": "Low Close Missionary",
+      "category": "deep-connection",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "mood": "intimate",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 113,
+      "focus": "The Lower Flame is a guided intimacy position built around intimate connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into low close missionary slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Face-to-Face",
+        "Low and Close",
+        "Classic",
+        "Slow"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Low Close Missionary, intimate energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Intimate",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Lower Flame is a intimate, guided variation of low close missionary designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Face-to-Face",
+        "Low and Close",
+        "Classic",
+        "Slow"
+      ]
+    },
+    {
+      "id": "ip125",
+      "title": "The Surface",
+      "commonName": "Tabletop Recline",
+      "category": "exploratory",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "heated",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 114,
+      "focus": "The Surface is a guided intimacy position built around heated connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into tabletop recline slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Tabletop",
+        "Reclined",
+        "Open",
+        "Exploratory"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Tabletop Recline, heated energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Heated",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Surface is a heated, guided variation of tabletop recline designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Tabletop",
+        "Reclined",
+        "Open",
+        "Exploratory"
+      ]
+    },
+    {
+      "id": "ip126",
+      "title": "The Angle",
+      "commonName": "Pillow Under Hips",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "focused",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 115,
+      "focus": "The Angle is a guided intimacy position built around focused connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into pillow under hips slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Pillow-Supported",
+        "Angle",
+        "Hips Lifted",
+        "Classic"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Pillow Under Hips, focused energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Focused",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Angle is a focused, guided variation of pillow under hips designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Pillow-Supported",
+        "Angle",
+        "Hips Lifted",
+        "Classic"
+      ]
+    },
+    {
+      "id": "ip127",
+      "title": "The Frame",
+      "commonName": "Hands at Waist Guidance",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "attentive",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 116,
+      "focus": "The Frame is a guided intimacy position built around attentive connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into hands at waist guidance slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Hands-On",
+        "Guided",
+        "Waist Hold",
+        "Responsive"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Hands at Waist Guidance, attentive energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Attentive",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Frame is a attentive, guided variation of hands at waist guidance designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Hands-On",
+        "Guided",
+        "Waist Hold",
+        "Responsive"
+      ]
+    },
+    {
+      "id": "ip128",
+      "title": "The Open Rhythm",
+      "commonName": "Knees-Wide Recline",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "open",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 117,
+      "focus": "The Open Rhythm is a guided intimacy position built around open connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into knees-wide recline slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Reclined",
+        "Open",
+        "Knees Wide",
+        "Supported"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Knees-Wide Recline, open energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Open",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Open Rhythm is a open, guided variation of knees-wide recline designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Reclined",
+        "Open",
+        "Knees Wide",
+        "Supported"
+      ]
+    },
+    {
+      "id": "ip129",
+      "title": "The Soft Pressure",
+      "commonName": "Slow Deep Contact",
+      "category": "deep-connection",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "intimate",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 118,
+      "focus": "The Soft Pressure is a guided intimacy position built around intimate connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into slow deep contact slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Slow",
+        "Deep Contact",
+        "Close",
+        "Grounded"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Slow Deep Contact, intimate energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Intimate",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Soft Pressure is a intimate, guided variation of slow deep contact designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Slow",
+        "Deep Contact",
+        "Close",
+        "Grounded"
+      ]
+    },
+    {
+      "id": "ip130",
+      "title": "The Steady Beat",
+      "commonName": "Consistent Rhythm",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "steady",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 119,
+      "focus": "The Steady Beat is a guided intimacy position built around steady connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into consistent rhythm slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Rhythm",
+        "Consistent",
+        "Slow",
+        "Connected"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Consistent Rhythm, steady energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Steady",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Steady Beat is a steady, guided variation of consistent rhythm designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Rhythm",
+        "Consistent",
+        "Slow",
+        "Connected"
+      ]
+    },
+    {
+      "id": "ip131",
+      "title": "The Rolling Tide",
+      "commonName": "Rocking Side Position",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "mood": "gentle",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 120,
+      "focus": "The Rolling Tide is a guided intimacy position built around gentle connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into rocking side position slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Side-Lying",
+        "Rocking",
+        "Gentle",
+        "Rhythm"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Rocking Side Position, gentle energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Gentle",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Rolling Tide is a gentle, guided variation of rocking side position designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Side-Lying",
+        "Rocking",
+        "Gentle",
+        "Rhythm"
+      ]
+    },
+    {
+      "id": "ip132",
+      "title": "The Meridian",
+      "commonName": "Diagonal Body Angle",
+      "category": "exploratory",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "curious",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 121,
+      "focus": "The Meridian is a guided intimacy position built around curious connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into diagonal body angle slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Diagonal",
+        "Angled",
+        "Exploratory",
+        "Responsive"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Diagonal Body Angle, curious energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Curious",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Meridian is a curious, guided variation of diagonal body angle designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Diagonal",
+        "Angled",
+        "Exploratory",
+        "Responsive"
+      ]
+    },
+    {
+      "id": "ip133",
+      "title": "The Lifted Pearl",
+      "commonName": "Hip Elevation",
+      "category": "sensual-rhythm",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "heated",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 122,
+      "focus": "The Lifted Pearl is a guided intimacy position built around heated connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into hip elevation slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Hips Elevated",
+        "Supported",
+        "Focused",
+        "Open"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Hip Elevation, heated energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Heated",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Lifted Pearl is a heated, guided variation of hip elevation designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Hips Elevated",
+        "Supported",
+        "Focused",
+        "Open"
+      ]
+    },
+    {
+      "id": "ip134",
+      "title": "The Close Current",
+      "commonName": "Chest-to-Chest Rhythm",
+      "category": "deep-connection",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "connected",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 123,
+      "focus": "The Close Current is a guided intimacy position built around connected connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into chest-to-chest rhythm slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Chest-to-Chest",
+        "Rhythm",
+        "Close",
+        "Slow"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Chest-to-Chest Rhythm, connected energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Connected",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Close Current is a connected, guided variation of chest-to-chest rhythm designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Chest-to-Chest",
+        "Rhythm",
+        "Close",
+        "Slow"
+      ]
+    },
+    {
+      "id": "ip135",
+      "title": "The Tease",
+      "commonName": "Over-Clothes Lap Sit",
+      "category": "playful-energy",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "flirty",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 124,
+      "focus": "The Tease is a guided intimacy position built around flirty connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into over-clothes lap sit slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Lap Sit",
+        "Flirty",
+        "Playful",
+        "Low Effort"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Over-Clothes Lap Sit, flirty energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Flirty",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Tease is a flirty, guided variation of over-clothes lap sit designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Lap Sit",
+        "Flirty",
+        "Playful",
+        "Low Effort"
+      ]
+    },
+    {
+      "id": "ip136",
+      "title": "The Dare",
+      "commonName": "Standing Kiss Hold",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "playful",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 125,
+      "focus": "The Dare is a guided intimacy position built around playful connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into standing kiss hold slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Standing",
+        "Kissing",
+        "Playful",
+        "Close"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Standing Kiss Hold, playful energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Playful",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Dare is a playful, guided variation of standing kiss hold designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Standing",
+        "Kissing",
+        "Playful",
+        "Close"
+      ]
+    },
+    {
+      "id": "ip137",
+      "title": "The Spin",
+      "commonName": "Turnaround Riding",
+      "category": "playful-energy",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "confident",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 126,
+      "focus": "The Spin is a guided intimacy position built around confident connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into turnaround riding slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Top Control",
+        "Turnaround",
+        "Playful",
+        "Confident"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Turnaround Riding, confident energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Confident",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Spin is a confident, guided variation of turnaround riding designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Top Control",
+        "Turnaround",
+        "Playful",
+        "Confident"
+      ]
+    },
+    {
+      "id": "ip138",
+      "title": "The Laughing Fire",
+      "commonName": "Playful Lap Straddle",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "playful",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 127,
+      "focus": "The Laughing Fire is a guided intimacy position built around playful connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into playful lap straddle slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Lap Straddle",
+        "Playful",
+        "Seated",
+        "Close"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Playful Lap Straddle, playful energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Playful",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Laughing Fire is a playful, guided variation of playful lap straddle designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Lap Straddle",
+        "Playful",
+        "Seated",
+        "Close"
+      ]
+    },
+    {
+      "id": "ip139",
+      "title": "The Couch Chase",
+      "commonName": "Edge-of-Couch Play",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "flirty",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 128,
+      "focus": "The Couch Chase is a guided intimacy position built around flirty connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into edge-of-couch play slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Couch",
+        "Edge-Supported",
+        "Playful",
+        "Flirty"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Edge-of-Couch Play, flirty energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Flirty",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Couch Chase is a flirty, guided variation of edge-of-couch play designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Couch",
+        "Edge-Supported",
+        "Playful",
+        "Flirty"
+      ]
+    },
+    {
+      "id": "ip140",
+      "title": "The Wink",
+      "commonName": "Flirty Chair Sit",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "flirty",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 129,
+      "focus": "The Wink is a guided intimacy position built around flirty connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into flirty chair sit slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Chair",
+        "Flirty",
+        "Seated",
+        "Playful"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Flirty Chair Sit, flirty energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Flirty",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Wink is a flirty, guided variation of flirty chair sit designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Chair",
+        "Flirty",
+        "Seated",
+        "Playful"
+      ]
+    },
+    {
+      "id": "ip141",
+      "title": "The Game",
+      "commonName": "Guided Touch Challenge",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "mood": "playful",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 130,
+      "focus": "The Game is a guided intimacy position built around playful connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into guided touch challenge slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Guided Touch",
+        "Game",
+        "Interactive",
+        "Playful"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Guided Touch Challenge, playful energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Playful",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Game is a playful, guided variation of guided touch challenge designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Guided Touch",
+        "Game",
+        "Interactive",
+        "Playful"
+      ]
+    },
+    {
+      "id": "ip142",
+      "title": "The Lead Switch",
+      "commonName": "Taking Turns Leading",
+      "category": "playful-energy",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "mutual",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 131,
+      "focus": "The Lead Switch is a guided intimacy position built around mutual connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into taking turns leading slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Switching",
+        "Mutual",
+        "Interactive",
+        "Rhythm"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Taking Turns Leading, mutual energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Mutual",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Lead Switch is a mutual, guided variation of taking turns leading designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Switching",
+        "Mutual",
+        "Interactive",
+        "Rhythm"
+      ]
+    },
+    {
+      "id": "ip143",
+      "title": "The Surprise",
+      "commonName": "Blindfolded Touch Position",
+      "category": "trust-vulnerability",
+      "duration": "5–15 min",
+      "accessibility": "low-mobility",
+      "mood": "curious",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 132,
+      "focus": "The Surprise is a guided intimacy position built around curious connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into blindfolded touch position slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Blindfold",
+        "Touch",
+        "Trust",
+        "Slow"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Blindfolded Touch Position, curious energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Curious",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Surprise is a curious, guided variation of blindfolded touch position designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Blindfold",
+        "Touch",
+        "Trust",
+        "Slow"
+      ]
+    },
+    {
+      "id": "ip144",
+      "title": "The Sparkler",
+      "commonName": "Quick Standing Hold",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "active",
+      "mood": "charged",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 133,
+      "focus": "The Sparkler is a guided intimacy position built around charged connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into quick standing hold slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Standing",
+        "Quick",
+        "Playful",
+        "Charged"
+      ],
+      "supportLevel": "Less Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Quick Standing Hold, charged energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Charged",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Sparkler is a charged, guided variation of quick standing hold designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Standing",
+        "Quick",
+        "Playful",
+        "Charged"
+      ]
+    },
+    {
+      "id": "ip145",
+      "title": "The Pillow Fight",
+      "commonName": "Playful Bed Tangle",
+      "category": "playful-energy",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "playful",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 134,
+      "focus": "The Pillow Fight is a guided intimacy position built around playful connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into playful bed tangle slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Bed Tangle",
+        "Playful",
+        "Soft",
+        "Low Effort"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Playful Bed Tangle, playful energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Playful",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Pillow Fight is a playful, guided variation of playful bed tangle designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Bed Tangle",
+        "Playful",
+        "Soft",
+        "Low Effort"
+      ]
+    },
+    {
+      "id": "ip146",
+      "title": "The Flirt",
+      "commonName": "Side-by-Side Teasing",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "mood": "flirty",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 135,
+      "focus": "The Flirt is a guided intimacy position built around flirty connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into side-by-side teasing slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Side-by-Side",
+        "Teasing",
+        "Flirty",
+        "Gentle"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Side-by-Side Teasing, flirty energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Flirty",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Flirt is a flirty, guided variation of side-by-side teasing designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Side-by-Side",
+        "Teasing",
+        "Flirty",
+        "Gentle"
+      ]
+    },
+    {
+      "id": "ip147",
+      "title": "The Carousel",
+      "commonName": "Changing Angles Slowly",
+      "category": "exploratory",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "curious",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 136,
+      "focus": "The Carousel is a guided intimacy position built around curious connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into changing angles slowly slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Changing Angles",
+        "Exploratory",
+        "Slow",
+        "Responsive"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "Changing Angles Slowly, curious energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Curious",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Carousel is a curious, guided variation of changing angles slowly designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Changing Angles",
+        "Exploratory",
+        "Slow",
+        "Responsive"
+      ]
+    },
+    {
+      "id": "ip148",
+      "title": "The Spotlight",
+      "commonName": "One Partner Leads",
+      "category": "trust-vulnerability",
+      "duration": "5–15 min",
+      "accessibility": "standard",
+      "mood": "confident",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 137,
+      "focus": "The Spotlight is a guided intimacy position built around confident connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into one partner leads slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "One Leads",
+        "Confident",
+        "Guided",
+        "Interactive"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate",
+      "bestFor": "One Partner Leads, confident energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Confident",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Heated"
+      ],
+      "shortSummary": "The Spotlight is a confident, guided variation of one partner leads designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "One Leads",
+        "Confident",
+        "Guided",
+        "Interactive"
+      ]
+    },
+    {
+      "id": "ip149",
+      "title": "The Laughing Kiss",
+      "commonName": "Tickle-to-Kiss Hold",
+      "category": "playful-energy",
+      "duration": "10–20 min",
+      "accessibility": "low-mobility",
+      "mood": "playful",
+      "heat": 1,
+      "premium": true,
+      "releaseWeek": 138,
+      "focus": "The Laughing Kiss is a guided intimacy position built around playful connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into tickle-to-kiss hold slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Kissing",
+        "Playful",
+        "Gentle",
+        "Low Effort"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm",
+      "pace": "Slow",
+      "bestFor": "Tickle-to-Kiss Hold, playful energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Playful",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Laughing Kiss is a playful, guided variation of tickle-to-kiss hold designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Kissing",
+        "Playful",
+        "Gentle",
+        "Low Effort"
+      ]
+    },
+    {
+      "id": "ip150",
+      "title": "The Secret",
+      "commonName": "Hidden Touch Cuddle",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "low-mobility",
+      "mood": "flirty",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 139,
+      "focus": "The Secret is a guided intimacy position built around flirty connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into hidden touch cuddle slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Cuddle",
+        "Hidden Touch",
+        "Flirty",
+        "Close"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Hidden Touch Cuddle, flirty energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Flirty",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Secret is a flirty, guided variation of hidden touch cuddle designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Cuddle",
+        "Hidden Touch",
+        "Flirty",
+        "Close"
+      ]
+    },
+    {
+      "id": "ip151",
+      "title": "The Dance",
+      "commonName": "Standing Sway",
+      "category": "playful-energy",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "romantic",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 140,
+      "focus": "The Dance is a guided intimacy position built around romantic connection, comfort, and shared attention. It adds a fresh option for couples who want variety without making the experience feel rushed, clinical, or performance-driven.",
+      "howTo": "Settle into standing sway slowly, using pillows, a wall, the bed, a couch, or another stable surface if support helps. Let both partners find a comfortable shape first, then build through breath, closeness, pressure, and small adjustments rather than forcing a fixed pose.",
+      "benefits": "This position adds variety while keeping the Between Us tone connected, tasteful, and couple-centered. It gives partners a clear idea to try while still leaving room for different bodies, energy levels, and comfort needs.",
+      "makeItHotter": "Increase closeness before increasing speed. Use eye contact, kissing, hand placement, slower rhythm, or brief pauses to make the moment feel more intentional. Small changes in angle, pressure, or support usually matter more than dramatic movement.",
+      "comfort": "Comfort comes first. Use cushions where needed, adjust the angle early, and pause if anything feels strained. This position should feel supported, responsive, and mutually wanted — not forced.",
+      "styleTags": [
+        "Standing",
+        "Sway",
+        "Romantic",
+        "Playful"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm to Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Standing Sway, romantic energy, guided connection, and a position that feels easy to personalize.",
+      "whyPeopleLikeIt": "People may like this because it gives the moment a clear shape while still feeling personal, flexible, and emotionally connected. It is designed to feel more like a shared experience than a generic position card.",
+      "goodFor": [
+        "Trying something guided",
+        "Building connection",
+        "Exploring a new angle or rhythm",
+        "Staying attentive to comfort",
+        "Making intimacy feel intentional"
+      ],
+      "lessIdealIf": [
+        "Either partner feels physically strained",
+        "The setup does not feel stable",
+        "You want a very different mood than this card suggests"
+      ],
+      "setupTips": [
+        "Start slower than you think you need to",
+        "Use pillows or nearby support if helpful",
+        "Adjust comfort before adjusting pace",
+        "Let both partners give feedback",
+        "Stop and reset if the position feels awkward"
+      ],
+      "moodWords": [
+        "Romantic",
+        "Connected",
+        "Intentional",
+        "Responsive",
+        "Soft"
+      ],
+      "shortSummary": "The Dance is a romantic, guided variation of standing sway designed for comfort, connection, and shared rhythm.",
+      "chips": [
+        "Standing",
+        "Sway",
+        "Romantic",
+        "Playful"
       ]
     }
   ]
