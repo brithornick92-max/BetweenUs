@@ -23,12 +23,10 @@ import {
   Platform,
   Alert,
   Keyboard,
-  Dimensions,
 } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInDown,
-  FadeInUp,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -41,11 +39,10 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { DataLayer } from '../services/localfirst';
-import { SPACING, withAlpha } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { storage } from '../utils/storage';
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
 // Load quiz questions - 365 unique questions for daily rotation
@@ -65,8 +62,7 @@ const loadQuizQuestions = () => {
 
 const QUIZ_QUESTIONS = loadQuizQuestions();
 
-// All category pills use primary red for consistency
-const PRIMARY_RED = '#D2121A';
+
 
 const TODAY_QUIZ_KEY = '@betweenus:quizDateKey';
 const TODAY_QUIZ_QUESTION_KEY = '@betweenus:quizQuestionId';
@@ -275,18 +271,18 @@ export default function CouplesQuizScreen({ navigation }) {
               </View>
             </Animated.View>
 
-            <Animated.View entering={FadeInDown.duration(800).delay(600)} style={[styles.mainContainer, { backgroundColor: '#111111', borderColor: t.border }]}>
+            <Animated.View entering={FadeInDown.duration(800).delay(600)} style={[styles.mainContainer, { backgroundColor: t.surface, borderColor: t.border }]}>
               
-              {/* Question card */}
-              <View style={[styles.questionCard, { backgroundColor: t.surfaceSecondary }]}>
-                <Text style={[styles.questionText, { color: t.text, marginBottom: 0 }]}>{questionText}</Text>
+              {/* Question text */}
+              <View style={styles.questionCard}>
+                <Text style={[styles.questionText, { color: t.text }]}>{questionText}</Text>
               </View>
 
               {/* ── Phase A: Input (not yet submitted) ── */}
               {!hasSubmitted && (
                 <View style={styles.inputSection}>
                   <Text style={[styles.inputLabel, { color: t.subtext }]}>YOUR GUESS ABOUT {partnerName.toUpperCase()}</Text>
-                  <View style={[styles.inputCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                  <View style={[styles.inputCard, { borderColor: t.border }]}>
                     <TextInput
                       ref={inputRef}
                       style={[styles.textInput, { color: t.text }]}
@@ -413,8 +409,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Category Badge ──
   badgeRow: {
-    paddingHorizontal: 2,
-    marginBottom: SPACING.xl,
+    paddingHorizontal: SPACING.md, // Align with mainContainer margin
+    marginBottom: SPACING.md,      // Tighter margin
   },
   categoryBadge: {
     flexDirection: 'row',
@@ -434,11 +430,11 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Main Container ──
   mainContainer: {
-    marginHorizontal: 2,
-    borderRadius: 36,
-    borderWidth: 2,
+    marginHorizontal: SPACING.md,
+    borderRadius: 32,
+    borderWidth: 1,
     paddingTop: SPACING.xl,
-    paddingBottom: SPACING.xxxl,
+    paddingBottom: SPACING.xl, // Reduced bottom padding since inner elements have padding
     overflow: 'hidden',
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.15, shadowRadius: 20 },
@@ -448,20 +444,17 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Question Card ──
   questionCard: {
-    marginHorizontal: SPACING.xl,
-    borderRadius: 24,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.xl,
-    marginBottom: SPACING.xxxl,
-    overflow: 'hidden',
+    marginHorizontal: SPACING.lg,
+    paddingHorizontal: 0,
+    paddingVertical: SPACING.md,
+    marginBottom: SPACING.lg,
   },
   questionText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 30,
-    letterSpacing: -0.4,
-    marginBottom: 20,
+    fontSize: 26,  // Increased from 22 for more impact
+    fontWeight: '800', // Made bolder
+    lineHeight: 34,
+    letterSpacing: -0.6,
   },
   questionFooter: {
     flexDirection: 'row',
@@ -479,7 +472,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Input Phase ──
   inputSection: {
-    paddingHorizontal: SPACING.xl,
+    paddingHorizontal: SPACING.lg, // Reduced from xl to lg to give more space
   },
   inputLabel: {
     fontFamily: SYSTEM_FONT,
@@ -490,16 +483,16 @@ const createStyles = (t, isDark) => StyleSheet.create({
     marginBottom: 16,
   },
   inputCard: {
-    borderRadius: 28,
-    borderWidth: 2,
+    borderRadius: 24,
+    borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: t.surface,
+    backgroundColor: t.surfaceSecondary,
     minHeight: 120,
     overflow: 'hidden',
     marginBottom: SPACING.xl,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
-      android: { elevation: 4 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.15 : 0.04, shadowRadius: 12 },
+      android: { elevation: 2 },
     }),
   },
   textInput: {
@@ -534,19 +527,19 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Submitted / Wait Phase ──
   waitSection: { 
-    paddingHorizontal: SPACING.xl,
+    paddingHorizontal: SPACING.lg, // Reduced from xl to lg
     gap: SPACING.md,
   },
 
   lockedCard: {
-    borderRadius: 28,
-    borderWidth: 2,
+    borderRadius: 24,
+    borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: t.surface,
+    backgroundColor: t.surfaceSecondary,
     padding: SPACING.xl,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
-      android: { elevation: 4 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.15 : 0.04, shadowRadius: 12 },
+      android: { elevation: 2 },
     }),
   },
   lockedCardHeader: {
@@ -572,14 +565,14 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
 
   partnerStatusCard: {
-    borderRadius: 28,
-    borderWidth: 2,
-    backgroundColor: t.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    backgroundColor: t.surfaceSecondary,
     padding: SPACING.xl,
     gap: SPACING.sm,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
-      android: { elevation: 4 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.15 : 0.04, shadowRadius: 12 },
+      android: { elevation: 2 },
     }),
   },
   statusDot: {
@@ -621,16 +614,16 @@ const createStyles = (t, isDark) => StyleSheet.create({
     marginTop: SPACING.lg,
   },
   revealPanelInner: {
-    borderRadius: 28,
-    borderWidth: 2,
+    borderRadius: 24,
+    borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: t.surface,
+    backgroundColor: t.surfaceSecondary,
     padding: SPACING.xl,
     gap: SPACING.md,
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 20 },
-      android: { elevation: 4 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.15 : 0.04, shadowRadius: 12 },
+      android: { elevation: 2 },
     }),
   },
   revealPanelTitle: {
@@ -648,8 +641,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
   revealCard: {
     flex: 1,
     borderRadius: 16,
-    borderWidth: 2,
-    backgroundColor: t.surfaceSecondary,
+    borderWidth: 1,
+    backgroundColor: t.surface,
     padding: SPACING.md,
     gap: 8,
   },

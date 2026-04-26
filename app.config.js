@@ -25,20 +25,27 @@ const variants = {
 
 const selectedVariant = variants[APP_VARIANT] || variants.production;
 
-module.exports = () => ({
-  ...baseConfig,
-  name: selectedVariant.name,
-  scheme: selectedVariant.scheme,
-  ios: {
-    ...baseConfig.ios,
-    bundleIdentifier: selectedVariant.iosBundleIdentifier,
-  },
-  android: {
-    ...baseConfig.android,
-    package: selectedVariant.androidPackage,
-  },
-  extra: {
-    ...baseConfig.extra,
-    appVariant: APP_VARIANT,
-  },
-});
+module.exports = ({ config }) => {
+  const mergedConfig = {
+    ...config,
+    ...baseConfig,
+  };
+
+  return {
+    ...mergedConfig,
+    name: selectedVariant.name,
+    scheme: selectedVariant.scheme,
+    ios: {
+      ...mergedConfig.ios,
+      bundleIdentifier: selectedVariant.iosBundleIdentifier,
+    },
+    android: {
+      ...mergedConfig.android,
+      package: selectedVariant.androidPackage,
+    },
+    extra: {
+      ...mergedConfig.extra,
+      appVariant: APP_VARIANT,
+    },
+  };
+};

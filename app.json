@@ -9,7 +9,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#A30F11"
     },
-    "version": "1.0.22",
+    "version": "1.0.23",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "assetBundlePatterns": [
@@ -22,8 +22,8 @@
       "buildNumber": "10",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera access is used to scan your partner’s QR code and to capture optional media when you choose.",
-        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos to journal entries, memories, and other supported media features.",
-        "NSMicrophoneUsageDescription": "Microphone access lets you record voice notes if you choose to use a voice feature.",
+        "NSPhotoLibraryUsageDescription": "Photo library access lets you add photos and videos to Our Story, keepsakes, journal entries, and other supported media features.",
+        "NSMicrophoneUsageDescription": "Microphone access lets you record video with sound or voice notes if you choose to use those features.",
         "NSFaceIDUsageDescription": "Between Us uses Face ID for optional app lock on this device.",
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -105,6 +105,7 @@
     "experiments": {},
     "newArchEnabled": true,
     "plugins": [
+      "expo-asset",
       "expo-video",
       "expo-audio",
       "expo-font",
@@ -132,8 +133,7 @@
           "backgroundColor": "#A30F11",
           "imageWidth": 220
         }
-      ],
-      "@sentry/react-native"
+      ]
     ],
     "runtimeVersion": {
       "policy": "appVersion"
