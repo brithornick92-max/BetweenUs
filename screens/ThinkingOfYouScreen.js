@@ -68,6 +68,10 @@ export default function ThinkingOfYouScreen() {
 
   const inputRef = useRef(null);
   const partnerName = getPartnerDisplayName(state?.partnerProfile, state?.userProfile, 'your partner');
+  
+  const videoPlayer = useVideoPlayer(media?.uri || null, player => {
+    player.loop = false;
+  });
 
   const t = useMemo(() => ({
     background: colors.background,
@@ -205,10 +209,9 @@ export default function ThinkingOfYouScreen() {
                 {media.type === 'video' ? (
                   <VideoView
                     style={styles.preview}
-                    player={useVideoPlayer(media.uri, player => {
-                      player.loop = false;
-                    })}
-                    allowsFullscreen
+                    player={videoPlayer}
+                    fullscreenOptions={{ enable: true }}
+                    allowsPictureInPicture
                   />
                 ) : (
                   <Image source={{ uri: media.uri }} style={styles.preview} resizeMode="cover" />

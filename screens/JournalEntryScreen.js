@@ -90,6 +90,10 @@ export default function JournalEntryScreen({ navigation, route }) {
   const lastHapticLength = useRef(0);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const videoPlayer = useVideoPlayer(mediaUri || null, player => {
+    player.loop = false;
+  });
+
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert("Title Required", "Please add a title for your journal entry.");
@@ -323,10 +327,9 @@ export default function JournalEntryScreen({ navigation, route }) {
                   {isVideoMedia ? (
                     <VideoView
                       style={styles.imagePreview}
-                      player={useVideoPlayer(mediaUri, player => {
-                        player.loop = false;
-                      })}
-                      allowsFullscreen
+                      player={videoPlayer}
+                      fullscreenOptions={{ enable: true }}
+                      allowsPictureInPicture
                     />
                   ) : (
                     <Image source={{ uri: mediaUri }} style={styles.imagePreview} />
