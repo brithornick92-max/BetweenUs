@@ -111,7 +111,7 @@ export default function EditorialScreenScaffold({
           title={headerTitle}
           subtitle={headerSubtitle}
           titleColor={colors.text}
-          subtitleColor={colors.textMuted}
+          subtitleColor={colors.primary}
           closeColor={colors.text}
           closeIcon={backIconName}
           rightAccessory={headerRight}
