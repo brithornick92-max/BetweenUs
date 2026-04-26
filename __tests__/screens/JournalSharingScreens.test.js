@@ -16,7 +16,7 @@ const {
 
 const JournalEntryScreen = require('../../screens/JournalEntryScreen').default;
 const JournalHomeScreen = require('../../screens/JournalHomeScreen').default;
-const { Video } = require('expo-av');
+const { VideoView, useVideoPlayer } = require('expo-video');
 
 describe('Journal sharing screens', () => {
   beforeEach(() => {

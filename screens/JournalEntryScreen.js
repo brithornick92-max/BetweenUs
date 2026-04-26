@@ -20,7 +20,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
-import { Video } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as ImagePicker from "expo-image-picker";
@@ -321,12 +321,12 @@ export default function JournalEntryScreen({ navigation, route }) {
               {mediaUri ? (
                 <View style={styles.previewWrapper}>
                   {isVideoMedia ? (
-                    <Video
-                      source={{ uri: mediaUri }}
+                    <VideoView
                       style={styles.imagePreview}
-                      resizeMode="cover"
-                      useNativeControls
-                      shouldPlay={false}
+                      player={useVideoPlayer(mediaUri, player => {
+                        player.loop = false;
+                      })}
+                      allowsFullscreen
                     />
                   ) : (
                     <Image source={{ uri: mediaUri }} style={styles.imagePreview} />

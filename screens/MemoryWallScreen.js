@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -55,7 +55,6 @@ export default function MemoryWallScreen() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState(null); // { uri, mimeType, caption, date }
-  const videoRef = useRef(null);
 
   const t = {
     bg: colors.background,
@@ -125,7 +124,6 @@ export default function MemoryWallScreen() {
 
   const closeLightbox = useCallback(() => {
     setLightbox(null);
-    videoRef.current?.pauseAsync?.().catch(() => {});
   }, []);
 
   const renderThumb = useCallback(({ item, index }) => {
@@ -250,13 +248,14 @@ export default function MemoryWallScreen() {
 
           {lightbox && (
             lightbox.mime?.startsWith('video/') ? (
-              <Video
-                ref={videoRef}
-                source={{ uri: lightbox.uri }}
+              <VideoView
                 style={styles.lightboxMedia}
-                resizeMode={ResizeMode.CONTAIN}
-                useNativeControls
-                shouldPlay
+                player={useVideoPlayer(lightbox.uri, player => {
+                  player.loop = false;
+                  player.play();
+                })}
+                allowsFullscreen
+                allowsPictureInPicture
               />
             ) : (
               <Image

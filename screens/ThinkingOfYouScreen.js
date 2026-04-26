@@ -25,7 +25,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeIn, ZoomIn } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 import Icon from '../components/Icon';
 import GlowOrb from '../components/GlowOrb';
@@ -203,12 +203,12 @@ export default function ThinkingOfYouScreen() {
             {media ? (
               <Animated.View entering={FadeIn.duration(300)} style={styles.previewWrapper}>
                 {media.type === 'video' ? (
-                  <Video
-                    source={{ uri: media.uri }}
+                  <VideoView
                     style={styles.preview}
-                    resizeMode={ResizeMode.COVER}
-                    shouldPlay={false}
-                    useNativeControls
+                    player={useVideoPlayer(media.uri, player => {
+                      player.loop = false;
+                    })}
+                    allowsFullscreen
                   />
                 ) : (
                   <Image source={{ uri: media.uri }} style={styles.preview} resizeMode="cover" />

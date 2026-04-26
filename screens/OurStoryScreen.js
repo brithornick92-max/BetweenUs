@@ -21,7 +21,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 // Context & Services
 import Icon from '../components/Icon';
@@ -245,7 +245,6 @@ export default function OurStoryScreen() {
   const [lightbox, setLightbox] = useState(null);
   const [hearts, setHearts] = useState({}); // itemId → { count: number, hearted: bool }
   const scrollY = useRef(new RNAnimated.Value(0)).current;
-  const videoRef = useRef(null);
 
   // ─── THEME MAP (Original Colors, Glass Opacities) ───
   const t = useMemo(() => ({
@@ -362,7 +361,6 @@ export default function OurStoryScreen() {
 
   const closeLightbox = useCallback(() => {
     setLightbox(null);
-    videoRef.current?.pauseAsync?.().catch(() => {});
   }, []);
 
   // ─── RENDERERS ───
@@ -515,13 +513,14 @@ export default function OurStoryScreen() {
             <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeLightbox} activeOpacity={1} />
 
             {lightbox?.media?.kind === 'video' || lightbox?.media?.mimeType?.startsWith('video/') ? (
-              <Video
-                ref={videoRef}
-                source={{ uri: lightbox?.media?.uri }}
+              <VideoView
                 style={styles.lightboxMedia}
-                resizeMode={ResizeMode.CONTAIN}
-                useNativeControls
-                shouldPlay
+                player={useVideoPlayer(lightbox?.media?.uri, player => {
+                  player.loop = false;
+                  player.play();
+                })}
+                allowsFullscreen
+                allowsPictureInPicture
               />
             ) : lightbox?.media?.uri ? (
               <Image

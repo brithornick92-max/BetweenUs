@@ -91,8 +91,9 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: mockCreateHostComponent('LinearGradient'),
 }));
 
-jest.mock('expo-av', () => ({
-  Video: mockCreateHostComponent('Video'),
+jest.mock('expo-video', () => ({
+  VideoView: mockCreateHostComponent('VideoView'),
+  useVideoPlayer: jest.fn(() => ({})),
 }));
 
 jest.mock('react-native-reanimated', () => ({
