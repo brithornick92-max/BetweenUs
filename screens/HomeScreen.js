@@ -33,10 +33,8 @@ import { promptStorage, storage, STORAGE_KEYS } from '../utils/storage';
 import { SPACING } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
 import MomentSignal from '../components/MomentSignal';
-import RelationshipClimate from '../components/RelationshipClimate';
 import SurpriseTonight from '../components/SurpriseTonight';
 import MilestoneCard from '../components/MilestoneCard';
-import YearReflectionCard from '../components/YearReflectionCard.jsx';
 import WelcomeBack from '../components/WelcomeBack';
 import OfflineIndicator from '../components/OfflineIndicator';
 import GentleCelebration from '../components/GentleCelebration';
@@ -45,7 +43,7 @@ import FilmGrain from '../components/FilmGrain';
 import { NicknameEngine, RelationshipMilestones } from '../services/PolishEngine';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { FALLBACK_PROMPT } from '../utils/contentLoader';
-import StreakBanner from '../components/StreakBanner';
+
 import { PromptCardSkeleton } from '../components/SkeletonLoader';
 import ConnectionMemory from '../utils/connectionMemory';
 import { checkAchievements } from '../utils/achievementEngine';
@@ -95,7 +93,7 @@ function normalizePrompt(p) {
 const ACTIONS = [
   { label: 'Notes', icon: 'book-outline', key: 'journal', premium: false, color: '#C14953' },
   { label: 'Play', icon: 'help-circle-outline', key: 'quiz', premium: false, color: '#D4AA7E' }, // Champagne gold
-  { label: 'Archive', icon: 'bookmark-outline', key: 'memories', premium: false, color: '#9B7FCA' }, // Soft lavender
+  { label: 'Our Story', icon: 'bookmark-outline', key: 'memories', premium: false, color: '#9B7FCA' }, // Soft lavender
   { label: 'Spark', icon: 'flame', key: 'intimacy', premium: true, color: '#D2121A' }, // Sexy red — opens with premium
 ];
 
@@ -128,7 +126,6 @@ export default function HomeScreen({ navigation }) {
   const [myAnswer, setMyAnswer] = useState('');
   const [partnerAnswer, setPartnerAnswer] = useState('');
   const [isRevealed, setIsRevealed] = useState(false);
-  const [showMoments, setShowMoments] = useState(false);
   const [inlineText, setInlineText] = useState('');
   const [isSavingInline, setIsSavingInline] = useState(false);
   const [throwback, setThrowback] = useState(null);
@@ -635,7 +632,7 @@ export default function HomeScreen({ navigation }) {
     } else if (key === 'quiz') {
       navigation.navigate('CouplesQuiz');
     } else if (key === 'memories') {
-      navigation.navigate('SavedMoments');
+      navigation.navigate('OurStory');
     } else if (key === 'intimacy') {
       if (!isPremium) {
         Alert.alert(
@@ -698,16 +695,6 @@ export default function HomeScreen({ navigation }) {
               style={styles.vibeButton}
             >
               <Icon name="heart-outline" size={30} color={t.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => { selection(); navigation.navigate('ThinkingOfYou'); }}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityRole="button"
-              accessibilityLabel="Send a thinking of you photo"
-              style={styles.vibeButton}
-            >
-              <Icon name="camera-outline" size={26} color={t.primary} />
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -829,12 +816,7 @@ export default function HomeScreen({ navigation }) {
           <View style={{ height: homeLayout.spacing.gap }} />
 
           {/* ── Private moments + milestones (below the fold) ── */}
-          <View style={{ marginBottom: SPACING.sm }}>
-            <StreakBanner onPress={() => navigation.navigate('SavedMoments')} />
-          </View>
           <MilestoneCard />
-
-          {disclosure.relationshipClimate && <RelationshipClimate compact />}
 
           <View style={{ height: homeLayout.type === 'compact' ? SPACING.md : SPACING.lg }} />
 
@@ -918,7 +900,7 @@ export default function HomeScreen({ navigation }) {
                     You've created {answeredCount} private moments
                   </Text>
                   <Text style={[styles.softNudgeBody, { color: t.subtext }]}>
-                    Premium turns them into a fuller private world: deeper reveals, date ideas, memories, signals, and recaps made for the two of you.
+                    Premium opens deeper reveals, date ideas, memories, and signals made for the two of you.
                   </Text>
                 </View>
               </View>
@@ -927,50 +909,6 @@ export default function HomeScreen({ navigation }) {
                 <Icon name="arrow-forward-outline" size={14} color={t.primary} />
               </View>
             </TouchableOpacity>
-          )}
-
-          {/* ── Year Reflection (all users — free users hit paywall) ── */}
-          {disclosure.yearReflection && (<>
-          <View style={{ height: SPACING.xl }} />
-          <YearReflectionCard onPress={() => {
-            impact(ImpactFeedbackStyle.Light);
-            if (!isPremium) {
-              showPaywall?.(PremiumFeature.YEAR_REFLECTION);
-              return;
-            }
-            navigation.navigate('YearReflection');
-          }} />
-          </>)}
-
-          {/* ── Moment Signal ── */}
-          {disclosure.momentSignal && (
-          <View style={styles.momentSection}>
-            <TouchableOpacity
-              style={styles.momentToggle}
-              onPress={() => {
-                setShowMoments(!showMoments);
-                impact(ImpactFeedbackStyle.Light);
-              }}
-              activeOpacity={0.75}
-              accessibilityRole="button"
-              accessibilityLabel={`Send a moment to ${partnerLabel}`}
-            >
-              <Icon name="color-wand-outline" size={24} color={t.primary} />
-              <Text style={styles.momentToggleText} numberOfLines={1} ellipsizeMode="tail">
-                Send a moment to {partnerLabel}
-              </Text>
-              <Icon
-                name={showMoments ? 'chevron-up' : 'chevron-down'}
-                size={22}
-                color={t.subtext}
-              />
-            </TouchableOpacity>
-            <MomentSignal
-              partnerLabel={partnerLabel}
-              visible={showMoments}
-              onReceive={() => setShowMoments(true)}
-            />
-          </View>
           )}
 
         </ScrollView>
@@ -998,11 +936,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
   // ── Header ──
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.screen,
+    alignItems: 'flex-start',
+    paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.xl,
-    paddingBottom: SPACING.lg,
+    paddingBottom: SPACING.md,
   },
   headerLeft: { flex: 1 },
   headerActions: {
