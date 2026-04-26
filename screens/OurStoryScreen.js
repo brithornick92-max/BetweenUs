@@ -21,7 +21,6 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
-import { useVideoPlayer, VideoView } from 'expo-video';
 
 // Context & Services
 import Icon from '../components/Icon';
@@ -34,8 +33,8 @@ import { getPromptById } from '../utils/contentLoader';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { storage } from '../utils/storage';
-import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
+import MediaLightbox from '../components/MediaLightbox';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDateHistory } from '../utils/dateHistory';
 import { getIntimacyTried } from '../utils/intimacyFavorites';
@@ -510,34 +509,7 @@ export default function OurStoryScreen() {
           statusBarTranslucent
           onRequestClose={closeLightbox}
         >
-          <View style={styles.lightboxBg}>
-            <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeLightbox} activeOpacity={1} />
-
-            {lightbox?.media?.kind === 'video' || lightbox?.media?.mimeType?.startsWith('video/') ? (
-              <VideoView
-                style={styles.lightboxMedia}
-                player={useVideoPlayer(lightbox?.media?.uri, player => {
-                  player.loop = false;
-                  player.play();
-                })}
-                allowsFullscreen
-                allowsPictureInPicture
-              />
-            ) : lightbox?.media?.uri ? (
-              <Image
-                source={{ uri: lightbox.media.uri }}
-                style={styles.lightboxMedia}
-                resizeMode="contain"
-              />
-            ) : null}
-
-            {lightbox ? (
-              <BlurView intensity={60} tint="dark" style={styles.lightboxMeta}>
-                <Text style={styles.lightboxCaption}>{lightbox.body || lightbox.title}</Text>
-                <Text style={styles.lightboxDate}>{lightbox.dateLabel}</Text>
-              </BlurView>
-            ) : null}
-          </View>
+          <MediaLightbox item={lightbox} onClose={closeLightbox} showCloseButton={false} />
         </Modal>
     </EditorialScreenScaffold>
   );
@@ -783,37 +755,5 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 13,
     fontWeight: '700',
-  },
-  lightboxBg: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.94)',
-    justifyContent: 'center',
-  },
-  lightboxMedia: {
-    width: SCREEN_W,
-    height: SCREEN_H * 0.72,
-    alignSelf: 'center',
-  },
-  lightboxMeta: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 24,
-    paddingTop: 18,
-    paddingBottom: 34,
-  },
-  lightboxCaption: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    lineHeight: 22,
-    fontWeight: '500',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  lightboxDate: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.62)',
   },
 });

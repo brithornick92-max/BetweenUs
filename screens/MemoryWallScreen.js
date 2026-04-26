@@ -17,8 +17,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,6 +30,7 @@ import { DataLayer } from '../services/localfirst';
 import EncryptedAttachments from '../services/e2ee/EncryptedAttachments';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
+import MediaLightbox from '../components/MediaLightbox';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const COL = 2;
@@ -243,48 +243,7 @@ export default function MemoryWallScreen() {
         statusBarTranslucent
         onRequestClose={closeLightbox}
       >
-        <View style={styles.lightboxBg}>
-          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeLightbox} activeOpacity={1} />
-
-          {lightbox && (
-            lightbox.mime?.startsWith('video/') ? (
-              <VideoView
-                style={styles.lightboxMedia}
-                player={useVideoPlayer(lightbox.uri, player => {
-                  player.loop = false;
-                  player.play();
-                })}
-                allowsFullscreen
-                allowsPictureInPicture
-              />
-            ) : (
-              <Image
-                source={{ uri: lightbox.uri }}
-                style={styles.lightboxMedia}
-                resizeMode="contain"
-              />
-            )
-          )}
-
-          {lightbox && (lightbox.caption || lightbox.date) && (
-            <BlurView intensity={60} tint="dark" style={[styles.lightboxMeta, { paddingBottom: insets.bottom + 12 }]}>
-              {lightbox.caption ? (
-                <Text style={styles.lightboxCaption}>{lightbox.caption}</Text>
-              ) : null}
-              {lightbox.date ? (
-                <Text style={styles.lightboxDate}>{formatDate(lightbox.date)}</Text>
-              ) : null}
-            </BlurView>
-          )}
-
-          <SafeAreaView edges={['top']} style={styles.lightboxClose}>
-            <TouchableOpacity onPress={closeLightbox} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-              <BlurView intensity={50} tint="dark" style={styles.closeBtn}>
-                <Icon name="close-outline" size={22} color="#fff" />
-              </BlurView>
-            </TouchableOpacity>
-          </SafeAreaView>
-        </View>
+        <MediaLightbox item={lightbox} onClose={closeLightbox} showCloseButton={true} />
       </Modal>
     </View>
   );
@@ -375,50 +334,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
-  },
-  // Lightbox
-  lightboxBg: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.92)',
-    justifyContent: 'center',
-  },
-  lightboxMedia: {
-    width: SCREEN_W,
-    height: SCREEN_H * 0.72,
-    alignSelf: 'center',
-  },
-  lightboxMeta: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-  },
-  lightboxCaption: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  lightboxDate: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
-  },
-  lightboxClose: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    padding: 16,
-  },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
   },
 });
