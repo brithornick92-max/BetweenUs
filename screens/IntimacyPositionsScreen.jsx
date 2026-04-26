@@ -37,6 +37,7 @@ import {
   toggleIntimacyTried,
 } from '../utils/intimacyFavorites';
 
+const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
 // Calculate weeks since intimacy positions launch
@@ -337,28 +338,21 @@ export default function IntimacyPositionsScreen() {
                 </ScrollView>
 
                 {position && (
-                  <Animated.View
-                    style={{
-                      opacity: cardAnim,
-                      transform: [{ translateY: cardAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-                    }}
-                  >
-                    <IntimacyPositionCard
-                      key={position.id}
-                      position={position}
-                      t={t}
-                      isDark={isDark}
-                      isFavorite={!!favorites[position.id]}
-                      onToggleFavorite={handleToggleFavorite}
-                      favoriteBusy={favoriteBusy}
-                      isTried={!!triedPositions[position.id]}
-                      onToggleTried={handleToggleTried}
-                      triedBusy={triedBusy}
-                      rating={triedPositions[position.id]?.rating || null}
-                      onRate={handleRateTried}
-                      compact={isCompact}
-                    />
-                  </Animated.View>
+                  <IntimacyPositionCard
+                    key={position.id}
+                    position={position}
+                    t={t}
+                    isDark={isDark}
+                    isFavorite={!!favorites[position.id]}
+                    onToggleFavorite={handleToggleFavorite}
+                    favoriteBusy={favoriteBusy}
+                    isTried={!!triedPositions[position.id]}
+                    onToggleTried={handleToggleTried}
+                    triedBusy={triedBusy}
+                    rating={triedPositions[position.id]?.rating || null}
+                    onRate={handleRateTried}
+                    compact={isCompact}
+                  />
                 )}
               </View>
             </View>
@@ -389,11 +383,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   headerTitle: {
-    fontFamily: systemFont,
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -1.2,
-    lineHeight: 40,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
   cardContainer: {
     marginVertical: SPACING.md,

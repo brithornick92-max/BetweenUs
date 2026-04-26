@@ -232,7 +232,7 @@ export default function JournalEntryScreen({ navigation, route }) {
               onPress={() => navigation.goBack()}
               activeOpacity={0.7}
             >
-              <Icon name="chevron-back" size={28} color={colors.text} />
+              <Icon name="close-outline" size={28} color={colors.text} />
             </TouchableOpacity>
 
             <View style={styles.headerCenter}>
@@ -435,28 +435,24 @@ const createStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: SPACING.screen,
-    paddingTop: 12,
-    paddingBottom: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
+    position: 'absolute',
+    top: SPACING.xl,
+    right: SPACING.xl,
+    zIndex: 10,
+    padding: 8,
   },
   headerCenter: { alignItems: "center" },
   headerSubtitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 2,
-    marginBottom: 4,
-    textTransform: 'uppercase',
+    marginBottom: 8,
   },
   headerDate: {
     fontFamily: SYSTEM_FONT,
