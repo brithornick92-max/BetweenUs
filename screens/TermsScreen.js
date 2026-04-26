@@ -21,9 +21,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import Icon from '../components/Icon';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { selection } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { FALLBACK_PRICES } from '../utils/premiumFeatures';
@@ -73,19 +73,18 @@ const TermsScreen = ({ navigation, route }) => {
       <FilmGrain opacity={0.035} />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Editorial Top Navigation */}
-        <View style={styles.navHeader}>
-          <TouchableOpacity
-            onPress={() => {
-              selection();
-              navigation.goBack();
-            }}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <Icon name="chevron-back" size={28} color={colors.text} />
-          </TouchableOpacity>
-        </View>
+        <CloseScreenHeader
+          title="Terms"
+          subtitle="LEGAL"
+          titleColor={colors.text}
+          subtitleColor={colors.textMuted}
+          closeColor={colors.text}
+          closeIcon="close"
+          onClose={() => {
+            selection();
+            navigation.goBack();
+          }}
+        />
 
         <ScrollView
           style={styles.scrollView}
@@ -440,19 +439,9 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
   
-  navHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  backButton: { 
-    width: 44, 
-    height: 44, 
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 22,
-    backgroundColor: theme.glass,
-  },
+  navHeader: CLOSE_HEADER_STYLES.header,
+  headerTitle: CLOSE_HEADER_STYLES.title,
+  backButton: CLOSE_HEADER_STYLES.closeButton,
 
   scrollView: { flex: 1 },
   scrollContent: { paddingHorizontal: 24, paddingTop: 16 },

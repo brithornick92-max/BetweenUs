@@ -427,8 +427,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
 
   header: {
-    alignItems: "center",
-    marginBottom: SPACING.xxxl,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
   },
 
   heartGlow: {

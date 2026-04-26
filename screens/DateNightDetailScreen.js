@@ -17,10 +17,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import Icon from '../components/Icon';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { impact, selection, ImpactFeedbackStyle } from "../utils/haptics";
-import { SPACING, withAlpha } from "../utils/theme";
+import { withAlpha } from "../utils/theme";
 import { getDateById, getDimensionMeta } from "../utils/contentLoader";
 import { PremiumFeature } from "../utils/featureFlags";
 import Button from "../components/Button";
@@ -347,12 +348,17 @@ export default function DateNightDetailScreen({ route, navigation }) {
           colors={[withAlpha(t.primary, 0.15), "transparent"]} 
           style={styles.heroHeader}
         >
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="chevron-back-outline" size={32} color={t.text} />
-          </TouchableOpacity>
+          <CloseScreenHeader
+            title={date.title}
+            subtitle="DATE NIGHT"
+            titleColor={t.text}
+            subtitleColor={t.subtext}
+            closeColor={t.text}
+            closeIcon="close"
+            onClose={() => navigation.goBack()}
+          />
 
-          <ReAnimated.View entering={FadeInUp.duration(800)}>
-            <Text style={[styles.editorialTitle, { color: t.text }]}>{date.title}</Text>
+          <ReAnimated.View entering={FadeInUp.duration(800)} style={styles.heroBody}>
             
             <View style={styles.metaBadgeRow}>
               {dimensionBadges.map((b, i) => (
@@ -527,21 +533,15 @@ const styles = StyleSheet.create({
 
   // Hero Section
   heroHeader: {
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 64 : 40,
-    paddingBottom: 48,
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
   },
-  backBtn: { width: 44, height: 44, justifyContent: 'center', marginBottom: 20 },
-  editorialTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 34,
-    fontWeight: '800',
-    textAlign: 'center',
-    lineHeight: 40,
-    letterSpacing: -0.8,
+  heroBody: {
+    paddingHorizontal: 24,
+    paddingBottom: 48,
   },
+  backBtn: CLOSE_HEADER_STYLES.closeButton,
+  editorialTitle: CLOSE_HEADER_STYLES.title,
   metaBadgeRow: { 
     flexDirection: "row", 
     flexWrap: "wrap", 

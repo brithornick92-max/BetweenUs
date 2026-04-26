@@ -491,7 +491,7 @@ function AppContent() {
         PromptAnswer: "prompt/:promptId",
         JournalHome: "journal",
         JournalEntry: "journal/new",
-        SavedMoments: "saved-moments",
+        OurStory: "our-story",
         DateNightDetail: "date/:dateId",
         MainTabs: {
           screens: {

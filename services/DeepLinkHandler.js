@@ -73,8 +73,8 @@ const ROUTE_MAP = {
     screen: 'MainTabs',
     params: {},
   }),
-  'saved-moments': () => ({
-    screen: 'SavedMoments',
+  'our-story': () => ({
+    screen: 'OurStory',
     params: {},
   }),
   'widget': (params) => ({

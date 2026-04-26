@@ -26,6 +26,7 @@ import { useTheme } from '../context/ThemeContext';
 import { SUPPORT_EMAIL } from '../config/constants';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { FALLBACK_PRICES } from '../utils/premiumFeatures';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -236,19 +237,17 @@ export default function FAQScreen({ navigation }) {
       <FilmGrain opacity={0.035} />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Editorial Top Navigation */}
-        <View style={styles.navHeader}>
-          <TouchableOpacity
-            onPress={() => {
-              selection();
-              navigation.goBack();
-            }}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <Icon name="chevron-back" size={28} color={colors.text} />
-          </TouchableOpacity>
-        </View>
+        <CloseScreenHeader
+          title="Assistance"
+          subtitle="KNOWLEDGE BASE"
+          titleColor={colors.text}
+          subtitleColor={colors.textMuted}
+          closeColor={colors.text}
+          onClose={() => {
+            selection();
+            navigation.goBack();
+          }}
+        />
 
         <ScrollView
           style={styles.scrollView}
@@ -257,8 +256,6 @@ export default function FAQScreen({ navigation }) {
         >
           {/* Editorial Header Block */}
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
-            <Text style={[styles.headerEye, { color: theme.crimson }]}>KNOWLEDGE BASE</Text>
-            <Text style={[styles.introTitle, { color: colors.text }]}>Assistance</Text>
             <Text style={[styles.introDate, { color: colors.textMuted }]}>Updated April 24, 2026</Text>
             <Text style={[styles.introText, { color: colors.textMuted }]}>
               Explore how to make the most of your shared sanctuary. If you need further guidance, our concierge team is available.
@@ -350,19 +347,8 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
   
-  navHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  backButton: { 
-    width: 44, 
-    height: 44, 
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 22,
-    backgroundColor: theme.glass,
-  },
+  navHeader: CLOSE_HEADER_STYLES.header,
+  backButton: CLOSE_HEADER_STYLES.closeButton,
 
   scrollView: { flex: 1 },
   scrollContent: { paddingHorizontal: 24, paddingTop: 16 },

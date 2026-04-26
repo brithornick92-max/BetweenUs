@@ -674,18 +674,14 @@ export default function HomeScreen({ navigation }) {
         <Animated.View
           style={[styles.header, {
             opacity: headerAnim,
-            paddingHorizontal: homeLayout.spacing.padding,
             transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-14, 0] }) }],
           }]}
         >
-          <View style={styles.headerLeft}>
-            <Text style={[styles.headerGreetingSub, { fontSize: homeLayout.fontSize.base, color: t.primary }]}>
-              {smartGreeting},
-            </Text>
-            <Text style={[styles.headerName, { fontSize: homeLayout.fontSize.title }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{preferredName || 'You'}</Text>
-            <Text style={styles.headerToneLine}>{smartSubGreeting || toneCopy.subheadline(partnerLabel)}</Text>
-          </View>
-          <View style={styles.headerActions}>
+          <Text style={[styles.headerGreetingSub, { color: t.primary }]}>
+            {smartGreeting}
+          </Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{preferredName || 'You'}</Text>
             <TouchableOpacity
               onPress={() => { selection(); navigation.navigate('VibeSignal'); }}
               activeOpacity={0.7}
@@ -697,6 +693,7 @@ export default function HomeScreen({ navigation }) {
               <Icon name="heart-outline" size={30} color={t.primary} />
             </TouchableOpacity>
           </View>
+          <Text style={styles.headerToneLine}>{smartSubGreeting || toneCopy.subheadline(partnerLabel)}</Text>
         </Animated.View>
 
         <OfflineIndicator />
@@ -935,34 +932,33 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   // ── Header ──
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.xl,
     paddingBottom: SPACING.md,
   },
-  headerLeft: { flex: 1 },
-  headerActions: {
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
   },
   headerGreetingSub: {
     fontFamily: systemFont,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 1.5,
+    letterSpacing: 2,
     color: t.subtext,
-    marginBottom: 4,
+    marginBottom: SPACING.sm,
     textTransform: 'uppercase',
   },
   headerName: {
     fontFamily: systemFont,
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    lineHeight: 40,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
     color: t.text,
+    flex: 1,
+    paddingRight: SPACING.md,
   },
   headerToneLine: {
     fontFamily: systemFont,
@@ -973,9 +969,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
     marginTop: 4,
   },
   vibeButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: t.border,
     backgroundColor: t.surface,

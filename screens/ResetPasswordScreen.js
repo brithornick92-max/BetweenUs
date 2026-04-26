@@ -342,8 +342,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
     paddingVertical: SPACING.xxxl,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: SPACING.xxl,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
   },
   iconWrap: {
     width: 64,
@@ -477,9 +478,11 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '600',
   },
   backButton: {
-    marginTop: SPACING.xl,
-    alignItems: 'center',
-    paddingVertical: SPACING.sm,
+    position: 'absolute',
+    top: SPACING.xl,
+    right: SPACING.xl,
+    zIndex: 10,
+    padding: 8,
   },
   backButtonText: {
     fontFamily: SYSTEM_FONT,

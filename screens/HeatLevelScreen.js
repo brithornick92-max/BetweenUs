@@ -194,7 +194,6 @@ export default function HeatLevelScreen({ navigation }) {
       heroTitle="Set the Mood"
       heroSubtitle="How deep do you want to go tonight?"
       scroll={false}
-      backIconName="arrow-back-outline"
     >
         {/* Usage Status */}
         {usageStatus && !isPremium && (

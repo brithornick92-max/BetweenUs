@@ -12,11 +12,9 @@ import { RelationshipMilestones } from '../services/PolishEngine';
  */
 const THRESHOLDS = {
   quickActions:        { days: 0, answers: 0 },
-  relationshipClimate: { days: 5, answers: 5 },
   memoryLane:          { days: 5, answers: 4 },
   momentSignal:        { days: 7, answers: 6 },
   surpriseTonight:     { days: 10, answers: 8 },
-  yearReflection:      { days: 14, answers: 10 },
   softNudge:           { days: 3, answers: 3 },
 };
 

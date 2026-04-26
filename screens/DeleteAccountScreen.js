@@ -104,7 +104,6 @@ export default function DeleteAccountScreen({ navigation }) {
       heroTint={t.danger}
       heroTitleColor={t.danger}
       keyboardAvoiding
-      backIconName="arrow-back-outline"
     >
           {/* ─── What Will Be Deleted (Danger Card) ─── */}
           <View style={[styles.card, { backgroundColor: withAlpha(t.danger, 0.05), borderColor: withAlpha(t.danger, 0.2) }]}>

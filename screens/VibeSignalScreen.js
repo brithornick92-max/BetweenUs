@@ -33,6 +33,7 @@ import { getPartnerDisplayName } from '../utils/profileNames';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -210,15 +211,16 @@ export default function VibeSignalScreen({ navigation }) {
           end={{ x: 0.5, y: 1 }}
         />
         <FilmGrain opacity={0.1} />
+        <CloseScreenHeader
+          title="Vibe Signals"
+          subtitle="VIBE SIGNALS"
+          titleColor={t.text}
+          subtitleColor={t.subtext}
+          closeColor={t.text}
+          closeIcon="close"
+          onClose={() => navigation.goBack()}
+        />
         <View style={styles.paywallContent}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.paywallBack}
-            accessibilityLabel="Go back"
-            accessibilityRole="button"
-          >
-            <Icon name="chevron-back" size={28} color={t.text} />
-          </TouchableOpacity>
           <View style={[styles.iconHero, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
             <Icon name="pulse-outline" size={42} color={t.primary} />
           </View>
@@ -263,24 +265,21 @@ export default function VibeSignalScreen({ navigation }) {
 
         <Animated.View style={{ opacity: entranceFade, transform: [{ translateY: entranceSlide }] }}>
 
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerTopRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                <Icon name="chevron-back" size={28} color={t.text} />
-              </TouchableOpacity>
-              {isPremium && (
-                <View style={[styles.premiumBadge, { backgroundColor: withAlpha(t.primary, 0.15) }]}>
-                  <Icon name="sparkles-outline" size={12} color={t.primary} />
-                  <Text style={[styles.premiumBadgeText, { color: t.primary }]}>PREMIUM</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.headerEditorial}>
-              <Text style={[styles.headerTitle, { color: t.text }]}>Vibe Signal</Text>
-              <Text style={[styles.headerSubtitle, { color: t.subtext }]}>Shared mood, synced when connected.</Text>
-            </View>
-          </View>
+          <CloseScreenHeader
+            title="Vibe Signal"
+            subtitle="VIBE SIGNALS"
+            titleColor={t.text}
+            subtitleColor={t.subtext}
+            closeColor={t.text}
+            closeIcon="close"
+            onClose={() => navigation.goBack()}
+            rightAccessory={isPremium ? (
+              <View style={[styles.premiumBadge, { backgroundColor: withAlpha(t.primary, 0.15) }]}>
+                <Icon name="sparkles-outline" size={12} color={t.primary} />
+                <Text style={[styles.premiumBadgeText, { color: t.primary }]}>PREMIUM</Text>
+              </View>
+            ) : null}
+          />
 
           {/* Vibe Grid */}
           <View style={styles.vibeGridContainer}>
@@ -387,19 +386,13 @@ const createStyles = (t, isDark) => StyleSheet.create({
   scrollContent: { paddingBottom: 120 },
 
   // Header
-  header: {
-    paddingHorizontal: 24,
-    paddingTop:  Platform.OS === 'android' ? 20 : 12,
-    marginBottom: 32,
-  },
+  header: CLOSE_HEADER_STYLES.header,
   headerTopRow: {
     flexDirection:  'row',
-    justifyContent: 'space-between',
     alignItems:     'center',
-    marginBottom:   12,
-    marginLeft:     -8,
+    gap: 8,
   },
-  backButton: { padding: 8 },
+  backButton: CLOSE_HEADER_STYLES.closeButton,
   premiumBadge: {
     flexDirection: 'row',
     alignItems:    'center',
@@ -409,16 +402,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
     gap: 4,
   },
   premiumBadgeText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
-  headerEditorial:  { paddingRight: SPACING.xl },
-  headerTitle: {
-    fontFamily:   SYSTEM_FONT,
-    fontSize:     36,
-    fontWeight:   '900',
-    letterSpacing: -1,
-    lineHeight:   42,
-    marginBottom:  4,
-  },
-  headerSubtitle: { fontFamily: SYSTEM_FONT, fontSize: 16, fontWeight: '500' },
+  headerEditorial:  { flex: 1, paddingRight: SPACING.md },
+  headerTitle: CLOSE_HEADER_STYLES.title,
+  headerSubtitle: CLOSE_HEADER_STYLES.subtitle,
 
   // Vibe Grid
   vibeGridContainer: {
@@ -493,7 +479,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
   chartLegendLabel: { fontSize: 9, fontWeight: '700' },
   // Paywall
   paywallContent:  { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  paywallBack:     { position: 'absolute', top: 20, left: 20 },
+  paywallBack: CLOSE_HEADER_STYLES.closeButton,
   iconHero:        { width: 80, height: 80, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   paywallTitle: {
     fontFamily:    SYSTEM_FONT,

@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { notification, selection, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -188,18 +189,14 @@ export default function RevealScreen({ route, navigation }) {
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity 
-              onPress={() => { selection(); navigation.goBack(); }} 
-              style={styles.backButton}
-              activeOpacity={0.7}
-            >
-              <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.headerBlur}>
-                <Icon name="chevron-back" size={28} color={t.text} />
-              </BlurView>
-            </TouchableOpacity>
-          </View>
+          <CloseScreenHeader
+            title="Private Reveal"
+            subtitle={revealCopy.eyebrow}
+            titleColor={t.text}
+            subtitleColor={t.subtext}
+            closeColor={t.text}
+            onClose={() => { selection(); navigation.goBack(); }}
+          />
 
           {/* Hero Prompt Card (Glass Style) */}
           <View style={[styles.promptContainer, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
@@ -343,13 +340,8 @@ const styles = StyleSheet.create({
   },
 
   // Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: SPACING.lg,
-  },
-  backButton: { width: 44, height: 44 },
+  header: CLOSE_HEADER_STYLES.header,
+  backButton: CLOSE_HEADER_STYLES.closeButton,
   headerBlur: {
     width: 44, height: 44,
     borderRadius: 22,

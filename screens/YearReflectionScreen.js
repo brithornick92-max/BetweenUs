@@ -24,11 +24,11 @@ import { impact, selection, notification, ImpactFeedbackStyle, NotificationFeedb
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { PremiumFeature } from '../utils/featureFlags';
-import { SPACING, withAlpha } from '../utils/theme';
 import { YearReflection } from '../services/PolishEngine';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import SnapshotView from '../components/SnapshotView';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import ExportService from '../services/ExportService';
 // react-native-view-shot requires a native build — load lazily so a stale dev
 // client doesn't crash the entire app if the native module is missing yet.
@@ -209,18 +209,22 @@ export default function YearReflectionScreen({ navigation }) {
 
       <SafeAreaView style={{ flex: 1 }}>
         {/* DYNAMIC HEADER */}
-        <View style={styles.header}>
-          {!isSelectingForExport ? (
-            <>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.circleBtn, { backgroundColor: t.surface }]}>
-                <Icon name="chevron-back" size={24} color={t.text} />
-              </TouchableOpacity>
-              <Text style={[styles.headerYear, { color: t.subtext }]}>{year}</Text>
+        {!isSelectingForExport ? (
+          <CloseScreenHeader
+            title="Year Reflection"
+            subtitle="YEAR IN REVIEW"
+            titleColor={t.text}
+            subtitleColor={t.subtext}
+            closeColor={t.text}
+            onClose={() => navigation.goBack()}
+            rightAccessory={(
               <TouchableOpacity onPress={toggleSelectMode} style={[styles.circleBtn, { backgroundColor: t.surface }]}>
                 <Icon name="share-outline" size={22} color={t.text} />
               </TouchableOpacity>
-            </>
-          ) : (
+            )}
+          />
+        ) : (
+          <View style={styles.header}>
             <>
               <TouchableOpacity onPress={toggleSelectMode} style={styles.textBtn}>
                 <Text style={[styles.textBtnText, { color: '#FFF' }]}>Cancel</Text>
@@ -241,8 +245,8 @@ export default function YearReflectionScreen({ navigation }) {
                 <Text style={styles.exportBtnText}>{isExporting ? 'Creating...' : 'Share'}</Text>
               </TouchableOpacity>
             </>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* ARTICLE SCROLL */}
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -323,15 +327,7 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
 
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    zIndex: 100,
-    height: 64,
-  },
+  header: CLOSE_HEADER_STYLES.header,
   circleBtn: {
     width: 44,
     height: 44,

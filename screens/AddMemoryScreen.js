@@ -27,6 +27,7 @@ import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
 import { impact, selection, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -220,31 +221,28 @@ export default function AddMemoryScreen() {
       <FilmGrain opacity={0.08} />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* ── Nav Header ── */}
-        <View style={styles.navHeader}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={16} style={styles.iconButton}>
-            <Icon name="close-outline" size={26} color={t.text} />
-          </TouchableOpacity>
-          
-          {/* Centered Absolute Title */}
-          <View style={styles.navTitleContainer}>
-            <Text style={[styles.navTitle, { color: t.text }]}>New Memory</Text>
-          </View>
-
-          <TouchableOpacity
-            onPress={handleSave}
-            disabled={!canSave}
-            style={[styles.saveButton, { 
-              backgroundColor: canSave ? withAlpha(t.primary, 0.15) : 'transparent',
-              borderColor: canSave ? withAlpha(t.primary, 0.3) : 'transparent'
-            }]}
-          >
-            {saving
-              ? <ActivityIndicator size="small" color={t.primary} />
-              : <Text style={[styles.saveButtonText, { color: canSave ? t.primary : t.subtext }]}>Save</Text>
-            }
-          </TouchableOpacity>
-        </View>
+        <CloseScreenHeader
+          title="New Memory"
+          subtitle="PRIVATE ARCHIVE"
+          titleColor={t.text}
+          closeColor={t.text}
+          onClose={() => navigation.goBack()}
+          rightAccessory={(
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={!canSave}
+              style={[styles.saveButton, {
+                backgroundColor: canSave ? withAlpha(t.primary, 0.15) : 'transparent',
+                borderColor: canSave ? withAlpha(t.primary, 0.3) : 'transparent'
+              }]}
+            >
+              {saving
+                ? <ActivityIndicator size="small" color={t.primary} />
+                : <Text style={[styles.saveButtonText, { color: canSave ? t.primary : t.subtext }]}>Save</Text>
+              }
+            </TouchableOpacity>
+          )}
+        />
 
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -385,21 +383,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.background },
   safeArea: { flex: 1 },
 
-  navHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.screen,
-    paddingTop: 12,
-    paddingBottom: 8,
-    position: 'relative',
-  },
-  iconButton: { 
-    padding: 8, 
-    marginLeft: -8, 
-    width: 44, 
-    alignItems: 'flex-start' 
-  },
+  navHeader: CLOSE_HEADER_STYLES.header,
+  iconButton: CLOSE_HEADER_STYLES.closeButton,
   navTitleContainer: {
     position: 'absolute',
     left: 0,
@@ -407,12 +392,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     alignItems: 'center',
     pointerEvents: 'none',
   },
-  navTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.4,
-  },
+  navTitle: CLOSE_HEADER_STYLES.title,
   saveButton: {
     borderRadius: 999,
     paddingHorizontal: 16,

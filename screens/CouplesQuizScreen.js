@@ -29,75 +29,54 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import Animated, {
   FadeIn,
   FadeInDown,
   FadeInUp,
-  SlideInRight,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
-  Easing,
   interpolate,
 } from 'react-native-reanimated';
 import Icon from '../components/Icon';
 import FilmGrain from '../components/FilmGrain';
 import GlowOrb from '../components/GlowOrb';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
+import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { DataLayer } from '../services/localfirst';
-import { SPACING } from '../utils/theme';
+import { SPACING, withAlpha } from '../utils/theme';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
-import { storage, STORAGE_KEYS } from '../utils/storage';
+import { storage } from '../utils/storage';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
-// ─── Quiz question bank ────────────────────────────────────────────────────
-// Questions are phrased in 2nd person about the responder's partner.
-// They're answered FROM the responder's perspective ("I think my partner would…")
-// so that when both reveal, the comparison is: "what they guessed" vs "what you actually said".
-const QUIZ_QUESTIONS = [
-  // Personality & habits
-  { id: 'q001', text: 'What would {partner} order on a spontaneous date night out?', category: 'personality', emoji: '🍽️' },
-  { id: 'q002', text: 'What song is always stuck in {partner}\'s head?', category: 'personality', emoji: '🎵' },
-  { id: 'q003', text: 'If {partner} had a whole free Saturday, how would they spend it?', category: 'personality', emoji: '☀️' },
-  { id: 'q004', text: 'What comfort food does {partner} reach for after a rough day?', category: 'personality', emoji: '🍜' },
-  { id: 'q005', text: 'What\'s {partner}\'s go-to move when they\'re trying to cheer you up?', category: 'love', emoji: '💛' },
-  // Love & connection
-  { id: 'q006', text: 'What moment do you think {partner} considers your relationship\'s turning point?', category: 'love', emoji: '💫' },
-  { id: 'q007', text: 'What do you think {partner} finds most attractive about you?', category: 'love', emoji: '💕' },
-  { id: 'q008', text: 'What small thing do you do that {partner} secretly loves?', category: 'love', emoji: '🤫' },
-  { id: 'q009', text: 'If {partner} could relive one moment from your relationship, which would it be?', category: 'love', emoji: '⏪' },
-  { id: 'q010', text: 'What does {partner} find most annoying… but also kind of charming about you?', category: 'love', emoji: '😏' },
-  // Dreams & future
-  { id: 'q011', text: 'What\'s one dream {partner} hasn\'t told many people about?', category: 'future', emoji: '🌙' },
-  { id: 'q012', text: 'Where would {partner} move if they could live anywhere in the world?', category: 'future', emoji: '🌍' },
-  { id: 'q013', text: 'What kind of home does {partner} picture for your future together?', category: 'future', emoji: '🏡' },
-  { id: 'q014', text: 'If {partner} could master one skill overnight, what would it be?', category: 'future', emoji: '✨' },
-  // Playful / fun
-  { id: 'q015', text: 'What would {partner}\'s superpower be, based on their personality?', category: 'playful', emoji: '🦸' },
-  { id: 'q016', text: 'What movie character is {partner} most like without realizing it?', category: 'playful', emoji: '🎬' },
-  { id: 'q017', text: 'If {partner}\'s life was a playlist, what\'s the opening track?', category: 'playful', emoji: '🎧' },
-  { id: 'q018', text: 'What would {partner}\'s ideal lazy Sunday morning look like in detail?', category: 'playful', emoji: '☕' },
-  // Deep
-  { id: 'q019', text: 'What does {partner} need most when they\'re overwhelmed but won\'t ask for?', category: 'deep', emoji: '🫂' },
-  { id: 'q020', text: 'What\'s one fear {partner} has that most people wouldn\'t guess?', category: 'deep', emoji: '🌑' },
-  { id: 'q021', text: 'What does {partner} consider their biggest personal win from the past year?', category: 'deep', emoji: '🏆' },
-  { id: 'q022', text: 'What\'s something {partner} is still figuring out about themselves?', category: 'deep', emoji: '🔍' },
-  { id: 'q023', text: 'What moment in your relationship do you think made {partner} feel truly seen?', category: 'deep', emoji: '💎' },
-];
+// Load quiz questions - 365 unique questions for daily rotation
+const loadQuizQuestions = () => {
+  try {
+    const data = require('../content/quizQuestions.json');
+    return data.questions || [];
+  } catch {
+    // Fallback questions if file doesn't exist
+    return [
+      { id: 'q001', text: 'What would {partner} order on a spontaneous date night out?', category: 'personality', icon: 'restaurant-outline' },
+      { id: 'q002', text: 'What song is always stuck in {partner}\'s head?', category: 'personality', icon: 'musical-notes-outline' },
+      { id: 'q003', text: 'If {partner} had a whole free Saturday, how would they spend it?', category: 'personality', icon: 'sunny-outline' },
+    ];
+  }
+};
+
+const QUIZ_QUESTIONS = loadQuizQuestions();
 
 const CATEGORY_COLORS = {
-  personality: '#D4AA7E',
+  personality: '#FF9500',
   love: '#D2121A',
-  future: '#7B68EE',
-  playful: '#3BAFA5',
-  deep: '#7E4FA3',
+  future: '#5856D6',
+  playful: '#32ADE6',
+  deep: '#AF52DE',
 };
 
 const TODAY_QUIZ_KEY = '@betweenus:quizDateKey';
@@ -129,15 +108,15 @@ export default function CouplesQuizScreen({ navigation }) {
   const { state } = useAppContext();
   const { userProfile } = useAuth();
 
+  // Theme map matching VibeSignalScreen exactly
   const t = useMemo(() => ({
-    background: colors.background,
-    surface: colors.surface || (isDark ? '#1C1C1E' : '#FFFFFF'),
-    surfaceSecondary: colors.surface2 || (isDark ? '#2C2C2E' : '#F2F2F7'),
-    primary: colors.primary || '#D2121A',
-    accent: colors.accent || '#D4AA7E',
-    text: colors.text,
-    subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)'),
-    border: colors.border || (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+    background:       colors.background,
+    surface:          isDark ? '#1C1C1E' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    primary:          colors.primary || '#D2121A',
+    text:             colors.text,
+    subtext:          isDark ? 'rgba(255,255,255,0.6)' : 'rgba(60,60,67,0.6)',
+    border:           isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
@@ -237,7 +216,7 @@ export default function CouplesQuizScreen({ navigation }) {
 
       notification(NotificationFeedbackType.Success).catch(() => {});
       setHasSubmitted(true);
-    } catch (err) {
+    } catch {
       Alert.alert('Could not save', 'Please try again.');
     } finally {
       setIsSaving(false);
@@ -284,41 +263,30 @@ export default function CouplesQuizScreen({ navigation }) {
       <GlowOrb color={accentColor} size={400} top={-150} left={SCREEN_W / 2 - 200} opacity={isDark ? 0.15 : 0.07} />
       <GlowOrb color={t.primary} size={300} top={SCREEN_H * 0.65} left={-80} delay={1200} opacity={isDark ? 0.1 : 0.05} />
 
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-
-          {/* ── Nav Header ── */}
-          <View style={styles.navHeader}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              hitSlop={16}
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-              onPress={() => { impact(ImpactFeedbackStyle.Light); navigation.goBack(); }}
-            >
-              <Icon name="arrow-back" size={24} color={t.text} />
-            </TouchableOpacity>
-          </View>
-
           <ScrollView
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* ── Editorial Header ── */}
-            <View style={styles.editorialHeader}>
-              <Text style={[styles.headerSubtitle, { color: t.primary }]}>DAILY QUIZ</Text>
-              <Text style={[styles.headerTitle, { color: t.text }]}>How well do you{`\n`}know them?</Text>
-              <Text style={[styles.headerToneLine, { color: t.subtext }]}>
-                Answer about {partnerName} — reveal when you're both in.
-              </Text>
-            </View>
+            <Animated.View entering={FadeInDown.duration(800).delay(200)}>
+              <CloseScreenHeader
+                title="Daily Quiz"
+                subtitle="PLAY TOGETHER"
+                titleColor={t.text}
+                subtitleColor={t.subtext}
+                closeColor={t.text}
+                onClose={() => navigation.goBack()}
+                accessibilityLabel="Go back"
+              />
+            </Animated.View>
 
             {/* Category badge */}
-            <Animated.View entering={FadeIn.delay(100)} style={styles.badgeRow}>
-              <View style={[styles.categoryBadge, { borderColor: accentColor + '44', backgroundColor: accentColor + '18' }]}>
-                <Text style={styles.categoryEmoji}>{question.emoji}</Text>
+            <Animated.View entering={FadeIn.duration(800).delay(400)} style={styles.badgeRow}>
+              <View style={[styles.categoryBadge, { borderColor: accentColor, backgroundColor: withAlpha(accentColor, 0.1) }]}>
+                <Icon name={question.icon} size={14} color={accentColor} />
                 <Text style={[styles.categoryLabel, { color: accentColor }]}>
                   {question.category.toUpperCase()}
                 </Text>
@@ -326,7 +294,7 @@ export default function CouplesQuizScreen({ navigation }) {
             </Animated.View>
 
             {/* Question card */}
-            <Animated.View entering={FadeInDown.springify().damping(18).delay(150)} style={styles.questionCard}>
+            <Animated.View entering={FadeInDown.duration(800).delay(600)} style={[styles.questionCard, { backgroundColor: t.surface, borderColor: t.border }]}>
               <LinearGradient
                 colors={[accentColor + '22', accentColor + '08', 'transparent']}
                 style={StyleSheet.absoluteFillObject}
@@ -344,7 +312,7 @@ export default function CouplesQuizScreen({ navigation }) {
 
             {/* ── Phase A: Input (not yet submitted) ── */}
             {!hasSubmitted && (
-              <Animated.View entering={FadeInUp.springify().damping(18).delay(250)} style={styles.inputSection}>
+              <Animated.View entering={FadeInUp.duration(600).delay(800)} style={styles.inputSection}>
                 <Text style={styles.inputLabel}>Your guess about {partnerName}</Text>
                 <View style={styles.inputCard}>
                   <TextInput
@@ -379,7 +347,7 @@ export default function CouplesQuizScreen({ navigation }) {
 
             {/* ── Phase B: Waiting / Reveal ── */}
             {hasSubmitted && (
-              <Animated.View entering={FadeInUp.springify().damping(18)} style={styles.waitSection}>
+              <Animated.View entering={FadeInUp.duration(600)} style={styles.waitSection}>
 
                 {/* Your locked answer */}
                 <View style={styles.lockedCard}>
@@ -396,9 +364,10 @@ export default function CouplesQuizScreen({ navigation }) {
                     <View style={[styles.statusDot, { backgroundColor: partnerHasSubmitted ? '#34C759' : '#FF9F0A' }]} />
                     <Text style={styles.partnerStatusText}>
                       {partnerHasSubmitted
-                        ? `${partnerName} answered ✓`
-                        : `Waiting for ${partnerName} to answer…`}
+                        ? `${partnerName} answered`
+                        : `Waiting for ${partnerName}…`}
                     </Text>
+                    {partnerHasSubmitted && <Icon name="checkmark-circle" size={18} color="#34C759" />}
                   </View>
                   {!partnerHasSubmitted && (
                     <Text style={styles.partnerStatusHint}>
@@ -466,99 +435,70 @@ export default function CouplesQuizScreen({ navigation }) {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────
+// ─── Styles ─────────────────────────────────────────────────────────────────
 const createStyles = (t, isDark) => StyleSheet.create({
   root: { flex: 1 },
-  safeArea: { flex: 1 },
+  container: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: SPACING.screen, paddingBottom: 160 },
+  scrollContent: { paddingBottom: 120 },
 
-  // ── Nav Header ──
-  navHeader: {
-    paddingHorizontal: SPACING.screen,
-    paddingTop: 12,
-    paddingBottom: 4,
+  // Header - matching VibeSignalScreen exactly
+  header: CLOSE_HEADER_STYLES.header,
+  headerTopRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  iconButton: {
-    padding: 8,
+    marginBottom: 12,
     marginLeft: -8,
   },
-
-  // ── Editorial Header ──
-  editorialHeader: {
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.xl,
-  },
-  headerSubtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginBottom: 6,
-  },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    lineHeight: 40,
-  },
-  headerToneLine: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '600',
-    marginTop: 6,
-  },
+  backButton: CLOSE_HEADER_STYLES.closeButton,
+  headerEditorial: { paddingRight: SPACING.xl },
+  headerTitle: CLOSE_HEADER_STYLES.title,
+  headerSubtitle: CLOSE_HEADER_STYLES.subtitle,
 
   // ── Category Badge ──
   badgeRow: {
-    alignItems: 'flex-start',
-    marginBottom: SPACING.md,
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
     gap: 6,
   },
-  categoryEmoji: { fontSize: 14 },
   categoryLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '900',
     letterSpacing: 1.5,
-    textTransform: 'uppercase',
   },
 
   // ── Question Card ──
   questionCard: {
+    marginHorizontal: 24,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: t.border,
-    backgroundColor: t.surface,
-    padding: SPACING.xl,
-    marginBottom: SPACING.lg,
+    padding: 20,
+    marginBottom: 24,
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.4 : 0.08, shadowRadius: 24 },
-      android: { elevation: 6 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.06, shadowRadius: 12 },
+      android: { elevation: isDark ? 0 : 2 },
     }),
   },
   questionText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 22,
-    fontWeight: '800',
-    lineHeight: 30,
-    letterSpacing: -0.5,
+    fontSize: 20,
+    fontWeight: '700',
+    lineHeight: 28,
+    letterSpacing: -0.3,
     color: t.text,
-    marginBottom: SPACING.xl,
+    marginBottom: 16,
   },
   questionFooter: {
     flexDirection: 'row',
@@ -575,21 +515,24 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
 
   // ── Input Phase ──
-  inputSection: { marginBottom: SPACING.md },
+  inputSection: {
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
   inputLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 1.5,
+    letterSpacing: 1,
     textTransform: 'uppercase',
     color: t.subtext,
-    marginBottom: SPACING.sm,
+    marginBottom: 12,
   },
   inputCard: {
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: t.surfaceSecondary,
+    backgroundColor: t.surface,
     minHeight: 120,
     overflow: 'hidden',
   },
@@ -597,7 +540,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 17,
     color: t.text,
-    padding: SPACING.lg,
+    padding: 20,
     lineHeight: 24,
     minHeight: 120,
     textAlignVertical: 'top',
@@ -621,12 +564,15 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontSize: 12,
     color: t.subtext,
     textAlign: 'center',
-    marginTop: SPACING.sm,
+    marginTop: 12,
     lineHeight: 18,
   },
 
   // ── Submitted / Wait Phase ──
-  waitSection: { gap: SPACING.md },
+  waitSection: { 
+    paddingHorizontal: 24,
+    gap: 16,
+  },
 
   lockedCard: {
     borderRadius: 20,

@@ -22,7 +22,7 @@ export const JournalHome = () => withScreenErrorBoundary(require("../screens/Jou
 export const JournalEntry = () => withScreenErrorBoundary(require("../screens/JournalEntryScreen").default, "JournalEntry");
 export const VibeSignal = () => withScreenErrorBoundary(require("../screens/VibeSignalScreen").default, "VibeSignal");
 export const Settings = () => withScreenErrorBoundary(require("../screens/SettingsScreen").default, "Settings");
-export const SavedMoments = () => withScreenErrorBoundary(require("../screens/SavedMomentsScreen").default, "SavedMoments");
+export const OurStory = () => withScreenErrorBoundary(require("../screens/OurStoryScreen").default, "OurStory");
 export const AddMemory = () => withScreenErrorBoundary(require("../screens/AddMemoryScreen").default, "AddMemory");
 export const MemoryWall = () => withScreenErrorBoundary(require("../screens/MemoryWallScreen").default, "MemoryWall");
 export const ThinkingOfYou = () => withScreenErrorBoundary(require("../screens/ThinkingOfYouScreen").default, "ThinkingOfYou");

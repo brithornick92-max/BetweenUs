@@ -34,6 +34,7 @@ import { PremiumFeature } from '../utils/featureFlags';
 import { withAlpha, SPACING } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from "../components/CloseScreenHeader";
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
@@ -65,7 +66,11 @@ export default function JournalEntryScreen({ navigation, route }) {
     showPaywall?.(PremiumFeature.UNLIMITED_JOURNAL_HISTORY);
   
     const id = requestAnimationFrame(() => {
-      navigation.canGoBack() ? navigation.goBack() : navigation.navigate('JournalHome');
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.navigate('JournalHome');
+      }
     });
   
     return () => cancelAnimationFrame(id);
@@ -225,46 +230,38 @@ export default function JournalEntryScreen({ navigation, route }) {
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          {/* Editorial Header */}
-          <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
-            <TouchableOpacity
-              style={[styles.backButton, { backgroundColor: withAlpha(colors.text, 0.05) }]}
-              onPress={() => navigation.goBack()}
-              activeOpacity={0.7}
-            >
-              <Icon name="close-outline" size={28} color={colors.text} />
-            </TouchableOpacity>
-
-            <View style={styles.headerCenter}>
-              <Text style={[styles.headerSubtitle, { color: colors.primary }]}>{headerLabel}</Text>
-              <Text style={[styles.headerDate, { color: colors.text }]}>
-                {new Date(entry?.created_at || Date.now()).toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </Text>
-            </View>
-
-            {isReadOnly ? (
-              <View style={[styles.readOnlyBadge, { borderColor: withAlpha(colors.text, 0.12), backgroundColor: withAlpha(colors.text, 0.05) }]}>
-                <Icon name="book-outline" size={14} color={colors.textMuted} />
-                <Text style={[styles.readOnlyText, { color: colors.textMuted }]}>Read Only</Text>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: colors.primary }]}
-                onPress={handleSave}
-                disabled={isSaving}
-                activeOpacity={0.8}
-              >
-                {isSaving ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <Text style={styles.saveText}>Save</Text>
-                )}
-              </TouchableOpacity>
-            )}
+          <Animated.View entering={FadeIn.duration(600)}>
+            <CloseScreenHeader
+              title={new Date(entry?.created_at || Date.now()).toLocaleDateString("en-US", {
+                weekday: "short",
+                month: "long",
+                day: "numeric",
+              })}
+              subtitle={headerLabel}
+              titleColor={colors.text}
+              subtitleColor={colors.primary}
+              closeColor={colors.text}
+              onClose={() => navigation.goBack()}
+              rightAccessory={isReadOnly ? (
+                <View style={[styles.readOnlyBadge, { borderColor: withAlpha(colors.text, 0.12), backgroundColor: withAlpha(colors.text, 0.05) }]}>
+                  <Icon name="book-outline" size={14} color={colors.textMuted} />
+                  <Text style={[styles.readOnlyText, { color: colors.textMuted }]}>Read Only</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.saveButton, { backgroundColor: colors.primary }]}
+                  onPress={handleSave}
+                  disabled={isSaving}
+                  activeOpacity={0.8}
+                >
+                  {isSaving ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Text style={styles.saveText}>Save</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
           </Animated.View>
 
           <ScrollView
@@ -434,26 +431,10 @@ export default function JournalEntryScreen({ navigation, route }) {
 const createStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  header: {
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.xl,
-    paddingBottom: SPACING.md,
-  },
-  backButton: {
-    position: 'absolute',
-    top: SPACING.xl,
-    right: SPACING.xl,
-    zIndex: 10,
-    padding: 8,
-  },
+  header: CLOSE_HEADER_STYLES.header,
+  backButton: CLOSE_HEADER_STYLES.closeButton,
   headerCenter: { alignItems: "center" },
-  headerSubtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
+  headerSubtitle: CLOSE_HEADER_STYLES.subtitle,
   headerDate: {
     fontFamily: SYSTEM_FONT,
     fontSize: 13,

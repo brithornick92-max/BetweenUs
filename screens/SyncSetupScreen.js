@@ -1,3 +1,4 @@
+import { SPACING } from '../utils/theme';
 // screens/SyncSetupScreen.js — Cloud Sync
 // Velvet Glass & Apple Editorial High-End Updates Integrated.
 // Palette: Deep Crimson, Obsidian, Liquid Silver (Strictly No Gold).
@@ -355,20 +356,16 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
   scrollContent: { paddingHorizontal: 24, paddingBottom: 60 },
   
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 24,
-    gap: 16,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.glass,
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: 'absolute',
+    top: SPACING.xl,
+    right: SPACING.xl,
+    zIndex: 10,
+    padding: 8,
   },
   headerEye: {
     fontFamily: SYSTEM_FONT,
@@ -381,7 +378,8 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 36,
     fontWeight: '900',
-    letterSpacing: -1.2,
+    letterSpacing: -1,
+    lineHeight: 42,
   },
 
   // Status Card (Velvet Glass)

@@ -24,6 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from '../components/Icon';
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import {
   impact,
   notification,
@@ -337,24 +338,21 @@ export default function PromptAnswerScreen({ route, navigation }) {
       />
 
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
-        <Animated.View
-          entering={FadeInUp.duration(600).delay(150)}
-          style={styles.header}
-        >
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.closeBtn}
-            activeOpacity={0.8}
-          >
-            <Icon name="close-outline" size={30} color={t.text} />
-          </TouchableOpacity>
-
-          <View style={[styles.headerStatus, { backgroundColor: withAlpha(t.primary, 0.1), borderColor: withAlpha(t.primary, 0.2) }]}>
-            <Icon name="chatbubble-ellipses-outline" size={12} color={t.primary} />
-            <Text style={[styles.statusText, { color: t.primary }]}>TODAY BETWEEN US</Text>
-          </View>
-
-          <View style={{ width: 44 }} />
+        <Animated.View entering={FadeInUp.duration(600).delay(150)}>
+          <CloseScreenHeader
+            title="Answer Prompt"
+            subtitle="TODAY BETWEEN US"
+            titleColor={t.text}
+            subtitleColor={t.subtext}
+            closeColor={t.text}
+            onClose={() => navigation.goBack()}
+            rightAccessory={(
+              <View style={[styles.headerStatus, { backgroundColor: withAlpha(t.primary, 0.1), borderColor: withAlpha(t.primary, 0.2) }]}>
+                <Icon name="chatbubble-ellipses-outline" size={12} color={t.primary} />
+                <Text style={[styles.statusText, { color: t.primary }]}>TODAY BETWEEN US</Text>
+              </View>
+            )}
+          />
         </Animated.View>
 
         <KeyboardAvoidingView
@@ -513,18 +511,9 @@ const createStyles = (t, isDark) =>
     container: {
       flex: 1,
     },
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      height: 60,
-    },
+    header: CLOSE_HEADER_STYLES.header,
     closeBtn: {
-      width: 44,
-      height: 44,
-      alignItems: "center",
-      justifyContent: "center",
+      ...CLOSE_HEADER_STYLES.closeButton,
     },
     headerStatus: {
       flexDirection: "row",

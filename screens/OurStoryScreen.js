@@ -1,6 +1,6 @@
-// screens/SavedMomentsScreen.js
+// screens/OurStoryScreen.js
 /**
- * BETWEEN US - SAVED MOMENTS ENGINE (EDITORIAL V3)
+ * BETWEEN US - OUR STORY (EDITORIAL V3)
  * High-End Apple Editorial Layout + Velvet Glass + Original Sexy Red (#D2121A)
  */
 
@@ -235,7 +235,7 @@ function buildPositionTriedItem(row) {
   };
 }
 
-export default function SavedMomentsScreen() {
+export default function OurStoryScreen() {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
 
@@ -313,7 +313,7 @@ export default function SavedMomentsScreen() {
 
       setEntries(merged);
     } catch (error) {
-      if (__DEV__) console.warn('[SavedMoments] Load failed:', error?.message);
+      if (__DEV__) console.warn('[OurStory] Load failed:', error?.message);
       setEntries([]);
     } finally {
       setLoading(false);
@@ -476,8 +476,8 @@ export default function SavedMomentsScreen() {
           transform: [{ scale: headerScale }, { translateY: headerTranslateY }],
         }]}
       >
-        <Text style={[styles.headerSubtitle, { color: t.primary }]}>ARCHIVE</Text>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Your Story</Text>
+        <Text style={[styles.headerSubtitle, { color: t.primary }]}>OUR STORY</Text>
+        <Text style={[styles.headerTitle, { color: t.text }]}>Everything Together</Text>
         <Text style={styles.headerIntro}>
           {entries.length ? `${entries.length} moments, newest first` : 'Newest first'}
         </Text>
@@ -490,9 +490,9 @@ export default function SavedMomentsScreen() {
       <View style={[styles.emptyIconCircle, { borderColor: t.border, backgroundColor: t.surface }]}>
         <Icon name="archive-outline" size={42} color={t.primary} />
       </View>
-      <Text style={[styles.emptyTitle, { color: t.text }]}>Your story starts here</Text>
+      <Text style={[styles.emptyTitle, { color: t.text }]}>Your story begins here</Text>
       <Text style={styles.emptyBody}>
-        Reflections, memories, journals, photos, and videos will collect here together.
+        Prompts, memories, photos, dates, and moments will collect here as you build your story together.
       </Text>
     </ReAnimated.View>
   );
@@ -645,13 +645,13 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 2,
     marginBottom: 8,
-    textTransform: 'uppercase',
   },
   headerTitle: {
-    fontFamily: SERIF_FONT,
-    fontSize: 34,
-    fontWeight: '800',
-    lineHeight: 40,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
   headerIntro: {
     fontFamily: SYSTEM_FONT,

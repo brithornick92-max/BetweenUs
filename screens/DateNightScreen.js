@@ -1003,11 +1003,9 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   scrollContent: { flexGrow: 1, paddingTop: 10 },
 
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.xl,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
   },
   headerEye: {
     fontFamily: SYSTEM_FONT,
@@ -1019,17 +1017,17 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 40,
+    fontSize: 36,
     fontWeight: '900',
-    letterSpacing: -1.5,
-    lineHeight: 46,
+    letterSpacing: -1,
+    lineHeight: 42,
   },
   headerSubtitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 6,
-    maxWidth: 260,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 8,
   },
   filterToggle: {
     width: 44,

@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   Platform,
   StatusBar,
   Dimensions,
@@ -16,6 +15,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import Icon from '../components/Icon';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { selection } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SUPPORT_EMAIL, DATA_REQUEST_RESPONSE_TIME } from '../config/constants';
@@ -55,27 +55,23 @@ const PrivacyPolicyScreen = ({ navigation }) => {
       <FilmGrain opacity={0.035} />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Editorial Top Navigation */}
-        <View style={styles.navHeader}>
-          <TouchableOpacity
-            onPress={() => {
-              selection();
-              navigation.goBack();
-            }}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <Icon name="chevron-back" size={28} color={colors.text} />
-          </TouchableOpacity>
-        </View>
+        <CloseScreenHeader
+          title="Privacy Policy"
+          subtitle="SECURITY & TRUST"
+          titleColor={colors.text}
+          subtitleColor={colors.textMuted}
+          closeColor={colors.text}
+          onClose={() => {
+            selection();
+            navigation.goBack();
+          }}
+        />
 
         {/* Content */}
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
           {/* Editorial Header Block */}
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
-            <Text style={[styles.headerEye, { color: theme.crimson }]}>SECURITY & TRUST</Text>
-            <Text style={[styles.title, { color: colors.text }]}>Privacy Policy</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
               Last Updated: April 24, 2026
             </Text>
@@ -382,19 +378,8 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
 
-  navHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 22,
-    backgroundColor: theme.glass,
-  },
+  navHeader: CLOSE_HEADER_STYLES.header,
+  backButton: CLOSE_HEADER_STYLES.closeButton,
 
   scrollView: { flex: 1 },
   scrollContent: { paddingHorizontal: 24, paddingTop: 16 },

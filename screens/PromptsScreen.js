@@ -1,3 +1,4 @@
+import { SPACING } from '../utils/theme';
 /**
  * PromptsScreen.js -- High-end card-draw experience
  * True Red (#D2121A) & Clean Native Apple Backgrounds.
@@ -425,9 +426,9 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   safe: { flex: 1 },
   header: {
-    paddingHorizontal: 32,
-    paddingTop: 32,
-    paddingBottom: 24,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
   },
   headerLabel: {
     fontFamily: SYSTEM_FONT,
@@ -439,16 +440,17 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 42,
-    fontWeight: '800',
-    letterSpacing: -1.5,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
   headerSubtitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 8,
-    opacity: 0.9,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 8,
   },
   heatSection: {
     paddingHorizontal: 32,

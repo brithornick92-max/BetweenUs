@@ -24,6 +24,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import Icon from '../components/Icon';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import { DataLayer } from '../services/localfirst';
@@ -168,21 +169,26 @@ export default function MemoryWallScreen() {
 
       {/* Header */}
       <SafeAreaView edges={['top']} style={{ backgroundColor: t.bg }}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-            <Icon name="chevron-back-outline" size={26} color={t.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: t.text }]}>Our Photos</Text>
-          <TouchableOpacity
-            onPress={() => {
-              impact(ImpactFeedbackStyle.Light);
-              navigation.navigate('ThinkingOfYou');
-            }}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
-            <Icon name="camera-outline" size={26} color={t.primary} />
-          </TouchableOpacity>
-        </View>
+        <CloseScreenHeader
+          title="Our Photos"
+          subtitle="MEMORY WALL"
+          titleColor={t.text}
+          closeColor={t.text}
+          closeIcon="close"
+          onClose={() => navigation.goBack()}
+          rightAccessory={(
+            <TouchableOpacity
+              onPress={() => {
+                impact(ImpactFeedbackStyle.Light);
+                navigation.navigate('ThinkingOfYou');
+              }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              style={styles.headerActionButton}
+            >
+              <Icon name="camera-outline" size={26} color={t.primary} />
+            </TouchableOpacity>
+          )}
+        />
       </SafeAreaView>
 
       {/* Grid */}
@@ -289,19 +295,14 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  header: {
+  header: CLOSE_HEADER_STYLES.header,
+  headerTitle: CLOSE_HEADER_STYLES.title,
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: 12,
+    gap: SPACING.lg,
   },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-  },
+  headerActionButton: CLOSE_HEADER_STYLES.closeButton,
   center: {
     flex: 1,
     alignItems: 'center',

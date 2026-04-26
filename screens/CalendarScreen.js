@@ -122,7 +122,7 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles, colors, i
             style={[styles.navButton, { backgroundColor: colors.surfaceSecondary }]}
             activeOpacity={0.7}
           >
-            <Icon name="chevron-back" size={20} color={colors.text} />
+            <Icon name="close-outline" size={20} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigateMonth(1)}
@@ -540,9 +540,13 @@ export default function CalendarScreen({ navigation, route }) {
         >
           {/* Header */}
           <ReAnimated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
-            <Text style={[styles.headerLabel, { color: t.primary }]}>THE CALENDAR</Text>
-            <Text style={[styles.headerTitle, { color: t.text }]}>Timeline</Text>
-            <Text style={[styles.headerSubtitle, { color: t.subtext }]}>Your shared future, organized.</Text>
+            <View style={styles.headerTop}>
+              <View style={styles.headerText}>
+                <Text style={[styles.headerLabel, { color: t.primary }]}>THE CALENDAR</Text>
+                <Text style={[styles.headerTitle, { color: t.text }]}>Timeline</Text>
+                <Text style={[styles.headerSubtitle, { color: t.subtext }]}>Your shared future, organized.</Text>
+              </View>
+            </View>
           </ReAnimated.View>
 
           {/* Calendar widget */}
@@ -727,9 +731,17 @@ const createStyles = (t, isDark) => StyleSheet.create({
   container:     { flex: 1, backgroundColor: 'transparent' },
   scrollContent: { flexGrow: 1, paddingBottom: 160 },
   header: {
-    paddingHorizontal: 32,
-    marginTop: 20,
-    marginBottom: 32,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerText: {
+    flex: 1,
   },
   headerLabel: {
     fontFamily: SYSTEM_FONT,
@@ -741,16 +753,17 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 42,
-    fontWeight: '800',
-    letterSpacing: -1.5,
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: -1,
+    lineHeight: 42,
   },
   headerSubtitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 8,
-    opacity: 0.9,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 8,
   },
 
   // ── Calendar ──────────────────────────────────────────────────

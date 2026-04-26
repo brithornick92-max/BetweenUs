@@ -30,6 +30,7 @@ import { Video, ResizeMode } from 'expo-av';
 import Icon from '../components/Icon';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
@@ -180,14 +181,13 @@ export default function ThinkingOfYouScreen() {
       <FilmGrain opacity={0.03} />
 
       <SafeAreaView style={styles.safe}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-            <Icon name="close-outline" size={26} color={t.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: t.text }]}>Thinking of You</Text>
-          <View style={{ width: 26 }} />
-        </View>
+        <CloseScreenHeader
+          title="Thinking of You"
+          subtitle="QUICK SEND"
+          titleColor={t.text}
+          closeColor={t.text}
+          onClose={() => navigation.goBack()}
+        />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -314,19 +314,8 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   // GlowOrb uses top/left props directly — no glow style needed
   safe: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: 12,
-  },
-  headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-  },
+  header: CLOSE_HEADER_STYLES.header,
+  headerTitle: CLOSE_HEADER_STYLES.title,
   scroll: {
     paddingHorizontal: SPACING.lg,
     paddingTop: 8,

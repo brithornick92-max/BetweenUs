@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Clipboard from 'expo-clipboard';
 import Icon from '../components/Icon';
+import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
@@ -26,6 +27,7 @@ import { joinWithInviteCode } from '../services/linking/CoupleLinkingService';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 import { SPACING, BORDER_RADIUS, SYSTEM_FONT, withAlpha } from '../utils/theme';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+
 
 export default function ConnectPartnerScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -216,11 +218,14 @@ export default function ConnectPartnerScreen({ navigation }) {
       />
 
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Icon name="chevron-back" size={28} color={t.text} />
-          </TouchableOpacity>
-        </View>
+        <CloseScreenHeader
+          title="Connect Partner"
+          subtitle="PARTNER LINKING"
+          titleColor={t.text}
+          subtitleColor={t.subtext}
+          closeColor={t.text}
+          onClose={() => navigation.goBack()}
+        />
 
         <KeyboardAvoidingView style={styles.body} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
 
@@ -324,10 +329,10 @@ export default function ConnectPartnerScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  safeArea: { flex: 1, paddingHorizontal: 24 },
-  header: { marginTop: 10, marginBottom: 20 },
-  backButton: { width: 44, height: 44, justifyContent: 'center' },
-  body: { flex: 1, justifyContent: 'center', paddingBottom: 40 },
+  safeArea: { flex: 1 },
+  header: CLOSE_HEADER_STYLES.header,
+  backButton: CLOSE_HEADER_STYLES.closeButton,
+  body: { flex: 1, justifyContent: 'center', paddingHorizontal: 24, paddingBottom: 40 },
   card: {
     borderRadius: 32, padding: SPACING.xl, alignItems: 'center', borderWidth: 1, width: '100%',
     ...Platform.select({

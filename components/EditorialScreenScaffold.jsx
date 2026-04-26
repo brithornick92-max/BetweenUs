@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -14,12 +13,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Icon from './Icon';
 import GlowOrb from './GlowOrb';
 import FilmGrain from './FilmGrain';
+import CloseScreenHeader from './CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
-import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import {
   SPACING,
   SYSTEM_FONT,
-  SCREEN_TITLE_STYLE,
   getGradients,
   withAlpha,
 } from '../utils/theme';
@@ -27,6 +25,7 @@ import {
 export default function EditorialScreenScaffold({
   navigation,
   headerTitle,
+  headerSubtitle,
   headerRight,
   onBack,
   children,
@@ -44,7 +43,7 @@ export default function EditorialScreenScaffold({
   bodyStyle,
   safeAreaEdges = ['top'],
   showsVerticalScrollIndicator = false,
-  backIconName = 'chevron-back',
+  backIconName = 'close',
 }) {
   const { colors, isDark } = useTheme();
   const gradients = getGradients(colors);
@@ -108,28 +107,22 @@ export default function EditorialScreenScaffold({
       <FilmGrain opacity={0.04} />
 
       <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => {
-              impact(ImpactFeedbackStyle.Light);
-              if (onBack) {
-                onBack();
-                return;
-              }
-              navigation?.goBack?.();
-            }}
-            style={styles.backButton}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Icon name={backIconName} size={28} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
-            {headerTitle}
-          </Text>
-          <View style={styles.headerRight}>{headerRight || <View style={styles.headerSpacer} />}</View>
-        </View>
+        <CloseScreenHeader
+          title={headerTitle}
+          subtitle={headerSubtitle}
+          titleColor={colors.text}
+          subtitleColor={colors.textMuted}
+          closeColor={colors.text}
+          closeIcon={backIconName}
+          rightAccessory={headerRight}
+          onClose={() => {
+            if (onBack) {
+              onBack();
+              return;
+            }
+            navigation?.goBack?.();
+          }}
+        />
 
         {keyboardAvoiding ? (
           <KeyboardAvoidingView
@@ -150,36 +143,6 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.sm,
-    paddingBottom: SPACING.md,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    ...SCREEN_TITLE_STYLE,
-    flex: 1,
-    fontSize: 34,
-    lineHeight: 40,
-    textAlign: 'center',
-  },
-  headerRight: {
-    width: 44,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  headerSpacer: {
-    width: 44,
-    height: 44,
   },
   keyboardAvoiding: {
     flex: 1,
