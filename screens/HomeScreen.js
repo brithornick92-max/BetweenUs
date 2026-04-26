@@ -91,10 +91,10 @@ function normalizePrompt(p) {
 
 // Romantic palette colors for action widgets — rose-wine, velvet plum, champagne gold
 const ACTIONS = [
-  { label: 'Notes', icon: 'book-outline', key: 'journal', premium: false, color: '#C14953' },
-  { label: 'Play', icon: 'help-circle-outline', key: 'quiz', premium: false, color: '#D4AA7E' }, // Champagne gold
-  { label: 'Our Story', icon: 'bookmark-outline', key: 'memories', premium: false, color: '#9B7FCA' }, // Soft lavender
-  { label: 'Spark', icon: 'flame', key: 'intimacy', premium: true, color: '#D2121A' }, // Sexy red — opens with premium
+  { label: 'Notes', icon: 'document-text-outline', key: 'journal', premium: false, color: '#8E8E93' },
+  { label: 'Play', icon: 'game-controller-outline', key: 'quiz', premium: false, color: '#8E8E93' },
+  { label: 'Our Story', icon: 'images-outline', key: 'memories', premium: false, color: '#8E8E93' },
+  { label: 'Spark', icon: 'heart-half-outline', key: 'intimacy', premium: true, color: '#8E8E93' },
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -712,7 +712,7 @@ export default function HomeScreen({ navigation }) {
           }}>
             <View style={styles.heroCardWrap}>
               <View style={styles.eyebrowRow}>
-                <Icon name="star-outline" size={14} color={t.accent} />
+                <Icon name="star-outline" size={14} color={t.primary} />
                 <Text style={styles.eyebrow}>{ritualCopy?.eyebrow || 'TODAY'}</Text>
               </View>
 
@@ -1036,7 +1036,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    color: t.accent,
+    color: t.primary,
   },
   promptText: {
     fontFamily: systemFont,
