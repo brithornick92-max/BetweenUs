@@ -667,16 +667,25 @@ class ContentAccessService {
     }
   }
 
-  async getAccessiblePositions(allPositions, { isPremium = false, userSettings = {} } = {}) {
+  async getAccessiblePositions(allPositions, { isPremium = false, userSettings = {}, includeAll = false } = {}) {
     try {
-      const eligible = this.getEligibleReleasedItems(allPositions, CONTENT_TYPES.POSITIONS, {
-        isPremium,
-        userSettings,
-      });
-      const available = this.applyWeeklyPreviewLimit(eligible, CONTENT_TYPES.POSITIONS, {
-        isPremium,
-        userSettings,
-      });
+      const eligible = includeAll
+        ? this.filterByUserBoundaries(
+            this.filterByTier(allPositions, isPremium),
+            userSettings,
+            CONTENT_TYPES.POSITIONS
+          )
+        : this.getEligibleReleasedItems(allPositions, CONTENT_TYPES.POSITIONS, {
+            isPremium,
+            userSettings,
+          });
+
+      const available = includeAll
+        ? eligible
+        : this.applyWeeklyPreviewLimit(eligible, CONTENT_TYPES.POSITIONS, {
+            isPremium,
+            userSettings,
+          });
       const limits = this.getEffectiveLimits(isPremium);
       const weeklyVisibleLimit = limits.positions.weeklyVisible;
       const isPreviewLimited = !this.isPremiumUser(isPremium)

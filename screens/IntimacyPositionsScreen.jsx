@@ -107,7 +107,9 @@ export default function IntimacyPositionsScreen() {
         const result = await contentAccessService.getAccessiblePositions(positionCatalog, {
           isPremium: isPremiumEffective,
           userSettings: profile || userProfile || {},
+          includeAll: true,
         });
+
         if (active) setPositionAccess(result);
       } catch {
         if (active) {
