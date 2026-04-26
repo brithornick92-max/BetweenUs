@@ -193,7 +193,7 @@ export default function RevealScreen({ route, navigation }) {
             title="Private Reveal"
             subtitle={revealCopy.eyebrow}
             titleColor={t.text}
-            subtitleColor={t.subtext}
+            subtitleColor={t.primary}
             closeColor={t.text}
             onClose={() => { selection(); navigation.goBack(); }}
           />
@@ -221,7 +221,7 @@ export default function RevealScreen({ route, navigation }) {
                 </Animated.View>
               </View>
 
-              <Text style={[styles.lockedEyebrow, { color: t.accent }]}>{revealCopy.eyebrow}</Text>
+              <Text style={[styles.lockedEyebrow, { color: t.primary }]}>{revealCopy.eyebrow}</Text>
               <Text style={[styles.lockedTitle, { color: t.text }]}>{revealCopy.title}</Text>
               <Text style={[styles.lockedSub, { color: t.subtext }]}>
                 {revealCopy.body}

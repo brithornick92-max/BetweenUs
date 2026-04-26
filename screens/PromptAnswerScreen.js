@@ -343,7 +343,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
             title="Answer Prompt"
             subtitle="TODAY BETWEEN US"
             titleColor={t.text}
-            subtitleColor={t.subtext}
+            subtitleColor={t.primary}
             closeColor={t.text}
             onClose={() => navigation.goBack()}
             rightAccessory={(
