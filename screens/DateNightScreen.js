@@ -511,6 +511,7 @@ export default function DateNightScreen({ navigation }) {
         base = base.slice(0, visibleLimit);
       }
     }
+
     return base;
   }, [allDates, activeFilters, contentProfile, rawBoundaries, selectedHeat, selectedLoad, selectedStyle, isPremium]);
 
