@@ -129,7 +129,7 @@ You retain ownership of content you create. You grant us a limited license to ho
 
 ### Subscriptions and Payments
 
-**Free:** 1 prompt per day (Heat levels 1–3), partner linking, 2 fully planned date flows per week, supported data export.
+**Free:** 1 prompt per day, weekly previews across Heat levels 1–5, partner linking, 2 fully planned date flows per week, supported data export.
 
 **Premium Monthly:** $7.99/month
 **Premium Yearly:** $49.99/year

@@ -8,8 +8,6 @@ import {
   FREE_LIMITS,
   PREMIUM_LIMITS,
   FREE_PREVIEW_PROMPTS,
-  UsageEventType,
-  PremiumSource,
   FEATURE_META,
   PAYWALL_FEATURE_IDS,
   getLimitsForTier,
@@ -75,12 +73,18 @@ describe('FREE_LIMITS', () => {
     expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(2);
   });
 
-  it('has 10 preview prompts to build habit before gating', () => {
-    expect(FREE_LIMITS.PREVIEW_PROMPTS_TOTAL).toBe(10);
+  it('has 12 preview prompts to build habit before gating', () => {
+    expect(FREE_LIMITS.PREVIEW_PROMPTS_TOTAL).toBe(12);
   });
 
-  it('restricts heat levels to 1-3', () => {
-    expect(FREE_LIMITS.FREE_HEAT_LEVELS).toEqual([1, 2, 3]);
+  it('allows free previews across all heat levels', () => {
+    expect(FREE_LIMITS.FREE_HEAT_LEVELS).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('limits weekly free catalog previews', () => {
+    expect(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK).toBe(15);
+    expect(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK).toBe(8);
+    expect(FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK).toBe(3);
   });
 
   it('disables premium-only features', () => {
@@ -119,13 +123,13 @@ describe('PREMIUM_LIMITS', () => {
 // ─── Free Preview Prompts ────────────────────────────────────────────────────
 
 describe('FREE_PREVIEW_PROMPTS', () => {
-  it('contains exactly 10 prompts', () => {
-    expect(FREE_PREVIEW_PROMPTS.length).toBe(10);
+  it('contains exactly 12 prompts', () => {
+    expect(FREE_PREVIEW_PROMPTS.length).toBe(12);
   });
 
-  it('covers only free heat levels 1, 2, and 3', () => {
+  it('covers all heat levels', () => {
     const heats = new Set(FREE_PREVIEW_PROMPTS.map(p => p.heat));
-    expect([...heats].sort()).toEqual([1, 2, 3]);
+    expect([...heats].sort()).toEqual([1, 2, 3, 4, 5]);
   });
 
   it('all have isPreview: true', () => {
@@ -199,7 +203,7 @@ describe('getLimitsForTier', () => {
 describe('getGuardBehavior', () => {
   it('returns correct behavior for known features', () => {
     expect(getGuardBehavior(PremiumFeature.UNLIMITED_PROMPTS)).toBe(GuardBehavior.LIMITED);
-    expect(getGuardBehavior(PremiumFeature.HEAT_LEVELS_4_5)).toBe(GuardBehavior.LOCK);
+    expect(getGuardBehavior(PremiumFeature.HEAT_LEVELS_4_5)).toBe(GuardBehavior.LIMITED);
     expect(getGuardBehavior(PremiumFeature.SURPRISE_ME)).toBe(GuardBehavior.BLOCK);
     expect(getGuardBehavior(PremiumFeature.UNLIMITED_JOURNAL_HISTORY)).toBe(GuardBehavior.BLUR);
   });
@@ -255,8 +259,8 @@ describe('getPaywallFeatures', () => {
 });
 
 describe('getAccessibleHeatLevels', () => {
-  it('returns [1,2,3] for free users', () => {
-    expect(getAccessibleHeatLevels(false)).toEqual([1, 2, 3]);
+  it('returns [1,2,3,4,5] for free users', () => {
+    expect(getAccessibleHeatLevels(false)).toEqual([1, 2, 3, 4, 5]);
   });
 
   it('returns [1,2,3,4,5] for premium users', () => {

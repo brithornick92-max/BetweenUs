@@ -727,13 +727,18 @@ export default function OurStoryScreen() {
     return (
       <View style={styles.snapshotMediaBlock}>
         <View style={[styles.facebookGrid, styles.facebookGridFour]}>
-          {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.fourTile, { small: true })}
-          {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.fourTile, { small: true })}
-          {renderSnapshotTile(mediaItems[2], 2, mediaItems, styles.fourTile, { small: true })}
-          {renderSnapshotTile(mediaItems[3], 3, mediaItems, styles.fourTile, {
-            small: true,
-            remaining,
-          })}
+          <View style={styles.facebookGridRow}>
+            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.fourTile, { small: true })}
+            {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.fourTile, { small: true })}
+          </View>
+
+          <View style={styles.facebookGridRow}>
+            {renderSnapshotTile(mediaItems[2], 2, mediaItems, styles.fourTile, { small: true })}
+            {renderSnapshotTile(mediaItems[3], 3, mediaItems, styles.fourTile, {
+              small: true,
+              remaining,
+            })}
+          </View>
         </View>
       </View>
     );
@@ -846,9 +851,13 @@ export default function OurStoryScreen() {
               ) : null}
 
               <View style={styles.cardFooter}>
-                <Text style={[styles.cardMetaText, { color: t.subtext }]} numberOfLines={1}>
-                  {item.meta}
-                </Text>
+                {isSnapshot ? (
+                  <Text style={[styles.cardMetaText, { color: t.subtext }]} numberOfLines={1}>
+                    {item.meta}
+                  </Text>
+                ) : (
+                  <View style={styles.cardMetaSpacer} />
+                )}
 
                 <View style={styles.cardFooterRight}>
                   {item.editable || item.deletable ? (
@@ -1186,8 +1195,11 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   facebookGridFour: {
     height: 292,
+    gap: 3,
+  },
+  facebookGridRow: {
+    flex: 1,
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 3,
   },
   snapshotGridTile: {
@@ -1217,8 +1229,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     width: '100%',
   },
   fourTile: {
-    width: '49.55%',
-    height: '49.55%',
+    flex: 1,
+    height: '100%',
   },
   snapshotImage: {
     width: '100%',

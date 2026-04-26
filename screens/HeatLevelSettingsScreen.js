@@ -22,8 +22,6 @@ import { impact, selection, ImpactFeedbackStyle, NotificationFeedbackType, notif
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
-import { useEntitlements } from '../context/EntitlementsContext';
-import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
@@ -86,7 +84,6 @@ export default function HeatLevelSettingsScreen({ navigation }) {
   
   const { userProfile, updateProfile } = useAuth();
   const { loadContentProfile } = useContent();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   
   const [selectedLevel, setSelectedLevel] = useState(5);
   const [isSaving, setIsSaving] = useState(false);
@@ -120,12 +117,6 @@ export default function HeatLevelSettingsScreen({ navigation }) {
   }, [userProfile]);
 
   const handleLevelSelect = (level) => {
-    if (level >= 4 && !isPremium) {
-      impact(ImpactFeedbackStyle.Light);
-      showPaywall(PremiumFeature.HEAT_LEVELS_4_5);
-      return;
-    }
-    
     if (level === selectedLevel) return;
 
     setSelectedLevel(level);
@@ -197,7 +188,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
           <View style={styles.widgetCard}>
             {HEAT_LEVELS.map((heatLevel, index) => {
               const isSelected = selectedLevel === heatLevel.level;
-              const isLocked = heatLevel.level >= 4 && !isPremium;
+              const isLocked = false;
               const isLast = index === HEAT_LEVELS.length - 1;
 
               return (

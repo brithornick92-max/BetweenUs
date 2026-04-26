@@ -4,7 +4,7 @@
  * Velvet Glass · Hand-drawn reflection · Physics-based Card-flip
  */
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -160,7 +160,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
       impact(ImpactFeedbackStyle.Medium);
     }, 600);
     return () => clearTimeout(flipTimer);
-  }, []);
+  }, [dealOpacity, dealScale, dealY, flipProgress]);
 
   const dealStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: dealY.value }, { scale: dealScale.value }],
@@ -227,11 +227,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     };
   }, [routePrompt, promptId, navigation, userProfile]);
 
-  useEffect(() => {
-    if (prompt) loadExistingAnswer();
-  }, [prompt]);
-
-  const loadExistingAnswer = async () => {
+  const loadExistingAnswer = useCallback(async () => {
     if (!prompt?.id) return;
     // Try the active DataLayer first; fall back to legacy AsyncStorage.
     try {
@@ -249,7 +245,11 @@ export default function PromptAnswerScreen({ route, navigation }) {
         setAnswer(saved.answer);
       }
     }
-  };
+  }, [prompt]);
+
+  useEffect(() => {
+    if (prompt) loadExistingAnswer();
+  }, [prompt, loadExistingAnswer]);
 
   const handleTextChange = (text) => {
     const truncated = text.slice(0, MAX_LEN);
@@ -277,10 +277,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     if (!isPremium && isFirstResponse) {
       const accessCheck = await PremiumGatekeeper.canAccessPrompt(user?.uid, prompt?.heat || 1, isPremium);
       if (!accessCheck.canAccess) {
-        const blockedFeature = accessCheck.reason === 'premium_required'
-          ? PremiumFeature.HEAT_LEVELS_4_5
-          : PremiumFeature.UNLIMITED_PROMPTS;
-        showPaywall?.(blockedFeature);
+        showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
         return;
       }
     }

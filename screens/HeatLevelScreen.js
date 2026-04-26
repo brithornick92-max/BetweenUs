@@ -61,7 +61,7 @@ export default function HeatLevelScreen({ navigation }) {
       icon: 'water-outline',
       color: '#F00049',
       gradient: ['#F00049', '#B80034'],
-      premium: true,
+      free: true,
     },
     {
       level: 5,
@@ -70,7 +70,7 @@ export default function HeatLevelScreen({ navigation }) {
       icon: 'flame-outline',
       color: '#D2121A',
       gradient: ['#D2121A', '#8E0D12'],
-      premium: true,
+      free: true,
     },
   ];
 
@@ -78,19 +78,6 @@ export default function HeatLevelScreen({ navigation }) {
     try {
       setLoading(true);
       impact(ImpactFeedbackStyle.Light);
-
-      // Check if premium required
-      if (level >= 4 && !isPremium) {
-        Alert.alert(
-          'Part of the deeper experience',
-          `Heat levels 4 and 5 are part of the full experience. Discover deeper intimacy.`,
-          [
-            { text: 'Maybe Later', style: 'cancel' },
-            { text: 'Discover more', onPress: () => showPaywall(PremiumFeature.HEAT_LEVELS_4_5) }
-          ]
-        );
-        return;
-      }
 
       // Check daily limits for free users
       if (!isPremium && usageStatus?.remaining?.prompts === 0) {

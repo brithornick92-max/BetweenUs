@@ -41,12 +41,15 @@ export const GuardBehavior = Object.freeze({
 // ─── Free-Tier Limits ───────────────────────────────────────────────────────────
 export const FREE_LIMITS = Object.freeze({
   PROMPTS_PER_DAY: 1,           // One daily prompt response to prove the shared reveal loop
-  PREVIEW_PROMPTS_TOTAL: 10,    // 10 preview prompts to build habit before gating
+  PREVIEW_PROMPTS_TOTAL: 12,    // Fixed preview pack covering all 5 heat levels
+  VISIBLE_PROMPTS_PER_WEEK: 15, // Weekly free preview across all heat levels
   DATE_IDEAS_PER_DAY: 5,        // 5 preview date ideas per day
+  VISIBLE_DATE_IDEAS_PER_WEEK: 8,
+  VISIBLE_POSITIONS_PER_WEEK: 3,
   FULL_DATE_FLOWS_PER_WEEK: 2,  // Two fully planned date flows per week
-  VISIBLE_DATE_IDEAS: 5,        // 5 preview date ideas visible for free users
+  VISIBLE_DATE_IDEAS: 5,        // Legacy daily date preview count
   JOURNAL_ENTRIES_VISIBLE: 0,   // No journal access
-  FREE_HEAT_LEVELS: [1, 2, 3],
+  FREE_HEAT_LEVELS: [1, 2, 3, 4, 5],
   SURPRISE_ME_ENABLED: false,
   CALENDAR_ENABLED: false,
   PARTNER_LINKING_ENABLED: true,
@@ -58,7 +61,10 @@ export const FREE_LIMITS = Object.freeze({
 export const PREMIUM_LIMITS = Object.freeze({
   PROMPTS_PER_DAY: Infinity,
   PREVIEW_PROMPTS_TOTAL: Infinity,
+  VISIBLE_PROMPTS_PER_WEEK: Infinity,
   DATE_IDEAS_PER_DAY: Infinity,
+  VISIBLE_DATE_IDEAS_PER_WEEK: Infinity,
+  VISIBLE_POSITIONS_PER_WEEK: Infinity,
   FULL_DATE_FLOWS_PER_WEEK: Infinity,
   VISIBLE_DATE_IDEAS: Infinity,
   JOURNAL_ENTRIES_VISIBLE: Infinity,
@@ -71,7 +77,7 @@ export const PREMIUM_LIMITS = Object.freeze({
 });
 
 // ─── Fixed Preview Prompts for Free Users ────────────────────────────────────
-// 10 hand-picked preview prompts across heat levels 1-3 to build habit before gating.
+// Hand-picked preview prompts across all heat levels to build habit before gating.
 export const FREE_PREVIEW_PROMPTS = Object.freeze([
   {
     id: 'free_preview_h1',
@@ -143,6 +149,20 @@ export const FREE_PREVIEW_PROMPTS = Object.freeze([
     heat: 3,
     isPreview: true,
   },
+  {
+    id: 'free_preview_h4',
+    text: "What's a more daring version of closeness you'd want to explore with clear boundaries?",
+    category: 'sensual',
+    heat: 4,
+    isPreview: true,
+  },
+  {
+    id: 'free_preview_h5',
+    text: "What's one explicit desire you'd only want us to explore if we both felt fully safe and enthusiastic?",
+    category: 'intimacy',
+    heat: 5,
+    isPreview: true,
+  },
 ]);
 
 // ─── Usage Event Types ──────────────────────────────────────────────────────────
@@ -173,12 +193,12 @@ export const FEATURE_META = Object.freeze({
     emotionalValue: 'Keep leaving small pieces of your heart for each other',
   },
   [PremiumFeature.HEAT_LEVELS_4_5]: {
-    name: 'Shared Heat Levels',
-    description: 'Sensual, steamy, and explicit prompt lanes when both partners want more heat',
+    name: 'Full Heat Library',
+    description: 'More released prompts across every heat level, with new additions each week',
     icon: '🔥',
     category: 'content',
-    guardBehavior: GuardBehavior.LOCK,
-    emotionalValue: 'Keep desire playful, private, and chosen together',
+    guardBehavior: GuardBehavior.LIMITED,
+    emotionalValue: 'Keep desire playful, private, chosen together, and refreshed',
   },
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     name: 'Personalized Date Ideas',
@@ -406,8 +426,8 @@ export function getTimedUnlockLimits(isPremiumEffective) {
   return {
     isUnlockDay: true,
     unlockLabel: 'Friday Date Night',
-    VISIBLE_DATE_IDEAS: 10,        // 10 instead of 3
-    DATE_IDEAS_PER_DAY: 10,        // 10 instead of 3
+    VISIBLE_DATE_IDEAS: 10,        // Expanded daily date preview
+    DATE_IDEAS_PER_DAY: 10,        // Expanded daily date browsing
     PROMPTS_PER_DAY: 3,            // expanded preview instead of the usual 1
   };
 }

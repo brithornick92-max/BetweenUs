@@ -21,6 +21,8 @@ import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useAuth } from '../context/AuthContext';
 import { getPartnerDisplayName } from '../utils/profileNames';
+import contentAccessService from '../services/ContentAccessService';
+import * as PreferenceEngine from '../services/PreferenceEngine';
 
 // Utilities & Components
 import { SPACING } from '../utils/theme';
@@ -37,15 +39,7 @@ import {
   toggleIntimacyTried,
 } from '../utils/intimacyFavorites';
 
-const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
-
-// Calculate weeks since intimacy positions launch
-const LAUNCH_DATE = new Date('2026-04-18');
-function getCurrentWeek() {
-  const now = new Date();
-  return Math.floor((now - LAUNCH_DATE) / (7 * 24 * 60 * 60 * 1000));
-}
 
 export default function IntimacyPositionsScreen() {
   const { colors, isDark } = useTheme();
@@ -58,6 +52,7 @@ export default function IntimacyPositionsScreen() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [favorites, setFavorites] = useState({});
   const [triedPositions, setTriedPositions] = useState({});
+  const [positionAccess, setPositionAccess] = useState(null);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
   const [triedBusy, setTriedBusy] = useState(false);
 
@@ -74,14 +69,15 @@ export default function IntimacyPositionsScreen() {
     borderGlass: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
   }), [colors, isDark]);
 
-  const currentWeek = getCurrentWeek();
   const partnerLabel = getPartnerDisplayName(userProfile, null, 'your partner');
 
-  const availablePositions = useMemo(() => {
-    return positionsData.items.filter(
-      (p) => p.id.startsWith('ip') && !p.id.includes('-q') && (p.releaseWeek ?? 0) <= currentWeek
-    );
-  }, [currentWeek]);
+  const positionCatalog = useMemo(
+    () => positionsData.items.filter((p) => p.id.startsWith('ip') && !p.id.includes('-q')),
+    []
+  );
+  const availablePositions = useMemo(() => positionAccess?.positions || [], [positionAccess]);
+  const accessInfo = positionAccess?.access || null;
+  const previewLockedCount = accessInfo?.lockedCount || 0;
 
   const position = availablePositions[selectedIndex];
   const favoritePositions = useMemo(
@@ -101,6 +97,34 @@ export default function IntimacyPositionsScreen() {
       Animated.spring(cardAnim, { toValue: 1, friction: 9, tension: 60, useNativeDriver: true }),
     ]).start();
   }, [headerAnim, pickerAnim, cardAnim]);
+
+  useEffect(() => {
+    let active = true;
+
+    (async () => {
+      try {
+        const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+        const result = await contentAccessService.getAccessiblePositions(positionCatalog, {
+          isPremium: isPremiumEffective,
+          userSettings: profile || userProfile || {},
+        });
+        if (active) setPositionAccess(result);
+      } catch {
+        if (active) {
+          setPositionAccess({
+            positions: [],
+            totalAvailable: 0,
+            access: { isPremium: isPremiumEffective, isPreviewLimited: false, lockedCount: 0 },
+            newThisWeek: [],
+          });
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [isPremiumEffective, positionCatalog, userProfile]);
 
   useEffect(() => {
     let active = true;
@@ -131,7 +155,7 @@ export default function IntimacyPositionsScreen() {
 
   const handlePaywall = useCallback(() => {
     impact(ImpactFeedbackStyle.Medium);
-    showPaywall?.('HEAT_LEVELS_4_5');
+    showPaywall?.();
   }, [showPaywall]);
 
   const handleToggleFavorite = useCallback(async () => {
@@ -172,55 +196,6 @@ export default function IntimacyPositionsScreen() {
     setTriedPositions(next.tried);
   }, [position]);
 
-  // ════════════════════════════════════
-  //  LOCKED STATE RENDER
-  // ════════════════════════════════════
-  if (!isPremiumEffective) {
-    return (
-      <EditorialScreenScaffold
-        navigation={navigation}
-        headerTitle="Private Spark"
-        headerSubtitle="INTIMACY"
-        scroll={false}
-        onBack={handleBack}
-        bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge
-      >
-          <View style={styles.lockedWrap}>
-            <Animated.View style={{
-              opacity: cardAnim,
-              transform: [{ translateY: cardAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-            }}>
-              <View style={styles.cardContainer}>
-                <View style={[styles.editorialCard, styles.editorialCardColumn, { backgroundColor: t.surface, borderColor: t.borderGlass }, !isDark && styles.lightShadow]}>
-                  <View style={styles.cardContent}>
-                    <Text style={[styles.cardTag, { color: t.subtext }]}>SHARED PREMIUM</Text>
-                    <Text style={[styles.cardTitle, { color: t.text }]}>More Spark Together</Text>
-                    <Text style={[styles.cardEmail, { color: t.subtext }]}>A closer space for you and {partnerLabel}.</Text>
-                  </View>
-
-                  <View style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }] }>
-                    <Text style={[styles.answerText, { color: t.text }]}>Explore illustrated intimacy ideas designed for closeness, play, and desire. New releases arrive every week.</Text>
-                  </View>
-
-                  <TouchableOpacity
-                    style={[styles.cta, { backgroundColor: t.text }]}
-                    onPress={handlePaywall}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={[styles.ctaLabel, { color: isDark ? '#000000' : '#FFFFFF' }]}>Discover Premium</Text>
-                    <Icon name="arrow-forward-outline" size={20} color={isDark ? '#000000' : '#FFFFFF'} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Animated.View>
-          </View>
-      </EditorialScreenScaffold>
-    );
-  }
-
-  // ════════════════════════════════════
-  //  UNLOCKED STATE RENDER
-  // ════════════════════════════════════
   return (
     <EditorialScreenScaffold
       navigation={navigation}
@@ -248,6 +223,18 @@ export default function IntimacyPositionsScreen() {
                   <Text style={[styles.cardTitle, { color: t.text }]}>Curated positions for deeper connection</Text>
                   <Text style={[styles.cardEmail, { color: t.subtext }]}>A closer space for you and {partnerLabel}.</Text>
                 </View>
+
+                {!isPremiumEffective && accessInfo?.isPreviewLimited && (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={handlePaywall}
+                    style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}
+                  >
+                    <Text style={[styles.answerText, { color: t.text }]}>
+                      {availablePositions.length} free previews this week. Premium opens {previewLockedCount} more released positions.
+                    </Text>
+                  </TouchableOpacity>
+                )}
 
                 {!!favoritePositions.length && (
                   <View style={styles.favoritesBlock}>
@@ -333,6 +320,11 @@ export default function IntimacyPositionsScreen() {
                     onRate={handleRateTried}
                     compact={isCompact}
                   />
+                )}
+                {!position && (
+                  <View style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+                    <Text style={[styles.answerText, { color: t.text }]}>No positions match your current boundaries.</Text>
+                  </View>
                 )}
               </View>
             </View>

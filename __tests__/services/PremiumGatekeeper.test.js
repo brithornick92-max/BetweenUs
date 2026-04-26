@@ -33,15 +33,15 @@ describe('PremiumGatekeeper', () => {
       expect(result.canAccess).toBe(true);
     });
 
-    it('blocks free users from heat 4-5', async () => {
+    it('allows free users to preview heat 4', async () => {
       const result = await PremiumGatekeeper.canAccessPrompt('user-1', 4, false);
-      expect(result.canAccess).toBe(false);
+      expect(result.canAccess).toBe(true);
       expect(result.reason).toBeDefined();
     });
 
-    it('blocks free users from heat 5', async () => {
+    it('allows free users to preview heat 5', async () => {
       const result = await PremiumGatekeeper.canAccessPrompt('user-1', 5, false);
-      expect(result.canAccess).toBe(false);
+      expect(result.canAccess).toBe(true);
     });
   });
 

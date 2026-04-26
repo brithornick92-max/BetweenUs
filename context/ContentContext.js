@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import StorageRouter from '../services/storage/StorageRouter';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
+import contentAccessService from '../services/ContentAccessService';
 import { updateWidgetPrompt } from '../services/widgetData';
 import E2EEncryption from '../services/e2ee/E2EEncryption';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
@@ -200,7 +201,9 @@ export const ContentProvider = ({ children }) => {
 
       // Determine the daily pool from the persisted profile only so the day's
       // moment stays fixed regardless of which screen opens it first.
-      const effectiveHeat = profile?.maxHeat || (userProfile?.heatLevelPreference) || 5;
+      const effectiveHeat = contentAccessService.getUserMaxHeatLevel(
+        profile || userProfile || {}
+      );
 
       // Check if user can access this heat level
       const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, effectiveHeat, isPremium);
@@ -279,8 +282,8 @@ export const ContentProvider = ({ children }) => {
         const errorString = String(error?.message || error);
         if (
           errorString.includes('free moment is used') ||
-          errorString.includes('Free users can preview 3') ||
-          errorString.includes('Higher heat levels are part of the deeper experience')
+          errorString.includes('weekly preview') ||
+          errorString.includes('weekly_preview_locked')
         ) {
           if (__DEV__) console.log("[ContentContext] Setting fallback daily prompt for free user.");
         } else {
@@ -545,7 +548,7 @@ export const ContentProvider = ({ children }) => {
       PromptAllocator.recordAnswer(promptId);
 
       // Track usage for freemium limits
-      await PremiumGatekeeper.trackPromptUsage(user.uid, promptId);
+      await PremiumGatekeeper.trackPromptUsage(user.uid, promptId, isPremium);
 
       // Reload usage status
       await loadUsageStatus();
@@ -578,7 +581,7 @@ export const ContentProvider = ({ children }) => {
     try {
       if (!user) return;
 
-      const status = await PremiumGatekeeper.getUserUsageStatus(user.uid);
+      const status = await PremiumGatekeeper.getUserUsageStatus(user.uid, isPremium);
       setUsageStatus(status);
       return status;
     } catch (error) {
@@ -592,7 +595,7 @@ export const ContentProvider = ({ children }) => {
     try {
       if (!user) return;
 
-      await PremiumGatekeeper.trackDateUsage(user.uid, dateId);
+      await PremiumGatekeeper.trackDateUsage(user.uid, dateId, isPremium);
       await loadUsageStatus(); // Reload usage status
     } catch (error) {
       if (__DEV__) console.error('Error tracking date usage:', error);

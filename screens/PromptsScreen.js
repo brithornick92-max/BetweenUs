@@ -1,4 +1,4 @@
-import { SPACING } from '../utils/theme';
+import { SPACING, withAlpha } from "../utils/theme";
 /**
  * PromptsScreen.js -- High-end card-draw experience
  * True Red (#D2121A) & Clean Native Apple Backgrounds.
@@ -29,14 +29,14 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { PremiumFeature } from '../utils/featureFlags';
-import { withAlpha } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import * as PreferenceEngine from "../services/PreferenceEngine";
+import contentAccessService from "../services/ContentAccessService";
 import PromptCardDeck from "../components/PromptCardDeck";
 import { SoftBoundaries } from "../services/PolishEngine";
-import { getFilteredPromptsWithProfile, FALLBACK_PROMPT } from "../utils/contentLoader";
+import { FALLBACK_PROMPT } from "../utils/contentLoader";
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -97,19 +97,23 @@ const TONE_PROMPT_COPY = {
   },
 };
 
-const resolveSelectableMaxHeat = (profile, selectedHeat) => {
-  const requestedHeat = typeof selectedHeat === 'number' ? selectedHeat : 1;
-  const caps = [requestedHeat];
+const normalizeHeatLevel = (heat, fallback = 5) => {
+  const numeric = Number(heat);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.min(5, Math.max(1, Math.floor(numeric)));
+};
+
+const resolveExplicitMaxHeat = (profile, fallbackHeat = 5) => {
+  const caps = [normalizeHeatLevel(fallbackHeat)];
+  if (typeof profile?.heatLevel === 'number') caps.push(profile.heatLevel);
   if (profile?.boundaries?.hideSpicy) caps.push(3);
   else if (typeof profile?.boundaries?.maxHeatOverride === 'number') caps.push(profile.boundaries.maxHeatOverride);
-  if (typeof profile?.maxHeat === 'number') caps.push(profile.maxHeat);
-  return Math.min(...caps);
+  return Math.min(...caps.map((heat) => normalizeHeatLevel(heat)));
 };
 
 const clampHeatSelection = (profile, selectedHeat) => {
-  const requestedHeat = typeof selectedHeat === 'number' ? selectedHeat : 1;
-  const normalizedHeat = Math.min(Math.max(requestedHeat, 1), 5);
-  return Math.max(1, resolveSelectableMaxHeat(profile, normalizedHeat));
+  const normalizedHeat = normalizeHeatLevel(selectedHeat, 1);
+  return Math.min(normalizedHeat, resolveExplicitMaxHeat(profile));
 };
 
 function shuffleArray(arr) {
@@ -139,7 +143,7 @@ export default function PromptsScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
 
   const [selectedHeat, setSelectedHeat] = useState(null);
   const [selectedTone, setSelectedTone] = useState('warm');
@@ -177,7 +181,6 @@ export default function PromptsScreen({ navigation }) {
           ]);
           if (!active) return;
           let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
-          if (!isPremium && heat >= 4) heat = 3;
           heat = clampHeatSelection(profile, heat);
           setContentProfile(profile);
           setRawBoundaries(bounds);
@@ -195,12 +198,12 @@ export default function PromptsScreen({ navigation }) {
       return () => {
         active = false;
       };
-    }, [userProfile, isPremium])
+    }, [userProfile])
   );
 
   const toneCopy = TONE_PROMPT_COPY[selectedTone] || TONE_PROMPT_COPY.warm;
   const maxSelectableHeat = useMemo(
-    () => clampHeatSelection(contentProfile, userProfile?.heatLevelPreference || 5),
+    () => resolveExplicitMaxHeat(contentProfile, userProfile?.heatLevelPreference || 5),
     [contentProfile, userProfile?.heatLevelPreference]
   );
 
@@ -209,13 +212,18 @@ export default function PromptsScreen({ navigation }) {
     setLoading(true);
     try {
       const allPrompts = ALL_BUNDLED.map(normalizePrompt);
-      setPrompts(allPrompts);
+      const access = await contentAccessService.getAccessiblePrompts(allPrompts, {
+        userId: user?.uid,
+        isPremium,
+        userSettings: contentProfile || userProfile || {},
+      });
+      setPrompts(access.prompts || []);
     } catch {
       setPrompts([]);
     } finally {
       setLoading(false);
     }
-  }, [selectedHeat]);
+  }, [contentProfile, isPremium, selectedHeat, user?.uid, userProfile]);
 
   useEffect(() => {
     loadPrompts();
@@ -223,14 +231,9 @@ export default function PromptsScreen({ navigation }) {
 
   const deckPrompts = useMemo(() => {
     const heat = selectedHeat ?? 1;
-    const selectableMaxHeat = resolveSelectableMaxHeat(contentProfile, heat);
-    const profileBase = contentProfile
-      ? getFilteredPromptsWithProfile({
-          ...contentProfile,
-          maxHeat: selectableMaxHeat,
-        }).map(normalizePrompt)
-      : applyRawBoundaryFilter(prompts, rawBoundaries);
-    const byHeat = profileBase.filter((p) => (p.heat || 1) === heat);
+    const selectableMaxHeat = Math.min(resolveExplicitMaxHeat(contentProfile), heat);
+    const basePrompts = contentProfile ? prompts : applyRawBoundaryFilter(prompts, rawBoundaries);
+    const byHeat = basePrompts.map(normalizePrompt).filter((p) => (p.heat || 1) === heat);
     if (!contentProfile) return shuffleArray(byHeat);
     return PreferenceEngine.filterPrompts(byHeat, {
       ...contentProfile,
@@ -239,23 +242,15 @@ export default function PromptsScreen({ navigation }) {
   }, [prompts, selectedHeat, contentProfile, rawBoundaries]);
 
   const handlePromptSelect = useCallback((prompt) => {
-    if (!isPremium && (prompt.heat || 1) >= 4) {
-      showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
-      return;
-    }
     navigation.navigate("PromptAnswer", {
       prompt: { ...prompt, dateKey: new Date().toISOString().split("T")[0] },
     });
-  }, [isPremium, showPaywall, navigation]);
+  }, [navigation]);
 
   const handleHeatSelect = useCallback((heat) => {
-    if (!isPremium && heat >= 4) {
-      showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5);
-      return;
-    }
     setSelectedHeat(heat);
     selection();
-  }, [isPremium, showPaywall]);
+  }, []);
 
   const refreshBoundaryProfile = useCallback(async () => {
     const profile = await PreferenceEngine.getContentProfile(userProfile || {});
@@ -323,7 +318,7 @@ export default function PromptsScreen({ navigation }) {
             <View style={styles.heatRow}>
               {HEAT_LEVELS.map(({ value, label, color: heatColor }) => {
                 const active = selectedHeat === value;
-                const locked = !isPremium && value >= 4;
+                const locked = false;
                 const aboveMax = value > maxSelectableHeat;
 
                 const bgColor = active ? heatColor : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
@@ -351,7 +346,7 @@ export default function PromptsScreen({ navigation }) {
                       activeOpacity={aboveMax ? 1 : 0.8}
                       disabled={aboveMax}
                       accessibilityRole="button"
-                      accessibilityLabel={`Heat level ${label}${active ? ', selected' : ''}${locked ? ', premium only' : ''}${aboveMax ? ', unavailable' : ''}`}
+                      accessibilityLabel={`Heat level ${label}${active ? ', selected' : ''}${aboveMax ? ', unavailable' : ''}`}
                       accessibilityState={{ selected: active, disabled: aboveMax }}
                     >
                       <Text style={[styles.heatLabel, { color: textColor }]}>
@@ -405,7 +400,7 @@ export default function PromptsScreen({ navigation }) {
                 >
                   <Icon name="flame" size={16} color="#D2121A" />
                   <Text style={[styles.premiumTeaserText, { color: isDark ? '#FF6B6B' : '#D2121A' }]}>
-                    Heat levels 4 and 5 are part of your shared premium space.
+                    Free preview refreshes weekly. Premium opens the full prompt library.
                   </Text>
                   <Icon name="chevron-forward" size={14} color="#D2121A" />
                 </TouchableOpacity>

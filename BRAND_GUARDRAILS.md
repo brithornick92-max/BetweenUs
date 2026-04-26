@@ -168,9 +168,9 @@ like it belongs in that space.
 ## Premium Philosophy
 
 Premium in Between Us is an **invitation to go deeper**, not a wall.
-Free users can preview a taste of the experience — 3 read-only prompts across
-heat levels 1-3. Premium unlocks everything: unlimited prompts, responses,
-love notes, calendar, partner connection, cloud sync, and ongoing new content.
+Free users can preview a limited weekly taste across heat levels 1-5.
+Premium unlocks expanded weekly prompt access, responses, love notes,
+calendar, partner connection, cloud sync, and ongoing new content.
 
 **Never say:**
 - "You've reached your limit"

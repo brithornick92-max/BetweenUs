@@ -117,7 +117,7 @@ In **App Store Connect → Your App → App Privacy**, answer:
 
 ### Age Rating
 - App contains intimacy/connection content with "heat levels" 1–5
-- Heat levels 4–5 are premium-only and contain suggestive (not explicit) content
+- Heat levels 1–5 can appear in limited free previews; Premium expands access to the released catalog and ongoing weekly additions
 - **Recommend: Rating 17+ with "Frequent/Intense Mature/Suggestive Themes"**
 
 ### Review Notes (paste into App Store Connect)
@@ -136,8 +136,9 @@ KEY FEATURES TO TEST:
 - Calendar (shared event planning)
 - Shared reveal flow and recap features
 
-PREMIUM: Subscription unlocks heat levels 4-5, unlimited prompts,
-expanded date planning, calendar features, recaps, signals, and more.
+PREMIUM: Subscription unlocks expanded weekly access across heat levels,
+expanded date planning, intimacy positions, calendar features, recaps,
+signals, and more.
 
 SECURITY: Core synced content is protected by Supabase Auth, row-level
 security, HTTPS/TLS, and provider-side controls. It is not currently

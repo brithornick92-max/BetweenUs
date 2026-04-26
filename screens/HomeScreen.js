@@ -33,7 +33,6 @@ import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage, storage, STORAGE_KEYS } from '../utils/storage';
 import { SPACING } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
-import MomentSignal from '../components/MomentSignal';
 import SurpriseTonight from '../components/SurpriseTonight';
 import MilestoneCard from '../components/MilestoneCard';
 import WelcomeBack from '../components/WelcomeBack';
@@ -101,7 +100,7 @@ const ACTIONS = [
   { label: 'Notes', icon: 'document-text-outline', key: 'journal', premium: false, color: '#8E8E93' },
   { label: 'Play', icon: 'chatbubbles-outline', key: 'quiz', premium: false, color: '#8E8E93' },
   { label: 'Our Story', icon: 'images-outline', key: 'memories', premium: false, color: '#8E8E93' },
-  { label: 'Spark', icon: 'flame', key: 'intimacy', premium: true, color: '#8E8E93' },
+  { label: 'Spark', icon: 'flame', key: 'intimacy', premium: false, color: '#8E8E93' },
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -734,24 +733,9 @@ export default function HomeScreen({ navigation }) {
     } else if (key === 'memories') {
       navigation.navigate('OurStory');
     } else if (key === 'intimacy') {
-      if (!isPremium) {
-        Alert.alert(
-          `More spark with ${partnerLabel}`,
-          `Premium opens sensual prompts, illustrated intimacy ideas, and date-night moments for the two of you.`,
-          [
-            { text: 'Not Now', style: 'cancel' },
-            {
-              text: 'Discover Premium',
-              onPress: () => showPaywall?.(PremiumFeature.HEAT_LEVELS_4_5),
-            },
-          ]
-        );
-        return;
-      }
-
       navigation.navigate('IntimacyPositions');
     }
-  }, [isPremium, showPaywall, navigation, partnerLabel]);
+  }, [navigation]);
 
   return (
     <View style={styles.root}>

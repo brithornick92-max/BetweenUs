@@ -1,14 +1,15 @@
 import LocalUsageService from './LocalUsageService';
 import StorageRouter from './storage/StorageRouter';
 import CrashReporting from './CrashReporting';
+import { FREE_LIMITS, getAccessibleHeatLevels } from '../utils/featureFlags';
 
 class PremiumGatekeeper {
   constructor() {
     this.DAILY_LIMITS = {
-      FREE_PROMPTS: 1, // Free users get one guided prompt response per day
-      FREE_DATES: 5,   // Free users can browse 5 date ideas per day
-      FREE_HEAT_LEVELS: [1, 2, 3], // Free preview prompts cover levels 1-3
-      PREMIUM_HEAT_LEVELS: [1, 2, 3, 4, 5] // Premium gets all levels
+      FREE_PROMPTS: FREE_LIMITS.PROMPTS_PER_DAY, // Free users get one guided prompt response per day
+      FREE_DATES: FREE_LIMITS.DATE_IDEAS_PER_DAY,   // Free users can browse date ideas per day
+      FREE_HEAT_LEVELS: FREE_LIMITS.FREE_HEAT_LEVELS,
+      PREMIUM_HEAT_LEVELS: [1, 2, 3, 4, 5]
     };
     this.WEEKLY_LIMITS = {
       FREE_FULL_DATE_FLOWS: 2
@@ -25,20 +26,11 @@ class PremiumGatekeeper {
     try {
       const isPremium = this.isPremiumUser(isPremiumFlag);
       
-      // Premium users can access all heat levels
+      // Premium users are not daily-limited here.
       if (isPremium) {
         return {
           canAccess: true,
           reason: 'premium_access'
-        };
-      }
-      
-      // Free users can only access levels 1-3
-      if (!this.DAILY_LIMITS.FREE_HEAT_LEVELS.includes(promptHeatLevel)) {
-        return {
-          canAccess: false,
-          reason: 'premium_required',
-          message: 'Higher heat levels are part of the deeper experience.'
         };
       }
       
@@ -109,11 +101,6 @@ class PremiumGatekeeper {
       const isPremium = this.isPremiumUser(isPremiumFlag);
       const clonedFilters = { ...filters };
       
-      // Add heat level filter for free users
-      if (!isPremium) {
-        clonedFilters.heatLevels = this.DAILY_LIMITS.FREE_HEAT_LEVELS;
-      }
-      
       const prompts = await StorageRouter.getPrompts(clonedFilters);
       
       return {
@@ -140,8 +127,9 @@ class PremiumGatekeeper {
         return accessCheck;
       }
       
-      // Track the usage
-      await LocalUsageService.incrementDailyUsage(userId, 'prompts');
+      if (!this.isPremiumUser(isPremiumFlag)) {
+        await LocalUsageService.incrementDailyUsage(userId, 'prompts');
+      }
       
       return {
         success: true,
@@ -161,8 +149,9 @@ class PremiumGatekeeper {
         return accessCheck;
       }
       
-      // Track the usage
-      await LocalUsageService.incrementDailyUsage(userId, 'dates');
+      if (!this.isPremiumUser(isPremiumFlag)) {
+        await LocalUsageService.incrementDailyUsage(userId, 'dates');
+      }
       
       return {
         success: true,
@@ -261,9 +250,7 @@ class PremiumGatekeeper {
           dates: isPremium ? 'unlimited' : Math.max(0, this.DAILY_LIMITS.FREE_DATES - (usage.dates || 0)),
           dateFlowsPerWeek: isPremium ? 'unlimited' : Math.max(0, this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS - (weeklyUsage.dateFlows || 0))
         },
-        accessibleHeatLevels: isPremium ? 
-          this.DAILY_LIMITS.PREMIUM_HEAT_LEVELS : 
-          this.DAILY_LIMITS.FREE_HEAT_LEVELS
+        accessibleHeatLevels: getAccessibleHeatLevels(isPremium)
       };
     } catch (error) {
       throw new Error(`Failed to get usage status: ${error.message}`);

@@ -36,6 +36,7 @@ import DateCardFront from '../components/DateCardFront';
 import DateCardBack from '../components/DateCardBack';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import { SoftBoundaries } from '../services/PolishEngine';
+import contentAccessService from '../services/ContentAccessService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DATE_HISTORY_KEY } from '../utils/dateHistory';
 
@@ -442,6 +443,13 @@ export default function DateNightScreen({ navigation }) {
   }, [selectedHeat, selectedLoad, selectedStyle]);
 
   const deck = useMemo(() => {
+    const accessProfile = contentProfile
+      ? {
+          ...contentProfile,
+          maxHeat: contentAccessService.getUserMaxHeatLevel(contentProfile),
+        }
+      : null;
+
     // When no profile, apply raw boundaries synchronously so paused/heat-capped dates never surface
     const boundaryFilteredDates = contentProfile
       ? allDates
@@ -452,11 +460,11 @@ export default function DateNightScreen({ navigation }) {
           return true;
         });
 
-    const strictProfileBase = contentProfile ? getFilteredDatesWithProfile(contentProfile) : boundaryFilteredDates;
-    const fallbackProfileBase = contentProfile
+    const strictProfileBase = accessProfile ? getFilteredDatesWithProfile(accessProfile) : boundaryFilteredDates;
+    const fallbackProfileBase = accessProfile
       ? allDates.filter((date) => {
-          if (contentProfile.boundaries?.pausedDates?.includes(date.id)) return false;
-          if (typeof contentProfile.maxHeat === 'number' && date.heat > contentProfile.maxHeat) return false;
+          if (accessProfile.boundaries?.pausedDates?.includes(date.id)) return false;
+          if (typeof accessProfile.maxHeat === 'number' && date.heat > accessProfile.maxHeat) return false;
           return true;
         })
       : boundaryFilteredDates;
@@ -468,8 +476,8 @@ export default function DateNightScreen({ navigation }) {
 
     let base = filterDates(strictProfileBase, activeFilters);
 
-    if (contentProfile && base.length > 0) {
-      const personalized = PreferenceEngine.filterDatesWithProfile(base, contentProfile, dims);
+    if (accessProfile && base.length > 0) {
+      const personalized = PreferenceEngine.filterDatesWithProfile(base, accessProfile, dims);
       if (personalized.length > 0) {
         base = personalized;
       }
@@ -482,7 +490,7 @@ export default function DateNightScreen({ navigation }) {
     // Free users only see a small preview of dates (expanded on Fridays)
     if (!isPremium) {
       const timedUnlock = getTimedUnlockLimits(false);
-      const visibleLimit = timedUnlock?.VISIBLE_DATE_IDEAS ?? FREE_LIMITS.VISIBLE_DATE_IDEAS;
+      const visibleLimit = timedUnlock?.VISIBLE_DATE_IDEAS ?? FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK;
       if (base.length > visibleLimit) {
         base = base.slice(0, visibleLimit);
       }
