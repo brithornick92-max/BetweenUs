@@ -22,6 +22,7 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useAuth } from '../context/AuthContext';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import contentAccessService from '../services/ContentAccessService';
+import { CONTENT_TYPES, buildWeeklySet } from '../services/WeeklyContentSetService';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 
 // Utilities & Components
@@ -53,6 +54,7 @@ export default function IntimacyPositionsScreen() {
   const [favorites, setFavorites] = useState({});
   const [triedPositions, setTriedPositions] = useState({});
   const [positionAccess, setPositionAccess] = useState(null);
+  const [weeklyPositionSet, setWeeklyPositionSet] = useState(null);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
   const [triedBusy, setTriedBusy] = useState(false);
 
@@ -75,9 +77,16 @@ export default function IntimacyPositionsScreen() {
     () => positionsData.items.filter((p) => p.id.startsWith('ip') && !p.id.includes('-q')),
     []
   );
-  const availablePositions = useMemo(() => positionAccess?.positions || [], [positionAccess]);
+  const availablePositions = useMemo(() => {
+    if (!isPremiumEffective && weeklyPositionSet?.items?.length) {
+      return weeklyPositionSet.items;
+    }
+
+    return positionAccess?.positions || [];
+  }, [isPremiumEffective, positionAccess, weeklyPositionSet]);
+
   const accessInfo = positionAccess?.access || null;
-  const previewLockedCount = accessInfo?.lockedCount || 0;
+  const previewLockedCount = weeklyPositionSet?.lockedPreviews?.length || accessInfo?.lockedCount || 0;
 
   const position = availablePositions[selectedIndex];
   const favoritePositions = useMemo(
@@ -110,7 +119,20 @@ export default function IntimacyPositionsScreen() {
           includeAll: true,
         });
 
-        if (active) setPositionAccess(result);
+        if (active) {
+          setPositionAccess(result);
+
+          const accessiblePositions = result.positions || [];
+          const weeklySet = buildWeeklySet(accessiblePositions, {
+            contentType: CONTENT_TYPES.POSITIONS,
+            userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
+            isPremium: isPremiumEffective,
+            userSettings: profile || userProfile || {},
+            date: new Date(),
+          });
+
+          setWeeklyPositionSet(weeklySet);
+        }
       } catch {
         if (active) {
           setPositionAccess({
@@ -119,6 +141,7 @@ export default function IntimacyPositionsScreen() {
             access: { isPremium: isPremiumEffective, isPreviewLimited: false, lockedCount: 0 },
             newThisWeek: [],
           });
+          setWeeklyPositionSet(null);
         }
       }
     })();
@@ -226,14 +249,14 @@ export default function IntimacyPositionsScreen() {
                   <Text style={[styles.cardEmail, { color: t.subtext }]}>A closer space for you and {partnerLabel}.</Text>
                 </View>
 
-                {!isPremiumEffective && accessInfo?.isPreviewLimited && (
+                {!isPremiumEffective && weeklyPositionSet?.upgradeCopy?.body && (
                   <TouchableOpacity
                     activeOpacity={0.85}
                     onPress={handlePaywall}
                     style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}
                   >
                     <Text style={[styles.answerText, { color: t.text }]}>
-                      {availablePositions.length} free previews this week. Premium opens {previewLockedCount} more released positions.
+                      {weeklyPositionSet.unlocked.length} free position this week. {weeklyPositionSet.upgradeCopy.body}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -301,12 +324,37 @@ export default function IntimacyPositionsScreen() {
                         >
                           {p.title}
                         </Text>
+                        {p.isLockedPreview || p.requiresPremium ? (
+                          <Icon name="lock-closed-outline" size={13} color={active ? '#FFFFFF' : t.primary} />
+                        ) : null}
                       </TouchableOpacity>
                     );
                   })}
                 </ScrollView>
 
-                {position && (
+                {position && (position.isLockedPreview || position.requiresPremium) && (
+                  <View style={[styles.answerBubble, styles.lockedPreviewBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+                    <View style={styles.lockedPreviewHeader}>
+                      <Icon name="lock-closed-outline" size={18} color={t.primary} />
+                      <Text style={[styles.lockedPreviewTitle, { color: t.text }]}>{position.title}</Text>
+                    </View>
+                    <Text style={[styles.answerText, { color: t.text }]}>
+                      {position.previewText || position.shortSummary || 'This premium intimacy idea is part of this week\'s full set.'}
+                    </Text>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={handlePaywall}
+                      style={[styles.cta, { backgroundColor: t.primary, marginTop: SPACING.lg }]}
+                    >
+                      <Icon name="sparkles-outline" size={18} color="#FFFFFF" />
+                      <Text style={[styles.ctaLabel, { color: '#FFFFFF' }]}>
+                        {weeklyPositionSet?.upgradeCopy?.cta || 'Unlock Premium Intimacy'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {position && !(position.isLockedPreview || position.requiresPremium) && (
                   <IntimacyPositionCard
                     key={position.id}
                     position={position}
@@ -469,6 +517,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingBottom: 60,
+  },
+  lockedPreviewBubble: {
+    gap: SPACING.md,
+  },
+  lockedPreviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  lockedPreviewTitle: {
+    flex: 1,
+    fontFamily: systemFont,
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '800',
+    letterSpacing: -0.4,
   },
   answerBubble: {
     borderRadius: 20,
