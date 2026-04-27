@@ -37,6 +37,7 @@ import DateCardBack from '../components/DateCardBack';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import { SoftBoundaries } from '../services/PolishEngine';
 import contentAccessService from '../services/ContentAccessService';
+import { CONTENT_TYPES, buildWeeklySet } from '../services/WeeklyContentSetService';
 import { getDateHistory, rateDateHistoryEntry } from '../utils/dateHistory';
 import {
   getDateShortlist,
@@ -392,6 +393,7 @@ export default function DateNightScreen({ navigation }) {
 
   const [ready, setReady] = useState(false);
   const [allDates, setAllDates] = useState([]);
+  const [weeklyDateSet, setWeeklyDateSet] = useState(null);
   const [contentProfile, setContentProfile] = useState(null);
   const [rawBoundaries, setRawBoundaries] = useState(null);
   const [selectedHeat, setSelectedHeat] = useState(null);   // mood: 1=Heart, 2=Play, 3=Heat
@@ -417,6 +419,16 @@ export default function DateNightScreen({ navigation }) {
         const dates = getAllDates();
         setAllDates(dates);
 
+        const weeklySet = buildWeeklySet(dates, {
+          contentType: CONTENT_TYPES.DATES,
+          userId: userId || 'anonymous',
+          isPremium,
+          userSettings: userProfile || {},
+          date: new Date(),
+        });
+
+        setWeeklyDateSet(weeklySet);
+
         if (userId) {
           getDateShortlist(userId)
             .then((rows) => {
@@ -440,7 +452,7 @@ export default function DateNightScreen({ navigation }) {
           .finally(() => setReady(true));
       });
       return () => task.cancel();
-    }, [userProfile, userId])
+    }, [userProfile, userId, isPremium])
   );
 
   // Reset deck position whenever the filtered deck changes
@@ -457,7 +469,27 @@ export default function DateNightScreen({ navigation }) {
     return f;
   }, [selectedHeat, selectedLoad, selectedStyle]);
 
+  const freeWeeklyDateDeck = useMemo(() => {
+    if (isPremium || !weeklyDateSet?.items?.length) return null;
+
+    return weeklyDateSet.items.map((item) => ({
+      ...item,
+      title: item.title || item.previewText || 'Premium date idea',
+      heat: item.heat || 1,
+      load: item.load || 1,
+      style: item.style || 'mixed',
+      weeklySetMeta: item.weeklySetMeta,
+      isLockedPreview: item.isLockedPreview,
+      requiresPremium: item.requiresPremium,
+      upgradeCopy: weeklyDateSet.upgradeCopy,
+    }));
+  }, [isPremium, weeklyDateSet]);
+
   const deck = useMemo(() => {
+    if (!isPremium && freeWeeklyDateDeck?.length && !(selectedHeat && selectedLoad && selectedStyle)) {
+      return freeWeeklyDateDeck;
+    }
+
     const accessProfile = contentProfile
       ? {
           ...contentProfile,
@@ -502,17 +534,8 @@ export default function DateNightScreen({ navigation }) {
       base = filterDates(fallbackProfileBase, activeFilters);
     }
 
-    // Free users only see a small preview of dates (expanded on Fridays)
-    if (!isPremium) {
-      const timedUnlock = getTimedUnlockLimits(false);
-      const visibleLimit = timedUnlock?.VISIBLE_DATE_IDEAS ?? FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK;
-      if (base.length > visibleLimit) {
-        base = base.slice(0, visibleLimit);
-      }
-    }
-
     return base;
-  }, [allDates, activeFilters, contentProfile, rawBoundaries, selectedHeat, selectedLoad, selectedStyle, isPremium]);
+  }, [allDates, activeFilters, contentProfile, rawBoundaries, selectedHeat, selectedLoad, selectedStyle, isPremium, freeWeeklyDateDeck]);
 
   const allSelected = selectedHeat && selectedLoad && selectedStyle;
   const hasFilters = selectedHeat || selectedLoad || selectedStyle;
@@ -521,6 +544,13 @@ export default function DateNightScreen({ navigation }) {
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
 
   const handleSwipeRight = useCallback((date) => {
+    if (date?.isLockedPreview || date?.requiresPremium) {
+      impact(ImpactFeedbackStyle.Medium);
+      showPaywall?.(PremiumFeature.DATE_NIGHT);
+      setDeckIndex(prev => prev + 1);
+      return;
+    }
+
     if (!date?.id) {
       setDeckIndex(prev => prev + 1);
       return;
@@ -538,15 +568,21 @@ export default function DateNightScreen({ navigation }) {
     }
 
     setDeckIndex(prev => prev + 1);
-  }, [userId]);
+  }, [userId, showPaywall]);
 
   const handleSwipeLeft = useCallback(() => {
     setDeckIndex(prev => prev + 1);
   }, []);
 
   const openDate = useCallback((date) => {
+    if (date?.isLockedPreview || date?.requiresPremium) {
+      impact(ImpactFeedbackStyle.Medium);
+      showPaywall?.(PremiumFeature.DATE_NIGHT);
+      return;
+    }
+
     navigation.navigate('DateNightDetail', { date });
-  }, [navigation]);
+  }, [navigation, showPaywall]);
 
   const handleReset = useCallback(async () => {
     impact(ImpactFeedbackStyle.Light);
@@ -629,18 +665,28 @@ export default function DateNightScreen({ navigation }) {
         <View style={styles.header}>
           <View>
             <Text style={[styles.headerEye, { color: t.primary }]}>
-              {!ready ? 'Preparing ideas...' : !allSelected ? allDates.length + '+ private date ideas' : !isPremium && remaining > 0 ? remaining + ' previews left today' : remaining > 0 ? remaining + ' possible plans' : deck.length > 0 ? 'All ideas drawn' : allDates.length + '+ private date ideas'}
+              {!ready
+                ? 'Preparing ideas...'
+                : !isPremium && !allSelected
+                  ? `${weeklyDateSet?.unlocked?.length || 0} free + ${weeklyDateSet?.lockedPreviews?.length || 0} premium this week`
+                  : !allSelected
+                    ? `${allDates.length}+ private date ideas`
+                    : remaining > 0
+                      ? `${remaining} possible plans`
+                      : deck.length > 0
+                        ? 'All ideas drawn'
+                        : `${allDates.length}+ private date ideas`}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Tonight</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>{toneCopy.subtitle}</Text>
-            {!isPremium && getTimedUnlockLimits(false) && (
+            {!isPremium && weeklyDateSet?.upgradeCopy?.body ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: colors.primary + '15', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start' }}>
                 <Icon name="sparkles" size={14} color={colors.primary} />
                 <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>
-                  Friday date night - extra ideas are open today
+                  {weeklyDateSet.upgradeCopy.body}
                 </Text>
               </View>
-            )}
+            ) : null}
           </View>
           <TouchableOpacity
             style={[styles.filterToggle, { 
@@ -894,7 +940,7 @@ export default function DateNightScreen({ navigation }) {
                   <Icon name="lock-closed-outline" size={42} color={colors.primary} />
                   <Text style={[styles.emptyTitle, { color: colors.text }]}>Explore More</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                    Premium opens {allDates.length}+ date ideas shaped by mood, budget, energy, and spark.
+                    Premium opens this week's full date set plus {allDates.length}+ date ideas shaped by mood, energy, and spark.
                   </Text>
                   <TouchableOpacity
                     style={[styles.resetBtn, { backgroundColor: colors.primary }]}
@@ -987,7 +1033,7 @@ export default function DateNightScreen({ navigation }) {
             </View>
             <Text style={[styles.editorialTitle, { color: colors.text }]}>More date ideas made for you</Text>
             <Text style={[styles.editorialBody, { color: colors.textMuted }]}>
-              You've seen {deck.length} of {allDates.length}+ curated plans. Premium opens the full catalog with mood, budget, and heat filters.
+              You've seen your free weekly date pick. Premium opens all 5 weekly picks plus the full catalog with mood, energy, and heat filters.
             </Text>
           </TouchableOpacity>
         )}
