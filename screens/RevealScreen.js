@@ -107,7 +107,7 @@ export default function RevealScreen({ route, navigation }) {
       if (row?.id) {
         await DataLayer.revealPromptAnswer(row.id);
       }
-      // Also mark in legacy promptStorage for backward compat
+      // Also update promptStorage as a local display/cache fallback
       if (prompt.dateKey) {
         const existing = await promptStorage.getAnswer(prompt.dateKey, prompt.id);
         await promptStorage.setAnswer(prompt.dateKey, prompt.id, {

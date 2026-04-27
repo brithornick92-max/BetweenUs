@@ -520,12 +520,6 @@ export default function HomeScreen({ navigation }) {
         }
       }
 
-      await promptStorage.setAnswer(todayKey, prompt.id, {
-        answer: finalText,
-        timestamp: Date.now(),
-        isRevealed: false,
-      });
-
       let savedOffline = false;
 
       try {
@@ -534,9 +528,24 @@ export default function HomeScreen({ navigation }) {
           answer: finalText,
           heatLevel: prompt.heat || 1,
         });
+
+        // Cache after the authoritative DataLayer path accepts the change.
+        await promptStorage.setAnswer(todayKey, prompt.id, {
+          answer: finalText,
+          timestamp: Date.now(),
+          isRevealed: false,
+        });
       } catch (dataLayerError) {
         savedOffline = true;
         if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);
+
+        // Display/cache fallback only. SupabaseDataLayer has its own offline queue path
+        // when initialized, so this is just a last-resort local UI fallback.
+        await promptStorage.setAnswer(todayKey, prompt.id, {
+          answer: finalText,
+          timestamp: Date.now(),
+          isRevealed: false,
+        });
       }
 
       if (!isPremium && !myAnswer) {
