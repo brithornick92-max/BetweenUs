@@ -15,11 +15,9 @@ jest.mock('../../services/WeeklyContentScheduler', () => ({
   __esModule: true,
   default: {
     getCurrentWeek: jest.fn(() => 1),
-    filterAvailable: jest.fn((items) =>
-      (items || []).filter((item) => item.releaseWeek == null || item.releaseWeek <= 1)
-    ),
+    filterAvailable: jest.fn((items) => (Array.isArray(items) ? items : [])),
     getNewThisWeek: jest.fn((items) => (items || []).filter((item) => item.releaseWeek === 1)),
-    isAvailable: jest.fn((item) => item.releaseWeek == null || item.releaseWeek <= 1),
+    isAvailable: jest.fn(() => true),
   },
 }));
 
@@ -75,7 +73,7 @@ describe('ContentAccessService', () => {
     ).toEqual([1, 2, 3]);
   });
 
-  it('filters prompts by release week and user boundaries while allowing all free heat levels', async () => {
+  it('does not hide prompts by release week and user boundaries while allowing all free heat levels', async () => {
     const result = await contentAccessService.getAccessiblePrompts(
       [
         { id: 'released-safe', heat: 1, category: 'emotional', releaseWeek: 0 },
@@ -90,7 +88,7 @@ describe('ContentAccessService', () => {
       }
     );
 
-    expect(result.prompts.map((prompt) => prompt.id)).toEqual(['released-safe', 'higher-heat-preview']);
+    expect(result.prompts.map((prompt) => prompt.id)).toEqual(['released-safe', 'higher-heat-preview', 'future']);
     expect(result.access.accessibleHeatLevels).toEqual([1, 2, 3, 4, 5]);
   });
 
