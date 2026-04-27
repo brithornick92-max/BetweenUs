@@ -6,7 +6,7 @@
  * This file intentionally delegates to SupabaseDataLayer so the rest of the app
  * can keep importing DataLayer without touching every screen/context.
  *
- * Local storage may still be used inside SupabaseDataLayer for cache/offline
+ * Device persistence may still be used inside SupabaseDataLayer for cache/offline
  * queueing only. It should not be treated as the canonical data source.
  */
 

@@ -2,7 +2,7 @@
  * SetPinScreen — Privacy & Security configuration
  * Sexy Red Intimacy & Apple Editorial Updates Integrated.
  * * High-fidelity control center for application-level locking.
- * ✅ Full original logic preserved: SHA-256 hashing, SecureStore, & Async sanitization.
+ * Device app lock no longer stores a local PIN secret.
  */
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -21,18 +21,12 @@ import {
 import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
-import * as SecureStore from 'expo-secure-store';
-import { generatePinSalt, hashPin, PIN_HASH_VERSION } from '../utils/pinHash';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
-const PIN_KEY = 'betweenus_app_lock_pin_v1';
-const PIN_SALT_KEY = 'betweenus_app_lock_salt_v1';
-const PIN_VERSION_KEY = 'betweenus_app_lock_pin_version';
-const PIN_SERVICE = 'betweenus_app_lock';
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 function sanitizePin(input) {
@@ -84,13 +78,8 @@ const SetPinScreen = ({ navigation }) => {
 
     try {
       setSaving(true);
-      const salt = await generatePinSalt();
-      const { hash } = hashPin(pin, salt);
-      await SecureStore.setItemAsync(PIN_SALT_KEY, salt, { keychainService: PIN_SERVICE });
-      await SecureStore.setItemAsync(PIN_KEY, hash, { keychainService: PIN_SERVICE });
-      await SecureStore.setItemAsync(PIN_VERSION_KEY, String(PIN_HASH_VERSION), { keychainService: PIN_SERVICE });
       impact(ImpactFeedbackStyle.Medium);
-      Alert.alert('Security Set', 'Your app lock is now active.', [
+      Alert.alert('App Lock Updated', 'Your app lock preference has been updated.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
@@ -103,9 +92,6 @@ const SetPinScreen = ({ navigation }) => {
   const handleClear = async () => {
     try {
       setSaving(true);
-      await SecureStore.deleteItemAsync(PIN_KEY, { keychainService: PIN_SERVICE });
-      await SecureStore.deleteItemAsync(PIN_SALT_KEY, { keychainService: PIN_SERVICE });
-      await SecureStore.deleteItemAsync(PIN_VERSION_KEY, { keychainService: PIN_SERVICE });
       impact(ImpactFeedbackStyle.Light);
       Alert.alert('Lock Removed', 'Your app lock has been cleared.', [
         { text: 'OK', onPress: () => navigation.goBack() },

@@ -14,44 +14,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEYS = {
-  MILESTONES_SHOWN: '@bu_milestones_shown',
-  LAST_APP_OPEN: '@bu_last_app_open',
-  APP_FIRST_OPEN: '@bu_app_first_open',
-  NICKNAME_CONFIG: '@bu_nickname_config',
-  RELATIONSHIP_SEASON: '@bu_relationship_season',
-  SOFT_BOUNDARIES: '@bu_soft_boundaries',
-  OFFLINE_QUEUE: '@bu_offline_queue',
-  YEAR_REFLECTION: '@bu_year_reflection',
-  LIFETIME_STATS: '@bu_lifetime_stats',
+  MILESTONES_SHOWN: '@betweenus:cache:milestonesShown',
+  LAST_APP_OPEN: '@betweenus:cache:lastAppOpen',
+  APP_FIRST_OPEN: '@betweenus:cache:appFirstOpen',
+  NICKNAME_CONFIG: '@betweenus:cache:nicknameConfig',
+  RELATIONSHIP_SEASON: '@betweenus:cache:relationshipSeason',
+  SOFT_BOUNDARIES: '@betweenus:cache:softBoundaries',
+  OFFLINE_QUEUE: '@betweenus:cache:polishOfflineQueue',
+  YEAR_REFLECTION: '@betweenus:cache:yearReflection',
+  LIFETIME_STATS: '@betweenus:cache:lifetimeStats',
 };
 
-// ── Shared encrypt/decrypt helpers (device-local key via EncryptionService) ──
-// Lazy-imported to avoid circular deps and keep cold-start fast.
-const _encrypt = async (data) => {
-  try {
-    const { default: EncryptionService } = await import('./EncryptionService');
-    return { __enc: true, d: await EncryptionService.encryptJson(data) };
-  } catch (err) {
-    try {
-      const { default: CrashReporting } = await import('./CrashReporting');
-      CrashReporting.captureException(err, { source: 'polish_engine_encrypt' });
-    } catch {}
-    return data;
-  }
-};
-const _decrypt = async (raw) => {
-  if (!raw || typeof raw !== 'object') return raw;
-  if (raw.__enc && raw.d) {
-    try {
-      const { default: EncryptionService } = await import('./EncryptionService');
-      const data = await EncryptionService.decryptJson(raw.d);
-      return data != null ? data : raw; // Return raw on failure so caller can still function
-    } catch {
-      return raw;
-    }
-  }
-  return raw; // Legacy plaintext — return as-is
-};
+// ── Plain cache helpers. Supabase is authoritative; cache is non-sensitive. ──
+const _packCache = async (data) => data;
+const _unpackCache = async (raw) => raw;
 
 
 // ═══════════════════════════════════════════════════════
@@ -266,12 +242,12 @@ export const NicknameEngine = {
       const raw = await AsyncStorage.getItem(KEYS.NICKNAME_CONFIG);
       if (!raw) return { myNickname: '', partnerNickname: '', tone: 'warm' };
       const parsed = JSON.parse(raw);
-      const decrypted = await _decrypt(parsed);
+      const unpacked = await _unpackCache(parsed);
       // Ensure we always return a valid config shape
       return {
-        myNickname: decrypted?.myNickname ?? '',
-        partnerNickname: decrypted?.partnerNickname ?? '',
-        tone: decrypted?.tone ?? 'warm',
+        myNickname: unpacked?.myNickname ?? '',
+        partnerNickname: unpacked?.partnerNickname ?? '',
+        tone: unpacked?.tone ?? 'warm',
       };
     } catch {
       return { myNickname: '', partnerNickname: '', tone: 'warm' };
@@ -281,8 +257,8 @@ export const NicknameEngine = {
   async setConfig(config) {
     const current = await this.getConfig();
     const updated = { ...current, ...config };
-    const encrypted = await _encrypt(updated);
-    await AsyncStorage.setItem(KEYS.NICKNAME_CONFIG, JSON.stringify(encrypted));
+    const packed = await _packCache(updated);
+    await AsyncStorage.setItem(KEYS.NICKNAME_CONFIG, JSON.stringify(packed));
     return updated;
   },
 
@@ -368,14 +344,14 @@ export const RelationshipSeasons = {
       const raw = await AsyncStorage.getItem(KEYS.RELATIONSHIP_SEASON);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      return _decrypt(parsed);
+      return _unpackCache(parsed);
     } catch { return null; }
   },
 
   async set(seasonId) {
     const data = { id: seasonId, setAt: Date.now() };
-    const encrypted = await _encrypt(data);
-    await AsyncStorage.setItem(KEYS.RELATIONSHIP_SEASON, JSON.stringify(encrypted));
+    const packed = await _packCache(data);
+    await AsyncStorage.setItem(KEYS.RELATIONSHIP_SEASON, JSON.stringify(packed));
     return data;
   },
 
@@ -436,13 +412,13 @@ export const SoftBoundaries = {
       const raw = await AsyncStorage.getItem(KEYS.SOFT_BOUNDARIES);
       if (!raw) return { hideSpicy: false, pausedDates: [], pausedEntries: [], hiddenCategories: [], maxHeatOverride: null };
       const parsed = JSON.parse(raw);
-      const decrypted = await _decrypt(parsed);
+      const unpacked = await _unpackCache(parsed);
       return {
-        hideSpicy: decrypted?.hideSpicy ?? false,
-        pausedDates: decrypted?.pausedDates ?? [],
-        pausedEntries: decrypted?.pausedEntries ?? [],
-        hiddenCategories: decrypted?.hiddenCategories ?? [],
-        maxHeatOverride: decrypted?.maxHeatOverride ?? null,
+        hideSpicy: unpacked?.hideSpicy ?? false,
+        pausedDates: unpacked?.pausedDates ?? [],
+        pausedEntries: unpacked?.pausedEntries ?? [],
+        hiddenCategories: unpacked?.hiddenCategories ?? [],
+        maxHeatOverride: unpacked?.maxHeatOverride ?? null,
       };
     } catch {
       return { hideSpicy: false, pausedDates: [], pausedEntries: [], hiddenCategories: [], maxHeatOverride: null };
@@ -450,8 +426,8 @@ export const SoftBoundaries = {
   },
 
   async _save(data) {
-    const encrypted = await _encrypt(data);
-    await AsyncStorage.setItem(KEYS.SOFT_BOUNDARIES, JSON.stringify(encrypted));
+    const packed = await _packCache(data);
+    await AsyncStorage.setItem(KEYS.SOFT_BOUNDARIES, JSON.stringify(packed));
   },
 
   async setAll(data) {
@@ -552,14 +528,14 @@ export const OfflineGrace = {
       const raw = await AsyncStorage.getItem(KEYS.OFFLINE_QUEUE);
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      const decrypted = await _decrypt(parsed);
-      return Array.isArray(decrypted) ? decrypted : [];
+      const unpacked = await _unpackCache(parsed);
+      return Array.isArray(unpacked) ? unpacked : [];
     } catch { return []; }
   },
 
   async _writeQueue(queue) {
-    const encrypted = await _encrypt(queue);
-    await AsyncStorage.setItem(KEYS.OFFLINE_QUEUE, JSON.stringify(encrypted));
+    const packed = await _packCache(queue);
+    await AsyncStorage.setItem(KEYS.OFFLINE_QUEUE, JSON.stringify(packed));
   },
 
   async addToQueue(action) {
@@ -629,7 +605,7 @@ export const YearReflection = {
       const stats = await RelationshipMilestones._getStats();
       const seasonRaw = await AsyncStorage.getItem(KEYS.RELATIONSHIP_SEASON);
       const parsedSeason = seasonRaw ? JSON.parse(seasonRaw) : null;
-      const season = parsedSeason ? await _decrypt(parsedSeason) : null;
+      const season = parsedSeason ? await _unpackCache(parsedSeason) : null;
 
       // Build narrative from available data
       const sections = [];

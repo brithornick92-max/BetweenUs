@@ -25,7 +25,7 @@ Use lightweight dev mode when Expo or Metro is consuming too much memory during 
 - Skips RevenueCat initialization.
 - Skips push registration wiring.
 - Skips notification deep-link bootstrap.
-- Still runs decrypted-cache auto-clear registration.
+- Still runs cache cleanup registration.
 
 ## When to use it
 

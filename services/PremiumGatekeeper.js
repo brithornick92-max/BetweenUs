@@ -1,4 +1,4 @@
-import LocalUsageService from './LocalUsageService';
+import UsageEventsService from './UsageEventsService';
 import StorageRouter from './storage/StorageRouter';
 import CrashReporting from './CrashReporting';
 import { FREE_LIMITS, getAccessibleHeatLevels } from '../utils/featureFlags';
@@ -35,7 +35,7 @@ class PremiumGatekeeper {
       }
       
       // Check daily usage limit
-      const usage = await LocalUsageService.getDailyUsage(userId);
+      const usage = await UsageEventsService.getDailyUsage(userId);
       if (usage.prompts >= this.DAILY_LIMITS.FREE_PROMPTS) {
         return {
           canAccess: false,
@@ -72,7 +72,7 @@ class PremiumGatekeeper {
       }
       
       // Check daily usage limit for free users
-      const usage = await LocalUsageService.getDailyUsage(userId);
+      const usage = await UsageEventsService.getDailyUsage(userId);
       if (usage.dates >= this.DAILY_LIMITS.FREE_DATES) {
         return {
           canAccess: false,
@@ -128,7 +128,7 @@ class PremiumGatekeeper {
       }
       
       if (!this.isPremiumUser(isPremiumFlag)) {
-        await LocalUsageService.incrementDailyUsage(userId, 'prompts');
+        await UsageEventsService.incrementDailyUsage(userId, 'prompts');
       }
       
       return {
@@ -150,7 +150,7 @@ class PremiumGatekeeper {
       }
       
       if (!this.isPremiumUser(isPremiumFlag)) {
-        await LocalUsageService.incrementDailyUsage(userId, 'dates');
+        await UsageEventsService.incrementDailyUsage(userId, 'dates');
       }
       
       return {
@@ -173,7 +173,7 @@ class PremiumGatekeeper {
         };
       }
 
-      const weeklyUsage = await LocalUsageService.getWeeklyUsage(userId);
+      const weeklyUsage = await UsageEventsService.getWeeklyUsage(userId);
       const unlockedDateId = weeklyUsage.unlockedDateId || null;
       const usedFlows = weeklyUsage.dateFlows || 0;
 
@@ -208,9 +208,9 @@ class PremiumGatekeeper {
       }
 
       if (!this.isPremiumUser(isPremiumFlag)) {
-        const weeklyUsage = await LocalUsageService.getWeeklyUsage(userId);
+        const weeklyUsage = await UsageEventsService.getWeeklyUsage(userId);
         if (weeklyUsage.unlockedDateId !== dateId) {
-          await LocalUsageService.incrementWeeklyUsage(userId, 'dateFlows', { unlockedDateId: dateId });
+          await UsageEventsService.incrementWeeklyUsage(userId, 'dateFlows', { unlockedDateId: dateId });
         }
       }
 
@@ -227,8 +227,8 @@ class PremiumGatekeeper {
   async getUserUsageStatus(userId, isPremiumFlag = false) {
     try {
       const isPremium = this.isPremiumUser(isPremiumFlag);
-      const usage = await LocalUsageService.getDailyUsage(userId);
-      const weeklyUsage = await LocalUsageService.getWeeklyUsage(userId);
+      const usage = await UsageEventsService.getDailyUsage(userId);
+      const weeklyUsage = await UsageEventsService.getWeeklyUsage(userId);
       
       return {
         isPremium,

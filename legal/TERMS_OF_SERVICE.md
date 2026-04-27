@@ -160,7 +160,7 @@ You may not:
 
 - We use authentication, secure transport, row-level access controls, and provider-side security controls
 - Core synced content is not currently end-to-end encrypted
-- Some local data, app-lock secrets, auth tokens, and credentials may be stored in platform secure storage where available
+- Device data is limited to cache, pending offline writes, notification ids, and app-lock enabled state
 - Some content and settings are cached locally for offline use and may sync later
 - We cannot guarantee uninterrupted access to unsynced local drafts or queued writes
 - See our Privacy Policy for complete details

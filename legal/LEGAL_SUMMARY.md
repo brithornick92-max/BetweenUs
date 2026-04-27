@@ -115,7 +115,7 @@ This document provides an overview of all legal documents for the Between Us app
 ### Security
 - Supabase Auth and row-level security for synced content
 - TLS/SSL for data in transit
-- Platform secure storage for auth/session data and app-lock secrets where available
+- Device cache for offline queues, notification ids, display preferences, and app-lock enabled state
 
 ---
 
@@ -163,7 +163,7 @@ All legal documents are:
 | FAQ | 1.5 | Apr 24, 2026 | Updated storage/security answers, feature list, prompt/date counts, deletion, and billing |
 | Terms of Service | 1.3 | Mar 21, 2026 | Apple-only, accuracy audit |
 | Privacy Policy | 1.3 | Mar 21, 2026 | Apple-only, accuracy audit |
-| FAQ | 1.3 | Mar 21, 2026 | Updated prompt count (697), Apple-only, local-first offline |
+| FAQ | 1.3 | Mar 21, 2026 | Updated prompt count (697), Apple-only, Supabase-backed offline cache |
 | Terms of Service | 1.4 | Apr 6, 2026 | Removed unsupported dispute / trial claims, synced product details |
 | Privacy Policy | 1.4 | Apr 6, 2026 | Clarified analytics, Sentry replay, retention, and transfers |
 | FAQ | 1.4 | Apr 6, 2026 | Added magic link guidance, multi-device notes, privacy clarifications |

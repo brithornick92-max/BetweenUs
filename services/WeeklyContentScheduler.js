@@ -4,13 +4,14 @@
  * Drips content over time so users see fresh prompts and dates each week.
  * Each content item has a `releaseWeek` (0-based). Week 0 is the user's
  * install week; every Monday a new batch unlocks.
+ * The install-week marker is cache-only and can be recomputed if cleared.
  *
  * Items without a `releaseWeek` are always available (backwards-compatible).
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const INSTALL_DATE_KEY = 'weekly_content_install_date';
+const INSTALL_DATE_KEY = '@betweenus:cache:weeklyContentInstallDate';
 
 class WeeklyContentScheduler {
   constructor() {

@@ -31,7 +31,7 @@ Use this after applying the pending hosted Supabase migrations.
 - Delete that couple photo and confirm it is no longer accessible.
 - Create a media attachment and sync it.
 - Open that attachment on the partner side and confirm access controls and viewing work.
-- If an encrypted whisper/voice-note feature is exposed in the shipped build, send one.
+- If a whisper/voice-note feature is exposed in the shipped build, send one.
 - If that feature is exposed, play the whisper on the partner side and confirm the remote object is deleted after playback.
 
 ## Notifications

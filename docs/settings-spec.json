@@ -3,13 +3,13 @@
     "type": "settings-spec",
     "app": "Between Us",
     "version": "1.1.0",
-    "description": "Design spec for user settings. This file is NOT imported at runtime. Actual settings are managed by NicknameEngine (@bu_nickname_config), AppContext (storage utility), and PrivacySecuritySettingsScreen.",
+    "description": "Design spec for user settings. This file is NOT imported at runtime. Actual settings are managed by Supabase-backed services plus cache-only device preferences.",
     "status": "design-document-only"
   },
   "implemented": {
     "partnerNames": {
       "engine": "NicknameEngine (services/PolishEngine.js)",
-      "storage": "AsyncStorage @bu_nickname_config + AppContext PARTNER_LABEL",
+      "storage": "cache-only device preference + AppContext PARTNER_LABEL",
       "ui": "components/NicknameSettings.jsx in SettingsScreen",
       "fields": {
         "myNickname": "How the user wants to be called",
@@ -18,29 +18,29 @@
     },
     "heatLevel": {
       "engine": "PremiumGatekeeper + ContentContext",
-      "storage": "AsyncStorage @betweenus:heatLevelPreference",
+      "storage": "Supabase profile when available; cache-only fallback",
       "ui": "HeatLevelSettingsScreen + OnboardingScreen",
       "levels": ["Emotional Connection", "Flirty & Romantic", "Sensual", "Steamy", "Explicit"]
     },
     "tone": {
       "engine": "NicknameEngine (services/PolishEngine.js)",
-      "storage": "AsyncStorage @bu_nickname_config.tone",
+      "storage": "cache-only device preference",
       "options": ["warm", "playful", "intimate", "minimal"],
       "ui": "components/NicknameSettings.jsx"
     },
     "appLock": {
       "engine": "AppContext + PrivacySecuritySettingsScreen",
-      "storage": "AsyncStorage APP_LOCK_ENABLED",
+      "storage": "cache-only app-lock enabled flag",
       "ui": "screens/PrivacySecuritySettingsScreen.js"
     },
     "relationshipSeason": {
       "engine": "RelationshipSeasons (services/PolishEngine.js)",
-      "storage": "AsyncStorage @bu_relationship_season",
+      "storage": "cache-only device preference",
       "ui": "components/SeasonSelector.jsx in SettingsScreen"
     },
     "softBoundaries": {
       "engine": "SoftBoundaries (services/PolishEngine.js)",
-      "storage": "AsyncStorage @bu_soft_boundaries",
+      "storage": "cache-only device preference",
       "ui": "components/SoftBoundariesPanel.jsx in SettingsScreen"
     }
   },

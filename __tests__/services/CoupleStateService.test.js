@@ -11,8 +11,8 @@ describe('CoupleStateService', () => {
     return {
       storageApi: {
         get: jest.fn().mockImplementation((key, fallback) => {
-          if (key === '@betweenus:coupleId') return Promise.resolve(coupleId);
-          if (key === 'pending_shared_anniversary_date') return Promise.resolve(null);
+          if (key === '@betweenus:cache:coupleId') return Promise.resolve(coupleId);
+          if (key === '@betweenus:cache:pendingSharedAnniversaryDate') return Promise.resolve(null);
           return Promise.resolve(fallback ?? null);
         }),
         set: jest.fn().mockResolvedValue(undefined),
@@ -106,7 +106,7 @@ describe('CoupleStateService', () => {
       false,
       'couple_state'
     );
-    expect(deps.storageApi.set).toHaveBeenCalledWith('pending_shared_anniversary_date', '2024-01-01T00:00:00.000Z');
-    expect(deps.storageApi.remove).toHaveBeenCalledWith('pending_shared_anniversary_date');
+    expect(deps.storageApi.set).toHaveBeenCalledWith('@betweenus:cache:pendingSharedAnniversaryDate', '2024-01-01T00:00:00.000Z');
+    expect(deps.storageApi.remove).toHaveBeenCalledWith('@betweenus:cache:pendingSharedAnniversaryDate');
   });
 });

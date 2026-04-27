@@ -2,7 +2,7 @@
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { storage } from './storage';
 
-const FEATURE_USAGE_KEY = '@betweenus:premiumFeatureUsage';
+const FEATURE_USAGE_KEY = '@betweenus:cache:premiumFeatureUsage';
 
 // Single source of truth for fallback display prices.
 // Actual purchase prices always come from RevenueCat / App Store / Google Play at runtime.
@@ -25,10 +25,10 @@ export const PREMIUM_FEATURES = {
 
   BIOMETRIC_VAULT: {
     id: 'biometric_vault',
-    name: 'Private Vault',
-    description: 'Secure storage for your most intimate memories',
+    name: 'App Lock',
+    description: 'Device app-lock controls for private moments',
     category: 'security',
-    emotionalValue: 'Keep your relationship memories secure and protected',
+    emotionalValue: 'Add a device-level pause before opening your shared space',
     icon: '🔒',
   },
   CLOUD_SYNC: {
@@ -58,8 +58,8 @@ export const SUBSCRIPTION_TIERS = {
     memoryProtection: [
       'Unlimited memory storage',
       'PDF export of your timeline',
-      'Secure cloud backup',
-      'Biometric vault protection',
+      'Supabase cloud backup',
+      'Device app-lock controls',
     ],
   },
   YEARLY: {
@@ -77,8 +77,8 @@ export const SUBSCRIPTION_TIERS = {
     memoryProtection: [
       'Unlimited memory storage',
       'PDF export of your timeline',
-      'Secure cloud backup',
-      'Biometric vault protection',
+      'Supabase cloud backup',
+      'Device app-lock controls',
     ],
   },
 
@@ -154,8 +154,8 @@ export class PremiumGatekeeper {
     return this.validateFeatureAccess('scheduled_reminders', isPremium, false);
   }
 
-  async canAccessBiometricVault(isPremium) {
-    return this.validateFeatureAccess('biometric_vault', isPremium, false);
+  async canAccessAppLock(isPremium) {
+    return this.validateFeatureAccess('app_lock', isPremium, false);
   }
 
   async canSyncToCloud(isPremium) {
@@ -167,8 +167,8 @@ export class PremiumGatekeeper {
     return this.validateFeatureAccess('memory_export', isPremium, true);
   }
 
-  async requireBiometricVault(isPremium) {
-    return this.validateFeatureAccess('biometric_vault', isPremium, true);
+  async requireAppLock(isPremium) {
+    return this.validateFeatureAccess('app_lock', isPremium, true);
   }
 
   async requireCloudSync(isPremium) {

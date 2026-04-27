@@ -17,24 +17,30 @@ describe('MomentSignalSender', () => {
     return { ...service, AsyncStorage };
   }
 
+  function mockContext(AsyncStorage, { userId, coupleId, lastSent = null } = {}) {
+    AsyncStorage.getItem.mockImplementation(async (key) => {
+      if (key === '@betweenus:cache:momentLastSent') return lastSent;
+      if (key === '@betweenus:cache:momentUserId') return userId;
+      if (key === '@betweenus:cache:momentCoupleId') return coupleId;
+      return null;
+    });
+  }
+
   it('clears stale sender context when auth or pairing is missing', async () => {
     const { MomentSignalSender, AsyncStorage } = loadConnectionEngine({ supabase: null, TABLES: {} });
 
     MomentSignalSender.configure({ userId: null, coupleId: undefined });
     await Promise.resolve();
 
-    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('@bu_moment_user_id');
-    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('@bu_moment_couple_id');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('@betweenus:cache:momentUserId');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('@betweenus:cache:momentCoupleId');
   });
 
   it('rejects heartbeat when remote delivery is unavailable', async () => {
     const { MomentSignalSender, AsyncStorage } = loadConnectionEngine({ supabase: null, TABLES: {} });
-
-    AsyncStorage.getItem.mockImplementation(async (key) => {
-      if (key === '@bu_moment_cooldown') return null;
-      if (key === '@bu_moment_user_id') return 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-      if (key === '@bu_moment_couple_id') return 'couple-1';
-      return null;
+    mockContext(AsyncStorage, {
+      userId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      coupleId: 'couple-1',
     });
 
     const result = await MomentSignalSender.sendHeartbeat();
@@ -48,15 +54,20 @@ describe('MomentSignalSender', () => {
     const insert = jest.fn().mockResolvedValue({ error: null });
     const from = jest.fn(() => ({ insert }));
     const { MomentSignalSender, AsyncStorage } = loadConnectionEngine({
-      supabase: { from },
+      supabase: {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: { id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' } },
+            error: null,
+          }),
+        },
+        from,
+      },
       TABLES: { COUPLE_DATA: 'couple_data' },
     });
-
-    AsyncStorage.getItem.mockImplementation(async (key) => {
-      if (key === '@bu_moment_cooldown') return null;
-      if (key === '@bu_moment_user_id') return 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-      if (key === '@bu_moment_couple_id') return 'couple-1';
-      return null;
+    mockContext(AsyncStorage, {
+      userId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      coupleId: 'couple-1',
     });
 
     const result = await MomentSignalSender.sendHeartbeat();
@@ -78,28 +89,29 @@ describe('MomentSignalSender', () => {
     const insert = jest.fn().mockResolvedValue({ error: null });
     const from = jest.fn(() => ({ insert }));
     const { MomentSignalSender, AsyncStorage } = loadConnectionEngine({
-      supabase: { from },
+      supabase: {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: { id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' } },
+            error: null,
+          }),
+        },
+        from,
+      },
       TABLES: { COUPLE_DATA: 'couple_data' },
     });
-
-    AsyncStorage.getItem.mockImplementation(async (key) => {
-      if (key === '@bu_moment_cooldown') return null;
-      if (key === '@bu_moment_user_id') return 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-      if (key === '@bu_moment_couple_id') return 'couple-1';
-      return null;
+    mockContext(AsyncStorage, {
+      userId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      coupleId: 'couple-1',
     });
 
-    // First send should succeed
     const first = await MomentSignalSender.sendHeartbeat();
     expect(first.sent).toBe(true);
 
-    // Immediate second send should be blocked by cooldown
     const second = await MomentSignalSender.sendHeartbeat();
     expect(second.sent).toBe(false);
     expect(second.cooldown).toBe(true);
     expect(second.error).toMatch(/wait/i);
-
-    // Only one insert should have reached the DB
     expect(insert).toHaveBeenCalledTimes(1);
   });
 
@@ -107,22 +119,27 @@ describe('MomentSignalSender', () => {
     const insert = jest.fn().mockResolvedValue({ error: null });
     const from = jest.fn(() => ({ insert }));
     const { MomentSignalSender, AsyncStorage } = loadConnectionEngine({
-      supabase: { from },
+      supabase: {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: { id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' } },
+            error: null,
+          }),
+        },
+        from,
+      },
       TABLES: { COUPLE_DATA: 'couple_data' },
     });
-
-    AsyncStorage.getItem.mockImplementation(async (key) => {
-      if (key === '@bu_moment_cooldown') return null;
-      if (key === '@bu_moment_user_id') return 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-      if (key === '@bu_moment_couple_id') return 'couple-1';
-      return null;
+    mockContext(AsyncStorage, {
+      userId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      coupleId: 'couple-1',
     });
 
-    const result = await MomentSignalSender.send('thinking_of_you');
+    const result = await MomentSignalSender.send('thinking');
 
-    expect(result).toMatchObject({ sent: true, remote: true, type: 'thinking_of_you' });
+    expect(result).toMatchObject({ sent: true, remote: true, type: 'thinking' });
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({
-      value: expect.objectContaining({ moment_type: 'thinking_of_you' }),
+      value: expect.objectContaining({ moment_type: 'thinking' }),
     }));
   });
 });

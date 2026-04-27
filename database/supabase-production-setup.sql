@@ -100,19 +100,6 @@ CREATE TABLE IF NOT EXISTS couple_members (
   UNIQUE(couple_id, user_id)
 );
 
--- X25519 key exchange + multi-device columns
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='couple_members' AND column_name='public_key') THEN
-    ALTER TABLE couple_members ADD COLUMN public_key text;
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='couple_members' AND column_name='device_id') THEN
-    ALTER TABLE couple_members ADD COLUMN device_id text;
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='couple_members' AND column_name='wrapped_couple_key') THEN
-    ALTER TABLE couple_members ADD COLUMN wrapped_couple_key text;
-  END IF;
-END $$;
-
 -- Single-couple membership constraint (one user = one couple)
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'couple_members_user_id_unique') THEN
@@ -126,7 +113,6 @@ CREATE TABLE IF NOT EXISTS couple_data (
   couple_id uuid REFERENCES couples(id) ON DELETE CASCADE NOT NULL,
   key text NOT NULL,
   value jsonb,
-  encrypted_value text,
   data_type text NOT NULL DEFAULT 'unknown',
   created_by uuid REFERENCES auth.users NOT NULL,
   is_private boolean DEFAULT false,
@@ -177,7 +163,6 @@ CREATE TABLE IF NOT EXISTS moments (
   moment_type text NOT NULL DEFAULT 'note',
   title text,
   content text,
-  encrypted_content text,
   media_path text,
   prompt_id text,
   is_private boolean DEFAULT false,
@@ -749,124 +734,10 @@ $$;
 
 GRANT EXECUTE ON FUNCTION redeem_partner_code(text) TO authenticated;
 
-CREATE OR REPLACE FUNCTION redeem_pairing_code(input_code_hash text, input_public_key text)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-SET row_security = off
-AS $$
-DECLARE
-  code_row              partner_link_codes%ROWTYPE;
-  creator_id            uuid;
-  redeemer_id           uuid;
-  old_redeemer_couple   uuid;
-  affected_member_ids   uuid[];
-BEGIN
-  redeemer_id := auth.uid();
-  IF redeemer_id IS NULL THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
-  END IF;
-
-  IF input_public_key IS NULL OR length(input_public_key) < 40 THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Missing or invalid public key');
-  END IF;
-
-  IF NOT check_sensitive_rate_limit(redeemer_id) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Too many attempts. Try again in a minute.');
-  END IF;
-
-  SELECT * INTO code_row
-    FROM partner_link_codes
-   WHERE code_hash = input_code_hash
-     AND used_at IS NULL
-     AND expires_at > now()
-     AND couple_id IS NOT NULL
-   FOR UPDATE;
-
-  IF code_row IS NULL THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Invalid, expired, or already-used pairing code');
-  END IF;
-
-  creator_id := code_row.created_by;
-
-  IF creator_id = redeemer_id THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Cannot pair with yourself');
-  END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM couple_members
-    WHERE couple_id = code_row.couple_id AND user_id = creator_id
-  ) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Pairing code is no longer valid');
-  END IF;
-  -- Auto-leave any existing couple so re-pairing always works
-  SELECT couple_id INTO old_redeemer_couple
-    FROM couple_members WHERE user_id = redeemer_id LIMIT 1;
-    
-  IF old_redeemer_couple IS NOT NULL THEN
-    IF old_redeemer_couple = code_row.couple_id THEN
-      -- User is repairing to the SAME couple (e.g. device change)
-      -- Just update their public key for the new device key exchange
-      UPDATE couple_members 
-         SET public_key = input_public_key,
-             wrapped_couple_key = NULL
-       WHERE couple_id = code_row.couple_id
-         AND user_id = redeemer_id;
-         
-      UPDATE partner_link_codes
-         SET used_at = now(),
-             used_by = redeemer_id
-       WHERE id = code_row.id;
-
-      RETURN jsonb_build_object(
-        'success', true,
-        'couple_id', code_row.couple_id,
-        'creator_id', creator_id,
-        'redeemer_id', redeemer_id
-      );
-    END IF;
-
-    SELECT COALESCE(array_agg(user_id), ARRAY[]::uuid[]) INTO affected_member_ids
-      FROM couple_members
-     WHERE couple_id = old_redeemer_couple;
-
-    DELETE FROM couple_members WHERE couple_id = old_redeemer_couple;
-    DELETE FROM partner_link_codes WHERE couple_id = old_redeemer_couple;
-    DELETE FROM couples WHERE id = old_redeemer_couple;
-
-    UPDATE profiles SET
-      is_premium = EXISTS (
-        SELECT 1 FROM user_entitlements ue
-        WHERE ue.user_id = profiles.id
-          AND ue.is_premium = true
-          AND (ue.expires_at IS NULL OR ue.expires_at > now())
-      ),
-      updated_at = now()
-    WHERE id = ANY(affected_member_ids);
-  END IF;
-
-  INSERT INTO couple_members (couple_id, user_id, role, public_key)
-  VALUES (code_row.couple_id, redeemer_id, 'member', input_public_key);
-
-  UPDATE partner_link_codes
-     SET used_at = now(),
-         used_by = redeemer_id
-   WHERE id = code_row.id;
-
-  RETURN jsonb_build_object(
-    'success', true,
-    'couple_id', code_row.couple_id,
-    'creator_id', creator_id,
-    'redeemer_id', redeemer_id
-  );
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION redeem_pairing_code(text, text) TO authenticated;
-
 -- Create a new couple and add caller as owner (bypasses RLS — mirrors redeem_* pattern)
 DROP FUNCTION IF EXISTS create_couple_for_qr(text);
-CREATE OR REPLACE FUNCTION create_couple_for_qr(device_public_key text DEFAULT NULL)
+DROP FUNCTION IF EXISTS create_couple_for_qr();
+CREATE OR REPLACE FUNCTION create_couple_for_qr()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -910,8 +781,8 @@ BEGIN
   INSERT INTO couples (created_by) VALUES (caller_id)
     RETURNING id INTO new_couple_id;
 
-  INSERT INTO couple_members (couple_id, user_id, role, public_key)
-  VALUES (new_couple_id, caller_id, 'owner', device_public_key);
+  INSERT INTO couple_members (couple_id, user_id, role)
+  VALUES (new_couple_id, caller_id, 'owner');
 
   RETURN jsonb_build_object(
     'success',   true,
@@ -920,7 +791,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION create_couple_for_qr(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION create_couple_for_qr() TO authenticated;
 
 -- Leave current couple (dissolve the couple for both partners, bypasses RLS)
 DROP FUNCTION IF EXISTS leave_couple();
@@ -974,89 +845,6 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION leave_couple() TO authenticated;
-
-DROP FUNCTION IF EXISTS set_my_wrapped_couple_key(uuid, text);
-CREATE OR REPLACE FUNCTION set_my_wrapped_couple_key(input_couple_id uuid, input_wrapped_couple_key text)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-SET row_security TO 'off'
-AS $$
-DECLARE
-  caller_id uuid;
-BEGIN
-  caller_id := auth.uid();
-  IF caller_id IS NULL THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
-  END IF;
-
-  IF input_couple_id IS NULL OR input_wrapped_couple_key IS NULL OR length(input_wrapped_couple_key) < 20 THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Missing wrapped couple key payload');
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM couple_members
-    WHERE couple_id = input_couple_id AND user_id = caller_id
-  ) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'You do not belong to this couple');
-  END IF;
-
-  UPDATE couple_members
-     SET wrapped_couple_key = input_wrapped_couple_key
-   WHERE couple_id = input_couple_id
-     AND user_id = caller_id;
-
-  RETURN jsonb_build_object('success', true);
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION set_my_wrapped_couple_key(uuid, text) TO authenticated;
-
-DROP FUNCTION IF EXISTS set_member_wrapped_couple_key(uuid, uuid, text);
-CREATE OR REPLACE FUNCTION set_member_wrapped_couple_key(input_couple_id uuid, target_user_id uuid, input_wrapped_couple_key text)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-SET row_security TO 'off'
-AS $$
-DECLARE
-  caller_id uuid;
-BEGIN
-  caller_id := auth.uid();
-  IF caller_id IS NULL THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
-  END IF;
-
-  IF input_couple_id IS NULL OR target_user_id IS NULL OR input_wrapped_couple_key IS NULL OR length(input_wrapped_couple_key) < 20 THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Missing wrapped couple key payload');
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM couple_members
-    WHERE couple_id = input_couple_id AND user_id = caller_id
-  ) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'You do not belong to this couple');
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM couple_members
-    WHERE couple_id = input_couple_id AND user_id = target_user_id
-  ) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Target user is not part of this couple');
-  END IF;
-
-  UPDATE couple_members
-     SET wrapped_couple_key = input_wrapped_couple_key
-   WHERE couple_id = input_couple_id
-     AND user_id = target_user_id;
-
-  RETURN jsonb_build_object('success', true);
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION set_member_wrapped_couple_key(uuid, uuid, text) TO authenticated;
 
 
 -- ############################################################################
@@ -1908,8 +1696,7 @@ GRANT EXECUTE ON FUNCTION check_sensitive_rate_limit(uuid)      TO authenticated
 REVOKE EXECUTE ON FUNCTION send_expo_push(text, text, text, jsonb) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION send_expo_push(text, text, text, jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION redeem_partner_code(text)             TO authenticated;
-GRANT EXECUTE ON FUNCTION redeem_pairing_code(text, text)       TO authenticated;
-GRANT EXECUTE ON FUNCTION create_couple_for_qr(text)            TO authenticated;
+GRANT EXECUTE ON FUNCTION create_couple_for_qr()                TO authenticated;
 GRANT EXECUTE ON FUNCTION leave_couple()                        TO authenticated;
 GRANT EXECUTE ON FUNCTION delete_own_account()                  TO authenticated;
 GRANT EXECUTE ON FUNCTION notify_partner(uuid, text, text, jsonb) TO authenticated;
@@ -2001,8 +1788,6 @@ WHERE p.id IS NULL
 ON CONFLICT (id) DO NOTHING;
 
 COMMENT ON TABLE analytics_events IS 'Privacy-respecting analytics events flushed from the mobile client';
-COMMENT ON COLUMN couple_members.public_key IS 'X25519 public key (base64) for Diffie-Hellman key exchange during pairing';
-COMMENT ON COLUMN couple_members.wrapped_couple_key IS 'Couple symmetric key encrypted (wrapped) with this device public key via nacl.box';
 
 
 -- ############################################################################
@@ -2038,6 +1823,6 @@ COMMENT ON COLUMN couple_members.wrapped_couple_key IS 'Couple symmetric key enc
 -- Additional fixes (March 29, 2026):
 --   • couples added to supabase_realtime publication (EntitlementsContext listener)
 --   • cleanup-orphaned-couples cron job (solo couple rows left by generateInviteCode)
---   • redeem_pairing_code, create_couple_for_qr, leave_couple added to Part 14 grants
+--   • create_couple_for_qr, leave_couple added to Part 14 grants
 --
 -- Fully idempotent — safe to re-run at any time.

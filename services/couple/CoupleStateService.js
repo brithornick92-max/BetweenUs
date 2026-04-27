@@ -2,7 +2,7 @@ import StorageRouter from '../storage/StorageRouter';
 import { STORAGE_KEYS, storage } from '../../utils/storage';
 
 export const SHARED_ANNIVERSARY_KEY = 'relationship_start_date';
-export const PENDING_SHARED_ANNIVERSARY_KEY = 'pending_shared_anniversary_date';
+export const PENDING_SHARED_ANNIVERSARY_KEY = '@betweenus:cache:pendingSharedAnniversaryDate';
 export const SHARED_DAILY_PROMPT_KEY_PREFIX = 'daily_prompt';
 
 function getDependencies(dependencies = {}) {

@@ -1,7 +1,7 @@
 import contentAccessService from '../../services/ContentAccessService';
-import LocalUsageService from '../../services/LocalUsageService';
+import UsageEventsService from '../../services/UsageEventsService';
 
-jest.mock('../../services/LocalUsageService', () => ({
+jest.mock('../../services/UsageEventsService', () => ({
   __esModule: true,
   default: {
     getDailyUsage: jest.fn().mockResolvedValue({ prompts: 0, dates: 0 }),
@@ -42,8 +42,8 @@ describe('ContentAccessService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    LocalUsageService.getDailyUsage.mockResolvedValue({ prompts: 0, dates: 0 });
-    LocalUsageService.getWeeklyUsage.mockResolvedValue({
+    UsageEventsService.getDailyUsage.mockResolvedValue({ prompts: 0, dates: 0 });
+    UsageEventsService.getWeeklyUsage.mockResolvedValue({
       prompts: 0,
       dates: 0,
       dateFlows: 0,
@@ -180,7 +180,7 @@ describe('ContentAccessService', () => {
   });
 
   it('blocks free prompt access after the daily limit', async () => {
-    LocalUsageService.getDailyUsage.mockResolvedValue({ prompts: 1, dates: 0 });
+    UsageEventsService.getDailyUsage.mockResolvedValue({ prompts: 1, dates: 0 });
 
     const result = await contentAccessService.canAccessPrompt('prompt-1', {
       userId: 'user-1',
@@ -199,8 +199,8 @@ describe('ContentAccessService', () => {
       isPremium: false,
     });
 
-    expect(LocalUsageService.incrementDailyUsage).toHaveBeenCalledWith('user-1', 'prompts');
-    expect(LocalUsageService.incrementWeeklyUsage).toHaveBeenCalledWith('user-1', 'prompts');
+    expect(UsageEventsService.incrementDailyUsage).toHaveBeenCalledWith('user-1', 'prompts');
+    expect(UsageEventsService.incrementWeeklyUsage).toHaveBeenCalledWith('user-1', 'prompts');
 
     jest.clearAllMocks();
 
@@ -210,7 +210,7 @@ describe('ContentAccessService', () => {
     });
 
     expect(premiumResult.tracked).toBe(false);
-    expect(LocalUsageService.incrementDailyUsage).not.toHaveBeenCalled();
+    expect(UsageEventsService.incrementDailyUsage).not.toHaveBeenCalled();
   });
 
   it('allows free users a limited weekly position preview', async () => {

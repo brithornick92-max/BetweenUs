@@ -25,8 +25,6 @@
  *   const withBadges = PromptAllocator.tagAnswered(allPrompts); // adds .answered flag
  */
 
-import Database from './db/Database';
-
 // ─── In-memory caches (reset per session / user) ────────────────
 
 let _userId = null;
@@ -39,7 +37,7 @@ const PromptAllocator = {
   // ─── Bootstrap ─────────────────────────────────────────────────
 
   /**
-   * Load the user's answer history from SQLite.
+   * Reset per-session answer caches.
    * Call once after login / app foreground.
    */
   async load(userId) {
@@ -55,27 +53,7 @@ const PromptAllocator = {
     
     _userId = userId;
 
-    try {
-      const d = new Date();
-      const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
-      // All-time answered prompt IDs
-      const allRows = await Database.getPromptAnswers(userId, { limit: 10000 });
-      for (const row of allRows || []) {
-        if (row.prompt_id) _allAnsweredIds.add(row.prompt_id);
-      }
-
-      // Today's answered prompt IDs
-      const todayRows = await Database.getPromptAnswers(userId, { dateKey: today, limit: 500 });
-      for (const row of todayRows || []) {
-        if (row.prompt_id) _todayAnsweredIds.add(row.prompt_id);
-      }
-
-      _loaded = true;
-    } catch (err) {
-      console.warn('[PromptAllocator] load failed:', err.message);
-      _loaded = true; // degrade gracefully — no filtering
-    }
+    _loaded = true;
   },
 
   /** Whether load() has completed at least once this session. */

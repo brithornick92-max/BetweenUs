@@ -1,9 +1,9 @@
 /**
- * LocalUsageService.test.js — Tests for daily usage tracking
+ * UsageEventsService.test.js — Tests for daily usage tracking
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import LocalUsageService, { FREE_TIER_LIMITS } from '../../services/LocalUsageService';
+import UsageEventsService, { FREE_TIER_LIMITS } from '../../services/UsageEventsService';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -21,12 +21,12 @@ describe('FREE_TIER_LIMITS', () => {
   });
 });
 
-describe('LocalUsageService', () => {
+describe('UsageEventsService', () => {
   const userId = 'test-user-123';
 
   describe('getDailyUsage', () => {
     it('creates a fresh record when none exists', async () => {
-      const usage = await LocalUsageService.getDailyUsage(userId);
+      const usage = await UsageEventsService.getDailyUsage(userId);
       expect(usage).toBeDefined();
       expect(usage.prompts).toBe(0);
       expect(usage.dates).toBe(0);
@@ -38,7 +38,7 @@ describe('LocalUsageService', () => {
       const existing = { date: '2026-02-22', prompts: 3, dates: 1, challenges: 0 };
       AsyncStorage.getItem.mockResolvedValue(JSON.stringify(existing));
 
-      const usage = await LocalUsageService.getDailyUsage(userId);
+      const usage = await UsageEventsService.getDailyUsage(userId);
       expect(usage.prompts).toBe(3);
       expect(usage.dates).toBe(1);
     });
@@ -46,7 +46,7 @@ describe('LocalUsageService', () => {
     it('handles corrupted JSON gracefully', async () => {
       AsyncStorage.getItem.mockResolvedValue('not-json-{{{');
 
-      const usage = await LocalUsageService.getDailyUsage(userId);
+      const usage = await UsageEventsService.getDailyUsage(userId);
       expect(usage.prompts).toBe(0);
       expect(usage.dates).toBe(0);
     });
@@ -54,7 +54,7 @@ describe('LocalUsageService', () => {
 
   describe('incrementDailyUsage', () => {
     it('increments prompt count', async () => {
-      const result = await LocalUsageService.incrementDailyUsage(userId, 'prompts');
+      const result = await UsageEventsService.incrementDailyUsage(userId, 'prompts');
       expect(result.prompts).toBe(1);
     });
 
@@ -62,38 +62,37 @@ describe('LocalUsageService', () => {
       const existing = { date: '2026-02-22', prompts: 5, dates: 0, challenges: 0 };
       AsyncStorage.getItem.mockResolvedValue(JSON.stringify(existing));
 
-      const result = await LocalUsageService.incrementDailyUsage(userId, 'prompts');
+      const result = await UsageEventsService.incrementDailyUsage(userId, 'prompts');
       expect(result.prompts).toBe(6);
     });
 
     it('increments date count', async () => {
-      const result = await LocalUsageService.incrementDailyUsage(userId, 'dates');
+      const result = await UsageEventsService.incrementDailyUsage(userId, 'dates');
       expect(result.dates).toBe(1);
     });
 
     it('records lastUpdated timestamp', async () => {
-      const result = await LocalUsageService.incrementDailyUsage(userId, 'prompts');
+      const result = await UsageEventsService.incrementDailyUsage(userId, 'prompts');
       expect(result.lastUpdated).toBeDefined();
     });
   });
 
   describe('resetIfNewDay', () => {
     it('creates a new record if none exists for today', async () => {
-      await LocalUsageService.resetIfNewDay(userId);
+      await UsageEventsService.resetIfNewDay(userId);
       expect(AsyncStorage.setItem).toHaveBeenCalled();
     });
 
-    it('does nothing if record already exists', async () => {
+    it('refreshes the cache when a record already exists', async () => {
       AsyncStorage.getItem.mockResolvedValue(JSON.stringify({ date: '2026-02-22', prompts: 0 }));
-      await LocalUsageService.resetIfNewDay(userId);
-      // getItem called but setItem should not be called
-      expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+      await UsageEventsService.resetIfNewDay(userId);
+      expect(AsyncStorage.setItem).toHaveBeenCalled();
     });
   });
 
   describe('weekly usage', () => {
     it('creates a fresh weekly record when none exists', async () => {
-      const usage = await LocalUsageService.getWeeklyUsage(userId);
+      const usage = await UsageEventsService.getWeeklyUsage(userId);
       expect(usage).toBeDefined();
       expect(usage.dateFlows).toBe(0);
       expect(usage.unlockedDateId).toBeNull();
@@ -101,7 +100,7 @@ describe('LocalUsageService', () => {
     });
 
     it('increments weekly date flow count and stores unlocked date id', async () => {
-      const result = await LocalUsageService.incrementWeeklyUsage(userId, 'dateFlows', { unlockedDateId: 'date-1' });
+      const result = await UsageEventsService.incrementWeeklyUsage(userId, 'dateFlows', { unlockedDateId: 'date-1' });
       expect(result.dateFlows).toBe(1);
       expect(result.unlockedDateId).toBe('date-1');
     });

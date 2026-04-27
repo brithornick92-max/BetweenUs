@@ -50,7 +50,7 @@ import {
 import WinBackNudges from '../services/WinBackNudges';
 
 // ─── Local cache keys for couple premium ─────────────────────────────────────
-const COUPLE_PREMIUM_CACHE_KEY = '@betweenus:couplePremiumCache';
+const COUPLE_PREMIUM_CACHE_KEY = '@betweenus:cache:couplePremium';
 const GRACE_WINDOW_MS = 72 * 60 * 60 * 1000; // 72 hours offline grace
 const COUPLE_PREMIUM_RPC_TIMEOUT_MS = 10_000;
 

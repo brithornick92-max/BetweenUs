@@ -1,13 +1,11 @@
 import { clearCouplePremiumCache } from '../../context/EntitlementsContext';
 import CoupleService from '../supabase/CoupleService';
-import CoupleKeyService from '../security/CoupleKeyService';
 import StorageRouter from '../storage/StorageRouter';
 import { storage, STORAGE_KEYS } from '../../utils/storage';
 
 function getDependencies(dependencies = {}) {
   return {
     coupleService: dependencies.coupleService ?? CoupleService,
-    coupleKeyService: dependencies.coupleKeyService ?? CoupleKeyService,
     storageRouter: dependencies.storageRouter ?? StorageRouter,
     storageApi: dependencies.storageApi ?? storage,
   };
@@ -31,21 +29,13 @@ export async function clearLocalCoupleState({
   onProfileCleared,
   dependencies = {},
 } = {}) {
-  const { coupleKeyService, storageRouter, storageApi } = getDependencies(dependencies);
+  const { storageRouter, storageApi } = getDependencies(dependencies);
 
   await storageApi.remove(STORAGE_KEYS.COUPLE_ID);
   await storageApi.remove(STORAGE_KEYS.COUPLE_ROLE);
   await storageApi.remove(STORAGE_KEYS.PARTNER_PROFILE);
   await storageApi.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
   await clearCouplePremiumCache();
-
-  if (coupleId) {
-    try {
-      await coupleKeyService.clearCoupleKey(coupleId);
-    } catch (e) {
-      console.warn('[CouplePresence] Failed to clear couple key:', e);
-    }
-  }
 
   if (userId) {
     try {
@@ -80,7 +70,7 @@ export async function getVerifiedCoupleState({
   confirmMiss = true,
   dependencies = {},
 } = {}) {
-  const { coupleKeyService, storageApi } = getDependencies(dependencies);
+  const { storageApi } = getDependencies(dependencies);
   let localCoupleId = currentCoupleId;
   if (localCoupleId === undefined || localCoupleId === null) {
     localCoupleId = await storageApi.get(STORAGE_KEYS.COUPLE_ID, null);
@@ -128,21 +118,12 @@ export async function getVerifiedCoupleState({
     }
   }
 
-  const hasCoupleKey = resolvedCoupleId
-    ? await coupleKeyService.hasCoupleKey(resolvedCoupleId).catch(() => false)
-    : false;
-
   return {
     coupleId: resolvedCoupleId,
     remoteCoupleId,
     remoteChecked,
     remoteError,
-    hasCoupleKey,
-    status: !resolvedCoupleId
-      ? 'unpaired'
-      : hasCoupleKey
-        ? 'paired_key_ready'
-        : 'paired_key_missing',
+    status: resolvedCoupleId ? 'paired' : 'unpaired',
   };
 }
 

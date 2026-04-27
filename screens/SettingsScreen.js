@@ -25,7 +25,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as naclUtil from 'tweetnacl-util';
 import ReAnimated, { 
   FadeInDown, 
   FadeInRight, 
@@ -53,7 +52,6 @@ import FilmGrain from '../components/FilmGrain';
 import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
 import CrashReporting from '../services/CrashReporting';
 import RevenueCatService from '../services/RevenueCatService';
-import CoupleKeyService from '../services/security/CoupleKeyService';
 import CoupleService from '../services/supabase/CoupleService';
 import CouplePresenceService from '../services/couple/CouplePresenceService';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
@@ -230,17 +228,9 @@ export default function SettingsScreen({ navigation }) {
     if (unlinkInFlightRef.current) return;
     unlinkInFlightRef.current = true;
     try {
-      const currentCoupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
       // Server unlink must succeed before we clear any local state
       await CoupleService.unlinkFromCouple();
-      // Clear local couple state only after successful server unlink
-      if (currentCoupleId) {
-        try {
-          await CoupleKeyService.clearCoupleKey(currentCoupleId);
-        } catch (keyErr) {
-          if (__DEV__) console.warn('Failed clearing local couple key:', keyErr?.message || keyErr);
-        }
-      }
+      // Clear local cache only after successful server unlink
       await storage.remove(STORAGE_KEYS.COUPLE_ID);
       await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
@@ -275,16 +265,8 @@ export default function SettingsScreen({ navigation }) {
     if (unlinkInFlightRef.current) return;
     unlinkInFlightRef.current = true;
     try {
-      const currentCoupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
       // Do not proceed to reconnect unless server unlink succeeds
       await CoupleService.unlinkFromCouple();
-      if (currentCoupleId) {
-        try {
-          await CoupleKeyService.clearCoupleKey(currentCoupleId);
-        } catch (keyErr) {
-          if (__DEV__) console.warn('Failed clearing local couple key:', keyErr?.message || keyErr);
-        }
-      }
       await storage.remove(STORAGE_KEYS.COUPLE_ID);
       await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
       await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);

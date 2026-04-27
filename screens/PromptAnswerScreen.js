@@ -229,7 +229,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   const loadExistingAnswer = useCallback(async () => {
     if (!prompt?.id) return;
-    // Try the active DataLayer first; fall back to legacy AsyncStorage.
+    // Supabase-backed DataLayer is authoritative; cache is display-only fallback.
     try {
       const row = await DataLayer.getPromptAnswerForToday(prompt.id);
       if (row?.answer) {
@@ -285,24 +285,19 @@ export default function PromptAnswerScreen({ route, navigation }) {
     setIsSaving(true);
     try {
       Keyboard.dismiss();
-      // Save locally first so prompt answering still works even if the
-      // sync layer is still initializing or temporarily unavailable.
+      await DataLayer.savePromptAnswer({
+        promptId: prompt.id,
+        answer: finalText,
+        heatLevel: prompt?.heat || 1,
+      });
+
+      // Cache after the authoritative write path accepts the change.
       if (prompt?.dateKey) {
         await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
           answer: finalText,
           timestamp: Date.now(),
           isRevealed: existingAnswer?.isRevealed || false,
         });
-      }
-
-      try {
-        await DataLayer.savePromptAnswer({
-          promptId: prompt.id,
-          answer: finalText,
-          heatLevel: prompt?.heat || 1,
-        });
-      } catch (dataLayerError) {
-        if (__DEV__) console.warn('[PromptAnswer] DataLayer prompt save failed:', dataLayerError?.message);
       }
 
       if (!isPremium && isFirstResponse && user?.uid) {

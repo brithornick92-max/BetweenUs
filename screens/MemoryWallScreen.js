@@ -26,7 +26,7 @@ import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScree
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import { DataLayer } from '../services/localfirst';
-import EncryptedAttachments from '../services/e2ee/EncryptedAttachments';
+import AttachmentCacheService from '../services/AttachmentCacheService';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import MediaLightbox from '../components/MediaLightbox';
@@ -94,24 +94,9 @@ export default function MemoryWallScreen() {
       const resolved = await Promise.all(
         withMedia.map(async (memory) => {
           try {
-            const keyType = memory.couple_id ? 'couple' : 'device';
-            const coupleId = keyType === 'couple' ? memory.couple_id : null;
-            const uri = await EncryptedAttachments.getDecryptedUri(
-              memory.media_ref,
-              keyType,
-              coupleId
-            );
-
-            let attachment = null;
-
-            try {
-              const { default: Database } = await import('../services/db/Database');
-              attachment = await Database.getAttachmentById(memory.media_ref);
-            } catch {
-              attachment = null;
-            }
-
-            const mimeType = attachment?.mime_type || memory.mime_type || 'image/jpeg';
+            const uri = await AttachmentCacheService.getCachedUri(memory.media_ref);
+            if (!uri) return null;
+            const mimeType = memory.mime_type || 'image/jpeg';
             const kind = getMediaKind(mimeType);
 
             return {

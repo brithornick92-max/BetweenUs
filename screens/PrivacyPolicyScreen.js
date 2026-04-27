@@ -127,11 +127,11 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
             <Text style={[styles.subTitle, { color: colors.text }]}>On-Device Storage</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              The app stores data locally on your device for offline access and recovery:{'\n\n'}
+              The app stores cache data locally on your device for speed and temporary offline continuity:{'\n\n'}
               • Cached synced content and pending offline writes{'\n'}
-              • Preferences and settings in local storage and secure device storage{'\n'}
-              • Credentials and app-lock secrets in your device's secure storage when available{'\n\n'}
-              Signing out removes local session credentials on this device and may clear cached local data. Your account and synced data remain on our servers until you delete them, unlink where the shared couple space is dissolved, or delete the account.
+              • Cache-only preferences and display settings{'\n'}
+              • Device app-lock state, with biometric matching handled by the operating system{'\n\n'}
+              Signing out clears local cache on this device. Your account and synced data remain on our servers until you delete them, unlink where the shared couple space is dissolved, or delete the account.
             </Text>
 
             <Text style={[styles.subTitle, { color: colors.text }]}>Information We Don't Collect</Text>
@@ -165,12 +165,12 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               Between Us protects different kinds of content in different ways. Core synced content is stored in Supabase as structured app data and is protected by account authentication, row-level security, HTTPS/TLS, and provider-side access controls.{"\n\n"}
-              • Journals, prompt responses, memories, check-ins, vibes, calendar events, date plans, and media attachments are not currently end-to-end encrypted before upload{"\n"}
-              • Device-only features and local caches stay local unless a feature explicitly says otherwise{'\n'}
+              • Journals, prompt responses, memories, check-ins, vibes, calendar events, date plans, and media attachments are stored in Supabase{"\n"}
+              • Local cache is non-authoritative and may be cleared or rebuilt from Supabase{'\n'}
               • Some settings, including soft boundaries, relationship climate, and energy level, may sync to your profile for account continuity{'\n'}
               • Secure transport (TLS) is used whenever data is sent between your device and our services{'\n'}
-              • App-lock secrets and similar local protections stay on your device when supported{'\n\n'}
-              Important: App lock, PIN, Face ID, and Touch ID protect access on your device; they do not make synced server content end-to-end encrypted.{'\n\n'}
+              • App lock and biometric checks are device access controls{'\n\n'}
+              Important: App lock, Face ID, and Touch ID protect access on your device; synced server content remains governed by Supabase access controls.{'\n\n'}
               Some metadata and content fields are stored so we can provide features like filtering, sorting, scheduling, syncing, and delivery.
             </Text>
 
@@ -204,7 +204,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Account data: Retained while your account is active{'\n'}
-              • Signing out removes local credentials from this device but does not delete your account or cloud data{'\n'}
+              • Signing out clears local cache on this device but does not delete your account or cloud data{'\n'}
               • Core synced content: Retained until you delete it, unlink where the shared couple space is dissolved, or delete your account{'\n'}
               • Usage and diagnostic data: Retained for a limited period based on operational needs{'\n'}
               • Deleted data: Removed from active systems promptly; backup copies may persist for a limited period before routine purge
@@ -273,8 +273,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               We implement industry-standard security measures:{'\n\n'}
               • Account authentication and row-level access controls for synced content{'\n'}
               • Secure data transmission (HTTPS/TLS){'\n'}
-              • Provider-side security controls and encrypted storage where supplied by our providers{'\n'}
-              • Optional app lock with PIN, Face ID, or Touch ID on your device
+              • Provider-side security controls{'\n'}
+              • Optional app lock with Face ID or Touch ID on your device
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>

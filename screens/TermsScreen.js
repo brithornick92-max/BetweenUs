@@ -268,13 +268,13 @@ const TermsScreen = ({ navigation, route }) => {
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Data Protection:{'\n'}
                 • We use authentication, secure transport, row-level security, and provider-side access controls{'\n'}
-                • Core synced content is stored in a private account and couple space, but is not currently end-to-end encrypted before upload{'\n'}
-                • Some local data, app-lock secrets, and cached data remain device-local unless a feature explicitly syncs them{'\n'}
+                • Core synced content is stored in a private account and couple space in Supabase{'\n'}
+                • Local data is limited to cache unless a feature explicitly syncs through Supabase{'\n'}
                 • Some metadata and content fields are stored to support filtering, sorting, scheduling, syncing, and delivery{'\n'}
                 • We implement security measures to protect your data{'\n'}
                 • See our Privacy Policy for complete details{'\n\n'}
-                Important: If you lose access to a device, unsynced local drafts, local-only settings, or cached data may be unrecoverable.
-                App lock protects access on your device; it does not make synced server content end-to-end encrypted.{'\n\n'}
+                Important: If you lose access to a device, pending offline changes and cache-only preferences may be unrecoverable.
+                App lock protects access on your device; synced server content remains governed by Supabase access controls.{'\n\n'}
                 Data Retention:{'\n'}
                 • We retain your data while your account is active{'\n'}
                 • You can delete your account and supported data through the app{'\n'}

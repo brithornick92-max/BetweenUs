@@ -112,7 +112,7 @@ $$;
 ALTER FUNCTION "public"."couple_has_premium"("check_couple_id" "uuid") OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."create_couple_for_qr"("device_public_key" "text" DEFAULT NULL::"text") RETURNS "jsonb"
+CREATE OR REPLACE FUNCTION "public"."create_couple_for_qr"() RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     SET "row_security" TO 'off'
@@ -154,8 +154,8 @@ BEGIN
   INSERT INTO couples (created_by) VALUES (caller_id)
     RETURNING id INTO new_couple_id;
 
-  INSERT INTO couple_members (couple_id, user_id, role, public_key)
-  VALUES (new_couple_id, caller_id, 'owner', device_public_key);
+  INSERT INTO couple_members (couple_id, user_id, role)
+  VALUES (new_couple_id, caller_id, 'owner');
 
   RETURN jsonb_build_object(
     'success',   true,
@@ -165,7 +165,7 @@ END;
 $$;
 
 
-ALTER FUNCTION "public"."create_couple_for_qr"("device_public_key" "text") OWNER TO "postgres";
+ALTER FUNCTION "public"."create_couple_for_qr"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."delete_own_account"() RETURNS "void"
@@ -650,98 +650,6 @@ $$;
 ALTER FUNCTION "public"."notify_partner"("sender_id" "uuid", "notification_title" "text", "notification_body" "text", "notification_data" "jsonb") OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."redeem_pairing_code"("input_code_hash" "text", "input_public_key" "text") RETURNS "jsonb"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
-    SET "row_security" TO 'off'
-    AS $$
-DECLARE
-  code_row              partner_link_codes%ROWTYPE;
-  creator_id            uuid;
-  redeemer_id           uuid;
-  old_redeemer_couple   uuid;
-  affected_member_ids   uuid[];
-BEGIN
-  redeemer_id := auth.uid();
-  IF redeemer_id IS NULL THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
-  END IF;
-
-  IF input_public_key IS NULL OR length(input_public_key) < 40 THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Missing or invalid public key');
-  END IF;
-
-  IF NOT check_sensitive_rate_limit(redeemer_id) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Too many attempts. Try again in a minute.');
-  END IF;
-
-  SELECT * INTO code_row
-    FROM partner_link_codes
-   WHERE code_hash = input_code_hash
-     AND used_at IS NULL
-     AND expires_at > now()
-     AND couple_id IS NOT NULL
-   FOR UPDATE;
-
-  IF code_row IS NULL THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Invalid, expired, or already-used pairing code');
-  END IF;
-
-  creator_id := code_row.created_by;
-
-  IF creator_id = redeemer_id THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Cannot pair with yourself');
-  END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM couple_members
-    WHERE couple_id = code_row.couple_id AND user_id = creator_id
-  ) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Pairing code is no longer valid');
-  END IF;
-  -- Auto-leave any existing couple so re-pairing always works
-  SELECT couple_id INTO old_redeemer_couple
-    FROM couple_members WHERE user_id = redeemer_id LIMIT 1;
-  IF old_redeemer_couple IS NOT NULL THEN
-    SELECT COALESCE(array_agg(user_id), ARRAY[]::uuid[]) INTO affected_member_ids
-      FROM couple_members
-     WHERE couple_id = old_redeemer_couple;
-
-    DELETE FROM couple_members WHERE couple_id = old_redeemer_couple;
-    DELETE FROM partner_link_codes WHERE couple_id = old_redeemer_couple;
-    DELETE FROM couples WHERE id = old_redeemer_couple;
-
-    UPDATE profiles SET
-      is_premium = EXISTS (
-        SELECT 1 FROM user_entitlements ue
-        WHERE ue.user_id = profiles.id
-          AND ue.is_premium = true
-          AND (ue.expires_at IS NULL OR ue.expires_at > now())
-      ),
-      updated_at = now()
-    WHERE id = ANY(affected_member_ids);
-  END IF;
-
-  INSERT INTO couple_members (couple_id, user_id, role, public_key)
-  VALUES (code_row.couple_id, redeemer_id, 'member', input_public_key);
-
-  UPDATE partner_link_codes
-     SET used_at = now(),
-         used_by = redeemer_id
-   WHERE id = code_row.id;
-
-  RETURN jsonb_build_object(
-    'success', true,
-    'couple_id', code_row.couple_id,
-    'creator_id', creator_id,
-    'redeemer_id', redeemer_id
-  );
-END;
-$$;
-
-
-ALTER FUNCTION "public"."redeem_pairing_code"("input_code_hash" "text", "input_public_key" "text") OWNER TO "postgres";
-
-
 CREATE OR REPLACE FUNCTION "public"."redeem_partner_code"("input_code_hash" "text") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -908,87 +816,6 @@ $$;
 
 
 ALTER FUNCTION "public"."set_couple_premium"("input_couple_id" "uuid", "input_is_premium" boolean, "input_source" "text") OWNER TO "postgres";
-
-
-CREATE OR REPLACE FUNCTION "public"."set_member_wrapped_couple_key"("input_couple_id" "uuid", "target_user_id" "uuid", "input_wrapped_couple_key" "text") RETURNS "jsonb"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
-    SET "row_security" TO 'off'
-    AS $$
-DECLARE
-  caller_id uuid;
-BEGIN
-  caller_id := auth.uid();
-  IF caller_id IS NULL THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
-  END IF;
-
-  IF input_couple_id IS NULL OR target_user_id IS NULL OR input_wrapped_couple_key IS NULL OR length(input_wrapped_couple_key) < 20 THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Missing wrapped couple key payload');
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM couple_members
-    WHERE couple_id = input_couple_id AND user_id = caller_id
-  ) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'You do not belong to this couple');
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM couple_members
-    WHERE couple_id = input_couple_id AND user_id = target_user_id
-  ) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Target user is not part of this couple');
-  END IF;
-
-  UPDATE couple_members
-     SET wrapped_couple_key = input_wrapped_couple_key
-   WHERE couple_id = input_couple_id
-     AND user_id = target_user_id;
-
-  RETURN jsonb_build_object('success', true);
-END;
-$$;
-
-
-ALTER FUNCTION "public"."set_member_wrapped_couple_key"("input_couple_id" "uuid", "target_user_id" "uuid", "input_wrapped_couple_key" "text") OWNER TO "postgres";
-
-
-CREATE OR REPLACE FUNCTION "public"."set_my_wrapped_couple_key"("input_couple_id" "uuid", "input_wrapped_couple_key" "text") RETURNS "jsonb"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
-    SET "row_security" TO 'off'
-    AS $$
-DECLARE
-  caller_id uuid;
-BEGIN
-  caller_id := auth.uid();
-  IF caller_id IS NULL THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Not authenticated');
-  END IF;
-
-  IF input_couple_id IS NULL OR input_wrapped_couple_key IS NULL OR length(input_wrapped_couple_key) < 20 THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Missing wrapped couple key payload');
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM couple_members
-    WHERE couple_id = input_couple_id AND user_id = caller_id
-  ) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'You do not belong to this couple');
-  END IF;
-
-  UPDATE couple_members
-     SET wrapped_couple_key = input_wrapped_couple_key
-   WHERE couple_id = input_couple_id
-     AND user_id = caller_id;
-
-  RETURN jsonb_build_object('success', true);
-END;
-$$;
-
-
-ALTER FUNCTION "public"."set_my_wrapped_couple_key"("input_couple_id" "uuid", "input_wrapped_couple_key" "text") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."sync_couple_premium_to_profiles"() RETURNS "trigger"
@@ -2168,7 +1995,6 @@ CREATE TABLE IF NOT EXISTS "public"."couple_data" (
     "couple_id" "uuid" NOT NULL,
     "key" "text" NOT NULL,
     "value" "jsonb",
-    "encrypted_value" "text",
     "data_type" "text" NOT NULL,
     "created_by" "uuid" NOT NULL,
     "is_private" boolean DEFAULT false,
@@ -2192,10 +2018,7 @@ CREATE TABLE IF NOT EXISTS "public"."couple_members" (
     "couple_id" "uuid" NOT NULL,
     "user_id" "uuid" NOT NULL,
     "role" "text" DEFAULT 'member'::"text",
-    "created_at" timestamp without time zone DEFAULT "now"(),
-    "public_key" "text",
-    "device_id" "text",
-    "wrapped_couple_key" "text"
+    "created_at" timestamp without time zone DEFAULT "now"()
 );
 
 ALTER TABLE ONLY "public"."couple_members" REPLICA IDENTITY FULL;
@@ -2205,12 +2028,6 @@ ALTER TABLE ONLY "public"."couple_members" FORCE ROW LEVEL SECURITY;
 
 ALTER TABLE "public"."couple_members" OWNER TO "postgres";
 
-
-COMMENT ON COLUMN "public"."couple_members"."public_key" IS 'X25519 public key (base64) for Diffie-Hellman key exchange during pairing';
-
-
-
-COMMENT ON COLUMN "public"."couple_members"."wrapped_couple_key" IS 'Couple symmetric key encrypted (wrapped) with this device public key via nacl.box';
 
 
 
@@ -2243,7 +2060,6 @@ CREATE TABLE IF NOT EXISTS "public"."moments" (
     "moment_type" "text" DEFAULT 'note'::"text" NOT NULL,
     "title" "text",
     "content" "text",
-    "encrypted_content" "text",
     "media_path" "text",
     "prompt_id" "text",
     "is_private" boolean DEFAULT false,
@@ -3502,9 +3318,9 @@ GRANT ALL ON FUNCTION "public"."couple_has_premium"("check_couple_id" "uuid") TO
 
 
 
-GRANT ALL ON FUNCTION "public"."create_couple_for_qr"("device_public_key" "text") TO "anon";
-GRANT ALL ON FUNCTION "public"."create_couple_for_qr"("device_public_key" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."create_couple_for_qr"("device_public_key" "text") TO "service_role";
+GRANT ALL ON FUNCTION "public"."create_couple_for_qr"() TO "anon";
+GRANT ALL ON FUNCTION "public"."create_couple_for_qr"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_couple_for_qr"() TO "service_role";
 
 
 
@@ -3598,11 +3414,6 @@ GRANT ALL ON FUNCTION "public"."notify_partner"("sender_id" "uuid", "notificatio
 
 
 
-GRANT ALL ON FUNCTION "public"."redeem_pairing_code"("input_code_hash" "text", "input_public_key" "text") TO "anon";
-GRANT ALL ON FUNCTION "public"."redeem_pairing_code"("input_code_hash" "text", "input_public_key" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."redeem_pairing_code"("input_code_hash" "text", "input_public_key" "text") TO "service_role";
-
-
 
 GRANT ALL ON FUNCTION "public"."redeem_partner_code"("input_code_hash" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."redeem_partner_code"("input_code_hash" "text") TO "authenticated";
@@ -3620,16 +3431,6 @@ GRANT ALL ON FUNCTION "public"."set_couple_premium"("input_couple_id" "uuid", "i
 GRANT ALL ON FUNCTION "public"."set_couple_premium"("input_couple_id" "uuid", "input_is_premium" boolean, "input_source" "text") TO "service_role";
 
 
-
-GRANT ALL ON FUNCTION "public"."set_member_wrapped_couple_key"("input_couple_id" "uuid", "target_user_id" "uuid", "input_wrapped_couple_key" "text") TO "anon";
-GRANT ALL ON FUNCTION "public"."set_member_wrapped_couple_key"("input_couple_id" "uuid", "target_user_id" "uuid", "input_wrapped_couple_key" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."set_member_wrapped_couple_key"("input_couple_id" "uuid", "target_user_id" "uuid", "input_wrapped_couple_key" "text") TO "service_role";
-
-
-
-GRANT ALL ON FUNCTION "public"."set_my_wrapped_couple_key"("input_couple_id" "uuid", "input_wrapped_couple_key" "text") TO "anon";
-GRANT ALL ON FUNCTION "public"."set_my_wrapped_couple_key"("input_couple_id" "uuid", "input_wrapped_couple_key" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."set_my_wrapped_couple_key"("input_couple_id" "uuid", "input_wrapped_couple_key" "text") TO "service_role";
 
 
 
@@ -3843,7 +3644,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "storage" GRANT ALL ON TA
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "storage" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "storage" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "storage" GRANT ALL ON TABLES TO "service_role";
-
 
 
 

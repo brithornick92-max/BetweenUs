@@ -2,7 +2,7 @@
 
 ## Overview
 
-This implementation plan converts the Premium Value Loop design into discrete coding tasks that build emotional lock-in through relationship memory preservation and intimate rituals. The approach prioritizes local storage for high emotional value, real-time synchronization for connection, and premium features focused on protecting relationship history rather than accessing content.
+This implementation plan converts the Premium Value Loop design into discrete coding tasks that build emotional lock-in through relationship memory preservation and intimate rituals. The approach prioritizes Supabase-backed persistence, real-time synchronization for connection, and premium features focused on protecting relationship history rather than accessing content.
 
 ## Tasks
 
@@ -10,7 +10,7 @@ This implementation plan converts the Premium Value Loop design into discrete co
   - Create MemoryContext for relationship memory state management
   - Create RitualContext for night ritual state management
   - Extend AppContext to coordinate Premium Value Loop features
-  - Set up local storage utilities for memory and ritual persistence
+  - Set up Supabase-backed data utilities for memory and ritual persistence
   - _Requirements: 3.5, 4.3, 6.4_
 
 - [x] 2. Implement Vibe Signal system with real-time synchronization
@@ -30,10 +30,10 @@ This implementation plan converts the Premium Value Loop design into discrete co
     - Handle partner vibe display with background glow effects
     - _Requirements: 1.1, 1.2, 1.3, 6.1_
 
-- [x] 3. Build Relationship Memory System with local storage
+- [x] 3. Build Relationship Memory System with Supabase
   - [x] 3.1 Create memory data models and storage utilities
     - Implement RelationshipMemory interface with all memory types
-    - Create MemoryManager class with local storage persistence
+    - Create MemoryManager class with Supabase-backed persistence
     - Add memory timeline generation and chronological sorting
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
   
@@ -147,7 +147,7 @@ This implementation plan converts the Premium Value Loop design into discrete co
   - [ ] 8.3 Add biometric vault integration for premium users
     - Implement biometric authentication using expo-local-authentication
     - Create secure vault for sensitive couple content
-    - Add encryption and decryption for vault content
+    - Use device access controls only for vault access
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
 - [ ] 9. Implement design system consistency and performance

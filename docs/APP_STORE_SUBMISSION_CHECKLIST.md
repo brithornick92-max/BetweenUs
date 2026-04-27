@@ -157,7 +157,7 @@ This is not usually a code-signing or plist-generation bug unless the IPA itself
 Run these on a real iPhone release build before pressing submit:
 
 1. Launch app with network available → verify normal cold start
-2. Launch app in airplane mode → verify app still opens and local data works
+2. Launch app in airplane mode → verify app still opens and cache/offline queue behavior works
 3. Create local content offline → restore network → verify sync resumes
 4. Send a notification, kill app, tap notification → verify correct screen opens
 5. Enable notifications from Settings screen → verify prompt appears only there

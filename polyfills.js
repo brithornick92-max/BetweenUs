@@ -1,11 +1,10 @@
 // polyfills.js — MUST be imported before any library that uses crypto
-// This provides crypto.getRandomValues for tweetnacl and Supabase
+// This provides crypto.getRandomValues for Supabase and UUID helpers
 // in React Native (Hermes), where neither self nor crypto are defined.
 
 import * as ExpoCrypto from "expo-crypto";
 
 // ① React Native / Hermes does not define `self`.
-//    tweetnacl checks `self.crypto` for its PRNG at module-load time.
 //    Define self → globalThis so libraries that expect a browser-like global find it.
 if (typeof self === "undefined") {
   globalThis.self = globalThis;
@@ -29,8 +28,6 @@ if (!global.crypto.getRandomValues) {
 }
 
 // ③ Ensure globalThis and self both see the same crypto object.
-//    Libraries like tweetnacl check self.crypto first, then global.crypto.
-//    tweetnacl checks self.crypto only.
 if (typeof globalThis !== "undefined" && !globalThis.crypto) {
   globalThis.crypto = global.crypto;
 }

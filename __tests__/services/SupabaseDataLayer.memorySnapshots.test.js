@@ -20,7 +20,7 @@ jest.mock('expo-file-system/legacy', () => ({
 
 jest.mock('../../utils/storage', () => ({
   STORAGE_KEYS: {
-    CLOUD_SYNC_QUEUE: '@betweenus:cloudSyncQueue',
+    CLOUD_SYNC_QUEUE: '@betweenus:cache:cloudSyncQueue',
   },
   storage: {
     get: (...args) => mockStorageGet(...args),

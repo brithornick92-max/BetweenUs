@@ -111,7 +111,6 @@
       "expo-font",
       "@react-native-community/datetimepicker",
       "expo-camera",
-      "expo-sqlite",
       [
         "expo-notifications",
         {

@@ -1,8 +1,8 @@
 import { DataLayer } from '../services/localfirst';
 import { storage } from './storage';
 
-export const INTIMACY_FAVORITES_KEY = '@betweenus:intimacy_favorites';
-export const INTIMACY_TRIED_KEY = '@betweenus:intimacy_positions_tried';
+export const INTIMACY_FAVORITES_KEY = '@betweenus:cache:intimacyFavorites';
+export const INTIMACY_TRIED_KEY = '@betweenus:cache:intimacyPositionsTried';
 
 const ensureObject = (value) => (
   value && typeof value === 'object' && !Array.isArray(value) ? value : {}

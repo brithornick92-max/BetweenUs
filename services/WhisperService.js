@@ -1,128 +1,41 @@
 /**
- * WhisperService.js — Encrypted Ephemeral Voice Notes
+ * WhisperService.js — Ephemeral voice notes backed by Supabase Storage.
  *
- * Security model:
- *   • Audio is recorded to the OS cache directory (not documents — not backed up)
- *   • The raw PCM/AAC file NEVER leaves the device
- *   • Before upload: the file is base64-encoded and encrypted with
- *     NaCl secretbox using a key derived from the couple's shared secret
- *   • Supabase Storage receives ONLY ciphertext + a random nonce
- *   • The local file is deleted immediately after upload
- *   • After the partner plays a whisper, the remote object is deleted
- *   • Metadata (duration, sender_id, played) is stored in couple_data
- *     as plaintext for querying — message content is never in metadata
- *
- * Dependencies:
- *   expo-av         (audio recording/playback)
- *   expo-file-system
- *   tweetnacl + tweetnacl-util  (already in package.json)
- *   supabase JS client
+ * Audio is uploaded as-is to the private `whispers` bucket. Access control is
+ * handled by Supabase Auth, RLS, and HTTPS. Local files are only temporary
+ * recording/playback cache and are deleted after upload/playback.
  */
 
 import * as FileSystem from 'expo-file-system';
-import * as nacl from 'tweetnacl';
-import { encodeBase64, decodeBase64, encodeUTF8 } from 'tweetnacl-util';
+import { randomUUID } from 'expo-crypto';
 import { supabase, TABLES } from '../config/supabase';
 
-// Storage bucket in Supabase for whisper ciphertext blobs
 const WHISPER_BUCKET = 'whispers';
 
-// ─── Key derivation from couple shared secret ──────────────────────────────
-// The couple key is a 32-byte Uint8Array derived by EncryptionService.
-// We hash it with a domain separator to produce a dedicated whisper key
-// so a compromise of the whisper key doesn't affect other encrypted data.
-
-function deriveWhisperKey(coupleKey) {
-  if (!(coupleKey instanceof Uint8Array) || coupleKey.length < 32) {
-    throw new Error('WhisperService: invalid couple key');
-  }
-  // XOR with a fixed domain salt — lightweight but sufficient domain separation
-  const DOMAIN = encodeUTF8('betweenUS::whisper::v1');
-  const key = new Uint8Array(32);
-  for (let i = 0; i < 32; i++) {
-    key[i] = coupleKey[i % coupleKey.length] ^ (DOMAIN[i % DOMAIN.length] ?? 0);
-  }
-  return key;
-}
-
-// ─── Encryption / decryption helpers ──────────────────────────────────────
-
-/**
- * Encrypt a binary file and return { ciphertextB64, nonceB64 }
- * @param {string} fileUri   local file:// URI to the recorded audio
- * @param {Uint8Array} key   32-byte whisper key
- */
-async function encryptFile(fileUri, key) {
-  const b64 = await FileSystem.readAsStringAsync(fileUri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  const plaintext = decodeBase64(b64);
-  const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
-  const ciphertext = nacl.secretbox(plaintext, nonce, key);
-  if (!ciphertext) throw new Error('WhisperService: encryption failed');
-  return {
-    ciphertextB64: encodeBase64(ciphertext),
-    nonceB64: encodeBase64(nonce),
-  };
-}
-
-/**
- * Decrypt a ciphertext blob and write the audio to a temp file.
- * Returns the local file URI.
- * @param {string} ciphertextB64
- * @param {string} nonceB64
- * @param {Uint8Array} key
- * @returns {Promise<string>} Temporary local file URI
- */
-async function decryptToTempFile(ciphertextB64, nonceB64, key) {
-  const ciphertext = decodeBase64(ciphertextB64);
-  const nonce = decodeBase64(nonceB64);
-  const plaintext = nacl.secretbox.open(ciphertext, nonce, key);
-  if (!plaintext) throw new Error('WhisperService: decryption failed — data may be corrupted');
-
-  const tempUri = `${FileSystem.cacheDirectory}whisper_${Date.now()}.m4a`;
-  await FileSystem.writeAsStringAsync(tempUri, encodeBase64(plaintext), {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  return tempUri;
-}
-
-// ─── Upload ────────────────────────────────────────────────────────────────
-
-/**
- * Upload an encrypted whisper to Supabase Storage and record metadata.
- *
- * @param {object} opts
- * @param {string}     opts.fileUri      Local audio file URI
- * @param {string}     opts.coupleId
- * @param {string}     opts.senderId
- * @param {number}     opts.durationMs   Recording duration in ms
- * @param {Uint8Array} opts.coupleKey    32-byte couple shared key
- * @returns {Promise<{ whisperId: string }>}
- */
-async function upload({ fileUri, coupleId, senderId, durationMs, coupleKey }) {
+async function upload({ fileUri, coupleId, senderId, durationMs }) {
   if (!supabase) throw new Error('WhisperService: Supabase not configured');
+  if (!fileUri || !coupleId || !senderId) {
+    throw new Error('WhisperService: fileUri, coupleId, and senderId are required');
+  }
 
-  const whisperKey = deriveWhisperKey(coupleKey);
-  const { ciphertextB64, nonceB64 } = await encryptFile(fileUri, whisperKey);
+  const whisperId = `${coupleId}_${senderId}_${randomUUID()}`;
+  const storagePath = `${coupleId}/${whisperId}.m4a`;
+  const fileB64 = await FileSystem.readAsStringAsync(fileUri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  const bytes = Uint8Array.from(atob(fileB64), c => c.charCodeAt(0));
 
-  const whisperId = `${coupleId}_${senderId}_${Date.now()}`;
-  const storagePath = `${coupleId}/${whisperId}.bin`;
-
-  // Upload ciphertext blob (text file — the binary is base64 inside)
   const { error: uploadError } = await supabase.storage
     .from(WHISPER_BUCKET)
-    .upload(storagePath, ciphertextB64, {
-      contentType: 'application/octet-stream',
+    .upload(storagePath, bytes, {
+      contentType: 'audio/mp4',
       upsert: false,
     });
 
   if (uploadError) throw new Error(`WhisperService upload: ${uploadError.message}`);
 
-  // Delete local recording only after successful upload
   await FileSystem.deleteAsync(fileUri, { idempotent: true });
 
-  // Store metadata in couple_data (no sensitive content here)
   const { error: metaError } = await supabase
     .from(TABLES.COUPLE_DATA)
     .insert({
@@ -132,7 +45,6 @@ async function upload({ fileUri, coupleId, senderId, durationMs, coupleKey }) {
       value: {
         whisper_id: whisperId,
         storage_path: storagePath,
-        nonce: nonceB64,
         sender_id: senderId,
         duration_ms: durationMs,
         played: false,
@@ -142,7 +54,6 @@ async function upload({ fileUri, coupleId, senderId, durationMs, coupleKey }) {
     });
 
   if (metaError) {
-    // Attempt cleanup if metadata write fails
     await supabase.storage.from(WHISPER_BUCKET).remove([storagePath]).catch(() => {});
     throw new Error(`WhisperService metadata: ${metaError.message}`);
   }
@@ -150,12 +61,6 @@ async function upload({ fileUri, coupleId, senderId, durationMs, coupleKey }) {
   return { whisperId };
 }
 
-// ─── Fetch pending whispers ────────────────────────────────────────────────
-
-/**
- * Returns all unplayed whispers sent TO the current user.
- * (i.e., sender_id !== userId — the partner's whispers)
- */
 async function getPending({ coupleId, userId }) {
   if (!supabase) return [];
 
@@ -173,18 +78,8 @@ async function getPending({ coupleId, userId }) {
     .filter((w) => w && w.sender_id !== userId && !w.played);
 }
 
-// ─── Download & decrypt ────────────────────────────────────────────────────
-
-/**
- * Download a whisper's ciphertext from Supabase Storage and decrypt it to
- * a temp file. Returns the local URI for playback.
- *
- * IMPORTANT: call deleteAfterPlay() once playback completes.
- */
-async function downloadForPlayback({ whisper, coupleKey }) {
+async function downloadForPlayback({ whisper }) {
   if (!supabase) throw new Error('WhisperService: Supabase not configured');
-
-  const whisperKey = deriveWhisperKey(coupleKey);
 
   const { data, error } = await supabase.storage
     .from(WHISPER_BUCKET)
@@ -192,27 +87,35 @@ async function downloadForPlayback({ whisper, coupleKey }) {
 
   if (error || !data) throw new Error(`WhisperService download: ${error?.message}`);
 
-  const ciphertextB64 = await data.text();
-  const localUri = await decryptToTempFile(ciphertextB64, whisper.nonce, whisperKey);
+  const localUri = `${FileSystem.cacheDirectory}whisper_${Date.now()}.m4a`;
+  const bytes = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const parts = String(reader.result || '').split(',');
+      const b64 = parts.length >= 2 ? parts[1] : parts[0];
+      if (!b64) {
+        reject(new Error('Invalid data URL format from Blob'));
+        return;
+      }
+      resolve(b64);
+    };
+    reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
+    reader.readAsDataURL(data);
+  });
 
+  await FileSystem.writeAsStringAsync(localUri, bytes, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
   return localUri;
 }
 
-// ─── Ephemeral cleanup ─────────────────────────────────────────────────────
-
-/**
- * Delete the whisper's remote storage object and mark it as played in metadata.
- * Call this immediately after the audio finishes playing.
- */
 async function deleteAfterPlay({ whisper, coupleId, localUri }) {
-  // Remove temp local file
   if (localUri) {
     await FileSystem.deleteAsync(localUri, { idempotent: true }).catch(() => {});
   }
 
   if (!supabase) return;
 
-  // Mark as played in metadata first to avoid un-decryptable phantom rows
   const { error: metaError } = await supabase
     .from(TABLES.COUPLE_DATA)
     .update({ value: { ...whisper, played: true } })
@@ -221,21 +124,18 @@ async function deleteAfterPlay({ whisper, coupleId, localUri }) {
 
   if (metaError) {
     console.warn(`[WhisperService] Failed to mark whisper as played: ${metaError.message}`);
-    return; // Don't delete storage if we couldn't mark it played, otherwise it becomes a phantom
+    return;
   }
 
-  // Delete from Supabase Storage (the ciphertext blob)
   await supabase.storage
     .from(WHISPER_BUCKET)
     .remove([whisper.storage_path])
     .catch(() => {});
 }
 
-const WhisperService = {
+export default {
   upload,
   getPending,
   downloadForPlayback,
   deleteAfterPlay,
 };
-
-export default WhisperService;

@@ -67,7 +67,7 @@ We use your data to provide personalized prompts, sync data between you and your
 
 Core synced content is stored through Supabase and protected by account authentication, row-level security, HTTPS/TLS, provider-side security controls, and app/backend access controls. Core synced content is not currently encrypted end-to-end before upload.
 
-Some local data, app-lock secrets, auth tokens, and credentials may be stored in platform secure storage where available. App lock helps protect access on your device but does not make synced server content end-to-end encrypted.
+Device data is limited to cache, pending offline writes, notification ids, display preferences, and app-lock enabled state. App lock helps protect access on your device but does not make synced server content end-to-end encrypted.
 
 ### Data Sharing
 

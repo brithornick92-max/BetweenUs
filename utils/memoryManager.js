@@ -1,7 +1,6 @@
 // utils/memoryManager.js
 import { storage, STORAGE_KEYS, memoryStorage } from './storage';
 import CloudEngine from '../services/storage/CloudEngine';
-import CoupleKeyService from '../services/security/CoupleKeyService';
 
 // Memory Types (moved here to avoid circular dependency)
 export const MEMORY_TYPES = {
@@ -546,7 +545,7 @@ export class MemoryManager {
    */
   async syncToCloud(config = {}) {
     try {
-      const { includePhotos = false, encryptData = true } = config;
+      const { includePhotos = false } = config;
       const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
       if (!coupleId) {
         return { success: false, error: 'Couple not linked.' };
@@ -562,31 +561,14 @@ export class MemoryManager {
         version: '2.0',
       };
       
-      const coupleKey = await CoupleKeyService.getCoupleKey(coupleId);
-      if (encryptData && !coupleKey) {
-        return { success: false, error: 'Pairing key not found.' };
-      }
-
-      if (encryptData) {
-        await CloudEngine.saveCoupleDataEncrypted(
-          coupleId,
-          'memory_backup_v1',
-          { ...syncData, encrypted: true },
-          userId,
-          true,
-          'memory_backup',
-          coupleKey
-        );
-      } else {
-        await CloudEngine.saveCoupleData(
-          coupleId,
-          'memory_backup_v1',
-          syncData,
-          userId,
-          true,
-          'memory_backup'
-        );
-      }
+      await CloudEngine.saveCoupleData(
+        coupleId,
+        'memory_backup_v1',
+        syncData,
+        userId,
+        true,
+        'memory_backup'
+      );
       
       return {
         success: true,
@@ -613,10 +595,9 @@ export class MemoryManager {
         return { success: false, error: 'Couple not linked.' };
       }
 
-      const coupleKey = await CoupleKeyService.getCoupleKey(coupleId);
-      const data = await CloudEngine.getCoupleData(coupleId, backupId || 'memory_backup_v1', coupleKey);
-      if (!data || data?.locked) {
-        return { success: false, error: 'Backup is locked or unavailable.' };
+      const data = await CloudEngine.getCoupleData(coupleId, backupId || 'memory_backup_v1');
+      if (!data) {
+        return { success: false, error: 'Backup is unavailable.' };
       }
 
       const payload = data.value || data;

@@ -6,11 +6,6 @@
  *
  * Critical regression: maxHeatOverride must use != null (not truthy) so that
  * a value of 0 is respected.
- *
- * Storage format note:
- * _decrypt() has a legacy plaintext path — any stored object that lacks
- * __enc is returned as-is. We exploit this so tests bypass EncryptionService's
- * dynamic import entirely, keeping the test surface clean.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,7 +19,6 @@ const EMPTY = {
   maxHeatOverride: null,
 };
 
-// Store as legacy plaintext (no __enc wrapper) — _decrypt passes it through unchanged.
 const stored = (data) => JSON.stringify(data);
 
 const makePrompt = (overrides = {}) => ({
@@ -122,10 +116,7 @@ describe('SoftBoundaries.setHideSpicy', () => {
     await SoftBoundaries.setHideSpicy(true);
 
     const savedRaw = AsyncStorage.setItem.mock.calls[0][1];
-    // _encrypt falls back to plaintext when EncryptionService dynamic import
-    // isn't available in the test environment.
-    const saved = JSON.parse(savedRaw);
-    const data = saved.__enc ? JSON.parse(saved.d) : saved;
+    const data = JSON.parse(savedRaw);
     expect(data.hideSpicy).toBe(true);
     expect(data.maxHeatOverride).toBe(3);
   });
@@ -137,8 +128,7 @@ describe('SoftBoundaries.setHideSpicy', () => {
     await SoftBoundaries.setHideSpicy(false);
 
     const savedRaw = AsyncStorage.setItem.mock.calls[0][1];
-    const saved = JSON.parse(savedRaw);
-    const data = saved.__enc ? JSON.parse(saved.d) : saved;
+    const data = JSON.parse(savedRaw);
     expect(data.hideSpicy).toBe(false);
     expect(data.maxHeatOverride).toBeNull();
   });

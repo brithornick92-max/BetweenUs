@@ -6,8 +6,7 @@
  * Usage in screens/contexts:
  *   import { DataLayer } from '../services/localfirst';
  *
- * NOTE: SupabaseDataLayer is now the active implementation. Legacy
- * E2EE exports have been removed.
+ * NOTE: SupabaseDataLayer is now the active implementation.
  */
 
 export { default as DataLayer } from '../data/SupabaseDataLayer';

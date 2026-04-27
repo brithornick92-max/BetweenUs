@@ -100,13 +100,13 @@ const ExportDataScreen = ({ navigation }) => {
       );
     }
 
-    // Strip legacy cipher columns and internal sync metadata from output.
+    // Strip legacy local columns and internal sync metadata from output.
     const sanitize = (rows) => (rows || []).map(r => {
       if (!r) return r;
       const clean = { ...r };
-      // Remove cipher columns (user already has the plaintext fields)
+      // Remove legacy local columns (user already has the plaintext fields)
       for (const key of Object.keys(clean)) {
-        if (key.endsWith('_cipher') || ['sync_status', 'sync_version', 'sync_source'].includes(key)) {
+        if (['sync_status', 'sync_version', 'sync_source'].includes(key)) {
           delete clean[key];
         }
       }
@@ -133,7 +133,7 @@ const ExportDataScreen = ({ navigation }) => {
 
       const includeAccount = !!options.includeAccountDetails;
 
-      // Gather all data from DataLayer (decrypted)
+      // Gather all data from DataLayer
       const allData = await gatherAllData();
 
       const exportPayload = {
@@ -166,7 +166,8 @@ const ExportDataScreen = ({ navigation }) => {
       // Create filename with timestamp
       const timestamp = new Date().toISOString().split('T')[0];
       const filename = `between-us-export-${timestamp}.json`;
-      const exportDir = FileSystem.cacheDirectory || FileSystem.documentDirectory;
+      const exportDir = FileSystem.cacheDirectory;
+      if (!exportDir) throw new Error('Export cache directory unavailable');
       fileUri = `${exportDir}${filename}`;
 
       // Write file
@@ -247,8 +248,7 @@ const ExportDataScreen = ({ navigation }) => {
             <Text style={[styles.warningTitle, { color: t.warning }]}>Privacy Notice</Text>
           </View>
           <Text style={[styles.warningText, { color: t.subtext }]}>
-            This file will contain sensitive plaintext information. Share it only with those you trust
-            and store it in a secure, encrypted location.
+            This file will contain sensitive plaintext information. Share it only with those you trust.
           </Text>
         </View>
 

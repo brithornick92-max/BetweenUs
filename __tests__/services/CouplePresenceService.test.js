@@ -11,7 +11,6 @@ describe('CouplePresenceService', () => {
 
   function createDeps({
     remoteCoupleId = 'couple-1',
-    hasCoupleKey = true,
     secondRemoteCoupleId,
   } = {}) {
     const getMyCouple = jest.fn()
@@ -26,10 +25,6 @@ describe('CouplePresenceService', () => {
         getMyCouple,
         unlinkFromCouple: jest.fn().mockResolvedValue(true),
       },
-      coupleKeyService: {
-        hasCoupleKey: jest.fn().mockResolvedValue(hasCoupleKey),
-        clearCoupleKey: jest.fn().mockResolvedValue(undefined),
-      },
       storageRouter: {
         updateUserDocument: jest.fn().mockResolvedValue(undefined),
       },
@@ -43,7 +38,7 @@ describe('CouplePresenceService', () => {
 
   it('keeps the remote couple id as the authoritative pair state', async () => {
     const { getVerifiedCoupleState } = require('../../services/couple/CouplePresenceService');
-    const deps = createDeps({ remoteCoupleId: 'remote-couple-1', hasCoupleKey: true });
+    const deps = createDeps({ remoteCoupleId: 'remote-couple-1' });
 
     const result = await getVerifiedCoupleState({
       currentCoupleId: 'local-couple-1',
@@ -54,15 +49,14 @@ describe('CouplePresenceService', () => {
 
     expect(result).toEqual(expect.objectContaining({
       coupleId: 'remote-couple-1',
-      hasCoupleKey: true,
-      status: 'paired_key_ready',
+      status: 'paired',
     }));
-    expect(deps.storageApi.set).toHaveBeenCalledWith('@betweenus:coupleId', 'remote-couple-1');
+    expect(deps.storageApi.set).toHaveBeenCalledWith('@betweenus:cache:coupleId', 'remote-couple-1');
   });
 
   it('only clears local pair state after a confirmed remote miss', async () => {
     const { getVerifiedCoupleState } = require('../../services/couple/CouplePresenceService');
-    const deps = createDeps({ remoteCoupleId: null, secondRemoteCoupleId: null, hasCoupleKey: false });
+    const deps = createDeps({ remoteCoupleId: null, secondRemoteCoupleId: null });
 
     const result = await getVerifiedCoupleState({
       currentCoupleId: 'stale-couple-1',
@@ -75,15 +69,14 @@ describe('CouplePresenceService', () => {
       coupleId: null,
       status: 'unpaired',
     }));
-    expect(deps.storageApi.remove).toHaveBeenCalledWith('@betweenus:coupleId');
-    expect(deps.coupleKeyService.clearCoupleKey).toHaveBeenCalledWith('stale-couple-1');
+    expect(deps.storageApi.remove).toHaveBeenCalledWith('@betweenus:cache:coupleId');
     expect(deps.storageRouter.updateUserDocument).toHaveBeenCalledWith('user-1', { coupleId: null });
     expect(clearCouplePremiumCache).toHaveBeenCalled();
   });
 
   it('uses the same cleanup path for unlinking', async () => {
     const { unlinkCouple } = require('../../services/couple/CouplePresenceService');
-    const deps = createDeps({ remoteCoupleId: null, hasCoupleKey: false });
+    const deps = createDeps({ remoteCoupleId: null });
     const onProfileCleared = jest.fn();
 
     await unlinkCouple({
@@ -94,7 +87,7 @@ describe('CouplePresenceService', () => {
     });
 
     expect(deps.coupleService.unlinkFromCouple).toHaveBeenCalledTimes(1);
-    expect(deps.storageApi.remove).toHaveBeenCalledWith('@betweenus:partnerProfile');
+    expect(deps.storageApi.remove).toHaveBeenCalledWith('@betweenus:cache:partnerProfile');
     expect(onProfileCleared).toHaveBeenCalledWith({ coupleId: null });
   });
 });

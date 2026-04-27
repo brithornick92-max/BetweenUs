@@ -32,7 +32,6 @@ import { useContent } from '../context/ContentContext';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { getDateCardPalette } from '../components/dateCardPalette';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getDateHistory,
   rateDateHistoryEntry,
@@ -200,7 +199,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const logDateComplete = React.useCallback(async () => {
     if (!date?.id) return;
     autoLoggedRef.current = true;
-    const result = await saveDateHistoryEntry(date, AsyncStorage);
+    const result = await saveDateHistoryEntry(date);
     setDateHistoryEntry(result.entry);
   }, [date]);
 
@@ -210,7 +209,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
       return;
     }
 
-    const history = await getDateHistory(AsyncStorage);
+    const history = await getDateHistory();
     setDateHistoryEntry(history.find((entry) => entry.id === date.id) || null);
   }, [date?.id]);
 
@@ -264,20 +263,20 @@ export default function DateNightDetailScreen({ route, navigation }) {
     selection();
 
     if (dateHistoryEntry) {
-      await removeDateHistoryEntry(date.id, AsyncStorage);
+      await removeDateHistoryEntry(date.id);
       setDateHistoryEntry(null);
       autoLoggedRef.current = true;
       return;
     }
 
-    const result = await saveDateHistoryEntry(date, AsyncStorage);
+    const result = await saveDateHistoryEntry(date);
     setDateHistoryEntry(result.entry);
   };
 
   const handleRateDate = async (rating) => {
     if (!date?.id) return;
     selection();
-    const result = await rateDateHistoryEntry(date, rating, AsyncStorage);
+    const result = await rateDateHistoryEntry(date, rating);
     setDateHistoryEntry(result.entry);
     autoLoggedRef.current = true;
   };

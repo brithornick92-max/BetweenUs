@@ -26,19 +26,18 @@ import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
-import EncryptedAttachments from '../services/e2ee/EncryptedAttachments';
+import AttachmentCacheService from '../services/AttachmentCacheService';
 import { getPromptById } from '../utils/contentLoader';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { storage } from '../utils/storage';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import MediaLightbox from '../components/MediaLightbox';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDateHistory } from '../utils/dateHistory';
 import { getIntimacyTried } from '../utils/intimacyFavorites';
 import { NicknameEngine } from '../services/PolishEngine';
 
-const HEARTS_KEY = '@betweenus:moment_hearts';
+const HEARTS_KEY = '@betweenus:cache:momentHearts';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
@@ -115,20 +114,9 @@ async function resolveRowMedia(row) {
   if (!mediaRef) return null;
 
   try {
-    const keyType = row.couple_id ? 'couple' : 'device';
-    const coupleId = keyType === 'couple' ? row.couple_id : null;
-    const uri = await EncryptedAttachments.getDecryptedUri(mediaRef, keyType, coupleId);
-
-    let attachment = null;
-
-    try {
-      const { default: Database } = await import('../services/db/Database');
-      attachment = await Database.getAttachmentById(mediaRef);
-    } catch {
-      attachment = null;
-    }
-
-    const mimeType = attachment?.mime_type || directMimeType || 'image/jpeg';
+    const uri = await AttachmentCacheService.getCachedUri(mediaRef);
+    if (!uri) return null;
+    const mimeType = directMimeType || 'image/jpeg';
 
     return {
       uri,
@@ -390,7 +378,7 @@ export default function OurStoryScreen() {
         safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
         safeLoad(() => DataLayer.getSharedMemories({ limit: 500 })),
         safeLoad(() => DataLayer.getMemories({ limit: 500 })),
-        safeLoad(() => getDateHistory(AsyncStorage)),
+        safeLoad(() => getDateHistory()),
         safeLoad(() => getIntimacyTried()),
         NicknameEngine.getMyName('You'),
         NicknameEngine.getPartnerName('Partner'),

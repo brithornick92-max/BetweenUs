@@ -119,18 +119,18 @@ Core synced content is protected by:
 
 Core synced content is **not** currently encrypted end-to-end before upload.
 
-### 3.2 Local Storage and Offline Use
+### 3.2 Device Cache and Offline Use
 
-Between Us also stores data locally for responsiveness, offline continuity, settings, auth/session handling, and pending offline writes. Local storage may include:
+Between Us also keeps device cache for responsiveness, offline continuity, settings, and pending offline writes. Device cache may include:
 
 - Cached synced content
 - Drafts or queued writes waiting to sync
 - App settings and privacy settings
-- App-lock PIN hash and salt in secure storage
-- Auth/session credentials and push tokens in secure platform storage where available
-- Local-only features such as certain inside-joke and preference history data
+- App-lock enabled state and operating-system biometric result state
+- Scheduled notification ids and in-memory push-token state
+- Cache-only preference history such as inside jokes and content tuning
 
-Some preferences that feel local, including energy level, relationship climate, and soft boundaries, may also sync to your profile so they can be restored across devices.
+Some preferences, including energy level, relationship climate, and soft boundaries, may also sync to your profile so they can be restored across devices.
 
 ### 3.3 App Lock and Biometrics
 
@@ -209,7 +209,7 @@ Depending on where you live, you may have rights to access, correct, delete, exp
 - Unlink from your partner
 - Delete your account from Settings
 
-Account deletion removes active account data, profile records, your couple membership, your user-created couple data, push tokens, analytics events tied to your user ID, local cache, secure local credentials, and the Supabase auth user as described in the app's deletion flow. Backup copies may persist for a limited period before routine purge, and some information may be retained where required for legal, security, fraud-prevention, or accounting reasons.
+Account deletion removes active account data, profile records, your couple membership, your user-created couple data, push tokens, analytics events tied to your user ID, device cache, and the Supabase auth user as described in the app's deletion flow. Backup copies may persist for a limited period before routine purge, and some information may be retained where required for legal, security, fraud-prevention, or accounting reasons.
 
 ### 5.3 Regional Disclosures
 

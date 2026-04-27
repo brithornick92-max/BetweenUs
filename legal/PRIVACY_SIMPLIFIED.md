@@ -24,7 +24,7 @@ Core synced content is **not currently end-to-end encrypted**.
 
 ### Local protection
 
-Some data is stored locally for speed, offline use, settings, and app lock. PIN hashes, auth/session items, and certain cached values may use platform secure storage where available.
+Some data is cached on device for speed, offline use, settings, and app lock. This includes cached synced content, offline queues, notification ids, display preferences, and app-lock enabled state.
 
 Face ID and Touch ID are handled by your device. We do not collect biometric templates.
 
@@ -56,7 +56,7 @@ Face ID and Touch ID are handled by your device. We do not collect biometric tem
 
 Some data may stay local or cached on your device, including:
 
-- App-lock PIN hash and salt
+- App-lock enabled state
 - Local cache and pending offline writes
 - Some inside-joke and preference history data
 - Device session data

@@ -24,7 +24,7 @@ import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
-const SHARED_JOURNAL_NOTICE_KEY = '@betweenus:sharedJournalNoticeDismissed';
+const SHARED_JOURNAL_NOTICE_KEY = '@betweenus:cache:sharedJournalNoticeDismissed';
 
 function toDate(value) {
   if (!value) return null;

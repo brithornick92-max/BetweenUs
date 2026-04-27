@@ -486,7 +486,7 @@ export default function JournalEntryScreen({ navigation, route }) {
               <View style={styles.securityBanner}>
                 <Icon name="shield-checkmark-outline" size={12} color={colors.textMuted} />
                 <Text style={[styles.securityText, { color: colors.textMuted }]}>
-                  END-TO-END ENCRYPTED
+                  SUPABASE PROTECTED
                 </Text>
               </View>
             </Animated.View>

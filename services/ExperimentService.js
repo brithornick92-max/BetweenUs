@@ -4,6 +4,7 @@
  * Design:
  *   • Deterministic assignment via hash(userId + experimentId) — stable across sessions
  *   • Experiments defined locally with optional remote override via Supabase
+ *   • Local persistence is cache-only for remote config and variant assignments
  *   • Variant exposure tracked through AnalyticsService
  *   • No third-party SDK required
  *
@@ -18,8 +19,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AnalyticsService from './AnalyticsService';
 
-const EXPERIMENTS_CACHE_KEY = '@bu_experiments_cache';
-const ASSIGNMENTS_KEY = '@bu_experiment_assignments';
+const EXPERIMENTS_CACHE_KEY = '@betweenus:cache:experiments';
+const ASSIGNMENTS_KEY = '@betweenus:cache:experimentAssignments';
 const REMOTE_FETCH_INTERVAL = 60 * 60 * 1000; // 1 hour
 
 // ─── Local Experiment Definitions ─────────────────────────────────────────────
@@ -102,7 +103,7 @@ const ExperimentService = {
         _lastRemoteFetch = fetchedAt || 0;
       }
     } catch {
-      // Use local only
+      // Use bundled defaults only
     }
 
     // Fetch remote experiments in background

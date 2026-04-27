@@ -1,8 +1,8 @@
-import LocalEngine from './LocalEngine';
 import CloudEngine from './CloudEngine';
 import { SupabaseAuthService } from '../supabase/SupabaseAuthService';
 import CoupleService from '../supabase/CoupleService';
-import { cloudSyncStorage, storage, STORAGE_KEYS } from '../../utils/storage';
+import WeeklyContentScheduler from '../WeeklyContentScheduler';
+import { cloudSyncStorage, makeId, storage, STORAGE_KEYS } from '../../utils/storage';
 
 function isCloudUnavailableError(error) {
   const message = String(error?.message || '').toLowerCase();
@@ -99,8 +99,7 @@ function buildCloudProfileUpdates(localProfile = {}) {
   return updates;
 }
 
-async function cacheSupabaseCredentials(email, password, session) {
-  await SupabaseAuthService.storeCredentials(email, password);
+async function cacheSupabaseAccountEmail(email, session) {
   const syncStatus = await cloudSyncStorage.getSyncStatus();
   await cloudSyncStorage.setSyncStatus({
     ...syncStatus,
@@ -177,6 +176,36 @@ class StorageRouter {
     this.isPremium = false;
     this.syncEnabled = false;
     this.sessionPresent = false;
+    this.currentUser = null;
+    this.listeners = new Map();
+    this.supabaseAuthSubscription = null;
+  }
+
+  _notifyAuthListeners(user) {
+    this.listeners.forEach((callback) => {
+      try {
+        callback(user || null);
+      } catch (error) {
+        if (__DEV__) console.warn('[StorageRouter] Auth listener failed:', error?.message);
+      }
+    });
+  }
+
+  _userFromSession(session) {
+    const authUser = session?.user;
+    if (!authUser?.id) return null;
+    const email = authUser.email || '';
+    return {
+      uid: authUser.id,
+      id: authUser.id,
+      email,
+      displayName:
+        authUser.user_metadata?.display_name ||
+        authUser.user_metadata?.full_name ||
+        email.split('@')[0] ||
+        'Between Us',
+      emailVerified: !!(authUser.email_confirmed_at || authUser.confirmed_at),
+    };
   }
 
   async _syncCloudSessionState() {
@@ -187,7 +216,6 @@ class StorageRouter {
     this.isPremium = !!isPremium;
     this.syncEnabled = !!syncEnabled;
     this.sessionPresent = !!supabaseSessionPresent;
-    await LocalEngine.initialize?.();
     await this._syncCloudSessionState();
   }
 
@@ -225,11 +253,42 @@ class StorageRouter {
 
   async setSupabaseSession(session) {
     this.sessionPresent = !!session;
+    this.currentUser = this._userFromSession(session);
+    this._notifyAuthListeners(this.currentUser);
     await this._syncCloudSessionState();
   }
 
   onAuthStateChanged(callback) {
-    return LocalEngine.onAuthStateChanged(callback);
+    const listenerId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    this.listeners.set(listenerId, callback);
+
+    Promise.resolve()
+      .then(async () => {
+        const session = await SupabaseAuthService.getSession().catch(() => null);
+        this.sessionPresent = !!session;
+        this.currentUser = this._userFromSession(session);
+        callback(this.currentUser);
+        await this._syncCloudSessionState();
+      })
+      .catch(() => callback(null));
+
+    if (!this.supabaseAuthSubscription) {
+      try {
+        const result = SupabaseAuthService.onAuthStateChange((session) => {
+          this.sessionPresent = !!session;
+          this.currentUser = this._userFromSession(session);
+          this._syncCloudSessionState().catch(() => {});
+          this._notifyAuthListeners(this.currentUser);
+        });
+        this.supabaseAuthSubscription = result?.data?.subscription || result?.subscription || result || null;
+      } catch (error) {
+        if (__DEV__) console.warn('[StorageRouter] Supabase auth listener unavailable:', error?.message);
+      }
+    }
+
+    return () => {
+      this.listeners.delete(listenerId);
+    };
   }
 
   async createAccount(email, password, displayName) {
@@ -242,56 +301,62 @@ class StorageRouter {
     }
 
     await this.setSupabaseSession(session);
-    await cacheSupabaseCredentials(email, password, session);
-    return LocalEngine.hydrateRemoteAccount({
+    await cacheSupabaseAccountEmail(email, session);
+    return this.hydrateRemoteAccount({
       uid: session.user.id,
       email: session.user.email || email,
-      password,
       displayName,
       emailVerified: !!(session.user?.email_confirmed_at || session.user?.confirmed_at),
     });
   }
 
   hydrateRemoteAccount(params) {
-    return LocalEngine.hydrateRemoteAccount(params);
+    const uid = params?.uid;
+    if (!uid) throw new Error('Remote user id is required');
+    const email = params?.email || '';
+    const user = {
+      uid,
+      id: uid,
+      email,
+      displayName: params?.displayName || email.split('@')[0] || 'Between Us',
+      emailVerified: params?.emailVerified ?? true,
+    };
+    this.currentUser = user;
+    this.sessionPresent = true;
+    this._notifyAuthListeners(user);
+    return { user };
   }
 
-  async signInWithEmailAndPassword(email, password, { localOnly = false, allowCacheFallback = true } = {}) {
-    if (localOnly) {
-      return LocalEngine.signInWithEmailAndPassword(email, password);
-    }
+  async signInWithEmailAndPassword(email, password) {
+    const session = await SupabaseAuthService.signInWithPassword(email, password);
+    if (!session?.user?.id) throw new Error('Supabase session required');
 
-    try {
-      const session = await SupabaseAuthService.signInWithPassword(email, password);
-      if (!session?.user?.id) throw new Error('Supabase session required');
-
-      await this.setSupabaseSession(session);
-      await cacheSupabaseCredentials(email, password, session);
-      return LocalEngine.hydrateRemoteAccount({
-        uid: session.user.id,
-        email: session.user.email || email,
-        password,
-        displayName:
-          session.user?.user_metadata?.display_name ||
-          session.user?.user_metadata?.full_name ||
-          (session.user.email || email).split('@')[0],
-        emailVerified: !!(session.user?.email_confirmed_at || session.user?.confirmed_at),
-      });
-    } catch (error) {
-      if (!allowCacheFallback || !isCloudUnavailableError(error)) {
-        throw error;
-      }
-      if (__DEV__) console.warn('[StorageRouter] Using cached local sign-in:', error?.message);
-      return LocalEngine.signInWithEmailAndPassword(email, password);
-    }
+    await this.setSupabaseSession(session);
+    await cacheSupabaseAccountEmail(email, session);
+    return this.hydrateRemoteAccount({
+      uid: session.user.id,
+      email: session.user.email || email,
+      displayName:
+        session.user?.user_metadata?.display_name ||
+        session.user?.user_metadata?.full_name ||
+        (session.user.email || email).split('@')[0],
+      emailVerified: !!(session.user?.email_confirmed_at || session.user?.confirmed_at),
+    });
   }
 
-  updatePasswordForEmail(email, password) {
-    return LocalEngine.updatePasswordForEmail(email, password);
+  async updatePasswordForEmail() {
+    return true;
   }
 
-  signOut(scope = 'global') {
-    return LocalEngine.signOut(scope);
+  async signOut(scope = 'global') {
+    await SupabaseAuthService.signOut(scope).catch((error) => {
+      if (__DEV__) console.warn('[StorageRouter] Supabase sign-out failed:', error?.message);
+    });
+    this.currentUser = null;
+    this.sessionPresent = false;
+    this._notifyAuthListeners(null);
+    await this._syncCloudSessionState();
+    return true;
   }
 
   async _getRemoteProfileOrCreate(cloudUserId, localProfile = {}) {
@@ -309,21 +374,21 @@ class StorageRouter {
   }
 
   async getUserDocument(userId) {
-    const localProfile = await LocalEngine.getUserDocument(userId);
+    const cachedProfile = await storage.get(STORAGE_KEYS.USER_PROFILE, {});
     if (!this.sessionPresent) {
-      return localProfile;
+      return cachedProfile;
     }
 
     try {
       const cloudUserId = await CloudEngine.getCurrentUserId();
       const [remoteProfile, remoteCoupleIdResult] = await Promise.all([
-        this._getRemoteProfileOrCreate(cloudUserId, localProfile),
+        this._getRemoteProfileOrCreate(cloudUserId, cachedProfile),
         this._readRemoteCoupleId()
           .then((coupleId) => ({ ok: true, coupleId }))
           .catch((error) => ({ ok: false, error })),
       ]);
 
-      const canonicalLocal = buildCanonicalLocalProfile(localProfile, remoteProfile);
+      const canonicalLocal = buildCanonicalLocalProfile(cachedProfile, remoteProfile);
       if (remoteCoupleIdResult.ok) {
         canonicalLocal.coupleId = remoteCoupleIdResult.coupleId || null;
         if (remoteCoupleIdResult.coupleId) {
@@ -333,12 +398,13 @@ class StorageRouter {
         }
       }
 
-      return await LocalEngine.updateUserDocument(userId, canonicalLocal);
+      await storage.set(STORAGE_KEYS.USER_PROFILE, canonicalLocal);
+      return canonicalLocal;
     } catch (err) {
       if (!isCloudUnavailableError(err)) {
         if (__DEV__) console.warn('[StorageRouter] Cloud profile read failed:', err?.message);
       }
-      return localProfile;
+      return cachedProfile;
     }
   }
 
@@ -346,7 +412,7 @@ class StorageRouter {
     if (this.sessionPresent) {
       try {
         const cloudUserId = await CloudEngine.getCurrentUserId();
-        const existingLocal = await LocalEngine.getUserDocument(userId);
+        const existingLocal = await storage.get(STORAGE_KEYS.USER_PROFILE, {});
         const remoteProfile = await this._getRemoteProfileOrCreate(cloudUserId, existingLocal);
         const remoteBackedLocal = buildCanonicalLocalProfile(existingLocal, remoteProfile);
         const localCandidate = {
@@ -356,13 +422,17 @@ class StorageRouter {
         };
         const savedRemoteProfile = await CloudEngine.upsertProfile(cloudUserId, buildCloudProfileUpdates(localCandidate));
         const canonicalLocal = buildCanonicalLocalProfile(localCandidate, savedRemoteProfile);
-        return await LocalEngine.updateUserDocument(userId, canonicalLocal);
+        await storage.set(STORAGE_KEYS.USER_PROFILE, canonicalLocal);
+        return canonicalLocal;
       } catch (err) {
         if (__DEV__) console.warn('[StorageRouter] Cloud profile upsert failed:', err?.message);
         throw err;
       }
     }
-    return LocalEngine.updateUserDocument(userId, updates);
+    const cached = await storage.get(STORAGE_KEYS.USER_PROFILE, {});
+    const updated = { ...cached, ...(updates || {}), updatedAt: new Date().toISOString() };
+    await storage.set(STORAGE_KEYS.USER_PROFILE, updated);
+    return updated;
   }
 
   async getCoupleData(coupleId, key) {
@@ -441,25 +511,58 @@ class StorageRouter {
   }
 
   async deleteUserDocument(userId) {
-    await LocalEngine.deleteUserDocument(userId);
+    await storage.remove(STORAGE_KEYS.USER_PROFILE);
+    await storage.remove(STORAGE_KEYS.USER_ID);
     return true;
   }
 
   getPrompts(filters = {}) {
-    return LocalEngine.getPrompts(filters);
+    const promptsData = require('../../content/prompts.json');
+    let prompts = Array.isArray(promptsData?.items) ? promptsData.items : [];
+    prompts = WeeklyContentScheduler.filterAvailable(prompts);
+    if (filters.category) prompts = prompts.filter((p) => p.category === filters.category);
+    if (Array.isArray(filters.categories) && filters.categories.length > 0) {
+      prompts = prompts.filter((p) => filters.categories.includes(p.category));
+    }
+    if (filters.heat) prompts = prompts.filter((p) => p.heat === filters.heat);
+    if (typeof filters.heatLevel === 'number') prompts = prompts.filter((p) => p.heat === filters.heatLevel);
+    if (typeof filters.minHeatLevel === 'number') prompts = prompts.filter((p) => p.heat >= filters.minHeatLevel);
+    if (typeof filters.maxHeatLevel === 'number') prompts = prompts.filter((p) => p.heat <= filters.maxHeatLevel);
+    if (Array.isArray(filters.heatLevels) && filters.heatLevels.length > 0) {
+      prompts = prompts.filter((p) => filters.heatLevels.includes(p.heat));
+    }
+    if (filters.limit) prompts = prompts.slice(0, filters.limit);
+    return prompts;
   }
 
   getDates(filters = {}) {
-    return LocalEngine.getDates(filters);
+    const datesData = require('../../content/dates.json');
+    let dates = Array.isArray(datesData?.items) ? datesData.items : [];
+    dates = WeeklyContentScheduler.filterAvailable(dates);
+    if (filters.category) dates = dates.filter((d) => d.category === filters.category);
+    if (filters.heat) dates = dates.filter((d) => d.heat === filters.heat);
+    if (typeof filters.heatLevel === 'number') dates = dates.filter((d) => d.heat === filters.heatLevel);
+    if (Array.isArray(filters.categories) && filters.categories.length > 0) {
+      dates = dates.filter((d) => filters.categories.includes(d.category));
+    }
+    if (filters.limit) dates = dates.slice(0, filters.limit);
+    return dates;
   }
 
   async saveMemory(userId, memoryData, coupleId = null) {
-    const local = await LocalEngine.saveMemory(userId, memoryData);
-    if (this._useCloud() && coupleId) {
+    const id = memoryData?.id || makeId('memory');
+    const local = {
+      id,
+      userId,
+      ...(memoryData || {}),
+      createdAt: memoryData?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    if (this._canUseAuthenticatedCloud() && coupleId) {
       try {
         await CloudEngine.saveCoupleData(
           coupleId,
-          `memory_${local.id}`,
+          `memory_${id}`,
           memoryData,
           userId,
           memoryData.isPrivate,
@@ -473,12 +576,12 @@ class StorageRouter {
   }
 
   getUserMemories(userId) {
-    return LocalEngine.getUserMemories(userId);
+    return [];
   }
 
   async updateMemory(memoryId, updates, coupleId = null) {
-    const local = await LocalEngine.updateMemory(memoryId, updates);
-    if (this._useCloud() && coupleId) {
+    const local = { id: memoryId, ...(updates || {}), updatedAt: new Date().toISOString() };
+    if (this._canUseAuthenticatedCloud() && coupleId) {
       try {
         await CloudEngine.updateCoupleData(coupleId, `memory_${memoryId}`, updates);
       } catch (err) {
@@ -489,8 +592,7 @@ class StorageRouter {
   }
 
   async deleteMemory(memoryId, coupleId = null) {
-    await LocalEngine.deleteMemory(memoryId);
-    if (this._useCloud() && coupleId) {
+    if (this._canUseAuthenticatedCloud() && coupleId) {
       try {
         await CloudEngine.deleteCoupleData(coupleId, `memory_${memoryId}`);
       } catch (err) {
@@ -500,12 +602,12 @@ class StorageRouter {
     return true;
   }
 
-  linkPartner(userId, partnerCode) {
-    return LocalEngine.linkPartner(userId, partnerCode);
+  async linkPartner(userId, partnerCode) {
+    return this.updateUserDocument(userId, { partnerId: partnerCode, partnerLinkedAt: new Date().toISOString() });
   }
 
-  unlinkPartner(userId) {
-    return LocalEngine.unlinkPartner(userId);
+  async unlinkPartner(userId) {
+    return this.updateUserDocument(userId, { partnerId: null, partnerLinkedAt: null, partnerUnlinkedAt: new Date().toISOString() });
   }
 
   async queueSyncOp(op) {

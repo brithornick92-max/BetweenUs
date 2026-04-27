@@ -1,0 +1,501 @@
+
+==========================================================================================
+Prompts
+==========================================================================================
+File: content/prompts.json
+Total: 792
+Meta keys: [ 'meta', 'items' ]
+Meta total: 792
+By heat: { '1': 225, '2': 106, '3': 121, '4': 180, '5': 160 }
+By category: {
+  visual: 25,
+  memory: 34,
+  sensory: 36,
+  emotional: 202,
+  playful: 27,
+  seasonal: 18,
+  romance: 72,
+  future: 22,
+  location: 27,
+  physical: 199,
+  fantasy: 77,
+  kinky: 38,
+  roleplay: 15
+}
+By releaseWeek: {
+  '0': 305,
+  '1': 9,
+  '2': 9,
+  '3': 9,
+  '4': 9,
+  '5': 9,
+  '6': 9,
+  '7': 9,
+  '8': 9,
+  '9': 9,
+  '10': 9,
+  '11': 9,
+  '12': 9,
+  '13': 9,
+  '14': 9,
+  '15': 9,
+  '16': 9,
+  '17': 9,
+  '18': 9,
+  '19': 9,
+  '20': 9,
+  '21': 9,
+  '22': 9,
+  '23': 9,
+  '24': 9,
+  '25': 9,
+  '26': 9,
+  '27': 9,
+  '28': 9,
+  '29': 9,
+  '30': 9,
+  '31': 9,
+  '32': 9,
+  '33': 9,
+  '34': 9,
+  '35': 9,
+  '36': 9,
+  '37': 9,
+  '38': 9,
+  '39': 9,
+  '40': 9,
+  '41': 9,
+  '42': 9,
+  '43': 9,
+  '44': 9,
+  '45': 9,
+  '46': 9,
+  '47': 9,
+  '48': 9,
+  '49': 9,
+  '50': 9,
+  '51': 9,
+  '52': 28
+}
+Release week min/max: 0 52
+Duplicate IDs: []
+Duplicate titles/text: []
+
+First 15 by releaseWeek:
+h1_001 | w0 | heat 1 | visual | What's the first thing you notice when I walk into a room...
+h1_002 | w0 | heat 1 | memory | Which of my childhood stories makes you smile the most...
+h1_003 | w0 | heat 1 | sensory | Which sound I make when completely relaxed do you love most...
+h1_004 | w0 | heat 1 | emotional | How has your definition of home changed since we've been together...
+h1_005 | w0 | heat 1 | playful | What's something I do in my sleep that you find endearing...
+h1_006 | w0 | heat 1 | seasonal | Which season feels most like 'us' and why...
+h1_007 | w0 | heat 1 | romance | Which hello from me after time apart gets you every time...
+h1_008 | w0 | heat 1 | emotional | What skill of mine do you find most impressive...
+h1_009 | w0 | heat 1 | playful | How do you know when I'm trying not to laugh...
+h1_010 | w0 | heat 1 | sensory | Which aspect of the way I smell appeals to you most...
+h1_011 | w0 | heat 1 | future | Which of our future dreams excites you most...
+h1_012 | w0 | heat 1 | emotional | What's something I've helped you discover about yourself...
+h1_013 | w0 | heat 1 | playful | What happens to your mood when I sing along to music in the car...
+h1_014 | w0 | heat 1 | emotional | What's one thing I do with animals that melts you instantly...
+h1_015 | w0 | heat 1 | location | Which room in our home feels most like 'us'...
+
+Last 15 by releaseWeek:
+h5_165 | w52 | heat 4 | location | Describe the most daring location you'd ever want us to be intimate together...
+h5_166 | w52 | heat 4 | seasonal | On the longest night of the year, with nothing but candlelight, how would you want us to spend every hour?
+h5_167 | w52 | heat 4 | seasonal | If a heatwave kept us in bed all day with nowhere to go, what would you want to happen?
+h5_168 | w52 | heat 4 | seasonal | Imagine a New Year's Eve where we skip the party and ring it in together our way — describe everything...
+h5_rp_01 | w52 | heat 5 | roleplay | We're deep in the woods at our campsite, miles from anyone. The fire's dying down, the sleeping bag is unzipped, and the night air is cool against our skin. Describe how the isolation changes everything — the sounds we make knowing nobody can hear, how the firelight plays across our bodies, every bold thing you'd do knowing the nearest person is miles away...
+h5_rp_02 | w52 | heat 5 | roleplay | We're swimming together in a secluded mountain lake at sunset. The water is warm on the surface, cool underneath, and we're completely alone. Describe how it starts — the way our bodies feel weightless together, how hands move differently underwater, pulling me close with nothing between us, the sensation of skin against skin in the water as the sun disappears...
+h5_rp_03 | w52 | heat 5 | roleplay | We're alone in an outdoor hot tub under the stars, the jets pulsing around us, steam rising into the cold night air. Describe every detail — how you position us so the jets hit just right, the way the bubbling water hides what your hands are doing underneath, how the heat of the water mixes with the heat between us as things escalate...
+h5_rp_04 | w52 | heat 5 | roleplay | We've been flirting with someone we both find irresistible. Tonight, they're in our bedroom. Describe the scene from the very beginning — who makes the first move, how the three of us navigate each other's bodies, the dynamic of watching me with someone else while waiting for your turn, every position, every moment of shared pleasure...
+h5_rp_05 | w52 | heat 5 | roleplay | We're deep in a late-night conversation and the tension has been building for weeks. Tonight I pull you closer and confess I haven't been able to stop thinking about you. My partner is waiting in the next room — I invited them because I want us all together. Describe what happens when that door opens and the night turns into something none of us will forget...
+h5_rp_06 | w52 | heat 5 | roleplay | You're a flight attendant on a private jet and I'm your only passenger. After takeoff, you close the cabin curtain and tell me this flight comes with very special first-class service. Describe the full fantasy — the uniform coming undone, the turbulence that pushes us together, every mile-high detail from takeoff to the descent you give me...
+h5_rp_07 | w52 | heat 5 | roleplay | We're strangers who locked eyes across a hotel bar. No names, no history — just raw attraction. You slide into the seat next to me and within minutes we're in the elevator, barely keeping our hands off each other. Describe every moment from the hallway to the hotel room — the urgency, the anonymity, the things we do because there are no strings and no rules...
+h5_rp_08 | w52 | heat 5 | roleplay | We're alone in a candlelit studio for a private evening stretch. As I guide you into each pose, my hands linger and the chemistry becomes impossible to ignore. Describe how the stretching turns into something else entirely and how the tension takes over...
+h5_rp_09 | w52 | heat 5 | roleplay | We rented a cabin with a massive window overlooking a valley — no neighbors, no curtains, nothing but wilderness. There's a bearskin rug by the fireplace and a storm rolling in. Describe the entire night — how the thunder covers our sounds, the warmth of the fire on bare skin, every position we try in front of that window knowing nature is our only audience...
+h5_rp_10 | w52 | heat 5 | roleplay | We're at a masquerade party in a mansion. Masks on, identities hidden. We find a locked room upstairs — velvet furniture, dim lighting, a mirror covering one wall. We can hear the party below but no one knows we've slipped away. Describe what happens behind that locked door, with the masks still on, the anonymity and the mirror showing everything...
+h5_rp_11 | w52 | heat 5 | roleplay | We're setting up a sensual massage night, but one partner arrives first and the tension is already building by the time the other joins in. Describe the oil, the hands, and the three-way dynamic that unfolds once everyone is finally together...
+
+Rolling 10-week variety:
+weeks 1-10: 90 items | heats 1, 2, 3, 4 | categories emotional, fantasy, future, kinky, location, memory, physical, playful, romance, sensory, visual
+weeks 11-20: 90 items | heats 3, 4, 5 | categories emotional, fantasy, kinky, location, memory, physical, playful, sensory, visual
+weeks 21-30: 90 items | heats 1, 2, 3, 4, 5 | categories emotional, fantasy, kinky, physical, romance, sensory, visual
+weeks 31-40: 90 items | heats 1, 2, 3, 4, 5 | categories emotional, fantasy, physical, romance
+weeks 41-50: 90 items | heats 1, 2, 3, 4, 5 | categories emotional, fantasy, kinky, location, memory, physical, playful, seasonal, sensory, visual
+weeks 51-60: 37 items | heats 2, 3, 4, 5 | categories future, location, roleplay, romance, seasonal
+
+==========================================================================================
+Dates
+==========================================================================================
+File: content/dates.json
+Total: 675
+Meta keys: [ 'meta', 'items' ]
+Meta total: missing
+By heat: { '1': 247, '2': 251, '3': 177 }
+By category: { missing: 675 }
+By releaseWeek: {
+  '0': 307,
+  '1': 7,
+  '2': 7,
+  '3': 7,
+  '4': 7,
+  '5': 7,
+  '6': 7,
+  '7': 7,
+  '8': 7,
+  '9': 7,
+  '10': 7,
+  '11': 7,
+  '12': 7,
+  '13': 7,
+  '14': 7,
+  '15': 7,
+  '16': 7,
+  '17': 7,
+  '18': 7,
+  '19': 7,
+  '20': 7,
+  '21': 7,
+  '22': 7,
+  '23': 7,
+  '24': 7,
+  '25': 7,
+  '26': 7,
+  '27': 7,
+  '28': 7,
+  '29': 7,
+  '30': 7,
+  '31': 7,
+  '32': 7,
+  '33': 7,
+  '34': 7,
+  '35': 7,
+  '36': 7,
+  '37': 7,
+  '38': 7,
+  '39': 7,
+  '40': 7,
+  '41': 7,
+  '42': 7,
+  '43': 7,
+  '44': 7,
+  '45': 7,
+  '46': 7,
+  '47': 7,
+  '48': 7,
+  '49': 7,
+  '50': 7,
+  '51': 7,
+  '52': 11
+}
+Release week min/max: 0 52
+Duplicate IDs: []
+Duplicate titles/text: []
+
+First 15 by releaseWeek:
+d001 | w0 | heat 2 | missing | Midnight Kitchen Dance Party
+d004 | w0 | heat 1 | missing | Golden Hour Walk + 3 Forever Photos
+d005 | w0 | heat 2 | missing | Living Room Fort Cinema
+d006 | w0 | heat 1 | missing | Bookstore Poetry Exchange
+d007 | w0 | heat 1 | missing | Bathtub Wine Tasting
+d009 | w0 | heat 2 | missing | Blindfolded Cooking Adventure
+d010 | w0 | heat 2 | missing | Museum Storytelling Date
+d011 | w0 | heat 3 | missing | Massage Oil Creation Lab
+d012 | w0 | heat 2 | missing | Thrift Store Fashion Show
+d013 | w0 | heat 1 | missing | Candlelit Letters for Next Year
+d016 | w0 | heat 2 | missing | Vintage Record Store Dig
+d017 | w0 | heat 1 | missing | Chocolate Tasting + Favorite Bite Challenge
+d019 | w0 | heat 2 | missing | Pillow Fight Championship
+d021 | w0 | heat 2 | missing | Wine and Paint Night
+d022 | w0 | heat 2 | missing | Antique Shop Time Travel
+
+Last 15 by releaseWeek:
+d577 | w51 | heat 2 | missing | Board Game Cafe Date
+d578 | w51 | heat 1 | missing | Book Fair Date
+d579 | w51 | heat 1 | missing | Plant Swap Date
+d580 | w51 | heat 1 | missing | Jewelry Making Workshop
+d581 | w52 | heat 2 | missing | Makerspace Challenge Date
+d582 | w52 | heat 1 | missing | Furniture Flipping Date
+d583 | w52 | heat 1 | missing | Volunteer Soup Kitchen Date
+d584 | w52 | heat 1 | missing | Mutual Aid Care Package Night
+d585 | w52 | heat 1 | missing | Little Free Library Restock Date
+d586 | w52 | heat 1 | missing | Dog Park Coffee Date
+d587 | w52 | heat 1 | missing | Horse Sanctuary Visit
+d588 | w52 | heat 1 | missing | Wildlife Rescue Center Visit
+d589 | w52 | heat 2 | missing | Drag Show Date
+d590 | w52 | heat 2 | missing | Drag Brunch Date
+d591 | w52 | heat 1 | missing | Zine Fair Date
+
+Rolling 10-week variety:
+weeks 1-10: 70 items | heats 1, 2, 3 | categories missing
+weeks 11-20: 70 items | heats 1, 2, 3 | categories missing
+weeks 21-30: 70 items | heats 1, 2 | categories missing
+weeks 31-40: 70 items | heats 1, 2, 3 | categories missing
+weeks 41-50: 70 items | heats 1, 2, 3 | categories missing
+weeks 51-60: 18 items | heats 1, 2 | categories missing
+
+==========================================================================================
+Positions
+==========================================================================================
+File: content/intimacy-positions.json
+Total: 200
+Meta keys: [ 'meta', 'items' ]
+Meta total: 200
+By heat: { '1': 40, '2': 69, '3': 91 }
+By category: {
+  'deep-connection': 67,
+  exploratory: 35,
+  'sensual-rhythm': 34,
+  'playful-energy': 33,
+  'trust-vulnerability': 31
+}
+By releaseWeek: {
+  '0': 10,
+  '1': 1,
+  '2': 1,
+  '3': 1,
+  '4': 1,
+  '5': 1,
+  '6': 1,
+  '7': 1,
+  '8': 1,
+  '9': 1,
+  '10': 1,
+  '11': 1,
+  '12': 1,
+  '13': 1,
+  '14': 1,
+  '15': 1,
+  '16': 1,
+  '17': 1,
+  '18': 1,
+  '19': 1,
+  '20': 1,
+  '21': 1,
+  '22': 1,
+  '23': 1,
+  '24': 1,
+  '25': 1,
+  '26': 1,
+  '27': 1,
+  '28': 1,
+  '29': 1,
+  '30': 1,
+  '31': 1,
+  '32': 1,
+  '33': 1,
+  '34': 1,
+  '35': 1,
+  '36': 1,
+  '37': 1,
+  '38': 1,
+  '39': 1,
+  '40': 1,
+  '41': 1,
+  '42': 1,
+  '43': 1,
+  '44': 1,
+  '45': 1,
+  '46': 1,
+  '47': 1,
+  '48': 1,
+  '49': 1,
+  '50': 1,
+  '51': 1,
+  '52': 1,
+  '53': 1,
+  '54': 1,
+  '55': 1,
+  '56': 1,
+  '57': 1,
+  '58': 1,
+  '59': 1,
+  '60': 1,
+  '61': 1,
+  '62': 1,
+  '63': 1,
+  '64': 1,
+  '65': 1,
+  '66': 1,
+  '67': 1,
+  '68': 1,
+  '69': 1,
+  '70': 1,
+  '71': 1,
+  '72': 1,
+  '73': 1,
+  '74': 1,
+  '75': 1,
+  '76': 1,
+  '77': 1,
+  '78': 1,
+  '79': 1,
+  '80': 1,
+  '81': 1,
+  '82': 1,
+  '83': 1,
+  '84': 1,
+  '85': 1,
+  '86': 1,
+  '87': 1,
+  '88': 1,
+  '89': 1,
+  '90': 1,
+  '91': 1,
+  '92': 1,
+  '93': 1,
+  '94': 1,
+  '95': 1,
+  '96': 1,
+  '97': 1,
+  '98': 1,
+  '99': 1,
+  '100': 1,
+  '101': 1,
+  '102': 1,
+  '103': 1,
+  '104': 1,
+  '105': 1,
+  '106': 1,
+  '107': 1,
+  '108': 1,
+  '109': 1,
+  '110': 1,
+  '111': 1,
+  '112': 1,
+  '113': 1,
+  '114': 1,
+  '115': 1,
+  '116': 1,
+  '117': 1,
+  '118': 1,
+  '119': 1,
+  '120': 1,
+  '121': 1,
+  '122': 1,
+  '123': 1,
+  '124': 1,
+  '125': 1,
+  '126': 1,
+  '127': 1,
+  '128': 1,
+  '129': 1,
+  '130': 1,
+  '131': 1,
+  '132': 1,
+  '133': 1,
+  '134': 1,
+  '135': 1,
+  '136': 1,
+  '137': 1,
+  '138': 1,
+  '139': 1,
+  '140': 1,
+  '141': 1,
+  '142': 1,
+  '143': 1,
+  '144': 1,
+  '145': 1,
+  '146': 1,
+  '147': 1,
+  '148': 1,
+  '149': 1,
+  '150': 1,
+  '151': 1,
+  '152': 1,
+  '153': 1,
+  '154': 1,
+  '155': 1,
+  '156': 1,
+  '157': 1,
+  '158': 1,
+  '159': 1,
+  '160': 1,
+  '161': 1,
+  '162': 1,
+  '163': 1,
+  '164': 1,
+  '165': 1,
+  '166': 1,
+  '167': 1,
+  '168': 1,
+  '169': 1,
+  '170': 1,
+  '171': 1,
+  '172': 1,
+  '173': 1,
+  '174': 1,
+  '175': 1,
+  '176': 1,
+  '177': 1,
+  '178': 1,
+  '179': 1,
+  '180': 1,
+  '181': 1,
+  '182': 1,
+  '183': 1,
+  '184': 1,
+  '185': 1,
+  '186': 1,
+  '187': 1,
+  '188': 1,
+  '189': 1,
+  '190': 1
+}
+Release week min/max: 0 190
+Duplicate IDs: []
+Duplicate titles/text: []
+
+First 15 by releaseWeek:
+ip001 | w0 | heat 3 | deep-connection | The Tether
+ip002 | w0 | heat 2 | deep-connection | The Mirror
+ip003 | w0 | heat 3 | exploratory | The Descent
+ip004 | w0 | heat 3 | sensual-rhythm | The Summit
+ip005 | w0 | heat 3 | deep-connection | The Reflection
+ip008 | w0 | heat 3 | playful-energy | The Reign
+ip009 | w0 | heat 3 | playful-energy | The Exchange
+ip010 | w0 | heat 3 | deep-connection | The Solstice
+ip015 | w0 | heat 3 | exploratory | The Bridge
+ip019 | w0 | heat 2 | sensual-rhythm | The Conversation
+ip006 | w1 | heat 3 | sensual-rhythm | The Horizon
+ip007 | w2 | heat 3 | sensual-rhythm | The Overhang
+ip011 | w3 | heat 3 | trust-vulnerability | The Ascent
+ip012 | w4 | heat 3 | exploratory | The Arch
+ip013 | w5 | heat 3 | sensual-rhythm | The Lift
+
+Last 15 by releaseWeek:
+ip187 | w176 | heat 3 | exploratory | The Frame Shift
+ip188 | w177 | heat 3 | exploratory | The Crosscurrent
+ip189 | w178 | heat 3 | exploratory | The Pivot
+ip190 | w179 | heat 3 | exploratory | The Bed Ledge
+ip191 | w180 | heat 3 | exploratory | The Vault
+ip192 | w181 | heat 3 | exploratory | The Crescent
+ip193 | w182 | heat 3 | exploratory | The Switchback
+ip194 | w183 | heat 3 | exploratory | The Overlook
+ip195 | w184 | heat 3 | exploratory | The Climb
+ip196 | w185 | heat 3 | exploratory | The Open Frame
+ip197 | w186 | heat 3 | exploratory | The Tandem
+ip198 | w187 | heat 3 | exploratory | The Side Door
+ip199 | w188 | heat 3 | exploratory | The Wildcard
+ip200 | w189 | heat 3 | exploratory | The Rooftop
+ip201 | w190 | heat 1 | deep-connection | The Final Spark
+
+Rolling 10-week variety:
+weeks 1-10: 10 items | heats 1, 2, 3 | categories deep-connection, exploratory, sensual-rhythm, trust-vulnerability
+weeks 11-20: 10 items | heats 1, 2, 3 | categories deep-connection
+weeks 21-30: 10 items | heats 2, 3 | categories deep-connection, playful-energy
+weeks 31-40: 10 items | heats 2, 3 | categories exploratory, playful-energy
+weeks 41-50: 10 items | heats 1, 2, 3 | categories deep-connection, sensual-rhythm, trust-vulnerability
+weeks 51-60: 10 items | heats 1, 2, 3 | categories deep-connection, exploratory, playful-energy, sensual-rhythm, trust-vulnerability
+weeks 61-70: 10 items | heats 1, 2, 3 | categories deep-connection, sensual-rhythm
+weeks 71-80: 10 items | heats 1, 2, 3 | categories deep-connection, trust-vulnerability
+weeks 81-90: 10 items | heats 1, 2 | categories deep-connection, sensual-rhythm, trust-vulnerability
+weeks 91-100: 10 items | heats 1, 2 | categories deep-connection, sensual-rhythm, trust-vulnerability
+weeks 101-110: 10 items | heats 2, 3 | categories sensual-rhythm
+weeks 111-120: 10 items | heats 2, 3 | categories deep-connection, exploratory, sensual-rhythm
+weeks 121-130: 10 items | heats 1, 2, 3 | categories deep-connection, exploratory, playful-energy, sensual-rhythm
+weeks 131-140: 10 items | heats 1, 2, 3 | categories exploratory, playful-energy, trust-vulnerability
+weeks 141-150: 10 items | heats 1, 2, 3 | categories playful-energy, trust-vulnerability
+weeks 151-160: 10 items | heats 1, 2, 3 | categories trust-vulnerability
+weeks 161-170: 10 items | heats 1, 2, 3 | categories deep-connection, trust-vulnerability
+weeks 171-180: 10 items | heats 3 | categories exploratory
+weeks 181-190: 10 items | heats 1, 3 | categories deep-connection, exploratory

@@ -76,7 +76,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Your relationship content such as synced journal entries, prompt responses, memories, check-ins, vibes, calendar events, date plans, and media attachments is protected by account access controls, transport security, row-level security, and provider-side policies. Core synced content is not currently end-to-end encrypted. We also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data.',
+        a: 'Your relationship content such as synced journal entries, prompt responses, memories, check-ins, vibes, calendar events, date plans, and media attachments is protected by account access controls, transport security, row-level security, and provider-side policies. We also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data.',
       },
       {
         q: 'Can my partner see everything I write?',
@@ -88,15 +88,15 @@ const FAQ_DATA = [
       },
       {
         q: 'Can Between Us read my journal?',
-        a: 'Core synced journal entries are not currently end-to-end encrypted. We restrict access with authentication, row-level security, secure transport, and provider-side controls, but we cannot accurately claim that our systems are technically unable to access core synced content.',
+        a: 'Core synced journal entries are stored in Supabase and protected with authentication, row-level security, secure transport, and provider-side controls. We cannot accurately claim that our systems are technically unable to access core synced content.',
       },
       {
         q: 'Can I lock the app with Face ID or a PIN?',
-        a: 'Yes. Go to Settings > Privacy & Security to set up a PIN code and optionally enable Face ID or Touch ID. Biometric matching is handled by your device; we receive only a success/failure result and do not collect biometric templates.',
+        a: 'Yes. Go to Settings > Privacy & Security to enable device app lock. Biometric matching is handled by your device; we receive only a success/failure result and do not collect biometric templates.',
       },
       {
         q: 'What happens if I lose my phone?',
-        a: 'If your account data has synced, it can appear on a new device after you sign in and sync completes.\n\nUnsynced local drafts, local-only settings, or cached data may not be recoverable from a lost device.',
+        a: 'If your account data has synced, it can appear on a new device after you sign in and sync completes.\n\nPending offline changes and cache-only preferences may not be recoverable from a lost device.',
       },
     ],
   },
@@ -167,7 +167,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can I use Between Us on multiple devices?',
-        a: 'Yes. You can sign in on multiple devices with the same account. Synced data can appear across devices after sign-in and sync, but unsynced local drafts, local-only settings, or cached data may not be recoverable on a new device.',
+        a: 'Yes. You can sign in on multiple devices with the same account. Synced data can appear across devices after sign-in and sync, but pending offline changes and cache-only preferences may not be recoverable on a new device.',
       },
       {
         q: 'What happens when I export my data?',

@@ -242,8 +242,8 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.CLOUD_SYNC]: {
     name: 'Private Archive Sync',
-    description: 'Encrypted sync for your shared archive, linked devices, and backup-based recovery',
-    icon: '🔐',
+    description: 'Supabase sync for your shared archive, linked devices, and backup-based recovery',
+    icon: '☁️',
     category: 'sync',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Keep your private world safe across both phones',

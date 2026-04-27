@@ -7,10 +7,6 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
-import SecureCacheStore from './security/SecureCacheStore';
-
-const PUSH_TOKEN_CACHE_KEY = 'push_token';
-const PUSH_TOKEN_SERVICE = 'betweenus_push';
 
 let Notifications = null;
 try {
@@ -117,10 +113,6 @@ const PushNotificationService = {
 
       if (error) throw error;
 
-      await SecureCacheStore.setString(PUSH_TOKEN_CACHE_KEY, token, {
-        service: PUSH_TOKEN_SERVICE,
-      });
-
       if (__DEV__) console.log('[Push] Token saved to Supabase');
     } catch (error) {
       if (__DEV__) console.error('[Push] Save token error:', error.message);
@@ -135,17 +127,13 @@ const PushNotificationService = {
    * Remove the push token from Supabase (e.g., on sign-out).
    */
   async removeToken(supabase) {
+    let shouldClearToken = false;
     try {
-      const token = this._token || await SecureCacheStore.getString(PUSH_TOKEN_CACHE_KEY, {
-        service: PUSH_TOKEN_SERVICE,
-      });
+      const token = this._token;
       if (!token) return;
 
       if (!supabase) {
-        this._token = null;
-        await SecureCacheStore.removeItem(PUSH_TOKEN_CACHE_KEY, {
-          service: PUSH_TOKEN_SERVICE,
-        });
+        shouldClearToken = true;
         return;
       }
 
@@ -153,10 +141,7 @@ const PushNotificationService = {
       if (!user) {
         // Already signed out — still clean up local state so the stale token
         // doesn't carry over into the next login session.
-        this._token = null;
-        await SecureCacheStore.removeItem(PUSH_TOKEN_CACHE_KEY, {
-          service: PUSH_TOKEN_SERVICE,
-        });
+        shouldClearToken = true;
         return;
       }
 
@@ -168,6 +153,7 @@ const PushNotificationService = {
 
       if (error) throw error;
 
+      shouldClearToken = true;
       if (__DEV__) console.log('[Push] Token removed');
     } catch (error) {
       if (__DEV__) console.error('[Push] Remove token error:', error.message);
@@ -176,10 +162,9 @@ const PushNotificationService = {
         CrashReporting.captureException(error, { source: 'push_token_remove' });
       } catch {}
     } finally {
-      this._token = null;
-      await SecureCacheStore.removeItem(PUSH_TOKEN_CACHE_KEY, {
-        service: PUSH_TOKEN_SERVICE,
-      });
+      if (shouldClearToken) {
+        this._token = null;
+      }
     }
   },
 

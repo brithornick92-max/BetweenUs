@@ -4,7 +4,7 @@
 
 The Premium Value Loop creates a sophisticated ecosystem of interconnected features that build emotional lock-in through relationship memory preservation and intimate rituals. The system combines real-time emotional connection (Vibe Signal), anticipatory engagement (Editorial Prompts), relationship history building (Memory System), bedtime intimacy (Night Ritual Mode), and premium positioning focused on protecting emotional investment rather than accessing content.
 
-The architecture prioritizes local storage for high emotional value at low operational cost, with premium features centered on memory preservation, export capabilities, and ritual customization. This approach creates a moat through emotional history rather than content access, making the app irreplaceable as couples build their shared story.
+The architecture prioritizes Supabase-backed persistence with cache-only device state, with premium features centered on memory preservation, export capabilities, and ritual customization. This approach creates a moat through emotional history rather than content access, making the app irreplaceable as couples build their shared story.
 
 ## Architecture
 
@@ -28,7 +28,7 @@ graph TB
     end
     
     subgraph "Storage Layer"
-        LS[Local Storage]
+        LS[Device Cache]
         BV[Biometric Vault]
         CS[Cloud Sync - Premium]
     end
@@ -60,7 +60,7 @@ graph TB
 The system follows a hub-and-spoke pattern with AppContext as the central coordinator:
 
 1. **Real-time Features** (Vibe Signal, Editorial Prompts) sync through AppContext
-2. **Memory Features** use dedicated MemoryContext with local storage persistence
+2. **Memory Features** use dedicated MemoryContext with Supabase-backed persistence
 3. **Ritual Features** use RitualContext with scheduled notification integration
 4. **Premium Features** gate access through subscription validation before feature execution
 
@@ -295,7 +295,7 @@ class PremiumGatekeeper {
         "Export your complete relationship timeline",
         "Never lose your precious memories",
         "Create custom bedtime rituals",
-        "Secure cloud backup of your story"
+        "Supabase cloud backup of your story"
       ]
     };
     
@@ -366,7 +366,7 @@ Before defining the correctness properties, I need to analyze the acceptance cri
 - **Purchase Flow Integration**: Handle subscription purchase errors gracefully
 
 ### Memory Storage Errors
-- **Local Storage Limits**: Implement storage cleanup for old memories if limits approached
+- **Device Cache Limits**: Implement storage cleanup for old memories if limits approached
 - **Data Corruption**: Validate memory data integrity on load and provide recovery options
 - **Export Failures**: Handle PDF generation errors with user-friendly messaging
 - **Backup Validation**: Verify cloud sync integrity for premium users
@@ -409,7 +409,7 @@ Using **fast-check** for TypeScript property-based testing:
 **Memory System Testing**:
 - Generate random memory types, dates, and content
 - Test chronological ordering with various date ranges
-- Verify local storage persistence across app restarts
+- Verify Supabase-backed persistence across app restarts
 - Test premium export functionality with subscription validation
 
 **Synchronization Testing**:

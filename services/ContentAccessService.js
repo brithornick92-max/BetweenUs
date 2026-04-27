@@ -9,7 +9,7 @@
  */
 
 import WeeklyContentScheduler from './WeeklyContentScheduler';
-import LocalUsageService from './LocalUsageService';
+import UsageEventsService from './UsageEventsService';
 import CrashReporting from './CrashReporting';
 import {
   FREE_LIMITS as FEATURE_FREE_LIMITS,
@@ -358,12 +358,12 @@ class ContentAccessService {
 
   async getDailyUsage(userId) {
     if (!userId) return EMPTY_DAILY_USAGE;
-    return LocalUsageService.getDailyUsage(userId);
+    return UsageEventsService.getDailyUsage(userId);
   }
 
   async getWeeklyUsage(userId) {
     if (!userId) return EMPTY_WEEKLY_USAGE;
-    return LocalUsageService.getWeeklyUsage(userId);
+    return UsageEventsService.getWeeklyUsage(userId);
   }
 
   buildLimitInfo({ used = 0, limit }) {
@@ -789,8 +789,8 @@ class ContentAccessService {
         return { success: true, tracked: false };
       }
 
-      await LocalUsageService.incrementDailyUsage(userId, CONTENT_TYPES.PROMPTS);
-      await LocalUsageService.incrementWeeklyUsage(userId, CONTENT_TYPES.PROMPTS);
+      await UsageEventsService.incrementDailyUsage(userId, CONTENT_TYPES.PROMPTS);
+      await UsageEventsService.incrementWeeklyUsage(userId, CONTENT_TYPES.PROMPTS);
 
       return { success: true, tracked: true, promptId };
     } catch (error) {
@@ -805,8 +805,8 @@ class ContentAccessService {
         return { success: true, tracked: false };
       }
 
-      await LocalUsageService.incrementDailyUsage(userId, CONTENT_TYPES.DATES);
-      await LocalUsageService.incrementWeeklyUsage(userId, CONTENT_TYPES.DATES);
+      await UsageEventsService.incrementDailyUsage(userId, CONTENT_TYPES.DATES);
+      await UsageEventsService.incrementWeeklyUsage(userId, CONTENT_TYPES.DATES);
 
       return { success: true, tracked: true, dateId };
     } catch (error) {
@@ -826,7 +826,7 @@ class ContentAccessService {
 
       const weeklyUsage = await this.getWeeklyUsage(userId);
       if (weeklyUsage.unlockedDateId !== dateId) {
-        await LocalUsageService.incrementWeeklyUsage(userId, 'dateFlows', {
+        await UsageEventsService.incrementWeeklyUsage(userId, 'dateFlows', {
           unlockedDateId: dateId,
         });
       }

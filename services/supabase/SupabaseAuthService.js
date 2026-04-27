@@ -1,7 +1,5 @@
 import { getSupabaseOrThrow } from "../../config/supabase";
-import * as SecureStore from 'expo-secure-store';
 
-const SUPABASE_CRED_KEY = 'betweenus_supabase_cred';
 const AUTH_TIMEOUT_MS = 15_000;
 
 /** Race a promise against a timeout. Rejects if timeout fires first. */
@@ -76,46 +74,16 @@ export const SupabaseAuthService = {
     return data?.session || null;
   },
 
-  /**
-   * Store Supabase credentials in SecureStore for silent re-auth.
-   * SecureStore is OS-encrypted (Keychain on iOS, Keystore on Android) —
-   * no additional application-layer encryption needed.
-   */
-  async storeCredentials(email, password) {
-    try {
-      await SecureStore.setItemAsync(
-        SUPABASE_CRED_KEY,
-        JSON.stringify({ email, password }),
-        { keychainService: 'betweenus' }
-      );
-    } catch (error) {
-      if (__DEV__) console.error('Failed to store credentials:', error);
-    }
+  async storeCredentials() {
+    return false;
   },
 
   async clearStoredCredentials() {
-    await SecureStore.deleteItemAsync(SUPABASE_CRED_KEY, {
-      keychainService: 'betweenus',
-    });
+    return true;
   },
 
-  /**
-   * Silently re-authenticate using stored credentials.
-   */
-  async signInWithStoredCredentials({ throwOnError = false } = {}) {
-    const raw = await SecureStore.getItemAsync(SUPABASE_CRED_KEY, {
-      keychainService: 'betweenus',
-    });
-    if (!raw) return null;
-    try {
-      const creds = JSON.parse(raw);
-      const { email, password } = creds || {};
-      if (!email || !password) return null;
-      return await SupabaseAuthService.signInWithPassword(email, password);
-    } catch (error) {
-      if (throwOnError) throw error;
-      return null;
-    }
+  async signInWithStoredCredentials() {
+    return null;
   },
 
   async getSession() {

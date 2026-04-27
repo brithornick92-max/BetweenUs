@@ -19,13 +19,13 @@ const _getSupabase = () => {
   return _supabase || null;
 };
 
-// ── UUID validation — locally-generated IDs have a "user_" prefix and are not
+// ── UUID validation — legacy cached IDs have a "user_" prefix and are not
 //    valid Supabase auth UUIDs. Skip remote ops when the ID fails this check. ──
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const _isValidUUID = (str) => typeof str === 'string' && UUID_RE.test(str);
 
 // ── Resolve the real Supabase auth UUID at runtime.
-//    AsyncStorage may hold a local 'user_XXX' id — always prefer the live session. ──
+//    Cache may hold a legacy 'user_XXX' id; always prefer the live session. ──
 const _resolveSupabaseUserId = async (fallbackUserId) => {
   try {
     const sb = _getSupabase();
@@ -36,42 +36,16 @@ const _resolveSupabaseUserId = async (fallbackUserId) => {
     const { data, error } = await sb.auth.getUser();
     if (data?.user?.id) return data.user.id;
     if (__DEV__ && error) console.warn('[MomentSignal] getUser() error:', error.message);
-    // Session may have expired — attempt silent re-auth via stored credentials
-    try {
-      const SupabaseAuthService = require('./supabase/SupabaseAuthService').default || require('./supabase/SupabaseAuthService');
-      if (SupabaseAuthService?.signInWithStoredCredentials) {
-        const session = await SupabaseAuthService.signInWithStoredCredentials();
-        if (session?.user?.id) return session.user.id;
-        if (__DEV__) console.warn('[MomentSignal] silent re-auth returned no session');
-      }
-    } catch (reAuthErr) {
-      if (__DEV__) console.warn('[MomentSignal] silent re-auth threw:', reAuthErr?.message);
-    }
   } catch (err) {
     if (__DEV__) console.warn('[MomentSignal] _resolveSupabaseUserId threw:', err?.message);
   }
-  if (__DEV__) console.warn('[MomentSignal] falling back to local ID:', fallbackUserId);
+  if (__DEV__) console.warn('[MomentSignal] falling back to cached ID:', fallbackUserId);
   return fallbackUserId;
 };
 
-// ── Shared encrypt/decrypt helpers (device-local key via EncryptionService) ──
-const _encrypt = async (data) => {
-  const { default: EncryptionService } = await import('./EncryptionService');
-  return { __enc: true, d: await EncryptionService.encryptJson(data) };
-};
-const _decrypt = async (raw) => {
-  if (!raw || typeof raw !== 'object') return raw;
-  if (raw.__enc && raw.d) {
-    try {
-      const { default: EncryptionService } = await import('./EncryptionService');
-      const data = await EncryptionService.decryptJson(raw.d);
-      return data != null ? data : raw;
-    } catch {
-      return raw;
-    }
-  }
-  return raw; // Legacy plaintext
-};
+// ── Plain cache helpers. Supabase is authoritative; cache is non-sensitive. ──
+const _packCache = async (data) => data;
+const _unpackCache = async (raw) => raw;
 
 const _persistWithoutThrow = (operation) => {
   try {
@@ -89,18 +63,18 @@ const _setStoredContextValue = (key, value) => {
 };
 
 const KEYS = {
-  MOMENT_LAST_SENT: '@bu_moment_last_sent',
-  MOMENT_COOLDOWN: '@bu_moment_cooldown',
-  MOMENT_USER_ID: '@bu_moment_user_id',
-  MOMENT_COUPLE_ID: '@bu_moment_couple_id',
-  CLIMATE_STATE: '@bu_climate_state',
-  ENERGY_LEVEL: '@bu_energy_level',
-  SURPRISE_LAST: '@bu_surprise_last',
-  INSIDE_JOKES: '@bu_inside_jokes',
-  PROMPT_HISTORY: '@bu_prompt_history',
-  THIS_OR_THAT_HISTORY: '@bu_this_or_that',
-  RITUAL_CYCLE: '@bu_ritual_cycle',
-  SOFT_INTENTIONS: '@bu_soft_intentions',
+  MOMENT_LAST_SENT: '@betweenus:cache:momentLastSent',
+  MOMENT_COOLDOWN: '@betweenus:cache:momentCooldown',
+  MOMENT_USER_ID: '@betweenus:cache:momentUserId',
+  MOMENT_COUPLE_ID: '@betweenus:cache:momentCoupleId',
+  CLIMATE_STATE: '@betweenus:cache:climateState',
+  ENERGY_LEVEL: '@betweenus:cache:energyLevel',
+  SURPRISE_LAST: '@betweenus:cache:surpriseLast',
+  INSIDE_JOKES: '@betweenus:cache:insideJokes',
+  PROMPT_HISTORY: '@betweenus:cache:promptHistory',
+  THIS_OR_THAT_HISTORY: '@betweenus:cache:thisOrThatHistory',
+  RITUAL_CYCLE: '@betweenus:cache:ritualCycle',
+  SOFT_INTENTIONS: '@betweenus:cache:softIntentions',
 };
 
 // ═══════════════════════════════════════════════════════
@@ -157,7 +131,7 @@ export const MomentSignalSender = {
   /**
    * Send a moment signal to the partner via Supabase.
    * Inserts into couple_data with data_type='moment_signal'.
-   * Falls back to local-only if Supabase is unavailable.
+   * Fails closed if Supabase is unavailable.
    *
    * @param {string} momentType — one of MOMENT_TYPES[].id
    * @param {{ requireRemote?: boolean }} options
@@ -193,7 +167,7 @@ export const MomentSignalSender = {
     };
 
     // ── Remote send via Supabase ──
-    // Guard: locally-generated IDs ("user_" prefix) are not Supabase auth UUIDs
+    // Guard: legacy cached IDs ("user_" prefix) are not Supabase auth UUIDs
     if (sb && coupleId && userId && _isValidUUID(userId)) {
       try {
         const tableName = (_supabaseTables && _supabaseTables.COUPLE_DATA) || 'couple_data';
@@ -222,9 +196,7 @@ export const MomentSignalSender = {
           if (requireRemote) {
             return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
           }
-          // Still counts as "sent" locally — the user saw the confirmation
-          await _setLastMomentSentAt(now);
-          return { sent: true, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
+          return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: error.code };
         }
 
         // Push notification is handled by the DB trigger on couple_data insert
@@ -238,7 +210,7 @@ export const MomentSignalSender = {
         if (requireRemote) {
           return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: err.code };
         }
-        return { sent: true, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: err.code };
+        return { sent: false, remote: false, type: momentType, timestamp: now, error: errMsg, errorCode: err.code };
       }
     }
 
@@ -252,9 +224,13 @@ export const MomentSignalSender = {
       };
     }
 
-    // ── Local-only fallback (no Supabase / not linked) ──
-    await _setLastMomentSentAt(now);
-    return { sent: true, remote: false, type: momentType, timestamp: now };
+    return {
+      sent: false,
+      remote: false,
+      type: momentType,
+      timestamp: now,
+      error: getUnavailableError(),
+    };
   },
 
   /**
@@ -415,8 +391,8 @@ export const RelationshipClimateState = {
       const raw = await AsyncStorage.getItem(KEYS.CLIMATE_STATE);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      const decrypted = await _decrypt(parsed);
-      return decrypted;
+      const unpacked = await _unpackCache(parsed);
+      return unpacked;
     } catch {
       return null;
     }
@@ -424,8 +400,8 @@ export const RelationshipClimateState = {
 
   async set(climateId) {
     const data = { id: climateId, updatedAt: Date.now() };
-    const encrypted = await _encrypt(data);
-    await AsyncStorage.setItem(KEYS.CLIMATE_STATE, JSON.stringify(encrypted));
+    const packed = await _packCache(data);
+    await AsyncStorage.setItem(KEYS.CLIMATE_STATE, JSON.stringify(packed));
     return data;
   },
 };
@@ -606,16 +582,16 @@ export const PrivateLanguageVault = {
       const raw = await AsyncStorage.getItem(KEYS.INSIDE_JOKES);
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      const decrypted = await _decrypt(parsed);
-      return Array.isArray(decrypted) ? decrypted : [];
+      const unpacked = await _unpackCache(parsed);
+      return Array.isArray(unpacked) ? unpacked : [];
     } catch {
       return [];
     }
   },
 
   async _saveAll(items) {
-    const encrypted = await _encrypt(items);
-    await AsyncStorage.setItem(KEYS.INSIDE_JOKES, JSON.stringify(encrypted));
+    const packed = await _packCache(items);
+    await AsyncStorage.setItem(KEYS.INSIDE_JOKES, JSON.stringify(packed));
   },
 
   async add(item) {
@@ -743,7 +719,7 @@ const FUTURE_US_PROMPTS = [
 const FuturePromptRotation = {
   async getNext() {
     try {
-      const raw = await AsyncStorage.getItem('@bu_future_history');
+      const raw = await AsyncStorage.getItem('@betweenus:cache:futureHistory');
       const history = raw ? JSON.parse(raw) : [];
       const available = FUTURE_US_PROMPTS.filter(p => !history.includes(p.id));
       const pool = available.length > 0 ? available : FUTURE_US_PROMPTS;
@@ -755,10 +731,10 @@ const FuturePromptRotation = {
 
   async recordShown(id) {
     try {
-      const raw = await AsyncStorage.getItem('@bu_future_history');
+      const raw = await AsyncStorage.getItem('@betweenus:cache:futureHistory');
       const history = raw ? JSON.parse(raw) : [];
       history.push(id);
-      await AsyncStorage.setItem('@bu_future_history', JSON.stringify(history.slice(-8)));
+      await AsyncStorage.setItem('@betweenus:cache:futureHistory', JSON.stringify(history.slice(-8)));
     } catch (e) {
       if (__DEV__) console.warn('[ConnectionEngine] Future history save failed:', e?.message);
     }
@@ -786,8 +762,8 @@ const SoftIntentionsManager = {
       const raw = await AsyncStorage.getItem(KEYS.SOFT_INTENTIONS);
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      const decrypted = await _decrypt(parsed);
-      return Array.isArray(decrypted) ? decrypted : [];
+      const unpacked = await _unpackCache(parsed);
+      return Array.isArray(unpacked) ? unpacked : [];
     } catch {
       return [];
     }
@@ -803,8 +779,8 @@ const SoftIntentionsManager = {
     }
     // Max 3 active intentions
     const trimmed = active.slice(-3);
-    const encrypted = await _encrypt(trimmed);
-    await AsyncStorage.setItem(KEYS.SOFT_INTENTIONS, JSON.stringify(encrypted));
+    const packed = await _packCache(trimmed);
+    await AsyncStorage.setItem(KEYS.SOFT_INTENTIONS, JSON.stringify(packed));
     return trimmed;
   },
 };

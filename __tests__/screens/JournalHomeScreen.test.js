@@ -52,7 +52,7 @@ describe('JournalHomeScreen', () => {
       await dismissButton.props.onPress();
     });
 
-    expect(mockStorageSet).toHaveBeenCalledWith('@betweenus:sharedJournalNoticeDismissed', true);
+    expect(mockStorageSet).toHaveBeenCalledWith('@betweenus:cache:sharedJournalNoticeDismissed', true);
     expect(tree.root.findAllByProps({ accessibilityLabel: 'Dismiss journal notice' })).toHaveLength(0);
   });
 });

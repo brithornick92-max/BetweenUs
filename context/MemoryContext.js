@@ -1,7 +1,6 @@
 // context/MemoryContext.js
-// Migrated from legacy memoryManager (AsyncStorage) → DataLayer (SQLite + E2EE)
-// The memoryManager is still used only for PDF export and yearly recap,
-// which don't need encryption or sync.
+// DataLayer is Supabase-backed. memoryManager is cache-only support for PDF
+// export and yearly recap helpers.
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
 import { useAppContext } from './AppContext';
 import { useData } from './DataContext';
@@ -98,15 +97,14 @@ export function MemoryProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const stateRef = useRef(state);
   stateRef.current = state;
-  const { state: appState, actions: appActions } = useAppContext();
+  const { actions: appActions } = useAppContext();
   const { data: DataLayer } = useData();
-  const coupleId = appState?.coupleId || null;
 
-  // Load memories from DataLayer (SQLite + E2EE) on mount
+  // Load memories from the Supabase-backed DataLayer on mount
   useEffect(() => {
     const loadMemories = async () => {
       try {
-        // Primary source: DataLayer (SQLite with encryption)
+        // Primary source: DataLayer
         const memories = await DataLayer.getMemories({ limit: 500 });
 
         // Still init legacy manager for PDF export / recap functions only
@@ -142,7 +140,7 @@ export function MemoryProvider({ children }) {
 
   const actions = useMemo(() => ({
     addMemory: async (memoryData) => {
-      // Write through DataLayer (SQLite + E2EE + sync)
+      // Write through DataLayer
       const memory = await DataLayer.saveMemory({
         content: memoryData.content || memoryData.text || '',
         type: memoryData.type || 'moment',
@@ -168,34 +166,8 @@ export function MemoryProvider({ children }) {
     },
 
     updateMemory: async (memoryId, updates) => {
-      // Re-encrypt updated fields and write through DataLayer (SQLite + sync)
-      const dbUpdates = {};
-      if (updates.content !== undefined || updates.text !== undefined) {
-        const existingMemory = stateRef.current.memories.find((memory) => memory.id === memoryId);
-        const isPrivate = updates.isPrivate ?? existingMemory?.isPrivate ?? false;
-        const kt = isPrivate ? 'device' : 'couple';
-        const cid = kt === 'couple' ? coupleId : null;
-        const { default: E2EEncryption } = await import('../services/e2ee/E2EEncryption');
-        dbUpdates.body_cipher = await E2EEncryption.encryptString(
-          updates.content || updates.text || '',
-          kt,
-          cid
-        );
-      }
-      if (updates.type !== undefined) dbUpdates.type = updates.type;
-      if (updates.mood !== undefined) dbUpdates.mood = updates.mood;
-      if (updates.isPrivate !== undefined) dbUpdates.is_private = updates.isPrivate;
-
-      let updatedMemory;
-      if (Object.keys(dbUpdates).length > 0) {
-        const { default: Database } = await import('../services/db/Database');
-        await Database.updateMemory(memoryId, dbUpdates);
-        // Re-fetch the decrypted version
-        const allMemories = await DataLayer.getMemories({ limit: 500 });
-        updatedMemory = allMemories.find((m) => m.id === memoryId) || { id: memoryId, ...updates };
-      } else {
-        updatedMemory = { id: memoryId, ...updates };
-      }
+      const existingMemory = stateRef.current.memories.find((memory) => memory.id === memoryId) || {};
+      const updatedMemory = { ...existingMemory, id: memoryId, ...updates, updated_at: new Date().toISOString() };
 
       // Also update legacy manager (fire-and-forget)
       memoryManager.updateMemory(memoryId, updates).catch((err) => {
@@ -208,7 +180,7 @@ export function MemoryProvider({ children }) {
     },
 
     deleteMemory: async (memoryId) => {
-      // Delete from DataLayer (SQLite)
+      // Delete from DataLayer
       await DataLayer.deleteMemory(memoryId).catch(() => {});
       // Also remove from legacy manager
       await memoryManager.deleteMemory(memoryId).catch(() => {});
@@ -246,7 +218,7 @@ export function MemoryProvider({ children }) {
     },
 
     syncWithPartner: async () => {
-      // Use DataLayer's built-in sync (SyncEngine) instead of legacy cloud sync
+      // Use DataLayer's built-in Supabase sync.
       try {
         await DataLayer.sync();
         dispatch({ type: ACTIONS.SYNC_COMPLETE });
@@ -256,7 +228,7 @@ export function MemoryProvider({ children }) {
         return { success: false, error: err?.message };
       }
     },
-  }), [appActions, coupleId, DataLayer]);
+  }), [appActions, DataLayer]);
 
   return (
     <MemoryContext.Provider value={useMemo(() => ({ state, actions }), [state, actions])}>

@@ -133,7 +133,7 @@ const EULAScreen = ({ navigation }) => {
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Your use of Between Us is also governed by our Privacy Policy, available in the app
                 under Settings {'>'} Safety & Support {'>'} Privacy Policy. Shared synced intimate content is protected by
-                account access controls and secure transport, some private content remains device-local only, and we never sell your personal data.
+                account access controls and secure transport. Local data is limited to cache and device access settings, and we never sell your personal data.
               </Text>
 
               <Text style={[styles.subTitle, { color: colors.text }]}>6. Disclaimer</Text>

@@ -223,7 +223,7 @@ export default function SyncSetupScreen({ navigation }) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.statusLabel, { color: colors.text }]}>
-                    {syncEnabled ? 'Vault Synchronized' : 'Local Storage'}
+                    {syncEnabled ? 'Supabase Sync Active' : 'Sign In Required'}
                   </Text>
                   <Text style={[styles.statusSubtext, { color: colors.textMuted }]}>
                     {sessionEmail ? `Linked to ${sessionEmail}` : 'Sign in to enable cloud backup'}
@@ -320,7 +320,7 @@ export default function SyncSetupScreen({ navigation }) {
                 onPress={() => setIsSignUp(!isSignUp)}
               >
                 <Text style={[styles.textLinkTxt, { color: colors.textMuted }]}>
-                  {isSignUp ? 'Back to secure sign in' : "New here? Establish a vault account"}
+                  {isSignUp ? 'Back to sign in' : 'New here? Create an account'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -332,16 +332,16 @@ export default function SyncSetupScreen({ navigation }) {
                 activeOpacity={0.7}
               >
                 <Icon name="log-out-outline" size={18} color={theme.crimson} />
-                <Text style={styles.signOutText}>Sign Out of Vault</Text>
+                <Text style={styles.signOutText}>Sign Out</Text>
               </TouchableOpacity>
             )}
 
             {/* Security Guarantee Footer */}
             <View style={styles.footerTeaser}>
               <Icon name="shield-checkmark" size={26} color={theme.crimson} />
-              <Text style={[styles.footerTitle, { color: colors.text }]}>Zero-Knowledge Architecture</Text>
+              <Text style={[styles.footerTitle, { color: colors.text }]}>Supabase-Backed Sync</Text>
               <Text style={[styles.footerBody, { color: colors.textMuted }]}>
-                Only your linked devices hold the keys to your data. We never see your private notes, plans, or history.
+                Your account and shared couple space are stored in Supabase with authentication, row-level access controls, and cache-only local continuity.
               </Text>
             </View>
           </ScrollView>

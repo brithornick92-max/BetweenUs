@@ -36,9 +36,7 @@ class CloudEngine {
     this._ensureSession();
     const supabase = getSupabaseOrThrow();
 
-    const { data, error } = await supabase.rpc('create_couple_for_qr', {
-      device_public_key: null,
-    });
+    const { data, error } = await supabase.rpc('create_couple_for_qr');
 
     if (error) throw error;
     if (!data?.success) {

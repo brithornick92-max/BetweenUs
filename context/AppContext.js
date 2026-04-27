@@ -6,7 +6,6 @@ import { useEntitlements , clearCouplePremiumCache } from './EntitlementsContext
 import { updateWidgetPartnerName } from '../services/widgetData';
 import { NicknameEngine } from '../services/PolishEngine';
 import CoupleService from '../services/supabase/CoupleService';
-import CoupleKeyService from '../services/security/CoupleKeyService';
 import StorageRouter from '../services/storage/StorageRouter';
 import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
 import CouplePresenceService from '../services/couple/CouplePresenceService';
@@ -280,7 +279,7 @@ export function AppProvider({ children }) {
       });
 
       // Setup Supabase Realtime listener for partner vibe/data changes
-      // (replaces the old local-only vibeSyncService which never actually synced)
+      // (replaces the old cache-only vibeSyncService which never actually synced)
       const coupleIdVal = resolvedCoupleId || null;
       if (coupleIdVal) {
         try {
@@ -375,10 +374,7 @@ export function AppProvider({ children }) {
 
       const s = stateRef.current;
 
-      // ── Primary path: persist via DataLayer → SQLite → Supabase sync ──
-      // DataLayer.saveVibe writes to local SQLite with sync_status='pending'.
-      // SyncEngine.push() then encrypts and upserts to Supabase couple_data,
-      // which fires a postgres_changes event the partner's SyncEngine picks up.
+      // Persist via the Supabase-backed DataLayer. Local state is only a UI cache.
       try {
         const { DataLayer } = await import('../services/localfirst');
         const vibeValue = typeof vibe === 'object' ? JSON.stringify(vibe) : vibe;

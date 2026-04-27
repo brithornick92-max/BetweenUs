@@ -1,19 +1,8 @@
-import * as SupabaseStorage from './SecureSupabaseStorage';
+import { supabase } from '../../config/supabase';
 
 function getSupabaseClient() {
-  const client =
-    SupabaseStorage.supabase ||
-    SupabaseStorage.supabaseClient ||
-    SupabaseStorage.client ||
-    SupabaseStorage.default;
-
-  if (!client?.from) {
-    throw new Error(
-      'No Supabase client export found in services/supabase/SecureSupabaseStorage.js. Expected supabase, supabaseClient, client, or default.'
-    );
-  }
-
-  return client;
+  if (!supabase?.from) throw new Error('Supabase is not configured');
+  return supabase;
 }
 
 export async function getDateShortlist(userId) {

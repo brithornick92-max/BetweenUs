@@ -6,10 +6,10 @@
  * notification for 8 am tomorrow (so the user is notified on the day itself).
  *
  * Safety:
- *   • Once-per-calendar-day scheduling guard (AsyncStorage key)
+ *   • Once-per-calendar-day scheduling guard (cache-only AsyncStorage key)
  *   • Previous IDs cancelled before rescheduling
  *   • Silently skips if permissions not granted (never prompts)
- *   • No network calls — reads from local SQLite only
+ *   • Reads through the Supabase-backed DataLayer
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,8 +21,8 @@ try {
   Notifications = null;
 }
 
-const SCHEDULED_ID_KEY = '@betweenus:onthisday:id';
-const LAST_SCHEDULED_KEY = '@betweenus:onthisday:lastScheduled';
+const SCHEDULED_ID_KEY = '@betweenus:cache:onThisDayNotificationId';
+const LAST_SCHEDULED_KEY = '@betweenus:cache:onThisDayLastScheduled';
 
 function todayYearlessKey() {
   const d = new Date();
@@ -95,7 +95,7 @@ const MemoryResurfacingService = {
       const { status } = await Notifications.getPermissionsAsync();
       if (status !== 'granted') return;
 
-      // Load all shared memories (local SQLite — no network)
+      // Load shared memories through DataLayer
       const todayMMDD = todayYearlessKey();
       let memories = [];
       try {

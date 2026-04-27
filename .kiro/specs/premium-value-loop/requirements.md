@@ -15,7 +15,7 @@ The Premium Value Loop is a sophisticated feature set for the "Between Us" coupl
 - **Glassmorphism_Effect**: Visual design pattern using 10% opacity, 20px blur, and 0.5px blush pink borders
 - **AppContext**: Existing React Native context for app-wide state management
 - **ThemeContext**: Existing React Native context for design system management
-- **Biometric_Vault**: Secure storage accessible through biometric authentication
+- **Biometric_Vault**: Device app-lock access control using biometric authentication
 - **Partner_App**: The connected instance of the app used by the user's partner
 - **Memory_Export**: Premium feature allowing PDF export of relationship timeline and memories
 - **Ritual_Flow**: Customizable sequence of prompts and check-ins for night ritual mode
@@ -58,7 +58,7 @@ The Premium Value Loop is a sophisticated feature set for the "Between Us" coupl
 2. WHEN users add anniversary dates, THE System SHALL store them locally and provide anniversary reminders
 3. THE System SHALL allow users to record inside jokes, important moments, and relationship milestones with timestamps
 4. WHEN displaying memories, THE Our_Story_Timeline SHALL present them chronologically with elegant typography and spacing
-5. THE System SHALL store all relationship memories in local storage for high emotional value and low operational cost
+5. THE System SHALL store all relationship memories in Supabase, with device storage limited to cache and offline retry state
 6. WHERE premium subscription exists, THE System SHALL enable Memory_Export as PDF with photo integration capabilities
 7. WHERE premium subscription exists, THE System SHALL provide yearly relationship recap with milestone highlights
 8. THE System SHALL integrate memory milestones with Vibe_Signal to create anniversary-themed color palettes
@@ -130,7 +130,7 @@ The Premium Value Loop is a sophisticated feature set for the "Between Us" coupl
 2. IF biometric authentication fails, THEN THE System SHALL deny access and maintain security
 3. WHEN biometric authentication succeeds, THE System SHALL grant access to private vault content
 4. THE Biometric_Vault SHALL be available only to users with active premium subscriptions
-5. THE System SHALL encrypt vault content and decrypt only after successful biometric verification
+5. THE System SHALL use device app-lock and biometric checks for local access control
 
 ### Requirement 9: Premium Feature Gating
 

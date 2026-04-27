@@ -18,9 +18,9 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const NUDGE_IDS_KEY = '@betweenus:winback_nudge_ids';
-const STREAK_ALERT_ID_KEY = '@betweenus:streakAlertId';
-const WEEKLY_RECAP_KEY = '@betweenus:weeklyRecapScheduledWeek';
+const NUDGE_IDS_KEY = '@betweenus:cache:winbackNudgeIds';
+const STREAK_ALERT_ID_KEY = '@betweenus:cache:streakAlertId';
+const WEEKLY_RECAP_KEY = '@betweenus:cache:weeklyRecapScheduledWeek';
 
 let Notifications = null;
 try {

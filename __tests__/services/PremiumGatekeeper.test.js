@@ -4,7 +4,7 @@
 
 import PremiumGatekeeper from '../../services/PremiumGatekeeper';
 
-jest.mock('../../services/LocalUsageService', () => ({
+jest.mock('../../services/UsageEventsService', () => ({
   __esModule: true,
   default: {
     getDailyUsage: jest.fn().mockResolvedValue({ prompts: 0, dates: 0 }),

@@ -15,7 +15,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
-import StorageRouter from '../services/storage/StorageRouter';
 import { SPACING, withAlpha } from '../utils/theme';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -100,23 +99,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
         password,
       });
 
-      const postResetWarnings = [];
-
-      try {
-        await StorageRouter.updatePasswordForEmail(trimmedEmail, password);
-      } catch (storageError) {
-        postResetWarnings.push('This device could not update its local sign-in cache. If prompted, sign in again manually.');
-      }
-
-      try {
-        await SupabaseAuthService.storeCredentials(trimmedEmail, password);
-      } catch (credentialError) {
-        postResetWarnings.push('This device could not save your refreshed cloud credentials. If prompted, sign in again manually.');
-      }
-
-      const successMessage = postResetWarnings.length
-        ? `Your password has been reset. ${postResetWarnings.join(' ')}`
-        : 'Your password has been reset.';
+      const successMessage = 'Your password has been reset.';
 
       Alert.alert('Password updated', successMessage, [
         {

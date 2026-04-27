@@ -29,12 +29,6 @@ jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => 'mock-uuid-' + Math.random().toString(36).slice(2)),
 }));
 
-jest.mock('expo-secure-store', () => ({
-  getItemAsync: jest.fn().mockResolvedValue(null),
-  setItemAsync: jest.fn().mockResolvedValue(undefined),
-  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
-}));
-
 // Mock Supabase
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => ({
@@ -53,14 +47,6 @@ jest.mock('@supabase/supabase-js', () => ({
       single: jest.fn(),
     })),
   })),
-}));
-
-// Mock @noble/hashes (replaces crypto-js)
-jest.mock('@noble/hashes/pbkdf2.js', () => ({
-  pbkdf2: jest.fn(() => new Uint8Array(32)),
-}));
-jest.mock('@noble/hashes/sha2.js', () => ({
-  sha256: jest.fn(),
 }));
 
 // Increase timeout for property-based tests

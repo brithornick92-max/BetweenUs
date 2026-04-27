@@ -2,18 +2,7 @@ jest.mock('../../services/linking/InviteCodeLinking', () => ({
   finalizeInviteCodeLink: jest.fn().mockResolvedValue('couple-joined'),
 }));
 
-jest.mock('../../services/security/WrappedCoupleKeyFlow', () => ({
-  backfillWrappedKeysFromLocalKey: jest.fn().mockResolvedValue(undefined),
-  deriveAndPersistWrappedCoupleKey: jest.fn().mockResolvedValue(undefined),
-  restoreWrappedCoupleKeyFromCloud: jest.fn().mockResolvedValue('restored-key'),
-}));
-
 const { finalizeInviteCodeLink } = require('../../services/linking/InviteCodeLinking');
-const {
-  backfillWrappedKeysFromLocalKey,
-  deriveAndPersistWrappedCoupleKey,
-  restoreWrappedCoupleKeyFromCloud,
-} = require('../../services/security/WrappedCoupleKeyFlow');
 
 describe('CoupleLinkingService', () => {
   beforeEach(() => {
@@ -38,13 +27,6 @@ describe('CoupleLinkingService', () => {
         initialize: jest.fn().mockResolvedValue(true),
         createCouple: jest.fn().mockResolvedValue('new-couple-id'),
         joinCouple: jest.fn().mockResolvedValue(true),
-        waitForPartnerMembership: jest.fn().mockResolvedValue({
-          user_id: 'partner-user-1',
-          public_key: 'partner-public-key',
-        }),
-      },
-      coupleKeyService: {
-        getDevicePublicKeyB64: jest.fn().mockResolvedValue('device-public-key'),
       },
       coupleService: {
         getMyCouple: jest.fn().mockResolvedValue(membershipCoupleId ? { couple_id: membershipCoupleId } : null),

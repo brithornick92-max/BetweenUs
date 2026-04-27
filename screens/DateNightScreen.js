@@ -37,8 +37,7 @@ import DateCardBack from '../components/DateCardBack';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import { SoftBoundaries } from '../services/PolishEngine';
 import contentAccessService from '../services/ContentAccessService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DATE_HISTORY_KEY } from '../utils/dateHistory';
+import { getDateHistory, rateDateHistoryEntry } from '../utils/dateHistory';
 import {
   getDateShortlist,
   addDateToShortlist,
@@ -411,8 +410,8 @@ export default function DateNightScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       setReady(false);
-      AsyncStorage.getItem(DATE_HISTORY_KEY)
-        .then(raw => { if (raw) setDateHistory(JSON.parse(raw)); })
+      getDateHistory()
+        .then(setDateHistory)
         .catch(() => {});
       const task = InteractionManager.runAfterInteractions(() => {
         const dates = getAllDates();
@@ -577,12 +576,12 @@ export default function DateNightScreen({ navigation }) {
 
   const rateDateInHistory = useCallback((id, rating) => {
     selection();
-    setDateHistory(prev => {
-      const next = prev.map(d => d.id === id ? { ...d, rating: d.rating === rating ? null : rating } : d);
-      AsyncStorage.setItem(DATE_HISTORY_KEY, JSON.stringify(next)).catch(() => {});
-      return next;
-    });
-  }, []);
+    const entry = dateHistory.find((item) => item.id === id);
+    if (!entry) return;
+    rateDateHistoryEntry(entry, rating)
+      .then((result) => setDateHistory(result.history || []))
+      .catch(() => {});
+  }, [dateHistory]);
 
   const handlePauseDate = useCallback((date) => {    if (!date?.id) return;
 

@@ -64,9 +64,9 @@ const QUIZ_QUESTIONS = loadQuizQuestions();
 
 
 
-const TODAY_QUIZ_KEY = '@betweenus:quizDateKey';
-const TODAY_QUIZ_QUESTION_KEY = '@betweenus:quizQuestionId';
-const MY_QUIZ_ANSWER_KEY = '@betweenus:quizMyAnswer';
+const TODAY_QUIZ_KEY = '@betweenus:cache:quizDateKey';
+const TODAY_QUIZ_QUESTION_KEY = '@betweenus:cache:quizQuestionId';
+const MY_QUIZ_ANSWER_KEY = '@betweenus:cache:quizMyAnswer';
 
 function getTodayKey() {
   const d = new Date();

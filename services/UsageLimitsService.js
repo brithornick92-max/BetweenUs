@@ -2,19 +2,19 @@
  * UsageLimitsService — Supabase-backed daily usage enforcement
  *
  * Architecture:
- *   • Local cache (AsyncStorage) for instant UI responsiveness
+ *   • Cache-only local counts for instant UI responsiveness
  *   • Supabase usage_events table as the authoritative source
- *   • Graceful offline fallback: local cache is trusted until sync
+ *   • Graceful offline fallback: cached counts are used until sync
  *
- * Every "consume" call writes to both local AND remote.
- * Every "check" call reads local first, then validates against remote when online.
+ * Every "consume" call writes remote and updates the cache.
+ * Every "check" call prefers Supabase, then falls back to cache.
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../config/supabase';
 import { UsageEventType, FREE_LIMITS } from '../utils/featureFlags';
+import { storage } from '../utils/storage';
 
-const LOCAL_USAGE_PREFIX = '@betweenus:usage_v2_';
+const LOCAL_USAGE_PREFIX = '@betweenus:cache:usage_v2_';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5-minute cache validity
 const MAX_CACHE_ENTRIES = 50; // Prevent unbounded memory growth
 
@@ -55,8 +55,8 @@ class UsageLimitsService {
   async _getLocalCount(userId, eventType, dayKey) {
     try {
       const key = this._localKey(userId, eventType, dayKey);
-      const raw = await AsyncStorage.getItem(key);
-      return raw ? parseInt(raw, 10) : 0;
+      const cached = await storage.get(key, 0);
+      return Number.parseInt(cached, 10) || 0;
     } catch {
       return 0;
     }
@@ -66,7 +66,7 @@ class UsageLimitsService {
     try {
       const key = this._localKey(userId, eventType, dayKey);
       const current = await this._getLocalCount(userId, eventType, dayKey);
-      await AsyncStorage.setItem(key, String(current + 1));
+      await storage.set(key, current + 1);
       return current + 1;
     } catch {
       return 1;
@@ -76,7 +76,7 @@ class UsageLimitsService {
   async _setLocalCount(userId, eventType, dayKey, count) {
     try {
       const key = this._localKey(userId, eventType, dayKey);
-      await AsyncStorage.setItem(key, String(count));
+      await storage.set(key, count);
     } catch {
       // Ignore write failures
     }
@@ -86,7 +86,7 @@ class UsageLimitsService {
 
   async _getRemoteCount(coupleId, userId, eventType, dayKey) {
     if (!supabase || !coupleId) return null; // Offline or not linked
-    if (!userId || userId.startsWith('user_')) return null; // Local-only ID, not a Supabase UUID
+    if (!userId || userId.startsWith('user_')) return null; // Legacy cached ID, not a Supabase UUID
 
     const cacheKey = `${coupleId}_${userId}_${eventType}_${dayKey}`;
     const cached = this._remoteCache.get(cacheKey);
@@ -119,7 +119,7 @@ class UsageLimitsService {
 
   async _writeRemoteEvent(coupleId, userId, eventType, dayKey, metadata = {}) {
     if (!supabase || !coupleId) return false;
-    if (!userId || userId.startsWith('user_')) return false; // Local-only ID, not a Supabase UUID
+    if (!userId || userId.startsWith('user_')) return false; // Legacy cached ID, not a Supabase UUID
 
     try {
       const { error } = await supabase

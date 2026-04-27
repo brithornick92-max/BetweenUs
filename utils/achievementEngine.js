@@ -1,7 +1,7 @@
 // utils/achievementEngine.js
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from './storage';
 
-const ACHIEVEMENTS_KEY = '@betweenus:achievements';
+const ACHIEVEMENTS_KEY = '@betweenus:cache:achievements';
 
 // ─── Achievement Definitions ────────────────────────────────
 // Each definition has: id, name, description, icon, category,
@@ -194,8 +194,8 @@ const ACHIEVEMENT_DEFS = [
 
 async function loadUnlockedSet() {
   try {
-    const raw = await AsyncStorage.getItem(ACHIEVEMENTS_KEY);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
+    const cached = await storage.get(ACHIEVEMENTS_KEY, []);
+    return new Set(Array.isArray(cached) ? cached : []);
   } catch {
     return new Set();
   }
@@ -203,7 +203,7 @@ async function loadUnlockedSet() {
 
 async function saveUnlockedSet(unlockedSet) {
   try {
-    await AsyncStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify([...unlockedSet]));
+    await storage.set(ACHIEVEMENTS_KEY, [...unlockedSet]);
   } catch {
     // Non-critical — achievement state is recalculated from real data
   }

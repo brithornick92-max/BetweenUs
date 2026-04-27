@@ -90,7 +90,7 @@ No. Face ID and Touch ID are handled by your device. Between Us receives only a 
 
 ### What data may stay only on my device?
 
-Some data is local or cached on your device, such as app-lock PIN hash and salt, local caches, offline write queues, some inside-joke/preference history data, and device session data. Some settings that feel local, including energy level, relationship climate, and soft boundaries, may also sync to your profile so they can be restored across devices.
+Some data is cached on your device, such as cached synced content, offline write queues, notification ids, app-lock enabled state, and cache-only preference history. Some settings, including energy level, relationship climate, and soft boundaries, may also sync to your profile so they can be restored across devices.
 
 ### What third-party services do you use?
 
@@ -247,7 +247,7 @@ Check that:
 
 ### Can I use Between Us on multiple devices?
 
-Yes, you can sign in on multiple devices. Synced data can appear across devices after sign-in and sync. Unsynced local drafts, local-only settings, or cached data may not be recoverable on another device.
+Yes, you can sign in on multiple devices. Synced data can appear across devices after sign-in and sync. Pending offline changes and cache-only preferences may not be recoverable on another device.
 
 ---
 

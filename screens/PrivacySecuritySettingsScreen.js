@@ -376,7 +376,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                 <View style={styles.infoContent}>
                   <Text style={[styles.infoTitle, { color: colors.text }]}>Protected Sync</Text>
                   <Text style={[styles.infoText, { color: colors.textMuted || 'gray' }]}>
-                    Synced data is protected in transit and at rest. Shared content lives in one Supabase-backed space, with local storage used only for cache and offline recovery.
+                    Synced data lives in one Supabase-backed space, with device cache used only for speed and offline recovery.
                   </Text>
                 </View>
               </View>

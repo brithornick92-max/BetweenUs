@@ -1,12 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import StorageRouter from '../services/storage/StorageRouter';
 import CloudEngine from '../services/storage/CloudEngine';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import ConnectionMemory from '../utils/connectionMemory';
 import { SupabaseAuthService } from '../services/supabase/SupabaseAuthService';
 import { cloudSyncStorage , storage, STORAGE_KEYS } from '../utils/storage';
-import Database from '../services/db/Database';
-import * as SecureStore from 'expo-secure-store';
 import AnalyticsService from '../services/AnalyticsService';
 import ExperimentService from '../services/ExperimentService';
 import PushNotificationService from '../services/PushNotificationService';
@@ -137,30 +134,8 @@ async function applyCloudPreferenceState(remoteProfile) {
   }
 }
 
-async function clearLocalAsyncStorage() {
-  try {
-    // Only remove app-owned keys — AsyncStorage.clear() would wipe third-party
-    // SDK keys (RevenueCat, Expo modules, etc.) which causes silent failures.
-    const allKeys = await AsyncStorage.getAllKeys();
-    const appKeys = allKeys.filter((k) => k.startsWith('@betweenus:'));
-    if (appKeys.length > 0) {
-      await AsyncStorage.multiRemove(appKeys);
-    }
-  } catch (_) {}
-}
-
-function isCloudUnavailableError(error) {
-  const message = String(error?.message || '').toLowerCase();
-  return (
-    message.includes('not configured')
-    || message.includes('network')
-    || message.includes('fetch')
-    || message.includes('offline')
-    || message.includes('timeout')
-    || message.includes('timed out')
-    || message.includes('failed to fetch')
-    || message.includes('network request failed')
-  );
+async function clearLocalCache() {
+  await storage.clearSession().catch(() => {});
 }
 
 export const useAuth = () => {
@@ -191,6 +166,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let active = true;
+    storage.purgeLegacyLocalStorage().catch(() => {});
 
     const unsubscribe = StorageRouter.onAuthStateChanged(async (localUser) => {
       try {
@@ -223,7 +199,6 @@ export const AuthProvider = ({ children }) => {
           }
 
           let supabaseSession = null;
-          let sessionLookupUnavailable = false;
           try {
             supabaseSession = await Promise.race([
               SupabaseAuthService.getSession(),
@@ -231,22 +206,10 @@ export const AuthProvider = ({ children }) => {
             ]);
           } catch (e) {
             if (__DEV__) console.warn('[AuthContext] getSession failed (non-fatal):', e?.message);
-            sessionLookupUnavailable = isCloudUnavailableError(e);
             supabaseSession = null;
           }
 
           if (!supabaseSession) {
-            try {
-              supabaseSession = await SupabaseAuthService.signInWithStoredCredentials({ throwOnError: true });
-            } catch (e) {
-              sessionLookupUnavailable = sessionLookupUnavailable || isCloudUnavailableError(e);
-              if (__DEV__ && !sessionLookupUnavailable) {
-                console.warn('[AuthContext] stored credential restore failed:', e?.message);
-              }
-            }
-          }
-
-          if (!supabaseSession && !sessionLookupUnavailable) {
             await StorageRouter.signOut('local').catch(() => {});
             if (!active) return;
             AnalyticsService.setUser(null);
@@ -275,20 +238,10 @@ export const AuthProvider = ({ children }) => {
               // If the local user ID is a legacy device ID (e.g. user_xxx), migrate them to the cloud ID.
               if (localUser.uid !== cloudUserId) {
                 if (__DEV__) console.log(`[AuthContext] Migrating legacy user ${localUser.uid} to canonical ID ${cloudUserId}`);
-                
-                // 1. Migrate SQLite local data so they don't lose pending offline changes
-                try {
-                  await Database.migrateUserId(localUser.uid, cloudUserId);
-                } catch (e) {
-                  if (__DEV__) console.warn('[AuthContext] SQLite migration failed:', e?.message);
-                }
-                
-                // 2. Migrate AsyncStorage/SecureStore
-                const LocalStorageService = require('../services/LocalStorageService').default;
-                const migratedUserResult = await LocalStorageService.hydrateRemoteAccount({
+
+                const migratedUserResult = await StorageRouter.hydrateRemoteAccount({
                   uid: cloudUserId,
                   email: supabaseSession.user.email || localUser.email,
-                  password: 'ignored_by_hydrate_if_exists',
                   displayName: profile?.displayName || localUser.displayName,
                   emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at)
                 });
@@ -362,7 +315,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const _restoreSupabaseSession = async (email, password, session) => {
+  const _restoreSupabaseSession = async (email, session) => {
     const remoteUser = session?.user;
     const remoteEmail = remoteUser?.email || email;
     const remoteDisplayName =
@@ -372,14 +325,12 @@ export const AuthProvider = ({ children }) => {
       'Between Us';
 
     await StorageRouter.setSupabaseSession(session);
-    const restoredUser = await StorageRouter.hydrateRemoteAccount({
+      const restoredUser = await StorageRouter.hydrateRemoteAccount({
       uid: remoteUser?.id,
       email: remoteEmail,
-      password,
       displayName: remoteDisplayName,
       emailVerified: !!(remoteUser?.email_confirmed_at || remoteUser?.confirmed_at),
     });
-    await SupabaseAuthService.storeCredentials(remoteEmail, password);
 
     const syncStatus = await cloudSyncStorage.getSyncStatus();
     await cloudSyncStorage.setSyncStatus({
@@ -427,12 +378,9 @@ export const AuthProvider = ({ children }) => {
       const createdUser = await StorageRouter.hydrateRemoteAccount({
         uid: canonicalUid,
         email,
-        password,
         displayName,
         emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at)
       });
-
-      await SupabaseAuthService.storeCredentials(email, password);
 
       const syncStatus = await cloudSyncStorage.getSyncStatus();
       await cloudSyncStorage.setSyncStatus({
@@ -445,18 +393,6 @@ export const AuthProvider = ({ children }) => {
         storage.set(STORAGE_KEYS.PENDING_ONBOARDING, true),
       ]);
       setRequiresOnboarding(true);
-
-      // Verify encryption is working for this user
-      if (__DEV__) {
-        try {
-          const { default: EncryptionService } = await import('../services/EncryptionService');
-          const encrypted = await EncryptionService.encryptString('encryption_test');
-          await EncryptionService.decryptString(encrypted);
-          console.log('✅ Encryption verified for new account');
-        } catch (e) {
-          console.warn('⚠️ Encryption verification failed:', e.message);
-        }
-      }
 
       return createdUser;
     } finally {
@@ -471,27 +407,16 @@ export const AuthProvider = ({ children }) => {
 
       let signedInUser;
 
-      try {
-        const session = await Promise.race([
-          SupabaseAuthService.signInWithPassword(email, password),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Remote sign-in timed out')), 10000)),
-        ]);
+      const session = await Promise.race([
+        SupabaseAuthService.signInWithPassword(email, password),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Remote sign-in timed out')), 10000)),
+      ]);
 
-        if (!session?.user?.id) {
-          throw new Error('Supabase session required');
-        }
-
-        signedInUser = await _restoreSupabaseSession(email, password, session);
-      } catch (remoteError) {
-        if (!isCloudUnavailableError(remoteError)) {
-          throw remoteError;
-        }
-
-        if (__DEV__) console.warn('[AuthContext] Using cached local sign-in because Supabase is unavailable:', remoteError?.message);
-        signedInUser = await StorageRouter.signInWithEmailAndPassword(email, password, {
-          localOnly: true,
-        });
+      if (!session?.user?.id) {
+        throw new Error('Supabase session required');
       }
+
+      signedInUser = await _restoreSupabaseSession(email, session);
 
       if (!signedInUser) throw new Error('Sign-in failed');
 
@@ -532,49 +457,7 @@ export const AuthProvider = ({ children }) => {
 
       // A signed-out device should not retain active-session account state,
       // and backend-canonical content should be rehydrated from the server on next login.
-      await clearLocalAsyncStorage();
-      if (user?.uid) {
-        try {
-          await Database.wipeUserData(user.uid);
-        } catch (dbErr) {
-          console.warn('SQLite sign-out cleanup (non-fatal):', dbErr?.message);
-        }
-      }
-
-      // Clear SecureStore auth backup and settings (same cleanup as delete-account)
-      try {
-        const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
-        const LocalStorageService = require('../services/LocalStorageService').default;
-        await SecureStore.deleteItemAsync('currentUserEmail', SECURE_STORE_OPTS);
-        if (user?.uid) {
-          await SecureStore.deleteItemAsync(`user_profile_${user.uid}`, SECURE_STORE_OPTS);
-          await SecureStore.deleteItemAsync(`cred_${user.uid}`, SECURE_STORE_OPTS);
-        }
-        if (user?.email) {
-          const emailKey = LocalStorageService._emailToKey(user.email);
-          await SecureStore.deleteItemAsync(`email_uid_${emailKey}`, SECURE_STORE_OPTS);
-        }
-      } catch (secErr) {
-        if (__DEV__) console.warn('SecureStore cleanup (non-fatal):', secErr?.message);
-      }
-
-      // Clear SecureStore settings keys (migrated from AsyncStorage)
-      try {
-        const { encryptedStorage } = require('../utils/encryptedStorage');
-        await Promise.all([
-          encryptedStorage.remove(STORAGE_KEYS.USER_ID),
-          encryptedStorage.remove(STORAGE_KEYS.USER_PROFILE),
-          encryptedStorage.remove(STORAGE_KEYS.COUPLE_ID),
-          encryptedStorage.remove(STORAGE_KEYS.PARTNER_PROFILE),
-          encryptedStorage.remove(STORAGE_KEYS.APP_LOCK_ENABLED),
-          encryptedStorage.remove(STORAGE_KEYS.PRIVACY_SETTINGS),
-          encryptedStorage.remove(STORAGE_KEYS.BIOMETRIC_VAULT),
-          encryptedStorage.remove(STORAGE_KEYS.THEME_MODE),
-          encryptedStorage.remove(STORAGE_KEYS.NOTIFICATION_SETTINGS),
-        ]);
-      } catch (settingsErr) {
-        if (__DEV__) console.warn('Settings SecureStore cleanup (non-fatal):', settingsErr?.message);
-      }
+      await clearLocalCache();
     } finally {
       setBusy(false);
     }
@@ -647,39 +530,15 @@ export const AuthProvider = ({ children }) => {
       }
       await SupabaseAuthService.clearStoredCredentials();
 
-      // 4. Clean up local state
+      // 4. Clean up cache and in-memory state
       await ConnectionMemory.clear();
       await AnalyticsService.clearLocalCache();
 
-      // 5. Delete local user document
+      // 5. Delete cached user document
       await StorageRouter.deleteUserDocument(user.uid);
 
-      // 6. Clear all remaining local data
-      await clearLocalAsyncStorage();
-
-      // 6b. Clear SecureStore auth backup (persists across reinstalls)
-      try {
-        const SECURE_STORE_OPTS = { keychainService: 'betweenus' };
-        const LocalStorageService = require('../services/LocalStorageService').default;
-        await SecureStore.deleteItemAsync('currentUserEmail', SECURE_STORE_OPTS);
-        if (user.uid) {
-          await SecureStore.deleteItemAsync(`user_profile_${user.uid}`, SECURE_STORE_OPTS);
-          await SecureStore.deleteItemAsync(`cred_${user.uid}`, SECURE_STORE_OPTS);
-        }
-        if (user.email) {
-          const emailKey = LocalStorageService._emailToKey(user.email);
-          await SecureStore.deleteItemAsync(`email_uid_${emailKey}`, SECURE_STORE_OPTS);
-        }
-      } catch (secErr) {
-        if (__DEV__) console.warn('SecureStore cleanup (non-fatal):', secErr?.message);
-      }
-
-      // 7. Purge this user's local SQLite rows from disk
-      try {
-        await Database.wipeUserData(user.uid);
-      } catch (dbErr) {
-        console.warn('SQLite cleanup (non-fatal):', dbErr?.message);
-      }
+      // 6. Clear all remaining device cache
+      await clearLocalCache();
 
       // 8. Update React state — triggers navigation to auth screen
       setUser(null);

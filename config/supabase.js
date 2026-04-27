@@ -1,11 +1,10 @@
 /**
  * Supabase Configuration (Expo + React Native)
- * - Uses SecureStore for auth session persistence
  * - Uses EXPO_PUBLIC_ env vars (safe for anon key)
+ * - Does not persist auth sessions locally; Supabase remains source of truth
  */
 
 import { createClient } from "@supabase/supabase-js";
-import { SecureSupabaseStorage } from "../services/supabase/SecureSupabaseStorage";
 
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -21,9 +20,8 @@ export const supabase =
   SUPABASE_URL && SUPABASE_ANON_KEY
     ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
-          storage: SecureSupabaseStorage,
           autoRefreshToken: true,
-          persistSession: true,
+          persistSession: false,
           detectSessionInUrl: false,
         },
       })

@@ -35,7 +35,6 @@ import { useAuth } from "../context/AuthContext";
 import SeasonSelector from "../components/SeasonSelector";
 import { NicknameEngine } from "../services/PolishEngine";
 import CloudEngine from "../services/storage/CloudEngine";
-import CoupleKeyService from "../services/security/CoupleKeyService";
 import CoupleService from "../services/supabase/CoupleService";
 import StorageRouter from "../services/storage/StorageRouter";
 import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
@@ -129,27 +128,19 @@ export default function OnboardingScreen({ navigation }) {
         if (couple?.couple_id && active) {
           const coupleId = couple.couple_id;
 
-          // Store couple ID locally
+          // Cache couple ID locally; Supabase membership remains authoritative.
           await storage.set(STORAGE_KEYS.COUPLE_ID, coupleId);
           await StorageRouter.setActiveCoupleId(coupleId);
           setLinkedCoupleIdOverride(coupleId);
-          // Upload our public key to the new couple membership
           try {
-            const myPubKey = await CoupleKeyService.getDevicePublicKeyB64();
-            await CloudEngine.joinCouple(coupleId, myPubKey);
+            await CloudEngine.joinCouple(coupleId);
 
             const partnerMembership = await CloudEngine.getPartnerMembership(coupleId);
-            if (!partnerMembership?.public_key || !partnerMembership?.user_id) {
+            if (!partnerMembership?.user_id) {
               return;
             }
-            const { deriveAndPersistWrappedCoupleKey } = await import('../services/security/WrappedCoupleKeyFlow');
-            await deriveAndPersistWrappedCoupleKey({
-              coupleId,
-              partnerUserId: partnerMembership.user_id,
-              partnerPublicKeyB64: partnerMembership.public_key,
-            });
           } catch (err) {
-            CrashReporting.captureException(err, { context: 'onboarding_key_upload' });
+            CrashReporting.captureException(err, { context: 'onboarding_partner_join' });
             return;
           }
 

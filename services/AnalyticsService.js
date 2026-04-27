@@ -3,7 +3,7 @@
  *
  * Design principles (per brand guardrails):
  *   • No PII — only anonymous user IDs and event types
- *   • Local-first — events stored in AsyncStorage, batched to Supabase
+ *   • Cache-only queue — events are batched to Supabase
  *   • No third-party SDKs — keeps the app lean and private
  *   • Opt-out capable — respects a user setting
  *   • Minimal — only tracks what informs product decisions
@@ -17,11 +17,9 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SecureCacheStore from './security/SecureCacheStore';
 
-const ANALYTICS_QUEUE_KEY = '@bu_analytics_queue';
-const ANALYTICS_ENABLED_KEY = '@bu_analytics_enabled';
-const ANALYTICS_QUEUE_SERVICE = 'betweenus_analytics';
+const ANALYTICS_QUEUE_KEY = '@betweenus:cache:analyticsQueue';
+const ANALYTICS_ENABLED_KEY = '@betweenus:cache:analyticsEnabled';
 const MAX_QUEUE_SIZE = 500;
 const FLUSH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -68,7 +66,7 @@ export const AnalyticsEvent = Object.freeze({
 
   // Errors
   ERROR_BOUNDARY: 'error_boundary',
-  ENCRYPTION_FAILED: 'encryption_failed',
+  CACHE_WRITE_FAILED: 'cache_write_failed',
   SYNC_FAILED: 'sync_failed',
 
   // Funnel & milestone events
@@ -119,10 +117,12 @@ const AnalyticsService = {
       _enabled = true;
     }
 
-    // Load persisted queue
-    _queue = await SecureCacheStore.getJson(ANALYTICS_QUEUE_KEY, [], {
-      service: ANALYTICS_QUEUE_SERVICE,
-    });
+    try {
+      const rawQueue = await AsyncStorage.getItem(ANALYTICS_QUEUE_KEY);
+      _queue = rawQueue ? JSON.parse(rawQueue) : [];
+    } catch {
+      _queue = [];
+    }
 
     // Start periodic flush
     this._startFlushTimer();
@@ -152,9 +152,7 @@ const AnalyticsService = {
     }
 
     // Persist to disk (fire-and-forget)
-    SecureCacheStore.setJson(ANALYTICS_QUEUE_KEY, _queue, {
-      service: ANALYTICS_QUEUE_SERVICE,
-    }).catch(() => {});
+    AsyncStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(_queue)).catch(() => {});
   },
 
   /**
@@ -232,15 +230,11 @@ const AnalyticsService = {
       }
 
       // Clear persisted queue on success
-      await SecureCacheStore.setJson(ANALYTICS_QUEUE_KEY, _queue, {
-        service: ANALYTICS_QUEUE_SERVICE,
-      });
+      await AsyncStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(_queue));
     } catch {
       // Restore queue on network failure and persist to survive app kill
       _queue = [...batch, ..._queue].slice(-MAX_QUEUE_SIZE);
-      await SecureCacheStore.setJson(ANALYTICS_QUEUE_KEY, _queue, {
-        service: ANALYTICS_QUEUE_SERVICE,
-      }).catch(() => {});
+      await AsyncStorage.setItem(ANALYTICS_QUEUE_KEY, JSON.stringify(_queue)).catch(() => {});
     } finally {
       _flushing = false;
     }
@@ -266,7 +260,7 @@ const AnalyticsService = {
   setUser(userId) {
     if (_userId && _userId !== userId) {
       _queue = []; // Drop the queue to prevent mixed-user flushes
-      SecureCacheStore.removeItem(ANALYTICS_QUEUE_KEY, { service: ANALYTICS_QUEUE_SERVICE }).catch(() => {});
+      AsyncStorage.removeItem(ANALYTICS_QUEUE_KEY).catch(() => {});
       try {
         _sessionId = require('expo-crypto').randomUUID();
       } catch {
@@ -283,9 +277,7 @@ const AnalyticsService = {
 
   async clearLocalCache() {
     _queue = [];
-    await SecureCacheStore.removeItem(ANALYTICS_QUEUE_KEY, {
-      service: ANALYTICS_QUEUE_SERVICE,
-    });
+    await AsyncStorage.removeItem(ANALYTICS_QUEUE_KEY);
   },
 
   _startFlushTimer() {

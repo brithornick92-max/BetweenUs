@@ -8,11 +8,27 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|react-navigation|@react-native-async-storage|@react-native-firebase|react-native-reanimated|react-native-gesture-handler|react-native-worklets|expo-secure-store)/)',
+    'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|react-navigation|@react-native-async-storage|@react-native-firebase|react-native-reanimated|react-native-gesture-handler|react-native-worklets)/)',
   ],
   testMatch: [
     '**/__tests__/**/*.(js|jsx|ts|tsx)',
     '**/*.(test|spec).(js|jsx|ts|tsx)',
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/ios/Pods/',
+    '<rootDir>/android/',
+    '<rootDir>/coverage/',
+  ],
+  modulePathIgnorePatterns: [
+    '<rootDir>/ios/Pods/',
+    '<rootDir>/android/',
+    '<rootDir>/coverage/',
+  ],
+  watchPathIgnorePatterns: [
+    '<rootDir>/ios/Pods/',
+    '<rootDir>/android/',
+    '<rootDir>/coverage/',
   ],
   collectCoverageFrom: [
     'utils/**/*.{js,jsx,ts,tsx}',

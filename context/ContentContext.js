@@ -5,7 +5,6 @@ import StorageRouter from '../services/storage/StorageRouter';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import contentAccessService from '../services/ContentAccessService';
 import { updateWidgetPrompt } from '../services/widgetData';
-import E2EEncryption from '../services/e2ee/E2EEncryption';
 import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
 import { useAuth } from './AuthContext';
 import { useEntitlements } from './EntitlementsContext';
@@ -18,7 +17,7 @@ import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 
 const ContentContext = createContext({});
-const DAILY_PROMPT_CACHE_KEY = '@betweenus:dailyPromptSelection';
+const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
 
 function getTodayDateKey() {
   const now = new Date();
@@ -73,14 +72,6 @@ export const ContentProvider = ({ children }) => {
         session = await SupabaseAuthService.getSession();
       } catch (_) {
         session = null;
-      }
-
-      if (!session) {
-        try {
-          session = await SupabaseAuthService.signInWithStoredCredentials();
-        } catch (_) {
-          session = null;
-        }
       }
 
       if (session) {
@@ -535,7 +526,7 @@ export const ContentProvider = ({ children }) => {
     }
   };
 
-  // Save user response with encryption
+  // Save user response to Supabase
   const saveResponse = async (promptId, response, isPrivate = false) => {
     try {
       if (!user || !promptId || !response) return;
@@ -564,12 +555,12 @@ export const ContentProvider = ({ children }) => {
   const loadUserResponses = async () => {
     try {
       if (!user) return;
-      const decryptedResponses = await ContentCoupleService.loadPromptResponses(user.uid, {
+      const responses = await ContentCoupleService.loadPromptResponses(user.uid, {
         fallbackCoupleId: userProfile?.coupleId || null,
       });
 
-      setUserResponses(decryptedResponses);
-      return decryptedResponses;
+      setUserResponses(responses);
+      return responses;
     } catch (error) {
       if (__DEV__) console.error('Error loading user responses:', error);
       return [];

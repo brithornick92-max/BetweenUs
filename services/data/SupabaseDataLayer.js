@@ -1,7 +1,7 @@
 /**
  * SupabaseDataLayer.js — Cloud-first data access layer for Between Us
  *
- * Replaces the local-first SQLite + E2EE + SyncEngine stack with direct
+ * Replaces the old device-database stack with direct
  * Supabase reads and writes.  The public API is intentionally identical to
  * DataLayer.js so every screen and context continues to work unchanged.
  *
@@ -12,7 +12,7 @@
  *   • Calendar events use their dedicated `calendar_events` table.
  *   • Media files are uploaded to Supabase Storage (`couple-media` for images,
  *     `attachments` for videos) and referenced by path in `value.mediaPath`.
- *   • Local storage is used only for cache and offline mutation queueing.
+ *   • Device persistence is used only for cache and offline mutation queueing.
  */
 
 import { supabase, TABLES } from '../../config/supabase';
@@ -49,7 +49,7 @@ function offlineQueueKey(userId) {
 }
 
 function cacheKey(userId, scope) {
-  return `@betweenus:dataCache:${userId || 'anonymous'}:${scope}`;
+  return `@betweenus:cache:data:${userId || 'anonymous'}:${scope}`;
 }
 
 function makeId() {
@@ -707,9 +707,8 @@ const SupabaseDataLayer = {
     _isFlushingQueue = false;
   },
 
-  // No E2EE — these always resolve cleanly
-  canEncryptForCouple() {
-    return false;
+  canWriteForCouple() {
+    return !!_coupleId;
   },
 
   needsReconnect() {
@@ -719,7 +718,6 @@ const SupabaseDataLayer = {
   async getCoupleStateStatus() {
     return {
       coupleId: _coupleId,
-      hasCoupleKey: false,
       status: _coupleId ? 'paired' : 'unpaired',
     };
   },
@@ -1282,6 +1280,47 @@ const SupabaseDataLayer = {
     return cached
       .filter((row) => !type || row?.type === type)
       .slice(offset, offset + limit);
+  },
+
+  async updateMemory(id, updates = {}) {
+    if (!id) throw new Error('Memory id is required');
+
+    const valuePatch = {};
+    if ('content' in updates) valuePatch.content = updates.content || '';
+    if ('type' in updates) valuePatch.type = updates.type || 'moment';
+    if ('moment_type' in updates) valuePatch.type = updates.moment_type || 'moment';
+    if ('mood' in updates) valuePatch.mood = updates.mood || null;
+
+    const cachedRows = await loadCache(CACHE_SCOPES.memories);
+    const cached = cachedRows.find((row) => row?.id === id) || {};
+    const cachedUpdate = {
+      ...cached,
+      ...updates,
+      type: valuePatch.type || cached.type || 'moment',
+      content: 'content' in valuePatch ? valuePatch.content : (cached.content || ''),
+      mood: 'mood' in valuePatch ? valuePatch.mood : (cached.mood || null),
+      updated_at: now(),
+    };
+
+    return runCloudOperation({
+      perform: async () => cdUpdate(id, valuePatch),
+      onSuccess: async (row) => {
+        const mapped = await mapMemoryRow(row);
+        await upsertCacheRow(CACHE_SCOPES.memories, mapped);
+        return mapped;
+      },
+      onOffline: async () => {
+        await enqueueOfflineMutation({
+          entity: 'memory',
+          action: 'update',
+          id,
+          payload: valuePatch,
+        });
+
+        await upsertCacheRow(CACHE_SCOPES.memories, cachedUpdate);
+        return cachedUpdate;
+      },
+    });
   },
 
   async deleteMemory(id) {
@@ -1909,7 +1948,7 @@ const SupabaseDataLayer = {
     return { id: result.storagePath, ...result };
   },
 
-  async getDecryptedAttachment(storagePath) {
+  async getAttachmentUrl(storagePath) {
     const bucket = storagePath?.endsWith('.mov') || storagePath?.endsWith('.mp4')
       ? VIDEO_BUCKET
       : IMAGE_BUCKET;
@@ -1960,6 +1999,7 @@ const SupabaseDataLayer = {
 
             case 'memory':
               if (item.action === 'insert') await cdInsert('memory', item.id, item.payload);
+              if (item.action === 'update') await cdUpdate(item.id, item.payload);
               if (item.action === 'delete') await cdSoftDelete(item.id);
               break;
 
@@ -2040,261 +2080,17 @@ const SupabaseDataLayer = {
     return null;
   },
 
-  // ─── Legacy migration (SQLite → Supabase) ────────────────────────────────
-  //
-  // Called once at app startup for users who have local SQLite data.
-  // Decrypts each row and writes it to Supabase couple_data.
-  // Safe to re-run — existing Supabase rows are skipped via upsert.
-
   async migrateLegacyStorage() {
     const { storage: migrationStorage } = await import('../../utils/storage');
-    const markerKey = `@betweenus:supabaseMigrated:${_userId}`;
+    const markerKey = `@betweenus:cache:supabaseMigrated:${_userId}`;
     const alreadyMigrated = await migrationStorage.get(markerKey, false);
 
     if (alreadyMigrated) {
       return { skipped: true };
     }
 
-    let migrated = 0;
-    let failed = 0;
-
-    try {
-      const { default: Database } = await import('../db/Database').catch(() => ({ default: null }));
-
-      if (!Database || !_coupleId || !_userId) {
-        await migrationStorage.set(markerKey, true);
-        return {
-          skipped: true,
-          reason: 'dependencies_unavailable',
-        };
-      }
-
-      const sb = getSupabaseOrNull();
-
-      if (!sb) {
-        return {
-          skipped: true,
-          reason: 'supabase_unavailable',
-        };
-      }
-
-      // ── Journal entries ──────────────────────────────────────────────────
-      try {
-        const jRows = await Database.getJournals(_userId, { limit: 500 });
-
-        for (const row of jRows || []) {
-          try {
-            const title = 'Archived Journal (Encryption Removed)';
-            const body = 'This entry was archived before the app moved to a cloud-first architecture.';
-            const mood = row.mood || null;
-
-            const value = {
-              title,
-              body,
-              mood,
-              tags: [],
-              photoUri: row.photo_uri || null,
-              mediaPath: null,
-            };
-
-            await sb.from(TABLES.COUPLE_DATA).upsert({
-              id: row.id,
-              couple_id: _coupleId,
-              key: row.id,
-              value,
-              data_type: 'journal',
-              created_by: row.user_id || _userId,
-              is_private: false,
-              created_at: row.created_at || now(),
-              updated_at: row.updated_at || now(),
-            }, {
-              onConflict: 'id',
-              ignoreDuplicates: true,
-            });
-
-            migrated += 1;
-          } catch {
-            failed += 1;
-          }
-        }
-      } catch (e) {
-        if (__DEV__) console.warn('[SupabaseDataLayer] Journal migration failed:', e?.message);
-      }
-
-      // ── Prompt answers ───────────────────────────────────────────────────
-      try {
-        const pRows = await Database.getPromptAnswers(_userId, { limit: 500 });
-
-        for (const row of pRows || []) {
-          try {
-            const answer = 'Archived Answer';
-
-            const value = {
-              promptId: row.prompt_id,
-              dateKey: row.date_key,
-              answer,
-              heatLevel: row.heat_level || 1,
-              isRevealed: !!row.is_revealed,
-              revealAt: row.reveal_at || null,
-            };
-
-            await sb.from(TABLES.COUPLE_DATA).upsert({
-              id: row.id,
-              couple_id: _coupleId,
-              key: row.id,
-              value,
-              data_type: 'prompt_answer',
-              created_by: row.user_id || _userId,
-              is_private: false,
-              created_at: row.created_at || now(),
-              updated_at: row.updated_at || now(),
-            }, {
-              onConflict: 'id',
-              ignoreDuplicates: true,
-            });
-
-            migrated += 1;
-          } catch {
-            failed += 1;
-          }
-        }
-      } catch (e) {
-        if (__DEV__) console.warn('[SupabaseDataLayer] Prompt migration failed:', e?.message);
-      }
-
-      // ── Memories ─────────────────────────────────────────────────────────
-      try {
-        const mRows = await Database.getMemories(_userId, { limit: 500 });
-
-        for (const row of mRows || []) {
-          try {
-            const content = 'Archived Memory';
-
-            const value = {
-              content,
-              type: row.type || 'moment',
-              mood: row.mood || null,
-              mediaPath: null,
-              mediaBucket: null,
-              mimeType: null,
-              snapshot_id: row.snapshot_id || null,
-              snapshot_index: normalizeSnapshotIndex(row.snapshot_index),
-              snapshot_count: normalizeSnapshotCount(row.snapshot_count),
-              snapshot_created_at: row.snapshot_created_at || null,
-            };
-
-            await sb.from(TABLES.COUPLE_DATA).upsert({
-              id: row.id,
-              couple_id: _coupleId,
-              key: row.id,
-              value,
-              data_type: 'memory',
-              created_by: row.user_id || _userId,
-              is_private: false,
-              created_at: row.created_at || now(),
-              updated_at: row.updated_at || now(),
-            }, {
-              onConflict: 'id',
-              ignoreDuplicates: true,
-            });
-
-            migrated += 1;
-          } catch {
-            failed += 1;
-          }
-        }
-      } catch (e) {
-        if (__DEV__) console.warn('[SupabaseDataLayer] Memory migration failed:', e?.message);
-      }
-
-      // ── Check-ins ────────────────────────────────────────────────────────
-      try {
-        const cRows = await Database.getCheckIns(_userId, { limit: 500 });
-
-        for (const row of cRows || []) {
-          try {
-            const value = { dateKey: row.date_key };
-
-            await sb.from(TABLES.COUPLE_DATA).upsert({
-              id: row.id,
-              couple_id: _coupleId,
-              key: row.id,
-              value,
-              data_type: 'check_in',
-              created_by: row.user_id || _userId,
-              is_private: false,
-              created_at: row.created_at || now(),
-              updated_at: row.updated_at || now(),
-            }, {
-              onConflict: 'id',
-              ignoreDuplicates: true,
-            });
-
-            migrated += 1;
-          } catch {
-            failed += 1;
-          }
-        }
-      } catch (e) {
-        if (__DEV__) console.warn('[SupabaseDataLayer] Check-in migration failed:', e?.message);
-      }
-
-      // ── Vibes ────────────────────────────────────────────────────────────
-      try {
-        const vRows = await Database.getVibes(_userId, { limit: 500 });
-
-        for (const row of vRows || []) {
-          try {
-            const value = {
-              vibe: row.vibe,
-              note: null,
-            };
-
-            await sb.from(TABLES.COUPLE_DATA).upsert({
-              id: row.id,
-              couple_id: _coupleId,
-              key: row.id,
-              value,
-              data_type: 'vibe',
-              created_by: row.user_id || _userId,
-              is_private: false,
-              created_at: row.created_at || now(),
-              updated_at: row.updated_at || now(),
-            }, {
-              onConflict: 'id',
-              ignoreDuplicates: true,
-            });
-
-            migrated += 1;
-          } catch {
-            failed += 1;
-          }
-        }
-      } catch (e) {
-        if (__DEV__) console.warn('[SupabaseDataLayer] Vibe migration failed:', e?.message);
-      }
-
-      await migrationStorage.set(markerKey, true);
-
-      if (__DEV__) {
-        console.log(`[SupabaseDataLayer] Migration complete: ${migrated} rows, ${failed} failed`);
-      }
-
-      return {
-        migrated,
-        failed,
-        skipped: false,
-      };
-    } catch (error) {
-      if (__DEV__) console.warn('[SupabaseDataLayer] Migration error:', error?.message);
-
-      return {
-        migrated,
-        failed,
-        skipped: false,
-        error: error?.message,
-      };
-    }
+    await migrationStorage.set(markerKey, true);
+    return { skipped: true, reason: 'legacy_local_storage_removed' };
   },
 };
 

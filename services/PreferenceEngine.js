@@ -21,6 +21,7 @@ import {
 // ═══════════════════════════════════════════════════════
 
 let _ratingsCache = {};
+const PROMPT_RATING_CACHE_PREFIX = '@betweenus:cache:promptRating:';
 
 const ENERGY_PREFERRED_LOAD = {
   low: 1,
@@ -31,7 +32,7 @@ const ENERGY_PREFERRED_LOAD = {
 async function warmRatingsCache() {
   try {
     const allKeys = await AsyncStorage.getAllKeys();
-    const ratingKeys = allKeys.filter((k) => k.startsWith('prompt_rating_'));
+    const ratingKeys = allKeys.filter((k) => k.startsWith(PROMPT_RATING_CACHE_PREFIX));
     if (ratingKeys.length === 0) {
       _ratingsCache = {};
       return;
@@ -39,7 +40,7 @@ async function warmRatingsCache() {
     const pairs = await AsyncStorage.multiGet(ratingKeys);
     const fresh = {};
     for (const [key, value] of pairs) {
-      if (value) fresh[key.replace('prompt_rating_', '')] = value;
+      if (value) fresh[key.replace(PROMPT_RATING_CACHE_PREFIX, '')] = value;
     }
     _ratingsCache = fresh;
   } catch {

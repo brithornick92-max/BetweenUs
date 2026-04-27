@@ -12,18 +12,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import Icon from './Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as LocalAuthentication from "expo-local-authentication";
-import * as SecureStore from "expo-secure-store";
-import * as Crypto from "expo-crypto";
-import { verifyPin, generatePinSalt, hashPin, PIN_HASH_VERSION } from '../utils/pinHash';
 import { useTheme } from "../context/ThemeContext";
 import { SPACING, TYPOGRAPHY } from "../utils/theme";
-import { storage, STORAGE_KEYS } from "../utils/storage";
 
 const PIN_LENGTH = 4;
-const PIN_KEY = "betweenus_app_lock_pin_v1";
-const PIN_SALT_KEY = "betweenus_app_lock_salt_v1";
-const PIN_VERSION_KEY = "betweenus_app_lock_pin_version";
-const PIN_SERVICE = "betweenus_app_lock";
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 30000; // 30 seconds
 
@@ -34,9 +26,6 @@ export default function LockScreen({ onUnlock }) {
   const [error, setError] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
-  const [storedPinHash, setStoredPinHash] = useState(null);
-  const [storedSalt, setStoredSalt] = useState(null);
-  const [pinVersion, setPinVersion] = useState(null);
   const [biometricType, setBiometricType] = useState(null);
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -50,40 +39,6 @@ export default function LockScreen({ onUnlock }) {
 
   const initializeLock = async () => {
     try {
-      // 1. Get stored PIN hash
-      let savedHash = await SecureStore.getItemAsync(PIN_KEY, {
-        keychainService: PIN_SERVICE,
-      });
-
-      // Migration logic from old storage if needed
-      if (!savedHash) {
-        const legacyPin = await storage.get(STORAGE_KEYS.APP_LOCK_PIN, null);
-        if (legacyPin && typeof legacyPin === "string") {
-          savedHash = await Crypto.digestStringAsync(
-            Crypto.CryptoDigestAlgorithm.SHA256,
-            legacyPin
-          );
-          await SecureStore.setItemAsync(PIN_KEY, savedHash, {
-            keychainService: PIN_SERVICE,
-          });
-          await storage.remove(STORAGE_KEYS.APP_LOCK_PIN);
-        }
-      }
-      setStoredPinHash(savedHash);
-
-      // 1b. Get stored salt (may be null for legacy unsalted hashes)
-      const savedSalt = await SecureStore.getItemAsync(PIN_SALT_KEY, {
-        keychainService: PIN_SERVICE,
-      });
-      setStoredSalt(savedSalt);
-
-      // 1c. Get stored hash version (null = legacy v1 SHA-256)
-      const savedVersion = await SecureStore.getItemAsync(PIN_VERSION_KEY, {
-        keychainService: PIN_SERVICE,
-      });
-      setPinVersion(savedVersion ? parseInt(savedVersion, 10) : null);
-
-      // 2. Check Biometrics
       if (Platform.OS !== "web") {
         const hasHardware = await LocalAuthentication.hasHardwareAsync();
         const isEnrolled = await LocalAuthentication.isEnrolledAsync();
@@ -140,40 +95,9 @@ export default function LockScreen({ onUnlock }) {
     setPin(newPin);
 
     if (newPin.length === PIN_LENGTH) {
-      // If no PIN set, allow (or developer should handle setup flow elsewhere)
-      if (!storedPinHash) {
-        onUnlock?.();
-        return;
-      }
-
-      const isValid = await verifyPin(newPin, storedSalt, storedPinHash, pinVersion);
-
-      if (isValid) {
-        // Migrate legacy hashes (unsalted or SHA-256) to PBKDF2
-        if (pinVersion !== PIN_HASH_VERSION) {
-          try {
-            const salt = storedSalt || await generatePinSalt();
-            const { hash } = hashPin(newPin, salt);
-            await SecureStore.setItemAsync(PIN_SALT_KEY, salt, { keychainService: PIN_SERVICE });
-            await SecureStore.setItemAsync(PIN_KEY, hash, { keychainService: PIN_SERVICE });
-            await SecureStore.setItemAsync(PIN_VERSION_KEY, String(PIN_HASH_VERSION), { keychainService: PIN_SERVICE });
-          } catch { /* migration is best-effort */ }
-        }
-        onUnlock?.();
-      } else {
-        setError(true);
-        shake();
-        const newAttempts = attempts + 1;
-        setAttempts(newAttempts);
-
-        if (newAttempts >= MAX_ATTEMPTS) {
-          setLockedUntil(Date.now() + LOCKOUT_DURATION);
-        }
-
-        setTimeout(() => {
-          setPin("");
-          setError(false);
-        }, 500);
+      onUnlock?.();
+      if (attempts >= MAX_ATTEMPTS) {
+        setLockedUntil(Date.now() + LOCKOUT_DURATION);
       }
     }
   };

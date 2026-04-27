@@ -1,14 +1,13 @@
 /**
- * connectionMemory.js — Local behavioral memory for Between Us
+ * connectionMemory.js — Cache-only behavioral hints for Between Us
  *
  * A lightweight, privacy-first store that remembers how the couple
  * engages with the app — not what they say, but what they gravitate
  * toward. Used to make "Surprise Me" context-aware, power soft
  * continuity ("pick up where you left off"), and gently shape
- * the home screen without any cloud dependency.
+ * the home screen. Supabase remains the source of truth for app data.
  *
- * Everything stays on-device in AsyncStorage. Nothing here is
- * ever synced to Supabase or sent to analytics.
+ * This is disposable UI cache, not canonical relationship history.
  *
  * Stored signals:
  *   • preferredLoad        — which load levels they tap most (1/2/3)
@@ -23,9 +22,9 @@
  *   • featureAffinities    — which features they return to
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from './storage';
 
-const MEMORY_KEY = '@betweenus:connectionMemory';
+const MEMORY_KEY = '@betweenus:cache:connectionMemory';
 const MAX_RECENT_IDS = 20;
 const MAX_DIM_HISTORY = 30;
 const MAX_SESSION_LENGTHS = 15;
@@ -97,8 +96,7 @@ const ConnectionMemory = {
     if (this._loadPromise) return this._loadPromise;
     this._loadPromise = (async () => {
       try {
-        const raw = await AsyncStorage.getItem(MEMORY_KEY);
-        this._cache = raw ? { ...defaultMemory(), ...JSON.parse(raw) } : defaultMemory();
+        this._cache = { ...defaultMemory(), ...(await storage.get(MEMORY_KEY, {})) };
       } catch {
         this._cache = defaultMemory();
       }
@@ -115,7 +113,7 @@ const ConnectionMemory = {
     if (!this._cache) return;
     this._cache.updatedAt = new Date().toISOString();
     try {
-      await AsyncStorage.setItem(MEMORY_KEY, JSON.stringify(this._cache));
+      await storage.set(MEMORY_KEY, this._cache);
     } catch {
       // Non-critical — memory is ephemeral by design
     }
@@ -272,7 +270,7 @@ const ConnectionMemory = {
   /** Clear all memory (for sign-out / account delete). */
   async clear() {
     this._cache = null;
-    await AsyncStorage.removeItem(MEMORY_KEY);
+    await storage.remove(MEMORY_KEY);
   },
 };
 
