@@ -1,6 +1,7 @@
 // utils/memoryManager.js
 import { storage, STORAGE_KEYS, memoryStorage } from './storage';
 import CloudEngine from '../services/storage/CloudEngine';
+import DataLayer from '../services/data/SupabaseDataLayer';
 
 // Memory Types (moved here to avoid circular dependency)
 export const MEMORY_TYPES = {
@@ -33,7 +34,14 @@ export class MemoryManager {
     if (this.isInitialized) return;
     
     try {
-      const storedMemories = await memoryStorage.getMemories();
+      let storedMemories = [];
+
+      try {
+        // SupabaseDataLayer is authoritative; memoryStorage is a local export/cache fallback.
+        storedMemories = await DataLayer.getMemories({ limit: 1000 });
+      } catch {
+        storedMemories = await memoryStorage.getMemories();
+      }
       
       // Load memories into Map for efficient access
       storedMemories.forEach(memory => {
