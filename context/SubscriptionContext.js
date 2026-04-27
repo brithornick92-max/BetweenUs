@@ -9,6 +9,9 @@ import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
 const SubscriptionContext = createContext(null);
 const DEV_FORCE_PREMIUM = __DEV__ && false;
 
+// Debounce/throttle constants to prevent cascading re-renders
+const STORAGE_SYNC_DEBOUNCE_MS = 5000;
+
 export const useSubscription = () => {
   const context = useContext(SubscriptionContext);
   if (!context) throw new Error("useSubscription must be used within SubscriptionProvider");
@@ -29,6 +32,8 @@ export const SubscriptionProvider = ({ children }) => {
   const initPromiseRef = useRef(null);
   const identifiedRcUserRef = useRef(null);
   const premiumListenersRef = useRef(new Set());
+  const storageSyncTimerRef = useRef(null);
+  const lastStorageSyncRef = useRef({ timestamp: 0, config: null });
   const effectiveIsPremium = DEV_FORCE_PREMIUM || isPremium;
 
   useEffect(() => {
@@ -53,14 +58,27 @@ export const SubscriptionProvider = ({ children }) => {
 
   useEffect(() => {
     let active = true;
+
     const sync = async () => {
       try {
         if (!user) {
-          await StorageRouter.configureSync({
+          const config = {
             isPremium: effectiveIsPremium,
             syncEnabled: false,
             supabaseSessionPresent: false,
-          });
+          };
+
+          // Skip if same config was synced recently
+          const lastSync = lastStorageSyncRef.current;
+          if (
+            JSON.stringify(lastSync.config) === JSON.stringify(config) &&
+            Date.now() - lastSync.timestamp < STORAGE_SYNC_DEBOUNCE_MS
+          ) {
+            return;
+          }
+
+          await StorageRouter.configureSync(config);
+          lastStorageSyncRef.current = { timestamp: Date.now(), config };
           return;
         }
 
@@ -76,20 +94,40 @@ export const SubscriptionProvider = ({ children }) => {
         }
 
         if (active) {
-          await StorageRouter.configureSync({
+          const config = {
             isPremium: effectiveIsPremium,
             syncEnabled,
             supabaseSessionPresent: sessionPresent,
-          });
+          };
+
+          // Skip if same config was synced recently
+          const lastSync = lastStorageSyncRef.current;
+          if (
+            JSON.stringify(lastSync.config) === JSON.stringify(config) &&
+            Date.now() - lastSync.timestamp < STORAGE_SYNC_DEBOUNCE_MS
+          ) {
+            return;
+          }
+
+          await StorageRouter.configureSync(config);
+          lastStorageSyncRef.current = { timestamp: Date.now(), config };
         }
       } catch (error) {
         console.error("Failed to configure storage sync:", error);
       }
     };
 
-    sync();
+    // Debounce the sync call
+    if (storageSyncTimerRef.current) {
+      clearTimeout(storageSyncTimerRef.current);
+    }
+    storageSyncTimerRef.current = setTimeout(sync, 500);
+
     return () => {
       active = false;
+      if (storageSyncTimerRef.current) {
+        clearTimeout(storageSyncTimerRef.current);
+      }
     };
   }, [user, effectiveIsPremium]);
 

@@ -13,6 +13,9 @@ import { ContentIntensityMatcher, RelationshipClimateState } from '../services/C
 
 const AuthContext = createContext(null);
 
+// ─── Throttle constants ────────────────────────────────────────────────────────
+const PROFILE_SYNC_COOLDOWN_MS = 30_000; // Don't re-sync display name if synced recently
+
 function mergeCloudProfile(localProfile, remoteProfile) {
   const safeLocal = localProfile && typeof localProfile === 'object' ? localProfile : {};
   const remotePrefs = remoteProfile?.preferences && typeof remoteProfile.preferences === 'object'
@@ -156,6 +159,7 @@ export const AuthProvider = ({ children }) => {
   const [busy, setBusy] = useState(false);
 
   const bootstrappedRef = useRef(false);
+  const lastDisplayNameSyncRef = useRef({ timestamp: 0, name: null });
 
   const finishBootstrap = (active) => {
     if (active && !bootstrappedRef.current) {
@@ -199,6 +203,7 @@ export const AuthProvider = ({ children }) => {
           }
 
           let supabaseSession = null;
+          let sessionCheckFailed = false;
           try {
             supabaseSession = await Promise.race([
               SupabaseAuthService.getSession(),
@@ -207,9 +212,13 @@ export const AuthProvider = ({ children }) => {
           } catch (e) {
             if (__DEV__) console.warn('[AuthContext] getSession failed (non-fatal):', e?.message);
             supabaseSession = null;
+            // Mark as network failure, not auth failure
+            sessionCheckFailed = e?.message?.includes('timed out') || e?.message?.includes('network');
           }
 
-          if (!supabaseSession) {
+          // Only sign out if we explicitly got null session (not on network timeout)
+          // Timeouts mean network issues, not that the user is logged out
+          if (!supabaseSession && !sessionCheckFailed) {
             await StorageRouter.signOut('local').catch(() => {});
             if (!active) return;
             AnalyticsService.setUser(null);
@@ -218,6 +227,17 @@ export const AuthProvider = ({ children }) => {
             setUserProfile(null);
             setRequiresOnboarding(false);
             await StorageRouter.initialize({ user: null, supabaseSessionPresent: false });
+            finishBootstrap(active);
+            return;
+          }
+
+          // On timeout, just initialize with session=false but keep local user
+          // The app will work in offline mode
+          if (!supabaseSession && sessionCheckFailed) {
+            await StorageRouter.initialize({
+              user: localUser,
+              supabaseSessionPresent: false,
+            });
             finishBootstrap(active);
             return;
           }
@@ -283,21 +303,35 @@ export const AuthProvider = ({ children }) => {
           // Sync display_name to Supabase if the user has set a name in
           // Identity settings but the cloud profile still has the email
           // prefix from signup.
+          // Throttle to avoid spamming the server
           if (supabaseSession && profile?.partnerNames?.myName) {
-            try {
-              const cloudUserId = supabaseSession.user?.id;
-              if (!cloudUserId) {
-                throw new Error('Supabase user not found in session');
-              }
+            const myName = profile.partnerNames.myName;
+            const lastSync = lastDisplayNameSyncRef.current;
+            const now = Date.now();
 
-              await Promise.race([
-                CloudEngine.upsertProfile(cloudUserId, {
-                  display_name: profile.partnerNames.myName,
-                }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('upsertProfile timed out')), 10000)),
-              ]);
-            } catch (e) {
-              if (__DEV__) console.warn('[AuthContext] display_name sync (non-fatal):', e?.message);
+            // Skip if same name was synced recently
+            if (
+              lastSync.name !== myName ||
+              now - lastSync.timestamp > PROFILE_SYNC_COOLDOWN_MS
+            ) {
+              try {
+                const cloudUserId = supabaseSession.user?.id;
+                if (!cloudUserId) {
+                  throw new Error('Supabase user not found in session');
+                }
+
+                await Promise.race([
+                  CloudEngine.upsertProfile(cloudUserId, {
+                    display_name: myName,
+                  }),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('upsertProfile timed out')), 10000)),
+                ]);
+
+                // Update tracking
+                lastDisplayNameSyncRef.current = { timestamp: now, name: myName };
+              } catch (e) {
+                if (__DEV__) console.warn('[AuthContext] display_name sync (non-fatal):', e?.message);
+              }
             }
           }
 

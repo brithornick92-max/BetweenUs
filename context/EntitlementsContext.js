@@ -56,6 +56,10 @@ const COUPLE_PREMIUM_RPC_TIMEOUT_MS = 10_000;
 
 const EntitlementsContext = createContext(null);
 
+// ─── Sync debouncing ──────────────────────────────────────────────────────────
+const SYNC_DEBOUNCE_MS = 2000; // Minimum time between sync calls
+const SYNC_COOLDOWN_MS = 30_000; // Don't re-sync if value hasn't changed within this window
+
 export const useEntitlements = () => {
   const ctx = useContext(EntitlementsContext);
   if (!ctx) {
@@ -75,6 +79,8 @@ export const EntitlementsProvider = ({ children }) => {
   const [resolvedCoupleId, setResolvedCoupleId] = useState(coupleId || null);
 
   const appStateRef = useRef(AppState.currentState);
+  const lastSyncRef = useRef({ timestamp: 0, isPremiumSelf: null, coupleId: null });
+  const syncDebounceRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -180,8 +186,32 @@ export const EntitlementsProvider = ({ children }) => {
 
   // ─── Request server-side premium recomputation ──────────────────────────────
 
-  const syncSelfPremiumToCouple = useCallback(async () => {
+  const syncSelfPremiumToCouple = useCallback(async (force = false) => {
     if (!resolvedCoupleId || !supabase || !user) return;
+
+    const now = Date.now();
+    const lastSync = lastSyncRef.current;
+
+    // Skip if same values were synced recently (cooldown)
+    if (
+      !force &&
+      lastSync.coupleId === resolvedCoupleId &&
+      lastSync.isPremiumSelf === isPremiumSelf &&
+      now - lastSync.timestamp < SYNC_COOLDOWN_MS
+    ) {
+      if (__DEV__) console.log('[Entitlements] Skipping sync - no change within cooldown');
+      return;
+    }
+
+    // Debounce rapid calls
+    if (!force && now - lastSync.timestamp < SYNC_DEBOUNCE_MS) {
+      // Clear existing debounce timer and set a new one
+      if (syncDebounceRef.current) clearTimeout(syncDebounceRef.current);
+      syncDebounceRef.current = setTimeout(() => {
+        syncSelfPremiumToCouple(true);
+      }, SYNC_DEBOUNCE_MS);
+      return;
+    }
 
     try {
       await supabase.rpc('set_couple_premium', {
@@ -189,6 +219,14 @@ export const EntitlementsProvider = ({ children }) => {
         input_is_premium: !!isPremiumSelf,
         input_source: isPremiumSelf ? user.uid : 'none',
       });
+
+      // Update last sync tracking
+      lastSyncRef.current = {
+        timestamp: now,
+        isPremiumSelf,
+        coupleId: resolvedCoupleId,
+      };
+
       if (__DEV__) console.log('[Entitlements] Requested premium recompute for couple:', resolvedCoupleId);
     } catch (err) {
       if (__DEV__) console.warn('[Entitlements] Failed to sync premium to couple:', err.message);
@@ -203,11 +241,23 @@ export const EntitlementsProvider = ({ children }) => {
   }, [fetchCouplePremium]);
 
   // When this user's RevenueCat status changes, propagate to couple space
+  // Use refs to avoid effect re-runs when callback identity changes
+  const syncSelfPremiumToCoupleRef = useRef(syncSelfPremiumToCouple);
+  syncSelfPremiumToCoupleRef.current = syncSelfPremiumToCouple;
+
   useEffect(() => {
-    if (!subscriptionLoading) {
-      syncSelfPremiumToCouple();
+    if (!subscriptionLoading && resolvedCoupleId && user) {
+      syncSelfPremiumToCoupleRef.current();
     }
-  }, [isPremiumSelf, subscriptionLoading, syncSelfPremiumToCouple]);
+
+    // Cleanup debounce timer on unmount
+    return () => {
+      if (syncDebounceRef.current) {
+        clearTimeout(syncDebounceRef.current);
+        syncDebounceRef.current = null;
+      }
+    };
+  }, [isPremiumSelf, subscriptionLoading, resolvedCoupleId, user]);
 
   // Re-check couple premium when app comes to foreground
   useEffect(() => {
