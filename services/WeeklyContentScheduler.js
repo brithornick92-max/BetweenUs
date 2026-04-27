@@ -1,12 +1,17 @@
 /**
  * WeeklyContentScheduler
  *
- * Drips content over time so users see fresh prompts and dates each week.
- * Each content item has a `releaseWeek` (0-based). Week 0 is the user's
- * install week; every Monday a new batch unlocks.
- * The install-week marker is cache-only and can be recomputed if cleared.
+ * Tracks weekly freshness for content.
  *
- * Items without a `releaseWeek` are always available (backwards-compatible).
+ * Important:
+ * - releaseWeek is now treated as "featured/new this week" metadata.
+ * - It should NOT be the main premium access gate.
+ * - Premium users should be able to access the full eligible library.
+ * - Free users should see small unlocked previews plus locked premium previews,
+ *   handled by ContentAccessService / WeeklyContentSetService.
+ *
+ * Legacy hard-gate behavior is still available through:
+ *   filterReleasedThroughCurrentWeek(items)
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,7 +21,6 @@ const INSTALL_DATE_KEY = '@betweenus:cache:weeklyContentInstallDate';
 class WeeklyContentScheduler {
   constructor() {
     this._installDate = null;
-    this._currentWeek = 0;
     this._ready = false;
   }
 
@@ -24,81 +28,112 @@ class WeeklyContentScheduler {
 
   async init() {
     if (this._ready) return;
+
     const stored = await AsyncStorage.getItem(INSTALL_DATE_KEY);
+
     if (stored) {
       this._installDate = new Date(stored);
     } else {
-      // First launch — anchor to the most recent Monday so week boundaries
-      // always fall on Mondays.
-      const now = new Date();
-      const day = now.getDay(); // 0 = Sunday
-      const diffToMonday = day === 0 ? 6 : day - 1;
-      const monday = new Date(now);
-      monday.setDate(monday.getDate() - diffToMonday);
-      monday.setHours(0, 0, 0, 0);
+      const monday = this._getMostRecentMonday(new Date());
       this._installDate = monday;
       await AsyncStorage.setItem(INSTALL_DATE_KEY, monday.toISOString());
     }
-    this._currentWeek = this._computeWeek();
+
     this._ready = true;
   }
 
-  /** Whether init() has completed. */
   get ready() {
     return this._ready;
   }
 
+  _getMostRecentMonday(date) {
+    const day = date.getDay(); // 0 = Sunday
+    const diffToMonday = day === 0 ? 6 : day - 1;
+    const monday = new Date(date);
+
+    monday.setDate(monday.getDate() - diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+
+    return monday;
+  }
+
   /* ───── week math ───── */
 
-  /** Compute weeks from install date. */
   _computeWeek() {
     if (!this._installDate) return 0;
+
     const now = new Date();
     const ms = now.getTime() - this._installDate.getTime();
+
     return Math.max(0, Math.floor(ms / (7 * 24 * 60 * 60 * 1000)));
   }
 
-  /** How many full weeks since install (0-based). Uses cached value after init. */
   getCurrentWeek() {
-    if (this._ready) {
-      // Re-compute dynamically instead of returning the static init-time value
-      // so if the app stays open across a week boundary, content unlocks.
-      return this._computeWeek();
-    }
-    return 0; // Before init, only week-0 content is available
+    if (!this._ready) return 0;
+
+    return this._computeWeek();
   }
 
-  /* ───── filtering ───── */
+  /* ───── featured/newness helpers ───── */
 
-  /** Returns true if the item is available to the user right now. */
-  isAvailable(item) {
-    if (item.releaseWeek == null) return true; // legacy / untagged
+  isReleasedThroughCurrentWeek(item) {
+    if (item.releaseWeek == null) return true;
+
     return item.releaseWeek <= this.getCurrentWeek();
   }
 
-  /** Returns true if the item was released THIS week. */
   isNewThisWeek(item) {
     if (item.releaseWeek == null) return false;
+
     return item.releaseWeek === this.getCurrentWeek();
   }
 
-  /** Filter an array of items to only those currently available. */
-  filterAvailable(items) {
-    const week = this.getCurrentWeek();
-    return items.filter(i => i.releaseWeek == null || i.releaseWeek <= week);
+  /**
+   * New default behavior:
+   * Return all items.
+   *
+   * releaseWeek is no longer used as the main access gate.
+   * This preserves full-library value for premium users.
+   */
+  /**
+   * Compatibility helper.
+   *
+   * releaseWeek no longer blocks access by default.
+   * Use isReleasedThroughCurrentWeek() only for legacy drip-gated surfaces.
+   */
+  isAvailable(_item) {
+    return true;
   }
 
-  /** Return only items released this week. */
-  getNewThisWeek(items) {
-    const week = this.getCurrentWeek();
-    return items.filter(i => i.releaseWeek === week);
+  filterAvailable(items = []) {
+    return Array.isArray(items) ? items : [];
   }
 
-  /** Summary for UI banners ("12 new prompts this week!"). */
-  getNewContentCounts(prompts, dates) {
+  /**
+   * Legacy hard-drip behavior.
+   * Use only if a specific surface intentionally wants releaseWeek gating.
+   */
+  filterReleasedThroughCurrentWeek(items = []) {
+    const week = this.getCurrentWeek();
+
+    return (Array.isArray(items) ? items : []).filter(
+      (item) => item.releaseWeek == null || item.releaseWeek <= week
+    );
+  }
+
+  getNewThisWeek(items = []) {
+    const week = this.getCurrentWeek();
+
+    return (Array.isArray(items) ? items : []).filter(
+      (item) => item.releaseWeek === week
+    );
+  }
+
+  getNewContentCounts(prompts = [], dates = [], positions = []) {
     return {
       newPrompts: this.getNewThisWeek(prompts).length,
       newDates: this.getNewThisWeek(dates).length,
+      newPositions: this.getNewThisWeek(positions).length,
     };
   }
 }
