@@ -34,6 +34,7 @@ import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import * as PreferenceEngine from "../services/PreferenceEngine";
 import contentAccessService from "../services/ContentAccessService";
+import { CONTENT_TYPES, buildWeeklySet } from "../services/WeeklyContentSetService";
 import PromptCardDeck from "../components/PromptCardDeck";
 import { SoftBoundaries } from "../services/PolishEngine";
 import { FALLBACK_PROMPT } from "../utils/contentLoader";
@@ -178,6 +179,7 @@ export default function PromptsScreen({ navigation }) {
   const { user, userProfile } = useAuth();
 
   const [selectedHeat, setSelectedHeat] = useState(null);
+  const [weeklyPromptSet, setWeeklyPromptSet] = useState(null);
   const [selectedTone, setSelectedTone] = useState('warm');
   const [contentProfile, setContentProfile] = useState(null);
   const [rawBoundaries, setRawBoundaries] = useState(null);
@@ -252,9 +254,21 @@ export default function PromptsScreen({ navigation }) {
         includeAll: true,
       });
 
-      setPrompts(access.prompts || []);
+      const accessiblePrompts = access.prompts || [];
+      setPrompts(accessiblePrompts);
+
+      const weeklySet = buildWeeklySet(accessiblePrompts, {
+        contentType: CONTENT_TYPES.PROMPTS,
+        userId: user?.uid || user?.id || 'anonymous',
+        isPremium,
+        userSettings: contentProfile || userProfile || {},
+        date: new Date(),
+      });
+
+      setWeeklyPromptSet(weeklySet);
     } catch {
       setPrompts([]);
+      setWeeklyPromptSet(null);
     } finally {
       setLoading(false);
     }
@@ -264,7 +278,26 @@ export default function PromptsScreen({ navigation }) {
     loadPrompts();
   }, [loadPrompts]);
 
+  const freeWeeklyPromptDeck = useMemo(() => {
+    if (isPremium || !weeklyPromptSet?.items?.length) return null;
+
+    return weeklyPromptSet.items.map((item) => normalizePrompt({
+      ...item,
+      text: item.text || item.prompt || item.previewText || item.title || 'Premium prompt',
+      category: item.category || 'premium',
+      heat: item.heat || item.heatLevel || item.level || 1,
+      weeklySetMeta: item.weeklySetMeta,
+      isLockedPreview: item.isLockedPreview,
+      requiresPremium: item.requiresPremium,
+      upgradeCopy: weeklyPromptSet.upgradeCopy,
+    }));
+  }, [isPremium, weeklyPromptSet]);
+
   const deckPrompts = useMemo(() => {
+    if (!isPremium && freeWeeklyPromptDeck?.length) {
+      return freeWeeklyPromptDeck;
+    }
+
     const heat = selectedHeat ?? 1;
     const basePrompts = contentProfile ? prompts : applyRawBoundaryFilter(prompts, rawBoundaries);
     const byHeat = basePrompts.map(normalizePrompt).filter((p) => (p.heat || 1) === heat);
@@ -280,13 +313,19 @@ export default function PromptsScreen({ navigation }) {
     const remaining = byHeat.filter((prompt) => !personalizedIds.has(String(prompt?.id)));
 
     return [...personalized, ...shuffleArray(remaining)];
-  }, [prompts, selectedHeat, contentProfile, rawBoundaries]);
+  }, [prompts, selectedHeat, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck]);
 
   const handlePromptSelect = useCallback((prompt) => {
+    if (prompt?.isLockedPreview || prompt?.requiresPremium) {
+      impact(ImpactFeedbackStyle.Medium);
+      showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+      return;
+    }
+
     navigation.navigate("PromptAnswer", {
       prompt: { ...prompt, dateKey: new Date().toISOString().split("T")[0] },
     });
-  }, [navigation]);
+  }, [navigation, showPaywall]);
 
   const handleHeatSelect = useCallback((heat) => {
     setSelectedHeat(heat);
@@ -347,7 +386,7 @@ export default function PromptsScreen({ navigation }) {
             <Text style={[styles.headerLabel, { color: HEAT_LEVELS[(selectedHeat || 1) - 1].color }]}>
               {isPremium
                 ? `${deckPrompts.length} PROMPTS READY`
-                : `${deckPrompts.length} OF ${TOTAL_PROMPT_COUNT} PREVIEWS`}
+                : `${weeklyPromptSet?.unlocked?.length || 0} FREE + ${weeklyPromptSet?.lockedPreviews?.length || 0} PREMIUM`}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
             <Text style={[styles.headerSubtitle, { color: t.subtext }]}>{toneCopy.subtitle}</Text>
@@ -441,7 +480,7 @@ export default function PromptsScreen({ navigation }) {
                 >
                   <Icon name="flame" size={16} color="#D2121A" />
                   <Text style={[styles.premiumTeaserText, { color: isDark ? '#FF6B6B' : '#D2121A' }]}>
-                    Free preview refreshes weekly. Premium opens the full prompt library.
+                    {weeklyPromptSet?.upgradeCopy?.body || 'Free preview refreshes weekly. Premium opens the full prompt library.'}
                   </Text>
                   <Icon name="chevron-forward" size={14} color="#D2121A" />
                 </TouchableOpacity>
