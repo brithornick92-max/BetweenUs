@@ -241,23 +241,53 @@ export const EntitlementsProvider = ({ children }) => {
   }, [fetchCouplePremium]);
 
   // When this user's RevenueCat status changes, propagate to couple space
-  // Use refs to avoid effect re-runs when callback identity changes
-  const syncSelfPremiumToCoupleRef = useRef(syncSelfPremiumToCouple);
-  syncSelfPremiumToCoupleRef.current = syncSelfPremiumToCouple;
+  // Use refs to track values without triggering re-renders
+  const syncStateRef = useRef({
+    isPremiumSelf: null,
+    resolvedCoupleId: null,
+    hasRun: false,
+  });
 
   useEffect(() => {
-    if (!subscriptionLoading && resolvedCoupleId && user) {
-      syncSelfPremiumToCoupleRef.current();
+    // Skip if still loading or missing required data
+    if (subscriptionLoading || !resolvedCoupleId || !user) {
+      return;
     }
 
-    // Cleanup debounce timer on unmount
+    const prev = syncStateRef.current;
+    const shouldSync =
+      !prev.hasRun ||
+      prev.isPremiumSelf !== isPremiumSelf ||
+      prev.resolvedCoupleId !== resolvedCoupleId;
+
+    if (!shouldSync) {
+      return;
+    }
+
+    // Update ref before syncing to prevent duplicate calls
+    syncStateRef.current = {
+      isPremiumSelf,
+      resolvedCoupleId,
+      hasRun: true,
+    };
+
+    // Debounce the sync call
+    if (syncDebounceRef.current) {
+      clearTimeout(syncDebounceRef.current);
+    }
+
+    syncDebounceRef.current = setTimeout(() => {
+      syncSelfPremiumToCouple(true);
+    }, SYNC_DEBOUNCE_MS);
+
+    // Cleanup debounce timer on unmount or dependency change
     return () => {
       if (syncDebounceRef.current) {
         clearTimeout(syncDebounceRef.current);
         syncDebounceRef.current = null;
       }
     };
-  }, [isPremiumSelf, subscriptionLoading, resolvedCoupleId, user]);
+  }, [isPremiumSelf, subscriptionLoading, resolvedCoupleId, user, syncSelfPremiumToCouple]);
 
   // Re-check couple premium when app comes to foreground
   useEffect(() => {

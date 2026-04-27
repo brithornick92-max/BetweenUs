@@ -1,6 +1,7 @@
 import { getSupabaseOrThrow } from "../../config/supabase";
 
 const AUTH_TIMEOUT_MS = 15_000;
+const AUTH_SESSION_TIMEOUT_MS = 45_000;
 
 /** Race a promise against a timeout. Rejects if timeout fires first. */
 function withTimeout(promise, ms = AUTH_TIMEOUT_MS) {
@@ -88,14 +89,20 @@ export const SupabaseAuthService = {
 
   async getSession() {
     const supabase = getSupabaseOrThrow();
-    const { data, error } = await withTimeout(supabase.auth.getSession());
+    const { data, error } = await withTimeout(
+      supabase.auth.getSession(),
+      AUTH_SESSION_TIMEOUT_MS
+    );
     if (error) throw error;
     return data?.session || null;
   },
 
   async getUser() {
     const supabase = getSupabaseOrThrow();
-    const { data, error } = await withTimeout(supabase.auth.getUser());
+    const { data, error } = await withTimeout(
+      supabase.auth.getUser(),
+      AUTH_SESSION_TIMEOUT_MS
+    );
     if (error) throw error;
     return data?.user || null;
   },

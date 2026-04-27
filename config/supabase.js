@@ -1,10 +1,13 @@
 /**
  * Supabase Configuration (Expo + React Native)
  * - Uses EXPO_PUBLIC_ env vars (safe for anon key)
- * - Does not persist auth sessions locally; Supabase remains source of truth
+ * - Persists only Supabase auth sessions locally so users stay signed in
+ * - Supabase remains the source of truth for app data
  */
 
 import { createClient } from "@supabase/supabase-js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AppState } from "react-native";
 
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -16,16 +19,59 @@ if (__DEV__ && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
   );
 }
 
+/**
+ * Custom storage adapter for Supabase auth that wraps AsyncStorage.
+ * This ensures compatibility with Supabase JS v2's expected storage interface.
+ */
+const SupabaseAsyncStorage = {
+  getItem: async (key) => {
+    try {
+      return await AsyncStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (key, value) => {
+    try {
+      await AsyncStorage.setItem(key, value);
+    } catch {
+      // Silently fail - session will work for current app lifecycle
+    }
+  },
+  removeItem: async (key) => {
+    try {
+      await AsyncStorage.removeItem(key);
+    } catch {
+      // Silently fail
+    }
+  },
+};
+
 export const supabase =
   SUPABASE_URL && SUPABASE_ANON_KEY
     ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
           autoRefreshToken: true,
-          persistSession: false,
+          persistSession: true,
           detectSessionInUrl: false,
+          storage: SupabaseAsyncStorage,
+          // Fix for React Native: tell Supabase when app is in foreground
+          // so it can refresh tokens at the right time
+          flowType: 'pkce',
         },
       })
     : null;
+
+// Handle app state changes to trigger token refresh when app comes to foreground
+if (supabase) {
+  AppState.addEventListener('change', (state) => {
+    if (state === 'active') {
+      supabase.auth.startAutoRefresh();
+    } else {
+      supabase.auth.stopAutoRefresh();
+    }
+  });
+}
 
 export const getSupabaseOrThrow = () => {
   if (!supabase) {

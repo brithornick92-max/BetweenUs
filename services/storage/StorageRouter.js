@@ -176,7 +176,7 @@ class StorageRouter {
     this.isPremium = false;
     this.syncEnabled = false;
     this.sessionPresent = false;
-    this.currentUser = null;
+    this.currentUser = undefined; // undefined = not yet checked, null = checked but no user
     this.listeners = new Map();
     this.supabaseAuthSubscription = null;
   }
@@ -262,15 +262,41 @@ class StorageRouter {
     const listenerId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
     this.listeners.set(listenerId, callback);
 
-    Promise.resolve()
-      .then(async () => {
-        const session = await SupabaseAuthService.getSession().catch(() => null);
-        this.sessionPresent = !!session;
-        this.currentUser = this._userFromSession(session);
-        callback(this.currentUser);
-        await this._syncCloudSessionState();
-      })
-      .catch(() => callback(null));
+    // If we already have a current user from Supabase subscription, use it immediately
+    // Otherwise, check session once (not on every listener registration)
+    if (this.currentUser !== undefined) {
+      // We already know the auth state, notify immediately
+      Promise.resolve().then(() => callback(this.currentUser));
+    } else {
+      // First listener - check session once
+      Promise.resolve()
+        .then(async () => {
+          let session = null;
+
+          try {
+            session = await SupabaseAuthService.getSession();
+          } catch (error) {
+            if (__DEV__) {
+              console.warn('[StorageRouter] Initial auth session check failed; preserving unknown auth state:', error?.message);
+            }
+            this.sessionPresent = false;
+            this.currentUser = null;
+            callback(null);
+            return;
+          }
+
+          this.sessionPresent = !!session;
+          this.currentUser = this._userFromSession(session);
+          callback(this.currentUser);
+          await this._syncCloudSessionState();
+        })
+        .catch((error) => {
+          if (__DEV__) {
+            console.warn('[StorageRouter] Initial auth listener callback failed:', error?.message);
+          }
+          callback(null);
+        });
+    }
 
     if (!this.supabaseAuthSubscription) {
       try {

@@ -204,21 +204,27 @@ export const AuthProvider = ({ children }) => {
 
           let supabaseSession = null;
           let sessionCheckFailed = false;
+
           try {
-            supabaseSession = await Promise.race([
-              SupabaseAuthService.getSession(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timed out')), 10000)),
-            ]);
+            supabaseSession = await SupabaseAuthService.getSession();
           } catch (e) {
+            sessionCheckFailed = true;
             if (__DEV__) console.warn('[AuthContext] getSession failed (non-fatal):', e?.message);
-            supabaseSession = null;
-            // Mark as network failure, not auth failure
-            sessionCheckFailed = e?.message?.includes('timed out') || e?.message?.includes('network');
           }
 
-          // Only sign out if we explicitly got null session (not on network timeout)
-          // Timeouts mean network issues, not that the user is logged out
-          if (!supabaseSession && !sessionCheckFailed) {
+          // A timeout/network failure means auth is unknown, not signed out.
+          // Keep the local user and avoid clearing React auth state.
+          if (sessionCheckFailed) {
+            await StorageRouter.initialize({
+              user: localUser,
+              supabaseSessionPresent: false,
+            });
+            finishBootstrap(active);
+            return;
+          }
+
+          // Only clear auth after a completed Supabase check explicitly returns no session.
+          if (!supabaseSession) {
             await StorageRouter.signOut('local').catch(() => {});
             if (!active) return;
             AnalyticsService.setUser(null);
@@ -227,17 +233,6 @@ export const AuthProvider = ({ children }) => {
             setUserProfile(null);
             setRequiresOnboarding(false);
             await StorageRouter.initialize({ user: null, supabaseSessionPresent: false });
-            finishBootstrap(active);
-            return;
-          }
-
-          // On timeout, just initialize with session=false but keep local user
-          // The app will work in offline mode
-          if (!supabaseSession && sessionCheckFailed) {
-            await StorageRouter.initialize({
-              user: localUser,
-              supabaseSessionPresent: false,
-            });
             finishBootstrap(active);
             return;
           }
