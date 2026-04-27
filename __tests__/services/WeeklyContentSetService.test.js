@@ -125,6 +125,26 @@ describe('WeeklyContentSetService', () => {
     expect(result.unlocked[0].accessibility).toBe('low-mobility');
   });
 
+
+  it('free locked previews expose preview metadata without marking them unlocked', () => {
+    const result = buildWeeklySet(prompts, {
+      contentType: CONTENT_TYPES.PROMPTS,
+      userId: 'user-1',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      date: TEST_DATE,
+    });
+
+    expect(result.lockedPreviews.length).toBeGreaterThan(0);
+
+    result.lockedPreviews.forEach((item) => {
+      expect(item.isLockedPreview).toBe(true);
+      expect(item.requiresPremium).toBe(true);
+      expect(item.previewText).toBeTruthy();
+      expect(item.weeklySetMeta.isLockedPreview).toBe(true);
+    });
+  });
+
   it('respects maxHeat when building weekly sets', () => {
     const result = buildWeeklySet(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
