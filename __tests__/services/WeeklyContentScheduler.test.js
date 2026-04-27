@@ -54,58 +54,95 @@ describe('WeeklyContentScheduler — week math', () => {
   });
 });
 
-describe('WeeklyContentScheduler — isAvailable / isNewThisWeek', () => {
-  function schedulerAtWeek(week) {
-    const s = makeScheduler();
-    s._currentWeek = week;
-    s._ready = true;
-    return s;
-  }
+describe('WeeklyContentScheduler — availability and weekly newness', () => {
+  let scheduler;
 
-  it('always shows items with no releaseWeek (legacy content)', () => {
-    const s = schedulerAtWeek(0);
-    expect(s.isAvailable({ releaseWeek: null })).toBe(true);
-    expect(s.isAvailable({ title: 'no releaseWeek field' })).toBe(true);
+  beforeEach(() => {
+    jest.useFakeTimers();
+
+    const mod = require('../../services/WeeklyContentScheduler');
+    const instance = mod.default || mod;
+    const WeeklyContentSchedulerClass = instance.constructor;
+    scheduler = new WeeklyContentSchedulerClass();
   });
 
-  it('shows items whose releaseWeek has passed', () => {
-    const s = schedulerAtWeek(5);
+  afterEach(() => {
+    jest.useRealTimers();
+
+    if (scheduler) {
+      scheduler._ready = false;
+      scheduler._installDate = null;
+    }
+  });
+
+  const schedulerAtWeek = (week) => {
+    scheduler._ready = true;
+
+    const now = new Date('2026-04-27T12:00:00.000Z');
+    const install = new Date(now);
+    install.setDate(install.getDate() - week * 7);
+
+    scheduler._installDate = install;
+    jest.setSystemTime(now);
+
+    return scheduler;
+  };
+
+  it('treats releaseWeek as metadata, not the main access gate', () => {
+    const s = schedulerAtWeek(3);
+
     expect(s.isAvailable({ releaseWeek: 0 })).toBe(true);
     expect(s.isAvailable({ releaseWeek: 3 })).toBe(true);
-    expect(s.isAvailable({ releaseWeek: 5 })).toBe(true);
+    expect(s.isAvailable({ releaseWeek: 99 })).toBe(true);
+    expect(s.isAvailable({ releaseWeek: null })).toBe(true);
   });
 
-  it('hides items whose releaseWeek is in the future', () => {
-    const s = schedulerAtWeek(2);
-    expect(s.isAvailable({ releaseWeek: 3 })).toBe(false);
-    expect(s.isAvailable({ releaseWeek: 10 })).toBe(false);
+  it('filterAvailable returns the full eligible library by default', () => {
+    const s = schedulerAtWeek(3);
+
+    const items = [
+      { id: 'a', releaseWeek: 0 },
+      { id: 'b', releaseWeek: 3 },
+      { id: 'c', releaseWeek: 99 },
+      { id: 'd' },
+    ];
+
+    expect(s.filterAvailable(items).map((i) => i.id)).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('legacy filterReleasedThroughCurrentWeek removes future items when explicitly requested', () => {
+    const s = schedulerAtWeek(3);
+
+    const items = [
+      { id: 'a', releaseWeek: 0 },
+      { id: 'b', releaseWeek: 3 },
+      { id: 'c', releaseWeek: 99 },
+      { id: 'd' },
+    ];
+
+    expect(s.filterReleasedThroughCurrentWeek(items).map((i) => i.id)).toEqual(['a', 'b', 'd']);
   });
 
   it('marks items as new only for the current week', () => {
     const s = schedulerAtWeek(3);
+
     expect(s.isNewThisWeek({ releaseWeek: 3 })).toBe(true);
     expect(s.isNewThisWeek({ releaseWeek: 2 })).toBe(false);
     expect(s.isNewThisWeek({ releaseWeek: 4 })).toBe(false);
     expect(s.isNewThisWeek({ releaseWeek: null })).toBe(false);
   });
 
-  it('filterAvailable removes future items from an array', () => {
+  it('getNewContentCounts returns prompt, date, and position counts', () => {
     const s = schedulerAtWeek(2);
-    const items = [
-      { id: 'a', releaseWeek: 0 },
-      { id: 'b', releaseWeek: 2 },
-      { id: 'c', releaseWeek: 3 },
-      { id: 'd' }, // no releaseWeek — always available
-    ];
-    const result = s.filterAvailable(items);
-    expect(result.map((i) => i.id)).toEqual(['a', 'b', 'd']);
-  });
 
-  it('getNewContentCounts returns correct prompt and date counts', () => {
-    const s = schedulerAtWeek(1);
-    const prompts = [{ releaseWeek: 1 }, { releaseWeek: 1 }, { releaseWeek: 0 }];
+    const prompts = [{ releaseWeek: 2 }, { releaseWeek: 2 }, { releaseWeek: 1 }];
     const dates = [{ releaseWeek: 1 }, { releaseWeek: 2 }];
-    const counts = s.getNewContentCounts(prompts, dates);
-    expect(counts).toEqual({ newPrompts: 2, newDates: 1 });
+    const positions = [{ releaseWeek: 2 }, { releaseWeek: 4 }];
+
+    expect(s.getNewContentCounts(prompts, dates, positions)).toEqual({
+      newPrompts: 2,
+      newDates: 1,
+      newPositions: 1,
+    });
   });
 });

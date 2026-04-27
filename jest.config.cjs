@@ -19,6 +19,7 @@ module.exports = {
     '<rootDir>/ios/Pods/',
     '<rootDir>/android/',
     '<rootDir>/coverage/',
+    '<rootDir>/__tests__/helpers/',
   ],
   modulePathIgnorePatterns: [
     '<rootDir>/ios/Pods/',

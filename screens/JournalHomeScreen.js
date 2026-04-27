@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Platform,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
@@ -77,10 +78,17 @@ function buildJournalItem(row, ownerIds, myName, partnerName) {
     icon: 'book-outline',
     accent: '#D2121A',
     dateTimeLabel: formatDateTimeLabel(row.created_at || row.updated_at || row.date),
-    photoUri: row.photo_uri || null,
-    mediaUri: row.mediaUri || null,
-    mediaType: row.mediaType || null,
-    mediaKind: row.mediaKind || (row.mediaType?.startsWith('video/') ? 'video' : null),
+    photoUri: row.photo_uri || row.photoUri || row.imageUri || null,
+    mediaUri: row.mediaUri || row.media_uri || row.photo_uri || row.photoUri || row.imageUri || null,
+    mediaType:
+      row.mediaType ||
+      row.media_type ||
+      (row.photo_uri || row.photoUri || row.imageUri ? 'image/jpeg' : null),
+    mediaKind:
+      row.mediaKind ||
+      row.media_kind ||
+      (row.mediaType?.startsWith('video/') || row.media_type?.startsWith('video/') ? 'video' : null) ||
+      (row.photo_uri || row.photoUri || row.imageUri ? 'image' : null),
     entry: row,
     canEdit: isOwn,
   };
@@ -243,6 +251,23 @@ export default function JournalHomeScreen({ navigation }) {
             </View>
 
             <Text style={styles.cardTitle}>{item.title}</Text>
+
+            {item.mediaUri && item.mediaKind === 'video' ? (
+              <View style={styles.mediaIndicator}>
+                <Icon name="videocam-outline" size={14} color={item.accent} />
+                <Text style={[styles.mediaIndicatorText, { color: item.accent }]}>
+                  Video attached
+                </Text>
+              </View>
+            ) : null}
+
+            {item.mediaUri && item.mediaKind !== 'video' ? (
+              <Image
+                source={{ uri: item.mediaUri }}
+                style={styles.journalThumbnail}
+                resizeMode="cover"
+              />
+            ) : null}
           </View>
 
           <View style={styles.cardLowerContent}>
@@ -423,6 +448,25 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   cardContent: {
     width: '100%',
+  },
+  journalThumbnail: {
+    width: '100%',
+    height: 150,
+    borderRadius: 18,
+    marginTop: SPACING.md,
+    backgroundColor: 'rgba(0,0,0,0.08)',
+  },
+  mediaIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: SPACING.sm,
+  },
+  mediaIndicatorText: {
+    fontSize: 12,
+    fontFamily: SYSTEM_FONT,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   cardLowerContent: {
     paddingHorizontal: SPACING.xl,
