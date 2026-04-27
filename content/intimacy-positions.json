@@ -5,7 +5,7 @@
     "version": "3.0.0",
     "description": "Intimacy building positions for all couples. Premium-only with weekly releases.",
     "premium": true,
-    "releaseSchedule": "10 positions at launch (releaseWeek 0), then 1 new position per week through week 40",
+    "releaseSchedule": "10 positions at launch (releaseWeek 0), then 1 new position per week through week 190. Full library screens can show all accessible positions for premium users.",
     "categories": {
       "deep-connection": "Slow, emotionally resonant closeness",
       "playful-energy": "Lighthearted, fun physical connection",
@@ -327,132 +327,10 @@
       ]
     },
     {
-      "id": "ip006",
-      "title": "The Horizon",
-      "commonName": "Reverse Cowgirl",
-      "category": "rear-behind",
-      "duration": "10–15 min",
-      "accessibility": "standard",
-      "mood": "confident",
-      "heat": 3,
-      "premium": true,
-      "releaseWeek": 1,
-      "focus": "A face-away riding position that feels open, confident, and fully self-led. One partner stays grounded underneath while the other takes control from above, creating a shape that feels bold, exposed, and easy to customize. It can feel playful, intense, or steady depending on posture and pace.",
-      "howTo": "One partner lies back while the other straddles them facing away, settling into a stable seat over the hips. The partner on top can stay upright for a more open, confident feel or lean slightly forward or back to explore different angles. Hands can rest on the thighs, bed, or the lower partner's legs for balance as the rhythm builds gradually.",
-      "benefits": "Because the partner on top is setting most of the movement, this position often feels highly adjustable and very responsive to small posture changes. The face-away orientation can make it feel more private, more focused, and sometimes more intense than a face-to-face riding position. The lower partner stays involved through support and touch, while the upper partner controls the pace and pressure.",
-      "makeItHotter": "Try changing the torso angle before changing speed. Sitting taller can feel more open and commanding, while a slight forward lean can create a stronger grounded sensation. Small hip shifts can make a big difference here, and slower movement often gives the top partner more control over what feels best.",
-      "comfort": "This one can put extra work into the top partner's thighs and knees, so support matters. A pillow under the lower partner's hips can change the angle in a helpful way, and the top partner may want to use their hands more for balance to reduce tension in the legs. It usually feels best when the top partner stays active but not rigid.",
-      "styleTags": [
-        "Rear-Facing",
-        "Top Control",
-        "Open",
-        "Confident"
-      ],
-      "supportLevel": "Moderate Support",
-      "energy": "Heated",
-      "pace": "Moderate to Fast",
-      "bestFor": "Face-away top control, open confident posture, self-directed rhythm, a more private or bold mood",
-      "whyPeopleLikeIt": "It puts the partner on top fully in charge while feeling open and self-directed. Many people like it because the face-away orientation creates a different kind of focus, and because the position is highly responsive to small posture changes.",
-      "goodFor": [
-        "Face-away riding",
-        "Top-partner control",
-        "Open bold posture",
-        "Adjustable pace and depth",
-        "A more private or independent mood"
-      ],
-      "lessIdealIf": [
-        "The top partner's thighs or knees are tired",
-        "You want face-to-face connection",
-        "The mood is more tender than confident"
-      ],
-      "setupTips": [
-        "Try changing the torso angle before changing speed",
-        "Use the hands on the thighs or bed for balance",
-        "Place a pillow under the lower partner's hips if helpful",
-        "Stay active but not rigid in the legs",
-        "Slow movement often feels more controlled than fast"
-      ],
-      "moodWords": [
-        "Confident",
-        "Open",
-        "Bold",
-        "Self-Directed",
-        "Charged"
-      ],
-      "shortSummary": "A face-away riding position that feels open, confident, and fully self-led.",
-      "chips": [
-        "Rear-Facing",
-        "Top Control",
-        "Open",
-        "Confident"
-      ]
-    },
-    {
-      "id": "ip007",
-      "title": "The Overhang",
-      "commonName": "Edge of Bed",
-      "category": "sensual-rhythm",
-      "duration": "5–10 min",
-      "accessibility": "active",
-      "mood": "passionate",
-      "heat": 3,
-      "premium": true,
-      "releaseWeek": 2,
-      "focus": "A grounded, edge-supported position that blends openness with control. One partner stays elevated and accessible while the other moves in close, creating a feeling that is direct, steady, and physically connected. It carries the intensity of an adventurous angle without feeling rushed or unstable.",
-      "howTo": "One partner settles at the edge of the bed or surface with their weight supported through their hands, while the other kneels or positions close between their legs, guiding the lift at the hips and setting the pace. Keep the setup slow at first so both partners can find the most comfortable height and angle. Small adjustments make a big difference here, especially in the hips, knees, and hand placement.",
-      "benefits": "The edge support creates a strong, open angle while still keeping both partners close. It can feel immersive and intense, but also more controlled than a fully lifted variation because the receiving partner still has a stable point of contact. There is a nice balance here between exposure, support, and closeness.",
-      "makeItHotter": "Use the free hands to steady the hips, guide the rhythm, or add touch through the waist, thighs, or lower back. Slowing down and holding eye contact for a moment can make the position feel even more charged. A pillow or folded blanket under the hands can also soften the shape without changing the angle too much.",
-      "comfort": "If the wrists or shoulders start to tire, place a pillow beneath the hands or raise the receiving partner slightly with extra cushion beneath the hips. The supporting partner may also want to come in closer to reduce strain and make the position feel more secure. This one works best when the body is supported, not forced.",
-      "styleTags": [
-        "Edge-Supported",
-        "Open",
-        "Grounded",
-        "Intense"
-      ],
-      "supportLevel": "More Support",
-      "energy": "Heated",
-      "pace": "Slow to Moderate",
-      "bestFor": "Open edge-supported angle, grounded intensity, close physical connection, direct supported rhythm",
-      "whyPeopleLikeIt": "It creates a strong open angle with more stability than a fully unsupported version. Many people like it because the edge support lets the receiving partner stay relaxed while the shape still feels intense and physically charged.",
-      "goodFor": [
-        "Open supported angle",
-        "Edge-of-bed positioning",
-        "Grounded physical intensity",
-        "Close connected rhythm",
-        "Easier access and depth"
-      ],
-      "lessIdealIf": [
-        "Wrists or shoulders tire quickly",
-        "The surface edge is too hard or unstable",
-        "You want something soft and fully reclined"
-      ],
-      "setupTips": [
-        "Add a pillow under the hands for wrist support",
-        "Keep the setup slow until the angle feels right",
-        "Move in closer to reduce strain",
-        "Stay low enough that the support feels solid",
-        "Adjust hip and hand placement before pace"
-      ],
-      "moodWords": [
-        "Open",
-        "Grounded",
-        "Intense",
-        "Steady",
-        "Direct"
-      ],
-      "shortSummary": "A grounded edge-supported position with a strong open angle and close physical connection.",
-      "chips": [
-        "Edge-Supported",
-        "Open",
-        "Grounded",
-        "Intense"
-      ]
-    },
-    {
       "id": "ip008",
       "title": "The Reign",
       "commonName": "Cowgirl",
-      "category": "playful-energetic",
+      "category": "playful-energy",
       "duration": "10–20 min",
       "accessibility": "standard",
       "mood": "confident",
@@ -629,6 +507,250 @@
         "Deep Angle",
         "Supported",
         "Face-to-Face"
+      ]
+    },
+    {
+      "id": "ip015",
+      "title": "The Bridge",
+      "commonName": "Bridge",
+      "category": "exploratory",
+      "duration": "5–10 min",
+      "accessibility": "active",
+      "mood": "adventurous",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "A bold, backbend-inspired position that feels open, intense, and visually striking. One partner lifts into a bridge-like shape with the chest high and the body fully opened, while the other kneels between their legs to create a close, grounded connection. It feels exposed and powerful at the same time.",
+      "howTo": "One partner presses into a deep backbend with the hands planted beneath or near the head, chest lifted, and hips elevated. The other partner kneels between their legs, staying close and using the position to guide rhythm and angle. This setup works best when the bridge itself feels stable first. Start by finding secure hand and foot placement, then build the rest of the position slowly.",
+      "benefits": "Because the receiving partner is fully arched, this position creates a strong, open angle and a much more dramatic body line than lower, flatter setups. The bridge shape can make the body feel stretched, lifted, and highly exposed, while the kneeling partner gets a stable position to stay close and responsive. The intensity often comes from the posture itself as much as the movement.",
+      "makeItHotter": "Once the bridge feels steady, even small changes in foot placement, hip height, or closeness can shift the sensation a lot. Staying slower often makes this one feel stronger because the angle is already doing so much of the work. The kneeling partner can stay close to make the shape feel more secure and more connected.",
+      "comfort": "This one can be demanding on the wrists, shoulders, lower back, and thighs. It is usually best in shorter periods unless the partner in the bridge is already very comfortable in that shape. A padded surface under the hands and feet helps, and a modified version with the hips lowered slightly may feel better for many bodies.",
+      "styleTags": [
+        "Backbend",
+        "Open",
+        "Adventurous",
+        "Dramatic"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Full backbend energy, open dramatic angle, adventurous bold exposure, a visually striking intense setup",
+      "whyPeopleLikeIt": "It feels bold, exposed, and visually dramatic. Many people like it because the arch itself creates most of the intensity, making it feel powerful and adventurous even with slower or more controlled movement.",
+      "goodFor": [
+        "Backbend-based positioning",
+        "Open dramatic angle",
+        "Adventurous exposed energy",
+        "Bold physical intensity",
+        "A visually striking shape"
+      ],
+      "lessIdealIf": [
+        "Wrists, shoulders, or lower back are sensitive",
+        "You are not comfortable in a backbend",
+        "You want something long-lasting or restful"
+      ],
+      "setupTips": [
+        "Find stable hand and foot placement before anything else",
+        "Use a padded surface under the hands",
+        "Keep the kneeling partner close for support",
+        "Slow pace lets the angle do the work",
+        "Reduce the arch if the lower back strains"
+      ],
+      "moodWords": [
+        "Bold",
+        "Open",
+        "Dramatic",
+        "Adventurous",
+        "Powerful"
+      ],
+      "shortSummary": "A backbend position that feels open, dramatic, and adventurously intense.",
+      "chips": [
+        "Backbend",
+        "Open",
+        "Adventurous",
+        "Dramatic"
+      ]
+    },
+    {
+      "id": "ip019",
+      "title": "The Conversation",
+      "commonName": "Manual",
+      "category": "sensual-rhythm",
+      "duration": "10–20 min",
+      "accessibility": "standard",
+      "mood": "intimate",
+      "heat": 2,
+      "premium": true,
+      "releaseWeek": 0,
+      "focus": "An open, responsive position built around access, feedback, and staying tuned in to each other. One partner stays lifted and supported while the other settles lower, creating a shape that feels intimate, exposed, and highly interactive. It is less about speed and more about touch, adjustment, and connection.",
+      "howTo": "One partner braces themselves with their hands behind them, chest open and hips lifted slightly, while the other settles between their legs in a lower reclined position. The lower partner can use their hands to guide pressure, rhythm, or stimulation, making the position feel collaborative and easy to adapt. Small shifts in hip angle and distance will change the sensation quickly, so take time finding the best setup.",
+      "benefits": "This position creates strong openness through the hips and torso while keeping both partners supported. Because the lower partner has easy access with their hands, it can feel especially attentive, customizable, and connected. The result is sensual, interactive, and very responsive to communication.",
+      "makeItHotter": "Adjust how high the upper partner lifts through the chest and hips to change the angle. Hands can stay focused low for more direct stimulation or travel upward to add teasing touch through the thighs, stomach, or chest. Slowing down and staying deliberate usually makes this one feel even more intense.",
+      "comfort": "The upper partner may want softer support under the hands or wrists, especially on a firm surface. If the neck or lower back feels strained, reduce the lean or place a cushion beneath the hips. This one works best when both partners can stay relaxed enough to keep responding to each other.",
+      "styleTags": [
+        "Open",
+        "Responsive",
+        "Interactive",
+        "Sensual"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Warm",
+      "pace": "Slow to Moderate",
+      "bestFor": "Responsive touch and feedback, open access, collaborative adjustment, a sensual attentive mood",
+      "whyPeopleLikeIt": "It feels interactive, open, and easy to tune. Many people like it because the hand access and adjustable hip angle make it one of the more communicative setups available, and because it naturally rewards slowing down and paying attention.",
+      "goodFor": [
+        "Open hip access",
+        "Easy touch and adjustment",
+        "Collaborative sensual rhythm",
+        "Responsive attentive connection",
+        "Slow exploratory pacing"
+      ],
+      "lessIdealIf": [
+        "Wrists or lower back tire quickly",
+        "You want something more physically intense or driven",
+        "The mood is more heated than attentive"
+      ],
+      "setupTips": [
+        "Support the upper partner's wrists or hands",
+        "Place a cushion under the hips if needed",
+        "Adjust hip height and distance as you go",
+        "Stay responsive rather than setting a fixed rhythm",
+        "Slow down to stay tuned in to each other"
+      ],
+      "moodWords": [
+        "Responsive",
+        "Open",
+        "Sensual",
+        "Attentive",
+        "Interactive"
+      ],
+      "shortSummary": "An open responsive position built around touch, easy access, and staying interactively connected.",
+      "chips": [
+        "Open",
+        "Responsive",
+        "Interactive",
+        "Sensual"
+      ]
+    },
+    {
+      "id": "ip006",
+      "title": "The Horizon",
+      "commonName": "Reverse Cowgirl",
+      "category": "sensual-rhythm",
+      "duration": "10–15 min",
+      "accessibility": "standard",
+      "mood": "confident",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 1,
+      "focus": "A face-away riding position that feels open, confident, and fully self-led. One partner stays grounded underneath while the other takes control from above, creating a shape that feels bold, exposed, and easy to customize. It can feel playful, intense, or steady depending on posture and pace.",
+      "howTo": "One partner lies back while the other straddles them facing away, settling into a stable seat over the hips. The partner on top can stay upright for a more open, confident feel or lean slightly forward or back to explore different angles. Hands can rest on the thighs, bed, or the lower partner's legs for balance as the rhythm builds gradually.",
+      "benefits": "Because the partner on top is setting most of the movement, this position often feels highly adjustable and very responsive to small posture changes. The face-away orientation can make it feel more private, more focused, and sometimes more intense than a face-to-face riding position. The lower partner stays involved through support and touch, while the upper partner controls the pace and pressure.",
+      "makeItHotter": "Try changing the torso angle before changing speed. Sitting taller can feel more open and commanding, while a slight forward lean can create a stronger grounded sensation. Small hip shifts can make a big difference here, and slower movement often gives the top partner more control over what feels best.",
+      "comfort": "This one can put extra work into the top partner's thighs and knees, so support matters. A pillow under the lower partner's hips can change the angle in a helpful way, and the top partner may want to use their hands more for balance to reduce tension in the legs. It usually feels best when the top partner stays active but not rigid.",
+      "styleTags": [
+        "Rear-Facing",
+        "Top Control",
+        "Open",
+        "Confident"
+      ],
+      "supportLevel": "Moderate Support",
+      "energy": "Heated",
+      "pace": "Moderate to Fast",
+      "bestFor": "Face-away top control, open confident posture, self-directed rhythm, a more private or bold mood",
+      "whyPeopleLikeIt": "It puts the partner on top fully in charge while feeling open and self-directed. Many people like it because the face-away orientation creates a different kind of focus, and because the position is highly responsive to small posture changes.",
+      "goodFor": [
+        "Face-away riding",
+        "Top-partner control",
+        "Open bold posture",
+        "Adjustable pace and depth",
+        "A more private or independent mood"
+      ],
+      "lessIdealIf": [
+        "The top partner's thighs or knees are tired",
+        "You want face-to-face connection",
+        "The mood is more tender than confident"
+      ],
+      "setupTips": [
+        "Try changing the torso angle before changing speed",
+        "Use the hands on the thighs or bed for balance",
+        "Place a pillow under the lower partner's hips if helpful",
+        "Stay active but not rigid in the legs",
+        "Slow movement often feels more controlled than fast"
+      ],
+      "moodWords": [
+        "Confident",
+        "Open",
+        "Bold",
+        "Self-Directed",
+        "Charged"
+      ],
+      "shortSummary": "A face-away riding position that feels open, confident, and fully self-led.",
+      "chips": [
+        "Rear-Facing",
+        "Top Control",
+        "Open",
+        "Confident"
+      ]
+    },
+    {
+      "id": "ip007",
+      "title": "The Overhang",
+      "commonName": "Edge of Bed",
+      "category": "sensual-rhythm",
+      "duration": "5–10 min",
+      "accessibility": "active",
+      "mood": "passionate",
+      "heat": 3,
+      "premium": true,
+      "releaseWeek": 2,
+      "focus": "A grounded, edge-supported position that blends openness with control. One partner stays elevated and accessible while the other moves in close, creating a feeling that is direct, steady, and physically connected. It carries the intensity of an adventurous angle without feeling rushed or unstable.",
+      "howTo": "One partner settles at the edge of the bed or surface with their weight supported through their hands, while the other kneels or positions close between their legs, guiding the lift at the hips and setting the pace. Keep the setup slow at first so both partners can find the most comfortable height and angle. Small adjustments make a big difference here, especially in the hips, knees, and hand placement.",
+      "benefits": "The edge support creates a strong, open angle while still keeping both partners close. It can feel immersive and intense, but also more controlled than a fully lifted variation because the receiving partner still has a stable point of contact. There is a nice balance here between exposure, support, and closeness.",
+      "makeItHotter": "Use the free hands to steady the hips, guide the rhythm, or add touch through the waist, thighs, or lower back. Slowing down and holding eye contact for a moment can make the position feel even more charged. A pillow or folded blanket under the hands can also soften the shape without changing the angle too much.",
+      "comfort": "If the wrists or shoulders start to tire, place a pillow beneath the hands or raise the receiving partner slightly with extra cushion beneath the hips. The supporting partner may also want to come in closer to reduce strain and make the position feel more secure. This one works best when the body is supported, not forced.",
+      "styleTags": [
+        "Edge-Supported",
+        "Open",
+        "Grounded",
+        "Intense"
+      ],
+      "supportLevel": "More Support",
+      "energy": "Heated",
+      "pace": "Slow to Moderate",
+      "bestFor": "Open edge-supported angle, grounded intensity, close physical connection, direct supported rhythm",
+      "whyPeopleLikeIt": "It creates a strong open angle with more stability than a fully unsupported version. Many people like it because the edge support lets the receiving partner stay relaxed while the shape still feels intense and physically charged.",
+      "goodFor": [
+        "Open supported angle",
+        "Edge-of-bed positioning",
+        "Grounded physical intensity",
+        "Close connected rhythm",
+        "Easier access and depth"
+      ],
+      "lessIdealIf": [
+        "Wrists or shoulders tire quickly",
+        "The surface edge is too hard or unstable",
+        "You want something soft and fully reclined"
+      ],
+      "setupTips": [
+        "Add a pillow under the hands for wrist support",
+        "Keep the setup slow until the angle feels right",
+        "Move in closer to reduce strain",
+        "Stay low enough that the support feels solid",
+        "Adjust hip and hand placement before pace"
+      ],
+      "moodWords": [
+        "Open",
+        "Grounded",
+        "Intense",
+        "Steady",
+        "Direct"
+      ],
+      "shortSummary": "A grounded edge-supported position with a strong open angle and close physical connection.",
+      "chips": [
+        "Edge-Supported",
+        "Open",
+        "Grounded",
+        "Intense"
       ]
     },
     {
@@ -876,71 +998,10 @@
       ]
     },
     {
-      "id": "ip015",
-      "title": "The Bridge",
-      "commonName": "Bridge",
-      "category": "edge-adventurous",
-      "duration": "5–10 min",
-      "accessibility": "active",
-      "mood": "adventurous",
-      "heat": 3,
-      "premium": true,
-      "releaseWeek": 0,
-      "focus": "A bold, backbend-inspired position that feels open, intense, and visually striking. One partner lifts into a bridge-like shape with the chest high and the body fully opened, while the other kneels between their legs to create a close, grounded connection. It feels exposed and powerful at the same time.",
-      "howTo": "One partner presses into a deep backbend with the hands planted beneath or near the head, chest lifted, and hips elevated. The other partner kneels between their legs, staying close and using the position to guide rhythm and angle. This setup works best when the bridge itself feels stable first. Start by finding secure hand and foot placement, then build the rest of the position slowly.",
-      "benefits": "Because the receiving partner is fully arched, this position creates a strong, open angle and a much more dramatic body line than lower, flatter setups. The bridge shape can make the body feel stretched, lifted, and highly exposed, while the kneeling partner gets a stable position to stay close and responsive. The intensity often comes from the posture itself as much as the movement.",
-      "makeItHotter": "Once the bridge feels steady, even small changes in foot placement, hip height, or closeness can shift the sensation a lot. Staying slower often makes this one feel stronger because the angle is already doing so much of the work. The kneeling partner can stay close to make the shape feel more secure and more connected.",
-      "comfort": "This one can be demanding on the wrists, shoulders, lower back, and thighs. It is usually best in shorter periods unless the partner in the bridge is already very comfortable in that shape. A padded surface under the hands and feet helps, and a modified version with the hips lowered slightly may feel better for many bodies.",
-      "styleTags": [
-        "Backbend",
-        "Open",
-        "Adventurous",
-        "Dramatic"
-      ],
-      "supportLevel": "More Support",
-      "energy": "Heated",
-      "pace": "Slow to Moderate",
-      "bestFor": "Full backbend energy, open dramatic angle, adventurous bold exposure, a visually striking intense setup",
-      "whyPeopleLikeIt": "It feels bold, exposed, and visually dramatic. Many people like it because the arch itself creates most of the intensity, making it feel powerful and adventurous even with slower or more controlled movement.",
-      "goodFor": [
-        "Backbend-based positioning",
-        "Open dramatic angle",
-        "Adventurous exposed energy",
-        "Bold physical intensity",
-        "A visually striking shape"
-      ],
-      "lessIdealIf": [
-        "Wrists, shoulders, or lower back are sensitive",
-        "You are not comfortable in a backbend",
-        "You want something long-lasting or restful"
-      ],
-      "setupTips": [
-        "Find stable hand and foot placement before anything else",
-        "Use a padded surface under the hands",
-        "Keep the kneeling partner close for support",
-        "Slow pace lets the angle do the work",
-        "Reduce the arch if the lower back strains"
-      ],
-      "moodWords": [
-        "Bold",
-        "Open",
-        "Dramatic",
-        "Adventurous",
-        "Powerful"
-      ],
-      "shortSummary": "A backbend position that feels open, dramatic, and adventurously intense.",
-      "chips": [
-        "Backbend",
-        "Open",
-        "Adventurous",
-        "Dramatic"
-      ]
-    },
-    {
       "id": "ip016",
       "title": "The Devotion",
       "commonName": "Oral",
-      "category": "romantic-slow-intimate",
+      "category": "deep-connection",
       "duration": "10–15 min",
       "accessibility": "low-mobility",
       "mood": "attentive",
@@ -1001,7 +1062,7 @@
       "id": "ip018",
       "title": "The Press",
       "commonName": "Prone Doggy",
-      "category": "rear-behind",
+      "category": "sensual-rhythm",
       "duration": "10–20 min",
       "accessibility": "standard",
       "mood": "grounded",
@@ -1059,71 +1120,10 @@
       ]
     },
     {
-      "id": "ip019",
-      "title": "The Conversation",
-      "commonName": "Manual",
-      "category": "sensual-rhythm",
-      "duration": "10–20 min",
-      "accessibility": "standard",
-      "mood": "intimate",
-      "heat": 2,
-      "premium": true,
-      "releaseWeek": 0,
-      "focus": "An open, responsive position built around access, feedback, and staying tuned in to each other. One partner stays lifted and supported while the other settles lower, creating a shape that feels intimate, exposed, and highly interactive. It is less about speed and more about touch, adjustment, and connection.",
-      "howTo": "One partner braces themselves with their hands behind them, chest open and hips lifted slightly, while the other settles between their legs in a lower reclined position. The lower partner can use their hands to guide pressure, rhythm, or stimulation, making the position feel collaborative and easy to adapt. Small shifts in hip angle and distance will change the sensation quickly, so take time finding the best setup.",
-      "benefits": "This position creates strong openness through the hips and torso while keeping both partners supported. Because the lower partner has easy access with their hands, it can feel especially attentive, customizable, and connected. The result is sensual, interactive, and very responsive to communication.",
-      "makeItHotter": "Adjust how high the upper partner lifts through the chest and hips to change the angle. Hands can stay focused low for more direct stimulation or travel upward to add teasing touch through the thighs, stomach, or chest. Slowing down and staying deliberate usually makes this one feel even more intense.",
-      "comfort": "The upper partner may want softer support under the hands or wrists, especially on a firm surface. If the neck or lower back feels strained, reduce the lean or place a cushion beneath the hips. This one works best when both partners can stay relaxed enough to keep responding to each other.",
-      "styleTags": [
-        "Open",
-        "Responsive",
-        "Interactive",
-        "Sensual"
-      ],
-      "supportLevel": "Moderate Support",
-      "energy": "Warm",
-      "pace": "Slow to Moderate",
-      "bestFor": "Responsive touch and feedback, open access, collaborative adjustment, a sensual attentive mood",
-      "whyPeopleLikeIt": "It feels interactive, open, and easy to tune. Many people like it because the hand access and adjustable hip angle make it one of the more communicative setups available, and because it naturally rewards slowing down and paying attention.",
-      "goodFor": [
-        "Open hip access",
-        "Easy touch and adjustment",
-        "Collaborative sensual rhythm",
-        "Responsive attentive connection",
-        "Slow exploratory pacing"
-      ],
-      "lessIdealIf": [
-        "Wrists or lower back tire quickly",
-        "You want something more physically intense or driven",
-        "The mood is more heated than attentive"
-      ],
-      "setupTips": [
-        "Support the upper partner's wrists or hands",
-        "Place a cushion under the hips if needed",
-        "Adjust hip height and distance as you go",
-        "Stay responsive rather than setting a fixed rhythm",
-        "Slow down to stay tuned in to each other"
-      ],
-      "moodWords": [
-        "Responsive",
-        "Open",
-        "Sensual",
-        "Attentive",
-        "Interactive"
-      ],
-      "shortSummary": "An open responsive position built around touch, easy access, and staying interactively connected.",
-      "chips": [
-        "Open",
-        "Responsive",
-        "Interactive",
-        "Sensual"
-      ]
-    },
-    {
       "id": "ip020",
       "title": "The Cocoon",
       "commonName": "Spooning",
-      "category": "romantic-slow-intimate",
+      "category": "deep-connection",
       "duration": "10–20 min",
       "accessibility": "low-mobility",
       "mood": "cozy",
@@ -1184,7 +1184,7 @@
       "id": "ip021",
       "title": "The Tide",
       "commonName": "Side-by-Side Face-to-Face",
-      "category": "romantic-slow-intimate",
+      "category": "deep-connection",
       "duration": "10–20 min",
       "accessibility": "low-mobility",
       "mood": "intimate",
@@ -1245,7 +1245,7 @@
       "id": "ip022",
       "title": "The Cradle",
       "commonName": "Reclined Face-to-Face",
-      "category": "romantic-slow-intimate",
+      "category": "deep-connection",
       "duration": "10–20 min",
       "accessibility": "standard",
       "mood": "tender",
@@ -1306,7 +1306,7 @@
       "id": "ip023",
       "title": "The Warmth",
       "commonName": "Chest-to-Chest",
-      "category": "romantic-slow-intimate",
+      "category": "deep-connection",
       "duration": "10–20 min",
       "accessibility": "low-mobility",
       "mood": "grounded",
@@ -1367,7 +1367,7 @@
       "id": "ip024",
       "title": "The Nesting",
       "commonName": "Curled Spooning",
-      "category": "romantic-slow-intimate",
+      "category": "deep-connection",
       "duration": "10–20 min",
       "accessibility": "low-mobility",
       "mood": "cozy",
@@ -1428,7 +1428,7 @@
       "id": "ip025",
       "title": "The Shore",
       "commonName": "Side Embrace",
-      "category": "romantic-slow-intimate",
+      "category": "deep-connection",
       "duration": "10–20 min",
       "accessibility": "standard",
       "mood": "intimate",
@@ -1489,7 +1489,7 @@
       "id": "ip026",
       "title": "The Embrace",
       "commonName": "Close Missionary",
-      "category": "romantic-slow-intimate",
+      "category": "deep-connection",
       "duration": "10–20 min",
       "accessibility": "standard",
       "mood": "affectionate",
@@ -1550,7 +1550,7 @@
       "id": "ip027",
       "title": "The Shelter",
       "commonName": "Hovering Missionary",
-      "category": "romantic-slow-intimate",
+      "category": "deep-connection",
       "duration": "10–20 min",
       "accessibility": "standard",
       "mood": "tender",
@@ -2099,7 +2099,7 @@
       "id": "ip036",
       "title": "The Spark",
       "commonName": "Quickie",
-      "category": "playful-energetic",
+      "category": "playful-energy",
       "duration": "5–15 min",
       "accessibility": "active",
       "mood": "playful",
@@ -2160,7 +2160,7 @@
       "id": "ip037",
       "title": "The Surge",
       "commonName": "Pillow Under Hips",
-      "category": "playful-energetic",
+      "category": "playful-energy",
       "duration": "5–15 min",
       "accessibility": "standard",
       "mood": "charged",
@@ -2221,7 +2221,7 @@
       "id": "ip038",
       "title": "The Flip",
       "commonName": "Position Switch",
-      "category": "playful-energetic",
+      "category": "playful-energy",
       "duration": "5–15 min",
       "accessibility": "active",
       "mood": "playful",
@@ -2282,7 +2282,7 @@
       "id": "ip039",
       "title": "The Cascade",
       "commonName": "Flow Sequence",
-      "category": "playful-energetic",
+      "category": "playful-energy",
       "duration": "5–15 min",
       "accessibility": "active",
       "mood": "playful",
@@ -2343,7 +2343,7 @@
       "id": "ip040",
       "title": "The Chase",
       "commonName": "Bent Over",
-      "category": "playful-energetic",
+      "category": "playful-energy",
       "duration": "5–15 min",
       "accessibility": "standard",
       "mood": "passionate",
@@ -2404,7 +2404,7 @@
       "id": "ip041",
       "title": "The Current",
       "commonName": "Vigorous Rear Entry",
-      "category": "playful-energetic",
+      "category": "playful-energy",
       "duration": "5–15 min",
       "accessibility": "active",
       "mood": "passionate",
@@ -2465,7 +2465,7 @@
       "id": "ip042",
       "title": "The Switch",
       "commonName": "Switching Control",
-      "category": "playful-energetic",
+      "category": "playful-energy",
       "duration": "5–15 min",
       "accessibility": "standard",
       "mood": "playful",
@@ -2526,7 +2526,7 @@
       "id": "ip043",
       "title": "The Glide",
       "commonName": "Smooth Grind",
-      "category": "playful-energetic",
+      "category": "playful-energy",
       "duration": "5–15 min",
       "accessibility": "standard",
       "mood": "sensual",
@@ -2587,7 +2587,7 @@
       "id": "ip044",
       "title": "The Driftwood",
       "commonName": "Side Rear Entry",
-      "category": "rear-adventurous",
+      "category": "exploratory",
       "duration": "10–20 min",
       "accessibility": "low-mobility",
       "mood": "grounded",
@@ -2648,7 +2648,7 @@
       "id": "ip045",
       "title": "The Plunge",
       "commonName": "Hips-Up Rear Entry",
-      "category": "rear-adventurous",
+      "category": "exploratory",
       "duration": "5–15 min",
       "accessibility": "standard",
       "mood": "intense",
@@ -2709,7 +2709,7 @@
       "id": "ip046",
       "title": "The Lean",
       "commonName": "Leaning Doggy",
-      "category": "rear-adventurous",
+      "category": "exploratory",
       "duration": "5–15 min",
       "accessibility": "standard",
       "mood": "confident",
@@ -2770,7 +2770,7 @@
       "id": "ip047",
       "title": "The Overturn",
       "commonName": "Reversal",
-      "category": "rear-adventurous",
+      "category": "exploratory",
       "duration": "5–15 min",
       "accessibility": "active",
       "mood": "playful",
@@ -2831,7 +2831,7 @@
       "id": "ip048",
       "title": "The Suspension",
       "commonName": "Countertop",
-      "category": "rear-adventurous",
+      "category": "exploratory",
       "duration": "5–15 min",
       "accessibility": "active",
       "mood": "adventurous",
@@ -2892,7 +2892,7 @@
       "id": "ip049",
       "title": "The Ledge",
       "commonName": "Edge of Table / Bed",
-      "category": "rear-adventurous",
+      "category": "exploratory",
       "duration": "5–15 min",
       "accessibility": "standard",
       "mood": "confident",
@@ -2953,7 +2953,7 @@
       "id": "ip050",
       "title": "The Rail",
       "commonName": "Against the Wall",
-      "category": "rear-adventurous",
+      "category": "exploratory",
       "duration": "5–15 min",
       "accessibility": "standard",
       "mood": "confident",
@@ -3014,7 +3014,7 @@
       "id": "ip051",
       "title": "The Balance",
       "commonName": "Assisted Standing",
-      "category": "rear-adventurous",
+      "category": "exploratory",
       "duration": "5–15 min",
       "accessibility": "active",
       "mood": "adventurous",
