@@ -221,7 +221,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
                 </Text>
 
                 {/* Sub-label instead of stars/circles */}
-                <Text style={[styles.levelSubtext, { color: neon.bloom }]}>Intensity 1</Text>
+                <Text style={[styles.levelSubtext, { color: neon.bloom }]}>Intensity {heat}</Text>
               </View>
 
               <Animated.Text style={[styles.backHint, { color: metal.chrome }, pulseStyle]}>Tap to reveal</Animated.Text>
