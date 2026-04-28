@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   },
   shuffleSection: {
     paddingHorizontal: 32,
-    marginBottom: 30,
+    marginBottom: 12,
     alignItems: 'center',
   },
   shuffleButton: {
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
     gap: 8,
-    marginTop: 20,
+    marginTop: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 100, // Velvet Glass Pill Shape
