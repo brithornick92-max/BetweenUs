@@ -34,7 +34,6 @@ import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import * as PreferenceEngine from "../services/PreferenceEngine";
-import contentAccessService from "../services/ContentAccessService";
 import { CONTENT_TYPES, buildWeeklySet } from "../services/WeeklyContentSetService";
 import PromptCardDeck from "../components/PromptCardDeck";
 import { SoftBoundaries } from "../services/PolishEngine";

@@ -13234,30 +13234,33 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 23,
-      "vibe": "A heartwarming experience of contributing to your local community, working side-by-side to cultivate growth and connection.",
-      "setup": "Dedicate time to nurture your community and each other in a local garden. This date offers a chance to get your hands dirty, learn something new, and experience the quiet satisfaction of collective effort.",
+      "vibe": "A heartwarming experience of contributing to your local community, working side-by-side to cultivate growth.",
+      "setup": "Dedicate a morning or afternoon to giving back, connecting with nature, and each other. This date offers a chance to get your hands dirty, learn something new about local ecosystems, and share the quiet satisfaction of collective effort.",
       "supplies": [
         "Comfortable clothes that can get dirty",
+        "Closed-toe shoes",
         "Gardening gloves",
         "Water bottles",
-        "Sunscreen",
-        "A hat"
+        "Sunscreen or hat",
+        "Small towel"
       ],
       "guidedSteps": [
-        "Research local community gardens and sign up for a volunteer session. Confirm what tools or supplies might be needed.",
-        "Arrive ready to work. Listen to the garden coordinator's instructions and choose a task you can do together.",
-        "Work side-by-side, whether it's weeding, planting, watering, or preparing soil. Chat about the tasks as you go.",
-        "Take short breaks to observe the plants, talk to other volunteers, or simply enjoy being outdoors.",
-        "Learn about the different plants being grown and the purpose of the community garden.",
-        "Help tidy up your workspace and thank the garden coordinator before you leave."
+        "Research local community gardens and inquire about volunteer opportunities or open garden days. Confirm any specific tools or clothing recommendations.",
+        "Arrive ready to work. Greet the garden coordinator or fellow volunteers and choose a task you can comfortably do together, like weeding, planting, or watering.",
+        "Work side-by-side, focusing on the shared task. Chat about the plants, the soil, or simply enjoy the sounds of the garden.",
+        "Take a brief pause to observe the garden's progress, talk to other volunteers, or simply enjoy being outdoors in the fresh air.",
+        "If possible, select a small area to plant seeds or a seedling together, sharing a quiet moment of intention for its growth.",
+        "Learn about the different plants being grown or the sustainable practices used in the garden from a coordinator or information signs.",
+        "Help tidy up your workspace and thank the garden coordinator or fellow volunteers before you leave."
       ],
       "conversationPrompts": [
         "What's a small way you've seen our community come together recently?",
-        "If we had our own garden, what would be the first thing you'd want to plant?",
-        "What's something new you learned about gardening or local plants today?"
+        "If we had our own small garden space, what's the first thing you'd want to grow?",
+        "What's one thing you learned or noticed today that surprised you about gardening?"
       ],
-      "connectionTwist": "Before leaving, plant a small seed or seedling together, sharing a quiet hope for its growth.",
-      "ending": "As you clean up, share one positive feeling you have about contributing to your community today."
+      "connectionTwist": "Before departing, find a small, interesting leaf or seed pod from the garden to keep as a token of your shared contribution.",
+      "ending": "Share a warm drink or a cool refreshment together, discussing one positive feeling you have about contributing to your community today.",
+      "description": "Engage in a fulfilling outdoor activity, nurturing local green spaces and your connection through shared purpose and gentle work."
     },
     {
       "id": "d204",
@@ -13274,32 +13277,33 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 24,
-      "vibe": "A purposeful and refreshing outing, working together to care for nature and enjoy the peaceful reward of a clean shoreline.",
-      "setup": "Head to the coast for a date that combines fresh air, meaningful action, and the satisfaction of making a difference. This date is about working as a team to protect a beautiful natural space.",
+      "vibe": "A refreshing and purposeful outing, working together to care for nature and enjoy the peaceful reward of a cleaner shoreline.",
+      "setup": "Head to the coast for a date that combines fresh air, meaningful action, and the satisfaction of making a difference. This experience is about working as a team to protect a beautiful natural space you both value.",
       "supplies": [
-        "Comfortable shoes",
-        "Gloves (reusable gardening or work gloves are ideal)",
-        "Trash bags (thick, durable ones)",
-        "A small bucket",
+        "Comfortable walking shoes",
+        "Durable work gloves (reusable)",
+        "Sturdy trash bags (2-3)",
+        "Small bucket or mesh bag for recyclables",
         "Water bottles",
-        "Sunscreen",
-        "Hat"
+        "Sunscreen and hats"
       ],
       "guidedSteps": [
-        "Check for local beach cleanup events or simply pick a beach and a section to focus on.",
-        "Arrive with your supplies. Designate one bag for trash and another for recyclables if possible.",
-        "Walk along the shoreline, scanning for debris. Work as a team, calling out items you spot.",
-        "Carefully pick up trash, paying attention to small pieces of plastic or fishing line.",
-        "Take breaks to simply enjoy the ocean sounds and the feeling of the sand beneath your feet.",
-        "Dispose of the collected trash and recyclables properly. Then, enjoy a leisurely, well-deserved walk along the now cleaner beach."
+        "Check for local beach cleanup events or choose a specific section of a public beach to focus on. Plan to go when tides are low.",
+        "Arrive with your supplies. Designate one bag for general trash and another for recyclables if local facilities allow.",
+        "Walk slowly along the shoreline, scanning for debris. Work together, calling out items you spot and carefully picking them up.",
+        "Pay close attention to small pieces of plastic, fishing line, or micro-plastics that can be easily missed.",
+        "Take short breaks to simply enjoy the ocean sounds, the feeling of the sand, and the fresh air.",
+        "Once your designated area is clean or your bags are full, properly dispose of the collected trash and recyclables.",
+        "Reward yourselves with a leisurely, hand-in-hand walk along the now cleaner beach, observing the natural beauty you helped restore."
       ],
       "conversationPrompts": [
         "What's the most surprising or unusual item you found today?",
-        "What's a small change we could make in our daily lives to reduce waste?",
-        "What's another natural place you feel a strong connection to?"
+        "What's one small change we could make in our daily routine to reduce our waste footprint?",
+        "What other natural places do you feel a strong connection to, and why?"
       ],
-      "connectionTwist": "Find two small, naturally beautiful shells or pieces of sea glass (not trash!) and exchange them as a reminder of your shared effort.",
-      "ending": "After disposing of the collected items, walk hand-in-hand along the clean beach for a few minutes, appreciating the beauty you helped restore."
+      "connectionTwist": "Find two unique, naturally beautiful shells or pieces of sea glass (not trash!) and exchange them as a small reminder of your shared effort and appreciation for the ocean.",
+      "ending": "Sit together for a few moments, silently watching the waves, appreciating the collective beauty and calm you helped create.",
+      "description": "Make a tangible impact on local shorelines, spending time outdoors in shared effort and appreciating the natural beauty you help preserve."
     },
     {
       "id": "d208",
@@ -13316,31 +13320,33 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 24,
-      "vibe": "A gentle stroll through nature, sharing quiet observations and a sense of shared calm.",
-      "setup": "Find a local trail known for its accessibility and natural beauty. Pack a small bag with water and snacks, and choose a time of day when the light is pleasant and the trail isn't too crowded. This date is about moving at a pace that feels comfortable for both of you, appreciating the small details of the outdoor world.",
+      "vibe": "A gentle and reflective stroll through nature, sharing quiet observations and a sense of peaceful togetherness.",
+      "setup": "Discover a local trail known for its accessibility and natural beauty. Pack a small bag with water and light snacks, choosing a time when the light is pleasant and the trail isn't overly busy. This date is about moving at a pace that feels comfortable for both of you, appreciating the subtle details of the outdoor world.",
       "supplies": [
-        "Comfortable shoes",
+        "Comfortable walking shoes",
         "Water bottles",
-        "Small snacks",
-        "Light jacket (if needed)",
-        "Small backpack"
+        "Light snacks (fruit, granola bars)",
+        "Light jacket or sweater (weather dependent)",
+        "Small backpack",
+        "Binoculars (optional)"
       ],
       "guidedSteps": [
-        "Research and select an accessible nature trail that offers varied scenery and comfortable pathways.",
-        "Before heading out, discuss what you each hope to notice or experience on the walk.",
-        "Start your walk, holding hands or walking close, setting a comfortable, unhurried pace.",
-        "Point out interesting details to each other – a unique leaf, a bird's call, the texture of a tree trunk.",
-        "Pause at a scenic viewpoint, taking a few slow, deep breaths together, simply observing the surroundings.",
-        "If you spot wildlife, watch it quietly for a moment, sharing a glance or a whispered comment.",
-        "As you return, reflect on a favorite moment or observation from your time outside."
+        "Research and select an accessible nature trail that offers varied scenery and well-maintained pathways suitable for a comfortable pace.",
+        "Before starting, discuss what you each hope to notice or experience on the walk, setting an intention for shared observation.",
+        "Begin your walk at a comfortable pace, allowing yourselves to simply be present in the environment. Hold hands or walk close.",
+        "Point out interesting details to each other – a unique leaf, a bird's call, the texture of tree bark, or the play of light.",
+        "Pause at a scenic viewpoint or a quiet bench, taking a few slow, deep breaths together, simply observing the surroundings without speaking for a moment.",
+        "If you spot wildlife, watch it quietly, sharing a glance or a whispered comment to acknowledge the shared experience.",
+        "On your return, reflect on a favorite moment or observation from your time outside, sharing what resonated most with you."
       ],
       "conversationPrompts": [
-        "What feeling does this natural setting bring up for you right now?",
-        "If this trail could whisper a secret, what do you think it would say?",
-        "What's one small detail you noticed today that you might have missed before?"
+        "What feeling does this natural setting bring up for you right now, and why?",
+        "If this trail could share a secret about its history, what do you imagine it would be?",
+        "What's one small detail you noticed today that you might have walked right past on another day?"
       ],
-      "connectionTwist": "Collect a small, smooth pebble or a fallen leaf together as a tangible reminder of your shared time in nature.",
-      "ending": "Share a warm drink or a light snack once you're back home, talking about your favorite part of the trail and any plans for future outdoor explorations."
+      "connectionTwist": "Collect a small, smooth pebble or a perfectly fallen leaf together, symbolizing your shared, grounded moment in nature.",
+      "ending": "Enjoy a warm drink or a light, refreshing snack back home, talking about your favorite part of the trail and any plans for future outdoor explorations.",
+      "description": "Connect with each other and the outdoors on a peaceful, accessible nature trail, sharing quiet moments and fresh air."
     },
     {
       "id": "d212",
@@ -13382,7 +13388,8 @@
         "What's your favorite kitchen memory or tradition from your childhood?"
       ],
       "connectionTwist": "Before you start cooking, write down one ingredient you're excited to work with, then exchange and try to incorporate it into the meal prep.",
-      "ending": "Toast to a well-fed week ahead with your favorite drink, appreciating the calm feeling of having tasks completed together."
+      "ending": "Toast to a well-fed week ahead with your favorite drink, appreciating the calm feeling of having tasks completed together.",
+      "description": "Transform weekly meal prep into a fun, collaborative kitchen adventure, setting yourselves up for a delicious and organized week ahead."
     },
     {
       "id": "d214",
@@ -13424,7 +13431,8 @@
         "If you could design the perfect dream for us tonight, what would it be?"
       ],
       "connectionTwist": "Before falling asleep, gently rub each other's shoulders or feet for a few minutes, focusing on quiet touch.",
-      "ending": "Share a slow morning coffee or tea in bed, reflecting on the quality of your rest and the comfort of waking up together."
+      "ending": "Share a slow morning coffee or tea in bed, reflecting on the quality of your rest and the comfort of waking up together.",
+      "description": "Design your ultimate sleep haven together, fostering deep rest and quiet intimacy for a truly refreshed start to your day."
     },
     {
       "id": "d388",
@@ -13464,7 +13472,8 @@
         "What's a feeling or thought that surfaced during your writing that surprised you?"
       ],
       "connectionTwist": "After sharing, gently place your hand over your partner's journal for a moment of quiet acknowledgment.",
-      "ending": "Enjoy a simple, unhurried breakfast together, carrying the calm energy of your morning into the rest of the day."
+      "ending": "Enjoy a simple, unhurried breakfast together, carrying the calm energy of your morning into the rest of the day.",
+      "description": "Greet the day with quiet reflection and shared presence, journaling side-by-side as the world awakens around you."
     },
     {
       "id": "d389",
@@ -13505,7 +13514,8 @@
         "If our relationship were a cloud formation, what kind would it be and why?"
       ],
       "connectionTwist": "Link pinkies and silently make a wish together as you watch a cloud drift out of sight.",
-      "ending": "Share a cool drink or ice cream, continuing your lighthearted chat about the day's cloud-inspired musings."
+      "ending": "Share a cool drink or ice cream, continuing your lighthearted chat about the day's cloud-inspired musings.",
+      "description": "Unwind together under the vast sky, finding playful shapes in the clouds and sharing imaginative stories for a lighthearted escape."
     },
     {
       "id": "d390",
@@ -13547,7 +13557,8 @@
         "What's something you learned about your own creative process today?"
       ],
       "connectionTwist": "Exchange paintings and write a short, appreciative note on the back of your partner's artwork.",
-      "ending": "Clean up your workspace together, then find a temporary spot to display your collaborative art, celebrating your shared creativity."
+      "ending": "Clean up your workspace together, then find a temporary spot to display your collaborative art, celebrating your shared creativity.",
+      "description": "Unleash your inner artists side-by-side, translating your unique perspectives onto paper with soft watercolors and shared quiet."
     },
     {
       "id": "d391",
@@ -13588,7 +13599,8 @@
         "What's one small ritual we could incorporate into our daily lives to create more calm?"
       ],
       "connectionTwist": "As you finish, gently place your hands over the garden together, silently setting an intention for peace in your home.",
-      "ending": "Share a moment of quiet reflection, perhaps with a cup of herbal tea, appreciating the calm you've created."
+      "ending": "Share a moment of quiet reflection, perhaps with a cup of herbal tea, appreciating the calm you've created.",
+      "description": "Craft a miniature zen garden together, finding calm through shared focus and intentional design, creating a peaceful corner for your home."
     },
     {
       "id": "d392",
@@ -13610,8 +13622,9 @@
       "supplies": [
         "Jigsaw puzzle (500-1000 pieces recommended)",
         "Cozy blankets",
-        "Warm drinks (tea, coffee, hot cocoa)",
-        "Soft background music"
+        "Warm drinks (tea, coffee, hot cocoa, or your favorite non-alcoholic beverage)",
+        "Soft background music (playlist or speaker)",
+        "A dedicated surface (table or puzzle mat)"
       ],
       "guidedSteps": [
         "Prepare your puzzle area: clear the table, set out your puzzle, and get your warm drinks ready.",
@@ -13628,7 +13641,8 @@
         "What's a small victory from your week that you're proud of, even if it's just finding a puzzle piece?"
       ],
       "connectionTwist": "Find two pieces that perfectly interlock, then hold them together for a moment, appreciating their fit.",
-      "ending": "Step back and admire your progress, then share a small treat or dessert, feeling content with your shared focus and teamwork."
+      "ending": "Step back and admire your progress, then share a small treat or dessert, feeling content with your shared focus and teamwork.",
+      "description": "Delight in the quiet satisfaction of piecing together a beautiful puzzle, sharing warm drinks and comfortable silence."
     },
     {
       "id": "d393",
@@ -13670,7 +13684,8 @@
         "If we could grow anything, what would be our dream plant to cultivate?"
       ],
       "connectionTwist": "Gently press your fingerprints into the soil of the last pot together, a subtle mark of your shared effort.",
-      "ending": "Give your new herb garden a final admiring look, then wash your hands together and notice the fresh, earthy scent."
+      "ending": "Give your new herb garden a final admiring look, then wash your hands together and notice the fresh, earthy scent.",
+      "description": "Cultivate a fragrant indoor herb garden together, sharing the joy of nurturing new life and bringing fresh flavor to your home."
     },
     {
       "id": "d394",
@@ -13711,7 +13726,8 @@
         "If you could bottle a feeling or memory into a scent, what would it be?"
       ],
       "connectionTwist": "Hold hands after the massages, gently interlocking your fingers, and take three slow, deep breaths together, inhaling the shared aroma.",
-      "ending": "Gently squeeze your partner's hand, then open your eyes, feeling refreshed and settled."
+      "ending": "Gently squeeze your partner's hand, then open your eyes, feeling refreshed and settled.",
+      "description": "Indulge in a calming aromatherapy session, sharing soothing hand massages and finding deep relaxation in shared quiet."
     },
     {
       "id": "d395",
@@ -13731,14 +13747,11 @@
       "vibe": "A comforting and unhurried start to the day, focused on shared creation and simple pleasures.",
       "setup": "Dedicate a morning to pure indulgence, starting with a lie-in and culminating in a delicious, homemade pancake feast. This date is about moving slowly, enjoying the process of cooking together, and savoring a meal you both prepared.",
       "supplies": [
-        "Pancake mix or ingredients for scratch (flour, eggs, milk, baking powder, sugar)",
+        "Pancake ingredients (mix or scratch)",
         "Toppings (syrup, fruit, whipped cream)",
-        "Butter",
-        "Griddle or large pan",
-        "Mixing bowls, whisk",
-        "Plates, cutlery",
-        "A small vase with flowers or greenery",
-        "Coffee/tea/juice"
+        "Cooking tools (griddle, bowls, whisk)",
+        "Table setting (plates, cutlery, small flowers)",
+        "Coffee, tea, or juice"
       ],
       "guidedSteps": [
         "Wake naturally, without an alarm, and ease into the morning at your own pace.",
@@ -13755,7 +13768,8 @@
         "What does a 'perfect' slow morning look like for you?"
       ],
       "connectionTwist": "Cut the first pancake in half and share it from the same plate, a symbolic first bite of your shared creation.",
-      "ending": "Clear the table together, then linger over your coffee or tea, enjoying the quiet hum of your morning."
+      "ending": "Clear the table together, then linger over your coffee or tea, enjoying the quiet hum of your morning.",
+      "description": "Savor a peaceful morning together, creating fluffy pancakes from scratch and enjoying a leisurely breakfast that nourishes both body and bond."
     },
     {
       "id": "d396",
@@ -13797,7 +13811,8 @@
         "What's a small detail in nature that you often overlook but are noticing today?"
       ],
       "connectionTwist": "When you spot a bird together, gently touch your partner's arm or hand to share the moment of discovery without speaking.",
-      "ending": "Review your shared birding list, choosing one bird you both found particularly captivating."
+      "ending": "Review your shared birding list, choosing one bird you both found particularly captivating.",
+      "description": "Embark on a peaceful nature walk, discovering local birds together and sharing the quiet joy of observation and identification."
     },
     {
       "id": "d397",
@@ -13814,7 +13829,7 @@
       "load": 1,
       "style": "doing",
       "releaseWeek": 25,
-      "vibe": "A peaceful, creative escape that encourages gentle conversation and shared focus.",
+      "vibe": "A peaceful, creative escape encouraging gentle conversation and shared focus.",
       "setup": "Unwind side-by-side with intricate designs and a palette of colors. This date is about embracing a simple, calming activity, letting your minds wander, and enjoying the quiet company and shared creative expression.",
       "supplies": [
         "Two adult coloring books (or one large book with pages you can tear out)",
@@ -13838,7 +13853,8 @@
         "If this coloring page represented our week, what colors would dominate it?"
       ],
       "connectionTwist": "Choose a single shared color and use it somewhere on both of your pages, a subtle thread connecting your individual creations.",
-      "ending": "Carefully tear out your favorite completed pages and find a temporary spot to display them, perhaps on the fridge or a bulletin board."
+      "ending": "Carefully tear out your favorite completed pages and find a temporary spot to display them, perhaps on the fridge or a bulletin board.",
+      "description": "Relax together with coloring books, sharing colors and quiet conversation as you bring intricate designs to life side-by-side."
     },
     {
       "id": "d398",
@@ -13880,7 +13896,8 @@
         "If we could choose any setting for a cozy evening, where would it be?"
       ],
       "connectionTwist": "Before you begin reading, choose one word from the book that catches your eye, then quietly whisper it to your partner and see if they can guess why you chose it.",
-      "ending": "Snuggle in closer, letting the warmth and gentle quiet envelop you both, then blow out the candles or turn off the space heater together."
+      "ending": "Snuggle in closer, letting the warmth and gentle quiet envelop you both, then blow out the candles or turn off the space heater together.",
+      "description": "Create a cozy indoor haven with soft blankets, warm drinks, and shared stories by the fire, letting quiet comfort fill your evening."
     },
     {
       "id": "d399",
@@ -13923,7 +13940,8 @@
         "What's a simple outdoor activity you'd like to try together next?"
       ],
       "connectionTwist": "Before you leave, find two small, smooth pebbles from the shore. Hold one each, remembering the quiet moments by the water.",
-      "ending": "Pack up your gear, leaving the area as you found it, and share a quiet smile, savoring the tranquility of your time together."
+      "ending": "Pack up your gear, leaving the area as you found it, and share a quiet smile, savoring the tranquility of your time together.",
+      "description": "Cast your lines and unwind by the water, sharing quiet moments and the simple joy of nature with your partner."
     },
     {
       "id": "d400",
@@ -13963,7 +13981,8 @@
         "What's a simple pleasure you're looking forward to this evening?"
       ],
       "connectionTwist": "As the sun dips below the horizon, gently interlace your fingers, sharing a quiet squeeze as the day closes.",
-      "ending": "Stand up together, stretching slightly, and carry your empty glasses inside, ready for a peaceful night."
+      "ending": "Stand up together, stretching slightly, and carry your empty glasses inside, ready for a peaceful night.",
+      "description": "Share a quiet evening on the porch, watching the sunset and savoring easy conversation as the day gently turns to night."
     },
     {
       "id": "d401",
@@ -13980,29 +13999,30 @@
       "load": 1,
       "style": "doing",
       "releaseWeek": 26,
-      "vibe": "A playful and engaging date to create something beautiful together, piece by piece.",
-      "setup": "Clear a comfortable table space where you can sit side-by-side. Gather your paper and find a few simple origami tutorials you both find appealing. This date is about patient creation and shared focus.",
+      "vibe": "A playful and focused date to create something beautiful together, piece by piece.",
+      "setup": "Clear a comfortable table space where you can sit side-by-side. Gather your paper and find a few simple origami tutorials you both find appealing. This date is about patient creation and shared focus, enjoying the process more than the perfect outcome.",
       "supplies": [
         "Origami paper (or any thin, square paper)",
         "Tablet or laptop for tutorials",
         "Good lighting",
-        "Small box or container for finished pieces"
+        "A flat surface for folding"
       ],
       "guidedSteps": [
         "Choose a few simple origami designs you both want to try, like a crane, a heart, or a flower. Start with one together.",
         "Follow the tutorial step-by-step, pausing as needed. Help each other with tricky folds and enjoy the process of learning.",
-        "Once you've each completed a piece, admire your creations and gently offer constructive feedback or praise.",
+        "Once you've each completed a piece, admire your creations. Notice the details and the effort, rather than striving for perfection.",
         "Try a second design, perhaps each choosing a different one to fold simultaneously, sharing tips as you go.",
-        "Select your favorite piece you've each made and exchange them as small tokens of your shared effort.",
+        "Select your favorite piece you've each made and exchange them as small tokens of your shared effort and patience.",
         "If you have extra paper, fold a few more pieces to string into a small garland or display in a visible spot."
       ],
       "conversationPrompts": [
-        "What part of this process do you find most satisfying?",
-        "If you could fold anything into existence right now, what would it be?",
-        "What's something you've learned recently that required this kind of focused, step-by-step attention?"
+        "What part of this process do you find most satisfying, the precision or the transformation?",
+        "If you could fold anything into existence right now, what practical or whimsical item would it be?",
+        "What's a skill you've learned that required this kind of focused, step-by-step attention, and what did you learn about yourself?"
       ],
-      "connectionTwist": "Before you begin, each choose a color of paper that represents something you appreciate about the other person. Fold your first piece using that paper.",
-      "ending": "Find a small, visible spot in your home to display your favorite origami creations as a reminder of your shared, patient work."
+      "connectionTwist": "Before you begin, each choose a color of paper that represents something specific you appreciate about the other person. Fold your first piece using that paper.",
+      "ending": "Find a small, visible spot in your home to display your favorite origami creations as a reminder of your shared, patient work and quiet moments.",
+      "description": "Unfold a quiet evening of shared creativity, learning the art of origami together and crafting unique keepsakes."
     },
     {
       "id": "d402",
@@ -14019,29 +14039,31 @@
       "load": 2,
       "style": "mixed",
       "releaseWeek": 26,
-      "vibe": "A sweet and contemplative date to explore new ideas and enjoy a peaceful quiet presence together.",
-      "setup": "Head to your local library or a beloved bookstore. The goal is to explore individually before coming back together to share discoveries and enjoy each other's quiet company.",
+      "vibe": "A sweet and contemplative date to explore new ideas and enjoy a peaceful, shared presence together.",
+      "setup": "Head to your local library or a beloved bookstore. The goal is to explore individually, allowing curiosity to guide you, before coming back together to share discoveries and enjoy each other's quiet company.",
       "supplies": [
         "Comfortable walking shoes",
         "Reusable tote bag (for any books you might check out)",
-        "Small notebook and pen (optional, for jotting down titles)"
+        "Small notebook and pen (optional, for jotting down titles)",
+        "A list of any books you've been meaning to read (optional)"
       ],
       "guidedSteps": [
-        "Arrive at the library and take a moment to notice the quiet atmosphere. Agree on a time to meet back at a designated spot.",
-        "Separate to browse different sections that interest you. Allow yourselves to wander and discover without pressure.",
-        "Look for titles or topics that you think the other person might enjoy, making a mental note or snapping a photo.",
-        "Meet back at your agreed-upon spot. Share your interesting finds, describing what caught your eye and why.",
-        "Each pick one book or magazine that you'd like to read for a short while.",
-        "Find a comfortable, quiet corner to sit side-by-side and read silently, simply enjoying the other's company.",
-        "Before leaving, decide if there are any books you want to check out or add to a reading list to explore later."
+        "Arrive at the library and take a moment to notice the quiet atmosphere. Agree on a time and a specific spot to meet back.",
+        "Separate to browse different sections that genuinely interest you. Allow yourselves to wander and discover without pressure.",
+        "Look for titles or topics that you think the other person might enjoy, making a mental note or snapping a photo of the cover.",
+        "Meet back at your agreed-upon spot. Share your interesting finds, describing what caught your eye and why you thought of them.",
+        "Each pick one book or magazine that you'd like to read for a short while, perhaps something you just discovered.",
+        "Find a comfortable, quiet corner to sit side-by-side and read silently, simply enjoying the other's company and the shared calm.",
+        "Before leaving, decide if there are any books you want to check out, purchase, or add to a shared reading list for later."
       ],
       "conversationPrompts": [
-        "What kind of book or topic always draws you in, no matter what?",
-        "If you could spend a day with any author, living or historical, who would it be and what would you ask them?",
-        "What's a book that significantly changed your perspective on something?"
+        "What kind of book or topic always draws you in, no matter what, and why do you think that is?",
+        "If you could recommend one book that everyone should read, what would it be and what lesson does it offer?",
+        "What's a book that significantly changed your perspective on something, and how did it influence you?"
       ],
-      "connectionTwist": "Each of you chooses a sentence from a book you found that resonated with you, and then read it aloud to the other before you leave.",
-      "ending": "Walk out of the library hand-in-hand, carrying the quiet energy of your shared exploration into the rest of your day."
+      "connectionTwist": "Before you leave, each of you chooses a sentence from a book you found that resonated with you, and then read it aloud to the other, explaining why it stood out.",
+      "ending": "Walk out of the library hand-in-hand, carrying the quiet energy of your shared exploration and intellectual curiosity into the rest of your day.",
+      "description": "Immerse yourselves in a world of stories and knowledge, sharing quiet moments and surprising discoveries among the shelves."
     },
     {
       "id": "d403",
@@ -14059,28 +14081,29 @@
       "style": "mixed",
       "releaseWeek": 26,
       "vibe": "A playful and refreshing outdoor date to connect with nature and each other through simple, joyful activity.",
-      "setup": "Choose a scenic river, creek, or lake with an accessible bank where you can walk and find smooth, flat stones. Dress comfortably for a stroll and potential dampness near the water.",
+      "setup": "Choose a scenic river, creek, or lake with an accessible bank where you can walk and find smooth, flat stones. Dress comfortably for a stroll and potential dampness near the water. This date is about lighthearted fun and shared presence in nature.",
       "supplies": [
         "Comfortable walking shoes",
         "Small towel (optional, for drying hands)",
         "Water bottles",
-        "Camera (optional, for capturing the scenery)"
+        "Light jacket or layers (weather dependent)"
       ],
       "guidedSteps": [
-        "Begin your walk along the water's edge, noticing the sounds and sights around you. Take a few moments to just be present.",
-        "Keep an eye out for flat, smooth stones that look promising for skipping. Share your best finds with each other.",
+        "Begin your walk along the water's edge, noticing the sounds and sights around you. Take a few moments to simply be present in nature together.",
+        "Keep an eye out for flat, smooth stones that look promising for skipping. Share your best finds with each other, discussing what makes a good skipping stone.",
         "Take turns skipping stones, encouraging each other and celebrating each successful skip. Have a friendly competition to see who can get the most bounces.",
-        "Pause to simply watch the water flow, perhaps pointing out interesting patterns or reflections.",
-        "Find a comfortable spot on the bank to sit down. You might dangle your feet near the water if it's safe and warm enough.",
-        "Close your eyes for a minute or two and just listen to the sounds of the water, the birds, and the breeze."
+        "Pause to simply watch the water flow, perhaps pointing out interesting patterns, reflections, or wildlife.",
+        "Find a comfortable, dry spot on the bank to sit down. You might dangle your feet near the water if it's safe and warm enough.",
+        "Close your eyes for a minute or two and just listen to the distinct sounds of the water, the birds, and the breeze, sharing what you hear."
       ],
       "conversationPrompts": [
-        "What's a simple outdoor activity from your childhood that you still enjoy?",
-        "If this body of water could tell you a story, what kind of story do you think it would be?",
-        "What's one small, natural sound that always brings you a sense of calm?"
+        "What's a simple outdoor activity from your childhood that you still enjoy, or wish you did more often?",
+        "If this body of water could whisper a secret, what kind of secret do you think it would share about the land it flows through?",
+        "What's one small, natural sound that always brings you a sense of calm, and where do you usually hear it?"
       ],
-      "connectionTwist": "Find two stones that fit perfectly together, like puzzle pieces. Keep one each as a reminder of your shared time by the water.",
-      "ending": "Share a lingering hug or a hand squeeze as you leave the river, carrying the calm feeling of the water with you."
+      "connectionTwist": "Find two stones that fit perfectly together, like puzzle pieces. Keep one each as a tangible reminder of your shared time by the water.",
+      "ending": "Share a lingering hug or a hand squeeze as you leave the river, carrying the calm and refreshed feeling of the water with you.",
+      "description": "Enjoy a refreshing stroll along the water's edge, sharing laughter and lighthearted competition as you perfect your stone-skipping technique."
     },
     {
       "id": "d404",
@@ -14097,32 +14120,33 @@
       "load": 1,
       "style": "mixed",
       "releaseWeek": 26,
-      "vibe": "A romantic and peaceful evening under the stars, designed for quiet conversation and shared intimacy.",
-      "setup": "Prepare your patio or balcony for a comfortable evening. Dim any bright lights, arrange cozy seating, and ensure you have a clear view of the night sky. This date is about slowing down and simply being together.",
+      "vibe": "A tranquil evening under the open sky, inviting quiet reflection and shared moments of peace.",
+      "setup": "Transform your outdoor space into a cozy haven after sunset. Arrange comfortable seating, dim any harsh lights, and ensure a clear view of the night sky. This date encourages slowing down and simply enjoying each other's presence beneath the stars.",
       "supplies": [
-        "Cozy blankets or throws",
-        "Two comfortable chairs or a small outdoor sofa",
-        "Your favorite drink (wine, sparkling cider, or tea)",
-        "Small plate of snacks (cheese, crackers, fruit)",
-        "Star chart app or printed guide (optional)",
-        "Soft ambient lighting (e.g., string lights, candles)"
+        "Two comfortable outdoor chairs or a small blanket for lounging",
+        "Your favorite beverage (e.g., wine, sparkling cider, herbal tea)",
+        "A small plate of snacks (e.g., cheese, crackers, fruit, chocolate)",
+        "Soft blankets or throws for warmth",
+        "Optional: Star chart app or printed constellation guide",
+        "Optional: Soft ambient lighting (e.g., string lights, flameless candles)"
       ],
       "guidedSteps": [
-        "As dusk settles, set up your outdoor space. Arrange blankets and pillows, and pour your drinks and prepare a small plate of snacks.",
-        "Settle into your seats, getting comfortable and allowing your eyes to adjust to the dim light.",
-        "Start by simply observing the sky. Point out the first stars you see appear and listen to the night sounds.",
-        "If you have a star chart app or guide, try to identify a constellation or two together. Share any fun facts you know about them.",
-        "Share your snacks and drinks, taking slow sips and bites. Let the conversation flow naturally, or simply enjoy the quiet.",
-        "Spend some time in comfortable silence, holding hands or leaning into each other, just experiencing the night together.",
-        "Before heading inside, turn off any ambient lights and take one last look at the expanse of stars above you."
+        "As daylight fades, set up your chosen outdoor spot with comfortable seating, blankets, and your drinks and snacks.",
+        "Settle in and allow your eyes to adjust to the dim light, taking a few deep breaths together.",
+        "Begin by simply observing the sky. Point out the first stars you see appear and listen to the natural sounds of the night.",
+        "If using a guide, try to locate a constellation or planet together, sharing any interesting facts you know or learn.",
+        "Share your snacks and sips of your beverage, letting conversation flow naturally or embracing comfortable silence.",
+        "Spend time simply being close, perhaps holding hands or leaning against each other, feeling the stillness of the night.",
+        "Before heading inside, turn off any artificial lights and share one last gaze at the expansive sky above."
       ],
       "conversationPrompts": [
-        "If you could wish on a star for anything, what would be the first thing that comes to mind?",
         "What's a memory you have of looking at the stars that stands out to you?",
-        "When do you feel most at peace?"
+        "If you could spend a night anywhere in the world under the stars, where would it be?",
+        "What's one small thing you're grateful for in this moment?"
       ],
-      "connectionTwist": "Pick a star or constellation together and decide it will be 'your star,' a silent marker of your connection whenever you see it.",
-      "ending": "Gather your blankets and head inside, carrying the peaceful quiet and warmth of the evening into your home."
+      "connectionTwist": "As you look up, silently agree on one star or constellation that will be \"yours,\" a quiet reminder of this moment whenever you see it.",
+      "ending": "Gather your things, carrying the peaceful quiet and the warmth of your shared evening as you transition back inside.",
+      "description": "Unwind together under a canopy of stars, sharing quiet conversation and warm drinks in a peaceful outdoor setting."
     },
     {
       "id": "d405",
@@ -14139,29 +14163,31 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 27,
-      "vibe": "A lively and engaging date to explore local flavors and find shared culinary inspiration.",
-      "setup": "Choose a local farmers market or a vibrant morning market known for fresh produce and unique goods. Plan to go early to avoid crowds and enjoy the bustling atmosphere. This date is about sensory exploration and discovery.",
+      "vibe": "A vibrant and sensory exploration, inviting you to discover local treasures and culinary inspiration together.",
+      "setup": "Choose a local farmers market or a lively morning market known for its fresh produce and unique artisanal goods. Plan to arrive early to enjoy the full energy before the biggest crowds. This date is about engaging your senses and making shared discoveries.",
       "supplies": [
-        "Reusable tote bag(s)",
-        "Cash or card for purchases",
+        "Reusable tote bag(s) for purchases",
+        "Cash or card for vendors",
         "Comfortable walking shoes",
-        "Water bottles or travel mugs for coffee"
+        "Water bottles or travel mugs for coffee/tea",
+        "A small notepad and pen (optional, for noting interesting finds)"
       ],
       "guidedSteps": [
-        "Arrive at the market with an open mind. Take a few moments to just absorb the sights, sounds, and smells before diving in.",
-        "Wander through the stalls together, pausing at anything that catches your eye. Don't rush; enjoy the process of discovery.",
-        "Take advantage of any samples offered, discussing the flavors and textures. Point out interesting ingredients or crafts to each other.",
-        "Decide together on one special ingredient or item to purchase. This could be a unique vegetable, a fresh-baked pastry, or a handcrafted item.",
-        "Before leaving, grab a coffee or a small treat to share, finding a quiet spot to observe the market activity.",
-        "Walk home hand-in-hand, discussing your favorite finds and any ideas you have for using your special ingredient."
+        "Arrive at the market ready to explore. Take a moment at the entrance to simply absorb the sights, sounds, and aromas.",
+        "Wander through the stalls at a leisurely pace, pausing together at anything that catches your eye, from colorful produce to handmade goods.",
+        "Engage with vendors and sample any offerings, discussing the flavors and textures you experience.",
+        "Together, select one unique ingredient or item that inspires you both for a future meal or creative use.",
+        "Find a spot to enjoy a shared coffee or small treat, watching the market activity and discussing your favorite discoveries.",
+        "Begin your walk home, holding hands and chatting about your market finds and any ideas for using your special purchase."
       ],
       "conversationPrompts": [
-        "What's an ingredient you've always wanted to try cooking with?",
-        "If you could open a small stall at this market, what would you sell?",
-        "What's a food memory from your childhood that you still savor?"
+        "What's an ingredient you've always wanted to try cooking with, or a dish you'd like to recreate?",
+        "If you could have a small stall at this market, what unique item or food would you sell?",
+        "What's a food memory from your childhood that still brings you comfort or joy?"
       ],
-      "connectionTwist": "With your chosen ingredient, plan a simple meal or snack to prepare together later in the day or week.",
-      "ending": "Arrive home with your market treasures, feeling refreshed and inspired by your shared morning adventure."
+      "connectionTwist": "With your chosen market treasure, make a loose plan to cook or create something together with it later that day or week.",
+      "ending": "Arrive back home, feeling refreshed and inspired by the morning's exploration and the promise of a shared culinary adventure.",
+      "description": "Immerse yourselves in the lively atmosphere of a local market, discovering new flavors and finding a special ingredient to share."
     },
     {
       "id": "d406",
@@ -14178,31 +14204,32 @@
       "load": 1,
       "style": "mixed",
       "releaseWeek": 27,
-      "vibe": "A calm and nurturing date to release tension and find comfort in gentle movement and quiet presence.",
-      "setup": "Clear a comfortable space on the floor in your home, ensuring you have enough room to stretch side-by-side. Dim the lights, put on some soft music if you like, and brew a soothing herbal tea.",
+      "vibe": "A gentle and soothing experience, promoting physical ease and quiet intimacy through shared movement and calm.",
+      "setup": "Prepare a tranquil space in your home by clearing a spot on the floor where you can comfortably stretch side-by-side. Dim the lights, consider soft instrumental music, and brew a comforting pot of herbal tea. This date is designed for releasing tension and connecting through gentle presence.",
       "supplies": [
-        "Yoga mats or soft blankets for the floor",
-        "A pot of herbal tea (your favorite blend)",
-        "Two mugs",
-        "Soft background music (optional)",
-        "Comfortable, loose clothing"
+        "Yoga mats, soft blankets, or thick towels for floor comfort",
+        "A pot of your favorite herbal tea",
+        "Two comfortable mugs",
+        "Loose, comfortable clothing",
+        "Optional: Soft instrumental music"
       ],
       "guidedSteps": [
-        "Start by brewing a pot of your favorite herbal tea. While it steeps, lay out your mats or blankets in a comfortable space.",
-        "Sit facing each other or side-by-side. Begin with a few deep, intentional breaths to center yourselves.",
-        "Guide each other through some gentle stretches. You might start with neck rolls, shoulder stretches, or a gentle forward fold.",
-        "Between stretches, pause to sip your warm tea. Notice the warmth and the flavors, and how your body feels.",
-        "Try a few partner stretches, if comfortable, like a supported back stretch or a gentle hand-in-hand side bend.",
-        "Conclude your stretching with a restful pose, like lying on your backs with your heads close, or in a comfortable heap.",
-        "Finish your tea slowly, allowing the quiet and calm to settle over you both."
+        "Begin by brewing your chosen herbal tea. While it steeps, arrange your mats or blankets in your prepared space.",
+        "Sit comfortably, facing each other or side-by-side. Take a few deep, slow breaths to arrive in the moment.",
+        "Guide each other through a series of gentle stretches, such as neck rolls, shoulder openers, or a simple seated forward fold.",
+        "Pause between movements to sip your warm tea, noticing its aroma and warmth as it settles you.",
+        "If comfortable, try a few supported partner stretches, like a gentle back-to-back stretch or holding hands during a side bend.",
+        "Conclude your stretching with a restful pose, perhaps lying on your backs with heads close or in a comfortable, relaxed position.",
+        "Finish your tea slowly, allowing the calm and quiet stillness to envelop you both."
       ],
       "conversationPrompts": [
-        "What part of your body feels most grateful for this stretch right now?",
-        "What's a small act of self-care you've been meaning to do for yourself?",
-        "What sensation are you most aware of in this moment?"
+        "What part of your body feels most relaxed or grateful for this movement right now?",
+        "What's one small act of self-care you've been meaning to prioritize for yourself?",
+        "What sensation are you most aware of in this quiet moment?"
       ],
-      "connectionTwist": "Gently offer each other a short, mindful head or hand massage while you're resting, focusing on slow, deliberate touch.",
-      "ending": "Remain in your comfortable 'heap' for a few extra minutes, simply enjoying the warmth and quiet of being close."
+      "connectionTwist": "While resting at the end, offer each other a short, gentle head or hand massage, focusing on slow, deliberate touch.",
+      "ending": "Remain in your relaxed position for a few extra minutes, simply enjoying the quiet closeness and the lingering sense of ease.",
+      "description": "Release tension and find quiet connection through gentle shared stretches and comforting sips of warm herbal tea."
     },
     {
       "id": "d407",
@@ -14243,7 +14270,8 @@
         "What element of the ocean brings you the most comfort or wonder?"
       ],
       "connectionTwist": "Find one shell or piece of sea glass that reminds you of your partner, and gift it to them at the end of your walk.",
-      "ending": "Walk away from the beach hand-in-hand, carrying your chosen treasures and the lingering scent of the sea."
+      "ending": "Walk away from the beach hand-in-hand, carrying your chosen treasures and the lingering scent of the sea.",
+      "description": "Wander along the shore, collecting unique shells and sea glass, then arrange your natural treasures together, creating a tangible memory."
     },
     {
       "id": "d408",
@@ -14285,7 +14313,8 @@
         "If you could macramé anything for our home, what would it be?"
       ],
       "connectionTwist": "Before you start, each tie a small, symbolic knot in a spare piece of cord, representing something you want to strengthen in your relationship. Keep these knots with your finished pieces.",
-      "ending": "Hang your new macramé creations, feeling a sense of accomplishment and seeing a tangible reminder of your shared creative effort."
+      "ending": "Hang your new macramé creations, feeling a sense of accomplishment and seeing a tangible reminder of your shared creative effort.",
+      "description": "Learn the art of macramé together, knotting a unique piece for your home, and enjoy the satisfaction of creating side-by-side."
     },
     {
       "id": "d409",
@@ -14325,7 +14354,8 @@
         "If our lives were a story being observed by someone else, what small detail might they find most intriguing about us right now?"
       ],
       "connectionTwist": "Gently interlace your fingers or rest a hand on their knee as you share a particularly funny or tender observation.",
-      "ending": "As you leave, walk hand-in-hand, carrying a shared, knowing smile about the stories you've just created."
+      "ending": "As you leave, walk hand-in-hand, carrying a shared, knowing smile about the stories you've just created.",
+      "description": "Settle onto a park bench and quietly observe the world, playfully inventing stories about passersby and sharing your witty observations."
     },
     {
       "id": "d410",
@@ -14366,7 +14396,8 @@
         "What's something new you noticed about flowers or their structure today?"
       ],
       "connectionTwist": "Place one small, unexpected bloom in your partner's arrangement as a secret addition.",
-      "ending": "Share a quiet moment admiring your finished arrangement, then take a photo together with your floral masterpiece."
+      "ending": "Share a quiet moment admiring your finished arrangement, then take a photo together with your floral masterpiece.",
+      "description": "Discover the art of floral design together, crafting a beautiful centerpiece that reflects your shared creativity and brightens your home."
     },
     {
       "id": "d411",
@@ -14406,7 +14437,8 @@
         "What element of nature brings you the most peace or wonder?"
       ],
       "connectionTwist": "Find a small, natural object (a unique leaf, a smooth stone) and exchange it as a silent token of your shared experience.",
-      "ending": "As you leave the natural space, take a deep, shared breath, carrying a sense of calm back with you."
+      "ending": "As you leave the natural space, take a deep, shared breath, carrying a sense of calm back with you.",
+      "description": "Immerse yourselves in the tranquility of nature, engaging all your senses on a mindful walk that deepens your peace and presence together."
     },
     {
       "id": "d412",
@@ -14447,7 +14479,8 @@
         "If we were to dedicate a new constellation to our relationship, what would it be shaped like and what story would it tell?"
       ],
       "connectionTwist": "With your fingers, trace a constellation on your partner's arm, then have them guess which one it is.",
-      "ending": "Share a soft kiss under the vast, star-filled sky, carrying the quiet wonder of the universe with you."
+      "ending": "Share a soft kiss under the vast, star-filled sky, carrying the quiet wonder of the universe with you.",
+      "description": "Gaze at the stars and planets from your own backyard, sharing wonder as you explore the vast, beautiful cosmos together."
     },
     {
       "id": "d413",
@@ -14489,7 +14522,8 @@
         "If our starter could talk, what do you think it would say about its new home with us?"
       ],
       "connectionTwist": "Gently stir the starter together, both holding the spoon, as you 'feed' it for the first time.",
-      "ending": "Take a photo of your named starter in its new home, a small symbol of your shared culinary adventure."
+      "ending": "Take a photo of your named starter in its new home, a small symbol of your shared culinary adventure.",
+      "description": "Craft a living sourdough starter with your partner, nurturing it daily as a symbol of your shared growth and future culinary adventures."
     },
     {
       "id": "d414",
@@ -14530,7 +14564,8 @@
         "What's one way you felt supported by me during our yoga practice today?"
       ],
       "connectionTwist": "During Savasana, gently place your hand on your partner's hand or stomach, sharing a quiet, grounding touch.",
-      "ending": "Walk home hand-in-hand, feeling the evening air and the calm energy of your shared practice."
+      "ending": "Walk home hand-in-hand, feeling the evening air and the calm energy of your shared practice.",
+      "description": "Unwind with a peaceful yoga flow in the park as the sun sets, sharing quiet movement and grounding presence under the golden sky."
     },
     {
       "id": "d416",
@@ -14572,7 +14607,8 @@
         "Beyond the food, what's something you admire about the culture of one of our chosen countries?"
       ],
       "connectionTwist": "Feed each other a small, adventurous bite from one of the dishes, describing the flavors.",
-      "ending": "Clear the table together, sharing stories from your 'travels' and planning your next culinary destination."
+      "ending": "Clear the table together, sharing stories from your 'travels' and planning your next culinary destination.",
+      "description": "Embark on a global culinary adventure, cooking and tasting dishes from three different countries together, right in your own kitchen."
     },
     {
       "id": "d417",

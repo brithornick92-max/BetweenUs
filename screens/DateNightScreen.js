@@ -36,7 +36,6 @@ import DateCardFront from '../components/DateCardFront';
 import DateCardBack from '../components/DateCardBack';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import { SoftBoundaries } from '../services/PolishEngine';
-import contentAccessService from '../services/ContentAccessService';
 import { CONTENT_TYPES, buildWeeklySet } from '../services/WeeklyContentSetService';
 import { getDateHistory, rateDateHistoryEntry } from '../utils/dateHistory';
 import {
@@ -412,6 +411,7 @@ export default function DateNightScreen({ navigation }) {
   const [allDates, setAllDates] = useState([]);
   const [weeklyDateSet, setWeeklyDateSet] = useState(null);
   const [contentProfile, setContentProfile] = useState(null);
+  const [rawBoundaries, setRawBoundaries] = useState(null);
   const [deckIndex, setDeckIndex] = useState(0);
   const [likedDates, setLikedDates] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(null); // 'heat' | 'load' | 'style' | null
@@ -439,15 +439,46 @@ export default function DateNightScreen({ navigation }) {
       getDateHistory()
         .then(setDateHistory)
         .catch(() => {});
-      const task = InteractionManager.runAfterInteractions(() => {
+      const task = InteractionManager.runAfterInteractions(async () => {
         const dates = getAllDates();
-        setAllDates(dates);
+        
+        // Get content profile and boundaries first
+        let profile = null;
+        let bounds = null;
+        try {
+          [profile, bounds] = await Promise.all([
+            PreferenceEngine.getContentProfile(userProfile || {}),
+            SoftBoundaries.getAll(),
+          ]);
+          setContentProfile(profile);
+          setRawBoundaries(bounds);
+        } catch {
+          try {
+            bounds = await SoftBoundaries.getAll();
+            setRawBoundaries(bounds);
+          } catch {}
+        }
 
-        const weeklySet = buildWeeklySet(dates, {
+        // Apply boundaries to filter dates
+        const boundaryFiltered = dates.filter(d => {
+          if (!d) return false;
+          const heat = d.heat || 1;
+          // Apply boundary filters
+          if (bounds?.pausedDates?.includes(d.id)) return false;
+          if (profile?.boundaries?.hiddenCategories?.includes(d.category)) return false;
+          if (profile?.maxHeat && heat > profile.maxHeat) return false;
+          if (bounds?.hideSpicy && heat >= 4) return false;
+          return true;
+        });
+
+        setAllDates(boundaryFiltered);
+
+        // Build personalized weekly set from boundary-filtered dates
+        const weeklySet = buildWeeklySet(boundaryFiltered, {
           contentType: CONTENT_TYPES.DATES,
           userId: userId || 'anonymous',
           isPremium,
-          userSettings: userProfile || {},
+          userSettings: profile || userProfile || {},
           userCreatedAt: userProfile?.created_at || userProfile?.createdAt,
           date: new Date(),
         });
@@ -458,22 +489,12 @@ export default function DateNightScreen({ navigation }) {
           getDateShortlist(userId)
             .then((rows) => {
               const ids = new Set((rows || []).map((row) => row.date_id));
-              setLikedDates(dates.filter((date) => ids.has(date.id)));
+              setLikedDates(boundaryFiltered.filter((date) => ids.has(date.id)));
             })
             .catch(() => {});
         }
 
-        Promise.all([
-          PreferenceEngine.getContentProfile(userProfile || {}),
-          SoftBoundaries.getAll(),
-        ])
-          .then(([profile, bounds]) => {
-            setContentProfile(profile);
-          })
-          .catch(() => {
-            SoftBoundaries.getAll().then(setRawBoundaries).catch(() => {});
-          })
-          .finally(() => setReady(true));
+        setReady(true);
       });
       return () => task.cancel();
     }, [userProfile, userId, isPremium])
@@ -488,6 +509,7 @@ export default function DateNightScreen({ navigation }) {
   const freeWeeklyDateDeck = useMemo(() => {
     if (isPremium || !weeklyDateSet?.items?.length) return null;
   
+    // Free users see ONLY their weekly rotating set (not cumulative)
     return weeklyDateSet.items.map((item) => ({
       ...item,
       title: item.title || item.previewText || 'Premium date idea',
@@ -503,9 +525,12 @@ export default function DateNightScreen({ navigation }) {
 
   const deck = useMemo(() => {
     let finalDeck = [];
+    
     if (!isPremium && freeWeeklyDateDeck?.length) {
+      // Free users: Use ONLY the rotating weekly set
       finalDeck = [...freeWeeklyDateDeck];
-    } else {
+    } else if (isPremium) {
+      // Premium users: Use ALL boundary-filtered dates
       const baseDates = contentProfile
         ? getFilteredDatesWithProfile(contentProfile)
         : allDates;
@@ -513,6 +538,7 @@ export default function DateNightScreen({ navigation }) {
       if (!contentProfile) {
         finalDeck = shuffleArray(baseDates);
       } else {
+        // Personalize: preferred content first, then rest shuffled
         const personalized = PreferenceEngine.filterDatesWithProfile(baseDates, contentProfile);
         const personalizedIds = new Set(personalized.map((d) => d.id));
         const remaining = baseDates.filter((d) => !personalizedIds.has(d.id));
@@ -521,6 +547,7 @@ export default function DateNightScreen({ navigation }) {
       }
     }
 
+    // Shuffle on deck version change
     if (deckVersion > 0) {
       return shuffleArray(finalDeck);
     }
