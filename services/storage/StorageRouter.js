@@ -279,9 +279,11 @@ class StorageRouter {
             if (__DEV__) {
               console.warn('[StorageRouter] Initial auth session check failed; preserving unknown auth state:', error?.message);
             }
+
+            // Timeout/network failure means auth is unknown, not signed out.
+            // Do not notify callback(null), because that can restart auth bootstrap
+            // and make the UI behave like the user was signed out.
             this.sessionPresent = false;
-            this.currentUser = null;
-            callback(null);
             return;
           }
 
@@ -386,6 +388,10 @@ class StorageRouter {
   }
 
   async _getRemoteProfileOrCreate(cloudUserId, localProfile = {}) {
+    if (!this.sessionPresent || !cloudUserId) {
+      return null;
+    }
+
     try {
       return await CloudEngine.getProfile(cloudUserId);
     } catch (error) {
@@ -401,6 +407,10 @@ class StorageRouter {
 
   async getUserDocument(userId) {
     const cachedProfile = await storage.get(STORAGE_KEYS.USER_PROFILE, {});
+    if (!this.sessionPresent) {
+      return cachedProfile;
+    }
+
     if (!this.sessionPresent) {
       return cachedProfile;
     }

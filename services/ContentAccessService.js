@@ -84,18 +84,18 @@ class ContentAccessService {
 
     this.RELEASE_SCHEDULE = {
       prompts: {
-        week0: 300,
-        perWeek: 10,
+        week0: { free: 30, premium: 300 },
+        perWeek: { free: 5, premium: 10 },
         description: 'New prompts unlock every Monday',
       },
       dates: {
-        week0: 200,
-        perWeek: 8,
+        week0: { free: 25, premium: 200 },
+        perWeek: { free: 3, premium: 8 },
         description: 'New date ideas unlock every Monday',
       },
       positions: {
-        week0: 10,
-        perWeek: 1,
+        week0: { free: 5, premium: 10 },
+        perWeek: { free: 1, premium: 2 },
         description: 'New intimacy positions unlock every Monday',
       },
     };

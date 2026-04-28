@@ -41,13 +41,11 @@ export const GuardBehavior = Object.freeze({
 // ─── Free-Tier Limits ───────────────────────────────────────────────────────────
 export const FREE_LIMITS = Object.freeze({
   PROMPTS_PER_DAY: 1,           // One daily prompt response to prove the shared reveal loop
-  PREVIEW_PROMPTS_TOTAL: 12,    // Fixed preview pack covering all 5 heat levels
-  VISIBLE_PROMPTS_PER_WEEK: 15, // Weekly free preview across all heat levels
-  DATE_IDEAS_PER_DAY: 5,        // 5 preview date ideas per day
-  VISIBLE_DATE_IDEAS_PER_WEEK: 8,
-  VISIBLE_POSITIONS_PER_WEEK: 3,
-  FULL_DATE_FLOWS_PER_WEEK: 2,  // Two fully planned date flows per week
-  VISIBLE_DATE_IDEAS: 5,        // Legacy daily date preview count
+  PREVIEW_PROMPTS_TOTAL: 12,    // A fixed welcome pack of preview prompts
+  VISIBLE_PROMPTS_PER_WEEK: 3,  // Weekly free preview of new & premium prompts (tightened from 5)
+  VISIBLE_DATE_IDEAS_PER_WEEK: 3, // Weekly free preview of date ideas (tightened from 5)
+  VISIBLE_POSITIONS_PER_WEEK: 1, // A smaller weekly preview for intimacy positions (tightened from 2)
+  FULL_DATE_FLOWS_PER_WEEK: 1,  // One fully planned date flow per week (tightened from 2)
   JOURNAL_ENTRIES_VISIBLE: 0,   // No journal access
   FREE_HEAT_LEVELS: [1, 2, 3, 4, 5],
   SURPRISE_ME_ENABLED: false,
@@ -55,18 +53,27 @@ export const FREE_LIMITS = Object.freeze({
   PARTNER_LINKING_ENABLED: true,
   PROMPT_RESPONSES_ENABLED: true,
   CLOUD_SYNC_ENABLED: false,
+  // Week 0 starting library for free users
+  WEEK_0_PROMPTS: 30,
+  WEEK_0_DATES: 25,
+  WEEK_0_POSITIONS: 5,
+  // Weekly content drops for free users
+  WEEKLY_PROMPTS: 5,
+  WEEKLY_DATES: 3,
+  WEEKLY_POSITIONS: 1,
 });
 
 // ─── Premium Limits (effectively unlimited) ─────────────────────────────────────
 export const PREMIUM_LIMITS = Object.freeze({
-  PROMPTS_PER_DAY: Infinity,
-  PREVIEW_PROMPTS_TOTAL: Infinity,
-  VISIBLE_PROMPTS_PER_WEEK: Infinity,
-  DATE_IDEAS_PER_DAY: Infinity,
-  VISIBLE_DATE_IDEAS_PER_WEEK: Infinity,
-  VISIBLE_POSITIONS_PER_WEEK: Infinity,
-  FULL_DATE_FLOWS_PER_WEEK: Infinity,
-  VISIBLE_DATE_IDEAS: Infinity,
+  // Premium is no longer "all access" but a weekly drip model.
+  // The actual number of items will be determined by the user's
+  // subscription duration (e.g., `weeksSubscribed`).
+  PROMPTS_PER_DAY: 10, // A high but not infinite number for daily interaction
+  PREVIEW_PROMPTS_TOTAL: 0, // No concept of "previews" for premium
+  VISIBLE_PROMPTS_PER_WEEK: 'all_unlocked',
+  VISIBLE_DATE_IDEAS_PER_WEEK: 'all_unlocked',
+  VISIBLE_POSITIONS_PER_WEEK: 'all_unlocked',
+  FULL_DATE_FLOWS_PER_WEEK: 'all_unlocked',
   JOURNAL_ENTRIES_VISIBLE: Infinity,
   ALL_HEAT_LEVELS: [1, 2, 3, 4, 5],
   SURPRISE_ME_ENABLED: true,
@@ -74,6 +81,14 @@ export const PREMIUM_LIMITS = Object.freeze({
   PARTNER_LINKING_ENABLED: true,
   PROMPT_RESPONSES_ENABLED: true,
   CLOUD_SYNC_ENABLED: true,
+  // Week 0 starting library for premium users
+  WEEK_0_PROMPTS: 300,
+  WEEK_0_DATES: 200,
+  WEEK_0_POSITIONS: 10,
+  // Weekly content drops for premium users
+  WEEKLY_PROMPTS: 10,
+  WEEKLY_DATES: 8,
+  WEEKLY_POSITIONS: 2,
 });
 
 // ─── Fixed Preview Prompts for Free Users ────────────────────────────────────
@@ -185,24 +200,24 @@ export const PremiumSource = Object.freeze({
 // Rich metadata for paywall display & analytics. Keyed by PremiumFeature value.
 export const FEATURE_META = Object.freeze({
   [PremiumFeature.UNLIMITED_PROMPTS]: {
-    name: 'Daily Reveals',
-    description: 'Deeper emotional, romantic, sensual, and custom prompt packs with the shared reveal ritual',
+    name: 'Growing Prompt Library',
+    description: 'Unlock our full library of 700+ prompts over time, with new additions released to you every week.',
     icon: '🔥',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
     emotionalValue: 'Keep leaving small pieces of your heart for each other',
   },
   [PremiumFeature.HEAT_LEVELS_4_5]: {
-    name: 'Full Heat Library',
-    description: 'More released prompts across every heat level, with new additions each week',
+    name: 'Unlock All 5 Heat Levels',
+    description: 'Explore our full catalog of prompts and date ideas, from soft and romantic to steamy and adventurous.',
     icon: '🔥',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
     emotionalValue: 'Keep desire playful, private, chosen together, and refreshed',
   },
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
-    name: 'Personalized Date Ideas',
-    description: 'Date ideas shaped by your answers, mood, budget, heat level, and favorite ways to connect',
+    name: 'Endless Date Inspiration',
+    description: 'Get personalized date ideas from a library of 500+ experiences, with new ideas released to you weekly.',
     icon: '🌹',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
@@ -426,8 +441,8 @@ export function getTimedUnlockLimits(isPremiumEffective) {
   return {
     isUnlockDay: true,
     unlockLabel: 'Friday Date Night',
-    VISIBLE_DATE_IDEAS: 10,        // Expanded daily date preview
-    DATE_IDEAS_PER_DAY: 10,        // Expanded daily date browsing
-    PROMPTS_PER_DAY: 3,            // expanded preview instead of the usual 1
+    VISIBLE_DATE_IDEAS: 5,         // Expanded daily date preview (tightened from 10)
+    DATE_IDEAS_PER_DAY: 5,         // Expanded daily date browsing (tightened from 10)
+    PROMPTS_PER_DAY: 2,            // Expanded preview instead of the usual 1 (tightened from 3)
   };
 }

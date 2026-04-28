@@ -107,10 +107,10 @@ Heat levels help you choose the intensity of prompts:
 - **Heat 1:** Emotional connection
 - **Heat 2:** Flirty and romantic
 - **Heat 3:** Sensual
-- **Heat 4:** Steamy
+- **Heat 4:** Steamy & Adventurous
 - **Heat 5:** Explicit
 
-Free users can preview Heat levels 1-5. Premium opens more of the released prompt, date, and intimacy position catalog each week.
+Free users can preview Heat levels 1-5. Premium unlocks our full library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly.
 
 ### How do prompts work?
 
@@ -167,16 +167,14 @@ Yes. You can enable app lock in Settings > Privacy & Security. App lock controls
 ### What's included in Premium?
 
 Premium may include:
-
-- Unlimited or expanded prompts across Heat levels 1-5
-- Expanded date ideas, intimacy positions, and planning
+- A growing library of prompts, date ideas, and intimacy positions, with new content released to you weekly
+- Full access to all 5 Heat Levels
 - Shared calendar features
 - Vibe and moment signals
 - Energy Matcher
 - Inside Jokes features
 - Year Reflection and recaps
 - Surprise Tonight
-- Expanded archive and personalization features
 - Shared premium access for linked partners when entitlement sync is available
 
 The exact premium features available to you are shown in the app and purchase flow.

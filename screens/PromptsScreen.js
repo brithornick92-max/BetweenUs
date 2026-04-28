@@ -390,6 +390,14 @@ export default function PromptsScreen({ navigation }) {
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
             <Text style={[styles.headerSubtitle, { color: t.subtext }]}>{toneCopy.subtitle}</Text>
+            {!isPremium && (
+              <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
+                <Icon name="calendar-outline" size={14} color={t.subtext} />
+                <Text style={[styles.weeklyDropText, { color: t.subtext }]}>
+                  +5 new prompts every Monday • Premium gets +10
+                </Text>
+              </View>
+            )}
           </Animated.View>
 
           {/* Tactile Heat Selector */}
@@ -629,5 +637,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     textAlign: "center",
+  },
+  weeklyDropBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  weeklyDropText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 });

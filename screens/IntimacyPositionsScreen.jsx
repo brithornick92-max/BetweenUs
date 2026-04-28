@@ -261,6 +261,15 @@ export default function IntimacyPositionsScreen() {
                   </TouchableOpacity>
                 )}
 
+                {!isPremiumEffective && (
+                  <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
+                    <Icon name="calendar-outline" size={14} color={t.subtext} />
+                    <Text style={[styles.weeklyDropText, { color: t.subtext }]}>
+                      +1 new position every Monday • Premium gets +2
+                    </Text>
+                  </View>
+                )}
+
                 {!!favoritePositions.length && (
                   <View style={styles.favoritesBlock}>
                     <Text style={[styles.favoritesLabel, { color: t.subtext }]}>YOUR FAVORITES</Text>
@@ -559,5 +568,22 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: -0.3,
+  },
+  weeklyDropBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    marginBottom: SPACING.xl,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  weeklyDropText: {
+    fontFamily: systemFont,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 });

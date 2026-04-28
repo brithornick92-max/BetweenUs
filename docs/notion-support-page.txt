@@ -22,7 +22,7 @@ For questions, feedback, or help with your account, email us anytime at **britta
 
 **What is Between Us?**
 A private couples app for deepening your connection through daily prompts, shared journaling, memories, signals, and date nights. Designed for thriving couples only.
-
+ 
 **Do I need my partner to use it?**
 No. You can use it solo for journaling and reflection. Linking with your partner unlocks shared features.
 
@@ -34,7 +34,7 @@ Between Us protects synced content with account access controls, row-level secur
 
 **How much does it cost?**
 Free version available. Premium: $7.99/month or $49.99/year. One subscription covers both partners.
-
+ 
 **How do I delete my account?**
 In the app: Settings → Account → Delete Account.
 
@@ -130,7 +130,7 @@ You retain ownership of content you create. You grant us a limited license to ho
 ### Subscriptions and Payments
 
 **Free:** 1 prompt per day, weekly previews across Heat levels 1–5, partner linking, 2 fully planned date flows per week, supported data export.
-
+ 
 **Premium Monthly:** $7.99/month
 **Premium Yearly:** $49.99/year
 

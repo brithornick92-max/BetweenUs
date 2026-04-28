@@ -111,7 +111,7 @@ export default function OnboardingScreen({ navigation }) {
   }, [userProfile]);
 
   const finalizeOnboarding = async () => {
-    AnalyticsService.trackEvent(AnalyticsEvent.ONBOARDING_COMPLETED);
+    AnalyticsService.track(AnalyticsEvent.ONBOARDING_COMPLETED);
     await actions.completeOnboarding();
     await markOnboardingComplete?.();
   };
@@ -173,7 +173,7 @@ export default function OnboardingScreen({ navigation }) {
   // 1. Intro Transition
   useEffect(() => {
     if (step === 0) {
-      AnalyticsService.trackEvent(AnalyticsEvent.ONBOARDING_STARTED);
+      AnalyticsService.track(AnalyticsEvent.ONBOARDING_STARTED);
       const timer = setTimeout(() => {
         transitionTo(1);
       }, 12000); // 12 seconds — user can tap Get Started to skip
@@ -182,7 +182,7 @@ export default function OnboardingScreen({ navigation }) {
   }, [step]);
 
   const transitionTo = (nextStep) => {
-    AnalyticsService.trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, { step: nextStep - 1 });
+    AnalyticsService.track(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, { step: nextStep - 1 });
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: -20, duration: 300, useNativeDriver: true }),
@@ -931,7 +931,7 @@ export default function OnboardingScreen({ navigation }) {
               {isGenerating ? (
                 <ActivityIndicator color={t.surface} />
               ) : (
-                <Text style={[styles.primaryButtonText, { color: t.surface }]}>Generate Invitation</Text>
+                <Text style={[styles.primaryButtonText, { color: t.surface }]}>Generate Invite</Text>
               )}
             </TouchableOpacity>
 

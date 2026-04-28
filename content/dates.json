@@ -62,7 +62,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 1
     },
     {
       "id": "d017",
@@ -78,7 +78,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 2
     },
     {
       "id": "d023",
@@ -94,7 +94,7 @@
       "heat": 2,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 3
     },
     {
       "id": "d026",
@@ -110,7 +110,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 4
     },
     {
       "id": "d029",
@@ -126,7 +126,7 @@
       "heat": 1,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 5
     },
     {
       "id": "d036",
@@ -142,7 +142,7 @@
       "heat": 2,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 6
     },
     {
       "id": "d039",
@@ -158,7 +158,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 8
     },
     {
       "id": "d044",
@@ -174,7 +174,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 7
     },
     {
       "id": "d049",
@@ -190,7 +190,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 9
     },
     {
       "id": "d052",
@@ -206,7 +206,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 10
     },
     {
       "id": "d059",
@@ -222,7 +222,7 @@
       "heat": 1,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 11
     },
     {
       "id": "d065",
@@ -238,7 +238,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 12
     },
     {
       "id": "d067",
@@ -254,7 +254,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 13
     },
     {
       "id": "d073",
@@ -270,7 +270,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 14
     },
     {
       "id": "d093",
@@ -286,7 +286,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 15
     },
     {
       "id": "d101",
@@ -302,7 +302,7 @@
       "heat": 1,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 16
     },
     {
       "id": "d108",
@@ -318,7 +318,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 17
     },
     {
       "id": "d130",
@@ -334,7 +334,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 18
     },
     {
       "id": "d171",
@@ -350,7 +350,7 @@
       "heat": 1,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 19
     },
     {
       "id": "d194",
@@ -366,7 +366,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 20
     },
     {
       "id": "d223",
@@ -382,7 +382,7 @@
       "heat": 2,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 21
     },
     {
       "id": "d224",
@@ -398,7 +398,7 @@
       "heat": 2,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 22
     },
     {
       "id": "d225",
@@ -414,7 +414,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 23
     },
     {
       "id": "d227",
@@ -430,7 +430,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 24
     },
     {
       "id": "d230",
@@ -446,7 +446,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 25
     },
     {
       "id": "d246",
@@ -462,7 +462,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 26
     },
     {
       "id": "d247",
@@ -478,7 +478,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 27
     },
     {
       "id": "d248",
@@ -494,7 +494,7 @@
       "heat": 1,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 28
     },
     {
       "id": "d249",
@@ -510,7 +510,7 @@
       "heat": 1,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 29
     },
     {
       "id": "d250",
@@ -526,7 +526,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 30
     },
     {
       "id": "d251",
@@ -542,7 +542,7 @@
       "heat": 1,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 31
     },
     {
       "id": "d252",
@@ -558,7 +558,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 32
     },
     {
       "id": "d253",
@@ -574,7 +574,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 33
     },
     {
       "id": "d254",
@@ -590,7 +590,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 34
     },
     {
       "id": "d255",
@@ -606,7 +606,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 35
     },
     {
       "id": "d256",
@@ -622,7 +622,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 36
     },
     {
       "id": "d257",
@@ -638,7 +638,7 @@
       "heat": 1,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 37
     },
     {
       "id": "d258",
@@ -654,7 +654,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 38
     },
     {
       "id": "d259",
@@ -670,7 +670,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 39
     },
     {
       "id": "d260",
@@ -686,7 +686,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 40
     },
     {
       "id": "d261",
@@ -702,7 +702,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 41
     },
     {
       "id": "d262",
@@ -718,7 +718,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 42
     },
     {
       "id": "d263",
@@ -734,7 +734,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 43
     },
     {
       "id": "d264",
@@ -750,7 +750,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 44
     },
     {
       "id": "d265",
@@ -766,7 +766,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 45
     },
     {
       "id": "d266",
@@ -782,7 +782,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 46
     },
     {
       "id": "d267",
@@ -798,7 +798,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 47
     },
     {
       "id": "d268",
@@ -814,7 +814,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 48
     },
     {
       "id": "d269",
@@ -830,7 +830,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 49
     },
     {
       "id": "d001",
@@ -846,7 +846,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 50
     },
     {
       "id": "d005",
@@ -862,7 +862,7 @@
       "heat": 2,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 51
     },
     {
       "id": "d009",
@@ -878,7 +878,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 52
     },
     {
       "id": "d010",
@@ -894,7 +894,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 1
     },
     {
       "id": "d012",
@@ -910,7 +910,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 2
     },
     {
       "id": "d016",
@@ -926,7 +926,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 3
     },
     {
       "id": "d019",
@@ -942,7 +942,7 @@
       "heat": 2,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 4
     },
     {
       "id": "d021",
@@ -958,7 +958,7 @@
       "heat": 2,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 5
     },
     {
       "id": "d022",
@@ -974,7 +974,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 6
     },
     {
       "id": "d025",
@@ -990,7 +990,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 7
     },
     {
       "id": "d027",
@@ -1006,7 +1006,7 @@
       "heat": 2,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 8
     },
     {
       "id": "d028",
@@ -1022,7 +1022,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 9
     },
     {
       "id": "d032",
@@ -1038,7 +1038,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 10
     },
     {
       "id": "d040",
@@ -1054,7 +1054,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 11
     },
     {
       "id": "d041",
@@ -1070,7 +1070,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 12
     },
     {
       "id": "d043",
@@ -1086,7 +1086,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 13
     },
     {
       "id": "d046",
@@ -1102,7 +1102,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 14
     },
     {
       "id": "d050",
@@ -1118,7 +1118,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 15
     },
     {
       "id": "d055",
@@ -1134,7 +1134,7 @@
       "heat": 2,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 16
     },
     {
       "id": "d057",
@@ -1150,7 +1150,7 @@
       "heat": 2,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 17
     },
     {
       "id": "d066",
@@ -1166,7 +1166,7 @@
       "heat": 3,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 18
     },
     {
       "id": "d068",
@@ -1182,7 +1182,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 19
     },
     {
       "id": "d102",
@@ -1198,7 +1198,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 20
     },
     {
       "id": "d110",
@@ -1214,7 +1214,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 21
     },
     {
       "id": "d111",
@@ -1230,7 +1230,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 22
     },
     {
       "id": "d116",
@@ -1246,7 +1246,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 23
     },
     {
       "id": "d118",
@@ -1262,7 +1262,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 24
     },
     {
       "id": "d119",
@@ -1278,7 +1278,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 25
     },
     {
       "id": "d122",
@@ -1294,7 +1294,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 26
     },
     {
       "id": "d129",
@@ -1310,7 +1310,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 27
     },
     {
       "id": "d133",
@@ -1326,7 +1326,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 28
     },
     {
       "id": "d139",
@@ -1342,7 +1342,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 29
     },
     {
       "id": "d144",
@@ -1358,7 +1358,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 30
     },
     {
       "id": "d172",
@@ -1374,7 +1374,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 31
     },
     {
       "id": "d174",
@@ -1390,7 +1390,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 32
     },
     {
       "id": "d177",
@@ -1406,7 +1406,7 @@
       "heat": 2,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 33
     },
     {
       "id": "d178",
@@ -1422,7 +1422,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 34
     },
     {
       "id": "d183",
@@ -1438,7 +1438,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 35
     },
     {
       "id": "d199",
@@ -1454,7 +1454,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 36
     },
     {
       "id": "d203",
@@ -1470,7 +1470,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 37
     },
     {
       "id": "d205",
@@ -1486,7 +1486,7 @@
       "heat": 2,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 38
     },
     {
       "id": "d218",
@@ -1502,7 +1502,7 @@
       "heat": 2,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 39
     },
     {
       "id": "d219",
@@ -1518,7 +1518,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 40
     },
     {
       "id": "d221",
@@ -1534,7 +1534,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 41
     },
     {
       "id": "d226",
@@ -1550,7 +1550,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 42
     },
     {
       "id": "d232",
@@ -1566,7 +1566,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 43
     },
     {
       "id": "d234",
@@ -1582,7 +1582,7 @@
       "heat": 2,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 44
     },
     {
       "id": "d270",
@@ -1598,7 +1598,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 45
     },
     {
       "id": "d271",
@@ -1614,7 +1614,7 @@
       "heat": 2,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 46
     },
     {
       "id": "d272",
@@ -1630,7 +1630,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 47
     },
     {
       "id": "d006",
@@ -1646,7 +1646,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 48
     },
     {
       "id": "d053",
@@ -1662,7 +1662,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 49
     },
     {
       "id": "d070",
@@ -1678,7 +1678,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 50
     },
     {
       "id": "d076",
@@ -1694,7 +1694,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 51
     },
     {
       "id": "d084",
@@ -1710,7 +1710,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 52
     },
     {
       "id": "d124",
@@ -1726,7 +1726,7 @@
       "heat": 2,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 1
     },
     {
       "id": "d195",
@@ -1742,7 +1742,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 2
     },
     {
       "id": "d207",
@@ -1758,7 +1758,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 3
     },
     {
       "id": "d211",
@@ -1774,7 +1774,7 @@
       "heat": 2,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 4
     },
     {
       "id": "d216",
@@ -1790,7 +1790,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 5
     },
     {
       "id": "d273",
@@ -1806,7 +1806,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 6
     },
     {
       "id": "d274",
@@ -1822,7 +1822,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 7
     },
     {
       "id": "d275",
@@ -1838,7 +1838,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 8
     },
     {
       "id": "d276",
@@ -1854,7 +1854,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 9
     },
     {
       "id": "d277",
@@ -1870,7 +1870,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 10
     },
     {
       "id": "d278",
@@ -1886,7 +1886,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 11
     },
     {
       "id": "d279",
@@ -1902,7 +1902,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 12
     },
     {
       "id": "d280",
@@ -1918,7 +1918,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 13
     },
     {
       "id": "d281",
@@ -1934,7 +1934,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 14
     },
     {
       "id": "d282",
@@ -1950,7 +1950,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 15
     },
     {
       "id": "d283",
@@ -1966,7 +1966,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 16
     },
     {
       "id": "d284",
@@ -1982,7 +1982,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 17
     },
     {
       "id": "d285",
@@ -1998,7 +1998,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 18
     },
     {
       "id": "d286",
@@ -2014,7 +2014,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 19
     },
     {
       "id": "d287",
@@ -2030,7 +2030,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 20
     },
     {
       "id": "d288",
@@ -2046,7 +2046,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 21
     },
     {
       "id": "d289",
@@ -2062,7 +2062,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 22
     },
     {
       "id": "d290",
@@ -2078,7 +2078,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 23
     },
     {
       "id": "d291",
@@ -2094,7 +2094,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 24
     },
     {
       "id": "d292",
@@ -2110,7 +2110,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 25
     },
     {
       "id": "d293",
@@ -2126,7 +2126,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 26
     },
     {
       "id": "d294",
@@ -2142,7 +2142,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 27
     },
     {
       "id": "d295",
@@ -2158,7 +2158,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 28
     },
     {
       "id": "d296",
@@ -2174,7 +2174,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 29
     },
     {
       "id": "d297",
@@ -2190,7 +2190,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 30
     },
     {
       "id": "d298",
@@ -2206,7 +2206,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 31
     },
     {
       "id": "d299",
@@ -2222,7 +2222,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 32
     },
     {
       "id": "d300",
@@ -2238,7 +2238,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 33
     },
     {
       "id": "d301",
@@ -2254,7 +2254,7 @@
       "heat": 1,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 34
     },
     {
       "id": "d302",
@@ -2270,7 +2270,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 35
     },
     {
       "id": "d303",
@@ -2286,7 +2286,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 36
     },
     {
       "id": "d304",
@@ -2302,7 +2302,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 37
     },
     {
       "id": "d305",
@@ -2318,7 +2318,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 38
     },
     {
       "id": "d306",
@@ -2334,7 +2334,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 39
     },
     {
       "id": "d307",
@@ -2350,7 +2350,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 40
     },
     {
       "id": "d308",
@@ -2366,7 +2366,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 41
     },
     {
       "id": "d309",
@@ -2382,7 +2382,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 42
     },
     {
       "id": "d310",
@@ -2398,7 +2398,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 43
     },
     {
       "id": "d311",
@@ -2414,7 +2414,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 44
     },
     {
       "id": "d312",
@@ -2430,7 +2430,7 @@
       "heat": 1,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 45
     },
     {
       "id": "d007",
@@ -2446,7 +2446,7 @@
       "heat": 1,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 46
     },
     {
       "id": "d011",
@@ -2462,7 +2462,7 @@
       "heat": 3,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 47
     },
     {
       "id": "d045",
@@ -2478,7 +2478,7 @@
       "heat": 1,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 48
     },
     {
       "id": "d078",
@@ -2494,7 +2494,7 @@
       "heat": 2,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 49
     },
     {
       "id": "d121",
@@ -2510,7 +2510,7 @@
       "heat": 2,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 50
     },
     {
       "id": "d220",
@@ -2526,7 +2526,7 @@
       "heat": 3,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 51
     },
     {
       "id": "d222",
@@ -2542,7 +2542,7 @@
       "heat": 2,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 52
     },
     {
       "id": "d229",
@@ -2558,7 +2558,7 @@
       "heat": 2,
       "load": 1,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 1
     },
     {
       "id": "d236",
@@ -8462,7 +8462,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 2
     },
     {
       "id": "d676",
@@ -8478,7 +8478,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 3
     },
     {
       "id": "d677",
@@ -8494,7 +8494,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 4
     },
     {
       "id": "d678",
@@ -8510,7 +8510,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 5
     },
     {
       "id": "d679",
@@ -8526,7 +8526,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 6
     },
     {
       "id": "d680",
@@ -8542,7 +8542,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 7
     },
     {
       "id": "d681",
@@ -8558,7 +8558,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 8
     },
     {
       "id": "d682",
@@ -8574,7 +8574,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 9
     },
     {
       "id": "d683",
@@ -8590,7 +8590,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 10
     },
     {
       "id": "d684",
@@ -8606,7 +8606,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 11
     },
     {
       "id": "d685",
@@ -8622,7 +8622,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 12
     },
     {
       "id": "d686",
@@ -8638,7 +8638,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 13
     },
     {
       "id": "d687",
@@ -8654,7 +8654,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 14
     },
     {
       "id": "d688",
@@ -8670,7 +8670,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 15
     },
     {
       "id": "d689",
@@ -8686,7 +8686,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 16
     },
     {
       "id": "d690",
@@ -8702,7 +8702,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 17
     },
     {
       "id": "d691",
@@ -8718,7 +8718,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 18
     },
     {
       "id": "d692",
@@ -8734,7 +8734,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 19
     },
     {
       "id": "d693",
@@ -8750,7 +8750,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 20
     },
     {
       "id": "d694",
@@ -8766,7 +8766,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 21
     },
     {
       "id": "d695",
@@ -8782,7 +8782,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 22
     },
     {
       "id": "d696",
@@ -8798,7 +8798,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 23
     },
     {
       "id": "d697",
@@ -8814,7 +8814,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 24
     },
     {
       "id": "d698",
@@ -8830,7 +8830,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 25
     },
     {
       "id": "d699",
@@ -8846,7 +8846,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 26
     },
     {
       "id": "d700",
@@ -8862,7 +8862,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 27
     },
     {
       "id": "d701",
@@ -8878,7 +8878,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 28
     },
     {
       "id": "d702",
@@ -8894,7 +8894,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 29
     },
     {
       "id": "d703",
@@ -8910,7 +8910,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 30
     },
     {
       "id": "d704",
@@ -8926,7 +8926,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 31
     },
     {
       "id": "d705",
@@ -8942,7 +8942,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 32
     },
     {
       "id": "d706",
@@ -8958,7 +8958,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 33
     },
     {
       "id": "d707",
@@ -8974,7 +8974,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 34
     },
     {
       "id": "d708",
@@ -8990,7 +8990,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 35
     },
     {
       "id": "d709",
@@ -9006,7 +9006,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 36
     },
     {
       "id": "d710",
@@ -9022,7 +9022,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 37
     },
     {
       "id": "d711",
@@ -9038,7 +9038,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 38
     },
     {
       "id": "d712",
@@ -9054,7 +9054,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 39
     },
     {
       "id": "d713",
@@ -9070,7 +9070,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 40
     },
     {
       "id": "d714",
@@ -9086,7 +9086,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 41
     },
     {
       "id": "d715",
@@ -9102,7 +9102,7 @@
       "heat": 3,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 42
     },
     {
       "id": "d716",
@@ -9118,7 +9118,7 @@
       "heat": 3,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 43
     },
     {
       "id": "d717",
@@ -9134,7 +9134,7 @@
       "heat": 3,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 44
     },
     {
       "id": "d718",
@@ -9150,7 +9150,7 @@
       "heat": 3,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 45
     },
     {
       "id": "d719",
@@ -9166,7 +9166,7 @@
       "heat": 3,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 46
     },
     {
       "id": "d720",
@@ -9182,7 +9182,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 47
     },
     {
       "id": "d721",
@@ -9198,7 +9198,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 48
     },
     {
       "id": "d722",
@@ -9214,7 +9214,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 49
     },
     {
       "id": "d723",
@@ -9230,7 +9230,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 50
     },
     {
       "id": "d724",
@@ -9246,7 +9246,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 51
     },
     {
       "id": "d725",
@@ -9262,7 +9262,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 52
     },
     {
       "id": "d726",
@@ -9278,7 +9278,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 1
     },
     {
       "id": "d727",
@@ -9294,7 +9294,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 2
     },
     {
       "id": "d728",
@@ -9310,7 +9310,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 3
     },
     {
       "id": "d729",
@@ -9326,7 +9326,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 4
     },
     {
       "id": "d730",
@@ -9342,7 +9342,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 5
     },
     {
       "id": "d731",
@@ -9358,7 +9358,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 6
     },
     {
       "id": "d732",
@@ -9374,7 +9374,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 7
     },
     {
       "id": "d733",
@@ -9390,7 +9390,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 8
     },
     {
       "id": "d734",
@@ -9406,7 +9406,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 9
     },
     {
       "id": "d735",
@@ -9422,7 +9422,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 10
     },
     {
       "id": "d736",
@@ -9438,7 +9438,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 11
     },
     {
       "id": "d737",
@@ -9454,7 +9454,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 12
     },
     {
       "id": "d738",
@@ -9470,7 +9470,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 13
     },
     {
       "id": "d739",
@@ -9486,7 +9486,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 14
     },
     {
       "id": "d740",
@@ -9502,7 +9502,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 15
     },
     {
       "id": "d741",
@@ -9518,7 +9518,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 16
     },
     {
       "id": "d742",
@@ -9534,7 +9534,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 17
     },
     {
       "id": "d743",
@@ -9550,7 +9550,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 18
     },
     {
       "id": "d744",
@@ -9566,7 +9566,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 19
     },
     {
       "id": "d745",
@@ -9582,7 +9582,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 20
     },
     {
       "id": "d746",
@@ -9598,7 +9598,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 21
     },
     {
       "id": "d747",
@@ -9614,7 +9614,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 22
     },
     {
       "id": "d748",
@@ -9630,7 +9630,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 23
     },
     {
       "id": "d749",
@@ -9646,7 +9646,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 24
     },
     {
       "id": "d750",
@@ -9662,7 +9662,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 25
     },
     {
       "id": "d751",
@@ -9678,7 +9678,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 26
     },
     {
       "id": "d752",
@@ -9694,7 +9694,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 27
     },
     {
       "id": "d753",
@@ -9710,7 +9710,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 28
     },
     {
       "id": "d754",
@@ -9726,7 +9726,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 29
     },
     {
       "id": "d755",
@@ -9742,7 +9742,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 30
     },
     {
       "id": "d756",
@@ -9758,7 +9758,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 31
     },
     {
       "id": "d757",
@@ -9774,7 +9774,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 32
     },
     {
       "id": "d758",
@@ -9790,7 +9790,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 33
     },
     {
       "id": "d759",
@@ -9806,7 +9806,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 34
     },
     {
       "id": "d760",
@@ -9822,7 +9822,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 35
     },
     {
       "id": "d761",
@@ -9838,7 +9838,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 36
     },
     {
       "id": "d762",
@@ -9854,7 +9854,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 37
     },
     {
       "id": "d763",
@@ -9870,7 +9870,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 38
     },
     {
       "id": "d764",
@@ -9886,7 +9886,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 39
     },
     {
       "id": "d765",
@@ -9902,7 +9902,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 40
     },
     {
       "id": "d766",
@@ -9918,7 +9918,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 41
     },
     {
       "id": "d767",
@@ -9934,7 +9934,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 42
     },
     {
       "id": "d768",
@@ -9950,7 +9950,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 43
     },
     {
       "id": "d769",
@@ -9966,7 +9966,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 44
     },
     {
       "id": "d770",
@@ -9982,7 +9982,7 @@
       "heat": 1,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 45
     },
     {
       "id": "d771",
@@ -9998,7 +9998,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 46
     },
     {
       "id": "d772",
@@ -10014,7 +10014,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 47
     },
     {
       "id": "d773",
@@ -10030,7 +10030,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 48
     },
     {
       "id": "d774",
@@ -10046,7 +10046,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 49
     },
     {
       "id": "d775",
@@ -10062,7 +10062,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 50
     },
     {
       "id": "d776",
@@ -10078,7 +10078,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 51
     },
     {
       "id": "d777",
@@ -10094,7 +10094,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 52
     },
     {
       "id": "d778",
@@ -10110,7 +10110,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 1
     },
     {
       "id": "d779",
@@ -10126,7 +10126,7 @@
       "heat": 3,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 2
     },
     {
       "id": "d780",
@@ -10142,7 +10142,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 3
     },
     {
       "id": "d781",
@@ -10158,7 +10158,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 4
     },
     {
       "id": "d782",
@@ -10174,7 +10174,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 5
     },
     {
       "id": "d783",
@@ -10190,7 +10190,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 6
     },
     {
       "id": "d784",
@@ -10206,7 +10206,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 7
     },
     {
       "id": "d785",
@@ -10222,7 +10222,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 8
     },
     {
       "id": "d786",
@@ -10238,7 +10238,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 9
     },
     {
       "id": "d787",
@@ -10254,7 +10254,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 10
     },
     {
       "id": "d788",
@@ -10270,7 +10270,7 @@
       "heat": 3,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 11
     },
     {
       "id": "d789",
@@ -10286,7 +10286,7 @@
       "heat": 1,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 12
     },
     {
       "id": "d790",
@@ -10302,7 +10302,7 @@
       "heat": 1,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 13
     },
     {
       "id": "d791",
@@ -10318,7 +10318,7 @@
       "heat": 1,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 14
     },
     {
       "id": "d792",
@@ -10334,7 +10334,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 15
     },
     {
       "id": "d793",
@@ -10350,7 +10350,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 16
     },
     {
       "id": "d794",
@@ -10366,7 +10366,7 @@
       "heat": 2,
       "load": 1,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 17
     },
     {
       "id": "d795",
@@ -10382,7 +10382,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 18
     },
     {
       "id": "d796",
@@ -10398,7 +10398,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 19
     },
     {
       "id": "d797",
@@ -10414,7 +10414,7 @@
       "heat": 2,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 20
     },
     {
       "id": "d798",
@@ -10430,7 +10430,7 @@
       "heat": 3,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 21
     },
     {
       "id": "d799",
@@ -10446,7 +10446,7 @@
       "heat": 3,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 22
     },
     {
       "id": "d800",
@@ -10462,7 +10462,7 @@
       "heat": 3,
       "load": 1,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 23
     },
     {
       "id": "d801",
@@ -10478,7 +10478,7 @@
       "heat": 3,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 24
     },
     {
       "id": "d802",
@@ -10494,7 +10494,7 @@
       "heat": 3,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 25
     },
     {
       "id": "d803",
@@ -10510,7 +10510,7 @@
       "heat": 3,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 26
     },
     {
       "id": "d804",
@@ -10526,7 +10526,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 27
     },
     {
       "id": "d805",
@@ -10542,7 +10542,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 28
     },
     {
       "id": "d806",
@@ -10558,7 +10558,7 @@
       "heat": 1,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 29
     },
     {
       "id": "d807",
@@ -10574,7 +10574,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 30
     },
     {
       "id": "d808",
@@ -10590,7 +10590,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 31
     },
     {
       "id": "d809",
@@ -10606,7 +10606,7 @@
       "heat": 2,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 32
     },
     {
       "id": "d810",
@@ -10622,7 +10622,7 @@
       "heat": 3,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 33
     },
     {
       "id": "d811",
@@ -10638,7 +10638,7 @@
       "heat": 3,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 34
     },
     {
       "id": "d812",
@@ -10654,7 +10654,7 @@
       "heat": 3,
       "load": 2,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 35
     },
     {
       "id": "d813",
@@ -10670,7 +10670,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 36
     },
     {
       "id": "d814",
@@ -10686,7 +10686,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 37
     },
     {
       "id": "d815",
@@ -10702,7 +10702,7 @@
       "heat": 3,
       "load": 3,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 38
     },
     {
       "id": "d816",
@@ -10718,7 +10718,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 39
     },
     {
       "id": "d817",
@@ -10734,7 +10734,7 @@
       "heat": 1,
       "load": 3,
       "style": "doing",
-      "releaseWeek": 0
+      "releaseWeek": 40
     },
     {
       "id": "d818",
@@ -10750,7 +10750,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 41
     },
     {
       "id": "d819",
@@ -10766,7 +10766,7 @@
       "heat": 3,
       "load": 2,
       "style": "talking",
-      "releaseWeek": 0
+      "releaseWeek": 42
     },
     {
       "id": "d820",
@@ -10782,7 +10782,7 @@
       "heat": 2,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 43
     },
     {
       "id": "d821",
@@ -10798,7 +10798,7 @@
       "heat": 2,
       "load": 2,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 44
     },
     {
       "id": "d822",
@@ -10814,7 +10814,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 45
     },
     {
       "id": "d823",
@@ -10830,7 +10830,7 @@
       "heat": 3,
       "load": 3,
       "style": "mixed",
-      "releaseWeek": 0
+      "releaseWeek": 46
     }
   ]
 }

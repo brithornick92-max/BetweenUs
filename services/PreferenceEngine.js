@@ -49,6 +49,123 @@ async function warmRatingsCache() {
 }
 
 // ═══════════════════════════════════════════════════════
+// Quiz-to-Content Mapping — "What Feels Like Us" Integration
+// ═══════════════════════════════════════════════════════
+
+// Map Love Languages to prompt categories they care about most
+const LOVE_LANGUAGE_CATEGORIES = {
+  words: ['emotional', 'romance', 'memory', 'future'],  // Words of Affirmation
+  touch: ['physical', 'sensory', 'romance'],            // Physical Touch
+  time: ['emotional', 'memory', 'playful'],             // Quality Time
+  gifts: ['playful', 'seasonal', 'romance'],            // Receiving Gifts
+  service: ['playful', 'future'],                       // Acts of Service
+};
+
+// Map Relationship Goals to content preferences
+const GOAL_PREFERENCES = {
+  deeper: {               // Keep choosing each other
+    categories: ['emotional', 'future', 'romance'],
+    tones: ['deep', 'honest', 'reflective'],
+    preferLoad: 2,
+  },
+  communicate: {          // Feel close on busy days
+    categories: ['memory', 'emotional', 'playful'],
+    tones: ['warm', 'gentle', 'soft'],
+    preferShort: true,
+    preferLoad: 1,
+  },
+  fun: {                  // Have more fun together
+    categories: ['playful', 'fantasy', 'visual'],
+    tones: ['playful', 'light', 'spontaneous'],
+    preferLoad: 2,
+  },
+  intimacy: {             // Keep intimacy alive
+    categories: ['physical', 'sensory', 'romance', 'kinky'],
+    tones: ['sensual', 'bold', 'deep'],
+    preferLoad: 2,
+  },
+  grow: {                 // Build our private story
+    categories: ['memory', 'future', 'seasonal'],
+    tones: ['reflective', 'appreciative', 'warm'],
+    preferLoad: 2,
+  },
+};
+
+// Map Date Styles to location preferences
+const DATE_STYLE_PREFERENCES = {
+  home: {
+    location: 'home',
+    preferLoad: 1,
+    boost: 1.5,
+  },
+  adventure: {
+    location: 'out',
+    preferLoad: 3,
+    boost: 1.5,
+  },
+  mixed: {
+    location: null,
+    preferLoad: 2,
+    boost: 1.0,
+  },
+};
+
+// Map Communication Styles to tone preferences
+const COMMUNICATION_STYLE_TONES = {
+  direct: ['honest', 'deep', 'bold'],
+  gentle: ['soft', 'gentle', 'warm'],
+  playful: ['playful', 'light', 'spontaneous'],
+};
+
+/**
+ * Transform quiz answers into content preferences.
+ * Called by getContentProfile to integrate "What Feels Like Us" data.
+ */
+function getQuizInfluence(quiz = {}) {
+  const influence = {
+    categories: [],
+    tones: [],
+    preferLoad: 2,
+    preferShort: false,
+    dateLocation: null,
+    dateLocationBoost: 1.0,
+  };
+
+  // Love language → categories
+  if (quiz.loveLanguage && LOVE_LANGUAGE_CATEGORIES[quiz.loveLanguage]) {
+    influence.categories.push(...LOVE_LANGUAGE_CATEGORIES[quiz.loveLanguage]);
+  }
+
+  // Relationship goal → categories + tones + preferences
+  if (quiz.relationshipGoal && GOAL_PREFERENCES[quiz.relationshipGoal]) {
+    const goalPref = GOAL_PREFERENCES[quiz.relationshipGoal];
+    influence.categories.push(...goalPref.categories);
+    influence.tones.push(...goalPref.tones);
+    influence.preferLoad = goalPref.preferLoad ?? 2;
+    influence.preferShort = goalPref.preferShort ?? false;
+  }
+
+  // Communication style → tones
+  if (quiz.communicationStyle && COMMUNICATION_STYLE_TONES[quiz.communicationStyle]) {
+    influence.tones.push(...COMMUNICATION_STYLE_TONES[quiz.communicationStyle]);
+  }
+
+  // Date style → location preference
+  if (quiz.idealDateStyle && DATE_STYLE_PREFERENCES[quiz.idealDateStyle]) {
+    const stylePref = DATE_STYLE_PREFERENCES[quiz.idealDateStyle];
+    influence.dateLocation = stylePref.location;
+    influence.dateLocationBoost = stylePref.boost;
+    influence.preferLoad = stylePref.preferLoad;
+  }
+
+  // Deduplicate arrays
+  influence.categories = [...new Set(influence.categories)];
+  influence.tones = [...new Set(influence.tones)];
+
+  return influence;
+}
+
+// ═══════════════════════════════════════════════════════
 // ContentProfile — snapshot of all active preferences
 // ═══════════════════════════════════════════════════════
 
@@ -102,14 +219,18 @@ async function getContentProfile(userProfile = {}) {
   // 7. Relationship duration category
   const durationCategory = getDurationCategory(userProfile);
 
+  // 8. Quiz preferences from onboarding ("What Feels Like Us")
+  const quiz = userProfile?.quiz || {};
+  const quizInfluence = getQuizInfluence(quiz);
+
   // Calculate effective max heat: the lowest ceiling from user pref, energy, and boundaries
   const caps = [heatLevelPref, energyParams.maxHeat];
   if (boundaries?.maxHeatOverride != null) caps.push(boundaries.maxHeatOverride);
   if (boundaries?.hideSpicy) caps.push(3);
   const effectiveMaxHeat = Math.min(...caps);
 
-  // Determine preferShort from season or energy
-  const preferShort = seasonInfluence.preferShort || energyParams.preferShort || false;
+  // Determine preferShort from season, energy, or quiz goal
+  const preferShort = seasonInfluence.preferShort || energyParams.preferShort || quizInfluence.preferShort || false;
 
   return {
     heatLevel: heatLevelPref,
@@ -139,6 +260,20 @@ async function getContentProfile(userProfile = {}) {
     tone,
     relationshipDuration: durationCategory,
     preferShort,
+    quiz: {
+      loveLanguage: quiz.loveLanguage,
+      relationshipGoal: quiz.relationshipGoal,
+      idealDateStyle: quiz.idealDateStyle,
+      communicationStyle: quiz.communicationStyle,
+      hasKids: quiz.hasKids,
+      // Mapped influences
+      preferredCategories: quizInfluence.categories,
+      preferredTones: quizInfluence.tones,
+      preferLoad: quizInfluence.preferLoad,
+      preferShort: quizInfluence.preferShort,
+      dateLocation: quizInfluence.dateLocation,
+      dateLocationBoost: quizInfluence.dateLocationBoost,
+    },
   };
 }
 
@@ -334,6 +469,24 @@ function filterPrompts(allPrompts, profile, options = {}) {
       score -= 0.5;
     }
 
+    // Quiz-based category boosting ("What Feels Like Us" integration)
+    if (profile.quiz?.preferredCategories?.includes(cat)) {
+      score += 1.5;  // Strong boost for quiz-aligned categories
+    }
+
+    // Quiz-based tone matching
+    const quizToneOverlap = catTones.filter(t => 
+      profile.quiz?.preferredTones?.includes(t)
+    ).length;
+    score += quizToneOverlap * 0.7;
+
+    // Communication style tone matching
+    const commStyleTones = COMMUNICATION_STYLE_TONES[profile.quiz?.communicationStyle] || [];
+    const commOverlap = catTones.filter(t => 
+      commStyleTones.includes(t)
+    ).length;
+    score += commOverlap * 0.5;
+
     // Personalization: boost/suppress by rating
     const rating = ratings[prompt.id];
     if (rating === 'love') score += 2;
@@ -456,6 +609,40 @@ function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
 
     // Tone preference should influence what kinds of dates surface first
     score += scoreDateForTone(date, tone);
+
+    // Quiz-based date style preference boost
+    if (profile.quiz?.dateLocation) {
+      if (date.location === profile.quiz.dateLocation) {
+        score *= profile.quiz.dateLocationBoost || 1.0;
+      }
+    }
+
+    // Relationship goal alignment
+    if (profile.quiz?.relationshipGoal) {
+      const goalPrefs = GOAL_PREFERENCES[profile.quiz.relationshipGoal];
+      if (goalPrefs) {
+        // Boost dates that match goal's preferred load
+        if (date.load === goalPrefs.preferLoad) {
+          score += 1.0;
+        }
+        // Boost dates that match goal's short/long preference
+        if (goalPrefs.preferShort && date.minutes <= 45) {
+          score += 0.8;
+        }
+      }
+    }
+
+    // Kids consideration
+    if (profile.quiz?.hasKids === true) {
+      // Boost short, home dates for parents
+      if (date.location === 'home' && date.minutes <= 60) {
+        score += 1.2;
+      }
+      // Slightly demote very long dates
+      if (date.minutes > 120) {
+        score -= 0.5;
+      }
+    }
 
     // Deterministic tie-breaker based on date id (no random jitter —
     // random made the deck order change on every recomputation)

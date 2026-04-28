@@ -44,8 +44,8 @@ const NUDGES = [
   },
   {
     delayDays: 14,
-    title: 'A date idea is waiting',
-    body: 'Fresh ideas are ready for you two whenever the moment feels right.',
+    title: 'New ideas for your next night together',
+    body: 'Fresh date ideas and intimacy positions are waiting for you. Come see what’s new.',
     route: 'date',
   },
 ];

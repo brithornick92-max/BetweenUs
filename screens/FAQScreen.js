@@ -46,7 +46,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `Premium includes:\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}\n\nFree users can still link with a partner, answer 1 prompt per day, and fully plan 2 date flows per week. One subscription can cover both you and your linked partner after entitlement sync completes. Access to supported data export is always free for all users.`,
+        a: `The free version includes 1 prompt per day, limited previews of date ideas and intimacy positions, and 2 fully planned date flows per week.\n\nPremium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. One subscription covers both partners.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
       },
       {
         q: 'How do I get started?',
@@ -105,7 +105,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What are Heat Levels?',
-        a: 'Heat levels range from emotional to explicit. You can adjust this anytime, and higher heat works best when both partners choose it together.',
+        a: 'Heat levels help you choose the intensity of prompts, from emotional connection (1) to explicit (5). Free users can preview all levels. Premium unlocks our full library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly.',
       },
       {
         q: 'How do prompts work?',
@@ -130,7 +130,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: '• Deeper reveal prompts and prompt packs\n• Romantic, sensual, steamy, and explicit heat levels\n• Personalized date ideas\n• Memory wall and keepsake recaps\n• Calendar and scheduling\n• Vibe and moment signals\n• Inside jokes vault\n• Surprise Tonight invitations\n• Expanded archive and personalization features\n• Shared premium access for linked partners when entitlement sync is available',
+        a: 'Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. It also includes full access to all 5 Heat Levels, shared calendar features, vibe and moment signals, and other premium experiences. One subscription covers both linked partners.',
       },
       {
         q: 'How do I subscribe?',

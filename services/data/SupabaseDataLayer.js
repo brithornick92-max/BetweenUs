@@ -30,6 +30,36 @@ let _calendarChannel = null;
 let _isFlushingQueue = false;
 const CACHE_FALLBACK = Symbol('CACHE_FALLBACK');
 
+// ─── Signed URL cache to prevent connection exhaustion ───────────────────────
+const _signedUrlCache = new Map();
+const SIGNED_URL_CACHE_TTL = 3000 * 1000; // 50 minutes (URLs expire in 1 hour)
+const MAX_CACHE_SIZE = 500; // Prevent memory leaks by limiting cache size
+
+function getCachedSignedUrl(cacheKey) {
+  const cached = _signedUrlCache.get(cacheKey);
+  if (!cached) return null;
+  
+  const now = Date.now();
+  if (now - cached.timestamp > SIGNED_URL_CACHE_TTL) {
+    _signedUrlCache.delete(cacheKey);
+    return null;
+  }
+  
+  return cached.url;
+}
+
+function setCachedSignedUrl(cacheKey, url) {
+  // Prevent unbounded cache growth
+  if (_signedUrlCache.size >= MAX_CACHE_SIZE) {
+    // Remove oldest entries (first 100)
+    const entries = Array.from(_signedUrlCache.entries());
+    entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+    entries.slice(0, 100).forEach(([key]) => _signedUrlCache.delete(key));
+  }
+  
+  _signedUrlCache.set(cacheKey, { url, timestamp: Date.now() });
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const now = () => new Date().toISOString();
@@ -375,11 +405,17 @@ async function uploadMedia({ localUri, mimeType, coupleId }) {
 
 /**
  * Get a short-lived signed URL for a stored media file.
+ * Caches URLs to prevent database connection exhaustion.
  */
 async function getSignedMediaUrl(bucket, storagePath, expiresIn = 3600) {
   const sb = getSupabaseOrNull();
 
   if (!sb || !storagePath) return null;
+
+  // Check cache first
+  const cacheKey = `${bucket}:${storagePath}`;
+  const cached = getCachedSignedUrl(cacheKey);
+  if (cached) return cached;
 
   try {
     const { data, error } = await sb.storage
@@ -388,7 +424,11 @@ async function getSignedMediaUrl(bucket, storagePath, expiresIn = 3600) {
 
     if (error) throw error;
 
-    return data?.signedUrl || null;
+    const signedUrl = data?.signedUrl || null;
+    if (signedUrl) {
+      setCachedSignedUrl(cacheKey, signedUrl);
+    }
+    return signedUrl;
   } catch (err) {
     if (__DEV__) console.warn('[SupabaseDataLayer] Signed URL failed:', err?.message);
     return null;
@@ -705,6 +745,7 @@ const SupabaseDataLayer = {
     _userId = null;
     _coupleId = null;
     _isFlushingQueue = false;
+    _signedUrlCache.clear();
   },
 
   canWriteForCouple() {

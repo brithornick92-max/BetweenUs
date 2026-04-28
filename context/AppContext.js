@@ -169,7 +169,9 @@ export function AppProvider({ children }) {
     };
 
     const init = async () => {
-      await WeeklyContentScheduler.init();
+      // Initialize content scheduler in background (non-blocking)
+      WeeklyContentScheduler.init().catch(() => {});
+      
       let userId = await userStorage.getUserId();
       if (!userId) {
         userId = Crypto.randomUUID();
@@ -196,43 +198,7 @@ export function AppProvider({ children }) {
       let hydratedUserProfile = userProfile && typeof userProfile === 'object' ? { ...userProfile } : {};
       let resolvedCoupleId = coupleId || null;
 
-      try {
-        const nicknameConfig = await NicknameEngine.getConfig();
-        const legacyPartnerName = typeof legacyPartnerLabel === 'string' ? legacyPartnerLabel.trim() : '';
-        const nicknamePartnerName = nicknameConfig?.partnerNickname?.trim() || '';
-        const nicknameMyName = nicknameConfig?.myNickname?.trim() || '';
-        const profilePartnerName = hydratedUserProfile?.partnerNames?.partnerName?.trim() || '';
-        const profileMyName = hydratedUserProfile?.partnerNames?.myName?.trim() || '';
-
-        const nextPartnerName = profilePartnerName || legacyPartnerName || nicknamePartnerName;
-        const nextMyName = profileMyName || nicknameMyName;
-
-        if ((nextPartnerName && nextPartnerName !== profilePartnerName) || (nextMyName && nextMyName !== profileMyName)) {
-          hydratedUserProfile = {
-            ...hydratedUserProfile,
-            partnerNames: {
-              ...(hydratedUserProfile.partnerNames || {}),
-              ...(nextMyName ? { myName: nextMyName } : {}),
-              ...(nextPartnerName ? { partnerName: nextPartnerName } : {}),
-            },
-          };
-          await storage.set(STORAGE_KEYS.USER_PROFILE, hydratedUserProfile);
-        }
-
-        if (legacyPartnerName) {
-          await storage.remove(STORAGE_KEYS.PARTNER_LABEL);
-        }
-
-        if ((nextPartnerName && nicknamePartnerName !== nextPartnerName) || (nextMyName && nicknameMyName !== nextMyName)) {
-          await NicknameEngine.setConfig({
-            ...(nextMyName ? { myNickname: nextMyName } : {}),
-            ...(nextPartnerName ? { partnerNickname: nextPartnerName } : {}),
-          });
-        }
-      } catch (e) {
-        if (__DEV__) console.warn('[AppContext] Nickname migration failed:', e?.message);
-      }
-
+      // ✅ IMMEDIATELY unblock the UI with local data
       const now = Date.now();
       let effectivePartnerActivity = lastPartnerActivity;
       if (resolvedCoupleId && !lastPartnerActivity) {
@@ -249,34 +215,90 @@ export function AppProvider({ children }) {
         lastPartnerActivity: effectivePartnerActivity,
       });
 
-      try {
-        const verifiedCoupleState = await CouplePresenceService.getVerifiedCoupleState({
-          currentCoupleId: resolvedCoupleId,
-          userId,
-          requireRemoteCheck: true,
-        });
-        resolvedCoupleId = verifiedCoupleState.coupleId;
-      } catch (_) {}
+      // ✅ Do expensive migrations/verifications in background after UI is shown
+      // Nickname migration (non-blocking)
+      (async () => {
+        try {
+          const nicknameConfig = await NicknameEngine.getConfig();
+          const legacyPartnerName = typeof legacyPartnerLabel === 'string' ? legacyPartnerLabel.trim() : '';
+          const nicknamePartnerName = nicknameConfig?.partnerNickname?.trim() || '';
+          const nicknameMyName = nicknameConfig?.myNickname?.trim() || '';
+          const profilePartnerName = hydratedUserProfile?.partnerNames?.partnerName?.trim() || '';
+          const profileMyName = hydratedUserProfile?.partnerNames?.myName?.trim() || '';
 
+          const nextPartnerName = profilePartnerName || legacyPartnerName || nicknamePartnerName;
+          const nextMyName = profileMyName || nicknameMyName;
+
+          if ((nextPartnerName && nextPartnerName !== profilePartnerName) || (nextMyName && nextMyName !== profileMyName)) {
+            hydratedUserProfile = {
+              ...hydratedUserProfile,
+              partnerNames: {
+                ...(hydratedUserProfile.partnerNames || {}),
+                ...(nextMyName ? { myName: nextMyName } : {}),
+                ...(nextPartnerName ? { partnerName: nextPartnerName } : {}),
+              },
+            };
+            await storage.set(STORAGE_KEYS.USER_PROFILE, hydratedUserProfile);
+            
+            // Update state after migration
+            dispatch({ 
+              type: ACTIONS.UPDATE_PROFILE, 
+              payload: { partnerNames: hydratedUserProfile.partnerNames } 
+            });
+          }
+
+          if (legacyPartnerName) {
+            await storage.remove(STORAGE_KEYS.PARTNER_LABEL);
+          }
+
+          if ((nextPartnerName && nicknamePartnerName !== nextPartnerName) || (nextMyName && nicknameMyName !== nextMyName)) {
+            await NicknameEngine.setConfig({
+              ...(nextMyName ? { myNickname: nextMyName } : {}),
+              ...(nextPartnerName ? { partnerNickname: nextPartnerName } : {}),
+            });
+          }
+        } catch (e) {
+          if (__DEV__) console.warn('[AppContext] Nickname migration failed:', e?.message);
+        }
+      })();
+
+      // ✅ Verify couple state in background (non-blocking)
       let supabaseUserId = null;
+      if (resolvedCoupleId) {
+        (async () => {
+          try {
+            const verifiedCoupleState = await CouplePresenceService.getVerifiedCoupleState({
+              currentCoupleId: resolvedCoupleId,
+              userId,
+              requireRemoteCheck: true,
+            });
+            if (verifiedCoupleState.coupleId !== resolvedCoupleId) {
+              // Couple state changed, update
+              if (verifiedCoupleState.coupleId) {
+                dispatch({ type: ACTIONS.JOIN_COUPLE, payload: { coupleId: verifiedCoupleState.coupleId } });
+              } else {
+                dispatch({ type: ACTIONS.LEAVE_COUPLE });
+              }
+            }
+          } catch (e) {
+            if (__DEV__) console.warn('[AppContext] Couple verification failed:', e?.message);
+          }
+        })();
+      }
 
-      try {
-        const { supabase } = await import('../config/supabase');
-        const { data: authData } = supabase ? await Promise.race([
-          supabase.auth.getUser(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('getUser timed out')), 10000)),
-        ]) : { data: null };
-        supabaseUserId = authData?.user?.id || null;
-      } catch (_) {}
-
-      syncState({
-        userId,
-        onboardingCompleted,
-        userProfile: hydratedUserProfile,
-        coupleId: resolvedCoupleId,
-        appLockEnabled,
-        lastPartnerActivity: effectivePartnerActivity,
-      });
+      // ✅ Get Supabase user in background (non-blocking)
+      (async () => {
+        try {
+          const { supabase } = await import('../config/supabase');
+          const { data: authData } = supabase ? await Promise.race([
+            supabase.auth.getUser(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('getUser timed out')), 10000)),
+          ]) : { data: null };
+          supabaseUserId = authData?.user?.id || null;
+        } catch (e) {
+          if (__DEV__) console.warn('[AppContext] getUser failed:', e?.message);
+        }
+      })();
 
       // Setup Supabase Realtime listener for partner vibe/data changes
       // (replaces the old cache-only vibeSyncService which never actually synced)

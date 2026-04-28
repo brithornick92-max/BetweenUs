@@ -686,6 +686,13 @@ export default function DateNightScreen({ navigation }) {
                   {weeklyDateSet.upgradeCopy.body}
                 </Text>
               </View>
+            ) : !isPremium ? (
+              <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
+                <Icon name="calendar-outline" size={14} color={colors.textMuted} />
+                <Text style={[styles.weeklyDropText, { color: colors.textMuted }]}>
+                  +3 new dates every Monday • Premium gets +8
+                </Text>
+              </View>
             ) : null}
           </View>
           <TouchableOpacity
@@ -1473,5 +1480,21 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  weeklyDropBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  weeklyDropText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 });

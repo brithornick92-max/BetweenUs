@@ -219,7 +219,14 @@ export default function SettingsScreen({ navigation }) {
     impact(ImpactFeedbackStyle.Medium);
     Alert.alert('Sign Out', 'Your session will be ended. Continue?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => signOutLocal() },
+      { text: 'Sign Out', style: 'destructive', onPress: async () => {
+        try {
+          await signOutLocal();
+        } catch (error) {
+          console.error('[SettingsScreen] signOutLocal error:', error);
+          Alert.alert('Error', 'Failed to sign out. Please try again.');
+        }
+      }},
     ]);
   };
 

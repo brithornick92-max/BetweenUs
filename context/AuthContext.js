@@ -160,6 +160,9 @@ export const AuthProvider = ({ children }) => {
 
   const bootstrappedRef = useRef(false);
   const lastDisplayNameSyncRef = useRef({ timestamp: 0, name: null });
+  const isSigningOutRef = useRef(false); // Prevent auth listener from running during sign out
+  const pendingBackgroundOpsRef = useRef(new Set()); // Track pending operations
+  const lastAuthStateRef = useRef(null); // Prevent duplicate processing
 
   const finishBootstrap = (active) => {
     if (active && !bootstrappedRef.current) {
@@ -174,7 +177,25 @@ export const AuthProvider = ({ children }) => {
 
     const unsubscribe = StorageRouter.onAuthStateChanged(async (localUser) => {
       try {
-        if (!active) return;
+        if (!active) {
+          console.log('[AuthContext] Auth listener skipped - component unmounted');
+          return;
+        }
+        
+        // Skip all auth listener work if we're in the middle of signing out
+        if (isSigningOutRef.current) {
+          console.log('[AuthContext] Auth listener skipped - sign out in progress');
+          return;
+        }
+
+        // Debounce: Skip if we just processed this exact auth state
+        const authStateKey = localUser ? `user:${localUser.uid}` : 'no-user';
+        if (lastAuthStateRef.current === authStateKey) {
+          console.log('[AuthContext] Auth listener skipped - duplicate state:', authStateKey);
+          return;
+        }
+        console.log('[AuthContext] Auth listener processing:', authStateKey);
+        lastAuthStateRef.current = authStateKey;
 
         // Set auth state immediately (don’t block UI while doing heavy work)
         setUser(localUser || null);
@@ -206,7 +227,11 @@ export const AuthProvider = ({ children }) => {
           let sessionCheckFailed = false;
 
           try {
-            supabaseSession = await SupabaseAuthService.getSession();
+            // Use shorter timeout and skip if already timing out
+            supabaseSession = await Promise.race([
+              SupabaseAuthService.getSession(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timeout')), 5000)),
+            ]);
           } catch (e) {
             sessionCheckFailed = true;
             if (__DEV__) console.warn('[AuthContext] getSession failed (non-fatal):', e?.message);
@@ -243,91 +268,112 @@ export const AuthProvider = ({ children }) => {
           });
 
           if (supabaseSession) {
-            try {
-              const cloudUserId = supabaseSession.user?.id;
-              if (!cloudUserId) {
-                throw new Error('Supabase user not found in session');
-              }
-
-              // MIGRATION: Ensure email/account ID is the global source of truth.
-              // If the local user ID is a legacy device ID (e.g. user_xxx), migrate them to the cloud ID.
-              if (localUser.uid !== cloudUserId) {
-                if (__DEV__) console.log(`[AuthContext] Migrating legacy user ${localUser.uid} to canonical ID ${cloudUserId}`);
-
-                const migratedUserResult = await StorageRouter.hydrateRemoteAccount({
-                  uid: cloudUserId,
-                  email: supabaseSession.user.email || localUser.email,
-                  displayName: profile?.displayName || localUser.displayName,
-                  emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at)
-                });
-                
-                localUser = migratedUserResult.user;
-                profile = await StorageRouter.getUserDocument(localUser.uid);
-                
-                if (active) {
-                  setUser(localUser);
-                  setUserProfile(profile);
-                  await persistAppUserProfile(profile);
-                  AnalyticsService.setUser(localUser.uid);
-                  ExperimentService.setUser(localUser.uid);
-                }
-              }
-
-              const remoteProfile = await Promise.race([
-                CloudEngine.getProfile(cloudUserId),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('getProfile timed out')), 10000)),
-              ]);
-              const mergedProfile = mergeCloudProfile(profile, remoteProfile);
-
-              if (active && JSON.stringify(mergedProfile) !== JSON.stringify(profile)) {
-                profile = await StorageRouter.updateUserDocument(localUser.uid, mergedProfile);
-                setUserProfile(profile);
-                await persistAppUserProfile(profile);
-              }
-
-              await applyCloudPreferenceState(remoteProfile);
-
-              if (typeof remoteProfile?.preferences?.onboardingCompleted === 'boolean' && active) {
-                setRequiresOnboarding(!remoteProfile.preferences.onboardingCompleted);
-              }
-            } catch (e) {
-              if (__DEV__) console.warn('[AuthContext] getProfile failed (non-fatal):', e?.message);
-            }
-          }
-
-          // Sync display_name to Supabase if the user has set a name in
-          // Identity settings but the cloud profile still has the email
-          // prefix from signup.
-          // Throttle to avoid spamming the server
-          if (supabaseSession && profile?.partnerNames?.myName) {
-            const myName = profile.partnerNames.myName;
-            const lastSync = lastDisplayNameSyncRef.current;
-            const now = Date.now();
-
-            // Skip if same name was synced recently
-            if (
-              lastSync.name !== myName ||
-              now - lastSync.timestamp > PROFILE_SYNC_COOLDOWN_MS
-            ) {
+            // Create a unique operation ID
+            const opId = `profile-sync-${Date.now()}`;
+            pendingBackgroundOpsRef.current.add(opId);
+            
+            // ✅ Fetch profile in background - don't block UI
+            (async () => {
               try {
+                // Check if we should still run (not cancelled)
+                if (!active || !pendingBackgroundOpsRef.current.has(opId)) return;
+                
                 const cloudUserId = supabaseSession.user?.id;
                 if (!cloudUserId) {
                   throw new Error('Supabase user not found in session');
                 }
 
-                await Promise.race([
-                  CloudEngine.upsertProfile(cloudUserId, {
-                    display_name: myName,
-                  }),
-                  new Promise((_, reject) => setTimeout(() => reject(new Error('upsertProfile timed out')), 10000)),
-                ]);
+                // MIGRATION: Ensure email/account ID is the global source of truth.
+                // If the local user ID is a legacy device ID (e.g. user_xxx), migrate them to the cloud ID.
+                if (localUser.uid !== cloudUserId) {
+                  if (__DEV__) console.log(`[AuthContext] Migrating legacy user ${localUser.uid} to canonical ID ${cloudUserId}`);
 
-                // Update tracking
-                lastDisplayNameSyncRef.current = { timestamp: now, name: myName };
+                  const migratedUserResult = await StorageRouter.hydrateRemoteAccount({
+                    uid: cloudUserId,
+                    email: supabaseSession.user.email || localUser.email,
+                    displayName: profile?.displayName || localUser.displayName,
+                    emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at)
+                  });
+                  
+                  localUser = migratedUserResult.user;
+                  profile = await StorageRouter.getUserDocument(localUser.uid);
+                  
+                  if (active) {
+                    setUser(localUser);
+                    setUserProfile(profile);
+                    await persistAppUserProfile(profile);
+                    AnalyticsService.setUser(localUser.uid);
+                    ExperimentService.setUser(localUser.uid);
+                  }
+                }
+
+                const remoteProfile = await Promise.race([
+                  CloudEngine.getProfile(cloudUserId),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('getProfile timed out')), 10000)),
+                ]);
+                const mergedProfile = mergeCloudProfile(profile, remoteProfile);
+
+                if (active && JSON.stringify(mergedProfile) !== JSON.stringify(profile)) {
+                  profile = await StorageRouter.updateUserDocument(localUser.uid, mergedProfile);
+                  setUserProfile(profile);
+                  await persistAppUserProfile(profile);
+                }
+
+                await applyCloudPreferenceState(remoteProfile);
+
+                if (typeof remoteProfile?.preferences?.onboardingCompleted === 'boolean' && active) {
+                  setRequiresOnboarding(!remoteProfile.preferences.onboardingCompleted);
+                }
               } catch (e) {
-                if (__DEV__) console.warn('[AuthContext] display_name sync (non-fatal):', e?.message);
+                if (__DEV__) console.warn('[AuthContext] getProfile failed (non-fatal):', e?.message);
+              } finally {
+                // Clean up
+                pendingBackgroundOpsRef.current.delete(opId);
               }
-            }
+            })();
+          }
+
+          // Sync display_name to Supabase in background (non-blocking)
+          if (supabaseSession && profile?.partnerNames?.myName) {
+            const opId = `name-sync-${Date.now()}`;
+            pendingBackgroundOpsRef.current.add(opId);
+            
+            (async () => {
+              try {
+                if (!active || !pendingBackgroundOpsRef.current.has(opId)) return;
+                
+                const myName = profile.partnerNames.myName;
+                const lastSync = lastDisplayNameSyncRef.current;
+                const now = Date.now();
+
+                // Skip if same name was synced recently
+                if (
+                  lastSync.name !== myName ||
+                  now - lastSync.timestamp > PROFILE_SYNC_COOLDOWN_MS
+                ) {
+                  try {
+                    const cloudUserId = supabaseSession.user?.id;
+                    if (!cloudUserId) {
+                      throw new Error('Supabase user not found in session');
+                    }
+
+                    await Promise.race([
+                      CloudEngine.upsertProfile(cloudUserId, {
+                        display_name: myName,
+                      }),
+                      new Promise((_, reject) => setTimeout(() => reject(new Error('upsertProfile timed out')), 10000)),
+                    ]);
+
+                    // Update tracking
+                    lastDisplayNameSyncRef.current = { timestamp: now, name: myName };
+                  } catch (e) {
+                    if (__DEV__) console.warn('[AuthContext] display_name sync (non-fatal):', e?.message);
+                  }
+                }
+              } finally {
+                pendingBackgroundOpsRef.current.delete(opId);
+              }
+            })();
           }
 
         }
@@ -340,6 +386,9 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       active = false;
+      // Cancel all pending background operations
+      pendingBackgroundOpsRef.current.clear();
+      lastAuthStateRef.current = null;
       if (typeof unsubscribe === 'function') unsubscribe();
     };
   }, []);
@@ -431,28 +480,37 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     try {
+      console.log('[AuthContext] signIn called for:', email);
       setBusy(true);
       await new Promise(resolve => setTimeout(resolve, 0));
 
       let signedInUser;
 
+      console.log('[AuthContext] Calling SupabaseAuthService.signInWithPassword...');
       const session = await Promise.race([
         SupabaseAuthService.signInWithPassword(email, password),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Remote sign-in timed out')), 10000)),
       ]);
 
+      console.log('[AuthContext] Got session:', !!session);
       if (!session?.user?.id) {
         throw new Error('Supabase session required');
       }
 
+      console.log('[AuthContext] Restoring session...');
       signedInUser = await _restoreSupabaseSession(email, session);
 
       if (!signedInUser) throw new Error('Sign-in failed');
 
+      console.log('[AuthContext] Setting onboarding flags...');
       await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
       setRequiresOnboarding(false);
 
+      console.log('[AuthContext] Sign in complete!');
       return signedInUser;
+    } catch (error) {
+      console.error('[AuthContext] Sign in error:', error);
+      throw error;
     } finally {
       setBusy(false);
     }
@@ -466,13 +524,25 @@ export const AuthProvider = ({ children }) => {
    *   - 'local': Only clears session on this device.
    */
   const signOut = async (scope = 'global') => {
+    // Set flag to prevent auth listener from running during sign out
+    isSigningOutRef.current = true;
+    
     try {
       setBusy(true);
       setRequiresOnboarding(false);
 
+      // Clear React state FIRST to immediately show loading state
+      setUser(null);
+      setUserProfile(null);
+      setInitializing(true);
       try {
         if (supabase) {
-          await PushNotificationService.removeToken(supabase);
+          await Promise.race([
+            PushNotificationService.removeToken(supabase),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Push token removal timeout')), 3000)
+            )
+          ]);
         }
       } catch (pushErr) {
         if (__DEV__) console.warn('[AuthContext] Push token cleanup failed:', pushErr?.message);
@@ -480,23 +550,32 @@ export const AuthProvider = ({ children }) => {
 
       await StorageRouter.signOut(scope);
       await SupabaseAuthService.clearStoredCredentials();
-
       await AnalyticsService.clearLocalCache();
       await ConnectionMemory.clear();
-
-      // A signed-out device should not retain active-session account state,
-      // and backend-canonical content should be rehydrated from the server on next login.
       await clearLocalCache();
+    } catch (error) {
+      console.error('[AuthContext] signOut error:', error);
+      // Even if there's an error, we still want to sign out locally
+      setUser(null);
+      setUserProfile(null);
     } finally {
+      // Reset the flag BEFORE setting initializing to false
+      // This prevents the auth listener from running when initializing becomes false
+      isSigningOutRef.current = false;
+      
+      // Reset bootstrap ref so user can sign in again
+      bootstrappedRef.current = false;
+      
       setBusy(false);
+      setInitializing(false);
     }
   };
 
   /** Convenience: sign out only this device */
-  const signOutLocal = () => signOut('local');
+  const signOutLocal = async () => await signOut('local');
 
   /** Convenience: sign out all devices (revokes refresh tokens) */
-  const signOutGlobal = () => signOut('global');
+  const signOutGlobal = async () => await signOut('global');
 
   const markOnboardingComplete = async () => {
     await Promise.all([

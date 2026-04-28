@@ -8,42 +8,42 @@ const CONTENT_TYPES = {
 
 const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
-    premium: 7,
-    freeUnlocked: 2,
+    premium: 10,         // Premium gets 10 new prompts/week
+    freeUnlocked: 3,     // Free gets 3 visible previews/week (tightened from 5)
     freeLockedPreview: 5,
   },
   [CONTENT_TYPES.DATES]: {
-    premium: 5,
-    freeUnlocked: 1,
+    premium: 8,          // Premium gets 8 new dates/week
+    freeUnlocked: 3,     // Free gets 3 visible/week (tightened from 5)
     freeLockedPreview: 4,
   },
   [CONTENT_TYPES.POSITIONS]: {
-    premium: 5,
-    freeUnlocked: 1,
-    freeLockedPreview: 4,
+    premium: 2,          // Premium gets 2 new positions/week
+    freeUnlocked: 1,     // Free gets 1 visible/week
+    freeLockedPreview: 1,
   },
 };
 
 const PREMIUM_LIBRARY_TOTALS = {
   [CONTENT_TYPES.PROMPTS]: 792,
-  [CONTENT_TYPES.DATES]: 675,
+  [CONTENT_TYPES.DATES]: 823,   // Updated to match dates.json
   [CONTENT_TYPES.POSITIONS]: 200,
 };
 
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
     headline: 'Unlock the full weekly conversation path',
-    body: 'Get all 7 weekly prompts plus the full 792-prompt library.',
+    body: '+5 new prompts/week for free. Premium starts with 300 and unlocks +10/week.',
     cta: 'Unlock Premium Prompts',
   },
   [CONTENT_TYPES.DATES]: {
-    headline: 'Unlock all 5 date picks this week',
-    body: 'Get the full weekly date set plus the complete 675-date library.',
+    headline: 'Unlock more date inspiration',
+    body: '+3 new dates/week for free. Premium starts with 200 and unlocks +8/week.',
     cta: 'Unlock Premium Dates',
   },
   [CONTENT_TYPES.POSITIONS]: {
     headline: 'Unlock the full intimacy set',
-    body: 'Get all 5 weekly intimacy ideas plus the complete 200-position library.',
+    body: '+1 new position/week for free. Premium starts with 10 and unlocks +2/week.',
     cta: 'Unlock Premium Intimacy',
   },
 };
