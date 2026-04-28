@@ -51,8 +51,6 @@ const MEMORY_TYPE_META = {
   intimacy_tried: { label: 'Position Tried', icon: 'checkmark-circle-outline' },
   date_tried: { label: 'Date Tried', icon: 'calendar-outline' },
   memory: { label: 'Memory', icon: 'time-outline' },
-  first: { label: 'A First', icon: 'star-outline' },
-  inside_joke: { label: 'Inside Joke', icon: 'happy-outline' },
 };
 
 function formatDateLabel(value) {
@@ -244,7 +242,7 @@ function buildSnapshotItem(groupId, items) {
     body,
     eyebrow: 'Snapshot',
     icon: 'images-outline',
-    accent: '#D2121A',
+    accent: '#FFD60A',
     meta: mediaItems.length === 1 ? '1 item' : `${mediaItems.length} items`,
     dateLabel: first?.dateLabel || '',
     sortAt: first?.sortAt || null,
@@ -327,7 +325,7 @@ function buildPositionTriedItem(row) {
     body: 'An intimacy position you tried together.',
     eyebrow: 'Position tried',
     icon: 'checkmark-circle-outline',
-    accent: '#7E4FA3',
+    accent: '#D2121A',
     meta: row.mood ? String(row.mood).toUpperCase() : 'Intimacy',
     dateLabel: formatDateLabel(row.triedAt),
     sortAt: row.triedAt,

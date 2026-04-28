@@ -107,7 +107,7 @@ export default function CouplesQuizScreen({ navigation }) {
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const myName = getMyDisplayName(userProfile, state?.userProfile, null);
-  const partnerName = getPartnerDisplayName(state?.userProfile, userProfile, null) || 'your partner';
+  const partnerName = getPartnerDisplayName(userProfile, state?.userProfile, null) || 'your partner';
 
   const todayKey = useMemo(() => getTodayKey(), []);
   const question = useMemo(() => getDailyQuestion(todayKey), [todayKey]);

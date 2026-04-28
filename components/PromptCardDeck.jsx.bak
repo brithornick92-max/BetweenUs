@@ -221,10 +221,10 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
                 </Text>
 
                 {/* Sub-label instead of stars/circles */}
-                <Text style={[styles.levelSubtext, { color: neon.bloom }]}>Intensity 1</Text>
+                <Text style={[styles.levelSubtext, { color: neon.bloom }]}>INTENSITY</Text>
               </View>
 
-              <Animated.Text style={[styles.backHint, { color: metal.chrome }, pulseStyle]}>Tap to reveal</Animated.Text>
+              <Animated.Text style={[styles.backHint, { color: metal.chrome }, pulseStyle]}>TAP TO REVEAL</Animated.Text>
             </View>
 
           </LinearGradient>
@@ -366,8 +366,8 @@ const styles = StyleSheet.create({
   cornerSuit: { position: 'absolute', opacity: 0.8 },
   cardCenterLockup: { alignItems: 'center', justifyContent: 'center' },
   heroNumber: { fontFamily: SYSTEM_FONT, fontSize: 96, lineHeight: 104, fontWeight: "200" },
-  levelSubtext: { fontFamily: SYSTEM_FONT, fontSize: 12, fontWeight: '800', letterSpacing: 0.8, marginTop: 6, opacity: 0.9 },
-  backHint: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: "uppercase" },
+  levelSubtext: { fontFamily: SYSTEM_FONT, fontSize: 12, fontWeight: '800', letterSpacing: 8, marginTop: 6, opacity: 0.9 },
+  backHint: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 2, textTransform: "uppercase" },
 
   cardFront: { flex: 1, borderRadius: 28, overflow: "hidden" },
   frontBand: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingVertical: 18 },
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   frontPromptText: { fontFamily: SERIF_FONT, lineHeight: 36, fontWeight: "400", textAlign: "center" },
   frontFooter: { paddingHorizontal: 20, paddingBottom: 24, paddingTop: 16 },
   footerBlur: { flex: 1, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  frontFooterText: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 0.5, textTransform: "uppercase" },
+  frontFooterText: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 1.5, textTransform: "uppercase" },
 
   swipeHint: { position: "absolute", top: 20, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 2, borderColor: "rgba(255,255,255,0.15)" },
   swipeHintRight: { left: 16, backgroundColor: "#D2121A" },

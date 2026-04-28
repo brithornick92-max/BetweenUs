@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -49,15 +50,15 @@ export default function AuthScreen() {
   const passwordRef = useRef(null);
   const confirmRef = useRef(null);
 
-  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
+  // ─── VELVET GLASS x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
     background: colors.background,
-    surface: isDark ? '#1C1C1E' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
+    surface: isDark ? 'rgba(28, 28, 30, 0.7)' : 'rgba(255, 255, 255, 0.8)',
+    surfaceSecondary: isDark ? 'rgba(44, 44, 46, 0.6)' : 'rgba(242, 242, 247, 0.7)',
     primary: colors.primary || '#D2121A', // Sexy Red
     text: colors.text,
-    subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+    subtext: isDark ? 'rgba(235, 235, 245, 0.5)' : 'rgba(60, 60, 67, 0.5)',
+    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
@@ -148,6 +149,18 @@ export default function AuthScreen() {
     });
   }, [email, navigation]);
 
+  // Velvet Glass Input Wrapper
+  const InputWrapper = useCallback(({ children }) => {
+    if (Platform.OS === 'ios') {
+      return (
+        <BlurView intensity={isDark ? 25 : 45} tint={isDark ? "dark" : "light"} style={styles.inputContainer}>
+          {children}
+        </BlurView>
+      );
+    }
+    return <View style={[styles.inputContainer, { backgroundColor: t.surfaceSecondary }]}>{children}</View>;
+  }, [isDark, styles.inputContainer, t.surfaceSecondary]);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
@@ -155,8 +168,8 @@ export default function AuthScreen() {
       {/* Deep velvet background gradient with a hint of dark crimson in dark mode */}
       <LinearGradient
         colors={isDark 
-          ? [t.background, '#120206', '#0A0003', t.background] 
-          : [t.background, t.surfaceSecondary, t.background]}
+          ? [t.background, '#1A0207', '#0A0003', t.background] 
+          : [t.background, '#FFF5F5', t.background]}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
@@ -172,12 +185,12 @@ export default function AuthScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
-            bounces={false}
+            bounces={true}
           >
             {/* ─── Header ─── */}
             <View style={styles.header}>
-              <View style={[styles.heartGlow, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
-                <Icon name="heart-outline" size={32} color={t.primary} />
+              <View style={[styles.heartGlow, { shadowColor: t.primary }]}>
+                <Icon name="heart" size={32} color={t.primary} />
               </View>
               <Text style={styles.title}>Between Us</Text>
               <View style={styles.divider} />
@@ -189,7 +202,7 @@ export default function AuthScreen() {
             {/* ─── Form ─── */}
             <View style={styles.form}>
               {isSignUp && (
-                <View style={styles.inputContainer}>
+                <InputWrapper>
                   <Icon
                     name="person-outline"
                     size={20}
@@ -208,10 +221,10 @@ export default function AuthScreen() {
                     onSubmitEditing={() => emailRef.current?.focus()}
                     blurOnSubmit={false}
                   />
-                </View>
+                </InputWrapper>
               )}
 
-              <View style={styles.inputContainer}>
+              <InputWrapper>
                 <Icon
                   name="mail-outline"
                   size={20}
@@ -235,9 +248,9 @@ export default function AuthScreen() {
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   blurOnSubmit={false}
                 />
-              </View>
+              </InputWrapper>
 
-              <View style={styles.inputContainer}>
+              <InputWrapper>
                 <Icon
                   name="lock-closed-outline"
                   size={20}
@@ -271,10 +284,10 @@ export default function AuthScreen() {
                     color={t.subtext}
                   />
                 </TouchableOpacity>
-              </View>
+              </InputWrapper>
 
               {isSignUp && (
-                <View style={styles.inputContainer}>
+                <InputWrapper>
                   <Icon
                     name="shield-checkmark-outline"
                     size={20}
@@ -306,7 +319,7 @@ export default function AuthScreen() {
                       color={t.subtext}
                     />
                   </TouchableOpacity>
-                </View>
+                </InputWrapper>
               )}
 
               {/* ─── Legal Checks ─── */}
@@ -356,13 +369,13 @@ export default function AuthScreen() {
                 style={[styles.authButton, { backgroundColor: t.primary }]}
                 onPress={handleAuth}
                 disabled={loading || submitting}
-                activeOpacity={0.85}
+                activeOpacity={0.9}
                 accessibilityRole="button"
                 accessibilityLabel={isSignUp ? "Create Account" : "Sign In"}
                 accessibilityState={{ disabled: loading || submitting, busy: loading || submitting }}
               >
                 <Text style={styles.authButtonText}>
-                  {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
+                  {loading ? "Establishing connection..." : isSignUp ? "Create Account" : "Sign In"}
                 </Text>
               </TouchableOpacity>
 
@@ -389,19 +402,18 @@ export default function AuthScreen() {
                 accessibilityLabel={isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
                 accessibilityState={{ disabled: loading }}
               >
-                <Text style={[styles.toggleText, { color: t.primary }]}>
-                  {isSignUp
-                    ? "Already have an account? Sign in"
-                    : "Don't have an account? Sign up"}
+                <Text style={styles.toggleLabel}>
+                  {isSignUp ? "Joined us before?" : "New to Between Us?"}
+                  <Text style={[styles.toggleAction, { color: t.primary }]}> {isSignUp ? "Sign In" : "Create Account"}</Text>
                 </Text>
               </TouchableOpacity>
             </View>
 
             {/* ─── Security Badge ─── */}
             <View style={styles.securityBadge}>
-              <Icon name="lock-closed-outline" size={14} color={t.subtext} />
+              <Icon name="lock-closed" size={14} color={t.subtext} />
               <Text style={styles.securityText}>
-                Your private space is protected by account security and app controls
+                End-to-end encrypted connection
               </Text>
             </View>
           </ScrollView>
@@ -429,24 +441,29 @@ const createStyles = (t, isDark) => StyleSheet.create({
   header: {
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.xl,
-    paddingBottom: SPACING.md,
+    paddingBottom: SPACING.xl,
     alignItems: 'center',
   },
 
   heartGlow: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: isDark ? 'rgba(210, 18, 26, 0.15)' : 'rgba(210, 18, 26, 0.05)',
     alignItems: "center",
     justifyContent: "center",
     marginBottom: SPACING.lg,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
   },
 
   title: {
     fontFamily: SERIF_FONT,
-    fontSize: 44,
+    fontSize: 40,
     color: t.text,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    textAlign: 'center',
   },
 
   divider: {
@@ -460,11 +477,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   subtitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 16,
+    fontSize: 15,
     color: t.subtext,
     textAlign: "center",
-    fontWeight: "500",
-    letterSpacing: -0.2,
+    fontWeight: "400",
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
 
   form: {
@@ -474,17 +492,18 @@ const createStyles = (t, isDark) => StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: t.surfaceSecondary,
-    borderRadius: 16,
+    borderRadius: 18, // High-end Apple Editorial rounded corners
     marginBottom: SPACING.md,
     paddingHorizontal: SPACING.lg,
-    height: 56, // Tall Apple touch target
+    height: 60, // Enhanced touch target
     borderWidth: 1,
     borderColor: t.border,
+    overflow: 'hidden',
   },
 
   inputIcon: {
     marginRight: 12,
+    opacity: 0.8,
   },
 
   input: {
@@ -494,22 +513,23 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontSize: 17, // Native iOS size
     fontWeight: "500",
     paddingVertical: 0,
+    height: '100%',
   },
 
   authButton: {
     marginTop: SPACING.lg,
-    height: 56,
-    borderRadius: 28, // Perfect Pill
+    height: 60,
+    borderRadius: 30, // Perfect Pill
     alignItems: "center",
     justifyContent: "center",
     ...Platform.select({
       ios: {
         shadowColor: t.primary,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: isDark ? 0.4 : 0.2,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: isDark ? 0.5 : 0.3,
+        shadowRadius: 15,
       },
-      android: { elevation: 6 },
+      android: { elevation: 8 },
     }),
   },
 
@@ -517,8 +537,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: '#FFFFFF', // High contrast over primary red
     fontFamily: SYSTEM_FONT,
     fontSize: 17,
-    fontWeight: "700",
-    letterSpacing: -0.2,
+    fontWeight: "600",
+    letterSpacing: -0.4,
   },
 
   toggleButton: {
@@ -535,29 +555,34 @@ const createStyles = (t, isDark) => StyleSheet.create({
   forgotText: {
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.2,
   },
 
-  toggleText: {
+  toggleLabel: {
     fontFamily: SYSTEM_FONT,
     fontSize: 15,
-    fontWeight: "600",
+    color: t.subtext,
     letterSpacing: -0.2,
+  },
+
+  toggleAction: {
+    fontWeight: "700",
   },
 
   securityBadge: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 40,
+    marginTop: 60,
+    opacity: 0.6,
   },
 
   securityText: {
     fontFamily: SYSTEM_FONT,
     color: t.subtext,
-    fontSize: 13,
-    fontWeight: "500",
+    fontSize: 12,
+    fontWeight: "600",
     marginLeft: 6,
     textAlign: "center",
   },
@@ -579,13 +604,13 @@ const createStyles = (t, isDark) => StyleSheet.create({
     flex: 1,
     fontFamily: SYSTEM_FONT,
     color: t.subtext,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 2,
   },
 
   linkText: {
     color: t.primary,
-    fontWeight: "600",
+    fontWeight: "700",
   },
 });

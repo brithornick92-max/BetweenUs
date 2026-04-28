@@ -102,25 +102,16 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
       setIsSaving(true);
       impact(ImpactFeedbackStyle.Medium);
 
+      // Update profile via AuthContext (handles both Supabase and local state)
       await updateProfile({
         partnerNames: {
           myName: myName.trim(),
           partnerName: partnerName.trim(),
         },
         display_name: myName.trim(),
+        displayName: myName.trim(),
         // Persist the recipient-facing partner label to Supabase so the
         // notification trigger can use the name the user assigned their partner.
-        preferences: {
-          ...(userProfile?.preferences || {}),
-          partnerLabel: partnerName.trim(),
-        },
-      });
-      await actions.updateProfile({
-        displayName: myName.trim(),
-        partnerNames: {
-          myName: myName.trim(),
-          partnerName: partnerName.trim(),
-        },
         preferences: {
           ...(userProfile?.preferences || {}),
           partnerLabel: partnerName.trim(),

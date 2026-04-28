@@ -293,8 +293,8 @@ const styles = StyleSheet.create({
     fontFamily: systemFont,
     fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 0.8, // Pushed tracking for premium feel
-    textTransform: 'none',
+    letterSpacing: 2, // Pushed tracking for premium feel
+    textTransform: 'uppercase',
   },
   promptText: {
     fontFamily: systemFont,
@@ -407,8 +407,8 @@ const styles = StyleSheet.create({
     fontFamily: systemFont,
     fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 0.8,
-    textTransform: 'none',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
     marginBottom: 10,
   },
   answerText: {

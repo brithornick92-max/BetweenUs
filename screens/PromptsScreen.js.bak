@@ -101,7 +101,7 @@ const normalizePrompt = (p) => {
 
 const TONE_PROMPT_COPY = {
   warm: {
-    subtitle: 'Just for the two of you.',
+    subtitle: 'Reveal something just for the two of you.',
     empty: 'Nothing here fits this intensity right now. Try something softer or switch the mood.',
   },
   playful: {
@@ -388,10 +388,19 @@ export default function PromptsScreen({ navigation }) {
           <Animated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
             <Text style={[styles.headerLabel, { color: HEAT_LEVELS[(selectedHeat || 1) - 1].color }]}>
               {isPremium
-                ? `${deckPrompts.length} cards ready`
-                : `${weeklyPromptSet?.unlocked?.length || 0} free draws today`}
+                ? `${deckPrompts.length} PROMPTS READY`
+                : `${weeklyPromptSet?.unlocked?.length || 0} FREE + ${weeklyPromptSet?.lockedPreviews?.length || 0} PREMIUM`}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
+            <Text style={[styles.headerSubtitle, { color: t.subtext }]}>{toneCopy.subtitle}</Text>
+            {!isPremium && (
+              <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
+                <Icon name="calendar-outline" size={14} color={t.subtext} />
+                <Text style={[styles.weeklyDropText, { color: t.subtext }]}>
+                  +5 new prompts every Monday • Premium gets +10
+                </Text>
+              </View>
+            )}
           </Animated.View>
 
           {/* Tactile Heat Selector */}
@@ -474,6 +483,19 @@ export default function PromptsScreen({ navigation }) {
                 onSkip={() => impact(ImpactFeedbackStyle.Light)}
                 onLongPress={handlePromptBoundaryAction}
               />
+              {!isPremium && (
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS)}
+                  style={[styles.premiumTeaserBanner, { backgroundColor: isDark ? 'rgba(210,18,26,0.12)' : 'rgba(210,18,26,0.07)', borderColor: 'rgba(210,18,26,0.2)' }]}
+                >
+                  <Icon name="flame" size={16} color="#D2121A" />
+                  <Text style={[styles.premiumTeaserText, { color: isDark ? '#FF6B6B' : '#D2121A' }]}>
+                    {weeklyPromptSet?.upgradeCopy?.body || 'Free preview refreshes weekly. Premium opens the full prompt library.'}
+                  </Text>
+                  <Icon name="chevron-forward" size={14} color="#D2121A" />
+                </TouchableOpacity>
+              )}
               
               {/* Refined Velvet Glass / Editorial Boundary Hint Pill */}
               <Animated.View 
@@ -488,7 +510,7 @@ export default function PromptsScreen({ navigation }) {
               >
                 <Icon name="eye-off-outline" size={14} color={t.subtext} />
                 <Text style={[styles.boundaryHintText, { color: t.subtext }]}>
-                  Long-press to hide
+                  Long-press to curate
                 </Text>
               </Animated.View>
             </View>
@@ -505,7 +527,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.xl,
-    paddingBottom: SPACING.xs,
+    paddingBottom: SPACING.md,
   },
   headerLabel: {
     fontFamily: SYSTEM_FONT,
@@ -522,9 +544,16 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
     lineHeight: 42,
   },
+  headerSubtitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
   heatSection: {
     paddingHorizontal: 32,
-    marginBottom: 30,
+    marginBottom: 40,
   },
   sectionLabel: {
     fontFamily: SYSTEM_FONT,
@@ -606,6 +635,24 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
+  premiumTeaserBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 24,
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  premiumTeaserText: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+  },
   centered: {
     flex: 1,
     alignItems: 'center',
@@ -617,5 +664,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     textAlign: "center",
+  },
+  weeklyDropBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  weeklyDropText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 });

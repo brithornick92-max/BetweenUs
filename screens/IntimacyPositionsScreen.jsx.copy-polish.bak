@@ -73,15 +73,6 @@ export default function IntimacyPositionsScreen() {
 
   const partnerLabel = getPartnerDisplayName(userProfile, null, 'your partner');
 
-  const myLabel =
-    userProfile?.myName
-    || userProfile?.displayName
-    || userProfile?.name
-    || user?.displayName
-    || 'you';
-
-  const intimacyForLine = `For ${myLabel} and ${partnerLabel}.`;
-
   const positionCatalog = useMemo(
     () => positionsData.items.filter((p) => p.id.startsWith('ip') && !p.id.includes('-q')),
     []
@@ -234,7 +225,7 @@ export default function IntimacyPositionsScreen() {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Intimacy"
-      headerSubtitle="SEX POSITIONS"
+      headerSubtitle="FOR TWO"
       scroll={false}
       onBack={handleBack}
       bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge
@@ -253,10 +244,61 @@ export default function IntimacyPositionsScreen() {
             <View style={styles.cardContainer}>
               <View style={[styles.editorialCard, styles.editorialCardColumn, styles.positionCardShell, { backgroundColor: t.surface, borderColor: t.borderGlass }, !isDark && styles.lightShadow]}>
                 <View style={styles.cardContent}>
-                  <Text style={[styles.cardTag, { color: t.subtext }]}>THIS WEEK</Text>
-                  <Text style={[styles.cardTitle, { color: t.text }]}>Explore closeness</Text>
-                  <Text style={[styles.cardEmail, { color: t.subtext }]}>{intimacyForLine}</Text>
+                  <Text style={[styles.cardTag, { color: t.subtext }]}>CURATED DECK</Text>
+                  <Text style={[styles.cardTitle, { color: t.text }]}>A closer way to connect</Text>
+                  <Text style={[styles.cardEmail, { color: t.subtext }]}>A closer space for you and {partnerLabel}.</Text>
                 </View>
+
+                {!isPremiumEffective && weeklyPositionSet?.upgradeCopy?.body && (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={handlePaywall}
+                    style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}
+                  >
+                    <Text style={[styles.answerText, { color: t.text }]}>
+                      {weeklyPositionSet.unlocked.length} free position this week. {weeklyPositionSet.upgradeCopy.body}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                {!isPremiumEffective && (
+                  <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
+                    <Icon name="calendar-outline" size={14} color={t.subtext} />
+                    <Text style={[styles.weeklyDropText, { color: t.subtext }]}>
+                      New positions weekly
+                    </Text>
+                  </View>
+                )}
+
+                {!!favoritePositions.length && (
+                  <View style={styles.favoritesBlock}>
+                    <Text style={[styles.favoritesLabel, { color: t.subtext }]}>YOUR FAVORITES</Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.favoriteRow}
+                      style={styles.favoriteScroll}
+                    >
+                      {favoritePositions.map((item) => (
+                        <TouchableOpacity
+                          key={item.id}
+                          activeOpacity={0.75}
+                          onPress={() => {
+                            const nextIndex = availablePositions.findIndex((candidate) => candidate.id === item.id);
+                            if (nextIndex >= 0) {
+                              selection();
+                              setSelectedIndex(nextIndex);
+                            }
+                          }}
+                          style={[styles.favoritePill, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}
+                        >
+                          <Icon name="heart-outline" size={14} color={t.primary} />
+                          <Text style={[styles.favoritePillText, { color: t.primary }]}>{item.title}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
 
                 <ScrollView
                   horizontal
@@ -400,7 +442,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 1.5,
     marginBottom: 8,
-    paddingLeft: SPACING.screen,
+    paddingLeft: SPACING.md, // Extra padding on left
+    paddingRight: SPACING.sm,
   },
   cardTitle: {
     fontFamily: systemFont,
@@ -409,13 +452,15 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     letterSpacing: -0.4,
     marginBottom: 6,
-    paddingLeft: SPACING.screen,
+    paddingLeft: SPACING.md, // Extra padding on left
+    paddingRight: SPACING.sm,
   },
   cardEmail: {
     fontFamily: systemFont,
     fontWeight: '500',
     fontSize: 15,
-    paddingLeft: SPACING.screen,
+    paddingLeft: SPACING.md, // Extra padding on left
+    paddingRight: SPACING.sm,
   },
   favoritesBlock: {
     width: '100%',
@@ -458,7 +503,6 @@ const styles = StyleSheet.create({
   },
   pickerRow: {
     gap: 10,
-    paddingLeft: SPACING.screen,
   },
   pickerPill: {
     minHeight: 54,

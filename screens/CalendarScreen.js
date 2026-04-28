@@ -481,28 +481,6 @@ export default function CalendarScreen({ navigation, route }) {
 
   const selectedDateEvents = events.filter(e => toDisplayDate(new Date(e.whenTs)) === toDisplayDate(selectedDate));
 
-  // ─── Paywall gate ──────────────────────────────────────────────
-  if (!isPremium) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
-        <View style={styles.paywallCenter}>
-          <Icon name="calendar-outline" size={64} color={t.primary} style={{ marginBottom: 24 }} />
-          <Text style={[styles.paywallTitle, { color: t.text }]}>The Shared Timeline</Text>
-          <Text style={[styles.paywallDesc,  { color: t.subtext }]}>
-            Plan date nights, protect anniversaries, and build a beautiful archive of your time together.
-          </Text>
-          <TouchableOpacity
-            onPress={() => showPaywall?.(PremiumFeature.CALENDAR)}
-            style={[styles.paywallButton, { backgroundColor: t.primary }]}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.paywallButtonText}>UNLOCK PRO CALENDAR</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   // ─── Main render ───────────────────────────────────────────────
   if (initialLoading) {
     return (
