@@ -24,31 +24,8 @@ const GlowOrb = ({
   togetherNow = false,
   togetherColor = '#8B0020',
 }) => {
-  const pulse = useRef(new Animated.Value(0)).current;
   // Crossfade between base color orb (opacity 1) and together orb (opacity 0→1)
   const togetherAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    // Apple-style sophisticated breathing animation
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 5000 + delay,
-          easing: Easing.bezier(0.4, 0, 0.2, 1), // Native iOS-like easing
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 0,
-          duration: 5000 + delay,
-          easing: Easing.bezier(0.4, 0, 0.2, 1),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [delay, pulse]);
 
   // ── Together bloom — fades in the deeper-red orb over 1.4s ───────────────
   useEffect(() => {
@@ -61,17 +38,15 @@ const GlowOrb = ({
   }, [togetherNow, togetherAnim]);
 
   const animatedStyle = {
-    opacity: pulse.interpolate({
+    opacity: togetherAnim.interpolate({
       inputRange: [0, 1],
-      // When together, the base orb breathes a bit brighter
-      outputRange: [opacity * 0.5, togetherNow ? opacity * 1.4 : opacity],
+      outputRange: [opacity, opacity * 1.4],
     }),
     transform: [
       {
-        scale: pulse.interpolate({
+        scale: togetherAnim.interpolate({
           inputRange: [0, 1],
-          // Together: orb expands more (1.35 vs 1.2)
-          outputRange: [1, togetherNow ? 1.35 : 1.2],
+          outputRange: [1.2, 1.35],
         }),
       },
     ],
@@ -84,7 +59,7 @@ const GlowOrb = ({
     }),
     transform: [
       {
-        scale: pulse.interpolate({
+        scale: togetherAnim.interpolate({
           inputRange: [0, 1],
           outputRange: [1.1, 1.45],
         }),

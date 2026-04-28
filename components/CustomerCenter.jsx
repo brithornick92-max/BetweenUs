@@ -9,7 +9,7 @@ import {
   Animated,
   StatusBar
 } from 'react-native';
-import { RevenueCatUI, CUSTOMER_CENTER_ACTION } from 'react-native-purchases-ui';
+import RevenueCatUI, { CUSTOMER_CENTER_ACTION } from 'react-native-purchases-ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useTheme } from '../context/ThemeContext';

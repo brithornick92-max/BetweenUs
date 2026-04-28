@@ -18,7 +18,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue, useAnimatedStyle,
   withSpring, withTiming, runOnJS, interpolate,
-  Easing,
+  Easing, withSequence,
 } from 'react-native-reanimated';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -125,7 +125,9 @@ const CardStack = forwardRef(function CardStack(
   const topX = useSharedValue(0);
   const topY = useSharedValue(0);
   const flipProgress = useSharedValue(0);
+  const shuffleAnim = useSharedValue(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [rawBoundaries, setRawBoundaries] = useState(null);
 
   // Keep ref in sync during render (NOT in useEffect) so gesture handlers
   // always read the same deck/deckIndex that's currently displayed on screen.
@@ -189,6 +191,14 @@ const CardStack = forwardRef(function CardStack(
     swipeLeft: () => {
       topX.value = withTiming(-(width + 150), { duration: 400 }, () => runOnJS(doSwipeLeft)());
     },
+    shuffle: () => {
+      shuffleAnim.value = withSequence(
+        withTiming(1, { duration: 120 }),
+        withTiming(-1, { duration: 120 }),
+        withTiming(1, { duration: 120 }),
+        withTiming(0, { duration: 120 })
+      );
+    }
   }), [doSwipeRight, doSwipeLeft]);
 
   // Pan gesture (only when flipped to front)
@@ -232,11 +242,14 @@ const CardStack = forwardRef(function CardStack(
   // Top card drag animation
   const topStyle = useAnimatedStyle(() => {
     const rotate = interpolate(topX.value, [-width, 0, width], [-15, 0, 15]);
+    const shuffleX = interpolate(shuffleAnim.value, [-1, 0, 1], [-25, 0, 25]);
+    const shuffleRotate = interpolate(shuffleAnim.value, [-1, 0, 1], [-8, 0, 8]);
+
     return {
       transform: [
-        { translateX: topX.value },
+        { translateX: topX.value + shuffleX },
         { translateY: topY.value },
-        { rotate: rotate + 'deg' },
+        { rotate: rotate + shuffleRotate + 'deg' },
       ],
     };
   });
@@ -244,12 +257,16 @@ const CardStack = forwardRef(function CardStack(
   // Behind cards animate outward as top moves
   const behind1Style = useAnimatedStyle(() => {
     const p = Math.min(Math.abs(topX.value) / SWIPE_THRESHOLD, 1);
-    return { transform: [{ scale: 0.94 + p * 0.06 }, { translateY: 15 - p * 15 }] };
+    const shuffleX = interpolate(shuffleAnim.value, [-1, 0, 1], [25, 0, -25]);
+    const shuffleRotate = interpolate(shuffleAnim.value, [-1, 0, 1], [8, 0, -8]);
+    return { transform: [{ translateX: shuffleX }, { scale: 0.94 + p * 0.06 }, { translateY: 15 - p * 15 }, { rotate: shuffleRotate + 'deg' }] };
   });
 
   const behind2Style = useAnimatedStyle(() => {
     const p = Math.min(Math.abs(topX.value) / SWIPE_THRESHOLD, 1);
-    return { transform: [{ scale: 0.88 + p * 0.06 }, { translateY: 30 - p * 15 }] };
+    const shuffleX = interpolate(shuffleAnim.value, [-1, 0, 1], [-15, 0, 15]);
+    const shuffleRotate = interpolate(shuffleAnim.value, [-1, 0, 1], [-4, 0, 4]);
+    return { transform: [{ translateX: shuffleX }, { scale: 0.88 + p * 0.06 }, { translateY: 30 - p * 15 }, { rotate: shuffleRotate + 'deg' }] };
   });
 
   // Flip faces
@@ -403,6 +420,7 @@ export default function DateNightScreen({ navigation }) {
 
   const stackRef = useRef(null);
   const [deckVersion, setDeckVersion] = useState(0);
+  const emptyShuffleAnim = useSharedValue(0);
 
   function shuffleArray(arr) {
     const a = [...arr];
@@ -430,6 +448,7 @@ export default function DateNightScreen({ navigation }) {
           userId: userId || 'anonymous',
           isPremium,
           userSettings: userProfile || {},
+          userCreatedAt: userProfile?.created_at || userProfile?.createdAt,
           date: new Date(),
         });
 
@@ -483,23 +502,32 @@ export default function DateNightScreen({ navigation }) {
   }, [isPremium, weeklyDateSet]);
 
   const deck = useMemo(() => {
+    let finalDeck = [];
     if (!isPremium && freeWeeklyDateDeck?.length) {
-      return freeWeeklyDateDeck;
+      finalDeck = [...freeWeeklyDateDeck];
+    } else {
+      const baseDates = contentProfile
+        ? getFilteredDatesWithProfile(contentProfile)
+        : allDates;
+
+      if (!contentProfile) {
+        finalDeck = shuffleArray(baseDates);
+      } else {
+        const personalized = PreferenceEngine.filterDatesWithProfile(baseDates, contentProfile);
+        const personalizedIds = new Set(personalized.map((d) => d.id));
+        const remaining = baseDates.filter((d) => !personalizedIds.has(d.id));
+
+        finalDeck = [...personalized, ...shuffleArray(remaining)];
+      }
     }
 
-    const baseDates = contentProfile
-      ? getFilteredDatesWithProfile(contentProfile)
-      : allDates;
-
-    if (!contentProfile) return shuffleArray(baseDates);
-
-    const personalized = PreferenceEngine.filterDatesWithProfile(baseDates, contentProfile);
-    const personalizedIds = new Set(personalized.map((d) => d.id));
-    const remaining = baseDates.filter((d) => !personalizedIds.has(d.id));
-
-    return [...personalized, ...shuffleArray(remaining)];
+    if (deckVersion > 0) {
+      return shuffleArray(finalDeck);
+    }
+    return finalDeck;
   }, [allDates, contentProfile, isPremium, freeWeeklyDateDeck, deckVersion]);
 
+  const visibleCount = deck.length;
   const remaining = deck.length - deckIndex;
   const deckDone = deckIndex >= deck.length && deck.length > 0;
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
@@ -545,10 +573,34 @@ export default function DateNightScreen({ navigation }) {
     navigation.navigate('DateNightDetail', { date });
   }, [navigation, showPaywall]);
 
-  const handleReset = useCallback(async () => {
-    impact(ImpactFeedbackStyle.Light);
-    setDeckIndex(0);
-  }, []);
+  const handleReset = useCallback(() => {
+    // 1. Trigger the visual shuffle animation
+    if (stackRef.current) {
+      stackRef.current.shuffle();
+    } else {
+      emptyShuffleAnim.value = withSequence(
+        withTiming(1, { duration: 120 }),
+        withTiming(-1, { duration: 120 }),
+        withTiming(1, { duration: 120 }),
+        withTiming(0, { duration: 120 })
+      );
+    }
+
+    // 2. Play the haptics
+    impact(ImpactFeedbackStyle.Medium);
+    setTimeout(() => impact(ImpactFeedbackStyle.Light), 50);
+    setTimeout(() => impact(ImpactFeedbackStyle.Light), 100);
+    setTimeout(() => impact(ImpactFeedbackStyle.Medium), 150);
+
+    // 3. Swap the cards halfway through the animation so it looks seamless
+    setTimeout(() => setDeckVersion((v) => v + 1), 150);
+  }, [emptyShuffleAnim]);
+
+  const emptyStyle = useAnimatedStyle(() => {
+    const shuffleX = interpolate(emptyShuffleAnim.value, [-1, 0, 1], [-15, 0, 15]);
+    const shuffleRotate = interpolate(emptyShuffleAnim.value, [-1, 0, 1], [-4, 0, 4]);
+    return { transform: [{ translateX: shuffleX }, { rotate: shuffleRotate + 'deg' }] };
+  });
 
   const refreshBoundaryProfile = useCallback(async () => {
     const profile = await PreferenceEngine.getContentProfile(userProfile || {});
@@ -610,9 +662,10 @@ export default function DateNightScreen({ navigation }) {
         <View style={styles.header}>
           <Text style={[styles.headerEye, { color: t.primary }]}>
             {!ready
-              ? 'Preparing ideas...' : remaining > 0
-                ? `${remaining} ideas ready`
-                : 'All ideas drawn'}
+              ? 'Preparing ideas...'
+              : visibleCount > 0
+                ? `${visibleCount} ${visibleCount === 1 ? 'idea' : 'ideas'} ready`
+                : 'No ideas available'}
           </Text>
           
           <View style={styles.headerRow}>
@@ -641,10 +694,7 @@ export default function DateNightScreen({ navigation }) {
                 backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
                 borderColor: t.border
               }]}
-              onPress={() => {
-                impact(ImpactFeedbackStyle.Medium);
-                setDeckVersion((v) => v + 1);
-              }}
+              onPress={handleReset}
               activeOpacity={0.7}
             >
               <Icon name="shuffle-outline" size={16} color={t.primary} />
@@ -744,7 +794,7 @@ export default function DateNightScreen({ navigation }) {
               <Text style={[styles.emptyBody, { color: colors.textMuted }]}>{toneCopy.emptyResults}</Text>
             </View>
           ) : deckDone ? (
-            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.emptyStack}>
+            <AnimatedBlurView intensity={20} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, emptyStyle]}>
               {false && !isPremium ? (
                 <>
                   <Icon name="lock-closed-outline" size={42} color={colors.primary} />
@@ -777,7 +827,7 @@ export default function DateNightScreen({ navigation }) {
                   </TouchableOpacity>
                 </>
               )}
-            </BlurView>
+            </AnimatedBlurView>
           ) : (
             <>
               <CardStack

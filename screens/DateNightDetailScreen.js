@@ -337,8 +337,8 @@ export default function DateNightDetailScreen({ route, navigation }) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      <GlowOrb color={t.primary} size={400} top={-100} left={SCREEN_WIDTH - 200} opacity={0.12} />
-      <GlowOrb color={isDark ? 'rgba(255,255,255,0.5)' : t.background} size={300} top={650} left={-100} opacity={0.08} />
+      <GlowOrb color={t.primary} size={450} top={-100} left={SCREEN_WIDTH - 250} opacity={0.14} />
+      <GlowOrb color={isDark ? 'rgba(255,255,255,0.6)' : t.background} size={350} top={650} left={-100} opacity={0.08} />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
@@ -351,10 +351,12 @@ export default function DateNightDetailScreen({ route, navigation }) {
             title={date.title}
             subtitle="DATE NIGHT"
             titleColor={t.text}
-            subtitleColor={t.subtext}
+            subtitleColor={t.primary}
             closeColor={t.text}
-            closeIcon="close"
+            closeIcon="close-outline"
             onClose={() => navigation.goBack()}
+            titleStyle={{ fontSize: 24, lineHeight: 30, letterSpacing: -0.5 }}
+            titleProps={{ adjustsFontSizeToFit: true, numberOfLines: 2 }}
           />
 
           <ReAnimated.View entering={FadeInUp.duration(800)} style={styles.heroBody}>
@@ -363,7 +365,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
               {dimensionBadges.map((b, i) => (
                 <View key={i} style={[styles.glassBadge, { backgroundColor: withAlpha(dateTone.base, 0.92), borderColor: withAlpha(dateTone.chrome, 0.22) }]}>
                   {b.icon ? (
-                    <Icon name={b.icon} size={12} color={dateTone.highlight} />
+                    <Icon name={b.icon} size={13} color={dateTone.highlight} />
                   ) : null}
                   <Text style={[styles.badgeText, { color: dateTone.highlight }]}>{b.label.toUpperCase()}</Text>
                 </View>
@@ -372,13 +374,13 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
             <View style={styles.quickInfoRow}>
               <View style={[styles.infoPill, { backgroundColor: withAlpha(dateTone.base, 0.92), borderColor: withAlpha(dateTone.chrome, 0.22) }]}> 
-                <Icon name="time-outline" size={14} color={dateTone.highlight} />
+                <Icon name="time-outline" size={15} color={dateTone.highlight} />
                 <Text style={[styles.infoPillText, { color: dateTone.text }]}>{date.minutes}m</Text>
               </View>
               <View style={[styles.infoPill, { backgroundColor: withAlpha(dateTone.base, 0.92), borderColor: withAlpha(dateTone.chrome, 0.22) }]}> 
                 <Icon 
                   name={date.location === "home" ? "home-outline" : "map-outline"} 
-                  size={14} color={dateTone.highlight} 
+                  size={15} color={dateTone.highlight} 
                 />
                 <Text style={[styles.infoPillText, { color: dateTone.text }]}> 
                   {date.location === "home" ? "At Home" : "Outdoors"}
@@ -397,14 +399,14 @@ export default function DateNightDetailScreen({ route, navigation }) {
           ) : null}
           <TouchableOpacity onPress={handleSchedule} activeOpacity={0.9}>
             <LinearGradient colors={[t.primary, t.primaryMuted || '#8E0D2C']} style={styles.scheduleBtn}>
-              <Icon name="calendar-outline" size={20} color="#FFF" />
+              <Icon name="calendar-outline" size={22} color="#FFF" />
               <Text style={styles.scheduleBtnText}>Schedule Moment</Text>
             </LinearGradient>
           </TouchableOpacity>
         </ReAnimated.View>
 
         <View style={styles.triedPanelWrap}>
-          <BlurView intensity={isDark ? 20 : 35} tint={isDark ? "dark" : "light"} style={[styles.triedPanel, { borderColor: t.border }]}>
+          <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.triedPanel, { borderColor: t.border }]}>
             <TouchableOpacity
               accessibilityRole="checkbox"
               accessibilityState={{ checked: !!dateHistoryEntry }}
@@ -416,7 +418,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
                 { backgroundColor: dateHistoryEntry ? t.primary : t.surfaceSecondary, borderColor: dateHistoryEntry ? t.primary : t.border },
               ]}
             >
-              <Icon name={dateHistoryEntry ? 'checkmark-circle' : 'checkmark-circle-outline'} size={18} color={dateHistoryEntry ? '#FFFFFF' : t.text} />
+              <Icon name={dateHistoryEntry ? 'checkmark-circle-outline' : 'ellipse-outline'} size={20} color={dateHistoryEntry ? '#FFFFFF' : t.text} />
               <Text style={[styles.triedToggleText, { color: dateHistoryEntry ? '#FFFFFF' : t.text }]}>
                 {dateHistoryEntry ? 'Tried' : 'Mark Tried'}
               </Text>
@@ -432,7 +434,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
                   { borderColor: dateHistoryEntry?.rating === 'up' ? '#22C55E60' : t.border, backgroundColor: dateHistoryEntry?.rating === 'up' ? '#22C55E20' : t.surfaceSecondary },
                 ]}
               >
-                <Text style={styles.dateRatingEmoji}>👍</Text>
+                <Icon name="thumbs-up-outline" size={22} color={dateHistoryEntry?.rating === 'up' ? '#22C55E' : t.text} />
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
@@ -444,7 +446,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
                   { borderColor: dateHistoryEntry?.rating === 'down' ? '#EF444460' : t.border, backgroundColor: dateHistoryEntry?.rating === 'down' ? '#EF444420' : t.surfaceSecondary },
                 ]}
               >
-                <Text style={styles.dateRatingEmoji}>👎</Text>
+                <Icon name="thumbs-down-outline" size={22} color={dateHistoryEntry?.rating === 'down' ? '#EF4444' : t.text} />
               </TouchableOpacity>
             </View>
           </BlurView>
@@ -452,7 +454,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
         {/* Presence Module (Velvet Glass) */}
         <View style={styles.modulePadding}>
-          <BlurView intensity={isDark ? 25 : 40} tint={isDark ? "dark" : "light"} style={[styles.timerModule, { borderColor: t.border }]}>
+          <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.timerModule, { borderColor: t.border }]}>
             <Text style={[styles.moduleLabel, { color: t.subtext }]}>PRESENCE TIMER</Text>
             <Text style={[styles.timerValue, { color: t.text }]}>{formatTime(timeElapsed)}</Text>
             <TouchableOpacity onPress={toggleTimer} style={[styles.timerToggle, { backgroundColor: timerActive ? t.surfaceSecondary : t.primary }]}>
@@ -476,13 +478,13 @@ export default function DateNightDetailScreen({ route, navigation }) {
                 activeOpacity={0.8}
                 style={[
                   styles.stepRow,
-                  { backgroundColor: t.surface, borderColor: isActive ? t.primary : t.border },
-                  isActive && { borderWidth: 1.5 }
+                  { backgroundColor: isActive ? t.surfaceSecondary : t.surface, borderColor: isActive ? t.primary : t.border },
+                  isActive && { borderWidth: StyleSheet.hairlineWidth }
                 ]}
               >
                 <View style={[styles.stepIndicator, { backgroundColor: isCompleted ? "#34C759" : t.surfaceSecondary }]}>
                   {isCompleted ? (
-                    <Icon name="checkmark-outline" size={16} color="#FFF" />
+                    <Icon name="checkmark-outline" size={18} color="#FFF" />
                   ) : (
                     <Text style={[styles.stepNumber, { color: isActive ? t.primary : t.subtext }]}>{index + 1}</Text>
                   )}
@@ -490,7 +492,8 @@ export default function DateNightDetailScreen({ route, navigation }) {
                 <Text style={[
                   styles.stepText, 
                   { color: t.text },
-                  isCompleted && styles.stepTextCompleted
+                  isCompleted && styles.stepTextCompleted,
+                  isActive && styles.stepTextActive
                 ]}>
                   {step}
                 </Text>
@@ -532,12 +535,12 @@ const styles = StyleSheet.create({
 
   // Hero Section
   heroHeader: {
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    borderBottomLeftRadius: 48,
+    borderBottomRightRadius: 48,
   },
   heroBody: {
     paddingHorizontal: 24,
-    paddingBottom: 48,
+    paddingBottom: 56,
   },
   backBtn: CLOSE_HEADER_STYLES.closeButton,
   editorialTitle: CLOSE_HEADER_STYLES.title,
@@ -551,12 +554,12 @@ const styles = StyleSheet.create({
   glassBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  badgeText: { fontFamily: SYSTEM_FONT, fontSize: 10, fontWeight: '800', letterSpacing: 1, marginLeft: 4 },
+  badgeText: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginLeft: 6 },
   
   quickInfoRow: { 
     flexDirection: 'row', 
@@ -567,22 +570,22 @@ const styles = StyleSheet.create({
   infoPill: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    borderRadius: 12, 
-    paddingHorizontal: 14, 
-    paddingVertical: 8,
-    borderWidth: 1,
+    borderRadius: 16, 
+    paddingHorizontal: 16, 
+    paddingVertical: 10,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  infoPillText: { fontSize: 13, fontWeight: '700', marginLeft: 6 },
+  infoPillText: { fontSize: 14, fontWeight: '700', marginLeft: 8 },
 
   // Module Actions
   centerAction: { 
-    marginTop: -28, 
+    marginTop: -30, 
     alignSelf: 'center', 
     zIndex: 10 
   },
   freeAccessNote: {
     textAlign: 'center',
-    marginBottom: 14,
+    marginBottom: 16,
     fontFamily: SYSTEM_FONT,
     fontSize: 13,
     fontWeight: '600',
@@ -590,24 +593,25 @@ const styles = StyleSheet.create({
   scheduleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    height: 56,
-    borderRadius: 28,
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    height: 60,
+    borderRadius: 30,
     ...Platform.select({
-      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 15 },
-      android: { elevation: 6 }
+      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.35, shadowRadius: 20 },
+      android: { elevation: 8 }
     })
   },
-  scheduleBtnText: { color: '#FFF', fontWeight: '800', fontSize: 15, marginLeft: 10, textTransform: 'uppercase' },
+  scheduleBtnText: { color: '#FFF', fontWeight: '800', fontSize: 16, marginLeft: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
 
   triedPanelWrap: {
     paddingHorizontal: 24,
-    marginTop: 24,
+    marginTop: 28,
   },
   triedPanel: {
-    borderRadius: 24,
-    borderWidth: 1,
-    padding: 12,
+    borderRadius: 28,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
     overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
@@ -615,86 +619,86 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   triedToggle: {
-    height: 44,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 14,
+    height: 48,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     flex: 1,
     justifyContent: 'center',
   },
   triedToggleText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   dateRatingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   dateRatingButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    borderWidth: 1,
+    width: 48,
+    height: 48,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dateRatingEmoji: {
-    fontSize: 18,
-  },
 
-  modulePadding: { paddingHorizontal: 24, marginTop: 24 },
+  modulePadding: { paddingHorizontal: 24, marginTop: 28 },
   timerModule: {
-    padding: 32,
-    borderRadius: 32,
+    padding: 36,
+    borderRadius: 40,
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
   },
-  moduleLabel: { fontWeight: '800', fontSize: 11, letterSpacing: 2, marginBottom: 8 },
+  moduleLabel: { fontWeight: '800', fontSize: 12, letterSpacing: 2.5, marginBottom: 8 },
   timerValue: { 
-    fontSize: 56, 
-    fontWeight: '400', 
+    fontSize: 72, 
+    fontWeight: '200', 
     fontVariant: ['tabular-nums'], 
-    marginVertical: 12 
+    marginVertical: 12,
+    letterSpacing: -2,
   },
   timerToggle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 16,
   },
 
   // Experience Section
-  experienceSection: { paddingHorizontal: 24, marginTop: 40 },
-  sectionTitle: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5, marginBottom: 24 },
+  experienceSection: { paddingHorizontal: 24, marginTop: 48 },
+  sectionTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8, marginBottom: 28 },
   stepRow: {
     flexDirection: 'row',
-    padding: 20,
-    borderRadius: 24,
-    marginBottom: 12,
-    alignItems: 'center',
-    borderWidth: 1,
+    padding: 24,
+    borderRadius: 28,
+    marginBottom: 16,
+    alignItems: 'flex-start',
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
   },
   stepIndicator: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 18,
   },
-  stepNumber: { fontWeight: '800', fontSize: 14 },
-  stepText: { flex: 1, fontWeight: '500', fontSize: 16, lineHeight: 24, letterSpacing: -0.1 },
-  stepTextCompleted: { opacity: 0.3, textDecorationLine: 'line-through' },
+  stepNumber: { fontWeight: '800', fontSize: 15 },
+  stepText: { flex: 1, fontWeight: '500', fontSize: 17, lineHeight: 26, letterSpacing: -0.4, marginTop: 5 },
+  stepTextCompleted: { opacity: 0.35, textDecorationLine: 'line-through' },
+  stepTextActive: { fontWeight: '600' },
 
-  footer: { paddingHorizontal: 24, marginTop: 32 },
+  footer: { paddingHorizontal: 24, marginTop: 40 },
 });

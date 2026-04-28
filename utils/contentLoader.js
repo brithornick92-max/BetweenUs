@@ -113,8 +113,13 @@ const safeArray = (value) => (Array.isArray(value) ? value : []);
 // =======================
 
 export function loadContent() {
-  // Return the whole promptsData object, but never null
-  return promptsData || { items: [], meta: {} };
+  // Return the whole promptsData object, but never null, and filtered by week
+  if (!promptsData) return { items: [], meta: {} };
+  
+  return {
+    ...promptsData,
+    items: weeklyFilter(safeArray(promptsData.items))
+  };
 }
 
 export function getFilteredPrompts(filters = {}) {
@@ -150,7 +155,7 @@ export function getFilteredPrompts(filters = {}) {
 export function getPromptByHeatLevel(heatLevel) {
   try {
     const level = typeof heatLevel === "number" ? heatLevel : Number(heatLevel) || 5;
-    const items = safeArray(promptsData?.items);
+    const items = weeklyFilter(safeArray(promptsData?.items));
 
     const levelPrompts = items.filter(
       (p) =>
@@ -472,17 +477,17 @@ export function getMoodMeta() {
 }
 
 export function getAllDates() {
-  return safeArray(datesData?.items).map(normalizeDate).filter(Boolean);
+  return weeklyFilter(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
 }
 
 export function getDateById(id) {
-  const items = safeArray(datesData?.items).map(normalizeDate).filter(Boolean);
+  const items = weeklyFilter(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
   return items.find((d) => d && d.id === id) || null;
 }
 
 export function getContentStats() {
   const promptsByHeat = {};
-  const items = safeArray(promptsData?.items);
+  const items = weeklyFilter(safeArray(promptsData?.items));
 
   items.forEach((prompt) => {
     if (prompt && typeof prompt === "object") {
@@ -494,7 +499,7 @@ export function getContentStats() {
   return {
     totalPrompts: items.length,
     promptsByHeat,
-    totalDates: safeArray(datesData?.items).length,
+    totalDates: weeklyFilter(safeArray(datesData?.items)).length,
     lastUpdated: new Date().toLocaleDateString(),
   };
 }
@@ -506,7 +511,7 @@ export function getContentStats() {
 export function getFilteredPromptsWithProfile(profile = null) {
   if (!profile) return getFilteredPrompts();
 
-  const items = safeArray(promptsData?.items);
+  const items = weeklyFilter(safeArray(promptsData?.items));
 
   // Apply hard filters from profile
   return items.filter((prompt) => {
@@ -530,7 +535,7 @@ export function getFilteredPromptsWithProfile(profile = null) {
 export function getFilteredDatesWithProfile(profile = null) {
   if (!profile) return getAllDates();
 
-  const items = safeArray(datesData?.items).map(normalizeDate).filter(Boolean);
+  const items = weeklyFilter(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
 
   return items.filter((date) => {
     if (profile.boundaries?.pausedDates?.includes(date.id)) return false;

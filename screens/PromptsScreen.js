@@ -28,7 +28,7 @@ import {
 } from "../utils/haptics";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withSequence, withTiming, interpolate } from "react-native-reanimated";
 import { PremiumFeature } from '../utils/featureFlags';
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
@@ -185,6 +185,7 @@ export default function PromptsScreen({ navigation }) {
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deckVersion, setDeckVersion] = useState(0);
+  const shuffleAnim = useSharedValue(0);
 
   const t = useMemo(() => isDark ? {
     background: '#0A0A0A',
@@ -246,21 +247,23 @@ export default function PromptsScreen({ navigation }) {
     try {
       const allPrompts = ALL_BUNDLED.map(normalizePrompt);
 
+      // Get prompts that respect weekly release schedule
       const access = await contentAccessService.getAccessiblePrompts(allPrompts, {
         userId: user?.uid,
         isPremium,
         userSettings: contentProfile || userProfile || {},
-        includeAll: true,
       });
 
       const accessiblePrompts = access.prompts || [];
       setPrompts(accessiblePrompts);
 
+      // Build weekly set for free users from the already-filtered accessible prompts
       const weeklySet = buildWeeklySet(accessiblePrompts, {
         contentType: CONTENT_TYPES.PROMPTS,
         userId: user?.uid || user?.id || 'anonymous',
         isPremium,
         userSettings: contentProfile || userProfile || {},
+        userCreatedAt: userProfile?.created_at || userProfile?.createdAt || user?.metadata?.creationTime,
         date: new Date(),
       });
 
@@ -293,26 +296,34 @@ export default function PromptsScreen({ navigation }) {
   }, [isPremium, weeklyPromptSet]);
 
   const deckPrompts = useMemo(() => {
+    let finalDeck = [];
     if (!isPremium && freeWeeklyPromptDeck?.length) {
-      return freeWeeklyPromptDeck;
+      finalDeck = [...freeWeeklyPromptDeck];
+    } else {
+      // Mix all heat levels together, respecting boundaries
+      const basePrompts = contentProfile ? prompts : applyRawBoundaryFilter(prompts, rawBoundaries);
+      const allPrompts = basePrompts.map(normalizePrompt);
+
+      if (!contentProfile) {
+        finalDeck = shuffleArray(allPrompts);
+      } else {
+        const personalized = PreferenceEngine.filterPrompts(allPrompts, {
+          ...contentProfile,
+          maxHeat: resolveExplicitMaxHeat(contentProfile),
+        });
+
+        const personalizedIds = new Set(personalized.map((prompt) => String(prompt?.id)));
+        const remaining = allPrompts.filter((prompt) => !personalizedIds.has(String(prompt?.id)));
+
+        finalDeck = [...personalized, ...shuffleArray(remaining)];
+      }
     }
 
-    // Mix all heat levels together, respecting boundaries
-    const basePrompts = contentProfile ? prompts : applyRawBoundaryFilter(prompts, rawBoundaries);
-    const allPrompts = basePrompts.map(normalizePrompt);
-
-    if (!contentProfile) return shuffleArray(allPrompts);
-
-    const personalized = PreferenceEngine.filterPrompts(allPrompts, {
-      ...contentProfile,
-      maxHeat: resolveExplicitMaxHeat(contentProfile),
-    });
-
-    const personalizedIds = new Set(personalized.map((prompt) => String(prompt?.id)));
-    const remaining = allPrompts.filter((prompt) => !personalizedIds.has(String(prompt?.id)));
-
-    return [...personalized, ...shuffleArray(remaining)];
-  }, [prompts, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck]);
+    if (deckVersion > 0) {
+      return shuffleArray(finalDeck);
+    }
+    return finalDeck;
+  }, [prompts, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck, deckVersion]);
 
   const handlePromptSelect = useCallback((prompt) => {
     if (prompt?.isLockedPreview || prompt?.requiresPremium) {
@@ -369,6 +380,31 @@ export default function PromptsScreen({ navigation }) {
     );
   }, [refreshBoundaryProfile]);
 
+  const handleShuffle = useCallback(() => {
+    // 1. Visual shake animation
+    shuffleAnim.value = withSequence(
+      withTiming(1, { duration: 120 }),
+      withTiming(-1, { duration: 120 }),
+      withTiming(1, { duration: 120 }),
+      withTiming(0, { duration: 120 })
+    );
+
+    // 2. Soft haptic taps simulating cards shuffling
+    impact(ImpactFeedbackStyle.Medium);
+    setTimeout(() => impact(ImpactFeedbackStyle.Light), 50);
+    setTimeout(() => impact(ImpactFeedbackStyle.Light), 100);
+    setTimeout(() => impact(ImpactFeedbackStyle.Medium), 150);
+
+    // 3. Swap the deck halfway through
+    setTimeout(() => setDeckVersion((v) => v + 1), 150);
+  }, [shuffleAnim]);
+
+  const deckStyle = useAnimatedStyle(() => {
+    const shuffleX = interpolate(shuffleAnim.value, [-1, 0, 1], [-15, 0, 15]);
+    const shuffleRotate = interpolate(shuffleAnim.value, [-1, 0, 1], [-4, 0, 4]);
+    return { transform: [{ translateX: shuffleX }, { rotate: shuffleRotate + 'deg' }] };
+  });
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={[styles.root, { backgroundColor: t.background }]}>
@@ -387,9 +423,7 @@ export default function PromptsScreen({ navigation }) {
           {/* Editorial Header */}
           <Animated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
             <Text style={[styles.headerLabel, { color: t.primary }]}>
-              {isPremium
-                ? `${deckPrompts.length} cards ready`
-                : `${weeklyPromptSet?.unlocked?.length || 0} free draws today`}
+              {deckPrompts.length} cards ready
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
           </Animated.View>
@@ -401,10 +435,7 @@ export default function PromptsScreen({ navigation }) {
                 backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
                 borderColor: t.border
               }]}
-              onPress={() => {
-                impact(ImpactFeedbackStyle.Medium);
-                setDeckVersion((v) => v + 1);
-              }}
+              onPress={handleShuffle}
               activeOpacity={0.7}
             >
               <Icon name="shuffle-outline" size={16} color={t.primary} />
@@ -423,7 +454,7 @@ export default function PromptsScreen({ navigation }) {
               <Text style={[styles.emptyText, { color: t.subtext }]}>{toneCopy.empty}</Text>
             </View>
           ) : (
-            <View style={[styles.deckWrapper, { paddingBottom: tabBarHeight }]}>
+            <Animated.View style={[styles.deckWrapper, { paddingBottom: tabBarHeight }, deckStyle]}>
               <PromptCardDeck
                 key={deckVersion}
                 prompts={deckPrompts}
@@ -448,7 +479,7 @@ export default function PromptsScreen({ navigation }) {
                   Long-press to hide
                 </Text>
               </Animated.View>
-            </View>
+            </Animated.View>
           )}
         </SafeAreaView>
       </View>

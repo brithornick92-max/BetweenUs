@@ -70,10 +70,7 @@ export const PREMIUM_LIMITS = Object.freeze({
   // subscription duration (e.g., `weeksSubscribed`).
   PROMPTS_PER_DAY: 10, // A high but not infinite number for daily interaction
   PREVIEW_PROMPTS_TOTAL: 0, // No concept of "previews" for premium
-  VISIBLE_PROMPTS_PER_WEEK: 'all_unlocked',
-  VISIBLE_DATE_IDEAS_PER_WEEK: 'all_unlocked',
-  VISIBLE_POSITIONS_PER_WEEK: 'all_unlocked',
-  FULL_DATE_FLOWS_PER_WEEK: 'all_unlocked',
+  FULL_DATE_FLOWS_PER_WEEK: Infinity,
   JOURNAL_ENTRIES_VISIBLE: Infinity,
   ALL_HEAT_LEVELS: [1, 2, 3, 4, 5],
   SURPRISE_ME_ENABLED: true,

@@ -22,6 +22,7 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useAuth } from '../context/AuthContext';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import contentAccessService from '../services/ContentAccessService';
+import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
 import { CONTENT_TYPES, buildWeeklySet } from '../services/WeeklyContentSetService';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 
@@ -83,7 +84,14 @@ export default function IntimacyPositionsScreen() {
   const intimacyForLine = `For ${myLabel} and ${partnerLabel}.`;
 
   const positionCatalog = useMemo(
-    () => positionsData.items.filter((p) => p.id.startsWith('ip') && !p.id.includes('-q')),
+    () => {
+      const currentWeek = WeeklyContentScheduler.getCurrentWeek();
+      return positionsData.items.filter((p) => 
+        p.id.startsWith('ip') && 
+        !p.id.includes('-q') &&
+        (p.releaseWeek == null || p.releaseWeek <= currentWeek)
+      );
+    },
     []
   );
   const availablePositions = useMemo(() => {

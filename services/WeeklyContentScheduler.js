@@ -88,25 +88,12 @@ class WeeklyContentScheduler {
     return item.releaseWeek === this.getCurrentWeek();
   }
 
-  /**
-   * New default behavior:
-   * Return all items.
-   *
-   * releaseWeek is no longer used as the main access gate.
-   * This preserves full-library value for premium users.
-   */
-  /**
-   * Compatibility helper.
-   *
-   * releaseWeek no longer blocks access by default.
-   * Use isReleasedThroughCurrentWeek() only for legacy drip-gated surfaces.
-   */
-  isAvailable(_item) {
-    return true;
+  isAvailable(item) {
+    return this.isReleasedThroughCurrentWeek(item);
   }
 
   filterAvailable(items = []) {
-    return Array.isArray(items) ? items : [];
+    return this.filterReleasedThroughCurrentWeek(items);
   }
 
   /**
@@ -127,6 +114,16 @@ class WeeklyContentScheduler {
     return (Array.isArray(items) ? items : []).filter(
       (item) => item.releaseWeek === week
     );
+  }
+
+  /* ───── Dev testing helper ───── */
+  async _devResetToWeek(weekNumber = 0) {
+    if (!__DEV__) return;
+    const msInWeek = 7 * 24 * 60 * 60 * 1000;
+    const newDate = new Date(Date.now() - (weekNumber * msInWeek));
+    this._installDate = newDate;
+    await AsyncStorage.setItem(INSTALL_DATE_KEY, newDate.toISOString());
+    console.log(`🔵 WeeklyContentScheduler: Dev reset to week ${weekNumber}`);
   }
 
   getNewContentCounts(prompts = [], dates = [], positions = []) {

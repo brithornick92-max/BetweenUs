@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { View, StyleSheet, Alert, ActivityIndicator, Text, Platform, StatusBar } from "react-native";
 import Constants from "expo-constants";
-import { RevenueCatUI } from "react-native-purchases-ui";
+import RevenueCatUI from "react-native-purchases-ui";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useTheme } from "../context/ThemeContext";

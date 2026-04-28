@@ -68,6 +68,8 @@ function alreadyEnriched(item) {
     item &&
       item.vibe &&
       item.setup &&
+      typeof item.description === 'string' &&
+      item.description.trim().length > 0 &&
       Array.isArray(item.supplies) &&
       Array.isArray(item.guidedSteps) &&
       Array.isArray(item.conversationPrompts) &&
@@ -89,6 +91,7 @@ Return JSON only. No markdown.
 For each item, add:
 - vibe: one short sentence, romantic/playful/sensual depending on heat.
 - setup: 2-4 sentences that make the date feel specific, doable, and emotionally inviting.
+- description: 1 warm, polished App Store-quality sentence, 90-150 characters. Make it specific to the date, not generic.
 - supplies: 3-6 practical items, no expensive requirements unless the original date requires it.
 - guidedSteps: 5-7 specific steps that tell the couple exactly how to make the date feel good.
 - conversationPrompts: exactly 3 prompts tailored to the date.
@@ -119,6 +122,7 @@ Return this exact shape:
       "id": "same id",
       "vibe": "...",
       "setup": "...",
+      "description": "...",
       "supplies": ["...", "..."],
       "guidedSteps": ["...", "..."],
       "conversationPrompts": ["...", "...", "..."],
@@ -211,6 +215,10 @@ function validateEnrichment(originalBatch, enrichedBatch) {
     if (!item.vibe) throw new Error(`${item.id} missing vibe.`);
     if (!item.setup) throw new Error(`${item.id} missing setup.`);
 
+    if (typeof item.description !== 'string' || item.description.trim().length < 40) {
+      throw new Error(`${item.id} needs a description of at least 40 characters.`);
+    }
+
     if (!Array.isArray(item.supplies) || item.supplies.length < 3) {
       throw new Error(`${item.id} needs at least 3 supplies.`);
     }
@@ -301,6 +309,7 @@ async function main() {
         ...originalItem,
         vibe: enrichment.vibe,
         setup: enrichment.setup,
+        description: enrichment.description,
         supplies: enrichment.supplies,
         guidedSteps: enrichment.guidedSteps,
         conversationPrompts: enrichment.conversationPrompts,

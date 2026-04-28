@@ -1,4 +1,12 @@
-const DEFAULT_WEEK_START = '2026-01-05T00:00:00.000Z';
+/**
+ * WeeklyContentSetService.js — Personalized content release calendar
+ * 
+ * MODEL: Each user gets their own content schedule starting from signup date
+ * - Week 0 (signup): Welcome pack (10 prompts, 10 dates, 5 positions)
+ * - Week 1+: Ongoing weekly drops (5 prompts, 5 dates, 1 position)
+ * 
+ * Premium users get more content each week and start with a bigger initial library.
+ */
 
 const CONTENT_TYPES = {
   PROMPTS: 'prompts',
@@ -9,18 +17,21 @@ const CONTENT_TYPES = {
 const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
     premium: 10,         // Premium gets 10 new prompts/week
-    freeUnlocked: 3,     // Free gets 3 visible previews/week (tightened from 5)
-    freeLockedPreview: 5,
+    freeWelcomePack: 10, // Free gets 10 prompts on signup (2 from each category)
+    freeOngoing: 5,      // Free gets 5 new prompts each week after week 0
+    freeLockedPreview: 5, // Show 5 locked premium teasers
   },
   [CONTENT_TYPES.DATES]: {
     premium: 8,          // Premium gets 8 new dates/week
-    freeUnlocked: 3,     // Free gets 3 visible/week (tightened from 5)
+    freeWelcomePack: 10, // Free gets 10 dates on signup
+    freeOngoing: 5,      // Free gets 5 new dates each week after week 0
     freeLockedPreview: 4,
   },
   [CONTENT_TYPES.POSITIONS]: {
     premium: 2,          // Premium gets 2 new positions/week
-    freeUnlocked: 1,     // Free gets 1 visible/week
-    freeLockedPreview: 1,
+    freeWelcomePack: 5,  // Free gets 5 positions on signup
+    freeOngoing: 1,      // Free gets 1 new position each week after week 0
+    freeLockedPreview: 2,
   },
 };
 
@@ -32,19 +43,19 @@ const PREMIUM_LIBRARY_TOTALS = {
 
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
-    headline: 'Unlock the full weekly conversation path',
-    body: '+5 new prompts/week for free. Premium starts with 300 and unlocks +10/week.',
-    cta: 'Unlock Premium Prompts',
+    headline: 'Your starter pack is just the beginning',
+    body: 'You explored 10 prompts. Premium unlocks 300+ prompts right now, plus 10 fresh ones every week.',
+    cta: 'Unlock All Prompts',
   },
   [CONTENT_TYPES.DATES]: {
-    headline: 'Unlock more date inspiration',
-    body: '+3 new dates/week for free. Premium starts with 200 and unlocks +8/week.',
-    cta: 'Unlock Premium Dates',
+    headline: 'Ready for more date inspiration?',
+    body: 'You tried 10 dates. Premium unlocks 200+ date ideas right now, plus 8 new ones every week.',
+    cta: 'Unlock All Dates',
   },
   [CONTENT_TYPES.POSITIONS]: {
-    headline: 'Unlock the full intimacy set',
-    body: '+1 new position/week for free. Premium starts with 10 and unlocks +2/week.',
-    cta: 'Unlock Premium Intimacy',
+    headline: 'Explore the full intimacy library',
+    body: 'You experienced 5 positions. Premium unlocks 10+ positions right now, plus 2 new ones every week.',
+    cta: 'Unlock All Positions',
   },
 };
 
@@ -76,7 +87,33 @@ const seededScore = (item, seed) => {
   return stableStringHash(`${seed}:${id}`);
 };
 
-const getWeekNumberFromStart = (date = new Date(), startDate = DEFAULT_WEEK_START) => {
+/**
+ * Calculate week number based on user's signup date (personalized calendar)
+ * @param {Date|string} userCreatedAt - When the user signed up
+ * @param {Date|string} currentDate - Current date (defaults to now)
+ * @returns {number} Week number (0 = signup week, 1 = first week after, etc.)
+ */
+const getUserWeekNumber = (userCreatedAt, currentDate = new Date()) => {
+  if (!userCreatedAt) return 0; // Fallback for users without creation date
+  
+  const signupDate = new Date(userCreatedAt);
+  const current = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const diffMs = current.getTime() - signupDate.getTime();
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+
+  if (!Number.isFinite(diffMs) || diffMs < 0) {
+    return 0;
+  }
+
+  return Math.floor(diffMs / weekMs);
+};
+
+/**
+ * DEPRECATED: Global week calculation (kept for backwards compatibility)
+ * Use getUserWeekNumber instead for personalized content release
+ */
+const getWeekNumberFromStart = (date = new Date(), startDate = '2026-01-05T00:00:00.000Z') => {
+  console.warn('[WeeklyContentSetService] getWeekNumberFromStart is deprecated. Use getUserWeekNumber instead.');
   const current = date instanceof Date ? date : new Date(date);
   const start = new Date(startDate);
   const diffMs = current.getTime() - start.getTime();
@@ -308,18 +345,23 @@ const buildWeeklySet = (
     userId = 'anonymous',
     isPremium = false,
     userSettings = {},
+    userCreatedAt = null,
     date = new Date(),
-    weekStart = DEFAULT_WEEK_START,
   } = {}
 ) => {
   const type = contentType || CONTENT_TYPES.PROMPTS;
   const limits = WEEKLY_LIMITS[type] || WEEKLY_LIMITS[CONTENT_TYPES.PROMPTS];
   const premiumLimit = limits.premium;
-  const freeUnlockedLimit = limits.freeUnlocked;
+  
+  // Calculate user's personal week number
+  const weekNumber = getUserWeekNumber(userCreatedAt, date);
+  const isWelcomeWeek = weekNumber === 0;
+  
+  // Free users get welcome pack on week 0, then ongoing amount
+  const freeUnlockedLimit = isWelcomeWeek ? limits.freeWelcomePack : limits.freeOngoing;
   const freeLockedPreviewLimit = limits.freeLockedPreview;
 
   const settings = normalizeUserSettings(userSettings);
-  const weekNumber = getWeekNumberFromStart(date, weekStart);
   const seed = `${type}:${userId || 'anonymous'}:${weekNumber}`;
 
   const eligible = (Array.isArray(items) ? items : []).filter((item) =>
@@ -405,5 +447,6 @@ export {
   PREMIUM_LIBRARY_TOTALS,
   UPGRADE_COPY,
   buildWeeklySet,
-  getWeekNumberFromStart,
+  getUserWeekNumber,
+  getWeekNumberFromStart, // Deprecated, use getUserWeekNumber
 };
