@@ -2,10 +2,21 @@
  * WeeklyContentSetService.js — Personalized content release calendar
  * 
  * MODEL: Each user gets their own content schedule starting from signup date
- * - Week 0 (signup): Welcome pack (10 prompts, 10 dates, 5 positions)
- * - Week 1+: Ongoing weekly drops (5 prompts, 5 dates, 1 position)
  * 
- * Premium users get more content each week and start with a bigger initial library.
+ * FREE USERS (ROTATING):
+ * - Week 0 (signup): 10 prompts, 10 dates, 5 positions (welcome pack)
+ * - Week 1+: 5 prompts, 5 dates, 1 position (ROTATING - old ones don't accumulate)
+ * - Always see ~5-15 cards total (current week + locked previews)
+ * 
+ * PREMIUM USERS (CUMULATIVE):
+ * - Week 0 (signup): 300 prompts, 200 dates, 10 positions
+ * - Week 1: 310 prompts, 208 dates, 12 positions
+ * - Week 10: 400 prompts, 280 dates, 30 positions
+ * - Eventually: 792 prompts, 823 dates, 200 positions (full library)
+ * - Library GROWS each week - they get cumulative access
+ * 
+ * NOTE: For premium, screens should use ALL boundary-filtered items, not buildWeeklySet.
+ *       buildWeeklySet is primarily for FREE users' rotating weekly picks.
  */
 
 const CONTENT_TYPES = {

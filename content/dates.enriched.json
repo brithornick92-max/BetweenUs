@@ -11258,7 +11258,8 @@
         "What's a time you've felt truly accomplished after pushing yourself physically?"
       ],
       "connectionTwist": "At the finish line, regardless of who wins, give each other a celebratory hug and a refreshing splash of water.",
-      "ending": "Cool down together with a shared cold drink and a light stretch, talking about your favorite moments from the race."
+      "ending": "Cool down together with a shared cold drink and a light stretch, talking about your favorite moments from the race.",
+      "description": "Challenge each other to a custom obstacle course, transforming any outdoor space into a playground for two. Celebrate effort and laugh together."
     },
     {
       "id": "d100",
@@ -11280,11 +11281,10 @@
       "supplies": [
         "Headlamps or flashlights",
         "Comfortable hiking shoes",
-        "Layers of clothing (it will be cold before dawn, warmer after sunrise)",
+        "Layers of clothing",
         "Water bottles",
-        "Snacks (energy bars, fruit)",
-        "Small blanket or mat for sitting at the summit",
-        "Thermos with coffee or tea"
+        "Small blanket or mat for sitting",
+        "Snacks and a thermos with a warm drink"
       ],
       "guidedSteps": [
         "Set your alarms and prepare your bags the night before to ensure a smooth, early start.",
@@ -11301,7 +11301,8 @@
         "What's a goal or intention you'd like to set for the day, inspired by this new beginning?"
       ],
       "connectionTwist": "As the sun crests the horizon, turn to face each other and share a silent, acknowledging gaze.",
-      "ending": "Descend the mountain at a relaxed pace, discussing the beauty you witnessed and the peaceful energy it brought."
+      "ending": "Descend the mountain at a relaxed pace, discussing the beauty you witnessed and the peaceful energy it brought.",
+      "description": "Rise before dawn to hike to a scenic summit, sharing a quiet ascent and witnessing the breathtaking beauty of a new day's first light together."
     },
     {
       "id": "d105",
@@ -11341,7 +11342,8 @@
         "What's a simple pleasure you've rediscovered lately that you'd like to share more often?"
       ],
       "connectionTwist": "Before you leave, each write down a single word that captures the feeling of the night on a napkin, then swap and keep them.",
-      "ending": "Walk out into the cool night air, hand-in-hand, carrying the quiet energy of your shared adventure."
+      "ending": "Walk out into the cool night air, hand-in-hand, carrying the quiet energy of your shared adventure.",
+      "description": "Escape to a 24-hour diner for a late-night feast and intimate conversation. Share stories, observe the quiet world, and create a unique memory under the neon glow."
     },
     {
       "id": "d106",
@@ -11358,22 +11360,23 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 17,
-      "vibe": "A creative and collaborative experience, shaping beauty together with heat and breath.",
-      "setup": "Step into a world of molten art where teamwork and precision create something lasting. This date invites you to experience the intense heat and delicate process of glassblowing, working side-by-side to bring a shared vision to life. You'll learn a new skill and create tangible memories.",
+      "vibe": "Discover the magic of molten glass, shaping beauty together with heat and breath.",
+      "setup": "Step into a world where intense heat meets delicate artistry. This date invites you to work side-by-side, learning to transform raw glass into something unique. You'll experience the thrill of creation and bring a shared vision to life, building a tangible memory.",
       "supplies": [
         "Closed-toe shoes",
-        "Comfortable clothing (natural fibers preferred)",
+        "Comfortable, natural fiber clothing",
         "Water bottles",
-        "Hair ties (for long hair)"
+        "Hair ties (for long hair)",
+        "Small bag for finished pieces"
       ],
       "guidedSteps": [
         "Research and book a beginner's glassblowing workshop for couples in your area.",
-        "Arrive prepared, listen carefully to the instructor, and prioritize safety during the demonstration.",
-        "Take turns assisting each other with the various tools and techniques, like gathering glass or using the bench.",
+        "Arrive prepared, listen carefully to the instructor, and prioritize safety during demonstrations.",
+        "Take turns assisting each other with tools and techniques, like gathering glass or using the bench.",
         "Focus on clear communication and trust as you coordinate movements to shape your pieces.",
-        "Appreciate the unique qualities of molten glass and the transformation it undergoes.",
+        "Appreciate the unique qualities of molten glass and the transformation it undergoes with your touch.",
         "Choose a small detail or color to incorporate into both your pieces, making them a pair.",
-        "Discuss the process and admire each other's efforts as your creations cool."
+        "Discuss the process and admire each other's efforts as your creations cool and solidify."
       ],
       "conversationPrompts": [
         "What was the most surprising thing about working with glass at this temperature?",
@@ -11381,7 +11384,8 @@
         "What did you learn about my working style or how we collaborate today?"
       ],
       "connectionTwist": "Once your pieces are cool, find a special, shared spot in your home to display them, symbolizing your collaborative spirit.",
-      "ending": "Leave with a new appreciation for craftsmanship and the unique, handmade objects you created together."
+      "ending": "Leave with a new appreciation for craftsmanship and the unique, handmade objects you crafted together.",
+      "description": "Learn the art of glassblowing, working together to shape molten glass into unique pieces and experience the thrill of creation."
     },
     {
       "id": "d107",
@@ -11398,20 +11402,21 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 17,
-      "vibe": "A powerful and grounding experience, forging metal and connection with shared effort.",
+      "vibe": "Feel the primal power of fire and hammer, forging metal and connection with shared effort.",
       "setup": "Discover the ancient art of blacksmithing, where raw metal transforms under your hands and hammer. This date is about working together in a dynamic environment, feeling the rhythm of the forge, and creating something tangible through shared physical effort and collaboration.",
       "supplies": [
         "Sturdy closed-toe shoes",
-        "Natural fiber clothing (long sleeves recommended)",
+        "Long-sleeved, natural fiber clothing",
         "Water bottles",
-        "Hair ties (for long hair)"
+        "Hair ties (for long hair)",
+        "Small towel for sweat"
       ],
       "guidedSteps": [
         "Find and book a beginner's blacksmithing workshop that offers a couples' or introductory experience.",
         "Arrive ready to learn, paying close attention to safety instructions and tool handling.",
         "Take turns at the forge, assisting each other with heating the metal and using the hammer.",
         "Coordinate your efforts to shape a piece, perhaps a hook, a small decorative item, or a bottle opener.",
-        "Feel the satisfaction of seeing the metal change under your combined efforts.",
+        "Feel the satisfaction of seeing the metal change under your combined efforts and precision.",
         "Discuss the challenges and triumphs of working with such a primal material.",
         "Polish your creations and reflect on the process of transforming raw material into a finished object."
       ],
@@ -11420,8 +11425,9 @@
         "If we were to forge something for our home, what useful or decorative item would you choose?",
         "What's a challenge in our lives right now that we could 'forge' a solution for together?"
       ],
-      "connectionTwist": "Engrave a small, shared symbol or initial onto your finished metal pieces.",
-      "ending": "Leave with the satisfying weight of your handmade objects and the warmth of a shared, powerful experience."
+      "connectionTwist": "Engrave a small, shared symbol or initial onto your finished metal pieces, marking them as uniquely yours.",
+      "ending": "Leave with the satisfying weight of your handmade objects and the warmth of a shared, powerful experience.",
+      "description": "Hammer, heat, and forge metal together in a blacksmithing workshop, creating personalized keepsakes with your combined strength."
     },
     {
       "id": "d112",
@@ -11445,16 +11451,17 @@
         "Small basket or cloth bags for gathering",
         "Gardening gloves",
         "Water bottles",
-        "Small field guide (optional)"
+        "Small field guide (optional)",
+        "Pen and notebook"
       ],
       "guidedSteps": [
         "Research and book a guided urban foraging tour in your area, or find a reputable local expert.",
-        "Dress for the weather and be prepared to walk and observe closely.",
+        "Dress for the weather and be prepared to walk and observe closely, perhaps taking photos of plants.",
         "Listen attentively to your guide, learning about plant identification, ethical harvesting, and safety.",
-        "Work together to identify and carefully collect edible plants, fruits, or mushrooms.",
-        "Discuss the history and uses of the plants you find, imagining how past generations lived.",
-        "Plan a simple meal or snack around your foraged ingredients, thinking about how to highlight their flavors.",
-        "Prepare and enjoy your foraged bounty, savoring the unique taste of your discoveries."
+        "Work together to identify and carefully collect edible plants, fruits, or mushrooms, respecting the environment.",
+        "Discuss the history and uses of the plants you find, imagining how past generations lived with them.",
+        "Plan a simple meal or snack around your foraged ingredients, thinking about how to highlight their natural flavors.",
+        "Prepare and enjoy your foraged bounty, savoring the unique taste of your discoveries and shared effort."
       ],
       "conversationPrompts": [
         "What's the most surprising edible plant we found today, and how do you imagine it tastes?",
@@ -11462,7 +11469,8 @@
         "What's a new 'flavor' or experience you'd like to bring into our routine?"
       ],
       "connectionTwist": "Plant a small, edible herb or native plant together in your garden or a pot, as a living reminder of your foraging adventure.",
-      "ending": "Conclude your date by sharing a simple, delicious dish made with your foraged finds, enjoying the taste of your shared effort."
+      "ending": "Conclude your date by sharing a simple, delicious dish made with your foraged finds, enjoying the taste of your shared effort.",
+      "description": "Explore your urban environment, learning to identify and gather edible plants with a guide, then transform your finds into a fresh meal."
     },
     {
       "id": "d117",
@@ -11503,7 +11511,8 @@
         "What's another 'new world' or experience you're curious to explore together?"
       ],
       "connectionTwist": "Take a picture together with your dive gear on, or draw a simple sketch of your favorite marine animal you saw, to remember the shared adventure.",
-      "ending": "Share a warm drink and relive your favorite underwater moments, marveling at the new perspective you gained."
+      "ending": "Share a warm drink and relive your favorite underwater moments, marveling at the new perspective you gained.",
+      "description": "Dive into an extraordinary underwater world, learn new skills, and share a breathtaking adventure as you explore vibrant marine life together."
     },
     {
       "id": "d123",
@@ -11543,7 +11552,8 @@
         "What's a small, modern convenience we have now that you think residents of this mansion would have been most surprised by?"
       ],
       "connectionTwist": "Choose a specific architectural detail or object from the mansion that you both found interesting, and later find a picture of it online to print and keep.",
-      "ending": "Enjoy a quiet coffee or tea nearby, discussing the echoes of the past and the comforts of your own present."
+      "ending": "Enjoy a quiet coffee or tea nearby, discussing the echoes of the past and the comforts of your own present.",
+      "description": "Wander through a historic mansion, exploring elegant architecture and imagining past lives, while creating new memories together in a setting rich with stories."
     },
     {
       "id": "d125",
@@ -11566,7 +11576,6 @@
         "Kayak rental (or your own)",
         "Life jackets",
         "Dry bags for phones/keys",
-        "Waterproof camera",
         "Warm layers",
         "Coffee/tea in a thermos",
         "Pre-packed breakfast items"
@@ -11586,7 +11595,8 @@
         "What new activity or quiet moment are you looking forward to sharing with me soon?"
       ],
       "connectionTwist": "Before paddling back, share a silent moment together, holding hands or touching paddles, appreciating the quiet start to your day.",
-      "ending": "Return to shore feeling invigorated and carrying the calm energy of your shared morning on the water."
+      "ending": "Return to shore feeling invigorated and carrying the calm energy of your shared morning on the water.",
+      "description": "Embrace the tranquility of dawn on the water, paddling together as the sun rises, then share a quiet breakfast in a serene natural setting."
     },
     {
       "id": "d128",
@@ -11603,8 +11613,8 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 18,
-      "vibe": "An exhilarating and mesmerizing experience, learning to command the element of fire together.",
-      "setup": "Step into a world of rhythm, movement, and controlled flames. This date invites you to learn the captivating art of fire dancing, starting with safe practice using LED props, and building towards the thrilling experience of moving with real fire. It's a chance to learn something bold and beautiful side-by-side.",
+      "vibe": "Feel the thrill of movement and controlled flames as you learn a captivating new art.",
+      "setup": "Embrace the rhythm and flow of fire dancing, starting with safe LED props before progressing to real flames. This date offers a captivating blend of physical challenge and artistic expression, allowing you to discover a bold new skill together.",
       "supplies": [
         "Comfortable, breathable clothing (natural fibers are best)",
         "Closed-toe shoes",
@@ -11612,21 +11622,22 @@
         "Hair ties (for long hair)"
       ],
       "guidedSteps": [
-        "Research and book an introductory fire dancing or flow arts class that teaches with LED props first.",
-        "Arrive with an open mind and a willingness to learn new movements and coordination.",
-        "Start with LED props, focusing on mastering the basic spins and weaves as demonstrated by the instructor.",
-        "Practice together, cheering each other on and laughing at any fumbles.",
-        "When ready and supervised, transition to practicing with real fire, maintaining focus and safety protocols.",
-        "Feel the heat and see the mesmerizing patterns you create with the flames.",
-        "Discuss the feeling of moving with fire and the satisfaction of mastering a new, dynamic skill."
+        "Find and book an introductory fire dancing class that prioritizes safety, starting with LED props.",
+        "Arrive dressed comfortably and ready to move, discussing your excitement for the unique challenge ahead.",
+        "Begin with LED props, focusing on basic spins and weaves, allowing yourselves to feel the rhythm and flow.",
+        "Practice the movements side-by-side, offering each other encouragement and sharing a laugh at any missteps.",
+        "Under expert supervision, transition to real fire, focusing on controlled, deliberate movements and safety.",
+        "Observe the patterns the flames create and the warmth they emit, feeling the power of your shared focus.",
+        "After the session, share what surprised you most about moving with fire and the satisfaction of learning together."
       ],
       "conversationPrompts": [
-        "What was the most challenging movement to learn, and what did you enjoy most about the flow?",
-        "If we could perform a fire dance routine, what kind of music would you choose for it?",
-        "What's an unexpected talent or new skill you've always wanted to explore?"
+        "Which specific movement felt the most challenging, and what was the most satisfying part of the flow?",
+        "If we were to create a fire-dancing performance, what mood or story would you want to convey?",
+        "What other surprising skills or artistic expressions are you curious to explore as a couple?"
       ],
-      "connectionTwist": "At the end, if safe and permitted, take a slow-motion video of each other practicing a favorite fire-dancing move.",
-      "ending": "Conclude with a feeling of exhilaration and accomplishment, marveling at the beauty and power you learned to wield."
+      "connectionTwist": "If permitted and safe, capture a slow-motion video of each other performing your favorite fire-dancing move from the session.",
+      "ending": "Find a quiet spot to share a refreshing drink, recounting the specific moments you felt most connected to the rhythm and the fire.",
+      "description": "Learn to command the element of fire, mastering mesmerizing movements with LED props and then real flames in an unforgettable, guided experience."
     },
     {
       "id": "d135",
@@ -11643,8 +11654,8 @@
       "load": 2,
       "style": "mixed",
       "releaseWeek": 18,
-      "vibe": "Playful and awe-inspiring, connecting with nature and each other through a unique adventure.",
-      "setup": "Imagine the thrill of majestic birds of prey landing on your gloved hand. This date offers a rare chance to learn about these incredible creatures and share an unforgettable, hands-on experience in nature. Prepare for an exhilarating encounter that will spark conversation and wonder.",
+      "vibe": "Experience the awe of nature up close as majestic birds of prey land gently on your gloved hand.",
+      "setup": "Feel the soft landing of a majestic bird of prey on your gloved hand. This date offers a rare, hands-on opportunity to connect with nature's wild beauty and learn about these incredible creatures, sharing an unforgettable experience that sparks wonder and conversation.",
       "supplies": [
         "Comfortable outdoor clothing",
         "Closed-toe shoes",
@@ -11653,21 +11664,22 @@
         "Small snack for before/after"
       ],
       "guidedSteps": [
-        "Research and book a reputable falconry center or experience in advance, confirming safety protocols and what to expect.",
-        "Arrive early to get settled, observe the surroundings, and discuss your excitement for the birds.",
-        "Listen attentively to the falconer's instructions, learning about the history and techniques of falconry.",
-        "Take turns carefully handling the birds under expert supervision, paying attention to their weight and movements.",
-        "Observe flight demonstrations, noticing the birds' grace and power as they interact with their environment.",
-        "Share observations and reactions with each other throughout the experience, pointing out details you find interesting.",
-        "Before leaving, thank the falconers and reflect on your favorite moments from handling the birds."
+        "Book a reputable falconry experience that includes hands-on interaction and educational insights.",
+        "Arrive dressed for the outdoors, ready to observe and discuss the beauty of the natural setting.",
+        "Listen closely to the falconer, learning about the birds' behaviors and the art of handling them.",
+        "Take turns carefully receiving a bird on your gloved hand, noticing its weight, grip, and gaze.",
+        "Observe the birds in flight, sharing quiet comments about their grace and hunting prowess.",
+        "Point out specific details or moments that impress you about the birds or the falconer's skill.",
+        "Before departing, share a particular sound or sight from the experience that will stay with you."
       ],
       "conversationPrompts": [
-        "What was the most surprising thing you learned about these birds today?",
-        "If you could train any animal, what would it be and why?",
-        "What part of this experience made you feel the most present?"
+        "What specific detail about the birds' intelligence or instincts surprised you most?",
+        "If you could share a unique skill with any animal, what would it be and how would you interact?",
+        "Which moment during the experience made you feel most connected to the natural world?"
       ],
       "connectionTwist": "Before leaving, choose one word each to describe the feeling of having the bird on your arm, then share why.",
-      "ending": "Find a quiet spot nearby to enjoy a warm drink and recount the specific moments that stood out to each of you."
+      "ending": "Find a quiet spot nearby to enjoy a warm drink and recount the specific moments that stood out to each of you.",
+      "description": "Engage with nature's majesty through a hands-on falconry experience, learning about birds of prey and sharing a truly unforgettable encounter."
     },
     {
       "id": "d136",
@@ -11684,8 +11696,8 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 18,
-      "vibe": "An adventurous and empowering date, building trust and celebrating shared achievements.",
-      "setup": "Challenge yourselves on the rock face, learning to rely on each other's support and encouragement. This date is about pushing personal limits, mastering new skills, and celebrating every small victory together in an active, engaging way.",
+      "vibe": "Conquer new heights together, building trust and celebrating each challenging ascent as a team.",
+      "setup": "Step onto the rock face and discover new strengths, both individually and as a couple. This date is an active challenge where you'll learn to trust, support, and encourage each other through every reach and hold, celebrating each small victory together.",
       "supplies": [
         "Comfortable athletic clothing",
         "Closed-toe athletic shoes",
@@ -11694,21 +11706,22 @@
         "Light snacks for energy"
       ],
       "guidedSteps": [
-        "Book a beginner's outdoor rock climbing lesson with certified instructors, ensuring all safety equipment is provided.",
-        "Arrive with enough time to stretch and mentally prepare, discussing any anxieties or excitements you might have.",
-        "Pay close attention during the safety briefing and equipment demonstration, asking questions if anything is unclear.",
-        "Take turns climbing and belaying, communicating clearly and offering specific encouragement to your partner as they ascend.",
-        "Celebrate each successful climb, no matter how high, acknowledging the effort and bravery involved.",
-        "Try different routes or techniques if available, embracing the learning process and supporting each other through challenges.",
-        "After your climbs, help each other stretch and discuss your favorite moments or hardest parts."
+        "Arrange a beginner rock climbing lesson with certified instructors, ensuring all necessary safety gear is provided.",
+        "Arrive prepared with comfortable clothing and a readiness to try new things, sharing any pre-climb excitement.",
+        "Listen carefully during the safety briefing and equipment demonstration, asking questions to feel fully secure.",
+        "Take turns climbing and belaying, using clear verbal cues and offering specific, encouraging words to your partner.",
+        "Acknowledge each other's efforts and bravery after every successful ascent, no matter the height achieved.",
+        "Experiment with different routes or holds, supporting each other through moments of challenge or frustration.",
+        "After your session, help each other stretch and share the most memorable physical or mental hurdle you overcame."
       ],
       "conversationPrompts": [
-        "What was the most challenging part of your climb, and how did you push through it?",
-        "When you were belaying, what specific thing did you notice about how I was climbing?",
-        "What fear did you conquer, even a little bit, today?"
+        "What specific move felt most challenging, and how did you find the resolve to complete it?",
+        "When belaying, what detail about my climbing technique or rhythm did you observe most closely?",
+        "Beyond the physical, what mental barrier or hesitation did you navigate today?"
       ],
       "connectionTwist": "After each successful climb, give your partner a specific, sincere compliment about their technique or perseverance.",
-      "ending": "Share a hearty meal together, recounting the specific details of your climbs and the feeling of reaching new heights."
+      "ending": "Find a comfortable spot for a celebratory drink or meal, recounting the specific sensations and triumphs from your time on the rock.",
+      "description": "Ascend new heights together with a guided rock climbing experience, challenging yourselves and building deeper trust and communication with every move."
     },
     {
       "id": "d138",
@@ -11748,7 +11761,8 @@
         "What's another unexpected skill you'd like to try learning together?"
       ],
       "connectionTwist": "For every bullseye, the person who threw it gets to choose a silly dance move for their partner to perform.",
-      "ending": "Head to a nearby casual spot for a drink or snack, recounting your best throws and funniest misses."
+      "ending": "Head to a nearby casual spot for a drink or snack, recounting your best throws and funniest misses.",
+      "description": "Unleash your inner lumberjack with a thrilling axe-throwing session, perfect for letting off steam and sharing some exhilarating, competitive fun."
     },
     {
       "id": "d153",
@@ -11788,7 +11802,8 @@
         "What role in the kitchen do you naturally gravitate towards, and why?"
       ],
       "connectionTwist": "Before eating, take a moment to admire your shared creation and toast to your teamwork.",
-      "ending": "Discuss how you might incorporate elements of the class into your home cooking, perhaps planning a future meal together using a new skill."
+      "ending": "Discuss how you might incorporate elements of the class into your home cooking, perhaps planning a future meal together using a new skill.",
+      "description": "Master new techniques and flavors side-by-side in a cooking class, then savor the delicious meal you crafted together."
     },
     {
       "id": "d173",
@@ -11829,7 +11844,8 @@
         "What feeling does this peaceful view evoke in you?"
       ],
       "connectionTwist": "As the balloon reaches its highest point, silently hold hands and take a deep breath together, sharing a moment of quiet appreciation.",
-      "ending": "Enjoy a post-flight breakfast or coffee, recounting specific visual details and the emotions of seeing the sunrise from above."
+      "ending": "Enjoy a post-flight breakfast or coffee, recounting specific visual details and the emotions of seeing the sunrise from above.",
+      "description": "Drift peacefully above the waking world in a hot air balloon, sharing a magnificent sunrise and unforgettable views with your partner."
     },
     {
       "id": "d175",
@@ -11846,30 +11862,31 @@
       "load": 3,
       "style": "mixed",
       "releaseWeek": 19,
-      "vibe": "An energetic and empowering date, learning discipline and building physical confidence together.",
-      "setup": "Step onto the dojo floor and discover the focus and strength of martial arts. This date is about learning basic self-defense, practicing controlled movements, and sharing a challenging yet rewarding physical experience that builds discipline and confidence.",
+      "vibe": "An energetic date focused on shared discipline, physical mastery, and empowering each other through movement.",
+      "setup": "Step onto the dojo floor to discover the focus and strength of martial arts. This date is about learning basic self-defense, practicing controlled movements, and sharing a challenging yet rewarding physical experience that builds discipline and confidence side-by-side.",
       "supplies": [
-        "Comfortable athletic clothing (loose-fitting)",
+        "Comfortable athletic clothing (loose-fitting is best)",
         "Water bottles",
         "Small towel",
-        "Open mind for learning"
+        "An open mind for new physical challenges"
       ],
       "guidedSteps": [
-        "Research and book a beginner-friendly karate or martial arts class that welcomes couples.",
-        "Arrive a few minutes early to observe the class environment and mentally prepare for the movements.",
-        "Listen attentively to the instructor, focusing on proper form and technique for each stance and strike.",
-        "Practice moves together, offering gentle corrections and encouragement to your partner.",
-        "Participate fully in warm-ups and drills, embracing the physical challenge and coordination required.",
-        "Discuss the philosophy or discipline behind the martial art with your partner during breaks.",
-        "After class, stretch together and share your immediate impressions of the movements and the mental focus."
+        "Research and book a beginner-friendly karate or martial arts class that welcomes couples, ensuring it's suitable for newcomers.",
+        "Arrive a few minutes early to observe the class environment, stretch lightly, and mentally prepare for the movements.",
+        "Listen attentively to the instructor, focusing on proper form and technique for each stance and strike they demonstrate.",
+        "Practice moves together, offering gentle corrections and encouragement to your partner, celebrating small improvements.",
+        "Participate fully in warm-ups and drills, embracing the physical challenge and coordination required, pushing your comfort zones.",
+        "During breaks, discuss the philosophy or discipline behind the martial art, sharing your initial impressions of the mental focus.",
+        "After class, stretch together and share your immediate impressions of the movements and the feeling of empowerment."
       ],
       "conversationPrompts": [
-        "What part of the class required the most focus for you?",
-        "If you were to continue, what specific skill would you want to master first?",
-        "How did it feel to move your body in such a disciplined way?"
+        "What part of the class required the most mental focus or physical precision for you?",
+        "If you were to continue, what specific skill or form would you be most excited to try mastering next?",
+        "How did it feel to move your body in such a disciplined and powerful way alongside each other?"
       ],
-      "connectionTwist": "At the end of class, practice a simple bow to each other, acknowledging the effort and respect shared.",
-      "ending": "Grab a healthy smoothie or snack, discussing the feeling of empowerment and any surprising insights from the class."
+      "connectionTwist": "At the end of class, perform a simple, respectful bow to each other, acknowledging the effort and shared learning experience.",
+      "ending": "Share a healthy meal or a refreshing smoothie, discussing the feeling of strength and any surprising insights gained from the class.",
+      "description": "Discover shared strength and discipline by learning basic martial arts moves, building confidence and connection through focused physical activity."
     },
     {
       "id": "d181",
@@ -11886,31 +11903,32 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 19,
-      "vibe": "An exhilarating and adventurous date, overcoming heights and sharing thrilling moments.",
+      "vibe": "An exhilarating date embracing the thrill of heights and sharing breathtaking aerial perspectives.",
       "setup": "Feel the rush of wind as you soar through the trees, experiencing the landscape from a thrilling new perspective. This date is about embracing adventure, encouraging each other through exciting challenges, and celebrating your shared bravery with every zip.",
       "supplies": [
-        "Comfortable outdoor clothing (no loose items)",
-        "Closed-toe shoes",
-        "Hair tie for long hair",
+        "Comfortable, secure outdoor clothing (avoid loose items)",
+        "Closed-toe shoes with good grip",
+        "Hair ties for long hair",
         "Water bottles",
-        "Camera (with secure strap)"
+        "Sunscreen and insect repellent"
       ],
       "guidedSteps": [
-        "Book your zip-lining adventure with a reputable company, confirming safety standards and equipment provided.",
-        "Arrive at the site with enough time to check in, use facilities, and mentally prepare for the experience.",
-        "Pay close attention to the safety briefing and harness fitting, asking any questions you have.",
-        "Encourage each other before each zip, perhaps with a high-five or a specific word of affirmation.",
-        "Take turns zipping, watching your partner's descent and cheering for them from the platform.",
-        "During the zips, take in the views and the sensation of flying, perhaps letting out a shout of excitement.",
-        "After completing the course, help each other remove gear and share your most thrilling moments."
+        "Book your zip-lining adventure with a reputable company, confirming safety standards and what equipment is provided.",
+        "Arrive at the site with ample time to check in, use facilities, and mentally prepare for the experience together.",
+        "Pay close attention to the safety briefing and harness fitting, asking any questions you both might have for clarity.",
+        "Encourage each other before each zip, perhaps with a high-five, a specific word of affirmation, or a quick shared breath.",
+        "Take turns zipping, watching your partner's descent from the platform and cheering for their bravery as they go.",
+        "During the zips, take in the views and the sensation of flying, allowing yourselves to shout with excitement or simply enjoy the moment.",
+        "After completing the course, help each other remove gear and share your most thrilling or surprising moments from the air."
       ],
       "conversationPrompts": [
-        "What was the most exhilarating part of soaring through the air?",
-        "If you could zip-line over any natural wonder, what would it be?",
-        "What small fear did you feel, and how did you push past it?"
+        "What was the most exhilarating part of soaring through the air, and what did you focus on?",
+        "If you could zip-line over any natural wonder or landscape, where would you choose and why?",
+        "What small moment of hesitation or fear did you feel, and how did you push past it to enjoy the experience?"
       ],
       "connectionTwist": "Before your final zip, share one word that describes how you feel about the experience, then let out a celebratory yell together as you launch.",
-      "ending": "Find a spot to sit and relax, perhaps with a cool drink, and relive your favorite zip-line moments, emphasizing the feeling of flight."
+      "ending": "Find a comfortable spot to relax, perhaps with a cool drink or a light snack, and relive your favorite zip-line moments, emphasizing the feeling of flight and accomplishment.",
+      "description": "Experience the exhilarating rush of soaring through the canopy, encouraging each other to embrace the thrill and celebrate shared courage."
     },
     {
       "id": "d182",
@@ -11927,30 +11945,31 @@
       "load": 2,
       "style": "mixed",
       "releaseWeek": 19,
-      "vibe": "An intense and unforgettable date, conquering fears and celebrating profound courage together.",
-      "setup": "Take the ultimate leap of faith, hand-in-hand or side-by-side, into an experience that will redefine your limits. This date is about facing a significant challenge, supporting each other through intense moments, and sharing a truly monumental achievement.",
+      "vibe": "An intense date about conquering fears and celebrating profound courage in an unforgettable way.",
+      "setup": "Take the ultimate leap of faith, hand-in-hand or side-by-side, into an experience that will redefine your limits. This date is about facing a significant challenge, supporting each other through intense moments, and sharing a truly monumental achievement that builds powerful memories.",
       "supplies": [
-        "Comfortable athletic clothing",
-        "Closed-toe shoes",
+        "Comfortable athletic clothing (nothing restrictive)",
+        "Closed-toe shoes that are securely tied",
         "Water bottles",
-        "A small item to hold onto for comfort (optional)"
+        "A small, comforting item to hold onto (optional, like a smooth stone)"
       ],
       "guidedSteps": [
-        "Research and book bungee jumping with a highly reputable and certified operator, confirming all safety procedures.",
-        "Arrive well-rested and hydrated, discussing any anxieties or motivations you both have before reaching the jump point.",
-        "Listen meticulously to all safety instructions and harness checks, ensuring you understand every step.",
-        "Support each other emotionally as you wait for your turn, offering words of encouragement and physical reassurance.",
-        "Take the leap, focusing on the moment and the shared experience of freefall.",
-        "Celebrate your successful jump with a powerful high-five or hug, acknowledging the immense courage it took.",
-        "Watch each other's jumps if possible, offering specific praise for their bravery and composure."
+        "Research and book bungee jumping with a highly reputable and certified operator, thoroughly reviewing all safety procedures.",
+        "Arrive well-rested and hydrated, discussing any anxieties or motivations you both have before reaching the jump point, offering reassurance.",
+        "Listen meticulously to all safety instructions and harness checks, ensuring you both understand every step of the process.",
+        "Support each other emotionally as you wait for your turn, offering specific words of encouragement and physical reassurance, like holding hands.",
+        "Take the leap, focusing on the moment and the shared experience of freefall, embracing the intensity.",
+        "Celebrate your successful jump with a powerful high-five or hug, acknowledging the immense courage and trust it took.",
+        "Watch each other's jumps if possible, offering specific praise for their bravery and composure as they experience the fall."
       ],
       "conversationPrompts": [
-        "What was going through your mind right before you jumped?",
-        "How did it feel to step off the edge, and what did you learn about yourself in that moment?",
-        "What's another challenge you'd like to face together, now that you've done this?"
+        "What was going through your mind in the seconds just before you stepped off the edge?",
+        "How did it feel to take that leap, and what did you learn about your own resilience in that exact moment?",
+        "Now that you've done this, what's another significant challenge you feel ready to face together?"
       ],
-      "connectionTwist": "Before each jump, give your partner a specific, heartfelt message of trust and encouragement.",
-      "ending": "Share a meal or a celebratory drink, recounting every detail of the jump, from the ascent to the leap and the rebound, focusing on the raw emotions and achievement."
+      "connectionTwist": "Before each jump, give your partner a specific, heartfelt message of trust and encouragement, making eye contact.",
+      "ending": "Share a celebratory meal or your favorite drink, recounting every detail of the jump, from the ascent to the leap and the rebound, focusing on the raw emotions and shared achievement.",
+      "description": "Conquer immense heights and celebrate raw courage by taking a monumental leap together, creating an unforgettable shared experience."
     },
     {
       "id": "d184",
@@ -11991,7 +12010,8 @@
         "What's another adventurous activity you'd like to try together?"
       ],
       "connectionTwist": "After landing, find a quiet spot to sketch or write down one word that describes the feeling of soaring together.",
-      "ending": "Enjoy a simple, grounding meal or snack together, comparing your sketches or words and savoring the post-flight calm."
+      "ending": "Enjoy a simple, grounding meal or snack together, comparing your sketches or words and savoring the post-flight calm.",
+      "description": "Soar above stunning landscapes and share an exhilarating tandem paragliding adventure, creating unforgettable memories together."
     },
     {
       "id": "d189",
@@ -12032,7 +12052,8 @@
         "What's another skill you've always wanted to learn but haven't tried yet?"
       ],
       "connectionTwist": "Before your last round, each of you whispers a small wish or intention to your arrow before releasing it.",
-      "ending": "Share a light meal or a refreshing drink, discussing your favorite moments and perhaps planning your next target practice."
+      "ending": "Share a light meal or a refreshing drink, discussing your favorite moments and perhaps planning your next target practice.",
+      "description": "Learn the art of archery side-by-side, focusing your aim and enjoying playful competition as you hit your targets."
     },
     {
       "id": "d193",
@@ -12073,7 +12094,8 @@
         "What does being out in nature like this make you feel?"
       ],
       "connectionTwist": "Before mounting, gently pat your horse and whisper a silent thank you for carrying you safely.",
-      "ending": "Enjoy a warm beverage or a light snack at the stable or a nearby cafe, recounting your adventure and perhaps looking at photos if you took any."
+      "ending": "Enjoy a warm beverage or a light snack at the stable or a nearby cafe, recounting your adventure and perhaps looking at photos if you took any.",
+      "description": "Ride through scenic trails on horseback, sharing tranquil moments and discovering the joy of equestrian connection together."
     },
     {
       "id": "d201",
@@ -12091,7 +12113,7 @@
       "style": "doing",
       "releaseWeek": 20,
       "vibe": "Dive into fantastical worlds and share laughter and discovery through immersive virtual experiences.",
-      "setup": "Step into a new reality where anything is possible, from fighting zombies to exploring alien planets. This date is about playful exploration, teamwork, and experiencing cutting-edge technology together.",
+      "setup": "Step into a new reality where anything is possible, from fighting zombies to exploring alien planets. This date is about playful exploration, teamwork, and experiencing cutting-edge technology together, creating unique memories in digital realms.",
       "supplies": [
         "Comfortable clothing that allows for movement",
         "Water bottles (VR can be active!)",
@@ -12100,9 +12122,9 @@
       ],
       "guidedSteps": [
         "Locate a VR gaming center nearby and book a cooperative or multiplayer experience.",
-        "Arrive ready to play, listening to the staff's instructions on how to use the equipment.",
-        "Help each other put on and adjust the VR headsets and controllers.",
-        "Choose a game or experience you can play together, like a puzzle, adventure, or escape room.",
+        "Arrive ready to play, listening carefully to the staff's instructions on how to use the equipment.",
+        "Help each other comfortably adjust the VR headsets and controllers.",
+        "Choose a game or experience you can play together, such as a puzzle, adventure, or escape room.",
         "Communicate constantly while in the game, strategizing and celebrating successes, big or small.",
         "Take short breaks to switch games, discuss your progress, and laugh about funny moments.",
         "After your session, share your favorite virtual world or game and what made it memorable."
@@ -12113,7 +12135,8 @@
         "What's a real-world place or activity you'd love to see translated into a virtual experience?"
       ],
       "connectionTwist": "Before putting on the headsets, make eye contact and promise to have each other's virtual backs.",
-      "ending": "Grab a refreshing drink or a casual bite to eat, continuing to discuss your virtual adventures and the highlights of your shared digital journey."
+      "ending": "Grab a refreshing drink or a casual bite to eat, continuing to discuss your virtual adventures and the highlights of your shared digital journey.",
+      "description": "Immerse yourselves in thrilling virtual worlds, tackling challenges and exploring new realities side-by-side."
     },
     {
       "id": "d206",
@@ -12131,30 +12154,31 @@
       "style": "doing",
       "releaseWeek": 20,
       "vibe": "Enjoy active fun in the sun, spiking and digging together on the sand.",
-      "setup": "Head to the beach for an energetic game of volleyball, where teamwork and playful competition meet the sun and sand. This date is about moving your bodies, laughing, and enjoying the relaxed beach atmosphere together.",
+      "setup": "Head to the beach for an energetic game of volleyball, where teamwork and playful competition meet the sun and sand. This date is about moving your bodies, laughing, and enjoying the relaxed beach atmosphere together, creating lively memories.",
       "supplies": [
         "Swimsuits or athletic wear suitable for the beach",
         "Sunscreen and hats",
         "Beach towels",
         "Water bottles and refreshing drinks",
-        "Beach volleyball (if not provided)"
+        "Beach volleyball (if not provided by the court)"
       ],
       "guidedSteps": [
-        "Find a beach with volleyball courts or an open area suitable for setting up a net.",
-        "Stretch together before you start playing to warm up your muscles.",
-        "Start with some casual passing and serving practice, helping each other with form.",
+        "Find a beach with public volleyball courts or an open area suitable for setting up a net.",
+        "Stretch together before you start playing to warm up your muscles and prevent strains.",
+        "Start with some casual passing and serving practice, offering gentle tips to each other.",
         "Join an existing game if available, or challenge another couple to a friendly match.",
-        "Cheer for each other's good plays and offer encouragement after a missed shot.",
+        "Cheer for each other's good plays and offer encouragement after a missed shot, focusing on shared enjoyment.",
         "Take breaks to cool off by wading in the water, splashing each other playfully.",
-        "After playing, relax on the sand and talk about your favorite moments from the game."
+        "After playing, relax on the sand and talk about your favorite moments from the game and the beach."
       ],
       "conversationPrompts": [
         "What's your go-to strategy when we're playing as a team?",
-        "What's another outdoor activity you'd love to try with me?",
-        "What's your favorite sound or feeling about being at the beach?"
+        "What's another outdoor activity you'd love to try with me that involves movement?",
+        "What's your favorite sound or feeling about being at the beach right now?"
       ],
-      "connectionTwist": "After a particularly good point, give each other a high-five that includes a quick, shared smile.",
-      "ending": "Stay to watch the sunset, sharing a snack or a cool drink, and enjoying the lingering warmth of the day."
+      "connectionTwist": "After a particularly good point, give each other a high-five that includes a quick, shared smile and a specific compliment on their play.",
+      "ending": "Stay to watch the sunset, sharing a light snack or a cool drink, and enjoying the lingering warmth of the day and each other's company.",
+      "description": "Serve up some fun on the sand, diving for points and cheering each other on in a playful game of beach volleyball."
     },
     {
       "id": "d215",
@@ -12172,30 +12196,32 @@
       "style": "talking",
       "releaseWeek": 20,
       "vibe": "Explore the hidden stories and past lives embedded in your surroundings, hand-in-hand.",
-      "setup": "Uncover the layers of history right in your own neighborhood or a nearby town. This date invites you to look at familiar places with fresh eyes, share discoveries, and imagine the lives lived before yours.",
+      "setup": "Uncover the layers of history right in your own neighborhood or a nearby town. This date invites you to look at familiar places with fresh eyes, share discoveries, and imagine the lives lived before yours, fostering a deeper appreciation for your shared environment.",
       "supplies": [
         "Comfortable walking shoes",
         "Water bottles",
-        "Snacks for energy",
-        "Optional: Small notebook and pen for notes",
-        "Your phone for photos or research"
+        "Snacks for energy, like granola bars or fruit",
+        "Optional: Small notebook and pen for jotting down interesting facts",
+        "Your phone for taking photos or quick online research",
+        "A light jacket or umbrella, depending on weather"
       ],
       "guidedSteps": [
-        "Choose a historic neighborhood, district, or a specific landmark to explore.",
-        "Before you go, do a little research to find interesting facts or stories about the area.",
-        "Start your walk, taking turns pointing out architectural details, historical markers, or interesting features.",
-        "Pause at significant spots to read plaques aloud or share the history you discovered.",
-        "Imagine together what life might have been like in that location decades or centuries ago.",
+        "Choose a historic neighborhood, district, or a specific landmark to explore together.",
+        "Before you go, do a little research to find interesting facts or stories about the area's past.",
+        "Start your walk, taking turns pointing out architectural details, historical markers, or unique features.",
+        "Pause at significant spots to read plaques aloud or share the historical details you discovered.",
+        "Imagine together what daily life might have been like in that location decades or centuries ago, sharing your thoughts.",
         "Take photos of things that catch your eye, creating a visual record of your historical journey.",
-        "Conclude your walk by discussing the most surprising or impactful historical detail you learned."
+        "Conclude your walk by discussing the most surprising or impactful historical detail you learned and why it resonated."
       ],
       "conversationPrompts": [
-        "If you could meet someone from this historical period, who would it be and what would you ask them?",
-        "What's a local legend or unsolved mystery you've always been curious about?",
-        "How does learning about the past change the way you see our present-day lives?"
+        "If you could meet someone from this historical period, who would it be and what would you ask them about their life?",
+        "What's a local legend or unsolved mystery you've always been curious about, and where do you think it originated?",
+        "How does learning about the past change the way you see our present-day lives or the future of this place?"
       ],
-      "connectionTwist": "At the end of the tour, find a quiet bench and each share one 'ghost story' or interesting anecdote you've heard about the area.",
-      "ending": "Settle into a local cafe or restaurant, perhaps one with a historical feel, and continue your conversation over a warm drink or a meal."
+      "connectionTwist": "At a particularly old or significant spot, pause, hold hands, and silently imagine the footsteps that walked there before you, sharing a quiet moment of reflection.",
+      "ending": "Settle into a local cafe or restaurant, perhaps one with a historical feel or view, and continue your conversation over a warm drink or a meal, reflecting on your discoveries.",
+      "description": "Stroll through time, discovering forgotten tales and architectural secrets of your city, hand-in-hand."
     },
     {
       "id": "d217",
@@ -12212,31 +12238,32 @@
       "load": 3,
       "style": "mixed",
       "releaseWeek": 20,
-      "vibe": "Discover new strengths and build empathy through shared challenges and inclusive activities.",
-      "setup": "Step into a world of sports designed for all abilities, where focus is on adaptation and accessibility. This date is about learning, supporting each other, and experiencing the joy of movement in a new way.",
+      "vibe": "Connect through shared learning and mutual support in a unique, empowering setting.",
+      "setup": "Explore adaptive sports, where the focus shifts to creativity and inclusion. This date invites you to learn about new ways to play, supporting each other as you discover different abilities and perspectives. It's an opportunity to grow together and deepen your understanding of accessibility.",
       "supplies": [
         "Comfortable athletic clothing",
-        "Closed-toe shoes",
+        "Closed-toe athletic shoes",
         "Water bottles",
-        "Open mind and willingness to learn",
-        "Optional: Small towel"
+        "Openness to new experiences",
+        "Small towel (optional)",
+        "Snacks for after"
       ],
       "guidedSteps": [
-        "Research local organizations or centers that offer adaptive sports (e.g., wheelchair basketball, adaptive kayaking, goalball).",
-        "Contact the organization to inquire about introductory sessions or opportunities for beginners.",
-        "Arrive with an open mind, ready to listen to instructors and learn about different adaptations.",
-        "Participate in the chosen sport together, focusing on understanding the unique techniques and rules.",
-        "Actively support and encourage your partner, helping them navigate any new challenges.",
-        "Discuss your perceptions and feelings during breaks, sharing what you're learning about accessibility.",
-        "After the session, reflect on the experience and what new insights you gained."
+        "Research local organizations offering adaptive sports (e.g., wheelchair basketball, adaptive kayaking, goalball) and book an introductory session.",
+        "Arrive ready to listen and learn from instructors about the sport's adaptations and rules.",
+        "Participate actively, focusing on the techniques and how the equipment is used to create an inclusive environment.",
+        "Offer encouragement and hands-on support to your partner, celebrating small victories and shared efforts.",
+        "During breaks, discuss your observations about the sport and how it challenges traditional notions of athleticism.",
+        "After the session, reflect on the experience and any new insights gained about adaptability and community."
       ],
       "conversationPrompts": [
-        "What was the most challenging aspect of this sport, and what adaptation surprised you the most?",
-        "How can we better advocate for inclusivity and accessibility in our everyday lives?",
-        "What did you learn about your own resilience or adaptability today?"
+        "What was an unexpected challenge or insight you gained about the sport today?",
+        "How did participating in an adaptive sport change your perspective on physical activity or accessibility?",
+        "What's one small action we could take to promote more inclusive environments in our daily lives?"
       ],
-      "connectionTwist": "Before you leave, find a moment to thank the instructors or volunteers, and share a specific observation you made about the sport.",
-      "ending": "Enjoy a healthy meal or a refreshing smoothie, discussing how the experience expanded your understanding of sports and community."
+      "connectionTwist": "Before leaving, find a moment to thank the instructors or volunteers, sharing a specific positive observation about their work.",
+      "ending": "Share a light, healthy meal or a refreshing beverage, discussing how the experience expanded your understanding of sports and community.",
+      "description": "Engage in an adaptive sports experience, building empathy and appreciation for diverse abilities while connecting through shared physical activity."
     },
     {
       "id": "d383",
@@ -12253,31 +12280,33 @@
       "load": 2,
       "style": "mixed",
       "releaseWeek": 20,
-      "vibe": "Journey into the earth's quiet depths, discovering ancient formations and shared wonder.",
-      "setup": "Descend into a mysterious underground world, where natural wonders await your discovery. This date is about exploring hidden beauty, sharing a sense of awe, and finding comfort in the quiet, ancient spaces beneath us.",
+      "vibe": "Descend into ancient depths, sharing wonder and quiet intimacy amidst nature's hidden artistry.",
+      "setup": "Embark on a subterranean adventure, exploring the silent, majestic beauty of an underground cave. This date invites you to marvel at geological wonders, navigate winding paths together, and share a sense of awe in a world untouched by daylight. It’s an opportunity for quiet discovery and shared fascination.",
       "supplies": [
         "Sturdy, closed-toe shoes with good grip",
-        "Layered clothing (caves can be cool)",
+        "Layered clothing (caves are often cool)",
         "Water bottles",
         "Small backpack for essentials",
-        "Optional: Headlamp (if not provided by tour)"
+        "Small flashlight (optional, in addition to guide's)",
+        "A sense of adventure"
       ],
       "guidedSteps": [
-        "Research and book a guided tour of a local cave or cavern system.",
-        "Arrive prepared with appropriate footwear and clothing, listening carefully to your guide's instructions.",
-        "Walk closely together, offering a hand or a reassuring touch as you navigate uneven terrain.",
-        "Point out interesting rock formations, crystals, or geological features to each other.",
-        "Take a moment in a quiet chamber to turn off lights (if safe and allowed) and experience the profound darkness and silence.",
-        "Share a whispered observation about the cave's beauty or the feeling of being so deep underground.",
-        "After emerging, discuss your favorite formations and the overall feeling of the experience."
+        "Research and book a guided tour of a local cave or cavern system, confirming appropriate gear requirements.",
+        "Arrive prepared with suitable clothing and footwear, paying close attention to your guide's safety briefing.",
+        "Walk closely together, offering a hand or a reassuring touch as you navigate uneven terrain and narrow passages.",
+        "Point out interesting rock formations, crystals, or unique geological features to each other, sharing your observations.",
+        "Take a moment in a quiet chamber to experience the profound darkness and silence (if safe and permitted), holding hands.",
+        "Share a whispered thought about the cave's beauty or the feeling of being so deep within the earth.",
+        "After emerging, discuss your favorite formations and the overall feeling of the experience, savoring the return to daylight."
       ],
       "conversationPrompts": [
-        "What was the most impressive or surprising formation you saw in the cave?",
-        "If this cave could tell stories, what kind of tales do you think it would share?",
-        "What's another hidden natural wonder you'd love to explore together?"
+        "What was the most awe-inspiring or surprising formation you encountered in the cave?",
+        "If this cave could preserve a single memory from its millions of years, what do you imagine it would be?",
+        "What other natural wonders, above or below ground, would you love to explore together next?"
       ],
-      "connectionTwist": "Find a smooth, small rock outside the cave entrance and each hold it, silently reflecting on the journey you just shared, then place them back together.",
-      "ending": "Enjoy a warm drink or a picnic lunch in the daylight, savoring the contrast between the underground world and the open air."
+      "connectionTwist": "Find a smooth, small pebble near the cave entrance; each hold it for a moment, silently reflecting on your shared journey, then place them back together.",
+      "ending": "Enjoy a warm drink or a picnic lunch in the daylight, savoring the contrast between the underground world and the open air.",
+      "description": "Explore the silent grandeur of an underground cave, marveling at ancient formations and deepening your bond through shared wonder."
     },
     {
       "id": "d384",
@@ -12294,30 +12323,33 @@
       "load": 3,
       "style": "mixed",
       "releaseWeek": 20,
-      "vibe": "A playful evening of discovery and shared tastes under the open sky.",
-      "setup": "Find a local night market or street fair known for its vibrant atmosphere and diverse food stalls. Plan to arrive as the market is coming alive, ready to explore new flavors and soak in the energy. This date is about experiencing something new together, letting curiosity guide your steps.",
+      "vibe": "Immerse yourselves in vibrant sights and tastes, discovering new flavors and shared delights under the evening sky.",
+      "setup": "Step into the lively buzz of a local night market, where tantalizing aromas and colorful stalls create an exciting atmosphere. This date invites you to wander, taste, and discover together, letting curiosity guide your choices. It’s an opportunity to share a sensory adventure and create playful memories.",
       "supplies": [
         "Comfortable walking shoes",
         "Small cash for quick purchases",
-        "Reusable tote bag for souvenirs",
-        "Wet wipes",
-        "Portable phone charger"
+        "Reusable tote bag for finds",
+        "Wet wipes or hand sanitizer",
+        "A sense of culinary adventure",
+        "Phone for photos (optional)"
       ],
       "guidedSteps": [
-        "Start by walking the entire market perimeter once, taking in all the sights, sounds, and smells before deciding where to stop.",
-        "Agree on a budget for shared small plates, aiming to try at least three different cuisines or interesting bites.",
-        "Take turns choosing a vendor to approach, explaining why that particular item caught your eye.",
-        "Find a quiet spot to share each dish, discussing the flavors and textures.",
-        "Look for one unique, handmade item or souvenir that reminds you of your night together.",
-        "Find a vantage point to people-watch for a few minutes, observing the crowd and the market's rhythm."
+        "Start by taking a full lap around the market, observing all the stalls, smells, and sounds before deciding on your first stop.",
+        "Agree on a budget for shared small plates, aiming to sample at least three different cuisines or interesting bites.",
+        "Take turns choosing a vendor to approach, explaining to your partner what drew you to that particular item.",
+        "Find a cozy spot to share each dish, discussing the flavors, textures, and your overall impressions.",
+        "Look for one unique, handmade item or souvenir that captures the essence of your night together.",
+        "Find a comfortable vantage point to people-watch for a few minutes, soaking in the market's vibrant energy.",
+        "Before heading home, choose one dessert or sweet treat to share, ending your culinary journey on a high note."
       ],
       "conversationPrompts": [
-        "If you could open your own stall here, what would you sell?",
-        "What's the most surprising flavor you've tasted tonight, and why?",
-        "What's a memory this atmosphere brings up for you?"
+        "If you could open your own stall here, what unique food or craft would you offer?",
+        "What's the most surprising or delightful flavor combination you've tasted tonight?",
+        "What elements of this market make it feel so alive, and what does it remind you of?"
       ],
-      "connectionTwist": "Before leaving, choose one small, affordable item together that represents a shared discovery from the night.",
-      "ending": "On the way home, recount your favorite bite and the funniest thing you observed."
+      "connectionTwist": "Before leaving, choose one small, affordable item together that will serve as a tangible reminder of a shared discovery from the night.",
+      "ending": "On your way home, recount your favorite bite and the most interesting thing you observed, sharing a laugh about your market adventures.",
+      "description": "Wander through a vibrant night market, sampling exotic street food and finding unique treasures amidst the lively evening atmosphere."
     },
     {
       "id": "d385",
@@ -12334,30 +12366,31 @@
       "load": 3,
       "style": "mixed",
       "releaseWeek": 20,
-      "vibe": "An exhilarating date filled with friendly competition and shared laughs at top speed.",
-      "setup": "Get ready for an adrenaline rush and some playful rivalry on the track. This date is about embracing your competitive spirit and cheering each other on, even as you try to out-race one another. Book your race time in advance to ensure a smooth experience.",
+      "vibe": "A playful and energetic date, perfect for igniting your competitive spirits.",
+      "setup": "Prepare for an exhilarating time on the track, where friendly rivalry meets shared excitement. This date is about embracing speed, celebrating small victories, and laughing through every turn. Book your race time in advance to secure your spot.",
       "supplies": [
         "Comfortable closed-toe shoes",
         "Hair ties for long hair",
         "Water bottles",
-        "A small towel",
-        "A winning attitude"
+        "Light snacks for after",
+        "Small bag for personal items"
       ],
       "guidedSteps": [
-        "Arrive early to sign waivers and get fitted for helmets, making sure you both feel comfortable.",
-        "Before the first race, share a quick high-five and a lighthearted declaration of who will win.",
-        "During the race, focus on having fun and testing your limits, rather than solely on winning.",
-        "After the first race, compare strategies and discuss the most thrilling moments.",
-        "Challenge each other to a best-of-three series, keeping the energy high.",
-        "Take a photo together with your helmets on, commemorating your racing adventure."
+        "Arrive a bit early to complete waivers and get fitted for helmets, ensuring you both feel ready and secure.",
+        "Before starting, share a playful high-five and a mock declaration of who will claim victory.",
+        "During the race, focus on the joy of driving and maneuvering, rather than solely on winning.",
+        "After the first round, discuss your strategies, favorite turns, and any funny moments.",
+        "Challenge each other to a best-of-three series, keeping the playful energy alive.",
+        "Capture a fun photo together with your helmets on, commemorating your racing adventure."
       ],
       "conversationPrompts": [
-        "What's your secret racing strategy, or are you just winging it?",
-        "What's another activity you'd like to try that gets your adrenaline going?",
-        "What's something you admire about how I approach a challenge?"
+        "What's your secret strategy for tackling the corners, or are you just driving by instinct?",
+        "Beyond racing, what's another activity that always gets your adrenaline pumping?",
+        "What's a quality you appreciate about how I handle a challenge or competition?"
       ],
-      "connectionTwist": "After the final race, award a playful 'trophy' (e.g., a stick, a leaf, a small candy) to the overall winner, presented with mock seriousness.",
-      "ending": "Share a meal or snack afterward, recounting the best overtakes and funniest near-misses of the day."
+      "connectionTwist": "After the final race, the winner gives the other a playful 'champion's massage' on the shoulders for 30 seconds.",
+      "ending": "Find a casual spot nearby for a drink or snack, recounting your best overtakes and funniest near-misses.",
+      "description": "Experience the thrill of competition and shared laughter as you challenge each other to a high-speed go-kart race."
     },
     {
       "id": "d386",
@@ -12374,30 +12407,32 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 21,
-      "vibe": "A delicious and engaging urban adventure, discovering new tastes together.",
-      "setup": "Turn your city's street food scene into a culinary treasure hunt. Before you go, identify five distinct street food vendors or trucks you'd like to visit. This date is about shared exploration, tasting new flavors, and creating a fun, informal food critique.",
+      "vibe": "A flavorful urban exploration, tasting diverse dishes and making delightful discoveries together.",
+      "setup": "Transform your city's streets into a culinary playground. Before stepping out, research and select five unique street food vendors or trucks you'd like to visit. This date is about shared exploration, savoring new flavors, and enjoying an informal food critique.",
       "supplies": [
         "Comfortable walking shoes",
-        "Small notebook and pen for ratings",
+        "Small notebook and pen",
         "Wet wipes",
         "Water bottles",
-        "Small cash for quick purchases"
+        "Small cash or cards for purchases",
+        "Reusable bag for any take-home treats"
       ],
       "guidedSteps": [
-        "Start by mapping out your route to the five chosen vendors, considering the most efficient path.",
-        "At each vendor, agree on one dish to share, making sure to try something unique or a local specialty.",
-        "After each taste, use your notebook to rate the dish on a scale of 1-5 for flavor, presentation, and originality.",
-        "Take a playful selfie with each dish before you dig in, documenting your culinary journey.",
-        "Discuss your ratings after each stop, sharing what you liked and disliked.",
-        "At the end of your challenge, tally your scores and ceremoniously crown your favorite vendor."
+        "Begin by charting your course to the five chosen vendors, considering the most efficient and enjoyable path.",
+        "At each stop, agree on one dish to share, aiming for something unique to that vendor or a local specialty.",
+        "After each tasting, use your notebook to rate the dish based on flavor, presentation, and originality.",
+        "Take a quick, fun photo with each dish before you dig in, capturing your culinary journey.",
+        "Discuss your ratings and impressions after each stop, sharing what truly delighted your palate.",
+        "At the end of your challenge, tally your scores and ceremoniously declare your favorite vendor of the day."
       ],
       "conversationPrompts": [
-        "If you could only eat one of these dishes for the rest of your life, which would it be?",
-        "What's a food memory from your childhood that this experience brings to mind?",
-        "What's the most adventurous food you've ever tried, and would you try it again?"
+        "If you could only have one of these street food dishes again, which would be your top pick and why?",
+        "What's a food from your past that holds a strong memory for you, and why?",
+        "What's the most unusual or surprising food you've ever enjoyed, or been curious to try?"
       ],
-      "connectionTwist": "Create a simple 'passport' on a piece of paper and get a 'stamp' (a doodle or initial) from each vendor, or just draw one yourself, after trying their food.",
-      "ending": "Reflect on your favorite discovery of the day and what you learned about each other's palates over a final shared treat."
+      "connectionTwist": "Create a simple 'passport' on a small card and draw a unique 'stamp' or symbol for each vendor you visit and taste from.",
+      "ending": "Settle into a quiet spot to review your 'passport' and discuss your overall favorite discovery, perhaps planning your next food adventure.",
+      "description": "Explore your city's vibrant street food scene, savoring diverse dishes and finding new favorites on a delicious culinary quest."
     },
     {
       "id": "d387",
@@ -12414,31 +12449,32 @@
       "load": 3,
       "style": "doing",
       "releaseWeek": 21,
-      "vibe": "An adventurous and joyful date, learning a new skill together in the ocean.",
-      "setup": "Prepare for an exciting day by the waves, learning to surf alongside each other. This date is about embracing a new challenge, cheering on successes, and laughing off wipeouts. Book a beginner's lesson with a reputable surf school in advance.",
+      "vibe": "An exhilarating and supportive date, learning to ride the waves alongside each other.",
+      "setup": "Get ready for an invigorating day by the ocean, where you'll learn the basics of surfing as a team. This date is about embracing a new physical challenge, celebrating each other's efforts, and finding humor in every splash. Book a beginner's lesson with a reputable surf school in advance.",
       "supplies": [
         "Swimsuits",
         "Towels",
         "Reef-safe sunscreen",
         "Water bottles",
         "Change of clothes",
-        "A waterproof bag for essentials"
+        "Waterproof bag for essentials"
       ],
       "guidedSteps": [
-        "Arrive early to meet your instructor and get comfortable with your boards and wetsuits.",
-        "Pay close attention during the land-based instruction, practicing your pop-up moves together.",
-        "Once in the water, take turns catching waves, offering encouragement and tips to each other.",
-        "Celebrate every successful ride, no matter how short, with a shout or a wave.",
-        "Embrace the wipeouts with humor, knowing they're part of the learning process.",
-        "After the lesson, help each other rinse off and warm up on the beach."
+        "Arrive early to meet your instructor, get fitted for wetsuits, and become comfortable with your surfboards.",
+        "Pay close attention during the land-based instruction, practicing your pop-up moves on the sand together.",
+        "Once in the water, take turns attempting to catch waves, offering genuine encouragement and tips to one another.",
+        "Celebrate every successful ride, no matter how brief, with a cheer or a shared smile.",
+        "Approach any wipeouts with good humor, understanding they are a natural part of the learning process.",
+        "After the lesson, help each other rinse off sandy gear and find a spot to warm up on the beach."
       ],
       "conversationPrompts": [
-        "What was the most challenging part of learning to surf for you?",
-        "What other adventurous activity would you like to try together?",
-        "What did it feel like when you caught your first wave?"
+        "What felt most challenging about getting up on the board, and what felt most rewarding?",
+        "If we were to try another adventurous water sport, what would you be most excited to learn?",
+        "What was your favorite moment from today's lesson, and why did it stand out?"
       ],
-      "connectionTwist": "Before heading into the water, share a small, silly 'good luck' ritual, like touching noses or a specific hand gesture.",
-      "ending": "Dry off together on the sand, sharing a warm drink and recounting your most memorable waves and tumbles."
+      "connectionTwist": "Before you paddle out, share a quick, encouraging hand squeeze or a secret signal to wish each other luck in the waves.",
+      "ending": "Relax together on the sand, sharing a warm beverage or a satisfying snack, and recount your most memorable waves and tumbles.",
+      "description": "Dive into an ocean adventure, learning to surf together, cheering on successes, and laughing through every wipeout."
     },
     {
       "id": "d015",
@@ -12462,11 +12498,11 @@
         "Calming essential oils (lavender, chamomile)",
         "Face masks",
         "Gentle body lotion",
-        "Soft music",
+        "Soft music (instrumental or ambient)",
         "Comfortable robes or clothing"
       ],
       "guidedSteps": [
-        "Begin by dimming the lights, lighting a candle, and playing soft, instrumental music to set a peaceful mood.",
+        "Begin by dimming the lights, lighting a gentle candle, and playing soft, instrumental music to set a peaceful mood.",
         "Prepare a warm foot soak for each other, gently massaging each other's feet for a few minutes.",
         "Apply a soothing face mask to each other's faces, then relax side-by-side while they work.",
         "Take turns giving each other a gentle shoulder and neck massage using a fragrant lotion or oil.",
@@ -12478,8 +12514,9 @@
         "What's a simple pleasure you often overlook in your daily routine?",
         "What does 'taking care of yourself' look like for you?"
       ],
-      "connectionTwist": "As you apply face masks, make silly faces at each other, then take a photo to capture the moment.",
-      "ending": "Cuddle up under a soft blanket, sipping a warm herbal tea or water, and share a quiet moment of gratitude for the shared calm."
+      "connectionTwist": "As you apply face masks, make silly faces at each other, then take a private photo to capture the moment.",
+      "ending": "Cuddle up under a soft blanket, sipping a warm herbal tea or water, and share a quiet moment of gratitude for the shared calm.",
+      "description": "Indulge in a luxurious home spa experience, focusing on gentle touch and shared serenity, leaving you both feeling refreshed and deeply connected."
     },
     {
       "id": "d020",
@@ -12519,7 +12556,8 @@
         "What lesson do you think nature tries to teach us about patience or growth?"
       ],
       "connectionTwist": "Find two matching leaves or small pebbles and exchange them, keeping them as a reminder of your shared peaceful moment.",
-      "ending": "Before leaving, pause at the entrance to take one last deep breath together, carrying the tranquility into the rest of your day."
+      "ending": "Before leaving, pause at the entrance to take one last deep breath together, carrying the tranquility into the rest of your day.",
+      "description": "Immerse yourselves in the serene beauty of a botanical garden, sharing a meditative experience that calms the mind and deepens your bond."
     },
     {
       "id": "d031",
@@ -12560,7 +12598,8 @@
         "What's one small ritual in your day that brings you a sense of calm or focus?"
       ],
       "connectionTwist": "With each new pour, silently make a wish or intention for the other person's well-being before you both drink.",
-      "ending": "After your last cup, gently clean the tea ware together, reflecting on the feeling of quiet shared focus the ceremony brought."
+      "ending": "After your last cup, gently clean the tea ware together, reflecting on the feeling of quiet shared focus the ceremony brought.",
+      "description": "Embrace a mindful tea ritual, transforming simple sips into a profound experience of shared presence and thoughtful conversation."
     },
     {
       "id": "d035",
@@ -12577,30 +12616,31 @@
       "load": 2,
       "style": "doing",
       "releaseWeek": 21,
-      "vibe": "A supportive and physically engaging date, flowing through movements and connecting through breath.",
-      "setup": "Prepare a clear, comfortable space at home where you both have room to move. This date is about moving your bodies together, supporting each other in poses, and finding a shared rhythm. Choose an online couples yoga video that suits your experience level.",
+      "vibe": "A calming and connected experience of moving and breathing in harmony.",
+      "setup": "Prepare a comfortable, clear space at home where you both have room to stretch and move. This session is about flowing through gentle movements, supporting each other physically, and finding a shared rhythm. Select an online couples yoga video that aligns with your experience level.",
       "supplies": [
         "Two yoga mats",
         "Comfortable athletic wear",
         "Water bottles",
-        "A towel",
-        "An online couples yoga video"
+        "A device for streaming the video",
+        "Optional: soft blankets or towels"
       ],
       "guidedSteps": [
-        "Lay out your mats side-by-side, ensuring you have enough space to move and reach each other.",
-        "Start with a few minutes of quiet stretching, gently preparing your bodies for movement.",
-        "Begin your chosen online couples yoga video, focusing on synchronizing your breath and movements.",
-        "When practicing partner stretches, communicate clearly about pressure and comfort levels, adjusting for each other.",
-        "Offer gentle physical adjustments or verbal encouragement when one of you is challenged by a pose.",
-        "Conclude your session with a shared savasana (resting pose), lying side-by-side in silence for a few minutes."
+        "Clear a quiet area in your home, ensuring enough space for both mats side-by-side or facing each other.",
+        "Choose an online couples yoga video that suits your combined experience level, focusing on gentle partner stretches or synchronized flows.",
+        "Begin the video together, paying attention to your breath and how your bodies move in relation to each other.",
+        "During partner poses, communicate openly about comfort levels and adjustments, offering gentle assistance or support.",
+        "Take moments to make eye contact or share a soft touch as you transition between postures.",
+        "Conclude your session with a shared savasana, lying side-by-side or holding hands, allowing your bodies to rest and integrate the experience."
       ],
       "conversationPrompts": [
-        "What pose felt the most challenging, and what felt the most freeing?",
-        "How did it feel to move and breathe in sync with me?",
-        "What's one way we could bring more mindful movement into our daily routine?"
+        "What was one pose that felt surprisingly good or challenging for you today?",
+        "How did it feel to move through the practice with me, especially during shared stretches?",
+        "Beyond this session, what's a small way we could incorporate more mindful movement into our week?"
       ],
-      "connectionTwist": "At the beginning and end of your session, place one hand on each other's heart, feeling the other's breath for a few moments.",
-      "ending": "Share a glass of water or a light snack, discussing how your bodies and minds feel after moving together."
+      "connectionTwist": "At the beginning and end of your practice, place one hand on each other's heart, feeling the rhythm of your shared breathing for a few quiet moments.",
+      "ending": "Share a refreshing glass of water or a light, healthy snack, discussing how your bodies and minds feel after moving in harmony.",
+      "description": "Unroll your mats and bodies for a shared yoga practice, strengthening your physical connection and finding peace together."
     },
     {
       "id": "d048",
@@ -12617,31 +12657,32 @@
       "load": 3,
       "style": "talking",
       "releaseWeek": 21,
-      "vibe": "A playful stroll through automotive history, imagining future adventures together.",
-      "setup": "Check local listings for upcoming classic car shows or cruise-ins. Dress comfortably for walking and being outdoors, perhaps in a retro-inspired outfit to match the theme. Plan to arrive early to avoid crowds and have the best view of the vehicles.",
+      "vibe": "A playful journey through automotive history, sparking shared dreams of future adventures.",
+      "setup": "Scout local listings for an upcoming classic car show or cruise-in. Dress comfortably for walking and being outdoors. This date invites you to wander, admire intricate details, and let vintage beauty ignite conversations about shared horizons.",
       "supplies": [
         "Comfortable walking shoes",
         "Water bottles",
-        "Small bag for souvenirs",
-        "Fully charged phone for photos",
-        "Sunglasses"
+        "Sunglasses",
+        "Camera or phone for photos",
+        "A small bag for any unexpected finds"
       ],
       "guidedSteps": [
-        "Research and choose a local vintage car show or event that interests you both.",
-        "Arrive at the show and start your stroll, taking time to admire the craftsmanship of each car.",
-        "Point out details or features you find interesting, sharing observations with each other.",
-        "Approach car owners if they're nearby and ask about their vehicle's history or restoration process.",
-        "Find a car that sparks your imagination and discuss what kind of road trip you'd take in it.",
-        "Take a few photos together with your favorite classic car as a backdrop.",
-        "Before leaving, pick out your 'dream car' from the show and explain why it's your choice."
+        "Check local event listings to find a classic car show or exhibition that fits your schedule and interests.",
+        "Upon arrival, decide on a route to explore, taking your time to appreciate the unique details of each vehicle.",
+        "Point out cars that catch your eye, sharing what you like about their design, color, or history.",
+        "If owners are present and approachable, engage them in conversation about their car's story or restoration process.",
+        "Find a vintage car that sparks a shared fantasy and imagine what kind of road trip you'd take in it, discussing potential destinations.",
+        "Take a fun photo together with your favorite car as a backdrop, capturing the moment.",
+        "Before leaving, each pick your 'dream car' from the show and share why it captured your imagination."
       ],
       "conversationPrompts": [
-        "If we could take any car here on a cross-country trip, which one would it be and where would we go first?",
-        "What's a memory you have related to an old car from your childhood or a family member?",
-        "Beyond the aesthetics, what does the idea of 'vintage' or 'classic' mean to you in terms of quality or experience?"
+        "If we could take any car here on a spontaneous road trip, where would our first stop be and why?",
+        "What's a cherished memory you have involving a car from your past, or a family member's car?",
+        "Beyond the cars themselves, what does the 'vintage' aesthetic represent to you in terms of craftsmanship or enduring style?"
       ],
-      "connectionTwist": "Before heading home, find a quiet spot and hold hands while looking at one last car, silently appreciating the artistry and the shared experience.",
-      "ending": "Share your favorite car from the day over a casual snack or drink nearby, talking about the details that caught your eye."
+      "connectionTwist": "As you depart, find a quiet spot and hold hands for a moment, silently appreciating the artistry and the shared experience of stepping back in time.",
+      "ending": "Head to a nearby cafe or diner for a casual snack or drink, recounting your favorite discoveries and discussing the day's most memorable vehicles.",
+      "description": "Wander hand-in-hand through rows of gleaming classics, letting the timeless designs inspire stories and dreams of future road trips together."
     },
     {
       "id": "d056",
@@ -12658,30 +12699,31 @@
       "load": 1,
       "style": "talking",
       "releaseWeek": 22,
-      "vibe": "An intimate exploration of ideas and stories within the cozy corners of a bookstore.",
-      "setup": "Find a local independent bookstore with an attached cafe, or a large chain store with a coffee shop. Plan to go during a quieter time to allow for browsing and conversation. Bring a small notebook or your phone for jotting down interesting titles.",
+      "vibe": "An intimate journey of discovery, sharing thoughts and stories within the quiet comfort of a bookstore.",
+      "setup": "Locate a charming independent bookstore with a cafe, or a larger store that offers a coffee shop. Plan your visit for a quieter time to allow for unhurried browsing and relaxed conversation. This date is about sharing ideas and finding connection through words.",
       "supplies": [
-        "Small notebook and pen (optional)",
-        "Comfortable clothes for browsing",
-        "A little cash for coffee/tea",
-        "An open mind"
+        "Comfortable walking shoes",
+        "A small notebook and pen (optional)",
+        "Money for coffee or tea",
+        "An open mind for new ideas"
       ],
       "guidedSteps": [
-        "Upon arrival, browse different sections of the bookstore separately for 15-20 minutes, each looking for something that catches your eye.",
-        "Meet back at an agreed-upon spot and share one book or topic that intrigued you.",
-        "Head to the cafe, order your drinks, and find a cozy corner to settle in.",
-        "Take turns reading aloud short passages from the books you found, or from a book you brought from home.",
-        "Discuss the passages, sharing your interpretations or how they resonate with you.",
-        "Challenge each other to find a quote that encapsulates your current mood or a shared hope.",
-        "Before leaving, consider buying one book to read together, or each buying one for the other based on your conversation."
+        "Upon entering the bookstore, agree to explore different sections separately for 15-20 minutes, each looking for something that genuinely piques your interest.",
+        "Meet back at a designated spot and briefly share one or two books or topics that caught your eye.",
+        "Head to the bookstore's cafe, order your preferred drinks, and find a cozy, quiet corner to settle in.",
+        "Take turns reading aloud short passages from the books you found, or from a favorite book you brought from home, choosing sections that resonate with you.",
+        "After each reading, discuss your interpretations, how the words make you feel, or any thoughts they provoke.",
+        "Challenge each other to find a single sentence or quote that captures your current mood or a shared aspiration.",
+        "Before leaving, consider selecting one book to read together, or each purchasing a book for the other based on your insights from the date."
       ],
       "conversationPrompts": [
-        "If you could have a deep conversation with any author, living or dead, who would it be and what would you ask?",
-        "What kind of stories or ideas do you find yourself drawn to most often these days, and why?",
-        "Is there a book that significantly changed your perspective on something, and what was that shift?"
+        "If you could share a cup of coffee and a deep conversation with any author, living or past, who would it be and what would be your first question?",
+        "What kind of stories or ideas are you most drawn to right now, and what do you think that reveals about you?",
+        "Has there been a book that profoundly shifted your perspective on something important, and what was that shift?"
       ],
-      "connectionTwist": "Write a short, anonymous note about your favorite part of the date and slip it into a random book on a shelf for a future reader to find.",
-      "ending": "Walk home discussing the most thought-provoking idea you encountered, carrying the quiet hum of discovery."
+      "connectionTwist": "Before you leave, find a small, meaningful quote from a book in the store, write it on a tiny piece of paper, and exchange them, keeping it as a quiet reminder of your shared thoughts.",
+      "ending": "Walk out into the world, gently discussing the most thought-provoking idea or passage you encountered, carrying the quiet hum of shared discovery.",
+      "description": "Sip warm drinks and share passages from intriguing books, sparking deep conversations and discovering new facets of each other's minds."
     },
     {
       "id": "d063",
@@ -12722,7 +12764,8 @@
         "How does being in a natural, peaceful space like this influence your thoughts or feelings?"
       ],
       "connectionTwist": "As you leave, each pick a small, fallen leaf or pebble from the garden to keep as a quiet reminder of your shared calm.",
-      "ending": "Hold hands for a moment as you exit the garden, carrying the feeling of quiet connection into the rest of your day."
+      "ending": "Hold hands for a moment as you exit the garden, carrying the feeling of quiet connection into the rest of your day.",
+      "description": "Discover peaceful moments together in a serene garden, practicing mindfulness and sharing quiet reflections amidst nature's embrace."
     },
     {
       "id": "d075",
@@ -12762,7 +12805,8 @@
         "What's an unexpected discovery you've made recently, big or small, that brought you joy?"
       ],
       "connectionTwist": "Dedicate a specific song played by the band to each other, silently acknowledging why you chose it.",
-      "ending": "As you leave, hum a favorite tune from the performance, carrying the melody of your morning together."
+      "ending": "As you leave, hum a favorite tune from the performance, carrying the melody of your morning together.",
+      "description": "Savor a delightful brunch with live jazz, enjoying flavorful dishes, smooth melodies, and engaging conversation in a lively setting."
     },
     {
       "id": "d080",
@@ -12803,7 +12847,8 @@
         "If you could imbue a crystal with a specific quality for our relationship, what would it be?"
       ],
       "connectionTwist": "After the session, gently place one of the crystals you used under your pillow or on your nightstand to carry the calm into your sleep.",
-      "ending": "Share a warm cup of herbal tea, discussing how you might integrate moments of calm intention into your routine."
+      "ending": "Share a warm cup of herbal tea, discussing how you might integrate moments of calm intention into your routine.",
+      "description": "Explore inner calm and shared intentions through a gentle crystal healing session at home, creating a space for quiet introspection and connection."
     },
     {
       "id": "d081",
@@ -12821,7 +12866,7 @@
       "style": "doing",
       "releaseWeek": 22,
       "vibe": "An inspiring walk through art in nature, sparking conversation and shared perspectives.",
-      "setup": "Find a local sculpture garden, art park, or even a public space with interesting outdoor installations. Check their hours and admission fees. Wear comfortable shoes and bring a water bottle.",
+      "setup": "Choose a sculpture garden or an outdoor art installation nearby. Confirm their operating hours and any entry details beforehand. This date is about comfortable exploration, so wear appropriate shoes and bring what you need for a leisurely stroll.",
       "supplies": [
         "Comfortable walking shoes",
         "Water bottle",
@@ -12830,13 +12875,13 @@
         "Small sketchbook or notepad (optional)"
       ],
       "guidedSteps": [
-        "Arrive at the sculpture garden and take a moment to read any introductory information or maps.",
-        "Walk through the garden at a leisurely pace, stopping at each sculpture for a few minutes.",
-        "Before reading any placards, share your initial impressions and interpretations of each piece.",
-        "Discuss how the natural surroundings interact with or change your perception of the art.",
-        "Take turns choosing an angle to photograph a sculpture that highlights a specific detail or perspective.",
-        "Find a sculpture that particularly resonates with both of you and spend extra time discussing its meaning or impact.",
-        "Before leaving, choose your favorite sculpture and briefly explain why it spoke to you."
+        "Upon arrival, take a moment to orient yourselves with any maps or introductory plaques, then set a relaxed pace for your exploration.",
+        "Approach each sculpture, first observing it in silence, taking in its form, materials, and placement within the landscape.",
+        "Before reading any official descriptions, share your initial, unprompted impressions and what emotions or ideas the piece evokes for you.",
+        "Discuss how the surrounding nature—trees, sky, light—influences your perception of the art, or how the art changes your view of the natural space.",
+        "Choose one sculpture that uniquely captures your attention; take a few photos, focusing on different angles or details that you find compelling.",
+        "Find a bench or a quiet spot near a piece you both enjoy and linger there, allowing its presence to settle as you chat about its impact.",
+        "As you conclude your visit, each pick one sculpture that left the most lasting impression and share why it resonated with you personally."
       ],
       "conversationPrompts": [
         "If you could ask the artist one question about this piece, what would it be?",
@@ -12844,7 +12889,8 @@
         "What kind of art installation would you create if you had unlimited resources and space?"
       ],
       "connectionTwist": "At your favorite sculpture, stand side-by-side and silently observe it for one minute, holding hands, then share one word that comes to mind.",
-      "ending": "Over a snack or drink afterward, compare your favorite photos from the day and talk about the unexpected insights gained."
+      "ending": "Over a snack or your favorite beverage afterward, compare your favorite photos from the day and talk about the unexpected insights gained.",
+      "description": "Wander through an outdoor gallery hand-in-hand, discovering thought-provoking art that invites shared interpretations and sparks engaging conversations."
     },
     {
       "id": "d087",
@@ -12862,7 +12908,7 @@
       "style": "doing",
       "releaseWeek": 22,
       "vibe": "A charming exploration of the past, weaving personal stories with the history of a place.",
-      "setup": "Research a local historic district or neighborhood known for its unique architecture and stories. Look for self-guided walking tour maps online or at a local visitor center. Dress for walking and bring comfortable shoes.",
+      "setup": "Select a historic district or an older neighborhood in your area with distinctive architecture and known stories. Check online for any self-guided walking routes or points of interest. Plan to dress comfortably for walking, and prepare for a relaxed pace.",
       "supplies": [
         "Comfortable walking shoes",
         "Water bottles",
@@ -12871,13 +12917,13 @@
         "A sense of curiosity"
       ],
       "guidedSteps": [
-        "Before you go, briefly research the history of the chosen district or a few key landmarks.",
-        "Begin your walk, observing the architecture and streetscapes, imagining life in a different era.",
-        "Take turns pointing out interesting details – a unique facade, a historical marker, a charming storefront.",
-        "If you pass an old building, imagine who might have lived or worked there and what their daily life was like.",
-        "Find a quiet spot or a park bench to pause and share any personal stories or memories related to historical places you've visited.",
-        "Seek out a small, independent café or shop in the district to experience a bit of local flavor.",
-        "Before heading home, pick one building or street that felt most evocative and talk about why it stood out."
+        "Before you leave, briefly review some key historical facts or notable landmarks of the district you'll be exploring.",
+        "Start your walk with an open mind, observing the unique architectural styles and the general atmosphere, allowing yourselves to be transported back in time.",
+        "As you move, take turns pointing out small, intriguing details—a unique door knocker, a hidden garden, a weathered plaque—and share what catches your eye.",
+        "When you encounter an old building, pause and imagine the lives that unfolded within its walls: who lived there, what were their daily routines, what stories might they tell?",
+        "Find a quiet bench or a tucked-away courtyard to rest, sharing any personal memories or reflections that the historical surroundings bring to mind.",
+        "Discover a local, independent café or shop within the district, choosing a place that feels authentic to the area for a brief stop.",
+        "Before concluding your walk, each identify one particular building, street, or detail that resonated most deeply with you, and explain why."
       ],
       "conversationPrompts": [
         "If you could spend a day living in this neighborhood during any historical period, which would you choose and why?",
@@ -12885,7 +12931,8 @@
         "What elements of the past do you wish were more present in our modern world?"
       ],
       "connectionTwist": "Find a quiet alleyway or hidden courtyard, and share a quick, unexpected kiss, imagining you're stealing a moment in time.",
-      "ending": "Settle into a cozy cafe for a warm drink, continuing your conversation about the echoes of history you felt during your walk."
+      "ending": "Settle into a cozy café for your favorite warm beverage, allowing the conversation about the district's history to gently continue.",
+      "description": "Stroll through a charming historic neighborhood, imagining lives from another era as you uncover architectural gems and shared stories."
     },
     {
       "id": "d094",
@@ -12903,7 +12950,7 @@
       "style": "mixed",
       "releaseWeek": 22,
       "vibe": "A shared journey into stillness, cultivating inner peace and gentle connection at home.",
-      "setup": "Choose a quiet time when you won't be disturbed. Clear a comfortable space in your home, perhaps with cushions, blankets, and soft lighting. Turn off phones and other distractions.",
+      "setup": "Select a time when you can ensure uninterrupted quiet. Prepare a serene space in your home, arranging cushions or blankets for comfort and dimming the lights. Ensure all phones and potential distractions are silenced and out of reach.",
       "supplies": [
         "Comfortable cushions or blankets",
         "Soft lighting (candles or dim lamps)",
@@ -12912,13 +12959,13 @@
         "Two eye masks (optional)"
       ],
       "guidedSteps": [
-        "Together, prepare your meditation space, making it comfortable and free from distractions.",
-        "Sit facing each other or side-by-side, either on cushions or comfortable chairs.",
-        "Begin with a short guided meditation (you can find many free ones online, or one of you can lead a simple breath awareness exercise).",
-        "After 15-20 minutes of meditation, gently open your eyes and maintain a comfortable silence for another few minutes, simply being present with each other.",
-        "Share any thoughts, sensations, or feelings that arose during your meditation, listening without judgment.",
-        "Practice a walking meditation together in your space, moving slowly and mindfully, perhaps holding hands.",
-        "Conclude by holding hands and setting a shared intention for bringing more mindfulness into your daily life."
+        "Work together to arrange your chosen space, ensuring it feels deeply comfortable and free from any potential interruptions.",
+        "Settle into your positions, whether side-by-side or facing each other, on cushions or in comfortable chairs, allowing your bodies to relax.",
+        "Initiate a guided meditation; you can use an online audio, or one of you can gently lead a simple breath-focused exercise for 15-20 minutes.",
+        "Once the meditation concludes, slowly open your eyes. Remain in comfortable silence for a few minutes, simply sharing the quiet presence of each other.",
+        "Gently share any observations, sensations, or feelings that arose for you during the meditation, listening to each other without analysis.",
+        "If comfortable, engage in a brief, slow walking meditation within your space, moving with intention and perhaps a gentle touch.",
+        "End by holding hands, closing your eyes for a moment, and silently affirming a shared intention to carry this sense of calm into your week."
       ],
       "conversationPrompts": [
         "What part of the meditation felt most challenging or most peaceful for you?",
@@ -12926,7 +12973,8 @@
         "What's one small way we can bring more mindful presence into our routine this week?"
       ],
       "connectionTwist": "At the end, gently place your palms together, thumb to thumb, and close your eyes for a moment, feeling the quiet energy between you.",
-      "ending": "Share a light, nourishing snack or a warm drink in silence, allowing the peaceful atmosphere to linger."
+      "ending": "Share a light snack or a warm, comforting beverage in continued quiet, allowing the peaceful atmosphere to gently extend.",
+      "description": "Create a peaceful sanctuary at home for a guided meditation, fostering shared calm and a deeper, quiet understanding between you."
     },
     {
       "id": "d103",
@@ -12943,29 +12991,30 @@
       "load": 1,
       "style": "talking",
       "releaseWeek": 23,
-      "vibe": "A gentle, shared moment of quiet connection, enveloped by nature and each other's presence.",
-      "setup": "Find a cozy hammock spot outdoors, perhaps in your yard, a local park, or a quiet corner of a natural area. Bring a book you both want to read, or pick one to discover together. This date is about sharing a story and the calm of the outdoors.",
+      "vibe": "A tranquil afternoon spent sharing a story and the quiet comfort of nature.",
+      "setup": "Find a peaceful outdoor spot for your hammock, whether in your backyard, a local park, or a quiet natural area. Choose a book you'll both enjoy, ready to immerse yourselves in a shared narrative and the gentle rhythm of the outdoors.",
       "supplies": [
-        "A comfortable hammock (or two if preferred)",
+        "A comfortable hammock",
         "One book to share",
-        "Bug spray if needed",
-        "Two water bottles"
+        "Two water bottles",
+        "Sunscreen or bug spray (as needed)"
       ],
       "guidedSteps": [
-        "Set up your hammock(s) in a peaceful outdoor spot, ensuring it's stable and comfortable for both of you.",
-        "Settle in together. One of you starts reading the chosen book aloud from the beginning or a pre-selected chapter.",
-        "Listen actively, letting the story unfold as the reader's voice fills the air.",
-        "After a few pages, gently switch roles, allowing the other person to continue reading aloud.",
-        "Pause periodically to re-read a sentence or paragraph that stands out, or to simply enjoy the quiet.",
-        "When you reach a natural stopping point, discuss the characters, plot, or themes."
+        "Set up your hammock in a peaceful outdoor spot, ensuring it's stable and comfortable for both of you to relax.",
+        "Settle in together. One of you begins reading the chosen book aloud, allowing your voice to set the pace of the story.",
+        "Listen actively, letting the words create images in your mind while enjoying the sounds of your surroundings.",
+        "After a few pages, gently switch roles, letting the other person continue the narrative aloud.",
+        "Pause occasionally to simply enjoy the quiet, or to re-read a sentence that resonated with either of you.",
+        "When you reach a natural break, discuss a character, a plot twist, or a memorable line from the reading."
       ],
       "conversationPrompts": [
         "What feeling does this passage evoke in you right now?",
-        "If you were a character in this book, who would you be and why?",
-        "What's a book you read as a child that still makes you feel good?"
+        "If you could step into the world of this book, what would be the first thing you'd do?",
+        "What's a book you remember from childhood that still brings you a sense of comfort?"
       ],
-      "connectionTwist": "Before you pack up, gently swing together in the hammock for a full minute in silence, simply feeling the rhythm of your shared space.",
-      "ending": "Close the book, give it a soft pat, and share one sentence about what you enjoyed most about listening to your partner read."
+      "connectionTwist": "Gently swing together in the hammock for a full minute in silence, simply feeling the shared rhythm and quiet presence.",
+      "ending": "Close the book, give it a soft pat, and share one sentence about a specific detail you enjoyed hearing your partner read.",
+      "description": "Unwind together in a hammock, taking turns reading aloud from a captivating book and sharing quiet moments in nature's embrace."
     },
     {
       "id": "d131",
@@ -12983,29 +13032,30 @@
       "style": "doing",
       "releaseWeek": 23,
       "vibe": "An elegant and flavorful exploration of tastes, shared with curiosity and delight.",
-      "setup": "Transform your kitchen or living space into a sophisticated tasting room. This date invites you to explore new flavors and discover shared preferences, turning a simple snack into a curated experience.",
+      "setup": "Transform a corner of your home into a cozy tasting haven. This date invites you to explore new flavors and discover shared preferences, turning a simple snack into a delightful, curated experience.",
       "supplies": [
         "3-4 different cheeses",
-        "Crackers or baguette",
-        "2-3 types of wine (or non-alcoholic sparkling cider/grape juice)",
-        "Small plates",
-        "A cheese board and knives"
+        "Assorted crackers or a fresh baguette",
+        "2-3 types of wine or non-alcoholic sparkling cider/grape juice",
+        "Small plates and tasting utensils",
+        "A cheese board or platter"
       ],
       "guidedSteps": [
-        "Arrange your cheeses, crackers, and drinks artfully on a board or platter. Label each cheese if possible.",
-        "Pour your first drink. Start with the mildest cheese, taking a small bite to note its texture and flavor.",
-        "Sip your drink, then take another bite of the cheese, observing how the flavors interact. Discuss your initial impressions.",
-        "Move to the next cheese and drink, repeating the tasting process and comparing notes.",
-        "Experiment with different pairings, trying each cheese with various drinks until you find a combination you both enjoy.",
-        "Identify your favorite pairing of the evening and savor it slowly."
+        "Arrange your chosen cheeses, crackers, and drinks artfully on a board or platter. Consider labeling each cheese for easy reference.",
+        "Start with the mildest cheese. Take a small bite, noting its texture and initial flavor profile.",
+        "Pour your first drink. Sip it, then take another bite of the cheese, observing how the flavors mingle and transform.",
+        "Discuss your impressions: what do you taste? What do you like or dislike? Move to the next cheese and drink, repeating the process.",
+        "Experiment with different pairings, trying each cheese with various drinks until you find combinations that truly spark your interest.",
+        "Identify your absolute favorite pairing of the evening and savor it slowly, appreciating the discovery."
       ],
       "conversationPrompts": [
-        "If this cheese had a personality, what would it be like?",
-        "What's a new flavor combination you've discovered tonight that surprises you?",
-        "What's a food experience you've always wanted to try together?"
+        "If this cheese had a distinct personality, how would you describe it?",
+        "What's a new flavor combination you've discovered tonight that genuinely surprises you?",
+        "Beyond food, what's another experience you've always wanted to try and explore together?"
       ],
-      "connectionTwist": "Create a 'signature bite' by combining your favorite cheese with an unexpected cracker or fruit, then feed it to each other.",
-      "ending": "Clear the tasting setup together, then reflect on the most surprising or delicious pairing you found."
+      "connectionTwist": "Create a 'signature bite' by combining your favorite cheese with an unexpected cracker or fruit, then gently feed it to each other.",
+      "ending": "Clear the tasting setup together, then share the most surprising or delicious pairing you found tonight, and why.",
+      "description": "Discover delightful flavor combinations together by pairing a selection of cheeses with your favorite drinks in a relaxed, at-home tasting."
     },
     {
       "id": "d134",
@@ -13023,28 +13073,29 @@
       "style": "doing",
       "releaseWeek": 23,
       "vibe": "A whimsical journey into a vibrant, living ecosystem, sharing moments of wonder and quiet observation.",
-      "setup": "Step into a world of delicate beauty at a butterfly garden or conservatory. This date is about slowing down, observing the intricate details of nature, and finding quiet joy in shared discovery.",
+      "setup": "Step into a world of delicate beauty at a butterfly garden or conservatory. This date is about slowing down, observing the intricate details of nature, and finding quiet joy in shared discovery. Allow yourselves to be captivated by the gentle flutter of wings and the vibrant colors.",
       "supplies": [
         "Comfortable walking shoes",
-        "Camera or phone for photos",
-        "A small notepad and pen",
-        "Admission tickets if required"
+        "Camera or phone for capturing delicate details",
+        "A small notebook and pen for observations",
+        "Admission tickets (if required)"
       ],
       "guidedSteps": [
-        "Enter the butterfly garden, taking a moment to adjust to the warm, humid air and the gentle flutter of wings.",
-        "Walk slowly through the paths, observing the various species of butterflies as they feed and fly. Point out unique colors or patterns to each other.",
-        "Find a quiet bench or spot to sit together for a few minutes, simply watching the butterflies around you without speaking.",
-        "Try to identify different types of butterflies using any provided guides or a quick online search.",
-        "Take a few close-up photos of butterflies resting on flowers or leaves, focusing on their delicate details.",
-        "Share any interesting facts you learned about butterfly life cycles or migration."
+        "Enter the butterfly garden, taking a moment to adjust to the warm, humid air and the gentle, constant flutter of wings around you.",
+        "Walk slowly along the paths, pointing out unique colors, patterns, or behaviors of the butterflies to each other.",
+        "Find a quiet bench or spot to sit together for a few minutes, simply observing the butterflies without speaking, letting their presence calm you.",
+        "If guides are available, try to identify a few different species, or look up an interesting fact about a butterfly you see.",
+        "Take a few close-up photos of butterflies resting on flowers or leaves, focusing on the intricate details of their wings.",
+        "Share any surprising observations you made or facts you learned about butterfly life cycles or migration."
       ],
       "conversationPrompts": [
-        "If you could transform into any creature, which one would you choose and why?",
-        "What's a small detail you noticed today that made you smile?",
-        "Where's another place in nature you'd love to explore together?"
+        "If you could transform into any creature for a day, which one would you choose and why?",
+        "What's one small detail you noticed today that brought a quiet smile to your face?",
+        "Where's another place in nature, near or far, that you'd love to explore together?"
       ],
       "connectionTwist": "Find a quiet spot and stand still, side-by-side, for two minutes, silently hoping a butterfly lands near or on one of you.",
-      "ending": "As you leave, describe one color or pattern that stood out to you most from the butterflies you saw."
+      "ending": "As you leave, describe one specific color or pattern that stood out most to you from the butterflies you saw, and why it caught your eye.",
+      "description": "Wander hand-in-hand through a vibrant butterfly garden, observing delicate wings and finding quiet moments of shared wonder amidst nature's beauty."
     },
     {
       "id": "d137",
@@ -13068,12 +13119,11 @@
         "Wicks with bases",
         "Candle containers (jars or tins)",
         "Essential oils or fragrance oils",
-        "A double boiler or heat-safe pot",
-        "Stirring sticks",
-        "Clothespins or wick holders"
+        "A heat-safe pot or double boiler",
+        "Stirring sticks or wooden skewers"
       ],
       "guidedSteps": [
-        "Set up your workspace, protecting surfaces with newspaper. Measure out your wax and place it in a double boiler to melt slowly.",
+        "Set up your workspace, protecting surfaces with newspaper. Measure out your wax and place it in a heat-safe pot to melt slowly.",
         "While the wax melts, center a wick in each container using a wick holder or clothespin to keep it upright.",
         "Once the wax is fully melted, carefully remove it from the heat. Discuss and choose your desired fragrance oils, adding a few drops at a time.",
         "Pour the scented wax into your prepared containers, leaving about half an inch from the top.",
@@ -13086,7 +13136,8 @@
         "What's another craft project you'd like to try creating together?"
       ],
       "connectionTwist": "As the candles cool, gently place your hands over them, silently infusing them with a wish for your shared home.",
-      "ending": "Light one of your newly made candles. Sit together in its soft glow and simply enjoy the quiet ambiance you created."
+      "ending": "Light one of your newly made candles. Sit together in its soft glow and simply enjoy the quiet ambiance you created.",
+      "description": "Craft personalized candles, infusing your home with custom scents and a warm glow you created together."
     },
     {
       "id": "d196",
@@ -13125,7 +13176,8 @@
         "What's one small thing you appreciate about our time together without distractions?"
       ],
       "connectionTwist": "Before packing up, lie on your backs on the blanket, holding hands, and quietly observe the sky for five minutes.",
-      "ending": "Pack up your picnic together, making a mental note of one specific detail you noticed about your partner during your unplugged time."
+      "ending": "Pack up your picnic together, making a mental note of one specific detail you noticed about your partner during your unplugged time.",
+      "description": "Unplug and reconnect with a peaceful picnic, leaving distractions behind to fully enjoy each other's presence and conversation."
     },
     {
       "id": "d200",
@@ -13164,7 +13216,8 @@
         "What's your favorite season, and what activity do you most look forward to doing during it?"
       ],
       "connectionTwist": "Find two perfectly matched leaves, one for each of you, and exchange them as a small seasonal keepsake.",
-      "ending": "Hold up your collected leaves, admiring the variety, and share one word that captures the feeling of your autumn walk."
+      "ending": "Hold up your collected leaves, admiring the variety, and share one word that captures the feeling of your autumn walk.",
+      "description": "Wander through autumn foliage, collecting vibrant leaves to press and preserve as a tangible reminder of your shared seasonal adventure."
     },
     {
       "id": "d202",

@@ -247,18 +247,19 @@ export default function PromptsScreen({ navigation }) {
     try {
       const allPrompts = ALL_BUNDLED.map(normalizePrompt);
 
-      // Get prompts that respect weekly release schedule
-      const access = await contentAccessService.getAccessiblePrompts(allPrompts, {
-        userId: user?.uid,
-        isPremium,
-        userSettings: contentProfile || userProfile || {},
-      });
+      // Apply user boundaries (heat limits, hidden categories, paused items)
+      const boundaryFiltered = contentProfile 
+        ? allPrompts.filter(p => {
+            const heat = p.heat || 1;
+            if (contentProfile.maxHeat && heat > contentProfile.maxHeat) return false;
+            if (contentProfile.boundaries?.hiddenCategories?.includes(p.category)) return false;
+            if (contentProfile.boundaries?.pausedEntries?.includes(p.id)) return false;
+            return true;
+          })
+        : applyRawBoundaryFilter(allPrompts, rawBoundaries);
 
-      const accessiblePrompts = access.prompts || [];
-      setPrompts(accessiblePrompts);
-
-      // Build weekly set for free users from the already-filtered accessible prompts
-      const weeklySet = buildWeeklySet(accessiblePrompts, {
+      // Build personalized weekly set (handles both free rotating and premium growing library)
+      const weeklySet = buildWeeklySet(boundaryFiltered, {
         contentType: CONTENT_TYPES.PROMPTS,
         userId: user?.uid || user?.id || 'anonymous',
         isPremium,
@@ -268,13 +269,15 @@ export default function PromptsScreen({ navigation }) {
       });
 
       setWeeklyPromptSet(weeklySet);
+      // Store all boundary-filtered prompts for premium users (they see everything)
+      setPrompts(boundaryFiltered);
     } catch {
       setPrompts([]);
       setWeeklyPromptSet(null);
     } finally {
       setLoading(false);
     }
-  }, [contentProfile, isPremium, selectedHeat, user?.uid, userProfile]);
+  }, [contentProfile, isPremium, selectedHeat, user?.uid, userProfile, rawBoundaries]);
 
   useEffect(() => {
     loadPrompts();
@@ -283,6 +286,7 @@ export default function PromptsScreen({ navigation }) {
   const freeWeeklyPromptDeck = useMemo(() => {
     if (isPremium || !weeklyPromptSet?.items?.length) return null;
 
+    // Free users see ONLY their weekly rotating set (not cumulative)
     return weeklyPromptSet.items.map((item) => normalizePrompt({
       ...item,
       text: item.text || item.prompt || item.previewText || item.title || 'Premium prompt',
@@ -297,16 +301,18 @@ export default function PromptsScreen({ navigation }) {
 
   const deckPrompts = useMemo(() => {
     let finalDeck = [];
+    
     if (!isPremium && freeWeeklyPromptDeck?.length) {
+      // Free users: Use ONLY the rotating weekly set
       finalDeck = [...freeWeeklyPromptDeck];
-    } else {
-      // Mix all heat levels together, respecting boundaries
-      const basePrompts = contentProfile ? prompts : applyRawBoundaryFilter(prompts, rawBoundaries);
-      const allPrompts = basePrompts.map(normalizePrompt);
+    } else if (isPremium) {
+      // Premium users: Use ALL boundary-filtered prompts
+      const allPrompts = prompts.map(normalizePrompt);
 
       if (!contentProfile) {
         finalDeck = shuffleArray(allPrompts);
       } else {
+        // Personalize: preferred content first, then rest shuffled
         const personalized = PreferenceEngine.filterPrompts(allPrompts, {
           ...contentProfile,
           maxHeat: resolveExplicitMaxHeat(contentProfile),
@@ -319,6 +325,7 @@ export default function PromptsScreen({ navigation }) {
       }
     }
 
+    // Shuffle on deck version change (when user taps shuffle button)
     if (deckVersion > 0) {
       return shuffleArray(finalDeck);
     }
