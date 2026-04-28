@@ -297,22 +297,22 @@ export default function PromptsScreen({ navigation }) {
       return freeWeeklyPromptDeck;
     }
 
-    const heat = selectedHeat ?? 1;
+    // Mix all heat levels together, respecting boundaries
     const basePrompts = contentProfile ? prompts : applyRawBoundaryFilter(prompts, rawBoundaries);
-    const byHeat = basePrompts.map(normalizePrompt).filter((p) => (p.heat || 1) === heat);
+    const allPrompts = basePrompts.map(normalizePrompt);
 
-    if (!contentProfile) return shuffleArray(byHeat);
+    if (!contentProfile) return shuffleArray(allPrompts);
 
-    const personalized = PreferenceEngine.filterPrompts(byHeat, {
+    const personalized = PreferenceEngine.filterPrompts(allPrompts, {
       ...contentProfile,
-      maxHeat: heat,
+      maxHeat: resolveExplicitMaxHeat(contentProfile),
     });
 
     const personalizedIds = new Set(personalized.map((prompt) => String(prompt?.id)));
-    const remaining = byHeat.filter((prompt) => !personalizedIds.has(String(prompt?.id)));
+    const remaining = allPrompts.filter((prompt) => !personalizedIds.has(String(prompt?.id)));
 
     return [...personalized, ...shuffleArray(remaining)];
-  }, [prompts, selectedHeat, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck]);
+  }, [prompts, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck]);
 
   const handlePromptSelect = useCallback((prompt) => {
     if (prompt?.isLockedPreview || prompt?.requiresPremium) {
@@ -386,7 +386,7 @@ export default function PromptsScreen({ navigation }) {
         <SafeAreaView style={styles.safe} edges={["top"]}>
           {/* Editorial Header */}
           <Animated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
-            <Text style={[styles.headerLabel, { color: HEAT_LEVELS[(selectedHeat || 1) - 1].color }]}>
+            <Text style={[styles.headerLabel, { color: t.primary }]}>
               {isPremium
                 ? `${deckPrompts.length} cards ready`
                 : `${weeklyPromptSet?.unlocked?.length || 0} free draws today`}
@@ -394,65 +394,22 @@ export default function PromptsScreen({ navigation }) {
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
           </Animated.View>
 
-          {/* Tactile Heat Selector */}
-          <Animated.View entering={FadeIn.duration(800).delay(500)} style={styles.heatSection}>
-            <Text style={[styles.sectionLabel, { color: t.subtext }]}>HEAT LEVEL</Text>
-            <View style={styles.heatRow}>
-              {HEAT_LEVELS.map(({ value, label, color: heatColor }) => {
-                const active = selectedHeat === value;
-                const locked = false;
-                const aboveMax = value > maxSelectableHeat;
-
-                const bgColor = active ? heatColor : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
-                const borderColor = active ? heatColor : locked ? heatColor + '30' : aboveMax ? (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)') : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)');
-                const textColor = active ? '#FFFFFF' : withAlpha(heatColor, aboveMax ? 0.15 : locked ? 0.45 : 0.55);
-
-                return (
-                  <View key={value} style={[styles.chipWrapper, aboveMax && { opacity: 0.3 }]}>
-                    <TouchableOpacity
-                      style={[
-                        styles.heatChip,
-                        {
-                          backgroundColor: bgColor,
-                          borderColor: borderColor,
-                          ...(active && Platform.OS === 'ios' ? {
-                            shadowColor: heatColor,
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.6,
-                            shadowRadius: 12,
-                            elevation: 10,
-                          } : {})
-                        },
-                      ]}
-                      onPress={() => !aboveMax && handleHeatSelect(value)}
-                      activeOpacity={aboveMax ? 1 : 0.8}
-                      disabled={aboveMax}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Heat level ${label}${active ? ', selected' : ''}${aboveMax ? ', unavailable' : ''}`}
-                      accessibilityState={{ selected: active, disabled: aboveMax }}
-                    >
-                      <Text style={[styles.heatLabel, { color: textColor }]}>
-                        {label}
-                      </Text>
-                      {locked && !aboveMax && (
-                        <Text style={[styles.heatPremiumTag, { color: withAlpha(heatColor, 0.6) }]}>FULL</Text>
-                      )}
-                    </TouchableOpacity>
-                    {locked && !aboveMax && (
-                      <View style={[
-                        styles.lockBadge,
-                        {
-                          backgroundColor: active ? (isDark ? '#000' : '#FFF') : t.background,
-                          borderColor: active ? (isDark ? '#FFF' : '#000') : withAlpha(heatColor, 0.4)
-                        }
-                      ]}>
-                        <Icon name="lock-closed" size={10} color={active ? '#FFF' : withAlpha(heatColor, 0.6)} />
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
+          {/* Shuffle Button */}
+          <Animated.View entering={FadeIn.duration(800).delay(500)} style={styles.shuffleSection}>
+            <TouchableOpacity
+              style={[styles.shuffleButton, { 
+                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                borderColor: t.border
+              }]}
+              onPress={() => {
+                impact(ImpactFeedbackStyle.Medium);
+                setDeckVersion((v) => v + 1);
+              }}
+              activeOpacity={0.7}
+            >
+              <Icon name="shuffle-outline" size={20} color={t.primary} />
+              <Text style={[styles.shuffleText, { color: t.text }]}>Shuffle Deck</Text>
+            </TouchableOpacity>
           </Animated.View>
 
           {/* Interaction Area */}
@@ -522,61 +479,31 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
     lineHeight: 42,
   },
-  heatSection: {
+  shuffleSection: {
     paddingHorizontal: 32,
     marginBottom: 30,
-  },
-  sectionLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 2.5,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  heatRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
   },
-  chipWrapper: {
-    flex: 1,
-    position: 'relative',
-  },
-  heatChip: {
-    height: 54,
+  shuffleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  heatLabel: {
+  shuffleText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 22,
-    fontWeight: "800",
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    includeFontPadding: false,
-  },
-  heatPremiumTag: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 8,
-    fontWeight: '900',
-    letterSpacing: 0.8,
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  lockBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   deckWrapper: {
     flex: 1,
