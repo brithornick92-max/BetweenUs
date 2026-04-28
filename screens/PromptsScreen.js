@@ -407,7 +407,7 @@ export default function PromptsScreen({ navigation }) {
               }}
               activeOpacity={0.7}
             >
-              <Icon name="shuffle-outline" size={20} color={t.primary} />
+              <Icon name="shuffle-outline" size={16} color={t.primary} />
               <Text style={[styles.shuffleText, { color: t.text }]}>Shuffle Deck</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -488,22 +488,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 16,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
     borderWidth: 1.5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 6,
+    elevation: 2,
   },
   shuffleText: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   deckWrapper: {
     flex: 1,

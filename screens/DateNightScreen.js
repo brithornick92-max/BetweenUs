@@ -57,8 +57,8 @@ const SPRING = { damping: 20, stiffness: 150, mass: 0.8 };
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const TONE_DATE_COPY = {
   warm: {
-    subtitle: 'Tender plans with softness, comfort, and room to land together.',
-    emptySetup: 'Choose the mood above to reveal warm plans shaped around what you both want tonight.',
+    subtitle: 'A date shaped around your mood.',
+    emptySetup: 'Choose a mood to reveal plans shaped around tonight.',
     emptyResults: 'No warm matches surfaced. Try easing the filters or choosing a gentler lane.',
   },
   playful: {
@@ -395,10 +395,6 @@ export default function DateNightScreen({ navigation }) {
   const [allDates, setAllDates] = useState([]);
   const [weeklyDateSet, setWeeklyDateSet] = useState(null);
   const [contentProfile, setContentProfile] = useState(null);
-  const [rawBoundaries, setRawBoundaries] = useState(null);
-  const [selectedHeat, setSelectedHeat] = useState(null);   // mood: 1=Heart, 2=Play, 3=Heat
-  const [selectedLoad, setSelectedLoad] = useState(null);   // energy: 1=Chill, 2=Moderate, 3=Active
-  const [selectedStyle, setSelectedStyle] = useState(null); // style: talking, doing, mixed
   const [deckIndex, setDeckIndex] = useState(0);
   const [likedDates, setLikedDates] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(null); // 'heat' | 'load' | 'style' | null
@@ -406,6 +402,16 @@ export default function DateNightScreen({ navigation }) {
   const [dateHistory, setDateHistory] = useState([]); // { id, title, heat, addedAt, rating: 'up'|'down'|null }
 
   const stackRef = useRef(null);
+  const [deckVersion, setDeckVersion] = useState(0);
+
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
 
   // Defer heavy work until the tab transition animation finishes.
   // Reload on focus so season, tone, energy, and boundaries changes take effect.
@@ -444,7 +450,6 @@ export default function DateNightScreen({ navigation }) {
         ])
           .then(([profile, bounds]) => {
             setContentProfile(profile);
-            setRawBoundaries(bounds);
           })
           .catch(() => {
             SoftBoundaries.getAll().then(setRawBoundaries).catch(() => {});
@@ -458,20 +463,12 @@ export default function DateNightScreen({ navigation }) {
   // Reset deck position whenever the filtered deck changes
   // (filter change, profile load, premium status change)
   useEffect(() => {
-    setDeckIndex(0);
-  }, [selectedHeat, selectedLoad, selectedStyle, contentProfile, isPremium]);
-
-  const activeFilters = useMemo(() => {
-    const f = {};
-    if (selectedHeat) f.heat = selectedHeat;
-    if (selectedLoad) f.load = selectedLoad;
-    if (selectedStyle) f.style = selectedStyle;
-    return f;
-  }, [selectedHeat, selectedLoad, selectedStyle]);
+    setDeckIndex(0); // Reset index when deck shuffles
+  }, [deckVersion, contentProfile, isPremium]);
 
   const freeWeeklyDateDeck = useMemo(() => {
     if (isPremium || !weeklyDateSet?.items?.length) return null;
-
+  
     return weeklyDateSet.items.map((item) => ({
       ...item,
       title: item.title || item.previewText || 'Premium date idea',
@@ -486,59 +483,23 @@ export default function DateNightScreen({ navigation }) {
   }, [isPremium, weeklyDateSet]);
 
   const deck = useMemo(() => {
-    if (!isPremium && freeWeeklyDateDeck?.length && !(selectedHeat && selectedLoad && selectedStyle)) {
+    if (!isPremium && freeWeeklyDateDeck?.length) {
       return freeWeeklyDateDeck;
     }
 
-    const accessProfile = contentProfile
-      ? {
-          ...contentProfile,
-          maxHeat: contentAccessService.getUserMaxHeatLevel(contentProfile),
-        }
-      : null;
+    const baseDates = contentProfile
+      ? getFilteredDatesWithProfile(contentProfile)
+      : allDates;
 
-    // When no profile, apply raw boundaries synchronously so paused/heat-capped dates never surface
-    const boundaryFilteredDates = contentProfile
-      ? allDates
-      : allDates.filter((date) => {
-          if (!date) return false;
-          if (rawBoundaries?.pausedDates?.includes(date.id)) return false;
-          if (rawBoundaries?.maxHeatOverride != null && typeof date.heat === 'number' && date.heat > rawBoundaries.maxHeatOverride) return false;
-          return true;
-        });
+    if (!contentProfile) return shuffleArray(baseDates);
 
-    const strictProfileBase = accessProfile ? getFilteredDatesWithProfile(accessProfile) : boundaryFilteredDates;
-    const fallbackProfileBase = accessProfile
-      ? allDates.filter((date) => {
-          if (accessProfile.boundaries?.pausedDates?.includes(date.id)) return false;
-          if (typeof accessProfile.maxHeat === 'number' && date.heat > accessProfile.maxHeat) return false;
-          return true;
-        })
-      : boundaryFilteredDates;
+    const personalized = PreferenceEngine.filterDatesWithProfile(baseDates, contentProfile);
+    const personalizedIds = new Set(personalized.map((d) => d.id));
+    const remaining = baseDates.filter((d) => !personalizedIds.has(d.id));
 
-    const dims = {};
-    if (selectedHeat) dims.heat = selectedHeat;
-    if (selectedLoad) dims.load = selectedLoad;
-    if (selectedStyle) dims.style = selectedStyle;
+    return [...personalized, ...shuffleArray(remaining)];
+  }, [allDates, contentProfile, isPremium, freeWeeklyDateDeck, deckVersion]);
 
-    let base = filterDates(strictProfileBase, activeFilters);
-
-    if (accessProfile && base.length > 0) {
-      const personalized = PreferenceEngine.filterDatesWithProfile(base, accessProfile, dims);
-      if (personalized.length > 0) {
-        base = personalized;
-      }
-    }
-
-    if (base.length === 0) {
-      base = filterDates(fallbackProfileBase, activeFilters);
-    }
-
-    return base;
-  }, [allDates, activeFilters, contentProfile, rawBoundaries, selectedHeat, selectedLoad, selectedStyle, isPremium, freeWeeklyDateDeck]);
-
-  const allSelected = selectedHeat && selectedLoad && selectedStyle;
-  const hasFilters = selectedHeat || selectedLoad || selectedStyle;
   const remaining = deck.length - deckIndex;
   const deckDone = deckIndex >= deck.length && deck.length > 0;
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
@@ -587,22 +548,6 @@ export default function DateNightScreen({ navigation }) {
   const handleReset = useCallback(async () => {
     impact(ImpactFeedbackStyle.Light);
     setDeckIndex(0);
-  }, []);
-
-  const handleFilterPress = useCallback(async (dim, value) => {
-    selection();
-    // Required selection — tapping same value again does nothing (can't deselect)
-    if (dim === 'heat') setSelectedHeat(value);
-    else if (dim === 'load') setSelectedLoad(value);
-    else setSelectedStyle(value);
-    setDropdownOpen(null);
-  }, []);
-
-  const clearFilters = useCallback(async () => {
-    impact(ImpactFeedbackStyle.Light);
-    setSelectedHeat(null);
-    setSelectedLoad(null);
-    setSelectedStyle(null);
   }, []);
 
   const refreshBoundaryProfile = useCallback(async () => {
@@ -663,52 +608,65 @@ export default function DateNightScreen({ navigation }) {
 
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={[styles.headerEye, { color: t.primary }]}>
-              {!ready
-                ? 'Preparing ideas...'
-                : !isPremium && !allSelected
-                  ? `${weeklyDateSet?.unlocked?.length || 0} free + ${weeklyDateSet?.lockedPreviews?.length || 0} premium this week`
-                  : !allSelected
-                    ? `${allDates.length}+ private date ideas`
-                    : remaining > 0
-                      ? `${remaining} possible plans`
-                      : deck.length > 0
-                        ? 'All ideas drawn'
-                        : `${allDates.length}+ private date ideas`}
-            </Text>
-            <Text style={[styles.headerTitle, { color: t.text }]}>Tonight</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>{toneCopy.subtitle}</Text>
-            {!isPremium && weeklyDateSet?.upgradeCopy?.body ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: colors.primary + '15', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start' }}>
-                <Icon name="sparkles" size={14} color={colors.primary} />
-                <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>
-                  {weeklyDateSet.upgradeCopy.body}
-                </Text>
-              </View>
-            ) : !isPremium ? (
-              <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
-                <Icon name="calendar-outline" size={14} color={colors.textMuted} />
-                <Text style={[styles.weeklyDropText, { color: colors.textMuted }]}>
-                  +3 new dates every Monday • Premium gets +8
-                </Text>
-              </View>
-            ) : null}
+          <Text style={[styles.headerEye, { color: t.primary }]}>
+            {!ready
+              ? 'Preparing ideas...' : remaining > 0
+                ? `${remaining} ideas ready`
+                : 'All ideas drawn'}
+          </Text>
+          
+          <View style={styles.headerRow}>
+            <Text style={[styles.headerTitle, { color: t.text }]}>Dates</Text>
+            
+            <TouchableOpacity
+              style={[styles.historyButton, { 
+                borderColor: historyOpen ? colors.primary + '40' : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'), 
+                backgroundColor: historyOpen ? colors.primary + '15' : 'transparent' 
+              }]}
+              onPress={() => setHistoryOpen(o => !o)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${historyOpen ? 'Hide' : 'Show'} date history`}
+              accessibilityState={{ expanded: historyOpen }}
+            >
+              <Icon name="calendar-outline" size={24} color={historyOpen ? colors.primary : colors.text} />
+              {dateHistory.length > 0 && <View style={[styles.filterDot, { backgroundColor: colors.primary }]} />}
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={[styles.filterToggle, { 
-              borderColor: historyOpen ? colors.primary + '40' : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'), 
-              backgroundColor: historyOpen ? colors.primary + '15' : 'transparent' 
-            }]}
-            onPress={() => setHistoryOpen(o => !o)}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={`${historyOpen ? 'Hide' : 'Show'} date history`}
-            accessibilityState={{ expanded: historyOpen }}
-          >
-            <Icon name="calendar-outline" size={20} color={historyOpen ? colors.primary : colors.text} />
-            {dateHistory.length > 0 && <View style={[styles.filterDot, { backgroundColor: colors.primary }]} />}
-          </TouchableOpacity>
+          
+          {/* Shuffle Button */}
+          <View style={styles.shuffleSection}>
+            <TouchableOpacity
+              style={[styles.shuffleButton, { 
+                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                borderColor: t.border
+              }]}
+              onPress={() => {
+                impact(ImpactFeedbackStyle.Medium);
+                setDeckVersion((v) => v + 1);
+              }}
+              activeOpacity={0.7}
+            >
+              <Icon name="shuffle-outline" size={16} color={t.primary} />
+              <Text style={[styles.shuffleText, { color: t.text }]}>Shuffle Deck</Text>
+            </TouchableOpacity>
+          </View>
+
+          {false && !isPremium && weeklyDateSet?.upgradeCopy?.body ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: colors.primary + '15', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start' }}>
+              <Icon name="sparkles" size={14} color={colors.primary} />
+              <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>
+                {weeklyDateSet.upgradeCopy.body}
+              </Text>
+            </View>
+          ) : !isPremium ? (
+            <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
+              <Icon name="calendar-outline" size={14} color={colors.textMuted} />
+              <Text style={[styles.weeklyDropText, { color: colors.textMuted }]}>
+                
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {/* Show lightweight placeholder until data is ready */}
@@ -777,164 +735,9 @@ export default function DateNightScreen({ navigation }) {
           </View>
         )}
 
-        {/* Filters — dropdown selectors */}
-        <View style={styles.filterSection}>
-            <View style={styles.filterDropdowns}>
-              {/* Mood dropdown */}
-              {(() => {
-                const activeHeat = DIMS.heat.find(h => h.level === selectedHeat);
-                const activeHeatTone = getDeckFilterTone('heat', activeHeat, isDark);
-                return (
-                  <TouchableOpacity
-                    style={[styles.dropdownBtn, { 
-                      borderColor: activeHeatTone ? (isDark ? withAlpha(activeHeatTone.chrome, 0.42) : 'rgba(0,0,0,0.12)') : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)'), 
-                      backgroundColor: activeHeatTone ? (isDark ? withAlpha(activeHeatTone.base, 0.9) : '#FFFFFF') : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(242,242,247,0.9)')
-                    }]}
-                    onPress={() => setDropdownOpen(o => o === 'heat' ? null : 'heat')}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Mood filter${activeHeat ? `, ${activeHeat.label}` : ''}`}
-                  >
-                    <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Mood</Text>
-                    <View style={styles.dropdownValue}>
-                      <View style={styles.dropdownSideSlot} />
-                      <View style={styles.dropdownValueCenter}>
-                        {activeHeat ? (
-                          <View style={styles.dropdownValueMeta}>
-                            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: isDark ? activeHeatTone.highlight : colors.text }]}>{activeHeat.label}</Text>
-                          </View>
-                        ) : (
-                          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
-                        )}
-                      </View>
-                      <View style={styles.dropdownSideSlot}>
-                        <Icon name={dropdownOpen === 'heat' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeHeatTone ? (isDark ? withAlpha(activeHeatTone.highlight, 0.8) : colors.text + '80') : colors.text + '80'} />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })()}
-
-              {/* Effort dropdown */}
-              {(() => {
-                const activeLoad = DIMS.load.find(l => l.level === selectedLoad);
-                const activeLoadTone = getDeckFilterTone('load', activeLoad, isDark);
-                return (
-                  <TouchableOpacity
-                    style={[styles.dropdownBtn, { 
-                      borderColor: activeLoadTone ? (isDark ? withAlpha(activeLoadTone.chrome, 0.42) : 'rgba(0,0,0,0.12)') : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)'), 
-                      backgroundColor: activeLoadTone ? (isDark ? withAlpha(activeLoadTone.base, 0.9) : '#FFFFFF') : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(242,242,247,0.9)') 
-                    }]}
-                    onPress={() => setDropdownOpen(o => o === 'load' ? null : 'load')}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Energy filter${activeLoad ? `, ${activeLoad.label}` : ''}`}
-                  >
-                    <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Energy</Text>
-                    <View style={styles.dropdownValue}>
-                      <View style={styles.dropdownSideSlot} />
-                      <View style={styles.dropdownValueCenter}>
-                        {activeLoad ? (
-                          <View style={styles.dropdownValueMeta}>
-                            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: isDark ? activeLoadTone.highlight : colors.text }]}>{activeLoad.label}</Text>
-                          </View>
-                        ) : (
-                          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
-                        )}
-                      </View>
-                      <View style={styles.dropdownSideSlot}>
-                        <Icon name={dropdownOpen === 'load' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeLoadTone ? (isDark ? withAlpha(activeLoadTone.highlight, 0.8) : colors.text + '80') : colors.text + '80'} />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })()}
-
-              {/* Style dropdown */}
-              {(() => {
-                const activeStyle = DIMS.style.find(s => s.id === selectedStyle);
-                const activeStyleTone = getDeckFilterTone('style', activeStyle, isDark);
-                return (
-                  <TouchableOpacity
-                    style={[styles.dropdownBtn, { 
-                      borderColor: activeStyleTone ? (isDark ? withAlpha(activeStyleTone.chrome, 0.42) : 'rgba(0,0,0,0.12)') : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)'), 
-                      backgroundColor: activeStyleTone ? (isDark ? withAlpha(activeStyleTone.base, 0.9) : '#FFFFFF') : (isDark ? 'rgba(28,28,30,0.5)' : 'rgba(242,242,247,0.9)') 
-                    }]}
-                    onPress={() => setDropdownOpen(o => o === 'style' ? null : 'style')}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Style filter${activeStyle ? `, ${activeStyle.label}` : ''}`}
-                  >
-                    <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Style</Text>
-                    <View style={styles.dropdownValue}>
-                      <View style={styles.dropdownSideSlot} />
-                      <View style={styles.dropdownValueCenter}>
-                        {activeStyle ? (
-                          <View style={styles.dropdownValueMeta}>
-                            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: isDark ? activeStyleTone.highlight : colors.text }]}>{activeStyle.label}</Text>
-                          </View>
-                        ) : (
-                          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.dropdownValueText, { color: colors.text, opacity: 0.9 }]}>Choose</Text>
-                        )}
-                      </View>
-                      <View style={styles.dropdownSideSlot}>
-                        <Icon name={dropdownOpen === 'style' ? 'chevron-up-outline' : 'chevron-down-outline'} size={14} color={activeStyleTone ? (isDark ? withAlpha(activeStyleTone.highlight, 0.8) : colors.text + '80') : colors.text + '80'} />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })()}
-            </View>
-
-            {/* Dropdown Options (Velvet Glass Layer) */}
-            {dropdownOpen && (
-              <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={[styles.dropdownPanel, { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' }]}>
-                {(dropdownOpen === 'heat' ? DIMS.heat : dropdownOpen === 'load' ? DIMS.load : DIMS.style).map((opt) => {
-                  const val = dropdownOpen === 'style' ? opt.id : opt.level;
-                  const current = dropdownOpen === 'heat' ? selectedHeat : dropdownOpen === 'load' ? selectedLoad : selectedStyle;
-                  const active = current === val;
-                  const tone = getDeckFilterTone(dropdownOpen, opt, isDark);
-                  return (
-                    <TouchableOpacity
-                      key={val}
-                      style={[styles.dropdownOption, active && { backgroundColor: isDark ? withAlpha(tone.base, 0.94) : 'rgba(0,0,0,0.04)' }]}
-                      onPress={() => handleFilterPress(dropdownOpen, val)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[styles.dropdownOptionIcon, { backgroundColor: isDark ? tone.base : '#F2F2F7', borderColor: isDark ? withAlpha(tone.chrome, 0.34) : 'rgba(0,0,0,0.06)' }]}>
-                        <Icon name={getDeckFilterIcon(dropdownOpen, opt)} size={18} color={isDark ? tone.highlight : colors.text} />
-                      </View>
-                      <View style={styles.dropdownOptionContent}>
-                        <Text style={[styles.dropdownOptionLabel, { color: active ? (isDark ? tone.highlight : colors.text) : colors.text }]}>{opt.label}</Text>
-                        <Text style={[styles.dropdownOptionSub, { color: active ? (isDark ? withAlpha(tone.body, 0.9) : colors.textMuted) : colors.textMuted }]}>{opt.description || 'Curated category'}</Text>
-                      </View>
-                      {active && <Icon name="checkmark-circle-outline" size={20} color={isDark ? tone.highlight : colors.primary} />}
-                    </TouchableOpacity>
-                  );
-                })}
-              </BlurView>
-            )}
-
-            {hasFilters && (
-              <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearFilters} activeOpacity={0.7}>
-                <Text style={[styles.clearFiltersTxt, { color: colors.textMuted }]}>Reset Filters</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
         {/* Card Stack Content */}
         <View style={styles.stackWrapper}>
-          {!allSelected ? (
-            <BlurView intensity={isDark ? 15 : 25} tint={isDark ? "dark" : "light"} style={[styles.emptyStack, styles.setupEmptyStack, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
-              <View style={styles.emptyIconCircle}>
-                <Icon name="sparkles-outline" size={32} color={colors.primary} />
-              </View>
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>Choose Tonight's Mood</Text>
-              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                {toneCopy.emptySetup}
-              </Text>
-            </BlurView>
-          ) : deck.length === 0 ? (
+          {deck.length === 0 ? (
             <View style={styles.emptyStack}>
               <Icon name="search-outline" size={40} color={colors.textMuted} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>No Matches</Text>
@@ -942,7 +745,7 @@ export default function DateNightScreen({ navigation }) {
             </View>
           ) : deckDone ? (
             <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.emptyStack}>
-              {!isPremium ? (
+              {false && !isPremium ? (
                 <>
                   <Icon name="lock-closed-outline" size={42} color={colors.primary} />
                   <Text style={[styles.emptyTitle, { color: colors.text }]}>Explore More</Text>
@@ -988,16 +791,12 @@ export default function DateNightScreen({ navigation }) {
                 onPress={openDate}
                 onLongPress={handlePauseDate}
               />
-              <View style={styles.boundaryHintRow}>
-                <Icon name="hand-left-outline" size={14} color={colors.textMuted} />
-                <Text style={[styles.boundaryHintText, { color: colors.textMuted }]}>Long-press a card to pause that date idea.</Text>
-              </View>
             </>
           )}
         </View>
 
         {/* Interaction Controls */}
-        {allSelected && !deckDone && deck.length > 0 && (
+        {!deckDone && deck.length > 0 && (
           <View style={styles.actions}>
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(242,242,247,0.9)' }]}
@@ -1029,7 +828,7 @@ export default function DateNightScreen({ navigation }) {
         )}
 
         {/* Premium Teaser (Editorial Style) */}
-        {allSelected && !isPremium && !deckDone && deck.length > 0 && (
+        {!isPremium && !deckDone && deck.length > 0 && (
           <TouchableOpacity
             style={[styles.editorialBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}
             onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS)}
@@ -1109,19 +908,69 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 4,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   headerTitle: {
     fontFamily: SYSTEM_FONT,
     fontSize: 36,
     fontWeight: '900',
     letterSpacing: -1,
     lineHeight: 42,
+    flex: 1,
+    paddingRight: SPACING.md,
   },
   headerSubtitle: {
     fontFamily: SYSTEM_FONT,
     fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 2,
+    letterSpacing: 0.8,
     marginBottom: 8,
+  },
+  shuffleSection: {
+    paddingHorizontal: 32,
+    marginBottom: 4,
+    alignItems: 'center',
+  },
+  shuffleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  shuffleText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  historyButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: 8,
+      },
+      android: { elevation: 2 },
+    }),
   },
   filterToggle: {
     width: 44,
@@ -1482,6 +1331,16 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'center',
   },
   weeklyDropBanner: {
+    display: 'none',
+    height: 0,
+    minHeight: 0,
+    maxHeight: 0,
+    opacity: 0,
+    marginTop: 0,
+    marginBottom: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
