@@ -30,7 +30,7 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const DEFAULT_CARD_W = SCREEN_W - 56;
 const DEFAULT_CARD_H = Math.min(SCREEN_H * 0.62, 520);
 const CARD_HORIZONTAL_MARGIN = 28;
-const CARD_VERTICAL_MARGIN = 16;
+const CARD_VERTICAL_MARGIN = 4;
 
 const SPRING_CONFIG = { damping: 20, stiffness: 150, mass: 1 };
 const FLIP_DURATION = 600;
