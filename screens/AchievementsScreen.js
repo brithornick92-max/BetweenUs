@@ -57,7 +57,7 @@ export default function AchievementsScreen() {
   const renderReached = ({ item }) => (
     <Animated.View entering={FadeInDown.springify().damping(18)}>
       <View style={styles.card} accessibilityLabel={`${item.name}: ${item.description}`} accessibilityRole="text">
-        <Text style={styles.icon}>{item.icon}</Text>
+        <Icon name={item.icon} size={28} color={t.primary} style={styles.icon} />
         <View style={styles.cardBody}>
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.description}>{item.description}</Text>
@@ -69,7 +69,7 @@ export default function AchievementsScreen() {
 
   const renderAhead = ({ item }) => (
     <View style={styles.cardAhead} accessibilityLabel={item.description} accessibilityRole="text">
-      <Text style={styles.iconAhead}>{item.icon}</Text>
+      <Icon name={item.icon} size={22} color={t.subtext} style={styles.iconAhead} />
       <Text style={styles.descriptionAhead}>{item.description}</Text>
     </View>
   );
@@ -169,7 +169,7 @@ function createStyles(t, isDark) {
         android: { elevation: 3 },
       }),
     },
-    icon: { fontSize: 28, marginRight: SPACING.md },
+    icon: { marginRight: SPACING.md },
     cardBody: { flex: 1 },
     name: {
       fontFamily: SYSTEM_FONT,
@@ -192,7 +192,7 @@ function createStyles(t, isDark) {
       marginBottom: 6,
       opacity: 0.5,
     },
-    iconAhead: { fontSize: 20, marginRight: SPACING.md },
+    iconAhead: { marginRight: SPACING.md },
     descriptionAhead: {
       fontFamily: SYSTEM_FONT,
       fontSize: 13,

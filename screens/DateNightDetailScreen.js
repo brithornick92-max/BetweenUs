@@ -39,7 +39,6 @@ import {
   rateDateHistoryEntry,
   removeDateHistoryEntry,
   removeDateSavedKeepsake,
-  saveDateSavedKeepsake,
   saveDateHistoryEntry,
 } from '../utils/dateHistory';
 import {
@@ -290,8 +289,6 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
       if (wasSaved) {
         await removeDateSavedKeepsake(date.id);
-      } else {
-        await saveDateSavedKeepsake(date);
       }
     } catch (error) {
       setIsSaved(wasSaved);

@@ -16,7 +16,7 @@ import AuthCallbackScreen from "../screens/AuthCallbackScreen";
 import Tabs from "./Tabs";
 
 // Lazy-loaded screens — see lazyScreens.js for the deferred require() registry.
-// ⚠️  Do NOT add screen imports here. Add them to lazyScreens.js instead.
+// Warning:  Do NOT add screen imports here. Add them to lazyScreens.js instead.
 import * as Screens from "./lazyScreens";
 
 // Lazy-load debug screen so it's excluded from production bundles
@@ -47,7 +47,7 @@ export default function RootNavigator() {
   const { user, initializing, requiresOnboarding } = useAuth();
   const { colors, isDark } = useTheme();
 
-  // ✅ Never return null. Null causes tree churn and keyboard dismissal.
+  // OK: Never return null. Null causes tree churn and keyboard dismissal.
   if (initializing || state?.isLoading) {
     return <FullScreenLoader colors={colors} />;
   }

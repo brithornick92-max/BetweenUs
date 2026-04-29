@@ -199,7 +199,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     name: 'Growing Prompt Library',
     description: 'Unlock our full library of 700+ prompts over time, with new additions released to you every week.',
-    icon: '🔥',
+    icon: 'flame-outline',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
     emotionalValue: 'Keep leaving small pieces of your heart for each other',
@@ -207,7 +207,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.HEAT_LEVELS_4_5]: {
     name: 'Unlock All 5 Heat Levels',
     description: 'Explore our full catalog of prompts and date ideas, from soft and romantic to steamy and adventurous.',
-    icon: '🔥',
+    icon: 'flame-outline',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
     emotionalValue: 'Keep desire playful, private, chosen together, and refreshed',
@@ -215,7 +215,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     name: 'Endless Date Inspiration',
     description: 'Get personalized date ideas from a library of 500+ experiences, with new ideas released to you weekly.',
-    icon: '🌹',
+    icon: 'flower-outline',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
     emotionalValue: 'Turn what you both want into time together',
@@ -223,7 +223,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.SURPRISE_ME]: {
     name: 'Today Mode',
     description: 'A focused connection moment for cozy, playful, romantic, sensual, or after-a-long-day nights',
-    icon: '🎲',
+    icon: 'dice-outline',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Make intimacy easier to start',
@@ -231,7 +231,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.UNLIMITED_JOURNAL_HISTORY]: {
     name: 'Private Notes',
     description: 'Write, save, and revisit notes, reflections, and open-when messages',
-    icon: '📖',
+    icon: 'book-outline',
     category: 'memory',
     guardBehavior: GuardBehavior.BLUR,
     emotionalValue: 'Keep the little things your partner leaves for you',
@@ -239,7 +239,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.PDF_EXPORT]: {
     name: 'Keepsake Export',
     description: 'Export your private story, favorite answers, notes, and memories as a keepsake',
-    icon: '🏛️',
+    icon: 'library-outline',
     category: 'memory',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Preserve the story only you two share',
@@ -247,7 +247,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.VAULT_AND_BIOMETRIC]: {
     name: 'Private Vault',
     description: 'Biometric-locked storage for intimate memories',
-    icon: '🔒',
+    icon: 'lock-closed-outline',
     category: 'security',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Keep your relationship memories secure and protected',
@@ -255,7 +255,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.CLOUD_SYNC]: {
     name: 'Private Archive Sync',
     description: 'Supabase sync for your shared archive, linked devices, and backup-based recovery',
-    icon: '☁️',
+    icon: 'cloud-outline',
     category: 'sync',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Keep your private world safe across both phones',
@@ -263,7 +263,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.EDITORIAL_PROMPTS]: {
     name: 'Prompt Packs',
     description: 'Curated packs for busy weeks, date nights, long-term love, reconnection, romance, and spark',
-    icon: '✍️',
+    icon: 'create-outline',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Keep the ritual fresh without making it feel like work',
@@ -271,7 +271,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.VIBE_SIGNAL]: {
     name: 'Love Signals',
     description: 'Send low-friction notes, photos, moods, and thinking-of-you moments',
-    icon: '📡',
+    icon: 'radio-outline',
     category: 'connection',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Let them feel chosen in the middle of ordinary life',
@@ -279,7 +279,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.PROMPT_REFRESH]: {
     name: 'Prompt Refresh',
     description: 'Swap for a different prompt on demand',
-    icon: '🔄',
+    icon: 'refresh-outline',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Always find the right conversation starter',
@@ -287,7 +287,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.AD_FREE]: {
     name: 'Ad-Free',
     description: 'No ads ever',
-    icon: '🚫',
+    icon: 'ban-outline',
     category: 'quality',
     guardBehavior: GuardBehavior.HIDE,
     emotionalValue: 'Uninterrupted connection',
@@ -295,7 +295,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.CALENDAR]: {
     name: 'Shared Date Calendar',
     description: 'Plan date nights, rituals, anniversaries, and reminders in your private couple space',
-    icon: '📅',
+    icon: 'calendar-outline',
     category: 'planning',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Make time together easier to choose',
@@ -303,7 +303,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.PARTNER_LINKING]: {
     name: 'Partner Connection',
     description: 'Partner linking with a private code and shared premium access for linked accounts when one partner upgrades',
-    icon: '💞',
+    icon: 'heart-outline',
     category: 'connection',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Build your shared love story together',
@@ -311,7 +311,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.PROMPT_RESPONSES]: {
     name: 'Shared Reveals',
     description: 'Write privately, reveal together, and save favorite answers to your story',
-    icon: '✏️',
+    icon: 'pencil-outline',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Feel known without turning connection into homework',
@@ -319,7 +319,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.INSIDE_JOKES]: {
     name: 'Inside Jokes Vault',
     description: 'A private vault for your nicknames, inside jokes, and personal references',
-    icon: '🤫',
+    icon: 'lock-closed-outline',
     category: 'memory',
     guardBehavior: GuardBehavior.BLOCK,
     emotionalValue: 'Celebrate the language only you two share',
@@ -327,7 +327,7 @@ export const FEATURE_META = Object.freeze({
   [PremiumFeature.YEAR_REFLECTION]: {
     name: 'Couple Recaps',
     description: 'Weekly, monthly, and annual recaps of your sweetest answers, themes, spark, and memories',
-    icon: '📆',
+    icon: 'calendar-number-outline',
     category: 'memory',
     guardBehavior: GuardBehavior.HIDE,
     emotionalValue: 'See the love you are still building',

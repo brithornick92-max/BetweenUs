@@ -2,7 +2,7 @@
  * PartnerNamesSettingsScreen.js
  * Sexy Red Intimacy & Apple Editorial Updates Integrated.
  * Allows users to customize how they see themselves and their partner in the app.
- * ✅ Full original logic preserved.
+ * OK: Full original logic preserved.
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';

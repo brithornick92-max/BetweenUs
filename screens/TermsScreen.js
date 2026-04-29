@@ -2,7 +2,7 @@
  * TermsScreen — Shared sanctuary guidelines
  * Velvet Glass & Apple Editorial High-End Updates Integrated.
  * Palette: Deep Crimson, Obsidian, Liquid Silver (Strictly No Gold).
- * ✅ Full original logic and legal content preserved.
+ * OK: Full original logic and legal content preserved.
  */
 
 import React, { useState, useMemo } from 'react';

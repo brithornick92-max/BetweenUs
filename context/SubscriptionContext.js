@@ -133,7 +133,7 @@ export const SubscriptionProvider = ({ children }) => {
 
   const updateSubscriptionDetails = useCallback((info) => {
     try {
-      // ✅ Use the same entitlement lookup logic your service uses
+      // OK: Use the same entitlement lookup logic your service uses
       // (and stop hard-coding "Between Us Pro")
       const entitlement = RevenueCatService.getActiveEntitlement?.(info) ?? null;
 
@@ -175,9 +175,9 @@ export const SubscriptionProvider = ({ children }) => {
       if (resolvedPremium) updateSubscriptionDetails(info);
       else setSubscriptionDetails(null);
 
-      if (__DEV__) console.log("✅ Subscription status checked:", resolvedPremium ? "Premium" : "Free");
+      if (__DEV__) console.log("OK: Subscription status checked:", resolvedPremium ? "Premium" : "Free");
     } catch (error) {
-      console.error("❌ Failed to check subscription status:", error);
+      console.error("Error: Failed to check subscription status:", error);
       setIsPremium(false);
       notifyPremiumListeners(effectiveIsPremium);
       if (!DEV_FORCE_PREMIUM) {
@@ -193,10 +193,10 @@ export const SubscriptionProvider = ({ children }) => {
       if (offeringsData?.nonFatal) {
         if (__DEV__) console.log("ℹ️ RevenueCat offerings unavailable; using free mode fallback.");
       } else {
-        if (__DEV__) console.log("✅ Offerings loaded:", offeringsData.packages?.length || 0, "packages");
+        if (__DEV__) console.log("OK: Offerings loaded:", offeringsData.packages?.length || 0, "packages");
       }
     } catch (error) {
-      console.error("❌ Failed to load offerings:", error);
+      console.error("Error: Failed to load offerings:", error);
       // Keep app in free mode without crashing paywall consumers
       setOfferings({ current: null, packages: [], nonFatal: true, reason: 'load_failed' });
     }
@@ -228,10 +228,10 @@ export const SubscriptionProvider = ({ children }) => {
       try {
         setIsLoading(true);
 
-        // ✅ MUST configure before logIn / getOfferings
+        // OK: MUST configure before logIn / getOfferings
         await RevenueCatService.init?.();
 
-        // ✅ Identify user with their Supabase UUID (not a legacy cached user_* ID).
+        // OK: Identify user with their Supabase UUID (not a legacy cached user_* ID).
         // Premium sharing between partners is handled server-side via
         // the set_couple_premium Supabase RPC, not by sharing RC identities.
         let rcUserId = user.uid;
@@ -252,7 +252,7 @@ export const SubscriptionProvider = ({ children }) => {
 
         if (cancelled) return;
 
-        // ✅ clean previous listener if any
+        // OK: clean previous listener if any
         if (listenerRef.current) {
           try {
             listenerRef.current();
@@ -260,7 +260,7 @@ export const SubscriptionProvider = ({ children }) => {
           listenerRef.current = null;
         }
 
-        // ✅ listener: keep state in sync
+        // OK: listener: keep state in sync
         const remove = Purchases.addCustomerInfoUpdateListener((info) => {
           const premium = RevenueCatService.checkPremiumStatus(info);
           const resolvedPremium = DEV_FORCE_PREMIUM || premium;
@@ -273,7 +273,7 @@ export const SubscriptionProvider = ({ children }) => {
 
         listenerRef.current = typeof remove === 'function' ? remove : null;
       } catch (error) {
-        console.error("❌ Failed to initialize subscription:", error);
+        console.error("Error: Failed to initialize subscription:", error);
         setIsPremium(false);
         notifyPremiumListeners(effectiveIsPremium);
         if (!DEV_FORCE_PREMIUM) {
@@ -315,7 +315,7 @@ export const SubscriptionProvider = ({ children }) => {
       }
       return result;
     } catch (error) {
-      console.error("❌ Purchase failed:", error);
+      console.error("Error: Purchase failed:", error);
       return { success: false, error: error.message };
     }
   };
@@ -329,7 +329,7 @@ export const SubscriptionProvider = ({ children }) => {
       }
       return result;
     } catch (error) {
-      console.error("❌ Restore failed:", error);
+      console.error("Error: Restore failed:", error);
       return { success: false, error: error.message };
     }
   };

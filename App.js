@@ -127,7 +127,7 @@ if (__DEV__) {
         msg.includes("Cannot read properties of undefined (reading 'map')")
       ) {
         console.log(
-          "🔴 MAP ERROR! Full args:",
+          "[map_error] Full args:",
           JSON.stringify(
             args.map((a) =>
               a instanceof Error
@@ -138,7 +138,7 @@ if (__DEV__) {
             2
           )
         );
-        console.log("🔴 Call site:", new Error().stack);
+        console.log("[map_error] Call site:", new Error().stack);
       }
     } catch (e) {
       // ignore logging helper failures
@@ -164,10 +164,10 @@ if (__DEV__ && global?.ErrorUtils?.setGlobalHandler) {
         msg.includes("doesn't exist") ||
         isFatal
       ) {
-        console.log("🔴 GLOBAL CRASH — full stack:");
+        console.log("[global_crash] full stack:");
         console.log(error?.stack);
         console.log(
-          "🔴 Component stack (if any):",
+          "[global_crash] Component stack (if any):",
           error?.componentStack || "(none)"
         );
       }
@@ -202,7 +202,7 @@ const initializeRevenueCat = async () => {
 
   try {
     await getRevenueCatService().init();
-    if (isDev) console.log("✅ RevenueCat initialized via service");
+    if (isDev) console.log("RevenueCat initialized via service");
   } catch (error) {
     logError("revenuecat_init", error);
   }
@@ -239,7 +239,7 @@ function AppContent() {
 
   const LOCK_GRACE_PERIOD = 5 * 60 * 1000;
 
-  // 🔵 TEMPORARY DEV HELPER: Reset cache to Week 0
+  // Temporary dev helper: reset cache to Week 0.
   useEffect(() => {
     WeeklyContentScheduler._devResetToWeek(0);
   }, []);

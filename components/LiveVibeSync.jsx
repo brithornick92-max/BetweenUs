@@ -386,7 +386,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
             >
               <Icon name="pulse-outline" size={incomingLabel ? 22 : 34} color={incomingLabel ? '#FF6B8A' : t.primary} />
               <Text style={[styles.buttonText, { color: incomingLabel ? '#FF6B8A' : t.primary, fontSize: incomingLabel ? 11 : 14, letterSpacing: incomingLabel ? 0.3 : 1, width: incomingLabel ? 140 : undefined }]} numberOfLines={2} textBreakStrategy="balanced">
-                {incomingLabel ? `${incomingLabel}\nis here ♥` : isSending ? 'Sending...' : 'Send Pulse'}
+                {incomingLabel ? `${incomingLabel}\nis here` : isSending ? 'Sending...' : 'Send Pulse'}
               </Text>
             </Animated.View>
           </Pressable>

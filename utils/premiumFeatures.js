@@ -20,7 +20,7 @@ export const PREMIUM_FEATURES = {
     description: 'Export your complete shared timeline as PDF',
     category: 'memory',
     emotionalValue: 'Preserve your love story forever',
-    icon: '🏛️',
+    icon: 'library-outline',
   },
 
   BIOMETRIC_VAULT: {
@@ -29,7 +29,7 @@ export const PREMIUM_FEATURES = {
     description: 'Device app-lock controls for private moments',
     category: 'security',
     emotionalValue: 'Add a device-level pause before opening your shared space',
-    icon: '🔒',
+    icon: 'lock-closed-outline',
   },
   CLOUD_SYNC: {
     id: 'cloud_sync',
@@ -37,7 +37,7 @@ export const PREMIUM_FEATURES = {
     description: 'Never lose your precious memories',
     category: 'sync',
     emotionalValue: 'Peace of mind for your shared history',
-    icon: '☁️',
+    icon: 'cloud-outline',
   },
 };
 

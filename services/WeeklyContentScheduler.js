@@ -127,7 +127,7 @@ class WeeklyContentScheduler {
     const newDate = new Date(Date.now() - (weekNumber * msInWeek));
     this._installDate = newDate;
     await AsyncStorage.setItem(INSTALL_DATE_KEY, newDate.toISOString());
-    console.log(`🔵 WeeklyContentScheduler: Dev reset to week ${weekNumber}`);
+    console.log(`[content] WeeklyContentScheduler: Dev reset to week ${weekNumber}`);
   }
 
   getNewContentCounts(prompts = [], dates = [], positions = []) {

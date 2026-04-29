@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import CrashReporting from './CrashReporting';
 
-// ✅ Matches RevenueCat dashboard entitlement identifier exactly
+// OK: Matches RevenueCat dashboard entitlement identifier exactly
 const ENTITLEMENT_ID = 'Between Us Pro';
 
 class RevenueCatService {
@@ -68,7 +68,7 @@ class RevenueCatService {
           reason: 'missing_api_key',
           missingKeyName,
         };
-        if (__DEV__) console.warn(`⚠️ RevenueCat API key missing. Set ${missingKeyName}.`);
+        if (__DEV__) console.warn(`Warning: RevenueCat API key missing. Set ${missingKeyName}.`);
         this._initPromise = null;
         return;
       }
@@ -77,13 +77,13 @@ class RevenueCatService {
 
       this._configured = true;
       this._configIssue = null;
-      if (__DEV__) console.log('✅ RevenueCat configured');
+      if (__DEV__) console.log('OK: RevenueCat configured');
     
       // Debug: Log available entitlements to help identify the correct ENTITLEMENT_ID
       if (__DEV__) {
         try {
           const customerInfo = await Purchases.getCustomerInfo();
-          console.log('📋 Available entitlement keys:', Object.keys(customerInfo?.entitlements?.active ?? {}));
+          console.log('Available Available entitlement keys:', Object.keys(customerInfo?.entitlements?.active ?? {}));
         } catch (error) {
           if (__DEV__) console.log('Could not fetch initial customer info:', error?.message);
         }

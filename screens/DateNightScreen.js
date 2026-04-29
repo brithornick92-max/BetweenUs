@@ -35,6 +35,7 @@ import * as PreferenceEngine from '../services/PreferenceEngine';
 import { useAuth } from '../context/AuthContext';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import DateCardFront from '../components/DateCardFront';
+import { HEAT_ICONS } from '../components/DateCardFront';
 import DateCardBack from '../components/DateCardBack';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import { SoftBoundaries } from '../services/PolishEngine';
@@ -48,11 +49,12 @@ import {
   getDateHistory,
   getRecentlyCompletedDateIds,
   removeDateSavedKeepsake,
-  saveDateSavedKeepsake,
 } from '../utils/dateHistory';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
+const SHORTLIST_GAP = 14;
+const SHORTLIST_CARD_W = Math.floor((width - 40 - SHORTLIST_GAP) / 2);
 const CARD_H = Math.min(height * 0.52, 480);
 const CARD_STACK_LIFT = height < 760 ? 56 : height < 850 ? 46 : 38;
 const SWIPE_THRESHOLD = 90;
@@ -398,9 +400,9 @@ const CardStack = forwardRef(function CardStack(
 export default function DateNightScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
   const { state } = useAppContext();
-  const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || null;
+  const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || user?.uid || user?.id || null;
   const partnerName = useMemo(
     () => getPartnerDisplayName(userProfile, state?.userProfile, 'your partner'),
     [state?.userProfile, userProfile]
@@ -595,19 +597,24 @@ export default function DateNightScreen({ navigation }) {
         : prev.some(item => item.id === date.id) ? prev : [...prev, date]
     ));
 
-    if (userId) {
-      const persist = wasSaved
-        ? removeDateFromShortlist(userId, date.id)
-        : addDateToShortlist(userId, date.id);
+    const persist = Promise.all([
+      userId
+        ? (wasSaved
+          ? removeDateFromShortlist(userId, date.id)
+          : addDateToShortlist(userId, date.id))
+        : Promise.resolve(),
+      wasSaved
+        ? removeDateSavedKeepsake(date.id)
+        : Promise.resolve(),
+    ]);
 
-      persist.catch(() => {
-        setLikedDates(prev => (
-          wasSaved
-            ? prev.some(item => item.id === date.id) ? prev : [...prev, date]
-            : prev.filter(item => item.id !== date.id)
-        ));
-      });
-    }
+    persist.catch(() => {
+      setLikedDates(prev => (
+        wasSaved
+          ? prev.some(item => item.id === date.id) ? prev : [...prev, date]
+          : prev.filter(item => item.id !== date.id)
+      ));
+    });
 
     setDeckIndex(prev => prev + 1);
   }, [likedDates, userId, showPaywall]);
@@ -684,8 +691,6 @@ export default function DateNightScreen({ navigation }) {
 
       if (wasSaved) {
         await removeDateSavedKeepsake(date.id);
-      } else {
-        await saveDateSavedKeepsake(date);
       }
     } catch (error) {
       setLikedDates(prev => (
@@ -833,7 +838,7 @@ export default function DateNightScreen({ navigation }) {
                 </>
               ) : (
                 <>
-                  <Text style={{ fontSize: 42, marginBottom: 8 }}>✨</Text>
+                  <Icon name="sparkles-outline" size={42} color={colors.text} style={{ marginBottom: 8 }} />
                   <Text style={[styles.emptyTitle, { color: colors.text }]}>Deck Complete</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
                     {likedDates.length > 0 ? `You've selected ${likedDates.length} ideas for today.` : 'Ready to shuffle and go again?'}
@@ -951,10 +956,10 @@ export default function DateNightScreen({ navigation }) {
                     >
                       <Icon name="bookmark" size={15} color={colors.primary} />
                     </TouchableOpacity>
-                    <View style={[styles.likedCardEmoji, { backgroundColor: hm.color + '15' }]}>
-                      <Text style={{ fontSize: 16 }}>{hm.icon}</Text>
+                    <View style={[styles.likedCardIcon, { backgroundColor: hm.color + '15' }]}>
+                      <Icon name={HEAT_ICONS[d.heat] || 'heart-outline'} size={18} color={hm.color} />
                     </View>
-                    <Text style={[styles.likedCardTitle, { color: colors.text }]} numberOfLines={2}>
+                    <Text style={[styles.likedCardTitle, { color: colors.text }]} numberOfLines={4}>
                       {d.title}
                     </Text>
                   </TouchableOpacity>
@@ -1314,11 +1319,13 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   likedTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
   likedBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
   likedBadgeText: { fontSize: 12, fontWeight: '800' },
-  likedRow: { gap: 14, paddingRight: 20 },
+  likedRow: { gap: SHORTLIST_GAP, paddingRight: 20 },
   likedCard: {
-    width: 150,
-    padding: 18,
-    borderRadius: 24,
+    width: SHORTLIST_CARD_W,
+    minHeight: 174,
+    padding: 16,
+    paddingRight: 46,
+    borderRadius: 20,
     borderWidth: 1.5,
     gap: 12,
   },
@@ -1334,14 +1341,14 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'center',
     zIndex: 2,
   },
-  likedCardEmoji: {
+  likedCardIcon: {
     width: 32,
     height: 32,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  likedCardTitle: { fontSize: 15, fontWeight: '700', lineHeight: 20 },
+  likedCardTitle: { fontSize: 15, fontWeight: '800', lineHeight: 19 },
   disabledControl: {
     opacity: 0.55,
   },

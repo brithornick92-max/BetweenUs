@@ -152,10 +152,10 @@ export const AuthProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [requiresOnboarding, setRequiresOnboarding] = useState(false);
 
-  // ✅ Only for first bootstrapping auth state (RootNavigator can gate on this)
+  // OK: Only for first bootstrapping auth state (RootNavigator can gate on this)
   const [initializing, setInitializing] = useState(true);
 
-  // ✅ Only for disabling buttons/spinners during actions (screens use this)
+  // OK: Only for disabling buttons/spinners during actions (screens use this)
   const [busy, setBusy] = useState(false);
 
   const bootstrappedRef = useRef(false);
@@ -269,7 +269,7 @@ export const AuthProvider = ({ children }) => {
             const opId = `profile-sync-${Date.now()}`;
             pendingBackgroundOpsRef.current.add(opId);
             
-            // ✅ Fetch profile in background - don't block UI
+            // OK: Fetch profile in background - don't block UI
             (async () => {
               try {
                 // Check if we should still run (not cancelled)
@@ -671,10 +671,10 @@ export const AuthProvider = ({ children }) => {
     user,
     userProfile,
 
-    // ✅ Use this for startup gating in RootNavigator
+    // OK: Use this for startup gating in RootNavigator
     initializing,
 
-    // ✅ Use this for button disabling/spinners in screens
+    // OK: Use this for button disabling/spinners in screens
     busy,
 
     signUp,

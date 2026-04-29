@@ -524,9 +524,9 @@ function filterPrompts(allPrompts, profile, options = {}) {
  *   (style match: exact=2, mixed=1, mismatch=0)
  *
  * Result labels:
- *   ≥ 7  — 🌟 Perfect fit
- *   ≥ 5  — 👍 Good match
- *   < 5  — 🔄 Try something gentler
+ *   ≥ 7  — Perfect Perfect fit
+ *   ≥ 5  — Good Good match
+ *   < 5  — Refresh Try something gentler
  *
  * @param {object} selectedDimensions - Optional active UI selections
  *   e.g. { heat: 3, load: 1, style: 'talking' }

@@ -71,7 +71,7 @@ function buildNotificationContent(memory, years) {
     : `You two made a memory ${yLabel}. Open to relive it.`;
 
   return {
-    title: `On this day ${yLabel} 💕`,
+    title: `On this day ${yLabel}`,
     body,
     data: {
       type: 'on_this_day',

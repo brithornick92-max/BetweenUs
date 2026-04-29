@@ -751,7 +751,7 @@ export default function HomeScreen({ navigation }) {
     }
 
     if (ritualState === 'answered_waiting' && isNudgeSent) {
-      return 'Sent ✓';
+      return 'Sent';
     }
     return ritualCopy?.primaryLabel || "Answer today's question";
   }, [promptReady, ritualCopy, ritualState, inlineText, isSavingInline, isNudgeSent]);

@@ -1,11 +1,11 @@
 // utils/contentLoader.js
-// ✅ ULTRA SAFE VERSION - Cannot crash during module loading
-// ✅ Guarantees prompt-returning functions always return an object with .text (never undefined)
+// OK: ULTRA SAFE VERSION - Cannot crash during module loading
+// OK: Guarantees prompt-returning functions always return an object with .text (never undefined)
 // Apple Editorial System Colors Integrated
 
 import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
 
-if (__DEV__) console.log("🔵 ContentLoader: Module loading started");
+if (__DEV__) console.log("[content] ContentLoader: Module loading started");
 
 // Helper: return the eligible library. releaseWeek is metadata for freshness;
 // weekly/free limits are applied by the feature-specific access services.
@@ -21,27 +21,27 @@ try {
   const loadedPrompts = require("../content/prompts.json");
   if (loadedPrompts && Array.isArray(loadedPrompts.items)) {
     promptsData = loadedPrompts;
-    if (__DEV__) console.log("✅ ContentLoader: Loaded", promptsData.items.length, "prompts");
+    if (__DEV__) console.log("OK: ContentLoader: Loaded", promptsData.items.length, "prompts");
   } else {
-    console.warn("⚠️ ContentLoader: prompts.json loaded but missing items[]");
+    console.warn("Warning: ContentLoader: prompts.json loaded but missing items[]");
   }
 } catch (e) {
-  console.error("❌ ContentLoader: Failed to load prompts", e?.message || e);
+  console.error("Error: ContentLoader: Failed to load prompts", e?.message || e);
 }
 
 try {
   const loadedDates = require("../content/dates.json");
   if (loadedDates && Array.isArray(loadedDates.items)) {
     datesData = loadedDates;
-    if (__DEV__) console.log("✅ ContentLoader: Loaded", datesData.items.length, "dates");
+    if (__DEV__) console.log("OK: ContentLoader: Loaded", datesData.items.length, "dates");
   } else {
-    console.warn("⚠️ ContentLoader: dates.json loaded but missing items[]");
+    console.warn("Warning: ContentLoader: dates.json loaded but missing items[]");
   }
 } catch (e) {
-  console.error("❌ ContentLoader: Failed to load dates", e?.message || e);
+  console.error("Error: ContentLoader: Failed to load dates", e?.message || e);
 }
 
-if (__DEV__) console.log("🔵 ContentLoader: Module loading complete");
+if (__DEV__) console.log("[content] ContentLoader: Module loading complete");
 
 // Validate ID uniqueness in dev mode
 if (__DEV__) {
@@ -49,9 +49,9 @@ if (__DEV__) {
     const seen = new Set();
     for (const item of items) {
       if (!item.id) {
-        console.warn(`⚠️ ContentLoader: ${label} has entry without id:`, item.title);
+        console.warn(`Warning: ContentLoader: ${label} has entry without id:`, item.title);
       } else if (seen.has(item.id)) {
-        console.warn(`⚠️ ContentLoader: ${label} has duplicate id: ${item.id}`);
+        console.warn(`Warning: ContentLoader: ${label} has duplicate id: ${item.id}`);
       }
       seen.add(item.id);
     }
@@ -139,7 +139,7 @@ export function getFilteredPrompts(filters = {}) {
   return items.filter((prompt) => {
     if (!prompt || typeof prompt !== "object") return false;
 
-    // ✅ Key: require valid text so UI never gets a "prompt" with missing text
+    // OK: Key: require valid text so UI never gets a "prompt" with missing text
     if (typeof prompt.text !== "string" || !prompt.text.trim()) return false;
 
     const heat = typeof prompt.heat === "number" ? prompt.heat : 1;
@@ -504,23 +504,23 @@ export function getHeatLevels() {
 
 export function getDimensionMeta() {
   return {
-    // 🧠 Mood — What kind of date? (1-3)
+    // Mood: What kind of date? (1-3)
     heat: [
-      { level: 1, label: "Heart",  icon: "💜",  color: "#5856D6", darkColor: "#5E5CE6" }, // iOS Indigo
-      { level: 2, label: "Play",   icon: "🎉",  color: "#FF2D55", darkColor: "#FF375F" }, // iOS Pink
-      { level: 3, label: "Heat",   icon: "🔥",  color: "#FF3B30", darkColor: "#FF453A" }, // iOS Red
+      { level: 1, label: "Heart",  icon: "heart-outline",  color: "#5856D6", darkColor: "#5E5CE6" }, // iOS Indigo
+      { level: 2, label: "Play",   icon: "sparkles-outline",  color: "#FF2D55", darkColor: "#FF375F" }, // iOS Pink
+      { level: 3, label: "Heat",   icon: "flame-outline",  color: "#FF3B30", darkColor: "#FF453A" }, // iOS Red
     ],
-    // ⚡ Energy — How much effort? (1-3)
+    // Energy: How much effort? (1-3)
     load: [
-      { level: 1, label: "Chill",    icon: "🌙", color: "#34C759", darkColor: "#30D158" }, // iOS Green
-      { level: 2, label: "Moderate", icon: "☀️", color: "#FF9500", darkColor: "#FF9F0A" }, // iOS Orange
-      { level: 3, label: "Active",   icon: "⚡", color: "#FF3B30", darkColor: "#FF453A" }, // iOS Red
+      { level: 1, label: "Chill",    icon: "moon-outline", color: "#34C759", darkColor: "#30D158" }, // iOS Green
+      { level: 2, label: "Moderate", icon: "sunny-outline", color: "#FF9500", darkColor: "#FF9F0A" }, // iOS Orange
+      { level: 3, label: "Active",   icon: "flash-outline", color: "#FF3B30", darkColor: "#FF453A" }, // iOS Red
     ],
-    // 🤝 Style — How do you want to connect? (talking/doing/mixed)
+    // Style: How do you want to connect? (talking/doing/mixed)
     style: [
-      { id: "talking", label: "Talking", icon: "💬", color: "#32ADE6", darkColor: "#64D2FF" }, // iOS Cyan
-      { id: "doing",   label: "Doing",   icon: "🎯", color: "#AF52DE", darkColor: "#BF5AF2" }, // iOS Purple
-      { id: "mixed",   label: "Mixed",   icon: "✨", color: "#FF2D55", darkColor: "#FF375F" }, // iOS Pink
+      { id: "talking", label: "Talking", icon: "chatbubble-ellipses-outline", color: "#32ADE6", darkColor: "#64D2FF" }, // iOS Cyan
+      { id: "doing",   label: "Doing",   icon: "compass-outline", color: "#AF52DE", darkColor: "#BF5AF2" }, // iOS Purple
+      { id: "mixed",   label: "Mixed",   icon: "shuffle-outline", color: "#FF2D55", darkColor: "#FF375F" }, // iOS Pink
     ],
   };
 }
@@ -603,8 +603,8 @@ export function getFilteredDatesWithProfile(profile = null) {
   });
 }
 
-if (__DEV__) console.log("🔵 ContentLoader: All exports defined");
+if (__DEV__) console.log("[content] ContentLoader: All exports defined");
 
 if (__DEV__) {
-  console.log("🔍 ContentLoader: Development mode - monitoring ready");
+  console.log("[debug] ContentLoader: Development mode - monitoring ready");
 }

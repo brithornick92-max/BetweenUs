@@ -2,7 +2,7 @@
  * HeatLevelSettingsScreen.js
  * Sexy Red Intimacy & Apple Editorial Updates Integrated.
  * Allows users to set boundaries on intimacy prompts.
- * ✅ Full original logic preserved.
+ * OK: Full original logic preserved.
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';

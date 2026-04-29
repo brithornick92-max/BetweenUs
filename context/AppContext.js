@@ -198,7 +198,7 @@ export function AppProvider({ children }) {
       let hydratedUserProfile = userProfile && typeof userProfile === 'object' ? { ...userProfile } : {};
       let resolvedCoupleId = coupleId || null;
 
-      // ✅ IMMEDIATELY unblock the UI with local data
+      // OK: IMMEDIATELY unblock the UI with local data
       const now = Date.now();
       let effectivePartnerActivity = lastPartnerActivity;
       if (resolvedCoupleId && !lastPartnerActivity) {
@@ -215,7 +215,7 @@ export function AppProvider({ children }) {
         lastPartnerActivity: effectivePartnerActivity,
       });
 
-      // ✅ Do expensive migrations/verifications in background after UI is shown
+      // OK: Do expensive migrations/verifications in background after UI is shown
       // Nickname migration (non-blocking)
       (async () => {
         try {
@@ -262,7 +262,7 @@ export function AppProvider({ children }) {
         }
       })();
 
-      // ✅ Verify couple state in background (non-blocking)
+      // OK: Verify couple state in background (non-blocking)
       let supabaseUserId = null;
       if (resolvedCoupleId) {
         (async () => {
@@ -286,7 +286,7 @@ export function AppProvider({ children }) {
         })();
       }
 
-      // ✅ Get Supabase user in background (non-blocking)
+      // OK: Get Supabase user in background (non-blocking)
       (async () => {
         try {
           const { supabase } = await import('../config/supabase');

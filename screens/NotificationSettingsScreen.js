@@ -2,7 +2,7 @@
  * NotificationSettingsScreen — Personal touch-point configuration
  * Sexy Red Intimacy & Apple Editorial Updates Integrated.
  * * High-fidelity control center for stay-in-sync notifications.
- * ✅ Full original logic preserved.
+ * OK: Full original logic preserved.
  */
 
 import React, { useState, useEffect, useMemo } from 'react';

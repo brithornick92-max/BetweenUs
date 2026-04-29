@@ -8,13 +8,8 @@ const IONICON_GLYPHS = Ionicons?.glyphMap || {};
 
 /**
  * Apple Editorial Icon Bridge
- * Intercepts legacy MaterialCommunityIcon string names from your data layer 
- * and translates them into sleek, native iOS-style Ionicons.
- */
-/**
- * Apple Editorial Icon Bridge
- * Uses Ionicons directly and keeps a tiny compatibility layer only for
- * non-Ionicons values emitted by platform APIs.
+ * Uses outline Ionicons whenever an outline glyph exists and keeps a tiny
+ * compatibility layer only for non-Ionicons values emitted by platform APIs.
  */
 const ICON_ALIASES = {
   'face-recognition': 'scan-outline',
@@ -26,25 +21,20 @@ function normalizeIoniconName(name) {
     return 'ellipse-outline';
   }
 
-  if (IONICON_GLYPHS[name]) {
-    return name;
-  }
-
   const mappedName = ICON_ALIASES[name] || name;
+  const baseName = mappedName
+    .replace(/-sharp$/, '')
+    .replace(/-outline$/, '');
+
+  if (IONICON_GLYPHS[`${baseName}-outline`]) {
+    return `${baseName}-outline`;
+  }
 
   if (IONICON_GLYPHS[mappedName]) {
     return mappedName;
   }
 
-  if (!mappedName.endsWith('-outline') && IONICON_GLYPHS[`${mappedName}-outline`]) {
-    return `${mappedName}-outline`;
-  }
-
-  if (mappedName.endsWith('-circle') && IONICON_GLYPHS[`${mappedName}-outline`]) {
-    return `${mappedName}-outline`;
-  }
-
-  return IONICON_GLYPHS[mappedName] ? mappedName : 'ellipse-outline';
+  return 'ellipse-outline';
 }
 
 function Icon({ 

@@ -404,11 +404,10 @@ export default function PromptAnswerScreen({ route, navigation }) {
                     </Text>
                   </View>
 
-                  {/* Luxury corner marks */}
-                  <Text style={[styles.cornerMark, { top: 20, left: 20 }]}>✦</Text>
-                  <Text style={[styles.cornerMark, { top: 20, right: 20 }]}>✦</Text>
-                  <Text style={[styles.cornerMark, { bottom: 20, left: 20 }]}>✦</Text>
-                  <Text style={[styles.cornerMark, { bottom: 20, right: 20 }]}>✦</Text>
+                  <Icon name="sparkles-outline" size={14} color="rgba(255,255,255,0.45)" style={[styles.cornerMark, { top: 20, left: 20 }]} />
+                  <Icon name="sparkles-outline" size={14} color="rgba(255,255,255,0.45)" style={[styles.cornerMark, { top: 20, right: 20 }]} />
+                  <Icon name="sparkles-outline" size={14} color="rgba(255,255,255,0.45)" style={[styles.cornerMark, { bottom: 20, left: 20 }]} />
+                  <Icon name="sparkles-outline" size={14} color="rgba(255,255,255,0.45)" style={[styles.cornerMark, { bottom: 20, right: 20 }]} />
                 </LinearGradient>
               </Animated.View>
 
@@ -610,8 +609,6 @@ const createStyles = (t, isDark) =>
     },
     cornerMark: {
       position: "absolute",
-      fontSize: 18,
-      color: "rgba(255,255,255,0.25)",
     },
     cardFrontBand: {
       flexDirection: "row",

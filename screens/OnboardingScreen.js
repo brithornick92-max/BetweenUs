@@ -232,7 +232,7 @@ export default function OnboardingScreen({ navigation }) {
 
     try {
       // 1. Save Profile info
-      if (__DEV__) console.log("🔑 [invite] Step 1: updateProfile");
+      if (__DEV__) console.log("[invite] Step 1: updateProfile");
       await updateProfile?.({
         partnerNames: {
           myName: myName.trim(),
@@ -246,20 +246,20 @@ export default function OnboardingScreen({ navigation }) {
           partnerName: partnerName.trim(),
         },
       });
-      if (__DEV__) console.log("🔑 [invite] Step 1b: updateRelationshipStartDate");
+      if (__DEV__) console.log("[invite] Step 1b: updateRelationshipStartDate");
       await updateRelationshipStartDate(anniversaryDate.toISOString());
 
       // Ensure CloudEngine has a valid Supabase session for pairing operations
-      if (__DEV__) console.log("🔑 [invite] Step 2: getSupabaseOrThrow");
+      if (__DEV__) console.log("[invite] Step 2: getSupabaseOrThrow");
       const supabase = getSupabaseOrThrow();
-      if (__DEV__) console.log("🔑 [invite] Step 2b: getSession");
+      if (__DEV__) console.log("[invite] Step 2b: getSession");
       let {
         data: { session },
       } = await supabase.auth.getSession();
-      if (__DEV__) console.log("🔑 [invite] Step 2c: session =", !!session);
+      if (__DEV__) console.log("[invite] Step 2c: session =", !!session);
 
       if (!session) {
-        if (__DEV__) console.log("🔑 [invite] Step 3: No signed-in cloud session");
+        if (__DEV__) console.log("[invite] Step 3: No signed-in cloud session");
         session = await ensureSupabaseSession();
         if (!session) {
           // Session still unavailable after recovery attempt — surface error, do not retry
@@ -275,22 +275,22 @@ export default function OnboardingScreen({ navigation }) {
         }
       }
 
-      if (__DEV__) console.log("🔑 [invite] Step 4: CloudEngine.initialize");
+      if (__DEV__) console.log("[invite] Step 4: CloudEngine.initialize");
       await CloudEngine.initialize({ supabaseSessionPresent: true });
-      if (__DEV__) console.log("🔑 [invite] Step 4b: setSupabaseSession");
+      if (__DEV__) console.log("[invite] Step 4b: setSupabaseSession");
       await StorageRouter.setSupabaseSession(session);
 
       // 2. Generate a 6-character invite code via CoupleService
-      if (__DEV__) console.log("🔑 [invite] Step 5: generateInviteCode");
+      if (__DEV__) console.log("[invite] Step 5: generateInviteCode");
       const result = await CoupleService.generateInviteCode();
       if (!result?.code) throw new Error('No invite code returned');
-      if (__DEV__) console.log("🔑 [invite] Step 6: code =", result.code);
+      if (__DEV__) console.log("[invite] Step 6: code =", result.code);
       
       setInviteCode(result.code);
-      if (__DEV__) console.log("🔑 [invite] ✅ Complete! Code expires:", result.expiresAt);
+      if (__DEV__) console.log("[invite] Complete! Code expires:", result.expiresAt);
     } catch (error) {
       const msg = String(error?.message || "");
-      if (__DEV__) console.error("🔑 [invite] ❌ Error:", error?.name, msg, error?.stack?.slice(0, 500));
+      if (__DEV__) console.error("[invite] Error:", error?.name, msg, error?.stack?.slice(0, 500));
       Alert.alert(
         "Couldn't generate invitation",
         error?.message || "Please try again.",

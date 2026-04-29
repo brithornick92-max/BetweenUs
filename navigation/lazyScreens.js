@@ -5,7 +5,7 @@
  * Each function is only called when the screen is first navigated to,
  * keeping the startup bundle small.
  *
- * ⚠️  DO NOT convert these to top-level imports — that defeats lazy loading.
+ * Warning:  DO NOT convert these to top-level imports — that defeats lazy loading.
  *     This file is intentionally structured with inline require() calls.
  *
  * Every screen is wrapped with ScreenErrorBoundary so a crash in one screen

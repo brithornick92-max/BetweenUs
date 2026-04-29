@@ -124,7 +124,7 @@ export default function ConnectPartnerScreen({ navigation }) {
           if (localActive) {
             notification(NotificationFeedbackType.Success);
             setJoinPhase('done');
-            Alert.alert('You\'re linked! 💕', 'You and your partner are now connected.', [
+            Alert.alert('You\'re linked!', 'You and your partner are now connected.', [
               { text: 'Start', onPress: () => navigation.goBack() }
             ]);
           }
@@ -184,7 +184,7 @@ export default function ConnectPartnerScreen({ navigation }) {
       await actions.joinCouple(result.coupleId);
 
       Alert.alert(
-        'You\'re linked! 💕',
+        'You\'re linked!',
         'You and your partner are now connected on Between Us.',
         [{ text: 'Let\'s go!', onPress: () => navigation.goBack() }]
       );

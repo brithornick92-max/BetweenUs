@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import RevenueCatService from '../services/RevenueCatService';
+import Icon from '../components/Icon';
 
 /**
  * RevenueCat Debug Screen
@@ -95,7 +96,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
         <View style={[styles.section, { backgroundColor: colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: colors.accent }]}>Premium Status</Text>
           <Text style={[styles.value, { color: data.isPremium ? '#34C759' : '#D2121A' }]}>
-            {data.isPremium ? '✅ Premium Active' : '❌ Not Premium'}
+            {data.isPremium ? 'Premium Active' : 'Not Premium'}
           </Text>
         </View>
 
@@ -113,7 +114,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
         {/* Active Entitlement Keys */}
         <View style={[styles.section, { backgroundColor: colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: colors.accent }]}>
-            🔑 Active Entitlement Keys
+            Active Entitlement Keys
           </Text>
           {data.activeEntitlementKeys && data.activeEntitlementKeys.length > 0 ? (
             <>
@@ -123,7 +124,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
                 </Text>
               ))}
               <Text style={[styles.hint, { color: colors.textSecondary, marginTop: 8 }]}> 
-                ⚠️ Update ENTITLEMENT_ID in services/RevenueCatService.js to match one of these
+                Update ENTITLEMENT_ID in services/RevenueCatService.js to match one of these
               </Text>
             </>
           ) : (
@@ -159,7 +160,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
           {data.offerings && data.offerings.packages && data.offerings.packages.length > 0 ? (
             <>
               <Text style={[styles.value, { color: '#34C759' }]}> 
-                ✅ {(data.offerings?.packages || []).length} package(s) available
+                {(data.offerings?.packages || []).length} package(s) available
               </Text>
               {(data.offerings?.packages || []).map((pkg, index) => (
                 <Text key={index} style={[styles.hint, { color: colors.textSecondary }]}> 
@@ -169,7 +170,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
             </>
           ) : (
             <Text style={[styles.value, { color: '#D2121A' }]}>
-              ❌ No offerings available
+              No offerings available
             </Text>
           )}
         </View>
@@ -187,7 +188,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
 
         {/* Instructions */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.accent, borderWidth: 2 }]}>
-          <Text style={[styles.sectionTitle, { color: colors.accent }]}>📋 What to Do</Text>
+          <Text style={[styles.sectionTitle, { color: colors.accent }]}>What to Do</Text>
           <Text style={[styles.instruction, { color: colors.text }]}>
             1. Check "Active Entitlement Keys" above
           </Text>
@@ -212,7 +213,8 @@ export default function RevenueCatDebugScreen({ navigation }) {
           style={[styles.button, { backgroundColor: colors.accent }]}
           onPress={loadDebugInfo}
         >
-          <Text style={[styles.buttonText, { color: colors.text }]}>🔄 Refresh</Text>
+          <Icon name="refresh-outline" size={18} color={colors.text} />
+          <Text style={[styles.buttonText, { color: colors.text }]}>Refresh</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -270,6 +272,9 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
     marginBottom: 12,
   },
   buttonText: {

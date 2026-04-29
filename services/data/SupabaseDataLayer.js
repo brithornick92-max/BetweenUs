@@ -344,26 +344,32 @@ async function cdUpdate(id, valuePatch) {
 
   if (!sb) throw new Error('Supabase is not configured');
 
-  const { data: existing, error: fetchError } = await sb
+  const { data: existingRows, error: fetchError } = await sb
     .from(TABLES.COUPLE_DATA)
     .select('value')
     .eq('id', id)
-    .single();
+    .limit(1);
 
   if (fetchError) throw fetchError;
 
+  const existing = Array.isArray(existingRows) ? existingRows[0] : existingRows;
+  if (!existing) throw new Error('No matching row found to update');
+
   const merged = { ...(existing?.value || {}), ...valuePatch };
 
-  const { data, error } = await sb
+  const { data: updatedRows, error } = await sb
     .from(TABLES.COUPLE_DATA)
     .update({ value: merged, is_private: false, updated_at: now() })
     .eq('id', id)
     .select('*')
-    .single();
+    .limit(1);
 
   if (error) throw error;
 
-  return data;
+  const updated = Array.isArray(updatedRows) ? updatedRows[0] : updatedRows;
+  if (!updated) throw new Error('No matching row found to update');
+
+  return updated;
 }
 
 /**
@@ -599,7 +605,8 @@ async function mapMemoryRow(row) {
     snapshot_count: normalizeSnapshotCount(v.snapshot_count),
     snapshot_created_at: v.snapshot_created_at || null,
 
-    created_at: row.created_at,
+    occurred_at: v.occurred_at || null,
+    created_at: v.occurred_at || row.created_at,
     updated_at: row.updated_at,
   };
 }
@@ -1456,6 +1463,7 @@ const SupabaseDataLayer = {
     if ('snapshot_index' in updates) valuePatch.snapshot_index = updates.snapshot_index ?? null;
     if ('snapshot_count' in updates) valuePatch.snapshot_count = updates.snapshot_count ?? null;
     if ('snapshot_created_at' in updates) valuePatch.snapshot_created_at = updates.snapshot_created_at || null;
+    if ('occurred_at' in updates) valuePatch.occurred_at = updates.occurred_at || null;
 
     const cachedRows = await loadCache(CACHE_SCOPES.memories);
     const cached = cachedRows.find((row) => row?.id === id) || {};
@@ -1469,6 +1477,8 @@ const SupabaseDataLayer = {
       snapshot_index: 'snapshot_index' in valuePatch ? normalizeSnapshotIndex(valuePatch.snapshot_index) : normalizeSnapshotIndex(cached.snapshot_index),
       snapshot_count: 'snapshot_count' in valuePatch ? normalizeSnapshotCount(valuePatch.snapshot_count) : normalizeSnapshotCount(cached.snapshot_count),
       snapshot_created_at: 'snapshot_created_at' in valuePatch ? valuePatch.snapshot_created_at : (cached.snapshot_created_at || null),
+      occurred_at: 'occurred_at' in valuePatch ? valuePatch.occurred_at : (cached.occurred_at || null),
+      created_at: 'occurred_at' in valuePatch ? (valuePatch.occurred_at || cached.created_at) : cached.created_at,
       updated_at: now(),
     };
 

@@ -37,6 +37,7 @@ import { NicknameEngine } from '../services/PolishEngine';
 
 const HEARTS_KEY = '@betweenus:cache:momentHearts';
 const HIDDEN_KEEPSAKES_KEY = '@betweenus:cache:hiddenKeepsakes';
+const OCCURRENCE_OVERRIDES_KEY = '@betweenus:cache:keepsakeOccurrenceOverrides';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
@@ -593,6 +594,24 @@ export function buildDateGroupedKeepsakeList(entries = []) {
   return rows;
 }
 
+function applyOccurrenceOverrides(entries = [], overrides = {}) {
+  if (!overrides || typeof overrides !== 'object') return entries;
+
+  return (entries || []).map((entry) => {
+    const override = overrides[entry?.id];
+    if (!override) return entry;
+
+    const date = new Date(override);
+    if (Number.isNaN(date.getTime())) return entry;
+
+    return {
+      ...entry,
+      sortAt: override,
+      dateLabel: formatDateLabel(override),
+    };
+  }).sort((a, b) => getSortTime(b) - getSortTime(a));
+}
+
 export default function OurStoryScreen() {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
@@ -601,12 +620,15 @@ export default function OurStoryScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lightbox, setLightbox] = useState(null);
+  const [occurrenceEditor, setOccurrenceEditor] = useState(null);
   const [hearts, setHearts] = useState({});
   const scrollY = useRef(new RNAnimated.Value(0)).current;
 
   const t = useMemo(() => ({
     background: colors.background,
     surface: isDark ? 'rgba(28, 28, 30, 0.45)' : 'rgba(255, 255, 255, 0.65)',
+    solidSurface: isDark ? '#1C1C1E' : '#FFFFFF',
+    solidSurfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
     surfaceSecondary: isDark ? 'rgba(44, 44, 46, 0.8)' : 'rgba(242, 242, 247, 0.8)',
     primary: colors.primary || '#D2121A',
     accent: colors.accent || '#D4AA7E',
@@ -635,6 +657,7 @@ export default function OurStoryScreen() {
         partnerName,
         currentUserId,
         hiddenKeepsakeIds,
+        occurrenceOverrides,
       ] = await Promise.all([
         safeLoad(() => DataLayer.getSharedPromptAnswers({ limit: 200 })),
         safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
@@ -645,6 +668,7 @@ export default function OurStoryScreen() {
         NicknameEngine.getPartnerName('Partner'),
         Promise.resolve(typeof DataLayer.getCurrentUserId === 'function' ? DataLayer.getCurrentUserId() : null),
         storage.get(HIDDEN_KEEPSAKES_KEY, []),
+        storage.get(OCCURRENCE_OVERRIDES_KEY, {}),
       ]);
 
       const merged = await buildKeepsakeEntriesFromSources({
@@ -659,7 +683,8 @@ export default function OurStoryScreen() {
       });
 
       const hidden = new Set(Array.isArray(hiddenKeepsakeIds) ? hiddenKeepsakeIds : []);
-      setEntries(merged.filter((entry) => !hidden.has(entry.id)));
+      const visible = merged.filter((entry) => !hidden.has(entry.id));
+      setEntries(applyOccurrenceOverrides(visible, occurrenceOverrides));
     } catch (error) {
       if (__DEV__) console.warn('[OurStory] Load failed:', error?.message);
       setEntries([]);
@@ -910,6 +935,85 @@ export default function OurStoryScreen() {
     await Promise.all(memoryIds.map((memoryId) => DataLayer.deleteMemory(memoryId)));
   }, [getMatchingOwnedMemoryIds]);
 
+  const canEditOccurrence = useCallback((item) => (
+    ['date', 'position_tried'].includes(item?.kind)
+      && !!item?.deletable
+  ), []);
+
+  const openOccurrenceEditor = useCallback((item) => {
+    if (!canEditOccurrence(item)) return;
+
+    const initialDate = new Date(item.sortAt || Date.now());
+    setOccurrenceEditor({
+      item,
+      value: Number.isNaN(initialDate.getTime()) ? new Date() : initialDate,
+      saving: false,
+    });
+  }, [canEditOccurrence]);
+
+  const closeOccurrenceEditor = useCallback(() => {
+    setOccurrenceEditor(null);
+  }, []);
+
+  const updateOccurrenceEditorValue = useCallback((nextDate) => {
+    if (!nextDate || Number.isNaN(new Date(nextDate).getTime())) return;
+    setOccurrenceEditor((current) => (
+      current ? { ...current, value: new Date(nextDate) } : current
+    ));
+  }, []);
+
+  const saveLocalOccurrenceOverride = useCallback(async (item, occurredAt) => {
+    if (!item?.id || !occurredAt) return;
+
+    const existing = await storage.get(OCCURRENCE_OVERRIDES_KEY, {});
+    const next = {
+      ...(existing && typeof existing === 'object' && !Array.isArray(existing) ? existing : {}),
+      [item.id]: occurredAt,
+    };
+
+    await storage.set(OCCURRENCE_OVERRIDES_KEY, next);
+  }, []);
+
+  const saveOccurrenceEditor = useCallback(async () => {
+    const item = occurrenceEditor?.item;
+    const value = occurrenceEditor?.value;
+    if (!item || !value) return;
+
+    setOccurrenceEditor((current) => current ? { ...current, saving: true } : current);
+
+    try {
+      const matchingMemoryIds = await getMatchingOwnedMemoryIds(item);
+      const memoryIds = [...new Set([
+        ...matchingMemoryIds,
+        item.memoryId,
+      ].filter(Boolean))];
+
+      if (!memoryIds.length) {
+        throw new Error('No editable row found for this account.');
+      }
+
+      for (const memoryId of memoryIds) {
+        try {
+          await DataLayer.updateMemory(memoryId, { occurred_at: value.toISOString() });
+        } catch (error) {
+          if (!String(error?.message || '').includes('No matching row found')) {
+            throw error;
+          }
+        }
+      }
+
+      await saveLocalOccurrenceOverride(item, value.toISOString());
+
+      selection();
+      setOccurrenceEditor(null);
+      await loadEntries();
+    } catch (error) {
+      if (__DEV__) console.warn('[OurStory] Occurrence edit failed:', error?.message);
+      setOccurrenceEditor((current) => current ? { ...current, saving: false } : current);
+      Alert.alert('Could not update', 'Please try again.');
+    }
+  }, [getMatchingOwnedMemoryIds, loadEntries, occurrenceEditor, saveLocalOccurrenceOverride]);
+
   const confirmDeleteItem = useCallback((item) => {
     const deleteCopy = getDeleteCopy(item);
 
@@ -965,6 +1069,10 @@ export default function OurStoryScreen() {
       isSnapshot ? 'Snapshot Options' : 'Keepsake Options',
       null,
       [
+        canEditOccurrence(item) ? {
+          text: 'Edit Date & Time',
+          onPress: () => openOccurrenceEditor(item),
+        } : null,
         item.editable ? {
           text: isSnapshot ? 'Edit Snapshot' : 'Edit Memory',
           onPress: () => handleEditItem(item),
@@ -980,7 +1088,7 @@ export default function OurStoryScreen() {
         },
       ].filter(Boolean)
     );
-  }, [confirmDeleteItem, getDeleteCopy, handleEditItem]);
+  }, [canEditOccurrence, confirmDeleteItem, getDeleteCopy, handleEditItem, openOccurrenceEditor]);
 
   const renderSnapshotTile = (media, index, mediaItems, tileStyle, options = {}) => {
     const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/');
@@ -1308,6 +1416,10 @@ export default function OurStoryScreen() {
     </View>
   );
 
+  const NativeDateTimePicker = occurrenceEditor
+    ? require('@react-native-community/datetimepicker').default
+    : null;
+
   return (
     <EditorialScreenScaffold
       navigation={navigation}
@@ -1354,6 +1466,92 @@ export default function OurStoryScreen() {
           <Icon name="add-outline" size={28} color="#FFF" />
         </BlurView>
       </TouchableOpacity>
+
+      <Modal
+        visible={!!occurrenceEditor}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeOccurrenceEditor}
+      >
+        <View style={styles.occurrenceBackdrop}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={closeOccurrenceEditor}
+          />
+          <View style={[styles.occurrenceSheet, { backgroundColor: t.solidSurface, borderColor: t.border }]}>
+            <View style={styles.occurrenceHeaderRow}>
+              <View>
+                <Text style={[styles.occurrenceEyebrow, { color: t.primary }]}>OCCURRED</Text>
+                <Text style={[styles.occurrenceTitle, { color: t.text }]}>Edit date and time</Text>
+              </View>
+              <TouchableOpacity
+                onPress={closeOccurrenceEditor}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={styles.occurrenceCloseButton}
+              >
+                <Icon name="close-outline" size={22} color={t.subtext} />
+              </TouchableOpacity>
+            </View>
+
+            {occurrenceEditor ? (
+              <View style={styles.occurrencePickerStack}>
+                <View style={[styles.occurrencePickerCard, { backgroundColor: t.solidSurfaceSecondary }]}>
+                  <NativeDateTimePicker
+                    value={occurrenceEditor.value}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    maximumDate={new Date()}
+                    onChange={(event, selectedDate) => {
+                      if (event?.type === 'dismissed') return;
+                      const current = occurrenceEditor.value;
+                      const picked = selectedDate || current;
+                      const next = new Date(current);
+                      next.setFullYear(picked.getFullYear(), picked.getMonth(), picked.getDate());
+                      updateOccurrenceEditorValue(next);
+                    }}
+                  />
+                </View>
+                <View style={[styles.occurrencePickerCard, { backgroundColor: t.solidSurfaceSecondary }]}>
+                  <NativeDateTimePicker
+                    value={occurrenceEditor.value}
+                    mode="time"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={(event, selectedDate) => {
+                      if (event?.type === 'dismissed') return;
+                      const current = occurrenceEditor.value;
+                      const picked = selectedDate || current;
+                      const next = new Date(current);
+                      next.setHours(picked.getHours(), picked.getMinutes(), 0, 0);
+                      updateOccurrenceEditorValue(next);
+                    }}
+                  />
+                </View>
+              </View>
+            ) : null}
+
+            <View style={styles.occurrenceActions}>
+              <TouchableOpacity
+                style={[styles.occurrenceSecondaryButton, { borderColor: t.border }]}
+                onPress={closeOccurrenceEditor}
+                disabled={occurrenceEditor?.saving}
+              >
+                <Text style={[styles.occurrenceSecondaryText, { color: t.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.occurrencePrimaryButton, { backgroundColor: t.primary }]}
+                onPress={saveOccurrenceEditor}
+                disabled={occurrenceEditor?.saving}
+              >
+                <Text style={styles.occurrencePrimaryText}>
+                  {occurrenceEditor?.saving ? 'Saving...' : 'Save'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={!!currentLightboxItem}
@@ -1776,6 +1974,83 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 13,
     fontWeight: '700',
+  },
+
+  occurrenceBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  occurrenceSheet: {
+    margin: 16,
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 18,
+    gap: 18,
+    opacity: 1,
+  },
+  occurrenceHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  occurrenceEyebrow: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.4,
+  },
+  occurrenceTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 22,
+    fontWeight: '900',
+    marginTop: 4,
+  },
+  occurrenceCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  occurrencePickerStack: {
+    gap: 8,
+  },
+  occurrencePickerCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    paddingVertical: Platform.OS === 'ios' ? 4 : 0,
+  },
+  occurrenceActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  occurrenceSecondaryButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  occurrencePrimaryButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  occurrenceSecondaryText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  occurrencePrimaryText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
 
   lightboxShell: {
