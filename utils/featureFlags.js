@@ -79,7 +79,7 @@ export const PREMIUM_LIMITS = Object.freeze({
   PROMPT_RESPONSES_ENABLED: true,
   CLOUD_SYNC_ENABLED: true,
   // Week 0 starting library for premium users
-  WEEK_0_PROMPTS: 300,
+  WEEK_0_PROMPTS: 200,
   WEEK_0_DATES: 200,
   WEEK_0_POSITIONS: 10,
   // Weekly content drops for premium users

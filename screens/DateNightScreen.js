@@ -25,7 +25,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
-import { getAllDates, filterDates, getDimensionMeta, getFilteredDatesWithProfile } from '../utils/contentLoader';
+import { getAllDates, filterDates, getDimensionMeta } from '../utils/contentLoader';
 import { FREE_LIMITS, PremiumFeature, getTimedUnlockLimits } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
@@ -42,6 +42,12 @@ import {
   addDateToShortlist,
   removeDateFromShortlist,
 } from '../services/supabase/dateShortlistService';
+import {
+  getDateHistory,
+  getRecentlyCompletedDateIds,
+  removeDateSavedKeepsake,
+  saveDateSavedKeepsake,
+} from '../utils/dateHistory';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
@@ -439,21 +445,28 @@ export default function DateNightScreen({ navigation }) {
       const task = InteractionManager.runAfterInteractions(async () => {
         const dates = getAllDates();
         
-        // Get content profile and boundaries first
+        // Get content profile, boundaries, and recent completions first.
         let profile = null;
         let bounds = null;
-        try {
-          [profile, bounds] = await Promise.all([
-            PreferenceEngine.getContentProfile(userProfile || {}),
-            SoftBoundaries.getAll(),
-          ]);
+        let recentlyCompletedDateIds = new Set();
+        const [profileResult, boundsResult, historyResult] = await Promise.allSettled([
+          PreferenceEngine.getContentProfile(userProfile || {}),
+          SoftBoundaries.getAll(),
+          getDateHistory(),
+        ]);
+
+        if (profileResult.status === 'fulfilled') {
+          profile = profileResult.value;
           setContentProfile(profile);
+        }
+
+        if (boundsResult.status === 'fulfilled') {
+          bounds = boundsResult.value;
           setRawBoundaries(bounds);
-        } catch {
-          try {
-            bounds = await SoftBoundaries.getAll();
-            setRawBoundaries(bounds);
-          } catch {}
+        }
+
+        if (historyResult.status === 'fulfilled') {
+          recentlyCompletedDateIds = getRecentlyCompletedDateIds(historyResult.value);
         }
 
         // Apply boundaries to filter dates
@@ -462,6 +475,7 @@ export default function DateNightScreen({ navigation }) {
           const heat = d.heat || 1;
           // Apply boundary filters
           if (bounds?.pausedDates?.includes(d.id)) return false;
+          if (recentlyCompletedDateIds.has(d.id)) return false;
           if (profile?.boundaries?.hiddenCategories?.includes(d.category)) return false;
           if (profile?.maxHeat && heat > profile.maxHeat) return false;
           if (bounds?.hideSpicy && heat >= 4) return false;
@@ -501,7 +515,7 @@ export default function DateNightScreen({ navigation }) {
   // (filter change, profile load, premium status change)
   useEffect(() => {
     setDeckIndex(0); // Reset index when deck shuffles
-  }, [deckVersion, contentProfile, isPremium]);
+  }, [deckVersion, contentProfile, isPremium, allDates]);
 
   const freeWeeklyDateDeck = useMemo(() => {
     if (isPremium || !weeklyDateSet?.items?.length) return null;
@@ -527,10 +541,8 @@ export default function DateNightScreen({ navigation }) {
       // Free users: Use ONLY the rotating weekly set
       finalDeck = [...freeWeeklyDateDeck];
     } else if (isPremium) {
-      // Premium users: Use ALL boundary-filtered dates
-      const baseDates = contentProfile
-        ? getFilteredDatesWithProfile(contentProfile)
-        : allDates;
+      // Premium users: Use all eligible dates after boundaries and recent completions are removed.
+      const baseDates = allDates;
 
       if (!contentProfile) {
         finalDeck = shuffleArray(baseDates);
@@ -662,6 +674,12 @@ export default function DateNightScreen({ navigation }) {
           await addDateToShortlist(userId, date.id);
         }
       }
+
+      if (wasSaved) {
+        await removeDateSavedKeepsake(date.id);
+      } else {
+        await saveDateSavedKeepsake(date);
+      }
     } catch (error) {
       setLikedDates(prev => (
         wasSaved
@@ -724,16 +742,23 @@ export default function DateNightScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.headerEye, { color: t.primary }]}>
-            {!ready
-              ? 'Preparing ideas...'
-              : visibleCount > 0
-                ? `${visibleCount} ${visibleCount === 1 ? 'idea' : 'ideas'} ready`
-                : 'No ideas available'}
+            {isPremium
+              ? '100 ideas'
+              : !ready
+                ? 'Preparing ideas...'
+                : visibleCount > 0
+                  ? `${visibleCount} ${visibleCount === 1 ? 'idea' : 'ideas'} ready`
+                  : 'No ideas available'}
           </Text>
           
           <View style={styles.headerRow}>
             <Text style={[styles.headerTitle, { color: t.text }]}>Dates</Text>
           </View>
+          {isPremium ? (
+            <Text style={[styles.headerSubtitle, { color: t.subtext }]}>
+              8 new date ideas added each week.
+            </Text>
+          ) : null}
           
           {/* Shuffle Button */}
           <View style={styles.shuffleSection}>
@@ -789,7 +814,7 @@ export default function DateNightScreen({ navigation }) {
                   <Icon name="lock-closed-outline" size={42} color={colors.primary} />
                   <Text style={[styles.emptyTitle, { color: colors.text }]}>Explore More</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                    Premium opens this week's full date set plus {allDates.length}+ date ideas shaped by mood, energy, and spark.
+                    Premium opens this week's full date set plus {allDates.length}+ date ideas across romantic, adventure, wellness, and after-dark categories.
                   </Text>
                   <TouchableOpacity
                     style={[styles.resetBtn, { backgroundColor: colors.primary }]}
@@ -878,7 +903,7 @@ export default function DateNightScreen({ navigation }) {
             </View>
             <Text style={[styles.editorialTitle, { color: colors.text }]}>More date ideas made for you</Text>
             <Text style={[styles.editorialBody, { color: colors.textMuted }]}>
-              You've seen your free weekly date pick. Premium opens all 5 weekly picks plus the full catalog with mood, energy, and heat filters.
+              You've seen your free weekly date pick. Premium opens all 5 weekly picks plus the full catalog across romantic, adventure, wellness, cozy, and after-dark ideas.
             </Text>
           </TouchableOpacity>
         )}

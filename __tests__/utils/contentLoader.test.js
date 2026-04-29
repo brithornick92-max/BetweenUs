@@ -34,8 +34,8 @@ jest.mock('../../content/prompts.json', () => ({
 jest.mock('../../content/dates.json', () => ({
   meta: { version: '5.0.0', totalDates: 5 },
   items: [
-    { id: 'd1', title: 'Cozy movie night', heat: 1, location: 'home', load: 1, style: 'mixed', minutes: 90, steps: ['Pick a film', 'Make popcorn'] },
-    { id: 'd2', title: 'Starlight walk', heat: 2, location: 'out', load: 1, style: 'talking', minutes: 60, steps: ['Walk outside'] },
+    { id: 'd1', title: 'Cozy movie night', heat: 1, location: 'home', load: 1, style: 'mixed', minutes: 90, releaseWeek: 0, steps: ['Pick a film', 'Make popcorn'] },
+    { id: 'd2', title: 'Starlight walk', heat: 2, location: 'out', load: 1, style: 'talking', minutes: 60, releaseWeek: 99, steps: ['Walk outside'] },
     { id: 'd3', title: 'Cook together', heat: 3, location: 'home', load: 2, style: 'doing', minutes: 120, steps: ['Choose recipe'] },
     { id: 'd4', title: 'Dance class', heat: 4, location: 'out', load: 3, style: 'doing', minutes: 90, steps: ['Book class'] },
     { id: 'd5', title: 'Spa night', heat: 5, location: 'home', load: 1, style: 'mixed', minutes: 120, steps: ['Light candles'] },
@@ -135,6 +135,11 @@ describe('getAllDates', () => {
     const dates = getAllDates();
     expect(Array.isArray(dates)).toBe(true);
     expect(dates.length).toBeGreaterThan(0);
+  });
+
+  it('does not hard-gate dates by releaseWeek', () => {
+    const dates = getAllDates();
+    expect(dates.some((date) => date.id === 'd2')).toBe(true);
   });
 
   it('each date has required fields', () => {

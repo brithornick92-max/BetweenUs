@@ -19,6 +19,7 @@ import Animated, {
 import Icon from './Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getDateCardPalette } from './dateCardPalette';
+import { getDateCategoryMeta } from '../utils/contentLoader';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -39,11 +40,17 @@ const HEAT_LABELS = {
   3: 'After Dark',
 };
 
+const CATEGORY_META_BY_ID = getDateCategoryMeta().reduce((acc, category) => {
+  acc[category.id] = category;
+  return acc;
+}, {});
+
 export default function DateCardBack({ date, dims, isDark = true }) {
   const heat = date?.heat || 1;
   const palette = getDateCardPalette(heat, isDark);
-  const icon = HEAT_ICONS[heat] || 'heart-outline';
-  const label = HEAT_LABELS[heat] || 'Emotional';
+  const categoryMeta = CATEGORY_META_BY_ID[date?.category] || CATEGORY_META_BY_ID.romantic;
+  const icon = categoryMeta?.icon || HEAT_ICONS[heat] || 'heart-outline';
+  const label = categoryMeta?.label || HEAT_LABELS[heat] || 'Date';
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
 
   // Breathing ring pulse

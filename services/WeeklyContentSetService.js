@@ -9,10 +9,10 @@
  * - Always see ~5-15 cards total (current week + locked previews)
  * 
  * PREMIUM USERS (CUMULATIVE):
- * - Week 0 (signup): 300 prompts, 200 dates, 10 positions
- * - Week 1: 310 prompts, 208 dates, 12 positions
- * - Week 10: 400 prompts, 280 dates, 30 positions
- * - Eventually: 792 prompts, 823 dates, 200 positions (full library)
+ * - Week 0 (signup): 200 prompts balanced across heat levels, 200 dates, 10 positions
+ * - Week 1: 210 prompts, 208 dates, 12 positions
+ * - Week 10: 300 prompts, 280 dates, 30 positions
+ * - Eventually: 880 prompts, 675 dates, 200 positions (full library)
  * - Library GROWS each week - they get cumulative access
  * 
  * NOTE: For premium, screens should use ALL boundary-filtered items, not buildWeeklySet.
@@ -28,6 +28,7 @@ const CONTENT_TYPES = {
 const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
     premium: 10,         // Premium gets 10 new prompts/week
+    premiumStart: 200,   // Premium starts with ~40 prompts per heat level
     freeWelcomePack: 10, // Free gets 10 prompts on signup (2 from each category)
     freeOngoing: 5,      // Free gets 5 new prompts each week after week 0
     freeLockedPreview: 5, // Show 5 locked premium teasers
@@ -46,16 +47,20 @@ const WEEKLY_LIMITS = {
   },
 };
 
+const PREMIUM_PROMPT_HEAT_LEVELS = [1, 2, 3, 4, 5];
+const PREMIUM_PROMPT_START_PER_HEAT = 40;
+const PREMIUM_PROMPT_WEEKLY_PER_HEAT = 2;
+
 const PREMIUM_LIBRARY_TOTALS = {
-  [CONTENT_TYPES.PROMPTS]: 792,
-  [CONTENT_TYPES.DATES]: 823,   // Updated to match dates.json
+  [CONTENT_TYPES.PROMPTS]: 880,
+  [CONTENT_TYPES.DATES]: 675,
   [CONTENT_TYPES.POSITIONS]: 200,
 };
 
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
     headline: 'Your starter pack is just the beginning',
-    body: 'You explored 10 prompts. Premium unlocks 300+ prompts right now, plus 10 fresh ones every week.',
+    body: 'You explored 10 prompts. Premium unlocks 200 prompts right now, balanced across every heat level, plus 10 fresh ones every week.',
     cta: 'Unlock All Prompts',
   },
   [CONTENT_TYPES.DATES]: {
@@ -77,9 +82,18 @@ const getCategory = (item) =>
 
 const getDateLoad = (item) => Number(item?.load ?? item?.energy ?? item?.effort ?? 2);
 
-const getDateStyle = (item) => item?.style ?? 'mixed';
-
 const getTitle = (item) => item?.title ?? item?.text ?? item?.prompt ?? 'Untitled';
+
+const DATE_CATEGORY_TARGETS = [
+  'romantic',
+  'adventure',
+  'after-dark',
+  'health',
+  'food',
+  'creative',
+  'cozy',
+  'culture',
+];
 
 const stableStringHash = (value) => {
   const input = String(value ?? '');
@@ -228,31 +242,79 @@ const pickBalancedPrompts = (items, limit, seed) => {
   return selected;
 };
 
+const buildPremiumPromptLibrary = (
+  items,
+  {
+    userId = 'anonymous',
+    userSettings = {},
+    userCreatedAt = null,
+    date = new Date(),
+  } = {}
+) => {
+  const weekNumber = getUserWeekNumber(userCreatedAt, date);
+  const settings = normalizeUserSettings(userSettings);
+  const eligible = (Array.isArray(items) ? items : []).filter((item) =>
+    isAllowedByHeat(item, settings)
+  );
+
+  const perHeatTarget =
+    PREMIUM_PROMPT_START_PER_HEAT + (weekNumber * PREMIUM_PROMPT_WEEKLY_PER_HEAT);
+  const totalTarget = perHeatTarget * PREMIUM_PROMPT_HEAT_LEVELS.length;
+  const seed = `${CONTENT_TYPES.PROMPTS}:${userId || 'anonymous'}:premium-library`;
+
+  const selected = [];
+  const selectedIds = new Set();
+
+  for (const heatLevel of PREMIUM_PROMPT_HEAT_LEVELS) {
+    const heatItems = sortSeeded(
+      eligible.filter((item) => getHeat(item) === heatLevel),
+      `${seed}:heat:${heatLevel}`
+    );
+
+    for (const item of heatItems.slice(0, perHeatTarget)) {
+      const id = String(item?.id ?? item?.text ?? item?.prompt ?? selected.length);
+      if (selectedIds.has(id)) continue;
+      selected.push(item);
+      selectedIds.add(id);
+    }
+  }
+
+  if (selected.length < totalTarget) {
+    const remaining = sortSeeded(
+      eligible.filter((item) => {
+        const id = String(item?.id ?? item?.text ?? item?.prompt ?? '');
+        return !selectedIds.has(id);
+      }),
+      `${seed}:fill:${weekNumber}`
+    );
+
+    for (const item of remaining) {
+      if (selected.length >= totalTarget) break;
+      const id = String(item?.id ?? item?.text ?? item?.prompt ?? selected.length);
+      if (selectedIds.has(id)) continue;
+      selected.push(item);
+      selectedIds.add(id);
+    }
+  }
+
+  return selected;
+};
+
 const pickBalancedDates = (items, limit, seed) => {
   const selected = [];
   const shuffled = sortSeeded(items, seed);
 
-  const desiredSlots = [
-    (item) => getDateLoad(item) === 1,
-    (item) => getDateStyle(item) === 'talking',
-    (item) => getHeat(item) === 2,
-    (item) => getHeat(item) === 1,
-    (item) => getHeat(item) >= 3,
-  ];
-
-  for (const matchesSlot of desiredSlots) {
-    const pick = shuffled.find(matchesSlot);
+  for (const category of DATE_CATEGORY_TARGETS) {
+    const pick = shuffled.find(
+      (item) => getCategory(item) === category && byCategoryCount(selected, category) < 1
+    );
     pushUnique(selected, pick, limit);
     if (selected.length >= limit) return selected;
   }
 
   for (const item of shuffled) {
-    const sameLaneCount = selected.filter(
-      (selectedItem) =>
-        getHeat(selectedItem) === getHeat(item) &&
-        getDateLoad(selectedItem) === getDateLoad(item) &&
-        getDateStyle(selectedItem) === getDateStyle(item)
-    ).length;
+    const category = getCategory(item);
+    const sameLaneCount = byCategoryCount(selected, category);
 
     if (sameLaneCount < 2) {
       pushUnique(selected, item, limit);
@@ -462,6 +524,7 @@ export {
   PREMIUM_LIBRARY_TOTALS,
   UPGRADE_COPY,
   buildWeeklySet,
+  buildPremiumPromptLibrary,
   getUserWeekNumber,
   getWeekNumberFromStart, // Deprecated, use getUserWeekNumber
 };

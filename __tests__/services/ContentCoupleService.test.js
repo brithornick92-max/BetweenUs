@@ -10,6 +10,10 @@ describe('ContentCoupleService', () => {
       },
       dataLayer: {
         savePromptAnswer: jest.fn().mockResolvedValue({ id: 'answer-1', prompt_id: 'prompt-1', answer: 'hello' }),
+        getSharedPromptAnswers: jest.fn().mockResolvedValue([
+          { id: 'answer-1', prompt_id: 'prompt-1', answer: 'hello' },
+          { id: 'answer-2', prompt_id: 'prompt-2', answer: 'plain' },
+        ]),
         getPromptAnswers: jest.fn().mockResolvedValue([
           { id: 'answer-1', prompt_id: 'prompt-1', answer: 'hello' },
           { id: 'answer-2', prompt_id: 'prompt-2', answer: 'plain' },
@@ -52,7 +56,7 @@ describe('ContentCoupleService', () => {
     });
   });
 
-  it('loads prompt responses from the cloud data layer', async () => {
+  it('loads shared prompt responses from the cloud data layer', async () => {
     const { loadPromptResponses } = require('../../services/content/ContentCoupleService');
     const deps = createDeps();
 
@@ -61,9 +65,25 @@ describe('ContentCoupleService', () => {
       dependencies: deps,
     });
 
-    expect(deps.dataLayer.getPromptAnswers).toHaveBeenCalledWith({ limit: 365 });
+    expect(deps.dataLayer.getSharedPromptAnswers).toHaveBeenCalledWith({ limit: 365 });
+    expect(deps.dataLayer.getPromptAnswers).not.toHaveBeenCalled();
     expect(responses[0]).toEqual(expect.objectContaining({ id: 'answer-1', answer: 'hello' }));
     expect(responses[1]).toEqual(expect.objectContaining({ id: 'answer-2', answer: 'plain' }));
+  });
+
+  it('never marks prompt response records private', async () => {
+    const { buildPromptResponseRecord } = require('../../services/content/ContentCoupleService');
+    const deps = createDeps();
+
+    const record = await buildPromptResponseRecord('prompt-1', 'hello', {
+      isPrivate: true,
+      dependencies: deps,
+    });
+
+    expect(record).toEqual(expect.objectContaining({
+      promptId: 'prompt-1',
+      isPrivate: false,
+    }));
   });
 
   it('delegates shared daily prompt access through the content service boundary', async () => {

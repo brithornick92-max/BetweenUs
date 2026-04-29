@@ -1,17 +1,8 @@
-const mockStorageGet = jest.fn();
-const mockStorageSet = jest.fn();
 const mockGetMemories = jest.fn();
 const mockGetSharedMemories = jest.fn();
 const mockSaveMemory = jest.fn();
 const mockUpdateMemory = jest.fn();
 const mockDeleteMemory = jest.fn();
-
-jest.mock('../../utils/storage', () => ({
-  storage: {
-    get: (...args) => mockStorageGet(...args),
-    set: (...args) => mockStorageSet(...args),
-  },
-}));
 
 jest.mock('../../services/localfirst', () => ({
   DataLayer: {
@@ -23,19 +14,37 @@ jest.mock('../../services/localfirst', () => ({
   },
 }));
 
-const { saveDateHistoryEntry } = require('../../utils/dateHistory');
-const { toggleIntimacyTried } = require('../../utils/intimacyFavorites');
+const {
+  DATE_COMPLETION_HIDE_DAYS,
+  getRecentlyCompletedDateIds,
+  removeDateSavedKeepsake,
+  saveDateHistoryEntry,
+  saveDateSavedKeepsake,
+} = require('../../utils/dateHistory');
+const { toggleIntimacyFavorite, toggleIntimacyTried } = require('../../utils/intimacyFavorites');
 
 describe('Keepsake history writers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockStorageGet.mockResolvedValue([]);
-    mockStorageSet.mockResolvedValue(undefined);
     mockGetMemories.mockResolvedValue([]);
     mockGetSharedMemories.mockResolvedValue([]);
     mockSaveMemory.mockResolvedValue({ id: 'memory-1', created_at: '2026-04-28T12:00:00.000Z' });
     mockUpdateMemory.mockResolvedValue({ id: 'memory-1' });
     mockDeleteMemory.mockResolvedValue(undefined);
+  });
+
+  it('only suppresses recently completed dates for the configured cooldown window', () => {
+    const now = new Date('2026-04-29T12:00:00.000Z').getTime();
+    const recent = now - ((DATE_COMPLETION_HIDE_DAYS - 1) * 24 * 60 * 60 * 1000);
+    const old = now - ((DATE_COMPLETION_HIDE_DAYS + 1) * 24 * 60 * 60 * 1000);
+
+    const ids = getRecentlyCompletedDateIds([
+      { id: 'recent-date', addedAt: recent },
+      { id: 'old-date', addedAt: old },
+    ], now);
+
+    expect(ids.has('recent-date')).toBe(true);
+    expect(ids.has('old-date')).toBe(false);
   });
 
   it('saves dates tried as date_tried memories for Keepsake', async () => {
@@ -65,6 +74,61 @@ describe('Keepsake history writers', () => {
     }));
 
     expect(result.entry).toEqual(expect.objectContaining({
+      id: 'date-1',
+      memoryId: 'memory-1',
+    }));
+  });
+
+  it('saves saved dates as date_saved memories for Keepsake', async () => {
+    const date = {
+      id: 'date-1',
+      title: 'Coffee walk',
+      heat: 1,
+      load: 1,
+      style: 'talking',
+      minutes: 45,
+      location: 'out',
+    };
+
+    const result = await saveDateSavedKeepsake(date);
+
+    expect(mockSaveMemory).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'date_saved',
+      mood: 'talking',
+      isPrivate: false,
+    }));
+
+    const payload = JSON.parse(mockSaveMemory.mock.calls[0][0].content);
+    expect(payload).toEqual(expect.objectContaining({
+      kind: 'date_saved',
+      dateId: 'date-1',
+      title: 'Coffee walk',
+    }));
+
+    expect(result.entry).toEqual(expect.objectContaining({
+      id: 'date-1',
+      memoryId: 'memory-1',
+    }));
+  });
+
+  it('removes saved date memories when a date is unsaved', async () => {
+    mockGetMemories.mockResolvedValue([
+      {
+        id: 'memory-1',
+        type: 'date_saved',
+        content: JSON.stringify({
+          kind: 'date_saved',
+          dateId: 'date-1',
+          title: 'Coffee walk',
+        }),
+        created_at: '2026-04-28T12:00:00.000Z',
+      },
+    ]);
+
+    const result = await removeDateSavedKeepsake('date-1');
+
+    expect(mockDeleteMemory).toHaveBeenCalledWith('memory-1');
+    expect(result.removed).toEqual(expect.objectContaining({
       id: 'date-1',
       memoryId: 'memory-1',
     }));
@@ -100,6 +164,38 @@ describe('Keepsake history writers', () => {
     }));
 
     expect(result.tried.ip001).toEqual(expect.objectContaining({
+      positionId: 'ip001',
+      memoryId: 'memory-1',
+    }));
+  });
+
+  it('saves favorite positions as intimacy_favorite memories for Keepsake', async () => {
+    const position = {
+      id: 'ip001',
+      title: 'Close Hold',
+      commonName: 'Side by side',
+      mood: 'tender',
+      heat: 2,
+    };
+
+    const result = await toggleIntimacyFavorite(position, {
+      currentlyFavorite: false,
+    });
+
+    expect(mockSaveMemory).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'intimacy_favorite',
+      mood: 'tender',
+      isPrivate: false,
+    }));
+
+    const payload = JSON.parse(mockSaveMemory.mock.calls[0][0].content);
+    expect(payload).toEqual(expect.objectContaining({
+      kind: 'intimacy_favorite',
+      positionId: 'ip001',
+      title: 'Close Hold',
+    }));
+
+    expect(result.favorites.ip001).toEqual(expect.objectContaining({
       positionId: 'ip001',
       memoryId: 'memory-1',
     }));

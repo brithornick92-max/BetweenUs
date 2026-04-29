@@ -26,6 +26,7 @@ export default function EditorialScreenScaffold({
   navigation,
   headerTitle,
   headerSubtitle,
+  headerDescription,
   headerRight,
   onBack,
   children,
@@ -145,6 +146,12 @@ export default function EditorialScreenScaffold({
               </TouchableOpacity>
             </View>
           </View>
+
+          {headerDescription ? (
+            <Text style={[styles.headerDescription, { color: colors.textMuted }]} numberOfLines={2}>
+              {headerDescription}
+            </Text>
+          ) : null}
         </View>
 
         {keyboardAvoiding ? (
@@ -195,6 +202,13 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: '900',
     lineHeight: 42,
+  },
+  headerDescription: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+    marginTop: 6,
   },
   headerActions: {
     flexDirection: 'row',

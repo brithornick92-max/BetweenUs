@@ -30,21 +30,22 @@ import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedb
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
-import { useEntitlements } from '../context/EntitlementsContext';
-import { PremiumFeature } from '../utils/featureFlags';
 import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
 import { DataLayer } from '../services/localfirst';
 import CrashReporting from '../services/CrashReporting';
-import { SPACING, withAlpha } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
+import {
+  getEventsForDateWithAnniversary,
+} from '../services/AnniversaryMomentService';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
-const SERIF_FONT  = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 // Event type visual config — Apple System Colors & Sexy Red
 const EVENT_TYPES = {
@@ -62,15 +63,9 @@ const REMINDER_OPTIONS = [
   { label: '1d before',  mins: 1440 },
 ];
 
-const toDisplayDate = (d) => {
-  const date = d instanceof Date ? d : new Date(d);
-  if (isNaN(date.getTime())) return '';
-  return (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
-};
-
 // ─── PremiumCalendar ──────────────────────────────────────────────────────────
 
-function PremiumCalendar({ selectedDate, onDateSelect, events, styles, colors, isDark }) {
+function PremiumCalendar({ selectedDate, onDateSelect, events, relationshipStartDate, styles, colors, isDark }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const getDaysInMonth = (date) => {
@@ -89,8 +84,7 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, styles, colors, i
 
   const getEventsForDate = (date) => {
     if (!date) return [];
-    const dateStr = toDisplayDate(date);
-    return events.filter(event => toDisplayDate(new Date(event.whenTs)) === dateStr);
+    return getEventsForDateWithAnniversary(events, date, relationshipStartDate);
   };
 
   const isToday    = (date) => date && date.toDateString() === new Date().toDateString();
@@ -196,7 +190,7 @@ function TimelineEvent({ item, onLongPress, styles, colors }) {
   return (
     <TouchableOpacity
       style={[styles.timelineCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-      onLongPress={onLongPress}
+      onLongPress={item.isGeneratedAnniversary ? undefined : onLongPress}
       activeOpacity={0.9}
     >
       <View style={[styles.timelineCardColorBar, { backgroundColor: eventType.color }]} />
@@ -224,9 +218,10 @@ function TimelineEvent({ item, onLongPress, styles, colors }) {
 
 export default function CalendarScreen({ navigation, route }) {
   const { colors, isDark }                            = useTheme();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { state: appState }                           = useAppContext();
+  const { userProfile }                               = useAuth();
   const { coupleId }                                  = appState;
+  const relationshipStartDate                         = userProfile?.relationshipStartDate || appState?.userProfile?.relationshipStartDate;
 
   const [events,       setEvents]       = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -386,7 +381,7 @@ export default function CalendarScreen({ navigation, route }) {
               remoteId: event.supabaseId || event.id,
             });
             await loadEvents();
-          } catch (error) {
+          } catch (_error) {
             Alert.alert('Error', 'Could not delete this event. Please try again.');
           }
         },
@@ -467,7 +462,7 @@ export default function CalendarScreen({ navigation, route }) {
       setSelectedDate(savedDate);
       await loadEvents();
       resetComposer();
-    } catch (err) {
+    } catch (_err) {
       Alert.alert('Error', 'Something went wrong saving your event. Please try again.');
     } finally {
       setIsSaving(false);
@@ -479,7 +474,7 @@ export default function CalendarScreen({ navigation, route }) {
     resetComposer();
   };
 
-  const selectedDateEvents = events.filter(e => toDisplayDate(new Date(e.whenTs)) === toDisplayDate(selectedDate));
+  const selectedDateEvents = getEventsForDateWithAnniversary(events, selectedDate, relationshipStartDate);
 
   // ─── Main render ───────────────────────────────────────────────
   if (initialLoading) {
@@ -531,6 +526,7 @@ export default function CalendarScreen({ navigation, route }) {
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
             events={events}
+            relationshipStartDate={relationshipStartDate}
             styles={styles}
             colors={t}
             isDark={isDark}

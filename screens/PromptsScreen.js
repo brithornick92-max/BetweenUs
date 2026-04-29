@@ -23,7 +23,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from '../components/Icon';
 import {
   impact,
-  selection,
   ImpactFeedbackStyle,
 } from "../utils/haptics";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -34,10 +33,13 @@ import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import * as PreferenceEngine from "../services/PreferenceEngine";
-import { CONTENT_TYPES, buildWeeklySet } from "../services/WeeklyContentSetService";
+import { CONTENT_TYPES, buildPremiumPromptLibrary, buildWeeklySet } from "../services/WeeklyContentSetService";
 import PromptCardDeck from "../components/PromptCardDeck";
 import { SoftBoundaries } from "../services/PolishEngine";
+import { DataLayer } from "../services/localfirst";
 import { FALLBACK_PROMPT } from "../utils/contentLoader";
+import { getRecentlyCompletedPromptIds } from "../utils/promptHistory";
+import { STORAGE_KEYS, storage } from "../utils/storage";
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -45,14 +47,6 @@ import FilmGrain from '../components/FilmGrain';
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SCREEN_W = SCREEN_WIDTH;
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-
-const HEAT_LEVELS = [
-  { value: 1, label: "1", color: "#FF85C2" }, // Soft Orchid Pink
-  { value: 2, label: "2", color: "#FF1493" }, // Deep Pink
-  { value: 3, label: "3", color: "#FF006E" }, // Vivid Magenta-Red
-  { value: 4, label: "4", color: "#F00049" }, // Carmine
-  { value: 5, label: "5", color: "#C3113D" }, // Luxe Deep Red
-];
 
 const loadAllBundledPrompts = () => {
   const bundled = require("../content/prompts.json");
@@ -118,6 +112,7 @@ const TONE_PROMPT_COPY = {
 };
 
 const normalizeHeatLevel = (heat, fallback = 5) => {
+  if (heat == null || heat === '') return fallback;
   const numeric = Number(heat);
   if (!Number.isFinite(numeric)) return fallback;
   return Math.min(5, Math.max(1, Math.floor(numeric)));
@@ -126,6 +121,14 @@ const normalizeHeatLevel = (heat, fallback = 5) => {
 const resolveExplicitMaxHeat = (profile) => {
   const boundaries = profile?.boundaries || {};
   const caps = [5];
+
+  const chosenHeat = normalizeHeatLevel(
+    profile?.heatLevelPreference ?? profile?.heatLevel,
+    null
+  );
+  if (chosenHeat != null) {
+    caps.push(chosenHeat);
+  }
 
   if (boundaries.hideSpicy === true) {
     caps.push(3);
@@ -146,6 +149,33 @@ const clampHeatSelection = (profile, selectedHeat) => {
   const normalizedHeat = normalizeHeatLevel(selectedHeat, 1);
   return Math.min(normalizedHeat, resolveExplicitMaxHeat(profile));
 };
+
+function interleavePromptsByHeat(items) {
+  const buckets = new Map();
+  const heatOrder = [1, 2, 3, 4, 5];
+
+  heatOrder.forEach((heat) => buckets.set(heat, []));
+  items.forEach((item) => {
+    const heat = normalizeHeatLevel(item?.heat, 1);
+    if (!buckets.has(heat)) buckets.set(heat, []);
+    buckets.get(heat).push(item);
+  });
+
+  const interleaved = [];
+  let added = true;
+  while (added) {
+    added = false;
+    for (const heat of heatOrder) {
+      const bucket = buckets.get(heat);
+      if (bucket?.length) {
+        interleaved.push(bucket.shift());
+        added = true;
+      }
+    }
+  }
+
+  return interleaved;
+}
 
 function shuffleArray(arr) {
   const a = [...arr];
@@ -168,6 +198,16 @@ function applyRawBoundaryFilter(items, bounds) {
     if (bounds.pausedEntries?.includes(p.id)) return false;
     return true;
   });
+}
+
+async function getPremiumPromptLibraryStartedAt(userId) {
+  const key = `${STORAGE_KEYS.PREMIUM_PROMPT_LIBRARY_STARTED_AT}:${userId || 'anonymous'}`;
+  const cached = await storage.get(key, null);
+  if (cached) return cached;
+
+  const startedAt = new Date().toISOString();
+  await storage.set(key, startedAt);
+  return startedAt;
 }
 
 export default function PromptsScreen({ navigation }) {
@@ -214,7 +254,7 @@ export default function PromptsScreen({ navigation }) {
           ]);
           if (!active) return;
           let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
-          heat = clampHeatSelection(profile, heat);
+          heat = isPremium ? null : clampHeatSelection(profile, heat);
           setContentProfile(profile);
           setRawBoundaries(bounds);
           setSelectedHeat(heat);
@@ -231,31 +271,29 @@ export default function PromptsScreen({ navigation }) {
       return () => {
         active = false;
       };
-    }, [userProfile])
+    }, [isPremium, userProfile])
   );
 
   const toneCopy = TONE_PROMPT_COPY[selectedTone] || TONE_PROMPT_COPY.warm;
-  const maxSelectableHeat = useMemo(
-    () => resolveExplicitMaxHeat(contentProfile),
-    [contentProfile]
-  );
-
   const loadPrompts = useCallback(async () => {
-    if (selectedHeat === null) return;
     setLoading(true);
     try {
       const allPrompts = ALL_BUNDLED.map(normalizePrompt);
+      const recentPromptAnswers = await DataLayer.getPromptAnswers?.({ limit: 1000 }).catch(() => []);
+      const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(recentPromptAnswers);
 
       // Apply user boundaries (heat limits, hidden categories, paused items)
       const boundaryFiltered = contentProfile 
         ? allPrompts.filter(p => {
             const heat = p.heat || 1;
-            if (contentProfile.maxHeat && heat > contentProfile.maxHeat) return false;
+            if (recentlyCompletedPromptIds.has(p.id)) return false;
+            if (heat > resolveExplicitMaxHeat(contentProfile)) return false;
             if (contentProfile.boundaries?.hiddenCategories?.includes(p.category)) return false;
             if (contentProfile.boundaries?.pausedEntries?.includes(p.id)) return false;
             return true;
           })
-        : applyRawBoundaryFilter(allPrompts, rawBoundaries);
+        : applyRawBoundaryFilter(allPrompts, rawBoundaries)
+          .filter((prompt) => !recentlyCompletedPromptIds.has(prompt?.id));
 
       // Build personalized weekly set (handles both free rotating and premium growing library)
       const weeklySet = buildWeeklySet(boundaryFiltered, {
@@ -268,15 +306,26 @@ export default function PromptsScreen({ navigation }) {
       });
 
       setWeeklyPromptSet(weeklySet);
-      // Store all boundary-filtered prompts for premium users (they see everything)
-      setPrompts(boundaryFiltered);
+
+      const promptPool = isPremium
+        ? buildPremiumPromptLibrary(boundaryFiltered, {
+            userId: user?.uid || user?.id || 'anonymous',
+            userSettings: contentProfile
+              ? { ...contentProfile, maxHeat: resolveExplicitMaxHeat(contentProfile) }
+              : userProfile || {},
+            userCreatedAt: await getPremiumPromptLibraryStartedAt(user?.uid || user?.id || userProfile?.id),
+            date: new Date(),
+          })
+        : boundaryFiltered;
+
+      setPrompts(promptPool);
     } catch {
       setPrompts([]);
       setWeeklyPromptSet(null);
     } finally {
       setLoading(false);
     }
-  }, [contentProfile, isPremium, selectedHeat, user?.uid, userProfile, rawBoundaries]);
+  }, [contentProfile, isPremium, user?.id, user?.metadata?.creationTime, user?.uid, userProfile, rawBoundaries]);
 
   useEffect(() => {
     loadPrompts();
@@ -305,11 +354,12 @@ export default function PromptsScreen({ navigation }) {
       // Free users: Use ONLY the rotating weekly set
       finalDeck = [...freeWeeklyPromptDeck];
     } else if (isPremium) {
-      // Premium users: Use ALL boundary-filtered prompts
-      const allPrompts = prompts.map(normalizePrompt);
+      // Premium users draw from the full balanced 1-5 starter pool.
+      const basePrompts = contentProfile ? prompts : applyRawBoundaryFilter(prompts, rawBoundaries);
+      const allPrompts = basePrompts.map(normalizePrompt);
 
       if (!contentProfile) {
-        finalDeck = shuffleArray(allPrompts);
+        finalDeck = interleavePromptsByHeat(allPrompts);
       } else {
         // Personalize: preferred content first, then rest shuffled
         const personalized = PreferenceEngine.filterPrompts(allPrompts, {
@@ -320,7 +370,7 @@ export default function PromptsScreen({ navigation }) {
         const personalizedIds = new Set(personalized.map((prompt) => String(prompt?.id)));
         const remaining = allPrompts.filter((prompt) => !personalizedIds.has(String(prompt?.id)));
 
-        finalDeck = [...personalized, ...shuffleArray(remaining)];
+        finalDeck = interleavePromptsByHeat([...personalized, ...remaining]);
       }
     }
 
@@ -330,6 +380,18 @@ export default function PromptsScreen({ navigation }) {
     }
     return finalDeck;
   }, [prompts, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck, deckVersion]);
+
+  const deckCountLabel = useMemo(() => {
+    if (isPremium) return '200 cards';
+    const count = deckPrompts.length;
+    const noun = count === 1 ? 'card' : 'cards';
+    return `${count} ${noun} you can draw now`;
+  }, [deckPrompts.length, isPremium]);
+
+  const deckGrowthLabel = useMemo(() => {
+    if (!isPremium) return null;
+    return '10 new prompt cards added each week.';
+  }, [isPremium]);
 
   const handlePromptSelect = useCallback((prompt) => {
     if (prompt?.isLockedPreview || prompt?.requiresPremium) {
@@ -342,11 +404,6 @@ export default function PromptsScreen({ navigation }) {
       prompt: { ...prompt, dateKey: new Date().toISOString().split("T")[0] },
     });
   }, [navigation, showPaywall]);
-
-  const handleHeatSelect = useCallback((heat) => {
-    setSelectedHeat(heat);
-    selection();
-  }, []);
 
   const refreshBoundaryProfile = useCallback(async () => {
     const [profile, bounds] = await Promise.all([
@@ -429,9 +486,14 @@ export default function PromptsScreen({ navigation }) {
           {/* Editorial Header */}
           <Animated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
             <Text style={[styles.headerLabel, { color: t.primary }]}>
-              {deckPrompts.length} cards ready
+              {deckCountLabel}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
+            {deckGrowthLabel ? (
+              <Text style={[styles.headerSubtitle, { color: t.subtext }]}>
+                {deckGrowthLabel}
+              </Text>
+            ) : null}
           </Animated.View>
 
           {/* Shuffle Button */}
@@ -515,6 +577,15 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: -1,
     lineHeight: 42,
+  },
+  headerSubtitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+    letterSpacing: 0,
+    marginTop: 6,
+    maxWidth: 300,
   },
   shuffleSection: {
     paddingHorizontal: 32,

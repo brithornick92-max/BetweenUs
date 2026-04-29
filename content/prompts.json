@@ -4,7 +4,7 @@
     "app": "Between Us",
     "version": "3.3.0",
     "description": "Couples prompts with 5 heat levels, diverse categories, comfort controls, and relationship duration targeting",
-    "totalPrompts": 813,
+    "totalPrompts": 880,
     "heatLevels": {
       "1": {
         "name": "Emotional Connection",
@@ -79,7 +79,7 @@
     {
       "id": "h1_050",
       "text": "What's one small thing I do that still makes you think, 'I got really lucky'...",
-      "category": "romance",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -90,7 +90,7 @@
       "id": "h1_196",
       "text": "What would surprise people most about how we are together...",
       "category": "playful",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -98,9 +98,9 @@
     },
     {
       "id": "h1_003",
-      "text": "Which sound I make when completely relaxed do you love most...",
+      "text": "What little sign tells you I am completely relaxed around you...",
       "category": "sensory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -110,7 +110,7 @@
       "id": "h1_001",
       "text": "What's the first thing you notice when I walk into a room...",
       "category": "visual",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "new",
         "developing"
@@ -120,7 +120,7 @@
     {
       "id": "h1_027",
       "text": "Which goal of ours makes you feel most like a team...",
-      "category": "future",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "developing",
@@ -132,7 +132,7 @@
     {
       "id": "h1_186",
       "text": "What does the word 'trust' look like in action for you in a relationship?",
-      "category": "kinky",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -141,8 +141,8 @@
     },
     {
       "id": "h1_180",
-      "text": "Imagine we wake up tomorrow with the power to read each other's minds for a day \u2014 what's the first thing you'd want me to know?",
-      "category": "fantasy",
+      "text": "Imagine we wake up tomorrow with the power to read each other's minds for a day — what's the first thing you'd want me to know?",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -163,7 +163,7 @@
       "id": "h1_045",
       "text": "What do you think when I unconsciously mirror your movements...",
       "category": "physical",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -172,7 +172,7 @@
     {
       "id": "h1_006",
       "text": "Which season feels most like 'us' and why...",
-      "category": "seasonal",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -182,7 +182,7 @@
     {
       "id": "h1_035",
       "text": "Which place we've visited together holds the most meaning for you...",
-      "category": "location",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -193,7 +193,7 @@
       "id": "h1_113",
       "text": "What do you remember about what I was wearing when we met...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "new",
         "developing"
@@ -203,7 +203,7 @@
     {
       "id": "h1_007",
       "text": "Which hello from me after time apart gets you every time...",
-      "category": "romance",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -214,7 +214,7 @@
       "id": "h1_005",
       "text": "What's something I do in my sleep that you find endearing...",
       "category": "playful",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -224,7 +224,7 @@
       "id": "h1_010",
       "text": "Which aspect of the way I smell appeals to you most...",
       "category": "sensory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -232,9 +232,9 @@
     },
     {
       "id": "h1_021",
-      "text": "What's unexpectedly attractive about me when I'm fully locked in...",
+      "text": "What do you notice about me when I am fully absorbed in something I care about...",
       "category": "visual",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -243,7 +243,7 @@
     {
       "id": "h1_140",
       "text": "What's the hope you hold for us that feels almost too tender to say out loud...",
-      "category": "future",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "developing",
@@ -255,7 +255,7 @@
     {
       "id": "h1_184",
       "text": "Tell me about who tends to take charge in our relationship and how that makes you feel...",
-      "category": "kinky",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "developing",
@@ -267,9 +267,9 @@
     },
     {
       "id": "h1_182",
-      "text": "Picture us in a movie montage \u2014 what song is playing and what are we doing?",
+      "text": "Picture us in a movie montage — what song is playing and what are we doing?",
       "category": "fantasy",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -288,8 +288,8 @@
     {
       "id": "h1_018",
       "text": "What's something I do with my hands that you find comforting...",
-      "category": "physical",
-      "heat": 1,
+      "category": "emotional",
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -298,8 +298,8 @@
     {
       "id": "h1_019",
       "text": "Which holiday tradition of ours means the most to you...",
-      "category": "seasonal",
-      "heat": 1,
+      "category": "emotional",
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -308,7 +308,7 @@
     {
       "id": "h1_015",
       "text": "Which room in our home feels most like 'us'...",
-      "category": "location",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -317,9 +317,9 @@
     },
     {
       "id": "h1_128",
-      "text": "Tell me about any imaginary friend you had growing up...",
+      "text": "What part of your younger self do you wish I understood more deeply...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -328,8 +328,8 @@
     {
       "id": "h1_022",
       "text": "What's the most romantic thing about our everyday routine...",
-      "category": "romance",
-      "heat": 1,
+      "category": "emotional",
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -339,7 +339,7 @@
       "id": "h1_197",
       "text": "What's the most 'us' thing we do without thinking...",
       "category": "playful",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -349,7 +349,7 @@
       "id": "h1_064",
       "text": "Which of your five senses do you find the most sensual...",
       "category": "sensory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -359,7 +359,7 @@
       "id": "h1_053",
       "text": "If we could visit any place in the world right now, where would you choose, and why...",
       "category": "future",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -369,9 +369,9 @@
     },
     {
       "id": "h1_185",
-      "text": "If we played a game where one of us planned the entire day and the other just followed along, who would you want to be the planner?",
+      "text": "When do you like taking the lead with us, and when do you like letting me lead...",
       "category": "kinky",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -379,9 +379,9 @@
     },
     {
       "id": "h1_179",
-      "text": "If we could live inside any fictional world for a week together, which one would you choose and why?",
+      "text": "What imaginary escape would be fun for us to disappear into for a day...",
       "category": "fantasy",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -399,9 +399,9 @@
     },
     {
       "id": "h4_136",
-      "text": "Hold hands and go on a technology-free walk together. Make it even more mindful by not talking in one of the directions!",
+      "text": "Which quiet walk would help us feel more connected without needing to say much...",
       "category": "physical",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "established",
         "mature",
@@ -412,7 +412,7 @@
     {
       "id": "h1_188",
       "text": "What's a compliment from me you still remember word for word...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -421,9 +421,9 @@
     },
     {
       "id": "h1_063",
-      "text": "What country seems to you the most romantic, and why...",
+      "text": "Which setting feels romantic to you, and what makes it feel that way...",
       "category": "romance",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -433,7 +433,7 @@
       "id": "h1_016",
       "text": "Which version of excited me is your favorite to watch...",
       "category": "playful",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -442,7 +442,7 @@
     {
       "id": "h1_087",
       "text": "What do you believe is the most crucial component of a fulfilling family life...",
-      "category": "future",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "mature",
@@ -452,9 +452,9 @@
     },
     {
       "id": "h1_181",
-      "text": "If a genie granted us one wish as a couple, but it had to be whimsical and fun, what would you wish for?",
+      "text": "What playful wish would make our life together sweeter right now...",
       "category": "fantasy",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -472,9 +472,9 @@
     },
     {
       "id": "h1_124",
-      "text": "When you were between 5 and 10 years old, what did you want to be when you grew up...",
+      "text": "What did you hope your grown-up life would feel like when you were little...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -483,7 +483,7 @@
     {
       "id": "h1_072",
       "text": "What's one thing I could do more often that would make you feel genuinely cherished...",
-      "category": "romance",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -494,7 +494,7 @@
       "id": "h1_116",
       "text": "What annoying habit of mine do you actually think is cute...",
       "category": "playful",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -503,7 +503,7 @@
     {
       "id": "h1_156",
       "text": "What do you think our relationship will look like in another 10 years...",
-      "category": "future",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "developing",
@@ -514,9 +514,9 @@
     },
     {
       "id": "h1_183",
-      "text": "If we had a time machine and could visit any era together, which one would you pick for a day trip?",
+      "text": "What season of our relationship would you want to revisit for one afternoon...",
       "category": "fantasy",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -535,7 +535,7 @@
     {
       "id": "h1_114",
       "text": "After our first real conversation, what was your honest read on me...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "new",
@@ -546,7 +546,7 @@
     {
       "id": "h1_046",
       "text": "What's the most thoughtful gift you've ever given me...",
-      "category": "romance",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -556,7 +556,7 @@
     {
       "id": "h1_039",
       "text": "Which of my nervous habits do you find secretly adorable...",
-      "category": "playful",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "new",
@@ -567,7 +567,7 @@
     {
       "id": "h1_198",
       "text": "What's one thing you hope never changes about us...",
-      "category": "future",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -587,7 +587,7 @@
     {
       "id": "h1_123",
       "text": "What is your very first memory...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "new",
@@ -598,8 +598,8 @@
     {
       "id": "h1_153",
       "text": "What is a romantic gesture you've always wished I would do for you...",
-      "category": "romance",
-      "heat": 1,
+      "category": "emotional",
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -609,7 +609,7 @@
       "id": "h1_009",
       "text": "How do you know when I'm trying not to laugh...",
       "category": "playful",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -618,7 +618,7 @@
     {
       "id": "h1_139",
       "text": "When you picture our future, what's the part you want most fiercely...",
-      "category": "future",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "developing",
@@ -639,9 +639,9 @@
     },
     {
       "id": "h1_126",
-      "text": "Who was your favorite teacher? Why was that teacher amazing...",
+      "text": "What early lesson about kindness, trust, or love still shapes you today...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -650,7 +650,7 @@
     {
       "id": "h1_160",
       "text": "What's something we haven't tried as a couple that you'd like to...",
-      "category": "romance",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -661,7 +661,7 @@
       "id": "h1_054",
       "text": "If our relationship were a movie, which one would it be...",
       "category": "playful",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -671,7 +671,7 @@
       "id": "h1_088",
       "text": "Where do you envision yourself in five years...",
       "category": "future",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -692,8 +692,8 @@
     {
       "id": "h1_146",
       "text": "What is a song, meal, or joke that still reminds you of our early days...",
-      "category": "memory",
-      "heat": 1,
+      "category": "emotional",
+      "heat": 2,
       "relationshipDuration": [
         "new",
         "developing"
@@ -703,7 +703,7 @@
     {
       "id": "h1_052",
       "text": "Describe your perfect day. How would we spend it together?",
-      "category": "romance",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -714,7 +714,7 @@
       "id": "h1_013",
       "text": "What happens to your mood when I sing along to music in the car...",
       "category": "playful",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -722,9 +722,9 @@
     },
     {
       "id": "h1_055",
-      "text": "If working was optional, what would you pursue with your time...",
+      "text": "If time and money felt lighter, what would you want us to make more room for...",
       "category": "future",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -734,9 +734,9 @@
     },
     {
       "id": "h1_134",
-      "text": "Who are your favorite actor and actress? Why do you like them...",
+      "text": "Which kind of love story always gets to you, and why...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -745,7 +745,7 @@
     {
       "id": "h1_194",
       "text": "What's a moment with me you replay when you need to feel good...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -755,7 +755,7 @@
     {
       "id": "h1_070",
       "text": "If we met again for the first time, knowing what we know now, what would you say...",
-      "category": "romance",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "new",
@@ -766,7 +766,7 @@
     {
       "id": "h1_041",
       "text": "How do you know when I'm trying to surprise you...",
-      "category": "playful",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -777,7 +777,7 @@
       "id": "h1_148",
       "text": "What is a new hobby or passion you'd like to explore...",
       "category": "future",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -798,7 +798,7 @@
     {
       "id": "h1_071",
       "text": "What would your younger self think about our relationship today...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -808,7 +808,7 @@
     {
       "id": "h1_192",
       "text": "What's something small I do that makes you feel chosen...",
-      "category": "romance",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -819,7 +819,7 @@
       "id": "h1_031",
       "text": "Which of our inside references makes you laugh every time...",
       "category": "playful",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -828,7 +828,7 @@
     {
       "id": "h1_011",
       "text": "Which of our future dreams excites you most...",
-      "category": "future",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "developing",
@@ -852,7 +852,7 @@
       "id": "h1_076",
       "text": "If you could, would you change anything about your childhood...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -861,7 +861,7 @@
     {
       "id": "h1_038",
       "text": "What's something I do that makes ordinary days feel special...",
-      "category": "romance",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -870,9 +870,9 @@
     },
     {
       "id": "h1_133",
-      "text": "What's your dream vacation...",
+      "text": "Which trip would help us feel most reconnected...",
       "category": "future",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -884,7 +884,7 @@
       "id": "h1_175",
       "text": "What's something about our community that brings you joy...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -893,7 +893,7 @@
     {
       "id": "h1_024",
       "text": "Which memory of us laughing too hard still gets you...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -902,9 +902,9 @@
     },
     {
       "id": "h1_051",
-      "text": "If you could be famous, what would you want to be known for...",
+      "text": "What would you want to be known for by the people who love you most...",
       "category": "future",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -925,7 +925,7 @@
     {
       "id": "h1_132",
       "text": "What was your first big disappointment as a kid...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "new",
@@ -936,7 +936,7 @@
     {
       "id": "h1_043",
       "text": "Which of our future plans makes you feel most excited...",
-      "category": "future",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "developing",
@@ -958,7 +958,7 @@
     {
       "id": "h1_042",
       "text": "What's one thing about us your past self would never believe is now your real life...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -978,7 +978,7 @@
     {
       "id": "h1_074",
       "text": "If you could relive one day together, which would it be...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -997,9 +997,9 @@
     },
     {
       "id": "h1_127",
-      "text": "Tell me about your favorite toy growing up \u2014 describe it in detail...",
+      "text": "What childhood comfort do you still remember vividly, and what did it mean to you...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1018,7 +1018,7 @@
     {
       "id": "h1_120",
       "text": "If you could go back in our history together, what moment do you wish we could relive...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "universal"
@@ -1039,7 +1039,7 @@
       "id": "h1_130",
       "text": "Who was your celebrity crush as a kid...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1057,9 +1057,9 @@
     },
     {
       "id": "h1_125",
-      "text": "What was your favorite TV show when you were little? Why did you love it...",
+      "text": "What childhood story, show, or book shaped how you imagined love or family...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1079,7 +1079,7 @@
       "id": "h1_129",
       "text": "What was your most amazing elementary school moment...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1099,7 +1099,7 @@
       "id": "h1_131",
       "text": "Who was your first best friend, and what were they like...",
       "category": "memory",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "new",
         "developing"
@@ -1122,7 +1122,7 @@
     {
       "id": "h1_191",
       "text": "When did you first know I was going to matter to you...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "new",
@@ -1143,7 +1143,7 @@
     {
       "id": "h1_023",
       "text": "Which of my family stories do you want to hear again...",
-      "category": "memory",
+      "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
         "mature",
@@ -1164,8 +1164,8 @@
     {
       "id": "h1_002",
       "text": "Which of my childhood stories makes you smile the most...",
-      "category": "memory",
-      "heat": 1,
+      "category": "emotional",
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1195,7 +1195,7 @@
       "id": "h1_112",
       "text": "How would you feel about lending a family member or friend a lot of money...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -1284,9 +1284,9 @@
     },
     {
       "id": "h1_107",
-      "text": "What public figure do you find to be the best influence on people...",
+      "text": "Whose way of caring for people do you admire, and what does it teach you...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1294,7 +1294,7 @@
     },
     {
       "id": "h1_122",
-      "text": "In what ways do you consider us best friends...",
+      "text": "Why do you consider us best friends...",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -1347,9 +1347,9 @@
     },
     {
       "id": "h1_164",
-      "text": "How did you first know you were attracted to women...",
+      "text": "How did you first know you were attracted to me...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "new",
         "developing"
@@ -1388,7 +1388,7 @@
     },
     {
       "id": "h1_163",
-      "text": "What does deep connection mean to you, beyond physical touch...",
+      "text": "What does deep connection mean to you beyond everyday affection...",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -1408,7 +1408,7 @@
     },
     {
       "id": "h1_218",
-      "text": "What would help you feel safer being fully yourself with me...",
+      "text": "When do you feel safest being fully yourself with me...",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -1440,7 +1440,7 @@
       "id": "h1_108",
       "text": "When you do a good deed, what makes you decide whether to share it or keep it private...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1470,7 +1470,7 @@
       "id": "h3_073",
       "text": "What crosses the line into cheating for you, emotionally or physically...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "developing",
         "established",
@@ -1581,7 +1581,7 @@
     },
     {
       "id": "h1_056",
-      "text": "How do our careers influence our relationship\u2014for better or worse...",
+      "text": "How do our careers influence our relationship—for better or worse...",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -1621,9 +1621,9 @@
     },
     {
       "id": "h1_103",
-      "text": "What's your view on whether people are basically good or basically bad...",
+      "text": "What helps you stay hopeful about people when life feels heavy...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1631,9 +1631,9 @@
     },
     {
       "id": "h3_055",
-      "text": "What helps you feel safest, most relaxed, and most cared for around protection or contraception...",
+      "text": "What helps you feel safest and most cared for around protection...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 3,
       "relationshipDuration": [
         "developing",
         "established",
@@ -1653,9 +1653,9 @@
     },
     {
       "id": "h1_135",
-      "text": "Who is your favorite president of all time? Why...",
+      "text": "What type of leadership or character makes you feel hopeful, and why...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1663,7 +1663,7 @@
     },
     {
       "id": "h1_094",
-      "text": "How do you feel about staying friends with an ex...",
+      "text": "What boundaries feel healthy to you around staying friends with an ex...",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -1757,9 +1757,9 @@
     },
     {
       "id": "h1_104",
-      "text": "Is violence ever justified?",
+      "text": "What beliefs shape how you think about conflict, harm, and when force is never acceptable?",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -1897,9 +1897,9 @@
     },
     {
       "id": "h1_110",
-      "text": "What's the best way to go about improving the world...",
+      "text": "What is one small way you would like us to bring more kindness into the world...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -2090,7 +2090,7 @@
       "id": "h1_096",
       "text": "What is the most defining moment you've experienced in your career...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -2174,7 +2174,7 @@
       "id": "h1_109",
       "text": "How much do you worry about climate change...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 2,
       "relationshipDuration": [
         "universal"
       ],
@@ -2244,7 +2244,7 @@
       "id": "h3_069",
       "text": "How do emotional and physical intimacy support each other for you...",
       "category": "emotional",
-      "heat": 1,
+      "heat": 3,
       "relationshipDuration": [
         "developing",
         "established",
@@ -2338,7 +2338,7 @@
     },
     {
       "id": "h1_212",
-      "text": "When do you feel most loved by me \u2014 through words, touch, time, acts of service, or gifts...",
+      "text": "When do you feel most loved by me — through words, time, acts of service, or gifts...",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -2430,7 +2430,7 @@
     },
     {
       "id": "h2_078",
-      "text": "What's something a little outside our comfort zone you've wanted to try together \u2014 even just a tiny step...",
+      "text": "What's something a little outside our comfort zone you've wanted to try together — even just a tiny step...",
       "category": "kinky",
       "heat": 2,
       "relationshipDuration": [
@@ -2507,7 +2507,7 @@
     },
     {
       "id": "h4_128",
-      "text": "Hug {partner} for 30 seconds and end by sharing one of your favorite physical features of theirs and one of your favorite non-sexual features of theirs.",
+      "text": "What physical feature and non-physical trait of mine do you appreciate most right now...",
       "category": "physical",
       "heat": 2,
       "relationshipDuration": [
@@ -2531,7 +2531,7 @@
     },
     {
       "id": "h2_084",
-      "text": "Does the change of seasons ever make you feel more drawn to me? Which season and why?",
+      "text": "Which season makes you feel most drawn to me, and why?",
       "category": "seasonal",
       "heat": 2,
       "relationshipDuration": [
@@ -2894,7 +2894,7 @@
     },
     {
       "id": "h2_010",
-      "text": "What happens inside you when I hold your hand...",
+      "text": "What do you feel when I reach for your hand...",
       "category": "physical",
       "heat": 2,
       "relationshipDuration": [
@@ -2977,7 +2977,7 @@
     },
     {
       "id": "h4_122",
-      "text": "What's something funny you can imagine being in {partner}'s search history?",
+      "text": "What's something funny you can imagine being in my search history?",
       "category": "playful",
       "heat": 2,
       "relationshipDuration": [
@@ -3058,7 +3058,7 @@
     },
     {
       "id": "h2_115",
-      "text": "What happens inside you when our eyes meet across a room...",
+      "text": "What do you feel when our eyes meet across a room...",
       "category": "sensory",
       "heat": 2,
       "relationshipDuration": [
@@ -3176,7 +3176,7 @@
     },
     {
       "id": "h2_030",
-      "text": "What happens to you when I dance with you, even if it's just in our kitchen...",
+      "text": "What do you love about the way we move together, even in ordinary moments...",
       "category": "physical",
       "heat": 2,
       "relationshipDuration": [
@@ -3224,7 +3224,7 @@
     },
     {
       "id": "h4_125",
-      "text": "Imitate how I react when I'm excited about something.",
+      "text": "What little habit of mine would be funniest or sweetest to imitate, and why does it stand out to you...",
       "category": "playful",
       "heat": 2,
       "relationshipDuration": [
@@ -3310,7 +3310,7 @@
     },
     {
       "id": "h4_135",
-      "text": "Technology-free cuddling or spooning while watching a movie or reading together.",
+      "text": "Which cozy, screen-free night together would feel most comforting to you...",
       "category": "physical",
       "heat": 2,
       "relationshipDuration": [
@@ -3360,9 +3360,9 @@
     },
     {
       "id": "h2_056",
-      "text": "Which turns you on more \u2014 seeing me in a sexy dressed-up outfit or jeans and a t-shirt...",
+      "text": "Which turns you on more — seeing me in a sexy dressed-up outfit or jeans and a t-shirt...",
       "category": "visual",
-      "heat": 2,
+      "heat": 3,
       "relationshipDuration": [
         "developing",
         "established",
@@ -3502,7 +3502,7 @@
     },
     {
       "id": "h2_051",
-      "text": "Want to go on a date and flirt like it's our first?",
+      "text": "Which date would make us feel like we're flirting for the first time again...",
       "category": "romance",
       "heat": 2,
       "relationshipDuration": [
@@ -3652,7 +3652,7 @@
     },
     {
       "id": "h2_072",
-      "text": "How do you feel when I wear your gender-affirming items...",
+      "text": "How do you feel when I wear something of yours...",
       "category": "romance",
       "heat": 2,
       "relationshipDuration": [
@@ -3688,7 +3688,7 @@
     },
     {
       "id": "h2_052",
-      "text": "It's pouring out\u2026do you want to go kiss in the rain?",
+      "text": "What would make a rainy-day kiss feel sweet, playful, or memorable...",
       "category": "romance",
       "heat": 2,
       "relationshipDuration": [
@@ -3760,7 +3760,7 @@
     },
     {
       "id": "h2_071",
-      "text": "What's hottest about dating someone with your same anatomy...",
+      "text": "What's hottest about the way our bodies fit together...",
       "category": "romance",
       "heat": 2,
       "relationshipDuration": [
@@ -3796,7 +3796,7 @@
     },
     {
       "id": "h2_060",
-      "text": "What do you love most about my feminine energy...",
+      "text": "What do you love most about the energy I bring to our relationship...",
       "category": "romance",
       "heat": 2,
       "relationshipDuration": [
@@ -3857,7 +3857,7 @@
     },
     {
       "id": "h3_052",
-      "text": "How do you feel about scheduling sex versus keeping it spontaneous...",
+      "text": "What balance between planned intimacy and spontaneous intimacy feels best to you...",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -3869,7 +3869,7 @@
     },
     {
       "id": "h3_204",
-      "text": "What's a roleplay scenario that feels exciting but not too far outside your comfort zone...",
+      "text": "What roleplay idea feels exciting but still comfortable...",
       "category": "roleplay",
       "heat": 3,
       "relationshipDuration": [
@@ -3882,7 +3882,7 @@
     },
     {
       "id": "h3_091",
-      "text": "What's a time we almost kissed \u2014 or the tension was unbearable before we finally did?",
+      "text": "What's a time we almost kissed — or the tension was unbearable before we finally did?",
       "category": "memory",
       "heat": 3,
       "relationshipDuration": [
@@ -3921,7 +3921,7 @@
       "id": "h3_070",
       "text": "How do you think our sex life will change in the future...",
       "category": "future",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
@@ -3967,7 +3967,7 @@
     },
     {
       "id": "h4_138",
-      "text": "Give {partner} a sensual hand massage. Use massage oil, if possible.",
+      "text": "What would make a sensual hand massage feel especially relaxing to you...",
       "category": "sensory",
       "heat": 3,
       "relationshipDuration": [
@@ -4029,7 +4029,7 @@
     },
     {
       "id": "h3_202",
-      "text": "What's a mild roleplay scenario that intrigues you \u2014 something we could try today...",
+      "text": "What mild roleplay idea would you actually want to try...",
       "category": "roleplay",
       "heat": 3,
       "relationshipDuration": [
@@ -4042,7 +4042,7 @@
     },
     {
       "id": "h3_090",
-      "text": "Tell me about a moment between us that felt electric \u2014 one you've replayed in your mind...",
+      "text": "Tell me about a moment between us that felt electric — one you've replayed in your mind...",
       "category": "memory",
       "heat": 3,
       "relationshipDuration": [
@@ -4055,7 +4055,7 @@
     },
     {
       "id": "h3_063",
-      "text": "Candles around the room and rose petals on the bed: Cute or cringe?",
+      "text": "What romantic setup would actually feel inviting to you...",
       "category": "romance",
       "heat": 3,
       "relationshipDuration": [
@@ -4108,7 +4108,7 @@
       "id": "h3_060",
       "text": "What songs or artists would be on your 'sex playlist'...",
       "category": "sensory",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4132,7 +4132,7 @@
     },
     {
       "id": "h3_092",
-      "text": "What are your thoughts about one of us blindfolding the other \u2014 just for a few minutes \u2014 to heighten the senses...",
+      "text": "What are your thoughts about one of us blindfolding the other — just for a few minutes — to heighten the senses...",
       "category": "kinky",
       "heat": 3,
       "relationshipDuration": [
@@ -4211,7 +4211,7 @@
       "id": "h3_085",
       "text": "How do you like it when I use different pronouns during sex...",
       "category": "physical",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4246,9 +4246,9 @@
     },
     {
       "id": "h3_061",
-      "text": "Want to make a 'sex playlist'?",
+      "text": "What songs would you want on a 'sex playlist' for us?",
       "category": "sensory",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4306,7 +4306,7 @@
     },
     {
       "id": "h3_098",
-      "text": "Something about a warm summer night makes me want to be closer to you \u2014 does any season bring that out in you?",
+      "text": "Which season makes you want to be closer to me, and what brings that out...",
       "category": "seasonal",
       "heat": 3,
       "relationshipDuration": [
@@ -4341,9 +4341,9 @@
     },
     {
       "id": "h3_067",
-      "text": "When do you experience performance anxiety during sex, if ever...",
+      "text": "When does pressure show up for you during sex, and what helps it fade...",
       "category": "emotional",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4380,7 +4380,7 @@
       "id": "h3_062",
       "text": "How does listening to music during sex affect the experience for you...",
       "category": "sensory",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4428,7 +4428,7 @@
       "id": "h3_208",
       "text": "What taste do you associate with our most passionate times...",
       "category": "sensory",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4453,7 +4453,7 @@
       "id": "h3_056",
       "text": "What do you like to do after sex...",
       "category": "romance",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4488,7 +4488,7 @@
     },
     {
       "id": "h4_058",
-      "text": "Are there any intimate experiences or activities you dislike or don't want to try...",
+      "text": "What intimate experiences or activities are outside your comfort zone...",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -4512,7 +4512,7 @@
     },
     {
       "id": "h3_081",
-      "text": "How satisfied do you feel with the physical intimacy in our relationship, and what would make it better for you...",
+      "text": "What would make our physical intimacy feel even better for you lately...",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -4574,7 +4574,7 @@
     },
     {
       "id": "h4_134",
-      "text": "Playing a tantric game of extended eye-gazing and synchronizing your breathing.",
+      "text": "What would make slow eye contact or shared breathing feel intimate instead of awkward...",
       "category": "sensory",
       "heat": 3,
       "relationshipDuration": [
@@ -4684,7 +4684,7 @@
     },
     {
       "id": "h3_053",
-      "text": "When you say 'sex,' what kinds of connection are included for you\u2014and what feels meaningfully different...",
+      "text": "When you say 'sex,' what kinds of connection are included for you—and what feels meaningfully different...",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -4733,9 +4733,9 @@
     },
     {
       "id": "h3_054",
-      "text": "What do you think is foreplay versus sex...",
+      "text": "Where do you draw the line between build-up and sex...",
       "category": "emotional",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4757,7 +4757,7 @@
     },
     {
       "id": "h3_076",
-      "text": "How do you feel about using toys together...",
+      "text": "What role would you want toys to have in our intimacy...",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -4784,7 +4784,7 @@
       "id": "h3_008",
       "text": "Describe how you feel when we make love versus when we just have sex.",
       "category": "emotional",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4808,7 +4808,7 @@
       "id": "h3_014",
       "text": "How do you feel when we're naked together but not being sexual...",
       "category": "physical",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -4831,7 +4831,7 @@
     },
     {
       "id": "h3_058",
-      "text": "How do you feel about watching sexy movies together...",
+      "text": "What mood or boundaries would make watching something sexy together feel good to you...",
       "category": "romance",
       "heat": 3,
       "relationshipDuration": [
@@ -4843,7 +4843,7 @@
     },
     {
       "id": "h3_210",
-      "text": "What kind of kiss from me makes you completely melt...",
+      "text": "Which kiss from me makes you completely melt...",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -4940,9 +4940,9 @@
     },
     {
       "id": "h4_120",
-      "text": "What's one thing you'd like more of from {partner}, outside of the bedroom, to help you be more present during sex?",
+      "text": "What's one thing you'd like more of from me, outside of the bedroom, to help you be more present during sex?",
       "category": "emotional",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
@@ -5048,7 +5048,7 @@
     },
     {
       "id": "h3_086",
-      "text": "What's your favorite position when we're both menstruating...",
+      "text": "What's your favorite position when we both want something gentle and close...",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -5060,9 +5060,9 @@
     },
     {
       "id": "h3_071",
-      "text": "How would you describe a sex life that feels connected, sustainable, and honest...",
+      "text": "What would make our sex life feel connected and honest over time...",
       "category": "emotional",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
@@ -5120,7 +5120,7 @@
     },
     {
       "id": "h3_082",
-      "text": "What's your favorite way to be intimate during your period...",
+      "text": "What's your favorite way to be intimate when your body needs extra care...",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -5180,7 +5180,7 @@
     },
     {
       "id": "h3_075",
-      "text": "How would you describe sexual compatibility...",
+      "text": "What does sexual compatibility mean to you...",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -5216,7 +5216,7 @@
     },
     {
       "id": "h3_065",
-      "text": "What's your preference \u2014 quickies or taking your time...",
+      "text": "What's your preference — quickies or taking your time...",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -5228,9 +5228,9 @@
     },
     {
       "id": "h3_072",
-      "text": "How would you describe sex that feels genuinely great for you\u2014not just performative...",
+      "text": "What makes sex feel genuinely great for you, not just like you are performing...",
       "category": "emotional",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -5252,9 +5252,9 @@
     },
     {
       "id": "h3_057",
-      "text": "How do you feel about porn in the context of our relationship, if at all...",
+      "text": "What would feel healthy for us when it comes to porn...",
       "category": "emotional",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -5300,9 +5300,9 @@
     },
     {
       "id": "h3_066",
-      "text": "When do you feel self-conscious during sex, if ever...",
+      "text": "When do you feel most in your head during sex, and what helps you come back to the moment...",
       "category": "emotional",
-      "heat": 3,
+      "heat": 4,
       "relationshipDuration": [
         "developing",
         "established",
@@ -5385,7 +5385,7 @@
     },
     {
       "id": "h5_157",
-      "text": "Tell me about the most passionately romantic thing you've ever wanted us to do \u2014 no holding back...",
+      "text": "Tell me about the most passionately romantic thing you've ever wanted us to do — no holding back...",
       "category": "romance",
       "heat": 4,
       "relationshipDuration": [
@@ -5397,7 +5397,7 @@
     },
     {
       "id": "h4_211",
-      "text": "Tell me about a character or persona you'd enjoy slipping into with me...",
+      "text": "Tell me about a character or side of yourself you'd enjoy slipping into with me...",
       "category": "roleplay",
       "heat": 4,
       "relationshipDuration": [
@@ -5409,7 +5409,7 @@
     },
     {
       "id": "h4_073",
-      "text": "Picture us on a long flight in first class with a blanket over us. Describe the mile-high fantasy \u2014 the thrill, the risk, what happens under that blanket, and how we keep composure...",
+      "text": "Picture us on a long flight in first class with a blanket over us. Describe the mile-high fantasy — the thrill, the risk, what happens under that blanket, and how we keep composure...",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -5421,7 +5421,7 @@
     },
     {
       "id": "h4_151",
-      "text": "There's something about a thunderstorm that feels electric \u2014 what would you want us to do while it raged outside?",
+      "text": "There's something about a thunderstorm that feels electric — what would you want us to do while it raged outside?",
       "category": "seasonal",
       "heat": 4,
       "relationshipDuration": [
@@ -5458,7 +5458,7 @@
     },
     {
       "id": "h4_200",
-      "text": "How do you feel about playful spanking during intimate moments...",
+      "text": "What playful intensity feels exciting during intimate moments...",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -5482,7 +5482,7 @@
     },
     {
       "id": "h4_130",
-      "text": "Cuddling and/or napping while naked (with the intention of relaxing while feeling {partner}'s skin on yours).",
+      "text": "How would you want resting together undressed to feel...",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
@@ -5530,7 +5530,7 @@
     },
     {
       "id": "h4_115",
-      "text": "In what ways has our work-life balance impacted our sexual relationship? What changes can we make to improve this? Share 3 ideas.",
+      "text": "How has our work-life balance affected our sexual connection lately...",
       "category": "emotional",
       "heat": 4,
       "relationshipDuration": [
@@ -5576,7 +5576,7 @@
     },
     {
       "id": "h4_118",
-      "text": "What specific theme or type of fantasy do you find yourself drawn to more often? Why do you think that is?",
+      "text": "What fantasy theme are you most drawn to, and what about it pulls you in...",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -5599,7 +5599,7 @@
     },
     {
       "id": "h4_205",
-      "text": "What would help you feel safe enough to try light bondage together...",
+      "text": "What would make light bondage feel safe enough to try together...",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -5624,9 +5624,9 @@
     },
     {
       "id": "h4_065",
-      "text": "If you could write the script for our dirty talk today, what would you have me say to you \u2014 and what would you whisper back? Start from the first words...",
+      "text": "If you could write the script for our dirty talk today, what would you have me say to you — and what would you whisper back? Start from the first words...",
       "category": "sensory",
-      "heat": 4,
+      "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
@@ -5636,7 +5636,7 @@
     },
     {
       "id": "h3_059",
-      "text": "How do you feel about incorporating food like whipped cream, chocolate sauce or edible underwear...",
+      "text": "What playful food-related intimacy sounds fun or appealing to you...",
       "category": "playful",
       "heat": 4,
       "relationshipDuration": [
@@ -5649,7 +5649,7 @@
     },
     {
       "id": "h4_081",
-      "text": "How do you feel about having intimacy in front of a mirror so you can watch...",
+      "text": "What would make mirror intimacy feel exciting instead of awkward...",
       "category": "visual",
       "heat": 4,
       "relationshipDuration": [
@@ -5661,7 +5661,7 @@
     },
     {
       "id": "h4_117",
-      "text": "What's the fastest way for {partner} to get you in the mood?",
+      "text": "What's the fastest way for me to get you in the mood?",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -5673,7 +5673,7 @@
     },
     {
       "id": "h4_056",
-      "text": "When it comes to describing what you want to try in bed, what works better for you \u2014 saying it verbally IRL or sending it in a text...",
+      "text": "When it comes to describing what you want to try in bed, what works better for you — saying it verbally IRL or sending it in a text...",
       "category": "emotional",
       "heat": 4,
       "relationshipDuration": [
@@ -5710,7 +5710,7 @@
     },
     {
       "id": "h4_212",
-      "text": "How would you want to warm each other up on the coldest night of the year...",
+      "text": "On the coldest night of the year, how would you want us to warm each other up...",
       "category": "seasonal",
       "heat": 4,
       "relationshipDuration": [
@@ -5734,7 +5734,7 @@
     },
     {
       "id": "h4_207",
-      "text": "How do you feel about being told exactly how good you are in bed...",
+      "text": "What praise or feedback makes you feel confident during intimacy...",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -5746,7 +5746,7 @@
     },
     {
       "id": "h5_162",
-      "text": "Describe a fantasy you'd love for us to fulfill together someday \u2014 somewhere we've never been...",
+      "text": "Describe a fantasy you'd love for us to fulfill together someday — somewhere we've never been...",
       "category": "future",
       "heat": 4,
       "relationshipDuration": [
@@ -5757,7 +5757,7 @@
     },
     {
       "id": "h4_132",
-      "text": "Take turns being blindfolded and feeding one another for a sexy taste test.",
+      "text": "How would a blindfolded taste test feel playful and exciting for us...",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
@@ -5769,7 +5769,7 @@
     },
     {
       "id": "h4_089",
-      "text": "I just bought some edible panties. Want to see what they taste like?",
+      "text": "What playful taste-based experience would feel fun for us to try together...",
       "category": "playful",
       "heat": 4,
       "relationshipDuration": [
@@ -5863,7 +5863,7 @@
     },
     {
       "id": "h4_149",
-      "text": "Imagine our anniversary five years from now \u2014 what bold, passionate tradition do you hope we've started?",
+      "text": "Imagine our anniversary five years from now — what bold, passionate tradition do you hope we've started?",
       "category": "future",
       "heat": 4,
       "relationshipDuration": [
@@ -5875,7 +5875,7 @@
     },
     {
       "id": "h5_155",
-      "text": "Use an ice cube or feather to trace the areas {partner} instructs you to. Decide together if you should use your hand or mouth. Add a blindfold to the partner being touched to bring in some extra mindfulness!",
+      "text": "Which ice, feather, or sensory play would feel most exciting to explore together...",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
@@ -5886,7 +5886,7 @@
     },
     {
       "id": "h4_127",
-      "text": "You're not allowed to talk out loud again until you've sent a flirty or suggestive text to {partner}.",
+      "text": "What flirty text would you send me if you couldn't say it out loud...",
       "category": "playful",
       "heat": 4,
       "relationshipDuration": [
@@ -5912,7 +5912,7 @@
       "id": "h4_060",
       "text": "What intimate experience is most likely to make you orgasm...",
       "category": "physical",
-      "heat": 4,
+      "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
@@ -5933,7 +5933,7 @@
     },
     {
       "id": "h4_022",
-      "text": "What's an adventurous location you'd want to make love...",
+      "text": "What adventurous setting would make intimacy feel exciting for you...",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -5969,7 +5969,7 @@
     },
     {
       "id": "h4_055",
-      "text": "I know I seem like I want to be in charge of everything. But actually, in the bedroom, I want you to be in command. What do you think?",
+      "text": "When would you enjoy taking the lead with me...",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -5993,7 +5993,7 @@
     },
     {
       "id": "h4_208",
-      "text": "How do you feel about mixing hot and cold sensations on your body...",
+      "text": "Which hot or cold sensations would you want to explore together...",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
@@ -6031,7 +6031,7 @@
       "id": "h4_012",
       "text": "How do you like to be pleasured during oral intimacy...",
       "category": "physical",
-      "heat": 4,
+      "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
@@ -6041,7 +6041,7 @@
     },
     {
       "id": "h4_144",
-      "text": "Describe the most romantic, sensual evening you could imagine us sharing \u2014 every detail...",
+      "text": "Describe the most romantic, sensual evening you could imagine us sharing — every detail...",
       "category": "romance",
       "heat": 4,
       "relationshipDuration": [
@@ -6091,7 +6091,7 @@
     },
     {
       "id": "h4_203",
-      "text": "How do you feel about being gently restrained during intimacy...",
+      "text": "What restraint or surrender dynamic feels intriguing during intimacy...",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -6126,7 +6126,7 @@
     },
     {
       "id": "h5_143",
-      "text": "Turn {partner} on in 1 sentence.",
+      "text": "What one sentence would turn me on fastest...",
       "category": "playful",
       "heat": 4,
       "relationshipDuration": [
@@ -6153,7 +6153,7 @@
       "id": "h4_032",
       "text": "What's your ideal oral intimacy experience...",
       "category": "physical",
-      "heat": 4,
+      "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
@@ -6175,7 +6175,7 @@
     },
     {
       "id": "h5_168",
-      "text": "Imagine a New Year's Eve where we skip the party and ring it in together our way \u2014 describe everything...",
+      "text": "Imagine a New Year's Eve where we skip the party and ring it in together our way — describe everything...",
       "category": "seasonal",
       "heat": 4,
       "relationshipDuration": [
@@ -6198,7 +6198,7 @@
     },
     {
       "id": "h4_206",
-      "text": "What kind of words during intimacy make you feel most desired...",
+      "text": "Which words during intimacy make you feel most desired...",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -6259,7 +6259,7 @@
     },
     {
       "id": "h4_213",
-      "text": "What does a perfect rainy day inside with me look like \u2014 from start to finish...",
+      "text": "What does a perfect rainy day inside with me look like — from start to finish...",
       "category": "seasonal",
       "heat": 4,
       "relationshipDuration": [
@@ -6272,7 +6272,7 @@
     },
     {
       "id": "h4_050",
-      "text": "What's the most adventurous sexual experience you'd want to try? Tell me more...",
+      "text": "What adventurous intimate experience would you genuinely want to explore...",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6284,7 +6284,7 @@
     },
     {
       "id": "h4_201",
-      "text": "What intensity of touch excites you \u2014 gentle, firm, or something with more impact...",
+      "text": "What intensity of touch excites you — gentle, firm, or something with more impact...",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -6296,7 +6296,7 @@
     },
     {
       "id": "h4_140",
-      "text": "Take turns guiding one another in giving guided back massages. You can use your hands, mouth, and toes.",
+      "text": "How would you want a guided massage to feel with me...",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
@@ -6308,7 +6308,7 @@
     },
     {
       "id": "h5_071",
-      "text": "We're strangers at a hotel bar. You slide a room key across the counter with a note that says 'Room 1204. Don't knock.' Describe everything that happens from the moment I open that door \u2014 what I find, what you're wearing, and how you take control of every moment...",
+      "text": "We're strangers at a hotel bar. You slide a room key across the counter with a note that says 'Room 1204. Don't knock.' Describe everything that happens from the moment I open that door — what I find, what you're wearing, and how you take control of every moment...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -6392,7 +6392,7 @@
     },
     {
       "id": "h4_033",
-      "text": "What's a playful sexual game you'd want to try? Tell me more...",
+      "text": "What playful intimate game would be fun for both of us...",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6416,7 +6416,7 @@
     },
     {
       "id": "h4_083",
-      "text": "One of us is blindfolded and completely at the other's mercy. Describe the full scene \u2014 who wears the blindfold, what sensations you use to drive them wild, every teasing moment from start to finish...",
+      "text": "One of us is blindfolded and completely at the other's mercy. Describe the full scene — who wears the blindfold, what sensations you use to drive them wild, every teasing moment from start to finish...",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
@@ -6558,7 +6558,7 @@
     },
     {
       "id": "h4_072",
-      "text": "We're cooking dinner and the tension gets unbearable. Describe how the evening unfolds from the kitchen counter to wherever we end up \u2014 the spontaneity, the urgency, every detail...",
+      "text": "We're cooking dinner and the tension gets unbearable. Describe how the evening unfolds from the kitchen counter to wherever we end up — the spontaneity, the urgency, every detail...",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -6606,7 +6606,7 @@
     },
     {
       "id": "h5_142",
-      "text": "What's your favorite tempo to receive pleasure? (Slow and steamy, fast and passionate, I like to be surprised.)",
+      "text": "What's your favorite tempo to receive pleasure: slow and steamy, fast and passionate, or surprising?",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -6665,7 +6665,7 @@
     },
     {
       "id": "h4_077",
-      "text": "We're alone in a private pool at midnight under the stars. The warm water is around us. Describe how the evening unfolds \u2014 where your hands go underwater, how we move together...",
+      "text": "We're alone in a private pool at midnight under the stars. The warm water is around us. Describe how the evening unfolds — where your hands go underwater, how we move together...",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -6703,7 +6703,7 @@
       "id": "h5_146",
       "text": "Share your top 5 favorite words, phrases, or forms of dirty talk that you enjoy or fantasize about hearing during intimacy.",
       "category": "physical",
-      "heat": 4,
+      "heat": 5,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -6758,7 +6758,7 @@
     },
     {
       "id": "h4_025",
-      "text": "What's your ideal romantic getaway intimate scenario...",
+      "text": "What's your ideal romantic getaway for intimacy...",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -6793,7 +6793,7 @@
     },
     {
       "id": "h5_148",
-      "text": "With permission, kiss {partner} in three of your favorite places on their body.",
+      "text": "Where would you want to kiss me if you had permission to take your time...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -6816,7 +6816,7 @@
     },
     {
       "id": "h4_063",
-      "text": "Are there any sexy movie scenes you'd like to act out? Tell me more...",
+      "text": "Which sexy movie scene would you want to act out, and what makes it appealing...",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6828,7 +6828,7 @@
     },
     {
       "id": "h4_042",
-      "text": "What kind of playful role or dynamic interests you most...",
+      "text": "Which playful role or dynamic interests you most...",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -6853,7 +6853,7 @@
     },
     {
       "id": "h4_071",
-      "text": "How do you feel about the idea of having intimacy on the beach if you knew no one would find out...",
+      "text": "What would make a beach fantasy exciting for you, and what boundaries would matter...",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -6879,7 +6879,7 @@
       "id": "h4_059",
       "text": "What does an orgasm feel like for you? Describe it.",
       "category": "physical",
-      "heat": 4,
+      "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
@@ -6901,7 +6901,7 @@
     },
     {
       "id": "h4_142",
-      "text": "Engage in foreplay as you typically would with no kissing.",
+      "text": "What would make a no-kissing foreplay challenge feel teasing and connected...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -6984,7 +6984,7 @@
     },
     {
       "id": "h4_052",
-      "text": "We've been dancing around something new in the bedroom. Describe exactly what you want to try \u2014 the setup, the mood, and how you imagine it playing out between us...",
+      "text": "We've been dancing around something new in the bedroom. Describe exactly what you want to try — the setup, the mood, and how you imagine it playing out between us...",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7091,7 +7091,7 @@
     },
     {
       "id": "h5_048",
-      "text": "Walk me through exactly how you want today to end \u2014 every position, every touch, every word...",
+      "text": "Walk me through exactly how you want today to end — every position, every touch, every word...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7137,7 +7137,7 @@
     },
     {
       "id": "h4_035",
-      "text": "How do you feel about playful intensity during intimacy...",
+      "text": "Which playful intensity feels exciting during intimacy...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7162,7 +7162,7 @@
     },
     {
       "id": "h4_016",
-      "text": "How do you feel about more passionate, intense lovemaking...",
+      "text": "What does more passionate, intense lovemaking look like to you...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7212,7 +7212,7 @@
       "id": "h4_086",
       "text": "How would you feel about me using a vibrator on you...",
       "category": "physical",
-      "heat": 4,
+      "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
@@ -7246,7 +7246,7 @@
     },
     {
       "id": "h4_004",
-      "text": "Describe your ideal role-play scenario with me.",
+      "text": "What roleplay setup would feel most exciting with me...",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7258,9 +7258,9 @@
     },
     {
       "id": "h4_088",
-      "text": "How about we try experimenting with a dildo today...",
+      "text": "Which intimate accessory would you want us to experiment with together...",
       "category": "physical",
-      "heat": 4,
+      "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
@@ -7282,7 +7282,7 @@
     },
     {
       "id": "h4_048",
-      "text": "How would you want to bring {partner} to intense pleasure...",
+      "text": "How would you want to bring me to intense pleasure...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7306,7 +7306,7 @@
     },
     {
       "id": "h4_119",
-      "text": "What's your favorite time of day to be intimate? Why?",
+      "text": "When do you most like being intimate with me...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7329,7 +7329,7 @@
     },
     {
       "id": "h4_039",
-      "text": "What's your ideal sensual massage scenario...",
+      "text": "What would your ideal sensual massage include...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7341,9 +7341,9 @@
     },
     {
       "id": "h4_101",
-      "text": "How do you feel about trying a toy together during intimacy...",
+      "text": "What shared toy experience would feel exciting and connected...",
       "category": "physical",
-      "heat": 4,
+      "heat": 5,
       "relationshipDuration": [
         "established",
         "mature",
@@ -7353,7 +7353,7 @@
     },
     {
       "id": "h5_074",
-      "text": "How do you feel about touching each other at the same time...",
+      "text": "When does mutual touch feel especially connected for you...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7364,7 +7364,7 @@
     },
     {
       "id": "h5_150",
-      "text": "Show {partner} you're interested in sex without using any words (just facial expressions and/or body language).",
+      "text": "How would you show me you're interested in sex without using words...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7423,7 +7423,7 @@
     },
     {
       "id": "h4_137",
-      "text": "Give {partner} your most passionate kiss.",
+      "text": "What makes a kiss from you feel especially passionate...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7458,7 +7458,7 @@
     },
     {
       "id": "h4_139",
-      "text": "Explore {partner}'s erogenous zones, but no touching of any genital areas.",
+      "text": "Which erogenous zones would you want me to explore while avoiding genital touch...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7505,7 +7505,7 @@
     },
     {
       "id": "h4_027",
-      "text": "How do you like to use touch to drive {partner} wild...",
+      "text": "How do you like to use touch to drive me wild...",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7541,7 +7541,7 @@
     },
     {
       "id": "h5_rp_09",
-      "text": "We rented a cabin with a massive window overlooking a valley \u2014 no neighbors, no curtains, nothing but wilderness. There's a bearskin rug by the fireplace and a storm rolling in. Describe the entire night \u2014 how the thunder covers our sounds, the warmth of the fire on bare skin, every position we try in front of that window knowing nature is our only audience...",
+      "text": "We rented a cabin with a massive window overlooking a valley — no neighbors, no curtains, nothing but wilderness. There's a bearskin rug by the fireplace and a storm rolling in. Describe the entire night — how the thunder covers our sounds, the warmth of the fire on bare skin, every position we try in front of that window knowing nature is our only audience...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
@@ -7553,7 +7553,7 @@
     },
     {
       "id": "h5_156",
-      "text": "Make up a stripping game. A fun one is trying to guess what {partner} has drawn on your back (go in categories like numbers, etc.). If you get it wrong, there goes an article of clothing!",
+      "text": "What stripping game would be fun for us to invent together...",
       "category": "playful",
       "heat": 5,
       "relationshipDuration": [
@@ -7575,7 +7575,7 @@
     },
     {
       "id": "h5_141",
-      "text": "What is something about your sexual self that you feel I haven't fully understood or explored with you? How can we explore this together?",
+      "text": "What explicit desire of yours do you wish I understood more deeply...",
       "category": "emotional",
       "heat": 5,
       "relationshipDuration": [
@@ -7587,7 +7587,7 @@
     },
     {
       "id": "h5_104",
-      "text": "You're a rock star and I snuck backstage after your concert. You pull me into your dressing room. Describe the groupie fantasy \u2014 the leather couch, the adrenaline, how you pin me against the mirror, and what happens when I tell you I'll do absolutely anything...",
+      "text": "You're a rock star and I snuck backstage after your concert. You pull me into your dressing room. Describe the groupie fantasy — the leather couch, the adrenaline, how you pin me against the mirror, and what happens when I tell you I'll do absolutely anything...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -7600,7 +7600,7 @@
       "id": "h5_055",
       "text": "How would you feel about blindfolding me...",
       "category": "sensory",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -7643,7 +7643,7 @@
     },
     {
       "id": "h5_rp_01",
-      "text": "We're deep in the woods at our campsite, miles from anyone. The fire's dying down, the sleeping bag is unzipped, and the night air is cool against our skin. Describe how the isolation changes everything \u2014 the sounds we make knowing nobody can hear, how the firelight plays across our bodies, every bold thing you'd do knowing the nearest person is miles away...",
+      "text": "We're deep in the woods at our campsite, miles from anyone. The fire's dying down, the sleeping bag is unzipped, and the night air is cool against our skin. Describe how the isolation changes everything — the sounds we make knowing nobody can hear, how the firelight plays across our bodies, every bold thing you'd do knowing the nearest person is miles away...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
@@ -7666,7 +7666,7 @@
     },
     {
       "id": "h5_061",
-      "text": "What would happen if I put you in my mouth right now...",
+      "text": "Describe the kind of mouth-focused pleasure you would want from me right now...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -7746,7 +7746,7 @@
     },
     {
       "id": "h5_rp_10",
-      "text": "We're at a masquerade party in a mansion. Masks on, identities hidden. We find a locked room upstairs \u2014 velvet furniture, dim lighting, a mirror covering one wall. We can hear the party below but no one knows we've slipped away. Describe what happens behind that locked door, with the masks still on, the anonymity and the mirror showing everything...",
+      "text": "We're at a masquerade party in a mansion. Masks on, identities hidden. We find a locked room upstairs — velvet furniture, dim lighting, a mirror covering one wall. We can hear the party below but no one knows we've slipped away. Describe what happens behind that locked door, with the masks still on, the anonymity and the mirror showing everything...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
@@ -7792,7 +7792,7 @@
     },
     {
       "id": "h5_rp_05",
-      "text": "We're deep in a late-night conversation and the tension has been building for weeks. Today I pull you closer and confess I haven't been able to stop thinking about you. My partner is waiting in the next room \u2014 I invited them because I want us all together. Describe what happens when that door opens and the night turns into something none of us will forget...",
+      "text": "We're deep in a late-night conversation and the tension has been building for weeks. Today I pull you closer and confess I haven't been able to stop thinking about you. My partner is waiting in the next room — I invited them because I want us all together. Describe what happens when that door opens and the night turns into something none of us will forget...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
@@ -7838,7 +7838,7 @@
     },
     {
       "id": "h5_rp_03",
-      "text": "We're alone in an outdoor hot tub under the stars, the jets pulsing around us, steam rising into the cold night air. Describe every detail \u2014 how you position us so the jets hit just right, the way the bubbling water hides what your hands are doing underneath, how the heat of the water mixes with the heat between us as things escalate...",
+      "text": "We're alone in an outdoor hot tub under the stars, the jets pulsing around us, steam rising into the cold night air. Describe every detail — how you position us so the jets hit just right, the way the bubbling water hides what your hands are doing underneath, how the heat of the water mixes with the heat between us as things escalate...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
@@ -7884,7 +7884,7 @@
     },
     {
       "id": "h5_rp_02",
-      "text": "We're swimming together in a secluded mountain lake at sunset. The water is warm on the surface, cool underneath, and we're completely alone. Describe how it starts \u2014 the way our bodies feel weightless together, how hands move differently underwater, pulling me close with nothing between us, the sensation of skin against skin in the water as the sun disappears...",
+      "text": "We're swimming together in a secluded mountain lake at sunset. The water is warm on the surface, cool underneath, and we're completely alone. Describe how it starts — the way our bodies feel weightless together, how hands move differently underwater, pulling me close with nothing between us, the sensation of skin against skin in the water as the sun disappears...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
@@ -7896,7 +7896,7 @@
     },
     {
       "id": "h4_091",
-      "text": "If we were to explore inviting someone else into our bedroom, describe how you'd want that night to unfold \u2014 the boundaries, the dynamic, every detail of how the three of us interact...",
+      "text": "If we were to explore inviting someone else into our bedroom, describe how you'd want that night to unfold — the boundaries, the dynamic, every detail of how the three of us interact...",
       "category": "fantasy",
       "heat": 5,
       "relationshipDuration": [
@@ -7921,7 +7921,7 @@
       "id": "h5_200",
       "text": "Where on your body would you want to feel a firm hand...",
       "category": "kinky",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "established",
         "mature",
@@ -7965,7 +7965,7 @@
     },
     {
       "id": "h5_204",
-      "text": "How do you feel about a little dirty talk that's more commanding or degrading...",
+      "text": "What commanding or degrading dirty talk would feel exciting and safe...",
       "category": "kinky",
       "heat": 5,
       "relationshipDuration": [
@@ -7976,7 +7976,7 @@
     },
     {
       "id": "h5_rp_04",
-      "text": "We've been flirting with someone we both find irresistible. Today, they're in our bedroom. Describe the scene from the very beginning \u2014 who makes the first move, how the three of us navigate each other's bodies, the dynamic of watching me with someone else while waiting for your turn, every position, every moment of shared pleasure...",
+      "text": "We've been flirting with someone we both find irresistible. Today, they're in our bedroom. Describe the scene from the very beginning — who makes the first move, how the three of us navigate each other's bodies, the dynamic of watching me with someone else while waiting for your turn, every position, every moment of shared pleasure...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
@@ -8001,7 +8001,7 @@
       "id": "h5_007",
       "text": "How do you want me to make you surrender completely...",
       "category": "physical",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -8010,7 +8010,7 @@
     },
     {
       "id": "h5_207",
-      "text": "How do you feel about giving me explicit instructions during sex...",
+      "text": "What explicit instructions would you want to give me during sex...",
       "category": "kinky",
       "heat": 5,
       "relationshipDuration": [
@@ -8022,7 +8022,7 @@
     },
     {
       "id": "h5_rp_07",
-      "text": "We're strangers who locked eyes across a hotel bar. No names, no history \u2014 just raw attraction. You slide into the seat next to me and within minutes we're in the elevator, barely keeping our hands off each other. Describe every moment from the hallway to the hotel room \u2014 the urgency, the anonymity, the things we do because there are no strings and no rules...",
+      "text": "We're strangers who locked eyes across a hotel bar. No names, no history — just raw attraction. You slide into the seat next to me and within minutes we're in the elevator, barely keeping our hands off each other. Describe every moment from the hallway to the hotel room — the urgency, the anonymity, the things we do because there are no strings and no rules...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
@@ -8045,7 +8045,7 @@
     },
     {
       "id": "h5_081",
-      "text": "I'm interviewing for a position at your company. You close the blinds and tell me the final round is a 'practical assessment.' Describe the power dynamic \u2014 how you direct me from behind your desk, what you make me demonstrate, and how I earn the job in graphic detail...",
+      "text": "I'm interviewing for a position at your company. You close the blinds and tell me the final round is a 'practical assessment.' Describe the power dynamic — how you direct me from behind your desk, what you make me demonstrate, and how I earn the job in graphic detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8067,7 +8067,7 @@
     },
     {
       "id": "h5_rp_06",
-      "text": "You're a flight attendant on a private jet and I'm your only passenger. After takeoff, you close the cabin curtain and tell me this flight comes with very special first-class service. Describe the full fantasy \u2014 the uniform coming undone, the turbulence that pushes us together, every mile-high detail from takeoff to the descent you give me...",
+      "text": "You're a flight attendant on a private jet and I'm your only passenger. After takeoff, you close the cabin curtain and tell me this flight comes with very special first-class service. Describe the full fantasy — the uniform coming undone, the turbulence that pushes us together, every mile-high detail from takeoff to the descent you give me...",
       "category": "roleplay",
       "heat": 5,
       "relationshipDuration": [
@@ -8101,7 +8101,7 @@
     },
     {
       "id": "h5_013",
-      "text": "Describe your dirtiest adventurous scenario fantasy involving us intimately.",
+      "text": "Describe your dirtiest adventurous fantasy about us, including where we are, what starts it, and how far it goes.",
       "category": "fantasy",
       "heat": 5,
       "relationshipDuration": [
@@ -8112,7 +8112,7 @@
     },
     {
       "id": "h4_093",
-      "text": "Describe from start to finish your ideal scenario for what happens when you take complete control on top \u2014 the pace, the positions, my reactions, how you make us both finish...",
+      "text": "Describe from start to finish what happens when you take complete control on top — the pace, the positions, my reactions, how you make us both finish...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8179,7 +8179,7 @@
     },
     {
       "id": "h4_068",
-      "text": "Describe how you'd want us to touch ourselves together in the same room \u2014 the lighting, the eye contact, who starts first, and every detail of watching each other...",
+      "text": "Describe how you'd want us to touch ourselves together in the same room — the lighting, the eye contact, who starts first, and every detail of watching each other...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8191,7 +8191,7 @@
     },
     {
       "id": "h5_057",
-      "text": "Tell me about your favorite porn scene you'd want to recreate \u2014 describe it in detail...",
+      "text": "Tell me about an explicit fantasy scene you'd want to create with me...",
       "category": "fantasy",
       "heat": 5,
       "relationshipDuration": [
@@ -8224,7 +8224,7 @@
     },
     {
       "id": "h5_030",
-      "text": "Tell me about a time you almost lost control with me \u2014 and what would push you completely over the edge...",
+      "text": "Tell me about a time you almost lost control with me — and what would push you completely over the edge...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8268,7 +8268,7 @@
     },
     {
       "id": "h5_062",
-      "text": "How do you feel about grinding against each other right now...",
+      "text": "Describe how you would want us to grind against each other right now...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8301,7 +8301,7 @@
     },
     {
       "id": "h5_132",
-      "text": "You're in complete control and you tell me exactly how this is going to go\u2014where you want me, how you want my body, and what you want me to do for you. What happens...",
+      "text": "You're in complete control and you tell me exactly how this is going to go—where you want me, how you want my body, and what you want me to do for you. What happens...",
       "category": "fantasy",
       "heat": 5,
       "relationshipDuration": [
@@ -8312,7 +8312,7 @@
     },
     {
       "id": "h5_122",
-      "text": "You're a librarian and I keep checking out the same book just to see you. Today the library is empty. Describe how the quiet turns electric \u2014 between the shelves, on the reading table, trying to stay silent \u2014 every hushed, explicit detail of our literary encounter...",
+      "text": "You're a librarian and I keep checking out the same book just to see you. Today the library is empty. Describe how the quiet turns electric — between the shelves, on the reading table, trying to stay silent — every hushed, explicit detail of our literary encounter...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8334,7 +8334,7 @@
     },
     {
       "id": "h5_083",
-      "text": "I want to ride you while you play with me at the same time \u2014 describe exactly how you want that to feel for both of us...",
+      "text": "I want to ride you while you play with me at the same time — describe exactly how you want that to feel for both of us...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8356,7 +8356,7 @@
     },
     {
       "id": "h5_095",
-      "text": "You're my commanding officer and I've been insubordinate. You order me to your quarters for discipline. Describe in detail the dynamic \u2014 how you assert dominance, what you command me to do, where you put me, and how you punish me until I beg for more...",
+      "text": "You're my commanding officer and I've been insubordinate. You order me to your quarters for discipline. Describe in detail the dynamic — how you assert dominance, what you command me to do, where you put me, and how you punish me until I beg for more...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8400,7 +8400,7 @@
     },
     {
       "id": "h5_123",
-      "text": "I'm a celebrity and you're the reporter doing a private interview in my penthouse. The questions get personal. Describe how the interview dissolves \u2014 my hand on your recorder, your hand on my thigh, and every headline-making detail of what happens off the record...",
+      "text": "I'm a celebrity and you're the reporter doing a private interview in my penthouse. The questions get personal. Describe how the interview dissolves — my hand on your recorder, your hand on my thigh, and every headline-making detail of what happens off the record...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8422,7 +8422,7 @@
     },
     {
       "id": "h5_085",
-      "text": "You're my dance instructor teaching me the tango. Describe how the lesson escalates \u2014 your hand sliding lower on my back, our hips grinding together to the rhythm, and what happens when you press me against the mirror and the dancing turns into something far more passionate...",
+      "text": "You're my dance instructor teaching me the tango. Describe how the lesson escalates — your hand sliding lower on my back, our hips grinding together to the rhythm, and what happens when you press me against the mirror and the dancing turns into something far more passionate...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8466,7 +8466,7 @@
     },
     {
       "id": "h5_094",
-      "text": "I'm a room service attendant who brings your order. You answer the door in just a robe. You pull me inside and tell me the tip is 'on the bed.' Walk me through this encounter in explicit detail \u2014 the power play, the seduction, every position we try in that luxury suite...",
+      "text": "I'm a room service attendant who brings your order. You answer the door in just a robe. You pull me inside and tell me the tip is 'on the bed.' Walk me through this encounter in explicit detail — the power play, the seduction, every position we try in that luxury suite...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8510,7 +8510,7 @@
     },
     {
       "id": "h5_051",
-      "text": "How do you feel about me coming in your mouth...",
+      "text": "Which finish would feel most exciting or intimate during sex...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8521,7 +8521,7 @@
     },
     {
       "id": "h5_134",
-      "text": "You take in every inch of me slowly and describe exactly what you want to do next? Describe it in detail...",
+      "text": "What would you want to do next if you could take your time with every part of me...",
       "category": "fantasy",
       "heat": 5,
       "relationshipDuration": [
@@ -8555,7 +8555,7 @@
     },
     {
       "id": "h5_093",
-      "text": "How do you feel about me on top grinding down on you in the most intense way...",
+      "text": "Describe how you would want me on top, moving against you in the most intense way...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8566,7 +8566,7 @@
     },
     {
       "id": "h5_082",
-      "text": "You're a bartender and I'm the last customer. You lock the front door and pour us both a shot. Describe how we go from flirting to you lifting me onto the bar \u2014 every detail of what your hands do, where your mouth goes, and how we christen every surface in that bar...",
+      "text": "You're a bartender and I'm the last customer. You lock the front door and pour us both a shot. Describe how we go from flirting to you lifting me onto the bar — every detail of what your hands do, where your mouth goes, and how we christen every surface in that bar...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8588,7 +8588,7 @@
     },
     {
       "id": "h5_109",
-      "text": "I'm a mechanic working under a car when you walk into my shop. You see my body glistening with sweat. Describe how you get my attention, how things get heated in the garage \u2014 against the car hood, on the workbench \u2014 every grease-stained detail...",
+      "text": "I'm a mechanic working under a car when you walk into my shop. You see my body glistening with sweat. Describe how you get my attention, how things get heated in the garage — against the car hood, on the workbench — every grease-stained detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8665,7 +8665,7 @@
     },
     {
       "id": "h4_090",
-      "text": "Describe in detail your favorite thing about giving me oral \u2014 the sounds I make, the way my body responds, the specific moments that drive you to keep going...",
+      "text": "Describe in detail your favorite thing about giving me oral — the sounds I make, the way my body responds, the specific moments that drive you to keep going...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8721,7 +8721,7 @@
     },
     {
       "id": "h5_021",
-      "text": "Guide my hands across your body right now \u2014 tell me exactly where to go and what to do until you can't take it anymore...",
+      "text": "Guide my hands across your body right now — tell me exactly where to go and what to do until you can't take it anymore...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8754,7 +8754,7 @@
     },
     {
       "id": "h5_088",
-      "text": "How do you feel about finishing in my mouth while I pleasure you...",
+      "text": "Describe the kind of finish you would want while I pleasure you...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8765,7 +8765,7 @@
     },
     {
       "id": "h5_090",
-      "text": "We're coworkers on a business trip sharing a hotel room because the company cheaped out. There's only one bed. Describe in explicit detail the pretense of 'just sleeping' that unravels \u2014 the accidental touches, who makes the first move, and everything that follows...",
+      "text": "We're coworkers on a business trip sharing a hotel room because the company cheaped out. There's only one bed. Describe in explicit detail the pretense of 'just sleeping' that unravels — the accidental touches, who makes the first move, and everything that follows...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8776,7 +8776,7 @@
     },
     {
       "id": "h5_092",
-      "text": "You're my tattoo artist and I want ink on my inner thigh. Describe the entire session \u2014 your gloved hand on my bare skin, how close your face is to my body, the vibrations, and what happens when the tattoo is done and your hands don't leave my thigh...",
+      "text": "You're my tattoo artist and I want ink on my inner thigh. Describe the entire session — your gloved hand on my bare skin, how close your face is to my body, the vibrations, and what happens when the tattoo is done and your hands don't leave my thigh...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8809,7 +8809,7 @@
     },
     {
       "id": "h5_105",
-      "text": "We're strangers on a train in a private sleeper car. The train sways and jolts us together. Describe the overnight journey \u2014 how the close quarters and rhythm of the train lead to us tangled together, every detail of what we do as cities blur past the window...",
+      "text": "We're strangers on a train in a private sleeper car. The train sways and jolts us together. Describe the overnight journey — how the close quarters and rhythm of the train lead to us tangled together, every detail of what we do as cities blur past the window...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8820,7 +8820,7 @@
     },
     {
       "id": "h5_147",
-      "text": "Whisper something sexy you'd like to do to {partner} right now.",
+      "text": "What is the most direct, explicit invitation you would want to give me right now...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8831,7 +8831,7 @@
     },
     {
       "id": "h5_101",
-      "text": "I'm a pilot and you're my flight attendant on a red-eye with an empty first-class cabin. Describe how we lock the cockpit door \u2014 what you do when I recline the seat, how you straddle me at 35,000 feet, every turbulent detail of our mile-high encounter...",
+      "text": "I'm a pilot and you're my flight attendant on a red-eye with an empty first-class cabin. Describe how we lock the cockpit door — what you do when I recline the seat, how you straddle me at 35,000 feet, every turbulent detail of our mile-high encounter...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8844,7 +8844,7 @@
       "id": "h5_060",
       "text": "What if I touch you here...",
       "category": "physical",
-      "heat": 5,
+      "heat": 4,
       "relationshipDuration": [
         "mature",
         "long_term"
@@ -8853,7 +8853,7 @@
     },
     {
       "id": "h5_068",
-      "text": "I'm a stranger who just moved in next door. You come over to introduce yourself and find me barely dressed. The tension is unbearable. Describe how we go from small talk to you pinning me against my kitchen counter \u2014 every touch, every piece of clothing that comes off...",
+      "text": "I'm a stranger who just moved in next door. You come over to introduce yourself and find me barely dressed. The tension is unbearable. Describe how we go from small talk to you pinning me against my kitchen counter — every touch, every piece of clothing that comes off...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8864,7 +8864,7 @@
     },
     {
       "id": "h5_115",
-      "text": "We're rival lawyers who just faced off in court. The tension is electric. We end up alone in the law library after midnight. Describe how the intellectual sparring becomes physical \u2014 on the conference table, against the bookshelves, every fierce detail...",
+      "text": "We're rival lawyers who just faced off in court. The tension is electric. We end up alone in the law library after midnight. Describe how the intellectual sparring becomes physical — on the conference table, against the bookshelves, every fierce detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8897,7 +8897,7 @@
     },
     {
       "id": "h5_154",
-      "text": "Explore {partner}'s body using only your mouth and tongue.",
+      "text": "How would you want to explore my body using only your mouth and tongue...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8919,7 +8919,7 @@
     },
     {
       "id": "h5_125",
-      "text": "We're outlaws on the run who duck into an abandoned cabin. Adrenaline is pumping. Describe the desperate, urgent encounter \u2014 against the wall, on the dusty floor, the danger outside making everything more intense \u2014 every raw, explicit detail of our hideout tryst...",
+      "text": "We're outlaws on the run who duck into an abandoned cabin. Adrenaline is pumping. Describe the desperate, urgent encounter — against the wall, on the dusty floor, the danger outside making everything more intense — every raw, explicit detail of our hideout tryst...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8941,7 +8941,7 @@
     },
     {
       "id": "h5_119",
-      "text": "We're astronauts on a two-person mission, floating alone in zero gravity. How does intimacy work up here? Describe the physics, the floating, bodies intertwined with nothing to hold onto but each other \u2014 every weightless, explicit detail...",
+      "text": "We're astronauts on a two-person mission, floating alone in zero gravity. How does intimacy work up here? Describe the physics, the floating, bodies intertwined with nothing to hold onto but each other — every weightless, explicit detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -8974,7 +8974,7 @@
     },
     {
       "id": "h5_112",
-      "text": "You're a vampire who's been watching me for centuries and today you finally reveal yourself. Describe the seduction \u2014 how you mesmerize me, how your lips trace my neck, and the explicit encounter that unfolds when I willingly submit to your dark desire...",
+      "text": "You're a vampire who's been watching me for centuries and today you finally reveal yourself. Describe the seduction — how you mesmerize me, how your lips trace my neck, and the explicit encounter that unfolds when I willingly submit to your dark desire...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9007,7 +9007,7 @@
     },
     {
       "id": "h5_070",
-      "text": "How do you feel about taking turns pleasuring each other with our toys...",
+      "text": "What would an ideal turn-taking toy experience look like for us...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9018,7 +9018,7 @@
     },
     {
       "id": "h4_097",
-      "text": "Can I slide my fingers inside you while I lick your most sensitive spot...",
+      "text": "Describe exactly how you would want my fingers and mouth to pleasure you...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9030,7 +9030,7 @@
     },
     {
       "id": "h5_152",
-      "text": "Engage in mutual self-pleasure while watching each other.",
+      "text": "How would mutual self-pleasure feel most intimate and exciting for us...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9052,7 +9052,7 @@
     },
     {
       "id": "h5_077",
-      "text": "We meet at a masquerade party and we don't recognize each other behind our masks. Describe the raw, uninhibited encounter between two 'strangers' \u2014 how we dance, how we disappear to a private room, and every explicit detail of what we do without ever removing our masks...",
+      "text": "We meet at a masquerade party and we don't recognize each other behind our masks. Describe the raw, uninhibited encounter between two 'strangers' — how we dance, how we disappear to a private room, and every explicit detail of what we do without ever removing our masks...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9063,7 +9063,7 @@
     },
     {
       "id": "h5_118",
-      "text": "You're a fortune teller and you read my palm \u2014 you see an incredibly passionate night in my immediate future... with someone in this very room. Describe how the reading becomes a self-fulfilling prophecy in your dimly lit tent, every sensory detail...",
+      "text": "You're a fortune teller and you read my palm — you see an incredibly passionate night in my immediate future... with someone in this very room. Describe how the reading becomes a self-fulfilling prophecy in your dimly lit tent, every sensory detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9096,7 +9096,7 @@
     },
     {
       "id": "h5_116",
-      "text": "You're a genie and I just rubbed your lamp. My three wishes are all variations of 'I want you.' Describe how you grant each wish \u2014 the first tender, the second wild, the third absolutely no-holds-barred \u2014 every magical, explicit detail of each granted desire...",
+      "text": "You're a genie and I just rubbed your lamp. My three wishes are all variations of 'I want you.' Describe how you grant each wish — the first tender, the second wild, the third absolutely no-holds-barred — every magical, explicit detail of each granted desire...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9118,7 +9118,7 @@
     },
     {
       "id": "h5_096",
-      "text": "I'm a hitchhiker you pick up on a deserted highway at sunset. The chemistry is instant. Describe how we pull over onto a dirt road \u2014 what happens in the back seat, how our bodies move together, every steamy detail of our roadside encounter with nothing but open sky above us...",
+      "text": "I'm a hitchhiker you pick up on a deserted highway at sunset. The chemistry is instant. Describe how we pull over onto a dirt road — what happens in the back seat, how our bodies move together, every steamy detail of our roadside encounter with nothing but open sky above us...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9151,7 +9151,7 @@
     },
     {
       "id": "h5_120",
-      "text": "You're a painter and I'm your muse. You ask me to pose nude and begin painting, but the brush strokes on the canvas become actual strokes on my body. Describe how art and desire merge \u2014 paint on skin, every vivid, colorful, explicit detail...",
+      "text": "You're a painter and I'm your muse. You ask me to pose nude and begin painting, but the brush strokes on the canvas become actual strokes on my body. Describe how art and desire merge — paint on skin, every vivid, colorful, explicit detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9173,7 +9173,7 @@
     },
     {
       "id": "h5_091",
-      "text": "You're a lifeguard and you just pulled me from the water. I'm lying on the sand barely conscious and when I open my eyes you're over me, lips close to mine. Describe how mouth-to-mouth turns into something much more behind the dunes \u2014 every graphic detail...",
+      "text": "You're a lifeguard and you just pulled me from the water. I'm lying on the sand barely conscious and when I open my eyes you're over me, lips close to mine. Describe how mouth-to-mouth turns into something much more behind the dunes — every graphic detail...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9206,7 +9206,7 @@
     },
     {
       "id": "h5_089",
-      "text": "You're my personal chef cooking a private dinner. You dip your finger in sauce and bring it to my lips. Describe how we go from tasting to touching \u2014 how you lift me onto the kitchen island, what you do with the whipped cream, and how we devour each other between courses...",
+      "text": "You're my personal chef cooking a private dinner. You dip your finger in sauce and bring it to my lips. Describe how we go from tasting to touching — how you lift me onto the kitchen island, what you do with the whipped cream, and how we devour each other between courses...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9228,7 +9228,7 @@
     },
     {
       "id": "h5_038",
-      "text": "Describe the most intense lovemaking session you can imagine us having \u2014 from the first touch to the last breath...",
+      "text": "Describe the most intense lovemaking session you can imagine us having — from the first touch to the last breath...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9250,7 +9250,7 @@
     },
     {
       "id": "h4_095",
-      "text": "How do you feel about 69ing so I can taste you while you suck me...",
+      "text": "Describe the kind of mutual oral experience you would want with me...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9284,7 +9284,7 @@
     },
     {
       "id": "h5_087",
-      "text": "I'm a guest at your bed and breakfast and I accidentally walk into your room. You're freshly out of the shower with just a towel. Describe the charged energy between us \u2014 how the towel drops, what happens against the door, and every explicit detail of the next hour...",
+      "text": "I'm a guest at your bed and breakfast and I accidentally walk into your room. You're freshly out of the shower with just a towel. Describe the charged energy between us — how the towel drops, what happens against the door, and every explicit detail of the next hour...",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9303,6 +9303,840 @@
         "long_term"
       ],
       "releaseWeek": 157
+    },
+    {
+      "id": "h3_213",
+      "text": "Which slow, affectionate moment helps you feel closest to me...",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 158
+    },
+    {
+      "id": "h3_214",
+      "text": "How would you describe the kind of closeness that makes the room feel quieter around us...",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 158
+    },
+    {
+      "id": "h3_215",
+      "text": "What would make an evening feel wanted, relaxed, and completely unrushed...",
+      "category": "sensory",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 158
+    },
+    {
+      "id": "h3_216",
+      "text": "When do you feel the most chemistry between us without needing to say much...",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 158
+    },
+    {
+      "id": "h3_217",
+      "text": "What makes a quiet moment between us start to feel charged in the best way...",
+      "category": "sensory",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 158
+    },
+    {
+      "id": "h3_218",
+      "text": "What attention from me makes you feel especially chosen...",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 159
+    },
+    {
+      "id": "h3_219",
+      "text": "Describe a version of us spending the night in that feels cozy, connected, and a little electric...",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 159
+    },
+    {
+      "id": "h3_220",
+      "text": "What part of our closeness lately do you want to savor more...",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 159
+    },
+    {
+      "id": "h3_221",
+      "text": "Which compliment from me would linger with you the longest...",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 159
+    },
+    {
+      "id": "h3_222",
+      "text": "How do you know when our connection is moving from playful to more intimate...",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 159
+    },
+    {
+      "id": "h3_223",
+      "text": "What shared ritual would make our evenings feel more intimate...",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 160
+    },
+    {
+      "id": "h3_224",
+      "text": "What helps you feel confident enough to ask for more closeness...",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 160
+    },
+    {
+      "id": "h3_225",
+      "text": "What is a small detail about our chemistry that you think I might not realize...",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 160
+    },
+    {
+      "id": "h3_226",
+      "text": "What atmosphere makes you feel most open to deeper connection with me...",
+      "category": "sensory",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 160
+    },
+    {
+      "id": "h3_227",
+      "text": "What does a perfectly unhurried moment of closeness with me look like to you...",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 160
+    },
+    {
+      "id": "h3_228",
+      "text": "When do you feel like we have our own private language...",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 161
+    },
+    {
+      "id": "h3_229",
+      "text": "What invitation from me would make you feel desired without feeling rushed...",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 161
+    },
+    {
+      "id": "h3_230",
+      "text": "What makes you feel like I am fully present with you...",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 161
+    },
+    {
+      "id": "h3_231",
+      "text": "Describe a moment when anticipation between us felt sweet instead of pressured...",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 161
+    },
+    {
+      "id": "h3_232",
+      "text": "What emotional closeness makes affection feel more meaningful to you...",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 161
+    },
+    {
+      "id": "h1_1000",
+      "text": "What future version of us do you hope we are quietly becoming...",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 162
+    },
+    {
+      "id": "h1_1001",
+      "text": "Which shared dream feels most worth protecting right now...",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 162
+    },
+    {
+      "id": "h1_1002",
+      "text": "What do you hope we understand about each other a year from now...",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 162
+    },
+    {
+      "id": "h1_1003",
+      "text": "What future challenge do you hope we learn to handle as a team...",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 162
+    },
+    {
+      "id": "h1_1004",
+      "text": "What would make our future feel peaceful to you...",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 162
+    },
+    {
+      "id": "h2_119",
+      "text": "What future date night do you want us to look forward to together...",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": [
+        "new",
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 163
+    },
+    {
+      "id": "h2_120",
+      "text": "Where do you picture us going when we need a romantic reset...",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 163
+    },
+    {
+      "id": "h2_121",
+      "text": "What little tradition would you love us to start and still be doing years from now...",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 163
+    },
+    {
+      "id": "h2_122",
+      "text": "What future celebration of ours do you already want to make special...",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 163
+    },
+    {
+      "id": "h2_123",
+      "text": "What romantic goal would be fun for us to chase together...",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 163
+    },
+    {
+      "id": "h4_214",
+      "text": "What private getaway would let us be more adventurous with each other...",
+      "category": "future",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 164
+    },
+    {
+      "id": "h4_215",
+      "text": "What intimate experience do you hope we are brave enough to try someday...",
+      "category": "future",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 164
+    },
+    {
+      "id": "h4_216",
+      "text": "What would you want our next no-rules night together to feel like...",
+      "category": "future",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 164
+    },
+    {
+      "id": "h4_217",
+      "text": "What future version of our intimacy feels exciting to imagine...",
+      "category": "future",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 164
+    },
+    {
+      "id": "h4_218",
+      "text": "What daring plan would you want us to save for a weekend with total privacy...",
+      "category": "future",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 164
+    },
+    {
+      "id": "h3_233",
+      "text": "What light roleplay idea would make us laugh first and then get a little closer...",
+      "category": "roleplay",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 165
+    },
+    {
+      "id": "h3_234",
+      "text": "If we pretended to meet again for the first time, what would your opening line be...",
+      "category": "roleplay",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 165
+    },
+    {
+      "id": "h3_235",
+      "text": "Which playful alter ego would you enjoy bringing out around me...",
+      "category": "roleplay",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 165
+    },
+    {
+      "id": "h3_236",
+      "text": "What pretend setting would make flirting with me feel new again...",
+      "category": "roleplay",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 165
+    },
+    {
+      "id": "h3_237",
+      "text": "What low-pressure roleplay would help you feel more confident being bold with me...",
+      "category": "roleplay",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 165
+    },
+    {
+      "id": "h4_219",
+      "text": "What roleplay would let you flirt with me in a way you usually hold back...",
+      "category": "roleplay",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 166
+    },
+    {
+      "id": "h4_220",
+      "text": "If we acted like strangers at a hotel bar, how would you want the tension to build...",
+      "category": "roleplay",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 166
+    },
+    {
+      "id": "h4_221",
+      "text": "What power dynamic would feel exciting to play with while still feeling completely safe...",
+      "category": "roleplay",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 166
+    },
+    {
+      "id": "h4_222",
+      "text": "What character would you want me to play if we were building slow tension together...",
+      "category": "roleplay",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 166
+    },
+    {
+      "id": "h4_223",
+      "text": "What roleplay setup would make you feel desired before anything physical happened...",
+      "category": "roleplay",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 166
+    },
+    {
+      "id": "h5_210",
+      "text": "We are strangers with undeniable chemistry and one private room. Describe how the roleplay turns explicit...",
+      "category": "roleplay",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 167
+    },
+    {
+      "id": "h5_211",
+      "text": "You are in complete control of the scene and I agree to follow your lead. What do you have me do...",
+      "category": "roleplay",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 167
+    },
+    {
+      "id": "h5_212",
+      "text": "We roleplay a secret rendezvous where every look is loaded. Describe how the private encounter becomes explicit...",
+      "category": "roleplay",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 167
+    },
+    {
+      "id": "h5_213",
+      "text": "Pick a fantasy role for each of us and describe the moment the scene turns physical in explicit detail...",
+      "category": "roleplay",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 167
+    },
+    {
+      "id": "h5_214",
+      "text": "We are playing a forbidden-feeling scene with clear consent and total privacy. What happens once the tension breaks...",
+      "category": "roleplay",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 167
+    },
+    {
+      "id": "h3_238",
+      "text": "If we roleplayed a pretend therapy session, what bold question would you want one of us to ask first...",
+      "category": "roleplay",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 168
+    },
+    {
+      "id": "h5_215",
+      "text": "We roleplay a pretend therapist/client session where consent is clear and the tension turns sexual. Describe the moment the professional mask slips and what happens next...",
+      "category": "roleplay",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 168
+    },
+    {
+      "id": "h3_239",
+      "text": "What adventurous date would make us feel like we were discovering each other all over again...",
+      "category": "location",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 169
+    },
+    {
+      "id": "h3_240",
+      "text": "Where would you want us to go if the goal was to feel a little braver together...",
+      "category": "location",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 169
+    },
+    {
+      "id": "h3_241",
+      "text": "What new experience would make our chemistry feel fresh without pushing either of us too far...",
+      "category": "fantasy",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 169
+    },
+    {
+      "id": "h3_242",
+      "text": "What spontaneous plan would make you feel excited to say yes with me...",
+      "category": "playful",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 169
+    },
+    {
+      "id": "h3_243",
+      "text": "Which place would make a simple night together feel more daring...",
+      "category": "location",
+      "heat": 3,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 169
+    },
+    {
+      "id": "h4_224",
+      "text": "What semi-private setting would make the tension between us feel exciting but still safe...",
+      "category": "location",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 170
+    },
+    {
+      "id": "h4_225",
+      "text": "What adventurous boundary would you be curious to explore slowly with me...",
+      "category": "kinky",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 170
+    },
+    {
+      "id": "h4_226",
+      "text": "Where would you want us to sneak away if we had just enough privacy to get carried away...",
+      "category": "location",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 170
+    },
+    {
+      "id": "h4_227",
+      "text": "What bold idea would you want to try on a weekend where no one needed us for anything...",
+      "category": "fantasy",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 170
+    },
+    {
+      "id": "h4_228",
+      "text": "What would make an out-of-town night feel more daring than our usual routine...",
+      "category": "location",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 170
+    },
+    {
+      "id": "h5_216",
+      "text": "We have one locked room, one adventurous rule, and total privacy. Describe what the rule is and how far we take it...",
+      "category": "fantasy",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 171
+    },
+    {
+      "id": "h5_217",
+      "text": "Describe the most daring private place you would want us to lose control together...",
+      "category": "location",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 171
+    },
+    {
+      "id": "h5_218",
+      "text": "We plan a night around doing the thing we keep almost saying out loud. What is it, and how does it unfold...",
+      "category": "fantasy",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 171
+    },
+    {
+      "id": "h5_219",
+      "text": "What adventurous fantasy would feel hottest if we had a whole night to build anticipation first...",
+      "category": "fantasy",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 171
+    },
+    {
+      "id": "h5_220",
+      "text": "Imagine we cross a line we have both agreed to cross. Describe the consent, the setting, and the explicit moment everything changes...",
+      "category": "kinky",
+      "heat": 5,
+      "relationshipDuration": [
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 171
     }
   ]
 }

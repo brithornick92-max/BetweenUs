@@ -19,6 +19,7 @@ import Animated, {
 import Icon from './Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getDateCardPalette } from './dateCardPalette';
+import { getDateCategoryMeta } from '../utils/contentLoader';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -47,11 +48,17 @@ const HEAT_LABELS = {
   3: 'After Dark',
 };
 
+const CATEGORY_META_BY_ID = getDateCategoryMeta().reduce((acc, category) => {
+  acc[category.id] = category;
+  return acc;
+}, {});
+
 export default function DateCardFront({ date, colors, dims, isDark = true }) {
   const heat = date?.heat || 1;
   const palette = getDateCardPalette(heat, isDark);
   const icon = HEAT_ICONS[heat] || 'heart-outline';
-  const label = HEAT_LABELS[heat] || 'Emotional';
+  const categoryMeta = CATEGORY_META_BY_ID[date?.category] || CATEGORY_META_BY_ID.romantic;
+  const label = categoryMeta?.label || HEAT_LABELS[heat] || 'Date';
   const loadMeta = dims.load.find(l => l.level === date.load) || dims.load[1];
   const planPreview = date?.vibe || (Array.isArray(date?.steps) ? date.steps[0] : null);
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
@@ -155,6 +162,12 @@ export default function DateCardFront({ date, colors, dims, isDark = true }) {
                 <Text style={[styles.tagText, { color: palette.body }]}> {loadMeta.label}</Text>
               </View>
             )}
+            {categoryMeta ? (
+              <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
+                <Icon name={categoryMeta.icon || 'ellipse-outline'} size={11} color={palette.body} />
+                <Text style={[styles.tagText, { color: palette.body }]}> {categoryMeta.label}</Text>
+              </View>
+            ) : null}
             {date.minutes ? (
               <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
                 <Icon name="time-outline" size={11} color={palette.body} />

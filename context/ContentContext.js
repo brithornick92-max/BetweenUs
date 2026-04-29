@@ -13,7 +13,9 @@ import { NicknameEngine, SoftBoundaries } from '../services/PolishEngine';
 import PromptAllocator from '../services/PromptAllocator';
 import CoupleStateService from '../services/couple/CoupleStateService';
 import ContentCoupleService from '../services/content/ContentCoupleService';
+import { DataLayer } from '../services/localfirst';
 import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
+import { getRecentlyCompletedPromptIds } from '../utils/promptHistory';
 import { STORAGE_KEYS, storage } from '../utils/storage';
 
 const ContentContext = createContext({});
@@ -79,7 +81,6 @@ export const ContentProvider = ({ children }) => {
         return session;
       }
 
-      await StorageRouter.setSupabaseSession(null);
       return null;
     } catch (_) {
       return null;
@@ -221,6 +222,13 @@ export const ContentProvider = ({ children }) => {
 
       if (promptsData.length === 0) {
         throw new Error('No prompts available for your preferences');
+      }
+
+      const promptAnswers = await DataLayer.getPromptAnswers?.({ limit: 1000 }).catch(() => []);
+      const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(promptAnswers);
+      const freshPromptsData = promptsData.filter((prompt) => !recentlyCompletedPromptIds.has(prompt?.id));
+      if (freshPromptsData.length > 0) {
+        promptsData = freshPromptsData;
       }
 
       let selectedPrompt;

@@ -60,6 +60,29 @@ function getSortTime(row) {
   return date ? date.getTime() : 0;
 }
 
+function formatDateGroupLabel(value) {
+  const date = toDate(value);
+  if (!date) return 'Undated';
+
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function getDateGroupKey(item) {
+  const raw = item?.sortAt || item?.entry?.created_at || item?.entry?.updated_at || item?.entry?.date;
+  const date = toDate(raw);
+  if (!date) return 'undated';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 function buildJournalItem(row, ownerIds, myName, partnerName) {
   const isOwn = ownerIds.has(row.user_id) || ownerIds.has(row.created_by);
   const displayName = isOwn ? myName : partnerName;
@@ -78,6 +101,8 @@ function buildJournalItem(row, ownerIds, myName, partnerName) {
     icon: 'book-outline',
     accent: '#D2121A',
     dateTimeLabel: formatDateTimeLabel(row.created_at || row.updated_at || row.date),
+    dateGroupLabel: formatDateGroupLabel(row.created_at || row.updated_at || row.date),
+    sortAt: row.created_at || row.updated_at || row.date || null,
     photoUri: row.photo_uri || row.photoUri || row.imageUri || null,
     mediaUri: row.mediaUri || row.media_uri || row.photo_uri || row.photoUri || row.imageUri || null,
     mediaType:
@@ -92,6 +117,29 @@ function buildJournalItem(row, ownerIds, myName, partnerName) {
     entry: row,
     canEdit: isOwn,
   };
+}
+
+export function buildDateGroupedJournalList(entries = []) {
+  const rows = [];
+  let currentGroupKey = null;
+
+  for (const entry of entries || []) {
+    const groupKey = getDateGroupKey(entry);
+
+    if (groupKey !== currentGroupKey) {
+      currentGroupKey = groupKey;
+      rows.push({
+        id: `date-header:${groupKey}`,
+        kind: 'date_header',
+        title: entry?.dateGroupLabel || formatDateGroupLabel(entry?.sortAt),
+        sortAt: entry?.sortAt || null,
+      });
+    }
+
+    rows.push(entry);
+  }
+
+  return rows;
 }
 
 export default function JournalHomeScreen({ navigation }) {
@@ -133,6 +181,11 @@ export default function JournalHomeScreen({ navigation }) {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
+  const groupedEntries = useMemo(
+    () => buildDateGroupedJournalList(entries),
+    [entries]
+  );
+
   useEffect(() => {
     let active = true;
 
@@ -172,7 +225,7 @@ export default function JournalHomeScreen({ navigation }) {
           || row.shared === true
           || row.visibility == null
         ))
-        .sort((a, b) => getSortTime(a) - getSortTime(b))
+        .sort((a, b) => getSortTime(b) - getSortTime(a))
         .map((row) => buildJournalItem(row, ownerIds, myName, partnerName));
 
       setEntries(sharedEntries);
@@ -216,7 +269,18 @@ export default function JournalHomeScreen({ navigation }) {
     navigation.goBack();
   }, [navigation]);
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({ item, index }) => {
+    if (item.kind === 'date_header') {
+      return (
+        <View style={styles.dateHeaderRow}>
+          <Text style={[styles.dateHeaderText, { color: t.text }]}>
+            {item.title}
+          </Text>
+        </View>
+      );
+    }
+
+    return (
     <Animated.View entering={FadeInDown.delay(index * 35).springify().damping(18)}>
       <TouchableOpacity
         activeOpacity={0.88}
@@ -288,7 +352,8 @@ export default function JournalHomeScreen({ navigation }) {
         </View>
       </TouchableOpacity>
     </Animated.View>
-  );
+    );
+  };
 
   const ListHeader = (
     <Animated.View entering={FadeIn.duration(500)}>
@@ -395,7 +460,7 @@ export default function JournalHomeScreen({ navigation }) {
       onBack={handleBack}
     >
       <FlatList
-        data={entries}
+        data={groupedEntries}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={ListHeader}
@@ -422,6 +487,18 @@ const createStyles = (t, isDark) => StyleSheet.create({
   cardContainer: {
     paddingHorizontal: 0,
     marginVertical: SPACING.md,
+  },
+  dateHeaderRow: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.xs,
+  },
+  dateHeaderText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
   editorialCard: {
     borderRadius: 28,

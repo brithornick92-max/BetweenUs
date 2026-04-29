@@ -67,15 +67,9 @@ export default function ConnectPartnerScreen({ navigation }) {
       return session;
     }
 
-    const retrySession = await SupabaseAuthService.signInAnonymously().catch(() => null);
-    if (retrySession) {
-      await StorageRouter.setSupabaseSession(retrySession);
-      return retrySession;
-    }
-
     Alert.alert(
       'Sign in required',
-      'Your cloud session has expired. Please try again.',
+      'Please sign in before creating or accepting an invite.',
       [{ text: 'OK', style: 'cancel' }]
     );
     return null;

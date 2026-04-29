@@ -42,6 +42,7 @@ import {
 } from '../utils/intimacyFavorites';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+let lastSelectedPositionId = null;
 
 export function resolveSelectedPositionIndex(availablePositions, {
   selectedPositionId = null,
@@ -66,7 +67,7 @@ export default function IntimacyPositionsScreen() {
   const isCompact = width < 390;
   
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [selectedPositionId, setSelectedPositionId] = useState(null);
+  const [selectedPositionId, setSelectedPositionId] = useState(lastSelectedPositionId);
   const [favorites, setFavorites] = useState({});
   const [triedPositions, setTriedPositions] = useState({});
   const [positionAccess, setPositionAccess] = useState(null);
@@ -78,6 +79,8 @@ export default function IntimacyPositionsScreen() {
   const triedBusyRef = useRef(false);
   const ratingBusyRef = useRef(false);
   const selectedPositionIdRef = useRef(null);
+  const selectedIndexRef = useRef(0);
+  const availablePositionsRef = useRef([]);
 
   // ─── THEME MAP ───
   const t = useMemo(() => ({
@@ -120,6 +123,14 @@ export default function IntimacyPositionsScreen() {
 
     return positionAccess?.positions || [];
   }, [isPremiumEffective, positionAccess, weeklyPositionSet]);
+
+  useEffect(() => {
+    availablePositionsRef.current = availablePositions;
+  }, [availablePositions]);
+
+  useEffect(() => {
+    selectedIndexRef.current = selectedIndex;
+  }, [selectedIndex]);
 
   const accessInfo = positionAccess?.access || null;
   const previewLockedCount = weeklyPositionSet?.lockedPreviews?.length || accessInfo?.lockedCount || 0;
@@ -226,6 +237,7 @@ export default function IntimacyPositionsScreen() {
 
     if (fallbackPosition?.id) {
       selectedPositionIdRef.current = fallbackPosition.id;
+      lastSelectedPositionId = fallbackPosition.id;
       setSelectedPositionId(fallbackPosition.id);
     }
 
@@ -246,21 +258,26 @@ export default function IntimacyPositionsScreen() {
   }, [showPaywall]);
 
   const rememberSelectedPosition = useCallback((nextPosition = position) => {
-    if (!nextPosition?.id) return;
+    const nextPositionId = typeof nextPosition === 'string' ? nextPosition : nextPosition?.id;
+    if (!nextPositionId) return;
 
-    selectedPositionIdRef.current = nextPosition.id;
-    setSelectedPositionId(nextPosition.id);
+    selectedPositionIdRef.current = nextPositionId;
+    lastSelectedPositionId = nextPositionId;
+    setSelectedPositionId(nextPositionId);
 
-    const nextIndex = availablePositions.findIndex((item) => item.id === nextPosition.id);
-    if (nextIndex >= 0 && nextIndex !== selectedIndex) {
+    const positions = availablePositionsRef.current || [];
+    const nextIndex = positions.findIndex((item) => item.id === nextPositionId);
+    if (nextIndex >= 0 && nextIndex !== selectedIndexRef.current) {
+      selectedIndexRef.current = nextIndex;
       setSelectedIndex(nextIndex);
     }
-  }, [availablePositions, position, selectedIndex]);
+  }, [position]);
 
   const handleToggleFavorite = useCallback(async () => {
     if (!position || favoriteBusyRef.current) return;
 
-    rememberSelectedPosition(position);
+    const positionId = position.id;
+    rememberSelectedPosition(positionId);
     favoriteBusyRef.current = true;
     setFavoriteBusy(true);
     try {
@@ -268,8 +285,15 @@ export default function IntimacyPositionsScreen() {
       const next = await toggleIntimacyFavorite(position, {
         currentlyFavorite: !!favorites[position.id],
       });
+      rememberSelectedPosition(positionId);
       setFavorites(next.favorites);
+    } catch (error) {
+      rememberSelectedPosition(positionId);
+      if (__DEV__) {
+        console.warn('[IntimacyPositions] Failed to update favorite state:', error?.message);
+      }
     } finally {
+      rememberSelectedPosition(positionId);
       favoriteBusyRef.current = false;
       setFavoriteBusy(false);
     }
@@ -282,7 +306,7 @@ export default function IntimacyPositionsScreen() {
     const wasTried = !!triedPositions[positionId];
     const previousTried = triedPositions;
     const optimisticTried = { ...previousTried };
-    rememberSelectedPosition(position);
+    rememberSelectedPosition(positionId);
 
     if (wasTried) {
       delete optimisticTried[positionId];
@@ -309,16 +333,16 @@ export default function IntimacyPositionsScreen() {
         currentlyTried: wasTried,
         currentTried: previousTried,
       });
-      rememberSelectedPosition(position);
+      rememberSelectedPosition(positionId);
       setTriedPositions(next.tried);
     } catch (error) {
       setTriedPositions(previousTried);
-      rememberSelectedPosition(position);
+      rememberSelectedPosition(positionId);
       if (__DEV__) {
         console.warn('[IntimacyPositions] Failed to update tried state:', error?.message);
       }
     } finally {
-      rememberSelectedPosition(position);
+      rememberSelectedPosition(positionId);
       triedBusyRef.current = false;
       setTriedBusy(false);
     }
@@ -330,8 +354,8 @@ export default function IntimacyPositionsScreen() {
     ratingBusyRef.current = true;
     setRatingBusy(true);
     selection();
-    rememberSelectedPosition(position);
     const positionId = position.id;
+    rememberSelectedPosition(positionId);
     const previousTried = triedPositions;
     const previousEntry = previousTried[positionId] || null;
     const nextRating = previousEntry?.rating === rating ? null : rating;
@@ -353,16 +377,16 @@ export default function IntimacyPositionsScreen() {
 
     try {
       const next = await rateIntimacyTried(position, rating);
-      rememberSelectedPosition(position);
+      rememberSelectedPosition(positionId);
       setTriedPositions(next.tried);
     } catch (error) {
       setTriedPositions(previousTried);
-      rememberSelectedPosition(position);
+      rememberSelectedPosition(positionId);
       if (__DEV__) {
         console.warn('[IntimacyPositions] Failed to rate tried state:', error?.message);
       }
     } finally {
-      rememberSelectedPosition(position);
+      rememberSelectedPosition(positionId);
       ratingBusyRef.current = false;
       setRatingBusy(false);
     }
@@ -372,7 +396,8 @@ export default function IntimacyPositionsScreen() {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Intimacy"
-      headerSubtitle="SEX POSITIONS"
+      headerSubtitle={isPremiumEffective ? "10 sex positions" : "SEX POSITIONS"}
+      headerDescription={isPremiumEffective ? "2 new positions added each week." : null}
       scroll={false}
       onBack={handleBack}
       bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge

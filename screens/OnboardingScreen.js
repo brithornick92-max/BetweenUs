@@ -37,7 +37,6 @@ import { NicknameEngine } from "../services/PolishEngine";
 import CloudEngine from "../services/storage/CloudEngine";
 import CoupleService from "../services/supabase/CoupleService";
 import StorageRouter from "../services/storage/StorageRouter";
-import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
 import { STORAGE_KEYS, storage } from "../utils/storage";
 import { getSupabaseOrThrow } from "../config/supabase";
 import AnalyticsService, { AnalyticsEvent } from "../services/AnalyticsService";
@@ -214,19 +213,12 @@ export default function OnboardingScreen({ navigation }) {
   }, [anniversaryDate]);
 
   /**
-   * Ensure a Supabase session exists, using anonymous sign-in as fallback.
+   * Require an existing Supabase session. Never create one implicitly.
    */
   const ensureSupabaseSession = async () => {
     const supabase = getSupabaseOrThrow();
     const { data: { session: existing } } = await supabase.auth.getSession();
     if (existing) return existing;
-
-    // Fall back to anonymous sign-in
-    const session = await SupabaseAuthService.signInAnonymously();
-    if (session) {
-      await StorageRouter.setSupabaseSession(session);
-      return session;
-    }
 
     return null;
   };
@@ -267,7 +259,7 @@ export default function OnboardingScreen({ navigation }) {
       if (__DEV__) console.log("🔑 [invite] Step 2c: session =", !!session);
 
       if (!session) {
-        if (__DEV__) console.log("🔑 [invite] Step 3: No session — trying anonymous sign-in");
+        if (__DEV__) console.log("🔑 [invite] Step 3: No signed-in cloud session");
         session = await ensureSupabaseSession();
         if (!session) {
           // Session still unavailable after recovery attempt — surface error, do not retry

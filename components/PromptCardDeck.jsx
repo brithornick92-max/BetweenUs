@@ -73,6 +73,14 @@ const HEAT_ICONS = {
   5: "flame-outline",
 };
 
+const HEAT_LABELS = {
+  1: "Emotional intimacy",
+  2: "Flirty romance",
+  3: "Sensual connection",
+  4: "Steamy desire",
+  5: "Explicit passion",
+};
+
 function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, isDark, colors, cardWidth, cardHeight, shimmerBandStyle }) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -85,6 +93,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   const heat = item?.heat || 1;
   const neon = HEAT_NEON[heat] || HEAT_NEON[1];
   const catIcon = HEAT_ICONS[heat] || "heart-outline";
+  const heatLabel = HEAT_LABELS[heat] || HEAT_LABELS[1];
   const metal = isDark ? (HEAT_METAL[heat] || HEAT_METAL[1]) : (HEAT_PEARL[heat] || HEAT_PEARL[1]);
   const promptTextColor = isDark ? "#FFFFFF" : (metal.text || "#1C1C1E");
 
@@ -221,7 +230,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
                 </Text>
 
                 {/* Sub-label instead of stars/circles */}
-                <Text style={[styles.levelSubtext, { color: neon.bloom }]}>Intensity {heat}</Text>
+                <Text style={[styles.levelSubtext, { color: neon.bloom }]}>{heatLabel}</Text>
               </View>
 
               <Animated.Text style={[styles.backHint, { color: metal.chrome }, pulseStyle]}>Tap to reveal</Animated.Text>
@@ -364,9 +373,17 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderRadius: 16, paddingVertical: 32, paddingHorizontal: 16
   },
   cornerSuit: { position: 'absolute', opacity: 0.8 },
-  cardCenterLockup: { alignItems: 'center', justifyContent: 'center' },
-  heroNumber: { fontFamily: SYSTEM_FONT, fontSize: 96, lineHeight: 104, fontWeight: "200" },
-  levelSubtext: { fontFamily: SYSTEM_FONT, fontSize: 12, fontWeight: '800', letterSpacing: 0.8, marginTop: 6, opacity: 0.9 },
+  cardCenterLockup: {
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ translateY: -56 }],
+  },
+  heroNumber: { fontFamily: SYSTEM_FONT, fontSize: 96, lineHeight: 104, fontWeight: "200", textAlign: 'center' },
+  levelSubtext: { fontFamily: SYSTEM_FONT, fontSize: 12, fontWeight: '800', letterSpacing: 0.8, marginTop: 6, opacity: 0.9, textAlign: 'center' },
   backHint: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: "uppercase" },
 
   cardFront: { flex: 1, borderRadius: 28, overflow: "hidden" },

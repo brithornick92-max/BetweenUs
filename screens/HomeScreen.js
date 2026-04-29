@@ -41,6 +41,10 @@ import GentleCelebration from '../components/GentleCelebration';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { RelationshipMilestones } from '../services/PolishEngine';
+import {
+  markAnniversaryPopupSeen,
+  shouldShowAnniversaryPopup,
+} from '../services/AnniversaryMomentService';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { FALLBACK_PROMPT } from '../utils/contentLoader';
 
@@ -232,6 +236,41 @@ export default function HomeScreen({ navigation }) {
       active = false;
     };
   }, [user, dataLayer]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      const checkAnniversaryMoment = async () => {
+        const relationshipStartDate = userProfile?.relationshipStartDate || state?.userProfile?.relationshipStartDate;
+        if (!relationshipStartDate) return;
+
+        try {
+          const anniversaryMoment = await shouldShowAnniversaryPopup(relationshipStartDate);
+          if (!active || !anniversaryMoment) return;
+
+          await markAnniversaryPopupSeen(anniversaryMoment.key);
+          if (!active) return;
+
+          setRewardData({
+            type: 'anniversary',
+            title: anniversaryMoment.title,
+            message: anniversaryMoment.message,
+            icon: anniversaryMoment.icon,
+          });
+          setShowReward(true);
+        } catch (e) {
+          if (__DEV__) console.warn('[Home] anniversary moment check:', e?.message);
+        }
+      };
+
+      checkAnniversaryMoment();
+
+      return () => {
+        active = false;
+      };
+    }, [state?.userProfile?.relationshipStartDate, userProfile?.relationshipStartDate])
+  );
 
   useEffect(() => {
     if (user && !todayPrompt && typeof loadTodayPrompt === 'function') {

@@ -12,10 +12,11 @@ describe('CoupleLinkingService', () => {
   function createDeps({
     storedCoupleId = null,
     membershipCoupleId = null,
+    session = { access_token: 'token' },
   } = {}) {
     return {
       supabaseAuthService: {
-        getSession: jest.fn().mockResolvedValue({ access_token: 'token' }),
+        getSession: jest.fn().mockResolvedValue(session),
         signInAnonymously: jest.fn().mockResolvedValue({ access_token: 'anon-token' }),
       },
       storageRouter: {
@@ -58,5 +59,24 @@ describe('CoupleLinkingService', () => {
       coupleId: 'invite-couple-id',
       userId: 'user-1',
     }));
+  });
+
+  it('does not create an anonymous session when linking has no signed-in session', async () => {
+    const { joinWithInviteCode } = require('../../services/linking/CoupleLinkingService');
+    const deps = createDeps({ session: null });
+    const onStatus = jest.fn();
+
+    const result = await joinWithInviteCode({
+      code: 'ABC123',
+      userId: 'user-1',
+      updateProfile: jest.fn(),
+      onStatus,
+      dependencies: deps,
+    });
+
+    expect(result).toBeNull();
+    expect(deps.supabaseAuthService.signInAnonymously).not.toHaveBeenCalled();
+    expect(deps.coupleService.redeemInviteCode).not.toHaveBeenCalled();
+    expect(onStatus).toHaveBeenCalledWith('Sign in required before linking.');
   });
 });

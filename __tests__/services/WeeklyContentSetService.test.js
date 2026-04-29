@@ -1,6 +1,7 @@
 import {
   CONTENT_TYPES,
   PREMIUM_LIBRARY_TOTALS,
+  buildPremiumPromptLibrary,
   buildWeeklySet,
   getWeekNumberFromStart,
 } from '../../services/WeeklyContentSetService';
@@ -14,12 +15,20 @@ const makePrompt = (id, heat, category) => ({
   text: `${category} prompt ${id}`,
 });
 
-const makeDate = (id, heat, load, style, title = id) => ({
+const makePromptCatalog = (perHeat = 50) =>
+  [1, 2, 3, 4, 5].flatMap((heat) =>
+    Array.from({ length: perHeat }, (_, index) =>
+      makePrompt(`p${heat}-${index + 1}`, heat, `heat-${heat}`)
+    )
+  );
+
+const makeDate = (id, heat, load, style, title = id, category = 'romantic') => ({
   id,
   heat,
   load,
   style,
   title,
+  category,
 });
 
 const makePosition = (id, heat, category, accessibility, title = id) => ({
@@ -45,12 +54,12 @@ describe('WeeklyContentSetService', () => {
   ];
 
   const dates = [
-    makeDate('d1', 2, 1, 'mixed', 'Low effort mixed date'),
-    makeDate('d2', 3, 2, 'talking', 'Talking date'),
-    makeDate('d3', 2, 2, 'doing', 'Doing date'),
-    makeDate('d4', 1, 3, 'doing', 'Higher load soft date'),
-    makeDate('d5', 3, 3, 'mixed', 'Bold mixed date'),
-    makeDate('d6', 1, 1, 'talking', 'Soft talking date'),
+    makeDate('d1', 2, 1, 'mixed', 'Low effort mixed date', 'romantic'),
+    makeDate('d2', 3, 2, 'talking', 'Talking date', 'after-dark'),
+    makeDate('d3', 2, 2, 'doing', 'Doing date', 'creative'),
+    makeDate('d4', 1, 3, 'doing', 'Higher load soft date', 'adventure'),
+    makeDate('d5', 3, 3, 'mixed', 'Bold mixed date', 'health'),
+    makeDate('d6', 1, 1, 'talking', 'Soft talking date', 'cozy'),
   ];
 
   const positions = [
@@ -78,6 +87,34 @@ describe('WeeklyContentSetService', () => {
     expect(result.items.every((item) => item.isLockedPreview === false)).toBe(true);
   });
 
+  it('builds premium prompt libraries with 200 balanced starter cards', () => {
+    const result = buildPremiumPromptLibrary(makePromptCatalog(50), {
+      userId: 'premium-starter',
+      userSettings: { maxHeat: 5 },
+      userCreatedAt: TEST_DATE,
+      date: TEST_DATE,
+    });
+
+    expect(result).toHaveLength(200);
+    [1, 2, 3, 4, 5].forEach((heat) => {
+      expect(result.filter((prompt) => prompt.heat === heat)).toHaveLength(40);
+    });
+  });
+
+  it('adds 10 premium prompt cards each week across heat levels', () => {
+    const result = buildPremiumPromptLibrary(makePromptCatalog(50), {
+      userId: 'premium-week-one',
+      userSettings: { maxHeat: 5 },
+      userCreatedAt: TEST_DATE,
+      date: new Date('2026-05-04T12:00:00.000Z'),
+    });
+
+    expect(result).toHaveLength(210);
+    [1, 2, 3, 4, 5].forEach((heat) => {
+      expect(result.filter((prompt) => prompt.heat === heat)).toHaveLength(42);
+    });
+  });
+
   it('builds free prompt welcome-week previews with 10 unlocked and 5 locked previews', () => {
     const result = buildWeeklySet(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
@@ -94,7 +131,7 @@ describe('WeeklyContentSetService', () => {
     expect(result.lockedPreviews.every((item) => item.requiresPremium === true)).toBe(true);
   });
 
-  it('builds free date welcome-week previews and prioritizes lower-load picks first', () => {
+  it('builds free date welcome-week previews and balances categories first', () => {
     const result = buildWeeklySet(dates, {
       contentType: CONTENT_TYPES.DATES,
       userId: 'user-1',
@@ -106,7 +143,7 @@ describe('WeeklyContentSetService', () => {
     expect(result.unlocked).toHaveLength(6);
     expect(result.lockedPreviews).toHaveLength(0);
     expect(result.items).toHaveLength(6);
-    expect(result.unlocked[0].load).toBe(1);
+    expect(new Set(result.unlocked.map((item) => item.category)).size).toBe(6);
   });
 
   it('builds free position welcome-week previews and prioritizes soft accessible picks first', () => {

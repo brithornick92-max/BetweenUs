@@ -15,7 +15,9 @@ const {
 } = require('../helpers/screenTestHarness');
 
 const JournalEntryScreen = require('../../screens/JournalEntryScreen').default;
-const JournalHomeScreen = require('../../screens/JournalHomeScreen').default;
+const JournalHomeModule = require('../../screens/JournalHomeScreen');
+const JournalHomeScreen = JournalHomeModule.default;
+const { buildDateGroupedJournalList } = JournalHomeModule;
 const { VideoView } = require('expo-video');
 
 describe('Journal sharing screens', () => {
@@ -154,5 +156,66 @@ describe('Journal sharing screens', () => {
 
     const [videoLabel] = tree.root.findAllByProps({ children: 'Video attached' });
     expect(videoLabel).toBeTruthy();
+  });
+
+  it('shows both partners journal entries newest first with date grouping', async () => {
+    mockGetJournalEntries.mockResolvedValueOnce([
+      {
+        id: 'older-mine',
+        user_id: 'user-1',
+        title: 'My older note',
+        body: 'Written by me.',
+        created_at: '2026-04-18T12:00:00.000Z',
+      },
+      {
+        id: 'newer-partner',
+        user_id: 'partner-1',
+        title: 'Partner newer note',
+        body: 'Written by partner.',
+        created_at: '2026-04-19T12:00:00.000Z',
+      },
+    ]);
+    mockStorageGet.mockResolvedValueOnce(true);
+
+    const navigation = createNavigation();
+    const tree = await renderScreen(JournalHomeScreen, { navigation });
+    await flushEffects();
+
+    expect(mockGetJournalEntries).toHaveBeenCalledWith({ limit: 500, visibility: 'shared' });
+
+    const titles = tree.root
+      .findAllByType(require('react-native').Text)
+      .map((node) => node.props.children)
+      .filter((text) => text === 'Partner newer note' || text === 'My older note');
+
+    expect(titles).toEqual(['Partner newer note', 'My older note']);
+    expect(tree.root.findAllByProps({ children: 'April 19, 2026' }).length).toBeGreaterThanOrEqual(1);
+    expect(tree.root.findAllByProps({ children: 'April 18, 2026' }).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('builds journal date groups from newest entries first', () => {
+    const rows = buildDateGroupedJournalList([
+      {
+        id: 'journal:newer',
+        title: 'Newer',
+        sortAt: '2026-04-19T12:00:00.000Z',
+        dateGroupLabel: 'April 19, 2026',
+      },
+      {
+        id: 'journal:older',
+        title: 'Older',
+        sortAt: '2026-04-18T12:00:00.000Z',
+        dateGroupLabel: 'April 18, 2026',
+      },
+    ]);
+
+    expect(rows.map((row) => row.kind || 'journal')).toEqual([
+      'date_header',
+      'journal',
+      'date_header',
+      'journal',
+    ]);
+    expect(rows[0].title).toBe('April 19, 2026');
+    expect(rows[2].title).toBe('April 18, 2026');
   });
 });

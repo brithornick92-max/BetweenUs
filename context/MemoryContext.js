@@ -145,7 +145,7 @@ export function MemoryProvider({ children }) {
         content: memoryData.content || memoryData.text || '',
         type: memoryData.type || 'moment',
         mood: memoryData.mood,
-        isPrivate: memoryData.isPrivate || false,
+        isPrivate: false,
         mediaUri: memoryData.mediaUri,
         mimeType: memoryData.mimeType,
         fileName: memoryData.fileName,

@@ -200,9 +200,10 @@ textIssues.forEach(t => {
 console.log('\n=== 6. HEAT-CONTENT CROSS-CHECK ===\n');
 
 // Heat 1 should NOT contain sexual keywords
-const sexualKeywords = /\bsex\b|\boral\b|\borgasm\b|\bclim[ax]/i;
+const sexualKeywords = /\bsex\b|\boral\b|\borgasm\b|\bclimax\b/i;
+const physicalKeywords = /\bphysical\b|\btouch\b|\bbody\b|\bskin\b|\bhands?\b|\bmouth\b|\bkiss\b|\bcuddle\b|\bhold hands\b|\battractive\b|\battraction\b|\bwearing\b|\bsmell\b|\bsensual\b|\bposition\b/i;
 const explicitKeywords = /\bpussy|cock\b|\bdick\b|\bnaked\b|\bnude\b|\bgenit|\bpenetr|\bblow.?job|\bfinger.*hole|\bsuck\b|\btaste.*you\b|\blick\b|\bgrind|\b69\b|\bscissor/i;
-const steamyKeywords = /\bmasturbat|\btouch.*yourself|\bself-pleasure|\bstrip|\bdirty.*talk|\berogenous|\bforeplay|\bvibrat|\btoy[s]?\b|\bdildo|\boral\b|\borgasm/i;
+const steamyKeywords = /\bmasturbat|\btouch.*yourself|\bself-pleasure|\bstrip|\bdirty.*talk|\berogenous|\bforeplay|\bvibrat|\b(?:sex|intimate|adult|bedroom) toy[s]?\b|\bdildo|\boral\b|\borgasm/i;
 
 // Heat 1 shouldn't have sexual content
 const h1sexual = items.filter(p => p.heat === 1 && sexualKeywords.test(p.text));
@@ -214,6 +215,17 @@ if (h1sexual.length > 0) {
   });
 } else {
   console.log('Heat 1 with sexual keywords: 0 ✓');
+}
+
+const h1physical = items.filter(p => p.heat === 1 && physicalKeywords.test(p.text));
+if (h1physical.length > 0) {
+  console.log(`Heat 1 with physical keywords: ${h1physical.length}`);
+  h1physical.forEach(p => {
+    issues.push(`HEAT 1 physical content: ${p.id}: "${p.text.substring(0, 80)}"`);
+    console.log(`  ${p.id}: ${p.text.substring(0, 80)}`);
+  });
+} else {
+  console.log('Heat 1 with physical keywords: 0 ✓');
 }
 
 // Heat 2 shouldn't have explicit content
@@ -242,7 +254,8 @@ if (h3explicit.length > 0) {
 
 // Heat 5 that seems too mild
 const mildKeywords = /^(what|how|when|where|who|which|do you|is there|tell me about|describe|if you could|imagine|have you ever)/i;
-const h5mild = items.filter(p => p.heat === 5 && p.text.length < 60 && mildKeywords.test(p.text) && !explicitKeywords.test(p.text) && !steamyKeywords.test(p.text));
+const h5MildExclusions = /\bsex\b|\bpleasure\b|\bmouth\b|\btoy\b|\bclimax\b/i;
+const h5mild = items.filter(p => p.heat === 5 && p.text.length < 60 && mildKeywords.test(p.text) && !explicitKeywords.test(p.text) && !steamyKeywords.test(p.text) && !h5MildExclusions.test(p.text));
 if (h5mild.length > 0) {
   console.log(`\nHeat 5 with potentially mild content (short + no explicit keywords): ${h5mild.length}`);
   h5mild.forEach(p => {
@@ -252,9 +265,57 @@ if (h5mild.length > 0) {
 }
 
 // ============================================================================
-// 7. SEQUENTIAL ID GAPS
+// 7. PHRASE FAMILY AUDIT
 // ============================================================================
-console.log('\n=== 7. ID SEQUENCE GAPS ===\n');
+console.log('\n=== 7. PHRASE FAMILY AUDIT ===\n');
+
+const phraseFamilies = {
+  emotional: /\b(emotion|feel|trust|safe|secure|vulnerable|fear|support|comfort|understood|accepted|appreciated|connected|honest|boundary|boundaries|forgive|conflict|misunderstood|home)\b/i,
+  romantic: /\b(romantic|romance|date|flirt|kiss|crush|cherish|affection|sweet|love language|cuddle|hold hands)\b/i,
+  fantasy: /\b(fantasy|fantasize|imagine|scenario|roleplay|pretend|desire|dream|wish)\b/i,
+  steamy: /\b(sex life|during sex|after sex|foreplay|make love|sexual|pleasure|bedroom|intimate accessory|blindfold|surrender|firm hand|sexy|seductive|strip|take control|dominant|submit)\b/i,
+  explicit: /\b(orgasm|climax|oral|penetrat|vibrator|dildo|dirty talk|degrading|69|mouth-focused|mutual oral|touch yourself|self-pleasure|masturbat|porn|naked|nude|grind|pleasure you with my mouth|pleasure with my mouth|adore you completely with my mouth)\b/i,
+  anatomySpecific: /\b(anatomy|menstruat|period|pregnan|vagina|penis|breasts?|boobs?|clit|pussy|cock|dick|balls?|gender-affirming)\b/i,
+};
+
+Object.entries(phraseFamilies).forEach(([name, regex]) => {
+  const byHeat = {};
+  items.forEach((p) => {
+    if (regex.test(p.text)) byHeat[p.heat] = (byHeat[p.heat] || 0) + 1;
+  });
+  const summary = [1, 2, 3, 4, 5].map((heat) => `h${heat}:${byHeat[heat] || 0}`).join(' ');
+  console.log(`  ${name}: ${summary}`);
+});
+
+const lowHeatSteamy = items.filter((p) => {
+  if (p.heat > 2 || /\bnon-sexual\b/i.test(p.text)) return false;
+  return phraseFamilies.steamy.test(p.text) || phraseFamilies.explicit.test(p.text);
+});
+if (lowHeatSteamy.length > 0) {
+  console.log(`\nLow heat prompts with steamy/explicit phrase matches: ${lowHeatSteamy.length}`);
+  lowHeatSteamy.forEach((p) => {
+    warnings.push(`LOW HEAT phrase review: ${p.id}: "${p.text.substring(0, 80)}"`);
+    console.log(`  ${p.id}: ${p.text.substring(0, 100)}`);
+  });
+} else {
+  console.log('\nLow heat prompts with steamy/explicit phrase matches: 0 ✓');
+}
+
+const inclusiveLanguageHits = items.filter((p) => phraseFamilies.anatomySpecific.test(p.text));
+if (inclusiveLanguageHits.length > 0) {
+  console.log(`Anatomy-specific or gender-specific phrase matches: ${inclusiveLanguageHits.length}`);
+  inclusiveLanguageHits.forEach((p) => {
+    issues.push(`INCLUSIVE LANGUAGE phrase review: ${p.id}: "${p.text.substring(0, 80)}"`);
+    console.log(`  ${p.id}: ${p.text.substring(0, 100)}`);
+  });
+} else {
+  console.log('Anatomy-specific or gender-specific phrase matches: 0 ✓');
+}
+
+// ============================================================================
+// 8. SEQUENTIAL ID GAPS
+// ============================================================================
+console.log('\n=== 8. ID SEQUENCE GAPS ===\n');
 
 for (let heat = 1; heat <= 5; heat++) {
   const prefix = `h${heat}_`;
@@ -284,9 +345,9 @@ for (let heat = 1; heat <= 5; heat++) {
 }
 
 // ============================================================================
-// 8. DUPLICATE TEXT CHECK
+// 9. DUPLICATE TEXT CHECK
 // ============================================================================
-console.log('\n=== 8. DUPLICATE / NEAR-DUPLICATE TEXT ===\n');
+console.log('\n=== 9. DUPLICATE / NEAR-DUPLICATE TEXT ===\n');
 
 const textMap = {};
 const exactDupes = [];
@@ -320,6 +381,45 @@ items.forEach((p, idx) => {
 console.log(`Near-duplicate texts (same first 40 chars): ${nearDupes.length}`);
 nearDupes.forEach(d => {
   console.log(`  ${d.id1} ~ ${d.id2}: "${d.text}"`);
+});
+
+// ============================================================================
+// 10. TONE / COUPLES QUALITY CHECK
+// ============================================================================
+console.log('\n=== 10. TONE / COUPLES QUALITY CHECK ===\n');
+
+const toneChecks = [
+  {
+    name: 'trivia-like prompts',
+    regex: /\b(favorite president|actor and actress|public figure|basically good or basically bad|improving the world|be famous|favorite teacher|favorite TV show|favorite toy growing up|imaginary friend)\b/i,
+    severity: 'warning',
+  },
+  {
+    name: 'yes/no openings',
+    regex: /^(do|does|did|is|are|was|were|can|could|would|will|should|have|has|had|want|how about)\b/i,
+    severity: 'issue',
+  },
+  {
+    name: 'awkward casual phrasing',
+    regex: /\b(What happens to you when|What happens inside you when|Cute or cringe|edible panties|technology-free|one of the directions|fully locked in|completely relaxed do you love most)\b/i,
+    severity: 'warning',
+  },
+  {
+    name: 'command-style prompts',
+    regex: /^(imitate|hold hands|technology-free|give \{partner\}|use an ice cube|take turns|explore \{partner\}|engage in|whisper something|cuddling and\/or napping|playing a tantric game)\b/i,
+    severity: 'warning',
+  },
+];
+
+toneChecks.forEach(({ name, regex, severity }) => {
+  const hits = items.filter((p) => regex.test(p.text));
+  console.log(`${name}: ${hits.length}${hits.length === 0 ? ' ✓' : ''}`);
+  hits.slice(0, 20).forEach((p) => {
+    const message = `TONE ${name}: ${p.id}: "${p.text.substring(0, 90)}"`;
+    if (severity === 'issue') issues.push(message);
+    else warnings.push(message);
+    console.log(`  ${p.id}: ${p.text.substring(0, 110)}`);
+  });
 });
 
 // ============================================================================

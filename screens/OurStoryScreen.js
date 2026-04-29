@@ -33,8 +33,6 @@ import { SPACING, withAlpha } from '../utils/theme';
 import { settingsStorage, storage } from '../utils/storage';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import MediaLightbox from '../components/MediaLightbox';
-import { getDateHistory } from '../utils/dateHistory';
-import { getIntimacyTried } from '../utils/intimacyFavorites';
 import { NicknameEngine } from '../services/PolishEngine';
 
 const HEARTS_KEY = '@betweenus:cache:momentHearts';
@@ -45,6 +43,8 @@ const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 const MEMORY_TYPE_META = {
   snapshot: { label: 'Snapshot', icon: 'images-outline' },
   moment: { label: 'Saved Moment', icon: 'sparkles-outline' },
+  thinking_of_you: { label: 'Thinking of You', icon: 'paper-plane-outline' },
+  date_saved: { label: 'Saved Date', icon: 'bookmark-outline' },
   anniversary: { label: 'Anniversary', icon: 'heart-outline' },
   milestone: { label: 'Milestone', icon: 'ribbon-outline' },
   intimacy_favorite: { label: 'Intimacy Favorite', icon: 'heart-outline' },
@@ -97,6 +97,28 @@ function getSortTime(item) {
   return Number.isNaN(value) ? 0 : value;
 }
 
+function getDateGroupKey(item) {
+  const raw = item?.sortAt || item?.created_at || item?.date_key || item?.date;
+  if (!raw) return 'undated';
+
+  const date = typeof raw === 'string' && raw.length === 10
+    ? new Date(`${raw}T00:00:00`)
+    : new Date(raw);
+
+  if (Number.isNaN(date.getTime())) return 'undated';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+function getDateGroupLabel(item) {
+  const raw = item?.sortAt || item?.created_at || item?.date_key || item?.date;
+  return formatDateLabel(raw) || 'Undated';
+}
+
 function getMediaKind(mimeType, uri) {
   if (mimeType?.startsWith('video/')) return 'video';
   if (mimeType?.startsWith('image/')) return 'image';
@@ -110,6 +132,14 @@ function getSnapshotGroupId(row) {
 function getSnapshotIndex(row) {
   const index = row?.snapshot_index ?? 0;
   return Number.isFinite(Number(index)) ? Number(index) : 0;
+}
+
+function isKeepsakeMemoryRow(row) {
+  if (!row?.id) return false;
+
+  // These rows back dedicated Keepsake lanes. Showing them as raw memories would
+  // duplicate those entries and expose their serialized payloads.
+  return !['date_saved', 'date_tried', 'intimacy_favorite', 'intimacy_tried'].includes(row.type);
 }
 
 async function resolveRowMedia(row) {
@@ -150,6 +180,17 @@ function dedupeRows(rows) {
     seen.add(row.id);
     return true;
   });
+}
+
+function parseMemoryPayload(content) {
+  if (!content) return null;
+
+  try {
+    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 async function safeLoad(loader) {
@@ -330,6 +371,54 @@ function buildDateItem(row) {
   };
 }
 
+function buildDateItemFromMemoryRow(row) {
+  const payload = parseMemoryPayload(row?.content) || {};
+  const dateId = payload.dateId || payload.id || row?.id;
+
+  if (!dateId) return null;
+
+  if (row?.type === 'date_saved') {
+    return {
+      ...buildSavedDateItem({
+        date_id: dateId,
+        title: payload.title || row?.title || 'Saved date',
+        created_at: row?.created_at || row?.date,
+      }),
+      memoryId: row?.id || null,
+    };
+  }
+
+  return buildDateItem({
+    id: dateId,
+    title: payload.title || row?.title || 'Date tried',
+    minutes: payload.minutes ?? null,
+    location: payload.location ?? null,
+    addedAt: row?.created_at || row?.date || Date.now(),
+    memoryId: row?.id || null,
+  });
+}
+
+function buildSavedDateItem(row) {
+  const dateId = row?.date_id || row?.dateId || row?.id;
+  if (!dateId) return null;
+
+  return {
+    id: `date-saved:${dateId}`,
+    kind: 'date_saved',
+    sourceId: dateId,
+    title: row?.title || 'Saved date',
+    body: 'A date you saved for later.',
+    eyebrow: 'Saved date',
+    icon: 'bookmark-outline',
+    accent: '#34C759',
+    meta: 'Date night',
+    dateLabel: formatDateLabel(row?.created_at || row?.addedAt || row?.savedAt),
+    sortAt: row?.created_at || row?.addedAt || row?.savedAt,
+    editable: false,
+    deletable: false,
+  };
+}
+
 function buildPositionTriedItem(row) {
   const label = row.commonName ? `${row.commonName}: ${row.title}` : row.title;
 
@@ -351,13 +440,51 @@ function buildPositionTriedItem(row) {
   };
 }
 
+function buildPositionFavoriteItemFromMemoryRow(row) {
+  const payload = parseMemoryPayload(row?.content);
+  const title = payload
+    ? (payload.commonName ? `${payload.commonName}: ${payload.title}` : payload.title)
+    : String(row?.content || '').replace(/^Shared intimacy favorite:\s*/i, '').trim();
+
+  return {
+    id: `position-favorite-memory:${row.id}`,
+    kind: 'position_favorite',
+    sourceId: row.id,
+    title: title || 'Position saved',
+    body: 'An intimacy position you saved together.',
+    eyebrow: 'Position saved',
+    icon: 'heart-outline',
+    accent: '#D2121A',
+    meta: row.mood ? String(row.mood).toUpperCase() : 'Intimacy',
+    dateLabel: formatDateLabel(row.created_at || row.date),
+    sortAt: row.created_at || row.date,
+    memoryId: row.id || null,
+    editable: false,
+    deletable: false,
+  };
+}
+
+function buildPositionTriedItemFromMemoryRow(row) {
+  const payload = parseMemoryPayload(row?.content) || {};
+  const positionId = payload.positionId || payload.id || row?.id;
+
+  if (!positionId) return null;
+
+  return buildPositionTriedItem({
+    positionId,
+    title: payload.title || row?.title || 'Position tried',
+    commonName: payload.commonName || null,
+    mood: payload.mood || row?.mood || null,
+    triedAt: row?.created_at || row?.date || new Date().toISOString(),
+    memoryId: row?.id || null,
+  });
+}
+
 export async function buildKeepsakeEntriesFromSources({
   sharedPrompts = [],
   personalPrompts = [],
   sharedMemories = [],
   personalMemories = [],
-  dateHistory = [],
-  triedPositionHistory = {},
   keepsakeSettingsRaw = {},
   myName = 'You',
   partnerName = 'Partner',
@@ -371,46 +498,71 @@ export async function buildKeepsakeEntriesFromSources({
       .map((row) => buildPromptItem(row, null, myName, partnerName))
     : [];
 
+  const memoryRows = dedupeRows([...(sharedMemories || []), ...(personalMemories || [])]);
+
   const rawMemoryItems = keepsakeSettings.memories
     ? await Promise.all(
-      dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
-        .filter((row) => row?.type === 'snapshot')
+      memoryRows
+        .filter(isKeepsakeMemoryRow)
         .map(async (row) => buildMemoryItem(row, await resolveMedia(row)))
     )
     : [];
 
   const memoryItems = groupMemoryItems(rawMemoryItems);
 
-  const memoryIds = new Set(
-    rawMemoryItems
-      .map((item) => item.sourceId)
+  const memoryDateItems = keepsakeSettings.dates
+    ? memoryRows
+      .filter((row) => row?.type === 'date_saved' || row?.type === 'date_tried')
+      .map((row) => buildDateItemFromMemoryRow(row))
       .filter(Boolean)
-  );
-
-  const dateItems = keepsakeSettings.dates
-    ? (dateHistory || [])
-      .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
-      .map((row) => buildDateItem(row))
     : [];
 
-  const triedPositionItems = keepsakeSettings.positions
-    ? Object.values(triedPositionHistory || {})
-      .filter((row) => row?.positionId)
-      .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
-      .map((row) => buildPositionTriedItem(row))
+  const memoryPositionItems = keepsakeSettings.positions
+    ? memoryRows
+      .filter((row) => row?.type === 'intimacy_tried')
+      .map((row) => buildPositionTriedItemFromMemoryRow(row))
+      .filter(Boolean)
+    : [];
+
+  const memoryFavoritePositionItems = keepsakeSettings.positions
+    ? memoryRows
+      .filter((row) => row?.type === 'intimacy_favorite')
+      .map((row) => buildPositionFavoriteItemFromMemoryRow(row))
+      .filter(Boolean)
     : [];
 
   return [
     ...promptItems,
     ...memoryItems,
-    ...dateItems,
-    ...triedPositionItems,
+    ...memoryDateItems,
+    ...memoryPositionItems,
+    ...memoryFavoritePositionItems,
   ].sort((a, b) => {
-    if (a.kind === 'snapshot' && b.kind !== 'snapshot') return -1;
-    if (a.kind !== 'snapshot' && b.kind === 'snapshot') return 1;
-
     return getSortTime(b) - getSortTime(a);
   });
+}
+
+export function buildDateGroupedKeepsakeList(entries = []) {
+  const rows = [];
+  let currentGroupKey = null;
+
+  for (const entry of entries || []) {
+    const groupKey = getDateGroupKey(entry);
+
+    if (groupKey !== currentGroupKey) {
+      currentGroupKey = groupKey;
+      rows.push({
+        id: `date-header:${groupKey}`,
+        kind: 'date_header',
+        title: getDateGroupLabel(entry),
+        sortAt: entry?.sortAt || null,
+      });
+    }
+
+    rows.push(entry);
+  }
+
+  return rows;
 }
 
 export default function OurStoryScreen() {
@@ -438,6 +590,11 @@ export default function OurStoryScreen() {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
+  const groupedEntries = useMemo(
+    () => buildDateGroupedKeepsakeList(entries),
+    [entries]
+  );
+
   const loadEntries = useCallback(async () => {
     try {
       const [
@@ -445,8 +602,6 @@ export default function OurStoryScreen() {
         personalPrompts,
         sharedMemories,
         personalMemories,
-        dateHistory,
-        triedPositionHistory,
         keepsakeSettingsRaw,
         myName,
         partnerName,
@@ -455,8 +610,6 @@ export default function OurStoryScreen() {
         safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
         safeLoad(() => DataLayer.getSharedMemories({ limit: 500 })),
         safeLoad(() => DataLayer.getMemories({ limit: 500 })),
-        safeLoad(() => getDateHistory()),
-        safeLoad(() => getIntimacyTried()),
         safeLoad(() => settingsStorage.getKeepsakeSettings()),
         NicknameEngine.getMyName('You'),
         NicknameEngine.getPartnerName('Partner'),
@@ -467,8 +620,6 @@ export default function OurStoryScreen() {
         personalPrompts,
         sharedMemories,
         personalMemories,
-        dateHistory,
-        triedPositionHistory,
         keepsakeSettingsRaw,
         myName,
         partnerName,
@@ -785,6 +936,16 @@ export default function OurStoryScreen() {
   };
 
   const renderItem = ({ item, index }) => {
+    if (item.kind === 'date_header') {
+      return (
+        <View style={styles.dateHeaderRow}>
+          <Text style={[styles.dateHeaderText, { color: t.text }]}>
+            {item.title}
+          </Text>
+        </View>
+      );
+    }
+
     const heartState = hearts[item.id] || { count: 0, hearted: false };
     const isSnapshot = item.kind === 'snapshot';
     const isVideo = item.media?.kind === 'video' || item.media?.mimeType?.startsWith('video/');
@@ -985,7 +1146,7 @@ export default function OurStoryScreen() {
       onBack={handleBack}
     >
       <RNAnimated.FlatList
-        data={entries}
+        data={groupedEntries}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={ListHeader}
@@ -1137,6 +1298,18 @@ const createStyles = (t, isDark) => StyleSheet.create({
     lineHeight: 22,
     fontWeight: '600',
     color: t.subtext,
+  },
+  dateHeaderRow: {
+    paddingHorizontal: SPACING.screen,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.sm,
+  },
+  dateHeaderText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
 
   cardContainer: {

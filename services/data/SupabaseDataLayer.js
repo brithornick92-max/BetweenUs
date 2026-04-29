@@ -280,7 +280,7 @@ async function runCloudOperation({ perform, onSuccess, onOffline }) {
  * `id` becomes both the PK and the `key` so it can be used as a stable
  * client-side identifier and for ON CONFLICT upserts.
  */
-async function cdInsert(dataType, id, value, { isPrivate = false } = {}) {
+async function cdInsert(dataType, id, value) {
   const sb = getSupabaseOrNull();
 
   if (!sb) throw new Error('Supabase is not configured');
@@ -295,7 +295,7 @@ async function cdInsert(dataType, id, value, { isPrivate = false } = {}) {
       value,
       data_type: dataType,
       created_by: _userId,
-      is_private: isPrivate,
+      is_private: false,
       created_at: now(),
       updated_at: now(),
     })
@@ -310,7 +310,7 @@ async function cdInsert(dataType, id, value, { isPrivate = false } = {}) {
 /**
  * Upsert a row into couple_data by id (PK).
  */
-async function cdUpsert(dataType, id, value, { isPrivate = false } = {}) {
+async function cdUpsert(dataType, id, value) {
   const sb = getSupabaseOrNull();
 
   if (!sb) throw new Error('Supabase is not configured');
@@ -325,7 +325,7 @@ async function cdUpsert(dataType, id, value, { isPrivate = false } = {}) {
       value,
       data_type: dataType,
       created_by: _userId,
-      is_private: isPrivate,
+      is_private: false,
       updated_at: now(),
     }, { onConflict: 'id' })
     .select('*')
@@ -356,7 +356,7 @@ async function cdUpdate(id, valuePatch) {
 
   const { data, error } = await sb
     .from(TABLES.COUPLE_DATA)
-    .update({ value: merged, updated_at: now() })
+    .update({ value: merged, is_private: false, updated_at: now() })
     .eq('id', id)
     .select('*')
     .single();
@@ -534,7 +534,7 @@ async function mapJournalRow(row) {
     body: v.body || '',
     mood: v.mood || null,
     tags: v.tags || [],
-    is_private: !!row.is_private,
+    is_private: false,
     photo_uri: v.photoUri || null,
     mediaRef: v.mediaPath || null,
     mediaUri,
@@ -585,7 +585,7 @@ async function mapMemoryRow(row) {
     type: v.type || 'moment',
     content: v.content || '',
     mood: v.mood || null,
-    is_private: !!row.is_private,
+    is_private: false,
     media_ref: v.mediaPath || null,
     mime_type: v.mimeType || null,
     mediaUri,
@@ -962,7 +962,7 @@ const SupabaseDataLayer = {
   },
 
   async getJournalEntries({ limit = 50, offset = 0, mood, visibility } = {}) {
-    if (visibility === 'private') return [];
+    const shouldReadShared = !!_coupleId || visibility === 'shared';
     if (visibility === 'shared' && !_coupleId) return [];
 
     const rows = await cdQuery('journal', {
@@ -971,7 +971,7 @@ const SupabaseDataLayer = {
       filter: (q) => {
         let query = q;
 
-        if (visibility !== 'shared') {
+        if (!shouldReadShared) {
           query = query.eq('created_by', _userId);
         }
 
@@ -992,7 +992,7 @@ const SupabaseDataLayer = {
     const cached = await loadCache(CACHE_SCOPES.journals);
 
     return cached
-      .filter((entry) => visibility === 'shared' || entry?.user_id === _userId)
+      .filter((entry) => shouldReadShared || entry?.user_id === _userId)
       .filter((entry) => !mood || entry?.mood === mood)
       .slice(offset, offset + limit);
   },
@@ -1330,7 +1330,7 @@ const SupabaseDataLayer = {
     };
 
     return runCloudOperation({
-      perform: async () => cdInsert('memory', id, value, { isPrivate }),
+      perform: async () => cdInsert('memory', id, value),
       onSuccess: async (row) => {
         const mapped = await mapMemoryRow(row);
         await upsertCacheRow(CACHE_SCOPES.memories, mapped);
@@ -1362,7 +1362,7 @@ const SupabaseDataLayer = {
       limit,
       offset,
       filter: (q) => {
-        let query = q.eq('created_by', _userId);
+        let query = _coupleId ? q : q.eq('created_by', _userId);
 
         if (type) query = query.eq('value->>type', type);
 
@@ -1373,7 +1373,7 @@ const SupabaseDataLayer = {
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapMemoryRow(r)));
       await replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
-        row?.user_id === _userId
+        (_coupleId || row?.user_id === _userId)
         && (!type || row?.type === type)
       );
       return mapped;
@@ -1382,7 +1382,7 @@ const SupabaseDataLayer = {
     const cached = await loadCache(CACHE_SCOPES.memories);
 
     return cached
-      .filter((row) => row?.user_id === _userId)
+      .filter((row) => _coupleId || row?.user_id === _userId)
       .filter((row) => !type || row?.type === type)
       .slice(offset, offset + limit);
   },

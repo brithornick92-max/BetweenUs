@@ -253,8 +253,10 @@ class StorageRouter {
 
   async setSupabaseSession(session) {
     this.sessionPresent = !!session;
-    this.currentUser = this._userFromSession(session);
-    this._notifyAuthListeners(this.currentUser);
+    if (session) {
+      this.currentUser = this._userFromSession(session);
+      this._notifyAuthListeners(this.currentUser);
+    }
     await this._syncCloudSessionState();
   }
 
@@ -296,7 +298,6 @@ class StorageRouter {
           if (__DEV__) {
             console.warn('[StorageRouter] Initial auth listener callback failed:', error?.message);
           }
-          callback(null);
         });
     }
 
@@ -304,6 +305,11 @@ class StorageRouter {
       try {
         const result = SupabaseAuthService.onAuthStateChange((session) => {
           this.sessionPresent = !!session;
+          if (!session) {
+            this._syncCloudSessionState().catch(() => {});
+            return;
+          }
+
           this.currentUser = this._userFromSession(session);
           this._syncCloudSessionState().catch(() => {});
           this._notifyAuthListeners(this.currentUser);

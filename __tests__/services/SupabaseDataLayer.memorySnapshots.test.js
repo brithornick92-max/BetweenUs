@@ -200,6 +200,26 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(mockMemorySaved).toHaveBeenCalledWith(null, 'snapshot');
   });
 
+  it('forces memory rows to shared even if a caller passes isPrivate true', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    await SupabaseDataLayer.saveMemory({
+      content: 'Shared by design',
+      type: 'moment',
+      isPrivate: true,
+      notifyPartner: false,
+    });
+
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      data_type: 'memory',
+      is_private: false,
+    }));
+  });
+
   it('does not notify partner when notifyPartner is false', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',

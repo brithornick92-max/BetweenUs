@@ -757,6 +757,36 @@ $$;
 
 GRANT EXECUTE ON FUNCTION redeem_partner_code(text) TO authenticated;
 
+CREATE OR REPLACE FUNCTION cleanup_couple_storage_objects(
+  input_couple_id uuid,
+  input_owner uuid DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, storage
+SET row_security = off
+AS $$
+BEGIN
+  IF input_couple_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  DELETE FROM storage.objects
+  WHERE bucket_id = 'couple-media'
+    AND (storage.foldername(name))[1] = 'couples'
+    AND (storage.foldername(name))[2] = input_couple_id::text
+    AND (input_owner IS NULL OR owner = input_owner);
+
+  DELETE FROM storage.objects
+  WHERE bucket_id IN ('attachments', 'whispers')
+    AND (storage.foldername(name))[1] = input_couple_id::text
+    AND (input_owner IS NULL OR owner = input_owner);
+END;
+$$;
+
+REVOKE ALL ON FUNCTION cleanup_couple_storage_objects(uuid, uuid) FROM PUBLIC;
+
 -- Create a new couple and add caller as owner (bypasses RLS — mirrors redeem_* pattern)
 DROP FUNCTION IF EXISTS create_couple_for_qr(text);
 DROP FUNCTION IF EXISTS create_couple_for_qr();
@@ -785,6 +815,8 @@ BEGIN
     SELECT COALESCE(array_agg(user_id), ARRAY[]::uuid[]) INTO affected_member_ids
       FROM couple_members
      WHERE couple_id = old_couple_id;
+
+    PERFORM cleanup_couple_storage_objects(old_couple_id, NULL);
 
     DELETE FROM couple_members WHERE couple_id = old_couple_id;
     DELETE FROM partner_link_codes WHERE couple_id = old_couple_id;
@@ -847,6 +879,8 @@ BEGIN
     FROM couple_members
    WHERE couple_id = the_couple_id;
 
+  PERFORM cleanup_couple_storage_objects(the_couple_id, NULL);
+
   -- Dissolve the couple entirely so neither partner remains linked locally or remotely.
   DELETE FROM couple_members WHERE couple_id = the_couple_id;
   DELETE FROM partner_link_codes WHERE couple_id = the_couple_id;
@@ -883,12 +917,22 @@ SET row_security = off
 AS $$
 DECLARE
   _couple_id     uuid;
+  _member_count  int;
   _partner_count int;
 BEGIN
   SELECT couple_id INTO _couple_id
     FROM couple_members WHERE user_id = auth.uid() LIMIT 1;
 
   IF _couple_id IS NOT NULL THEN
+    SELECT count(*) INTO _member_count
+      FROM couple_members WHERE couple_id = _couple_id;
+
+    IF COALESCE(_member_count, 0) <= 1 THEN
+      PERFORM cleanup_couple_storage_objects(_couple_id, NULL);
+    ELSE
+      PERFORM cleanup_couple_storage_objects(_couple_id, auth.uid());
+    END IF;
+
     DELETE FROM couple_data      WHERE couple_id = _couple_id AND created_by = auth.uid();
     DELETE FROM calendar_events  WHERE couple_id = _couple_id AND created_by = auth.uid();
     DELETE FROM moments          WHERE couple_id = _couple_id AND created_by = auth.uid();

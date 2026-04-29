@@ -31,14 +31,7 @@ async function ensureLinkingSession({ onStatus, dependencies = {} } = {}) {
     return session;
   }
 
-  onStatus?.('Creating secure session...');
-  const retrySession = await supabaseAuthService.signInAnonymously().catch(() => null);
-  if (retrySession) {
-    await storageRouter.setSupabaseSession(retrySession);
-    return retrySession;
-  }
-
-  onStatus?.('Cloud session expired. Please sign in again via Cloud Sync.');
+  onStatus?.('Sign in required before linking.');
   return null;
 }
 

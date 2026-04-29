@@ -84,7 +84,7 @@ class ContentAccessService {
 
     this.RELEASE_SCHEDULE = {
       prompts: {
-        week0: { free: 10, premium: 300 },
+        week0: { free: 10, premium: 200 },
         perWeek: { free: 5, premium: 10 },
         description: 'Personalized releases - new content drops weekly on your schedule',
       },

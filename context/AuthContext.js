@@ -248,16 +248,13 @@ export const AuthProvider = ({ children }) => {
             return;
           }
 
-          // Only clear auth after a completed Supabase check explicitly returns no session.
+          // A missing cloud session is not permission to sign the user out.
+          // Only explicit user actions may transition auth to signed out.
           if (!supabaseSession) {
-            await StorageRouter.signOut('local').catch(() => {});
-            if (!active) return;
-            AnalyticsService.setUser(null);
-            ExperimentService.setUser(null);
-            setUser(null);
-            setUserProfile(null);
-            setRequiresOnboarding(false);
-            await StorageRouter.initialize({ user: null, supabaseSessionPresent: false });
+            await StorageRouter.initialize({
+              user: localUser,
+              supabaseSessionPresent: false,
+            });
             finishBootstrap(active);
             return;
           }

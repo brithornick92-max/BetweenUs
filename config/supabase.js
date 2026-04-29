@@ -7,6 +7,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { AppState } from "react-native";
 
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -26,23 +27,46 @@ if (__DEV__ && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
 const SupabaseAsyncStorage = {
   getItem: async (key) => {
     try {
-      return await AsyncStorage.getItem(key);
+      const secureValue = await SecureStore.getItemAsync(key);
+      if (secureValue !== null) return secureValue;
+
+      const legacyValue = await AsyncStorage.getItem(key);
+      if (legacyValue !== null) {
+        await SecureStore.setItemAsync(key, legacyValue).catch(() => {});
+        await AsyncStorage.removeItem(key).catch(() => {});
+      }
+
+      return legacyValue;
     } catch {
-      return null;
+      try {
+        return await AsyncStorage.getItem(key);
+      } catch {
+        return null;
+      }
     }
   },
   setItem: async (key, value) => {
     try {
-      await AsyncStorage.setItem(key, value);
+      await SecureStore.setItemAsync(key, value);
+      await AsyncStorage.removeItem(key).catch(() => {});
     } catch {
-      // Silently fail - session will work for current app lifecycle
+      try {
+        await AsyncStorage.setItem(key, value);
+      } catch {
+        // Silently fail - session will work for current app lifecycle
+      }
     }
   },
   removeItem: async (key) => {
     try {
+      await SecureStore.deleteItemAsync(key);
       await AsyncStorage.removeItem(key);
     } catch {
-      // Silently fail
+      try {
+        await AsyncStorage.removeItem(key);
+      } catch {
+        // Silently fail
+      }
     }
   },
 };

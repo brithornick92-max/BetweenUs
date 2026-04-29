@@ -279,7 +279,7 @@ export class MemoryManager {
       photos: memoryData.photos || [], // Premium feature
       location: memoryData.location || null,
       mood: memoryData.mood || null,
-      isPrivate: memoryData.isPrivate || false,
+      isPrivate: false,
       anniversaryYear: memoryData.anniversaryYear || null,
     };
   }

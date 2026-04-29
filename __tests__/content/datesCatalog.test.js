@@ -5,6 +5,7 @@ describe('dates catalog integrity', () => {
   const minMinutes = datesCatalog?.meta?.minMinutes || 45;
   const validLocations = ['home', 'out', 'either'];
   const validStyles = ['talking', 'doing', 'mixed'];
+  const declaredCategories = datesCatalog?.meta?.categories || {};
 
   it('uses unique ids for every date', () => {
     const ids = items.map((date) => date.id);
@@ -27,6 +28,13 @@ describe('dates catalog integrity', () => {
       expect([1, 2, 3]).toContain(date.load);
       expect(validStyles).toContain(date.style);
       expect(validLocations).toContain(date.location);
+    });
+  });
+
+  it('uses only declared date categories', () => {
+    items.forEach((date) => {
+      expect(typeof date.category).toBe('string');
+      expect(declaredCategories[date.category]).toBeTruthy();
     });
   });
 

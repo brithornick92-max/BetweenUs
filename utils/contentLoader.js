@@ -7,9 +7,10 @@ import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
 
 if (__DEV__) console.log("🔵 ContentLoader: Module loading started");
 
-// Helper: filter items to only those released up to the current week
+// Helper: return the eligible library. releaseWeek is metadata for freshness;
+// weekly/free limits are applied by the feature-specific access services.
 const weeklyFilter = (items) =>
-  items.filter(i => i.releaseWeek == null || i.releaseWeek <= WeeklyContentScheduler.getCurrentWeek());
+  WeeklyContentScheduler.filterAvailable(items);
 
 // Initialize with empty safe defaults
 let promptsData = { items: [], meta: {} };
@@ -275,6 +276,7 @@ export function getPromptsByCategory(category) {
 // =======================
 
 const VALID_STYLES = ["talking", "doing", "mixed"];
+const DEFAULT_DATE_CATEGORY = "romantic";
 
 const normalizeDate = (date) => {
   if (!date || typeof date !== "object") return null;
@@ -282,12 +284,16 @@ const normalizeDate = (date) => {
   const heat = typeof date.heat === "number" ? Math.max(1, Math.min(3, date.heat)) : 1;
   const load = typeof date.load === "number" ? Math.max(1, Math.min(3, date.load)) : 2;
   const style = VALID_STYLES.includes(date.style) ? date.style : "mixed";
+  const category = typeof date.category === "string" && date.category.trim()
+    ? date.category
+    : DEFAULT_DATE_CATEGORY;
 
   return {
     ...date,
     heat,
     load,
     style,
+    category,
   };
 };
 
@@ -302,9 +308,13 @@ export function filterDates(sourceData = null, filters = {}) {
     maxHeat = 3,          // 1-3, caps mood level
     load = null,          // exact load level 1-3, or null (any)
     style = null,         // "talking" | "doing" | "mixed" | null (any)
+    category = null,
+    categories = [],
     minMinutes = 0,
     maxMinutes = Infinity,
   } = filters || {};
+
+  const categoryList = safeArray(categories);
 
   const filtered = normalized.filter((date) => {
     if (!date || typeof date !== "object") return false;
@@ -322,6 +332,8 @@ export function filterDates(sourceData = null, filters = {}) {
     }
     if (load !== null && date.load !== load) return false;
     if (style && date.style !== style) return false;
+    if (category && date.category !== category) return false;
+    if (categoryList.length > 0 && !categoryList.includes(date.category)) return false;
 
     return true;
   });
@@ -430,6 +442,52 @@ export function getAvailableCategories() {
       seasonal: "Time and season-based",
     }
   );
+}
+
+export function getDateCategories() {
+  return (
+    datesData?.meta?.categories || {
+      romantic: "Romantic gestures, sweetness, and intentional closeness",
+      adventure: "Out-of-the-house exploring, movement, and novelty",
+      "after-dark": "Moodier, sensual, or late-night connection",
+      health: "Wellness, rest, movement, and feeling good together",
+      food: "Cooking, tasting, drinks, and shared meals",
+      creative: "Making, music, photos, art, and imagination",
+      cozy: "Low-lift comfort, home rituals, and relaxed nights in",
+      culture: "Shows, exhibits, classes, places, and local experiences",
+    }
+  );
+}
+
+export function getDateCategoryMeta() {
+  const categories = getDateCategories();
+  const iconMap = {
+    romantic: "heart-outline",
+    adventure: "compass-outline",
+    "after-dark": "moon-outline",
+    health: "leaf-outline",
+    food: "restaurant-outline",
+    creative: "color-palette-outline",
+    cozy: "home-outline",
+    culture: "ticket-outline",
+  };
+  const labelMap = {
+    romantic: "Romantic",
+    adventure: "Adventure",
+    "after-dark": "After Dark",
+    health: "Wellness",
+    food: "Food",
+    creative: "Creative",
+    cozy: "Cozy",
+    culture: "Culture",
+  };
+
+  return Object.keys(categories).map((id) => ({
+    id,
+    label: labelMap[id] || id.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()),
+    description: categories[id],
+    icon: iconMap[id] || "ellipse-outline",
+  }));
 }
 
 export function getHeatLevels() {

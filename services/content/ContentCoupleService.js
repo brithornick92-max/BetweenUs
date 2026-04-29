@@ -41,7 +41,7 @@ export async function buildPromptResponseRecord(promptId, response, {
   return {
     content: response,
     promptId,
-    isPrivate: !!isPrivate,
+    isPrivate: false,
     savedAt: Date.now(),
   };
 }
@@ -73,6 +73,10 @@ export async function loadPromptResponses(userId, {
   if (!userId) return [];
 
   const { dataLayer } = getDependencies(dependencies);
+  if (typeof dataLayer.getSharedPromptAnswers === 'function') {
+    return dataLayer.getSharedPromptAnswers({ limit: 365 });
+  }
+
   return dataLayer.getPromptAnswers({ limit: 365 });
 }
 

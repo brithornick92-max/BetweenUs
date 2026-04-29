@@ -22,7 +22,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { impact, selection, ImpactFeedbackStyle } from "../utils/haptics";
 import { withAlpha } from "../utils/theme";
-import { getDateById, getDimensionMeta } from "../utils/contentLoader";
+import { getDateById, getDateCategoryMeta, getDimensionMeta } from "../utils/contentLoader";
 import { PremiumFeature } from "../utils/featureFlags";
 import Button from "../components/Button";
 import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -36,6 +36,8 @@ import {
   getDateHistory,
   rateDateHistoryEntry,
   removeDateHistoryEntry,
+  removeDateSavedKeepsake,
+  saveDateSavedKeepsake,
   saveDateHistoryEntry,
 } from '../utils/dateHistory';
 import {
@@ -60,18 +62,12 @@ const DETAIL_DECK_ICONS = {
     2: 'sunny-outline',
     3: 'flash-outline',
   },
-  style: {
-    talking: 'chatbubble-outline',
-    doing: 'compass-outline',
-    mixed: 'shuffle-outline',
-  },
 };
 
-const DETAIL_STYLE_TONE_MAP = {
-  talking: 1,
-  doing: 2,
-  mixed: 3,
-};
+const DATE_CATEGORY_META_BY_ID = getDateCategoryMeta().reduce((acc, category) => {
+  acc[category.id] = category;
+  return acc;
+}, {});
 
 export default function DateNightDetailScreen({ route, navigation }) {
   const { date: routeDate, dateId } = route.params || {};
@@ -158,7 +154,24 @@ export default function DateNightDetailScreen({ route, navigation }) {
     };
   }, [routeDate, dateId, navigation, userProfile]);
 
-  const steps = useMemo(() => (Array.isArray(date?.steps) ? date.steps : []), [date?.steps]);
+  const steps = useMemo(() => {
+    if (Array.isArray(date?.guidedSteps) && date.guidedSteps.length > 0) {
+      return date.guidedSteps;
+    }
+
+    return Array.isArray(date?.steps) ? date.steps : [];
+  }, [date?.guidedSteps, date?.steps]);
+
+  const supplies = useMemo(
+    () => (Array.isArray(date?.supplies) ? date.supplies : []),
+    [date?.supplies]
+  );
+
+  const conversationPrompts = useMemo(
+    () => (Array.isArray(date?.conversationPrompts) ? date.conversationPrompts : []),
+    [date?.conversationPrompts]
+  );
+
   const dateTone = useMemo(() => getDateCardPalette(date?.heat || 1), [date?.heat]);
   
   const dimensionBadges = useMemo(() => {
@@ -182,12 +195,12 @@ export default function DateNightDetailScreen({ route, navigation }) {
         });
       }
     }
-    if (date?.style) {
-      const s = dims.style.find(x => x.id === date.style);
-      if (s) {
+    if (date?.category) {
+      const category = DATE_CATEGORY_META_BY_ID[date.category];
+      if (category) {
         badges.push({
-          label: s.label,
-          icon: DETAIL_DECK_ICONS.style[s.id],
+          label: category.label,
+          icon: category.icon,
         });
       }
     }
@@ -309,6 +322,12 @@ export default function DateNightDetailScreen({ route, navigation }) {
         } else {
           await addDateToShortlist(userId, date.id);
         }
+      }
+
+      if (wasSaved) {
+        await removeDateSavedKeepsake(date.id);
+      } else {
+        await saveDateSavedKeepsake(date);
       }
     } catch (error) {
       setIsSaved(wasSaved);
@@ -579,10 +598,52 @@ export default function DateNightDetailScreen({ route, navigation }) {
             </TouchableOpacity>
           </BlurView>
         </View>
+          {/* Guided Date Details */}
+          {!!date?.vibe && (
+            <View style={styles.experienceSection}>
+              <Text style={[styles.sectionTitle, { color: t.text }]}>Vibe</Text>
+              <View style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}>
+                <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
+                  <Icon name="sparkles-outline" size={18} color={t.primary} />
+                </View>
+                <Text style={[styles.stepText, { color: t.text }]}>{date.vibe}</Text>
+              </View>
+            </View>
+          )}
+
+          {!!date?.setup && (
+            <View style={styles.experienceSection}>
+              <Text style={[styles.sectionTitle, { color: t.text }]}>Before You Start</Text>
+              <View style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}>
+                <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
+                  <Icon name="heart-outline" size={18} color={t.primary} />
+                </View>
+                <Text style={[styles.stepText, { color: t.text }]}>{date.setup}</Text>
+              </View>
+            </View>
+          )}
+
+          {supplies.length > 0 && (
+            <View style={styles.experienceSection}>
+              <Text style={[styles.sectionTitle, { color: t.text }]}>What You’ll Need</Text>
+              {supplies.map((item, index) => (
+                <View
+                  key={`supply-${index}`}
+                  style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}
+                >
+                  <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
+                    <Text style={[styles.stepNumber, { color: t.primary }]}>•</Text>
+                  </View>
+                  <Text style={[styles.stepText, { color: t.text }]}>{item}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
 
         {/* Experience Timeline */}
         <View style={styles.experienceSection}>
-          <Text style={[styles.sectionTitle, { color: t.text }]}>The Experience</Text>
+          <Text style={[styles.sectionTitle, { color: t.text }]}>Your Date Guide</Text>
           
           {steps.map((step, index) => {
             const isCompleted = currentStep > index;
@@ -618,6 +679,47 @@ export default function DateNightDetailScreen({ route, navigation }) {
             );
           })}
         </View>
+          {conversationPrompts.length > 0 && (
+            <View style={styles.experienceSection}>
+              <Text style={[styles.sectionTitle, { color: t.text }]}>Talk About This</Text>
+              {conversationPrompts.map((prompt, index) => (
+                <View
+                  key={`prompt-${index}`}
+                  style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}
+                >
+                  <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
+                    <Icon name="chatbubble-ellipses-outline" size={18} color={t.primary} />
+                  </View>
+                  <Text style={[styles.stepText, { color: t.text }]}>{prompt}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {!!date?.connectionTwist && (
+            <View style={styles.experienceSection}>
+              <Text style={[styles.sectionTitle, { color: t.text }]}>Make It Yours</Text>
+              <View style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}>
+                <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
+                  <Icon name="ribbon-outline" size={18} color={t.primary} />
+                </View>
+                <Text style={[styles.stepText, { color: t.text }]}>{date.connectionTwist}</Text>
+              </View>
+            </View>
+          )}
+
+          {!!date?.ending && (
+            <View style={styles.experienceSection}>
+              <Text style={[styles.sectionTitle, { color: t.text }]}>How To End</Text>
+              <View style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}>
+                <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
+                  <Icon name="moon-outline" size={18} color={t.primary} />
+                </View>
+                <Text style={[styles.stepText, { color: t.text }]}>{date.ending}</Text>
+              </View>
+            </View>
+          )}
+
 
         <View style={styles.footer}>
           <Button

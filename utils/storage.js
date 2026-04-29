@@ -44,6 +44,7 @@ export const STORAGE_KEYS = {
   MY_DATES: key("myDates"),
   PREMIUM_STATUS: key("premiumStatus"),
   PARTNER_PREMIUM_STATUS: key("partnerPremiumStatus"),
+  PREMIUM_PROMPT_LIBRARY_STARTED_AT: key("premiumPromptLibraryStartedAt"),
   MEMORIES: key("memories"),
   RITUAL_HISTORY: key("ritualHistory"),
   RITUAL_SYNC_QUEUE: key("ritualSyncQueue"),
