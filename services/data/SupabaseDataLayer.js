@@ -19,6 +19,7 @@ import { supabase, TABLES } from '../../config/supabase';
 import { randomUUID } from 'expo-crypto';
 import * as FileSystem from 'expo-file-system/legacy';
 import PartnerNotifications from '../PartnerNotifications';
+import CrashReporting from '../CrashReporting';
 import { getPromptById } from '../../utils/contentLoader';
 import { storage, STORAGE_KEYS } from '../../utils/storage';
 
@@ -29,6 +30,9 @@ let _coupleId = null;
 let _calendarChannel = null;
 let _isFlushingQueue = false;
 const CACHE_FALLBACK = Symbol('CACHE_FALLBACK');
+const QUEUE_IN_FLIGHT_TIMEOUT_MS = 2 * 60 * 1000;
+const MAX_QUEUE_ATTEMPTS = 5;
+
 
 // ─── Signed URL cache to prevent connection exhaustion ───────────────────────
 const _signedUrlCache = new Map();
@@ -141,14 +145,58 @@ async function setOfflineQueue(queue) {
   await storage.set(offlineQueueKey(_userId), Array.isArray(queue) ? queue : []);
 }
 
+function normalizeQueueItem(item) {
+  const queuedAt = item?.queuedAt || now();
+
+  return {
+    mutationId: item?.mutationId || randomUUID(),
+    queuedAt,
+    status: item?.status || 'pending',
+    attempts: Number.isFinite(Number(item?.attempts)) ? Number(item.attempts) : 0,
+    lastError: item?.lastError || null,
+    inFlightAt: item?.inFlightAt || null,
+    updatedAt: item?.updatedAt || queuedAt,
+    ...item,
+  };
+}
+
+function recoverStaleQueueItem(item) {
+  const normalized = normalizeQueueItem(item);
+
+  if (normalized.status !== 'in_flight' || !normalized.inFlightAt) {
+    return normalized;
+  }
+
+  const inFlightAt = new Date(normalized.inFlightAt).getTime();
+  const isStale =
+    !Number.isFinite(inFlightAt) ||
+    Date.now() - inFlightAt > QUEUE_IN_FLIGHT_TIMEOUT_MS;
+
+  if (!isStale) {
+    return normalized;
+  }
+
+  return {
+    ...normalized,
+    status: 'pending',
+    inFlightAt: null,
+    updatedAt: now(),
+  };
+}
+
 async function enqueueOfflineMutation(mutation) {
   const queue = await getOfflineQueue();
 
-  queue.push({
+  queue.push(normalizeQueueItem({
     mutationId: randomUUID(),
     queuedAt: now(),
+    status: 'pending',
+    attempts: 0,
+    lastError: null,
+    inFlightAt: null,
+    updatedAt: now(),
     ...mutation,
-  });
+  }));
 
   await setOfflineQueue(queue);
 }
@@ -2019,78 +2067,130 @@ const SupabaseDataLayer = {
     _isFlushingQueue = true;
 
     let flushed = 0;
+    let failed = 0;
+
+    const performQueuedMutation = async (item) => {
+      switch (item.entity) {
+        case 'journal':
+          if (item.action === 'insert') await cdInsert('journal', item.id, item.payload);
+          if (item.action === 'update') await cdUpdate(item.id, item.payload);
+          if (item.action === 'delete') await cdSoftDelete(item.id);
+          break;
+
+        case 'prompt_answer':
+          if (item.action === 'insert') await cdInsert('prompt_answer', item.id, item.payload);
+          if (item.action === 'update') await cdUpdate(item.id, item.payload);
+          break;
+
+        case 'memory':
+          if (item.action === 'insert') await cdInsert('memory', item.id, item.payload);
+          if (item.action === 'update') await cdUpdate(item.id, item.payload);
+          if (item.action === 'delete') await cdSoftDelete(item.id);
+          break;
+
+        case 'check_in':
+          if (item.action === 'insert') await cdInsert('check_in', item.id, item.payload);
+          if (item.action === 'update') await cdUpdate(item.id, item.payload);
+          break;
+
+        case 'vibe':
+          if (item.action === 'insert') await cdInsert('vibe', item.id, item.payload);
+          break;
+
+        case 'calendar':
+          if (item.action === 'insert') await this.createCalendarEvent({ ...item.payload, id: item.id });
+          if (item.action === 'update') await this.updateCalendarEvent({ ...item.payload, id: item.id });
+
+          if (item.action === 'delete') {
+            const { error } = await supabase
+              .from(TABLES.CALENDAR_EVENTS)
+              .delete()
+              .eq('id', item.id);
+
+            if (error) throw error;
+          }
+          break;
+
+        case 'date_plan':
+          if (item.action === 'upsert') await cdUpsert('date_plan', item.id, item.payload);
+          if (item.action === 'delete') await cdSoftDelete(item.id);
+          break;
+
+        default:
+          throw new Error(`Unknown offline mutation entity: ${item.entity || 'missing'}`);
+      }
+    };
 
     try {
-      const queue = await getOfflineQueue();
-      const remaining = [];
+      let queue = (await getOfflineQueue()).map(recoverStaleQueueItem);
+      await setOfflineQueue(queue);
 
-      for (const item of queue) {
+      for (const rawItem of queue) {
+        const item = normalizeQueueItem(rawItem);
+
+        if (item.status === 'in_flight') {
+          continue;
+        }
+
+        const inFlightItem = {
+          ...item,
+          status: 'in_flight',
+          inFlightAt: now(),
+          updatedAt: now(),
+        };
+
+        queue = queue.map((queued) =>
+          queued.mutationId === item.mutationId ? inFlightItem : queued
+        );
+        await setOfflineQueue(queue);
+
         try {
-          switch (item.entity) {
-            case 'journal':
-              if (item.action === 'insert') await cdInsert('journal', item.id, item.payload);
-              if (item.action === 'update') await cdUpdate(item.id, item.payload);
-              if (item.action === 'delete') await cdSoftDelete(item.id);
-              break;
-
-            case 'prompt_answer':
-              if (item.action === 'insert') await cdInsert('prompt_answer', item.id, item.payload);
-              if (item.action === 'update') await cdUpdate(item.id, item.payload);
-              break;
-
-            case 'memory':
-              if (item.action === 'insert') await cdInsert('memory', item.id, item.payload);
-              if (item.action === 'update') await cdUpdate(item.id, item.payload);
-              if (item.action === 'delete') await cdSoftDelete(item.id);
-              break;
-
-            case 'check_in':
-              if (item.action === 'insert') await cdInsert('check_in', item.id, item.payload);
-              if (item.action === 'update') await cdUpdate(item.id, item.payload);
-              break;
-
-            case 'vibe':
-              if (item.action === 'insert') await cdInsert('vibe', item.id, item.payload);
-              break;
-
-            case 'calendar':
-              if (item.action === 'insert') await this.createCalendarEvent({ ...item.payload, id: item.id });
-              if (item.action === 'update') await this.updateCalendarEvent({ ...item.payload, id: item.id });
-
-              if (item.action === 'delete') {
-                const { error } = await supabase
-                  .from(TABLES.CALENDAR_EVENTS)
-                  .delete()
-                  .eq('id', item.id);
-
-                if (error) throw error;
-              }
-              break;
-
-            case 'date_plan':
-              if (item.action === 'upsert') await cdUpsert('date_plan', item.id, item.payload);
-              if (item.action === 'delete') await cdSoftDelete(item.id);
-              break;
-
-            default:
-              break;
-          }
+          await performQueuedMutation(inFlightItem);
 
           flushed += 1;
+          queue = queue.filter((queued) => queued.mutationId !== item.mutationId);
+          await setOfflineQueue(queue);
         } catch (error) {
-          remaining.push(item);
+          failed += 1;
 
-          if (!isOfflineCapableError(error)) {
-            if (__DEV__) console.warn('[SupabaseDataLayer] Queue flush failed:', error?.message);
+          const attempts = Number(item.attempts || 0) + 1;
+          const failedItem = {
+            ...item,
+            status: attempts >= MAX_QUEUE_ATTEMPTS ? 'failed' : 'pending',
+            attempts,
+            lastError: error?.message || 'Unknown sync error',
+            inFlightAt: null,
+            updatedAt: now(),
+          };
+
+          queue = queue.map((queued) =>
+            queued.mutationId === item.mutationId ? failedItem : queued
+          );
+          await setOfflineQueue(queue);
+
+          CrashReporting.captureException(error, {
+            source: 'supabase_offline_queue_flush',
+            entity: item.entity,
+            action: item.action,
+            mutationId: item.mutationId,
+            attempts,
+            offlineCapable: isOfflineCapableError(error),
+          });
+
+          if (__DEV__) {
+            console.warn('[SupabaseDataLayer] Queue flush failed:', error?.message);
+          }
+
+          if (isOfflineCapableError(error)) {
+            break;
           }
         }
       }
 
-      await setOfflineQueue(remaining);
-
       return {
         flushed,
-        remaining: remaining.length,
+        failed,
+        remaining: queue.length,
       };
     } finally {
       _isFlushingQueue = false;
