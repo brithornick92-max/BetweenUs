@@ -562,10 +562,6 @@ export default function HomeScreen({ navigation }) {
         Alert.alert('Saved locally', "Your answer will sync with your partner when you're back online.");
       }
 
-      import('../services/PartnerNotifications').then(({ default: PN }) =>
-        PN.promptAnswered(getMyDisplayName(userProfile, state?.userProfile, null))
-      ).catch(() => {});
-
       if (!isPremium) {
         const hasPromptedShare = await storage.get(PROMPTED_PARTNER_SHARE_KEY, false);
         const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);

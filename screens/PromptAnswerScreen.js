@@ -306,11 +306,6 @@ export default function PromptAnswerScreen({ route, navigation }) {
       }
       notification(NotificationFeedbackType.Success);
 
-      // Notify partner that we answered this prompt
-      import('../services/PartnerNotifications').then(({ default: PN }) => {
-        PN.promptAnswered(userProfile?.displayName || user?.displayName || null, prompt.id);
-      }).catch(() => {});
-
       navigation.goBack();
     } catch {
       Alert.alert("We couldn't save your answer", "Please try again.");

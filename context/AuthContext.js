@@ -507,6 +507,15 @@ export const AuthProvider = ({ children }) => {
       setRequiresOnboarding(false);
 
       console.log('[AuthContext] Sign in complete!');
+
+      // Initialize push notifications after login
+      try {
+        if (supabase) {
+          await PushNotificationService.initialize(supabase);
+        }
+      } catch (pushErr) {
+        if (__DEV__) console.warn('[AuthContext] Push init failed:', pushErr?.message);
+      }
       return signedInUser;
     } catch (error) {
       console.error('[AuthContext] Sign in error:', error);
