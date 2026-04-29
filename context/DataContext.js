@@ -66,6 +66,8 @@ export function DataProvider({ children }) {
     lastError: null,
     pushed: 0,
     pulled: 0,
+    failed: 0,
+    remaining: 0,
   });
 
   const [isReady, setIsReady] = useState(false);
@@ -73,6 +75,28 @@ export function DataProvider({ children }) {
   const unsubRealtimeRef = useRef(null);
   const unsubSyncEventRef = useRef(null);
   const syncIntervalRef = useRef(null);
+  const applySyncResult = useCallback((result, source = 'sync') => {
+    const failed = Number(result?.failed || 0);
+    const remaining = Number(result?.remaining || 0);
+    const flushed = Number(result?.flushed || 0);
+
+    setSyncStatus((current) => ({
+      ...current,
+      syncing: false,
+      lastSynced: failed > 0 ? current.lastSynced : new Date().toISOString(),
+      lastError: failed > 0
+        ? "Some changes haven't synced yet. We'll keep trying."
+        : null,
+      pushed: flushed,
+      pulled: Number(result?.pulled || 0),
+      failed,
+      remaining,
+      source,
+    }));
+
+    return result;
+  }, [applySyncResult]);
+
 
   // ─── Initialize on auth ─────────────────────────────────────
 
@@ -115,12 +139,16 @@ export function DataProvider({ children }) {
               lastError: null,
               pushed: data?.pushed || 0,
               pulled: data?.pulled || 0,
+              failed: data?.failed || 0,
+              remaining: data?.remaining || 0,
             });
           } else if (event === 'sync:error') {
             setSyncStatus(s => ({
               ...s,
               syncing: false,
               lastError: data?.error || 'Sync failed',
+              failed: data?.failed || 1,
+              remaining: data?.remaining || s.remaining || 0,
             }));
           }
         });
@@ -133,10 +161,18 @@ export function DataProvider({ children }) {
         // Periodic queue flush every 60s
         syncIntervalRef.current = setInterval(() => {
           if (initializedRef.current) {
-            DataLayer.sync().catch((e) => {
-              if (__DEV__) console.warn('[DataContext] Periodic sync failed:', e?.message);
-              CrashReporting.captureException(e, { source: 'periodic_sync' });
-            });
+            DataLayer.sync()
+              .then((result) => applySyncResult(result, 'periodic_sync'))
+              .catch((e) => {
+                if (__DEV__) console.warn('[DataContext] Periodic sync failed:', e?.message);
+                setSyncStatus((s) => ({
+                  ...s,
+                  syncing: false,
+                  lastError: "Some changes haven't synced yet. We'll keep trying.",
+                  failed: s.failed || 1,
+                }));
+                CrashReporting.captureException(e, { source: 'periodic_sync' });
+              });
           }
         }, 60_000);
       } catch (err) {
@@ -185,10 +221,18 @@ export function DataProvider({ children }) {
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active' && initializedRef.current) {
-        DataLayer.sync().catch((e) => {
-          if (__DEV__) console.warn('[DataContext] Foreground sync failed:', e?.message);
-          CrashReporting.captureException(e, { source: 'foreground_sync' });
-        });
+        DataLayer.sync()
+          .then((result) => applySyncResult(result, 'foreground_sync'))
+          .catch((e) => {
+            if (__DEV__) console.warn('[DataContext] Foreground sync failed:', e?.message);
+            setSyncStatus((s) => ({
+              ...s,
+              syncing: false,
+              lastError: "Some changes haven't synced yet. We'll keep trying.",
+              failed: s.failed || 1,
+            }));
+            CrashReporting.captureException(e, { source: 'foreground_sync' });
+          });
       }
       if (nextState === 'background') {
         DataLayer.clearCache().catch((e) => {
@@ -202,9 +246,23 @@ export function DataProvider({ children }) {
   // ─── Trigger manual sync ───────────────────────────────────
 
   const triggerSync = useCallback(async () => {
-    if (!initializedRef.current) return;
-    return DataLayer.sync();
-  }, []);
+    if (!initializedRef.current) return null;
+    setSyncStatus((s) => ({ ...s, syncing: true }));
+
+    try {
+      const result = await DataLayer.sync();
+      return applySyncResult(result, 'manual_sync');
+    } catch (e) {
+      setSyncStatus((s) => ({
+        ...s,
+        syncing: false,
+        lastError: "Some changes haven't synced yet. We'll keep trying.",
+        failed: s.failed || 1,
+      }));
+      CrashReporting.captureException(e, { source: 'manual_sync' });
+      throw e;
+    }
+  }, [applySyncResult]);
 
   // ─── Context value ─────────────────────────────────────────
 

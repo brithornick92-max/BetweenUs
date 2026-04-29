@@ -19,6 +19,7 @@ import { SPACING, withAlpha } from '../utils/theme';
 import { OfflineGrace } from '../services/PolishEngine';
 import { SUPABASE_URL } from '../config/supabase';
 import Icon from './Icon';
+import { useData } from '../context/DataContext';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -28,6 +29,7 @@ const CONNECTIVITY_URL = SUPABASE_URL
 
 function OfflineIndicator() {
   const { colors, isDark } = useTheme();
+  const { syncStatus } = useData();
   const [isOffline, setIsOffline] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const slideAnim = useRef(new Animated.Value(-100)).current;
@@ -105,7 +107,13 @@ function OfflineIndicator() {
     };
   }, [checkConnection, isOffline]);
 
-  if (!isOffline) return null;
+  const hasSyncWarning = !!syncStatus?.lastError || Number(syncStatus?.failed || 0) > 0;
+  const visiblePendingCount = Math.max(
+    pendingCount,
+    Number(syncStatus?.remaining || 0)
+  );
+
+  if (!isOffline && !hasSyncWarning) return null;
 
   return (
     <View style={styles.absoluteWrapper} pointerEvents="none">
@@ -121,16 +129,18 @@ function OfflineIndicator() {
       >
         <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.primary, 0.1) }]}>
           <Icon 
-            name={pendingCount > 0 ? "cloud-offline-outline" : "wifi-outline"} 
+            name={hasSyncWarning || visiblePendingCount > 0 ? "cloud-offline-outline" : "wifi-outline"} 
             size={14} 
             color={t.primary} 
           />
         </View>
         
         <Text style={[styles.text, { color: t.text }]}>
-          {pendingCount > 0
-            ? `Syncing ${pendingCount} ${pendingCount === 1 ? 'item' : 'items'} when back`
-            : 'Working Offline'}
+          {hasSyncWarning
+            ? "Some changes haven't synced yet"
+            : visiblePendingCount > 0
+              ? `Syncing ${visiblePendingCount} ${visiblePendingCount === 1 ? 'item' : 'items'} when back`
+              : 'Working Offline'}
         </Text>
         
         <View style={[styles.statusDot, { backgroundColor: t.primary }]} />
