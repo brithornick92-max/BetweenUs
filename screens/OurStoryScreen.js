@@ -36,6 +36,7 @@ import MediaLightbox from '../components/MediaLightbox';
 import { NicknameEngine } from '../services/PolishEngine';
 
 const HEARTS_KEY = '@betweenus:cache:momentHearts';
+const HIDDEN_KEEPSAKES_KEY = '@betweenus:cache:hiddenKeepsakes';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
@@ -142,6 +143,17 @@ function isKeepsakeMemoryRow(row) {
   return !['date_saved', 'date_tried', 'intimacy_favorite', 'intimacy_tried'].includes(row.type);
 }
 
+function markCurrentUserRows(rows = [], currentUserId = null) {
+  return (rows || []).map((row) => ({
+    ...row,
+    isOwn: !currentUserId || !row?.user_id || row.user_id === currentUserId,
+  }));
+}
+
+function isNoDeletableRowError(error) {
+  return String(error?.message || '').includes('No deletable row found');
+}
+
 async function resolveRowMedia(row) {
   const directUri = row.mediaUri || row.photo_uri || row.photoUri || null;
   const directMimeType = row.mediaType || row.mime_type || row.mimeType || null;
@@ -237,7 +249,8 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     sortAt: row.created_at || row.date_key,
     media,
     editable: false,
-    deletable: false,
+    deletable: true,
+    isOwn: row.isOwn,
   };
 }
 
@@ -266,6 +279,7 @@ function buildMemoryItem(row, media = null) {
     row,
     editable: true,
     deletable: true,
+    isOwn: row.isOwn,
   };
 }
 
@@ -307,6 +321,7 @@ function buildSnapshotItem(groupId, items) {
     rawItems: sortedItems,
     editable: true,
     deletable: true,
+    isOwn: sortedItems.some((item) => item.isOwn !== false),
   };
 }
 
@@ -367,7 +382,8 @@ function buildDateItem(row) {
     sortAt: row.addedAt,
     memoryId: row.memoryId || null,
     editable: false,
-    deletable: false,
+    deletable: !!row.memoryId,
+    isOwn: row.isOwn,
   };
 }
 
@@ -383,8 +399,10 @@ function buildDateItemFromMemoryRow(row) {
         date_id: dateId,
         title: payload.title || row?.title || 'Saved date',
         created_at: row?.created_at || row?.date,
+        isOwn: row?.isOwn,
       }),
       memoryId: row?.id || null,
+      deletable: !!row?.id,
     };
   }
 
@@ -395,6 +413,7 @@ function buildDateItemFromMemoryRow(row) {
     location: payload.location ?? null,
     addedAt: row?.created_at || row?.date || Date.now(),
     memoryId: row?.id || null,
+    isOwn: row?.isOwn,
   });
 }
 
@@ -415,7 +434,8 @@ function buildSavedDateItem(row) {
     dateLabel: formatDateLabel(row?.created_at || row?.addedAt || row?.savedAt),
     sortAt: row?.created_at || row?.addedAt || row?.savedAt,
     editable: false,
-    deletable: false,
+    deletable: !!row?.memoryId,
+    isOwn: row?.isOwn,
   };
 }
 
@@ -436,12 +456,14 @@ function buildPositionTriedItem(row) {
     sortAt: row.triedAt,
     memoryId: row.memoryId || null,
     editable: false,
-    deletable: false,
+    deletable: !!row.memoryId,
+    isOwn: row.isOwn,
   };
 }
 
 function buildPositionFavoriteItemFromMemoryRow(row) {
   const payload = parseMemoryPayload(row?.content);
+  const positionId = payload?.positionId || payload?.id || row?.id;
   const title = payload
     ? (payload.commonName ? `${payload.commonName}: ${payload.title}` : payload.title)
     : String(row?.content || '').replace(/^Shared intimacy favorite:\s*/i, '').trim();
@@ -449,7 +471,7 @@ function buildPositionFavoriteItemFromMemoryRow(row) {
   return {
     id: `position-favorite-memory:${row.id}`,
     kind: 'position_favorite',
-    sourceId: row.id,
+    sourceId: positionId,
     title: title || 'Position saved',
     body: 'An intimacy position you saved together.',
     eyebrow: 'Position saved',
@@ -460,7 +482,8 @@ function buildPositionFavoriteItemFromMemoryRow(row) {
     sortAt: row.created_at || row.date,
     memoryId: row.id || null,
     editable: false,
-    deletable: false,
+    deletable: !!row.id,
+    isOwn: row.isOwn,
   };
 }
 
@@ -477,6 +500,7 @@ function buildPositionTriedItemFromMemoryRow(row) {
     mood: payload.mood || row?.mood || null,
     triedAt: row?.created_at || row?.date || new Date().toISOString(),
     memoryId: row?.id || null,
+    isOwn: row?.isOwn,
   });
 }
 
@@ -488,6 +512,7 @@ export async function buildKeepsakeEntriesFromSources({
   keepsakeSettingsRaw = {},
   myName = 'You',
   partnerName = 'Partner',
+  currentUserId = null,
   resolveMedia = resolveRowMedia,
 } = {}) {
   const keepsakeSettings = normalizeKeepsakeSettings(keepsakeSettingsRaw);
@@ -498,7 +523,10 @@ export async function buildKeepsakeEntriesFromSources({
       .map((row) => buildPromptItem(row, null, myName, partnerName))
     : [];
 
-  const memoryRows = dedupeRows([...(sharedMemories || []), ...(personalMemories || [])]);
+  const ownedMemoryRows = markCurrentUserRows(personalMemories, currentUserId)
+    .filter((row) => row.isOwn);
+  const sharedMemoryRows = markCurrentUserRows(sharedMemories, currentUserId);
+  const memoryRows = dedupeRows([...ownedMemoryRows, ...sharedMemoryRows]);
 
   const rawMemoryItems = keepsakeSettings.memories
     ? await Promise.all(
@@ -605,6 +633,8 @@ export default function OurStoryScreen() {
         keepsakeSettingsRaw,
         myName,
         partnerName,
+        currentUserId,
+        hiddenKeepsakeIds,
       ] = await Promise.all([
         safeLoad(() => DataLayer.getSharedPromptAnswers({ limit: 200 })),
         safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
@@ -613,6 +643,8 @@ export default function OurStoryScreen() {
         safeLoad(() => settingsStorage.getKeepsakeSettings()),
         NicknameEngine.getMyName('You'),
         NicknameEngine.getPartnerName('Partner'),
+        Promise.resolve(typeof DataLayer.getCurrentUserId === 'function' ? DataLayer.getCurrentUserId() : null),
+        storage.get(HIDDEN_KEEPSAKES_KEY, []),
       ]);
 
       const merged = await buildKeepsakeEntriesFromSources({
@@ -623,9 +655,11 @@ export default function OurStoryScreen() {
         keepsakeSettingsRaw,
         myName,
         partnerName,
+        currentUserId,
       });
 
-      setEntries(merged);
+      const hidden = new Set(Array.isArray(hiddenKeepsakeIds) ? hiddenKeepsakeIds : []);
+      setEntries(merged.filter((entry) => !hidden.has(entry.id)));
     } catch (error) {
       if (__DEV__) console.warn('[OurStory] Load failed:', error?.message);
       setEntries([]);
@@ -754,35 +788,150 @@ export default function OurStoryScreen() {
     });
   }, []);
 
+  const getDeleteCopy = useCallback((item) => {
+    switch (item?.kind) {
+      case 'snapshot':
+        return {
+          title: 'Delete Snapshot?',
+          message: 'This will remove all photos and videos in this snapshot from Keepsake.',
+          action: 'Delete Snapshot',
+        };
+      case 'prompt':
+        return {
+          title: 'Delete Prompt?',
+          message: 'This will remove this prompt response from Keepsake.',
+          action: 'Delete Prompt',
+        };
+      case 'date':
+      case 'date_saved':
+        return {
+          title: 'Delete Date?',
+          message: 'This will remove this date from Keepsake.',
+          action: 'Delete Date',
+        };
+      case 'position_tried':
+      case 'position_favorite':
+        return {
+          title: 'Delete Position?',
+          message: 'This will remove this position from Keepsake.',
+          action: 'Delete Position',
+        };
+      default:
+        return {
+          title: 'Delete Memory?',
+          message: 'This will remove this memory from Keepsake.',
+          action: 'Delete Memory',
+        };
+    }
+  }, []);
+
+  const getMatchingOwnedMemoryIds = useCallback(async (item) => {
+    const typeByKind = {
+      date: 'date_tried',
+      date_saved: 'date_saved',
+      position_tried: 'intimacy_tried',
+      position_favorite: 'intimacy_favorite',
+    };
+    const memoryType = typeByKind[item?.kind];
+
+    if (!memoryType || !item?.sourceId) return [];
+
+    const rows = await DataLayer.getMemories({ type: memoryType, limit: 500, ownedOnly: true });
+    return (rows || [])
+      .filter((row) => {
+        const payload = parseMemoryPayload(row?.content) || {};
+        const sourceId = payload.positionId || payload.dateId || payload.id || row?.id || null;
+        return String(sourceId) === String(item.sourceId);
+      })
+      .map((row) => row.id)
+      .filter(Boolean);
+  }, []);
+
+  const hideKeepsakeItem = useCallback(async (item) => {
+    if (!item?.id) return;
+
+    const hiddenKeepsakeIds = await storage.get(HIDDEN_KEEPSAKES_KEY, []);
+    const nextHiddenKeepsakeIds = [
+      ...new Set([
+        ...(Array.isArray(hiddenKeepsakeIds) ? hiddenKeepsakeIds : []),
+        item.id,
+      ]),
+    ];
+
+    await storage.set(HIDDEN_KEEPSAKES_KEY, nextHiddenKeepsakeIds);
+    setEntries((current) => current.filter((entry) => entry.id !== item.id));
+  }, []);
+
+  const deleteKeepsakeItem = useCallback(async (item) => {
+    const currentUserId = typeof DataLayer.getCurrentUserId === 'function'
+      ? DataLayer.getCurrentUserId()
+      : null;
+
+    if (item.kind === 'snapshot') {
+      const ownRawItems = (item.rawItems || [])
+        .filter((rawItem) => rawItem?.sourceId)
+        .filter((rawItem) => !currentUserId || rawItem?.row?.user_id === currentUserId);
+
+      if (!ownRawItems.length) {
+        throw new Error('No deletable row found for this account.');
+      }
+
+      await Promise.all(ownRawItems.map((rawItem) => DataLayer.deleteMemory(rawItem.sourceId)));
+      return;
+    }
+
+    if (item.kind === 'prompt') {
+      await DataLayer.deletePromptAnswer(item.sourceId);
+      return;
+    }
+
+    if (['date', 'date_saved', 'position_tried', 'position_favorite'].includes(item.kind)) {
+      const matchingMemoryIds = await getMatchingOwnedMemoryIds(item);
+
+      if (!matchingMemoryIds.length) {
+        throw new Error('No deletable row found for this account.');
+      }
+
+      await Promise.all([...new Set(matchingMemoryIds)].map((memoryId) => DataLayer.deleteMemory(memoryId)));
+      return;
+    }
+
+    const directMemoryId = item.memoryId || item.sourceId;
+    const matchingMemoryIds = await getMatchingOwnedMemoryIds(item);
+    const memoryIds = [...new Set([
+      directMemoryId,
+      ...matchingMemoryIds,
+    ].filter(Boolean))];
+
+    if (!memoryIds.length) {
+      throw new Error('No deletable row found for this account.');
+    }
+
+    await Promise.all(memoryIds.map((memoryId) => DataLayer.deleteMemory(memoryId)));
+  }, [getMatchingOwnedMemoryIds]);
+
   const confirmDeleteItem = useCallback((item) => {
-    const isSnapshot = item.kind === 'snapshot';
+    const deleteCopy = getDeleteCopy(item);
 
     Alert.alert(
-      isSnapshot ? 'Delete Snapshot?' : 'Delete Memory?',
-      isSnapshot
-        ? 'This will remove all photos and videos in this snapshot from Keepsake.'
-        : 'This will remove this memory from Keepsake.',
+      deleteCopy.title,
+      deleteCopy.message,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete',
+          text: deleteCopy.action,
           style: 'destructive',
           onPress: async () => {
             try {
               impact(ImpactFeedbackStyle.Medium);
-
-              if (isSnapshot) {
-                await Promise.all(
-                  (item.rawItems || [])
-                    .filter((rawItem) => rawItem?.sourceId)
-                    .map((rawItem) => DataLayer.deleteMemory(rawItem.sourceId))
-                );
-              } else {
-                await DataLayer.deleteMemory(item.sourceId);
-              }
-
+              await deleteKeepsakeItem(item);
               await loadEntries();
             } catch (error) {
+              if (isNoDeletableRowError(error)) {
+                await hideKeepsakeItem(item);
+                return;
+              }
+
               if (__DEV__) console.warn('[OurStory] Delete failed:', error?.message);
               Alert.alert('Could not delete', 'Please try again.');
             }
@@ -790,7 +939,7 @@ export default function OurStoryScreen() {
         },
       ]
     );
-  }, [loadEntries]);
+  }, [deleteKeepsakeItem, getDeleteCopy, hideKeepsakeItem, loadEntries]);
 
   const handleEditItem = useCallback((item) => {
     if (!item?.editable) return;
@@ -821,7 +970,7 @@ export default function OurStoryScreen() {
           onPress: () => handleEditItem(item),
         } : null,
         item.deletable ? {
-          text: isSnapshot ? 'Delete Snapshot' : 'Delete Memory',
+          text: getDeleteCopy(item).action,
           style: 'destructive',
           onPress: () => confirmDeleteItem(item),
         } : null,
@@ -831,7 +980,7 @@ export default function OurStoryScreen() {
         },
       ].filter(Boolean)
     );
-  }, [confirmDeleteItem, handleEditItem]);
+  }, [confirmDeleteItem, getDeleteCopy, handleEditItem]);
 
   const renderSnapshotTile = (media, index, mediaItems, tileStyle, options = {}) => {
     const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/');
@@ -841,7 +990,9 @@ export default function OurStoryScreen() {
       <TouchableOpacity
         key={media.id}
         activeOpacity={0.9}
+        delayLongPress={360}
         onPress={() => openLightbox(media, mediaItems, index)}
+        onLongPress={options.onLongPress}
         style={[styles.snapshotGridTile, tileStyle]}
       >
         {isVideo ? (
@@ -882,7 +1033,9 @@ export default function OurStoryScreen() {
       return (
         <View style={styles.snapshotMediaBlock}>
           <View style={[styles.facebookGrid, styles.facebookGridSingle]}>
-            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.singleTile)}
+            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.singleTile, {
+              onLongPress: () => handleLongPressItem(item),
+            })}
           </View>
         </View>
       );
@@ -892,8 +1045,12 @@ export default function OurStoryScreen() {
       return (
         <View style={styles.snapshotMediaBlock}>
           <View style={[styles.facebookGrid, styles.facebookGridTwo]}>
-            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.twoTile)}
-            {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.twoTile)}
+            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.twoTile, {
+              onLongPress: () => handleLongPressItem(item),
+            })}
+            {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.twoTile, {
+              onLongPress: () => handleLongPressItem(item),
+            })}
           </View>
         </View>
       );
@@ -903,10 +1060,18 @@ export default function OurStoryScreen() {
       return (
         <View style={styles.snapshotMediaBlock}>
           <View style={[styles.facebookGrid, styles.facebookGridThree]}>
-            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.threeLargeTile)}
+            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.threeLargeTile, {
+              onLongPress: () => handleLongPressItem(item),
+            })}
             <View style={styles.threeSideStack}>
-              {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.threeSmallTile, { small: true })}
-              {renderSnapshotTile(mediaItems[2], 2, mediaItems, styles.threeSmallTile, { small: true })}
+              {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.threeSmallTile, {
+                small: true,
+                onLongPress: () => handleLongPressItem(item),
+              })}
+              {renderSnapshotTile(mediaItems[2], 2, mediaItems, styles.threeSmallTile, {
+                small: true,
+                onLongPress: () => handleLongPressItem(item),
+              })}
             </View>
           </View>
         </View>
@@ -919,15 +1084,25 @@ export default function OurStoryScreen() {
       <View style={styles.snapshotMediaBlock}>
         <View style={[styles.facebookGrid, styles.facebookGridFour]}>
           <View style={styles.facebookGridRow}>
-            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.fourTile, { small: true })}
-            {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.fourTile, { small: true })}
+            {renderSnapshotTile(mediaItems[0], 0, mediaItems, styles.fourTile, {
+              small: true,
+              onLongPress: () => handleLongPressItem(item),
+            })}
+            {renderSnapshotTile(mediaItems[1], 1, mediaItems, styles.fourTile, {
+              small: true,
+              onLongPress: () => handleLongPressItem(item),
+            })}
           </View>
 
           <View style={styles.facebookGridRow}>
-            {renderSnapshotTile(mediaItems[2], 2, mediaItems, styles.fourTile, { small: true })}
+            {renderSnapshotTile(mediaItems[2], 2, mediaItems, styles.fourTile, {
+              small: true,
+              onLongPress: () => handleLongPressItem(item),
+            })}
             {renderSnapshotTile(mediaItems[3], 3, mediaItems, styles.fourTile, {
               small: true,
               remaining,
+              onLongPress: () => handleLongPressItem(item),
             })}
           </View>
         </View>
@@ -1006,7 +1181,9 @@ export default function OurStoryScreen() {
               ) : item.media?.uri ? (
                 <TouchableOpacity
                   activeOpacity={0.88}
+                  delayLongPress={360}
                   onPress={() => openLightbox(item)}
+                  onLongPress={() => handleLongPressItem(item)}
                   style={styles.mediaButton}
                 >
                   {isVideo ? (
@@ -1061,12 +1238,6 @@ export default function OurStoryScreen() {
                 )}
 
                 <View style={styles.cardFooterRight}>
-                  {item.editable || item.deletable ? (
-                    <Text style={[styles.longPressHint, { color: t.subtext }]}>
-                      Hold for options
-                    </Text>
-                  ) : null}
-
                   <TouchableOpacity
                     onPress={() => handleHeartToggle(item.id)}
                     hitSlop={12}
@@ -1593,12 +1764,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     flexShrink: 0,
-  },
-  longPressHint: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 10,
-    fontWeight: '700',
-    opacity: 0.55,
   },
   heartButton: {
     flexDirection: 'row',

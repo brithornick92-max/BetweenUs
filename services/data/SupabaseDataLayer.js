@@ -374,16 +374,19 @@ async function cdSoftDelete(id) {
 
   if (!sb) throw new Error('Supabase is not configured');
 
-  const { error } = await sb
+  const { data, error } = await sb
     .from(TABLES.COUPLE_DATA)
     .update({
       is_deleted: true,
       deleted_at: now(),
       updated_at: now(),
     })
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data?.id) throw new Error('No deletable row found for this account.');
 }
 
 /**
@@ -806,6 +809,10 @@ const SupabaseDataLayer = {
     await this.flushOfflineQueue();
   },
 
+  getCurrentUserId() {
+    return _userId;
+  },
+
   async reset() {
     const sb = getSupabaseOrNull();
 
@@ -1148,6 +1155,26 @@ const SupabaseDataLayer = {
     });
   },
 
+  async deletePromptAnswer(id) {
+    if (!id) throw new Error('Prompt answer id is required');
+
+    return runCloudOperation({
+      perform: async () => cdSoftDelete(id),
+      onSuccess: async () => {
+        await removeCacheRow(CACHE_SCOPES.prompts, id);
+      },
+      onOffline: async () => {
+        await enqueueOfflineMutation({
+          entity: 'prompt_answer',
+          action: 'delete',
+          id,
+        });
+
+        await removeCacheRow(CACHE_SCOPES.prompts, id);
+      },
+    });
+  },
+
   async getPromptAnswers({ dateKey: dk, promptId, limit = 100 } = {}) {
     const rows = await cdQuery('prompt_answer', {
       limit,
@@ -1357,12 +1384,12 @@ const SupabaseDataLayer = {
     });
   },
 
-  async getMemories({ type, limit = 100, offset = 0 } = {}) {
+  async getMemories({ type, limit = 100, offset = 0, ownedOnly = false } = {}) {
     const rows = await cdQuery('memory', {
       limit,
       offset,
       filter: (q) => {
-        let query = _coupleId ? q : q.eq('created_by', _userId);
+        let query = _coupleId && !ownedOnly ? q : q.eq('created_by', _userId);
 
         if (type) query = query.eq('value->>type', type);
 
@@ -1373,7 +1400,7 @@ const SupabaseDataLayer = {
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapMemoryRow(r)));
       await replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
-        (_coupleId || row?.user_id === _userId)
+        ((_coupleId && !ownedOnly) || row?.user_id === _userId)
         && (!type || row?.type === type)
       );
       return mapped;
@@ -1382,7 +1409,7 @@ const SupabaseDataLayer = {
     const cached = await loadCache(CACHE_SCOPES.memories);
 
     return cached
-      .filter((row) => _coupleId || row?.user_id === _userId)
+      .filter((row) => (_coupleId && !ownedOnly) || row?.user_id === _userId)
       .filter((row) => !type || row?.type === type)
       .slice(offset, offset + limit);
   },
@@ -2140,6 +2167,7 @@ const SupabaseDataLayer = {
         case 'prompt_answer':
           if (item.action === 'insert') await cdInsert('prompt_answer', item.id, item.payload);
           if (item.action === 'update') await cdUpdate(item.id, item.payload);
+          if (item.action === 'delete') await cdSoftDelete(item.id);
           break;
 
         case 'memory':
