@@ -485,7 +485,7 @@ export default function HomeScreen({ navigation }) {
       eyebrow: 'SAVED FOR REVEAL',
       title: `Something is waiting for ${partnerLabel}`,
       body: `Your answer is saved. They can add theirs whenever they're ready.`,
-      primaryLabel: 'Let them know',
+      primaryLabel: 'Their turn',
       secondaryLabel: 'Edit my answer',
     },
     both_answered_ready: {
@@ -839,8 +839,7 @@ export default function HomeScreen({ navigation }) {
                   <Text style={styles.answerText}>{myAnswer}</Text>
 
                   <View style={styles.partnerVisibilityRow}>
-                    <Icon name="lock-closed-outline" size={13} color={t.primary} />
-                    <Text style={styles.partnerVisibilityText}>Private until your shared reveal</Text>
+                    <Text style={styles.partnerVisibilityText}>Waiting for {partnerLabel}…</Text>
                   </View>
                 </View>
               ) : canWritePrompt ? (

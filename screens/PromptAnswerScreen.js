@@ -137,11 +137,11 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const hasLinkedPartner = !!state?.coupleId;
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const helperCopy = hasLinkedPartner
-    ? "Leave one honest answer. It stays private until your shared reveal."
-    : `Save this for your space, then invite ${partnerLabel} to answer too.`;
+    ? ""
+    : `Ask ${partnerLabel} to answer too.`;
   const privacyCopy = hasLinkedPartner
-    ? "Private until your shared reveal."
-    : `Save your answer now, then invite ${partnerLabel} to answer too.`;
+    ? `Waiting for ${partnerLabel}…`
+    : `Ask ${partnerLabel} to answer too.`;
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
