@@ -7,13 +7,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from './Icon';
 import GlowOrb from './GlowOrb';
 import FilmGrain from './FilmGrain';
-import CloseScreenHeader from './CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
 import {
   SPACING,
@@ -107,22 +107,45 @@ export default function EditorialScreenScaffold({
       <FilmGrain opacity={0.04} />
 
       <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
-        <CloseScreenHeader
-          title={headerTitle}
-          subtitle={headerSubtitle}
-          titleColor={colors.text}
-          subtitleColor={colors.primary}
-          closeColor={colors.text}
-          closeIcon={backIconName}
-          rightAccessory={headerRight}
-          onClose={() => {
-            if (onBack) {
-              onBack();
-              return;
-            }
-            navigation?.goBack?.();
-          }}
-        />
+        <View style={styles.header}>
+          {headerSubtitle ? (
+            <Text style={[styles.headerSubtitle, { color: colors.primary }]} numberOfLines={2}>
+              {headerSubtitle}
+            </Text>
+          ) : null}
+
+          <View style={styles.headerRow}>
+            <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={2}>
+              {headerTitle}
+            </Text>
+
+            <View style={styles.headerActions}>
+              {headerRight || null}
+              <TouchableOpacity
+                onPress={() => {
+                  if (onBack) {
+                    onBack();
+                    return;
+                  }
+                  navigation?.goBack?.();
+                }}
+                style={[
+                  styles.closeButton,
+                  {
+                    backgroundColor: colors.surface2 || colors.surface,
+                    borderColor: colors.border || withAlpha(colors.text, 0.08),
+                  },
+                ]}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+                activeOpacity={0.75}
+              >
+                <Icon name={backIconName} size={26} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
 
         {keyboardAvoiding ? (
           <KeyboardAvoidingView
@@ -146,6 +169,45 @@ const styles = StyleSheet.create({
   },
   keyboardAvoiding: {
     flex: 1,
+  },
+  header: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.md,
+  },
+  headerSubtitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
+  },
+  headerTitle: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 36,
+    fontWeight: '900',
+    lineHeight: 42,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  closeButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
   },
   scrollView: {
     flex: 1,

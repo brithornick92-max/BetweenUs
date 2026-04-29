@@ -53,11 +53,6 @@ const MEMORY_TYPE_META = {
   memory: { label: 'Memory', icon: 'time-outline' },
 };
 
-const STRUCTURED_KEEPSAKE_MEMORY_TYPES = new Set([
-  'date_tried',
-  'intimacy_tried',
-]);
-
 const DEFAULT_KEEPSAKE_SETTINGS = {
   prompts: true,
   memories: true,
@@ -346,7 +341,7 @@ function buildPositionTriedItem(row) {
     body: 'An intimacy position you tried together.',
     eyebrow: 'Position tried',
     icon: 'checkmark-circle-outline',
-    accent: '#FF375F',
+    accent: '#D2121A',
     meta: row.mood ? String(row.mood).toUpperCase() : 'Intimacy',
     dateLabel: formatDateLabel(row.triedAt),
     sortAt: row.triedAt,
@@ -354,6 +349,68 @@ function buildPositionTriedItem(row) {
     editable: false,
     deletable: false,
   };
+}
+
+export async function buildKeepsakeEntriesFromSources({
+  sharedPrompts = [],
+  personalPrompts = [],
+  sharedMemories = [],
+  personalMemories = [],
+  dateHistory = [],
+  triedPositionHistory = {},
+  keepsakeSettingsRaw = {},
+  myName = 'You',
+  partnerName = 'Partner',
+  resolveMedia = resolveRowMedia,
+} = {}) {
+  const keepsakeSettings = normalizeKeepsakeSettings(keepsakeSettingsRaw);
+
+  const promptItems = keepsakeSettings.prompts
+    ? dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
+      .filter((row) => !String(row?.prompt_id || '').startsWith('quiz:'))
+      .map((row) => buildPromptItem(row, null, myName, partnerName))
+    : [];
+
+  const rawMemoryItems = keepsakeSettings.memories
+    ? await Promise.all(
+      dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
+        .filter((row) => row?.type === 'snapshot')
+        .map(async (row) => buildMemoryItem(row, await resolveMedia(row)))
+    )
+    : [];
+
+  const memoryItems = groupMemoryItems(rawMemoryItems);
+
+  const memoryIds = new Set(
+    rawMemoryItems
+      .map((item) => item.sourceId)
+      .filter(Boolean)
+  );
+
+  const dateItems = keepsakeSettings.dates
+    ? (dateHistory || [])
+      .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
+      .map((row) => buildDateItem(row))
+    : [];
+
+  const triedPositionItems = keepsakeSettings.positions
+    ? Object.values(triedPositionHistory || {})
+      .filter((row) => row?.positionId)
+      .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
+      .map((row) => buildPositionTriedItem(row))
+    : [];
+
+  return [
+    ...promptItems,
+    ...memoryItems,
+    ...dateItems,
+    ...triedPositionItems,
+  ].sort((a, b) => {
+    if (a.kind === 'snapshot' && b.kind !== 'snapshot') return -1;
+    if (a.kind !== 'snapshot' && b.kind === 'snapshot') return 1;
+
+    return getSortTime(b) - getSortTime(a);
+  });
 }
 
 export default function OurStoryScreen() {
@@ -405,53 +462,16 @@ export default function OurStoryScreen() {
         NicknameEngine.getPartnerName('Partner'),
       ]);
 
-      const keepsakeSettings = normalizeKeepsakeSettings(keepsakeSettingsRaw);
-
-      const promptItems = keepsakeSettings.prompts
-        ? dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
-          .map((row) => buildPromptItem(row, null, myName, partnerName))
-        : [];
-
-      const rawMemoryItems = keepsakeSettings.memories
-        ? await Promise.all(
-          dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
-            .filter((row) => !STRUCTURED_KEEPSAKE_MEMORY_TYPES.has(row?.type))
-            .map(async (row) => buildMemoryItem(row, await resolveRowMedia(row)))
-        )
-        : [];
-
-      const memoryItems = groupMemoryItems(rawMemoryItems);
-
-      const memoryIds = new Set(
-        rawMemoryItems
-          .map((item) => item.sourceId)
-          .filter(Boolean)
-      );
-
-      const dateItems = keepsakeSettings.dates
-        ? (dateHistory || [])
-          .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
-          .map((row) => buildDateItem(row))
-        : [];
-
-      const triedPositionItems = keepsakeSettings.positions
-        ? Object.values(triedPositionHistory || {})
-          .filter((row) => row?.positionId)
-          .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
-          .map((row) => buildPositionTriedItem(row))
-        : [];
-
-      const merged = [
-        ...promptItems,
-        ...memoryItems,
-        ...dateItems,
-        ...triedPositionItems,
-      ].sort((a, b) => {
-        // Show grouped Snapshots first so new uploads do not get buried under old legacy moments.
-        if (a.kind === 'snapshot' && b.kind !== 'snapshot') return -1;
-        if (a.kind !== 'snapshot' && b.kind === 'snapshot') return 1;
-
-        return getSortTime(b) - getSortTime(a);
+      const merged = await buildKeepsakeEntriesFromSources({
+        sharedPrompts,
+        personalPrompts,
+        sharedMemories,
+        personalMemories,
+        dateHistory,
+        triedPositionHistory,
+        keepsakeSettingsRaw,
+        myName,
+        partnerName,
       });
 
       setEntries(merged);
@@ -942,7 +962,7 @@ export default function OurStoryScreen() {
       </Text>
 
       <Text style={styles.emptyBody}>
-        Prompts, snapshots, dates, and memories will collect here as you build your story together.
+        Prompts, snapshots, dates tried, and positions tried will collect here.
       </Text>
     </ReAnimated.View>
   );

@@ -13,6 +13,7 @@ import {
   Switch,
   Alert,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import Icon from '../components/Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
@@ -21,7 +22,7 @@ import { useTheme } from '../context/ThemeContext';
 import { settingsStorage } from '../utils/storage';
 import PushNotificationService from '../services/PushNotificationService';
 import { supabase } from '../config/supabase';
-import { SPACING, withAlpha } from '../utils/theme';
+import { withAlpha } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -43,6 +44,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [testAlertSending, setTestAlertSending] = useState(false);
 
   useEffect(() => {
     loadNotificationState();
@@ -100,6 +102,40 @@ const NotificationSettingsScreen = ({ navigation }) => {
     }
   };
 
+  const handleSendTestAlert = async () => {
+    if (testAlertSending) return;
+    setTestAlertSending(true);
+
+    try {
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Notifications Off', 'Enable push notifications first, then send a test alert.');
+        return;
+      }
+
+      await PushNotificationService.initialize(supabase, { requestPermissions: false });
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Between Us',
+          body: 'Alerts are working on this device.',
+          data: { route: 'home', type: 'test_alert' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL || 'timeInterval',
+          seconds: 3,
+          channelId: 'default',
+        },
+      });
+
+      Alert.alert('Test Alert Scheduled', 'You should receive a notification on this phone in a few seconds.');
+    } catch (error) {
+      if (__DEV__) console.error('Failed to send test notification:', error);
+      Alert.alert('Test Alert Failed', 'We could not schedule a test alert on this device.');
+    } finally {
+      setTestAlertSending(false);
+    }
+  };
+
   return (
     <EditorialScreenScaffold
       navigation={navigation}
@@ -137,6 +173,25 @@ const NotificationSettingsScreen = ({ navigation }) => {
               Enable notifications above to manage reminders and partner activity alerts.
             </Text>
           </View>
+        )}
+
+        {notificationsEnabled && (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleSendTestAlert}
+            disabled={testAlertSending}
+            style={[
+              styles.testButton,
+              {
+                backgroundColor: testAlertSending ? withAlpha(t.primary, 0.55) : t.primary,
+              },
+            ]}
+          >
+            <Icon name="notifications-outline" size={18} color="#FFFFFF" />
+            <Text style={styles.testButtonText}>
+              {testAlertSending ? 'Scheduling...' : 'Send Test Alert'}
+            </Text>
+          </TouchableOpacity>
         )}
     </EditorialScreenScaffold>
   );
@@ -184,6 +239,24 @@ const createStyles = (t, isDark) => StyleSheet.create({
     lineHeight: 20,
     flex: 1,
     fontWeight: '500',
+  },
+  testButton: {
+    minHeight: 52,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 18,
+    marginBottom: 24,
+  },
+  testButtonText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0,
   },
   saveButton: {
     height: 56,

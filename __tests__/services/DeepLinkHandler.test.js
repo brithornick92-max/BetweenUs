@@ -32,6 +32,27 @@ describe('DeepLinkHandler.handleUrl', () => {
     expect(navigate).toHaveBeenCalledWith('JournalHome', {});
   });
 
+  it('routes pair URLs to the current partner connection screen', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://pair');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('ConnectPartner', {});
+  });
+
+  it('routes quiz URLs to Daily Quiz', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://quiz');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('CouplesQuiz', {});
+  });
+
+  it('keeps old saved-moments URLs routed to Keepsake', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://saved-moments');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('OurStory', {});
+  });
+
   it('returns false for unknown routes', () => {
     const handled = DeepLinkHandler.handleUrl('betweenus://unknown/123');
 
@@ -57,6 +78,23 @@ describe('DeepLinkHandler.handleNotificationResponse', () => {
 
     expect(handled).toBe(true);
     expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: 'p-456' });
+  });
+
+  it('routes saved-moments notification taps to Keepsake', () => {
+    const handled = DeepLinkHandler.handleNotificationResponse({
+      notification: {
+        request: {
+          content: {
+            data: {
+              route: 'saved-moments',
+            },
+          },
+        },
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('OurStory', {});
   });
 
   it('rejects unsafe notification ids', () => {

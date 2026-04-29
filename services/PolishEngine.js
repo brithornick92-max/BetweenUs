@@ -297,7 +297,7 @@ export const NicknameEngine = {
       playful: {
         prompt_intro: partner ? `What do you think, ${partner}?` : 'Ready for this one?',
         date_intro: partner ? `Adventure time with ${partner}` : 'Time for something fun',
-        home_sub: partner ? `You + ${partner} tonight` : 'Just you two tonight',
+        home_sub: partner ? `You + ${partner} today` : 'Just you two today',
       },
       intimate: {
         prompt_intro: partner ? `Between you and ${partner}` : 'Between the two of you',
@@ -305,7 +305,7 @@ export const NicknameEngine = {
         home_sub: partner ? `This is yours and ${partner}'s` : 'This space is yours',
       },
       minimal: {
-        prompt_intro: 'Tonight\'s prompt',
+        prompt_intro: 'Today\'s prompt',
         date_intro: 'Date ideas',
         home_sub: 'Your space',
       },
@@ -319,7 +319,7 @@ export const NicknameEngine = {
     { id: 'warm', label: 'Warm', preview: 'Something for you and {partner}', icon: 'sunny-outline' },
     { id: 'playful', label: 'Playful', preview: 'Ready for this one?', icon: 'happy-outline' },
     { id: 'intimate', label: 'Intimate', preview: 'Between the two of you', icon: 'flame-outline' },
-    { id: 'minimal', label: 'Minimal', preview: 'Tonight\'s prompt', icon: 'close-outline' },
+    { id: 'minimal', label: 'Minimal', preview: 'Today\'s prompt', icon: 'close-outline' },
   ],
 };
 

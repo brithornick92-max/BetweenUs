@@ -7,10 +7,21 @@ appId: com.brittany.betweenus
 
 - launchApp
 
+# Expo dev-client builds may open the development server picker first.
+- tapOn:
+    text: "http://localhost:8082"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+
 - waitForAnimationToEnd
 
 - extendedWaitUntil:
-    visible: ".*TONIGHT'S MOMENT.*|.*TODAY'S MOMENT.*|.*Share Your Thoughts.*"
+    visible: ".*TODAY BETWEEN US.*|.*JUST US.*|.*Keepsake.*|.*Home.*"
     timeout: 10000
 
 # Verify premium-related surfaces from the current signed-in state

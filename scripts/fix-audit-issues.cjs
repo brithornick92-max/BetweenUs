@@ -82,7 +82,7 @@ const rewrites = {
   // h5_048 too similar to h5_012 ("most passionate way...pleasure")
   'h5_048': {
     old: "What's the most passionate way you want me to pleasure you...",
-    new: "Walk me through exactly how you want tonight to end — every position, every touch, every word...",
+    new: "Walk me through exactly how you want today to end — every position, every touch, every word...",
     desc: 'near-dupe of h5_012 → rewritten'
   },
   // h5_038 too similar to h5_014 ("Tell me how you want me to make love")
@@ -94,7 +94,7 @@ const rewrites = {
   // h4_011 too similar to h4_003 ("adventurous and playful")
   'h4_011': {
     old: "What's something adventurous and playful you've been wanting to explore...",
-    new: "If I told you we could try anything new tonight with zero judgment, what would you ask for...",
+    new: "If I told you we could try anything new today with zero judgment, what would you ask for...",
     desc: 'near-dupe of h4_003 → rewritten'
   },
   // h5_030 too similar to h5_012 ("most passionate way...make you")

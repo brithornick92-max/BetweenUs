@@ -7,8 +7,20 @@ let Notifications = null;
 try {
    
   Notifications = require("expo-notifications");
-} catch (e) {
+} catch (_e) {
   Notifications = null;
+}
+
+function dateTrigger(date) {
+  if (!Notifications?.SchedulableTriggerInputTypes?.DATE) {
+    return { date };
+  }
+
+  return {
+    type: Notifications.SchedulableTriggerInputTypes.DATE,
+    date,
+    channelId: 'default',
+  };
 }
 
 export async function ensureNotificationPermissions() {
@@ -30,7 +42,7 @@ export async function scheduleEventNotification({ title, body, when, data }) {
 
   return Notifications.scheduleNotificationAsync({
     content: { title, body, data: data || {} },
-    trigger: { date: new Date(ts) },
+    trigger: dateTrigger(new Date(ts)),
   });
 }
 
@@ -59,7 +71,7 @@ export async function scheduleActionableNotification({ title, body, when, route,
         url: `betweenus://${route}${routeParams.id ? '/' + routeParams.id : ''}`,
       },
     },
-    trigger: { date: new Date(ts) },
+    trigger: dateTrigger(new Date(ts)),
   });
 }
 
@@ -77,5 +89,5 @@ export async function cancelNotification(notificationId) {
   if (!Notifications || !notificationId) return;
   try {
     await Notifications.cancelScheduledNotificationAsync(notificationId);
-  } catch (e) { /* notification cancel non-critical */ }
+  } catch (_e) { /* notification cancel non-critical */ }
 }

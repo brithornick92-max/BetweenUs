@@ -11,7 +11,7 @@ import * as Device from 'expo-device';
 let Notifications = null;
 try {
   Notifications = require('expo-notifications');
-} catch (e) {
+} catch (_e) {
   Notifications = null;
 }
 
@@ -32,6 +32,8 @@ const PushNotificationService = {
     // Configure foreground notification behavior
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
         shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
@@ -46,6 +48,7 @@ const PushNotificationService = {
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF2D55',
         sound: true,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
     }
 

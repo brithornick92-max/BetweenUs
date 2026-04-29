@@ -200,7 +200,7 @@ function RelationshipClimate({ onClimateChange, compact = false }) {
         Climate
       </Text>
       <Text style={[styles.sectionSubtitle, { color: t.subtext }]}>
-        What are we in the mood for tonight?
+        What are we in the mood for today?
       </Text>
 
       {/* Mode Toggles (Top 2) */}

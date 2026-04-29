@@ -1,0 +1,7 @@
+appId: com.brittany.betweenus
+
+---
+
+- tapOn:
+    point: "50%,83%"
+- waitForAnimationToEnd

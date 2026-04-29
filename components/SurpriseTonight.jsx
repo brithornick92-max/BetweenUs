@@ -30,9 +30,9 @@ const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 const INVITATIONS = [
-  "Tonight, no phones after 9 PM. Just eye contact and conversation.",
+  "Today, no phones after 9 PM. Just eye contact and conversation.",
   "A 30-second hug before you go to bed. Don't let go first.",
-  "Whisper one thing you're grateful for about them tonight.",
+  "Whisper one thing you're grateful for about them today.",
   "Surprise them with their favorite drink or snack while they relax.",
   "Write them one sentence about a moment you never want to forget.",
   "Ask them: what's something you've been wanting to tell me?",
@@ -130,7 +130,7 @@ export default function SurpriseTonight() {
                 <Icon name="gift-outline" size={24} color={t.p5} />
               </View>
               <View style={styles.textWrap}>
-                <Text style={[styles.title, { color: t.text }]}>Tonight's Surprise</Text>
+                <Text style={[styles.title, { color: t.text }]}>Today's Surprise</Text>
                 <Text style={[styles.subtitle, { color: t.subtext }]}>A small invitation for the two of you</Text>
               </View>
               <View style={[styles.iconBox, { backgroundColor: withAlpha(t.p5, 0.08) }]}>
@@ -176,7 +176,7 @@ export default function SurpriseTonight() {
                 <Icon name="gift-outline" size={24} color={t.p5} />
               </View>
               <View style={styles.textWrap}>
-                <Text style={[styles.title, { color: t.text }]}>Tonight's Surprise</Text>
+                <Text style={[styles.title, { color: t.text }]}>Today's Surprise</Text>
                 <Text style={[styles.subtitle, { color: t.subtext }]}>
                   Tap to unwrap a small invitation
                 </Text>
@@ -184,11 +184,11 @@ export default function SurpriseTonight() {
             </View>
           ) : (
             <Animated.View style={[styles.revealedContent, { opacity: contentOpacity }]}>
-              <Text style={[styles.missionLabel, { color: t.p3 }]}>TONIGHT'S INVITATION</Text>
+              <Text style={[styles.missionLabel, { color: t.p3 }]}>TODAY'S INVITATION</Text>
               <Text style={[styles.missionText, { color: t.text }]}>{invitation}</Text>
               <View style={styles.bottomBar}>
                 <Icon name="checkmark-circle" size={16} color={t.p5} />
-                <Text style={[styles.acceptedText, { color: t.subtext }]}>Saved for tonight</Text>
+                <Text style={[styles.acceptedText, { color: t.subtext }]}>Saved for today</Text>
               </View>
             </Animated.View>
           )}

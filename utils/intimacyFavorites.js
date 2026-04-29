@@ -196,8 +196,8 @@ export async function toggleIntimacyFavorite(position, { currentlyFavorite = fal
   return { favorites, hearted: true };
 }
 
-export async function toggleIntimacyTried(position, { currentlyTried = false } = {}) {
-  const tried = await getIntimacyTried();
+export async function toggleIntimacyTried(position, { currentlyTried = false, currentTried = null } = {}) {
+  const tried = currentTried ? { ...ensureObject(currentTried) } : await getIntimacyTried();
   const existing = tried[position.id] || null;
 
   if (currentlyTried) {

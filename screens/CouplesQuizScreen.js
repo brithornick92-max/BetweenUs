@@ -68,6 +68,10 @@ const TODAY_QUIZ_KEY = '@betweenus:cache:quizDateKey';
 const TODAY_QUIZ_QUESTION_KEY = '@betweenus:cache:quizQuestionId';
 const MY_QUIZ_ANSWER_KEY = '@betweenus:cache:quizMyAnswer';
 
+export function getQuizPromptId(questionId) {
+  return `quiz:${questionId}`;
+}
+
 function getTodayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -111,6 +115,7 @@ export default function CouplesQuizScreen({ navigation }) {
 
   const todayKey = useMemo(() => getTodayKey(), []);
   const question = useMemo(() => getDailyQuestion(todayKey), [todayKey]);
+  const quizPromptId = useMemo(() => getQuizPromptId(question.id), [question.id]);
   const questionText = substitutePartnerName(question.text, partnerName);
   // All category pills use primary red for consistency
   const accentColor = t.primary;
@@ -145,23 +150,28 @@ export default function CouplesQuizScreen({ navigation }) {
           setHasSubmitted(true);
         }
 
-        // Check if partner answered via DataLayer
+        // Check synced answers via the prompt-answer system.
         try {
-          const rows = await DataLayer.getPromptAnswers?.({ type: 'quiz', dateKey: todayKey, questionId: question.id });
-          if (rows?.length) {
-            const mine = rows.find(r => r.is_mine);
-            const theirs = rows.find(r => !r.is_mine);
-            if (mine) {
-              setMyAnswer(mine.answer || '');
+          const [personalRows, sharedRows] = await Promise.all([
+            DataLayer.getPromptAnswers?.({ dateKey: todayKey, promptId: quizPromptId }),
+            DataLayer.getSharedPromptAnswers?.({ dateKey: todayKey, promptId: quizPromptId }),
+          ]);
+
+          const mine = sharedRows?.[0] || personalRows?.[0] || null;
+
+          if (mine) {
+            if (mine.answer) {
+              setMyAnswer(mine.answer);
               setHasSubmitted(true);
             }
-            if (theirs?.answer) {
-              setPartnerAnswer(theirs.answer);
+
+            if (mine.partnerAnswer) {
+              setPartnerAnswer(mine.partnerAnswer);
               setPartnerHasSubmitted(true);
             }
           }
         } catch {
-          // DataLayer may not have quiz support yet — graceful fallback
+          // Local answer above still keeps the screen usable offline.
         }
       } catch {
         // no-op
@@ -170,7 +180,7 @@ export default function CouplesQuizScreen({ navigation }) {
       }
     }
     load();
-  }, [todayKey, question.id]);
+  }, [todayKey, question.id, quizPromptId]);
 
   const handleSubmit = useCallback(async () => {
     const trimmed = myAnswer.trim();
@@ -183,15 +193,24 @@ export default function CouplesQuizScreen({ navigation }) {
       await storage.set(TODAY_QUIZ_QUESTION_KEY, question.id);
       await storage.set(MY_QUIZ_ANSWER_KEY, trimmed);
 
-      // Try to sync (graceful — not critical path)
+      // Sync using the same bilateral prompt-answer path as today's prompt.
       try {
-        await DataLayer.saveQuizAnswer?.({
-          type: 'quiz',
-          dateKey: todayKey,
-          questionId: question.id,
-          questionText: question.text,
+        await DataLayer.savePromptAnswer?.({
+          promptId: quizPromptId,
           answer: trimmed,
+          heatLevel: 1,
         });
+
+        const sharedRows = await DataLayer.getSharedPromptAnswers?.({
+          dateKey: todayKey,
+          promptId: quizPromptId,
+        });
+
+        if (sharedRows?.[0]?.partnerAnswer) {
+          setPartnerAnswer(sharedRows[0].partnerAnswer);
+          setPartnerHasSubmitted(true);
+        }
+
         // Notify partner
         import('../services/PartnerNotifications').then(({ default: PN }) =>
           PN.quizAnswered?.(myName)
@@ -207,7 +226,7 @@ export default function CouplesQuizScreen({ navigation }) {
     } finally {
       setIsSaving(false);
     }
-  }, [myAnswer, todayKey, question.id, question.text, myName]);
+  }, [myAnswer, todayKey, question.id, quizPromptId, myName]);
 
   const handleReveal = useCallback(() => {
     if (!partnerHasSubmitted) {
@@ -386,7 +405,7 @@ export default function CouplesQuizScreen({ navigation }) {
                         </View>
 
                         <Text style={styles.revealCta}>
-                          How close were you? Talk about it tonight.
+                          How close were you? Talk about it today.
                         </Text>
                       </View>
                     </Animated.View>

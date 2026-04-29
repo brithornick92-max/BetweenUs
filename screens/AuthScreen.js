@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -65,49 +66,55 @@ export default function AuthScreen() {
 
   const handleAuth = useCallback(async () => {
     if (submitting) return;
+    
+    // Validate before setting submitting state
+    if (!signIn || !signUp) {
+      Alert.alert("Auth not ready", "Please wait a moment and try again.");
+      return;
+    }
+    if (!email.trim() || !password.trim()) {
+      impact(ImpactFeedbackStyle.Light);
+      Alert.alert("Missing fields", "Please enter your email and password.");
+      return;
+    }
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+      impact(ImpactFeedbackStyle.Light);
+      Alert.alert("Invalid email", "Please enter a valid email address.");
+      return;
+    }
+    if (isSignUp) {
+      if (!displayName.trim()) {
+        impact(ImpactFeedbackStyle.Light);
+        Alert.alert("Missing name", "Please enter your name.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        impact(ImpactFeedbackStyle.Light);
+        Alert.alert("Mismatch", "Passwords do not match.");
+        return;
+      }
+      if (password.length < 8) {
+        impact(ImpactFeedbackStyle.Light);
+        Alert.alert("Too short", "Password must be at least 8 characters.");
+        return;
+      }
+      if (!ageConfirmed) {
+        impact(ImpactFeedbackStyle.Light);
+        Alert.alert("Age Confirmation Required", "You must confirm you are 18 or older to use Between Us.");
+        return;
+      }
+      if (!termsAccepted) {
+        impact(ImpactFeedbackStyle.Light);
+        Alert.alert("Terms Required", "Please accept the Terms of Service and Privacy Policy to continue.");
+        return;
+      }
+    }
+    
+    // Only set submitting after validation passes
     try {
       setSubmitting(true);
-      if (!signIn || !signUp) {
-        Alert.alert("Auth not ready", "Please wait a moment and try again.");
-        return;
-      }
-      if (!email.trim() || !password.trim()) {
-        impact(ImpactFeedbackStyle.Light);
-        Alert.alert("Missing fields", "Please enter your email and password.");
-        return;
-      }
-      const trimmedEmail = email.trim().toLowerCase();
-      if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
-        impact(ImpactFeedbackStyle.Light);
-        Alert.alert("Invalid email", "Please enter a valid email address.");
-        return;
-      }
       if (isSignUp) {
-        if (!displayName.trim()) {
-          impact(ImpactFeedbackStyle.Light);
-          Alert.alert("Missing name", "Please enter your name.");
-          return;
-        }
-        if (password !== confirmPassword) {
-          impact(ImpactFeedbackStyle.Light);
-          Alert.alert("Mismatch", "Passwords do not match.");
-          return;
-        }
-        if (password.length < 8) {
-          impact(ImpactFeedbackStyle.Light);
-          Alert.alert("Too short", "Password must be at least 8 characters.");
-          return;
-        }
-        if (!ageConfirmed) {
-          impact(ImpactFeedbackStyle.Light);
-          Alert.alert("Age Confirmation Required", "You must confirm you are 18 or older to use Between Us.");
-          return;
-        }
-        if (!termsAccepted) {
-          impact(ImpactFeedbackStyle.Light);
-          Alert.alert("Terms Required", "Please accept the Terms of Service and Privacy Policy to continue.");
-          return;
-        }
         impact(ImpactFeedbackStyle.Medium);
         await signUp(trimmedEmail, password, displayName.trim());
       } else {
@@ -118,11 +125,13 @@ export default function AuthScreen() {
       impact(ImpactFeedbackStyle.Heavy);
       // Sanitize error: don't expose raw Supabase messages that may contain PII
       const raw = error?.message ?? '';
+      console.error('[AuthScreen] Sign in error:', raw);
       let friendly = 'Something went wrong. Please try again.';
-      if (raw.includes('Invalid login') || raw.includes('Invalid password') || raw.includes('User not found')) friendly = 'Incorrect email or password.';
+      if (raw.includes('Supabase is not configured')) friendly = 'Server connection not configured. Please contact support.';
+      else if (raw.includes('Invalid login') || raw.includes('Invalid password') || raw.includes('User not found') || raw.includes('Invalid credentials')) friendly = 'Incorrect email or password.';
       else if (raw.includes('already registered') || raw.includes('already been registered')) friendly = 'This email is already registered. Try signing in instead.';
       else if (raw.includes('rate limit') || raw.includes('too many')) friendly = 'Too many attempts. Please wait a moment and try again.';
-      else if (raw.includes('network') || raw.includes('Network')) friendly = 'Network error. Check your connection and try again.';
+      else if (raw.includes('network') || raw.includes('Network') || raw.includes('fetch')) friendly = 'Network error. Check your connection and try again.';
       else if (raw.includes('timed out')) friendly = 'Sign in timed out. Check your connection and try again.';
       else if (raw.includes('Email not confirmed')) friendly = 'Please check your email and confirm your account first.';
       Alert.alert("Error", friendly);
@@ -195,7 +204,7 @@ export default function AuthScreen() {
               <Text style={styles.title}>Between Us</Text>
               <View style={styles.divider} />
               <Text style={styles.subtitle}>
-                {isSignUp ? "Where closeness deepens" : "Welcome back, love"}
+                {isSignUp ? "Where closeness deepens" : "Welcome back"}
               </Text>
             </View>
 
@@ -366,7 +375,7 @@ export default function AuthScreen() {
 
               {/* ─── CTA Button ─── */}
               <TouchableOpacity
-                style={[styles.authButton, { backgroundColor: t.primary }]}
+                style={[styles.authButton, { backgroundColor: t.primary }, (loading || submitting) && { opacity: 0.7 }]}
                 onPress={handleAuth}
                 disabled={loading || submitting}
                 activeOpacity={0.9}
@@ -374,9 +383,16 @@ export default function AuthScreen() {
                 accessibilityLabel={isSignUp ? "Create Account" : "Sign In"}
                 accessibilityState={{ disabled: loading || submitting, busy: loading || submitting }}
               >
-                <Text style={styles.authButtonText}>
-                  {loading ? "Establishing connection..." : isSignUp ? "Create Account" : "Sign In"}
-                </Text>
+                {(loading || submitting) ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <Text style={styles.authButtonText}>Signing in...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.authButtonText}>
+                    {isSignUp ? "Create Account" : "Sign In"}
+                  </Text>
+                )}
               </TouchableOpacity>
 
               {!isSignUp && (

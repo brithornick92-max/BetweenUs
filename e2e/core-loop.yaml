@@ -1,5 +1,5 @@
-# core-loop.yaml — E2E test: View prompt → answer → verify in journal
-# Tests the critical daily engagement loop.
+# core-loop.yaml — E2E test: Home → main tabs/actions smoke flow
+# Tests the critical daily surfaces still render and route.
 #
 # Prerequisite: User is authenticated and onboarded (on Home tab).
 
@@ -9,10 +9,21 @@ appId: com.brittany.betweenus
 
 - launchApp
 
+# Expo dev-client builds may open the development server picker first.
+- tapOn:
+    text: "http://localhost:8082"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+
 # Wait for home screen to load
 - waitForAnimationToEnd
 - extendedWaitUntil:
-    visible: ".*TONIGHT'S MOMENT.*|.*TODAY'S MOMENT.*|.*Share Your Thoughts.*"
+    visible: ".*TODAY BETWEEN US.*|.*JUST US.*|.*Keepsake.*"
     timeout: 10000
 
 # Navigate to Prompts tab
@@ -53,3 +64,10 @@ appId: com.brittany.betweenus
 # Return to Home
 - tapOn: "Home, tab, 1 of 5"
 - waitForAnimationToEnd
+
+# Open Keepsake from Home action card
+- tapOn: "Keepsake"
+- waitForAnimationToEnd
+
+- assertVisible:
+    text: ".*Keepsake.*|.*OUR STORY.*"

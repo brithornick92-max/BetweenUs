@@ -1,5 +1,5 @@
 // screens/RevealScreen.js
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
-import { BlurView } from "expo-blur";
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { notification, selection, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from "../context/AppContext";
@@ -66,10 +65,23 @@ export default function RevealScreen({ route, navigation }) {
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
+  const triggerRevealLogic = useCallback((doHaptics = true) => {
+    if (doHaptics && Platform.OS !== "web") {
+      notification(NotificationFeedbackType.Success);
+    }
+    setIsRevealed(true);
+
+    Animated.parallel([
+      Animated.timing(revealAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, friction: 9, tension: 50, useNativeDriver: true }),
+    ]).start();
+  }, [revealAnim, scaleAnim, slideAnim]);
+
   useEffect(() => {
     if (userAnswer?.isRevealed) {
       triggerRevealLogic(false);
-      return;
+      return undefined;
     }
 
     if (!isRevealed) {
@@ -82,20 +94,9 @@ export default function RevealScreen({ route, navigation }) {
       loop.start();
       return () => loop.stop();
     }
-  }, [isRevealed, userAnswer]);
 
-  const triggerRevealLogic = (doHaptics = true) => {
-    if (doHaptics && Platform.OS !== "web") {
-      notification(NotificationFeedbackType.Success);
-    }
-    setIsRevealed(true);
-
-    Animated.parallel([
-      Animated.timing(revealAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, friction: 9, tension: 50, useNativeDriver: true }),
-    ]).start();
-  };
+    return undefined;
+  }, [isRevealed, pulseAnim, triggerRevealLogic, userAnswer?.isRevealed]);
 
   const handleReveal = async () => {
     if (!prompt?.id) return;
@@ -135,21 +136,16 @@ export default function RevealScreen({ route, navigation }) {
     waiting_for_partner: {
       eyebrow: 'SAVED PRIVATELY',
       title: 'A reveal is forming',
-      body: `Your answer is in. ${partnerName} can add theirs whenever they're ready.`,
       primaryLabel: `Let ${partnerName} know`,
-      helper: 'Nothing is shown until both answers are in.',
     },
     ready_to_reveal: {
       eyebrow: 'PRIVATE REVEAL',
       title: 'You both left something',
-      body: 'Open the reveal and see where you met today.',
       primaryLabel: 'Reveal together',
-      helper: 'The app shows both answers together when you open this moment.',
     },
     revealed: {
       eyebrow: 'REVEALED',
       title: "Here's what you both left",
-      body: 'You both made a small moment today. Save it to your archive or turn it into time together.',
       primaryLabel: 'Save to our archive',
       secondaryLabel: 'Plan something from this',
     },
@@ -225,9 +221,6 @@ export default function RevealScreen({ route, navigation }) {
 
               <Text style={[styles.lockedEyebrow, { color: t.primary }]}>{revealCopy.eyebrow}</Text>
               <Text style={[styles.lockedTitle, { color: t.text }]}>{revealCopy.title}</Text>
-              <Text style={[styles.lockedSub, { color: t.subtext }]}>
-                {revealCopy.body}
-              </Text>
 
               <Button
                 title={revealCopy.primaryLabel}
@@ -235,12 +228,6 @@ export default function RevealScreen({ route, navigation }) {
                 style={styles.revealAction}
               />
               
-              <View style={styles.privacyNoteContainer}>
-                <Icon name="shield-outline" size={14} color={t.subtext} />
-                <Text style={[styles.miniNote, { color: t.subtext }]}>
-                  {revealCopy.helper}
-                </Text>
-              </View>
             </View>
           ) : (
             /* REVEALED STATE */
@@ -278,27 +265,9 @@ export default function RevealScreen({ route, navigation }) {
                     <Text style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}>
                       {partnerName} hasn't shared their thoughts yet.
                     </Text>
-                    <Text style={[styles.miniNote, { color: t.subtext, marginTop: 12 }]}>
-                      They can reveal yours after they answer too.
-                    </Text>
                   </View>
                 )}
               </View>
-
-              {/* Discussion Guide / Keep Going */}
-              <BlurView
-                intensity={isDark ? 15 : 30}
-                tint={isDark ? "dark" : "light"}
-                style={[styles.insightBox, { borderColor: t.border }]}
-              >
-                <View style={styles.insightHeader}>
-                  <Icon name="bookmark-outline" size={20} color={t.accent} />
-                  <Text style={[styles.insightTitle, { color: t.text }]}>Worth keeping</Text>
-                </View>
-                <Text style={[styles.insightText, { color: t.subtext }]}>
-                  {revealCopy.body}
-                </Text>
-              </BlurView>
 
               <Button
                 title={revealCopy.primaryLabel}

@@ -1,0 +1,143 @@
+# all-screens-smoke.yaml — E2E test: broad signed-in navigation smoke
+# Prerequisite: User is authenticated and onboarded.
+
+appId: com.brittany.betweenus
+
+---
+
+- launchApp
+
+# Expo dev-client builds may open the development server picker first.
+- tapOn:
+    text: "http://localhost:8082"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: ".*TODAY BETWEEN US.*|.*JUST US.*|.*Keepsake.*|.*Home.*"
+    timeout: 10000
+
+# Home action cards
+- tapOn: "Notes"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Journal.*|.*SHARED NOTES.*|.*New Shared Entry.*"
+- tapOn: "Close"
+- waitForAnimationToEnd
+
+- tapOn: "Play"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Daily Quiz.*|.*KNOW YOUR PARTNER.*|.*Lock In My Answer.*"
+- tapOn: "Close"
+- waitForAnimationToEnd
+
+- tapOn: "Spark"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Intimacy.*|.*SEX POSITIONS.*|.*Explore closeness.*"
+- tapOn: "Close"
+- waitForAnimationToEnd
+
+- tapOn: "Keepsake"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Keepsake.*|.*OUR STORY.*|.*Newest first.*"
+- tapOn: "Close"
+- waitForAnimationToEnd
+
+# Primary tabs
+- tapOn: "Prompts, tab, 2 of 5"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Draw a card.*|.*Prompts.*|.*Shuffle Deck.*"
+
+- tapOn: "Calendar, tab, 3 of 5"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Timeline.*|.*THE CALENDAR.*|.*No shared plans.*"
+
+- tapOn: "Dates, tab, 4 of 5"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Dates.*|.*Shuffle Deck.*|.*ideas ready.*"
+
+# Settings and subpages
+- tapOn: "Settings, tab, 5 of 5"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*PREFERENCES & ACCOUNT.*"
+
+- tapOn: "Edit profile names"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Names.*|.*Identity.*|.*Partner.*"
+- tapOn: "Close"
+- waitForAnimationToEnd
+- tapOn:
+    point: "90%,90%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*PREFERENCES & ACCOUNT.*"
+
+- tapOn: "Heat Level"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Heat.*|.*Explicit.*|.*Sensual.*"
+- tapOn: "Close"
+- waitForAnimationToEnd
+- tapOn:
+    point: "90%,90%"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*PREFERENCES & ACCOUNT.*"
+
+- assertVisible: "Notifications"
+
+- swipe:
+    start: 50%, 80%
+    end: 50%, 25%
+    duration: 600
+- swipe:
+    start: 50%, 80%
+    end: 50%, 25%
+    duration: 600
+- swipe:
+    start: 50%, 80%
+    end: 50%, 25%
+    duration: 600
+- waitForAnimationToEnd
+
+- tapOn: "Privacy Policy"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Privacy Policy.*|.*SECURITY & TRUST.*"
+- tapOn: "Close"
+- waitForAnimationToEnd
+
+- tapOn: "Terms of Service"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Terms.*|.*Service.*"
+- tapOn: "Close"
+- waitForAnimationToEnd
+
+- tapOn: "FAQ"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*Assistance.*|.*KNOWLEDGE BASE.*|.*Getting Started.*"
+- tapOn: "Close"
+- waitForAnimationToEnd
+
+- tapOn: "EULA"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*EULA.*|.*End User.*|.*License.*"
+- tapOn: "Close"
+- waitForAnimationToEnd

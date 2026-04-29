@@ -124,19 +124,24 @@ export default function JournalEntryScreen({ navigation, route }) {
         isPrivate: false,
       };
 
-      const isExistingVideoUnchanged = !!entry?.mediaRef
-        && !!entry?.mediaUri
-        && mediaUri === entry.mediaUri
-        && mediaType === entry.mediaType;
+      const initialMediaUri = entry?.mediaUri || initialLegacyImageUri || null;
+      const isExistingMediaUnchanged = !!initialMediaUri
+        && mediaUri === initialMediaUri
+        && mediaType === (entry?.mediaType || (initialLegacyImageUri ? 'image/jpeg' : null))
+        && !mediaFileName;
+      const wasMediaRemoved = !!initialMediaUri && !mediaUri;
+      const hasNewMedia = !!mediaUri && !isExistingMediaUnchanged;
 
-      if (isVideoMedia) {
-        if (!isExistingVideoUnchanged) {
-          entryData.mediaUri = mediaUri || null;
-          entryData.mimeType = mediaType || 'video/quicktime';
-          entryData.fileName = mediaFileName || `journal_${Date.now()}.mov`;
-        }
-      } else {
-        entryData.imageUri = mediaUri || null;
+      if (wasMediaRemoved) {
+        entryData.mediaUri = null;
+        entryData.imageUri = null;
+      } else if (hasNewMedia) {
+        const fallbackExtension = isVideoMedia ? 'mov' : 'jpg';
+        entryData.mediaUri = mediaUri;
+        entryData.mimeType = mediaType || (isVideoMedia ? 'video/quicktime' : 'image/jpeg');
+        entryData.fileName = mediaFileName || `journal_${Date.now()}.${fallbackExtension}`;
+      } else if (isExistingMediaUnchanged && initialLegacyImageUri) {
+        entryData.imageUri = initialLegacyImageUri;
       }
 
       if (entry?.id) {

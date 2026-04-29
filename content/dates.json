@@ -120,7 +120,7 @@
         "Pick 4-6 chocolates with very different flavors",
         "Taste each one slowly and rate it from 1-10",
         "Feed each other your favorite bite",
-        "Decide which one feels most like your relationship tonight"
+        "Decide which one feels most like your relationship today"
       ],
       "heat": 1,
       "load": 1,
@@ -140,7 +140,7 @@
         "Discuss your impressions of each chocolate: its aroma, texture, flavor notes, and how it evolves in your mouth. Rate each one on a scale of 1 to 10.",
         "After tasting all the chocolates, each choose your absolute favorite. Explain why it stood out to you.",
         "Take a small piece of your favorite chocolate and gently feed it to your partner, encouraging them to savor the taste you loved most.",
-        "Together, decide which one of the chocolates best represents your relationship tonight – perhaps it's complex, sweet, or comforting.",
+        "Together, decide which one of the chocolates best represents your relationship today – perhaps it's complex, sweet, or comforting.",
         "Enjoy the remaining chocolates, perhaps pairing them with your favorite drink."
       ],
       "conversationPrompts": [
@@ -390,7 +390,7 @@
         "On the way home, hum a favorite tune from the evening or recount a memorable moment from the performance."
       ],
       "conversationPrompts": [
-        "What instrument is catching your ear tonight, and why?",
+        "What instrument is catching your ear today, and why?",
         "If you could pick one song for the band to play just for us, what would it be?",
         "What's a feeling this music brings up for you right now?"
       ],
@@ -488,7 +488,7 @@
         "Pick three songs that each set a different mood",
         "Dim the lights and make the room feel dressed up",
         "Slow dance through all three without checking your phones",
-        "After the last song, say one thing you wanted to tell each other tonight"
+        "After the last song, say one thing you wanted to tell each other today"
       ],
       "heat": 1,
       "load": 1,
@@ -508,12 +508,12 @@
         "Transition directly into the second song, letting the change in tempo or mood subtly shift your movements and interaction.",
         "Move into the third song, allowing yourselves to simply be present in each other's arms without distraction.",
         "After the final notes fade, remain in your embrace for a few quiet moments, letting the silence settle.",
-        "Share one genuine thought or feeling that came up for you during the dance, or something you've wanted to tell them tonight."
+        "Share one genuine thought or feeling that came up for you during the dance, or something you've wanted to tell them today."
       ],
       "conversationPrompts": [
         "What's a song from our early days that still makes you smile?",
         "If we were in a movie, which of these songs would be our theme song?",
-        "What's one small thing you noticed about our movements together tonight?"
+        "What's one small thing you noticed about our movements together today?"
       ],
       "connectionTwist": "During the last song, close your eyes for a few seconds and just feel each other's presence.",
       "ending": "After sharing your thoughts, seal the moment with a gentle kiss and a quiet promise to revisit this simple joy soon."
@@ -826,7 +826,7 @@
         "Small red-light flashlight (to preserve night vision)"
       ],
       "guidedSteps": [
-        "Before heading out, familiarize yourselves with basic telescope operation and identify a few key celestial objects visible tonight.",
+        "Before heading out, familiarize yourselves with basic telescope operation and identify a few key celestial objects visible today.",
         "Travel to a dark-sky location, aiming to arrive just after twilight.",
         "Set up the telescope together, taking your time to calibrate it and find your first target.",
         "Take turns looking through the eyepiece, describing what you see to each other.",
@@ -912,7 +912,7 @@
         "Continue your drive, keeping the conversation light and flirty, enjoying the feeling of being in your own private bubble."
       ],
       "conversationPrompts": [
-        "What's one small detail you find incredibly attractive about me tonight?",
+        "What's one small detail you find incredibly attractive about me today?",
         "If we could drive anywhere in the world right now, where would we end up?",
         "What's a song on this playlist that makes you feel most connected to me?"
       ],
@@ -985,7 +985,7 @@
         "Dim the lights or light candles in your chosen 'lounge' area, creating a soft, inviting atmosphere.",
         "Put on your curated playlist of 3-5 slow songs that invite gentle movement and closeness.",
         "Invite your partner to dance. Take your time, focus on the rhythm of your bodies together, and enjoy the physical connection.",
-        "After a few songs, pause the music and each share one bold, specific compliment about how your partner looks or feels in your arms tonight.",
+        "After a few songs, pause the music and each share one bold, specific compliment about how your partner looks or feels in your arms today.",
         "Continue dancing for as long as you wish, letting the music and your closeness guide the evening."
       ],
       "conversationPrompts": [
@@ -1195,7 +1195,7 @@
       ],
       "conversationPrompts": [
         "What's a simple outdoor memory from your childhood that you cherish?",
-        "If we could dine under any sky in the world tonight, where would we be?",
+        "If we could dine under any sky in the world today, where would we be?",
         "What's one thing you're grateful for about our home and the space we share?"
       ],
       "connectionTwist": "Before you start eating, hold hands across the table and take three deep breaths together, grounding yourselves in the moment.",
@@ -2083,7 +2083,7 @@
         "Take turns feeding each other bites of your snacks, maybe with a playful challenge to see who can make the other laugh.",
         "As your playlist transitions to a slower song, clear a small space and move into a close slow dance.",
         "Hold each other tight, swaying to the music, and enjoy the quiet intimacy after the playful energy.",
-        "Share one thing you loved about dancing with each other tonight."
+        "Share one thing you loved about dancing with each other today."
       ],
       "conversationPrompts": [
         "What's a song that instantly makes you want to dance?",
@@ -3471,7 +3471,7 @@
       "conversationPrompts": [
         "What's one obscure fact you know that you're always waiting for a trivia question about?",
         "If we were to host our own trivia night, what would be our signature category?",
-        "What's the most surprising thing you learned tonight, either about a trivia fact or about how we collaborate?"
+        "What's the most surprising thing you learned today, either about a trivia fact or about how we collaborate?"
       ],
       "connectionTwist": "Invent a silly team name for the night and write it proudly on your answer sheet.",
       "ending": "Raise a glass to your teamwork and shared intellect, regardless of your final score."
@@ -4074,7 +4074,7 @@
       "conversationPrompts": [
         "If you could solve any real-life mystery, what would it be?",
         "What's your favorite detective story or true crime podcast?",
-        "Which character tonight did you find most suspicious and why?"
+        "Which character today did you find most suspicious and why?"
       ],
       "connectionTwist": "Before the event, secretly write down who you *think* the culprit will be. Compare your predictions at the end of the night.",
       "ending": "Once home, recount the most surprising plot twist and compliment each other on your keen observations throughout the evening."
@@ -4875,7 +4875,7 @@
         "What's something you appreciate about my family's history or traditions?"
       ],
       "connectionTwist": "As you look at your combined family trees, gently interlace your fingers, symbolizing the new branch you are creating together.",
-      "ending": "Put away your supplies. Share one thing you learned or appreciated most about your partner's family history tonight."
+      "ending": "Put away your supplies. Share one thing you learned or appreciated most about your partner's family history today."
     },
     {
       "id": "d283",
@@ -7354,7 +7354,7 @@
       "conversationPrompts": [
         "What's a food memory from your childhood that makes you feel warm and nostalgic?",
         "If we could cook any meal for someone we care about, what would we make?",
-        "What was your favorite part of cooking together tonight?"
+        "What was your favorite part of cooking together today?"
       ],
       "connectionTwist": "Before you take the first bite, raise your glasses (or mugs) and silently toast to the joy of creating and sharing together.",
       "ending": "After the meal, linger at the table, holding hands across the candlelight, and share one thing you're looking forward to doing together in the coming week."
@@ -8279,7 +8279,7 @@
         "Conclude the massage by gently caressing and holding your partner, letting the touch lead to natural intimacy."
       ],
       "conversationPrompts": [
-        "What specific type of touch or pressure felt most pleasurable to you tonight?",
+        "What specific type of touch or pressure felt most pleasurable to you today?",
         "Where on your body do you feel the most sensation when I touch you?",
         "What did it feel like to completely surrender to my touch?"
       ],
@@ -9657,7 +9657,7 @@
       ],
       "conversationPrompts": [
         "What did my answer to that question reveal about me that you didn't expect?",
-        "If we were to make one of these scenarios come true tonight, which would you pick?",
+        "If we were to make one of these scenarios come true today, which would you pick?",
         "What kind of 'Would You Rather' question would you like to ask me that we haven't covered?"
       ],
       "connectionTwist": "At the end, write down one shared fantasy or desire that surfaced during the game and place it in a 'desire jar' to revisit another time.",
@@ -9861,7 +9861,7 @@
         "When ready, gently transition back to yourselves, perhaps with a shared touch or word."
       ],
       "conversationPrompts": [
-        "What's one thing your character desires most tonight?",
+        "What's one thing your character desires most today?",
         "If we were to meet again, where would it be?",
         "What hidden part of yourself did you get to express as this character?"
       ],
@@ -10023,7 +10023,7 @@
         "Transition from the public space to your private one, allowing the built-up anticipation to unfold."
       ],
       "conversationPrompts": [
-        "What was the most exciting signal you received tonight?",
+        "What was the most exciting signal you received today?",
         "What's a secret desire you were communicating without words?",
         "How does it feel to share this private world with me in public?"
       ],
@@ -10046,7 +10046,7 @@
       "style": "doing",
       "releaseWeek": 13,
       "vibe": "A playful exchange of intimate promises, waiting to be redeemed with anticipation.",
-      "setup": "Imagine a personalized booklet filled with desires you're excited to grant your partner. This date invites you to craft and exchange these intimate promises, creating a tender, sensual game that extends beyond tonight.",
+      "setup": "Imagine a personalized booklet filled with desires you're excited to grant your partner. This date invites you to craft and exchange these intimate promises, creating a tender, sensual game that extends beyond today.",
       "supplies": [
         "Small notebooks or card stock",
         "Pens or markers",
@@ -10059,7 +10059,7 @@
         "Write out each \"coupon\" clearly, specifying what it entails and any conditions (e.g., \"Good for one 15-minute back massage,\" \"Redeemable for a sensual touch exploration,\" \"Valid for a shared fantasy discussion\").",
         "Once both booklets are complete, sit facing each other. Exchange your creations, taking time to slowly flip through your partner's coupons, letting the anticipation build.",
         "Discuss any questions about what a coupon implies, clarifying expectations with openness and lightheartedness.",
-        "Together, choose one coupon from either booklet to redeem tonight. This first redemption sets the tone for future playful interactions.",
+        "Together, choose one coupon from either booklet to redeem today. This first redemption sets the tone for future playful interactions.",
         "Engage in the chosen coupon's activity fully, enjoying the act of giving or receiving this intimate gift."
       ],
       "conversationPrompts": [
@@ -10350,7 +10350,7 @@
       ],
       "conversationPrompts": [
         "Which ghost story or historical anecdote was the most unsettling for you?",
-        "If you could meet one of the spirits from tonight's stories, who would it be and what would you ask them?",
+        "If you could meet one of the spirits from today's stories, who would it be and what would you ask them?",
         "What's something you learned about our city's history that you didn't know before?"
       ],
       "connectionTwist": "Before the tour begins, establish a secret signal (e.g., a specific hand squeeze) to use when one of you feels a genuine shiver or a moment of playful fright during the stories.",
@@ -10553,7 +10553,7 @@
         "Conclude your visit by sharing your overall impressions of the exhibition over a light refreshment."
       ],
       "conversationPrompts": [
-        "If you could take one piece of art home tonight, which one would it be and where would you put it?",
+        "If you could take one piece of art home today, which one would it be and where would you put it?",
         "What emotion or idea do you think the artist was trying to convey with this piece?",
         "How does seeing this art make you view the world differently, even just a little?"
       ],
@@ -10720,7 +10720,7 @@
       "conversationPrompts": [
         "What's a memory this light or scene brings up for you?",
         "If this street could talk, what story do you think it would tell?",
-        "What's one thing you noticed tonight that you've never truly seen before?"
+        "What's one thing you noticed today that you've never truly seen before?"
       ],
       "connectionTwist": "At the end, choose your single favorite photo of your partner from the night and share why you picked that one.",
       "ending": "Return home and look through all your photos together, sharing a snack and commenting on your favorite captures."
@@ -12026,7 +12026,7 @@
       ],
       "conversationPrompts": [
         "If you could open your own stall here, what would you sell?",
-        "What's the most surprising flavor you've tasted tonight, and why?",
+        "What's the most surprising flavor you've tasted today, and why?",
         "What's a memory this atmosphere brings up for you?"
       ],
       "connectionTwist": "Before leaving, choose one small, affordable item together that represents a shared discovery from the night.",
@@ -12714,7 +12714,7 @@
       ],
       "conversationPrompts": [
         "If this cheese had a personality, what would it be like?",
-        "What's a new flavor combination you've discovered tonight that surprises you?",
+        "What's a new flavor combination you've discovered today that surprises you?",
         "What's a food experience you've always wanted to try together?"
       ],
       "connectionTwist": "Create a 'signature bite' by combining your favorite cheese with an unexpected cracker or fruit, then feed it to each other.",
@@ -13081,7 +13081,7 @@
       "conversationPrompts": [
         "What does 'truly restful sleep' feel like to you, and how can we create more of that?",
         "What's one small thing we can do regularly to make our bedroom feel more like a sanctuary?",
-        "If you could design the perfect dream for us tonight, what would it be?"
+        "If you could design the perfect dream for us today, what would it be?"
       ],
       "connectionTwist": "Before falling asleep, gently rub each other's shoulders or feet for a few minutes, focusing on quiet touch.",
       "ending": "Share a slow morning coffee or tea in bed, reflecting on the quality of your rest and the comfort of waking up together."
@@ -14243,7 +14243,7 @@
         "Find a quiet rooftop or balcony after sunset",
         "Follow a gentle couples yoga video together",
         "Pour wine and slow dance under the stars",
-        "Share three things you're grateful for tonight"
+        "Share three things you're grateful for today"
       ],
       "heat": 2,
       "load": 2,
@@ -14269,8 +14269,8 @@
         "Share a slow dance to quiet music or simply hold each other, soaking in the peaceful atmosphere."
       ],
       "conversationPrompts": [
-        "What's one small thing you appreciated about our time together tonight?",
-        "If you could make a wish on a falling star tonight, what would it be?",
+        "What's one small thing you appreciated about our time together today?",
+        "If you could make a wish on a falling star today, what would it be?",
         "What's a quality in me that you feel grateful for right now?"
       ],
       "connectionTwist": "Gently massage your partner's neck or shoulders for a few minutes while you talk or look at the stars.",
@@ -14686,7 +14686,7 @@
         "Capture a photo of your new personas together before the night ends."
       ],
       "conversationPrompts": [
-        "What's the best part about being this character tonight?",
+        "What's the best part about being this character today?",
         "If this character had a secret dream, what would it be?",
         "What did you enjoy most about choosing an outfit for me?"
       ],
@@ -14771,7 +14771,7 @@
       ],
       "conversationPrompts": [
         "What's a small adventure you'd like us to have next?",
-        "What quality in me are you most appreciating tonight?",
+        "What quality in me are you most appreciating today?",
         "If this fire could tell us a secret, what do you think it would say?"
       ],
       "connectionTwist": "Before extinguishing the fire, find two small, smooth pebbles and warm them by the embers, then exchange them as a token of the evening's shared openness.",
@@ -14810,7 +14810,7 @@
         "Before the night ends, agree on one move you'll try to teach each other or practice at home later."
       ],
       "conversationPrompts": [
-        "What was the most challenging move tonight, and what was the most fun?",
+        "What was the most challenging move today, and what was the most fun?",
         "If we were to create our own signature dance move, what would it be like?",
         "What's another new skill you'd like to learn with me?"
       ],
@@ -15632,8 +15632,8 @@
         "Find a quieter spot, perhaps a bench or a less crowded corner, to enjoy your last treat and people-watch. Observe the different groups, the vendors, and the overall atmosphere."
       ],
       "conversationPrompts": [
-        "What's the most surprising flavor you've encountered tonight, and why?",
-        "If you had to describe tonight's experience as a single dish, what would it be?",
+        "What's the most surprising flavor you've encountered today, and why?",
+        "If you had to describe today's experience as a single dish, what would it be?",
         "What kind of food experience would you love to try next, anywhere in the world?"
       ],
       "connectionTwist": "Before leaving, find a small, unique item or ingredient that reminds you of your favorite shared taste from the evening to take home.",
@@ -16032,7 +16032,7 @@
         "The winner gets to choose the next activity, which could be anything from a sensual massage to simply cuddling."
       ],
       "conversationPrompts": [
-        "What was the most surprising answer you heard about me tonight?",
+        "What was the most surprising answer you heard about me today?",
         "What's a new question we should add for next time?",
         "What's a hidden talent or preference of yours you think I still don't know?"
       ],
@@ -16373,7 +16373,7 @@
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Look up tonight's moon phase together",
+        "Look up today's moon phase together",
         "Write intentions for a new moon or releases for a full moon",
         "Read them aloud by candlelight",
         "Place your notes under the moonlight overnight"
@@ -17197,7 +17197,7 @@
         "Dim the lights and get comfortable together",
         "Take turns whispering a secret fantasy into each other's ear",
         "Ask follow-up questions without judgment",
-        "Choose one fantasy to explore together tonight"
+        "Choose one fantasy to explore together today"
       ],
       "heat": 3,
       "load": 1,
@@ -17299,7 +17299,7 @@
         "Take turns drawing one card at a time. Read the desire aloud to your partner.",
         "After reading, discuss the desire. Share why it appeals to you, or what makes it intriguing if it's new.",
         "As you go through the cards, identify any desires that genuinely excite both of you.",
-        "Choose one or two of the shared desires that you are both eager to explore further tonight or in the near future."
+        "Choose one or two of the shared desires that you are both eager to explore further today or in the near future."
       ],
       "conversationPrompts": [
         "What made you choose this particular desire to write down?",
@@ -17382,7 +17382,7 @@
       ],
       "conversationPrompts": [
         "What about this truth/dare makes you feel excited or nervous?",
-        "What's a boundary you're open to exploring a little further tonight?",
+        "What's a boundary you're open to exploring a little further today?",
         "If you could ask me any intimate question right now, what would it be?"
       ],
       "connectionTwist": "For any dare that is performed, the giver of the dare must also offer a compliment about how their partner executed it, focusing on specific details.",
@@ -17499,7 +17499,7 @@
       "conversationPrompts": [
         "What about this outfit makes you feel most confident or alluring?",
         "What's one detail about how I'm wearing this that you find particularly captivating?",
-        "Which piece of clothing tonight makes you feel most desired?"
+        "Which piece of clothing today makes you feel most desired?"
       ],
       "connectionTwist": "After both have modeled, slowly undress each other from the favorite outfit, savoring each piece of fabric and each touch.",
       "ending": "Embrace each other, feeling the bare skin, and let the shared admiration lead to deeper intimacy."
@@ -17619,7 +17619,7 @@
         "Debrief gently, sharing what felt good, what was surprising, and what you might want to explore further next time."
       ],
       "conversationPrompts": [
-        "What did you discover about your own desires or boundaries tonight?",
+        "What did you discover about your own desires or boundaries today?",
         "What was one moment during the role-play that felt particularly exciting or powerful for you?",
         "If we were to try this again, is there anything new you'd want to explore or change?"
       ],
@@ -17633,7 +17633,7 @@
       "location": "home",
       "steps": [
         "Each draw an outline of your partner's body on paper",
-        "Mark where and how you want to be touched tonight",
+        "Mark where and how you want to be touched today",
         "Exchange maps and study each other's desires",
         "Follow the maps as closely as possible"
       ],
@@ -17652,7 +17652,7 @@
       ],
       "guidedSteps": [
         "Set up your drawing space. One partner lies down comfortably, allowing the other to gently trace their body outline onto the paper. Switch roles so you each have a map.",
-        "Take turns individually marking your own body map with specific areas and types of touch you desire. Use different colors or symbols to denote intensity, favorite spots, or what you crave tonight.",
+        "Take turns individually marking your own body map with specific areas and types of touch you desire. Use different colors or symbols to denote intensity, favorite spots, or what you crave today.",
         "Exchange your completed desire maps. Take time to carefully study your partner's map, asking clarifying questions if anything is unclear.",
         "Begin to explore your partner's body, using their map as your guide. Focus on the areas they've marked, replicating the desired touches as closely as possible.",
         "Communicate throughout the experience, offering verbal cues like \"yes,\" \"more,\" or \"there\" to affirm what feels good.",
@@ -17701,7 +17701,7 @@
         "When you're ready to return to yourselves, gently transition out of character, perhaps with a shared laugh or a comforting embrace."
       ],
       "conversationPrompts": [
-        "What was the most intriguing thing about my 'character' tonight?",
+        "What was the most intriguing thing about my 'character' today?",
         "What's a fantasy you've always had about meeting a stranger?",
         "What did you enjoy most about exploring this different side of us?"
       ],
@@ -17745,7 +17745,7 @@
       "conversationPrompts": [
         "What was the most surprising taste or touch sensation you experienced?",
         "What did it feel like to completely surrender your sight and trust me with your senses?",
-        "Is there a particular flavor or texture that you now associate with a specific feeling or memory from tonight?"
+        "Is there a particular flavor or texture that you now associate with a specific feeling or memory from today?"
       ],
       "connectionTwist": "After the blindfolds are off, take turns describing one new thing you noticed about your partner's body or reactions during the experience.",
       "ending": "Share a slow, intentional kiss, letting the heightened sensations of the date linger and deepen your embrace."
@@ -17785,7 +17785,7 @@
         "Conclude by simply holding each other close, allowing the sensations and understanding you've gained to settle."
       ],
       "conversationPrompts": [
-        "What's one new sensation or area of pleasure you discovered tonight?",
+        "What's one new sensation or area of pleasure you discovered today?",
         "How did it feel to explicitly guide my hands and tell me exactly what you wanted?",
         "What's a subtle cue I gave that helped you understand what felt good?"
       ],
@@ -17827,7 +17827,7 @@
         "After answering, share a moment of quiet reflection or a comforting touch, acknowledging the intimacy shared."
       ],
       "conversationPrompts": [
-        "What was the most surprising answer you heard tonight?",
+        "What was the most surprising answer you heard today?",
         "Was there a question you were nervous to answer, and how did it feel after you did?",
         "What did you learn about my desires or fantasies that you want to explore further?"
       ],
@@ -17869,7 +17869,7 @@
       ],
       "conversationPrompts": [
         "What's a silly hill you'd always be willing to die on?",
-        "What's something surprising you learned about my preferences or opinions tonight?",
+        "What's something surprising you learned about my preferences or opinions today?",
         "If you had to pick one thing I said that was most convincing, what would it be?"
       ],
       "connectionTwist": "At the end, give each other a playful \"award\" for best debater or most charming argument, complete with a celebratory kiss.",
@@ -18216,7 +18216,7 @@
       "style": "doing",
       "releaseWeek": 42,
       "vibe": "This date is a playful, spontaneous exploration of your shared daring side.",
-      "setup": "Tonight, turn your home into an arena for unexpected fun. Write down a series of lighthearted challenges, then tackle them together, one by one. This is about stepping out of routine and into a space of shared excitement and discovery.",
+      "setup": "Today, turn your home into an arena for unexpected fun. Write down a series of lighthearted challenges, then tackle them together, one by one. This is about stepping out of routine and into a space of shared excitement and discovery.",
       "supplies": [
         "Small slips of paper or index cards",
         "Pens",
@@ -18233,7 +18233,7 @@
         "Take a moment to reflect on which challenges surprised you most."
       ],
       "conversationPrompts": [
-        "What was the most surprising challenge we completed tonight?",
+        "What was the most surprising challenge we completed today?",
         "What's a daring thing you've always wanted to try with me?",
         "If we did this again, what kind of challenge would you want to add?"
       ],
@@ -18256,7 +18256,7 @@
       "style": "talking",
       "releaseWeek": 42,
       "vibe": "A playful and insightful evening exploring your unique cosmic connection over delicious bites.",
-      "setup": "Tonight, you'll delve into the intriguing world of synastry—the astrological comparison of your birth charts. Prepare a personalized snack board and discover how your planetary placements intertwine, revealing new layers of your relationship dynamic.",
+      "setup": "Today, you'll delve into the intriguing world of synastry—the astrological comparison of your birth charts. Prepare a personalized snack board and discover how your planetary placements intertwine, revealing new layers of your relationship dynamic.",
       "supplies": [
         "Access to your birth charts (online tools like Astro.com or CafeAstrology.com can generate them)",
         "Paper and pen for notes",
@@ -18338,7 +18338,7 @@
       "style": "doing",
       "releaseWeek": 42,
       "vibe": "A lively, creative evening of mixology, blending astrological insights with delicious concoctions.",
-      "setup": "Unleash your inner alchemists tonight. You'll concoct custom drinks inspired by your zodiac signs, experimenting with flavors and ingredients to create beverages that embody your unique personalities and your dynamic as a couple.",
+      "setup": "Unleash your inner alchemists today. You'll concoct custom drinks inspired by your zodiac signs, experimenting with flavors and ingredients to create beverages that embody your unique personalities and your dynamic as a couple.",
       "supplies": [
         "A variety of mixers (juices, sodas, sparkling water)",
         "Fresh fruits (citrus, berries)",
@@ -18360,7 +18360,7 @@
       "conversationPrompts": [
         "If our relationship were a cocktail, what would be its key ingredients?",
         "What's one flavor or ingredient that perfectly captures your personality?",
-        "Which of tonight's drinks surprised you the most, and why?"
+        "Which of today's drinks surprised you the most, and why?"
       ],
       "connectionTwist": "Exchange your favorite \"comfort\" drinks, and enjoy them together as a sweet, shared moment.",
       "ending": "Clean up your \"lab\" together, feeling a little lighter and more connected after your creative and flavorful adventure."
@@ -18381,7 +18381,7 @@
       "style": "talking",
       "releaseWeek": 43,
       "vibe": "A calm and focused moment to mend minor communication snags and strengthen your understanding.",
-      "setup": "Even the strongest connections can experience communication hiccups. Tonight, you'll create a dedicated space to gently address a recent misunderstanding, offering each other clear repairs and reassurances, and building a foundation for smoother future conversations.",
+      "setup": "Even the strongest connections can experience communication hiccups. Today, you'll create a dedicated space to gently address a recent misunderstanding, offering each other clear repairs and reassurances, and building a foundation for smoother future conversations.",
       "supplies": [
         "A single candle and lighter",
         "A quiet and comfortable spot",
@@ -18419,7 +18419,7 @@
       "style": "mixed",
       "releaseWeek": 43,
       "vibe": "A serene and reflective outdoor date, connecting with the cosmos and your emotional landscape through music.",
-      "setup": "Tonight, you'll venture out under the open sky to find a quiet spot for stargazing. Before you go, curate a playlist where each song evokes the mood or energy of a different planet, creating a personalized soundtrack for your cosmic contemplation.",
+      "setup": "Today, you'll venture out under the open sky to find a quiet spot for stargazing. Before you go, curate a playlist where each song evokes the mood or energy of a different planet, creating a personalized soundtrack for your cosmic contemplation.",
       "supplies": [
         "Warm blankets",
         "Comfortable outdoor seating (if desired)",
@@ -18459,7 +18459,7 @@
       "style": "talking",
       "releaseWeek": 43,
       "vibe": "An imaginative and collaborative journey around the globe, discovering places where your unique energies thrive.",
-      "setup": "Tonight, you'll explore the fascinating world of astrocartography, a technique that maps your birth chart onto the world. Together, you'll uncover power spots where you might feel more creative, romantic, or adventurous, sparking ideas for future dream destinations.",
+      "setup": "Today, you'll explore the fascinating world of astrocartography, a technique that maps your birth chart onto the world. Together, you'll uncover power spots where you might feel more creative, romantic, or adventurous, sparking ideas for future dream destinations.",
       "supplies": [
         "Access to an online astrocartography map generator (e.g., Astro.com, AstroSeek.com)",
         "A world map (physical or online)",
@@ -18499,7 +18499,7 @@
       "style": "mixed",
       "releaseWeek": 43,
       "vibe": "A gentle and introspective date to explore personal energies and shared intentions through the beauty of natural stones.",
-      "setup": "Tonight, you'll connect with the subtle energies of crystals, whether by exploring a local shop or browsing online. You'll each select stones that resonate with your personal needs and your relationship's aspirations, creating a small, meaningful display together.",
+      "setup": "Today, you'll connect with the subtle energies of crystals, whether by exploring a local shop or browsing online. You'll each select stones that resonate with your personal needs and your relationship's aspirations, creating a small, meaningful display together.",
       "supplies": [
         "If going out: comfortable shoes, perhaps a small bag for purchases.",
         "If staying in: a device for browsing online crystal shops",
@@ -18615,7 +18615,7 @@
         "Each write a short menu of things you want to give, receive, and maybe try",
         "Read your lists aloud without interrupting or apologizing",
         "Circle the overlaps that feel hottest to both of you",
-        "Choose one item to explore tonight and one to save for later"
+        "Choose one item to explore today and one to save for later"
       ],
       "heat": 3,
       "load": 1,
@@ -18631,11 +18631,11 @@
         "Your favorite drinks (e.g., sparkling water, tea, or your preferred beverage)"
       ],
       "guidedSteps": [
-        "Set the mood: dim the lights, ensure privacy, and get comfortable. Explain that tonight is about open, honest sharing of desires.",
+        "Set the mood: dim the lights, ensure privacy, and get comfortable. Explain that today is about open, honest sharing of desires.",
         "Each of you takes 15-20 minutes to privately write down a 'desire menu.' Divide your paper into three sections: 'Things I want to give,' 'Things I want to receive,' and 'Things I'd like to try (maybe!).' Be as specific or general as you like.",
         "When ready, take turns reading your lists aloud. Listen without interruption, judgment, or apology. Simply absorb what your partner is sharing.",
         "After both lists are read, discuss what you heard. Identify any items that appear on both lists or spark mutual interest. Circle those overlaps.",
-        "From the circled items, choose one desire that feels exciting to explore together tonight. Be clear about what this exploration might entail.",
+        "From the circled items, choose one desire that feels exciting to explore together today. Be clear about what this exploration might entail.",
         "Also, choose one desire to 'save for later' – something that sparks interest but you want to build anticipation for. Discuss how you might prepare for that in the future.",
         "Spend some time talking about why certain desires resonate with you and what makes them appealing."
       ],
@@ -18644,8 +18644,8 @@
         "How did it feel to articulate your desires so openly, and what did you notice in your body as you shared?",
         "Beyond the specific actions, what underlying feeling or experience do you hope to gain from exploring these desires?"
       ],
-      "connectionTwist": "Write your chosen 'tonight' desire on a separate slip of paper and place it under your partner's pillow as a playful hint for later.",
-      "ending": "Conclude by acting on the desire you chose to explore tonight, even if it's just a small, intentional step."
+      "connectionTwist": "Write your chosen 'today' desire on a separate slip of paper and place it under your partner's pillow as a playful hint for later.",
+      "ending": "Conclude by acting on the desire you chose to explore today, even if it's just a small, intentional step."
     },
     {
       "id": "d529",
@@ -18806,7 +18806,7 @@
       "conversationPrompts": [
         "If this were a real hotel, what's the first thing you'd want to do with me in this room?",
         "What about this 'hotel' setup makes you feel most adventurous or desired?",
-        "What's a fantasy you've always had about a hotel stay that we could play out tonight?"
+        "What's a fantasy you've always had about a hotel stay that we could play out today?"
       ],
       "connectionTwist": "Before 'checking in,' exchange a small, handwritten 'welcome note' to your 'traveling partner,' hinting at what you're looking forward to.",
       "ending": "Conclude by ordering 'room service' (your pre-prepared drinks and treats) and sharing them in bed, still basking in the hotel fantasy."
@@ -18846,7 +18846,7 @@
         "Continue drawing and exploring for the duration of the date, focusing on clear communication, consent, and shared pleasure. The 'score' is how much you both learn and enjoy."
       ],
       "conversationPrompts": [
-        "What was the most unexpected 'Hands' or 'Mouth' discovery we made tonight?",
+        "What was the most unexpected 'Hands' or 'Mouth' discovery we made today?",
         "How did it feel to be so direct about your preferences and desires during the game?",
         "What 'Maybe Later' item are you most excited to revisit, and what would make it a 'Yes' next time?"
       ],
@@ -19767,7 +19767,7 @@
         "Find a hotel bar, station, or lounge with a live pianist or open piano nearby",
         "Choose one song request that feels bold, sentimental, or a little absurd",
         "Build the rest of the date around whatever mood the song creates",
-        "Before leaving, decide what soundtrack would define tonight if it were a movie"
+        "Before leaving, decide what soundtrack would define today if it were a movie"
       ],
       "heat": 2,
       "load": 1,
@@ -19793,7 +19793,7 @@
       "conversationPrompts": [
         "What memory or feeling does this song evoke for you right now?",
         "If this song were a scene in a movie, what kind of scene would it be?",
-        "How has the music tonight shifted the energy or direction of our conversation?"
+        "How has the music today shifted the energy or direction of our conversation?"
       ],
       "connectionTwist": "If appropriate and comfortable, share a gentle, in-place sway or slow dance together during 'your' requested song.",
       "ending": "Exchange a knowing glance, feeling the lingering notes of the music and the warmth of your shared, spontaneous evening."
@@ -19961,7 +19961,7 @@
       "location": "home",
       "steps": [
         "Each secretly design a dream getaway for the other with specific hotels, meals, and side quests",
-        "Pitch the trip like a luxury travel agent who needs the sale tonight",
+        "Pitch the trip like a luxury travel agent who needs the sale today",
         "Ask follow-up questions about budget, mood, and what kind of person returns from that trip",
         "Choose one part of the winning pitch to turn into a real plan this year"
       ],
@@ -20510,7 +20510,7 @@
         "Describe a moment recently when you felt truly seen or understood by me. What made that moment land for you?"
       ],
       "connectionTwist": "Before you begin, write down one thing you appreciate about your partner's willingness to be open. Exchange these notes at the end of the date.",
-      "ending": "End by sharing one small, actionable step you each want to take in the coming week based on something discussed tonight."
+      "ending": "End by sharing one small, actionable step you each want to take in the coming week based on something discussed today."
     },
     {
       "id": "d571",
@@ -20561,7 +20561,7 @@
       "steps": [
         "Make the night as low-demand as possible with easy food, soft lighting, and no productivity energy",
         "Talk honestly about what has been draining you without trying to optimize it on the spot",
-        "Choose one nourishing thing for your body and one thing for your mind to do tonight",
+        "Choose one nourishing thing for your body and one thing for your mind to do today",
         "End by making a very small recovery plan for the next 48 hours"
       ],
       "heat": 1,
@@ -20580,7 +20580,7 @@
       "guidedSteps": [
         "Before the date begins, ensure all chores are minimal or postponed. Prioritize comfort over perfection for your meal.",
         "Settle into your most comfortable spot. Start by each sharing one thing that has felt particularly draining or heavy recently, without expecting solutions.",
-        "Shift to identifying one small, nourishing activity for your body tonight (e.g., a warm bath, gentle stretching, cuddling).",
+        "Shift to identifying one small, nourishing activity for your body today (e.g., a warm bath, gentle stretching, cuddling).",
         "Next, choose one simple, restorative activity for your mind (e.g., reading a few pages, listening to quiet music, a short meditation).",
         "Engage in these chosen activities together or side-by-side, allowing yourselves to truly relax without expectation.",
         "Towards the end, discuss one tiny, achievable step each of you can take in the next 48 hours to continue your recovery.",
@@ -20704,7 +20704,7 @@
         "Make a conscious effort to offer genuine applause and positive energy, especially for those performers who seem a little nervous.",
         "During a break, briefly share your favorite act so far and discuss why their performance resonated with you.",
         "After the open mic concludes, find a quiet cafe or walk together, reflecting on the different acts you witnessed.",
-        "Discuss what kind of courage you observed tonight and what forms of personal courage you each want to cultivate more in your own lives."
+        "Discuss what kind of courage you observed today and what forms of personal courage you each want to cultivate more in your own lives."
       ],
       "conversationPrompts": [
         "Which performer's story or song lingered with you most, and what about it resonated?",
@@ -20747,7 +20747,7 @@
         "Conclude by each naming one impossible thing that, after witnessing magic, you would playfully love to believe could actually happen in your life together."
       ],
       "conversationPrompts": [
-        "What was the most 'impossible' moment you witnessed tonight?",
+        "What was the most 'impossible' moment you witnessed today?",
         "If you could perform one magic trick, what would it be and why?",
         "What's something in our lives that, while not magic, often feels wonderfully surprising or serendipitous?"
       ],
@@ -21272,7 +21272,7 @@
       ],
       "conversationPrompts": [
         "What was the most unexpected or impressive moment of the performance for you?",
-        "What kind of confidence or boldness did you see tonight that you admire and want to bring out in yourself?",
+        "What kind of confidence or boldness did you see today that you admire and want to bring out in yourself?",
         "If we were to put on our own mini-performance at home, what would be your act?"
       ],
       "connectionTwist": "Before you leave, strike a dramatic, confident pose together, capturing the bold energy of the night.",
@@ -21454,7 +21454,7 @@
       "style": "talking",
       "releaseWeek": 4,
       "vibe": "A playful and sensual adventure, exploring desires through intriguing questions and sweet treats.",
-      "setup": "Tonight, we'll turn a dessert outing into a delicious exploration of what excites us. Choose two distinct dessert spots to visit. The goal is to savor sweet flavors while sharing curious questions that bring us closer.",
+      "setup": "Today, we'll turn a dessert outing into a delicious exploration of what excites us. Choose two distinct dessert spots to visit. The goal is to savor sweet flavors while sharing curious questions that bring us closer.",
       "supplies": [
         "Your wallet",
         "Comfortable walking shoes",
@@ -21462,13 +21462,13 @@
         "A sense of playful curiosity"
       ],
       "guidedSteps": [
-        "Before you leave, decide on two different dessert places you both want to try tonight.",
+        "Before you leave, decide on two different dessert places you both want to try today.",
         "At the first dessert spot, order something you've both been curious about.",
         "While you enjoy your treat, one of you asks a bold, respectful question that opens up a conversation about desire or attraction. Listen without judgment.",
         "Move to your second dessert location, choosing another unique sweet to share.",
         "The other person now asks their bold question, inviting an open exchange.",
         "As you finish your second dessert, discuss which questions felt most revealing or intriguing.",
-        "Before heading home, each of you names one answer or topic from tonight you’d like to explore further another time."
+        "Before heading home, each of you names one answer or topic from today you’d like to explore further another time."
       ],
       "conversationPrompts": [
         "What's a subtle cue you give when you're feeling especially desired?",
@@ -21494,7 +21494,7 @@
       "style": "talking",
       "releaseWeek": 5,
       "vibe": "An elevated and intimate discussion, connecting under the open sky about what truly attracts you.",
-      "setup": "Find a high vantage point tonight – a rooftop, an overlook, or a patio with a view. As the city lights twinkle, we'll share insights into what makes us feel truly captivated by each other. This is about noticing and appreciating the subtle forces that draw us close.",
+      "setup": "Find a high vantage point today – a rooftop, an overlook, or a patio with a view. As the city lights twinkle, we'll share insights into what makes us feel truly captivated by each other. This is about noticing and appreciating the subtle forces that draw us close.",
       "supplies": [
         "Your phone for navigating",
         "A light jacket if it's breezy",
@@ -21508,7 +21508,7 @@
         "Discuss what specific qualities or actions you find most magnetic in someone. Be specific about what you observe in your partner.",
         "Take turns describing how you feel when you notice your partner exuding confidence. What does that look like to you?",
         "Think about your daily routines. Identify one small, actionable way to introduce more of that magnetic energy or feeling of attraction into an ordinary day.",
-        "Before leaving, each of you names one thing you appreciate about the other's presence tonight."
+        "Before leaving, each of you names one thing you appreciate about the other's presence today."
       ],
       "conversationPrompts": [
         "What's a non-physical trait you find incredibly attractive that you rarely talk about?",
@@ -21534,7 +21534,7 @@
       "style": "talking",
       "releaseWeek": 6,
       "vibe": "A vibrant and sensual evening, letting music ignite conversations about rhythm, connection, and shared sparks.",
-      "setup": "Tonight, we'll immerse ourselves in the energy of live music. Find a venue with a band, a DJ, or even a lively cafe with a musician. Let the sounds wash over you and notice how the music influences your mood and your awareness of each other. This is about tuning into the unspoken rhythms between you.",
+      "setup": "Today, we'll immerse ourselves in the energy of live music. Find a venue with a band, a DJ, or even a lively cafe with a musician. Let the sounds wash over you and notice how the music influences your mood and your awareness of each other. This is about tuning into the unspoken rhythms between you.",
       "supplies": [
         "Your wallet",
         "Comfortable shoes (for standing or dancing)",
@@ -21551,9 +21551,9 @@
         "Agree on one song or a type of music that you'll designate as a 'spark cue' for future moments."
       ],
       "conversationPrompts": [
-        "What part of the music tonight made you feel most alive or free?",
+        "What part of the music today made you feel most alive or free?",
         "When I see you enjoying music like this, what specific expression or movement of yours draws me in?",
-        "If our connection had a theme song from tonight, which one would it be and why?"
+        "If our connection had a theme song from today, which one would it be and why?"
       ],
       "connectionTwist": "Hold hands or place a hand on your partner's back during a song that particularly moves you both, swaying slightly to the beat.",
       "ending": "As you leave, hum or sing a snippet of your chosen 'spark cue' song to each other."
@@ -21574,7 +21574,7 @@
       "style": "talking",
       "releaseWeek": 7,
       "vibe": "A tender and sensual exploration, articulating desires with care over delightful treats at home.",
-      "setup": "Tonight, we're crafting a 'Desire Menu' at home. Prepare some special drinks and snacks that feel a little indulgent. This is an invitation to gently explore what you desire more of in terms of words, touch, mood, and attention, creating a space for open and non-pressured sharing.",
+      "setup": "Today, we're crafting a 'Desire Menu' at home. Prepare some special drinks and snacks that feel a little indulgent. This is an invitation to gently explore what you desire more of in terms of words, touch, mood, and attention, creating a space for open and non-pressured sharing.",
       "supplies": [
         "Ingredients for two elevated drinks (e.g., sparkling water with fruit, hot cocoa with whipped cream, or your favorite beverage)",
         "A small sweet or savory snack",
@@ -21614,7 +21614,7 @@
       "style": "talking",
       "releaseWeek": 8,
       "vibe": "A safe and sensual space to playfully explore intriguing fantasies, free from expectation.",
-      "setup": "Tonight, we're opening a safe space to share fantasies without any obligation or pressure. Find a comfortable, private spot at home where you feel completely at ease. The goal is simply to explore the landscape of your imaginations and understand what sparks interest for each of you.",
+      "setup": "Today, we're opening a safe space to share fantasies without any obligation or pressure. Find a comfortable, private spot at home where you feel completely at ease. The goal is simply to explore the landscape of your imaginations and understand what sparks interest for each of you.",
       "supplies": [
         "Soft blankets or pillows",
         "A warm drink or your favorite beverage",
@@ -21622,7 +21622,7 @@
         "A commitment to listening without judgment"
       ],
       "guidedSteps": [
-        "Create a cozy, intimate setting. Make sure you both explicitly agree that sharing an idea tonight means no pressure to act on it.",
+        "Create a cozy, intimate setting. Make sure you both explicitly agree that sharing an idea today means no pressure to act on it.",
         "One person starts by sharing one mood, scene, or dynamic that they find intriguing or have fantasized about. Describe it briefly.",
         "The other partner then asks, 'What specifically appeals to you emotionally or sensually about that idea?' Focus on the feeling, not the action.",
         "Switch roles. The second person shares their intriguing idea, and the first asks about its emotional appeal.",
@@ -21654,7 +21654,7 @@
       "style": "talking",
       "releaseWeek": 9,
       "vibe": "A deeply intimate and practical discussion, mapping out the journey from daily life to shared desire.",
-      "setup": "Tonight, we'll delve into the subtle journey from our everyday selves to feeling desired and connected. Find a quiet, comfortable space at home where you can speak openly. This is about understanding the small shifts, cues, and actions that help each of you transition into a sensual mindset.",
+      "setup": "Today, we'll delve into the subtle journey from our everyday selves to feeling desired and connected. Find a quiet, comfortable space at home where you can speak openly. This is about understanding the small shifts, cues, and actions that help each of you transition into a sensual mindset.",
       "supplies": [
         "Two comfortable seats",
         "A soft blanket",
@@ -21668,7 +21668,7 @@
         "Take turns sharing your lists. For each item, ask 'Can you tell me more about what that feels like for you?'",
         "Discuss the 'buildup' you each enjoy before intimacy. Is it slow and subtle, or more direct? Are there specific types of touch, words, or actions that signal desire to you?",
         "Based on your conversation, brainstorm one small, simple pre-intimacy ritual you both would like to try. This could be a specific touch, a phrase, or a shared activity.",
-        "Practice this new ritual together tonight in a light, playful way.",
+        "Practice this new ritual together today in a light, playful way.",
         "Affirm your commitment to noticing and honoring these individual needs."
       ],
       "conversationPrompts": [
@@ -21695,7 +21695,7 @@
       "style": "talking",
       "releaseWeek": 10,
       "vibe": "A deeply affirming and sensual conversation, articulating and absorbing what makes each of you feel cherished.",
-      "setup": "Tonight, we'll create a dedicated space to articulate and truly hear what makes each of us feel wanted. Find a private, comfortable spot at home where you can sit close. This is an invitation to be specific and vulnerable about your needs, and to truly absorb your partner's responses.",
+      "setup": "Today, we'll create a dedicated space to articulate and truly hear what makes each of us feel wanted. Find a private, comfortable spot at home where you can sit close. This is an invitation to be specific and vulnerable about your needs, and to truly absorb your partner's responses.",
       "supplies": [
         "A soft blanket or pillows",
         "Warm, gentle lighting",
@@ -21735,7 +21735,7 @@
       "style": "talking",
       "releaseWeek": 11,
       "vibe": "A playful and sensual co-creation, developing a secret language of desire to deepen your intimacy.",
-      "setup": "Tonight, we're crafting our own secret language of desire. Find a cozy, private corner at home where you can talk freely and playfully. This is about identifying the words, phrases, and even subtle signals that make each of you feel desired, and then inventing your own unique cues.",
+      "setup": "Today, we're crafting our own secret language of desire. Find a cozy, private corner at home where you can talk freely and playfully. This is about identifying the words, phrases, and even subtle signals that make each of you feel desired, and then inventing your own unique cues.",
       "supplies": [
         "Two comfortable seats",
         "A soft blanket",
@@ -21746,7 +21746,7 @@
         "Set a relaxed, private atmosphere. Begin by discussing what words, phrases, or non-verbal signals have made you feel desired by your partner in the past.",
         "Brainstorm three new, unique phrases or words that you both agree will signal desire, playfulness, or an invitation for intimacy, known only to the two of you.",
         "Ensure these phrases feel natural and comfortable for both of you to say and hear.",
-        "Take turns practicing using these new phrases in light, playful, non-pressure sentences. For example, 'I had a long day, and I'm really feeling a 'velvet evening' tonight.'",
+        "Take turns practicing using these new phrases in light, playful, non-pressure sentences. For example, 'I had a long day, and I'm really feeling a 'velvet evening' today.'",
         "Discuss how it feels to create and use this shared language.",
         "Choose one of your new phrases that feels particularly potent or fun, and designate it as your 'future invitation' for when you want to initiate intimacy.",
         "Remind yourselves that this language is for playful connection, not obligation."
@@ -22466,7 +22466,7 @@
       "guidedSteps": [
         "Lay out your selected snacks. Take a moment to appreciate their appearance, scent, and texture before tasting.",
         "Each of you picks one snack. Taste it slowly, focusing on its flavors and sensations. Describe the experience using a single mood word (e.g., 'bold,' 'gentle,' 'surprising,' 'deep').",
-        "After describing the snack, pair it with a flirtatious question for your partner. For example, 'This strawberry feels sweet and juicy – what's one sweet desire you're holding onto tonight?'",
+        "After describing the snack, pair it with a flirtatious question for your partner. For example, 'This strawberry feels sweet and juicy – what's one sweet desire you're holding onto today?'",
         "Your partner answers the question, then chooses their own snack and repeats the process.",
         "Continue until you've tasted all the snacks and asked all the questions.",
         "At the end, discuss which snack and question pairing felt most evocative of your chemistry together.",
@@ -22475,7 +22475,7 @@
       "conversationPrompts": [
         "What sensation from a bite felt most surprising to you?",
         "If our connection were a flavor, what would it be right now?",
-        "What's one thing you tasted tonight that you'd want to share with me in a more intimate way?"
+        "What's one thing you tasted today that you'd want to share with me in a more intimate way?"
       ],
       "connectionTwist": "Feed each other the last chosen snack, making eye contact and lingering on the shared taste.",
       "ending": "Clear away the dishes and settle closer. Hold hands or simply rest your heads together, letting the lingering tastes and shared flirtations settle between you."
@@ -22594,7 +22594,7 @@
         "Towards the end of the date, browse trailers for full movies or shows. Based on your shared critical eye, pick one you both agree to watch together for a future movie night."
       ],
       "conversationPrompts": [
-        "What's the most overrated trope you saw tonight?",
+        "What's the most overrated trope you saw today?",
         "If you were a director, what kind of movie would you make with me as your star?",
         "What's a movie or show from your childhood that you think we should critique together?"
       ],
@@ -22635,7 +22635,7 @@
       ],
       "conversationPrompts": [
         "What's the most illogical 'would you rather' answer you've ever heard?",
-        "If we had to live in a world based on one of our answers tonight, which one would you choose?",
+        "If we had to live in a world based on one of our answers today, which one would you choose?",
         "What's something about my personality that makes even my silliest answers feel endearing?"
       ],
       "connectionTwist": "For the last silly question, answer it together, each choosing one part of the scenario and creating a combined, absurd response.",
@@ -22754,7 +22754,7 @@
       "conversationPrompts": [
         "What's the most surprising origin story for one of our inside jokes?",
         "If we had to explain one of our inside jokes to a stranger, which one would be the hardest?",
-        "What's a new pet name you'd like to try out for me, even if it's just for tonight?"
+        "What's a new pet name you'd like to try out for me, even if it's just for today?"
       ],
       "connectionTwist": "Before you finish, write down your favorite inside joke or pet name on a small slip of paper and place it somewhere you'll both unexpectedly find it later this week.",
       "ending": "Give each other a quick, warm hug, acknowledging the joy of your shared language."
@@ -23076,7 +23076,7 @@
       ],
       "conversationPrompts": [
         "What feeling does this song bring out in you right now?",
-        "What's one thing you noticed or appreciated about my movement tonight?",
+        "What's one thing you noticed or appreciated about my movement today?",
         "What's a song that always makes you want to move and feel alive?"
       ],
       "connectionTwist": "During the final slow dance, gently trace the outline of your partner's hand or face with your finger.",
@@ -23812,7 +23812,7 @@
       "location": "out",
       "steps": [
         "Go to a lively event, show, restaurant, or busy area",
-        "Notice what makes your partner feel most magnetic tonight",
+        "Notice what makes your partner feel most magnetic today",
         "Debrief over dessert, drinks, or a late-night snack",
         "Name the exact moment you felt most drawn to each other"
       ],
@@ -23831,15 +23831,15 @@
         "Enjoy your chosen event or busy area. As you move through the space, discreetly observe your partner. Notice their expressions, how they interact, and what makes them confident.",
         "Pay attention to moments when you feel a strong pull towards them—a glance, a laugh, a specific gesture. Make a mental note, or jot it down if you can do so subtly.",
         "After the main activity, transition to a quieter spot for your debrief—a cozy dessert place, a dim bar, or a late-night cafe.",
-        "Begin by sharing general observations about the evening. Then, gently guide the conversation to what you found most attractive or magnetic about your partner tonight.",
+        "Begin by sharing general observations about the evening. Then, gently guide the conversation to what you found most attractive or magnetic about your partner today.",
         "Take turns describing the exact moment or specific quality that drew you in most powerfully during the outing. Be specific about what you saw or felt.",
         "Listen intently to your partner's observations about you, absorbing their words.",
         "Discuss how you can intentionally create more opportunities for these magnetic moments in your everyday lives."
       ],
       "conversationPrompts": [
-        "What was one small thing you noticed me do tonight that made you feel proud or drawn to me?",
-        "When did you feel our chemistry most strongly tonight, and what was happening?",
-        "How did it feel to be observed and appreciated tonight?"
+        "What was one small thing you noticed me do today that made you feel proud or drawn to me?",
+        "When did you feel our chemistry most strongly today, and what was happening?",
+        "How did it feel to be observed and appreciated today?"
       ],
       "connectionTwist": "Before parting ways for the night, share a lingering touch or kiss, carrying the heightened awareness of your attraction into your private space.",
       "ending": "As you leave your debrief spot, hold hands and whisper one word that encapsulates how you feel about your partner after this date."
@@ -23996,7 +23996,7 @@
       ],
       "conversationPrompts": [
         "What's a texture or color that instantly makes you feel more sensual or alive?",
-        "If you could bring one element from these windows into our private space tonight, what mood would it create?",
+        "If you could bring one element from these windows into our private space today, what mood would it create?",
         "What does it feel like to share these visual desires with me?"
       ],
       "connectionTwist": "Find a small, inexpensive item (like a ribbon, a unique candy, or a small candle) that subtly reflects your chosen inspiration, and purchase it together as a tangible reminder.",
@@ -24069,7 +24069,7 @@
         "Move to a different stall or area. The other person now asks a question, building on the theme of spark, desire, or adventurousness.",
         "Between each stop, share observations about the market itself and how it makes you feel. Does the energy here ignite a different side of you?",
         "Keep the conversation light and curious, focusing on what excites each of you. Remember there are no wrong answers, just honest insights.",
-        "Before you leave, choose one small, shared indulgence (a dessert, a trinket, a specific flavor) that represents the 'spark' you explored tonight."
+        "Before you leave, choose one small, shared indulgence (a dessert, a trinket, a specific flavor) that represents the 'spark' you explored today."
       ],
       "conversationPrompts": [
         "What kind of public setting makes you feel most confident and attractive?",
@@ -24077,7 +24077,7 @@
         "If we were to plan a private 'bold night' at home, what elements of this market's energy would you want to bring into it?"
       ],
       "connectionTwist": "Pick a small, unique item from the market that will serve as a physical reminder of your shared 'spark' discoveries.",
-      "ending": "As you head home, share one specific idea for a future private evening that incorporates something you learned about each other tonight."
+      "ending": "As you head home, share one specific idea for a future private evening that incorporates something you learned about each other today."
     },
     {
       "id": "d743",
@@ -24281,7 +24281,7 @@
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Set the rule that everything tonight is curiosity, not obligation",
+        "Set the rule that everything today is curiosity, not obligation",
         "Each name one thing you are curious about and one thing you are not interested in",
         "Ask what emotional need sits underneath each curiosity",
         "Thank each other for the honesty before making any plans"
@@ -24291,7 +24291,7 @@
       "style": "talking",
       "releaseWeek": 23,
       "vibe": "A safe and open exploration of desires and boundaries, grounded in mutual curiosity and respect.",
-      "setup": "Choose a quiet, comfortable place where you can talk openly and without interruption. This date establishes a foundational understanding: all conversation tonight is driven by genuine curiosity, not an expectation or pressure for action. It's an opportunity to safely explore desires, boundaries, and preferences, ensuring both partners feel heard and respected in their intimate landscape.",
+      "setup": "Choose a quiet, comfortable place where you can talk openly and without interruption. This date establishes a foundational understanding: all conversation today is driven by genuine curiosity, not an expectation or pressure for action. It's an opportunity to safely explore desires, boundaries, and preferences, ensuring both partners feel heard and respected in their intimate landscape.",
       "supplies": [
         "Comfortable seating",
         "Soft lighting (optional)",
@@ -24510,7 +24510,7 @@
       "conversationPrompts": [
         "What about this [found item] makes you think of us?",
         "If we were to disappear into a secret corner right now, what would be the first thing you'd whisper to me?",
-        "What's one thing you've noticed about me tonight that you find particularly captivating?"
+        "What's one thing you've noticed about me today that you find particularly captivating?"
       ],
       "connectionTwist": "At your final stop, secretly write a one-word flirty message on a napkin for your partner to find later.",
       "ending": "As you head home, interlace your fingers and walk in comfortable silence, savoring the shared adventure."
@@ -24550,7 +24550,7 @@
       "conversationPrompts": [
         "(In character) \"What's something surprising about you that most people don't know on a first meeting?\"",
         "(In character) \"If you could share a secret with me right now, what would it be?\"",
-        "(After breaking character) \"What new dimension of your charm or allure did you rediscover in yourself tonight?\""
+        "(After breaking character) \"What new dimension of your charm or allure did you rediscover in yourself today?\""
       ],
       "connectionTwist": "At some point during the \"date,\" subtly pass your partner a small, handwritten note with a genuine compliment or a memory from your *actual* first date.",
       "ending": "As you walk home or say goodnight, hold each other close and share a long, slow kiss that bridges the gap between strangers and lovers."
@@ -24603,7 +24603,7 @@
       "steps": [
         "Find a photo booth, mirror wall, or good lighting spot",
         "Take one sweet photo, one silly photo, and one confident photo",
-        "Talk about which version feels most like you tonight",
+        "Talk about which version feels most like you today",
         "Keep the favorite somewhere private or special"
       ],
       "heat": 3,
@@ -24624,13 +24624,13 @@
         "Next, find a different spot or return to the booth for a \"silly\" photo. Don't be afraid to make funny faces or strike exaggerated poses.",
         "Finally, seek out a third location or return to the booth for a \"confident\" photo. Channel your inner power and mutual allure.",
         "After taking all three types of photos, find a cozy spot for a drink or snack.",
-        "Review your photos together. Discuss which version of yourselves you feel most connected to tonight and why.",
+        "Review your photos together. Discuss which version of yourselves you feel most connected to today and why.",
         "Choose one favorite photo from the night."
       ],
       "conversationPrompts": [
         "Which of these photos captures a side of you that you wish I saw more often?",
         "What does 'confident' look like and feel like for you in this moment?",
-        "If this set of photos told a story about our relationship tonight, what would the caption be?"
+        "If this set of photos told a story about our relationship today, what would the caption be?"
       ],
       "connectionTwist": "Before taking each photo, whisper a secret word or phrase to your partner that embodies the mood you're trying to capture.",
       "ending": "Frame your favorite photo from the night, or keep it somewhere special that only you two know about, as a tangible reminder of your playful connection."
@@ -24824,7 +24824,7 @@
       ],
       "conversationPrompts": [
         "What's something about exploring at night that feels different or more intimate?",
-        "How did following our rules shift your perspective or experience tonight?",
+        "How did following our rules shift your perspective or experience today?",
         "What's a 'bold compliment' you've always wanted to hear or give?"
       ],
       "connectionTwist": "Find a moment to pull over (if driving) or pause, turn off the lights, and share a quiet, prolonged embrace in the darkness.",
@@ -25593,7 +25593,7 @@
       "steps": [
         "Make cards with words like soft, firm, slow, playful, close, and pause",
         "Talk about what each word means to you",
-        "Sort cards into favorites, curious, and not tonight",
+        "Sort cards into favorites, curious, and not today",
         "Keep the deck for future check-ins"
       ],
       "heat": 3,
@@ -25611,7 +25611,7 @@
       "guidedSteps": [
         "Gather your cards and pens. Take 5 minutes each to write down words or short phrases that describe different types of touch you enjoy or are curious about (e.g., \"gentle strokes,\" \"firm pressure,\" \"slow caress\").",
         "Take turns picking a card. Read the word aloud and share what it means to you physically and emotionally. How does it feel in your imagination?",
-        "After discussing, sort the card into three piles: \"Yes, please,\" \"Curious to try,\" and \"Not tonight.\" Be honest and respect each other's boundaries.",
+        "After discussing, sort the card into three piles: \"Yes, please,\" \"Curious to try,\" and \"Not today.\" Be honest and respect each other's boundaries.",
         "Repeat this process until all cards are sorted. Notice any surprises or shared preferences.",
         "Gently explore one \"Curious to try\" touch from your combined pile. Spend a few minutes experiencing it, offering feedback with soft words or sighs.",
         "Gather the \"Yes, please\" and \"Curious to try\" cards into a small deck. Keep this deck accessible for future check-ins."
@@ -25640,7 +25640,7 @@
       "style": "mixed",
       "releaseWeek": 5,
       "vibe": "A playful journey through sound and conversation, designed to stir your senses and deepen your connection.",
-      "setup": "Music has a way of unlocking feelings and memories. Tonight, you'll curate a shared soundtrack that builds from calm intimacy to a more charged, sensual atmosphere. Let the rhythm guide your thoughts and open your dialogue.",
+      "setup": "Music has a way of unlocking feelings and memories. Today, you'll curate a shared soundtrack that builds from calm intimacy to a more charged, sensual atmosphere. Let the rhythm guide your thoughts and open your dialogue.",
       "supplies": [
         "Device for playing music (phone, tablet, computer)",
         "Speaker",
@@ -25680,7 +25680,7 @@
       "style": "mixed",
       "releaseWeek": 6,
       "vibe": "A sweet and sensual exploration of your desires, savored bite by delightful bite.",
-      "setup": "Indulge in a shared dessert tonight, using each delicious mouthful as an invitation to uncover your inner landscape of desire. This date is about slowing down, tasting pleasure, and gently articulating what stirs your soul.",
+      "setup": "Indulge in a shared dessert today, using each delicious mouthful as an invitation to uncover your inner landscape of desire. This date is about slowing down, tasting pleasure, and gently articulating what stirs your soul.",
       "supplies": [
         "A decadent dessert (chocolate, fruit, pastry)",
         "Two small plates",
@@ -25694,11 +25694,11 @@
         "Place your combined stack of desire cards face down between you.",
         "Take the first bite of dessert together, savoring the flavor. Then, one person draws a card, reads it aloud, and answers honestly.",
         "After the answer, the other partner shares their thoughts or a brief response. Then, take another bite of dessert.",
-        "Continue taking turns drawing cards and enjoying dessert. If a question feels too vulnerable for tonight, simply say \"Let's save that for another time\" and place it in a separate \"Later\" pile.",
+        "Continue taking turns drawing cards and enjoying dessert. If a question feels too vulnerable for today, simply say \"Let's save that for another time\" and place it in a separate \"Later\" pile.",
         "Finish the dessert together, lingering over the last bites."
       ],
       "conversationPrompts": [
-        "What surprised you most about your own desires tonight?",
+        "What surprised you most about your own desires today?",
         "How does taking our time with both dessert and conversation change the experience?",
         "What's one small desire that feels easier to express now?"
       ],
@@ -25721,7 +25721,7 @@
       "style": "mixed",
       "releaseWeek": 7,
       "vibe": "A sensual experiment in crafting the perfect environment for your shared intimacy.",
-      "setup": "Tonight, you're scientists of sensation, exploring how your surroundings influence your mood and connection. This date is about intentionally designing a space that invites comfort, openness, and desire.",
+      "setup": "Today, you're scientists of sensation, exploring how your surroundings influence your mood and connection. This date is about intentionally designing a space that invites comfort, openness, and desire.",
       "supplies": [
         "Dimmable lights or lamps",
         "Candles (scented or unscented)",
@@ -25763,7 +25763,7 @@
       "style": "mixed",
       "releaseWeek": 8,
       "vibe": "A playful and thoughtful exploration of mutual desires, leading to exciting future possibilities.",
-      "setup": "Sometimes, the smallest invitations lead to the most delightful connections. Tonight, you'll playfully brainstorm a spectrum of intimate ideas, from cozy to bold, and discover new ways to invite each other into shared pleasure.",
+      "setup": "Sometimes, the smallest invitations lead to the most delightful connections. Today, you'll playfully brainstorm a spectrum of intimate ideas, from cozy to bold, and discover new ways to invite each other into shared pleasure.",
       "supplies": [
         "Small slips of paper",
         "Pens",
@@ -25797,14 +25797,14 @@
         "Choose one scent, one sound, one texture, and one taste",
         "Talk about the feeling each one creates",
         "Create a small signal for more, pause, or slower",
-        "Use the signals only as playful practice tonight"
+        "Use the signals only as playful practice today"
       ],
       "heat": 3,
       "load": 2,
       "style": "mixed",
       "releaseWeek": 9,
       "vibe": "A sensual journey designed to heighten your awareness and deepen your non-verbal communication.",
-      "setup": "Tonight, you'll tune into your senses and learn a new language of subtle signals. This date is an invitation to explore pleasure with heightened awareness, using gentle cues to guide each other through a sensory landscape.",
+      "setup": "Today, you'll tune into your senses and learn a new language of subtle signals. This date is an invitation to explore pleasure with heightened awareness, using gentle cues to guide each other through a sensory landscape.",
       "supplies": [
         "One chosen scent (e.g., essential oil, candle, fresh herb)",
         "One chosen sound (e.g., specific music, nature recording)",
@@ -25825,7 +25825,7 @@
       "conversationPrompts": [
         "Which sense, when fully engaged, feels most intimate to you?",
         "How did it feel to communicate your preferences using only signals?",
-        "What did you notice about your partner's non-verbal cues tonight?"
+        "What did you notice about your partner's non-verbal cues today?"
       ],
       "connectionTwist": "For the next week, choose one of your agreed-upon signals to use playfully and subtly during an everyday interaction, just between the two of you.",
       "ending": "Gently touch each other's cheek or hand, making eye contact. Share a silent moment of appreciation for the intimacy you've just explored."
@@ -25846,7 +25846,7 @@
       "style": "mixed",
       "releaseWeek": 10,
       "vibe": "A creative and sensual journey into shared imagination, building anticipation with every word.",
-      "setup": "Tonight, you'll weave a story together, starting from a simple seed and slowly, tantalizingly, building it into something rich with sensual tension. This date is about playful co-creation and discovering what ignites your shared narrative.",
+      "setup": "Today, you'll weave a story together, starting from a simple seed and slowly, tantalizingly, building it into something rich with sensual tension. This date is about playful co-creation and discovering what ignites your shared narrative.",
       "supplies": [
         "Index cards or small paper slips",
         "Pens",
@@ -25886,7 +25886,7 @@
       "style": "mixed",
       "releaseWeek": 11,
       "vibe": "A playful and practical co-creation of your shared intimacy, designed for clear desires and delightful discoveries.",
-      "setup": "Imagine designing your ideal intimate experience from a personalized menu. Tonight, you'll playfully draft your preferences for atmosphere, touch, words, and more, creating a bespoke guide to your mutual pleasure.",
+      "setup": "Imagine designing your ideal intimate experience from a personalized menu. Today, you'll playfully draft your preferences for atmosphere, touch, words, and more, creating a bespoke guide to your mutual pleasure.",
       "supplies": [
         "Large paper or poster board",
         "Markers or colored pens",
@@ -25898,7 +25898,7 @@
         "On your large paper, create sections for \"Atmosphere,\" \"Words,\" \"Touch,\" \"Pace,\" and \"Aftercare.\"",
         "Spend 10-15 minutes separately, each writing down specific ideas or preferences for each section on sticky notes or small cards. Be as specific as possible (e.g., Atmosphere: \"low, warm lighting\"; Words: \"whispered affirmations\").",
         "Take turns placing your ideas under the corresponding sections on the main paper. As you place each one, briefly explain why you chose it.",
-        "Together, review all the options. For each item, decide if it's a \"Yes, please!\" (circle it), a \"Maybe, let's explore\" (underline it), or \"Not for tonight\" (cross it out gently).",
+        "Together, review all the options. For each item, decide if it's a \"Yes, please!\" (circle it), a \"Maybe, let's explore\" (underline it), or \"Not for today\" (cross it out gently).",
         "Notice the items you both marked as \"Yes, please!\" or \"Maybe.\" Discuss any common themes or exciting new possibilities.",
         "Choose one simple combination of 2-3 \"Yes, please!\" items from different sections (e.g., \"low lighting\" + \"whispered affirmations\" + \"slow back massage\"). This is your \"Feature Combination.\"",
         "Keep your Private Menu somewhere accessible."
@@ -26377,7 +26377,7 @@
       "conversationPrompts": [
         "What feeling were you hoping to create with your adjustments to the space?",
         "Is there an element in this setup that feels particularly inviting to you?",
-        "What kind of quiet activity or conversation does this atmosphere inspire for us tonight?"
+        "What kind of quiet activity or conversation does this atmosphere inspire for us today?"
       ],
       "connectionTwist": "Once settled, reach out and gently touch one of the soft fabrics you've incorporated, then touch your partner's skin, noticing the contrasting textures.",
       "ending": "Snuggle into your created space and share a quiet moment, simply enjoying the sensory experience you built together."
@@ -26971,7 +26971,7 @@
         "Discuss how these elements make you feel, and what kind of atmosphere generally awakens your sense of desire or playfulness.",
         "Take turns sharing a memory of a time or place where you felt a strong surge of chemistry with your partner, and what contributed to it.",
         "Pause occasionally to simply look at each other, letting the energy of the environment enhance your connection.",
-        "Before you head home, agree on one specific detail or atmosphere you experienced tonight that you'd like to recreate in a private setting later."
+        "Before you head home, agree on one specific detail or atmosphere you experienced today that you'd like to recreate in a private setting later."
       ],
       "conversationPrompts": [
         "What specific sensory input (sound, sight, smell) in this environment makes you feel most alive and present with me?",
@@ -27216,7 +27216,7 @@
       "conversationPrompts": [
         "What's a rule from another game you wish we could incorporate into this one?",
         "If we could invent a new game together, what would its core mechanic be?",
-        "What's something you learned about my competitive (or collaborative) style tonight?"
+        "What's something you learned about my competitive (or collaborative) style today?"
       ],
       "connectionTwist": "Before starting, secretly write down one small, non-game-related 'bonus' action for your partner to perform if they win the round (e.g., a foot rub, a silly song). Reveal it only if they win.",
       "ending": "Put the game away together, leaving the winning custom rule visible somewhere, and share one specific moment from the game that made you laugh."
@@ -27254,7 +27254,7 @@
         "After Bingo is called (or at the end of the night if no Bingo), reveal both cards and discuss which squares were the most fun or created the most spark."
       ],
       "conversationPrompts": [
-        "What was the most surprising thing you noticed about me tonight?",
+        "What was the most surprising thing you noticed about me today?",
         "If you could add one more square to your bingo card for next time, what would it be?",
         "Which of our 'bingo moments' felt the most connected?"
       ],

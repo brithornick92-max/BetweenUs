@@ -136,9 +136,9 @@ const MEMORY_SEEDS = {
     `We talked about what we have survived and what feels easier now, and I felt proud of us.`,
   ],
   milestone: [
-    `A small win for one of us felt like a win for both of us tonight.`,
+    `A small win for one of us felt like a win for both of us today.`,
     `We handled something hard with more gentleness than we used to, and that felt like growth.`,
-    `Tonight felt like one of those moments where you realize the relationship is maturing.`,
+    `Today felt like one of those moments where you realize the relationship is maturing.`,
     `We named something honestly and stayed close through it, which felt significant.`,
   ],
   inside_joke: [

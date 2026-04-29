@@ -63,6 +63,7 @@ export default function IntimacyPositionCard({
   triedBusy = false,
   rating = null,
   onRate,
+  ratingBusy = false,
   compact = false,
 }) {
   const [activeBodyType, setActiveBodyType] = useState(defaultBodyType);
@@ -145,26 +146,30 @@ export default function IntimacyPositionCard({
         <View style={styles.ratingRow}>
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityLabel="Thumbs up for this position"
+            accessibilityState={{ selected: rating === 'up', disabled: ratingBusy }}
+            accessibilityLabel={rating === 'up' ? 'Remove thumbs up for this position' : 'Thumbs up for this position'}
             activeOpacity={0.75}
-            disabled={!onRate}
+            disabled={ratingBusy || !onRate}
             onPress={() => onRate?.('up')}
             style={[
               styles.ratingButton,
               { borderColor: rating === 'up' ? '#22C55E60' : t.border, backgroundColor: rating === 'up' ? '#22C55E20' : t.surfaceSecondary },
+              ratingBusy && styles.disabledControl,
             ]}
           >
             <Icon name="thumbs-up-outline" size={18} color={rating === 'up' ? '#22C55E' : t.text} />
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityLabel="Thumbs down for this position"
+            accessibilityState={{ selected: rating === 'down', disabled: ratingBusy }}
+            accessibilityLabel={rating === 'down' ? 'Remove thumbs down for this position' : 'Thumbs down for this position'}
             activeOpacity={0.75}
-            disabled={!onRate}
+            disabled={ratingBusy || !onRate}
             onPress={() => onRate?.('down')}
             style={[
               styles.ratingButton,
               { borderColor: rating === 'down' ? '#EF444460' : t.border, backgroundColor: rating === 'down' ? '#EF444420' : t.surfaceSecondary },
+              ratingBusy && styles.disabledControl,
             ]}
           >
             <Icon name="thumbs-down-outline" size={18} color={rating === 'down' ? '#EF4444' : t.text} />
@@ -263,12 +268,9 @@ export default function IntimacyPositionCard({
 
 const styles = StyleSheet.create({
   heroCardWrap: {
-    borderRadius: 0, // Remove border radius for edge-to-edge
-    borderTopWidth: 3,
-    borderBottomWidth: 3,
-    borderLeftWidth: 3, // Double border on left
-    borderRightWidth: 3, // Double border on right
-    paddingHorizontal: SPACING.screen, // Add horizontal padding for text content
+    borderRadius: 24,
+    borderWidth: 1,
+    paddingHorizontal: SPACING.lg,
     paddingVertical: 18,
     marginBottom: 0,
   },
@@ -349,6 +351,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  disabledControl: {
+    opacity: 0.55,
   },
   segmentedControl: {
     flexDirection: 'row',

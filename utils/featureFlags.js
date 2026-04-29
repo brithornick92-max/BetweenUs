@@ -221,7 +221,7 @@ export const FEATURE_META = Object.freeze({
     emotionalValue: 'Turn what you both want into time together',
   },
   [PremiumFeature.SURPRISE_ME]: {
-    name: 'Tonight Mode',
+    name: 'Today Mode',
     description: 'A focused connection moment for cozy, playful, romantic, sensual, or after-a-long-day nights',
     icon: '🎲',
     category: 'content',

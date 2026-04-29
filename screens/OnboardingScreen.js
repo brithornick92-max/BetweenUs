@@ -345,7 +345,6 @@ export default function OnboardingScreen({ navigation }) {
         }}
       >
         {[
-          { icon: 'chatbubbles-outline', text: 'Answer privately, then reveal together' },
           { icon: 'calendar-outline', text: 'Turn ordinary days into date ideas and memories' },
           { icon: 'heart-outline', text: 'A private space that becomes your story' },
         ].map((item) => (
@@ -394,9 +393,6 @@ export default function OnboardingScreen({ navigation }) {
             <Text style={[styles.samplePromptEyebrow, { color: t.primary }]}>TODAY'S MOMENT</Text>
             <Text style={[styles.samplePromptText, { color: t.text }]}>
               What's one small thing about your partner that still surprises you?
-            </Text>
-            <Text style={[styles.samplePromptHint, { color: t.subtext }]}>
-              Answer privately. Reveal together. Save the moment to your story.
             </Text>
           </View>
         </ReAnimated.View>
@@ -727,7 +723,7 @@ export default function OnboardingScreen({ navigation }) {
       },
       minimal: {
         title: 'Minimal Preview',
-        body: 'Tonight\'s prompt. Cleaner language, less noise, straight to the feeling.',
+        body: 'Today\'s prompt. Cleaner language, less noise, straight to the feeling.',
       },
     };
     return map[selectedTone] || map.warm;
@@ -915,9 +911,6 @@ export default function OnboardingScreen({ navigation }) {
             style={{ marginBottom: 24, alignSelf: 'center' }} 
           />
           <Text style={styles.pairingSubtitle}>This is just for you two.</Text>
-          <Text style={styles.pairingBody}>
-            Invite your partner so answers reveal together and your moments save to one shared archive.
-          </Text>
         </ReAnimated.View>
         
         {!inviteCode ? (

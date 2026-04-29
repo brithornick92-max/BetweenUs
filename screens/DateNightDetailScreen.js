@@ -38,6 +38,11 @@ import {
   removeDateHistoryEntry,
   saveDateHistoryEntry,
 } from '../utils/dateHistory';
+import {
+  addDateToShortlist,
+  getDateShortlist,
+  removeDateFromShortlist,
+} from '../services/supabase/dateShortlistService';
 
 const AUTO_LOG_THRESHOLD_SECONDS = 300; // 5 minutes
 
@@ -73,10 +78,15 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
+  const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || user?.uid || user?.id || null;
   const { loadUsageStatus } = useContent();
   const [date, setDate] = useState(routeDate || null);
   const [freeDateFlowRemaining, setFreeDateFlowRemaining] = useState(null);
   const [dateHistoryEntry, setDateHistoryEntry] = useState(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [triedBusy, setTriedBusy] = useState(false);
+  const [ratingBusy, setRatingBusy] = useState(false);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -195,6 +205,9 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const timerRef = useRef(null);
   const autoLoggedRef = useRef(false);
+  const saveBusyRef = useRef(false);
+  const triedBusyRef = useRef(false);
+  const ratingBusyRef = useRef(false);
 
   const logDateComplete = React.useCallback(async () => {
     if (!date?.id) return;
@@ -216,6 +229,28 @@ export default function DateNightDetailScreen({ route, navigation }) {
   useEffect(() => {
     loadDateHistoryEntry().catch(() => {});
   }, [loadDateHistoryEntry]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!date?.id || !userId) {
+      setIsSaved(false);
+      return undefined;
+    }
+
+    getDateShortlist(userId)
+      .then((rows) => {
+        if (!active) return;
+        setIsSaved((rows || []).some((row) => row.date_id === date.id));
+      })
+      .catch(() => {
+        if (active) setIsSaved(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [date?.id, userId]);
 
   useEffect(() => {
     autoLoggedRef.current = false;
@@ -258,27 +293,83 @@ export default function DateNightDetailScreen({ route, navigation }) {
     setTimerActive((prev) => !prev);
   };
 
-  const handleToggleTried = async () => {
-    if (!date?.id) return;
+  const handleToggleSaved = async () => {
+    if (!date?.id || saveBusyRef.current) return;
     selection();
+    saveBusyRef.current = true;
+    setSaveBusy(true);
 
-    if (dateHistoryEntry) {
-      await removeDateHistoryEntry(date.id);
-      setDateHistoryEntry(null);
-      autoLoggedRef.current = true;
-      return;
+    const wasSaved = isSaved;
+    setIsSaved(!wasSaved);
+
+    try {
+      if (userId) {
+        if (wasSaved) {
+          await removeDateFromShortlist(userId, date.id);
+        } else {
+          await addDateToShortlist(userId, date.id);
+        }
+      }
+    } catch (error) {
+      setIsSaved(wasSaved);
+      if (__DEV__) console.warn('[DateNightDetail] Failed to toggle saved date:', error?.message);
+    } finally {
+      saveBusyRef.current = false;
+      setSaveBusy(false);
     }
+  };
 
-    const result = await saveDateHistoryEntry(date);
-    setDateHistoryEntry(result.entry);
+  const handleToggleTried = async () => {
+    if (!date?.id || triedBusyRef.current) return;
+    selection();
+    triedBusyRef.current = true;
+    setTriedBusy(true);
+
+    const previousEntry = dateHistoryEntry;
+    setDateHistoryEntry(previousEntry ? null : { id: date.id, title: date.title, rating: null });
+
+    try {
+      if (previousEntry) {
+        await removeDateHistoryEntry(date.id);
+        autoLoggedRef.current = true;
+        return;
+      }
+
+      const result = await saveDateHistoryEntry(date);
+      setDateHistoryEntry(result.entry);
+    } catch (error) {
+      setDateHistoryEntry(previousEntry);
+      if (__DEV__) console.warn('[DateNightDetail] Failed to toggle tried date:', error?.message);
+    } finally {
+      triedBusyRef.current = false;
+      setTriedBusy(false);
+    }
   };
 
   const handleRateDate = async (rating) => {
-    if (!date?.id) return;
+    if (!date?.id || ratingBusyRef.current) return;
     selection();
-    const result = await rateDateHistoryEntry(date, rating);
-    setDateHistoryEntry(result.entry);
-    autoLoggedRef.current = true;
+    ratingBusyRef.current = true;
+    setRatingBusy(true);
+
+    const previousEntry = dateHistoryEntry;
+    const nextRating = previousEntry?.rating === rating ? null : rating;
+    setDateHistoryEntry({
+      ...(previousEntry || { id: date.id, title: date.title }),
+      rating: nextRating,
+    });
+
+    try {
+      const result = await rateDateHistoryEntry(date, rating);
+      setDateHistoryEntry(result.entry);
+      autoLoggedRef.current = true;
+    } catch (error) {
+      setDateHistoryEntry(previousEntry);
+      if (__DEV__) console.warn('[DateNightDetail] Failed to rate date:', error?.message);
+    } finally {
+      ratingBusyRef.current = false;
+      setRatingBusy(false);
+    }
   };
 
   const formatTime = (seconds) => {
@@ -409,13 +500,33 @@ export default function DateNightDetailScreen({ route, navigation }) {
           <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.triedPanel, { borderColor: t.border }]}>
             <TouchableOpacity
               accessibilityRole="checkbox"
-              accessibilityState={{ checked: !!dateHistoryEntry }}
+              accessibilityState={{ checked: isSaved, disabled: saveBusy }}
+              accessibilityLabel={isSaved ? 'Date saved' : 'Save date'}
+              activeOpacity={0.8}
+              disabled={saveBusy}
+              onPress={handleToggleSaved}
+              style={[
+                styles.triedToggle,
+                { backgroundColor: isSaved ? t.primary : t.surfaceSecondary, borderColor: isSaved ? t.primary : t.border },
+                saveBusy && styles.disabledControl,
+              ]}
+            >
+              <Icon name={isSaved ? 'bookmark' : 'bookmark-outline'} size={20} color={isSaved ? '#FFFFFF' : t.text} />
+              <Text style={[styles.triedToggleText, { color: isSaved ? '#FFFFFF' : t.text }]}>
+                {isSaved ? 'Saved' : 'Save'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: !!dateHistoryEntry, disabled: triedBusy }}
               accessibilityLabel={dateHistoryEntry ? 'Date marked as tried' : 'Mark date as tried'}
               activeOpacity={0.8}
+              disabled={triedBusy}
               onPress={handleToggleTried}
               style={[
                 styles.triedToggle,
                 { backgroundColor: dateHistoryEntry ? t.primary : t.surfaceSecondary, borderColor: dateHistoryEntry ? t.primary : t.border },
+                triedBusy && styles.disabledControl,
               ]}
             >
               <Icon name={dateHistoryEntry ? 'checkmark-circle-outline' : 'ellipse-outline'} size={20} color={dateHistoryEntry ? '#FFFFFF' : t.text} />
@@ -426,24 +537,30 @@ export default function DateNightDetailScreen({ route, navigation }) {
             <View style={styles.dateRatingRow}>
               <TouchableOpacity
                 accessibilityRole="button"
-                accessibilityLabel="Thumbs up for this date"
+                accessibilityState={{ selected: dateHistoryEntry?.rating === 'up', disabled: ratingBusy }}
+                accessibilityLabel={dateHistoryEntry?.rating === 'up' ? 'Remove thumbs up for this date' : 'Thumbs up for this date'}
                 activeOpacity={0.75}
+                disabled={ratingBusy}
                 onPress={() => handleRateDate('up')}
                 style={[
                   styles.dateRatingButton,
                   { borderColor: dateHistoryEntry?.rating === 'up' ? '#22C55E60' : t.border, backgroundColor: dateHistoryEntry?.rating === 'up' ? '#22C55E20' : t.surfaceSecondary },
+                  ratingBusy && styles.disabledControl,
                 ]}
               >
                 <Icon name="thumbs-up-outline" size={22} color={dateHistoryEntry?.rating === 'up' ? '#22C55E' : t.text} />
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
-                accessibilityLabel="Thumbs down for this date"
+                accessibilityState={{ selected: dateHistoryEntry?.rating === 'down', disabled: ratingBusy }}
+                accessibilityLabel={dateHistoryEntry?.rating === 'down' ? 'Remove thumbs down for this date' : 'Thumbs down for this date'}
                 activeOpacity={0.75}
+                disabled={ratingBusy}
                 onPress={() => handleRateDate('down')}
                 style={[
                   styles.dateRatingButton,
                   { borderColor: dateHistoryEntry?.rating === 'down' ? '#EF444460' : t.border, backgroundColor: dateHistoryEntry?.rating === 'down' ? '#EF444420' : t.surfaceSecondary },
+                  ratingBusy && styles.disabledControl,
                 ]}
               >
                 <Icon name="thumbs-down-outline" size={22} color={dateHistoryEntry?.rating === 'down' ? '#EF4444' : t.text} />
@@ -614,6 +731,7 @@ const styles = StyleSheet.create({
     padding: 14,
     overflow: 'hidden',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
@@ -627,6 +745,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     flex: 1,
+    minWidth: 112,
     justifyContent: 'center',
   },
   triedToggleText: {
@@ -648,6 +767,9 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  disabledControl: {
+    opacity: 0.55,
   },
 
   modulePadding: { paddingHorizontal: 24, marginTop: 28 },

@@ -10,7 +10,7 @@ Between Us is a private space for couples who want to feel closer — not track,
 Start each day with a guided prompt made for two. From lighthearted icebreakers to deeper questions about who you are together — answer separately, then reveal what your partner said.
 
 **PLAN SOMETHING REAL**
-Browse date ideas filtered by mood, budget, and style. Find something spontaneous for tonight or plan an anniversary worth remembering. Save it to your shared calendar so nothing gets forgotten.
+Browse date ideas filtered by mood, budget, and style. Find something spontaneous for today or plan an anniversary worth remembering. Save it to your shared calendar so nothing gets forgotten.
 
 **REMEMBER WHAT MATTERS**
 Write journal entries. Save inside jokes. Turn a great date into a memory you can revisit. Your shared timeline grows with you.

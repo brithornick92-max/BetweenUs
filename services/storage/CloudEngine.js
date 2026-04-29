@@ -129,7 +129,7 @@ class CloudEngine {
   async upsertProfile(userId, updates) {
     this._ensureSession();
     const supabase = getSupabaseOrThrow();
-    const PROFILE_COLUMNS = ['email', 'display_name', 'is_premium', 'preferences'];
+    const PROFILE_COLUMNS = ['email', 'display_name', 'preferences'];
     const safeUpdates = {};
     for (const key of PROFILE_COLUMNS) {
       if (key in updates) safeUpdates[key] = updates[key];

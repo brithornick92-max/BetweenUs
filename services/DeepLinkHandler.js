@@ -12,7 +12,8 @@
  *   betweenus://calendar                → Calendar (tab, day 2+)
  *   betweenus://date/:dateId            → DateNightDetail
  *   betweenus://journal                 → JournalHome
- *   betweenus://pair                    → PairingQRCode
+ *   betweenus://pair                    → ConnectPartner
+ *   betweenus://quiz                    → CouplesQuiz
  *   betweenus://auth-callback           → AuthCallback (existing)
  *   betweenus://widget                  → MainTabs (widget home tap)
  *   betweenus://widget/prompt           → Prompts tab (widget prompt tap)
@@ -65,8 +66,12 @@ const ROUTE_MAP = {
     screen: 'JournalHome',
     params: {},
   }),
+  'quiz': () => ({
+    screen: 'CouplesQuiz',
+    params: {},
+  }),
   'pair': () => ({
-    screen: 'PairingQRCode',
+    screen: 'ConnectPartner',
     params: {},
   }),
   'home': () => ({
@@ -74,6 +79,10 @@ const ROUTE_MAP = {
     params: {},
   }),
   'our-story': () => ({
+    screen: 'OurStory',
+    params: {},
+  }),
+  'saved-moments': () => ({
     screen: 'OurStory',
     params: {},
   }),

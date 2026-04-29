@@ -52,9 +52,7 @@ export default function CloseScreenHeader({
         <Text style={[styles.subtitle, subtitleColor && { color: subtitleColor }]} numberOfLines={2}>
           {subtitle}
         </Text>
-      ) : (
-        <View style={styles.subtitleSpacer} />
-      )}
+      ) : null}
       <View style={styles.titleRow}>
         {leftAccessory || null}
         <View style={styles.titleBlock}>
@@ -85,10 +83,6 @@ export default function CloseScreenHeader({
 
 const styles = StyleSheet.create({
   header: CLOSE_HEADER_STYLES.header,
-  subtitleSpacer: {
-    height: 16,
-    marginBottom: SPACING.sm,
-  },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

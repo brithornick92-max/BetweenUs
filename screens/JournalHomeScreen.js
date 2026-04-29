@@ -302,9 +302,6 @@ export default function JournalHomeScreen({ navigation }) {
           ]}
         >
           <View style={styles.cardContent}>
-            <Text style={[styles.heroTitle, { color: t.text }]}>
-              A shared shelf for the entries you write together.
-            </Text>
           </View>
 
           <View style={styles.heroActionWrap}>
@@ -353,9 +350,6 @@ export default function JournalHomeScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
 
-              <Text style={[styles.noticeBody, { color: t.subtext }]}>
-                New entries appear here for both of you.
-              </Text>
             </View>
           </View>
         </View>
@@ -370,10 +364,6 @@ export default function JournalHomeScreen({ navigation }) {
       </View>
 
       <Text style={styles.emptyTitle}>No shared entries yet</Text>
-
-      <Text style={styles.emptyBody}>
-        Start a shared entry when you want a memory, mood, or milestone to live with both of you.
-      </Text>
 
       <TouchableOpacity
         style={[styles.emptyButton, { backgroundColor: t.primary }]}

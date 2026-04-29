@@ -214,6 +214,33 @@ async function replaceCache(scope, rows) {
   return rows;
 }
 
+async function replaceCacheSubset(scope, rows, shouldReplaceRow, { sortBy = 'created_at', descending = true } = {}) {
+  const incomingRows = Array.isArray(rows) ? rows.filter(Boolean) : [];
+  const incomingIds = new Set(incomingRows.map((row) => row?.id).filter(Boolean));
+  const cachedRows = await loadCache(scope);
+
+  const retainedRows = (cachedRows || []).filter((row) => {
+    if (!row?.id || incomingIds.has(row.id)) return false;
+    return typeof shouldReplaceRow === 'function' ? !shouldReplaceRow(row) : true;
+  });
+
+  const next = [...incomingRows, ...retainedRows];
+
+  next.sort((a, b) => {
+    const av = a?.[sortBy] ?? '';
+    const bv = b?.[sortBy] ?? '';
+
+    if (av === bv) return 0;
+
+    return descending
+      ? String(bv).localeCompare(String(av))
+      : String(av).localeCompare(String(bv));
+  });
+
+  await saveCache(scope, next);
+  return incomingRows;
+}
+
 async function upsertCacheRow(scope, row, { sortBy = 'created_at', descending = true } = {}) {
   const rows = await loadCache(scope);
   const next = [row, ...rows.filter((item) => item?.id !== row?.id)];
@@ -884,6 +911,8 @@ const SupabaseDataLayer = {
     if (imageUri !== undefined) {
       patch.photoUri = imageUri || null;
       patch.mediaPath = null;
+      patch.mediaBucket = null;
+      patch.mimeType = null;
     }
 
     return runCloudOperation({
@@ -1134,7 +1163,11 @@ const SupabaseDataLayer = {
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapPromptRow(r)));
-      await replaceCache(CACHE_SCOPES.prompts, mapped);
+      await replaceCacheSubset(CACHE_SCOPES.prompts, mapped, (row) =>
+        row?.user_id === _userId
+        && (!dk || row?.date_key === dk)
+        && (!promptId || row?.prompt_id === promptId)
+      );
       return mapped;
     }
 
@@ -1166,7 +1199,10 @@ const SupabaseDataLayer = {
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapPromptRow(r)));
-      await replaceCache(CACHE_SCOPES.prompts, mapped);
+      await replaceCacheSubset(CACHE_SCOPES.prompts, mapped, (row) =>
+        (!dk || row?.date_key === dk)
+        && (!promptId || row?.prompt_id === promptId)
+      );
     }
 
     const myRows = sourceRows.filter((r) => (r.created_by || r.user_id) === _userId);
@@ -1178,7 +1214,12 @@ const SupabaseDataLayer = {
         && (p.value?.dateKey || p.date_key) === (r.value?.dateKey || r.date_key)
       ) || null;
 
-      return r.value ? mapPromptRow(r, partner) : r;
+      if (r.value) return mapPromptRow(r, partner);
+
+      return {
+        ...r,
+        partnerAnswer: partner?.answer || r.partnerAnswer || null,
+      };
     }));
   },
 
@@ -1331,7 +1372,10 @@ const SupabaseDataLayer = {
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapMemoryRow(r)));
-      await replaceCache(CACHE_SCOPES.memories, mapped);
+      await replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
+        row?.user_id === _userId
+        && (!type || row?.type === type)
+      );
       return mapped;
     }
 
@@ -1360,7 +1404,9 @@ const SupabaseDataLayer = {
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapMemoryRow(r)));
-      await replaceCache(CACHE_SCOPES.memories, mapped);
+      await replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
+        !type || row?.type === type
+      );
       return mapped;
     }
 
@@ -1379,6 +1425,10 @@ const SupabaseDataLayer = {
     if ('type' in updates) valuePatch.type = updates.type || 'moment';
     if ('moment_type' in updates) valuePatch.type = updates.moment_type || 'moment';
     if ('mood' in updates) valuePatch.mood = updates.mood || null;
+    if ('snapshot_id' in updates) valuePatch.snapshot_id = updates.snapshot_id || null;
+    if ('snapshot_index' in updates) valuePatch.snapshot_index = updates.snapshot_index ?? null;
+    if ('snapshot_count' in updates) valuePatch.snapshot_count = updates.snapshot_count ?? null;
+    if ('snapshot_created_at' in updates) valuePatch.snapshot_created_at = updates.snapshot_created_at || null;
 
     const cachedRows = await loadCache(CACHE_SCOPES.memories);
     const cached = cachedRows.find((row) => row?.id === id) || {};
@@ -1388,6 +1438,10 @@ const SupabaseDataLayer = {
       type: valuePatch.type || cached.type || 'moment',
       content: 'content' in valuePatch ? valuePatch.content : (cached.content || ''),
       mood: 'mood' in valuePatch ? valuePatch.mood : (cached.mood || null),
+      snapshot_id: 'snapshot_id' in valuePatch ? valuePatch.snapshot_id : (cached.snapshot_id || null),
+      snapshot_index: 'snapshot_index' in valuePatch ? normalizeSnapshotIndex(valuePatch.snapshot_index) : normalizeSnapshotIndex(cached.snapshot_index),
+      snapshot_count: 'snapshot_count' in valuePatch ? normalizeSnapshotCount(valuePatch.snapshot_count) : normalizeSnapshotCount(cached.snapshot_count),
+      snapshot_created_at: 'snapshot_created_at' in valuePatch ? valuePatch.snapshot_created_at : (cached.snapshot_created_at || null),
       updated_at: now(),
     };
 
@@ -1701,7 +1755,7 @@ const SupabaseDataLayer = {
           descending: false,
         });
 
-        PartnerNotifications.calendarEventCreated?.().catch(() => {});
+        PartnerNotifications.calendarEventCreated?.(null, mapped.title).catch(() => {});
         return mapped;
       },
       onOffline: async () => {
@@ -1934,11 +1988,17 @@ const SupabaseDataLayer = {
   },
 
   async _saveDatePlanForEvent(event, eventId) {
-    if (!(event?.isDateNight || event?.eventType === 'dateNight')) return;
-
     const existing = await cdQuery('date_plan', {
       filter: (q) => q.eq('value->>sourceEventId', eventId),
     });
+
+    if (!(event?.isDateNight || event?.eventType === 'dateNight')) {
+      if (Array.isArray(existing) && existing[0]) {
+        await cdSoftDelete(existing[0].id);
+        await removeCacheRow(CACHE_SCOPES.datePlans, existing[0].id);
+      }
+      return;
+    }
 
     const plan = {
       title: event?.title || '',

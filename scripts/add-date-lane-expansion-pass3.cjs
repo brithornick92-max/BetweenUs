@@ -35,7 +35,7 @@ const newDates = [
     location: 'out',
     steps: [
       'Go to a lively event, show, restaurant, or busy area',
-      'Notice what makes your partner feel most magnetic tonight',
+      'Notice what makes your partner feel most magnetic today',
       'Debrief over dessert, drinks, or a late-night snack',
       'Name the exact moment you felt most drawn to each other'
     ],
@@ -228,7 +228,7 @@ const newDates = [
     minutes: 75,
     location: 'home',
     steps: [
-      'Set the rule that everything tonight is curiosity, not obligation',
+      'Set the rule that everything today is curiosity, not obligation',
       'Each name one thing you are curious about and one thing you are not interested in',
       'Ask what emotional need sits underneath each curiosity',
       'Thank each other for the honesty before making any plans'
@@ -360,7 +360,7 @@ const newDates = [
     steps: [
       'Find a photo booth, mirror wall, or good lighting spot',
       'Take one sweet photo, one silly photo, and one confident photo',
-      'Talk about which version feels most like you tonight',
+      'Talk about which version feels most like you today',
       'Keep the favorite somewhere private or special'
     ],
     heat: 3,
@@ -766,7 +766,7 @@ const newDates = [
     steps: [
       'Make cards with words like soft, firm, slow, playful, close, and pause',
       'Talk about what each word means to you',
-      'Sort cards into favorites, curious, and not tonight',
+      'Sort cards into favorites, curious, and not today',
       'Keep the deck for future check-ins'
     ],
     heat: 3,
@@ -847,7 +847,7 @@ const newDates = [
       'Choose one scent, one sound, one texture, and one taste',
       'Talk about the feeling each one creates',
       'Create a small signal for more, pause, or slower',
-      'Use the signals only as playful practice tonight'
+      'Use the signals only as playful practice today'
     ],
     heat: 3,
     load: 2,

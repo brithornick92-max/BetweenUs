@@ -1,31 +1,37 @@
-# saved-moments-flow.yaml — E2E test: Open Saved archive from Home
-# Tests the new archive entry point and verifies the Saved Moments screen renders.
+# saved-moments-flow.yaml — E2E test: Open Keepsake from Home
+# Tests the Keepsake entry point and verifies the current Our Story screen renders.
 
 appId: com.brittany.betweenus
 
 ---
 
 - launchApp
+
+# Expo dev-client builds may open the development server picker first.
+- tapOn:
+    text: "http://localhost:8082"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+
 - waitForAnimationToEnd
 
 - extendedWaitUntil:
-    visible: ".*Open saved moments and prompts.*|.*TONIGHT'S MOMENT.*|.*TODAY'S MOMENT.*"
+    visible: ".*Keepsake.*|.*TODAY BETWEEN US.*|.*JUST US.*"
     timeout: 10000
 
-- tapOn: "Open saved moments and prompts"
+- tapOn: "Keepsake"
 - waitForAnimationToEnd
 
 - assertVisible:
-    text: ".*Moments, Prompts & Journal.*|.*Moments & Prompts.*"
+    text: ".*Keepsake.*"
 
 - assertVisible:
-    text: ".*YOUR SHARED ARCHIVE.*|.*Everything you’ve saved, kept in one place.*"
+    text: ".*OUR STORY.*|.*keepsakes.*|.*Newest first.*"
 
 - assertVisible:
-    text: ".*All.*"
-
-- assertVisible:
-    text: ".*Prompts.*"
-
-- assertVisible:
-    text: ".*Moments.*"
+    text: ".*Prompts, snapshots, dates tried, and positions tried.*|.*keepsakes, newest first.*|.*Newest first.*"

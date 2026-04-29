@@ -152,9 +152,9 @@ The Inside Jokes vault is a place to save relationship language, nicknames, refe
 
 Year Reflection and recap features summarize relationship moments from supported app data such as journals, dates, memories, answers, and signals.
 
-### What is Surprise Tonight?
+### What is Surprise Today?
 
-Surprise Tonight suggests spontaneous date or connection ideas based on available preferences and context.
+Surprise Today suggests spontaneous date or connection ideas based on available preferences and context.
 
 ### Can I lock the app with Face ID, Touch ID, or PIN?
 
@@ -174,7 +174,7 @@ Premium may include:
 - Energy Matcher
 - Inside Jokes features
 - Year Reflection and recaps
-- Surprise Tonight
+- Surprise Today
 - Shared premium access for linked partners when entitlement sync is available
 
 The exact premium features available to you are shown in the app and purchase flow.

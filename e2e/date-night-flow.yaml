@@ -1,20 +1,32 @@
 # date-night-flow.yaml — E2E test: Date night card browsing
-# Tests: filter dropdowns, card flip, swipe right/left, tonight's picks
+# Tests: filter dropdowns, card flip, swipe right/left, today's picks
 
 appId: com.brittany.betweenus
 
 ---
 
 - launchApp
+
+# Expo dev-client builds may open the development server picker first.
+- tapOn:
+    text: "http://localhost:8082"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+
 - waitForAnimationToEnd
 
-# Navigate to Date Plans tab
-- tapOn: "DatePlans"
+# Navigate to Dates tab
+- tapOn: "Dates, tab, 4 of 5"
 - waitForAnimationToEnd
 
-# Should see the date night header
+# Should see the dates header
 - assertVisible:
-    text: ".*Draw a date.*|.*date.*"
+    text: ".*Dates.*|.*ideas ready.*|.*Preparing ideas.*"
 
 # Open filter controls (if not already open)
 - tapOn:
@@ -39,13 +51,13 @@ appId: com.brittany.betweenus
     optional: true
 - waitForAnimationToEnd
 
-# Swipe right (like for tonight)
+# Swipe right (like for today)
 - swipe:
     direction: RIGHT
     duration: 500
 
 - waitForAnimationToEnd
 
-# Verify "Tonight's picks" section appears
+# Verify the saved-date shortlist appears after liking an idea
 - assertVisible:
-    text: ".*Tonight.*pick.*"
+    text: ".*Shortlist.*|.*selected.*|.*Shuffle Deck.*"

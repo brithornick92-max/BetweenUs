@@ -107,7 +107,7 @@ describe('Quiz Integration: "What Feels Like Us" Actually Shapes Content', () =>
     const prompts = [
       { id: 'p1', text: 'What do you hope for our future together?', category: 'future', heat: 2 },
       { id: 'p2', text: 'Share a quick memory from today.', category: 'memory', heat: 2 },
-      { id: 'p3', text: 'What is a playful dare for tonight?', category: 'playful', heat: 2 },
+      { id: 'p3', text: 'What is a playful dare for today?', category: 'playful', heat: 2 },
       { id: 'p4', text: 'How do you want to be touched right now?', category: 'physical', heat: 3 },
     ];
 
@@ -193,7 +193,7 @@ describe('Quiz Integration: "What Feels Like Us" Actually Shapes Content', () =>
     const prompts = [
       { id: 'p1', text: 'What is one honest thing you need to say?', category: 'emotional', heat: 2 },
       { id: 'p2', text: 'Tell me something sweet about today.', category: 'memory', heat: 1 },
-      { id: 'p3', text: 'What is a silly dare for tonight?', category: 'playful', heat: 2 },
+      { id: 'p3', text: 'What is a silly dare for today?', category: 'playful', heat: 2 },
     ];
 
     it('boosts direct/honest prompts for "Direct & honest"', async () => {

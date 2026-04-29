@@ -37,7 +37,6 @@ import DateCardBack from '../components/DateCardBack';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import { SoftBoundaries } from '../services/PolishEngine';
 import { CONTENT_TYPES, buildWeeklySet } from '../services/WeeklyContentSetService';
-import { getDateHistory, rateDateHistoryEntry } from '../utils/dateHistory';
 import {
   getDateShortlist,
   addDateToShortlist,
@@ -58,22 +57,22 @@ const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const TONE_DATE_COPY = {
   warm: {
     subtitle: 'A date shaped around your mood.',
-    emptySetup: 'Choose a mood to reveal plans shaped around tonight.',
+    emptySetup: 'Choose a mood to reveal plans shaped around today.',
     emptyResults: 'No warm matches surfaced. Try easing the filters or choosing a gentler lane.',
   },
   playful: {
     subtitle: 'Lighter plans with movement, spark, and surprise.',
-    emptySetup: 'Choose the mood above to reveal playful plans shaped around what you both want tonight.',
+    emptySetup: 'Choose the mood above to reveal playful plans shaped around what you both want today.',
     emptyResults: 'Nothing playful matched that mix. Shift the filters and see what opens up.',
   },
   intimate: {
     subtitle: 'Closer plans for slower tension and deeper connection.',
-    emptySetup: 'Choose the mood above to reveal intimate plans shaped around what you both want tonight.',
+    emptySetup: 'Choose the mood above to reveal intimate plans shaped around what you both want today.',
     emptyResults: 'No intimate matches yet. Try a neighboring mood or a softer effort level.',
   },
   minimal: {
     subtitle: 'Clean plans with less friction and more clarity.',
-    emptySetup: 'Choose the mood above to reveal simple plans shaped around what you both want tonight.',
+    emptySetup: 'Choose the mood above to reveal simple plans shaped around what you both want today.',
     emptyResults: 'No minimal matches appeared. Reset or simplify the filter mix.',
   },
 };
@@ -373,7 +372,7 @@ const CardStack = forwardRef(function CardStack(
             <>
               <Animated.View style={[styles.swipeHint, styles.swipeHintRight, rightHintStyle]}>
                 <Icon name="heart-outline" size={18} color="#FFFFFF" />
-                <Text style={styles.swipeHintText}>Tonight</Text>
+                <Text style={styles.swipeHintText}>Today</Text>
               </Animated.View>
               <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle]}>
                 <Icon name="close-outline" size={20} color="#FFFFFF" />
@@ -415,11 +414,11 @@ export default function DateNightScreen({ navigation }) {
   const [rawBoundaries, setRawBoundaries] = useState(null);
   const [deckIndex, setDeckIndex] = useState(0);
   const [likedDates, setLikedDates] = useState([]);
+  const [shortlistBusyIds, setShortlistBusyIds] = useState({});
   const [dropdownOpen, setDropdownOpen] = useState(null); // 'heat' | 'load' | 'style' | null
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [dateHistory, setDateHistory] = useState([]); // { id, title, heat, addedAt, rating: 'up'|'down'|null }
 
   const stackRef = useRef(null);
+  const shortlistBusyRef = useRef(new Set());
   const [deckVersion, setDeckVersion] = useState(0);
   const emptyShuffleAnim = useSharedValue(0);
 
@@ -437,9 +436,6 @@ export default function DateNightScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       setReady(false);
-      getDateHistory()
-        .then(setDateHistory)
-        .catch(() => {});
       const task = InteractionManager.runAfterInteractions(async () => {
         const dates = getAllDates();
         
@@ -573,19 +569,29 @@ export default function DateNightScreen({ navigation }) {
       return;
     }
 
-    setLikedDates(prev => {
-      const exists = prev.some(item => item.id === date.id);
-      return exists ? prev : [...prev, date];
-    });
+    const wasSaved = likedDates.some(item => item.id === date.id);
+    setLikedDates(prev => (
+      wasSaved
+        ? prev.filter(item => item.id !== date.id)
+        : prev.some(item => item.id === date.id) ? prev : [...prev, date]
+    ));
 
     if (userId) {
-      addDateToShortlist(userId, date.id).catch(() => {
-        setLikedDates(prev => prev.filter(item => item.id !== date.id));
+      const persist = wasSaved
+        ? removeDateFromShortlist(userId, date.id)
+        : addDateToShortlist(userId, date.id);
+
+      persist.catch(() => {
+        setLikedDates(prev => (
+          wasSaved
+            ? prev.some(item => item.id === date.id) ? prev : [...prev, date]
+            : prev.filter(item => item.id !== date.id)
+        ));
       });
     }
 
     setDeckIndex(prev => prev + 1);
-  }, [userId, showPaywall]);
+  }, [likedDates, userId, showPaywall]);
 
   const handleSwipeLeft = useCallback(() => {
     setDeckIndex(prev => prev + 1);
@@ -635,14 +641,43 @@ export default function DateNightScreen({ navigation }) {
     setContentProfile(profile);
   }, [userProfile]);
 
-  const rateDateInHistory = useCallback((id, rating) => {
+  const handleToggleShortlist = useCallback(async (date) => {
+    if (!date?.id || shortlistBusyRef.current.has(date.id)) return;
     selection();
-    const entry = dateHistory.find((item) => item.id === id);
-    if (!entry) return;
-    rateDateHistoryEntry(entry, rating)
-      .then((result) => setDateHistory(result.history || []))
-      .catch(() => {});
-  }, [dateHistory]);
+    shortlistBusyRef.current.add(date.id);
+    setShortlistBusyIds(prev => ({ ...prev, [date.id]: true }));
+
+    const wasSaved = likedDates.some(item => item.id === date.id);
+    setLikedDates(prev => (
+      wasSaved
+        ? prev.filter(item => item.id !== date.id)
+        : prev.some(item => item.id === date.id) ? prev : [...prev, date]
+    ));
+
+    try {
+      if (userId) {
+        if (wasSaved) {
+          await removeDateFromShortlist(userId, date.id);
+        } else {
+          await addDateToShortlist(userId, date.id);
+        }
+      }
+    } catch (error) {
+      setLikedDates(prev => (
+        wasSaved
+          ? prev.some(item => item.id === date.id) ? prev : [...prev, date]
+          : prev.filter(item => item.id !== date.id)
+      ));
+      if (__DEV__) console.warn('[DateNight] Failed to toggle shortlist:', error?.message);
+    } finally {
+      shortlistBusyRef.current.delete(date.id);
+      setShortlistBusyIds(prev => {
+        const next = { ...prev };
+        delete next[date.id];
+        return next;
+      });
+    }
+  }, [likedDates, userId]);
 
   const handlePauseDate = useCallback((date) => {    if (!date?.id) return;
 
@@ -698,21 +733,6 @@ export default function DateNightScreen({ navigation }) {
           
           <View style={styles.headerRow}>
             <Text style={[styles.headerTitle, { color: t.text }]}>Dates</Text>
-            
-            <TouchableOpacity
-              style={[styles.historyButton, { 
-                borderColor: historyOpen ? colors.primary + '40' : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'), 
-                backgroundColor: historyOpen ? colors.primary + '15' : 'transparent' 
-              }]}
-              onPress={() => setHistoryOpen(o => !o)}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={`${historyOpen ? 'Hide' : 'Show'} date history`}
-              accessibilityState={{ expanded: historyOpen }}
-            >
-              <Icon name="calendar-outline" size={24} color={historyOpen ? colors.primary : colors.text} />
-              {dateHistory.length > 0 && <View style={[styles.filterDot, { backgroundColor: colors.primary }]} />}
-            </TouchableOpacity>
           </View>
           
           {/* Shuffle Button */}
@@ -754,65 +774,6 @@ export default function DateNightScreen({ navigation }) {
           </View>
         ) : (
         <>
-        {/* Date History Panel */}
-        {historyOpen && (
-          <View style={styles.historySection}>
-            <View style={styles.historyHeader}>
-              <Text style={[styles.historyTitle, { color: colors.text }]}>Dates We've Been On</Text>
-              {dateHistory.length > 0 && (
-                <View style={[styles.likedBadge, { backgroundColor: colors.primary + '20' }]}>
-                  <Text style={[styles.likedBadgeText, { color: colors.primary }]}>{dateHistory.length}</Text>
-                </View>
-              )}
-            </View>
-            {dateHistory.length === 0 ? (
-              <View style={[styles.historyEmpty, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
-                <Text style={{ fontSize: 28, marginBottom: 8 }}>📅</Text>
-                <Text style={[styles.historyEmptyText, { color: colors.textMuted }]}>
-                  No dates logged yet. Tap "We did this!" on any idea in your shortlist to track it here.
-                </Text>
-              </View>
-            ) : (
-              dateHistory.map((entry) => {
-                const hm = DIMS.heat.find(h => h.level === entry.heat) || DIMS.heat[0];
-                const dateStr = new Date(entry.addedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-                return (
-                  <View
-                    key={entry.id}
-                    style={[styles.historyCard, { backgroundColor: isDark ? 'rgba(28,28,30,0.8)' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}
-                  >
-                    <View style={[styles.historyCardEmoji, { backgroundColor: hm.color + '18' }]}>
-                      <Text style={{ fontSize: 18 }}>{hm.icon}</Text>
-                    </View>
-                    <View style={styles.historyCardContent}>
-                      <Text style={[styles.historyCardTitle, { color: colors.text }]} numberOfLines={2}>{entry.title}</Text>
-                      <Text style={[styles.historyCardDate, { color: colors.textMuted }]}>{dateStr}</Text>
-                    </View>
-                    <View style={styles.historyRatingRow}>
-                      <TouchableOpacity
-                        onPress={() => rateDateInHistory(entry.id, 'up')}
-                        activeOpacity={0.75}
-                        style={[styles.ratingBtn, entry.rating === 'up' && { backgroundColor: '#22C55E20', borderColor: '#22C55E60' }, { borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' }]}
-                        accessibilityLabel="Thumbs up"
-                      >
-                        <Text style={{ fontSize: 18 }}>👍</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => rateDateInHistory(entry.id, 'down')}
-                        activeOpacity={0.75}
-                        style={[styles.ratingBtn, entry.rating === 'down' && { backgroundColor: '#EF444420', borderColor: '#EF444460' }, { borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' }]}
-                        accessibilityLabel="Thumbs down"
-                      >
-                        <Text style={{ fontSize: 18 }}>👎</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                );
-              })
-            )}
-          </View>
-        )}
-
         {/* Card Stack Content */}
         <View style={styles.stackWrapper}>
           {deck.length === 0 ? (
@@ -843,7 +804,7 @@ export default function DateNightScreen({ navigation }) {
                   <Text style={{ fontSize: 42, marginBottom: 8 }}>✨</Text>
                   <Text style={[styles.emptyTitle, { color: colors.text }]}>Deck Complete</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                    {likedDates.length > 0 ? `You've selected ${likedDates.length} ideas for tonight.` : 'Ready to shuffle and go again?'}
+                    {likedDates.length > 0 ? `You've selected ${likedDates.length} ideas for today.` : 'Ready to shuffle and go again?'}
                   </Text>
                   <TouchableOpacity
                     style={[styles.resetBtn, { backgroundColor: colors.text }]}
@@ -942,6 +903,21 @@ export default function DateNightScreen({ navigation }) {
                     onLongPress={() => handlePauseDate(d)}
                     activeOpacity={0.85}
                   >
+                    <TouchableOpacity
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: true, disabled: !!shortlistBusyIds[d.id] }}
+                      accessibilityLabel="Remove saved date"
+                      activeOpacity={0.75}
+                      disabled={!!shortlistBusyIds[d.id]}
+                      onPress={() => handleToggleShortlist(d)}
+                      style={[
+                        styles.likedSaveButton,
+                        { backgroundColor: colors.primary + '18', borderColor: colors.primary + '35' },
+                        shortlistBusyIds[d.id] && styles.disabledControl,
+                      ]}
+                    >
+                      <Icon name="bookmark" size={15} color={colors.primary} />
+                    </TouchableOpacity>
                     <View style={[styles.likedCardEmoji, { backgroundColor: hm.color + '15' }]}>
                       <Text style={{ fontSize: 16 }}>{hm.icon}</Text>
                     </View>
@@ -980,11 +956,11 @@ const createStyles = (colors, isDark) => StyleSheet.create({
   },
   headerEye: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 1.2,
+    letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   headerRow: {
     flexDirection: 'row',
@@ -1033,23 +1009,6 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
   },
-  historyButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: isDark ? 0.3 : 0.06,
-        shadowRadius: 8,
-      },
-      android: { elevation: 2 },
-    }),
-  },
   filterToggle: {
     width: 44,
     height: 44,
@@ -1058,17 +1017,6 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  filterDot: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: colors.background,
-  },
-
   filterSection: {
     marginBottom: 24,
   },
@@ -1341,6 +1289,18 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     borderWidth: 1.5,
     gap: 12,
   },
+  likedSaveButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
   likedCardEmoji: {
     width: 32,
     height: 32,
@@ -1349,64 +1309,8 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'center',
   },
   likedCardTitle: { fontSize: 15, fontWeight: '700', lineHeight: 20 },
-  historySection: {
-    marginBottom: 24,
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 14,
-  },
-  historyTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  historyEmpty: {
-    borderRadius: 20,
-    borderWidth: 1.5,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  historyEmptyText: {
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  historyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 18,
-    borderWidth: 1.5,
-    padding: 14,
-    marginBottom: 10,
-    gap: 12,
-  },
-  historyCardEmoji: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  historyCardContent: { flex: 1 },
-  historyCardTitle: { fontSize: 15, fontWeight: '700', lineHeight: 20 },
-  historyCardDate: { fontSize: 12, marginTop: 2, opacity: 0.7 },
-  historyRatingRow: {
-    flexDirection: 'row',
-    gap: 8,
-    flexShrink: 0,
-  },
-  ratingBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
+  disabledControl: {
+    opacity: 0.55,
   },
   weeklyDropBanner: {
     display: 'none',

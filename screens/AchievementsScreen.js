@@ -38,8 +38,7 @@ export default function AchievementsScreen() {
 
   const load = useCallback(async () => {
     try {
-      const dl = await DataLayer.getInstance();
-      const results = await evaluateAchievements(dl);
+      const results = await evaluateAchievements(DataLayer);
       setMilestones(results || []);
     } catch {
       setMilestones([]);

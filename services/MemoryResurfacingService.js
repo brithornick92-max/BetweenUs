@@ -21,6 +21,14 @@ try {
   Notifications = null;
 }
 
+function dateTrigger(date) {
+  return {
+    type: Notifications?.SchedulableTriggerInputTypes?.DATE || 'date',
+    date,
+    channelId: 'default',
+  };
+}
+
 const SCHEDULED_ID_KEY = '@betweenus:cache:onThisDayNotificationId';
 const LAST_SCHEDULED_KEY = '@betweenus:cache:onThisDayLastScheduled';
 
@@ -134,10 +142,7 @@ const MemoryResurfacingService = {
       const trigger = tomorrowAt8am();
       const id = await Notifications.scheduleNotificationAsync({
         content: buildNotificationContent(best, bestYears),
-        trigger: {
-          date: trigger,
-          type: 'date',
-        },
+        trigger: dateTrigger(trigger),
       });
 
       await AsyncStorage.setItem(SCHEDULED_ID_KEY, id);

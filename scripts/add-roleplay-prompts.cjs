@@ -25,7 +25,7 @@ const newPrompts = [
   },
   {
     id: 'h5_158',
-    text: "We've been flirting with someone we both find irresistible. Tonight, they're in our bedroom. Describe the scene from the very beginning — who makes the first move, how the three of us navigate each other's bodies, the dynamic of watching me with someone else while waiting for your turn, every position, every moment of shared pleasure...",
+    text: "We've been flirting with someone we both find irresistible. Today, they're in our bedroom. Describe the scene from the very beginning — who makes the first move, how the three of us navigate each other's bodies, the dynamic of watching me with someone else while waiting for your turn, every position, every moment of shared pleasure...",
     category: 'roleplay',
     heat: 5,
     relationshipDuration: 'any'

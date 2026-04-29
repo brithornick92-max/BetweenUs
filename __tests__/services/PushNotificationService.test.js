@@ -44,6 +44,18 @@ describe('PushNotificationService', () => {
     const token = await PushNotificationService.initialize(supabase);
 
     expect(token).toBe('ExponentPushToken[test]');
+    expect(mockSetNotificationHandler).toHaveBeenCalledWith({
+      handleNotification: expect.any(Function),
+    });
+    await expect(
+      mockSetNotificationHandler.mock.calls[0][0].handleNotification()
+    ).resolves.toEqual({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    });
     expect(upsert).toHaveBeenCalled();
   });
 

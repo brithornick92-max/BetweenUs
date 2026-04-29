@@ -10,6 +10,17 @@ appId: com.brittany.betweenus
 
 - launchApp
 
+# Expo dev-client builds may open the development server picker first.
+- tapOn:
+    text: "http://localhost:8082"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+
 # Step 1: HeartbeatEntry intro (auto-advances after ~4s)
 - waitForAnimationToEnd
 - extendedWaitUntil:
@@ -56,4 +67,4 @@ appId: com.brittany.betweenus
 
 # Should now be on the main tabs (Home)
 - assertVisible:
-    text: ".*Home.*|.*tonight.*|.*moment.*"
+    text: ".*Home.*|.*today.*|.*moment.*"

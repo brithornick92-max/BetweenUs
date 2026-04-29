@@ -146,6 +146,38 @@ function getOriginalMemoryIds(editItem) {
   return editItem.sourceId ? [editItem.sourceId] : [];
 }
 
+function getOriginalMemoryType(editItem, fallbackType = 'moment') {
+  if (!editItem || editItem.kind === 'snapshot') return 'snapshot';
+  return editItem.row?.type || editItem.type || editItem.moment_type || fallbackType;
+}
+
+function getOriginalSnapshotCreatedAt(editItem) {
+  if (!editItem) return null;
+
+  if (editItem.kind === 'snapshot') {
+    return editItem.rawItems?.[0]?.row?.snapshot_created_at
+      || editItem.sortAt
+      || editItem.rawItems?.[0]?.rawDate
+      || null;
+  }
+
+  return editItem.row?.snapshot_created_at || null;
+}
+
+function isSameExistingMediaSet(items, originalIds) {
+  if (!Array.isArray(items) || !Array.isArray(originalIds)) return false;
+  if (items.length !== originalIds.length) return false;
+
+  const nextIds = items
+    .map((item) => item?.sourceId)
+    .filter(Boolean)
+    .sort();
+  const currentIds = [...originalIds].filter(Boolean).sort();
+
+  return nextIds.length === currentIds.length
+    && nextIds.every((id, index) => id === currentIds[index]);
+}
+
 async function deleteMemoryById(memoryId) {
   if (!memoryId) return;
 
@@ -180,6 +212,10 @@ export default function AddMemoryScreen() {
   const editItem = route.params?.editItem || null;
   const isEditMode = route.params?.mode === 'edit' && !!editItem;
   const originalMemoryIds = useMemo(() => getOriginalMemoryIds(editItem), [editItem]);
+  const originalSnapshotCreatedAt = useMemo(
+    () => getOriginalSnapshotCreatedAt(editItem),
+    [editItem]
+  );
 
   const editSnapshotId = useMemo(() => {
     if (!isEditMode) return null;
@@ -205,6 +241,11 @@ export default function AddMemoryScreen() {
       type: 'moment',
     };
   }, [route.params]);
+
+  const originalMemoryType = useMemo(
+    () => getOriginalMemoryType(editItem, promptRevealDraft.type),
+    [editItem, promptRevealDraft.type]
+  );
 
   const initialContent = useMemo(() => {
     if (isEditMode) {
@@ -322,8 +363,15 @@ export default function AddMemoryScreen() {
     setMediaItems([]);
   }, []);
 
-  const saveSnapshotItems = useCallback(async ({ snapshotId, trimmed, items }) => {
-    const now = new Date().toISOString();
+  const saveSnapshotItems = useCallback(async ({
+    snapshotId,
+    trimmed,
+    items,
+    type = 'snapshot',
+    snapshotCreatedAt,
+    notifyPartner = true,
+  }) => {
+    const now = snapshotCreatedAt || new Date().toISOString();
 
     if (items.length > 0) {
       for (let index = 0; index < items.length; index += 1) {
@@ -331,21 +379,21 @@ export default function AddMemoryScreen() {
 
         await DataLayer.saveMemory({
           content: trimmed || '',
-          type: 'snapshot',
+          type,
           mood: null,
           isPrivate: false,
 
-          snapshot_id: snapshotId,
-          snapshot_index: index,
-          snapshot_count: items.length,
-          snapshot_created_at: now,
+          snapshot_id: type === 'snapshot' ? snapshotId : null,
+          snapshot_index: type === 'snapshot' ? index : null,
+          snapshot_count: type === 'snapshot' ? items.length : null,
+          snapshot_created_at: type === 'snapshot' ? now : null,
 
           mediaUri: item.uri,
           mimeType: item.mimeType,
           fileName: item.fileName || `memory_${Date.now()}_${index}.${item.type === 'video' ? 'mp4' : 'jpg'}`,
 
           // Notify only after the final media row saves successfully.
-          notifyPartner: index === items.length - 1,
+          notifyPartner: notifyPartner && index === items.length - 1,
         });
       }
 
@@ -354,18 +402,77 @@ export default function AddMemoryScreen() {
 
     await DataLayer.saveMemory({
       content: trimmed || '',
-      type: 'snapshot',
+      type,
       mood: null,
       isPrivate: false,
 
-      snapshot_id: snapshotId,
-      snapshot_index: 0,
-      snapshot_count: 1,
-      snapshot_created_at: now,
+      snapshot_id: type === 'snapshot' ? snapshotId : null,
+      snapshot_index: type === 'snapshot' ? 0 : null,
+      snapshot_count: type === 'snapshot' ? 1 : null,
+      snapshot_created_at: type === 'snapshot' ? now : null,
 
-      notifyPartner: true,
+      notifyPartner,
     });
   }, []);
+
+  const saveSnapshotEdit = useCallback(async ({ snapshotId, trimmed, items }) => {
+    const retainedItems = items.filter((item) => item?.isExisting && item?.sourceId);
+    const newItems = items.filter((item) => !item?.isExisting);
+    const retainedIds = new Set(retainedItems.map((item) => item.sourceId));
+    const removedIds = originalMemoryIds.filter((id) => !retainedIds.has(id));
+    const snapshotCreatedAt = originalSnapshotCreatedAt || new Date().toISOString();
+    const totalCount = items.length || 1;
+
+    for (let index = 0; index < retainedItems.length; index += 1) {
+      const item = retainedItems[index];
+      await DataLayer.updateMemory(item.sourceId, {
+        content: trimmed || '',
+        type: 'snapshot',
+        snapshot_id: snapshotId,
+        snapshot_index: index,
+        snapshot_count: totalCount,
+        snapshot_created_at: snapshotCreatedAt,
+      });
+    }
+
+    if (newItems.length > 0) {
+      for (let index = 0; index < newItems.length; index += 1) {
+        const item = newItems[index];
+        const snapshotIndex = retainedItems.length + index;
+
+        await DataLayer.saveMemory({
+          content: trimmed || '',
+          type: 'snapshot',
+          mood: null,
+          isPrivate: false,
+          snapshot_id: snapshotId,
+          snapshot_index: snapshotIndex,
+          snapshot_count: totalCount,
+          snapshot_created_at: snapshotCreatedAt,
+          mediaUri: item.uri,
+          mimeType: item.mimeType,
+          fileName: item.fileName || `memory_${Date.now()}_${snapshotIndex}.${item.type === 'video' ? 'mp4' : 'jpg'}`,
+          notifyPartner: index === newItems.length - 1,
+        });
+      }
+    } else if (items.length === 0) {
+      await DataLayer.saveMemory({
+        content: trimmed || '',
+        type: 'snapshot',
+        mood: null,
+        isPrivate: false,
+        snapshot_id: snapshotId,
+        snapshot_index: 0,
+        snapshot_count: 1,
+        snapshot_created_at: snapshotCreatedAt,
+        notifyPartner: true,
+      });
+    }
+
+    if (removedIds.length > 0) {
+      await Promise.all(removedIds.map((memoryId) => deleteMemoryById(memoryId)));
+    }
+  }, [originalMemoryIds, originalSnapshotCreatedAt]);
 
   const handleSave = useCallback(async () => {
     const trimmed = content.trim();
@@ -381,15 +488,37 @@ export default function AddMemoryScreen() {
     try {
       const snapshotId = editSnapshotId || buildSnapshotId();
 
-      if (isEditMode && originalMemoryIds.length > 0) {
-        await Promise.all(originalMemoryIds.map((memoryId) => deleteMemoryById(memoryId)));
-      }
+      if (isEditMode && editItem?.kind === 'snapshot') {
+        await saveSnapshotEdit({
+          snapshotId,
+          trimmed,
+          items: mediaItems,
+        });
+      } else if (
+        isEditMode
+        && originalMemoryIds.length === 1
+        && (
+          isSameExistingMediaSet(mediaItems, originalMemoryIds)
+          || (!editItem?.media?.uri && mediaItems.length === 0)
+        )
+      ) {
+        await DataLayer.updateMemory(originalMemoryIds[0], {
+          content: trimmed || '',
+          type: originalMemoryType,
+        });
+      } else {
+        await saveSnapshotItems({
+          snapshotId,
+          trimmed,
+          items: mediaItems,
+          type: isEditMode ? originalMemoryType : promptRevealDraft.type,
+          snapshotCreatedAt: originalSnapshotCreatedAt,
+        });
 
-      await saveSnapshotItems({
-        snapshotId,
-        trimmed,
-        items: mediaItems,
-      });
+        if (isEditMode && originalMemoryIds.length > 0) {
+          await Promise.all(originalMemoryIds.map((memoryId) => deleteMemoryById(memoryId)));
+        }
+      }
 
       notification(NotificationFeedbackType.Success);
       navigation.goBack();
@@ -407,11 +536,17 @@ export default function AddMemoryScreen() {
   }, [
     content,
     editSnapshotId,
+    editItem?.kind,
+    editItem?.media?.uri,
     isEditMode,
     mediaItems,
     navigation,
     originalMemoryIds,
+    originalMemoryType,
+    originalSnapshotCreatedAt,
+    promptRevealDraft.type,
     saveSnapshotItems,
+    saveSnapshotEdit,
   ]);
 
   const canSave = (content.trim().length > 0 || mediaItems.length > 0) && !saving;
@@ -507,10 +642,6 @@ export default function AddMemoryScreen() {
 
                     <Text style={[styles.uploadTitle, { color: t.text }]}>
                       Upload Photos or Videos
-                    </Text>
-
-                    <Text style={[styles.uploadBody, { color: t.subtext }]}>
-                      Select one or many from your library.
                     </Text>
 
                     <View
@@ -630,7 +761,7 @@ export default function AddMemoryScreen() {
                 <TextInput
                   ref={inputRef}
                   style={[styles.input, { color: t.text }]}
-                  placeholder="What do you want to remember about this moment?"
+                  placeholder="Add a note..."
                   placeholderTextColor={withAlpha(t.text, 0.4)}
                   value={content}
                   onChangeText={setContent}

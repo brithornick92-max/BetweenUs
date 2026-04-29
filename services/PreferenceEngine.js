@@ -681,27 +681,27 @@ async function getSmartGreeting(profile) {
   // Season-aware embellishment
   const seasonPhrases = {
     busy: [
-      'Something quick and meaningful tonight.',
+      'Something quick and meaningful today.',
       'A small moment, just for you two.',
       'Even busy seasons deserve a pause.',
     ],
     cozy: [
-      'Settle in together tonight.',
+      'Settle in together today.',
       'Warmth is waiting for you.',
       'A cozy evening, just the two of you.',
     ],
     growth: [
-      'Ready to go a little deeper tonight?',
+      'Ready to go a little deeper today?',
       'Growing closer, one question at a time.',
-      'Tonight is for honest conversations.',
+      'Today is for honest conversations.',
     ],
     adventure: [
       'Something new is waiting.',
-      'Let\'s try something different tonight.',
+      'Let\'s try something different today.',
       'Adventure starts with a question.',
     ],
     rest: [
-      'Take it slow tonight.',
+      'Take it slow today.',
       'No pressure — just presence.',
       'Gentle moments are enough.',
     ],
@@ -709,7 +709,7 @@ async function getSmartGreeting(profile) {
 
   // Energy-aware fallback
   const energyPhrases = {
-    low: 'Something gentle for tonight.',
+    low: 'Something gentle for today.',
     medium: tonePhrase,
     open: 'The night is yours.',
   };

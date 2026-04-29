@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.xl,
-    paddingBottom: SPACING.xs,
+    paddingBottom: SPACING.md,
   },
   headerLabel: {
     fontFamily: SYSTEM_FONT,

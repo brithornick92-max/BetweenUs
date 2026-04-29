@@ -63,12 +63,36 @@ describe('PartnerNotifications', () => {
     );
   });
 
+  it('calendarEventCreated — sends correct route', async () => {
+    await PartnerNotifications.calendarEventCreated('Alex', 'Dinner');
+
+    expect(mockNotifyPartner).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({ route: 'calendar', type: 'calendar_event_created', title: 'Dinner' }),
+      })
+    );
+  });
+
+  it('quizAnswered — sends correct route', async () => {
+    await PartnerNotifications.quizAnswered('Alex');
+
+    expect(mockNotifyPartner).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        title: expect.stringContaining('Daily Quiz'),
+        data: expect.objectContaining({ route: 'quiz', type: 'quiz_answered' }),
+      })
+    );
+  });
+
   it('memorySaved — names anniversary type without revealing private details', async () => {
     await PartnerNotifications.memorySaved('Alex', 'anniversary');
 
     const payload = mockNotifyPartner.mock.calls[0][1];
     expect(payload.title).toContain('anniversary');
     expect(payload.body).toContain('archive');
+    expect(payload.data).toEqual(expect.objectContaining({ route: 'our-story' }));
   });
 
   it('streakAtRisk — includes connected day count without guilt copy', async () => {

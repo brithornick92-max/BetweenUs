@@ -22,9 +22,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from '../components/Icon';
+import GlowOrb from '../components/GlowOrb';
+import FilmGrain from '../components/FilmGrain';
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
+import CloseScreenHeader from '../components/CloseScreenHeader';
 import {
   impact,
   notification,
@@ -34,7 +36,7 @@ import {
 } from "../utils/haptics";
 import Animated, {
   FadeIn,
-  FadeInUp,
+  FadeInDown,
   useSharedValue,
   useAnimatedStyle,
   withTiming,
@@ -56,7 +58,7 @@ import { getPromptById } from "../utils/contentLoader";
 import { getPartnerDisplayName } from "../utils/profileNames";
 import { SPACING, withAlpha } from "../utils/theme";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { width: SCREEN_W } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 const MAX_LEN = 1000;
@@ -94,7 +96,7 @@ const INSPIRATION_CHIPS = [
 ];
 
 export default function PromptAnswerScreen({ route, navigation }) {
-  const { prompt: routePrompt, promptId } = route.params || {};
+  const { prompt: routePrompt, promptId, mode } = route.params || {};
   const { state } = useAppContext();
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
@@ -124,6 +126,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   } : {
     background: colors.background,
     surface: colors.surface || '#FFFFFF',
+    surfaceSecondary: colors.surfaceSecondary || 'rgba(242, 242, 247, 0.78)',
     primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
     text: colors.text,
     subtext: colors.textMuted || 'rgba(0,0,0,0.4)',
@@ -136,12 +139,15 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const catLabel = HEAT_LABELS[heat] || "Emotional";
   const hasLinkedPartner = !!state?.coupleId;
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
-  const helperCopy = hasLinkedPartner
+  const isEditingAnswer = mode === 'edit' || !!existingAnswer;
+  const helperCopy = hasLinkedPartner || isEditingAnswer
     ? ""
     : `Ask ${partnerLabel} to answer too.`;
-  const privacyCopy = hasLinkedPartner
+  const privacyCopy = hasLinkedPartner || isEditingAnswer
     ? `Waiting for ${partnerLabel}…`
     : `Ask ${partnerLabel} to answer too.`;
+  const headerTitle = isEditingAnswer ? "Edit Answer" : "Your Answer";
+  const canSave = answer.trim().length > 0 && !isSaving;
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
@@ -318,29 +324,54 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
       <LinearGradient
-        colors={[withAlpha(catGradient[0], 0.1), "transparent"]}
-        style={StyleSheet.absoluteFill}
+        colors={isDark
+          ? [t.background, withAlpha(catGradient[1], 0.28), '#0A0003', t.background]
+          : [t.background, withAlpha(catGradient[0], 0.08), t.background]}
+        style={StyleSheet.absoluteFillObject}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
       />
+      <GlowOrb
+        color={t.primary}
+        size={400}
+        top={-160}
+        left={SCREEN_W - 200}
+        opacity={isDark ? 0.16 : 0.07}
+      />
+      <FilmGrain opacity={isDark ? 0.08 : 0.04} />
 
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
-        <Animated.View entering={FadeInUp.duration(600).delay(150)}>
-          <CloseScreenHeader
-            title="Answer Prompt"
-            subtitle="TODAY BETWEEN US"
-            titleColor={t.text}
-            subtitleColor={t.primary}
-            closeColor={t.text}
-            onClose={() => navigation.goBack()}
-            rightAccessory={(
-              <View style={[styles.headerStatus, { backgroundColor: withAlpha(t.primary, 0.1), borderColor: withAlpha(t.primary, 0.2) }]}>
-                <Icon name="chatbubble-ellipses-outline" size={12} color={t.primary} />
-                <Text style={[styles.statusText, { color: t.primary }]}>TODAY BETWEEN US</Text>
-              </View>
-            )}
-          />
-        </Animated.View>
+        <CloseScreenHeader
+          title={headerTitle}
+          subtitle="TODAY BETWEEN US"
+          titleColor={t.text}
+          subtitleColor={t.primary}
+          closeColor={t.text}
+          onClose={() => navigation.goBack()}
+          rightAccessory={(
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={!canSave}
+              style={[
+                styles.headerSaveButton,
+                {
+                  backgroundColor: canSave ? withAlpha(t.primary, 0.15) : 'transparent',
+                  borderColor: canSave ? withAlpha(t.primary, 0.3) : 'transparent',
+                },
+              ]}
+            >
+              {isSaving ? (
+                <ActivityIndicator size="small" color={t.primary} />
+              ) : (
+                <Text style={[styles.headerSaveButtonText, { color: canSave ? t.primary : t.subtext }]}>
+                  {isEditingAnswer ? 'Update' : 'Save'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          )}
+        />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -352,7 +383,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
             keyboardShouldPersistTaps="handled"
           >
             {/* Flipping Prompt Card — high-end editorial physics */}
-            <Animated.View style={[styles.glassCardContainer, dealStyle]}>
+            <Animated.View entering={FadeInDown.delay(50).springify().damping(18)} style={[styles.glassCardContainer, dealStyle]}>
               {/* BACK FACE — category brand identity */}
               <Animated.View style={[styles.cardFace, backFaceStyle]}>
                 <LinearGradient
@@ -405,86 +436,82 @@ export default function PromptAnswerScreen({ route, navigation }) {
               </Animated.View>
             </Animated.View>
 
-            <Text style={[styles.toneLead, { color: t.subtext }]}>{helperCopy}</Text>
+            {helperCopy ? (
+              <Text style={[styles.toneLead, { color: t.subtext }]}>{helperCopy}</Text>
+            ) : null}
 
             {/* Starting Lines / Inspiration Chips */}
-            <View style={styles.chipsContainer}>
-              <Text style={[styles.sectionLabel, { color: t.subtext }]}>Need a starting line?</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chipsScroll}
-              >
-                {INSPIRATION_CHIPS.map((chip, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    style={[styles.chip, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}
-                    onPress={() => {
-                      selection();
-                      setAnswer(prev => prev + (prev.length > 0 ? ' ' : '') + chip);
-                    }}
-                  >
-                    <Text style={[styles.chipText, { color: t.text }]}>{chip}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
+            {!isEditingAnswer ? (
+              <View style={styles.chipsContainer}>
+                <Text style={[styles.sectionLabel, { color: t.subtext }]}>Need a starting line?</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.chipsScroll}
+                >
+                  {INSPIRATION_CHIPS.map((chip, idx) => (
+                    <TouchableOpacity
+                      key={idx}
+                      style={[styles.chip, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}
+                      onPress={() => {
+                        selection();
+                        setAnswer(prev => prev + (prev.length > 0 ? ' ' : '') + chip);
+                      }}
+                    >
+                      <Text style={[styles.chipText, { color: t.text }]}>{chip}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
 
             {/* Shared Reflection Input */}
             <Animated.View
-              entering={FadeIn.duration(800).delay(800)}
+              entering={FadeInDown.delay(80).springify().damping(18)}
               style={styles.inputWrapper}
             >
-              <View style={styles.charCountRow}>
-                <Text style={[styles.inputLabel, { color: t.primary }]}>YOUR ANSWER</Text>
-                <Text style={[styles.charCount, { color: answer.length >= MAX_LEN ? t.primary : t.subtext }]}>
-                  {answer.length}/{MAX_LEN}
-                </Text>
-              </View>
+              <BlurView
+                intensity={isDark ? 45 : 25}
+                tint={isDark ? 'dark' : 'light'}
+                style={[styles.inputBlur, { backgroundColor: t.surface, borderColor: t.border }]}
+              >
+                <View style={styles.charCountRow}>
+                  <Text style={[styles.inputLabel, { color: t.primary }]}>YOUR ANSWER</Text>
+                  <Text style={[styles.charCount, { color: answer.length >= MAX_LEN ? t.primary : withAlpha(t.subtext, 0.7) }]}>
+                    {answer.length}/{MAX_LEN}
+                  </Text>
+                </View>
 
-              <TextInput
-                value={answer}
-                onChangeText={handleTextChange}
-                placeholder="Leave them one small piece of your heart..."
-                placeholderTextColor={withAlpha(t.text, 0.3)}
-                multiline
-                autoFocus
-                selectionColor={t.primary}
-                style={[styles.textInput, { color: t.text }]}
-                maxLength={MAX_LEN}
-              />
+                <TextInput
+                  value={answer}
+                  onChangeText={handleTextChange}
+                  placeholder="Leave them one small piece of your heart..."
+                  placeholderTextColor={withAlpha(t.text, 0.35)}
+                  multiline
+                  autoFocus
+                  selectionColor={t.primary}
+                  style={[styles.textInput, { color: t.text }]}
+                  maxLength={MAX_LEN}
+                  textAlignVertical="top"
+                />
+              </BlurView>
             </Animated.View>
 
             {/* Footer & Privacy Guarantee */}
             <Animated.View
-              entering={FadeIn.duration(600).delay(1000)}
+              entering={FadeIn.duration(600).delay(180)}
               style={styles.footer}
             >
-              <View style={styles.privacyHint}>
-                <Icon name="lock-closed-outline" size={14} color={t.subtext} />
-                <Text style={[styles.privacyText, { color: t.subtext }]}>
-                  {privacyCopy}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                onPress={handleSave}
-                disabled={!answer.trim() || isSaving}
-                activeOpacity={0.9}
-                style={[
-                  styles.saveButton,
-                  { backgroundColor: t.primary },
-                  (!answer.trim() || isSaving) && styles.saveButtonDisabled,
-                ]}
-              >
-                {isSaving ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <Text style={styles.saveButtonText}>
-                    {existingAnswer ? "Update my answer" : "Save for reveal"}
+              {!isEditingAnswer ? (
+                <View style={styles.privacyHint}>
+                  <Icon name="lock-closed-outline" size={14} color={t.subtext} />
+                  <Text style={[styles.privacyText, { color: t.subtext }]}>
+                    {privacyCopy}
                   </Text>
-                )}
-              </TouchableOpacity>
+                </View>
+              ) : null}
+
+              <View style={styles.footerSpacer} />
             </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -493,52 +520,50 @@ export default function PromptAnswerScreen({ route, navigation }) {
   );
 }
 
+const getShadow = (isDark) => Platform.select({
+  ios: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: isDark ? 0.28 : 0.08,
+    shadowRadius: 22,
+  },
+  android: { elevation: 6 },
+});
+
 const createStyles = (t, isDark) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: t.background,
     },
-    header: CLOSE_HEADER_STYLES.header,
-    closeBtn: {
-      ...CLOSE_HEADER_STYLES.closeButton,
+    headerSaveButton: {
+      borderRadius: 999,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      minWidth: 64,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
     },
-    headerStatus: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 12,
-      height: 28,
-      borderRadius: 14,
-      borderWidth: 1,
-      gap: 6,
-    },
-    statusText: {
+    headerSaveButtonText: {
       fontFamily: SYSTEM_FONT,
-      fontWeight: "800",
-      letterSpacing: 1,
-      fontSize: 9,
+      fontSize: 15,
+      fontWeight: '800',
     },
     scrollContent: {
-      paddingHorizontal: 24,
-      paddingTop: SPACING.sm,
-      paddingBottom: 100,
+      paddingHorizontal: SPACING.screen,
+      paddingTop: SPACING.md,
+      paddingBottom: 80,
+      gap: 20,
     },
     glassCardContainer: {
-      marginVertical: 32,
-      height: SCREEN_HEIGHT * 0.35,
-      borderRadius: 32,
-      ...Platform.select({
-        ios: {
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 12 },
-          shadowOpacity: 0.2,
-          shadowRadius: 16,
-        },
-        android: { elevation: 8 },
-      }),
+      height: 245,
+      borderRadius: 28,
+      ...getShadow(isDark),
     },
     cardFace: {
       ...StyleSheet.absoluteFillObject,
-      borderRadius: 32,
+      borderRadius: 28,
       overflow: "hidden",
       backfaceVisibility: "hidden",
     },
@@ -605,8 +630,8 @@ const createStyles = (t, isDark) =>
     },
     blurCard: {
       flex: 1,
-      borderWidth: 1,
-      borderRadius: 32,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: 28,
       overflow: "hidden",
     },
     promptContent: {
@@ -618,23 +643,20 @@ const createStyles = (t, isDark) =>
     },
     promptText: {
       fontFamily: SERIF_FONT,
-      fontSize: 24,
-      lineHeight: 34,
+      fontSize: 22,
+      lineHeight: 30,
       textAlign: "center",
-      letterSpacing: -0.5,
     },
     toneLead: {
       fontFamily: SYSTEM_FONT,
       fontSize: 14,
       lineHeight: 20,
       textAlign: "center",
-      marginTop: -8,
-      marginBottom: 20,
       paddingHorizontal: 12,
     },
     // Inspiration Chips
     chipsContainer: {
-      marginBottom: 32,
+      marginTop: -2,
     },
     sectionLabel: {
       fontFamily: SYSTEM_FONT,
@@ -660,16 +682,20 @@ const createStyles = (t, isDark) =>
       fontWeight: "600",
     },
     inputWrapper: {
-      flex: 1,
-      minHeight: 280,
-      marginBottom: 40,
+      borderRadius: 26,
+      ...getShadow(isDark),
+    },
+    inputBlur: {
+      borderRadius: 26,
+      borderWidth: StyleSheet.hairlineWidth,
+      padding: SPACING.xl,
+      overflow: 'hidden',
     },
     charCountRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 16,
-      paddingHorizontal: 4,
+      marginBottom: 12,
     },
     inputLabel: {
       fontFamily: SYSTEM_FONT,
@@ -684,21 +710,19 @@ const createStyles = (t, isDark) =>
     },
     textInput: {
       fontFamily: SYSTEM_FONT,
-      fontSize: 20,
-      fontWeight: "500",
-      lineHeight: 30,
+      fontSize: 17,
+      lineHeight: 25,
       textAlignVertical: "top",
       paddingTop: 0,
-      minHeight: 220,
+      minHeight: 150,
     },
     footer: {
-      marginTop: 24,
+      marginTop: -4,
     },
     privacyHint: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 24,
       paddingHorizontal: SPACING.lg,
       gap: 8,
     },
@@ -707,29 +731,7 @@ const createStyles = (t, isDark) =>
       fontWeight: "600",
       textAlign: "center",
     },
-    saveButton: {
-      borderRadius: 30,
-      height: 60,
-      alignItems: "center",
-      justifyContent: "center",
-      ...Platform.select({
-        ios: {
-          shadowColor: "#D2121A",
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.3,
-          shadowRadius: 12,
-        },
-        android: { elevation: 4 },
-      }),
-    },
-    saveButtonDisabled: {
-      opacity: 0.4,
-    },
-    saveButtonText: {
-      color: "#FFF",
-      fontSize: 15,
-      fontFamily: SYSTEM_FONT,
-      fontWeight: "900",
-      letterSpacing: 1,
+    footerSpacer: {
+      height: 24,
     },
   });

@@ -357,7 +357,7 @@ export default function SettingsScreen({ navigation }) {
         'Unpaired',
         'You have been unpaired. You can now connect with a different partner.'
       );
-      navigation.navigate('PairingQRCode');
+      navigation.navigate('ConnectPartner');
     } catch (err) {
       if (__DEV__) console.warn('Unlink and reconnect failed:', err?.message || err);
       Alert.alert(
@@ -552,8 +552,8 @@ export default function SettingsScreen({ navigation }) {
             />
             <EditorialToggleRow
               icon="images-outline"
-              title="Memories & Snapshots"
-              subtitle="Show saved notes, photos, and videos"
+              title="Snapshots"
+              subtitle="Show saved photos, videos, and notes"
               value={keepsakeSettings.memories}
               onValueChange={(value) => handleKeepsakeToggle('memories', value)}
               t={t}
@@ -568,7 +568,7 @@ export default function SettingsScreen({ navigation }) {
             />
             <EditorialToggleRow
               icon="checkmark-circle-outline"
-              title="Position Tried"
+              title="Positions Tried"
               subtitle="Show intimacy positions marked as tried"
               value={keepsakeSettings.positions}
               onValueChange={(value) => handleKeepsakeToggle('positions', value)}

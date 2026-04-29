@@ -29,6 +29,14 @@ try {
   Notifications = null;
 }
 
+function dateTrigger(date) {
+  return {
+    type: Notifications?.SchedulableTriggerInputTypes?.DATE || 'date',
+    date,
+    channelId: 'default',
+  };
+}
+
 const NUDGES = [
   {
     delayDays: 3,
@@ -86,7 +94,7 @@ const WinBackNudges = {
               type: 'winback',
             },
           },
-          trigger: { date: triggerDate },
+          trigger: dateTrigger(triggerDate),
         });
 
         if (id) ids.push(id);
@@ -157,11 +165,11 @@ const WinBackNudges = {
         content: {
           title: `${currentStreak} connected days between you`,
           body: partnerName
-            ? `You and ${partnerName} have a nice rhythm. Tonight can be another small moment, if it feels good.`
-            : 'You two have a nice rhythm. Tonight can be another small moment, if it feels good.',
+            ? `You and ${partnerName} have a nice rhythm. Today can be another small moment, if it feels good.`
+            : 'You two have a nice rhythm. Today can be another small moment, if it feels good.',
           data: { route: 'home', type: 'streak_break_warning', streak: currentStreak },
         },
-        trigger: { date: tomorrow },
+        trigger: dateTrigger(tomorrow),
       });
 
       await AsyncStorage.setItem(STREAK_ALERT_ID_KEY, id);
@@ -217,7 +225,7 @@ const WinBackNudges = {
           body: `${promptLine}. Open Between Us when you want to revisit it together.`,
           data: { route: 'home', type: 'weekly_recap' },
         },
-        trigger: { date: next },
+        trigger: dateTrigger(next),
       });
 
       await AsyncStorage.setItem(WEEKLY_RECAP_KEY, yearWeek);

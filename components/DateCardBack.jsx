@@ -34,9 +34,9 @@ const HEAT_ICONS = {
 };
 
 const HEAT_LABELS = {
-  1: 'Heart',
-  2: 'Play',
-  3: 'Heat',
+  1: 'Soft Focus',
+  2: 'Playful',
+  3: 'After Dark',
 };
 
 export default function DateCardBack({ date, dims, isDark = true }) {
@@ -144,7 +144,7 @@ export default function DateCardBack({ date, dims, isDark = true }) {
         {/* Top badge */}
         <View style={[styles.topBadge, { borderColor: palette.chrome + '32', backgroundColor: palette.badgeBackground }]}> 
           <Icon name="heart-outline" size={12} color={palette.highlight} />
-          <Text style={[styles.badgeText, { color: palette.highlight, textShadowColor: palette.shadow }]}>DATE NIGHT</Text>
+          <Text style={[styles.badgeText, { color: palette.highlight, textShadowColor: palette.shadow }]}>Date</Text>
         </View>
 
         {/* Center emblem */}
@@ -167,12 +167,15 @@ export default function DateCardBack({ date, dims, isDark = true }) {
         </Animated.View>
 
         {/* Heat level text */}
-        <Text style={[styles.levelText, { color: palette.text, textShadowColor: palette.shadow }]}> 
-          {label.toUpperCase()}
-        </Text>
+        <View style={styles.levelBlock}>
+          <Text style={[styles.levelEyebrow, { color: palette.body }]}>Today's tone</Text>
+          <Text style={[styles.levelText, { color: palette.text, textShadowColor: palette.shadow }]}> 
+            {label}
+          </Text>
+        </View>
 
         {/* Bottom hint */}
-        <Text style={[styles.hint, { color: palette.body }]}>tap to reveal</Text>
+        <Text style={[styles.hint, { color: palette.body }]}>Tap to reveal</Text>
       </View>
     </View>
   );
@@ -241,7 +244,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 11,
-    letterSpacing: 2,
+    letterSpacing: 0,
     textTransform: 'uppercase',
     textShadowColor: 'rgba(0,0,0,0.6)',
     textShadowOffset: { width: 0, height: 1 },
@@ -274,17 +277,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
+  levelBlock: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  levelEyebrow: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 10,
+    letterSpacing: 0,
+    textTransform: 'uppercase',
+  },
   levelText: {
     fontFamily: FONTS.body,
-    fontSize: 15,
-    letterSpacing: 5,
+    fontSize: 20,
+    letterSpacing: 0,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
+    textTransform: 'uppercase',
   },
   hint: {
-    fontFamily: FONTS.body,
+    fontFamily: FONTS.bodyBold,
     fontSize: 10,
-    letterSpacing: 2,
+    letterSpacing: 0,
     textTransform: 'uppercase',
   },
 });

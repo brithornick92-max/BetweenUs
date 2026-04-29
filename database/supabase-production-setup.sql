@@ -422,7 +422,7 @@ BEGIN
 END;
 $$;
 
--- Check premium via profiles (legacy)
+-- Check premium via server-side entitlement truth
 CREATE OR REPLACE FUNCTION is_user_premium()
 RETURNS boolean
 LANGUAGE sql
@@ -430,7 +430,30 @@ SECURITY DEFINER
 STABLE
 SET search_path = public
 AS $$
-  SELECT COALESCE((SELECT is_premium FROM profiles WHERE id = auth.uid()), false);
+  SELECT EXISTS (
+    SELECT 1
+    FROM user_entitlements ue
+    WHERE ue.user_id = auth.uid()
+      AND ue.is_premium = true
+      AND (ue.expires_at IS NULL OR ue.expires_at > now())
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION guard_profile_premium_fields()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.role() <> 'service_role'
+    AND NEW.is_premium IS DISTINCT FROM OLD.is_premium
+  THEN
+    RAISE EXCEPTION 'profiles.is_premium is managed server-side';
+  END IF;
+
+  RETURN NEW;
+END;
 $$;
 
 -- Count couple_data rows of a given type for the current user
@@ -1005,6 +1028,11 @@ GRANT EXECUTE ON FUNCTION notify_partner(uuid, text, text, jsonb) TO authenticat
 DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
 CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS guard_profile_premium_fields_before_update ON profiles;
+CREATE TRIGGER guard_profile_premium_fields_before_update
+  BEFORE UPDATE OF is_premium ON profiles
+  FOR EACH ROW EXECUTE FUNCTION guard_profile_premium_fields();
 
 DROP TRIGGER IF EXISTS update_couples_updated_at ON couples;
 CREATE TRIGGER update_couples_updated_at

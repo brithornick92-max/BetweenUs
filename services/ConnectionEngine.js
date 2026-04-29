@@ -481,7 +481,7 @@ export const ContentIntensityMatcher = {
 };
 
 // ═══════════════════════════════════════════════════════
-// 5. LowFrequencySerendipityTrigger — "Surprise Tonight"
+// 5. LowFrequencySerendipityTrigger — "Surprise Today"
 // ═══════════════════════════════════════════════════════
 
 export const SerendipityTrigger = {

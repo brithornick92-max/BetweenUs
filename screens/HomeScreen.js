@@ -1,4 +1,4 @@
-// screens/HomeScreen.js — "Tonight's Moment" — Apple Editorial
+// screens/HomeScreen.js — "Today's Moment" — Apple Editorial
 // Deep plum gradient background · Crisp solid widgets · Native typography · High contrast
 
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
@@ -40,7 +40,7 @@ import OfflineIndicator from '../components/OfflineIndicator';
 import GentleCelebration from '../components/GentleCelebration';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
-import { NicknameEngine, RelationshipMilestones } from '../services/PolishEngine';
+import { RelationshipMilestones } from '../services/PolishEngine';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { FALLBACK_PROMPT } from '../utils/contentLoader';
 
@@ -57,21 +57,6 @@ function dateKey(date) {
   const d = date instanceof Date ? date : new Date(date ?? undefined);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
-
-const TONE_HOME_COPY = {
-  warm: {
-    subheadline: (partner) => `A room for you and ${partner}.`,
-  },
-  playful: {
-    subheadline: (partner) => `A little spark, just for you and ${partner}.`,
-  },
-  intimate: {
-    subheadline: (partner) => `A closer space only you and ${partner} share.`,
-  },
-  minimal: {
-    subheadline: () => 'A space just for the two of you.',
-  },
-};
 
 function deriveRitualState({ isLinked, myAnswer, partnerAnswer, isRevealed }) {
   if (isRevealed) return 'revealed';
@@ -99,7 +84,7 @@ function normalizePrompt(p) {
 const ACTIONS = [
   { label: 'Notes', icon: 'document-text-outline', key: 'journal', premium: false, color: '#8E8E93' },
   { label: 'Play', icon: 'chatbubbles-outline', key: 'quiz', premium: false, color: '#8E8E93' },
-  { label: 'Our Story', icon: 'images-outline', key: 'memories', premium: false, color: '#8E8E93' },
+  { label: 'Keepsake', icon: 'images-outline', key: 'memories', premium: false, color: '#8E8E93' },
   { label: 'Spark', icon: 'flame', key: 'intimacy', premium: false, color: '#8E8E93' },
 ];
 
@@ -131,11 +116,11 @@ export default function HomeScreen({ navigation }) {
 
   const [myAnswer, setMyAnswer] = useState('');
   const [partnerAnswer, setPartnerAnswer] = useState('');
+  const [isNudgeSent, setIsNudgeSent] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [inlineText, setInlineText] = useState('');
   const [isSavingInline, setIsSavingInline] = useState(false);
   const [throwback, setThrowback] = useState(null);
-  const [selectedTone, setSelectedTone] = useState('warm');
   const [homeLayout, setHomeLayout] = useState({
     type: 'comfortable',
     spacing: { padding: SPACING.screen, gap: SPACING.section },
@@ -144,7 +129,6 @@ export default function HomeScreen({ navigation }) {
   const [showReward, setShowReward] = useState(false);
   const [rewardData, setRewardData] = useState(null);
   const [smartGreeting, setSmartGreeting] = useState('Welcome Back');
-  const [smartSubGreeting, setSmartSubGreeting] = useState('Your evening awaits.');
   const [answeredCount, setAnsweredCount] = useState(0);
   const remainingFreePrompts = usageStatus?.remaining?.prompts ?? 1;
   const canWritePrompt = isPremium || !!myAnswer.trim() || remainingFreePrompts > 0;
@@ -194,7 +178,6 @@ export default function HomeScreen({ navigation }) {
         }
 
         const profile = await PreferenceEngine.getContentProfile({});
-        const greeting = await PreferenceEngine.getSmartGreeting(profile);
         const seasonGreetings = {
           busy: 'A quick moment',
           cozy: 'Just us',
@@ -206,7 +189,6 @@ export default function HomeScreen({ navigation }) {
 
         if (active) {
           setSmartGreeting(seasonGreetings[seasonId] || 'Welcome Back');
-          setSmartSubGreeting(greeting || 'A room for small moments together.');
         }
       } catch (e) {
         if (__DEV__) console.warn('[Home] personalization load:', e?.message);
@@ -290,6 +272,41 @@ export default function HomeScreen({ navigation }) {
     };
   }, [prompt.id, promptReady, todayKey]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!promptReady) return undefined;
+
+      let active = true;
+
+      (async () => {
+        try {
+          const row = await DataLayer.getPromptAnswerForToday(prompt.id);
+          if (!active) return;
+
+          if (row?.answer) {
+            setMyAnswer(row.answer);
+            setPartnerAnswer(row?.partnerAnswer || '');
+            setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
+            return;
+          }
+
+          const saved = await promptStorage.getAnswer(todayKey, prompt.id);
+          if (!active) return;
+
+          setMyAnswer(saved?.content || saved?.answer || '');
+          setPartnerAnswer(row?.partnerAnswer || '');
+          setIsRevealed(!!saved?.isRevealed);
+        } catch (e) {
+          if (__DEV__) console.warn('[Home] prompt answer focus refresh:', e?.message);
+        }
+      })();
+
+      return () => {
+        active = false;
+      };
+    }, [prompt.id, promptReady, todayKey])
+  );
+
   useEffect(() => {
     let active = true;
 
@@ -298,7 +315,11 @@ export default function HomeScreen({ navigation }) {
         const past = await DataLayer.getPromptAnswers({ limit: 50 });
         if (!active) return;
 
-        const answered = (past || []).filter((r) => r.answer && r.date_key !== dateKey());
+        const answered = (past || []).filter((r) =>
+          r.answer
+          && r.date_key !== dateKey()
+          && !String(r.prompt_id || '').startsWith('quiz:')
+        );
         setAnsweredCount(answered.length);
 
         if (answered.length > 0) {
@@ -319,14 +340,6 @@ export default function HomeScreen({ navigation }) {
     useCallback(() => {
       let active = true;
 
-      NicknameEngine.getConfig()
-        .then((config) => {
-          if (active) setSelectedTone(config?.tone || 'warm');
-        })
-        .catch(() => {
-          if (active) setSelectedTone('warm');
-        });
-
       // Schedule soft return invitations and the weekly recap.
       import('../services/WinBackNudges').then(({ default: WinBackNudges }) => {
         if (!active) return;
@@ -346,6 +359,7 @@ export default function HomeScreen({ navigation }) {
             }
 
             for (const a of (answers || [])) {
+              if (String(a.prompt_id || '').startsWith('quiz:')) continue;
               if (a.date_key) daySet.add(a.date_key);
             }
 
@@ -367,6 +381,7 @@ export default function HomeScreen({ navigation }) {
             }
 
             const weekAnswers = (answers || []).filter((a) => {
+              if (String(a.prompt_id || '').startsWith('quiz:')) return false;
               if (!a.date_key) return false;
               const d = new Date(`${a.date_key}T00:00:00`);
               const diff = (today - d) / (1000 * 60 * 60 * 24);
@@ -457,8 +472,6 @@ export default function HomeScreen({ navigation }) {
   );
 
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
-  const toneCopy = TONE_HOME_COPY[selectedTone] || TONE_HOME_COPY.warm;
-
   const ritualState = useMemo(() => deriveRitualState({
     isLinked,
     myAnswer: myAnswer.trim(),
@@ -470,35 +483,35 @@ export default function HomeScreen({ navigation }) {
     solo_unanswered: {
       eyebrow: 'TODAY BETWEEN US',
       title: promptReady ? prompt.text : 'A small moment for today',
-      body: `Answer privately. ${partnerLabel} can reveal it after they answer too.`,
+      body: null,
       primaryLabel: "Answer today's question",
       secondaryLabel: `Invite ${partnerLabel}`,
     },
     linked_unanswered: {
       eyebrow: 'TODAY BETWEEN US',
       title: promptReady ? prompt.text : `A small moment for you and ${partnerLabel}`,
-      body: `Answer privately. ${partnerLabel} can reveal it after they answer too.`,
+      body: null,
       primaryLabel: "Answer today's question",
       secondaryLabel: null,
     },
     answered_waiting: {
       eyebrow: 'SAVED FOR REVEAL',
-      title: `Something is waiting for ${partnerLabel}`,
-      body: `Your answer is saved. They can add theirs whenever they're ready.`,
+      title: promptReady ? prompt.text : `A small moment for you and ${partnerLabel}`,
+      body: null,
       primaryLabel: 'Their turn',
       secondaryLabel: 'Edit my answer',
     },
     both_answered_ready: {
       eyebrow: 'PRIVATE REVEAL',
       title: 'Your private reveal is ready',
-      body: "You both answered. Open the moment when you're ready.",
+      body: null,
       primaryLabel: 'Reveal together',
       secondaryLabel: null,
     },
     revealed: {
       eyebrow: 'REVEALED',
       title: 'You showed up for each other today',
-      body: 'This is the kind of small moment that keeps your connection alive.',
+      body: null,
       primaryLabel: 'Save to our archive',
       secondaryLabel: 'Plan something from this',
     },
@@ -604,8 +617,6 @@ export default function HomeScreen({ navigation }) {
     showPaywall,
     loadUsageStatus,
     isSavingInline,
-    state?.userProfile,
-    userProfile,
     todayKey,
   ]);
 
@@ -622,7 +633,8 @@ export default function HomeScreen({ navigation }) {
         const { default: PN } = await import('../services/PartnerNotifications');
         await PN.promptAnswered(preferredName, prompt.id);
         notification(NotificationFeedbackType.Success);
-        Alert.alert('Sent', `${partnerLabel} will get a gentle nudge.`);
+        setIsNudgeSent(true);
+        setTimeout(() => setIsNudgeSent(false), 3000);
       } catch (error) {
         if (__DEV__) console.warn('[HomeScreen] Partner prompt nudge failed:', error?.message);
         notification(NotificationFeedbackType.Error);
@@ -682,6 +694,7 @@ export default function HomeScreen({ navigation }) {
     isRevealed,
     prompt,
     preferredName,
+    partnerLabel,
     todayKey,
     navigation,
     inlineText,
@@ -698,8 +711,11 @@ export default function HomeScreen({ navigation }) {
       return isSavingInline ? 'Saving...' : 'Save my answer';
     }
 
+    if (ritualState === 'answered_waiting' && isNudgeSent) {
+      return 'Sent ✓';
+    }
     return ritualCopy?.primaryLabel || "Answer today's question";
-  }, [promptReady, ritualCopy, ritualState, inlineText, isSavingInline]);
+  }, [promptReady, ritualCopy, ritualState, inlineText, isSavingInline, isNudgeSent]);
 
   const statusText = useMemo(() => {
     if (!promptReady) return null;
@@ -716,6 +732,7 @@ export default function HomeScreen({ navigation }) {
 
     if (ritualState === 'answered_waiting') {
       navigation.navigate('PromptAnswer', {
+        mode: 'edit',
         prompt: {
           id: prompt.id,
           text: prompt.text,
@@ -800,9 +817,6 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.headerToneLine}>
-            {smartSubGreeting || toneCopy.subheadline(partnerLabel)}
-          </Text>
         </Animated.View>
 
         <OfflineIndicator />
@@ -838,10 +852,6 @@ export default function HomeScreen({ navigation }) {
               {myAnswer ? (
                 <View style={styles.answerBubble}>
                   <Text style={styles.answerText}>{myAnswer}</Text>
-
-                  <View style={styles.partnerVisibilityRow}>
-                    <Text style={styles.partnerVisibilityText}>Waiting for {partnerLabel}…</Text>
-                  </View>
                 </View>
               ) : canWritePrompt ? (
                 <TextInput
@@ -861,7 +871,7 @@ export default function HomeScreen({ navigation }) {
                   style={[styles.input, { justifyContent: 'center' }]}
                 >
                   <Text style={styles.inputPlaceholder}>
-                    {`Today's free moment is used. ${isPremium ? '' : 'Premium opens deeper prompts, private notes, date ideas, and your full archive.'}`}
+                    Today's free moment is used.
                   </Text>
 
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
@@ -1025,9 +1035,6 @@ export default function HomeScreen({ navigation }) {
                     You've created {answeredCount} shared moments
                   </Text>
 
-                  <Text style={[styles.softNudgeBody, { color: t.subtext }]}>
-                    Premium opens deeper reveals, date ideas, memories, and signals made for the two of you.
-                  </Text>
                 </View>
               </View>
 
@@ -1088,14 +1095,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.text,
     flex: 1,
     paddingRight: SPACING.md,
-  },
-  headerToneLine: {
-    fontFamily: systemFont,
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '600',
-    color: t.subtext,
-    marginTop: 4,
   },
   vibeButton: {
     width: 48,

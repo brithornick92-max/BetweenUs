@@ -43,6 +43,20 @@ import {
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
+export function resolveSelectedPositionIndex(availablePositions, {
+  selectedPositionId = null,
+  selectedIndex = 0,
+} = {}) {
+  if (!availablePositions?.length) return 0;
+
+  if (selectedPositionId) {
+    const indexById = availablePositions.findIndex((item) => item.id === selectedPositionId);
+    if (indexById >= 0) return indexById;
+  }
+
+  return selectedIndex < availablePositions.length ? selectedIndex : 0;
+}
+
 export default function IntimacyPositionsScreen() {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective, showPaywall } = useEntitlements();
@@ -52,12 +66,18 @@ export default function IntimacyPositionsScreen() {
   const isCompact = width < 390;
   
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedPositionId, setSelectedPositionId] = useState(null);
   const [favorites, setFavorites] = useState({});
   const [triedPositions, setTriedPositions] = useState({});
   const [positionAccess, setPositionAccess] = useState(null);
   const [weeklyPositionSet, setWeeklyPositionSet] = useState(null);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
   const [triedBusy, setTriedBusy] = useState(false);
+  const [ratingBusy, setRatingBusy] = useState(false);
+  const favoriteBusyRef = useRef(false);
+  const triedBusyRef = useRef(false);
+  const ratingBusyRef = useRef(false);
+  const selectedPositionIdRef = useRef(null);
 
   // ─── THEME MAP ───
   const t = useMemo(() => ({
@@ -104,7 +124,14 @@ export default function IntimacyPositionsScreen() {
   const accessInfo = positionAccess?.access || null;
   const previewLockedCount = weeklyPositionSet?.lockedPreviews?.length || accessInfo?.lockedCount || 0;
 
-  const position = availablePositions[selectedIndex];
+  const selectedIndexSafe = useMemo(() => {
+    return resolveSelectedPositionIndex(availablePositions, {
+      selectedPositionId: selectedPositionIdRef.current || selectedPositionId,
+      selectedIndex,
+    });
+  }, [availablePositions, selectedIndex, selectedPositionId]);
+
+  const position = availablePositions[selectedIndexSafe];
   const favoritePositions = useMemo(
     () => availablePositions.filter((item) => favorites[item.id]),
     [availablePositions, favorites]
@@ -183,10 +210,29 @@ export default function IntimacyPositionsScreen() {
   }, []);
 
   useEffect(() => {
+    if (!availablePositions.length) return;
+
+    const positionId = selectedPositionIdRef.current || selectedPositionId;
+    if (positionId) {
+      const indexById = availablePositions.findIndex((item) => item.id === positionId);
+      if (indexById >= 0 && indexById !== selectedIndex) {
+        setSelectedIndex(indexById);
+      }
+      return;
+    }
+
+    const fallbackIndex = selectedIndex < availablePositions.length ? selectedIndex : 0;
+    const fallbackPosition = availablePositions[fallbackIndex];
+
+    if (fallbackPosition?.id) {
+      selectedPositionIdRef.current = fallbackPosition.id;
+      setSelectedPositionId(fallbackPosition.id);
+    }
+
     if (selectedIndex >= availablePositions.length) {
       setSelectedIndex(0);
     }
-  }, [availablePositions.length, selectedIndex]);
+  }, [availablePositions, selectedIndex, selectedPositionId]);
 
   // ─── HANDLERS ───
   const handleBack = useCallback(() => {
@@ -199,9 +245,23 @@ export default function IntimacyPositionsScreen() {
     showPaywall?.();
   }, [showPaywall]);
 
-  const handleToggleFavorite = useCallback(async () => {
-    if (!position || favoriteBusy) return;
+  const rememberSelectedPosition = useCallback((nextPosition = position) => {
+    if (!nextPosition?.id) return;
 
+    selectedPositionIdRef.current = nextPosition.id;
+    setSelectedPositionId(nextPosition.id);
+
+    const nextIndex = availablePositions.findIndex((item) => item.id === nextPosition.id);
+    if (nextIndex >= 0 && nextIndex !== selectedIndex) {
+      setSelectedIndex(nextIndex);
+    }
+  }, [availablePositions, position, selectedIndex]);
+
+  const handleToggleFavorite = useCallback(async () => {
+    if (!position || favoriteBusyRef.current) return;
+
+    rememberSelectedPosition(position);
+    favoriteBusyRef.current = true;
     setFavoriteBusy(true);
     try {
       impact(ImpactFeedbackStyle.Light);
@@ -210,32 +270,103 @@ export default function IntimacyPositionsScreen() {
       });
       setFavorites(next.favorites);
     } finally {
+      favoriteBusyRef.current = false;
       setFavoriteBusy(false);
     }
-  }, [favoriteBusy, favorites, position]);
+  }, [favorites, position, rememberSelectedPosition]);
 
   const handleToggleTried = useCallback(async () => {
-    if (!position || triedBusy) return;
+    if (!position || triedBusyRef.current) return;
 
+    const positionId = position.id;
+    const wasTried = !!triedPositions[positionId];
+    const previousTried = triedPositions;
+    const optimisticTried = { ...previousTried };
+    rememberSelectedPosition(position);
+
+    if (wasTried) {
+      delete optimisticTried[positionId];
+    } else {
+      optimisticTried[positionId] = {
+        positionId,
+        title: position.title,
+        commonName: position.commonName || null,
+        mood: position.mood || null,
+        heat: position.heat || null,
+        triedAt: previousTried[positionId]?.triedAt || new Date().toISOString(),
+        rating: previousTried[positionId]?.rating || null,
+        memoryId: previousTried[positionId]?.memoryId || null,
+      };
+    }
+
+    triedBusyRef.current = true;
     setTriedBusy(true);
+    setTriedPositions(optimisticTried);
+
     try {
       impact(ImpactFeedbackStyle.Light);
       const next = await toggleIntimacyTried(position, {
-        currentlyTried: !!triedPositions[position.id],
+        currentlyTried: wasTried,
+        currentTried: previousTried,
       });
+      rememberSelectedPosition(position);
       setTriedPositions(next.tried);
+    } catch (error) {
+      setTriedPositions(previousTried);
+      rememberSelectedPosition(position);
+      if (__DEV__) {
+        console.warn('[IntimacyPositions] Failed to update tried state:', error?.message);
+      }
     } finally {
+      rememberSelectedPosition(position);
+      triedBusyRef.current = false;
       setTriedBusy(false);
     }
-  }, [position, triedBusy, triedPositions]);
+  }, [position, triedPositions, rememberSelectedPosition]);
 
   const handleRateTried = useCallback(async (rating) => {
-    if (!position) return;
+    if (!position || ratingBusyRef.current) return;
 
+    ratingBusyRef.current = true;
+    setRatingBusy(true);
     selection();
-    const next = await rateIntimacyTried(position, rating);
-    setTriedPositions(next.tried);
-  }, [position]);
+    rememberSelectedPosition(position);
+    const positionId = position.id;
+    const previousTried = triedPositions;
+    const previousEntry = previousTried[positionId] || null;
+    const nextRating = previousEntry?.rating === rating ? null : rating;
+    setTriedPositions({
+      ...previousTried,
+      [positionId]: {
+        ...(previousEntry || {
+          positionId,
+          title: position.title,
+          commonName: position.commonName || null,
+          mood: position.mood || null,
+          heat: position.heat || null,
+          triedAt: new Date().toISOString(),
+          memoryId: null,
+        }),
+        rating: nextRating,
+      },
+    });
+
+    try {
+      const next = await rateIntimacyTried(position, rating);
+      rememberSelectedPosition(position);
+      setTriedPositions(next.tried);
+    } catch (error) {
+      setTriedPositions(previousTried);
+      rememberSelectedPosition(position);
+      if (__DEV__) {
+        console.warn('[IntimacyPositions] Failed to rate tried state:', error?.message);
+      }
+    } finally {
+      rememberSelectedPosition(position);
+      ratingBusyRef.current = false;
+      setRatingBusy(false);
+    }
+  }, [position, triedPositions, rememberSelectedPosition]);
 
   return (
     <EditorialScreenScaffold
@@ -272,13 +403,13 @@ export default function IntimacyPositionsScreen() {
                   style={styles.pickerScroll}
                 >
                   {availablePositions.map((p, i) => {
-                    const active = i === selectedIndex;
+                    const active = i === selectedIndexSafe;
                     return (
                       <TouchableOpacity
                         key={p.id}
                         onPress={() => {
                           selection();
-                          setSelectedIndex(i);
+                          rememberSelectedPosition(p);
                         }}
                         activeOpacity={0.7}
                         style={[
@@ -342,6 +473,7 @@ export default function IntimacyPositionsScreen() {
                     triedBusy={triedBusy}
                     rating={triedPositions[position.id]?.rating || null}
                     onRate={handleRateTried}
+                    ratingBusy={ratingBusy}
                     compact={isCompact}
                   />
                 )}
@@ -368,18 +500,15 @@ const styles = StyleSheet.create({
 
   cardContainer: {
     marginVertical: SPACING.md,
-    marginHorizontal: -SPACING.screen, // Extend to screen edges
+    marginHorizontal: 0,
   },
   editorialCard: {
-    borderRadius: 0, // Remove border radius for edge-to-edge
-    paddingHorizontal: SPACING.screen, // Add horizontal padding for content
+    borderRadius: 28,
+    paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.lg, 
     flexDirection: 'column',
     alignItems: 'stretch',
-    borderTopWidth: 3,
-    borderBottomWidth: 3,
-    borderLeftWidth: 3, // Double border on left
-    borderRightWidth: 3, // Double border on right
+    borderWidth: 1,
     position: 'relative',
     overflow: 'hidden',
   },

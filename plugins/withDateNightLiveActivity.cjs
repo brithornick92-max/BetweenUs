@@ -219,7 +219,7 @@ class DateNightLiveActivityModule: NSObject {
 
         let eventId   = options["eventId"]   as? String ?? ""
         let title     = options["title"]     as? String ?? "Date Night"
-        let teaser    = options["teaserNote"] as? String ?? "Tonight is ours."
+        let teaser    = options["teaserNote"] as? String ?? "Today is ours."
         let timestamp = options["dateTimestamp"] as? Double ?? 0
 
         let minutesRemaining = max(0, Int((timestamp - Date().timeIntervalSince1970 * 1000) / 60_000))

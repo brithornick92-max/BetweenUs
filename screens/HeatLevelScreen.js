@@ -179,7 +179,7 @@ export default function HeatLevelScreen({ navigation }) {
       navigation={navigation}
       headerTitle="Set the Mood"
       heroTitle="Set the Mood"
-      heroSubtitle="How deep do you want to go tonight?"
+      heroSubtitle="How deep do you want to go today?"
       scroll={false}
     >
         {/* Usage Status */}

@@ -81,11 +81,42 @@ const PartnerNotifications = {
 
     await this._send({
       title: `${name} saved a ${typeLabel === 'moment' ? 'moment' : typeLabel}`,
-      body: 'A new piece of your story was added to your archive.',
+      body: 'A new piece of your story was added to your Keepsake archive.',
       data: {
         type: 'memory_saved',
         memoryType: typeLabel,
-        ...DeepLinkHandler.buildNotificationData('saved-moments'),
+        ...DeepLinkHandler.buildNotificationData('our-story'),
+      },
+    });
+  },
+
+  /**
+   * Partner added something to the shared calendar.
+   */
+  async calendarEventCreated(senderName, eventTitle) {
+    const name = senderName || 'Your partner';
+    await this._send({
+      title: `${name} added something to your calendar`,
+      body: eventTitle ? `${eventTitle} is on your shared calendar.` : 'Open Calendar to see what changed.',
+      data: {
+        type: 'calendar_event_created',
+        ...(eventTitle ? { title: eventTitle } : {}),
+        ...DeepLinkHandler.buildNotificationData('calendar'),
+      },
+    });
+  },
+
+  /**
+   * Partner answered the daily quiz.
+   */
+  async quizAnswered(senderName) {
+    const name = senderName || 'Your partner';
+    await this._send({
+      title: `${name} answered the Daily Quiz`,
+      body: 'Add yours to reveal both answers.',
+      data: {
+        type: 'quiz_answered',
+        ...DeepLinkHandler.buildNotificationData('quiz'),
       },
     });
   },
@@ -97,7 +128,7 @@ const PartnerNotifications = {
   async streakAtRisk(currentStreak) {
     await this._send({
       title: `${currentStreak} connected days between you`,
-      body: "Tonight could be another small moment, if you want one.",
+      body: "Today could be another small moment, if you want one.",
       data: {
         type: 'streak_at_risk',
         streak: currentStreak,
@@ -116,7 +147,7 @@ const PartnerNotifications = {
       body: 'A private photo is waiting.',
       data: {
         type: 'thinking_of_you_photo',
-        ...DeepLinkHandler.buildNotificationData('saved-moments'),
+        ...DeepLinkHandler.buildNotificationData('our-story'),
       },
     });
   },

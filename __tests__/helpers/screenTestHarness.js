@@ -4,6 +4,9 @@ const renderer = require('react-test-renderer');
 const mockUpdateJournalEntry = jest.fn();
 const mockSaveJournalEntry = jest.fn();
 const mockGetJournalEntries = jest.fn();
+const mockSavePromptAnswer = jest.fn();
+const mockGetPromptAnswers = jest.fn();
+const mockGetSharedPromptAnswers = jest.fn();
 const mockNeedsReconnect = jest.fn(() => false);
 const mockStorageGet = jest.fn();
 const mockStorageSet = jest.fn();
@@ -104,6 +107,10 @@ jest.mock('react-native-reanimated', () => ({
   FadeIn: mockCreateAnimationChain(),
   FadeInDown: mockCreateAnimationChain(),
   FadeInUp: mockCreateAnimationChain(),
+  useSharedValue: jest.fn((value) => ({ value })),
+  useAnimatedStyle: jest.fn((factory) => factory()),
+  withSpring: jest.fn((value) => value),
+  interpolate: jest.fn((value) => value),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -176,6 +183,9 @@ jest.mock('../../services/localfirst', () => ({
     updateJournalEntry: (...args) => mockUpdateJournalEntry(...args),
     saveJournalEntry: (...args) => mockSaveJournalEntry(...args),
     getJournalEntries: (...args) => mockGetJournalEntries(...args),
+    savePromptAnswer: (...args) => mockSavePromptAnswer(...args),
+    getPromptAnswers: (...args) => mockGetPromptAnswers(...args),
+    getSharedPromptAnswers: (...args) => mockGetSharedPromptAnswers(...args),
     needsReconnect: (...args) => mockNeedsReconnect(...args),
     deleteJournalEntry: jest.fn(),
   },
@@ -215,7 +225,7 @@ jest.mock('../../utils/storage', () => ({
   },
 }));
 
-const { Image, Text, TouchableOpacity } = require('react-native');
+const { Image, Text, TextInput, TouchableOpacity } = require('react-native');
 
 async function flushEffects() {
   await renderer.act(async () => {
@@ -250,6 +260,9 @@ function resetScreenHarnessMocks() {
   mockUpdateJournalEntry.mockResolvedValue(undefined);
   mockSaveJournalEntry.mockResolvedValue(undefined);
   mockGetJournalEntries.mockResolvedValue([]);
+  mockSavePromptAnswer.mockResolvedValue(undefined);
+  mockGetPromptAnswers.mockResolvedValue([]);
+  mockGetSharedPromptAnswers.mockResolvedValue([]);
   mockNeedsReconnect.mockReturnValue(false);
   mockStorageGet.mockResolvedValue(true);
   mockStorageSet.mockResolvedValue(undefined);
@@ -258,6 +271,7 @@ function resetScreenHarnessMocks() {
 module.exports = {
   renderer,
   Image,
+  TextInput,
   flushEffects,
   renderScreen,
   createNavigation,
@@ -266,6 +280,9 @@ module.exports = {
   mockUpdateJournalEntry,
   mockSaveJournalEntry,
   mockGetJournalEntries,
+  mockSavePromptAnswer,
+  mockGetPromptAnswers,
+  mockGetSharedPromptAnswers,
   mockNeedsReconnect,
   mockStorageGet,
   mockStorageSet,

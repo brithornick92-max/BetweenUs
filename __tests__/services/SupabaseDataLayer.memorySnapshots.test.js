@@ -36,6 +36,24 @@ jest.mock('../../utils/contentLoader', () => ({
   getPromptById: jest.fn(() => null),
 }));
 
+function mockCreateQueryResult(data = []) {
+  const result = Promise.resolve({ data, error: null });
+  const query = {
+    select: jest.fn(() => query),
+    eq: jest.fn(() => query),
+    neq: jest.fn(() => query),
+    or: jest.fn(() => query),
+    order: jest.fn(() => query),
+    range: jest.fn(() => query),
+    maybeSingle: jest.fn(() => Promise.resolve({ data: null, error: null })),
+    single: jest.fn(() => Promise.resolve({ data: null, error: null })),
+    then: result.then.bind(result),
+    catch: result.catch.bind(result),
+  };
+
+  return query;
+}
+
 jest.mock('../../config/supabase', () => ({
   TABLES: {
     COUPLE_DATA: 'couple_data',
@@ -43,7 +61,7 @@ jest.mock('../../config/supabase', () => ({
   },
   supabase: {
     from: jest.fn((tableName) => {
-      if (tableName !== 'couple_data') {
+      if (!['couple_data', 'calendar_events'].includes(tableName)) {
         throw new Error(`Unexpected table: ${tableName}`);
       }
 
@@ -57,15 +75,7 @@ jest.mock('../../config/supabase', () => ({
           })),
         })),
         select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            eq: jest.fn(() => ({
-              or: jest.fn(() => ({
-                order: jest.fn(() => ({
-                  range: jest.fn(() => Promise.resolve({ data: [], error: null })),
-                })),
-              })),
-            })),
-          })),
+          eq: jest.fn(() => mockCreateQueryResult([])),
         })),
       };
     }),
@@ -208,5 +218,47 @@ describe('SupabaseDataLayer memory snapshots', () => {
     });
 
     expect(mockMemorySaved).not.toHaveBeenCalled();
+  });
+
+  it('creates a synced date plan when creating a date-night calendar event', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    const saved = await SupabaseDataLayer.createCalendarEvent({
+      id: 'calendar-date-1',
+      title: 'Dinner downtown',
+      notes: 'Try the new place.',
+      whenTs: Date.parse('2026-05-01T23:00:00.000Z'),
+      eventType: 'dateNight',
+      isDateNight: true,
+      location: 'out',
+    });
+
+    expect(saved).toEqual(expect.objectContaining({
+      id: 'calendar-date-1',
+      title: 'Dinner downtown',
+      isDateNight: true,
+    }));
+
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'calendar-date-1',
+      couple_id: 'couple-1',
+      title: 'Dinner downtown',
+      event_type: 'dateNight',
+    }));
+
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      data_type: 'date_plan',
+      created_by: 'user-1',
+      value: expect.objectContaining({
+        title: 'Dinner downtown',
+        sourceEventId: 'calendar-date-1',
+        locationType: 'out',
+        steps: ['Try the new place.'],
+      }),
+    }));
   });
 });

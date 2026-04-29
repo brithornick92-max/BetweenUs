@@ -42,9 +42,9 @@ const LOAD_ICONS = {
 };
 
 const HEAT_LABELS = {
-  1: 'Heart',
-  2: 'Play',
-  3: 'Heat',
+  1: 'Soft Focus',
+  2: 'Playful',
+  3: 'After Dark',
 };
 
 export default function DateCardFront({ date, colors, dims, isDark = true }) {
@@ -53,6 +53,7 @@ export default function DateCardFront({ date, colors, dims, isDark = true }) {
   const icon = HEAT_ICONS[heat] || 'heart-outline';
   const label = HEAT_LABELS[heat] || 'Emotional';
   const loadMeta = dims.load.find(l => l.level === date.load) || dims.load[1];
+  const planPreview = date?.vibe || (Array.isArray(date?.steps) ? date.steps[0] : null);
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
 
   // Animated shimmer band
@@ -123,8 +124,9 @@ export default function DateCardFront({ date, colors, dims, isDark = true }) {
         />
         <View style={styles.bandContent}>
           <Icon name={icon} size={16} color={palette.highlight} />
-          <Text style={[styles.bandLabel, { color: palette.highlight, textShadowColor: palette.shadow }]}>{label}</Text>
+          <Text style={[styles.bandLabel, { color: palette.highlight, textShadowColor: palette.shadow }]}>Date</Text>
         </View>
+        <Text style={[styles.bandMeta, { color: palette.body }]}>{label}</Text>
       </View>
 
       {/* Chrome divider */}
@@ -170,20 +172,22 @@ export default function DateCardFront({ date, colors, dims, isDark = true }) {
           <Animated.Text
             entering={FadeInDown.delay(200).duration(450)}
             style={[styles.title, { color: palette.text, textShadowColor: palette.shadow }]}
-            numberOfLines={3}
+            numberOfLines={4}
           >
             {date.title}
           </Animated.Text>
 
-          {/* First step as description */}
-          {Array.isArray(date.steps) && date.steps[0] ? (
-            <Animated.Text
-              entering={FadeInDown.delay(300).duration(450)}
-              style={[styles.description, { color: palette.body }]}
-              numberOfLines={3}
-            >
-              {date.steps[0]}
-            </Animated.Text>
+          {/* Editorial plan preview */}
+          {planPreview ? (
+            <Animated.View entering={FadeInDown.delay(300).duration(450)} style={styles.previewBlock}>
+              <Text style={[styles.previewEyebrow, { color: palette.highlight }]}>The Mood</Text>
+              <Text
+                style={[styles.description, { color: palette.body }]}
+                numberOfLines={3}
+              >
+                {planPreview}
+              </Text>
+            </Animated.View>
           ) : null}
         </View>
       </View>
@@ -199,7 +203,7 @@ export default function DateCardFront({ date, colors, dims, isDark = true }) {
       {/* Bottom footer */}
       <View style={styles.footer}>
         <View style={styles.footerContent}>
-          <Text style={[styles.footerText, { color: palette.body }]}>swipe right for tonight</Text>
+          <Text style={[styles.footerText, { color: palette.body }]}>Swipe to save for today</Text>
           <Icon name="arrow-forward-outline" size={14} color={palette.body} />
         </View>
       </View>
@@ -245,11 +249,17 @@ const styles = StyleSheet.create({
   bandLabel: {
     fontFamily: FONTS.bodyBold,
     fontSize: 12,
-    letterSpacing: 1.5,
+    letterSpacing: 0,
     textTransform: 'uppercase',
     textShadowColor: 'rgba(0,0,0,0.5)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  bandMeta: {
+    fontFamily: FONTS.body,
+    fontSize: 10,
+    letterSpacing: 0,
+    textTransform: 'uppercase',
   },
   chromeDivider: {
     height: 1,
@@ -274,7 +284,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginBottom: 14,
+    marginBottom: 18,
+    justifyContent: 'center',
   },
   tag: {
     flexDirection: 'row',
@@ -286,24 +297,36 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
   tagText: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: FONTS.body,
-    letterSpacing: 0.2,
+    letterSpacing: 0,
+    textTransform: 'uppercase',
   },
   title: {
-    fontSize: 20,
+    fontSize: 30,
     fontFamily: FONTS.serif,
-    fontWeight: '700',
-    lineHeight: 26,
-    marginBottom: 8,
+    lineHeight: 34,
+    marginBottom: 18,
+    textAlign: 'center',
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    textShadowRadius: 8,
+  },
+  previewBlock: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  previewEyebrow: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 10,
+    letterSpacing: 0,
+    textTransform: 'uppercase',
   },
   description: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: FONTS.body,
-    lineHeight: 19,
+    lineHeight: 21,
+    textAlign: 'center',
   },
   footer: {
     paddingHorizontal: 18,
@@ -317,9 +340,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   footerText: {
-    fontFamily: FONTS.body,
+    fontFamily: FONTS.bodyBold,
     fontSize: 10,
-    letterSpacing: 1.5,
+    letterSpacing: 0,
     textTransform: 'uppercase',
   },
 });

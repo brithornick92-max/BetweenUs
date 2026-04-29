@@ -522,7 +522,6 @@ export default function CalendarScreen({ navigation, route }) {
               <View style={styles.headerText}>
                 <Text style={[styles.headerLabel, { color: t.primary }]}>THE CALENDAR</Text>
                 <Text style={[styles.headerTitle, { color: t.text }]}>Timeline</Text>
-                <Text style={[styles.headerSubtitle, { color: t.subtext }]}>Your shared future, organized.</Text>
               </View>
             </View>
           </ReAnimated.View>
@@ -716,7 +715,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   headerText: {
     flex: 1,
@@ -724,9 +723,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
   headerLabel: {
     fontFamily: SYSTEM_FONT,
     fontSize: 12,
-    fontWeight: "900",
+    fontWeight: "800",
     letterSpacing: 2,
-    marginBottom: 4,
+    marginBottom: 8,
     textTransform: 'uppercase',
   },
   headerTitle: {

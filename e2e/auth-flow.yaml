@@ -8,22 +8,36 @@ appId: com.brittany.betweenus
 - launchApp:
     clearState: true
 
+# Expo dev-client builds may open the development server picker first.
+- tapOn:
+    text: "http://localhost:8082"
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+- waitForAnimationToEnd
+
 # Auth screen should appear first for new users
-- assertVisible: "Sign in"
-- assertVisible: "email"
+- assertVisible: "Sign In"
+- assertVisible: "Email address"
+- assertVisible: "Password"
 
 # Verify the auth screen has key elements
 - assertVisible:
     text: ".*Between Us.*"
 
 # Enter a test email
-- tapOn:
-    id: "email-input"
-    optional: true
+- tapOn: "Email address"
 - inputText: "test@example.com"
 
+- tapOn: "Password"
+- inputText: "password123"
+
 # Tap the sign-in button
-- tapOn: "Sign in"
+- tapOn: "Sign In"
 
 # Should show feedback (loading or confirmation)
 - waitForAnimationToEnd
