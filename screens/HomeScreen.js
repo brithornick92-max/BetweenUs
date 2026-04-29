@@ -626,7 +626,12 @@ export default function HomeScreen({ navigation }) {
         const { default: PN } = await import('../services/PartnerNotifications');
         await PN.promptAnswered(preferredName, prompt.id);
         notification(NotificationFeedbackType.Success);
-      } catch {}
+        Alert.alert('Sent', `${partnerLabel} will get a gentle nudge.`);
+      } catch (error) {
+        if (__DEV__) console.warn('[HomeScreen] Partner prompt nudge failed:', error?.message);
+        notification(NotificationFeedbackType.Error);
+        Alert.alert('Not sent', "We couldn't send the nudge. Please try again.");
+      }
 
       return;
     }
