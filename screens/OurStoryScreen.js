@@ -30,7 +30,7 @@ import AttachmentCacheService from '../services/AttachmentCacheService';
 import { getPromptById } from '../utils/contentLoader';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
-import { storage } from '../utils/storage';
+import { settingsStorage, storage } from '../utils/storage';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import MediaLightbox from '../components/MediaLightbox';
 import { getDateHistory } from '../utils/dateHistory';
@@ -52,6 +52,27 @@ const MEMORY_TYPE_META = {
   date_tried: { label: 'Date Tried', icon: 'calendar-outline' },
   memory: { label: 'Memory', icon: 'time-outline' },
 };
+
+const STRUCTURED_KEEPSAKE_MEMORY_TYPES = new Set([
+  'date_tried',
+  'intimacy_tried',
+]);
+
+const DEFAULT_KEEPSAKE_SETTINGS = {
+  prompts: true,
+  memories: true,
+  dates: true,
+  positions: true,
+};
+
+function normalizeKeepsakeSettings(settings) {
+  return {
+    prompts: settings?.prompts ?? DEFAULT_KEEPSAKE_SETTINGS.prompts,
+    memories: settings?.memories ?? DEFAULT_KEEPSAKE_SETTINGS.memories,
+    dates: settings?.dates ?? DEFAULT_KEEPSAKE_SETTINGS.dates,
+    positions: settings?.positions ?? DEFAULT_KEEPSAKE_SETTINGS.positions,
+  };
+}
 
 function formatDateLabel(value) {
   if (!value) return '';
@@ -174,7 +195,7 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     answers,
     eyebrow: row.is_revealed ? 'Prompt' : 'Sealed prompt',
     icon: row.is_revealed ? 'chatbubbles-outline' : 'lock-closed-outline',
-    accent: '#D2121A',
+    accent: '#5856D6',
     meta: row.heat_level ? `Heat ${row.heat_level}` : 'Prompt',
     dateLabel: formatDateLabel(row.date_key || row.created_at),
     sortAt: row.created_at || row.date_key,
@@ -194,9 +215,9 @@ function buildMemoryItem(row, media = null) {
     sourceId: row.id,
     title: memoryType.label,
     body: row.locked ? 'This moment is locked on this device.' : (row.content || ''),
-    eyebrow: isIntimacyFavorite ? 'Intimacy favorite' : (row.is_private ? 'Private moment' : 'Memory'),
+    eyebrow: isIntimacyFavorite ? 'Intimacy favorite' : 'Memory',
     icon: memoryType.icon,
-    accent: row.is_private ? '#7E4FA3' : '#D2121A',
+    accent: '#D2121A',
     meta: isIntimacyFavorite ? 'Shared intimacy' : (row.mood ? String(row.mood).toUpperCase() : memoryType.label),
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.snapshot_created_at || row.created_at || row.date,
@@ -304,7 +325,7 @@ function buildDateItem(row) {
     body: 'A date you tried together.',
     eyebrow: 'Date tried',
     icon: 'calendar-outline',
-    accent: '#D2121A',
+    accent: '#34C759',
     meta,
     dateLabel: formatDateLabel(row.addedAt),
     sortAt: row.addedAt,
@@ -325,7 +346,7 @@ function buildPositionTriedItem(row) {
     body: 'An intimacy position you tried together.',
     eyebrow: 'Position tried',
     icon: 'checkmark-circle-outline',
-    accent: '#D2121A',
+    accent: '#FF375F',
     meta: row.mood ? String(row.mood).toUpperCase() : 'Intimacy',
     dateLabel: formatDateLabel(row.triedAt),
     sortAt: row.triedAt,
@@ -369,6 +390,7 @@ export default function OurStoryScreen() {
         personalMemories,
         dateHistory,
         triedPositionHistory,
+        keepsakeSettingsRaw,
         myName,
         partnerName,
       ] = await Promise.all([
@@ -378,17 +400,25 @@ export default function OurStoryScreen() {
         safeLoad(() => DataLayer.getMemories({ limit: 500 })),
         safeLoad(() => getDateHistory()),
         safeLoad(() => getIntimacyTried()),
+        safeLoad(() => settingsStorage.getKeepsakeSettings()),
         NicknameEngine.getMyName('You'),
         NicknameEngine.getPartnerName('Partner'),
       ]);
 
-      const promptItems = dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
-        .map((row) => buildPromptItem(row, null, myName, partnerName));
+      const keepsakeSettings = normalizeKeepsakeSettings(keepsakeSettingsRaw);
 
-      const rawMemoryItems = await Promise.all(
-        dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
-          .map(async (row) => buildMemoryItem(row, await resolveRowMedia(row)))
-      );
+      const promptItems = keepsakeSettings.prompts
+        ? dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
+          .map((row) => buildPromptItem(row, null, myName, partnerName))
+        : [];
+
+      const rawMemoryItems = keepsakeSettings.memories
+        ? await Promise.all(
+          dedupeRows([...(sharedMemories || []), ...(personalMemories || [])])
+            .filter((row) => !STRUCTURED_KEEPSAKE_MEMORY_TYPES.has(row?.type))
+            .map(async (row) => buildMemoryItem(row, await resolveRowMedia(row)))
+        )
+        : [];
 
       const memoryItems = groupMemoryItems(rawMemoryItems);
 
@@ -398,14 +428,18 @@ export default function OurStoryScreen() {
           .filter(Boolean)
       );
 
-      const dateItems = (dateHistory || [])
-        .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
-        .map((row) => buildDateItem(row));
+      const dateItems = keepsakeSettings.dates
+        ? (dateHistory || [])
+          .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
+          .map((row) => buildDateItem(row))
+        : [];
 
-      const triedPositionItems = Object.values(triedPositionHistory || {})
-        .filter((row) => row?.positionId)
-        .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
-        .map((row) => buildPositionTriedItem(row));
+      const triedPositionItems = keepsakeSettings.positions
+        ? Object.values(triedPositionHistory || {})
+          .filter((row) => row?.positionId)
+          .filter((row) => !row.memoryId || !memoryIds.has(row.memoryId))
+          .map((row) => buildPositionTriedItem(row))
+        : [];
 
       const merged = [
         ...promptItems,

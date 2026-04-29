@@ -5,6 +5,15 @@ export const DATE_HISTORY_KEY = '@betweenus:cache:dateHistory';
 
 const ensureArray = (value) => (Array.isArray(value) ? value : []);
 
+function dedupeMemories(rows) {
+  const seen = new Set();
+  return ensureArray(rows).filter((row) => {
+    if (!row?.id || seen.has(row.id)) return false;
+    seen.add(row.id);
+    return true;
+  });
+}
+
 function buildDateHistoryPayload(date, overrides = {}) {
   return {
     kind: 'date_history',
@@ -53,11 +62,30 @@ async function setDateHistoryCache(history) {
 
 export async function getDateHistory() {
   try {
-    const memories = await DataLayer.getMemories({ type: 'date_tried', limit: 200 });
-    const history = ensureArray(memories)
+    const [personalMemories, sharedMemories] = await Promise.all([
+      DataLayer.getMemories({ type: 'date_tried', limit: 200 }),
+      typeof DataLayer.getSharedMemories === 'function'
+        ? DataLayer.getSharedMemories({ type: 'date_tried', limit: 200 })
+        : Promise.resolve([]),
+    ]);
+
+    const historyByDateId = dedupeMemories([
+      ...ensureArray(sharedMemories),
+      ...ensureArray(personalMemories),
+    ])
       .map(memoryToHistoryEntry)
       .filter(Boolean)
+      .reduce((acc, entry) => {
+        const existing = acc.get(entry.id);
+        if (!existing || (entry.addedAt || 0) > (existing.addedAt || 0)) {
+          acc.set(entry.id, entry);
+        }
+        return acc;
+      }, new Map());
+
+    const history = Array.from(historyByDateId.values())
       .sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+
     await setDateHistoryCache(history);
     return history;
   } catch {

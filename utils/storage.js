@@ -36,6 +36,7 @@ export const STORAGE_KEYS = {
   THEME_MODE: key("themeMode"),
   NOTIFICATION_SETTINGS: key("notificationSettings"),
   PRIVACY_SETTINGS: key("privacySettings"),
+  KEEPSAKE_SETTINGS: key("keepsakeSettings"),
   PROMPT_ANSWERS: key("promptAnswers"),
   JOURNAL_ENTRIES: key("journalEntries"),
   CHECK_INS: key("checkIns"),
@@ -327,6 +328,8 @@ export const settingsStorage = {
   setPrivacySettings: (settings) => storage.set(STORAGE_KEYS.PRIVACY_SETTINGS, ensureObject(settings)),
   getNotificationSettings: () => storage.get(STORAGE_KEYS.NOTIFICATION_SETTINGS, {}),
   setNotificationSettings: (settings) => storage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, ensureObject(settings)),
+  getKeepsakeSettings: () => storage.get(STORAGE_KEYS.KEEPSAKE_SETTINGS, {}),
+  setKeepsakeSettings: (settings) => storage.set(STORAGE_KEYS.KEEPSAKE_SETTINGS, ensureObject(settings)),
   getDateNightDefaults: () => storage.get(key("dateNightDefaults"), {}),
   setDateNightDefaults: (defaults) => storage.set(key("dateNightDefaults"), ensureObject(defaults)),
 };

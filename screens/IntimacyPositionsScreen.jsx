@@ -78,7 +78,6 @@ export default function IntimacyPositionsScreen() {
     userProfile?.myName
     || userProfile?.displayName
     || userProfile?.name
-    || user?.displayName
     || 'you';
 
   const intimacyForLine = `For ${myLabel} and ${partnerLabel}.`;

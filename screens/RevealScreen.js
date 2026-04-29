@@ -149,7 +149,7 @@ export default function RevealScreen({ route, navigation }) {
     revealed: {
       eyebrow: 'REVEALED',
       title: "Here's what you both left",
-      body: 'You both made a small private moment today. Save it to your archive or turn it into time together.',
+      body: 'You both made a small moment today. Save it to your archive or turn it into time together.',
       primaryLabel: 'Save to our archive',
       secondaryLabel: 'Plan something from this',
     },
@@ -169,6 +169,8 @@ export default function RevealScreen({ route, navigation }) {
       promptText: prompt.text,
       myAnswer: userAnswer?.answer || '',
       partnerAnswer: partnerAnswer || '',
+      myName,
+      partnerName,
     });
   };
 
@@ -190,7 +192,7 @@ export default function RevealScreen({ route, navigation }) {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           <CloseScreenHeader
-            title="Private Reveal"
+            title="Shared Reveal"
             subtitle={revealCopy.eyebrow}
             titleColor={t.text}
             subtitleColor={t.primary}
@@ -250,7 +252,7 @@ export default function RevealScreen({ route, navigation }) {
             >
               {/* My Reflection */}
               <View style={styles.answerCard}>
-                <Text style={[styles.tagText, { color: t.subtext }]}>You said</Text>
+                <Text style={[styles.tagText, { color: t.subtext }]}>{myName} said</Text>
                 <View style={[styles.bubble, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: t.border }]}>
                   <Text style={[styles.bubbleText, { color: t.text }]}>
                     {userAnswer?.answer || "Your answer is saved."}
@@ -274,7 +276,7 @@ export default function RevealScreen({ route, navigation }) {
                   <View style={[styles.bubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border, alignItems: 'center', paddingVertical: 40 }]}>
                     <Icon name="pulse-outline" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
                     <Text style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}>
-                      {partnerName || 'Your partner'} hasn't shared their thoughts yet.
+                      {partnerName} hasn't shared their thoughts yet.
                     </Text>
                     <Text style={[styles.miniNote, { color: t.subtext, marginTop: 12 }]}>
                       They can reveal yours after they answer too.

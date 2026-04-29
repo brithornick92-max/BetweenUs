@@ -57,7 +57,7 @@ const REACTIONS = [
 export default function ThinkingOfYouScreen() {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { state } = useAppContext();
 
   const [media, setMedia] = useState(null); // { uri, type, mimeType }
@@ -67,7 +67,7 @@ export default function ThinkingOfYouScreen() {
   const [sent, setSent] = useState(false);
 
   const inputRef = useRef(null);
-  const partnerName = getPartnerDisplayName(state?.partnerProfile, state?.userProfile, 'your partner');
+  const partnerName = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   
   const videoPlayer = useVideoPlayer(media?.uri || null, player => {
     player.loop = false;

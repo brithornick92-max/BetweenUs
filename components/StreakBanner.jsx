@@ -1,5 +1,5 @@
 /**
- * StreakBanner — Gentle private-moments indicator for the home screen
+ * StreakBanner — Gentle shared-moments indicator for the home screen
  *
  * Shows the number of small connection moments created this month.
  * Hidden until 2+ moments to avoid noise.
@@ -19,7 +19,7 @@ function getRhythmLabel(moments) {
   if (moments >= 14) return 'A beautiful rhythm';
   if (moments >= 7) return 'Choosing each other';
   if (moments >= 3) return 'Small moments adding up';
-  return 'A private start';
+  return 'A lovely start';
 }
 
 export default function StreakBanner({ onPress }) {
@@ -70,7 +70,7 @@ export default function StreakBanner({ onPress }) {
     return () => { active = false; };
   }, [user?.uid, isPremium, fadeAnim]);
 
-  // Hidden until 2+ private moments this month
+  // Hidden until 2+ moments this month
   if (moments < 2) return null;
 
   const bg = isDark ? '#1C1C1E' : '#FFFFFF';
@@ -83,12 +83,12 @@ export default function StreakBanner({ onPress }) {
         activeOpacity={0.75}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${moments} private moments this month. Tap to view your story.`}
+        accessibilityLabel={`${moments} moments this month. Tap to view your story.`}
       >
         <Icon name="pulse-outline" size={18} color={colors.primary} />
         <View style={styles.textWrap}>
           <Text style={[styles.label, { color: textColor }]}>
-            {moments} private moments this month
+            {moments} moments this month
           </Text>
           <Text style={[styles.rhythm, { color: colors.textMuted }]}>
             {getRhythmLabel(moments)}

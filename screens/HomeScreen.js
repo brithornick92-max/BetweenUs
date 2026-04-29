@@ -60,7 +60,7 @@ function dateKey(date) {
 
 const TONE_HOME_COPY = {
   warm: {
-    subheadline: (partner) => `A private room for you and ${partner}.`,
+    subheadline: (partner) => `A room for you and ${partner}.`,
   },
   playful: {
     subheadline: (partner) => `A little spark, just for you and ${partner}.`,
@@ -69,7 +69,7 @@ const TONE_HOME_COPY = {
     subheadline: (partner) => `A closer space only you and ${partner} share.`,
   },
   minimal: {
-    subheadline: () => 'A private space for the two of you.',
+    subheadline: () => 'A space just for the two of you.',
   },
 };
 
@@ -206,7 +206,7 @@ export default function HomeScreen({ navigation }) {
 
         if (active) {
           setSmartGreeting(seasonGreetings[seasonId] || 'Welcome Back');
-          setSmartSubGreeting(greeting || 'A private room for small moments together.');
+          setSmartSubGreeting(greeting || 'A room for small moments together.');
         }
       } catch (e) {
         if (__DEV__) console.warn('[Home] personalization load:', e?.message);
@@ -472,7 +472,7 @@ export default function HomeScreen({ navigation }) {
       title: promptReady ? prompt.text : 'A small moment for today',
       body: `Answer privately. ${partnerLabel} can reveal it after they answer too.`,
       primaryLabel: "Answer today's question",
-      secondaryLabel: 'Invite your partner',
+      secondaryLabel: `Invite ${partnerLabel}`,
     },
     linked_unanswered: {
       eyebrow: 'TODAY BETWEEN US',
@@ -637,6 +637,8 @@ export default function HomeScreen({ navigation }) {
         promptText: prompt.text,
         myAnswer,
         partnerAnswer,
+        myName: preferredName || 'You',
+        partnerName: partnerLabel,
       });
       return;
     }
@@ -926,7 +928,7 @@ export default function HomeScreen({ navigation }) {
 
           <View style={{ height: homeLayout.spacing.gap }} />
 
-          {/* ── Private moments + milestones (below the fold) ── */}
+          {/* ── Shared moments + milestones (below the fold) ── */}
           <MilestoneCard />
 
           <View style={{ height: homeLayout.type === 'compact' ? SPACING.md : SPACING.lg }} />
@@ -1020,7 +1022,7 @@ export default function HomeScreen({ navigation }) {
 
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.softNudgeTitle, { color: t.text }]}>
-                    You've created {answeredCount} private moments
+                    You've created {answeredCount} shared moments
                   </Text>
 
                   <Text style={[styles.softNudgeBody, { color: t.subtext }]}>

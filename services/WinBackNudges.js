@@ -33,7 +33,7 @@ const NUDGES = [
   {
     delayDays: 3,
     title: 'A small moment with your person',
-    body: 'A private prompt is waiting whenever you want to feel close.',
+    body: 'A prompt is waiting whenever you want to feel close.',
     route: 'home',
   },
   {
@@ -208,7 +208,7 @@ const WinBackNudges = {
       const { prompts = 0, partnerName = 'your partner' } = summary || {};
       const partnerLine = partnerName && partnerName !== 'your partner' ? ` with ${partnerName}` : '';
       const promptLine = prompts > 0
-        ? `${prompts} private moment${prompts !== 1 ? 's' : ''}${partnerLine} this week`
+        ? `${prompts} moment${prompts !== 1 ? 's' : ''}${partnerLine} this week`
         : `Your week${partnerLine} is ready`;
 
       await Notifications.scheduleNotificationAsync({

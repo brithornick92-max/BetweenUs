@@ -80,7 +80,7 @@ export default function AchievementsScreen() {
       navigation={navigation}
       headerTitle="Milestones"
       heroTitle="Your Story"
-      heroSubtitle="The private moments you have created and the ones still waiting to happen."
+      heroSubtitle="The moments you have created together and the ones still waiting to happen."
       scroll={false}
     >
         {loading ? (
@@ -101,7 +101,7 @@ export default function AchievementsScreen() {
               if (item._type === 'header') {
                 return (
                   <Animated.View entering={FadeIn.duration(500)} style={styles.editorialHeader}>
-                    <Text style={[styles.headerSubtitle, { color: t.primary }]}>YOUR PRIVATE ARCHIVE</Text>
+                    <Text style={[styles.headerSubtitle, { color: t.primary }]}>YOUR SHARED ARCHIVE</Text>
                     <Text style={[styles.headerTitle, { color: t.text }]}>Your Story</Text>
                   </Animated.View>
                 );

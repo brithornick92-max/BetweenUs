@@ -191,10 +191,13 @@ export default function AddMemoryScreen() {
       return { content: '', type: 'moment' };
     }
 
+    const myName = route.params?.myName || 'You';
+    const partnerName = route.params?.partnerName || 'Partner';
+
     const sections = [
       route.params?.promptText ? `Today's question: ${route.params.promptText}` : null,
-      route.params?.myAnswer ? `You said: ${route.params.myAnswer}` : null,
-      route.params?.partnerAnswer ? `Your partner said: ${route.params.partnerAnswer}` : null,
+      route.params?.myAnswer ? `${myName} said: ${route.params.myAnswer}` : null,
+      route.params?.partnerAnswer ? `${partnerName} said: ${route.params.partnerAnswer}` : null,
     ].filter(Boolean);
 
     return {

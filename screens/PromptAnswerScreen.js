@@ -138,7 +138,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const helperCopy = hasLinkedPartner
     ? "Leave one honest answer. It stays private until your shared reveal."
-    : "Save this for your private space, then invite your partner to answer too.";
+    : `Save this for your space, then invite ${partnerLabel} to answer too.`;
   const privacyCopy = hasLinkedPartner
     ? "Private until your shared reveal."
     : `Save your answer now, then invite ${partnerLabel} to answer too.`;

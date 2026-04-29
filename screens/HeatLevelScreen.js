@@ -83,7 +83,7 @@ export default function HeatLevelScreen({ navigation }) {
       if (!isPremium && usageStatus?.remaining?.prompts === 0) {
         Alert.alert(
           'There\'s more waiting for you',
-          'Free users can answer one private prompt per day. Premium opens deeper reveals, date ideas, memories, recaps, and your full archive.',
+          'Free users can answer one prompt per day. Premium opens deeper reveals, date ideas, memories, recaps, and your full archive.',
           [
             { text: 'Maybe Later', style: 'cancel' },
             { text: 'Discover more', onPress: () => showPaywall(PremiumFeature.UNLIMITED_PROMPTS) }
@@ -191,7 +191,7 @@ export default function HeatLevelScreen({ navigation }) {
               color={colors.primary}
             />
             <Text style={styles.usageText}>
-              {usageStatus.remaining.prompts} private moment{usageStatus.remaining.prompts !== 1 ? 's' : ''} remaining today
+              {usageStatus.remaining.prompts} moment{usageStatus.remaining.prompts !== 1 ? 's' : ''} remaining today
             </Text>
           </View>
         )}

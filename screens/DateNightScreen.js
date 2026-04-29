@@ -52,6 +52,7 @@ const SWIPE_THRESHOLD = 90;
 const FLIP_DURATION = 650;
 const DIMS = getDimensionMeta();
 const SPRING = { damping: 20, stiffness: 150, mass: 0.8 };
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const TONE_DATE_COPY = {
@@ -1421,7 +1422,6 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,

@@ -9,6 +9,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Switch,
   Alert,
   Modal,
   Dimensions,
@@ -49,7 +50,7 @@ import { SPACING, withAlpha } from '../utils/theme';
 import { SUPPORT_EMAIL } from '../config/constants';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
-import { cloudSyncStorage, STORAGE_KEYS, storage } from '../utils/storage';
+import { cloudSyncStorage, settingsStorage, STORAGE_KEYS, storage } from '../utils/storage';
 import CrashReporting from '../services/CrashReporting';
 import RevenueCatService from '../services/RevenueCatService';
 import CoupleService from '../services/supabase/CoupleService';
@@ -124,6 +125,41 @@ const EditorialRow = ({ icon, title, subtitle, onPress, t, isLast, iconColor, ri
   );
 };
 
+const DEFAULT_KEEPSAKE_SETTINGS = {
+  prompts: true,
+  memories: true,
+  dates: true,
+  positions: true,
+};
+
+const normalizeKeepsakeSettings = (settings) => ({
+  prompts: settings?.prompts ?? DEFAULT_KEEPSAKE_SETTINGS.prompts,
+  memories: settings?.memories ?? DEFAULT_KEEPSAKE_SETTINGS.memories,
+  dates: settings?.dates ?? DEFAULT_KEEPSAKE_SETTINGS.dates,
+  positions: settings?.positions ?? DEFAULT_KEEPSAKE_SETTINGS.positions,
+});
+
+const EditorialToggleRow = ({ icon, title, subtitle, value, onValueChange, t, isLast, iconColor }) => (
+  <View style={styles.rowWrapper}>
+    <View style={styles.rowMain}>
+      <View style={[styles.iconContainer, { backgroundColor: withAlpha(iconColor || t.primary, 0.12) }]}>
+        <Icon name={icon} size={22} color={iconColor || t.primary} />
+      </View>
+      <View style={styles.rowTextContent}>
+        <Text style={[styles.rowTitle, { color: t.text }]}>{title}</Text>
+        {subtitle && <Text style={[styles.rowSubtitle, { color: t.subtext }]}>{subtitle}</Text>}
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ false: t.border, true: t.primary }}
+        ios_backgroundColor={t.border}
+      />
+    </View>
+    {!isLast && <View style={[styles.rowDivider, { backgroundColor: t.borderGlass }]} />}
+  </View>
+);
+
 // ════════════════════════════════════════════════════════
 //  MAIN SCREEN COMPONENT
 // ════════════════════════════════════════════════════════
@@ -155,6 +191,7 @@ export default function SettingsScreen({ navigation }) {
   const [syncStatus, setSyncStatus] = useState({ enabled: false });
   const [paired, setPaired] = useState(false);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
+  const [keepsakeSettings, setKeepsakeSettings] = useState(DEFAULT_KEEPSAKE_SETTINGS);
   const unlinkInFlightRef = useRef(false);
 
   const [selectedDate, setSelectedDate] = useState(
@@ -207,6 +244,20 @@ export default function SettingsScreen({ navigation }) {
     return unsubscribe;
   }, [navigation, refreshSyncStatus]);
 
+  useEffect(() => {
+    let active = true;
+
+    settingsStorage.getKeepsakeSettings().then((saved) => {
+      if (active) {
+        setKeepsakeSettings(normalizeKeepsakeSettings(saved));
+      }
+    }).catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
 
   // ─── HANDLERS ───
   const handleDatePickerDismiss = useCallback(() => {
@@ -229,6 +280,16 @@ export default function SettingsScreen({ navigation }) {
       }},
     ]);
   };
+
+  const handleKeepsakeToggle = useCallback(async (key, value) => {
+    impact(ImpactFeedbackStyle.Light);
+    const next = {
+      ...keepsakeSettings,
+      [key]: value,
+    };
+    setKeepsakeSettings(next);
+    await settingsStorage.setKeepsakeSettings(next);
+  }, [keepsakeSettings]);
 
 
   const handleUnlink = async () => {
@@ -475,6 +536,42 @@ export default function SettingsScreen({ navigation }) {
                 setThemeMode(next);
                 notification(NotificationFeedbackType.Success);
               }}
+              t={t}
+              isLast
+            />
+          </EditorialSection>
+
+          <EditorialSection title="Keepsake" t={t} delay={725}>
+            <EditorialToggleRow
+              icon="chatbubbles-outline"
+              title="Prompts"
+              subtitle="Show shared reflections in Keepsake"
+              value={keepsakeSettings.prompts}
+              onValueChange={(value) => handleKeepsakeToggle('prompts', value)}
+              t={t}
+            />
+            <EditorialToggleRow
+              icon="images-outline"
+              title="Memories & Snapshots"
+              subtitle="Show saved notes, photos, and videos"
+              value={keepsakeSettings.memories}
+              onValueChange={(value) => handleKeepsakeToggle('memories', value)}
+              t={t}
+            />
+            <EditorialToggleRow
+              icon="calendar-outline"
+              title="Dates Tried"
+              subtitle="Show date nights you marked as tried"
+              value={keepsakeSettings.dates}
+              onValueChange={(value) => handleKeepsakeToggle('dates', value)}
+              t={t}
+            />
+            <EditorialToggleRow
+              icon="checkmark-circle-outline"
+              title="Position Tried"
+              subtitle="Show intimacy positions marked as tried"
+              value={keepsakeSettings.positions}
+              onValueChange={(value) => handleKeepsakeToggle('positions', value)}
               t={t}
               isLast
             />

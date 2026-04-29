@@ -8,14 +8,103 @@ const ensureObject = (value) => (
   value && typeof value === 'object' && !Array.isArray(value) ? value : {}
 );
 
+function buildTriedMemoryPayload(position, overrides = {}) {
+  return {
+    kind: 'intimacy_tried',
+    positionId: position?.id,
+    title: position?.title || 'Untitled position',
+    commonName: position?.commonName || null,
+    mood: position?.mood || null,
+    heat: position?.heat ?? null,
+    rating: null,
+    ...overrides,
+  };
+}
+
+function parseTriedMemoryPayload(content) {
+  if (!content) return null;
+  try {
+    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    return parsed?.kind === 'intimacy_tried' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeTriedEntry(positionId, entry) {
+  if (!positionId) return null;
+
+  if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+    return {
+      ...entry,
+      positionId: entry.positionId || positionId,
+    };
+  }
+
+  if (!entry) return null;
+
+  return {
+    positionId,
+    triedAt: null,
+    rating: null,
+    memoryId: null,
+  };
+}
+
+function normalizeTriedMap(value) {
+  const tried = ensureObject(value);
+  let changed = false;
+  const normalized = {};
+
+  for (const [positionId, entry] of Object.entries(tried)) {
+    const nextEntry = normalizeTriedEntry(positionId, entry);
+    if (!nextEntry) {
+      changed = true;
+      continue;
+    }
+
+    if (nextEntry !== entry || nextEntry.positionId !== entry?.positionId) {
+      changed = true;
+    }
+
+    normalized[positionId] = nextEntry;
+  }
+
+  return { tried: normalized, changed };
+}
+
+function memoryToTriedEntry(memory) {
+  const payload = parseTriedMemoryPayload(memory?.content);
+  if (!payload?.positionId) return null;
+
+  return {
+    positionId: payload.positionId,
+    title: payload.title || 'Untitled position',
+    commonName: payload.commonName || null,
+    mood: payload.mood || null,
+    heat: payload.heat ?? null,
+    triedAt: memory?.created_at || new Date().toISOString(),
+    rating: payload.rating ?? null,
+    memoryId: memory?.id || null,
+  };
+}
+
+async function setIntimacyTriedCache(tried) {
+  await storage.set(INTIMACY_TRIED_KEY, ensureObject(tried));
+}
+
+function dedupeMemories(rows) {
+  const seen = new Set();
+  return (Array.isArray(rows) ? rows : []).filter((row) => {
+    if (!row?.id || seen.has(row.id)) return false;
+    seen.add(row.id);
+    return true;
+  });
+}
+
 function buildFavoriteMemoryContent(position) {
   const label = position?.commonName ? `${position.commonName}: ${position.title}` : position?.title;
   return `Shared intimacy favorite: ${label || 'Untitled position'}`;
-}
-
-function buildTriedMemoryContent(position) {
-  const label = position?.commonName ? `${position.commonName}: ${position.title}` : position?.title;
-  return `Tried intimacy position: ${label || 'Untitled position'}`;
 }
 
 export async function getIntimacyFavorites() {
@@ -23,7 +112,43 @@ export async function getIntimacyFavorites() {
 }
 
 export async function getIntimacyTried() {
-  return ensureObject(await storage.get(INTIMACY_TRIED_KEY, {}));
+  const { tried: cachedTried, changed } = normalizeTriedMap(await storage.get(INTIMACY_TRIED_KEY, {}));
+  if (changed) {
+    await setIntimacyTriedCache(cachedTried);
+  }
+
+  try {
+    const [personalMemories, sharedMemories] = await Promise.all([
+      DataLayer.getMemories({ type: 'intimacy_tried', limit: 200 }),
+      typeof DataLayer.getSharedMemories === 'function'
+        ? DataLayer.getSharedMemories({ type: 'intimacy_tried', limit: 200 })
+        : Promise.resolve([]),
+    ]);
+
+    const fromMemories = dedupeMemories([
+      ...(Array.isArray(sharedMemories) ? sharedMemories : []),
+      ...(Array.isArray(personalMemories) ? personalMemories : []),
+    ])
+      .map(memoryToTriedEntry)
+      .filter(Boolean)
+      .reduce((acc, entry) => {
+        const existing = acc[entry.positionId];
+        if (!existing || new Date(entry.triedAt).getTime() >= new Date(existing.triedAt).getTime()) {
+          acc[entry.positionId] = entry;
+        }
+        return acc;
+      }, {});
+
+    const merged = {
+      ...cachedTried,
+      ...fromMemories,
+    };
+
+    await setIntimacyTriedCache(merged);
+    return merged;
+  } catch {
+    return cachedTried;
+  }
 }
 
 export async function toggleIntimacyFavorite(position, { currentlyFavorite = false } = {}) {
@@ -85,19 +210,30 @@ export async function toggleIntimacyTried(position, { currentlyTried = false } =
     }
 
     delete tried[position.id];
-    await storage.set(INTIMACY_TRIED_KEY, tried);
+    await setIntimacyTriedCache(tried);
     return { tried, isTried: false };
   }
 
   let memoryId = existing?.memoryId || null;
   try {
-    const row = await DataLayer.saveMemory({
-      type: 'intimacy_tried',
-      mood: position?.mood || 'intimate',
-      content: buildTriedMemoryContent(position),
-      isPrivate: false,
-    });
-    memoryId = row?.id || memoryId;
+    if (existing?.memoryId && typeof DataLayer.updateMemory === 'function') {
+      await DataLayer.updateMemory(existing.memoryId, {
+        content: JSON.stringify(buildTriedMemoryPayload(position, {
+          rating: existing?.rating ?? null,
+        })),
+        mood: position?.mood || 'intimate',
+      });
+    } else {
+      const row = await DataLayer.saveMemory({
+        type: 'intimacy_tried',
+        mood: position?.mood || 'intimate',
+        content: JSON.stringify(buildTriedMemoryPayload(position, {
+          rating: existing?.rating ?? null,
+        })),
+        isPrivate: false,
+      });
+      memoryId = row?.id || memoryId;
+    }
   } catch (error) {
     if (__DEV__) console.warn('[intimacyFavorites] Failed to save tried memory:', error?.message);
   }
@@ -113,7 +249,7 @@ export async function toggleIntimacyTried(position, { currentlyTried = false } =
     memoryId,
   };
 
-  await storage.set(INTIMACY_TRIED_KEY, tried);
+  await setIntimacyTriedCache(tried);
   return { tried, isTried: true };
 }
 
@@ -130,12 +266,25 @@ export async function rateIntimacyTried(position, rating) {
       const row = await DataLayer.saveMemory({
         type: 'intimacy_tried',
         mood: position?.mood || 'intimate',
-        content: buildTriedMemoryContent(position),
+        content: JSON.stringify(buildTriedMemoryPayload(position, {
+          rating: nextRating,
+        })),
         isPrivate: false,
       });
       memoryId = row?.id || null;
     } catch (error) {
       if (__DEV__) console.warn('[intimacyFavorites] Failed to save tried memory:', error?.message);
+    }
+  } else if (existing.memoryId && typeof DataLayer.updateMemory === 'function') {
+    try {
+      await DataLayer.updateMemory(existing.memoryId, {
+        content: JSON.stringify(buildTriedMemoryPayload(position, {
+          rating: nextRating,
+        })),
+        mood: position?.mood || 'intimate',
+      });
+    } catch (error) {
+      if (__DEV__) console.warn('[intimacyFavorites] Failed to update tried memory:', error?.message);
     }
   }
 
@@ -151,6 +300,6 @@ export async function rateIntimacyTried(position, rating) {
   };
 
   tried[position.id] = entry;
-  await storage.set(INTIMACY_TRIED_KEY, tried);
+  await setIntimacyTriedCache(tried);
   return { tried, entry };
 }
