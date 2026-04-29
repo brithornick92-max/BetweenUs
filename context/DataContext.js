@@ -241,7 +241,7 @@ export function DataProvider({ children }) {
       }
     });
     return () => sub.remove();
-  }, []);
+  }, [applySyncResult]);
 
   // ─── Trigger manual sync ───────────────────────────────────
 
