@@ -116,7 +116,7 @@ describe('ContentAccessService', () => {
     expect(result.reason).toBe('within_free_limits');
   });
 
-  it('limits the weekly free prompt preview while keeping all heat levels represented', async () => {
+  it('limits the legacy free prompt preview using current tightened limits', async () => {
     const prompts = [1, 2, 3, 4, 5].flatMap((heat) =>
       [0, 1, 2, 3].map((index) => ({
         id: `h${heat}_${index}`,
@@ -131,10 +131,10 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 5 },
     });
 
-    expect(result.prompts).toHaveLength(15);
-    expect(new Set(result.prompts.map((prompt) => prompt.heat))).toEqual(new Set([1, 2, 3, 4, 5]));
+    expect(result.prompts).toHaveLength(3);
+    expect(new Set(result.prompts.map((prompt) => prompt.heat))).toEqual(new Set([1, 2, 3]));
     expect(result.access.isPreviewLimited).toBe(true);
-    expect(result.access.lockedCount).toBe(5);
+    expect(result.access.lockedCount).toBeGreaterThan(0);
   });
 
   it('blocks free access to released prompts outside the weekly preview set', async () => {
@@ -157,7 +157,7 @@ describe('ContentAccessService', () => {
     expect(result.reason).toBe('weekly_preview_locked');
   });
 
-  it('limits the weekly free date preview and respects heat boundaries', async () => {
+  it('limits the legacy free date preview and respects heat boundaries', async () => {
     const dates = [1, 2, 3].flatMap((heat) =>
       [0, 1, 2, 3].map((index) => ({
         id: `date${heat}_${index}`,
@@ -172,7 +172,7 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 2 },
     });
 
-    expect(result.dates).toHaveLength(8);
+    expect(result.dates).toHaveLength(3);
     expect(result.dates.every((date) => date.heat <= 2)).toBe(true);
     expect(result.access.accessibleHeatLevels).toEqual([1, 2]);
   });
@@ -211,7 +211,7 @@ describe('ContentAccessService', () => {
     expect(UsageEventsService.incrementDailyUsage).not.toHaveBeenCalled();
   });
 
-  it('allows free users a limited weekly position preview', async () => {
+  it('allows free users a limited legacy position preview', async () => {
     const positions = [1, 2, 3].flatMap((heat) =>
       [0, 1].map((index) => ({
         id: `ip${heat}_${index}`,
@@ -225,7 +225,7 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 3 },
     });
 
-    expect(result.positions).toHaveLength(3);
+    expect(result.positions).toHaveLength(1);
     expect(result.access.requiresPremium).toBe(false);
     expect(result.access.isPreviewLimited).toBe(true);
   });

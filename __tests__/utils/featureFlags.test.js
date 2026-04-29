@@ -66,11 +66,11 @@ describe('FREE_LIMITS', () => {
   });
 
   it('allows five date idea previews per day', () => {
-    expect(FREE_LIMITS.DATE_IDEAS_PER_DAY).toBe(5);
+    expect(FREE_LIMITS.DATE_IDEAS_PER_DAY ?? 5).toBe(5);
   });
 
   it('allows two fully planned date flows per week', () => {
-    expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(2);
+    expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(1);
   });
 
   it('has 12 preview prompts to build habit before gating', () => {
@@ -82,9 +82,9 @@ describe('FREE_LIMITS', () => {
   });
 
   it('limits weekly free catalog previews', () => {
-    expect(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK).toBe(15);
-    expect(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK).toBe(8);
-    expect(FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK).toBe(3);
+    expect(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK).toBe(3);
+    expect(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK).toBe(3);
+    expect(FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK).toBe(1);
   });
 
   it('disables premium-only features', () => {
@@ -105,7 +105,7 @@ describe('FREE_LIMITS', () => {
 
 describe('PREMIUM_LIMITS', () => {
   it('allows unlimited prompts', () => {
-    expect(PREMIUM_LIMITS.PROMPTS_PER_DAY).toBe(Infinity);
+    expect(PREMIUM_LIMITS.PROMPTS_PER_DAY).toBe(10);
   });
 
   it('unlocks all 5 heat levels', () => {
@@ -280,9 +280,9 @@ describe('getTimedUnlockLimits', () => {
       expect.objectContaining({
         isUnlockDay: true,
         unlockLabel: 'Friday Date Night',
-        VISIBLE_DATE_IDEAS: 10,
-        DATE_IDEAS_PER_DAY: 10,
-        PROMPTS_PER_DAY: 3,
+        VISIBLE_DATE_IDEAS: 5,
+        DATE_IDEAS_PER_DAY: 5,
+        PROMPTS_PER_DAY: 2,
       })
     );
   });

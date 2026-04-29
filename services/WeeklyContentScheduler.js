@@ -89,11 +89,15 @@ class WeeklyContentScheduler {
   }
 
   isAvailable(item) {
-    return this.isReleasedThroughCurrentWeek(item);
+    // releaseWeek is metadata for featured/new-this-week labeling.
+    // It should not be the default access gate anymore.
+    return Boolean(item);
   }
 
   filterAvailable(items = []) {
-    return this.filterReleasedThroughCurrentWeek(items);
+    // Default availability now means the full eligible library.
+    // Use filterReleasedThroughCurrentWeek only for intentional legacy/global release gating.
+    return Array.isArray(items) ? items.filter(Boolean) : [];
   }
 
   /**

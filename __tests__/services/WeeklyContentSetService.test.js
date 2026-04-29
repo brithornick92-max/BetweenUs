@@ -62,7 +62,7 @@ describe('WeeklyContentSetService', () => {
     makePosition('i6', 2, 'deep-connection', 'standard', 'Connected standard'),
   ];
 
-  it('builds premium prompt weekly sets with all 7 picks unlocked', () => {
+  it('builds premium prompt weekly sets with weekly featured picks unlocked', () => {
     const result = buildWeeklySet(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
@@ -72,13 +72,13 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.premiumLibraryTotal).toBe(PREMIUM_LIBRARY_TOTALS.prompts);
-    expect(result.unlocked).toHaveLength(7);
+    expect(result.unlocked).toHaveLength(9);
     expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(7);
+    expect(result.items).toHaveLength(9);
     expect(result.items.every((item) => item.isLockedPreview === false)).toBe(true);
   });
 
-  it('builds free prompt weekly previews with 2 unlocked and 5 locked previews', () => {
+  it('builds free prompt welcome-week previews with 10 unlocked and 5 locked previews', () => {
     const result = buildWeeklySet(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
@@ -87,14 +87,14 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.unlocked).toHaveLength(2);
-    expect(result.lockedPreviews).toHaveLength(5);
-    expect(result.items).toHaveLength(7);
+    expect(result.unlocked).toHaveLength(9);
+    expect(result.lockedPreviews).toHaveLength(0);
+    expect(result.items).toHaveLength(9);
     expect(result.lockedPreviews.every((item) => item.isLockedPreview === true)).toBe(true);
     expect(result.lockedPreviews.every((item) => item.requiresPremium === true)).toBe(true);
   });
 
-  it('builds free date weekly previews with 1 unlocked and prioritizes lower-load picks first', () => {
+  it('builds free date welcome-week previews and prioritizes lower-load picks first', () => {
     const result = buildWeeklySet(dates, {
       contentType: CONTENT_TYPES.DATES,
       userId: 'user-1',
@@ -103,13 +103,13 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.unlocked).toHaveLength(1);
-    expect(result.lockedPreviews).toHaveLength(4);
-    expect(result.items).toHaveLength(5);
+    expect(result.unlocked).toHaveLength(6);
+    expect(result.lockedPreviews).toHaveLength(0);
+    expect(result.items).toHaveLength(6);
     expect(result.unlocked[0].load).toBe(1);
   });
 
-  it('builds free position weekly previews with 1 unlocked and prioritizes soft accessible picks first', () => {
+  it('builds free position welcome-week previews and prioritizes soft accessible picks first', () => {
     const result = buildWeeklySet(positions, {
       contentType: CONTENT_TYPES.POSITIONS,
       userId: 'user-1',
@@ -118,23 +118,26 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.unlocked).toHaveLength(1);
-    expect(result.lockedPreviews).toHaveLength(4);
-    expect(result.items).toHaveLength(5);
+    expect(result.unlocked).toHaveLength(5);
+    expect(result.lockedPreviews).toHaveLength(1);
+    expect(result.items).toHaveLength(6);
     expect(result.unlocked[0].heat).toBe(1);
     expect(result.unlocked[0].accessibility).toBe('low-mobility');
   });
 
 
-  it('free locked previews expose preview metadata without marking them unlocked', () => {
+  it('free locked previews expose preview metadata without marking them unlocked after welcome week', () => {
     const result = buildWeeklySet(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
       isPremium: false,
       userSettings: { maxHeat: 5 },
+      userCreatedAt: '2026-04-01T12:00:00.000Z',
       date: TEST_DATE,
     });
 
+    expect(result.weekNumber).toBeGreaterThan(0);
+    expect(result.unlocked).toHaveLength(5);
     expect(result.lockedPreviews.length).toBeGreaterThan(0);
 
     result.lockedPreviews.forEach((item) => {

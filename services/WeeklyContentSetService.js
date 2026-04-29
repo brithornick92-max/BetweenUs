@@ -379,14 +379,18 @@ const buildWeeklySet = (
     isAllowedByHeat(item, settings)
   );
 
+  const weeklyPickLimit = isPremium
+    ? premiumLimit
+    : freeUnlockedLimit + freeLockedPreviewLimit;
+
   let selected;
 
   if (type === CONTENT_TYPES.DATES) {
-    selected = pickBalancedDates(eligible, premiumLimit, seed);
+    selected = pickBalancedDates(eligible, weeklyPickLimit, seed);
   } else if (type === CONTENT_TYPES.POSITIONS) {
-    selected = pickBalancedPositions(eligible, premiumLimit, seed);
+    selected = pickBalancedPositions(eligible, weeklyPickLimit, seed);
   } else {
-    selected = pickBalancedPrompts(eligible, premiumLimit, seed);
+    selected = pickBalancedPrompts(eligible, weeklyPickLimit, seed);
   }
 
   const weeklySelection = isPremium

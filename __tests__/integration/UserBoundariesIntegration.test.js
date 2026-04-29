@@ -30,10 +30,23 @@ const MOCK_DATES = [
   { id: 'd3', title: 'Romantic dinner', heat: 3, releaseWeek: 0 },
 ];
 
+let mockStorage = {};
+
 beforeEach(() => {
   jest.clearAllMocks();
-  AsyncStorage.getItem.mockResolvedValue(null);
-  AsyncStorage.setItem.mockResolvedValue(undefined);
+  mockStorage = {};
+
+  AsyncStorage.getItem.mockImplementation(async (key) => (
+    Object.prototype.hasOwnProperty.call(mockStorage, key) ? mockStorage[key] : null
+  ));
+
+  AsyncStorage.setItem.mockImplementation(async (key, value) => {
+    mockStorage[key] = value;
+  });
+
+  AsyncStorage.removeItem?.mockImplementation?.(async (key) => {
+    delete mockStorage[key];
+  });
 });
 
 describe('User Boundaries Integration', () => {

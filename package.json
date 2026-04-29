@@ -14,7 +14,9 @@
     "seed:simulator-media": "node scripts/seedSimulatorMedia.cjs",
     "web": "expo start --web",
     "lint": "npx expo lint App.js assets components config context hooks mocks navigation plugins screens services utils __tests__ scripts -- --no-error-on-unmatched-pattern",
-    "pre-deploy": "npm test && npm run validate:ios"
+    "pre-deploy": "npm test && npm run validate:ios",
+    "test": "jest",
+    "validate:ios": "npm run lint && npx tsc --noEmit"
   },
   "dependencies": {
     "@expo-google-fonts/dm-serif-display": "^0.4.2",
