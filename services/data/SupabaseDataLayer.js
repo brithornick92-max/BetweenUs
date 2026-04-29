@@ -1925,31 +1925,57 @@ const SupabaseDataLayer = {
     return mapped;
   },
 
-  async deleteCalendarEvent(id, { deleteRemote = false } = {}) {
+  async deleteCalendarEvent(id, { deleteRemote = false, remoteId } = {}) {
     const sb = getSupabaseOrNull();
+    const targetId = remoteId || id;
 
     await runCloudOperation({
       perform: async () => {
         if (!sb) throw new Error('Supabase not configured');
 
-        const { error } = await sb
+        const { data, error } = await sb
           .from(TABLES.CALENDAR_EVENTS)
           .delete()
-          .eq('id', id);
+          .eq('id', targetId)
+          .select('id');
 
-        if (error) throw error;
+        if (error) {
+          const { data: rpcData, error: rpcError } = await sb.rpc('delete_calendar_event_if_member', {
+            p_event_id: targetId,
+          });
+
+          if (rpcError) throw error;
+          if (rpcData !== true) {
+            throw new Error('Calendar event could not be deleted. You may not have permission to delete this event.');
+          }
+
+          return;
+        }
+
+        if (!Array.isArray(data) || data.length === 0) {
+          const { data: rpcData, error: rpcError } = await sb.rpc('delete_calendar_event_if_member', {
+            p_event_id: targetId,
+          });
+
+          if (rpcError) throw rpcError;
+          if (rpcData !== true) {
+            throw new Error('Calendar event could not be deleted. You may not have permission to delete this event.');
+          }
+        }
       },
       onSuccess: async () => {
         await removeCacheRow(CACHE_SCOPES.calendar, id);
+        if (targetId !== id) await removeCacheRow(CACHE_SCOPES.calendar, targetId);
       },
       onOffline: async () => {
         await enqueueOfflineMutation({
           entity: 'calendar',
           action: 'delete',
-          id,
+          id: targetId,
         });
 
         await removeCacheRow(CACHE_SCOPES.calendar, id);
+        if (targetId !== id) await removeCacheRow(CACHE_SCOPES.calendar, targetId);
       },
     });
 
@@ -1957,7 +1983,7 @@ const SupabaseDataLayer = {
 
     await Promise.all(
       cachedPlans
-        .filter((plan) => plan?.sourceEventId === id)
+        .filter((plan) => plan?.sourceEventId === id || plan?.sourceEventId === targetId)
         .map((plan) => this.deleteDatePlan(plan.id))
     );
   },

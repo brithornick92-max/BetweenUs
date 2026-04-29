@@ -182,16 +182,20 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, relationshipStart
 
 // ─── TimelineEvent ────────────────────────────────────────────────────────────
 
-function TimelineEvent({ item, onLongPress, styles, colors }) {
+function TimelineEvent({ item, onEdit, onDelete, onLongPress, styles, colors }) {
   const dateObj   = new Date(item.whenTs);
   const time      = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const eventType = EVENT_TYPES[item.eventType] || (item.isDateNight ? EVENT_TYPES.dateNight : EVENT_TYPES.general);
+  const canModify = !item.isGeneratedAnniversary;
 
   return (
     <TouchableOpacity
       style={[styles.timelineCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-      onLongPress={item.isGeneratedAnniversary ? undefined : onLongPress}
+      onPress={canModify ? onEdit : undefined}
+      onLongPress={canModify ? onLongPress : undefined}
       activeOpacity={0.9}
+      accessibilityRole="button"
+      accessibilityHint={canModify ? 'Opens edit options for this event' : undefined}
     >
       <View style={[styles.timelineCardColorBar, { backgroundColor: eventType.color }]} />
       <View style={styles.timelineCardContent}>
@@ -207,6 +211,30 @@ function TimelineEvent({ item, onLongPress, styles, colors }) {
           <View style={styles.locationRow}>
             <Icon name="location-outline" size={12} color={colors.subtext} />
             <Text style={[styles.locationText, { color: colors.subtext }]}>{item.location}</Text>
+          </View>
+        ) : null}
+        {canModify ? (
+          <View style={styles.eventActionsRow}>
+            <TouchableOpacity
+              style={[styles.eventActionButton, { borderColor: colors.border }]}
+              onPress={onEdit}
+              activeOpacity={0.75}
+              accessibilityLabel={`Edit ${item.title || 'event'}`}
+              accessibilityRole="button"
+            >
+              <Icon name="create-outline" size={16} color={colors.text} />
+              <Text style={[styles.eventActionText, { color: colors.text }]}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.eventActionButton, { borderColor: colors.border }]}
+              onPress={onDelete}
+              activeOpacity={0.75}
+              accessibilityLabel={`Delete ${item.title || 'event'}`}
+              accessibilityRole="button"
+            >
+              <Icon name="trash-outline" size={16} color="#D2121A" />
+              <Text style={[styles.eventActionText, { color: '#D2121A' }]}>Delete</Text>
+            </TouchableOpacity>
           </View>
         ) : null}
       </View>
@@ -374,20 +402,34 @@ export default function CalendarScreen({ navigation, route }) {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
+          const previousEvents = events;
           try {
+            setEvents((current) => current.filter((item) => (
+              item.id !== event.id
+              && item.supabaseId !== event.id
+              && item.id !== event.supabaseId
+            )));
+
+            if (editingEvent?.id === event.id) {
+              setModalOpen(false);
+              resetComposer();
+            }
+
             if (event.notificationId) await cancelNotification(event.notificationId);
             await DataLayer.deleteCalendarEvent(event.id, {
               deleteRemote: !!(event.isRemote || event.supabaseId),
               remoteId: event.supabaseId || event.id,
             });
+
             await loadEvents();
-          } catch (_error) {
-            Alert.alert('Error', 'Could not delete this event. Please try again.');
+          } catch (error) {
+            setEvents(previousEvents);
+            Alert.alert('Delete Failed', error?.message || 'Could not delete this event. Please try again.');
           }
         },
       },
     ]);
-  }, [loadEvents]);
+  }, [editingEvent?.id, events, loadEvents, resetComposer]);
 
   const handleEventLongPress = useCallback((event) => {
     Alert.alert(event.title || 'Event', 'Choose an action', [
@@ -551,6 +593,8 @@ export default function CalendarScreen({ navigation, route }) {
                       item={event}
                       styles={styles}
                       colors={t}
+                      onEdit={() => openEditModal(event)}
+                      onDelete={() => handleDelete(event)}
                       onLongPress={() => handleEventLongPress(event)}
                     />
                   </ReAnimated.View>
@@ -688,6 +732,18 @@ export default function CalendarScreen({ navigation, route }) {
                     <Text style={styles.primaryBtnText}>{isSaving ? 'SAVING…' : (editingEvent ? 'UPDATE EVENT' : 'SAVE TO TIMELINE')}</Text>
                   </TouchableOpacity>
 
+                  {editingEvent ? (
+                    <TouchableOpacity
+                      style={[styles.deleteEventBtn, { borderColor: t.border }]}
+                      onPress={() => handleDelete(editingEvent)}
+                      activeOpacity={0.75}
+                      disabled={isSaving}
+                    >
+                      <Icon name="trash-outline" size={18} color="#D2121A" />
+                      <Text style={styles.deleteEventBtnText}>DELETE EVENT</Text>
+                    </TouchableOpacity>
+                  ) : null}
+
                 </ScrollView>
               </View>
             </KeyboardAvoidingView>
@@ -803,6 +859,18 @@ const createStyles = (t, isDark) => StyleSheet.create({
   eventTypeLabel: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
   locationRow:    { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
   locationText:   { fontSize: 13, fontWeight: '500' },
+  eventActionsRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  eventActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  eventActionText: { fontSize: 12, fontWeight: '800' },
 
   emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
   emptyText:      { fontSize: 15, fontWeight: '600', fontStyle: 'italic' },
@@ -877,6 +945,16 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   primaryBtn:     { height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
   primaryBtnText: { color: '#FFF', fontSize: 15, fontWeight: '900', letterSpacing: 1 },
+  deleteEventBtn: {
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  deleteEventBtnText: { color: '#D2121A', fontSize: 13, fontWeight: '900', letterSpacing: 1 },
 
   // ── Paywall ───────────────────────────────────────────────────
   paywallCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },

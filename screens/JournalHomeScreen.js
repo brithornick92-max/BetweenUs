@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
   Image,
+  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -236,6 +237,37 @@ export default function JournalHomeScreen({ navigation }) {
     navigation.goBack();
   }, [navigation]);
 
+  const handleEditEntry = useCallback((item) => {
+    impact(ImpactFeedbackStyle.Light);
+    navigation.navigate('JournalEntry', {
+      entry: item.entry,
+      readOnly: false,
+    });
+  }, [navigation]);
+
+  const handleDeleteEntry = useCallback((item) => {
+    Alert.alert(
+      'Delete Entry',
+      'Are you sure you want to delete this journal entry? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              impact(ImpactFeedbackStyle.Medium);
+              await DataLayer.deleteJournalEntry(item.entry.id);
+              await loadEntries();
+            } catch (_error) {
+              Alert.alert('Error', 'Failed to delete entry. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  }, [loadEntries]);
+
   const renderItem = ({ item, index }) => {
     if (item.kind === 'date_header') {
       return (
@@ -311,9 +343,33 @@ export default function JournalHomeScreen({ navigation }) {
                 {item.dateTimeLabel}
               </Text>
 
-              <View style={[styles.downArrowButton, { borderColor: t.border }]}>
-                <Icon name="chevron-down-outline" size={18} color={t.text} />
-              </View>
+              {item.canEdit ? (
+                <View style={styles.entryActionsRow}>
+                  <TouchableOpacity
+                    style={[styles.entryActionButton, { borderColor: t.border }]}
+                    onPress={() => handleEditEntry(item)}
+                    activeOpacity={0.75}
+                    accessibilityLabel={`Edit ${item.title || 'journal entry'}`}
+                    accessibilityRole="button"
+                  >
+                    <Icon name="create-outline" size={16} color={t.text} />
+                    <Text style={[styles.entryActionText, { color: t.text }]}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.entryActionIconButton, { borderColor: t.border }]}
+                    onPress={() => handleDeleteEntry(item)}
+                    activeOpacity={0.75}
+                    accessibilityLabel={`Delete ${item.title || 'journal entry'}`}
+                    accessibilityRole="button"
+                  >
+                    <Icon name="trash-outline" size={17} color="#D2121A" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={[styles.downArrowButton, { borderColor: t.border }]}>
+                  <Icon name="chevron-down-outline" size={18} color={t.text} />
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -535,6 +591,37 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '600',
     color: t.subtext,
     opacity: 0.72,
+  },
+  entryActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
+  entryActionButton: {
+    minHeight: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: withAlpha(t.text, isDark ? 0.04 : 0.03),
+  },
+  entryActionIconButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: withAlpha('#D2121A', 0.08),
+  },
+  entryActionText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '800',
   },
   downArrowButton: {
     width: 34,

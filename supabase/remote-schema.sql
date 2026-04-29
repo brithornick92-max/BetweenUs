@@ -39,6 +39,42 @@ CREATE TYPE "storage"."buckettype" AS ENUM (
 ALTER TYPE "storage"."buckettype" OWNER TO "supabase_storage_admin";
 
 
+CREATE OR REPLACE FUNCTION "public"."delete_calendar_event_if_member"("p_event_id" "uuid") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+  _couple_id uuid;
+BEGIN
+  SELECT ce.couple_id
+    INTO _couple_id
+  FROM calendar_events ce
+  WHERE ce.id = p_event_id;
+
+  IF _couple_id IS NULL THEN
+    RETURN false;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM couple_members m
+    WHERE m.couple_id = _couple_id
+      AND m.user_id = auth.uid()
+  ) THEN
+    RETURN false;
+  END IF;
+
+  DELETE FROM calendar_events
+  WHERE id = p_event_id;
+
+  RETURN FOUND;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."delete_calendar_event_if_member"("p_event_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."check_rate_limit"("p_user_id" "uuid", "p_cost" integer DEFAULT 1) RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -493,6 +529,11 @@ DECLARE
   notif_title     text;
   notif_body      text;
   moment_type_val text;
+  vibe_label_val  text;
+  vibe_name_val   text;
+  vibe_color_val  text;
+  vibe_icon_val   text;
+  vibe_emoji_val  text;
   notif_data      jsonb;
 BEGIN
   IF NEW.data_type = 'couple_state' THEN RETURN NEW; END IF;
@@ -523,6 +564,11 @@ BEGIN
   CASE NEW.data_type
     WHEN 'moment_signal' THEN
       moment_type_val := NEW.value::jsonb->>'moment_type';
+      vibe_label_val := COALESCE(NULLIF(NEW.value::jsonb->>'vibe_label', ''), 'passionate');
+      vibe_name_val  := COALESCE(NULLIF(NEW.value::jsonb->>'vibe_name', ''), initcap(vibe_label_val));
+      vibe_color_val := COALESCE(NULLIF(NEW.value::jsonb->>'vibe_color', ''), '#D2121A');
+      vibe_icon_val  := COALESCE(NULLIF(NEW.value::jsonb->>'vibe_icon', ''), 'flame-outline');
+      vibe_emoji_val := COALESCE(NULLIF(NEW.value::jsonb->>'vibe_emoji', ''), '🔥');
       CASE moment_type_val
         WHEN 'thinking' THEN notif_title := '💭 Thinking of You';
                              notif_body  := sender_name || ' is thinking of you';
@@ -536,12 +582,19 @@ BEGIN
                              notif_body  := sender_name || ' is thinking about you';
         WHEN 'love'     THEN notif_title := '❤️ Love You';
                              notif_body  := sender_name || ' loves you';
-        ELSE                 notif_title := '💗 Heartbeat';
-                             notif_body  := sender_name || ' sent you a heartbeat';
+        ELSE                 notif_title := vibe_emoji_val || ' ' || vibe_name_val || ' Heartbeat';
+                             notif_body  := sender_name || ' sent a ' || lower(vibe_label_val) || ' heartbeat';
       END CASE;
       notif_data := jsonb_build_object(
         'type',        'moment_signal',
         'moment_type', COALESCE(moment_type_val, 'heartbeat'),
+        'vibe_id',     COALESCE(NEW.value::jsonb->>'vibe_id', vibe_label_val),
+        'vibe_type',   vibe_label_val,
+        'vibe_label',  vibe_label_val,
+        'vibe_name',   vibe_name_val,
+        'vibe_color',  vibe_color_val,
+        'vibe_icon',   vibe_icon_val,
+        'vibe_emoji',  vibe_emoji_val,
         'couple_id',   NEW.couple_id,
         'route',       'vibe'
       );
@@ -753,7 +806,10 @@ BEGIN
       'body',  p_body,
       'sound', 'default',
       'data',  p_data
-    )
+    ) || CASE
+      WHEN p_data ? 'vibe_color' THEN jsonb_build_object('color', p_data->>'vibe_color')
+      ELSE '{}'::jsonb
+    END
   );
 
   INSERT INTO notification_log (recipient, token, title, body, status)
@@ -2993,13 +3049,15 @@ CREATE POLICY "Deny client entitlement writes" ON "public"."user_entitlements" F
 
 
 
-CREATE POLICY "Premium creators can delete calendar events" ON "public"."calendar_events" FOR DELETE USING ((("created_by" = "auth"."uid"()) AND (EXISTS ( SELECT 1
+CREATE POLICY "Premium members can delete calendar events" ON "public"."calendar_events" FOR DELETE USING (((EXISTS ( SELECT 1
    FROM "public"."couple_members" "m"
   WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"())))) AND "public"."couple_has_premium"("couple_id")));
 
 
 
-CREATE POLICY "Premium creators can update calendar events" ON "public"."calendar_events" FOR UPDATE USING ((("created_by" = "auth"."uid"()) AND (EXISTS ( SELECT 1
+CREATE POLICY "Premium members can update calendar events" ON "public"."calendar_events" FOR UPDATE USING (((EXISTS ( SELECT 1
+   FROM "public"."couple_members" "m"
+  WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"())))) AND "public"."couple_has_premium"("couple_id"))) WITH CHECK (((EXISTS ( SELECT 1
    FROM "public"."couple_members" "m"
   WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"())))) AND "public"."couple_has_premium"("couple_id")));
 
@@ -3329,6 +3387,9 @@ GRANT ALL ON FUNCTION "public"."delete_own_account"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_own_account"() TO "service_role";
 
 
+GRANT ALL ON FUNCTION "public"."delete_calendar_event_if_member"("p_event_id" "uuid") TO "authenticated";
+
+
 
 GRANT ALL ON FUNCTION "public"."get_couple_premium_status"("input_couple_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_couple_premium_status"("input_couple_id" "uuid") TO "authenticated";
@@ -3644,6 +3705,3 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "storage" GRANT ALL ON TA
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "storage" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "storage" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "storage" GRANT ALL ON TABLES TO "service_role";
-
-
-
