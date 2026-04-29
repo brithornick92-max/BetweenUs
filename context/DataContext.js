@@ -214,7 +214,7 @@ export function DataProvider({ children }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [userId, coupleId, isPremium]);
+  }, [userId, coupleId, isPremium, applySyncResult]);
 
   // ─── Sync on app foreground ─────────────────────────────────
 
