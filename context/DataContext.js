@@ -95,7 +95,7 @@ export function DataProvider({ children }) {
     }));
 
     return result;
-  }, [applySyncResult]);
+  }, []);
 
 
   // ─── Initialize on auth ─────────────────────────────────────
@@ -189,7 +189,7 @@ export function DataProvider({ children }) {
       unsubSyncEventRef.current?.();
       if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
     };
-  }, [userId, coupleId, isPremium]);
+  }, [userId, coupleId, isPremium, applySyncResult]);
 
   // ─── Reconfigure when couple/premium changes ───────────────
 
