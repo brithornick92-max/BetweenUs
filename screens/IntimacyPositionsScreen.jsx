@@ -303,10 +303,14 @@ export default function IntimacyPositionsScreen() {
     if (!position || triedBusyRef.current) return;
 
     const positionId = position.id;
+    const currentIndex = selectedIndexRef.current;
     const wasTried = !!triedPositions[positionId];
     const previousTried = triedPositions;
     const optimisticTried = { ...previousTried };
-    rememberSelectedPosition(positionId);
+
+    // Lock in position reference before any state changes
+    selectedPositionIdRef.current = positionId;
+    lastSelectedPositionId = positionId;
 
     if (wasTried) {
       delete optimisticTried[positionId];
@@ -333,29 +337,35 @@ export default function IntimacyPositionsScreen() {
         currentlyTried: wasTried,
         currentTried: previousTried,
       });
-      rememberSelectedPosition(positionId);
+      // Only update tried state, don't touch position state
       setTriedPositions(next.tried);
     } catch (error) {
       setTriedPositions(previousTried);
-      rememberSelectedPosition(positionId);
       if (__DEV__) {
         console.warn('[IntimacyPositions] Failed to update tried state:', error?.message);
       }
     } finally {
-      rememberSelectedPosition(positionId);
+      // Ensure position refs stay locked to prevent any drift
+      selectedPositionIdRef.current = positionId;
+      lastSelectedPositionId = positionId;
       triedBusyRef.current = false;
       setTriedBusy(false);
     }
-  }, [position, triedPositions, rememberSelectedPosition]);
+  }, [position, triedPositions]);
 
   const handleRateTried = useCallback(async (rating) => {
     if (!position || ratingBusyRef.current) return;
 
+    const positionId = position.id;
+    
+    // Lock in position reference before any state changes
+    selectedPositionIdRef.current = positionId;
+    lastSelectedPositionId = positionId;
+
     ratingBusyRef.current = true;
     setRatingBusy(true);
     selection();
-    const positionId = position.id;
-    rememberSelectedPosition(positionId);
+
     const previousTried = triedPositions;
     const previousEntry = previousTried[positionId] || null;
     const nextRating = previousEntry?.rating === rating ? null : rating;
@@ -377,20 +387,21 @@ export default function IntimacyPositionsScreen() {
 
     try {
       const next = await rateIntimacyTried(position, rating);
-      rememberSelectedPosition(positionId);
+      // Only update tried state, don't touch position state
       setTriedPositions(next.tried);
     } catch (error) {
       setTriedPositions(previousTried);
-      rememberSelectedPosition(positionId);
       if (__DEV__) {
         console.warn('[IntimacyPositions] Failed to rate tried state:', error?.message);
       }
     } finally {
-      rememberSelectedPosition(positionId);
+      // Ensure position refs stay locked to prevent any drift
+      selectedPositionIdRef.current = positionId;
+      lastSelectedPositionId = positionId;
       ratingBusyRef.current = false;
       setRatingBusy(false);
     }
-  }, [position, triedPositions, rememberSelectedPosition]);
+  }, [position, triedPositions]);
 
   return (
     <EditorialScreenScaffold
