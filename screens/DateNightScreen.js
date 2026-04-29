@@ -24,6 +24,7 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../context/ThemeContext';
+import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { getAllDates, filterDates, getDimensionMeta } from '../utils/contentLoader';
 import { FREE_LIMITS, PremiumFeature, getTimedUnlockLimits } from '../utils/featureFlags';
@@ -32,6 +33,7 @@ import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import { useAuth } from '../context/AuthContext';
+import { getPartnerDisplayName } from '../utils/profileNames';
 import DateCardFront from '../components/DateCardFront';
 import DateCardBack from '../components/DateCardBack';
 import { getDateCardPalette } from '../components/dateCardPalette';
@@ -123,7 +125,7 @@ function getDeckFilterTone(type, option, isDark = true) {
 
 // ── Card stack with flip + swipe ─────────────────────────────────────────────────
 const CardStack = forwardRef(function CardStack(
-  { deck, deckIndex, colors, isDark, onSwipeLeft, onSwipeRight, onPress, onLongPress },
+  { deck, deckIndex, colors, isDark, partnerName, onSwipeLeft, onSwipeRight, onPress, onLongPress },
   ref,
 ) {
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
@@ -369,7 +371,7 @@ const CardStack = forwardRef(function CardStack(
           {/* Front face */}
           <Animated.View style={[styles.flipFace, frontFaceStyle]}>
             <View style={[styles.cardFrontWrap, { backgroundColor: isDark ? '#131016' : '#FFFFFF' }]}>
-              <DateCardFront date={topCard} colors={colors} dims={DIMS} isDark={isDark} />
+              <DateCardFront date={topCard} colors={colors} dims={DIMS} isDark={isDark} partnerName={partnerName} />
             </View>
           </Animated.View>
 
@@ -397,7 +399,12 @@ export default function DateNightScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
+  const { state } = useAppContext();
   const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || null;
+  const partnerName = useMemo(
+    () => getPartnerDisplayName(userProfile, state?.userProfile, 'your partner'),
+    [state?.userProfile, userProfile]
+  );
 
   const t = useMemo(() => ({
     background: colors.background,
@@ -850,6 +857,7 @@ export default function DateNightScreen({ navigation }) {
                 deckIndex={deckIndex}
                 colors={colors}
                 isDark={isDark}
+                partnerName={partnerName}
                 onSwipeRight={handleSwipeRight}
                 onSwipeLeft={handleSwipeLeft}
                 onPress={openDate}

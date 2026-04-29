@@ -19,7 +19,7 @@ import Animated, {
 import Icon from './Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getDateCardPalette } from './dateCardPalette';
-import { getDateCategoryMeta } from '../utils/contentLoader';
+import { personalizePartnerText } from '../utils/profileNames';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -36,31 +36,33 @@ export const HEAT_ICONS = {
   3: 'flame-outline',
 };
 
-const LOAD_ICONS = {
-  1: 'moon-outline',
-  2: 'sunny-outline',
-  3: 'flash-outline',
-};
-
 const HEAT_LABELS = {
   1: 'Soft Focus',
   2: 'Playful',
   3: 'After Dark',
 };
 
-const CATEGORY_META_BY_ID = getDateCategoryMeta().reduce((acc, category) => {
-  acc[category.id] = category;
-  return acc;
-}, {});
+const LOCATION_LABELS = {
+  home: 'At Home',
+  out: 'Out & About',
+  either: 'Anywhere',
+};
 
-export default function DateCardFront({ date, colors, dims, isDark = true }) {
+const LOCATION_ICONS = {
+  home: 'home-outline',
+  out: 'map-outline',
+  either: 'location-outline',
+};
+
+export default function DateCardFront({ date, isDark = true, partnerName = 'your partner' }) {
   const heat = date?.heat || 1;
   const palette = getDateCardPalette(heat, isDark);
   const icon = HEAT_ICONS[heat] || 'heart-outline';
-  const categoryMeta = CATEGORY_META_BY_ID[date?.category] || CATEGORY_META_BY_ID.romantic;
-  const label = categoryMeta?.label || HEAT_LABELS[heat] || 'Date';
-  const loadMeta = dims.load.find(l => l.level === date.load) || dims.load[1];
-  const planPreview = date?.vibe || (Array.isArray(date?.steps) ? date.steps[0] : null);
+  const label = HEAT_LABELS[heat] || 'Date';
+  const locationLabel = LOCATION_LABELS[date?.location] || 'Anywhere';
+  const locationIcon = LOCATION_ICONS[date?.location] || LOCATION_ICONS.either;
+  const rawPlanPreview = date?.vibe || (Array.isArray(date?.steps) ? date.steps[0] : null);
+  const planPreview = personalizePartnerText(rawPlanPreview, partnerName);
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
 
   // Animated shimmer band
@@ -156,27 +158,16 @@ export default function DateCardFront({ date, colors, dims, isDark = true }) {
         <View style={styles.body}>
           {/* Tags row */}
           <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.tagsRow}>
-            {loadMeta && (
-              <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
-                <Icon name={LOAD_ICONS[date?.load] || 'ellipse-outline'} size={11} color={palette.body} />
-                <Text style={[styles.tagText, { color: palette.body }]}> {loadMeta.label}</Text>
-              </View>
-            )}
-            {categoryMeta ? (
-              <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
-                <Icon name={categoryMeta.icon || 'ellipse-outline'} size={11} color={palette.body} />
-                <Text style={[styles.tagText, { color: palette.body }]}> {categoryMeta.label}</Text>
-              </View>
-            ) : null}
             {date.minutes ? (
               <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
                 <Icon name="time-outline" size={11} color={palette.body} />
                 <Text style={[styles.tagText, { color: palette.body }]}> {date.minutes} min</Text>
               </View>
             ) : null}
-            {date._matchLabel ? (
+            {date?.location ? (
               <View style={[styles.tag, { borderColor: palette.chrome + '38', backgroundColor: palette.tagBackground }]}> 
-                <Icon name="star-outline" size={11} color={palette.body} />
+                <Icon name={locationIcon} size={11} color={palette.body} />
+                <Text style={[styles.tagText, { color: palette.body }]}> {locationLabel}</Text>
               </View>
             ) : null}
           </Animated.View>

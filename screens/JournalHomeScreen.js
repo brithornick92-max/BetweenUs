@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
   Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -19,13 +20,11 @@ import { useAppContext } from '../context/AppContext';
 import { DataLayer } from '../services/localfirst';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
-import { storage } from '../utils/storage';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
-const SHARED_JOURNAL_NOTICE_KEY = '@betweenus:cache:sharedJournalNoticeDismissed';
 
 function toDate(value) {
   if (!value) return null;
@@ -150,7 +149,6 @@ export default function JournalHomeScreen({ navigation }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showSharedNotice, setShowSharedNotice] = useState(false);
 
   const myName = useMemo(
     () => getMyDisplayName(userProfile, state?.userProfile, user?.displayName || 'You') || 'You',
@@ -185,29 +183,6 @@ export default function JournalHomeScreen({ navigation }) {
     () => buildDateGroupedJournalList(entries),
     [entries]
   );
-
-  useEffect(() => {
-    let active = true;
-
-    const loadNoticeState = async () => {
-      try {
-        const dismissed = await storage.get(SHARED_JOURNAL_NOTICE_KEY, false);
-        if (active && !dismissed) {
-          setShowSharedNotice(true);
-        }
-      } catch {
-        if (active) {
-          setShowSharedNotice(true);
-        }
-      }
-    };
-
-    loadNoticeState();
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const loadEntries = useCallback(async () => {
     try {
@@ -255,14 +230,6 @@ export default function JournalHomeScreen({ navigation }) {
     impact(ImpactFeedbackStyle.Light);
     navigation.navigate('JournalEntry');
   }, [navigation]);
-
-  const dismissSharedNotice = useCallback(async () => {
-    setShowSharedNotice(false);
-
-    try {
-      await storage.set(SHARED_JOURNAL_NOTICE_KEY, true);
-    } catch {}
-  }, []);
 
   const handleBack = useCallback(() => {
     impact(ImpactFeedbackStyle.Light);
@@ -355,73 +322,6 @@ export default function JournalHomeScreen({ navigation }) {
     );
   };
 
-  const ListHeader = (
-    <Animated.View entering={FadeIn.duration(500)}>
-      <View style={styles.cardContainer}>
-        <View
-          style={[
-            styles.editorialCard,
-            styles.editorialCardColumn,
-            { backgroundColor: t.surface, borderColor: t.borderGlass },
-            !isDark && styles.lightShadow,
-          ]}
-        >
-          <View style={styles.cardContent}>
-          </View>
-
-          <View style={styles.heroActionWrap}>
-            <TouchableOpacity
-              style={[styles.heroPrimaryAction, { backgroundColor: t.primary }]}
-              activeOpacity={0.85}
-              onPress={handleCreate}
-              accessibilityLabel="New shared entry"
-              accessibilityRole="button"
-            >
-              <Icon name="create-outline" size={16} color="#FFF" />
-              <Text style={styles.heroPrimaryActionText}>New Shared Entry</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      {showSharedNotice ? (
-        <View style={styles.cardContainer}>
-          <View
-            style={[
-              styles.editorialCard,
-              styles.editorialCardColumn,
-              {
-                backgroundColor: withAlpha(t.primary, isDark ? 0.12 : 0.08),
-                borderColor: t.borderGlass,
-              },
-            ]}
-          >
-            <View style={styles.noticeContent}>
-              <View style={styles.noticeHeader}>
-                <View style={styles.noticeTitleRow}>
-                  <Icon name="megaphone-outline" size={16} color={t.primary} />
-                  <Text style={[styles.noticeTitle, { color: t.text }]}>
-                    Journal is now shared
-                  </Text>
-                </View>
-
-                <TouchableOpacity
-                  onPress={dismissSharedNotice}
-                  hitSlop={12}
-                  accessibilityLabel="Dismiss journal notice"
-                  accessibilityRole="button"
-                >
-                  <Icon name="close-outline" size={18} color={t.subtext} />
-                </TouchableOpacity>
-              </View>
-
-            </View>
-          </View>
-        </View>
-      ) : null}
-    </Animated.View>
-  );
-
   const EmptyState = (
     <View style={styles.emptyState}>
       <View style={styles.emptyIconCircle}>
@@ -463,7 +363,6 @@ export default function JournalHomeScreen({ navigation }) {
         data={groupedEntries}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListHeaderComponent={ListHeader}
         ListEmptyComponent={loading ? LoadingState : EmptyState}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -475,6 +374,25 @@ export default function JournalHomeScreen({ navigation }) {
           />
         )}
       />
+
+      <TouchableOpacity
+        style={styles.fabContainer}
+        onPress={handleCreate}
+        activeOpacity={0.85}
+        accessibilityLabel="New shared entry"
+        accessibilityRole="button"
+      >
+        <BlurView
+          intensity={70}
+          tint={isDark ? 'dark' : 'light'}
+          style={[
+            styles.fabBlur,
+            { backgroundColor: withAlpha(t.primary, 0.8) },
+          ]}
+        >
+          <Icon name="add-outline" size={28} color="#FFF" />
+        </BlurView>
+      </TouchableOpacity>
     </EditorialScreenScaffold>
   );
 }
@@ -483,6 +401,32 @@ const createStyles = (t, isDark) => StyleSheet.create({
   listContent: {
     paddingHorizontal: 0,
     paddingBottom: 160,
+  },
+  fabContainer: {
+    position: 'absolute',
+    right: SPACING.screen,
+    bottom: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    ...Platform.select({
+      ios: {
+        shadowColor: t.primary,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 16,
+      },
+      android: { elevation: 8 },
+    }),
+  },
+  fabBlur: {
+    flex: 1,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   cardContainer: {
     paddingHorizontal: 0,
@@ -546,67 +490,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 20,
     elevation: 4,
-  },
-
-  heroTitle: {
-    fontFamily: SERIF_FONT,
-    fontSize: 30,
-    lineHeight: 36,
-    color: t.text,
-    marginBottom: SPACING.sm,
-  },
-  heroActionWrap: {
-    paddingHorizontal: SPACING.xl,
-    paddingBottom: SPACING.xl,
-    width: '100%',
-    alignItems: 'center',
-  },
-  heroPrimaryAction: {
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 28,
-    marginTop: SPACING.xl,
-  },
-  heroPrimaryActionText: {
-    fontFamily: SYSTEM_FONT,
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-
-  noticeContent: {
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.xl,
-    paddingBottom: SPACING.lg,
-    width: '100%',
-  },
-  noticeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
-    gap: 12,
-  },
-  noticeTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  noticeTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  noticeBody: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    lineHeight: 20,
   },
 
   eyebrowRow: {

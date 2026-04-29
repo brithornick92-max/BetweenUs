@@ -52,7 +52,6 @@ describe('PushNotificationService', () => {
     ).resolves.toEqual({
       shouldShowBanner: true,
       shouldShowList: true,
-      shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: false,
     });

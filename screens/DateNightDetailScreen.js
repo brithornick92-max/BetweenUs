@@ -19,10 +19,12 @@ import { BlurView } from "expo-blur";
 import Icon from '../components/Icon';
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from "../context/ThemeContext";
+import { useAppContext } from "../context/AppContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { impact, selection, ImpactFeedbackStyle } from "../utils/haptics";
 import { withAlpha } from "../utils/theme";
-import { getDateById, getDateCategoryMeta, getDimensionMeta } from "../utils/contentLoader";
+import { getDateById } from "../utils/contentLoader";
+import { getPartnerDisplayName, personalizePartnerText } from "../utils/profileNames";
 import { PremiumFeature } from "../utils/featureFlags";
 import Button from "../components/Button";
 import ReAnimated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -51,29 +53,12 @@ const AUTO_LOG_THRESHOLD_SECONDS = 300; // 5 minutes
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
-const DETAIL_DECK_ICONS = {
-  heat: {
-    1: 'heart-outline',
-    2: 'sparkles-outline',
-    3: 'flame-outline',
-  },
-  load: {
-    1: 'moon-outline',
-    2: 'sunny-outline',
-    3: 'flash-outline',
-  },
-};
-
-const DATE_CATEGORY_META_BY_ID = getDateCategoryMeta().reduce((acc, category) => {
-  acc[category.id] = category;
-  return acc;
-}, {});
-
 export default function DateNightDetailScreen({ route, navigation }) {
   const { date: routeDate, dateId } = route.params || {};
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
+  const { state } = useAppContext();
   const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || user?.uid || user?.id || null;
   const { loadUsageStatus } = useContent();
   const [date, setDate] = useState(routeDate || null);
@@ -154,64 +139,43 @@ export default function DateNightDetailScreen({ route, navigation }) {
     };
   }, [routeDate, dateId, navigation, userProfile]);
 
-  const steps = useMemo(() => {
-    if (Array.isArray(date?.guidedSteps) && date.guidedSteps.length > 0) {
-      return date.guidedSteps;
-    }
+  const partnerName = useMemo(
+    () => getPartnerDisplayName(userProfile, state?.userProfile, 'your partner'),
+    [state?.userProfile, userProfile]
+  );
 
-    return Array.isArray(date?.steps) ? date.steps : [];
-  }, [date?.guidedSteps, date?.steps]);
+  const personalizeCopy = React.useCallback(
+    (text) => personalizePartnerText(text, partnerName),
+    [partnerName]
+  );
+
+  const steps = useMemo(() => {
+    const rawSteps = Array.isArray(date?.guidedSteps) && date.guidedSteps.length > 0
+      ? date.guidedSteps
+      : (Array.isArray(date?.steps) ? date.steps : []);
+
+    return rawSteps.map(personalizeCopy);
+  }, [date?.guidedSteps, date?.steps, personalizeCopy]);
 
   const supplies = useMemo(
-    () => (Array.isArray(date?.supplies) ? date.supplies : []),
-    [date?.supplies]
+    () => (Array.isArray(date?.supplies) ? date.supplies.map(personalizeCopy) : []),
+    [date?.supplies, personalizeCopy]
   );
 
   const conversationPrompts = useMemo(
-    () => (Array.isArray(date?.conversationPrompts) ? date.conversationPrompts : []),
-    [date?.conversationPrompts]
+    () => (Array.isArray(date?.conversationPrompts) ? date.conversationPrompts.map(personalizeCopy) : []),
+    [date?.conversationPrompts, personalizeCopy]
   );
 
+  const dateVibe = useMemo(() => personalizeCopy(date?.vibe), [date?.vibe, personalizeCopy]);
+  const dateSetup = useMemo(() => personalizeCopy(date?.setup), [date?.setup, personalizeCopy]);
+  const dateConnectionTwist = useMemo(
+    () => personalizeCopy(date?.connectionTwist),
+    [date?.connectionTwist, personalizeCopy]
+  );
+  const dateEnding = useMemo(() => personalizeCopy(date?.ending), [date?.ending, personalizeCopy]);
+
   const dateTone = useMemo(() => getDateCardPalette(date?.heat || 1), [date?.heat]);
-  
-  const dimensionBadges = useMemo(() => {
-    const dims = getDimensionMeta();
-    const badges = [];
-    if (typeof date?.heat === 'number') {
-      const h = dims.heat.find(x => x.level === date.heat);
-      if (h) {
-        badges.push({
-          label: h.label,
-          icon: DETAIL_DECK_ICONS.heat[h.level],
-        });
-      }
-    }
-    if (typeof date?.load === 'number') {
-      const l = dims.load.find(x => x.level === date.load);
-      if (l) {
-        badges.push({
-          label: l.label,
-          icon: DETAIL_DECK_ICONS.load[l.level],
-        });
-      }
-    }
-    if (date?.category) {
-      const category = DATE_CATEGORY_META_BY_ID[date.category];
-      if (category) {
-        badges.push({
-          label: category.label,
-          icon: category.icon,
-        });
-      }
-    }
-    if (date?._matchLabel) {
-      badges.unshift({
-        label: date._matchLabel,
-        icon: 'sparkles-outline',
-      });
-    }
-    return badges;
-  }, [date]);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
@@ -459,7 +423,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
         >
           <CloseScreenHeader
             title={date.title}
-            subtitle="DATE NIGHT"
+            subtitle="THE PLAN"
             titleColor={t.text}
             subtitleColor={t.primary}
             closeColor={t.text}
@@ -470,18 +434,6 @@ export default function DateNightDetailScreen({ route, navigation }) {
           />
 
           <ReAnimated.View entering={FadeInUp.duration(800)} style={styles.heroBody}>
-            
-            <View style={styles.metaBadgeRow}>
-              {dimensionBadges.map((b, i) => (
-                <View key={i} style={[styles.glassBadge, { backgroundColor: withAlpha(dateTone.base, 0.92), borderColor: withAlpha(dateTone.chrome, 0.22) }]}>
-                  {b.icon ? (
-                    <Icon name={b.icon} size={13} color={dateTone.highlight} />
-                  ) : null}
-                  <Text style={[styles.badgeText, { color: dateTone.highlight }]}>{b.label.toUpperCase()}</Text>
-                </View>
-              ))}
-            </View>
-
             <View style={styles.quickInfoRow}>
               <View style={[styles.infoPill, { backgroundColor: withAlpha(dateTone.base, 0.92), borderColor: withAlpha(dateTone.chrome, 0.22) }]}> 
                 <Icon name="time-outline" size={15} color={dateTone.highlight} />
@@ -493,7 +445,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
                   size={15} color={dateTone.highlight} 
                 />
                 <Text style={[styles.infoPillText, { color: dateTone.text }]}> 
-                  {date.location === "home" ? "At Home" : "Outdoors"}
+                  {date.location === "home" ? "At Home" : date.location === "out" ? "Out & About" : "Anywhere"}
                 </Text>
               </View>
             </View>
@@ -599,26 +551,26 @@ export default function DateNightDetailScreen({ route, navigation }) {
           </BlurView>
         </View>
           {/* Guided Date Details */}
-          {!!date?.vibe && (
+          {!!dateVibe && (
             <View style={styles.experienceSection}>
               <Text style={[styles.sectionTitle, { color: t.text }]}>Vibe</Text>
               <View style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}>
                 <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
                   <Icon name="sparkles-outline" size={18} color={t.primary} />
                 </View>
-                <Text style={[styles.stepText, { color: t.text }]}>{date.vibe}</Text>
+                <Text style={[styles.stepText, { color: t.text }]}>{dateVibe}</Text>
               </View>
             </View>
           )}
 
-          {!!date?.setup && (
+          {!!dateSetup && (
             <View style={styles.experienceSection}>
               <Text style={[styles.sectionTitle, { color: t.text }]}>Before You Start</Text>
               <View style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}>
                 <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
                   <Icon name="heart-outline" size={18} color={t.primary} />
                 </View>
-                <Text style={[styles.stepText, { color: t.text }]}>{date.setup}</Text>
+                <Text style={[styles.stepText, { color: t.text }]}>{dateSetup}</Text>
               </View>
             </View>
           )}
@@ -696,26 +648,26 @@ export default function DateNightDetailScreen({ route, navigation }) {
             </View>
           )}
 
-          {!!date?.connectionTwist && (
+          {!!dateConnectionTwist && (
             <View style={styles.experienceSection}>
               <Text style={[styles.sectionTitle, { color: t.text }]}>Make It Yours</Text>
               <View style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}>
                 <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
                   <Icon name="ribbon-outline" size={18} color={t.primary} />
                 </View>
-                <Text style={[styles.stepText, { color: t.text }]}>{date.connectionTwist}</Text>
+                <Text style={[styles.stepText, { color: t.text }]}>{dateConnectionTwist}</Text>
               </View>
             </View>
           )}
 
-          {!!date?.ending && (
+          {!!dateEnding && (
             <View style={styles.experienceSection}>
               <Text style={[styles.sectionTitle, { color: t.text }]}>How To End</Text>
               <View style={[styles.stepRow, { backgroundColor: t.surface, borderColor: t.border }]}>
                 <View style={[styles.stepIndicator, { backgroundColor: t.surfaceSecondary }]}>
                   <Icon name="moon-outline" size={18} color={t.primary} />
                 </View>
-                <Text style={[styles.stepText, { color: t.text }]}>{date.ending}</Text>
+                <Text style={[styles.stepText, { color: t.text }]}>{dateEnding}</Text>
               </View>
             </View>
           )}
@@ -763,23 +715,6 @@ const styles = StyleSheet.create({
   },
   backBtn: CLOSE_HEADER_STYLES.closeButton,
   editorialTitle: CLOSE_HEADER_STYLES.title,
-  metaBadgeRow: { 
-    flexDirection: "row", 
-    flexWrap: "wrap", 
-    gap: 8, 
-    marginTop: 20, 
-    justifyContent: "center" 
-  },
-  glassBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  badgeText: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginLeft: 6 },
-  
   quickInfoRow: { 
     flexDirection: 'row', 
     gap: 12, 

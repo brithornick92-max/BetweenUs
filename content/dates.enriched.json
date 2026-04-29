@@ -1162,7 +1162,7 @@
       "style": "mixed",
       "releaseWeek": 27,
       "vibe": "A serene and hopeful stroll, sharing quiet thoughts as the day softly ends.",
-      "setup": "As evening approaches, seek out a local bridge or scenic overlook that offers a good view of the sunset. This date is about finding beauty in the changing light and sharing a reflective moment together, looking towards the future.",
+      "setup": "As evening approaches, seek out a local bridge or scenic overlook that offers a good view of the sunset. This date is about finding beauty in the changing light and sharing a reflective moment together, looking toward the future.",
       "supplies": [
         "Comfortable walking shoes",
         "Light jackets or sweaters (if needed)",
@@ -1321,7 +1321,7 @@
       "minutes": 60,
       "location": "home",
       "steps": [
-        "Each pick three songs that remind you of partner",
+        "Each pick three songs that remind you of your partner",
         "Play them one at a time",
         "Explain why each song was chosen",
         "Slow dance to the final song"
@@ -1468,7 +1468,7 @@
       "guidedSteps": [
         "Arrive at the lake with enough time to rent paddleboards and get comfortable before sunset.",
         "Help each other launch the boards and get oriented on the water.",
-        "Paddle side-by-side or close together towards a quiet spot with a good view of the horizon.",
+        "Paddle side-by-side or close together toward a quiet spot with a good view of the horizon.",
         "Once settled, stop paddling and simply float, watching the sky change colors as the sun dips.",
         "Share quiet observations about the scenery, the feeling of the water, or the changing light.",
         "Take a moment to hold hands or gently touch while floating, appreciating the shared experience.",
@@ -1810,7 +1810,7 @@
         "Stand together, holding each other, as you watch your lanterns become distant stars, carrying your intentions."
       ],
       "conversationPrompts": [
-        "What's one dream you're holding onto that you're excited to work towards?",
+        "What's one dream you're holding onto that you're excited to work toward?",
         "What does our future together feel like when you imagine it clearly?",
         "If we could send a message to our future selves, what would it be?"
       ],
@@ -2100,7 +2100,7 @@
         "Was there anything you were nervous or excited about before we met?",
         "What's a small detail from that day that has stayed with you?"
       ],
-      "connectionTwist": "Before you leave, write down one word each that describes your feelings about your relationship then vs. now, and tuck them into a keepsake box.",
+      "connectionTwist": "Before you leave, write down one word each that describes your feelings about your relationship then and now, and tuck them into a keepsake box.",
       "ending": "Hold hands as you leave the location, acknowledging how far you've come together since that initial meeting and appreciating your shared journey.",
       "description": "Step back in time to your first date. Revisit the location, recreate small details, and compare your cherished memories to uncover new layers of your shared beginning."
     },
@@ -2572,7 +2572,7 @@
       "steps": [
         "Find retro arcade",
         "Play together",
-        "Win prizes for partner",
+        "Win prizes for your partner",
         "Celebrate with victory dinner"
       ],
       "heat": 2,
@@ -4187,7 +4187,7 @@
       "location": "out",
       "steps": [
         "Browse bookstore separately",
-        "Find poems that remind you of partner",
+        "Find poems that remind you of your partner",
         "Read discoveries aloud",
         "Buy one book to share"
       ],
@@ -4412,13 +4412,13 @@
         "After about 30 minutes, shift focus to a shared section on your boards or a separate smaller board for couple-specific dreams.",
         "Take turns presenting your individual boards, explaining the images and words you chose and why they resonate with you.",
         "Discuss the shared dreams and goals you both included, identifying common themes and exciting possibilities.",
-        "Choose one small, actionable step you can take together this week towards one of your shared vision board goals.",
+        "Choose one small, actionable step you can take together this week toward one of your shared vision board goals.",
         "Decide on a prominent place to display your boards as a daily reminder of your aspirations."
       ],
       "conversationPrompts": [
         "What image on your board feels most exciting to bring into reality, and why?",
         "Is there anything on my board that surprises you or makes you think differently about my aspirations?",
-        "Looking at our shared section, what's one small habit we could start this month to move towards that dream?"
+        "Looking at our shared section, what's one small habit we could start this month to move toward that dream?"
       ],
       "connectionTwist": "Place your hands on each other's finished vision boards, silently acknowledging the hopes and dreams you hold for yourselves and each other.",
       "ending": "Take a photo of your completed vision boards together, capturing this moment of shared vision.",
@@ -4491,7 +4491,7 @@
         "Start by reviewing your current financial picture: income, expenses, savings, and debts. Be open and honest without judgment.",
         "Discuss your individual financial values and priorities. What does financial security mean to each of you?",
         "Brainstorm 2-3 short-term (next 6-12 months) and 1-2 long-term (3-5 years) shared financial goals.",
-        "Work together to outline a realistic budget for the upcoming month, allocating funds towards your agreed-upon goals.",
+        "Work together to outline a realistic budget for the upcoming month, allocating funds toward your agreed-upon goals.",
         "Identify one small, immediate action each of you can take to support your new budget or a shared financial goal.",
         "End by acknowledging the effort and clarity you've gained, celebrating your teamwork."
       ],
@@ -4590,7 +4590,7 @@
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Each bring childhood photos to share",
+        "Each of you brings childhood photos to share",
         "Tell the story behind each photo",
         "Discuss what shaped you as a person",
         "Find parallels in your upbringings"
@@ -4828,7 +4828,7 @@
         "What lesson did that experience teach us about ourselves or our relationship?",
         "How can we better support each other if similar challenges arise in the future?"
       ],
-      "connectionTwist": "After each item is released, gently hold each other's hands, affirming your shared step towards healing.",
+      "connectionTwist": "After each item is released, gently hold each other's hands, affirming your shared step toward healing.",
       "ending": "With all papers gone, share a long, comforting hug. Take a moment to feel the lightness and renewed space in your connection.",
       "description": "Release past burdens and embrace renewed understanding through a structured ceremony designed to heal and strengthen your connection."
     },
@@ -4944,7 +4944,7 @@
         "Next, discuss any dreams you may have set aside or given up on. What happened? Is there still a flicker of desire there?",
         "Listen to each other's dreams with full attention and encouragement. Ask clarifying questions like, 'What does that dream feel like when you imagine it?'",
         "Together, identify one dream that you could potentially pursue or support as a couple, either individually or as a shared endeavor.",
-        "Brainstorm a very first, concrete step you could take towards that chosen dream. Make it small and achievable.",
+        "Brainstorm a very first, concrete step you could take toward that chosen dream. Make it small and achievable.",
         "Discuss how you can support each other in pursuing these dreams, both individually and as a pair.",
         "Write down the chosen dream and its first step, and place it somewhere you'll both see it."
       ],
@@ -4953,9 +4953,9 @@
         "What's a skill you'd love to develop that could help you reach a dream?",
         "How does seeing me pursue my dreams make you feel?"
       ],
-      "connectionTwist": "Hold hands and close your eyes for a moment, silently visualizing yourselves taking that first step towards a shared dream.",
+      "connectionTwist": "Hold hands and close your eyes for a moment, silently visualizing yourselves taking that first step toward a shared dream.",
       "ending": "Reaffirm your commitment to supporting each other's aspirations. Give each other a high-five or a celebratory hug for daring to dream together.",
-      "description": "Share your wildest aspirations and forgotten dreams, then collaboratively plan a first step towards making one a reality."
+      "description": "Share your wildest aspirations and forgotten dreams, then collaboratively plan a first step toward making one a reality."
     },
     {
       "id": "d282",
@@ -5455,7 +5455,7 @@
       "location": "home",
       "steps": [
         "Each list five strengths of your relationship",
-        "Share what you admire most about partner",
+        "Share what you admire most about your partner",
         "Identify one area to grow together",
         "Celebrate your foundation"
       ],
@@ -5605,7 +5605,7 @@
       "conversationPrompts": [
         "What's the most effective apology you've ever received, and what made it so?",
         "What's one thing you find difficult about apologizing?",
-        "How does receiving a sincere apology impact your feelings towards a situation or person?"
+        "How does receiving a sincere apology impact your feelings toward a situation or person?"
       ],
       "connectionTwist": "Create a small 'Apology Cheat Sheet' with each other's top 1-2 apology languages and keep it somewhere discreet for quick reference.",
       "ending": "Gently touch hands or offer a brief hug, acknowledging the effort and intention you're both putting into caring for your relationship.",
@@ -6215,7 +6215,7 @@
         "Begin by each sharing 2-3 specific 'wins' or moments you cherished in your relationship over the past year, focusing on what felt good.",
         "Next, each acknowledge 1-2 'growth areas' or specific challenges you faced, discussing what you learned from them or how you navigated them.",
         "As a couple, discuss and identify one shared intention or specific goal you want to focus on for the upcoming year.",
-        "Brainstorm 2-3 specific, actionable steps you can take together to move towards that intention, considering small, practical actions.",
+        "Brainstorm 2-3 specific, actionable steps you can take together to move toward that intention, considering small, practical actions.",
         "Write down your shared intention and the actionable steps in your notebooks, making it a tangible commitment you can revisit.",
         "Pour your drinks and prepare for a toast to your shared future and the commitment you've renewed."
       ],
@@ -6348,7 +6348,7 @@
       "conversationPrompts": [
         "What's a belief you hold now that you didn't have five years ago, and why did it change?",
         "If you could dedicate a year to learning one new skill or subject purely for personal growth, what would it be?",
-        "What does a truly 'well-lived' life look like to you, and what small step could you take towards it this week?"
+        "What does a truly 'well-lived' life look like to you, and what small step could you take toward it this week?"
       ],
       "connectionTwist": "Before exiting the tub, gently wash each other's hands, symbolizing shared support and clarity.",
       "ending": "Wrap yourselves in warm towels and spend a few quiet moments sitting together, letting the thoughts settle.",
@@ -6631,7 +6631,7 @@
       ],
       "guidedSteps": [
         "Before falling asleep, set an intention to dedicate the first moments of your morning to this gentle connection.",
-        "When you both wake, resist the urge to immediately get up. Instead, turn towards each other or find a comfortable spooning position.",
+        "When you both wake, resist the urge to immediately get up. Instead, turn toward each other or find a comfortable spooning position.",
         "Settle in, letting your bodies relax into the shared warmth and closeness.",
         "Take turns softly whispering a favorite shared memory, focusing on the feelings and small details of that moment.",
         "While whispering, gently trace patterns or caress a part of your partner's skin – a back, an arm, a neck – letting the touch be slow and tender.",
@@ -6819,7 +6819,7 @@
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Ask questions about partner's current inner world",
+        "Ask questions about your partner's current inner world",
         "Learn their biggest worry right now",
         "Discover a new dream or desire",
         "Update your understanding of each other"
@@ -7377,7 +7377,7 @@
         "Is there a quiet dream or aspiration you've been nurturing that you'd like to voice?"
       ],
       "connectionTwist": "After each share, gently reach out and find your partner's hand, intertwining your fingers in the dark.",
-      "ending": "As you both feel complete, turn onto your backs and hold hands, letting the peace of your shared intimacy settle over you as you drift towards sleep or simply rest.",
+      "ending": "As you both feel complete, turn onto your backs and hold hands, letting the peace of your shared intimacy settle over you as you drift toward sleep or simply rest.",
       "description": "Discover new depths of understanding by softly sharing your unsaid thoughts and feelings in the intimate embrace of darkness."
     },
     {
@@ -7386,7 +7386,7 @@
       "minutes": 60,
       "location": "home",
       "steps": [
-        "Take turns naming five things you love about partner's body",
+        "Take turns naming five things you love about your partner's body",
         "Touch each part gently as you name it",
         "Celebrate bodies without judgment",
         "End with full-body hug"
@@ -7679,7 +7679,7 @@
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Take turns engaging each of partner's five senses",
+        "Take turns engaging each of your partner's five senses",
         "Offer something to taste, smell, touch, see, and hear",
         "Choose items with personal meaning",
         "Discuss which sense felt most connected"
@@ -8008,7 +8008,7 @@
       "minutes": 45,
       "location": "home",
       "steps": [
-        "Before sleep whisper three gratitudes about partner",
+        "Before sleep, whisper three gratitudes about your partner",
         "Partner responds with three of their own",
         "Kiss between each gratitude",
         "Fall asleep in gentle appreciation"
@@ -8740,7 +8740,7 @@
         "Take turns sharing one desire at a time, allowing the listener to absorb it without immediate comment.",
         "After each desire is shared, acknowledge it. Then, discuss any boundaries or conditions that would make that desire feel safe and exciting to explore.",
         "Collaboratively identify one desire you both feel curious about exploring further in the near future.",
-        "Discuss what small, concrete steps you could take to move towards this shared desire while respecting all boundaries.",
+        "Discuss what small, concrete steps you could take to move toward this shared desire while respecting all boundaries.",
         "Write down a simple, agreed-upon 'exploration intention' for the coming weeks."
       ],
       "conversationPrompts": [
@@ -9359,7 +9359,7 @@
       ],
       "guidedSteps": [
         "Set up your chosen space with soft, flattering light and a simple backdrop. Play some music to help you both relax.",
-        "Each of you select an outfit or lingerie that makes you feel confident and alluring.",
+        "Each of you selects an outfit or lingerie that makes you feel confident and alluring.",
         "Take turns posing for each other, offering gentle direction and encouragement. Focus on capturing expressions and poses that highlight your partner's beauty.",
         "Experiment with different angles, close-ups, and full-body shots.",
         "Switch roles, allowing each partner to experience being both the subject and the photographer.",
@@ -9629,7 +9629,7 @@
       "location": "home",
       "steps": [
         "Create a wheel with different sensations written on it",
-        "Spin and apply the sensation to partner",
+        "Spin and apply the sensation to your partner",
         "Include feathers, silk, ice, warmth, and breath",
         "Let anticipation build between spins"
       ],
@@ -9733,7 +9733,7 @@
         "Decide who will be the 'giver' and who will be the 'receiver' first. The giver's role is to bring their partner close to orgasm, then gently pause, allowing the intensity to recede slightly.",
         "The giver uses a variety of sensual touches—kissing, caressing, or manual stimulation—to slowly build the receiver's arousal. Pay close attention to your partner's body language and sounds.",
         "When the receiver is nearing their peak, the giver intentionally pauses, withdrawing touch for a short period. This allows the sensation to hover and then gently subside, creating anticipation.",
-        "After a brief pause, the giver resumes stimulation, bringing their partner back up towards their peak again. Repeat this 'build and pause' cycle 2-4 times, or as desired by the receiver.",
+        "After a brief pause, the giver resumes stimulation, bringing their partner back up toward their peak again. Repeat this 'build and pause' cycle 2-4 times, or as desired by the receiver.",
         "Throughout the process, the receiver should communicate their sensations and needs, using words or soft sounds. The giver should respond attentively to these cues, adjusting their pace and touch.",
         "Conclude the experience with shared pleasure, allowing the receiver to reach orgasm if desired, or transitioning into a different form of intimacy."
       ],
@@ -10380,7 +10380,7 @@
       "minutes": 75,
       "location": "out",
       "steps": [
-        "Create clues for partner",
+        "Create clues for your partner",
         "Hide messages around town",
         "Follow each other's trails",
         "Meet at final romantic location"
@@ -10863,7 +10863,7 @@
       ],
       "guidedSteps": [
         "Arrive at the farmers market with an open mind, taking time to browse the stalls and observe what's in season.",
-        "Each of you select one 'mystery ingredient' – something intriguing you haven't cooked with before, or a unique produce item.",
+        "Each of you selects one 'mystery ingredient' – something intriguing you haven't cooked with before, or a unique produce item.",
         "Together, choose 2-3 complementary ingredients (e.g., a protein, an herb, a staple vegetable) to build a simple meal around your mystery items.",
         "Head home and collaboratively brainstorm a dish or two using your selections, letting creativity guide your cooking process.",
         "Work side-by-side in the kitchen, assigning tasks, tasting as you go, and enjoying the process of creating something new together.",
@@ -10937,7 +10937,7 @@
       "style": "mixed",
       "releaseWeek": 16,
       "vibe": "A motivating and supportive journey of physical challenge, mutual encouragement, and shared achievement.",
-      "setup": "Embark on a rewarding fitness adventure by preparing for a mini-triathlon side-by-side. This experience is designed to build physical stamina, strengthen your bond through shared effort, and celebrate your collective progress towards a significant goal. It's an opportunity to motivate each other and achieve something meaningful as a team.",
+      "setup": "Embark on a rewarding fitness adventure by preparing for a mini-triathlon side-by-side. This experience is designed to build physical stamina, strengthen your bond through shared effort, and celebrate your collective progress toward a significant goal. It's an opportunity to motivate each other and achieve something meaningful as a team.",
       "supplies": [
         "Comfortable athletic apparel for all three disciplines",
         "Well-fitting running shoes",
@@ -11799,7 +11799,7 @@
       "conversationPrompts": [
         "What new cooking technique did you learn today that you want to try at home?",
         "If we were to host a dinner party based on this cuisine, what would be your signature dish?",
-        "What role in the kitchen do you naturally gravitate towards, and why?"
+        "What role in the kitchen do you naturally gravitate toward, and why?"
       ],
       "connectionTwist": "Before eating, take a moment to admire your shared creation and toast to your teamwork.",
       "ending": "Discuss how you might incorporate elements of the class into your home cooking, perhaps planning a future meal together using a new skill.",
@@ -12673,7 +12673,7 @@
         "If owners are present and approachable, engage them in conversation about their car's story or restoration process.",
         "Find a vintage car that sparks a shared fantasy and imagine what kind of road trip you'd take in it, discussing potential destinations.",
         "Take a fun photo together with your favorite car as a backdrop, capturing the moment.",
-        "Before leaving, each pick your 'dream car' from the show and share why it captured your imagination."
+        "Before leaving, each of you picks your 'dream car' from the show and share why it captured your imagination."
       ],
       "conversationPrompts": [
         "If we could take any car here on a spontaneous road trip, where would our first stop be and why?",
@@ -12763,7 +12763,7 @@
         "Beyond this garden, where do you find your moments of quiet reflection in daily life?",
         "How does being in a natural, peaceful space like this influence your thoughts or feelings?"
       ],
-      "connectionTwist": "As you leave, each pick a small, fallen leaf or pebble from the garden to keep as a quiet reminder of your shared calm.",
+      "connectionTwist": "As you leave, each of you picks a small, fallen leaf or pebble from the garden to keep as a quiet reminder of your shared calm.",
       "ending": "Hold hands for a moment as you exit the garden, carrying the feeling of quiet connection into the rest of your day.",
       "description": "Discover peaceful moments together in a serene garden, practicing mindfulness and sharing quiet reflections amidst nature's embrace."
     },
@@ -12881,7 +12881,7 @@
         "Discuss how the surrounding nature—trees, sky, light—influences your perception of the art, or how the art changes your view of the natural space.",
         "Choose one sculpture that uniquely captures your attention; take a few photos, focusing on different angles or details that you find compelling.",
         "Find a bench or a quiet spot near a piece you both enjoy and linger there, allowing its presence to settle as you chat about its impact.",
-        "As you conclude your visit, each pick one sculpture that left the most lasting impression and share why it resonated with you personally."
+        "As you conclude your visit, each of you picks one sculpture that left the most lasting impression and share why it resonated with you personally."
       ],
       "conversationPrompts": [
         "If you could ask the artist one question about this piece, what would it be?",
@@ -15242,7 +15242,7 @@
         "Choose a prominent, visible place in your home where you can display your shared vision board."
       ],
       "conversationPrompts": [
-        "What's one small, actionable step we can take this week towards a goal on our shared board?",
+        "What's one small, actionable step we can take this week toward a goal on our shared board?",
         "What's an unexpected dream or aspiration you discovered about yourself while making your board?",
         "How does seeing our dreams visually laid out make you feel about our future together?"
       ],
@@ -15790,7 +15790,7 @@
       ],
       "conversationPrompts": [
         "What's one small thing we can do consistently to help our relationship thrive?",
-        "What's a future dream we share that feels exciting to work towards?",
+        "What's a future dream we share that feels exciting to work toward?",
         "If our relationship were a plant, what kind would it be and why?"
       ],
       "connectionTwist": "Write down your shared relationship intention on a small, biodegradable paper and bury it gently with one of the plants.",
@@ -16086,7 +16086,7 @@
         "How did it feel to share that uninterrupted quiet space with me, and what came to mind for you?",
         "If this sunset could speak to you, what message do you think it would convey right now?"
       ],
-      "connectionTwist": "Before you leave, each find a small, natural object (a uniquely shaped leaf, a smooth pebble) to keep as a tangible reminder of your shared silent reflection.",
+      "connectionTwist": "Before you leave, each of you finds a small, natural object (a uniquely shaped leaf, a smooth pebble) to keep as a tangible reminder of your shared silent reflection.",
       "ending": "As you gather your things, share one word that encapsulates your feeling from this experience. Walk home hand-in-hand, carrying the peaceful quiet of the evening with you.",
       "description": "Experience a profound quietude together, observing the world's gentle transition from day to night, then sharing your inner landscapes."
     },
@@ -16288,7 +16288,7 @@
       "conversationPrompts": [
         "What's a lesson you learned the hard way that you'd shield your younger self from?",
         "What quality or characteristic of your past self do you miss or wish you still had?",
-        "What's one small step we can take this week that moves us towards one of our 10-year dreams?"
+        "What's one small step we can take this week that moves us toward one of our 10-year dreams?"
       ],
       "connectionTwist": "Gently massage each other's shoulders or feet while in the water, a silent gesture of comfort and presence as you explore your life stories.",
       "ending": "As you prepare to exit the water, make eye contact and share one word that encapsulates how you feel about your shared future.",
@@ -16529,7 +16529,7 @@
       "guidedSteps": [
         "Choose and book an escape room that sounds intriguing to both of you, making sure it's a good fit for two or a small group.",
         "Arrive a few minutes early, feeling a shared sense of anticipation for the challenge ahead.",
-        "Before you enter, quickly discuss what roles you each naturally gravitate towards in problem-solving and how you can best complement each other.",
+        "Before you enter, quickly discuss what roles you each naturally gravitate toward in problem-solving and how you can best complement each other.",
         "Inside, work through the puzzles by communicating ideas clearly, listening actively, and celebrating each small discovery as a team.",
         "Once out, regardless of the outcome, acknowledge each other's efforts and teamwork with a high-five or a quick hug.",
         "Transition to your pre-booked dinner spot, choosing a place where you can comfortably recap your adventure.",
@@ -18453,7 +18453,7 @@
         "A phone with a stargazing app (optional, for identifying constellations)"
       ],
       "guidedSteps": [
-        "Head towards your chosen scenic spot, aiming to arrive about 30-45 minutes before the official sunset time.",
+        "Head toward your chosen scenic spot, aiming to arrive about 30-45 minutes before the official sunset time.",
         "Playfully challenge each other to a 'sprint' or quick-paced walk for the last stretch to the overlook.",
         "Arrive at your spot, catch your breath, and settle in to watch the colors of the sunset unfold across the horizon.",
         "As the last light fades, lay out your blanket and prepare for the first stars to emerge.",
@@ -19135,7 +19135,7 @@
         "Beyond the specific actions, what underlying emotional or physical experience are you seeking to create or deepen with these desires?"
       ],
       "connectionTwist": "Write the \"today\" desire on a small card and exchange it, then read it aloud with a playful wink before you begin to explore it.",
-      "ending": "Conclude by immediately taking a small, intentional step towards exploring the desire you chose for today, even if it's just a whispered promise.",
+      "ending": "Conclude by immediately taking a small, intentional step toward exploring the desire you chose for today, even if it's just a whispered promise.",
       "description": "Uncover and discuss your deepest desires with a playful 'menu' activity, building excitement and intimate understanding together."
     },
     {
@@ -19468,7 +19468,7 @@
         "Share the symbols you found and discuss which 'reading' resonates most with your question or feels like a delightful invitation for your shared future."
       ],
       "conversationPrompts": [
-        "What's one small step you could take towards the 'invitation' your tea leaves offered?",
+        "What's one small step you could take toward the 'invitation' your tea leaves offered?",
         "If our tea leaves could tell us anything about our shared life, what do you hope they'd reveal?",
         "What's a feeling you want to cultivate more of in the upcoming season?"
       ],
@@ -19618,7 +19618,7 @@
       "style": "doing",
       "releaseWeek": 45,
       "vibe": "A delicious and playful evening to explore new flavors and savor good food together.",
-      "setup": "Gather a few favorite cheeses, some crackers, fruit, and each bring a 'surprise' item to the table. This date is about savoring tastes, discovering unexpected combinations, and celebrating the joy of a shared, relaxed meal.",
+      "setup": "Gather a few favorite cheeses, some crackers, fruit, and each of you brings a 'surprise' item to the table. This date is about savoring tastes, discovering unexpected combinations, and celebrating the joy of a shared, relaxed meal.",
       "supplies": [
         "2-3 types of cheese",
         "Crackers or bread",
@@ -20132,10 +20132,10 @@
       "guidedSteps": [
         "Arrive at the estate sale or market with an open mind and no pressure to purchase anything.",
         "Walk through together, allowing yourselves to be drawn to objects that catch your eye.",
-        "Each independently choose three objects that feel like they hold a piece of someone else's story.",
+        "Each of you independently chooses three objects that feel like they hold a piece of someone else's story.",
         "Find a quiet corner or step outside to take turns presenting your chosen items and weaving a narrative around them.",
         "As you listen to each other's stories, consider what kind of life the previous owners might have led.",
-        "Finally, from all the objects you've seen, each pick one that, in a strange way, feels like a relic from your own shared future.",
+        "Finally, from all the objects you've seen, each of you picks one that, in a strange way, feels like a relic from your own shared future.",
         "Share why that particular item resonates with what you envision for yourselves."
       ],
       "conversationPrompts": [
@@ -21121,7 +21121,7 @@
         "Shift to identifying one small, nourishing activity for your body today (e.g., a warm bath, gentle stretching, cuddling).",
         "Next, choose one simple, restorative activity for your mind (e.g., reading a few pages, listening to quiet music, a short meditation).",
         "Engage in these chosen activities together or side-by-side, allowing yourselves to truly relax without expectation.",
-        "Towards the end, discuss one tiny, achievable step each of you can take in the next 48 hours to continue your recovery.",
+        "Toward the end, discuss one tiny, achievable step each of you can take in the next 48 hours to continue your recovery.",
         "Conclude with a quiet, shared moment of physical comfort, like holding hands or a gentle embrace."
       ],
       "conversationPrompts": [
@@ -21282,8 +21282,8 @@
       "guidedSteps": [
         "Research local magic shows and pick one that offers an intimate or engaging experience, rather than a large-scale spectacle.",
         "Arrive with enough time to settle in, perhaps grab a drink, and briefly discuss what kind of magic trick you hope to see.",
-        "During the show, make a conscious effort to simply enjoy the artistry and showmanship, rather not immediately trying to figure out every secret.",
-        "Each person silently chooses one particular trick or illusion that they find most captivating and decide to focus their 'puzzlement' on just that one.",
+        "During the show, make a conscious effort to simply enjoy the artistry and showmanship, rather than immediately trying to figure out every secret.",
+        "Each person silently chooses one particular trick or illusion that they find most captivating and decides to focus their 'puzzlement' on just that one.",
         "After the show, find a cozy spot nearby to debrief. Share your initial reactions and talk about your chosen 'obsessed over' trick.",
         "Discuss what made that particular trick so impressive or baffling to you, without getting bogged down in trying to solve it.",
         "Conclude by each naming one impossible thing that, after witnessing magic, you would playfully love to believe could actually happen in your life together."
@@ -21405,7 +21405,7 @@
       ],
       "guidedSteps": [
         "Decide whether you'll attend a local plant swap or create one at home using cuttings from existing plants or small starter plants.",
-        "If attending a swap, browse together and each pick a plant that resonates with something you want to cultivate in your shared life or home. If at home, select plants or cuttings you'll nurture.",
+        "If attending a swap, browse together and each of you picks a plant that resonates with something you want to cultivate in your shared life or home. If at home, select plants or cuttings you'll nurture.",
         "Find a comfortable spot to repot your new plants or prepare your cuttings. Take your time with the soil and roots.",
         "As you work, talk about what you are trying to grow this season, both individually and as a couple. This could be a new habit, a skill, or a quality in your relationship.",
         "Together, choose a unique name for each of your new plants, something that reflects its personality or your shared experience.",
@@ -21901,7 +21901,7 @@
         "Find a local zine fair, indie print market, or small press event to attend together.",
         "Set a small budget for yourselves, perhaps enough for each to buy a zine or two.",
         "Wander through the tables, taking your time to browse the diverse range of zines and talk to the creators.",
-        "Each independently choose one zine that, for whatever reason, feels like 'your private brain on paper.'",
+        "Each of you independently chooses one zine that, for whatever reason, feels like 'your private brain on paper.'",
         "Meet up and trade your chosen zines, explaining what aesthetic, topic, humor, or 'weirdness' drew you to your selection.",
         "Discuss the possibility of creating your own zine together someday, brainstorming potential themes or styles."
       ],
@@ -22237,7 +22237,7 @@
       "conversationPrompts": [
         "What's one small, non-obvious thing I do that makes you feel genuinely pursued?",
         "Describe a 'mood' or 'atmosphere' that makes you feel most receptive to intimacy.",
-        "When you're feeling distracted, what's one gentle way I could help you shift focus towards us?"
+        "When you're feeling distracted, what's one gentle way I could help you shift focus toward us?"
       ],
       "connectionTwist": "Gently trace a finger along your partner's forearm or hand as they share their preferences.",
       "ending": "Share a quiet, knowing look, recognizing the deeper understanding you've built.",
@@ -22731,7 +22731,7 @@
         "When you reach a beautiful spot, park and step out for a short walk, letting the fresh air and scenery enhance your conversation.",
         "While walking, share a specific future 'scene' you envision for yourselves—it could be a feeling, an activity, or a small life detail.",
         "Consider taking a moment to simply observe the scenery together in silence, allowing thoughts to form naturally.",
-        "Before heading home, discuss one concrete, small step you could take this week or month to move towards that shared future scene."
+        "Before heading home, discuss one concrete, small step you could take this week or month to move toward that shared future scene."
       ],
       "conversationPrompts": [
         "What's one small change you'd like to see in our everyday life a year from now?",
@@ -23096,7 +23096,7 @@
       "guidedSteps": [
         "Begin by each suggesting 2-3 songs that evoke a calm, gentle, or romantic mood. Add them to a new, shared playlist.",
         "Listen to the first few songs together. For each one, articulate what specific mood, sensation, or feeling it creates for you, and for your connection.",
-        "Next, introduce songs that gradually build in intensity, moving towards more sensual, playful, or charged feelings. Don't be afraid to explore different genres or tempos.",
+        "Next, introduce songs that gradually build in intensity, moving toward more sensual, playful, or charged feelings. Don't be afraid to explore different genres or tempos.",
         "As you add songs, continuously reorder them, listening to the transitions. Discuss if the flow feels natural, if it effectively builds tension, or if it feels too abrupt.",
         "Aim for a playlist length of 7-10 songs. Once you have a selection, listen to the entire sequence from start to finish, making small adjustments to the order as needed.",
         "Give your completed playlist a private, evocative name that only the two of you truly understand. Save it for a future intimate night."
@@ -23182,7 +23182,7 @@
         "After each clip, rate it on a scale (e.g., 1-5 stars, or 'must-see' to 'skip it'). Justify your rating with absurd logic and playful arguments.",
         "Invent a silly award for some of the clips, such as 'Most Confusing Plot Twist,' 'Best Dramatic Pause,' or 'Award for Unnecessary Slow Motion.'",
         "Take turns selecting the next clip. Challenge each other to find the most surprising or ridiculous content to critique.",
-        "Towards the end of the date, browse trailers for full movies or shows. Based on your shared critical eye, pick one you both agree to watch together for a future movie night."
+        "Toward the end of the date, browse trailers for full movies or shows. Based on your shared critical eye, pick one you both agree to watch together for a future movie night."
       ],
       "conversationPrompts": [
         "What's the most overrated trope you saw today?",
@@ -23512,7 +23512,7 @@
       ],
       "conversationPrompts": [
         "What feeling or experience does this particular dream evoke for you?",
-        "If there were no obstacles, what's one small step you would take towards this dream this week?",
+        "If there were no obstacles, what's one small step you would take toward this dream this week?",
         "Beyond the words, what's the deeper meaning behind one of your truths you shared today?"
       ],
       "connectionTwist": "Write down the dream you chose to support for your partner on a small slip of paper, and place it somewhere they'll find it unexpectedly as a tender reminder.",
@@ -24123,7 +24123,7 @@
         "Set the tone: As you enter, agree that today is about sharing your immediate, unfiltered reactions, no matter how 'uninformed' or bold.",
         "Offer your hot takes: As you move from piece to piece, take turns sharing your funniest, most unexpected, or most controversial opinions about what you see. Don't overthink it.",
         "Prompt each other: For several pieces, specifically ask your partner, 'What does this remind you of?' It could be a memory, a person, a feeling, or something entirely random.",
-        "Find your relationship piece: Towards the end of your visit, walk through a section again and each pick one exhibit, artwork, or display that you feel best represents your relationship right now. Explain your choice.",
+        "Find your relationship piece: Toward the end of your visit, walk through a section again and each of you picks one exhibit, artwork, or display that you feel best represents your relationship right now. Explain your choice.",
         "Discuss the discoveries: Before leaving, find a quiet bench or cafe and discuss what surprised you most about your partner's reactions or interpretations."
       ],
       "conversationPrompts": [
@@ -24165,7 +24165,7 @@
         "Begin your commentary: As you start your quest, the 'host' begins narrating your surroundings, pointing out interesting details and setting the scene as if for a TV show.",
         "Conduct playful interviews: The 'host' asks the 'guest expert' playful, on-the-spot interview questions about their observations, feelings, or predictions for the quest.",
         "Switch roles and continue: Periodically, switch roles. The new 'host' picks up the narration, and the 'guest expert' answers questions. Keep the commentary flowing and lighthearted.",
-        "Formulate your review: Find a comfortable spot towards the end of your quest. Together, craft your 'official review' of the experience, highlighting your favorite moments and any unexpected discoveries."
+        "Formulate your review: Find a comfortable spot toward the end of your quest. Together, craft your 'official review' of the experience, highlighting your favorite moments and any unexpected discoveries."
       ],
       "conversationPrompts": [
         "As a seasoned traveler, what's your professional opinion on the local wildlife/architecture/produce?",
@@ -24451,7 +24451,7 @@
       ],
       "guidedSteps": [
         "Enjoy your chosen event or busy area. Throughout the evening, discreetly observe your partner—their expressions, how they engage, what makes them confident.",
-        "Pay close attention to specific moments when you feel a strong pull towards them—a laugh, a gesture, a particular interaction. Make a mental note, or jot it down subtly.",
+        "Pay close attention to specific moments when you feel a strong pull toward them—a laugh, a gesture, a particular interaction. Make a mental note, or jot it down subtly.",
         "After the main activity, transition to a quieter, more intimate setting for your debrief—a cozy dessert spot, a dimly lit bar, or a late-night cafe.",
         "Begin by sharing general impressions of the evening. Then, gently guide the conversation to what you found most attractive or magnetic about your partner today.",
         "Take turns describing the exact moment or specific quality that drew you in most powerfully during the outing. Be precise about what you saw, heard, or felt.",
@@ -24821,7 +24821,7 @@
         "Agree on one small, specific step from your blueprint that you will intentionally try to implement together within the next week to build anticipation."
       ],
       "conversationPrompts": [
-        "What's a subtle sign or action from me that immediately shifts your mind towards intimacy?",
+        "What's a subtle sign or action from me that immediately shifts your mind toward intimacy?",
         "If you could choreograph the perfect 'transition' from a busy day to a sensual evening, what would it involve?",
         "What specific sensory details (smell, sound, touch) amplify your sense of anticipation?"
       ],
@@ -25790,12 +25790,12 @@
         "Arrive at your chosen spot – a scenic overlook, a cozy cafe, or a quiet park bench.",
         "Pour your celebratory drinks.",
         "Each of you shares one thing you're particularly proud of regarding this milestone or your journey to it.",
-        "Raise your glasses and offer a toast to this achievement, then each articulate one small, specific milestone you'd like to work towards together next."
+        "Raise your glasses and offer a toast to this achievement, then each of you names one small, specific milestone you'd like to work toward together next."
       ],
       "conversationPrompts": [
         "What was one unexpected joy or difficulty we encountered while reaching this milestone?",
         "How did we demonstrate resilience or adaptability during this time?",
-        "What small, consistent action can we take this week to move towards our next shared goal?"
+        "What small, consistent action can we take this week to move toward our next shared goal?"
       ],
       "connectionTwist": "Take a photo of your toast, capturing the moment of shared celebration.",
       "ending": "As you finish your drinks, share one specific compliment about your partner's contribution to your shared successes.",
@@ -26114,7 +26114,7 @@
       "guidedSteps": [
         "Prepare your space: Ensure it's tranquil and private. Sit facing each other, close enough for connection but with comfortable personal space.",
         "Define \"slow yes\": Begin by discussing what makes a \"yes\" feel genuinely relaxed and unpressured for you, rather than rushed or expected.",
-        "Share your pace: Each describe the ideal pace or sequence of events that helps you feel fully present and desiring when moving towards intimacy.",
+        "Share your pace: Each describe the ideal pace or sequence of events that helps you feel fully present and desiring when moving toward intimacy.",
         "Identify \"warming up\" signs: Name one specific, subtle sign that indicates you are feeling more receptive and engaged.",
         "Identify \"need more time\" signs: Name one specific, subtle sign that indicates you might need a pause or more time, even if still interested.",
         "Practice active listening: Listen carefully to your partner's cues without judgment. Reflect back what you've heard to ensure clear understanding.",
@@ -26250,7 +26250,7 @@
         "What's an unexpected sensory detail here that sparks your curiosity or desire for our future intimate night?"
       ],
       "connectionTwist": "As you work, occasionally share a quick, affirming glance or a gentle brush of hands, reinforcing your shared creative process and anticipation for the experience you're building.",
-      "ending": "Prop your mood board somewhere you'll both see it occasionally, as a visual promise and gentle reminder of the intimate night you're building towards, and when you'll implement your chosen detail.",
+      "ending": "Prop your mood board somewhere you'll both see it occasionally, as a visual promise and gentle reminder of the intimate night you're building toward, and when you'll implement your chosen detail.",
       "description": "Collaboratively build a sensory mood board to envision and plan your ideal private night, sparking anticipation and shared desires."
     },
     {
@@ -27597,7 +27597,7 @@
         "Before heading home, choose one idea or feeling that emerged and discuss how you might bring it more into your daily interactions."
       ],
       "conversationPrompts": [
-        "What was an early moment when you felt a strong, undeniable pull towards me?",
+        "What was an early moment when you felt a strong, undeniable pull toward me?",
         "When do you feel most pursued by me now, and what does that pursuit look like?",
         "What small, unexpected gesture from me makes you feel most desired or seen?"
       ],

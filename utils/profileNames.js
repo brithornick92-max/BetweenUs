@@ -28,3 +28,21 @@ export function getPartnerDisplayName(primaryProfile, fallbackProfile, defaultNa
 
   return partnerName;
 }
+
+function possessiveName(name) {
+  return name.endsWith('s') ? `${name}'` : `${name}'s`;
+}
+
+export function personalizePartnerText(text, partnerName) {
+  if (typeof text !== 'string') return text;
+
+  const name = normalizeName(partnerName);
+  if (!name || /^your partner$/i.test(name)) return text;
+
+  return text
+    .replace(/\byour partner’s\b/gi, possessiveName(name))
+    .replace(/\byour partner's\b/gi, possessiveName(name))
+    .replace(/\byour partner\b/gi, name)
+    .replace(/\{partner\}/gi, name)
+    .replace(/\{partnerName\}/gi, name);
+}
