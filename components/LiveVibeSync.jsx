@@ -17,12 +17,13 @@ import { useTheme } from '../context/ThemeContext';
 import { useTogetherPresence } from '../hooks/useTogetherPresence';
 import { useAppContext } from '../context/AppContext';
 import { SPACING, withAlpha } from '../utils/theme';
+import { normalizeVibeSignal } from '../utils/vibeSignals';
 
 const INCOMING_LABEL_DURATION = 3000;
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
-export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewportStabilize }) {
+export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, style, onViewportStabilize }) {
   const { colors, isDark } = useTheme();
   const { isTogetherNow } = useTogetherPresence();
   const { state: appState } = useAppContext();
@@ -32,7 +33,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
 
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState(null);
-  const [incomingLabel, setIncomingLabel] = useState(null);
+  const [incomingVibe, setIncomingVibe] = useState(null);
   const [partnerOnScreen, setPartnerOnScreen] = useState(false);
   const incomingLabelTimerRef = useRef(null);
   const unsubSignalsRef = useRef(null);
@@ -60,7 +61,18 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
 
   // Stable ref for the incoming animation so broadcast + postgres_changes can both call it
   const triggerIncomingRef = useRef(null);
-  triggerIncomingRef.current = () => {
+  const activeVibe = useMemo(() => normalizeVibeSignal(selectedVibe), [selectedVibe]);
+  const incomingTheme = incomingVibe || activeVibe;
+
+  triggerIncomingRef.current = (signal = null) => {
+    const receivedVibe = normalizeVibeSignal({
+      id: signal?.vibe_id || signal?.id,
+      name: signal?.vibe_name || signal?.name,
+      icon: signal?.vibe_icon || signal?.icon,
+      color: signal?.vibe_color || signal?.color,
+      emoji: signal?.vibe_emoji || signal?.emoji,
+    });
+
     // Haptic double-tap — mirrors what the sender feels
     impact(ImpactFeedbackStyle.Heavy);
     if (incomingHapticTimerRef.current) clearTimeout(incomingHapticTimerRef.current);
@@ -90,9 +102,9 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
     );
 
     // Show label briefly
-    setIncomingLabel(partnerLabel);
+    setIncomingVibe(receivedVibe);
     if (incomingLabelTimerRef.current) clearTimeout(incomingLabelTimerRef.current);
-    incomingLabelTimerRef.current = setTimeout(() => setIncomingLabel(null), INCOMING_LABEL_DURATION);
+    incomingLabelTimerRef.current = setTimeout(() => setIncomingVibe(null), INCOMING_LABEL_DURATION);
   };
 
   // ── Broadcast channel: instant heartbeat relay when both partners are on screen ──
@@ -109,9 +121,9 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
     };
 
     channel
-      .on('broadcast', { event: 'heartbeat' }, () => {
+      .on('broadcast', { event: 'heartbeat' }, ({ payload }) => {
         recentBroadcastRef.current = Date.now();
-        triggerIncomingRef.current?.();
+        triggerIncomingRef.current?.(payload?.vibe);
       })
       .on('presence', { event: 'sync' }, checkPartner)
       .on('presence', { event: 'join' }, checkPartner)
@@ -163,7 +175,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
       if (recentBroadcastRef.current && (Date.now() - recentBroadcastRef.current) < 4000) {
         return;
       }
-      triggerIncomingRef.current?.();
+      triggerIncomingRef.current?.(signal);
     }, { coupleId, userId });
 
     return () => {
@@ -228,12 +240,12 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
       broadcastChannelRef.current?.send({
         type: 'broadcast',
         event: 'heartbeat',
-        payload: { sender: userId, ts: Date.now() },
+        payload: { sender: userId, ts: Date.now(), vibe: activeVibe },
       });
     } catch { /* non-critical */ }
 
     try {
-      const result = await MomentSignalSender.sendHeartbeat();
+      const result = await MomentSignalSender.sendHeartbeat(activeVibe);
 
       if (!result.sent) {
         notification(NotificationFeedbackType.Error);
@@ -279,7 +291,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
       notification(NotificationFeedbackType.Success);
       setStatus({
         tone: result.remote ? 'success' : 'pending',
-        title: `Sent to ${partnerLabel}`,
+        title: `${activeVibe.name} heartbeat sent`,
         subtitle: result.remote
           ? (isTogetherNow ? 'Their device should pulse now.' : 'Push is on the way.')
           : 'Saved locally and will sync when connected.',
@@ -322,14 +334,14 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
     ? '#FF9F0A'
     : status?.tone === 'success'
       ? t.success
-      : t.primary;
+      : activeVibe.color;
 
   return (
     <View style={[styles.container, style]}>
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={[styles.eyebrow, { color: t.subtext }]}>Sanctuary Sync</Text>
+            <Text style={[styles.eyebrow, { color: t.primary }]}>Sanctuary Sync</Text>
             <Text style={[styles.title, { color: t.text }]}>Heartbeat</Text>
           </View>
           <View style={[styles.presencePill, { backgroundColor: withAlpha(partnerOnScreen ? t.success : isTogetherNow ? t.success : t.primary, 0.12) }]}>
@@ -346,7 +358,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
             pointerEvents="none"
             style={[
               styles.glowRing,
-              { borderColor: '#FF6B8A', shadowColor: '#FF6B8A' },
+              { borderColor: activeVibe.color, shadowColor: activeVibe.color },
               glowRingStyle,
             ]}
           />
@@ -356,17 +368,17 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
             pointerEvents="none"
             style={[
               styles.bloom,
-              { backgroundColor: t.primary, shadowColor: t.primary },
+              { backgroundColor: activeVibe.color, shadowColor: activeVibe.color },
               bloomStyle,
             ]}
           />
 
-          {/* Incoming bloom — softer pink tint so Partner B can tell it's from their partner */}
+          {/* Incoming bloom uses the vibe color selected by the sender. */}
           <Animated.View
             pointerEvents="none"
             style={[
               styles.bloom,
-              { backgroundColor: '#FF6B8A', shadowColor: '#FF6B8A' },
+              { backgroundColor: incomingTheme.color, shadowColor: incomingTheme.color },
               inBloomStyle,
             ]}
           />
@@ -377,16 +389,16 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
                 styles.pulseButton,
                 {
                   backgroundColor: t.primaryDeep,
-                  borderColor: incomingLabel ? '#FF6B8A' : t.primary,
-                  shadowColor: incomingLabel ? '#FF6B8A' : t.primary,
+                  borderColor: incomingVibe ? incomingTheme.color : activeVibe.color,
+                  shadowColor: incomingVibe ? incomingTheme.color : activeVibe.color,
                   opacity: isSending ? 0.82 : 1,
                 },
                 buttonStyle,
               ]}
             >
-              <Icon name="pulse-outline" size={incomingLabel ? 22 : 34} color={incomingLabel ? '#FF6B8A' : t.primary} />
-              <Text style={[styles.buttonText, { color: incomingLabel ? '#FF6B8A' : t.primary, fontSize: incomingLabel ? 11 : 14, letterSpacing: incomingLabel ? 0.3 : 1, width: incomingLabel ? 140 : undefined }]} numberOfLines={2} textBreakStrategy="balanced">
-                {incomingLabel ? `${incomingLabel}\nis here` : isSending ? 'Sending...' : 'Send Pulse'}
+              <Icon name={incomingVibe ? incomingTheme.icon : activeVibe.icon} size={incomingVibe ? 22 : 34} color={incomingVibe ? incomingTheme.color : activeVibe.color} />
+              <Text style={[styles.buttonText, { color: incomingVibe ? incomingTheme.color : activeVibe.color, fontSize: incomingVibe ? 11 : 14, letterSpacing: incomingVibe ? 0.3 : 1, width: incomingVibe ? 150 : undefined }]} numberOfLines={2} textBreakStrategy="balanced">
+                {incomingVibe ? `${partnerLabel} sent\n${incomingTheme.label}` : 'SEND'}
               </Text>
             </Animated.View>
           </Pressable>
@@ -394,7 +406,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', style, onViewpo
 
         <View style={[styles.statusCard, { backgroundColor: t.surfaceRaised, borderColor: withAlpha(statusColor, 0.25) }]}>
           <Text style={[styles.statusTitle, { color: status ? statusColor : t.text }]}>
-            {status?.title || `Send a tactile pulse to ${partnerLabel}`}
+            {status?.title || `Send a ${activeVibe.label} heartbeat to ${partnerLabel}`}
           </Text>
           <Text style={[styles.statusSubtitle, { color: t.subtext }]}>
             {status?.subtitle || (partnerOnScreen

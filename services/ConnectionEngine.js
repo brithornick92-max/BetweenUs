@@ -2,6 +2,7 @@
 // Named logic systems from the product spec
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { normalizeVibeSignal } from '../utils/vibeSignals';
 
 // ── Supabase (lazy – may be null if env vars not set) ──
 let _supabase = null;
@@ -138,7 +139,7 @@ export const MomentSignalSender = {
    * @returns {{ sent: boolean, remote: boolean, type: string, timestamp: number, error?: string, cooldown?: boolean }}
    */
   async send(momentType, options = {}) {
-    const { requireRemote = false } = options;
+    const { requireRemote = false, signalMeta = null } = options;
     const now = Date.now();
     const lastSent = await _getLastMomentSentAt();
 
@@ -185,6 +186,7 @@ export const MomentSignalSender = {
               moment_type: momentType,
               sender_id: userId,
               sent_at: timestamp,
+              ...(signalMeta || {}),
             },
             created_at: timestamp,
             updated_at: timestamp,
@@ -238,8 +240,21 @@ export const MomentSignalSender = {
    * This writes a moment_signal row so the existing DB trigger can fan out
    * the partner push notification immediately.
    */
-  async sendHeartbeat() {
-    return this.send(HEARTBEAT_SIGNAL.id, { requireRemote: true });
+  async sendHeartbeat(vibeSignal) {
+    const vibe = normalizeVibeSignal(vibeSignal);
+
+    return this.send(HEARTBEAT_SIGNAL.id, {
+      requireRemote: true,
+      signalMeta: {
+        vibe_id: vibe.id,
+        vibe_type: vibe.label,
+        vibe_label: vibe.label,
+        vibe_name: vibe.name,
+        vibe_color: vibe.color,
+        vibe_icon: vibe.icon,
+        vibe_emoji: vibe.emoji,
+      },
+    });
   },
 
   /**

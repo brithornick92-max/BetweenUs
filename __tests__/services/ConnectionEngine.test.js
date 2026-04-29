@@ -43,7 +43,13 @@ describe('MomentSignalSender', () => {
       coupleId: 'couple-1',
     });
 
-    const result = await MomentSignalSender.sendHeartbeat();
+    const result = await MomentSignalSender.sendHeartbeat({
+      id: 'tender',
+      name: 'Tender',
+      icon: 'heart-outline',
+      color: '#FF6B98',
+      emoji: '💗',
+    });
 
     expect(result.sent).toBe(false);
     expect(result.remote).toBe(false);
@@ -70,7 +76,13 @@ describe('MomentSignalSender', () => {
       coupleId: 'couple-1',
     });
 
-    const result = await MomentSignalSender.sendHeartbeat();
+    const result = await MomentSignalSender.sendHeartbeat({
+      id: 'tender',
+      name: 'Tender',
+      icon: 'heart-outline',
+      color: '#FF6B98',
+      emoji: '💗',
+    });
 
     expect(result).toMatchObject({ sent: true, remote: true, type: 'heartbeat' });
     expect(from).toHaveBeenCalledWith('couple_data');
@@ -81,6 +93,11 @@ describe('MomentSignalSender', () => {
       value: expect.objectContaining({
         moment_type: 'heartbeat',
         sender_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        vibe_id: 'tender',
+        vibe_type: 'tender',
+        vibe_label: 'tender',
+        vibe_color: '#FF6B98',
+        vibe_icon: 'heart-outline',
       }),
     }));
   });

@@ -28,6 +28,7 @@ import { useTogetherPresence } from '../hooks/useTogetherPresence';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
+import { getVibeSignalById, VIBE_SIGNALS } from '../utils/vibeSignals';
 import { NicknameEngine } from '../services/PolishEngine';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -41,15 +42,6 @@ const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 // ------------------------------------------------------------------
 // 1. VIBE CONFIGURATION (Sexy Red & iOS Systems)
 // ------------------------------------------------------------------
-const VIBES = [
-  { id: 'passionate',  name: 'Passionate', icon: 'flame-outline',    color: '#D2121A' }, // Primary sexy red
-  { id: 'tender',      name: 'Tender',     icon: 'heart-outline',    color: '#FF6B98' },
-  { id: 'serene',      name: 'Serene',     icon: 'leaf-outline',     color: '#32ADE6' },
-  { id: 'adventurous', name: 'Playful',    icon: 'sparkles-outline', color: '#FF9500' },
-  { id: 'mysterious',  name: 'Mysterious', icon: 'moon-outline',     color: '#5856D6' },
-  { id: 'luxurious',   name: 'Grounded',   icon: 'infinite-outline', color: '#AF52DE' },
-];
-
 // Color representing the partner in the Flux History chart
 const PARTNER_COLOR = '#FF6B98';
 
@@ -140,6 +132,16 @@ export default function VibeSignalScreen({ navigation }) {
   const [userInitial,  setUserInitial]  = useState('');
   // { mine: number[7], partner: number[7] } — pulse count per day (Mon–Sun)
   const [fluxData,     setFluxData]     = useState(null);
+  const vibeOptions = useMemo(
+    () => VIBE_SIGNALS.map((vibe) => (
+      vibe.id === 'passionate' ? { ...vibe, color: t.primary } : vibe
+    )),
+    [t.primary]
+  );
+  const activeVibe = useMemo(
+    () => vibeOptions.find((vibe) => vibe.id === activeVibeId) || vibeOptions[0] || getVibeSignalById(activeVibeId),
+    [activeVibeId, vibeOptions]
+  );
 
   const loadFluxData = useCallback(() => {
     Promise.all([
@@ -213,9 +215,9 @@ export default function VibeSignalScreen({ navigation }) {
         <FilmGrain opacity={0.1} />
         <CloseScreenHeader
           title="Vibe Signals"
-          subtitle="VIBE SIGNALS"
+          subtitle="LIVE MOOD SYNC"
           titleColor={t.text}
-          subtitleColor={t.subtext}
+          subtitleColor={t.primary}
           closeColor={t.text}
           closeIcon="close"
           onClose={() => navigation.goBack()}
@@ -267,9 +269,9 @@ export default function VibeSignalScreen({ navigation }) {
 
           <CloseScreenHeader
             title="Vibe Signal"
-            subtitle="VIBE SIGNALS"
+            subtitle="LIVE MOOD SYNC"
             titleColor={t.text}
-            subtitleColor={t.subtext}
+            subtitleColor={t.primary}
             closeColor={t.text}
             closeIcon="close"
             onClose={() => navigation.goBack()}
@@ -283,7 +285,7 @@ export default function VibeSignalScreen({ navigation }) {
 
           {/* Vibe Grid */}
           <View style={styles.vibeGridContainer}>
-            {VIBES.map((vibe) => (
+            {vibeOptions.map((vibe) => (
               <VibeCard
                 key={vibe.id}
                 vibe={vibe}
@@ -370,7 +372,11 @@ export default function VibeSignalScreen({ navigation }) {
             </View>
           </View>
 
-          <LiveVibeSync partnerLabel={partnerLabel} onViewportStabilize={restoreScrollPosition} />
+          <LiveVibeSync
+            partnerLabel={partnerLabel}
+            selectedVibe={activeVibe}
+            onViewportStabilize={restoreScrollPosition}
+          />
 
         </Animated.View>
       </ScrollView>

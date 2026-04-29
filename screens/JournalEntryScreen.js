@@ -41,13 +41,6 @@ const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
-const moods = [
-  { id: "calm", label: "Calm", icon: "leaf-outline" },
-  { id: "connected", label: "Connected", icon: "heart-outline" },
-  { id: "reflective", label: "Reflective", icon: "book-outline" },
-  { id: "energized", label: "Energized", icon: "flash-outline" },
-];
-
 export default function JournalEntryScreen({ navigation, route }) {
   const { entry, readOnly = false } = route.params || {};
   const { colors, isDark } = useTheme();
@@ -60,7 +53,7 @@ export default function JournalEntryScreen({ navigation, route }) {
     [state?.userId, user?.id, user?.uid]
   );
 
-  const isOwnEntry = !!entry?.id && ownerIds.has(entry?.user_id);
+  const isOwnEntry = !!entry?.id && (ownerIds.has(entry?.user_id) || ownerIds.has(entry?.created_by));
   const isReadOnly = !!readOnly || (!!entry?.id && !isOwnEntry);
   const isPremiumGated = !isPremium;
 
@@ -82,7 +75,6 @@ export default function JournalEntryScreen({ navigation, route }) {
 
   const [title, setTitle] = useState(entry?.title || "");
   const [content, setContent] = useState(entry?.content || entry?.body || "");
-  const [mood, setMood] = useState(entry?.mood || "calm");
 
   const initialLegacyImageUri = entry?.imageUri || entry?.photoUri || entry?.photo_uri || null;
   const [mediaUri, setMediaUri] = useState(entry?.mediaUri || initialLegacyImageUri || null);
@@ -120,7 +112,6 @@ export default function JournalEntryScreen({ navigation, route }) {
       const entryData = {
         title: title.trim(),
         body: content.trim(),
-        mood,
         isPrivate: false,
       };
 
@@ -331,54 +322,7 @@ export default function JournalEntryScreen({ navigation, route }) {
               />
             </Animated.View>
 
-            <Animated.View entering={FadeInDown.delay(200).duration(600)} style={styles.moodSection}>
-              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>
-                VIBE
-              </Text>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.moodRow}
-              >
-                {moods.map((m) => {
-                  const active = mood === m.id;
-
-                  return (
-                    <TouchableOpacity
-                      key={m.id}
-                      disabled={isReadOnly}
-                      onPress={() => {
-                        setMood(m.id);
-                        impact(ImpactFeedbackStyle.Light);
-                      }}
-                      style={[
-                        styles.moodChip,
-                        active && {
-                          backgroundColor: colors.primary,
-                          borderColor: colors.primary,
-                        },
-                        !active && {
-                          borderColor: withAlpha(colors.text, 0.1),
-                        },
-                      ]}
-                    >
-                      <Icon
-                        name={m.icon}
-                        size={14}
-                        color={active ? "#FFF" : colors.primary}
-                      />
-
-                      <Text style={[styles.moodText, { color: active ? "#FFF" : colors.text }]}>
-                        {m.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </Animated.View>
-
-            <Animated.View entering={FadeInDown.delay(300).duration(600)} style={styles.mediaContainer}>
+            <Animated.View entering={FadeInDown.delay(200).duration(600)} style={styles.mediaContainer}>
               {mediaUri ? (
                 <View style={styles.previewWrapper}>
                   {isVideoMedia ? (
@@ -430,7 +374,7 @@ export default function JournalEntryScreen({ navigation, route }) {
               )}
             </Animated.View>
 
-            <Animated.View entering={FadeInDown.delay(400).duration(800)} style={styles.writingSurface}>
+            <Animated.View entering={FadeInDown.delay(300).duration(800)} style={styles.writingSurface}>
               <View style={styles.writingHeader}>
                 <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>
                   THE REFLECTION
@@ -568,27 +512,6 @@ const createStyles = (colors) => StyleSheet.create({
     letterSpacing: 1.5,
     marginBottom: SPACING.md,
     textTransform: 'uppercase',
-  },
-  moodSection: {
-    marginBottom: SPACING.xxxl,
-  },
-  moodRow: {
-    gap: 10,
-    paddingRight: 20,
-  },
-  moodChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 8,
-  },
-  moodText: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    fontWeight: '600',
   },
   mediaContainer: {
     marginBottom: SPACING.xxxl,
