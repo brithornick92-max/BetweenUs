@@ -96,7 +96,7 @@ const TermsScreen = ({ navigation, route }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>RULES OF ENGAGEMENT</Text>
             <Text style={[styles.title, { color: colors.text }]}>Terms of Service</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-                EFFECTIVE: APRIL 24, 2026
+                EFFECTIVE: APRIL 29, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Welcome to Between Us. These Terms of Service ("Terms") govern your use of the Between Us mobile
@@ -143,7 +143,7 @@ const TermsScreen = ({ navigation, route }) => {
                 <Text style={[styles.paragraph, { color: colors.text, fontWeight: '700', marginBottom: 0 }]}>
                   Important: Between Us is designed for thriving couples only. It is not appropriate
                   for couples navigating serious concerns, trust breakdowns, or considering separation. If your relationship
-                  needs professional support, please seek qualified counseling or therapy.
+                  needs professional support, please seek qualified counseling or therapy. Between Us is not an emergency, crisis, medical, therapeutic, legal, or safety service.
                 </Text>
               </View>
             </View>
@@ -158,7 +158,8 @@ const TermsScreen = ({ navigation, route }) => {
                 • You must provide accurate information when creating your account{'\n'}
                 • You're responsible for maintaining the security of your account{'\n'}
                 • You must notify us immediately of any unauthorized access{'\n'}
-                • One account per person; accounts cannot be shared{'\n\n'}
+                • One account per person; accounts cannot be shared{'\n'}
+                • You are responsible for activity that occurs through your account unless caused by our failure to use reasonable security measures{'\n\n'}
                 Partner Linking:{'\n'}
                 • You can link your account with your partner's account{'\n'}
                 • Both partners must consent to linking{'\n'}
@@ -185,6 +186,7 @@ const TermsScreen = ({ navigation, route }) => {
                 • Violates any applicable laws or regulations{'\n\n'}
                 Partner Access:{'\n'}
                 • Your linked partner can access shared couple-space content according to the feature flow{'\n'}
+                • You are responsible for deciding what content is appropriate to create or share with your partner{'\n'}
                 • Supported delete and unlink controls are described in the app and Privacy Policy{'\n'}
                 • Deleting supported content removes it from active app views where technically feasible
               </Text>
@@ -197,19 +199,20 @@ const TermsScreen = ({ navigation, route }) => {
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Free and Premium Features:{'\n'}
-                • Free users can answer 1 guided prompt per day and preview prompts across Heat levels 1–5{'\n'}
-                • Free users can link with a partner, preview limited date ideas and intimacy positions, fully plan 2 date flows per week, and export supported data{'\n'}
-                • Premium adds expanded weekly prompt access, expanded date ideas and intimacy positions, calendar features, recaps, signals, and other premium experiences shown in the app{'\n'}
-                • A premium subscription may extend access to your linked partner when entitlement sync is available and your accounts are linked{'\n\n'}
+                • Free users can answer 1 guided prompt per day and preview prompts across Heat levels 1–5. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.{'\n'}
+                • Free users can link with a partner, preview limited date ideas and intimacy positions, fully plan 1 date flow per week, and export supported data{'\n'}
+                • Premium adds a growing weekly library of prompts, date ideas, intimacy positions, calendar features, recaps, signals, and other premium experiences shown in the app{'\n'}
+                • One premium subscription is intended to cover both linked partners after entitlement sync completes{'\n\n'}
                 Current pricing:{'\n'}
-                • Monthly: {FALLBACK_PRICES.monthly}/month{'\n'}
-                • Yearly: {FALLBACK_PRICES.yearly}/year{'\n'}
+                • Monthly: {FALLBACK_PRICES.monthly}{'\n'}
+                • Yearly: {FALLBACK_PRICES.yearly}{'\n'}
                 • Actual prices, trials, offers, taxes, and currency are shown by the App Store or RevenueCat purchase flow and may vary by region or store configuration{'\n\n'}
                 Billing:{'\n'}
                 • Payment is charged to your Apple ID account at confirmation of purchase{'\n'}
                 • Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period{'\n'}
                 • Your account will be charged for renewal within 24 hours prior to the end of the current period{'\n'}
                 • You can manage and cancel subscriptions in Settings › Apple ID › Subscriptions{'\n'}
+                • Restore purchases is available in the app for current subscribers{'\n'}
 
                 • Depending on your location, you may have additional cancellation or withdrawal rights under applicable law and App Store policies{'\n\n'}
                 Partner Access:{'\n'}
@@ -219,8 +222,8 @@ const TermsScreen = ({ navigation, route }) => {
                 Cancellation:{'\n'}
                 • You can cancel monthly or yearly subscriptions anytime through your app store account settings{'\n'}
                 • Access to premium features generally continues until the end of your billing period unless the App Store indicates otherwise{'\n'}
-
-                • Your data remains accessible after cancellation{'\n'}
+                • Refund requests and billing issues are handled by Apple according to App Store policy and applicable law{'\n'}
+                • Your data generally remains accessible after cancellation, subject to free-tier feature limits and your account status{'\n'}
                 • You can resubscribe at any time
               </Text>
             </View>
@@ -295,7 +298,7 @@ const TermsScreen = ({ navigation, route }) => {
                 • We're not liable for service interruptions{'\n\n'}
                 Relationship Advice:{'\n'}
                 • Between Us is not a substitute for professional counseling{'\n'}
-                • We don't provide medical, therapeutic, or legal advice{'\n'}
+                • We don't provide medical, therapeutic, legal, emergency, crisis, or safety advice{'\n'}
                 • Prompts are for entertainment and connection purposes{'\n'}
                 • If your relationship needs professional support, please seek qualified counseling{'\n\n'}
                 Limitation of Liability:{'\n'}
@@ -336,7 +339,7 @@ const TermsScreen = ({ navigation, route }) => {
                 Effect of Termination:{'\n'}
                 • Your access to the Service ends immediately{'\n'}
                 • Your data will be deleted according to our Privacy Policy{'\n'}
-                • Paid subscriptions are non-refundable{'\n'}
+                • Subscription cancellation, refunds, and billing are handled through the App Store according to Apple policies and applicable law{'\n'}
                 • These Terms survive termination where applicable
               </Text>
             </View>

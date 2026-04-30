@@ -1,6 +1,6 @@
 # Frequently Asked Questions (FAQ)
 
-**Last Updated: April 24, 2026**
+**Last Updated: April 29, 2026**
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### What is Between Us?
 
-Between Us is a private couples app for daily prompts, shared reveals, journals, date planning, memories, signals, and recaps.
+Between Us is a private couples app for daily prompts, shared reveals, journals, date planning, Our Story Wall/Keepsake media, memories, signals, and recaps.
 
 Between Us is for thriving couples only. It is not a therapy app, relationship repair tool, crisis service, or substitute for professional support.
 
@@ -24,7 +24,7 @@ Yes. Between Us is designed to be inclusive of adults across orientations, ident
 
 ### How much does it cost?
 
-- **Free version:** 1 guided prompt answer per day, weekly previews across Heat levels 1-5, limited date and intimacy position previews, 2 full date flows per week, partner linking, and supported data export
+- **Free version:** 1 guided prompt answer per day, weekly previews across Heat levels 1-5, limited date and intimacy position previews, 1 full date flow per week, partner linking, and supported data export. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.
 - **Premium Monthly:** fallback display price $7.99/month
 - **Premium Yearly:** fallback display price $49.99/year
 
@@ -48,13 +48,13 @@ No. You can use Between Us solo for prompts, notes, journaling, reflection, and 
 ### How do I link with my partner?
 
 1. Both partners create accounts
-2. One partner generates an invite code or QR code
-3. The other partner scans the QR code or enters the code
+2. One partner generates an invite code
+3. The other partner enters the code
 4. Both accounts are linked into one couple space
 
 ### Can I unlink from my partner?
 
-Yes. Either partner can unlink. Unlinking dissolves the shared couple connection, stops future shared syncing, and leaves your separate account in place.
+Yes. Either partner can unlink. Unlinking dissolves the shared couple connection, stops future shared syncing, and leaves your separate account in place. Historical shared content may remain until deleted or until a cleanup process applies.
 
 ### Can I link with multiple partners?
 
@@ -110,7 +110,7 @@ Heat levels help you choose the intensity of prompts:
 - **Heat 4:** Steamy & Adventurous
 - **Heat 5:** Explicit
 
-Free users can preview Heat levels 1-5. Premium unlocks our full library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly.
+Free users can preview Heat levels 1-5. Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly.
 
 ### How do prompts work?
 
@@ -148,6 +148,10 @@ Energy Matcher lets you set a current energy level so the app can suggest prompt
 
 The Inside Jokes vault is a place to save relationship language, nicknames, references, and special phrases. Some inside-joke data may be local to the device depending on the feature path.
 
+### What is Our Story Wall / Keepsake?
+
+Our Story Wall and Keepsake help you save shared photos, videos, notes, prompt responses, date memories, and other meaningful moments in one couple archive. You can upload your own photos or videos where the app offers media attachment, and linked partners may see shared couple-space media according to the feature flow.
+
 ### What is Year Reflection?
 
 Year Reflection and recap features summarize relationship moments from supported app data such as journals, dates, memories, answers, and signals.
@@ -170,6 +174,7 @@ Premium may include:
 - A growing library of prompts, date ideas, and intimacy positions, with new content released to you weekly
 - Full access to all 5 Heat Levels
 - Shared calendar features
+- Our Story Wall/Keepsake media uploads and shared memories
 - Vibe and moment signals
 - Energy Matcher
 - Inside Jokes features
@@ -197,7 +202,7 @@ Refunds are handled by Apple according to Apple's policies. We cannot directly i
 
 ### Can I share Premium with my partner?
 
-Premium is intended to support the linked-couple premium experience. If you subscribe while linked, your partner may receive premium access after entitlement sync completes. If you unlink, your partner may lose access unless they subscribe separately.
+Premium is intended to support the linked-couple premium experience. One subscription is intended to cover both linked partners after account linking and entitlement sync complete. If you unlink, your partner may lose access unless they subscribe separately.
 
 ---
 

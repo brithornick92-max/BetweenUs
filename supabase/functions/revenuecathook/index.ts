@@ -19,12 +19,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const ENTITLEMENT_ID = "Between Us Pro";
 
-// Events that grant premium
+// Events that grant premium. Non-renewing purchases are intentionally excluded
+// because Between Us no longer sells lifetime/non-subscription premium access.
 const GRANT_EVENTS = new Set([
   "INITIAL_PURCHASE",
   "RENEWAL",
   "UNCANCELLATION",
-  "NON_RENEWING_PURCHASE",
   "PRODUCT_CHANGE",
 ]);
 

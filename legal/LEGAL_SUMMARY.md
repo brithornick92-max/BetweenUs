@@ -1,6 +1,6 @@
 # Legal Documents Summary
 
-**Last Updated: April 24, 2026**
+**Last Updated: April 29, 2026**
 
 This document provides an overview of all legal documents for the Between Us app.
 
@@ -97,7 +97,7 @@ This document provides an overview of all legal documents for the Between Us app
 
 ### Safety Concerns
 **Email:** brittanyapps@outlook.com
-**Urgent:** Contact as soon as possible for harassment or abuse
+**Urgent:** If you are in immediate danger, contact local emergency services or a qualified crisis/safety resource. Between Us is not an emergency service.
 
 ### Feedback
 **Email:** brittanyapps@outlook.com
@@ -158,6 +158,9 @@ All legal documents are:
 
 | Document | Version | Date | Changes |
 |----------|---------|------|---------|
+| Terms of Service | 1.6 | Apr 29, 2026 | Updated subscription sharing, free-tier limits, App Store billing/refund language, account responsibility, and emergency/therapy disclaimers |
+| Privacy Policy | 1.6 | Apr 29, 2026 | Added account IDs, RevenueCat entitlement status, additional user-content categories, session replay detail, and updated retention wording |
+| FAQ | 1.6 | Apr 29, 2026 | Updated per-couple premium wording, free date-flow limit, view-count usage wording, unlink expectations, and premium library phrasing |
 | Terms of Service | 1.5 | Apr 24, 2026 | Aligned security model, free-tier limits, subscriptions, and active features |
 | Privacy Policy | 1.5 | Apr 24, 2026 | Removed E2EE claims for core synced content; clarified Supabase, local cache, analytics, and rights |
 | FAQ | 1.5 | Apr 24, 2026 | Updated storage/security answers, feature list, prompt/date counts, deletion, and billing |

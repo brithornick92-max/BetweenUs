@@ -73,7 +73,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           {/* Editorial Header Block */}
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              Last Updated: April 24, 2026
+              Last Updated: April 29, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Your privacy is critically important to us. This Privacy Policy explains how we collect, use,
@@ -89,16 +89,18 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.subTitle, { color: colors.text }]}>Account Information</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Email address{'\n'}
+              • Supabase account user ID{'\n'}
               • Display name{'\n'}
               • Partner names (what you call each other){'\n'}
               • Relationship start date (optional){'\n'}
-              • Heat level and energy level preferences
+              • Heat level, soft boundary, relationship climate, and energy level preferences{'\n'}
+              • Subscription entitlement status and RevenueCat app user ID
             </Text>
 
             <Text style={[styles.subTitle, { color: colors.text }]}>Content You Create</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               We protect different categories of content in different ways:{'\n\n'}
-              • Journal entries, prompt responses, memories, check-ins, vibes, calendar events, and date plans may be stored in your private account and couple space{'\n'}
+              • Journal entries, prompt responses, memories, check-ins, vibes, love notes, rituals, calendar events, date plans, tried/favorite intimacy positions, and other relationship content may be stored in your private account and couple space{'\n'}
               • Photo and media attachments are protected in transit and by server-side access controls{'\n'}
               • Some settings and cached data stay only on your device{'\n'}
               • Some preferences, including soft boundaries, energy level, and relationship climate, may sync to your profile for restoration across devices{'\n'}
@@ -112,13 +114,13 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               • Crash reports{'\n'}
               • Performance data{'\n'}
               • Device information (type, OS version){'\n'}
-              • Limited pseudonymous analytics events (such as screen views, paywall events, feature usage, and exports) stored server-side{'\n'}
-              • Limited session replays on a sample of sessions and on sessions where an error occurs to help fix bugs
+              • Limited pseudonymous analytics events (such as screen views, paywall events, feature usage, and exports) stored server-side and associated with an account ID where available{'\n'}
+              • Limited session replays on a sample of sessions and on sessions where an error occurs to help fix bugs. These are configured for diagnostics, but may process on-screen app interaction data.
             </Text>
 
             <Text style={[styles.subTitle, { color: colors.text }]}>Device Permissions</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              • Camera: Used for QR code scanning during partner linking.{"\n"}
+              • Camera: Used only if you choose optional in-app photo or video capture where available.{"\n"}
               • Photo Library: Used only when you choose to attach media to supported journals, memories, or similar features. Media is uploaded only when you choose to add it to a synced feature.{'\n'}
               • Microphone: Used only if a build exposes voice-note features and you choose to record one.{"\n"}
               • Push Notifications: Your device push token is sent to our server to deliver notifications such as partner activity and reminders. You can disable notifications in your device settings at any time.{'\n'}
@@ -136,8 +138,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
             <Text style={[styles.subTitle, { color: colors.text }]}>Information We Don't Collect</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              We never collect:{'\n'}
-              • Your sexual orientation{'\n'}
+              We do not intentionally collect:{'\n'}
+              • Your sexual orientation, except to the extent you voluntarily include sensitive information in content you create{'\n'}
               • Precise location data{'\n'}
               • Contact lists{'\n'}
               • Photos or media (unless you explicitly attach them){'\n'}
@@ -153,7 +155,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               • Provide and improve the App{'\n'}
               • Personalize your experience{'\n'}
               • Enable free partner linking and optional couple sharing{'\n'}
-              • Process subscription payments{'\n'}
+              • Manage subscription status and shared couple premium access{'\n'}
               • Send important updates and notifications{'\n'}
               • Provide customer support{'\n'}
               • Analyze app performance and usage{'\n'}
@@ -181,7 +183,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               We do NOT sell your personal information. We may share information with:{'\n\n'}
               • Your partner (when you choose to share content){'\n'}
               • Service providers who help us operate the App (see Third-Party Services below){'\n'}
-              • Law enforcement if required by law (we'll notify you unless legally prohibited){'\n'}
+              • Law enforcement, regulators, courts, or other parties when required by law or necessary to protect rights, safety, and security{'\n'}
               • In connection with a business transfer or acquisition{'\n\n'}
               We never share your data with advertisers, data brokers, marketing companies, or social media platforms.
             </Text>
@@ -192,9 +194,9 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               We use the following third-party services:{'\n\n'}
               • Supabase - Authentication, database, storage, partner linking, backend functions, and realtime features{'\n'}
-              • RevenueCat - Subscription management{'\n'}
+              • RevenueCat - Subscription management, purchase status, entitlement status, and webhook delivery{'\n'}
               • Sentry - Crash reporting, performance monitoring, and session replays (10% of sessions; 100% on error) to help fix bugs. Also powers optional user feedback.{'\n'}
-              • Expo - Push notification delivery and over-the-air updates{'\n'}
+              • Expo - Push notification delivery, device push token routing, and over-the-air updates{'\n'}
               • Apple - In-app purchases and payments{'\n\n'}
               These services have their own privacy policies and may collect data independently.
             </Text>
@@ -205,7 +207,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               • Account data: Retained while your account is active{'\n'}
               • Signing out clears local cache on this device but does not delete your account or cloud data{'\n'}
-              • Core synced content: Retained until you delete it, unlink where the shared couple space is dissolved, or delete your account{'\n'}
+              • Core synced content: Retained until you delete it, delete your account, or a cleanup process applies to your couple space{'\n'}
               • Usage and diagnostic data: Retained for a limited period based on operational needs{'\n'}
               • Deleted data: Removed from active systems promptly; backup copies may persist for a limited period before routine purge
             </Text>
@@ -308,6 +310,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               • Don't share your login credentials{'\n\n'}
               Manage sharing:{'\n'}
               • Choose what to share with your partner{'\n'}
+              • Review shared couple-space features before adding sensitive content{'\n'}
               • Use available sharing controls carefully{'\n'}
               • Unlink when needed
             </Text>

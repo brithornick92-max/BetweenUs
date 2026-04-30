@@ -60,7 +60,7 @@ const EULAScreen = ({ navigation }) => {
             <Text style={[styles.headerEye, { color: theme.crimson }]}>LICENSE AGREEMENT</Text>
             <Text style={[styles.title, { color: colors.text }]}>EULA</Text>
             <Text style={[styles.date, { color: colors.textMuted || 'gray' }]}>
-              Effective: April 24, 2026
+              Effective: April 29, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Between Us is licensed to you subject to the terms of the Licensed Application End User License
@@ -123,10 +123,10 @@ const EULAScreen = ({ navigation }) => {
 
               <Text style={[styles.subTitle, { color: colors.text }]}>4. Subscriptions</Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-                Between Us offers optional in-app subscriptions (monthly and yearly). Payment is
+                Between Us offers optional in-app subscriptions (monthly and yearly). One subscription is intended to cover both linked partners after entitlement sync completes. Payment is
                 charged to your Apple ID account. Subscriptions auto-renew unless turned off at least 24
                 hours before the end of the current period. You can manage subscriptions in Settings {'>'} Apple
-                ID {'>'} Subscriptions on your device.
+                ID {'>'} Subscriptions on your device. Refund requests and billing issues are handled by Apple according to App Store policy and applicable law.
               </Text>
 
               <Text style={[styles.subTitle, { color: colors.text }]}>5. Privacy & Data</Text>

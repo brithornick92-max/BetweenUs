@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last Updated: April 24, 2026**
+**Last Updated: April 29, 2026**
 
 Welcome to Between Us. These Terms of Service ("Terms") govern your use of the Between Us mobile application and related services (collectively, the "Service"). By creating an account or using Between Us, you agree to these Terms and our Privacy Policy.
 
@@ -44,6 +44,7 @@ Between Us is not a therapy app, relationship repair tool, crisis service, or su
 - You are responsible for maintaining the security of your account and password
 - You must notify us promptly if you believe your account has been accessed without authorization
 - One account is intended for one person and may not be shared
+- You are responsible for activity through your account unless caused by our failure to use reasonable security measures
 
 ### 3.2 Partner Linking
 
@@ -82,6 +83,7 @@ You agree not to use the Service to create, upload, store, or share content that
 ### 4.4 Partner Access
 
 - Your linked partner can access shared couple-space content according to the feature flow
+- You are responsible for deciding what content is appropriate to create or share with your partner
 - You can delete supported content in the app
 - Deleting content or deleting your account may remove access according to the Privacy Policy and the app's deletion flow
 
@@ -92,9 +94,10 @@ You agree not to use the Service to create, upload, store, or share content that
 ### 5.1 Free and Premium Features
 
 - Free users can answer 1 guided prompt per day and preview prompts across Heat levels 1-5
-- Free users can browse a limited weekly selection of date ideas and intimacy positions, fully plan 2 date flows per week, link with a partner, and export supported data
+- Viewing or revealing limited free prompts and date ideas may count toward free usage limits
+- Free users can browse a limited weekly selection of date ideas and intimacy positions, fully plan 1 date flow per week, link with a partner, and export supported data
 - Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. It also adds calendar features, signals, recaps, inside-joke features, and other premium experiences shown in the app.
-- Premium subscription access may extend to your linked partner when entitlement sync is available and your accounts are linked
+- One premium subscription is intended to cover both linked partners after entitlement sync completes
 - Current fallback display pricing in the app is:
   - Monthly: $7.99/month
   - Yearly: $49.99/year
@@ -106,6 +109,7 @@ You agree not to use the Service to create, upload, store, or share content that
 - Monthly and yearly subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period
 - Your account may be charged for renewal within 24 hours before the end of the current period
 - You can manage and cancel subscriptions in Settings > Apple ID > Subscriptions
+- Restore purchases is available in the app for current subscribers
 - Depending on your location, you may have additional cancellation or withdrawal rights under applicable law and App Store policies
 
 ### 5.3 Partner Access
@@ -119,7 +123,7 @@ You agree not to use the Service to create, upload, store, or share content that
 
 - You can cancel monthly or yearly subscriptions through your app store account settings
 - Access to paid features continues until the end of the current billing period unless the App Store indicates otherwise
-- Refund requests are handled by Apple under Apple's policies
+- Refund requests and billing issues are handled by Apple under Apple's policies and applicable law
 - We cannot directly issue App Store refunds
 
 ---
@@ -178,7 +182,7 @@ You may not:
 ### 9.2 Relationship Advice
 
 - Between Us is for connection, reflection, planning, and entertainment
-- We do not provide medical, therapeutic, legal, financial, or professional advice
+- We do not provide medical, therapeutic, legal, financial, emergency, crisis, safety, or professional advice
 - We are not responsible for relationship outcomes
 - A licensed therapist, counselor, attorney, emergency service, or other qualified professional is the right resource for serious concerns
 
@@ -288,4 +292,4 @@ By using Between Us, you acknowledge that:
 
 **Thank you for choosing Between Us.**
 
-*These Terms are effective as of April 24, 2026.*
+*These Terms are effective as of April 29, 2026.*

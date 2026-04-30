@@ -765,7 +765,7 @@ export default function SettingsScreen({ navigation }) {
               style={[styles.reconnectBtn, { backgroundColor: t.primary }]}
               onPress={handleUnlinkAndReconnect}
             >
-              <Icon name="qr-code-outline" size={16} color="#FFFFFF" />
+              <Icon name="link-outline" size={16} color="#FFFFFF" />
               <Text style={styles.reconnectBtnText}>{'Unlink & Invite New Partner'}</Text>
             </TouchableOpacity>
           </ReAnimated.View>

@@ -6,7 +6,7 @@ import { SPACING, withAlpha } from "../utils/theme";
  * UPDATED: Premium Editorial Boundary Hint Pill.
  */
 
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -43,6 +43,7 @@ import { STORAGE_KEYS, storage } from "../utils/storage";
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
+import { trackFreePromptView } from "../utils/freeContentUsage";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SCREEN_W = SCREEN_WIDTH;
@@ -225,6 +226,7 @@ export default function PromptsScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [deckVersion, setDeckVersion] = useState(0);
   const shuffleAnim = useSharedValue(0);
+  const viewedPromptIdsRef = useRef(new Set());
 
   const t = useMemo(() => isDark ? {
     background: '#0A0A0A',
@@ -393,6 +395,31 @@ export default function PromptsScreen({ navigation }) {
     return '10 new prompt cards added each week.';
   }, [isPremium]);
 
+  const usageUserId = user?.uid || user?.id || userProfile?.id || null;
+
+  const handlePromptReveal = useCallback(async (prompt) => {
+    if (isPremium || !prompt?.id || prompt?.isLockedPreview || prompt?.requiresPremium) return;
+    if (viewedPromptIdsRef.current.has(prompt.id)) return;
+
+    viewedPromptIdsRef.current.add(prompt.id);
+
+    try {
+      const result = await trackFreePromptView({
+        userId: usageUserId,
+        isPremium,
+        prompt,
+      });
+
+      if (result?.allowed === false) {
+        viewedPromptIdsRef.current.delete(prompt.id);
+        showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+      }
+    } catch (error) {
+      viewedPromptIdsRef.current.delete(prompt.id);
+      if (__DEV__) console.warn('[PromptsScreen] Failed to track free prompt view:', error?.message);
+    }
+  }, [isPremium, showPaywall, usageUserId]);
+
   const handlePromptSelect = useCallback((prompt) => {
     if (prompt?.isLockedPreview || prompt?.requiresPremium) {
       impact(ImpactFeedbackStyle.Medium);
@@ -402,8 +429,9 @@ export default function PromptsScreen({ navigation }) {
 
     navigation.navigate("PromptAnswer", {
       prompt: { ...prompt, dateKey: new Date().toISOString().split("T")[0] },
+      freeUsageAlreadyTracked: !isPremium && !!prompt?.id && viewedPromptIdsRef.current.has(prompt.id),
     });
-  }, [navigation, showPaywall]);
+  }, [isPremium, navigation, showPaywall]);
 
   const refreshBoundaryProfile = useCallback(async () => {
     const [profile, bounds] = await Promise.all([
@@ -529,6 +557,7 @@ export default function PromptsScreen({ navigation }) {
                 onSelect={handlePromptSelect}
                 onSkip={() => impact(ImpactFeedbackStyle.Light)}
                 onLongPress={handlePromptBoundaryAction}
+                onReveal={handlePromptReveal}
               />
               
               {/* Refined Velvet Glass / Editorial Boundary Hint Pill */}

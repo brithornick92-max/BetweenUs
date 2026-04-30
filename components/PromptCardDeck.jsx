@@ -81,7 +81,7 @@ const HEAT_LABELS = {
   5: "Explicit passion",
 };
 
-function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, isDark, colors, cardWidth, cardHeight, shimmerBandStyle }) {
+function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, onReveal, isDark, colors, cardWidth, cardHeight, shimmerBandStyle }) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const rotateZ = useSharedValue(0);
@@ -141,8 +141,9 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
     impact(ImpactFeedbackStyle.Light);
     const target = isFlipped ? 0 : 1;
     flipProgress.value = withTiming(target, { duration: FLIP_DURATION, easing: Easing.bezier(0.2, 0.8, 0.2, 1) });
+    if (!isFlipped) onReveal?.(item);
     setIsFlipped(!isFlipped);
-  }, [isFlipped, flipProgress]);
+  }, [isFlipped, flipProgress, item, onReveal]);
 
   const panGesture = Gesture.Pan()
     .enabled(isTop)
@@ -295,7 +296,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   );
 }
 
-export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress }) {
+export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress, onReveal }) {
   const { isDark, colors } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [deckLayout, setDeckLayout] = useState({ width: DEFAULT_CARD_W + (CARD_HORIZONTAL_MARGIN * 2), height: DEFAULT_CARD_H + (CARD_VERTICAL_MARGIN * 2) });
@@ -346,6 +347,7 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongP
             onSwipeRight={handleSwipeRight}
             onSwipeLeft={handleSwipeLeft}
             onLongPress={onLongPress}
+            onReveal={onReveal}
             isDark={isDark}
             colors={colors}
             cardWidth={cardWidth}

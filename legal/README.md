@@ -341,8 +341,8 @@ Before launching Between Us:
 
 ---
 
-**Last Updated:** April 24, 2026
-**Version:** 1.1
+**Last Updated:** April 29, 2026
+**Version:** 1.2
 **Status:** ✅ Ready for Production
 
 ---

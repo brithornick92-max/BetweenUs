@@ -96,7 +96,7 @@ const INSPIRATION_CHIPS = [
 ];
 
 export default function PromptAnswerScreen({ route, navigation }) {
-  const { prompt: routePrompt, promptId, mode } = route.params || {};
+  const { prompt: routePrompt, promptId, mode, freeUsageAlreadyTracked = false } = route.params || {};
   const { state } = useAppContext();
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
@@ -280,7 +280,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
     const isFirstResponse = !existingAnswer;
 
-    if (!isPremium && isFirstResponse) {
+    if (!isPremium && isFirstResponse && !freeUsageAlreadyTracked) {
       const accessCheck = await PremiumGatekeeper.canAccessPrompt(user?.uid, prompt?.heat || 1, isPremium);
       if (!accessCheck.canAccess) {
         showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
@@ -306,7 +306,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         });
       }
 
-      if (!isPremium && isFirstResponse && user?.uid) {
+      if (!isPremium && isFirstResponse && user?.uid && !freeUsageAlreadyTracked) {
         await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt?.heat || 1);
         await loadUsageStatus?.();
       }

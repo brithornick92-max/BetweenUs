@@ -38,7 +38,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What is Between Us?',
-        a: 'Between Us is a private relationship space for couples who already love each other and want to keep choosing each other on purpose. Answer privately, reveal together, save favorite moments, and build a shared archive that feels like yours.',
+        a: 'Between Us is a private relationship space for couples who already love each other and want to keep choosing each other on purpose. Answer privately, reveal together, save favorite moments, upload photos or videos to Our Story Wall/Keepsake, and build a shared archive that feels like yours.',
       },
       {
         q: 'Who is Between Us for?',
@@ -46,7 +46,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `The free version includes 1 prompt per day, limited previews of date ideas and intimacy positions, and 2 fully planned date flows per week.\n\nPremium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. One subscription covers both partners.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
+        a: `The free version includes 1 prompt per day, limited previews of date ideas and intimacy positions, and 1 fully planned date flow per week. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.\n\nPremium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. One subscription covers both linked partners after entitlement sync completes.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
       },
       {
         q: 'How do I get started?',
@@ -63,7 +63,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How do I link with my partner?',
-        a: '1. Both partners create accounts\n2. One partner generates an invite code or QR code\n3. The other partner scans the QR code or enters the code manually\n4. Both accounts are linked into one couple space\n\nPartner linking is free. Premium adds expanded prompts, date planning, recaps, signals, and more shared features.',
+        a: '1. Both partners create accounts\n2. One partner generates an invite code\n3. The other partner enters the code manually\n4. Both accounts are linked into one couple space\n\nPartner linking is free. Premium adds expanded prompts, date planning, recaps, signals, and more shared features.',
       },
       {
         q: 'Can I unlink from my partner?',
@@ -76,7 +76,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Your relationship content such as synced journal entries, prompt responses, memories, check-ins, vibes, calendar events, date plans, and media attachments is protected by account access controls, transport security, row-level security, and provider-side policies. We also collect limited pseudonymous analytics, crash reports, and session replays to improve reliability. We do not sell your data.',
+        a: 'Your relationship content such as synced journal entries, prompt responses, memories, check-ins, vibes, calendar events, date plans, intimacy favorites/tried state, and media attachments is protected by account access controls, transport security, row-level security, and provider-side policies. We also collect limited pseudonymous analytics, crash reports, and diagnostic session replays to improve reliability. We do not sell your data.',
       },
       {
         q: 'Can my partner see everything I write?',
@@ -84,7 +84,7 @@ const FAQ_DATA = [
       },
       {
         q: 'What happens if we break up?',
-        a: 'You can unlink from your partner. Unlinking dissolves the shared couple connection, stops future shared syncing, and leaves your separate account in place. You can also delete your account if desired.',
+        a: 'You can unlink from your partner. Unlinking dissolves the shared couple connection, stops future shared syncing, and leaves your separate account in place. Historical shared content may remain until deleted or until a cleanup process applies. You can also delete your account if desired.',
       },
       {
         q: 'Can Between Us read my journal?',
@@ -105,7 +105,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What are Heat Levels?',
-        a: 'Heat levels help you choose the intensity of prompts, from emotional connection (1) to explicit (5). Free users can preview all levels. Premium unlocks our full library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly.',
+        a: 'Heat levels help you choose the intensity of prompts, from emotional connection (1) to explicit (5). Free users can preview all levels. Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly.',
       },
       {
         q: 'How do prompts work?',
@@ -120,8 +120,12 @@ const FAQ_DATA = [
         a: 'Skip it immediately, adjust your heat level, provide feedback, or use content filtering in settings. You\'re always in control.',
       },
       {
+        q: 'What is Our Story Wall / Keepsake?',
+        a: 'Our Story Wall and Keepsake let you save shared photos, videos, notes, prompt responses, date memories, and other meaningful moments in one couple archive. You can upload your own photos or videos where media attachments are available, and linked partners may see shared couple-space media according to the feature flow.',
+      },
+      {
         q: 'Does it work offline?',
-        a: 'Yes. Between Us keeps a local cache for speed and temporary offline continuity, but Supabase is the source of truth. When you reconnect, pending changes sync to your account and shared data is restored from the server.',
+        a: 'Partly. Between Us keeps a local cache for speed and temporary offline continuity, but Supabase is the source of truth. Some actions may work offline temporarily, and pending changes sync when you reconnect. Features that require account, partner, subscription, or realtime data need internet access.',
       },
     ],
   },
@@ -130,7 +134,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: 'Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. It also includes full access to all 5 Heat Levels, shared calendar features, vibe and moment signals, and other premium experiences. One subscription covers both linked partners.',
+        a: 'Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. It also includes access to all 5 Heat Levels, shared calendar features, Our Story Wall/Keepsake media uploads and shared memories, vibe and moment signals, and other premium experiences. One subscription covers both linked partners after entitlement sync completes.',
       },
       {
         q: 'How do I subscribe?',
@@ -142,7 +146,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can I share Premium with my partner?',
-        a: 'Premium is intended to support the linked-couple premium experience. When one partner subscribes, the linked partner may receive shared premium access after entitlement sync completes. Linking itself is free.',
+        a: 'Yes. Premium is intended to support the linked-couple premium experience. When one partner subscribes, the linked partner can receive shared premium access after account linking and entitlement sync complete. Linking itself is free.',
       },
     ],
   },
@@ -256,7 +260,7 @@ export default function FAQScreen({ navigation }) {
         >
           {/* Editorial Header Block */}
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
-            <Text style={[styles.introDate, { color: colors.textMuted }]}>Updated April 24, 2026</Text>
+            <Text style={[styles.introDate, { color: colors.textMuted }]}>Updated April 29, 2026</Text>
             <Text style={[styles.introText, { color: colors.textMuted }]}>
               Explore how to make the most of your shared sanctuary. If you need further guidance, our concierge team is available.
             </Text>

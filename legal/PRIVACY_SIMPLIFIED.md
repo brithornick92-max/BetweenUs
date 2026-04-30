@@ -1,6 +1,6 @@
 # Privacy in Plain English
 
-**Last Updated: April 24, 2026**
+**Last Updated: April 29, 2026**
 
 Your privacy matters. This is the short version of how Between Us handles data. The full Privacy Policy controls if anything here conflicts with it.
 
@@ -10,7 +10,7 @@ Your privacy matters. This is the short version of how Between Us handles data. 
 
 ### Core synced content
 
-Journal entries, prompt answers, memories, check-ins, vibes, calendar events, date plans, and media attachments may sync through Supabase so the app can work across linked partners and devices.
+Journal entries, prompt answers, memories, check-ins, vibes, calendar events, date plans, tried/favorite intimacy positions, and media attachments may sync through Supabase so the app can work across linked partners and devices.
 
 Core synced content is protected by:
 
@@ -43,9 +43,9 @@ Face ID and Touch ID are handled by your device. We do not collect biometric tem
 
 ## What We Collect
 
-- Email address and account identifiers
+- Email address, account identifiers, RevenueCat app user ID, and subscription entitlement status
 - Partner names, display names, and optional relationship start date
-- Journals, prompt answers, memories, check-ins, vibes, calendar/date content, and media you choose to add
+- Journals, prompt answers, memories, check-ins, vibes, calendar/date content, intimacy tried/favorite state, and media you choose to add
 - Preferences such as heat level, energy level, relationship climate, tone, and soft boundaries
 - Limited analytics, usage counts, crash reports, performance data, session replay samples, and support messages
 - Push tokens if you enable notifications

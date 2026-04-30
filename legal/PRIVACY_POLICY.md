@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last Updated: April 24, 2026**
+**Last Updated: April 29, 2026**
 
 At Between Us, your privacy matters. This Privacy Policy explains what we collect, how we use it, how we protect it, and the choices you have when you use the Between Us mobile app and related services.
 
@@ -27,6 +27,8 @@ We believe relationship content should be handled carefully. That's why we:
 **Account information**
 
 - Email address
+- Supabase account user ID
+- RevenueCat app user ID, subscription status, and entitlement status
 - Display name
 - Partner names or nicknames
 - Relationship start date, if you add one
@@ -38,6 +40,7 @@ We believe relationship content should be handled carefully. That's why we:
 - Shared memories and milestones
 - Check-ins, vibes, and moment signals
 - Date plans, calendar events, titles, dates, optional locations, and notes
+- Tried/favorite intimacy positions, rituals, love notes, and similar relationship content
 - Optional media attachments that you choose to add to journals or memories
 - Heat level, energy level, relationship climate, tone, and content preferences
 - Soft boundary settings, hidden categories, and paused content
@@ -57,15 +60,15 @@ We believe relationship content should be handled carefully. That's why we:
 
 - Screen views, paywall events, feature usage, export events, and similar product interaction events
 - Daily usage counts used to enforce free-tier limits
-- Crash reports, performance traces, error logs, limited Sentry session replays, and optional user feedback
+- Crash reports, performance traces, error logs, limited Sentry session replays, and optional user feedback. Session replays are configured for diagnostics, but may process on-screen app interaction data.
 - Notification delivery records and push tokens if notifications are enabled
 
 ### 1.3 Device Permissions
 
 We request device permissions only when needed:
 
-- **Camera:** QR code scanning for partner linking and optional photo capture where the app offers it
-- **Photo Library:** Choosing media attachments and, on Android, saving certain exported snapshot images when you request it
+- **Camera:** Optional photo or video capture where the app offers it and you choose to use it
+- **Photo Library:** Choosing media attachments for supported features and, on Android, saving certain exported snapshot images when you request it
 - **Microphone:** Recording a voice note only if a build exposes that feature and you choose to use it
 - **Notifications:** Sending reminders, partner activity alerts, weekly recaps, milestone celebrations, and other app notifications if enabled
 - **Face ID / Touch ID:** Optional app lock. Biometric matching is handled by your device. Between Us receives only a success/failure result and does not collect, store, or transmit biometric templates
@@ -79,7 +82,7 @@ We do not intentionally collect:
 - Biometric templates
 - Credit card numbers or payment credentials
 - Advertising identifiers for cross-app tracking
-- Your sexual orientation as an account field
+- Your sexual orientation as an account field, except to the extent you voluntarily include sensitive information in content you create
 
 Payments are handled by Apple and RevenueCat. We receive subscription status and entitlement information, not your full payment details.
 
@@ -222,7 +225,7 @@ Account deletion removes active account data, profile records, your couple membe
 ## 6. Data Retention
 
 - We retain account data while your account is active
-- We retain relationship content until you delete it, unlink where the shared couple space is dissolved, or delete your account
+- We retain relationship content until you delete it, delete your account, or a cleanup process applies to your couple space
 - We retain analytics, diagnostics, notification logs, rate-limit records, and security records for operational periods appropriate to their purpose
 - Deleted data is removed from active systems promptly where technically feasible
 - Backup copies may persist for a limited period before routine purge
@@ -300,4 +303,4 @@ For data requests, include the email address associated with your account and th
 
 **Your privacy matters to us. If you have questions or concerns, please reach out.**
 
-*Last Updated: April 24, 2026*
+*Last Updated: April 29, 2026*

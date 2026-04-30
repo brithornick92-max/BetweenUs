@@ -50,6 +50,7 @@ import {
   getRecentlyCompletedDateIds,
   removeDateSavedKeepsake,
 } from '../utils/dateHistory';
+import { trackFreeDateView } from '../utils/freeContentUsage';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
@@ -127,7 +128,7 @@ function getDeckFilterTone(type, option, isDark = true) {
 
 // ── Card stack with flip + swipe ─────────────────────────────────────────────────
 const CardStack = forwardRef(function CardStack(
-  { deck, deckIndex, colors, isDark, partnerName, onSwipeLeft, onSwipeRight, onPress, onLongPress },
+  { deck, deckIndex, colors, isDark, partnerName, onSwipeLeft, onSwipeRight, onPress, onLongPress, onReveal },
   ref,
 ) {
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
@@ -141,7 +142,7 @@ const CardStack = forwardRef(function CardStack(
   // Keep ref in sync during render (NOT in useEffect) so gesture handlers
   // always read the same deck/deckIndex that's currently displayed on screen.
   const deckRef = useRef({ deck, deckIndex, onSwipeLeft, onSwipeRight, onPress, onLongPress });
-  deckRef.current = { deck, deckIndex, onSwipeLeft, onSwipeRight, onPress, onLongPress };
+  deckRef.current = { deck, deckIndex, onSwipeLeft, onSwipeRight, onPress, onLongPress, onReveal };
 
   // Reset flip + position when deck advances
   useEffect(() => {
@@ -174,6 +175,10 @@ const CardStack = forwardRef(function CardStack(
 
   const handleFlip = useCallback(() => {
     const target = isFlipped ? 0 : 1;
+    const { deck: d, deckIndex: i, onReveal: revealHandler } = deckRef.current;
+    if (!isFlipped && d[i]) {
+      revealHandler?.(d[i]);
+    }
     flipProgress.value = withTiming(target, {
       duration: FLIP_DURATION,
       easing: Easing.bezier(0.33, 1, 0.68, 1),
@@ -434,6 +439,7 @@ export default function DateNightScreen({ navigation }) {
 
   const stackRef = useRef(null);
   const shortlistBusyRef = useRef(new Set());
+  const viewedDateIdsRef = useRef(new Set());
   const [deckVersion, setDeckVersion] = useState(0);
   const emptyShuffleAnim = useSharedValue(0);
 
@@ -622,6 +628,29 @@ export default function DateNightScreen({ navigation }) {
   const handleSwipeLeft = useCallback(() => {
     setDeckIndex(prev => prev + 1);
   }, []);
+
+  const handleDateReveal = useCallback(async (date) => {
+    if (isPremium || !date?.id || date?.isLockedPreview || date?.requiresPremium) return;
+    if (viewedDateIdsRef.current.has(date.id)) return;
+
+    viewedDateIdsRef.current.add(date.id);
+
+    try {
+      const result = await trackFreeDateView({
+        userId,
+        isPremium,
+        date,
+      });
+
+      if (result?.allowed === false) {
+        viewedDateIdsRef.current.delete(date.id);
+        showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
+      }
+    } catch (error) {
+      viewedDateIdsRef.current.delete(date.id);
+      if (__DEV__) console.warn('[DateNight] Failed to track free date view:', error?.message);
+    }
+  }, [isPremium, showPaywall, userId]);
 
   const openDate = useCallback((date) => {
     if (date?.isLockedPreview || date?.requiresPremium) {
@@ -867,6 +896,7 @@ export default function DateNightScreen({ navigation }) {
                 onSwipeLeft={handleSwipeLeft}
                 onPress={openDate}
                 onLongPress={handlePauseDate}
+                onReveal={handleDateReveal}
               />
             </>
           )}
