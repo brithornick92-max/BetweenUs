@@ -37,7 +37,12 @@ const SPRING_CONFIG = { damping: 20, stiffness: 150, mass: 1 };
 const FLIP_DURATION = 600;
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
+const SERIF_FONT = Platform.select({
+  ios: "DMSerifDisplay-Regular",
+  android: "DMSerifDisplay_400Regular",
+  default: "serif",
+});
+const PROMPT_FONT = SYSTEM_FONT;
 
 // Core: Almost white tint. Bloom: Pink-to-red heat progression.
 const HEAT_NEON = {
@@ -96,7 +101,11 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   const catIcon = HEAT_ICONS[heat] || "heart-outline";
   const heatLabel = HEAT_LABELS[heat] || HEAT_LABELS[1];
   const metal = isDark ? (HEAT_METAL[heat] || HEAT_METAL[1]) : (HEAT_PEARL[heat] || HEAT_PEARL[1]);
+  const frontSurface = metal.base;
   const promptTextColor = isDark ? "#FFFFFF" : (metal.text || "#1C1C1E");
+  const promptLength = item?.text?.length || 0;
+  const promptFontSize = promptLength > 180 ? 20 : promptLength > 120 ? 23 : 27;
+  const promptLineHeight = promptLength > 180 ? 30 : promptLength > 120 ? 34 : 39;
 
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
 
@@ -261,7 +270,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
 
         {/* FRONT FACE (The Prompt) */}
         <Animated.View style={[styles.card, frontStyle, { borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }]}>
-          <View style={[styles.cardFront, { backgroundColor: metal.base[0] }]}>
+          <View style={[styles.cardFront, { backgroundColor: frontSurface[0] }]}>
 
             {/* Metallic Shimmer Band */}
             <Animated.View style={[styles.shimmerBand, shimmerBandStyle, shimmerAnimatedStyle]} pointerEvents="none">
@@ -269,7 +278,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
             </Animated.View>
 
             {/* Front Band */}
-            <LinearGradient colors={isDark ? ["#111", "#000"] : [metal.base[0], metal.base[1]]} style={styles.frontBand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            <LinearGradient colors={frontSurface} style={styles.frontBand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
               <View style={styles.frontBandLeft}>
                 <Text style={[styles.frontBandLabel, { color: isDark ? neon.core : neon.bloom, textShadowColor: neon.bloom, textShadowRadius: isDark ? 10 : 4 }]}>{heat}</Text>
               </View>
@@ -280,7 +289,13 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
 
             <View style={styles.frontBody}>
               <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }} showsVerticalScrollIndicator={false}>
-                <Text style={[styles.frontPromptText, { color: promptTextColor, fontSize: (item?.text?.length || 0) > 180 ? 20 : (item?.text?.length || 0) > 120 ? 24 : 28 }]}>
+                <Text style={[styles.frontPromptText, {
+                  color: promptTextColor,
+                  fontSize: promptFontSize,
+                  lineHeight: promptLineHeight,
+                  textShadowColor: isDark ? "rgba(255,255,255,0.18)" : "transparent",
+                  textShadowRadius: isDark ? 12 : 0,
+                }]}>
                   {item?.text || "Something beautiful awaits\u2026"}
                 </Text>
               </ScrollView>
@@ -453,7 +468,13 @@ const styles = StyleSheet.create({
   frontBandLabel: { fontFamily: SERIF_FONT, fontSize: 32, lineHeight: 36 },
   chromeDivider: { height: 1, marginHorizontal: 20, opacity: 0.5 },
   frontBody: { flex: 1, minHeight: 0, justifyContent: "center", paddingHorizontal: 28, paddingVertical: 24 },
-  frontPromptText: { fontFamily: SERIF_FONT, lineHeight: 36, fontWeight: "400", textAlign: "center" },
+  frontPromptText: {
+    fontFamily: PROMPT_FONT,
+    fontWeight: "500",
+    letterSpacing: 0,
+    textAlign: "center",
+    textShadowOffset: { width: 0, height: 0 },
+  },
   frontFooter: { flexShrink: 0, paddingHorizontal: 20, paddingBottom: 24, paddingTop: 16 },
   footerBlur: { height: 48, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   footerAction: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },

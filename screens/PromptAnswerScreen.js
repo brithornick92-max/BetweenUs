@@ -47,7 +47,6 @@ import {
 } from "../utils/freePromptAnswerQuota";
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 const MAX_LEN = 1000;
 
 // ─── Editorial Heat Mapping (Integrated Velvet Glass) ─────────────────────
@@ -440,9 +439,11 @@ const createStyles = (t, isDark) =>
       textTransform: "uppercase",
     },
     promptText: {
-      fontFamily: SERIF_FONT,
-      fontSize: 24,
+      fontFamily: SYSTEM_FONT,
+      fontSize: 23,
+      fontWeight: "500",
       lineHeight: 34,
+      letterSpacing: 0,
       textAlign: "left",
     },
     inputWrapper: {
