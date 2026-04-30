@@ -410,7 +410,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
           </Text>
           <Text style={[styles.statusSubtitle, { color: t.subtext }]}>
             {status?.subtitle || (partnerOnScreen
-              ? `${partnerLabel} is viewing this right now — pulses arrive instantly.`
+              ? `${partnerLabel} is viewing this right now — pulses arrive quickly when connected.`
               : isTogetherNow
               ? 'Your partner is active right now, so realtime and push can both carry it.'
               : 'The app writes a heartbeat signal and sends a push when the connection path is available.')}

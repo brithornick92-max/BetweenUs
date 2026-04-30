@@ -1,7 +1,6 @@
 /**
  * PromptAnswerScreen — Full Editorial Implementation
- * Sexy Red Intimacy & Apple Editorial Updates Integrated.
- * Velvet Glass · Hand-drawn reflection · Physics-based Card-flip
+ * Velvet Glass · hand-drawn reflection · shared editorial scaffold.
  */
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
@@ -9,56 +8,40 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
   Platform,
   Alert,
   TouchableOpacity,
   TextInput,
-  Dimensions,
-  StatusBar,
   ActivityIndicator,
   Keyboard,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from '../components/Icon';
-import GlowOrb from '../components/GlowOrb';
-import FilmGrain from '../components/FilmGrain';
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import CloseScreenHeader from '../components/CloseScreenHeader';
+import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import {
   impact,
   notification,
-  selection,
   ImpactFeedbackStyle,
   NotificationFeedbackType,
 } from "../utils/haptics";
 import Animated, {
-  FadeIn,
   FadeInDown,
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
   withSpring,
-  Easing,
-  interpolate,
 } from "react-native-reanimated";
-import { useAppContext } from "../context/AppContext";
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useContent } from "../context/ContentContext";
 import { useAuth } from "../context/AuthContext";
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { PremiumFeature } from '../utils/featureFlags';
-import { promptStorage } from "../utils/storage";
+import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import * as PreferenceEngine from "../services/PreferenceEngine";
 import { getPromptById } from "../utils/contentLoader";
-import { getPartnerDisplayName } from "../utils/profileNames";
 import { SPACING, withAlpha } from "../utils/theme";
 
-const { width: SCREEN_W } = Dimensions.get("window");
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 const MAX_LEN = 1000;
@@ -86,18 +69,8 @@ const HEAT_LABELS = {
   5: "Explicit",
 };
 
-const INSPIRATION_CHIPS = [
-  "I remember when...",
-  "I appreciate that you...",
-  "I dream of...",
-  "It makes me smile when...",
-  "I feel safest when...",
-  "One thing I've learned...",
-];
-
 export default function PromptAnswerScreen({ route, navigation }) {
   const { prompt: routePrompt, promptId, mode, freeUsageAlreadyTracked = false } = route.params || {};
-  const { state } = useAppContext();
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
@@ -110,7 +83,6 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const lastHapticLength = useRef(0);
 
   // Card Physics
-  const flipProgress = useSharedValue(0);
   const dealY = useSharedValue(-60);
   const dealScale = useSharedValue(0.92);
   const dealOpacity = useSharedValue(0);
@@ -119,6 +91,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const t = useMemo(() => isDark ? {
     background: colors.background,
     surface: colors.surface || '#1C1C1E',
+    surface2: colors.surface2 || '#2C2C2E',
+    surfaceGlass: colors.surfaceGlass || 'rgba(28,28,30,0.70)',
     primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
     text: colors.text,
     subtext: colors.textMuted || 'rgba(255,255,255,0.4)',
@@ -126,7 +100,9 @@ export default function PromptAnswerScreen({ route, navigation }) {
   } : {
     background: colors.background,
     surface: colors.surface || '#FFFFFF',
-    surfaceSecondary: colors.surfaceSecondary || 'rgba(242, 242, 247, 0.78)',
+    surface2: colors.surface2 || '#E5E5EA',
+    surfaceGlass: colors.surfaceGlass || 'rgba(255,255,255,0.80)',
+    surfaceSecondary: colors.surfaceSecondary || colors.surface2 || 'rgba(242, 242, 247, 0.78)',
     primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
     text: colors.text,
     subtext: colors.textMuted || 'rgba(0,0,0,0.4)',
@@ -137,61 +113,24 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const catGradient = HEAT_COLORS[heat] || HEAT_COLORS[1];
   const catIcon = HEAT_ICONS[heat] || "heart-outline";
   const catLabel = HEAT_LABELS[heat] || "Emotional";
-  const hasLinkedPartner = !!state?.coupleId;
-  const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const isEditingAnswer = mode === 'edit' || !!existingAnswer;
-  const helperCopy = hasLinkedPartner || isEditingAnswer
-    ? ""
-    : `Ask ${partnerLabel} to answer too.`;
-  const privacyCopy = hasLinkedPartner || isEditingAnswer
-    ? `Waiting for ${partnerLabel}…`
-    : `Ask ${partnerLabel} to answer too.`;
-  const headerTitle = isEditingAnswer ? "Edit Answer" : "Your Answer";
+  const headerTitle = isEditingAnswer ? "Edit" : "Answer";
   const canSave = answer.trim().length > 0 && !isSaving;
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
   // Deal-in + flip on mount
   useEffect(() => {
-    dealOpacity.value = withTiming(1, { duration: 500 });
+    dealOpacity.value = withSpring(1, { damping: 18, stiffness: 110 });
     dealY.value = withSpring(0, { damping: 15, stiffness: 100 });
     dealScale.value = withSpring(1, { damping: 15, stiffness: 100 });
-
-    // Auto-reveal flip
-    const flipTimer = setTimeout(() => {
-      flipProgress.value = withTiming(1, {
-        duration: 700,
-        easing: Easing.bezier(0.33, 1, 0.68, 1),
-      });
-      impact(ImpactFeedbackStyle.Medium);
-    }, 600);
-    return () => clearTimeout(flipTimer);
-  }, [dealOpacity, dealScale, dealY, flipProgress]);
+    impact(ImpactFeedbackStyle.Light);
+  }, [dealOpacity, dealScale, dealY]);
 
   const dealStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: dealY.value }, { scale: dealScale.value }],
     opacity: dealOpacity.value,
   }));
-
-  // Back face (category gradient, face-down)
-  const backFaceStyle = useAnimatedStyle(() => {
-    const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [0, 90, 180]);
-    return {
-      transform: [{ perspective: 1200 }, { rotateY: `${rotateY}deg` }],
-      backfaceVisibility: "hidden",
-      opacity: flipProgress.value < 0.5 ? 1 : 0,
-    };
-  });
-
-  // Front face (prompt text, face-up)
-  const frontFaceStyle = useAnimatedStyle(() => {
-    const rotateY = interpolate(flipProgress.value, [0, 0.5, 1], [180, 90, 0]);
-    return {
-      transform: [{ perspective: 1200 }, { rotateY: `${rotateY}deg` }],
-      backfaceVisibility: "hidden",
-      opacity: flipProgress.value > 0.5 ? 1 : 0,
-    };
-  });
 
   useEffect(() => {
     let active = true;
@@ -291,13 +230,18 @@ export default function PromptAnswerScreen({ route, navigation }) {
     setIsSaving(true);
     try {
       Keyboard.dismiss();
-      await DataLayer.savePromptAnswer({
-        promptId: prompt.id,
-        answer: finalText,
-        heatLevel: prompt?.heat || 1,
-      });
 
-      // Cache after the authoritative write path accepts the change.
+      try {
+        await DataLayer.savePromptAnswer({
+          promptId: prompt.id,
+          answer: finalText,
+          heatLevel: prompt?.heat || 1,
+        });
+      } catch (dataLayerError) {
+        if (__DEV__) console.warn('[PromptAnswer] DataLayer prompt save failed:', dataLayerError?.message);
+      }
+
+      // Keep a local answer even when the shared cloud row cannot be written yet.
       if (prompt?.dateKey) {
         await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
           answer: finalText,
@@ -306,9 +250,15 @@ export default function PromptAnswerScreen({ route, navigation }) {
         });
       }
 
+      await savedPromptStorage.remove(prompt.id);
+
       if (!isPremium && isFirstResponse && user?.uid && !freeUsageAlreadyTracked) {
-        await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt?.heat || 1);
-        await loadUsageStatus?.();
+        try {
+          await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt?.heat || 1);
+          await loadUsageStatus?.();
+        } catch (usageError) {
+          if (__DEV__) console.warn('[PromptAnswer] Prompt usage tracking failed:', usageError?.message);
+        }
       }
       notification(NotificationFeedbackType.Success);
 
@@ -323,199 +273,86 @@ export default function PromptAnswerScreen({ route, navigation }) {
   if (!prompt) return null;
 
   return (
-    <View style={[styles.container, { backgroundColor: t.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
-      <LinearGradient
-        colors={isDark
-          ? [t.background, withAlpha(catGradient[1], 0.28), '#0A0003', t.background]
-          : [t.background, withAlpha(catGradient[0], 0.08), t.background]}
-        style={StyleSheet.absoluteFillObject}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-      <GlowOrb
-        color={t.primary}
-        size={400}
-        top={-160}
-        left={SCREEN_W - 200}
-        opacity={isDark ? 0.16 : 0.07}
-      />
-      <FilmGrain opacity={isDark ? 0.08 : 0.04} />
-
-      <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
-        <CloseScreenHeader
-          title={headerTitle}
-          subtitle="TODAY BETWEEN US"
-          titleColor={t.text}
-          subtitleColor={t.primary}
-          closeColor={t.text}
-          onClose={() => navigation.goBack()}
-          rightAccessory={(
-            <TouchableOpacity
-              onPress={handleSave}
-              disabled={!canSave}
-              style={[
-                styles.headerSaveButton,
-                {
-                  backgroundColor: canSave ? withAlpha(t.primary, 0.15) : 'transparent',
-                  borderColor: canSave ? withAlpha(t.primary, 0.3) : 'transparent',
-                },
-              ]}
-            >
-              {isSaving ? (
-                <ActivityIndicator size="small" color={t.primary} />
-              ) : (
-                <Text style={[styles.headerSaveButtonText, { color: canSave ? t.primary : t.subtext }]}>
-                  {isEditingAnswer ? 'Update' : 'Save'}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
-        />
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
+    <EditorialScreenScaffold
+      navigation={navigation}
+      headerTitle={headerTitle}
+      keyboardAvoiding
+      contentContainerStyle={styles.scrollContent}
+      headerRight={(
+        <TouchableOpacity
+          onPress={handleSave}
+          disabled={!canSave}
+          style={[
+            styles.headerSaveButton,
+            {
+              backgroundColor: canSave ? withAlpha(t.primary, 0.12) : 'transparent',
+              borderColor: canSave ? withAlpha(t.primary, 0.28) : t.border,
+            },
+          ]}
+          activeOpacity={0.75}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
+          {isSaving ? (
+            <ActivityIndicator size="small" color={t.primary} />
+          ) : (
+            <Text style={[styles.headerSaveButtonText, { color: canSave ? t.primary : t.subtext }]}>
+              {isEditingAnswer ? 'Update' : 'Save'}
+            </Text>
+          )}
+        </TouchableOpacity>
+      )}
+    >
+      <Animated.View entering={FadeInDown.delay(50).springify().damping(18)}>
+        <Animated.View style={[styles.promptCard, dealStyle]}>
+          <LinearGradient
+            colors={isDark
+              ? [withAlpha(catGradient[1], 0.35), t.surfaceGlass, t.surface]
+              : [withAlpha(catGradient[0], 0.12), t.surfaceGlass, t.surface]}
+            style={[styles.promptCardInner, { borderColor: t.border }]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            {/* Flipping Prompt Card — high-end editorial physics */}
-            <Animated.View entering={FadeInDown.delay(50).springify().damping(18)} style={[styles.glassCardContainer, dealStyle]}>
-              {/* BACK FACE — category brand identity */}
-              <Animated.View style={[styles.cardFace, backFaceStyle]}>
-                <LinearGradient
-                  colors={catGradient}
-                  style={styles.cardBackGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <View style={styles.cardBackPattern}>
-                    <View style={styles.cardBackPatternInner}>
-                      <Icon name={catIcon} size={36} color="rgba(255,255,255,0.25)" />
-                    </View>
-                  </View>
-                  <View style={styles.cardBackPill}>
-                    <Icon name={catIcon} size={14} color="rgba(255,255,255,0.9)" />
-                    <Text style={styles.cardBackPillText}>
-                      {prompt?.category?.toUpperCase() || catLabel.toUpperCase()}
-                    </Text>
-                  </View>
-
-                  <Icon name="sparkles-outline" size={14} color="rgba(255,255,255,0.45)" style={[styles.cornerMark, { top: 20, left: 20 }]} />
-                  <Icon name="sparkles-outline" size={14} color="rgba(255,255,255,0.45)" style={[styles.cornerMark, { top: 20, right: 20 }]} />
-                  <Icon name="sparkles-outline" size={14} color="rgba(255,255,255,0.45)" style={[styles.cornerMark, { bottom: 20, left: 20 }]} />
-                  <Icon name="sparkles-outline" size={14} color="rgba(255,255,255,0.45)" style={[styles.cornerMark, { bottom: 20, right: 20 }]} />
-                </LinearGradient>
-              </Animated.View>
-
-              {/* FRONT FACE — Velvet glass prompt reveal */}
-              <Animated.View style={[styles.cardFace, frontFaceStyle]}>
-                <BlurView
-                  intensity={30}
-                  tint={isDark ? "dark" : "light"}
-                  style={[styles.blurCard, { borderColor: t.border }]}
-                >
-                  <LinearGradient
-                    colors={catGradient}
-                    style={styles.cardFrontBand}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                  >
-                    <Icon name={catIcon} size={14} color="rgba(255,255,255,0.9)" />
-                    <Text style={styles.cardFrontBandText}>{catLabel}</Text>
-                  </LinearGradient>
-
-                  <View style={styles.promptContent}>
-                    <Text style={[styles.promptText, { color: t.text }]}>{prompt?.text}</Text>
-                  </View>
-                </BlurView>
-              </Animated.View>
-            </Animated.View>
-
-            {helperCopy ? (
-              <Text style={[styles.toneLead, { color: t.subtext }]}>{helperCopy}</Text>
-            ) : null}
-
-            {/* Starting Lines / Inspiration Chips */}
-            {!isEditingAnswer ? (
-              <View style={styles.chipsContainer}>
-                <Text style={[styles.sectionLabel, { color: t.subtext }]}>Need a starting line?</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.chipsScroll}
-                >
-                  {INSPIRATION_CHIPS.map((chip, idx) => (
-                    <TouchableOpacity
-                      key={idx}
-                      style={[styles.chip, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}
-                      onPress={() => {
-                        selection();
-                        setAnswer(prev => prev + (prev.length > 0 ? ' ' : '') + chip);
-                      }}
-                    >
-                      <Text style={[styles.chipText, { color: t.text }]}>{chip}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+            <View style={styles.promptMetaRow}>
+              <View style={[styles.promptIconWrap, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+                <Icon name={catIcon} size={18} color={t.primary} />
               </View>
+              <Text style={[styles.promptEyebrow, { color: t.primary }]}>{catLabel}</Text>
+            </View>
+
+            <Text style={[styles.promptText, { color: t.text }]}>{prompt?.text}</Text>
+          </LinearGradient>
+        </Animated.View>
+      </Animated.View>
+
+      {/* Shared Reflection Input */}
+      <Animated.View
+        entering={FadeInDown.delay(80).springify().damping(18)}
+        style={styles.inputWrapper}
+      >
+        <View style={[styles.inputSurface, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
+          <View style={styles.charCountRow}>
+            <Text style={[styles.inputLabel, { color: t.primary }]}>ANSWER</Text>
+            {answer.length > 0 ? (
+              <Text style={[styles.charCount, { color: answer.length >= MAX_LEN ? t.primary : withAlpha(t.subtext, 0.7) }]}>
+                {answer.length}/{MAX_LEN}
+              </Text>
             ) : null}
+          </View>
 
-            {/* Shared Reflection Input */}
-            <Animated.View
-              entering={FadeInDown.delay(80).springify().damping(18)}
-              style={styles.inputWrapper}
-            >
-              <BlurView
-                intensity={isDark ? 45 : 25}
-                tint={isDark ? 'dark' : 'light'}
-                style={[styles.inputBlur, { backgroundColor: t.surface, borderColor: t.border }]}
-              >
-                <View style={styles.charCountRow}>
-                  <Text style={[styles.inputLabel, { color: t.primary }]}>YOUR ANSWER</Text>
-                  <Text style={[styles.charCount, { color: answer.length >= MAX_LEN ? t.primary : withAlpha(t.subtext, 0.7) }]}>
-                    {answer.length}/{MAX_LEN}
-                  </Text>
-                </View>
-
-                <TextInput
-                  value={answer}
-                  onChangeText={handleTextChange}
-                  placeholder="Leave them one small piece of your heart..."
-                  placeholderTextColor={withAlpha(t.text, 0.35)}
-                  multiline
-                  autoFocus
-                  selectionColor={t.primary}
-                  style={[styles.textInput, { color: t.text }]}
-                  maxLength={MAX_LEN}
-                  textAlignVertical="top"
-                />
-              </BlurView>
-            </Animated.View>
-
-            {/* Footer & Privacy Guarantee */}
-            <Animated.View
-              entering={FadeIn.duration(600).delay(180)}
-              style={styles.footer}
-            >
-              {!isEditingAnswer ? (
-                <View style={styles.privacyHint}>
-                  <Icon name="lock-closed-outline" size={14} color={t.subtext} />
-                  <Text style={[styles.privacyText, { color: t.subtext }]}>
-                    {privacyCopy}
-                  </Text>
-                </View>
-              ) : null}
-
-              <View style={styles.footerSpacer} />
-            </Animated.View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+          <TextInput
+            value={answer}
+            onChangeText={handleTextChange}
+            placeholder="Write your answer..."
+            placeholderTextColor={withAlpha(t.text, 0.35)}
+            multiline
+            autoFocus
+            selectionColor={t.primary}
+            style={[styles.textInput, { color: t.text }]}
+            maxLength={MAX_LEN}
+            textAlignVertical="top"
+          />
+        </View>
+      </Animated.View>
+    </EditorialScreenScaffold>
   );
 }
 
@@ -531,10 +368,6 @@ const getShadow = (isDark) => Platform.select({
 
 const createStyles = (t, isDark) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: t.background,
-    },
     headerSaveButton: {
       borderRadius: 999,
       paddingHorizontal: 16,
@@ -551,141 +384,55 @@ const createStyles = (t, isDark) =>
     },
     scrollContent: {
       paddingHorizontal: SPACING.screen,
-      paddingTop: SPACING.md,
+      paddingTop: 0,
       paddingBottom: 80,
-      gap: 20,
+      gap: 18,
     },
-    glassCardContainer: {
-      height: 245,
-      borderRadius: 28,
+    promptCard: {
+      borderRadius: 18,
       ...getShadow(isDark),
     },
-    cardFace: {
-      ...StyleSheet.absoluteFillObject,
-      borderRadius: 28,
-      overflow: "hidden",
-      backfaceVisibility: "hidden",
+    promptCardInner: {
+      borderRadius: 18,
+      borderWidth: StyleSheet.hairlineWidth,
+      padding: SPACING.lg,
+      overflow: 'hidden',
+      minHeight: 156,
     },
-    cardBackGradient: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      padding: SPACING.xl,
+    promptMetaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: SPACING.md,
     },
-    cardBackPattern: {
-      width: 90,
-      height: 90,
-      borderRadius: 45,
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.15)",
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: SPACING.lg,
+    promptIconWrap: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    cardBackPatternInner: {
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.1)",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    cardBackPill: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "rgba(255,255,255,0.12)",
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 100,
-      gap: 8,
-    },
-    cardBackPillText: {
+    promptEyebrow: {
       fontFamily: SYSTEM_FONT,
       fontWeight: "900",
       fontSize: 11,
-      color: "rgba(255,255,255,0.9)",
-      letterSpacing: 2,
-    },
-    cornerMark: {
-      position: "absolute",
-    },
-    cardFrontBand: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 20,
-      height: 44,
-      gap: 8,
-    },
-    cardFrontBandText: {
-      fontFamily: SYSTEM_FONT,
-      fontWeight: "800",
-      fontSize: 11,
-      color: "rgba(255,255,255,0.9)",
       letterSpacing: 1.5,
       textTransform: "uppercase",
-    },
-    blurCard: {
-      flex: 1,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderRadius: 28,
-      overflow: "hidden",
-    },
-    promptContent: {
-      alignItems: "center",
-      justifyContent: "center",
-      flex: 1,
-      paddingHorizontal: 20,
-      paddingVertical: SPACING.lg,
     },
     promptText: {
       fontFamily: SERIF_FONT,
-      fontSize: 22,
-      lineHeight: 30,
-      textAlign: "center",
-    },
-    toneLead: {
-      fontFamily: SYSTEM_FONT,
-      fontSize: 14,
-      lineHeight: 20,
-      textAlign: "center",
-      paddingHorizontal: 12,
-    },
-    // Inspiration Chips
-    chipsContainer: {
-      marginTop: -2,
-    },
-    sectionLabel: {
-      fontFamily: SYSTEM_FONT,
-      fontSize: 11,
-      fontWeight: "800",
-      letterSpacing: 1.5,
-      textTransform: "uppercase",
-      marginBottom: 16,
-    },
-    chipsScroll: {
-      gap: 10,
-      paddingRight: 40,
-    },
-    chip: {
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: 20,
-      borderWidth: 1,
-    },
-    chipText: {
-      fontFamily: SYSTEM_FONT,
-      fontSize: 14,
-      fontWeight: "600",
+      fontSize: 24,
+      lineHeight: 34,
+      textAlign: "left",
     },
     inputWrapper: {
-      borderRadius: 26,
+      borderRadius: 18,
       ...getShadow(isDark),
     },
-    inputBlur: {
-      borderRadius: 26,
+    inputSurface: {
+      borderRadius: 18,
       borderWidth: StyleSheet.hairlineWidth,
-      padding: SPACING.xl,
+      padding: SPACING.lg,
       overflow: 'hidden',
     },
     charCountRow: {
@@ -712,23 +459,5 @@ const createStyles = (t, isDark) =>
       textAlignVertical: "top",
       paddingTop: 0,
       minHeight: 150,
-    },
-    footer: {
-      marginTop: -4,
-    },
-    privacyHint: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: SPACING.lg,
-      gap: 8,
-    },
-    privacyText: {
-      fontSize: 12,
-      fontWeight: "600",
-      textAlign: "center",
-    },
-    footerSpacer: {
-      height: 24,
     },
   });

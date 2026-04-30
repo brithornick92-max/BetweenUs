@@ -368,7 +368,7 @@ export default function SoftBoundariesPanel({ onBoundaryChange }) {
       </View>
 
       <Text style={[styles.footer, { color: t.subtext }]}>
-        Settings are private to your device and never shared.
+        Boundary settings may sync to your profile so they can be restored on your devices.
       </Text>
     </Animated.View>
   );

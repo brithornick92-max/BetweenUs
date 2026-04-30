@@ -57,7 +57,7 @@
     },
     "anonymousUsage": {
       "originalSpec": "Don't store any personal preference data",
-      "reason": "App has no analytics/telemetry. No data sent externally. Would only prevent local preferences.",
+      "reason": "The app uses limited analytics, diagnostics, and synced profile preferences. This toggle would need a narrower product definition before implementation.",
       "recommendation": "remove from spec"
     }
   },

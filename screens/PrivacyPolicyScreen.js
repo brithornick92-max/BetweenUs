@@ -144,7 +144,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               • Contact lists{'\n'}
               • Photos or media (unless you explicitly attach them){'\n'}
               • Biometric data (authentication happens entirely within your device's secure hardware){'\n'}
-              • Financial information (handled by Apple)
+              • Credit card numbers or full payment credentials
             </Text>
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>

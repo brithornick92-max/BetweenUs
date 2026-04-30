@@ -46,7 +46,8 @@ import {
   shouldShowAnniversaryPopup,
 } from '../services/AnniversaryMomentService';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
-import { FALLBACK_PROMPT } from '../utils/contentLoader';
+import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
+import { canShowPartnerPromptQuote, choosePartnerPromptQuote } from '../utils/partnerPromptQuote';
 
 import { PromptCardSkeleton } from '../components/SkeletonLoader';
 import ConnectionMemory from '../utils/connectionMemory';
@@ -351,7 +352,10 @@ export default function HomeScreen({ navigation }) {
 
     (async () => {
       try {
-        const past = await DataLayer.getPromptAnswers({ limit: 50 });
+        const [past, shared] = await Promise.all([
+          DataLayer.getPromptAnswers({ limit: 200 }),
+          DataLayer.getSharedPromptAnswers?.({ limit: 500 }) || Promise.resolve([]),
+        ]);
         if (!active) return;
 
         const answered = (past || []).filter((r) =>
@@ -361,10 +365,32 @@ export default function HomeScreen({ navigation }) {
         );
         setAnsweredCount(answered.length);
 
-        if (answered.length > 0) {
-          const pick = answered[Math.floor(Math.random() * answered.length)];
-          setThrowback(pick);
+        const stats = await RelationshipMilestones._getStats().catch(() => null);
+        const canShowQuote = canShowPartnerPromptQuote({
+          answeredCount: answered.length,
+          firstOpenDate: stats?.firstOpenDate || null,
+        });
+
+        if (!canShowQuote) {
+          setThrowback(null);
+          return;
         }
+
+        const quote = choosePartnerPromptQuote(shared || [], {
+          relationshipStartDate: userProfile?.relationshipStartDate || state?.userProfile?.relationshipStartDate || null,
+        });
+
+        if (!quote) {
+          setThrowback(null);
+          return;
+        }
+
+        const quotePrompt = getPromptById(quote.prompt_id);
+
+        setThrowback({
+          ...quote,
+          promptText: quotePrompt?.text || 'A past moment together',
+        });
       } catch (e) {
         if (__DEV__) console.warn('[Home] throwback fetch:', e?.message);
       }
@@ -373,7 +399,7 @@ export default function HomeScreen({ navigation }) {
     return () => {
       active = false;
     };
-  }, [answeredCount]);
+  }, [state?.userProfile?.relationshipStartDate, userProfile?.relationshipStartDate]);
 
   useFocusEffect(
     useCallback(() => {
@@ -572,47 +598,35 @@ export default function HomeScreen({ navigation }) {
         }
       }
 
-      let savedOffline = false;
-
       try {
         await DataLayer.savePromptAnswer({
           promptId: prompt.id,
           answer: finalText,
           heatLevel: prompt.heat || 1,
         });
-
-        // Cache after the authoritative DataLayer path accepts the change.
-        await promptStorage.setAnswer(todayKey, prompt.id, {
-          answer: finalText,
-          timestamp: Date.now(),
-          isRevealed: false,
-        });
       } catch (dataLayerError) {
-        savedOffline = true;
         if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);
-
-        // Display/cache fallback only. SupabaseDataLayer has its own offline queue path
-        // when initialized, so this is just a last-resort local UI fallback.
-        await promptStorage.setAnswer(todayKey, prompt.id, {
-          answer: finalText,
-          timestamp: Date.now(),
-          isRevealed: false,
-        });
       }
 
+      await promptStorage.setAnswer(todayKey, prompt.id, {
+        answer: finalText,
+        timestamp: Date.now(),
+        isRevealed: false,
+      });
+
       if (!isPremium && !myAnswer) {
-        await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt.heat || 1);
-        await loadUsageStatus?.();
+        try {
+          await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt.heat || 1);
+          await loadUsageStatus?.();
+        } catch (usageError) {
+          if (__DEV__) console.warn('[Home] Prompt usage tracking failed:', usageError?.message);
+        }
       }
 
       notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
       setIsRevealed(false);
       setInlineText('');
-
-      if (savedOffline) {
-        Alert.alert('Saved locally', "Your answer will sync with your partner when you're back online.");
-      }
 
       if (!isPremium) {
         const hasPromptedShare = await storage.get(PROMPTED_PARTNER_SHARE_KEY, false);
@@ -1028,15 +1042,17 @@ export default function HomeScreen({ navigation }) {
           <View style={{ height: homeLayout.spacing.gap }} />
 
           {/* ── Memory Lane Throwback ── */}
-          {disclosure.memoryLane && throwback && (
+          {throwback && (
             <View style={styles.memoryLaneCard}>
               <View style={styles.memoryLaneHeader}>
                 <Icon name="time-outline" size={16} color={t.primary} />
-                <Text style={styles.memoryLaneLabel}>MEMORY LANE</Text>
+                <Text style={styles.memoryLaneLabel}>
+                  {throwback.isOnThisDay ? 'ON THIS DAY' : 'MEMORY LANE'}
+                </Text>
               </View>
 
               <Text style={styles.memoryLanePrompt}>
-                {throwback.prompt_text || 'A past moment together'}
+                {throwback.promptText || 'A past moment together'}
               </Text>
 
               <Text style={styles.memoryLaneAnswer}>
@@ -1045,11 +1061,11 @@ export default function HomeScreen({ navigation }) {
 
               <Text style={styles.memoryLaneDate}>
                 {throwback.date_key
-                  ? new Date(`${throwback.date_key}T00:00:00`).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
+                  ? `${throwback.isOnThisDay ? 'On this day, ' : ''}${partnerLabel} wrote · ${new Date(`${throwback.date_key}T00:00:00`).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}`
                   : ''}
               </Text>
             </View>

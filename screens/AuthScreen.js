@@ -429,7 +429,7 @@ export default function AuthScreen() {
             <View style={styles.securityBadge}>
               <Icon name="lock-closed" size={14} color={t.subtext} />
               <Text style={styles.securityText}>
-                End-to-end encrypted connection
+                Secure sign-in connection
               </Text>
             </View>
           </ScrollView>

@@ -14,7 +14,7 @@ For questions, feedback, or help with your account, email us anytime at **britta
 
 **Delete your account:** Open the app → Settings → Account → Delete Account. Active account data is removed according to the in-app deletion flow. Backup copies may persist for a limited period before routine purge.
 
-**Cancel your subscription:** iPhone Settings → Apple ID → Subscriptions → Between Us → Cancel. You keep premium access until the end of your billing period.
+**Cancel your subscription:** iPhone Settings → Apple ID → Subscriptions → Between Us → Cancel. Premium access generally continues until the end of your billing period unless the App Store indicates otherwise.
 
 ---
 
@@ -33,7 +33,7 @@ One partner generates an invite code or QR code in the app. The other scans or e
 Between Us protects synced content with account access controls, row-level security, secure transport, and provider-side policies. Core synced content is not currently end-to-end encrypted. We never sell your data or share it with advertisers.
 
 **How much does it cost?**
-Free version available. Premium: $7.99/month or $49.99/year. One subscription covers both partners.
+Free version available. Premium: $7.99/month or $49.99/year. One subscription can share premium access with your linked partner after entitlement sync completes.
  
 **How do I delete my account?**
 In the app: Settings → Account → Delete Account.
@@ -57,7 +57,7 @@ Your privacy matters. Between Us protects synced content with authentication, ro
 
 **Automatically Collected:** Device type and model, OS version, app version, device identifiers (for authentication), features used, error logs, and crash reports.
 
-**We Never Collect:** Sexual orientation, precise location, contact lists, photos (unless you explicitly share), biometric data, or financial information.
+**We Never Collect:** Sexual orientation, precise location, contact lists, photos unless you explicitly share them, biometric templates, or your credit card number.
 
 ### How We Use Your Information
 
@@ -134,7 +134,7 @@ You retain ownership of content you create. You grant us a limited license to ho
 **Premium Monthly:** $7.99/month
 **Premium Yearly:** $49.99/year
 
-Subscriptions are per couple — both partners get access. Payment is charged to your Apple ID. Monthly and yearly subscriptions auto-renew unless turned off at least 24 hours before the end of the current period. Manage subscriptions in your iPhone Settings → Apple ID → Subscriptions.
+One subscription can share premium access with your linked partner after entitlement sync completes. Payment is charged to your Apple ID. Monthly and yearly subscriptions auto-renew unless turned off at least 24 hours before the end of the current period. Manage subscriptions in your iPhone Settings → Apple ID → Subscriptions.
 
 ### Acceptable Use
 

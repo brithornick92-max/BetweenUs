@@ -142,7 +142,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Can I cancel anytime?',
-        a: 'Yes! Cancel anytime:\n\nGo to Settings > Apple ID > Subscriptions on your device, then tap Between Us to cancel.\n\nYour premium access continues until the end of your billing period.',
+        a: 'Yes. Cancel anytime:\n\nGo to Settings > Apple ID > Subscriptions on your device, then tap Between Us to cancel.\n\nYour premium access generally continues until the end of your billing period unless the App Store indicates otherwise.',
       },
       {
         q: 'Can I share Premium with my partner?',

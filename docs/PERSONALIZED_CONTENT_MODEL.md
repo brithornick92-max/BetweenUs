@@ -15,11 +15,11 @@ Between Us uses a **personalized content release calendar** where each user gets
 **Messaging:** "Welcome! Here's your starter pack to explore"
 
 #### **Week 1+ (Every 7 Days After Signup) - Ongoing Weekly Drops**
-- **5 new prompts** every week
+- **3 new prompts** every week
 - **5 new dates** every week  
 - **1 new position** every week
 
-**Messaging:** "Fresh content unlocked! 5 new [prompts/dates] just for you"
+**Messaging:** "Fresh content unlocked! New prompts and dates just for you"
 
 ### Premium Users
 
@@ -112,7 +112,7 @@ Explore and see what resonates with you two.
 ### Week 1 (7 days later)
 ```
 ✨ Fresh content unlocked!
-• 5 new prompts
+• 3 new prompts
 • 5 new dates
 • 1 new position
 
@@ -122,7 +122,7 @@ Your next refresh: 7 days
 ### Week 2+
 ```
 🎁 Your weekly refresh
-• 5 new prompts
+• 3 new prompts
 • 5 new dates
 • 1 new position
 ```
@@ -198,8 +198,8 @@ const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
     premium: 10,          // Premium weekly drops
     freeWelcomePack: 10,  // Free week 0
-    freeOngoing: 5,       // Free week 1+
-    freeLockedPreview: 5, // Locked teasers shown
+    freeOngoing: 3,       // Free week 1+
+    freeLockedPreview: 2, // Locked prompt teasers shown
   },
   // ... similar for DATES and POSITIONS
 };
@@ -210,7 +210,7 @@ const WEEKLY_LIMITS = {
 ## Future Enhancements
 
 ### Potential additions:
-1. **"Next drop" countdown** - "5 new prompts in 3 days"
+1. **"Next drop" countdown** - "3 new prompts in 3 days"
 2. **Custom drop day** - Let users choose their refresh day (Mon/Wed/Fri/Sun)
 3. **Anniversary bonuses** - Extra content on relationship milestones
 4. **Seasonal events** - Valentine's, holidays override regular schedule

@@ -186,7 +186,7 @@ const ExportDataScreen = ({ navigation }) => {
 
         Alert.alert(
           'Export Successful',
-          'Your digital history has been securely exported. The temporary file has been removed from this device.',
+          'Your export was created and shared. The temporary file has been removed from this device.',
           [{ text: 'OK' }]
         );
       } else {
@@ -219,7 +219,7 @@ const ExportDataScreen = ({ navigation }) => {
       headerTitle="Data Portability"
       heroIcon="download-outline"
       heroTitle="Export Your Story"
-      heroSubtitle="Download a complete archive of your shared moments and personal reflections."
+      heroSubtitle="Download an archive of supported shared moments and personal reflections."
     >
         {/* Archive Contents */}
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>

@@ -32,6 +32,7 @@ import { SPACING, withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import * as PreferenceEngine from '../services/PreferenceEngine';
+import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { useAuth } from '../context/AuthContext';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import DateCardFront from '../components/DateCardFront';
@@ -136,6 +137,7 @@ const CardStack = forwardRef(function CardStack(
   const topY = useSharedValue(0);
   const flipProgress = useSharedValue(0);
   const shuffleAnim = useSharedValue(0);
+  const shuffleProgress = useSharedValue(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [rawBoundaries, setRawBoundaries] = useState(null);
 
@@ -206,6 +208,10 @@ const CardStack = forwardRef(function CardStack(
       topX.value = withTiming(-(width + 150), { duration: 400 }, () => runOnJS(doSwipeLeft)());
     },
     shuffle: () => {
+      shuffleProgress.value = 0;
+      shuffleProgress.value = withTiming(1, { duration: 520, easing: Easing.out(Easing.cubic) }, (finished) => {
+        if (finished) shuffleProgress.value = 0;
+      });
       shuffleAnim.value = withSequence(
         withTiming(1, { duration: 120 }),
         withTiming(-1, { duration: 120 }),
@@ -213,7 +219,7 @@ const CardStack = forwardRef(function CardStack(
         withTiming(0, { duration: 120 })
       );
     }
-  }), [doSwipeRight, doSwipeLeft]);
+  }), [doSwipeRight, doSwipeLeft, shuffleAnim, shuffleProgress, topX]);
 
   // Pan gesture (only when flipped to front)
   // activeOffsetX prevents conflict with parent ScrollView's vertical scroll
@@ -258,12 +264,17 @@ const CardStack = forwardRef(function CardStack(
     const rotate = interpolate(topX.value, [-width, 0, width], [-15, 0, 15]);
     const shuffleX = interpolate(shuffleAnim.value, [-1, 0, 1], [-25, 0, 25]);
     const shuffleRotate = interpolate(shuffleAnim.value, [-1, 0, 1], [-8, 0, 8]);
+    const deckShuffleX = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, 64, -20, 0]);
+    const deckShuffleY = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, -10, 12, 0]);
+    const deckShuffleRotate = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, 7, -4, 0]);
+    const deckShuffleScale = interpolate(shuffleProgress.value, [0, 0.35, 1], [1, 1.015, 1]);
 
     return {
       transform: [
-        { translateX: topX.value + shuffleX },
-        { translateY: topY.value },
-        { rotate: rotate + shuffleRotate + 'deg' },
+        { translateX: topX.value + shuffleX + deckShuffleX },
+        { translateY: topY.value + deckShuffleY },
+        { rotate: rotate + shuffleRotate + deckShuffleRotate + 'deg' },
+        { scale: deckShuffleScale },
       ],
     };
   });
@@ -273,14 +284,36 @@ const CardStack = forwardRef(function CardStack(
     const p = Math.min(Math.abs(topX.value) / SWIPE_THRESHOLD, 1);
     const shuffleX = interpolate(shuffleAnim.value, [-1, 0, 1], [25, 0, -25]);
     const shuffleRotate = interpolate(shuffleAnim.value, [-1, 0, 1], [8, 0, -8]);
-    return { transform: [{ translateX: shuffleX }, { scale: 0.94 + p * 0.06 }, { translateY: 15 - p * 15 }, { rotate: shuffleRotate + 'deg' }] };
+    const deckShuffleX = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, -54, 18, 0]);
+    const deckShuffleY = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, -5, 9, 0]);
+    const deckShuffleRotate = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, -6, 3, 0]);
+    const deckShuffleScale = interpolate(shuffleProgress.value, [0, 0.35, 1], [1, 1.011, 1]);
+    return {
+      transform: [
+        { translateX: shuffleX + deckShuffleX },
+        { scale: (0.94 + p * 0.06) * deckShuffleScale },
+        { translateY: 15 - p * 15 + deckShuffleY },
+        { rotate: shuffleRotate + deckShuffleRotate + 'deg' },
+      ],
+    };
   });
 
   const behind2Style = useAnimatedStyle(() => {
     const p = Math.min(Math.abs(topX.value) / SWIPE_THRESHOLD, 1);
     const shuffleX = interpolate(shuffleAnim.value, [-1, 0, 1], [-15, 0, 15]);
     const shuffleRotate = interpolate(shuffleAnim.value, [-1, 0, 1], [-4, 0, 4]);
-    return { transform: [{ translateX: shuffleX }, { scale: 0.88 + p * 0.06 }, { translateY: 30 - p * 15 }, { rotate: shuffleRotate + 'deg' }] };
+    const deckShuffleX = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, 44, -14, 0]);
+    const deckShuffleY = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, 0, 6, 0]);
+    const deckShuffleRotate = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, 5, -2.5, 0]);
+    const deckShuffleScale = interpolate(shuffleProgress.value, [0, 0.35, 1], [1, 1.007, 1]);
+    return {
+      transform: [
+        { translateX: shuffleX + deckShuffleX },
+        { scale: (0.88 + p * 0.06) * deckShuffleScale },
+        { translateY: 30 - p * 15 + deckShuffleY },
+        { rotate: shuffleRotate + deckShuffleRotate + 'deg' },
+      ],
+    };
   });
 
   // Flip faces
@@ -436,6 +469,7 @@ export default function DateNightScreen({ navigation }) {
   const [likedDates, setLikedDates] = useState([]);
   const [shortlistBusyIds, setShortlistBusyIds] = useState({});
   const [dropdownOpen, setDropdownOpen] = useState(null); // 'heat' | 'load' | 'style' | null
+  const [freeUsageStatus, setFreeUsageStatus] = useState(null);
 
   const stackRef = useRef(null);
   const shortlistBusyRef = useRef(new Set());
@@ -452,11 +486,28 @@ export default function DateNightScreen({ navigation }) {
     return a;
   }
 
+  const loadFreeUsageStatus = useCallback(async () => {
+    if (isPremium || !userId) {
+      setFreeUsageStatus(null);
+      return null;
+    }
+
+    try {
+      const status = await PremiumGatekeeper.getUserUsageStatus(userId, false);
+      setFreeUsageStatus(status);
+      return status;
+    } catch (error) {
+      if (__DEV__) console.warn('[DateNight] Failed to load free usage status:', error?.message);
+      return null;
+    }
+  }, [isPremium, userId]);
+
   // Defer heavy work until the tab transition animation finishes.
   // Reload on focus so season, tone, energy, and boundaries changes take effect.
   useFocusEffect(
     useCallback(() => {
       setReady(false);
+      loadFreeUsageStatus();
       const task = InteractionManager.runAfterInteractions(async () => {
         const dates = getAllDates();
         
@@ -523,7 +574,7 @@ export default function DateNightScreen({ navigation }) {
         setReady(true);
       });
       return () => task.cancel();
-    }, [userProfile, userId, isPremium])
+    }, [loadFreeUsageStatus, userProfile, userId, isPremium])
   );
 
   // Reset deck position whenever the filtered deck changes
@@ -579,7 +630,13 @@ export default function DateNightScreen({ navigation }) {
   }, [allDates, contentProfile, isPremium, freeWeeklyDateDeck, deckVersion]);
 
   const visibleCount = deck.length;
-  const remaining = deck.length - deckIndex;
+  const freeUnlockedDatesLeft = useMemo(() => {
+    if (isPremium) return null;
+    return deck
+      .slice(deckIndex)
+      .filter((date) => !date?.isLockedPreview && !date?.requiresPremium)
+      .length;
+  }, [deck, deckIndex, isPremium]);
   const deckDone = deckIndex >= deck.length && deck.length > 0;
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
 
@@ -629,38 +686,52 @@ export default function DateNightScreen({ navigation }) {
     setDeckIndex(prev => prev + 1);
   }, []);
 
-  const handleDateReveal = useCallback(async (date) => {
-    if (isPremium || !date?.id || date?.isLockedPreview || date?.requiresPremium) return;
-    if (viewedDateIdsRef.current.has(date.id)) return;
-
-    viewedDateIdsRef.current.add(date.id);
-
-    try {
-      const result = await trackFreeDateView({
-        userId,
-        isPremium,
-        date,
-      });
-
-      if (result?.allowed === false) {
-        viewedDateIdsRef.current.delete(date.id);
-        showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
-      }
-    } catch (error) {
-      viewedDateIdsRef.current.delete(date.id);
-      if (__DEV__) console.warn('[DateNight] Failed to track free date view:', error?.message);
-    }
-  }, [isPremium, showPaywall, userId]);
-
-  const openDate = useCallback((date) => {
+  const openDate = useCallback(async (date) => {
     if (date?.isLockedPreview || date?.requiresPremium) {
       impact(ImpactFeedbackStyle.Medium);
       showPaywall?.(PremiumFeature.DATE_NIGHT);
       return;
     }
 
+    if (!isPremium && date?.id && !viewedDateIdsRef.current.has(date.id)) {
+      viewedDateIdsRef.current.add(date.id);
+
+      try {
+        const result = await trackFreeDateView({
+          userId,
+          isPremium,
+          date,
+        });
+
+        if (result?.allowed === false) {
+          viewedDateIdsRef.current.delete(date.id);
+          showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
+          return;
+        }
+
+        if (result?.tracked) {
+          setFreeUsageStatus((current) => current ? ({
+            ...current,
+            dailyUsage: {
+              ...(current.dailyUsage || {}),
+              dates: (current.dailyUsage?.dates || 0) + 1,
+            },
+            remaining: {
+              ...(current.remaining || {}),
+              dates: Math.max(0, (current.remaining?.dates ?? 1) - 1),
+            },
+          }) : current);
+        } else {
+          await loadFreeUsageStatus();
+        }
+      } catch (error) {
+        viewedDateIdsRef.current.delete(date.id);
+        if (__DEV__) console.warn('[DateNight] Failed to track free date detail view:', error?.message);
+      }
+    }
+
     navigation.navigate('DateNightDetail', { date });
-  }, [navigation, showPaywall]);
+  }, [isPremium, loadFreeUsageStatus, navigation, showPaywall, userId]);
 
   const handleReset = useCallback(() => {
     // 1. Trigger the visual shuffle animation
@@ -681,8 +752,8 @@ export default function DateNightScreen({ navigation }) {
     setTimeout(() => impact(ImpactFeedbackStyle.Light), 100);
     setTimeout(() => impact(ImpactFeedbackStyle.Medium), 150);
 
-    // 3. Swap the cards halfway through the animation so it looks seamless
-    setTimeout(() => setDeckVersion((v) => v + 1), 150);
+    // 3. Swap the cards as the visible stack settles
+    setTimeout(() => setDeckVersion((v) => v + 1), 420);
   }, [emptyShuffleAnim]);
 
   const emptyStyle = useAnimatedStyle(() => {
@@ -787,6 +858,8 @@ export default function DateNightScreen({ navigation }) {
               ? '100 ideas'
               : !ready
                 ? 'Preparing ideas...'
+                : typeof freeUnlockedDatesLeft === 'number'
+                  ? `${freeUnlockedDatesLeft} free date ${freeUnlockedDatesLeft === 1 ? 'idea' : 'ideas'} left this week`
                 : visibleCount > 0
                   ? `${visibleCount} ${visibleCount === 1 ? 'idea' : 'ideas'} ready`
                   : 'No ideas available'}
@@ -798,6 +871,10 @@ export default function DateNightScreen({ navigation }) {
           {isPremium ? (
             <Text style={[styles.headerSubtitle, { color: t.subtext }]}>
               8 new date ideas added each week.
+            </Text>
+          ) : typeof freeUsageStatus?.remaining?.dates === 'number' ? (
+            <Text style={[styles.headerSubtitle, { color: t.subtext }]}>
+              {freeUsageStatus.remaining.dates} left today
             </Text>
           ) : null}
           
@@ -827,7 +904,7 @@ export default function DateNightScreen({ navigation }) {
             <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
               <Icon name="calendar-outline" size={14} color={colors.textMuted} />
               <Text style={[styles.weeklyDropText, { color: colors.textMuted }]}>
-                
+                {visibleCount} {visibleCount === 1 ? 'idea' : 'ideas'} in this week's draw.
               </Text>
             </View>
           ) : null}
@@ -896,7 +973,6 @@ export default function DateNightScreen({ navigation }) {
                 onSwipeLeft={handleSwipeLeft}
                 onPress={openDate}
                 onLongPress={handlePauseDate}
-                onReveal={handleDateReveal}
               />
             </>
           )}
@@ -946,7 +1022,7 @@ export default function DateNightScreen({ navigation }) {
             </View>
             <Text style={[styles.editorialTitle, { color: colors.text }]}>More date ideas made for you</Text>
             <Text style={[styles.editorialBody, { color: colors.textMuted }]}>
-              You've seen your free weekly date pick. Premium opens all 5 weekly picks plus the full catalog across romantic, adventure, wellness, cozy, and after-dark ideas.
+              Premium opens a larger weekly date set plus the full catalog across romantic, adventure, wellness, cozy, and after-dark ideas.
             </Text>
           </TouchableOpacity>
         )}

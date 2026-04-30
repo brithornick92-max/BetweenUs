@@ -127,7 +127,7 @@ export default class ErrorBoundary extends React.Component {
             <Text style={[styles.title, { color: t.text }]}>Something went wrong</Text>
             
             <Text style={[styles.subtitle, { color: t.subtext }]}>
-              We hit a snag, but don't worry—your data and connection are safe.
+              This screen hit a snag. Try again, or go back and continue from another screen.
             </Text>
 
             {__DEV__ && this.state.error?.message ? (

@@ -89,14 +89,14 @@ function FallbackUI({ errorMsg, onRetry, onGoBack }) {
           </View>
 
           <Text style={styles.title}>Something didn't load</Text>
-          <Text style={styles.subtitle}>This part of the app hit a snag. Your data is safe.</Text>
+          <Text style={styles.subtitle}>This part of the app hit a snag. Try reloading or go back.</Text>
 
           <View style={styles.card}>
             <View style={styles.iconBadge}>
               <Icon name="leaf-outline" size={22} color={t.primary} />
             </View>
 
-            <Text style={styles.cardTitle}>This screen can recover without losing anything important.</Text>
+            <Text style={styles.cardTitle}>This screen can usually recover after a reload.</Text>
             <Text style={styles.cardBody}>Try reloading this view. If you were just exploring, you can also go back.</Text>
 
             {__DEV__ && errorMsg ? (

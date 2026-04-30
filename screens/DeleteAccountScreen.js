@@ -62,11 +62,11 @@ export default function DeleteAccountScreen({ navigation }) {
     impact(ImpactFeedbackStyle.Heavy);
     Alert.alert(
       'Final Confirmation',
-      'This action cannot be undone. All your data will be permanently deleted within 30 days.\n\nAre you absolutely sure?',
+      'This action cannot be undone. Your active account data will be scheduled for deletion. Backup copies and records needed for legal, billing, security, or fraud-prevention purposes may persist as described in the Privacy Policy.\n\nAre you absolutely sure?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete Forever',
+          text: 'Delete Account',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -75,7 +75,7 @@ export default function DeleteAccountScreen({ navigation }) {
               await deleteUserAccount();
               Alert.alert(
                 'Account Deleted',
-                'Your account and all data have been scheduled for deletion. You will be signed out now.',
+                'Your account deletion has been submitted. You will be signed out now.',
                 [{ text: 'OK' }]
               );
             } catch (error) {
@@ -114,7 +114,7 @@ export default function DeleteAccountScreen({ navigation }) {
               'All prompt responses',
               'Account information and preferences',
               'Partner connection (your partner will be notified)',
-              'Premium subscription access',
+              'In-app premium entitlement for this account',
               'All date night plans'
             ].map((item, idx) => (
               <View key={idx} style={styles.listItem}>
@@ -128,7 +128,7 @@ export default function DeleteAccountScreen({ navigation }) {
           <View style={styles.card}>
             <Text style={[styles.cardTitle, { color: t.text }]}>Before You Go</Text>
             <Text style={[styles.cardText, { color: t.subtext }]}>
-              Your subscription will be cancelled, but you won't receive a refund for the current period. If you're linked with a partner, they will lose premium access if you're the subscriber. You can create a new account later, but your data cannot be restored.
+              Account deletion does not cancel an App Store subscription. Manage or cancel billing in your Apple subscriptions. If you're linked with a partner, they may lose shared premium access if you're the subscriber. You can create a new account later, but deleted active account data cannot be restored through the app.
             </Text>
             
             <TouchableOpacity
@@ -267,15 +267,13 @@ export default function DeleteAccountScreen({ navigation }) {
               ) : (
                 <>
                   <Icon name="trash-outline" size={20} color={t.danger} />
-                  <Text style={[styles.btnDestructiveText, { color: t.danger }]}>Delete My Account Forever</Text>
+                  <Text style={[styles.btnDestructiveText, { color: t.danger }]}>Delete My Account</Text>
                 </>
               )}
           </TouchableOpacity>
 
           <Text style={[styles.legalText, { color: t.subtext }]}>
-            Account deletion is permanent and complies with GDPR and CCPA right to erasure. 
-            All data will be permanently deleted within 30 days. Some anonymized usage data may 
-            be retained for legal and security purposes.
+            Account deletion is permanent once completed. Active account data is removed according to the deletion flow and Privacy Policy. Backup copies and limited records may persist where needed for legal, tax, billing, security, fraud-prevention, or dispute purposes.
           </Text>
 
     </EditorialScreenScaffold>

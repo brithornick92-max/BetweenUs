@@ -45,6 +45,7 @@ export const STORAGE_KEYS = {
   PREMIUM_STATUS: key("premiumStatus"),
   PARTNER_PREMIUM_STATUS: key("partnerPremiumStatus"),
   PREMIUM_PROMPT_LIBRARY_STARTED_AT: key("premiumPromptLibraryStartedAt"),
+  SAVED_PROMPTS_FOR_LATER: key("savedPromptsForLater"),
   MEMORIES: key("memories"),
   RITUAL_HISTORY: key("ritualHistory"),
   RITUAL_SYNC_QUEUE: key("ritualSyncQueue"),
@@ -186,6 +187,35 @@ export const promptStorage = {
   async getAllAnswersForDate(dateKey) {
     const all = await this.getAll();
     return Object.values(ensureObject(all[dateKey]));
+  },
+};
+
+export const savedPromptStorage = {
+  async getAll() {
+    return ensureArray(await storage.get(STORAGE_KEYS.SAVED_PROMPTS_FOR_LATER, []))
+      .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  },
+  async save(prompt) {
+    if (!prompt?.id) return null;
+    const saved = await this.getAll();
+    const entry = {
+      id: String(prompt.id),
+      promptId: String(prompt.id),
+      text: prompt.text || prompt.prompt || '',
+      heat: prompt.heat || prompt.heatLevel || prompt.level || 1,
+      category: prompt.category || 'Reflection',
+      savedAt: Date.now(),
+    };
+    const next = [entry, ...saved.filter((item) => String(item.promptId || item.id) !== entry.promptId)];
+    await storage.set(STORAGE_KEYS.SAVED_PROMPTS_FOR_LATER, next);
+    return entry;
+  },
+  async remove(promptId) {
+    const saved = await this.getAll();
+    return storage.set(
+      STORAGE_KEYS.SAVED_PROMPTS_FOR_LATER,
+      saved.filter((item) => String(item.promptId || item.id) !== String(promptId))
+    );
   },
 };
 

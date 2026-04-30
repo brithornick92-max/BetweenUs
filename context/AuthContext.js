@@ -637,10 +637,10 @@ export const AuthProvider = ({ children }) => {
         await SupabaseAuthService.deleteAccount();
       } catch (rpcErr) {
         if (__DEV__) console.error('Supabase account deletion failed:', rpcErr?.message);
-        // If RPC fails (e.g. function not deployed yet), still try sign-out
         try {
           await SupabaseAuthService.signOut('global');
         } catch (_) { /* swallow */ }
+        throw new Error('Account deletion could not be completed. Please try again or contact support.');
       }
       await SupabaseAuthService.clearStoredCredentials();
 

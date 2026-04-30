@@ -5,7 +5,7 @@
  * 
  * FREE USERS (ROTATING):
  * - Week 0 (signup): 10 prompts, 10 dates, 5 positions (welcome pack)
- * - Week 1+: 5 prompts, 5 dates, 1 position (ROTATING - old ones don't accumulate)
+ * - Week 1+: 3 prompts, 5 dates, 1 position (ROTATING - old ones don't accumulate)
  * - Always see ~5-15 cards total (current week + locked previews)
  * 
  * PREMIUM USERS (CUMULATIVE):
@@ -30,8 +30,8 @@ const WEEKLY_LIMITS = {
     premium: 10,         // Premium gets 10 new prompts/week
     premiumStart: 200,   // Premium starts with ~40 prompts per heat level
     freeWelcomePack: 10, // Free gets 10 prompts on signup (2 from each category)
-    freeOngoing: 5,      // Free gets 5 new prompts each week after week 0
-    freeLockedPreview: 5, // Show 5 locked premium teasers
+    freeOngoing: 3,      // Free gets 3 new prompts each week after week 0
+    freeLockedPreview: 2, // Prompt text is readable on-card, so keep locked teasers sparse
   },
   [CONTENT_TYPES.DATES]: {
     premium: 8,          // Premium gets 8 new dates/week

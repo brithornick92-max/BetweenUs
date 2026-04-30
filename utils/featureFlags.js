@@ -41,6 +41,7 @@ export const GuardBehavior = Object.freeze({
 // ─── Free-Tier Limits ───────────────────────────────────────────────────────────
 export const FREE_LIMITS = Object.freeze({
   PROMPTS_PER_DAY: 1,           // One daily prompt response to prove the shared reveal loop
+  DATE_IDEAS_PER_DAY: 3,        // Free users can browse a small daily set of date ideas
   PREVIEW_PROMPTS_TOTAL: 12,    // A fixed welcome pack of preview prompts
   VISIBLE_PROMPTS_PER_WEEK: 3,  // Weekly free preview of new & premium prompts (tightened from 5)
   VISIBLE_DATE_IDEAS_PER_WEEK: 3, // Weekly free preview of date ideas (tightened from 5)

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Dimensions,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -81,7 +82,7 @@ const HEAT_LABELS = {
   5: "Explicit passion",
 };
 
-function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, onReveal, isDark, colors, cardWidth, cardHeight, shimmerBandStyle }) {
+function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, onReveal, onSelect, onSaveForLater, isDark, colors, cardWidth, cardHeight, shimmerBandStyle, shuffleProgress }) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const rotateZ = useSharedValue(0);
@@ -137,13 +138,23 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
     onLongPress?.(item);
   }, [item, onLongPress]);
 
-  const handleFlip = useCallback(() => {
+  const handleCardTap = useCallback(() => {
+    if (isFlipped) {
+      impact(ImpactFeedbackStyle.Medium);
+      onSelect?.(item);
+      return;
+    }
+
     impact(ImpactFeedbackStyle.Light);
-    const target = isFlipped ? 0 : 1;
-    flipProgress.value = withTiming(target, { duration: FLIP_DURATION, easing: Easing.bezier(0.2, 0.8, 0.2, 1) });
-    if (!isFlipped) onReveal?.(item);
-    setIsFlipped(!isFlipped);
-  }, [isFlipped, flipProgress, item, onReveal]);
+    flipProgress.value = withTiming(1, { duration: FLIP_DURATION, easing: Easing.bezier(0.2, 0.8, 0.2, 1) });
+    onReveal?.(item);
+    setIsFlipped(true);
+  }, [isFlipped, flipProgress, item, onReveal, onSelect]);
+
+  const handleSaveForLater = useCallback(() => {
+    impact(ImpactFeedbackStyle.Light);
+    onSaveForLater?.(item);
+  }, [item, onSaveForLater]);
 
   const panGesture = Gesture.Pan()
     .enabled(isTop)
@@ -165,7 +176,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
       }
     });
 
-  const tapGesture = Gesture.Tap().enabled(isTop).onEnd(() => { runOnJS(handleFlip)(); });
+  const tapGesture = Gesture.Tap().enabled(isTop).onEnd(() => { runOnJS(handleCardTap)(); });
   const longPressGesture = Gesture.LongPress()
     .enabled(isTop)
     .minDuration(500)
@@ -176,10 +187,18 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
 
   const containerStyle = useAnimatedStyle(() => {
     const baseScale = isTop ? scale.value : interpolate(stackOffset, [0, 1, 2], [1, 0.95, 0.9]);
+    const shuffleDirection = index % 2 === 0 ? 1 : -1;
+    const shuffleDepth = Math.max(0, 3 - index);
+    const shuffleX = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, shuffleDirection * (34 + shuffleDepth * 10), -shuffleDirection * 18, 0]);
+    const shuffleY = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, -10 + index * 5, 12 - index * 3, 0]);
+    const shuffleRotate = interpolate(shuffleProgress.value, [0, 0.35, 0.7, 1], [0, shuffleDirection * (7 - index), -shuffleDirection * 4, 0]);
+    const shuffleScale = interpolate(shuffleProgress.value, [0, 0.35, 1], [1, 1.015 - index * 0.004, 1]);
     return {
       transform: [
-        { translateX: isTop ? translateX.value : 0 }, { translateY: isTop ? translateY.value : stackOffset * 15 },
-        { rotate: isTop ? `${rotateZ.value}deg` : `${stackOffset * -1.2}deg` }, { scale: baseScale },
+        { translateX: (isTop ? translateX.value : 0) + shuffleX },
+        { translateY: (isTop ? translateY.value : stackOffset * 15) + shuffleY },
+        { rotate: `${(isTop ? rotateZ.value : stackOffset * -1.2) + shuffleRotate}deg` },
+        { scale: baseScale * shuffleScale },
       ],
       zIndex: isTop ? 100 : 50 - index,
       opacity: index > 3 ? 0 : interpolate(index, [0, 1, 2, 3], [1, 0.8, 0.5, 0.2]),
@@ -271,8 +290,23 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
 
             <View style={styles.frontFooter}>
               <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.footerBlur}>
-                <Text style={[styles.frontFooterText, { color: neon.bloom }]}>SWIPE RIGHT TO REFLECT</Text>
-                <Icon name="arrow-forward" size={14} color={neon.bloom} />
+                <TouchableOpacity
+                  style={styles.footerAction}
+                  onPress={handleSaveForLater}
+                  activeOpacity={0.75}
+                >
+                  <Icon name="bookmark-outline" size={14} color={neon.bloom} />
+                  <Text style={[styles.frontFooterText, { color: neon.bloom }]}>Save</Text>
+                </TouchableOpacity>
+                <View style={[styles.footerDivider, { backgroundColor: neon.bloom + "33" }]} />
+                <TouchableOpacity
+                  style={styles.footerAction}
+                  onPress={() => onSelect?.(item)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.frontFooterText, { color: neon.bloom }]}>Reflect</Text>
+                  <Icon name="arrow-forward" size={14} color={neon.bloom} />
+                </TouchableOpacity>
               </BlurView>
             </View>
           </View>
@@ -296,12 +330,29 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   );
 }
 
-export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress, onReveal }) {
+export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress, onReveal, onIndexChange, onSaveForLater, shuffleNonce = 0 }) {
   const { isDark, colors } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [deckLayout, setDeckLayout] = useState({ width: DEFAULT_CARD_W + (CARD_HORIZONTAL_MARGIN * 2), height: DEFAULT_CARD_H + (CARD_VERTICAL_MARGIN * 2) });
   const visibleCards = useMemo(() => prompts.slice(currentIndex, currentIndex + 4), [prompts, currentIndex]);
   const advanceCard = useCallback(() => setCurrentIndex((prev) => (prev >= prompts.length - 1 ? 0 : prev + 1)), [prompts.length]);
+  const shuffleProgress = useSharedValue(0);
+
+  useEffect(() => {
+    if (!shuffleNonce) return;
+    shuffleProgress.value = 0;
+    shuffleProgress.value = withTiming(1, { duration: 520, easing: Easing.out(Easing.cubic) }, (finished) => {
+      if (finished) shuffleProgress.value = 0;
+    });
+  }, [shuffleNonce, shuffleProgress]);
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [prompts]);
+
+  useEffect(() => {
+    onIndexChange?.(currentIndex);
+  }, [currentIndex, onIndexChange]);
 
   const cardWidth = useMemo(() => {
     if (!deckLayout.width) return DEFAULT_CARD_W;
@@ -348,11 +399,14 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongP
             onSwipeLeft={handleSwipeLeft}
             onLongPress={onLongPress}
             onReveal={onReveal}
+            onSelect={onSelect}
+            onSaveForLater={onSaveForLater}
             isDark={isDark}
             colors={colors}
             cardWidth={cardWidth}
             cardHeight={cardHeight}
             shimmerBandStyle={shimmerBandStyle}
+            shuffleProgress={shuffleProgress}
           />
         )).reverse()}
       </View>
@@ -393,10 +447,12 @@ const styles = StyleSheet.create({
   frontBandLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   frontBandLabel: { fontFamily: SERIF_FONT, fontSize: 32, lineHeight: 36 },
   chromeDivider: { height: 1, marginHorizontal: 20, opacity: 0.5 },
-  frontBody: { flex: 1, justifyContent: "center", paddingHorizontal: 28, paddingVertical: 24 },
+  frontBody: { flex: 1, minHeight: 0, justifyContent: "center", paddingHorizontal: 28, paddingVertical: 24 },
   frontPromptText: { fontFamily: SERIF_FONT, lineHeight: 36, fontWeight: "400", textAlign: "center" },
-  frontFooter: { paddingHorizontal: 20, paddingBottom: 24, paddingTop: 16 },
-  footerBlur: { flex: 1, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  frontFooter: { flexShrink: 0, paddingHorizontal: 20, paddingBottom: 24, paddingTop: 16 },
+  footerBlur: { height: 48, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  footerAction: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  footerDivider: { width: StyleSheet.hairlineWidth, height: 24 },
   frontFooterText: { fontFamily: SYSTEM_FONT, fontSize: 11, fontWeight: '800', letterSpacing: 0.5, textTransform: "uppercase" },
 
   swipeHint: { position: "absolute", top: 20, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 2, borderColor: "rgba(255,255,255,0.15)" },

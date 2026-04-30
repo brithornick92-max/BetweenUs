@@ -114,6 +114,8 @@ function isOfflineCapableError(error) {
     || message.includes('timed out')
     || message.includes('failed to fetch')
     || message.includes('network request failed')
+    || message.includes('not paired')
+    || message.includes('couple_id is required')
   );
 }
 
@@ -2183,8 +2185,13 @@ const SupabaseDataLayer = {
   // ─── Sync stubs (no-ops — everything is cloud-first) ─────────────────────
 
   async flushOfflineQueue() {
-    if (_isFlushingQueue || !_userId || !_coupleId || !supabase) {
+    if (_isFlushingQueue || !_userId || !supabase) {
       return { flushed: 0, remaining: 0 };
+    }
+
+    if (!_coupleId) {
+      const queue = await getOfflineQueue();
+      return { flushed: 0, remaining: Array.isArray(queue) ? queue.length : 0 };
     }
 
     _isFlushingQueue = true;

@@ -1,0 +1,171 @@
+- What's one small thing I do that still makes you think, 'I got really lucky'?
+- Which goal of ours makes you feel most like a team?
+- What does the word 'trust' look like in action for you in a relationship?
+- Imagine we wake up tomorrow with the power to read each other's minds for a day — what's the first thing you'd want me to know?
+- What part of yourself have you discovered or rediscovered since we've been together?
+- Which season feels most like 'us' and why?
+- Which place we've visited together holds the most meaning for you?
+- Which hello from me after time apart gets you every time?
+- What's the hope you hold for us that feels almost too tender to say out loud?
+- Tell me who tends to take the lead in our relationship and how that makes you feel.
+- How do you naturally show love when you feel safe with someone?
+- Which room in our home feels most like 'us'?
+- How has our relationship helped you feel more like yourself?
+- What's a compliment from me you still remember word for word?
+- What matters most to you in a family life that feels good and steady?
+- What's a part of yourself you're afraid I might not accept?
+- What's one thing I could do more often that would make you feel genuinely cherished?
+- What do you think our relationship will look like in another 10 years?
+- How have you changed over the last five years, and how has that affected us?
+- After our first real conversation, what was your honest read on me?
+- What's the most thoughtful gift you've ever given me?
+- Which of my nervous habits do you find secretly adorable?
+- What's one thing you hope never changes about us?
+- What does a meaningful apology look like to you?
+- What's your very first memory?
+- When you picture our future, what's the part you want most fiercely?
+- How has being loved by me changed how you see yourself?
+- What's something we haven't tried as a couple that you'd like to?
+- What's something that people commonly misunderstand about you?
+- Describe your perfect day. How would we spend it together.
+- What's a moment with me you replay when you need to feel good?
+- If we met again for the first time, knowing what we know now, what would you say?
+- How do you know when I'm trying to surprise you?
+- What's a love language you wish you were better at giving?
+- What would your younger self think about our relationship today?
+- What's something small I do that makes you feel chosen?
+- Which of our future dreams excites you most?
+- What helps you feel most secure in our relationship?
+- What's something I do that makes ordinary days feel special?
+- Which memory of us laughing too hard still gets you?
+- How would you approach forgiving a partner after they've cheated?
+- What was your first big disappointment as a kid?
+- Which of our future plans makes you feel most excited?
+- What's something I do that makes you feel safe?
+- What's one thing about us your past self would never believe is now your real life?
+- Tell me about a time you felt misunderstood by me.
+- If you could relive one day together, which would it be?
+- What skill of mine do you find most impressive?
+- Share a time you felt embarrassed and how it affected you.
+- If you could go back in our history together, what moment do you wish we could relive?
+- What's something about you that you're afraid to tell anyone else?
+- How has your idea of partnership evolved since being with me?
+- What's bringing you the most real joy right now, and how can I protect more space for it?
+- To you, what does real love look and feel like?
+- How has what you need from me changed since we first got together?
+- When did you first know I was going to matter to you?
+- What's one thing I do with animals that melts you instantly?
+- Which of my family stories do you want to hear again?
+- How do you feel when people assume we're just friends?
+- What's your favorite thing about being in your relationship?
+- When do you find it hardest to let your guard down?
+- How do you think your parents' relationship shaped you?
+- When do you feel most emotionally safe with me?
+- How do you know I'm right there with you?
+- How do you feel when we're in welcoming spaces together?
+- How has being with me changed your relationship with your own identity?
+- What does love mean to you beyond just a feeling?
+- What's the most loving way for us to bring up something tender without losing each other?
+- What's the one thing I haven't shared about myself that you'd like to know?
+- Why do you consider us best friends?
+- What's a way I show love that you wish I did more often?
+- How do you want to celebrate our love during special occasions?
+- What's your biggest regret, and how did it shape you?
+- What's something I do that reassures you we're solid?
+- What's one fear you carry for us sometimes, even if love is still bigger?
+- How do I interact with your friends that means a lot to you?
+- How has your definition of home changed since we've been together?
+- What does deep connection mean to you beyond everyday affection?
+- What's the best compliment you ever received?
+- When do you feel safest being like yourself with me?
+- What fear in our relationship have you never shared?
+- What's a mistake you've made that you've learned the most from?
+- What do you think I'm most wrong about when it comes to you?
+- How do you prefer I approach you when I know I've hurt you?
+- How do I show support when you achieve something important?
+- Describe a moment in life when you felt most alive.
+- How and when did you first know that we had long-term potential?
+- What moment in your life makes you feel the most powerful?
+- Tell me about a time you held back from sharing something important.
+- What part of our relationship feels underrated lately?
+- What's something I do that still catches you off guard?
+- What's something I did recently that made you feel genuinely appreciated?
+- What's one way I've changed your daily life for the better?
+- How do you prefer to be comforted when you're stressed or upset?
+- How do our careers influence our relationship—for better or worse?
+- How do I treat others that makes you proud of me?
+- How do I cope with stress in a way that impresses you?
+- How have we changed as a couple in ways that actually matter to you?
+- What do I not realize I do when I'm stressed?
+- What boundaries feel healthy to you around staying friends with an ex?
+- What helps you feel reconnected after we've had a disagreement?
+- How do you feel when someone correctly assumes we're together?
+- What do you feel is your greatest weakness, and how could I support you?
+- What's one thing about how we handle life together that's underrated?
+- What three qualities were you first attracted to in me?
+- What's a small thing I do that you never want me to stop doing?
+- What makes you feel like home when you're with me?
+- What's one way I could love you better lately?
+- How can I better show you I'm listening when tensions are high?
+- Where do you draw the line between being selfless and looking out for yourself first?
+- What do I not realize I do when I get excited about your interests?
+- What form of affection fills your cup the most right now?
+- When do you feel most grateful for our relationship?
+- What's something you want to accomplish but feel fear about, and how could I help?
+- When do you feel the most loved and appreciated by me?
+- What made you decide we belong together?
+- What do you think are your three best qualities?
+- What lesson from our relationship would you share with others?
+- What celebration moment meant the most to you?
+- What difference between us do you believe makes us a stronger couple?
+- What was your biggest heartbreak ever?
+- What's something you once figured out that you're really proud of?
+- What's something I've helped you discover about yourself?
+- What's your favorite way we support each other's self-expression?
+- What have you learned about relationships from observing your parents?
+- How has being with me changed your perspective on love?
+- What makes you feel most secure with me, even on your hardest days?
+- How do you think we make a good team, and where might we go even deeper?
+- What's one question you've wanted to ask me for a while, but haven't said out loud yet?
+- What's something about my personality that balances yours perfectly?
+- What was it like the first time you felt truly seen for who you're?
+- What's something you're still learning to be vulnerable about with me?
+- What's the most meaningful way someone has supported our relationship?
+- When have you felt closest to me?
+- Tell me about a time when you felt I understood you most.
+- What's a habit of mine that secretly comforts you?
+- Tell me about a time when our differences led to greater understanding.
+- What are you proudest of about who we've become together?
+- How do you feel most loved by me lately?
+- What's one thing you're secretly proud of us for?
+- What helps your world feel safer when life gets heavy, and how can I be part of that?
+- How do I make things right when I've made a mistake?
+- What's your favorite thing about our chosen family?
+- How do you describe me to your friends?
+- What quality of mine are you most thankful for in difficult times?
+- When do you feel most loved by me?
+- What was missing for your younger self that you have or understand now?
+- What simple thing never fails to bring you joy?
+- Which time of day do you feel most connected to me?
+- What makes our relationship resilient when life shifts?
+- How do you know when I'm feeling overwhelmed?
+- What do you love most about our life together right now?
+- If a friend ever betrayed you, would you forgive them?
+- What would be the biggest dealbreaker for you in our relationship?
+- How do I surprise you when life brings the unexpected?
+- What's a fear you have never shared with me before?
+- Who was the last person you cried in front of, and why?
+- Tell me about a moment when you felt lucky to be with me.
+- What are your thoughts on love at first sight?
+- What's a past conflict that actually made us stronger?
+- When do you feel most loved by me — through words, time, acts of service, or gifts?
+- What's the bravest thing you ever did?
+- How do we find our way back to each other after a disagreement?
+- When we argue, what do you need most from me in the moment?
+- What's weighing on your heart that I can be here for?
+- What's the part of our relationship you would protect no matter what?
+- What future version of us do you hope we're quietly becoming?
+- Which shared dream feels most worth protecting right now?
+- What do you hope we understand about each other a year from now?
+- What future challenge do you hope we learn to handle as a team?
+- What would make our future feel peaceful to you?

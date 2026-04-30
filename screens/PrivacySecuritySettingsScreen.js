@@ -361,7 +361,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
               >
                 <View style={styles.actionInfo}>
                   <Text style={[styles.actionTitle, { color: theme.crimson }]}>Revoke All Sessions</Text>
-                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Sign out everywhere immediately</Text>
+                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Request sign-out on all sessions</Text>
                 </View>
                 <Icon name="shield-outline" size={20} color={theme.crimson} />
               </TouchableOpacity>
@@ -388,7 +388,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                 <View style={styles.infoContent}>
                   <Text style={[styles.infoTitle, { color: colors.text }]}>Device Continuity</Text>
                   <Text style={[styles.infoText, { color: colors.textMuted || 'gray' }]}>
-                    Sign in on a new device to automatically restore your account, couple link, and cloud-synced shared data.
+                    Sign in on a new device to restore account data and cloud-synced shared data after sync completes.
                   </Text>
                 </View>
               </View>
@@ -417,7 +417,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
               >
                 <View style={styles.actionInfo}>
                   <Text style={[styles.actionTitle, { color: theme.crimson }]}>Delete Account</Text>
-                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Permanently delete your account and data</Text>
+                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Delete your account through the deletion flow</Text>
                 </View>
                 <Icon name="trash-outline" size={20} color={theme.crimson} />
               </TouchableOpacity>

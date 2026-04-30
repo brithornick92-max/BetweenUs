@@ -12,7 +12,7 @@ class PremiumGatekeeper {
       PREMIUM_HEAT_LEVELS: [1, 2, 3, 4, 5]
     };
     this.WEEKLY_LIMITS = {
-      FREE_FULL_DATE_FLOWS: 2
+      FREE_FULL_DATE_FLOWS: FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK
     };
   }
 

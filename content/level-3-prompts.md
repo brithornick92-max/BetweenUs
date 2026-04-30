@@ -1,0 +1,142 @@
+- What helps you feel safest and most cared for around protection?
+- How do emotional and physical intimacy support each other for you?
+- Which turns you on more — seeing me in a sexy dressed-up outfit or jeans and a t-shirt?
+- What balance between planned intimacy and spontaneous intimacy feels best to you?
+- What roleplay idea feels exciting but still comfortable?
+- What's a time we almost kissed — or the tension was unbearable before we finally did?
+- How do you feel when I say your name during our most passionate moments?
+- What are a few fun ways you'd like me to start intimacy?
+- If we had a rainy afternoon with nowhere to be, how would you want us to spend it together?
+- What's your favorite way we communicate without words during intimacy?
+- What is one small thing we could try to make intimacy feel more fun or less serious?
+- What would make a sensual hand massage feel especially relaxing to you?
+- What's a fantasy you've had about us that feels surprisingly tender?
+- What's a boundary you'd be curious to gently explore together if we both felt safe?
+- Where would you want us to be when we're completely lost in each other?
+- Tell me about a time you felt safe being vulnerable with me.
+- What mild roleplay idea would you actually want to try?
+- Tell me about a moment between us that felt electric — one you've replayed in your mind.
+- What romantic setup would actually feel inviting to you?
+- What's a touch of mine you still think about hours later?
+- Tell me about a holiday tradition you'd want to make steamier.
+- How do you feel when I look into your eyes during intimate moments?
+- How does it feel when we share fantasies and desires openly with each other?
+- What are your thoughts about one of us blindfolding the other — just for a few minutes — to heighten the senses?
+- What room in our home makes you feel the most drawn to me, and why?
+- What's the most intimate non-sexual moment we've shared?
+- If we could pretend to be anyone for an evening, who would you want us to be?
+- What's a shared memory of ours that still gives you butterflies when you think about it?
+- What's the most intimate compliment you've ever wanted to give me?
+- What's a summer activity that could turn into something more between us?
+- What do you find most attractive about me?
+- If I whispered a dare in your ear right now, what's the most adventurous thing you'd want it to be?
+- What's the most vulnerable you've felt during an intimate moment with me?
+- How do we build up to intimacy in a way that's uniquely ours?
+- How do you want me to touch you when you're feeling dysphoric?
+- Which season makes you want to be closer to me, and what brings that out?
+- How would you feel about starring in or receiving a boudoir photoshoot?
+- How does it feel when my breath is warm against your neck?
+- What's something about our physical connection that goes beyond just attraction?
+- What's something intimate you've only felt comfortable doing with me?
+- How has our sexual relationship deepened our emotional bond?
+- What's your favorite intimate ritual we have together?
+- Describe how you feel when we're intimate and completely in sync.
+- What's the most emotionally intense physical experience we've shared?
+- What's something about our sexual chemistry that amazes you?
+- What part of your body is most sensitive to different textures?
+- What intimate experiences or activities are outside your comfort zone?
+- What's your favorite way we build intimacy before being physical?
+- What would make our physical intimacy feel even better for you lately?
+- What's a sensation you want to explore with me next?
+- What's one boundary we've crossed together that made us closer?
+- What's the most meaningful thing about how we pleasure each other?
+- How do you feel when we're physically close but not necessarily sexual?
+- What would make slow eye contact or shared breathing feel intimate instead of awkward?
+- What's something about our intimacy that makes you feel accepted?
+- Describe how you feel when I focus entirely on your pleasure.
+- How do you like it when I touch your chest, and when would you rather I don't?
+- What's the most sensual moment we've shared that wasn't sexual?
+- How do you think your love language affects what you like in bed?
+- What's the most beautiful thing about our sexual relationship?
+- What's your favorite position when we're both on top?
+- What textures or temperatures make your skin come alive?
+- When you say 'sex,' what kinds of connection are included for you—and what feels meaningfully different?
+- What's your favorite way I show reverence for your body?
+- What do you love most about the way we make love?
+- Tell me about a scent that reminds you of an intimate moment between us.
+- What's your favorite way we connect both emotionally and physically?
+- What role would you want toys to have in our intimacy?
+- How does it feel when I breathe against your neck?
+- What happens between us right after we make love?
+- What's something about our chemistry that still surprises you?
+- What mood or boundaries would make watching something sexy together feel good to you?
+- Which kiss from me makes you melt?
+- Tell me about a moment when our intimacy felt sacred or spiritual.
+- How do you feel when I focus on making you feel loved during intimacy?
+- How does it feel when we're both equally aggressive?
+- In your ideal world, what would a satisfying intimate rhythm between us look like?
+- How do you feel when our physical intimacy happens spontaneously?
+- Tell me about a time our emotional intimacy led to physical closeness.
+- How do you like it when I take the more dominant role?
+- Describe how you feel when I kiss you slowly and tenderly.
+- How has our intimate relationship helped you love yourself more?
+- How does it feel when we use toys that affirm your gender?
+- How has being intimate with me changed how you see your own body?
+- What's something about our physical connection that feels uniquely ours?
+- What's something intimate you've learned about yourself through me?
+- What feels best when we're both wearing our accessories?
+- What's the most vulnerable you've felt with me and loved it?
+- What's your favorite position when we both want something gentle and close?
+- Describe how you feel when I trace your body with gentle affection.
+- Tell me about a time sex between us felt like a conversation.
+- How do you feel when I explore your body with curiosity and love?
+- Tell me about a time our physical connection surprised you emotionally.
+- What's your favorite way to be intimate when your body needs extra care?
+- What's the most emotionally satisfying physical experience we've had?
+- What's one thing you want me to know about your body?
+- Tell me about a time our physical intimacy brought you to tears of joy.
+- How do you feel when we take our time with foreplay and connection?
+- What does sexual compatibility mean to you?
+- What's the difference between how I touch you and how others have?
+- What's one thing I do during intimacy that makes you feel seen?
+- What's your preference — quickies or taking your time?
+- Taking a bath together.
+- Extended hugging and caressing for at least one full minute.
+- Describe how you feel when we're right there with you with each other intimately.
+- How has being intimate with me changed your relationship with pleasure?
+- What's something about our intimacy that makes you feel powerful?
+- How has our physical relationship helped you trust me more?
+- How central does sexual connection feel to your sense of a healthy relationship?
+- What's something about our sexual connection that feels healing?
+- What's the most intimate non-physical thing we do together?
+- Which slow, affectionate moment helps you feel closest to me?
+- How would you describe the kind of closeness that makes the room feel quieter around us?
+- What would make an evening feel wanted, relaxed, and unrushed?
+- When do you feel the most chemistry between us without needing to say much?
+- What makes a quiet moment between us start to feel charged in the best way?
+- What attention from me makes you feel especially chosen?
+- Describe a version of us spending the night in that feels cozy, connected, and a little electric.
+- What part of our closeness lately do you want to savor more?
+- Which compliment from me would linger with you the longest?
+- How do you know when our connection is moving from playful to more intimate?
+- What shared ritual would make our evenings feel more intimate?
+- What helps you feel confident enough to ask for more closeness?
+- What's a small detail about our chemistry that you think I might not realize?
+- What atmosphere makes you feel most open to deeper connection with me?
+- What does a perfectly unhurried moment of closeness with me look like to you?
+- When do you feel like we have our own private language?
+- What invitation from me would make you feel desired without feeling rushed?
+- What makes you feel like I'm right there with you?
+- Describe a moment when anticipation between us felt sweet instead of pressured.
+- What emotional closeness makes affection feel more meaningful to you?
+- What light roleplay idea would make us laugh first and then get a little closer?
+- If we pretended to meet again for the first time, what would your opening line be?
+- Which playful alter ego would you enjoy bringing out around me?
+- What pretend setting would make flirting with me feel new again?
+- What low-pressure roleplay would help you feel more confident being bold with me?
+- If we roleplayed a pretend therapy session, what bold question would you want one of us to ask first?
+- What adventurous date would make us feel like we were discovering each other all over again?
+- Where would you want us to go if the goal was to feel a little braver together?
+- What new experience would make our chemistry feel fresh without pushing either of us too far?
+- What spontaneous plan would make you feel excited to say yes with me?
+- Which place would make a simple night together feel more daring?

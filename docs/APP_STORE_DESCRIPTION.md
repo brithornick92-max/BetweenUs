@@ -36,13 +36,13 @@ Your data is never sold, and Between Us does not use advertising networks or cro
 • Inside Jokes vault & Year in Review
 • Optional app lock on supported devices
 • Ad-free experience
-• One subscription covers both partners
+• One subscription can share premium access with your linked partner
 
 **SUBSCRIPTION OPTIONS**
 • Monthly: $7.99/month
 • Annual: $49.99/year (best value)
 
-All prices are per couple — one subscription extends premium to your linked partner. Payment is charged to your Apple ID. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage subscriptions in Settings.
+One subscription can extend premium to your linked partner after entitlement sync completes. Payment is charged to your Apple ID. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage subscriptions in Settings.
 
 Privacy Policy: https://betweenusapp.com/privacy
 Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/

@@ -38,7 +38,7 @@ const FEATURE_COPY = {
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     eyebrow: "PROMPTS",
     title: "Keep the conversation open.",
-    body: "You reached today's free prompt. Premium covers both partners in your linked couple and keeps the card deck flowing with more questions for every mood and heat level.",
+    body: "You reached today's free prompt. Premium can be shared with your linked partner and keeps the card deck flowing with more questions for every mood and heat level.",
     benefits: [
       ["copy-outline", "More prompt cards each week"],
       ["heart-outline", "Answer and reveal together"],
@@ -48,7 +48,7 @@ const FEATURE_COPY = {
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     eyebrow: "DATES",
     title: "More plans for tonight.",
-    body: "You reached today's free date ideas. Premium covers both partners in your linked couple and opens more date cards, full planning flows, and the saved shortlist.",
+    body: "You reached today's free date ideas. Premium can be shared with your linked partner and opens more date cards, full planning flows, and the saved shortlist.",
     benefits: [
       ["calendar-outline", "More date ideas each week"],
       ["map-outline", "At-home and out plans"],
@@ -58,7 +58,7 @@ const FEATURE_COPY = {
   [PremiumFeature.UNLIMITED_JOURNAL_HISTORY]: {
     eyebrow: "JOURNAL",
     title: "Save the story you are building.",
-    body: "Premium covers both partners in your linked couple and opens your shared journal history, media keepsakes, and private reflections.",
+    body: "Premium can be shared with your linked partner and opens your shared journal history, media keepsakes, and private reflections.",
     benefits: [
       ["book-outline", "Shared journal entries"],
       ["images-outline", "Photos and videos"],
@@ -68,7 +68,7 @@ const FEATURE_COPY = {
   default: {
     eyebrow: "PREMIUM",
     title: "Unlock the full Between Us experience.",
-    body: "One subscription covers both partners in your linked couple, with more prompts, richer date ideas, shared keepsakes, and tools that help your connection keep moving.",
+    body: "One subscription can share premium access with your linked partner, with more prompts, richer date ideas, shared keepsakes, and tools that help your connection keep moving.",
     benefits: [
       ["sparkles-outline", "Fresh content every week"],
       ["heart-outline", "Built for both partners"],
@@ -292,7 +292,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
 
               <Text style={[styles.title, { color: t.text }]}>Choose your rhythm.</Text>
               <Text style={[styles.body, { color: t.subtext }]}>
-                Choose monthly or yearly access for your couple. One subscription covers both linked partners, and you can manage or cancel through your App Store account.
+                Choose monthly or yearly access for your couple. One subscription can share premium access with your linked partner, and you can manage or cancel through your App Store account.
               </Text>
 
               <View style={styles.planList}>
@@ -393,7 +393,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
               <View style={[styles.sharedNote, { borderColor: t.border }]}>
                 <Icon name="people-outline" size={18} color={t.primary} />
                 <Text style={[styles.sharedText, { color: t.subtext }]}>
-                  One subscription covers both partners once your accounts are linked and the entitlement sync completes.
+                  One subscription can share premium access once your accounts are linked and the entitlement sync completes.
                 </Text>
               </View>
 

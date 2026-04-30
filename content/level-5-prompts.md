@@ -1,0 +1,176 @@
+- If you could write the script for our dirty talk today, what would you have me say to you — and what would you whisper back? Start from the first words?
+- What intimate experience is most likely to make you orgasm?
+- How do you like to be pleasured during oral intimacy?
+- What's your ideal oral intimacy experience?
+- Share your top 5 favorite words, phrases, or forms of dirty talk that you enjoy or fantasize about hearing during intimacy.
+- What does an orgasm feel like for you? Describe it.
+- How would you feel about me using a vibrator on you?
+- Which intimate accessory would you want us to experiment with together?
+- What shared toy experience would feel exciting and connected?
+- What's the most intimate thing you want to record us doing together?
+- We're alone after a workout, flushed and breathless, and you keep finding reasons to put your hands on me. Describe how the tension builds as you guide me closer, linger a little longer, and turn the moment into something far more intense.
+- We rented a cabin with a massive window overlooking a valley — no neighbors, no curtains, nothing but wilderness. There's a bearskin rug by the fireplace and a storm rolling in. Describe the entire night — how the thunder covers our sounds, the warmth of the fire on bare skin, every position we try in front of that window knowing nature is our only audience.
+- What stripping game would be fun for us to invent together?
+- Tell me your boldest fantasy about a whole weekend together.
+- What explicit desire of yours do you wish I understood better?
+- You're a rock star and I snuck backstage after your concert. You pull me into your dressing room. Describe the groupie fantasy — the leather couch, the adrenaline, how you pin me against the mirror, and what happens when I tell you I'll do absolutely anything.
+- Share, in as much detail as possible, one of your favorite sexual memories together.
+- What's the most intimate thing you want me to do while you watch yourself in a mirror?
+- Tell me about the dominant or submissive fantasy you've never acted on.
+- We're deep in the woods at our campsite, miles from anyone. The fire's dying down, the sleeping bag is unzipped, and the night air is cool against our skin. Describe how the isolation changes everything — the sounds we make knowing nobody can hear, how the firelight plays across our bodies, every bold thing you'd do knowing the nearest person is miles away.
+- Everyone close your eyes and lay down. Maintain some sort of physical contact as you describe having sex with one another. Take turns saying one sentence at a time and see what story unfolds!
+- Describe the kind of mouth-focused pleasure you would want from me right now.
+- Share a favorite memory of sex we've had together. If you could recreate one detail from that memory the next time we have sex, what would it be?
+- What's the dirtiest thing you'd want me to call you in the heat of the moment?
+- We're alone in a candlelit studio for a private evening stretch. As I guide you into each pose, my hands linger and the chemistry becomes impossible to ignore. Describe how the stretching turns into something else entirely and how the tension takes over.
+- Walk me through how you'd take your time touching every inch of me while telling me what you love.
+- What is your favorite way to receive pleasure, and why: hands, mouth, penetration, or something else?
+- Tell me what you want to hear whispered when you're close to the edge.
+- We're at a masquerade party in a mansion. Masks on, identities hidden. We find a locked room upstairs — velvet furniture, dim lighting, a mirror covering one wall. We can hear the party below but no one knows we've slipped away. Describe what happens behind that locked door, with the masks still on, the anonymity and the mirror showing everything.
+- Tell me intimately what you're thinking about when you think about me when you touch yourself.
+- Tell me in detail how you want me to make you come.
+- Tell me about the fantasy where you're completely in control of me.
+- We're deep in a late-night conversation and the tension has been building for weeks. Today I pull you closer and confess I haven't been able to stop thinking about you. My partner is waiting in the next room — I invited them because I want us all together. Describe what happens when that door opens and the night turns into something none of us will forget.
+- Describe every place you would want me to make love to you, and what would make each one feel different.
+- Tell me in detail how you would bring me to climax.
+- How would you feel about tying me up and having your way with me?
+- We're alone in an outdoor hot tub under the stars, the jets pulsing around us, steam rising into the cold night air. Describe the details — how you position us so the jets hit just right, the way the bubbling water hides what your hands are doing underneath, how the heat of the water mixes with the heat between us as things escalate.
+- Tell me your most explicit fantasy about us having sex spontaneously.
+- What's the hottest way you want me to make you reach intense pleasure?
+- Tell me about the restraint fantasy you've imagined but never shared.
+- We're swimming together in a secluded mountain lake at sunset. The water is warm on the surface, cool underneath, and we're alone. Describe how it starts — the way our bodies feel weightless together, how hands move differently underwater, pulling me close with nothing between us, the sensation of skin against skin in the water as the sun disappears.
+- If we were to explore inviting someone else into our bedroom, describe how you'd want that night to unfold — the boundaries, the dynamic, the details of how the three of us interact?
+- We're alone at the pool after dark, water still on our skin. Describe how the closeness in the water turns into heated tension, and what happens when we finally give in to it.
+- We're setting up a sensual massage night, but one partner arrives first and the tension is already building by the time the other joins in. Describe the oil, the hands, and the three-way dynamic that unfolds once everyone is finally together.
+- What's your most explicit fantasy about us having intensely passionate intimacy? What happens?
+- We're alone in a candlelit studio stretching together. Describe how you guide me deeper into each pose, how our bodies keep brushing, and what happens when we stop pretending this is only about the stretches.
+- What commanding or degrading dirty talk would feel exciting and safe?
+- We've been flirting with someone we both find irresistible. Today, they're in our bedroom. Describe the scene from the very beginning — who makes the first move, how the three of us navigate each other's bodies, the dynamic of watching me with someone else while waiting for your turn, every position, every moment of shared pleasure.
+- If you could use one food item during sex what would it be?
+- What explicit instructions would you want to give me during sex?
+- We're strangers who locked eyes across a hotel bar. No names, no history — just raw attraction. You slide into the seat next to me and within minutes we're in the elevator, barely keeping our hands off each other. Describe every moment from the hallway to the hotel room — the urgency, the anonymity, the things we do because there are no strings and no rules.
+- We're teasing each other past the point of patience, both pretending we still have control. Describe who finally snaps first, how they take over, and what happens next.
+- I'm interviewing for a position at your company. You close the blinds and tell me the final round is a 'practical assessment.' Describe the power dynamic — how you direct me from behind your desk, what you make me demonstrate, and how I earn the job in graphic detail.
+- What would it look like for you to submit to me for an evening?
+- You're a flight attendant on a private jet and I'm your only passenger. After takeoff, you close the cabin curtain and tell me this flight comes with very special first-class service. Describe the full fantasy — the uniform coming undone, the turbulence that pushes us together, every mile-high detail from takeoff to the descent you give me.
+- Share your ultimate intimate fantasy involving just us two.
+- We're alone in a private cabin while the world sways around us. Describe the tension, the closeness, and how the motion beneath us makes everything feel even more intense.
+- Describe your dirtiest adventurous fantasy about us, including where we're, what starts it, and how far it goes.
+- Describe from start to finish what happens when you take complete control on top: the pace, the positions, my reactions, and how you make us both finish.
+- How would you want me to take you somewhere spontaneous? Describe it in detail.
+- We're doing a private boudoir shoot together. Describe how you guide me into daring poses, how the camera slowly becomes an afterthought, and what happens when the chemistry between us takes over.
+- What's your dirtiest fantasy about us having sex away together? What happens?
+- We end up in a dangerously flirtatious negotiation where every word feels like foreplay. Describe how the tension escalates, how close we get, and how the conversation stops being about anything except desire.
+- What's your most graphic fantasy about us making love somewhere daring? What happens?
+- Describe how you'd want us to touch ourselves together in the same room: the lighting, the eye contact, who starts first, and the details of watching each other.
+- Tell me about the explicit fantasy scene you'd want to create with me.
+- Tell me the details of how you want me to touch you in a new way.
+- Imagine we steal away for a private after-hours rendezvous. Tell me how you slowly undress me, explore every inch of my body with intention, and build the tension until I can hardly think.
+- Tell me about a time you almost lost control with me — and what would push you completely over the edge.
+- You're the one I trust to take your time with me until every touch feels unbearable, addictive, and impossible to recover from. What happens?
+- Tell me intimately what you want to do to me in the water.
+- How would you want me to start the morning with intimacy? Describe it in detail.
+- Describe how you would want us to grind against each other right now.
+- Where somewhere adventurous would you want me to make love to you and how? Describe it in detail.
+- Share how you want me to use my tongue on you completely.
+- You're in complete control and you tell me how this is going to go—where you want me, how you want my body, and what you want me to do for you. What happens?
+- You're a librarian and I keep checking out the same book just to see you. Today the library is empty. Describe how the quiet turns electric — between the shelves, on the reading table, trying to stay silent — every hushed, explicit detail of our literary encounter.
+- You're guiding me deeper into the filthiest version of what I want, making me say it out loud before you give it to me. What happens next?
+- I want to ride you while you play with me at the same time — describe how you want that to feel for both of us?
+- You pin me in place with that look, tell me what you're going to do to me, and make me stay still while the anticipation wrecks me. Describe the whole moment.
+- You're my commanding officer and I've been insubordinate. You order me to your quarters for discipline. Describe in detail the dynamic — how you assert dominance, what you command me to do, where you put me, and how you punish me until I beg for more.
+- We're alone for a private lesson in temptation and restraint, and you keep pushing me closer to the edge without letting me have what I want. Describe the full lesson.
+- Tell me what you want to do with your mouth all over me.
+- I'm telling you all my intimate secrets while we're curled up together, and your response makes the tension skyrocket? Describe it in detail.
+- I'm a celebrity and you're the reporter doing a private interview in my penthouse. The questions get personal. Describe how the interview dissolves — my hand on your recorder, your hand on my thigh, and every headline-making detail of what happens off the record.
+- Tell me how you want our most heated night together to unfold.
+- You're my dance instructor teaching me the tango. Describe how the lesson escalates — your hand sliding lower on my back, our hips grinding together to the rhythm, and what happens when you press me against the mirror and the dancing turns into something far more passionate.
+- You're helping me explore my desires in a slow, intensely attentive way. What happens?
+- How do you want me to tease and pleasure you completely?
+- What's the hottest intimate experience you want us to have together? Describe it in detail.
+- I'm a room service attendant who brings your order. You answer the door in just a robe. You pull me inside and tell me the tip is 'on the bed.' Walk me through this encounter in explicit detail — the power play, the seduction, every position we try in that luxury suite.
+- Describe a roleplay where you explore every inch of me slowly and thoroughly.
+- We get caught up in a dangerous amount of tension after everyone else has left. Describe how the charged conversation turns into a reckless, urgent moment where neither of us can pretend we don't want it.
+- I'm lying beside you on the couch, telling you my deepest thoughts, and the intimacy becomes impossible to resist. What happens?
+- Which finish would feel most exciting or intimate during sex?
+- What would you want to do next if you could take your time with every part of me?
+- How would you feel about me using my fingers to pleasure you while I kiss you?
+- Share how you want me to pleasure you for hours.
+- Describe how you would want me on top, moving against you in the hottest way.
+- You're a bartender and I'm the last customer. You lock the front door and pour us both a shot. Describe how we go from flirting to you lifting me onto the bar — the details of what your hands do, where your mouth goes, and how we christen every surface in that bar.
+- How do you want us to pleasure each other at the same time?
+- I'm a mechanic working under a car when you walk into my shop. You see my body glistening with sweat. Describe how you get my attention, how things get heated in the garage — against the car hood, on the workbench — every grease-stained detail.
+- Tell me how you want me to make love to you.
+- What's the hottest thing you want me to do to you while you're bare?
+- We're on the couch late at night and I confess what I've been fantasizing about. Describe how you lean in, take control of the moment, and turn my confession into a slow, irresistible reality.
+- Describe intimately how you want me to make you climax with just my hands.
+- You give me a long, slow full-body massage and neither of us is pretending it's innocent. Describe how your hands move across me, where you linger, and how the tension changes when I beg you not to stop.
+- Tell me what you want to do to me when I'm turned on.
+- Describe in detail your favorite thing about giving me oral — the sounds I make, the way my body responds, the specific moments that drive you to keep going.
+- How do you want me to pleasure you while you use a toy?
+- We're flushed with adrenaline after a dramatic victory and finally alone together. Describe how triumph turns into hunger, how we close the distance, and how we celebrate in the hottest way possible.
+- You discover just how sensitive I'm to your touch and decide to take your time with me. Describe how you explore my reactions, where your hands wander, and how you slowly make me melt beneath you.
+- You're a firefighter who just rescued me. I invite you inside to 'thank you properly' while you're still in your gear. Describe how I slowly peel off each piece of your uniform and what I do to every part of your body I uncover.
+- Guide my hands across your body right now — tell me where to go and what to do until you can't take it anymore?
+- What's the hottest way you want me to use a toy on you while I touch your most sensitive spot?
+- What's your favorite way for us to grind against each other until we both climax?
+- Describe the kind of finish you would want while I pleasure you.
+- We're coworkers on a business trip sharing a hotel room because the company cheaped out. There's only one bed. Describe in explicit detail the pretense of 'just sleeping' that unravels — the accidental touches, who makes the first move, and everything that follows.
+- You're my tattoo artist and I want ink on my inner thigh. Describe the entire session — your gloved hand on my bare skin, how close your face is to my body, the vibrations, and what happens when the tattoo is done and your hands don't leave my thigh.
+- Share how you want me to make you lose yourself in pleasure.
+- I'm a thief who broke into your mansion and you catch me red-handed. Instead of calling the police, you have something else in mind. Describe the cat-and-mouse game through your house and what happens when you finally corner me in your bedroom.
+- We're strangers on a train in a private sleeper car. The train sways and jolts us together. Describe the overnight journey — how the close quarters and rhythm of the train lead to us tangled together, the details of what we do as cities blur past the window.
+- What's the most direct, explicit invitation you would want to give me right now?
+- I'm a pilot and you're my flight attendant on a red-eye with an empty first-class cabin. Describe how we lock the cockpit door — what you do when I recline the seat, how you straddle me at 35,000 feet, every turbulent detail of our mile-high encounter.
+- I'm a stranger who just moved in next door. You come over to introduce yourself and find me barely dressed. The tension is unbearable. Describe how we go from small talk to you pinning me against my kitchen counter — every touch, every piece of clothing that comes off.
+- We're rival lawyers who just faced off in court. The tension is electric. We end up alone in the law library after midnight. Describe how the intellectual sparring becomes physical — on the conference table, against the bookshelves, every fierce detail.
+- What's your favorite way for us to pleasure each other lying on our sides?
+- We're wrapped in an opulent fantasy of silk, candlelight, and absolute devotion to each other. Describe how the scene unfolds, how you draw me closer, and how the night becomes more intense with every touch.
+- How would you want to explore my body using only your mouth and tongue?
+- What's the most passionate, most graphic thing you've ever wanted to do to my body?
+- We're outlaws on the run who duck into an abandoned cabin. Adrenaline is pumping. Describe the desperate, urgent encounter — against the wall, on the dusty floor, the danger outside making everything more intense — every raw, explicit detail of our hideout tryst.
+- Tell me how you want me to use every part of my body on you.
+- We're astronauts on a two-person mission, floating alone in zero gravity. How does intimacy work up here? Describe the physics, the floating, bodies intertwined with nothing to hold onto but each other — every weightless, explicit detail.
+- I'm posing for you in a private sketch session. Describe how your eyes move over me, how your attention makes the room feel electric, and what happens when the distance between artist and muse disappears.
+- How would you like me to pleasure you while you touch yourself?
+- You're a vampire who's been watching me for centuries and today you finally reveal yourself. Describe the seduction — how you mesmerize me, how your lips trace my neck, and the explicit encounter that unfolds when I willingly submit to your dark desire.
+- Share how you want me to pleasure you with intimate accessories.
+- How do you want me to make you climax again and again?
+- What would an ideal turn-taking toy experience look like for us?
+- Describe how you would want my fingers and mouth to pleasure you.
+- How would mutual self-pleasure feel most intimate and exciting for us?
+- How do you want me to pleasure you with my mouth?
+- We meet at a masquerade party and we don't recognize each other behind our masks. Describe the raw, uninhibited encounter between two 'strangers' — how we dance, how we disappear to a private room, and every explicit detail of what we do without ever removing our masks.
+- You're a fortune teller reading my palm, and you see an incredibly heated night in my near future with someone in this room. Describe how the reading turns real in your low-lit tent, with the details.
+- Tell me the most passionate position you want to try with me and how.
+- We're enemies in a sword fight who end up with blades at each other's throats. The aggression turns to lust. Describe how we drop our weapons, how the fight becomes a different kind of wrestling, and the details of the intense encounter on the battlefield.
+- You're a genie and I just rubbed your lamp. My three wishes are all variations of 'I want you.' Describe how you grant each wish — the first tender, the second wild, the third absolutely no-holds-barred — every magical, explicit detail of each granted desire.
+- Tell me how you want me to use my hands all over your bare body.
+- I'm a hitchhiker you pick up on a deserted highway at sunset. The chemistry is instant. Describe how we pull over onto a dirt road — what happens in the back seat, how our bodies move together, every steamy detail of our roadside encounter with nothing but open sky above us.
+- We roleplay a tense late-night interrogation where neither of us can hide the chemistry. Describe the charged questions, the slow approach, and the moment the game turns into something much more physical.
+- How do you want me to touch you intensely while I kiss your body?
+- You're a painter and I'm your muse. You ask me to pose nude and begin painting, but the brush strokes on the canvas become actual strokes on my body. Describe how art and desire merge — paint on skin, every vivid, colorful, explicit detail.
+- Tell me how you want me to completely explore your body.
+- You're a lifeguard and you just pulled me from the water. I'm lying on the sand barely conscious and when I open my eyes you're over me, lips close to mine. Describe how mouth-to-mouth turns into something much more behind the dunes — every graphic detail.
+- I'm your rival at a business conference and we hate each other. We end up in the elevator together and it breaks down. Describe the hate-fueled tension, who snaps first, and every graphic detail of the aggressive, passionate encounter between floors.
+- We play a cat-and-mouse game where one of us is determined to make the other give up every secret willingly. Describe the teasing, the tension, and how surrender starts to feel delicious.
+- You're my personal chef cooking a private dinner. You dip your finger in sauce and bring it to my lips. Describe how we go from tasting to touching — how you lift me onto the kitchen island, what you do with the whipped cream, and how we devour each other between courses.
+- Share how you want me to pleasure you until you're wanting more.
+- Describe the hottest sex you can imagine us having — from the first touch to the last breath.
+- We're at a costume party and slip away for a private moment while the costumes are still on. Describe the teasing, the playful tension, and how the night turns much hotter once the door closes behind us.
+- Describe the kind of mutual oral experience you would want with me.
+- You're helping me unwind after a long day, your hands working tension out of my body one slow touch at a time. Describe how the closeness shifts, how your touch changes, and what happens when neither of us wants to stop.
+- How do you want me to use my mouth on you?
+- I'm a guest at your bed and breakfast and I accidentally walk into your room. You're freshly out of the shower with just a towel. Describe the charged energy between us — how the towel drops, what happens against the door, and every explicit detail of the next hour.
+- We invent a playful 'pleasure experiment' together just to see how far we can push each other. Describe the teasing setup, the anticipation, and how each new sensation makes the next one even harder to resist.
+- We're strangers with undeniable chemistry and one private room. Describe how the roleplay turns explicit.
+- You're in complete control of the scene and I agree to follow your lead. What do you have me do?
+- We roleplay a secret rendezvous where every look is loaded. Describe how the private encounter becomes explicit.
+- Pick a fantasy role for each of us and describe the moment the scene turns physical in explicit detail.
+- We're playing a forbidden-feeling scene with clear consent and total privacy. What happens once the tension breaks?
+- We roleplay a pretend therapist and client session where consent is clear and the tension turns sexual. Describe the moment the professional mask slips and what happens next.
+- We have one locked room, one adventurous rule, and total privacy. Describe what the rule is and how far we take it.
+- Describe the most daring private place you would want us to lose control together.
+- We plan a night around doing the thing we keep almost saying out loud. What's it, and how does it unfold?
+- What adventurous fantasy would feel hottest if we had a whole night to build anticipation first?
+- Imagine we cross a line we have both agreed to cross. Describe the consent, the setting, and the explicit moment everything changes.

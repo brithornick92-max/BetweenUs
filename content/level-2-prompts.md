@@ -1,0 +1,185 @@
+- What would surprise people most about how we're together?
+- What little sign tells you I'm fully relaxed around you?
+- What's the first thing you notice when I walk into a room?
+- What goes through your mind when I start mirroring your movements without realizing it?
+- What do you remember about what I was wearing when we met?
+- What's something I do in my sleep that you find endearing?
+- Which aspect of the way I smell appeals to you most?
+- What do you notice about me when I'm really focused on something I care about?
+- Picture us in a movie montage — what song is playing and what are we doing?
+- What's something I do with my hands that you find comforting?
+- Which holiday tradition of ours means the most to you?
+- What part of your younger self do you wish I understood better?
+- What's the most romantic thing about our everyday routine?
+- What's the most 'us' thing we do without thinking?
+- Which of your five senses do you find the most sensual?
+- If we could visit any place in the world right now, where would you choose, and why?
+- When do you like taking the lead with us, and when do you like letting me lead?
+- What imaginary escape would be fun for us to disappear into for a day?
+- Which quiet walk would help us feel more connected without needing to say much?
+- Which setting feels romantic to you, and what makes it feel that way?
+- Which version of excited me is your favorite to watch?
+- What playful wish would make our life together sweeter right now?
+- What did you hope your grown-up life would feel like when you were little?
+- What annoying habit of mine do you actually think is cute?
+- What season of our relationship would you want to revisit for one afternoon?
+- What's a romantic gesture you've always wished I would do for you?
+- How do you know when I'm trying not to laugh?
+- What early lesson about kindness, trust, or love still shapes you today?
+- If our relationship were a movie, which one would it be?
+- Where do you envision yourself in five years?
+- What's a song, meal, or joke that still reminds you of our early days?
+- What happens to your mood when I sing along to music in the car?
+- If time and money felt lighter, what would you want us to make more room for?
+- Which kind of love story always gets to you, and why?
+- What's a new hobby or passion you'd like to explore?
+- Which of our inside references makes you laugh every time?
+- If you could, would you change anything about your childhood?
+- Which trip would help us feel most reconnected?
+- What's something about our community that brings you joy?
+- What would you want to be known for by the people who love you most?
+- What childhood comfort do you still remember vividly, and what did it mean to you?
+- Who was your celebrity crush as a kid?
+- What childhood story, show, or book shaped how you imagined love or family?
+- What was your favorite elementary school memory?
+- Who was your first best friend, and what were they like?
+- Which of my childhood stories makes you smile the most?
+- How would you feel about lending a family member or friend a lot of money?
+- Whose way of caring for people do you admire, and what does it teach you?
+- How did you first know you were attracted to me?
+- When you do a good deed, what makes you decide whether to share it or keep it private?
+- What crosses the line into cheating for you, emotionally or physically?
+- What helps you stay hopeful about people when life feels heavy?
+- What type of leadership or character makes you feel hopeful, and why?
+- What beliefs shape how you think about conflict, harm, and when force is never acceptable?
+- What's one small way you would like us to bring more kindness into the world?
+- What's the most defining moment you've experienced in your career?
+- How much do you worry about climate change?
+- What's a cold-weather activity that could turn unexpectedly flirty between us?
+- What's something romantic you almost said to me but the moment passed?
+- Which gesture of mine best shows you that you're my priority?
+- What's something a little outside our comfort zone you've wanted to try together — even just a tiny step?
+- What's a spot in our city we haven't explored together yet that you'd love to visit as a couple?
+- What does my voice do to you when I say your name softly?
+- Where do you picture us sharing our most romantic kiss in the future?
+- What's a silly dare you'd give me right now that would make us both laugh?
+- Tell me about the first time you thought I looked truly beautiful or handsome.
+- Tell me about the most romantic dream you've had about us.
+- What physical feature and non-physical trait of mine do you appreciate most right now?
+- What's a date with me that would feel ridiculously romantic to you right now?
+- Which season makes you feel most drawn to me, and why?
+- Describe our first kiss. What were you thinking.
+- How do you know when I'm locked in on you?
+- What's a romantic movie or book scene that made you think 'I'd like to try something like that'?
+- Tell me about a place we've been together where the tension between us felt impossible to miss.
+- Hold intentional eye contact for 5-10 minutes.
+- What's a simple ritual of ours you hope never fades?
+- What's something flirty you've wanted to text me but didn't?
+- What's one thing I wear that you wish I'd wear more often?
+- What's the most unexpected place you've thought about kissing me?
+- What's most comforting and exciting about being with someone who really understands your body?
+- What's the most underrated thing about being with me?
+- If we had a whole cozy winter evening to ourselves with no plans, what would your ideal night look like?
+- What's something about our early days that made you think 'this is different'?
+- Describe the feeling you get when I surprise you with flowers or gifts.
+- Tell me about the side of you that's a little more daring than people realize.
+- What's a place you've been that made you feel especially romantic or inspired?
+- What sound do I make that instantly gets your attention?
+- Which romantic fantasy about our future together excites you most?
+- What's the most playful thing you want to try with me this month?
+- What do you think is your best physical feature? Don't be modest.
+- Where's your favorite place to be touched when we're just being close?
+- How do you feel when I express myself fully around you?
+- What's the most romantic seasonal tradition you'd love for us to start this year?
+- What's a look we've shared that you can still picture perfectly?
+- How has being loved by me changed your idea of romance?
+- If we could sneak away for a flirty weekend, where would you want us to go?
+- Tell me about a time my laugh made you fall for me even more.
+- What's a simple romantic moment you daydream about us having?
+- If we had a couples game night with friends, what game would we dominate at together?
+- What about me do you find most physically attractive?
+- What do you feel when I reach for your hand?
+- What's your favorite thing about our unique dynamic?
+- What's a cozy winter moment you'd love to share with me?
+- Which romantic memory of us together stands out most to you?
+- What emotion do you see in my eyes when I look at you?
+- If we could relive one of our dates at the exact same location, which one would you pick?
+- What goes through you when I whisper sweet things in your ear?
+- What's something funny you can imagine being in my search history?
+- What did you find most attractive about me when we first met?
+- What do you experience when I play with your hair or touch your face gently?
+- Which way I show you affection in public makes your heart flutter?
+- How would you want to spend a perfect summer evening together?
+- If you had to rank our kisses, which one was the best?
+- What do my small gestures of love do to your mood almost instantly?
+- What do you feel when our eyes meet across a room?
+- If I had to impress you at a talent show today, what should I perform?
+- How do you feel when I look at you first thing in the morning?
+- Describe how you feel when I wrap my arms around you from behind.
+- If we had to pick a song for us right now, what would it be?
+- What was going through your mind the first time you wanted to kiss me?
+- How do you feel when I tell you how proud I'm of you?
+- How does it feel when you catch my scent on your clothes?
+- What's the most playful way I've ever flirted with you?
+- What's a look I give you that you still can't decode?
+- What do you love about the way we move together, even in ordinary moments?
+- How do you feel when we hold hands in public?
+- Describe how you feel when I tell you I love you.
+- What's the most romantic thing about the way I say your name?
+- What little habit of mine would be funniest or sweetest to imitate, and why does it stand out to you?
+- Close your eyes. Describe how you see me and what I'm wearing when you think of me.
+- What do you experience when I kiss your forehead or cheek tenderly?
+- What's one thing I do that makes you want to pull me closer?
+- What's the most attractive thing about the way I treat you?
+- How do you feel when I sing to you or play music for you?
+- What outfit of mine makes you feel most attracted to me?
+- Which cozy, screen-free night together would feel most comforting to you?
+- How does it feel when we're the only couple in the room?
+- What exact moment made you realize this was more than friendly for you?
+- Tell me about a time my voice gave you chills in the best way.
+- What goes through your mind when I absentmindedly touch your arm while talking?
+- Which romantic evening would you most love to spend with me?
+- What's something I said early on that you still think about?
+- What's your favorite way I show love through physical touch?
+- What's the most romantic gesture you've been wanting to make?
+- How did you know you didn't want me staying in the 'just friends' category?
+- How do you feel when I cuddle with you while we watch movies?
+- Which romantic tradition we've created together means the most to you?
+- What's a small gesture of mine that makes your heart skip?
+- When's the last time I made you blush without trying?
+- When I make it clear you're my priority, what lands the deepest for you?
+- Which date would make us feel like we're flirting for the first time again?
+- What's the part of my personality that pulls you in the hardest?
+- What's so magnetic about being with someone who truly understands you?
+- Describe the moment you knew you were falling in love with me.
+- Which romantic movie scene reminds you most of us?
+- What happens in your body when I look at you like you're the only person in the room?
+- Describe the butterflies you felt during our first kiss.
+- When do you feel most romantically connected to me?
+- Tell me about a time I made you blush in the sweetest way.
+- What's one thing I do that still makes you feel butterflies?
+- Tell me about a moment when you felt completely swept off your feet by me.
+- What's your favorite way I show my masculinity?
+- What's the most romantic place you'd like to visit with me?
+- How do you feel when I wear something of yours?
+- Which romantic quote or poem makes you think of us?
+- Which ordinary moment do I transform into something magical for you?
+- What would make a rainy-day kiss feel sweet, playful, or memorable?
+- What's the most romantic surprise you'd love to plan for me?
+- How do you feel when I wear your clothes?
+- Which love song reminds you most of us?
+- What's a flirty at-home date idea that would make today feel charged without any pressure?
+- What do you love about my unique style?
+- What's hottest about the way our bodies fit together?
+- How do you feel when we coordinate our outfits for special events?
+- What's the most romantic thing you'd like to do for me?
+- What do you love most about the energy I bring to our relationship?
+- What's something romantic I've done that caught you off guard in the best way?
+- What's something romantic you've wanted to say to me at the perfect moment?
+- What's a compliment you've wanted to give me that would probably stay with me all day?
+- What's one sweet thing I do that still gives you a tiny rush every time?
+- What future date night do you want us to look forward to together?
+- Where do you picture us going when we need a romantic reset?
+- What little tradition would you love us to start and still be doing years from now?
+- What future celebration of ours do you already want to make special?
+- What romantic goal would be fun for us to chase together?

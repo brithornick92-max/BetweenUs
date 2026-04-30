@@ -115,8 +115,14 @@ describe('WeeklyContentSetService', () => {
     });
   });
 
-  it('builds free prompt welcome-week previews with 10 unlocked and 5 locked previews', () => {
-    const result = buildWeeklySet(prompts, {
+  it('builds free prompt welcome-week previews with 10 unlocked and 2 locked previews', () => {
+    const promptCatalog = [
+      ...prompts,
+      makePrompt('p10', 4, 'visual'),
+      makePrompt('p11', 5, 'kinky'),
+      makePrompt('p12', 5, 'roleplay'),
+    ];
+    const result = buildWeeklySet(promptCatalog, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
       isPremium: false,
@@ -124,9 +130,10 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.unlocked).toHaveLength(9);
-    expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(9);
+    expect(result.freeLockedPreviewLimit).toBe(2);
+    expect(result.unlocked).toHaveLength(10);
+    expect(result.lockedPreviews).toHaveLength(2);
+    expect(result.items).toHaveLength(12);
     expect(result.lockedPreviews.every((item) => item.isLockedPreview === true)).toBe(true);
     expect(result.lockedPreviews.every((item) => item.requiresPremium === true)).toBe(true);
   });
@@ -174,7 +181,8 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.weekNumber).toBeGreaterThan(0);
-    expect(result.unlocked).toHaveLength(5);
+    expect(result.freeUnlockedLimit).toBe(3);
+    expect(result.unlocked).toHaveLength(3);
     expect(result.lockedPreviews.length).toBeGreaterThan(0);
 
     result.lockedPreviews.forEach((item) => {

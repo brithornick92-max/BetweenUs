@@ -182,6 +182,7 @@ export default function IntimacyPositionsScreen() {
             userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
             isPremium: isPremiumEffective,
             userSettings: profile || userProfile || {},
+            userCreatedAt: userProfile?.created_at || userProfile?.createdAt || userProfile?.created || userProfile?.creationTime,
             date: new Date(),
           });
 

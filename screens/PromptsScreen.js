@@ -39,14 +39,15 @@ import { SoftBoundaries } from "../services/PolishEngine";
 import { DataLayer } from "../services/localfirst";
 import { FALLBACK_PROMPT } from "../utils/contentLoader";
 import { getRecentlyCompletedPromptIds } from "../utils/promptHistory";
-import { STORAGE_KEYS, storage } from "../utils/storage";
+import { STORAGE_KEYS, promptStorage, savedPromptStorage, storage } from "../utils/storage";
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { trackFreePromptView } from "../utils/freeContentUsage";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SCREEN_W = SCREEN_WIDTH;
+const PROMPT_DECK_FRAME_H = Math.min(SCREEN_HEIGHT * 0.62, 536);
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 const loadAllBundledPrompts = () => {
@@ -211,6 +212,17 @@ async function getPremiumPromptLibraryStartedAt(userId) {
   return startedAt;
 }
 
+async function getLocalPromptAnswerRows() {
+  const byDate = await promptStorage.getAll();
+
+  return Object.entries(byDate || {}).flatMap(([dateKey, answersByPrompt]) =>
+    Object.values(answersByPrompt || {}).map((answer) => ({
+      ...answer,
+      dateKey: answer?.dateKey || dateKey,
+    }))
+  );
+}
+
 export default function PromptsScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { isDark } = useTheme();
@@ -225,6 +237,9 @@ export default function PromptsScreen({ navigation }) {
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deckVersion, setDeckVersion] = useState(0);
+  const [shuffleNonce, setShuffleNonce] = useState(0);
+  const [promptDeckIndex, setPromptDeckIndex] = useState(0);
+  const [savedLaterPrompts, setSavedLaterPrompts] = useState([]);
   const shuffleAnim = useSharedValue(0);
   const viewedPromptIdsRef = useRef(new Set());
 
@@ -250,9 +265,10 @@ export default function PromptsScreen({ navigation }) {
 
       (async () => {
         try {
-          const [profile, bounds] = await Promise.all([
+          const [profile, bounds, savedPrompts] = await Promise.all([
             PreferenceEngine.getContentProfile(userProfile || {}),
             SoftBoundaries.getAll(),
+            savedPromptStorage.getAll(),
           ]);
           if (!active) return;
           let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
@@ -261,6 +277,7 @@ export default function PromptsScreen({ navigation }) {
           setRawBoundaries(bounds);
           setSelectedHeat(heat);
           setSelectedTone(profile?.tone || 'warm');
+          setSavedLaterPrompts(savedPrompts);
         } catch {
           if (!active) return;
           setContentProfile(null);
@@ -281,7 +298,14 @@ export default function PromptsScreen({ navigation }) {
     setLoading(true);
     try {
       const allPrompts = ALL_BUNDLED.map(normalizePrompt);
-      const recentPromptAnswers = await DataLayer.getPromptAnswers?.({ limit: 1000 }).catch(() => []);
+      const [dataLayerPromptAnswers, localPromptAnswers] = await Promise.all([
+        DataLayer.getPromptAnswers?.({ limit: 1000 }).catch(() => []),
+        getLocalPromptAnswerRows().catch(() => []),
+      ]);
+      const recentPromptAnswers = [
+        ...(dataLayerPromptAnswers || []),
+        ...(localPromptAnswers || []),
+      ];
       const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(recentPromptAnswers);
 
       // Apply user boundaries (heat limits, hidden categories, paused items)
@@ -333,6 +357,12 @@ export default function PromptsScreen({ navigation }) {
     loadPrompts();
   }, [loadPrompts]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadPrompts();
+    }, [loadPrompts])
+  );
+
   const freeWeeklyPromptDeck = useMemo(() => {
     if (isPremium || !weeklyPromptSet?.items?.length) return null;
 
@@ -383,17 +413,27 @@ export default function PromptsScreen({ navigation }) {
     return finalDeck;
   }, [prompts, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck, deckVersion]);
 
+  const freeUnlockedPromptsLeft = useMemo(() => {
+    if (isPremium) return null;
+    return deckPrompts
+      .slice(promptDeckIndex)
+      .filter((prompt) => !prompt?.isLockedPreview && !prompt?.requiresPremium)
+      .length;
+  }, [deckPrompts, isPremium, promptDeckIndex]);
+
+  useEffect(() => {
+    setPromptDeckIndex(0);
+  }, [deckPrompts, deckVersion]);
+
   const deckCountLabel = useMemo(() => {
     if (isPremium) return '200 cards';
+    if (typeof freeUnlockedPromptsLeft === 'number') {
+      return `${freeUnlockedPromptsLeft} free prompt${freeUnlockedPromptsLeft === 1 ? '' : 's'} left this week`;
+    }
     const count = deckPrompts.length;
     const noun = count === 1 ? 'card' : 'cards';
     return `${count} ${noun} you can draw now`;
-  }, [deckPrompts.length, isPremium]);
-
-  const deckGrowthLabel = useMemo(() => {
-    if (!isPremium) return null;
-    return '10 new prompt cards added each week.';
-  }, [isPremium]);
+  }, [deckPrompts.length, freeUnlockedPromptsLeft, isPremium]);
 
   const usageUserId = user?.uid || user?.id || userProfile?.id || null;
 
@@ -432,6 +472,45 @@ export default function PromptsScreen({ navigation }) {
       freeUsageAlreadyTracked: !isPremium && !!prompt?.id && viewedPromptIdsRef.current.has(prompt.id),
     });
   }, [isPremium, navigation, showPaywall]);
+
+  const handleSavePromptForLater = useCallback(async (prompt) => {
+    if (prompt?.isLockedPreview || prompt?.requiresPremium) {
+      impact(ImpactFeedbackStyle.Medium);
+      showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+      return;
+    }
+
+    try {
+      await savedPromptStorage.save(prompt);
+      setSavedLaterPrompts(await savedPromptStorage.getAll());
+      impact(ImpactFeedbackStyle.Light);
+      Alert.alert("Saved for later", "You'll be able to come back to this prompt.");
+    } catch {
+      Alert.alert("Couldn't save this prompt", "Please try again.");
+    }
+  }, [showPaywall]);
+
+  const handleDeleteSavedPrompt = useCallback((prompt) => {
+    const promptId = prompt?.promptId || prompt?.id;
+    if (!promptId) return;
+
+    Alert.alert(
+      "Remove saved prompt?",
+      "This will remove it from Saved for later.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            await savedPromptStorage.remove(promptId);
+            setSavedLaterPrompts(await savedPromptStorage.getAll());
+            impact(ImpactFeedbackStyle.Light);
+          },
+        },
+      ]
+    );
+  }, []);
 
   const refreshBoundaryProfile = useCallback(async () => {
     const [profile, bounds] = await Promise.all([
@@ -472,6 +551,8 @@ export default function PromptsScreen({ navigation }) {
   }, [refreshBoundaryProfile]);
 
   const handleShuffle = useCallback(() => {
+    setShuffleNonce((value) => value + 1);
+
     // 1. Visual shake animation
     shuffleAnim.value = withSequence(
       withTiming(1, { duration: 120 }),
@@ -486,8 +567,8 @@ export default function PromptsScreen({ navigation }) {
     setTimeout(() => impact(ImpactFeedbackStyle.Light), 100);
     setTimeout(() => impact(ImpactFeedbackStyle.Medium), 150);
 
-    // 3. Swap the deck halfway through
-    setTimeout(() => setDeckVersion((v) => v + 1), 150);
+    // 3. Swap the deck as the card stack settles
+    setTimeout(() => setDeckVersion((v) => v + 1), 420);
   }, [shuffleAnim]);
 
   const deckStyle = useAnimatedStyle(() => {
@@ -517,11 +598,6 @@ export default function PromptsScreen({ navigation }) {
               {deckCountLabel}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
-            {deckGrowthLabel ? (
-              <Text style={[styles.headerSubtitle, { color: t.subtext }]}>
-                {deckGrowthLabel}
-              </Text>
-            ) : null}
           </Animated.View>
 
           {/* Shuffle Button */}
@@ -550,15 +626,23 @@ export default function PromptsScreen({ navigation }) {
               <Text style={[styles.emptyText, { color: t.subtext }]}>{toneCopy.empty}</Text>
             </View>
           ) : (
-            <Animated.View style={[styles.deckWrapper, { paddingBottom: tabBarHeight }, deckStyle]}>
-              <PromptCardDeck
-                key={deckVersion}
-                prompts={deckPrompts}
-                onSelect={handlePromptSelect}
-                onSkip={() => impact(ImpactFeedbackStyle.Light)}
-                onLongPress={handlePromptBoundaryAction}
-                onReveal={handlePromptReveal}
-              />
+            <Animated.ScrollView
+              style={[styles.deckWrapper, deckStyle]}
+              contentContainerStyle={[styles.deckScrollContent, { paddingBottom: tabBarHeight + 24 }]}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.promptDeckFrame}>
+                <PromptCardDeck
+                  prompts={deckPrompts}
+                  onSelect={handlePromptSelect}
+                  onSkip={() => impact(ImpactFeedbackStyle.Light)}
+                  onLongPress={handlePromptBoundaryAction}
+                  onReveal={handlePromptReveal}
+                  onIndexChange={setPromptDeckIndex}
+                  onSaveForLater={handleSavePromptForLater}
+                  shuffleNonce={shuffleNonce}
+                />
+              </View>
               
               {/* Refined Velvet Glass / Editorial Boundary Hint Pill */}
               <Animated.View 
@@ -576,7 +660,43 @@ export default function PromptsScreen({ navigation }) {
                   Long-press to hide
                 </Text>
               </Animated.View>
-            </Animated.View>
+
+              {savedLaterPrompts.length ? (
+                <View style={styles.savedLaterSection}>
+                  <Text style={[styles.savedLaterLabel, { color: t.subtext }]}>Saved for later</Text>
+                  <View style={styles.savedLaterList}>
+                    {savedLaterPrompts.slice(0, 8).map((prompt) => (
+                      <TouchableOpacity
+                        key={prompt.promptId || prompt.id}
+                        style={[
+                          styles.savedLaterChip,
+                          {
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.035)',
+                            borderColor: t.border,
+                          },
+                        ]}
+                        onPress={() => handlePromptSelect(prompt)}
+                        activeOpacity={0.75}
+                      >
+                        <Icon name="bookmark-outline" size={13} color={t.primary} />
+                        <Text style={[styles.savedLaterText, { color: t.text }]} numberOfLines={2}>
+                          {prompt.text || 'Saved prompt'}
+                        </Text>
+                        <TouchableOpacity
+                          style={[styles.savedLaterDeleteButton, { borderColor: t.border }]}
+                          onPress={() => handleDeleteSavedPrompt(prompt)}
+                          activeOpacity={0.75}
+                          accessibilityRole="button"
+                          accessibilityLabel="Remove saved prompt"
+                        >
+                          <Icon name="trash-outline" size={15} color={t.subtext} />
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+            </Animated.ScrollView>
           )}
         </SafeAreaView>
       </View>
@@ -618,7 +738,8 @@ const styles = StyleSheet.create({
   },
   shuffleSection: {
     paddingHorizontal: 32,
-    marginBottom: 4,
+    marginTop: 12,
+    marginBottom: 10,
     alignItems: 'center',
   },
   shuffleButton: {
@@ -626,6 +747,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    transform: [{ translateY: 16 }],
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 14,
@@ -644,6 +766,12 @@ const styles = StyleSheet.create({
   },
   deckWrapper: {
     flex: 1,
+  },
+  deckScrollContent: {
+    flexGrow: 1,
+  },
+  promptDeckFrame: {
+    height: PROMPT_DECK_FRAME_H,
   },
   boundaryHintRow: {
     flexDirection: 'row',
@@ -669,6 +797,48 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
+  },
+  savedLaterSection: {
+    marginTop: 16,
+  },
+  savedLaterLabel: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1.8,
+    textTransform: 'uppercase',
+    paddingHorizontal: SPACING.xl,
+    marginBottom: 10,
+  },
+  savedLaterList: {
+    gap: 10,
+    paddingHorizontal: SPACING.xl,
+  },
+  savedLaterChip: {
+    width: '100%',
+    minHeight: 64,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  savedLaterText: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '700',
+  },
+  savedLaterDeleteButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   centered: {
     flex: 1,
