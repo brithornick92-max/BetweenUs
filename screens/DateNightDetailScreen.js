@@ -23,7 +23,7 @@ import { useAppContext } from "../context/AppContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { impact, selection, ImpactFeedbackStyle } from "../utils/haptics";
 import { withAlpha } from "../utils/theme";
-import { getDateById } from "../utils/contentLoader";
+import { getAllDates, getDateById } from "../utils/contentLoader";
 import { getPartnerDisplayName, personalizePartnerText } from "../utils/profileNames";
 import { PremiumFeature } from "../utils/featureFlags";
 import Button from "../components/Button";
@@ -33,6 +33,7 @@ import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
+import { CONTENT_TYPES } from '../services/WeeklyContentSetService';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import {
   getDateHistory,
@@ -46,6 +47,11 @@ import {
   getDateShortlist,
   removeDateFromShortlist,
 } from '../services/supabase/dateShortlistService';
+import {
+  canOpenFreeDateDetail,
+  trackFreeDateDetailUsage,
+} from '../utils/freePromptAnswerQuota';
+import { isItemInFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
 
 const AUTO_LOG_THRESHOLD_SECONDS = 300; // 5 minutes
 
@@ -124,6 +130,51 @@ export default function DateNightDetailScreen({ route, navigation }) {
         return;
       }
 
+      if (!isPremium) {
+        const weeklyEligibleDates = getAllDates().filter((item) =>
+          PreferenceEngine.getDateVisibilityState(item, profile).visible
+        );
+        const accessCheck = await canOpenFreeDateDetail({
+          userId,
+          user,
+          userProfile,
+          isPremium,
+          dateId: resolvedDate.id,
+        });
+        if (!active) return;
+
+        const isWeeklyDate = isItemInFreeWeeklyDeck(resolvedDate.id, weeklyEligibleDates, {
+          contentType: CONTENT_TYPES.DATES,
+          userId,
+          user,
+          userProfile,
+          userSettings: profile || userProfile || {},
+        });
+
+        if ((!isWeeklyDate && !accessCheck.alreadyUsed) || !accessCheck.canUse) {
+          showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
+          navigation.goBack();
+          return;
+        }
+
+        const trackResult = await trackFreeDateDetailUsage({
+          userId,
+          user,
+          userProfile,
+          isPremium,
+          dateId: resolvedDate.id,
+        });
+        if (!active) return;
+
+        if (trackResult?.canUse === false) {
+          showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
+          navigation.goBack();
+          return;
+        }
+
+        await loadUsageStatus?.();
+      }
+
       setDate(resolvedDate);
     })().catch(() => {
       if (active) {
@@ -136,7 +187,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
     return () => {
       active = false;
     };
-  }, [routeDate, dateId, navigation, userProfile]);
+  }, [routeDate, dateId, navigation, userProfile, isPremium, showPaywall, user, userId, loadUsageStatus]);
 
   const partnerName = useMemo(
     () => getPartnerDisplayName(userProfile, state?.userProfile, 'your partner'),

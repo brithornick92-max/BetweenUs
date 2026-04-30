@@ -53,14 +53,27 @@ import ConnectionMemory from '../utils/connectionMemory';
 import { checkAchievements } from '../utils/achievementEngine';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import useProgressiveDisclosure from '../hooks/useProgressiveDisclosure';
+import { CONTENT_TYPES } from '../services/WeeklyContentSetService';
 import {
   canSaveFreePromptAnswer,
   resolvePromptUsageUserId,
   trackFreePromptAnswerUsage,
 } from '../utils/freePromptAnswerQuota';
+import { isItemInFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:cache:promptedPartnerShare';
+
+const loadAllBundledPrompts = () => {
+  const bundled = require('../content/prompts.json');
+  if (Array.isArray(bundled)) return bundled;
+  if (Array.isArray(bundled?.items)) return bundled.items;
+  if (Array.isArray(bundled?.prompts)) return bundled.prompts;
+  if (Array.isArray(bundled?.default)) return bundled.default;
+  if (Array.isArray(bundled?.default?.items)) return bundled.default.items;
+  if (Array.isArray(bundled?.default?.prompts)) return bundled.default.prompts;
+  return [];
+};
 
 function dateKey(date) {
   const d = date instanceof Date ? date : new Date(date ?? undefined);
@@ -102,7 +115,7 @@ export default function HomeScreen({ navigation }) {
   const { user, userProfile } = useAuth();
   const { data: dataLayer } = useData();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
-  const { todayPrompt, loadTodayPrompt, usageStatus, loadUsageStatus } = useContent();
+  const { todayPrompt, loadTodayPrompt, loadUsageStatus } = useContent();
   const { colors, isDark } = useTheme();
 
   // Apple Editorial & Velvet Glass Theme Map
@@ -139,8 +152,7 @@ export default function HomeScreen({ navigation }) {
   const [rewardData, setRewardData] = useState(null);
   const [smartGreeting, setSmartGreeting] = useState('Welcome Back');
   const [answeredCount, setAnsweredCount] = useState(0);
-  const remainingFreePrompts = usageStatus?.remaining?.prompts ?? 1;
-  const canWritePrompt = isPremium || !!myAnswer.trim() || remainingFreePrompts > 0;
+  const canWritePrompt = true;
   const disclosure = useProgressiveDisclosure(answeredCount);
   const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
@@ -151,6 +163,7 @@ export default function HomeScreen({ navigation }) {
   const cardAnim = useRef(new Animated.Value(0)).current;
   const actionsAnim = useRef(new Animated.Value(0)).current;
   const mountedRef = useRef(true);
+  const savingInlineRef = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -588,35 +601,43 @@ export default function HomeScreen({ navigation }) {
 
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
-    if (!finalText || !prompt?.id || !user?.uid || isSavingInline) return;
+    if (!finalText || !prompt?.id || !user?.uid || savingInlineRef.current) return;
 
+    savingInlineRef.current = true;
     setIsSavingInline(true);
 
     try {
       const usageUserId = resolvePromptUsageUserId(user, userProfile);
 
       if (!isPremium && !myAnswer) {
-        const accessCheck = await canSaveFreePromptAnswer({
-          userId: usageUserId,
+        const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+        const weeklyEligiblePrompts = loadAllBundledPrompts().filter((item) =>
+          PreferenceEngine.getPromptVisibilityState(item, profile).visible
+        );
+        const isWeeklyPrompt = isItemInFreeWeeklyDeck(prompt.id, weeklyEligiblePrompts, {
+          contentType: CONTENT_TYPES.PROMPTS,
           user,
           userProfile,
-          isPremium,
+          userSettings: profile || userProfile || {},
         });
 
-        if (!accessCheck.canSave) {
+        if (!isWeeklyPrompt) {
           showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
           return;
         }
-      }
 
-      if (!isPremium && !myAnswer) {
-        await trackFreePromptAnswerUsage({
+        const accessCheck = await canSaveFreePromptAnswer({
           userId: usageUserId,
           user,
           userProfile,
           isPremium,
           promptId: prompt.id,
         });
+
+        if (!accessCheck.canSave) {
+          showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+          return;
+        }
       }
 
       try {
@@ -634,6 +655,16 @@ export default function HomeScreen({ navigation }) {
         timestamp: Date.now(),
         isRevealed: false,
       });
+
+      if (!isPremium && !myAnswer) {
+        await trackFreePromptAnswerUsage({
+          userId: usageUserId,
+          user,
+          userProfile,
+          isPremium,
+          promptId: prompt.id,
+        });
+      }
 
       if (!isPremium && !myAnswer) {
         try {
@@ -679,6 +710,7 @@ export default function HomeScreen({ navigation }) {
     } catch {
       Alert.alert('Something didn\u2019t work', "We couldn\u2019t save your thoughts \u2014 try again?");
     } finally {
+      savingInlineRef.current = false;
       setIsSavingInline(false);
     }
   }, [
@@ -690,7 +722,6 @@ export default function HomeScreen({ navigation }) {
     myAnswer,
     showPaywall,
     loadUsageStatus,
-    isSavingInline,
     todayKey,
   ]);
 
@@ -735,11 +766,6 @@ export default function HomeScreen({ navigation }) {
       return;
     }
 
-    if (!myAnswer && !isPremium && remainingFreePrompts <= 0) {
-      showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
-      return;
-    }
-
     if (!myAnswer) {
       navigation.navigate('PromptAnswer', {
         prompt: {
@@ -760,7 +786,6 @@ export default function HomeScreen({ navigation }) {
       bothAnswered,
     });
   }, [
-    isPremium,
     promptReady,
     myAnswer,
     partnerAnswer,
@@ -773,8 +798,6 @@ export default function HomeScreen({ navigation }) {
     navigation,
     inlineText,
     handleInlineSave,
-    remainingFreePrompts,
-    showPaywall,
     ritualState,
   ]);
 

@@ -123,6 +123,7 @@ describe('UsageEventsService', () => {
       );
 
       expect(result.prompts).toBe(1);
+      expect(result.usedItemIds.prompts).toEqual(['prompt-1']);
     });
   });
 });

@@ -6,6 +6,19 @@ export const FREE_PROMPT_ANSWER_QUOTAS = {
   ongoingWeek: 1,
 };
 
+export const FREE_WEEKLY_USAGE_LIMITS = {
+  prompts: FREE_PROMPT_ANSWER_QUOTAS,
+  dates: {
+    welcomeWeek: 3,
+    ongoingWeek: 1,
+  },
+};
+
+const FREE_WEEKLY_PERIOD_PREFIXES = {
+  prompts: 'promptAnswers',
+  dates: 'dateDetails',
+};
+
 export const resolvePromptUsageUserId = (user, userProfile) =>
   user?.uid || user?.id || userProfile?.id || 'anonymous';
 
@@ -23,37 +36,81 @@ const toDateStamp = (value) => {
   return date.toISOString().slice(0, 10);
 };
 
-export const getFreePromptAnswerQuota = ({ user, userProfile, date = new Date() } = {}) => {
+export const getFreeWeeklyUsageQuota = ({ type = 'prompts', user, userProfile, date = new Date() } = {}) => {
   const weekNumber = getUserWeekNumber(resolveUserCreatedAt(user, userProfile), date);
+  const limits = FREE_WEEKLY_USAGE_LIMITS[type] || FREE_WEEKLY_USAGE_LIMITS.prompts;
   return {
     weekNumber,
     limit: weekNumber === 0
-      ? FREE_PROMPT_ANSWER_QUOTAS.welcomeWeek
-      : FREE_PROMPT_ANSWER_QUOTAS.ongoingWeek,
+      ? limits.welcomeWeek
+      : limits.ongoingWeek,
   };
 };
 
-export const getFreePromptAnswerPeriodKey = ({ user, userProfile, date = new Date() } = {}) => {
+export const getFreePromptAnswerQuota = (options = {}) =>
+  getFreeWeeklyUsageQuota({ ...options, type: 'prompts' });
+
+export const getFreeWeeklyUsagePeriodKey = ({ type = 'prompts', user, userProfile, date = new Date() } = {}) => {
   const createdAt = resolveUserCreatedAt(user, userProfile);
   const weekNumber = getUserWeekNumber(createdAt, date);
-  return `promptAnswers:${toDateStamp(createdAt)}:week:${weekNumber}`;
+  const prefix = FREE_WEEKLY_PERIOD_PREFIXES[type] || type;
+  return `${prefix}:${toDateStamp(createdAt)}:week:${weekNumber}`;
 };
 
-export async function canSaveFreePromptAnswer({ userId, user, userProfile, isPremium = false, date = new Date() } = {}) {
+export const getFreePromptAnswerPeriodKey = (options = {}) =>
+  getFreeWeeklyUsagePeriodKey({ ...options, type: 'prompts' });
+
+const getUsedItemIds = (usage, type) =>
+  new Set(((usage?.usedItemIds || {})[type] || []).map((itemId) => String(itemId)));
+
+export async function canUseFreeWeeklyItem({
+  type = 'prompts',
+  itemId,
+  userId,
+  user,
+  userProfile,
+  isPremium = false,
+  date = new Date(),
+} = {}) {
   if (isPremium) {
-    return { canSave: true, reason: 'premium_access', used: 0, limit: 'unlimited' };
+    return {
+      canUse: true,
+      canSave: true,
+      reason: 'premium_access',
+      used: 0,
+      limit: 'unlimited',
+      alreadyUsed: false,
+    };
   }
 
   const usageKey = userId || resolvePromptUsageUserId(user, userProfile);
-  const { limit, weekNumber } = getFreePromptAnswerQuota({ user, userProfile, date });
-  const periodKey = getFreePromptAnswerPeriodKey({ user, userProfile, date });
-  const weeklyUsage = await UsageEventsService.getPeriodUsage(usageKey, periodKey, ['prompts']);
-  const used = weeklyUsage.prompts || 0;
+  const normalizedItemId = itemId ? String(itemId) : null;
+  const { limit, weekNumber } = getFreeWeeklyUsageQuota({ type, user, userProfile, date });
+  const periodKey = getFreeWeeklyUsagePeriodKey({ type, user, userProfile, date });
+  const weeklyUsage = await UsageEventsService.getPeriodUsage(usageKey, periodKey, [type]);
+  const used = weeklyUsage[type] || 0;
+  const usedItemIds = getUsedItemIds(weeklyUsage, type);
+
+  if (normalizedItemId && usedItemIds.has(normalizedItemId)) {
+    return {
+      canUse: true,
+      canSave: true,
+      reason: 'already_used_this_week',
+      used,
+      limit,
+      weekNumber,
+      periodKey,
+      alreadyUsed: true,
+    };
+  }
 
   if (used >= limit) {
     return {
+      canUse: false,
       canSave: false,
-      reason: 'weekly_prompt_answer_limit_reached',
+      reason: type === 'prompts'
+        ? 'weekly_prompt_answer_limit_reached'
+        : 'weekly_date_detail_limit_reached',
       used,
       limit,
       weekNumber,
@@ -62,6 +119,7 @@ export async function canSaveFreePromptAnswer({ userId, user, userProfile, isPre
   }
 
   return {
+    canUse: true,
     canSave: true,
     reason: 'within_free_limits',
     used,
@@ -71,12 +129,74 @@ export async function canSaveFreePromptAnswer({ userId, user, userProfile, isPre
   };
 }
 
-export async function trackFreePromptAnswerUsage({ userId, user, userProfile, isPremium = false, promptId, date = new Date() } = {}) {
+export async function canSaveFreePromptAnswer(options = {}) {
+  return canUseFreeWeeklyItem({ ...options, type: 'prompts', itemId: options.promptId });
+}
+
+export async function canOpenFreeDateDetail(options = {}) {
+  return canUseFreeWeeklyItem({ ...options, type: 'dates', itemId: options.dateId });
+}
+
+export async function trackFreeWeeklyItemUsage({
+  type = 'prompts',
+  itemId,
+  userId,
+  user,
+  userProfile,
+  isPremium = false,
+  date = new Date(),
+} = {}) {
   if (isPremium) {
-    return { success: true, reason: 'premium_access' };
+    return { success: true, reason: 'premium_access', alreadyUsed: false };
+  }
+
+  const accessCheck = await canUseFreeWeeklyItem({
+    type,
+    itemId,
+    userId,
+    user,
+    userProfile,
+    isPremium,
+    date,
+  });
+
+  if (!accessCheck.canUse) {
+    return accessCheck;
+  }
+
+  if (accessCheck.alreadyUsed) {
+    return { ...accessCheck, success: true, tracked: false };
   }
 
   const usageKey = userId || resolvePromptUsageUserId(user, userProfile);
-  const periodKey = getFreePromptAnswerPeriodKey({ user, userProfile, date });
-  return UsageEventsService.incrementPeriodUsage(usageKey, periodKey, 'prompts', { promptId });
+  const metadata = {
+    itemId,
+    ...(type === 'prompts' ? { promptId: itemId } : {}),
+    ...(type === 'dates' ? { dateId: itemId } : {}),
+  };
+  return UsageEventsService.incrementPeriodUsage(usageKey, accessCheck.periodKey, type, metadata);
+}
+
+export async function trackFreePromptAnswerUsage({ userId, user, userProfile, isPremium = false, promptId, date = new Date() } = {}) {
+  return trackFreeWeeklyItemUsage({
+    type: 'prompts',
+    itemId: promptId,
+    userId,
+    user,
+    userProfile,
+    isPremium,
+    date,
+  });
+}
+
+export async function trackFreeDateDetailUsage({ userId, user, userProfile, isPremium = false, dateId, date = new Date() } = {}) {
+  return trackFreeWeeklyItemUsage({
+    type: 'dates',
+    itemId: dateId,
+    userId,
+    user,
+    userProfile,
+    isPremium,
+    date,
+  });
 }

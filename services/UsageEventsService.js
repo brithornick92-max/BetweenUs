@@ -181,6 +181,16 @@ class UsageEventsService {
     const safePeriodKey = periodKey || this._weekKey();
     const usage = await this.getPeriodUsage(userId, safePeriodKey, [type]);
     usage[type] = (usage[type] || 0) + 1;
+    const itemId = metadata.itemId || metadata.promptId || metadata.dateId || null;
+    if (itemId) {
+      usage.usedItemIds = {
+        ...(usage.usedItemIds || {}),
+        [type]: Array.from(new Set([
+          ...((usage.usedItemIds || {})[type] || []),
+          String(itemId),
+        ])),
+      };
+    }
     usage.lastUpdated = new Date().toISOString();
     await this._setCachedUsage(userId, safePeriodKey, usage);
     await this._writeRemote(userId, type, safePeriodKey, metadata).catch(() => false);

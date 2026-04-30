@@ -40,14 +40,27 @@ import { DataLayer } from "../services/localfirst";
 import * as PreferenceEngine from "../services/PreferenceEngine";
 import { getPromptById } from "../utils/contentLoader";
 import { SPACING, withAlpha } from "../utils/theme";
+import { CONTENT_TYPES } from "../services/WeeklyContentSetService";
 import {
   canSaveFreePromptAnswer,
   resolvePromptUsageUserId,
   trackFreePromptAnswerUsage,
 } from "../utils/freePromptAnswerQuota";
+import { isItemInFreeWeeklyDeck } from "../utils/freeWeeklyDeckAccess";
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const MAX_LEN = 1000;
+
+const loadAllBundledPrompts = () => {
+  const bundled = require("../content/prompts.json");
+  if (Array.isArray(bundled)) return bundled;
+  if (Array.isArray(bundled?.items)) return bundled.items;
+  if (Array.isArray(bundled?.prompts)) return bundled.prompts;
+  if (Array.isArray(bundled?.default)) return bundled.default;
+  if (Array.isArray(bundled?.default?.items)) return bundled.default.items;
+  if (Array.isArray(bundled?.default?.prompts)) return bundled.default.prompts;
+  return [];
+};
 
 // ─── Editorial Heat Mapping (Integrated Velvet Glass) ─────────────────────
 const HEAT_COLORS = {
@@ -84,6 +97,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const [existingAnswer, setExistingAnswer] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const lastHapticLength = useRef(0);
+  const savingRef = useRef(false);
 
   // Card Physics
   const dealY = useSharedValue(-60);
@@ -160,6 +174,24 @@ export default function PromptAnswerScreen({ route, navigation }) {
         return;
       }
 
+      if (!isPremium) {
+        const weeklyEligiblePrompts = loadAllBundledPrompts().filter((item) =>
+          PreferenceEngine.getPromptVisibilityState(item, profile).visible
+        );
+        const isWeeklyPrompt = isItemInFreeWeeklyDeck(resolvedPrompt.id, weeklyEligiblePrompts, {
+          contentType: CONTENT_TYPES.PROMPTS,
+          user,
+          userProfile,
+          userSettings: profile || userProfile || {},
+        });
+
+        if (!isWeeklyPrompt) {
+          showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+          navigation.goBack();
+          return;
+        }
+      }
+
       const dateKey = resolvedPrompt.dateKey || new Date().toISOString().split('T')[0];
       setPrompt({ ...resolvedPrompt, dateKey });
     })().catch(() => {
@@ -173,7 +205,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     return () => {
       active = false;
     };
-  }, [routePrompt, promptId, navigation, userProfile]);
+  }, [routePrompt, promptId, navigation, userProfile, isPremium, showPaywall, user]);
 
   const loadExistingAnswer = useCallback(async () => {
     if (!prompt?.id) return;
@@ -210,7 +242,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   const handleSave = async () => {
     const finalText = answer.trim();
-    if (!finalText || !prompt?.id || !prompt?.dateKey || isSaving) return;
+    if (!finalText || !prompt?.id || !prompt?.dateKey || savingRef.current) return;
 
     if (finalText.length > MAX_LEN) {
       Alert.alert(
@@ -220,36 +252,28 @@ export default function PromptAnswerScreen({ route, navigation }) {
       return;
     }
 
-    const isFirstResponse = !existingAnswer;
+    savingRef.current = true;
+    setIsSaving(true);
 
+    const isFirstResponse = !existingAnswer;
     const usageUserId = resolvePromptUsageUserId(user, userProfile);
 
-    if (!isPremium && isFirstResponse) {
-      const accessCheck = await canSaveFreePromptAnswer({
-        userId: usageUserId,
-        user,
-        userProfile,
-        isPremium,
-      });
-      if (!accessCheck.canSave) {
-        showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
-        return;
-      }
-    }
-
-    setIsSaving(true);
     try {
-      Keyboard.dismiss();
-
       if (!isPremium && isFirstResponse) {
-        await trackFreePromptAnswerUsage({
+        const accessCheck = await canSaveFreePromptAnswer({
           userId: usageUserId,
           user,
           userProfile,
           isPremium,
           promptId: prompt.id,
         });
+        if (!accessCheck.canSave) {
+          showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+          return;
+        }
       }
+
+      Keyboard.dismiss();
 
       try {
         await DataLayer.savePromptAnswer({
@@ -270,6 +294,16 @@ export default function PromptAnswerScreen({ route, navigation }) {
         });
       }
 
+      if (!isPremium && isFirstResponse) {
+        await trackFreePromptAnswerUsage({
+          userId: usageUserId,
+          user,
+          userProfile,
+          isPremium,
+          promptId: prompt.id,
+        });
+      }
+
       await savedPromptStorage.remove(prompt.id);
 
       if (!isPremium && isFirstResponse) {
@@ -285,6 +319,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     } catch {
       Alert.alert("We couldn't save your answer", "Please try again.");
     } finally {
+      savingRef.current = false;
       setIsSaving(false);
     }
   };

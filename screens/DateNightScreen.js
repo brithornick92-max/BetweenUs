@@ -26,9 +26,9 @@ import { BlurView } from 'expo-blur';
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import { useEntitlements } from '../context/EntitlementsContext';
-import { getAllDates, filterDates, getDimensionMeta } from '../utils/contentLoader';
-import { FREE_LIMITS, PremiumFeature, getTimedUnlockLimits } from '../utils/featureFlags';
-import { SPACING, withAlpha } from '../utils/theme';
+import { getAllDates, getDimensionMeta } from '../utils/contentLoader';
+import { PremiumFeature } from '../utils/featureFlags';
+import { SPACING } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import * as PreferenceEngine from '../services/PreferenceEngine';
@@ -50,7 +50,10 @@ import {
   getRecentlyCompletedDateIds,
   removeDateSavedKeepsake,
 } from '../utils/dateHistory';
-import { trackFreeDateView } from '../utils/freeContentUsage';
+import {
+  canOpenFreeDateDetail,
+  trackFreeDateDetailUsage,
+} from '../utils/freePromptAnswerQuota';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
@@ -489,7 +492,6 @@ export default function DateNightScreen({ navigation }) {
 
   const stackRef = useRef(null);
   const shortlistBusyRef = useRef(new Set());
-  const viewedDateIdsRef = useRef(new Set());
   const [shuffledDeck, setShuffledDeck] = useState(null);
   const emptyShuffleAnim = useSharedValue(0);
 
@@ -525,23 +527,25 @@ export default function DateNightScreen({ navigation }) {
           recentlyCompletedDateIds = getRecentlyCompletedDateIds(historyResult.value);
         }
 
-        // Apply boundaries to filter dates
-        const boundaryFiltered = dates.filter(d => {
+        // Apply boundaries to filter dates. Free weekly decks intentionally keep
+        // completed dates visible for that same week so users can return to them.
+        const boundaryEligible = dates.filter(d => {
           if (!d) return false;
           const heat = d.heat || 1;
           // Apply boundary filters
           if (bounds?.pausedDates?.includes(d.id)) return false;
-          if (recentlyCompletedDateIds.has(d.id)) return false;
           if (profile?.boundaries?.hiddenCategories?.includes(d.category)) return false;
           if (profile?.maxHeat && heat > profile.maxHeat) return false;
           if (bounds?.hideSpicy && heat >= 4) return false;
           return true;
         });
+        const unseenBoundaryEligible = boundaryEligible
+          .filter((date) => !recentlyCompletedDateIds.has(date?.id));
 
-        setAllDates(boundaryFiltered);
+        setAllDates(isPremium ? unseenBoundaryEligible : boundaryEligible);
 
         // Build personalized weekly set from boundary-filtered dates
-        const weeklySet = buildWeeklySet(boundaryFiltered, {
+        const weeklySet = buildWeeklySet(boundaryEligible, {
           contentType: CONTENT_TYPES.DATES,
           userId: userId || 'anonymous',
           isPremium,
@@ -556,7 +560,7 @@ export default function DateNightScreen({ navigation }) {
           getDateShortlist(userId)
             .then((rows) => {
               const ids = new Set((rows || []).map((row) => row.date_id));
-              setLikedDates(boundaryFiltered.filter((date) => ids.has(date.id)));
+              setLikedDates(boundaryEligible.filter((date) => ids.has(date.id)));
             })
             .catch(() => {});
         }
@@ -616,6 +620,10 @@ export default function DateNightScreen({ navigation }) {
   }, [baseDeck]);
 
   const deck = shuffledDeck || baseDeck;
+  const freeDeckDateIds = useMemo(
+    () => new Set(deck.map((date) => String(date?.id || ''))),
+    [deck]
+  );
 
   const deckDone = deckIndex >= deck.length && deck.length > 0;
   const freeDeckDone = !isPremium && deckDone;
@@ -624,7 +632,7 @@ export default function DateNightScreen({ navigation }) {
   const handleSwipeRight = useCallback((date) => {
     if (date?.isLockedPreview || date?.requiresPremium) {
       impact(ImpactFeedbackStyle.Medium);
-      showPaywall?.(PremiumFeature.DATE_NIGHT);
+      showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
       setDeckIndex(prev => prev + 1);
       return;
     }
@@ -670,34 +678,47 @@ export default function DateNightScreen({ navigation }) {
   const openDate = useCallback(async (date) => {
     if (date?.isLockedPreview || date?.requiresPremium) {
       impact(ImpactFeedbackStyle.Medium);
-      showPaywall?.(PremiumFeature.DATE_NIGHT);
+      showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
       return;
     }
 
-    if (!isPremium && date?.id && !viewedDateIdsRef.current.has(date.id)) {
-      viewedDateIdsRef.current.add(date.id);
-
+    if (!isPremium && date?.id) {
+      const dateId = String(date.id);
       try {
-        const result = await trackFreeDateView({
+        const accessCheck = await canOpenFreeDateDetail({
           userId,
+          user,
+          userProfile,
           isPremium,
-          date,
+          dateId,
         });
 
-        if (result?.allowed === false) {
-          viewedDateIdsRef.current.delete(date.id);
+        if ((!freeDeckDateIds.has(dateId) && !accessCheck.alreadyUsed) || !accessCheck.canUse) {
           showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
           return;
         }
 
+        const trackResult = await trackFreeDateDetailUsage({
+          userId,
+          user,
+          userProfile,
+          isPremium,
+          dateId,
+        });
+
+        if (trackResult?.canUse === false) {
+          showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
+          return;
+        }
       } catch (error) {
-        viewedDateIdsRef.current.delete(date.id);
         if (__DEV__) console.warn('[DateNight] Failed to track free date detail view:', error?.message);
+        showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
+        return;
       }
     }
 
     navigation.navigate('DateNightDetail', { date });
-  }, [isPremium, navigation, showPaywall, userId]);
+  }, [freeDeckDateIds, isPremium, navigation, showPaywall, user, userId, userProfile]);
 
   const handleReset = useCallback(() => {
     if (freeDeckDone) return;
@@ -854,13 +875,6 @@ export default function DateNightScreen({ navigation }) {
               <Icon name="sparkles" size={14} color={colors.primary} />
               <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary }}>
                 {weeklyDateSet.upgradeCopy.body}
-              </Text>
-            </View>
-          ) : !isPremium ? (
-            <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
-              <Icon name="calendar-outline" size={14} color={colors.textMuted} />
-              <Text style={[styles.weeklyDropText, { color: colors.textMuted }]}>
-                2 more previews in this week's draw.
               </Text>
             </View>
           ) : null}

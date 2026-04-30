@@ -1,6 +1,7 @@
 import {
   CONTENT_TYPES,
   PREMIUM_LIBRARY_TOTALS,
+  UPGRADE_COPY,
   buildPremiumPromptLibrary,
   buildWeeklySet,
   getWeekNumberFromStart,
@@ -115,7 +116,7 @@ describe('WeeklyContentSetService', () => {
     });
   });
 
-  it('builds free prompt welcome-week previews with 3 unlocked and 2 locked previews', () => {
+  it('builds free prompt welcome-week decks with 5 usable cards and no locked previews', () => {
     const promptCatalog = [
       ...prompts,
       makePrompt('p10', 4, 'visual'),
@@ -130,15 +131,16 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.freeLockedPreviewLimit).toBe(2);
-    expect(result.unlocked).toHaveLength(3);
-    expect(result.lockedPreviews).toHaveLength(2);
+    expect(result.freeUnlockedLimit).toBe(5);
+    expect(result.freeLockedPreviewLimit).toBe(0);
+    expect(result.unlocked).toHaveLength(5);
+    expect(result.lockedPreviews).toHaveLength(0);
     expect(result.items).toHaveLength(5);
-    expect(result.lockedPreviews.every((item) => item.isLockedPreview === true)).toBe(true);
-    expect(result.lockedPreviews.every((item) => item.requiresPremium === true)).toBe(true);
+    expect(result.items.every((item) => item.isLockedPreview === false)).toBe(true);
+    expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
   });
 
-  it('builds free date welcome-week previews and balances categories first', () => {
+  it('builds free date welcome-week decks with 5 usable cards and no locked previews', () => {
     const result = buildWeeklySet(dates, {
       contentType: CONTENT_TYPES.DATES,
       userId: 'user-1',
@@ -147,13 +149,14 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.freeLockedPreviewLimit).toBe(2);
-    expect(result.unlocked).toHaveLength(3);
-    expect(result.lockedPreviews).toHaveLength(2);
+    expect(result.freeUnlockedLimit).toBe(5);
+    expect(result.freeLockedPreviewLimit).toBe(0);
+    expect(result.unlocked).toHaveLength(5);
+    expect(result.lockedPreviews).toHaveLength(0);
     expect(result.items).toHaveLength(5);
-    expect(new Set(result.unlocked.map((item) => item.category)).size).toBe(3);
-    expect(result.lockedPreviews.every((item) => item.isLockedPreview === true)).toBe(true);
-    expect(result.lockedPreviews.every((item) => item.requiresPremium === true)).toBe(true);
+    expect(new Set(result.unlocked.map((item) => item.category)).size).toBeGreaterThanOrEqual(3);
+    expect(result.items.every((item) => item.isLockedPreview === false)).toBe(true);
+    expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
   });
 
   it('builds free position welcome-week previews and prioritizes soft accessible picks first', () => {
@@ -207,6 +210,11 @@ describe('WeeklyContentSetService', () => {
     expect(result.unlocked).toHaveLength(3);
     expect(result.lockedPreviews).toHaveLength(0);
     expect(result.items).toHaveLength(3);
+  });
+
+  it('does not keep stale numeric free-copy in prompt or date upgrade copy', () => {
+    expect(UPGRADE_COPY.prompts.body).not.toMatch(/\b10\b/);
+    expect(UPGRADE_COPY.dates.body).not.toMatch(/\b10\b/);
   });
 
   it('respects maxHeat when building weekly sets', () => {

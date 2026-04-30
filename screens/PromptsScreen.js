@@ -316,21 +316,24 @@ export default function PromptsScreen({ navigation }) {
       ];
       const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(recentPromptAnswers);
 
-      // Apply user boundaries (heat limits, hidden categories, paused items)
-      const boundaryFiltered = contentProfile 
+      // Apply user boundaries (heat limits, hidden categories, paused items).
+      // Free weekly decks intentionally do not remove answered prompts; users
+      // can return to items they already answered during the same weekly drop.
+      const boundaryEligible = contentProfile 
         ? allPrompts.filter(p => {
             const heat = p.heat || 1;
-            if (recentlyCompletedPromptIds.has(p.id)) return false;
             if (heat > resolveExplicitMaxHeat(contentProfile)) return false;
             if (contentProfile.boundaries?.hiddenCategories?.includes(p.category)) return false;
             if (contentProfile.boundaries?.pausedEntries?.includes(p.id)) return false;
             return true;
           })
-        : applyRawBoundaryFilter(allPrompts, rawBoundaries)
-          .filter((prompt) => !recentlyCompletedPromptIds.has(prompt?.id));
+        : applyRawBoundaryFilter(allPrompts, rawBoundaries);
+
+      const unseenBoundaryEligible = boundaryEligible
+        .filter((prompt) => !recentlyCompletedPromptIds.has(prompt?.id));
 
       // Build personalized weekly set (handles both free rotating and premium growing library)
-      const weeklySet = buildWeeklySet(boundaryFiltered, {
+      const weeklySet = buildWeeklySet(boundaryEligible, {
         contentType: CONTENT_TYPES.PROMPTS,
         userId: user?.uid || user?.id || 'anonymous',
         isPremium,
@@ -342,7 +345,7 @@ export default function PromptsScreen({ navigation }) {
       setWeeklyPromptSet(weeklySet);
 
       const promptPool = isPremium
-        ? buildPremiumPromptLibrary(boundaryFiltered, {
+        ? buildPremiumPromptLibrary(unseenBoundaryEligible, {
             userId: user?.uid || user?.id || 'anonymous',
             userSettings: contentProfile
               ? { ...contentProfile, maxHeat: resolveExplicitMaxHeat(contentProfile) }
@@ -350,7 +353,7 @@ export default function PromptsScreen({ navigation }) {
             userCreatedAt: await getPremiumPromptLibraryStartedAt(user?.uid || user?.id || userProfile?.id),
             date: new Date(),
           })
-        : boundaryFiltered;
+        : boundaryEligible;
 
       setPrompts(promptPool);
     } catch {
