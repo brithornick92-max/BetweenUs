@@ -121,12 +121,18 @@ class UsageEventsService {
 
   async getWeeklyUsage(userId) {
     const week = this._weekKey();
-    const empty = { week, dateFlows: 0, unlockedDateId: null };
+    const empty = { week, prompts: 0, dates: 0, dateFlows: 0, unlockedDateId: null };
     const cached = await this._getCachedUsage(userId, week, empty);
-    const remoteDateFlows = await this._countRemote(userId, 'dateFlows', week);
+    const [remotePrompts, remoteDates, remoteDateFlows] = await Promise.all([
+      this._countRemote(userId, 'prompts', week),
+      this._countRemote(userId, 'dates', week),
+      this._countRemote(userId, 'dateFlows', week),
+    ]);
     const usage = {
       ...empty,
       ...cached,
+      prompts: remotePrompts ?? cached.prompts ?? 0,
+      dates: remoteDates ?? cached.dates ?? 0,
       dateFlows: remoteDateFlows ?? cached.dateFlows ?? 0,
     };
     await this._setCachedUsage(userId, week, usage);
@@ -142,6 +148,42 @@ class UsageEventsService {
     usage.lastUpdated = new Date().toISOString();
     await this._setCachedUsage(userId, usage.week, usage);
     await this._writeRemote(userId, type, usage.week, metadata).catch(() => false);
+    return usage;
+  }
+
+  async getPeriodUsage(userId, periodKey, types = []) {
+    const safePeriodKey = periodKey || this._weekKey();
+    const empty = { periodKey: safePeriodKey };
+    types.forEach((type) => {
+      empty[type] = 0;
+    });
+
+    const cached = await this._getCachedUsage(userId, safePeriodKey, empty);
+    const remoteCounts = await Promise.all(
+      types.map((type) => this._countRemote(userId, type, safePeriodKey))
+    );
+
+    const usage = {
+      ...empty,
+      ...cached,
+      periodKey: safePeriodKey,
+    };
+
+    types.forEach((type, index) => {
+      usage[type] = remoteCounts[index] ?? cached[type] ?? 0;
+    });
+
+    await this._setCachedUsage(userId, safePeriodKey, usage);
+    return usage;
+  }
+
+  async incrementPeriodUsage(userId, periodKey, type, metadata = {}) {
+    const safePeriodKey = periodKey || this._weekKey();
+    const usage = await this.getPeriodUsage(userId, safePeriodKey, [type]);
+    usage[type] = (usage[type] || 0) + 1;
+    usage.lastUpdated = new Date().toISOString();
+    await this._setCachedUsage(userId, safePeriodKey, usage);
+    await this._writeRemote(userId, type, safePeriodKey, metadata).catch(() => false);
     return usage;
   }
 }

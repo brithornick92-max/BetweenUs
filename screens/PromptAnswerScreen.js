@@ -34,13 +34,17 @@ import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useContent } from "../context/ContentContext";
 import { useAuth } from "../context/AuthContext";
-import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import * as PreferenceEngine from "../services/PreferenceEngine";
 import { getPromptById } from "../utils/contentLoader";
 import { SPACING, withAlpha } from "../utils/theme";
+import {
+  canSaveFreePromptAnswer,
+  resolvePromptUsageUserId,
+  trackFreePromptAnswerUsage,
+} from "../utils/freePromptAnswerQuota";
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
@@ -70,7 +74,7 @@ const HEAT_LABELS = {
 };
 
 export default function PromptAnswerScreen({ route, navigation }) {
-  const { prompt: routePrompt, promptId, mode, freeUsageAlreadyTracked = false } = route.params || {};
+  const { prompt: routePrompt, promptId, mode } = route.params || {};
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
@@ -219,9 +223,16 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
     const isFirstResponse = !existingAnswer;
 
-    if (!isPremium && isFirstResponse && !freeUsageAlreadyTracked) {
-      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user?.uid, prompt?.heat || 1, isPremium);
-      if (!accessCheck.canAccess) {
+    const usageUserId = resolvePromptUsageUserId(user, userProfile);
+
+    if (!isPremium && isFirstResponse) {
+      const accessCheck = await canSaveFreePromptAnswer({
+        userId: usageUserId,
+        user,
+        userProfile,
+        isPremium,
+      });
+      if (!accessCheck.canSave) {
         showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
         return;
       }
@@ -230,6 +241,16 @@ export default function PromptAnswerScreen({ route, navigation }) {
     setIsSaving(true);
     try {
       Keyboard.dismiss();
+
+      if (!isPremium && isFirstResponse) {
+        await trackFreePromptAnswerUsage({
+          userId: usageUserId,
+          user,
+          userProfile,
+          isPremium,
+          promptId: prompt.id,
+        });
+      }
 
       try {
         await DataLayer.savePromptAnswer({
@@ -252,12 +273,11 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
       await savedPromptStorage.remove(prompt.id);
 
-      if (!isPremium && isFirstResponse && user?.uid && !freeUsageAlreadyTracked) {
+      if (!isPremium && isFirstResponse) {
         try {
-          await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt?.heat || 1);
           await loadUsageStatus?.();
         } catch (usageError) {
-          if (__DEV__) console.warn('[PromptAnswer] Prompt usage tracking failed:', usageError?.message);
+          if (__DEV__) console.warn('[PromptAnswer] Usage status refresh failed:', usageError?.message);
         }
       }
       notification(NotificationFeedbackType.Success);

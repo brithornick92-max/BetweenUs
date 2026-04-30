@@ -191,7 +191,7 @@ export default function HeatLevelScreen({ navigation }) {
               color={colors.primary}
             />
             <Text style={styles.usageText}>
-              {usageStatus.remaining.prompts} moment{usageStatus.remaining.prompts !== 1 ? 's' : ''} remaining today
+              Choose a level to open today's moment.
             </Text>
           </View>
         )}

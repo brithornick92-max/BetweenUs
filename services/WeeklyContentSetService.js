@@ -6,7 +6,7 @@
  * FREE USERS (ROTATING):
  * - Week 0 (signup): 10 prompts, 10 dates, 5 positions (welcome pack)
  * - Week 1+: 3 prompts, 5 dates, 1 position (ROTATING - old ones don't accumulate)
- * - Always see ~5-15 cards total (current week + locked previews)
+ * - Prompts and dates show up to 5 cards in week 0, then up to 3 cards/week
  * 
  * PREMIUM USERS (CUMULATIVE):
  * - Week 0 (signup): 200 prompts balanced across heat levels, 200 dates, 10 positions
@@ -29,15 +29,15 @@ const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
     premium: 10,         // Premium gets 10 new prompts/week
     premiumStart: 200,   // Premium starts with ~40 prompts per heat level
-    freeWelcomePack: 10, // Free gets 10 prompts on signup (2 from each category)
+    freeWelcomePack: 3,  // Free gets 3 prompts on signup
     freeOngoing: 3,      // Free gets 3 new prompts each week after week 0
     freeLockedPreview: 2, // Prompt text is readable on-card, so keep locked teasers sparse
   },
   [CONTENT_TYPES.DATES]: {
     premium: 8,          // Premium gets 8 new dates/week
-    freeWelcomePack: 10, // Free gets 10 dates on signup
-    freeOngoing: 5,      // Free gets 5 new dates each week after week 0
-    freeLockedPreview: 4,
+    freeWelcomePack: 3,  // Free gets 3 dates on signup
+    freeOngoing: 3,      // Free gets 3 new dates each week after week 0
+    freeLockedPreview: 2,
   },
   [CONTENT_TYPES.POSITIONS]: {
     premium: 2,          // Premium gets 2 new positions/week
@@ -432,7 +432,12 @@ const buildWeeklySet = (
   
   // Free users get welcome pack on week 0, then ongoing amount
   const freeUnlockedLimit = isWelcomeWeek ? limits.freeWelcomePack : limits.freeOngoing;
-  const freeLockedPreviewLimit = limits.freeLockedPreview;
+  const freeLockedPreviewLimit =
+    !isPremium &&
+    !isWelcomeWeek &&
+    (type === CONTENT_TYPES.PROMPTS || type === CONTENT_TYPES.DATES)
+      ? 0
+      : limits.freeLockedPreview;
 
   const settings = normalizeUserSettings(userSettings);
   const seed = `${type}:${userId || 'anonymous'}:${weekNumber}`;

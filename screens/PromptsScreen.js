@@ -6,7 +6,7 @@ import { SPACING, withAlpha } from "../utils/theme";
  * UPDATED: Premium Editorial Boundary Hint Pill.
  */
 
-import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -43,7 +43,6 @@ import { STORAGE_KEYS, promptStorage, savedPromptStorage, storage } from "../uti
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
-import { trackFreePromptView } from "../utils/freeContentUsage";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SCREEN_W = SCREEN_WIDTH;
@@ -179,11 +178,21 @@ function interleavePromptsByHeat(items) {
   return interleaved;
 }
 
-function shuffleArray(arr) {
+function getCardIdentity(item) {
+  return item?.id ?? item?.promptId ?? item?.title ?? item?.text ?? null;
+}
+
+function shuffleArray(arr, avoidFirstItem = arr[0]) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
+  }
+  if (a.length > 1 && getCardIdentity(a[0]) === getCardIdentity(avoidFirstItem)) {
+    const swapIndex = a.findIndex((item) => getCardIdentity(item) !== getCardIdentity(avoidFirstItem));
+    if (swapIndex > 0) {
+      [a[0], a[swapIndex]] = [a[swapIndex], a[0]];
+    }
   }
   return a;
 }
@@ -236,12 +245,11 @@ export default function PromptsScreen({ navigation }) {
   const [rawBoundaries, setRawBoundaries] = useState(null);
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [deckVersion, setDeckVersion] = useState(0);
   const [shuffleNonce, setShuffleNonce] = useState(0);
   const [promptDeckIndex, setPromptDeckIndex] = useState(0);
+  const [shuffledDeckPrompts, setShuffledDeckPrompts] = useState(null);
   const [savedLaterPrompts, setSavedLaterPrompts] = useState([]);
   const shuffleAnim = useSharedValue(0);
-  const viewedPromptIdsRef = useRef(new Set());
 
   const t = useMemo(() => isDark ? {
     background: '#0A0A0A',
@@ -364,10 +372,11 @@ export default function PromptsScreen({ navigation }) {
   );
 
   const freeWeeklyPromptDeck = useMemo(() => {
-    if (isPremium || !weeklyPromptSet?.items?.length) return null;
+    const weeklyItems = weeklyPromptSet?.items || [];
+    if (isPremium || !weeklyItems.length) return null;
 
     // Free users see ONLY their weekly rotating set (not cumulative)
-    return weeklyPromptSet.items.map((item) => normalizePrompt({
+    return weeklyItems.map((item) => normalizePrompt({
       ...item,
       text: item.text || item.prompt || item.previewText || item.title || 'Premium prompt',
       category: item.category || 'premium',
@@ -379,7 +388,7 @@ export default function PromptsScreen({ navigation }) {
     }));
   }, [isPremium, weeklyPromptSet]);
 
-  const deckPrompts = useMemo(() => {
+  const baseDeckPrompts = useMemo(() => {
     let finalDeck = [];
     
     if (!isPremium && freeWeeklyPromptDeck?.length) {
@@ -406,59 +415,30 @@ export default function PromptsScreen({ navigation }) {
       }
     }
 
-    // Shuffle on deck version change (when user taps shuffle button)
-    if (deckVersion > 0) {
-      return shuffleArray(finalDeck);
-    }
     return finalDeck;
-  }, [prompts, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck, deckVersion]);
-
-  const freeUnlockedPromptsLeft = useMemo(() => {
-    if (isPremium) return null;
-    return deckPrompts
-      .slice(promptDeckIndex)
-      .filter((prompt) => !prompt?.isLockedPreview && !prompt?.requiresPremium)
-      .length;
-  }, [deckPrompts, isPremium, promptDeckIndex]);
+  }, [prompts, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck]);
 
   useEffect(() => {
+    setShuffledDeckPrompts(null);
     setPromptDeckIndex(0);
-  }, [deckPrompts, deckVersion]);
+  }, [baseDeckPrompts]);
+
+  const deckPrompts = shuffledDeckPrompts || baseDeckPrompts;
+  const freeDeckPromptIds = useMemo(
+    () => new Set(deckPrompts.map((prompt) => String(prompt?.id || prompt?.promptId || ''))),
+    [deckPrompts]
+  );
 
   const deckCountLabel = useMemo(() => {
-    if (isPremium) return '200 cards';
-    if (typeof freeUnlockedPromptsLeft === 'number') {
-      return `${freeUnlockedPromptsLeft} free prompt${freeUnlockedPromptsLeft === 1 ? '' : 's'} left this week`;
-    }
-    const count = deckPrompts.length;
-    const noun = count === 1 ? 'card' : 'cards';
-    return `${count} ${noun} you can draw now`;
-  }, [deckPrompts.length, freeUnlockedPromptsLeft, isPremium]);
+    return 'Spark a Conversation';
+  }, []);
 
-  const usageUserId = user?.uid || user?.id || userProfile?.id || null;
+  const freeDeckDone = !isPremium && deckPrompts.length > 0 && promptDeckIndex >= deckPrompts.length;
 
-  const handlePromptReveal = useCallback(async (prompt) => {
-    if (isPremium || !prompt?.id || prompt?.isLockedPreview || prompt?.requiresPremium) return;
-    if (viewedPromptIdsRef.current.has(prompt.id)) return;
-
-    viewedPromptIdsRef.current.add(prompt.id);
-
-    try {
-      const result = await trackFreePromptView({
-        userId: usageUserId,
-        isPremium,
-        prompt,
-      });
-
-      if (result?.allowed === false) {
-        viewedPromptIdsRef.current.delete(prompt.id);
-        showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
-      }
-    } catch (error) {
-      viewedPromptIdsRef.current.delete(prompt.id);
-      if (__DEV__) console.warn('[PromptsScreen] Failed to track free prompt view:', error?.message);
-    }
-  }, [isPremium, showPaywall, usageUserId]);
+  const handlePromptReveal = useCallback(() => {
+    // Revealing/browsing a card is free. The free prompt quota is consumed only
+    // when the user saves their first answer for that prompt.
+  }, []);
 
   const handlePromptSelect = useCallback((prompt) => {
     if (prompt?.isLockedPreview || prompt?.requiresPremium) {
@@ -467,11 +447,17 @@ export default function PromptsScreen({ navigation }) {
       return;
     }
 
+    const promptKey = String(prompt?.id || prompt?.promptId || '');
+    if (!isPremium && (!promptKey || !freeDeckPromptIds.has(promptKey))) {
+      impact(ImpactFeedbackStyle.Medium);
+      showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+      return;
+    }
+
     navigation.navigate("PromptAnswer", {
       prompt: { ...prompt, dateKey: new Date().toISOString().split("T")[0] },
-      freeUsageAlreadyTracked: !isPremium && !!prompt?.id && viewedPromptIdsRef.current.has(prompt.id),
     });
-  }, [isPremium, navigation, showPaywall]);
+  }, [freeDeckPromptIds, isPremium, navigation, showPaywall]);
 
   const handleSavePromptForLater = useCallback(async (prompt) => {
     if (prompt?.isLockedPreview || prompt?.requiresPremium) {
@@ -519,7 +505,7 @@ export default function PromptsScreen({ navigation }) {
     ]);
     setContentProfile(profile);
     setRawBoundaries(bounds);
-    setDeckVersion((value) => value + 1);
+    setShuffledDeckPrompts(null);
   }, [userProfile]);
 
   const handlePromptBoundaryAction = useCallback((prompt) => {
@@ -551,6 +537,8 @@ export default function PromptsScreen({ navigation }) {
   }, [refreshBoundaryProfile]);
 
   const handleShuffle = useCallback(() => {
+    if (freeDeckDone) return;
+
     setShuffleNonce((value) => value + 1);
 
     // 1. Visual shake animation
@@ -568,8 +556,11 @@ export default function PromptsScreen({ navigation }) {
     setTimeout(() => impact(ImpactFeedbackStyle.Medium), 150);
 
     // 3. Swap the deck as the card stack settles
-    setTimeout(() => setDeckVersion((v) => v + 1), 420);
-  }, [shuffleAnim]);
+    setTimeout(() => {
+      setShuffledDeckPrompts(shuffleArray(baseDeckPrompts, deckPrompts[promptDeckIndex]));
+      setPromptDeckIndex(0);
+    }, 420);
+  }, [baseDeckPrompts, deckPrompts, freeDeckDone, promptDeckIndex, shuffleAnim]);
 
   const deckStyle = useAnimatedStyle(() => {
     const shuffleX = interpolate(shuffleAnim.value, [-1, 0, 1], [-15, 0, 15]);
@@ -605,9 +596,11 @@ export default function PromptsScreen({ navigation }) {
             <TouchableOpacity
               style={[styles.shuffleButton, { 
                 backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                borderColor: t.border
+                borderColor: t.border,
+                opacity: freeDeckDone ? 0.45 : 1,
               }]}
               onPress={handleShuffle}
+              disabled={freeDeckDone}
               activeOpacity={0.7}
             >
               <Icon name="shuffle-outline" size={16} color={t.primary} />
@@ -625,6 +618,11 @@ export default function PromptsScreen({ navigation }) {
               <Icon name="copy-outline" size={48} color={withAlpha(t.text, 0.1)} />
               <Text style={[styles.emptyText, { color: t.subtext }]}>{toneCopy.empty}</Text>
             </View>
+          ) : freeDeckDone ? (
+            <View style={styles.centered}>
+              <Icon name="checkmark-circle-outline" size={48} color={withAlpha(t.text, 0.16)} />
+              <Text style={[styles.emptyText, { color: t.subtext }]}>This week's draw is complete.</Text>
+            </View>
           ) : (
             <Animated.ScrollView
               style={[styles.deckWrapper, deckStyle]}
@@ -641,6 +639,7 @@ export default function PromptsScreen({ navigation }) {
                   onIndexChange={setPromptDeckIndex}
                   onSaveForLater={handleSavePromptForLater}
                   shuffleNonce={shuffleNonce}
+                  allowLoop={isPremium}
                 />
               </View>
               

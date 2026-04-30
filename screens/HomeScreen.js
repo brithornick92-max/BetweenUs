@@ -28,7 +28,6 @@ import { useData } from '../context/DataContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { DataLayer } from '../services/localfirst';
-import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage, storage, STORAGE_KEYS } from '../utils/storage';
 import { SPACING } from '../utils/theme';
@@ -54,6 +53,11 @@ import ConnectionMemory from '../utils/connectionMemory';
 import { checkAchievements } from '../utils/achievementEngine';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import useProgressiveDisclosure from '../hooks/useProgressiveDisclosure';
+import {
+  canSaveFreePromptAnswer,
+  resolvePromptUsageUserId,
+  trackFreePromptAnswerUsage,
+} from '../utils/freePromptAnswerQuota';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:cache:promptedPartnerShare';
@@ -589,13 +593,30 @@ export default function HomeScreen({ navigation }) {
     setIsSavingInline(true);
 
     try {
-      if (!isPremium && !myAnswer) {
-        const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, prompt.heat || 1, isPremium);
+      const usageUserId = resolvePromptUsageUserId(user, userProfile);
 
-        if (!accessCheck.canAccess) {
+      if (!isPremium && !myAnswer) {
+        const accessCheck = await canSaveFreePromptAnswer({
+          userId: usageUserId,
+          user,
+          userProfile,
+          isPremium,
+        });
+
+        if (!accessCheck.canSave) {
           showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
           return;
         }
+      }
+
+      if (!isPremium && !myAnswer) {
+        await trackFreePromptAnswerUsage({
+          userId: usageUserId,
+          user,
+          userProfile,
+          isPremium,
+          promptId: prompt.id,
+        });
       }
 
       try {
@@ -616,10 +637,9 @@ export default function HomeScreen({ navigation }) {
 
       if (!isPremium && !myAnswer) {
         try {
-          await PremiumGatekeeper.trackPromptUsage(user.uid, prompt.id, isPremium, prompt.heat || 1);
           await loadUsageStatus?.();
         } catch (usageError) {
-          if (__DEV__) console.warn('[Home] Prompt usage tracking failed:', usageError?.message);
+          if (__DEV__) console.warn('[Home] Usage status refresh failed:', usageError?.message);
         }
       }
 
@@ -665,6 +685,7 @@ export default function HomeScreen({ navigation }) {
     inlineText,
     prompt,
     user,
+    userProfile,
     isPremium,
     myAnswer,
     showPaywall,

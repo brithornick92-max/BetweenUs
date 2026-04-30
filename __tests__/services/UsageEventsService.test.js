@@ -105,4 +105,24 @@ describe('UsageEventsService', () => {
       expect(result.unlockedDateId).toBe('date-1');
     });
   });
+
+  describe('period usage', () => {
+    it('creates a usage record for a custom period', async () => {
+      const usage = await UsageEventsService.getPeriodUsage(userId, 'promptAnswers:2026-04-30:week:0', ['prompts']);
+      expect(usage.periodKey).toBe('promptAnswers:2026-04-30:week:0');
+      expect(usage.prompts).toBe(0);
+      expect(AsyncStorage.setItem).toHaveBeenCalled();
+    });
+
+    it('increments custom period usage', async () => {
+      const result = await UsageEventsService.incrementPeriodUsage(
+        userId,
+        'promptAnswers:2026-04-30:week:0',
+        'prompts',
+        { promptId: 'prompt-1' }
+      );
+
+      expect(result.prompts).toBe(1);
+    });
+  });
 });

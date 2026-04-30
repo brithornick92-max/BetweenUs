@@ -32,7 +32,6 @@ import { SPACING, withAlpha } from '../utils/theme';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import * as PreferenceEngine from '../services/PreferenceEngine';
-import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { useAuth } from '../context/AuthContext';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import DateCardFront from '../components/DateCardFront';
@@ -126,6 +125,24 @@ function getDeckFilterTone(type, option, isDark = true) {
   return getDateCardPalette(option.level, isDark);
 }
 
+function getCardIdentity(item) {
+  return item?.id ?? item?.title ?? null;
+}
+
+function shuffleArray(arr, avoidFirstItem = arr[0]) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  if (a.length > 1 && getCardIdentity(a[0]) === getCardIdentity(avoidFirstItem)) {
+    const swapIndex = a.findIndex((item) => getCardIdentity(item) !== getCardIdentity(avoidFirstItem));
+    if (swapIndex > 0) {
+      [a[0], a[swapIndex]] = [a[swapIndex], a[0]];
+    }
+  }
+  return a;
+}
 
 // ── Card stack with flip + swipe ─────────────────────────────────────────────────
 const CardStack = forwardRef(function CardStack(
@@ -469,45 +486,18 @@ export default function DateNightScreen({ navigation }) {
   const [likedDates, setLikedDates] = useState([]);
   const [shortlistBusyIds, setShortlistBusyIds] = useState({});
   const [dropdownOpen, setDropdownOpen] = useState(null); // 'heat' | 'load' | 'style' | null
-  const [freeUsageStatus, setFreeUsageStatus] = useState(null);
 
   const stackRef = useRef(null);
   const shortlistBusyRef = useRef(new Set());
   const viewedDateIdsRef = useRef(new Set());
-  const [deckVersion, setDeckVersion] = useState(0);
+  const [shuffledDeck, setShuffledDeck] = useState(null);
   const emptyShuffleAnim = useSharedValue(0);
-
-  function shuffleArray(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  const loadFreeUsageStatus = useCallback(async () => {
-    if (isPremium || !userId) {
-      setFreeUsageStatus(null);
-      return null;
-    }
-
-    try {
-      const status = await PremiumGatekeeper.getUserUsageStatus(userId, false);
-      setFreeUsageStatus(status);
-      return status;
-    } catch (error) {
-      if (__DEV__) console.warn('[DateNight] Failed to load free usage status:', error?.message);
-      return null;
-    }
-  }, [isPremium, userId]);
 
   // Defer heavy work until the tab transition animation finishes.
   // Reload on focus so season, tone, energy, and boundaries changes take effect.
   useFocusEffect(
     useCallback(() => {
       setReady(false);
-      loadFreeUsageStatus();
       const task = InteractionManager.runAfterInteractions(async () => {
         const dates = getAllDates();
         
@@ -574,20 +564,15 @@ export default function DateNightScreen({ navigation }) {
         setReady(true);
       });
       return () => task.cancel();
-    }, [loadFreeUsageStatus, userProfile, userId, isPremium])
+    }, [userProfile, userId, isPremium])
   );
 
-  // Reset deck position whenever the filtered deck changes
-  // (filter change, profile load, premium status change)
-  useEffect(() => {
-    setDeckIndex(0); // Reset index when deck shuffles
-  }, [deckVersion, contentProfile, isPremium, allDates]);
-
   const freeWeeklyDateDeck = useMemo(() => {
-    if (isPremium || !weeklyDateSet?.items?.length) return null;
+    const weeklyItems = weeklyDateSet?.items || [];
+    if (isPremium || !weeklyItems.length) return null;
   
     // Free users see ONLY their weekly rotating set (not cumulative)
-    return weeklyDateSet.items.map((item) => ({
+    return weeklyItems.map((item) => ({
       ...item,
       title: item.title || item.previewText || 'Premium date idea',
       heat: item.heat || 1,
@@ -600,7 +585,7 @@ export default function DateNightScreen({ navigation }) {
     }));
   }, [isPremium, weeklyDateSet]);
 
-  const deck = useMemo(() => {
+  const baseDeck = useMemo(() => {
     let finalDeck = [];
     
     if (!isPremium && freeWeeklyDateDeck?.length) {
@@ -611,33 +596,29 @@ export default function DateNightScreen({ navigation }) {
       const baseDates = allDates;
 
       if (!contentProfile) {
-        finalDeck = shuffleArray(baseDates);
+        finalDeck = [...baseDates];
       } else {
-        // Personalize: preferred content first, then rest shuffled
+        // Personalize: preferred content first, then the rest in catalog order.
         const personalized = PreferenceEngine.filterDatesWithProfile(baseDates, contentProfile);
         const personalizedIds = new Set(personalized.map((d) => d.id));
         const remaining = baseDates.filter((d) => !personalizedIds.has(d.id));
 
-        finalDeck = [...personalized, ...shuffleArray(remaining)];
+        finalDeck = [...personalized, ...remaining];
       }
     }
 
-    // Shuffle on deck version change
-    if (deckVersion > 0) {
-      return shuffleArray(finalDeck);
-    }
     return finalDeck;
-  }, [allDates, contentProfile, isPremium, freeWeeklyDateDeck, deckVersion]);
+  }, [allDates, contentProfile, isPremium, freeWeeklyDateDeck]);
 
-  const visibleCount = deck.length;
-  const freeUnlockedDatesLeft = useMemo(() => {
-    if (isPremium) return null;
-    return deck
-      .slice(deckIndex)
-      .filter((date) => !date?.isLockedPreview && !date?.requiresPremium)
-      .length;
-  }, [deck, deckIndex, isPremium]);
+  useEffect(() => {
+    setShuffledDeck(null);
+    setDeckIndex(0);
+  }, [baseDeck]);
+
+  const deck = shuffledDeck || baseDeck;
+
   const deckDone = deckIndex >= deck.length && deck.length > 0;
+  const freeDeckDone = !isPremium && deckDone;
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
 
   const handleSwipeRight = useCallback((date) => {
@@ -709,21 +690,6 @@ export default function DateNightScreen({ navigation }) {
           return;
         }
 
-        if (result?.tracked) {
-          setFreeUsageStatus((current) => current ? ({
-            ...current,
-            dailyUsage: {
-              ...(current.dailyUsage || {}),
-              dates: (current.dailyUsage?.dates || 0) + 1,
-            },
-            remaining: {
-              ...(current.remaining || {}),
-              dates: Math.max(0, (current.remaining?.dates ?? 1) - 1),
-            },
-          }) : current);
-        } else {
-          await loadFreeUsageStatus();
-        }
       } catch (error) {
         viewedDateIdsRef.current.delete(date.id);
         if (__DEV__) console.warn('[DateNight] Failed to track free date detail view:', error?.message);
@@ -731,9 +697,11 @@ export default function DateNightScreen({ navigation }) {
     }
 
     navigation.navigate('DateNightDetail', { date });
-  }, [isPremium, loadFreeUsageStatus, navigation, showPaywall, userId]);
+  }, [isPremium, navigation, showPaywall, userId]);
 
   const handleReset = useCallback(() => {
+    if (freeDeckDone) return;
+
     // 1. Trigger the visual shuffle animation
     if (stackRef.current) {
       stackRef.current.shuffle();
@@ -753,8 +721,11 @@ export default function DateNightScreen({ navigation }) {
     setTimeout(() => impact(ImpactFeedbackStyle.Medium), 150);
 
     // 3. Swap the cards as the visible stack settles
-    setTimeout(() => setDeckVersion((v) => v + 1), 420);
-  }, [emptyShuffleAnim]);
+    setTimeout(() => {
+      setShuffledDeck(shuffleArray(baseDeck, deck[deckIndex]));
+      setDeckIndex(0);
+    }, 420);
+  }, [baseDeck, deck, deckIndex, emptyShuffleAnim, freeDeckDone]);
 
   const emptyStyle = useAnimatedStyle(() => {
     const shuffleX = interpolate(emptyShuffleAnim.value, [-1, 0, 1], [-15, 0, 15]);
@@ -854,38 +825,23 @@ export default function DateNightScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.headerEye, { color: t.primary }]}>
-            {isPremium
-              ? '100 ideas'
-              : !ready
-                ? 'Preparing ideas...'
-                : typeof freeUnlockedDatesLeft === 'number'
-                  ? `${freeUnlockedDatesLeft} free date ${freeUnlockedDatesLeft === 1 ? 'idea' : 'ideas'} left this week`
-                : visibleCount > 0
-                  ? `${visibleCount} ${visibleCount === 1 ? 'idea' : 'ideas'} ready`
-                  : 'No ideas available'}
+            {ready ? 'Make Time Together' : 'Preparing ideas...'}
           </Text>
           
           <View style={styles.headerRow}>
             <Text style={[styles.headerTitle, { color: t.text }]}>Dates</Text>
           </View>
-          {isPremium ? (
-            <Text style={[styles.headerSubtitle, { color: t.subtext }]}>
-              8 new date ideas added each week.
-            </Text>
-          ) : typeof freeUsageStatus?.remaining?.dates === 'number' ? (
-            <Text style={[styles.headerSubtitle, { color: t.subtext }]}>
-              {freeUsageStatus.remaining.dates} left today
-            </Text>
-          ) : null}
           
           {/* Shuffle Button */}
           <View style={styles.shuffleSection}>
             <TouchableOpacity
               style={[styles.shuffleButton, { 
                 backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                borderColor: t.border
+                borderColor: t.border,
+                opacity: freeDeckDone ? 0.45 : 1,
               }]}
               onPress={handleReset}
+              disabled={freeDeckDone}
               activeOpacity={0.7}
             >
               <Icon name="shuffle-outline" size={16} color={t.primary} />
@@ -904,7 +860,7 @@ export default function DateNightScreen({ navigation }) {
             <View style={[styles.weeklyDropBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
               <Icon name="calendar-outline" size={14} color={colors.textMuted} />
               <Text style={[styles.weeklyDropText, { color: colors.textMuted }]}>
-                {visibleCount} {visibleCount === 1 ? 'idea' : 'ideas'} in this week's draw.
+                2 more previews in this week's draw.
               </Text>
             </View>
           ) : null}
@@ -947,16 +903,20 @@ export default function DateNightScreen({ navigation }) {
                   <Icon name="sparkles-outline" size={42} color={colors.text} style={{ marginBottom: 8 }} />
                   <Text style={[styles.emptyTitle, { color: colors.text }]}>Deck Complete</Text>
                   <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
-                    {likedDates.length > 0 ? `You've selected ${likedDates.length} ideas for today.` : 'Ready to shuffle and go again?'}
+                    {!isPremium
+                      ? "This week's draw is complete."
+                      : likedDates.length > 0 ? `You've selected ${likedDates.length} ideas for today.` : 'Ready to shuffle and go again?'}
                   </Text>
-                  <TouchableOpacity
-                    style={[styles.resetBtn, { backgroundColor: colors.text }]}
-                    onPress={handleReset}
-                    activeOpacity={0.85}
-                  >
-                    <Icon name="shuffle-outline" size={18} color={colors.background} />
-                    <Text style={[styles.resetTxt, { color: colors.background }]}>Shuffle Deck</Text>
-                  </TouchableOpacity>
+                  {isPremium ? (
+                    <TouchableOpacity
+                      style={[styles.resetBtn, { backgroundColor: colors.text }]}
+                      onPress={handleReset}
+                      activeOpacity={0.85}
+                    >
+                      <Icon name="shuffle-outline" size={18} color={colors.background} />
+                      <Text style={[styles.resetTxt, { color: colors.background }]}>Shuffle Deck</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </>
               )}
             </AnimatedBlurView>
@@ -1012,10 +972,8 @@ export default function DateNightScreen({ navigation }) {
 
         {/* Premium Teaser (Editorial Style) */}
         {!isPremium && !deckDone && deck.length > 0 && (
-          <TouchableOpacity
+          <View
             style={[styles.editorialBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}
-            onPress={() => showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS)}
-            activeOpacity={0.8}
           >
             <View style={styles.editorialTag}>
               <Text style={[styles.editorialTagText, { color: colors.primary }]}>MADE FOR YOU TWO</Text>
@@ -1024,7 +982,7 @@ export default function DateNightScreen({ navigation }) {
             <Text style={[styles.editorialBody, { color: colors.textMuted }]}>
               Premium opens a larger weekly date set plus the full catalog across romantic, adventure, wellness, cozy, and after-dark ideas.
             </Text>
-          </TouchableOpacity>
+          </View>
         )}
 
         {/* Horizontal Liked List */}

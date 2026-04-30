@@ -330,12 +330,17 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   );
 }
 
-export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress, onReveal, onIndexChange, onSaveForLater, shuffleNonce = 0 }) {
+export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress, onReveal, onIndexChange, onSaveForLater, shuffleNonce = 0, allowLoop = true }) {
   const { isDark, colors } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [deckLayout, setDeckLayout] = useState({ width: DEFAULT_CARD_W + (CARD_HORIZONTAL_MARGIN * 2), height: DEFAULT_CARD_H + (CARD_VERTICAL_MARGIN * 2) });
   const visibleCards = useMemo(() => prompts.slice(currentIndex, currentIndex + 4), [prompts, currentIndex]);
-  const advanceCard = useCallback(() => setCurrentIndex((prev) => (prev >= prompts.length - 1 ? 0 : prev + 1)), [prompts.length]);
+  const advanceCard = useCallback(() => {
+    setCurrentIndex((prev) => {
+      if (prev >= prompts.length - 1) return allowLoop ? 0 : prompts.length;
+      return prev + 1;
+    });
+  }, [allowLoop, prompts.length]);
   const shuffleProgress = useSharedValue(0);
 
   useEffect(() => {

@@ -115,7 +115,7 @@ describe('WeeklyContentSetService', () => {
     });
   });
 
-  it('builds free prompt welcome-week previews with 10 unlocked and 2 locked previews', () => {
+  it('builds free prompt welcome-week previews with 3 unlocked and 2 locked previews', () => {
     const promptCatalog = [
       ...prompts,
       makePrompt('p10', 4, 'visual'),
@@ -131,9 +131,9 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.freeLockedPreviewLimit).toBe(2);
-    expect(result.unlocked).toHaveLength(10);
+    expect(result.unlocked).toHaveLength(3);
     expect(result.lockedPreviews).toHaveLength(2);
-    expect(result.items).toHaveLength(12);
+    expect(result.items).toHaveLength(5);
     expect(result.lockedPreviews.every((item) => item.isLockedPreview === true)).toBe(true);
     expect(result.lockedPreviews.every((item) => item.requiresPremium === true)).toBe(true);
   });
@@ -147,10 +147,13 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.unlocked).toHaveLength(6);
-    expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(6);
-    expect(new Set(result.unlocked.map((item) => item.category)).size).toBe(6);
+    expect(result.freeLockedPreviewLimit).toBe(2);
+    expect(result.unlocked).toHaveLength(3);
+    expect(result.lockedPreviews).toHaveLength(2);
+    expect(result.items).toHaveLength(5);
+    expect(new Set(result.unlocked.map((item) => item.category)).size).toBe(3);
+    expect(result.lockedPreviews.every((item) => item.isLockedPreview === true)).toBe(true);
+    expect(result.lockedPreviews.every((item) => item.requiresPremium === true)).toBe(true);
   });
 
   it('builds free position welcome-week previews and prioritizes soft accessible picks first', () => {
@@ -170,7 +173,7 @@ describe('WeeklyContentSetService', () => {
   });
 
 
-  it('free locked previews expose preview metadata without marking them unlocked after welcome week', () => {
+  it('caps free prompt sets at 3 cards after welcome week', () => {
     const result = buildWeeklySet(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
@@ -182,15 +185,28 @@ describe('WeeklyContentSetService', () => {
 
     expect(result.weekNumber).toBeGreaterThan(0);
     expect(result.freeUnlockedLimit).toBe(3);
+    expect(result.freeLockedPreviewLimit).toBe(0);
     expect(result.unlocked).toHaveLength(3);
-    expect(result.lockedPreviews.length).toBeGreaterThan(0);
+    expect(result.lockedPreviews).toHaveLength(0);
+    expect(result.items).toHaveLength(3);
+  });
 
-    result.lockedPreviews.forEach((item) => {
-      expect(item.isLockedPreview).toBe(true);
-      expect(item.requiresPremium).toBe(true);
-      expect(item.previewText).toBeTruthy();
-      expect(item.weeklySetMeta.isLockedPreview).toBe(true);
+  it('caps free date sets at 3 cards after welcome week', () => {
+    const result = buildWeeklySet(dates, {
+      contentType: CONTENT_TYPES.DATES,
+      userId: 'user-1',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      userCreatedAt: '2026-04-01T12:00:00.000Z',
+      date: TEST_DATE,
     });
+
+    expect(result.weekNumber).toBeGreaterThan(0);
+    expect(result.freeUnlockedLimit).toBe(3);
+    expect(result.freeLockedPreviewLimit).toBe(0);
+    expect(result.unlocked).toHaveLength(3);
+    expect(result.lockedPreviews).toHaveLength(0);
+    expect(result.items).toHaveLength(3);
   });
 
   it('respects maxHeat when building weekly sets', () => {
