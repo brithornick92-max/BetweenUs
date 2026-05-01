@@ -7,9 +7,11 @@ const mockGetJournalEntries = jest.fn();
 const mockSavePromptAnswer = jest.fn();
 const mockGetPromptAnswers = jest.fn();
 const mockGetSharedPromptAnswers = jest.fn();
+const mockDeletePromptAnswer = jest.fn();
 const mockNeedsReconnect = jest.fn(() => false);
 const mockStorageGet = jest.fn();
 const mockStorageSet = jest.fn();
+const mockStorageRemove = jest.fn();
 const mockAlert = jest.fn();
 
 function mockCreateHostComponent(name) {
@@ -186,6 +188,7 @@ jest.mock('../../services/localfirst', () => ({
     savePromptAnswer: (...args) => mockSavePromptAnswer(...args),
     getPromptAnswers: (...args) => mockGetPromptAnswers(...args),
     getSharedPromptAnswers: (...args) => mockGetSharedPromptAnswers(...args),
+    deletePromptAnswer: (...args) => mockDeletePromptAnswer(...args),
     needsReconnect: (...args) => mockNeedsReconnect(...args),
     deleteJournalEntry: jest.fn(),
   },
@@ -222,6 +225,7 @@ jest.mock('../../utils/storage', () => ({
   storage: {
     get: (...args) => mockStorageGet(...args),
     set: (...args) => mockStorageSet(...args),
+    remove: (...args) => mockStorageRemove(...args),
   },
 }));
 
@@ -263,9 +267,11 @@ function resetScreenHarnessMocks() {
   mockSavePromptAnswer.mockResolvedValue(undefined);
   mockGetPromptAnswers.mockResolvedValue([]);
   mockGetSharedPromptAnswers.mockResolvedValue([]);
+  mockDeletePromptAnswer.mockResolvedValue(undefined);
   mockNeedsReconnect.mockReturnValue(false);
   mockStorageGet.mockResolvedValue(true);
   mockStorageSet.mockResolvedValue(undefined);
+  mockStorageRemove.mockResolvedValue(undefined);
 }
 
 module.exports = {
@@ -283,8 +289,10 @@ module.exports = {
   mockSavePromptAnswer,
   mockGetPromptAnswers,
   mockGetSharedPromptAnswers,
+  mockDeletePromptAnswer,
   mockNeedsReconnect,
   mockStorageGet,
   mockStorageSet,
+  mockStorageRemove,
   mockAlert,
 };

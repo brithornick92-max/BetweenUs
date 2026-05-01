@@ -127,6 +127,7 @@ export default function CouplesQuizScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [answerId, setAnswerId] = useState(null);
 
   const revealScale = useSharedValue(0);
   const revealStyle = useAnimatedStyle(() => ({
@@ -160,6 +161,8 @@ export default function CouplesQuizScreen({ navigation }) {
           const mine = sharedRows?.[0] || personalRows?.[0] || null;
 
           if (mine) {
+            setAnswerId(mine.id || null);
+
             if (mine.answer) {
               setMyAnswer(mine.answer);
               setHasSubmitted(true);
@@ -195,11 +198,12 @@ export default function CouplesQuizScreen({ navigation }) {
 
       // Sync using the same bilateral prompt-answer path as today's prompt.
       try {
-        await DataLayer.savePromptAnswer?.({
+        const savedAnswer = await DataLayer.savePromptAnswer?.({
           promptId: quizPromptId,
           answer: trimmed,
           heatLevel: 1,
         });
+        setAnswerId((current) => savedAnswer?.id || current);
 
         const sharedRows = await DataLayer.getSharedPromptAnswers?.({
           dateKey: todayKey,
@@ -227,6 +231,64 @@ export default function CouplesQuizScreen({ navigation }) {
       setIsSaving(false);
     }
   }, [myAnswer, todayKey, question.id, quizPromptId, myName]);
+
+  const clearLocalQuizAnswer = useCallback(async () => {
+    await Promise.all([
+      storage.remove(TODAY_QUIZ_KEY),
+      storage.remove(TODAY_QUIZ_QUESTION_KEY),
+      storage.remove(MY_QUIZ_ANSWER_KEY),
+    ]);
+  }, []);
+
+  const resetSubmittedAnswerState = useCallback(() => {
+    setMyAnswer('');
+    setAnswerId(null);
+    setHasSubmitted(false);
+    setPartnerAnswer('');
+    setPartnerHasSubmitted(false);
+    setIsRevealed(false);
+    revealScale.value = 0;
+  }, [revealScale]);
+
+  const handleEditAnswer = useCallback(() => {
+    impact(ImpactFeedbackStyle.Light);
+    setHasSubmitted(false);
+    setPartnerAnswer('');
+    setPartnerHasSubmitted(false);
+    setIsRevealed(false);
+    revealScale.value = 0;
+    setTimeout(() => inputRef.current?.focus?.(), 80);
+  }, [revealScale]);
+
+  const handleDeleteAnswer = useCallback(() => {
+    Alert.alert(
+      'Delete quiz answer?',
+      'This removes your answer for today. You can answer again afterward.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setIsSaving(true);
+            try {
+              if (answerId && typeof DataLayer.deletePromptAnswer === 'function') {
+                await DataLayer.deletePromptAnswer(answerId);
+              }
+
+              await clearLocalQuizAnswer();
+              resetSubmittedAnswerState();
+              notification(NotificationFeedbackType.Success).catch(() => {});
+            } catch {
+              Alert.alert('Could not delete', 'Please try again.');
+            } finally {
+              setIsSaving(false);
+            }
+          },
+        },
+      ]
+    );
+  }, [answerId, clearLocalQuizAnswer, resetSubmittedAnswerState]);
 
   const handleReveal = useCallback(() => {
     if (!partnerHasSubmitted) {
@@ -343,6 +405,30 @@ export default function CouplesQuizScreen({ navigation }) {
                       <Text style={styles.lockedCardLabel}>YOUR GUESS</Text>
                     </View>
                     <Text style={styles.lockedAnswer}>{myAnswer}</Text>
+                    <View style={styles.answerActionRow}>
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel="Edit daily quiz answer"
+                        onPress={handleEditAnswer}
+                        disabled={isSaving}
+                        activeOpacity={0.8}
+                        style={[styles.answerActionButton, { borderColor: t.border }]}
+                      >
+                        <Icon name="create-outline" size={15} color={t.primary} />
+                        <Text style={[styles.answerActionText, { color: t.primary }]}>Edit</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel="Delete daily quiz answer"
+                        onPress={handleDeleteAnswer}
+                        disabled={isSaving}
+                        activeOpacity={0.8}
+                        style={[styles.answerActionButton, { borderColor: t.border }]}
+                      >
+                        <Icon name="trash-outline" size={15} color={t.primary} />
+                        <Text style={[styles.answerActionText, { color: t.primary }]}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
 
                   {/* Partner status */}
@@ -581,6 +667,27 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '400',
     color: t.text,
     lineHeight: 26,
+  },
+  answerActionRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginTop: SPACING.lg,
+  },
+  answerActionButton: {
+    minHeight: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  answerActionText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
 
   partnerStatusCard: {
