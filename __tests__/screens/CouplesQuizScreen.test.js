@@ -9,12 +9,15 @@ const {
   mockDeletePromptAnswer,
   mockGetPromptAnswers,
   mockAlert,
+  mockStorageGet,
   mockSavePromptAnswer,
   mockStorageRemove,
   mockStorageSet,
 } = require('../helpers/screenTestHarness');
 
-const CouplesQuizScreen = require('../../screens/CouplesQuizScreen').default;
+const CouplesQuizModule = require('../../screens/CouplesQuizScreen');
+const CouplesQuizScreen = CouplesQuizModule.default;
+const { getQuizCacheKeys } = CouplesQuizModule;
 
 describe('CouplesQuizScreen', () => {
   beforeEach(() => {
@@ -44,10 +47,35 @@ describe('CouplesQuizScreen', () => {
       heatLevel: 1,
     }));
 
+    const scopedKeys = getQuizCacheKeys('user-1:solo');
     expect(mockStorageSet).toHaveBeenCalledWith(
-      '@betweenus:cache:quizMyAnswer',
+      scopedKeys.answer,
       'They would choose coffee and a walk.'
     );
+    expect(mockStorageSet).not.toHaveBeenCalledWith(
+      '@betweenus:cache:quizMyAnswer',
+      expect.any(String)
+    );
+  });
+
+  it('ignores legacy unscoped local answers from another signed-in account', async () => {
+    const legacyKeys = new Set([
+      '@betweenus:cache:quizDateKey',
+      '@betweenus:cache:quizQuestionId',
+      '@betweenus:cache:quizMyAnswer',
+    ]);
+    mockStorageGet.mockImplementation((key, fallback = null) => (
+      Promise.resolve(legacyKeys.has(key) ? 'legacy-demo-value' : fallback)
+    ));
+
+    const navigation = createNavigation();
+    const tree = await renderScreen(CouplesQuizScreen, { navigation });
+    await flushEffects();
+
+    expect(mockStorageGet).not.toHaveBeenCalledWith('@betweenus:cache:quizDateKey');
+    expect(mockStorageGet).not.toHaveBeenCalledWith('@betweenus:cache:quizQuestionId');
+    expect(mockStorageGet).not.toHaveBeenCalledWith('@betweenus:cache:quizMyAnswer');
+    expect(tree.root.findByType(TextInput).props.value).toBe('');
   });
 
   it('lets a submitted Daily Quiz answer be edited', async () => {
@@ -95,9 +123,10 @@ describe('CouplesQuizScreen', () => {
     });
 
     expect(mockDeletePromptAnswer).toHaveBeenCalledWith('answer-1');
-    expect(mockStorageRemove).toHaveBeenCalledWith('@betweenus:cache:quizDateKey');
-    expect(mockStorageRemove).toHaveBeenCalledWith('@betweenus:cache:quizQuestionId');
-    expect(mockStorageRemove).toHaveBeenCalledWith('@betweenus:cache:quizMyAnswer');
+    const scopedKeys = getQuizCacheKeys('user-1:solo');
+    expect(mockStorageRemove).toHaveBeenCalledWith(scopedKeys.date);
+    expect(mockStorageRemove).toHaveBeenCalledWith(scopedKeys.question);
+    expect(mockStorageRemove).toHaveBeenCalledWith(scopedKeys.answer);
     expect(findTouchablesByText(tree.root, 'Lock In My Answer')[0]).toBeTruthy();
   });
 });
