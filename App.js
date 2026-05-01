@@ -41,6 +41,7 @@ import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
 import { cloudSyncStorage, storage, STORAGE_KEYS } from "./utils/storage";
 import WeeklyContentScheduler from "./services/WeeklyContentScheduler";
+import ExpoUpdateService from "./services/ExpoUpdateService";
 
 // Keep splash visible until fonts + init complete
 SplashScreen.preventAutoHideAsync();
@@ -274,6 +275,16 @@ function AppContent() {
           }
         }
       }
+
+      if (
+        !isLightweightDevMode &&
+        nextAppState === "active" &&
+        appStateVisible.match(/inactive|background/) &&
+        !isLocked
+      ) {
+        ExpoUpdateService.checkForUpdate({ reason: "foreground" }).catch(() => {});
+      }
+
       setAppStateVisible(nextAppState);
     };
 
@@ -282,7 +293,17 @@ function AppContent() {
       handleAppStateChange
     );
     return () => subscription?.remove();
-  }, [appStateVisible, state.appLockEnabled]);
+  }, [appStateVisible, isLocked, state.appLockEnabled]);
+
+  useEffect(() => {
+    if (isLightweightDevMode || !navReady || isLocked) return undefined;
+
+    const timeoutId = setTimeout(() => {
+      ExpoUpdateService.checkForUpdate({ reason: "launch" }).catch(() => {});
+    }, 4000);
+
+    return () => clearTimeout(timeoutId);
+  }, [navReady, isLocked]);
 
   useEffect(() => {
     let unsubscribe = null;

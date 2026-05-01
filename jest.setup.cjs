@@ -39,6 +39,13 @@ jest.mock('expo-blur', () => ({
   BlurView: 'BlurView',
 }));
 
+jest.mock('expo-updates', () => ({
+  isEnabled: false,
+  checkForUpdateAsync: jest.fn(),
+  fetchUpdateAsync: jest.fn(),
+  reloadAsync: jest.fn(),
+}));
+
 // Mock Supabase
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => ({
