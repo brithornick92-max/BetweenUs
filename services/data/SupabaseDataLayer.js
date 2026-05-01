@@ -143,6 +143,14 @@ function hasOwn(object, key) {
   return Object.prototype.hasOwnProperty.call(object || {}, key);
 }
 
+function getPromptRowId(row) {
+  return row?.value?.promptId || row?.prompt_id || row?.promptId || null;
+}
+
+function getPromptRowDateKey(row) {
+  return row?.value?.dateKey || row?.date_key || row?.dateKey || null;
+}
+
 async function getOfflineQueue() {
   return storage.get(offlineQueueKey(_userId), []);
 }
@@ -1272,6 +1280,10 @@ const SupabaseDataLayer = {
     });
 
     const sourceRows = isCacheFallback(rows) ? await loadCache(CACHE_SCOPES.prompts) : rows;
+    const filteredRows = (sourceRows || [])
+      .filter((row) => !dk || getPromptRowDateKey(row) === dk)
+      .filter((row) => !promptId || getPromptRowId(row) === promptId)
+      .slice(0, limit);
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapPromptRow(r)));
@@ -1281,13 +1293,13 @@ const SupabaseDataLayer = {
       );
     }
 
-    const myRows = sourceRows.filter((r) => (r.created_by || r.user_id) === _userId);
-    const partnerRows = sourceRows.filter((r) => (r.created_by || r.user_id) !== _userId);
+    const myRows = filteredRows.filter((r) => (r.created_by || r.user_id) === _userId);
+    const partnerRows = filteredRows.filter((r) => (r.created_by || r.user_id) !== _userId);
 
     return Promise.all(myRows.map((r) => {
       const partner = partnerRows.find((p) =>
-        (p.value?.promptId || p.prompt_id) === (r.value?.promptId || r.prompt_id)
-        && (p.value?.dateKey || p.date_key) === (r.value?.dateKey || r.date_key)
+        getPromptRowId(p) === getPromptRowId(r)
+        && getPromptRowDateKey(p) === getPromptRowDateKey(r)
       ) || null;
 
       if (r.value) return mapPromptRow(r, partner);

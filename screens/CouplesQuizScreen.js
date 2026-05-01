@@ -82,6 +82,13 @@ export function getQuizCacheKeys(scopeKey = 'anonymous:solo') {
   };
 }
 
+function isMatchingPromptAnswer(row, promptId, dk) {
+  const rowPromptId = row?.prompt_id || row?.promptId || row?.value?.promptId || null;
+  const rowDateKey = row?.date_key || row?.dateKey || row?.value?.dateKey || null;
+
+  return rowPromptId === promptId && rowDateKey === dk;
+}
+
 function getTodayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -166,7 +173,13 @@ export default function CouplesQuizScreen({ navigation }) {
             DataLayer.getSharedPromptAnswers?.({ dateKey: todayKey, promptId: quizPromptId }),
           ]);
 
-          const mine = sharedRows?.[0] || personalRows?.[0] || null;
+          const matchingSharedRows = (sharedRows || []).filter((row) =>
+            isMatchingPromptAnswer(row, quizPromptId, todayKey)
+          );
+          const matchingPersonalRows = (personalRows || []).filter((row) =>
+            isMatchingPromptAnswer(row, quizPromptId, todayKey)
+          );
+          const mine = matchingSharedRows[0] || matchingPersonalRows[0] || null;
 
           if (mine) {
             setAnswerId(mine.id || null);
@@ -230,8 +243,12 @@ export default function CouplesQuizScreen({ navigation }) {
           promptId: quizPromptId,
         });
 
-        if (sharedRows?.[0]?.partnerAnswer) {
-          setPartnerAnswer(sharedRows[0].partnerAnswer);
+        const matchingSharedRow = (sharedRows || []).find((row) =>
+          isMatchingPromptAnswer(row, quizPromptId, todayKey)
+        );
+
+        if (matchingSharedRow?.partnerAnswer) {
+          setPartnerAnswer(matchingSharedRow.partnerAnswer);
           setPartnerHasSubmitted(true);
         }
 

@@ -8,6 +8,7 @@ const {
   resetScreenHarnessMocks,
   mockDeletePromptAnswer,
   mockGetPromptAnswers,
+  mockGetSharedPromptAnswers,
   mockAlert,
   mockStorageGet,
   mockSavePromptAnswer,
@@ -78,10 +79,30 @@ describe('CouplesQuizScreen', () => {
     expect(tree.root.findByType(TextInput).props.value).toBe('');
   });
 
-  it('lets a submitted Daily Quiz answer be edited', async () => {
-    mockGetPromptAnswers.mockResolvedValue([
-      { id: 'answer-1', answer: 'Original answer' },
+  it('ignores cached prompt answers that do not match the Daily Quiz prompt', async () => {
+    mockGetSharedPromptAnswers.mockResolvedValue([
+      {
+        id: 'prompt-answer-1',
+        prompt_id: 'h1_001',
+        date_key: '2026-05-01',
+        answer: 'Unrelated prompt answer',
+        partnerAnswer: 'Unrelated partner answer',
+      },
     ]);
+
+    const navigation = createNavigation();
+    const tree = await renderScreen(CouplesQuizScreen, { navigation });
+    await flushEffects();
+
+    const input = tree.root.findByType(TextInput);
+    expect(input.props.value).toBe('');
+    expect(findTouchablesByText(tree.root, 'Lock In My Answer')[0]).toBeTruthy();
+  });
+
+  it('lets a submitted Daily Quiz answer be edited', async () => {
+    mockGetPromptAnswers.mockImplementation(({ dateKey, promptId }) => Promise.resolve([
+      { id: 'answer-1', prompt_id: promptId, date_key: dateKey, answer: 'Original answer' },
+    ]));
 
     const navigation = createNavigation();
     const tree = await renderScreen(CouplesQuizScreen, { navigation });
@@ -100,9 +121,9 @@ describe('CouplesQuizScreen', () => {
   });
 
   it('lets a submitted Daily Quiz answer be deleted without deleting past data', async () => {
-    mockGetPromptAnswers.mockResolvedValue([
-      { id: 'answer-1', answer: 'Original answer' },
-    ]);
+    mockGetPromptAnswers.mockImplementation(({ dateKey, promptId }) => Promise.resolve([
+      { id: 'answer-1', prompt_id: promptId, date_key: dateKey, answer: 'Original answer' },
+    ]));
 
     const navigation = createNavigation();
     const tree = await renderScreen(CouplesQuizScreen, { navigation });
