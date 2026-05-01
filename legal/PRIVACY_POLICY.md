@@ -40,7 +40,7 @@ We believe relationship content should be handled carefully. That's why we:
 - Shared memories and milestones
 - Check-ins, vibes, and moment signals
 - Date plans, calendar events, titles, dates, optional locations, and notes
-- Tried/favorite intimacy positions, rituals, love notes, and similar relationship content
+- Tried/favorite sex positions, rituals, love notes, and similar relationship content
 - Optional media attachments that you choose to add to journals or memories
 - Heat level, energy level, relationship climate, tone, and content preferences
 - Soft boundary settings, hidden categories, and paused content

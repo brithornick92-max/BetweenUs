@@ -100,7 +100,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={[styles.subTitle, { color: colors.text }]}>Content You Create</Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               We protect different categories of content in different ways:{'\n\n'}
-              • Journal entries, prompt responses, memories, check-ins, vibes, love notes, rituals, calendar events, date plans, tried/favorite intimacy positions, and other relationship content may be stored in your private account and couple space{'\n'}
+              • Journal entries, prompt responses, memories, check-ins, vibes, love notes, rituals, calendar events, date plans, tried/favorite sex positions, and other relationship content may be stored in your private account and couple space{'\n'}
               • Photo and media attachments are protected in transit and by server-side access controls{'\n'}
               • Some settings and cached data stay only on your device{'\n'}
               • Some preferences, including soft boundaries, energy level, and relationship climate, may sync to your profile for restoration across devices{'\n'}

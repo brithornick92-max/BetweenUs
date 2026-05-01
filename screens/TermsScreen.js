@@ -200,8 +200,8 @@ const TermsScreen = ({ navigation, route }) => {
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Free and Premium Features:{'\n'}
                 • Free users can answer 1 guided prompt per day and preview prompts across Heat levels 1–5. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.{'\n'}
-                • Free users can link with a partner, preview limited date ideas and intimacy positions, fully plan 1 date flow per week, and export supported data{'\n'}
-                • Premium adds a growing weekly library of prompts, date ideas, intimacy positions, calendar features, recaps, signals, and other premium experiences shown in the app{'\n'}
+                • Free users can link with a partner, preview limited date ideas and sex positions, fully plan 1 date flow per week, and export supported data{'\n'}
+                • Premium adds a growing weekly library of prompts, date ideas, sex positions, calendar features, recaps, signals, and other premium experiences shown in the app{'\n'}
                 • One premium subscription is intended to cover both linked partners after entitlement sync completes{'\n\n'}
                 Current pricing:{'\n'}
                 • Monthly: {FALLBACK_PRICES.monthly}{'\n'}

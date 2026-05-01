@@ -46,7 +46,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `The free version includes 1 prompt per day, limited previews of date ideas and intimacy positions, and 1 fully planned date flow per week. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.\n\nPremium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. One subscription covers both linked partners after entitlement sync completes.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
+        a: `The free version includes 1 prompt per day, limited previews of date ideas and sex positions, and 1 fully planned date flow per week. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.\n\nPremium unlocks a growing library of prompts, date ideas, and sex positions over time, with new content released to you weekly. One subscription covers both linked partners after entitlement sync completes.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
       },
       {
         q: 'How do I get started?',
@@ -76,7 +76,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is my data private?',
-        a: 'Your relationship content such as synced journal entries, prompt responses, memories, check-ins, vibes, calendar events, date plans, intimacy favorites/tried state, and media attachments is protected by account access controls, transport security, row-level security, and provider-side policies. We also collect limited pseudonymous analytics, crash reports, and diagnostic session replays to improve reliability. We do not sell your data.',
+        a: 'Your relationship content such as synced journal entries, prompt responses, memories, check-ins, vibes, calendar events, date plans, sex position favorites/tried state, and media attachments is protected by account access controls, transport security, row-level security, and provider-side policies. We also collect limited pseudonymous analytics, crash reports, and diagnostic session replays to improve reliability. We do not sell your data.',
       },
       {
         q: 'Can my partner see everything I write?',
@@ -105,7 +105,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What are Heat Levels?',
-        a: 'Heat levels help you choose the intensity of prompts, from emotional connection (1) to explicit (5). Free users can preview all levels. Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly.',
+        a: 'Heat levels help you choose the intensity of prompts, from emotional connection (1) to explicit (5). Free users can preview all levels. Premium unlocks a growing library of prompts, date ideas, and sex positions over time, with new content released to you weekly.',
       },
       {
         q: 'How do prompts work?',
@@ -134,7 +134,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: 'Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. It also includes access to all 5 Heat Levels, shared calendar features, Our Story Wall/Keepsake media uploads and shared memories, vibe and moment signals, and other premium experiences. One subscription covers both linked partners after entitlement sync completes.',
+        a: 'Premium unlocks a growing library of prompts, date ideas, and sex positions over time, with new content released to you weekly. It also includes access to all 5 Heat Levels, shared calendar features, Our Story Wall/Keepsake media uploads and shared memories, vibe and moment signals, and other premium experiences. One subscription covers both linked partners after entitlement sync completes.',
       },
       {
         q: 'How do I subscribe?',

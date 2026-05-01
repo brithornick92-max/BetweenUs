@@ -1,5 +1,5 @@
 /**
- * BETWEEN US - INTIMACY POSITIONS ENGINE
+ * BETWEEN US - SEX POSITIONS ENGINE
  * Matches HomeScreen.js — Crisp solid widgets, native typography, heavy shadows.
  */
 
@@ -407,8 +407,8 @@ export default function IntimacyPositionsScreen() {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Intimacy"
-      headerSubtitle={isPremiumEffective ? "10 sex positions" : "SEX POSITIONS"}
+      headerTitle="Sex Positions"
+      headerSubtitle={isPremiumEffective ? "10 curated positions" : "SEX POSITIONS"}
       headerDescription={isPremiumEffective ? "2 new positions added each week." : null}
       scroll={false}
       onBack={handleBack}
@@ -481,7 +481,7 @@ export default function IntimacyPositionsScreen() {
                       <Text style={[styles.lockedPreviewTitle, { color: t.text }]}>{position.title}</Text>
                     </View>
                     <Text style={[styles.answerText, { color: t.text }]}>
-                      {position.previewText || position.shortSummary || 'This premium intimacy idea is part of this week\'s full set.'}
+                      {position.previewText || position.shortSummary || 'This premium sex position is part of this week\'s full set.'}
                     </Text>
                     <TouchableOpacity
                       activeOpacity={0.85}
@@ -490,7 +490,7 @@ export default function IntimacyPositionsScreen() {
                     >
                       <Icon name="sparkles-outline" size={18} color="#FFFFFF" />
                       <Text style={[styles.ctaLabel, { color: '#FFFFFF' }]}>
-                        {weeklyPositionSet?.upgradeCopy?.cta || 'Unlock Premium Intimacy'}
+                        {weeklyPositionSet?.upgradeCopy?.cta || 'Unlock Premium Sex Positions'}
                       </Text>
                     </TouchableOpacity>
                   </View>

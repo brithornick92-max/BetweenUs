@@ -24,7 +24,7 @@ Yes. Between Us is designed to be inclusive of adults across orientations, ident
 
 ### How much does it cost?
 
-- **Free version:** 1 guided prompt answer per day, weekly previews across Heat levels 1-5, limited date and intimacy position previews, 1 full date flow per week, partner linking, and supported data export. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.
+- **Free version:** 1 guided prompt answer per day, weekly previews across Heat levels 1-5, limited date and sex position previews, 1 full date flow per week, partner linking, and supported data export. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.
 - **Premium Monthly:** fallback display price $7.99/month
 - **Premium Yearly:** fallback display price $49.99/year
 
@@ -110,7 +110,7 @@ Heat levels help you choose the intensity of prompts:
 - **Heat 4:** Steamy & Adventurous
 - **Heat 5:** Explicit
 
-Free users can preview Heat levels 1-5. Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly.
+Free users can preview Heat levels 1-5. Premium unlocks a growing library of prompts, date ideas, and sex positions over time, with new content released to you weekly.
 
 ### How do prompts work?
 
@@ -171,7 +171,7 @@ Yes. You can enable app lock in Settings > Privacy & Security. App lock controls
 ### What's included in Premium?
 
 Premium may include:
-- A growing library of prompts, date ideas, and intimacy positions, with new content released to you weekly
+- A growing library of prompts, date ideas, and sex positions, with new content released to you weekly
 - Full access to all 5 Heat Levels
 - Shared calendar features
 - Our Story Wall/Keepsake media uploads and shared memories

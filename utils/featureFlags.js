@@ -45,7 +45,7 @@ export const FREE_LIMITS = Object.freeze({
   PREVIEW_PROMPTS_TOTAL: 12,    // A fixed welcome pack of preview prompts
   VISIBLE_PROMPTS_PER_WEEK: 3,  // Weekly free preview of new & premium prompts (tightened from 5)
   VISIBLE_DATE_IDEAS_PER_WEEK: 3, // Weekly free preview of date ideas (tightened from 5)
-  VISIBLE_POSITIONS_PER_WEEK: 1, // A smaller weekly preview for intimacy positions (tightened from 2)
+  VISIBLE_POSITIONS_PER_WEEK: 1, // A smaller weekly preview for sex positions (tightened from 2)
   FULL_DATE_FLOWS_PER_WEEK: 1,  // One fully planned date flow per week (tightened from 2)
   JOURNAL_ENTRIES_VISIBLE: 0,   // No journal access
   FREE_HEAT_LEVELS: [1, 2, 3, 4, 5],

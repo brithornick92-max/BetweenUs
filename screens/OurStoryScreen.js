@@ -49,8 +49,8 @@ const MEMORY_TYPE_META = {
   date_saved: { label: 'Saved Date', icon: 'bookmark-outline' },
   anniversary: { label: 'Anniversary', icon: 'heart-outline' },
   milestone: { label: 'Milestone', icon: 'ribbon-outline' },
-  intimacy_favorite: { label: 'Intimacy Favorite', icon: 'heart-outline' },
-  intimacy_tried: { label: 'Position Tried', icon: 'checkmark-circle-outline' },
+  intimacy_favorite: { label: 'Sex Position Favorite', icon: 'heart-outline' },
+  intimacy_tried: { label: 'Sex Position Tried', icon: 'checkmark-circle-outline' },
   date_tried: { label: 'Date Tried', icon: 'calendar-outline' },
   memory: { label: 'Memory', icon: 'time-outline' },
 };
@@ -206,6 +206,81 @@ function parseMemoryPayload(content) {
   }
 }
 
+function titleCaseLabel(value) {
+  const text = String(value || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!text) return '';
+
+  return text
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function joinDetails(parts, fallback) {
+  const details = (parts || []).filter(Boolean);
+  return details.length ? details.join(' • ') : fallback;
+}
+
+function formatDateLocation(value) {
+  if (!value) return '';
+  if (value === 'home') return 'At home';
+  if (value === 'out') return 'Out';
+  return titleCaseLabel(value);
+}
+
+function formatDateLoad(value) {
+  if (value === null || value === undefined || value === '') return '';
+
+  const numeric = Number(value);
+  if (numeric === 1) return 'Low effort';
+  if (numeric === 2) return 'Moderate effort';
+  if (numeric === 3) return 'More active';
+
+  return titleCaseLabel(value);
+}
+
+function formatHeat(value) {
+  if (value === null || value === undefined || value === '') return '';
+  return `Heat ${value}`;
+}
+
+function formatRating(value) {
+  if (!value) return '';
+
+  const normalized = String(value).toLowerCase();
+  const labels = {
+    love: 'Loved',
+    like: 'Liked',
+    neutral: 'Neutral',
+    pass: 'Not for us',
+    dislike: 'Not for us',
+  };
+
+  return labels[normalized] || titleCaseLabel(value);
+}
+
+function buildDateDetails(row, fallback = 'Date night') {
+  return joinDetails([
+    row?.minutes ? `${row.minutes} min` : '',
+    formatDateLocation(row?.location),
+    titleCaseLabel(row?.style),
+    formatDateLoad(row?.load),
+    formatHeat(row?.heat),
+    formatRating(row?.rating),
+  ], fallback);
+}
+
+function buildPositionDetails(row, fallback = 'Sex position') {
+  return joinDetails([
+    titleCaseLabel(row?.mood),
+    formatHeat(row?.heat),
+    formatRating(row?.rating),
+  ], fallback);
+}
+
 async function safeLoad(loader) {
   try {
     return await loader();
@@ -265,10 +340,10 @@ function buildMemoryItem(row, media = null) {
     sourceId: row.id,
     title: memoryType.label,
     body: row.locked ? 'This moment is locked on this device.' : (row.content || ''),
-    eyebrow: isIntimacyFavorite ? 'Intimacy favorite' : 'Memory',
+    eyebrow: isIntimacyFavorite ? 'Sex position favorite' : 'Memory',
     icon: memoryType.icon,
     accent: '#D2121A',
-    meta: isIntimacyFavorite ? 'Shared intimacy' : (row.mood ? String(row.mood).toUpperCase() : memoryType.label),
+    meta: isIntimacyFavorite ? 'Sex position' : (row.mood ? String(row.mood).toUpperCase() : memoryType.label),
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.snapshot_created_at || row.created_at || row.date,
     mediaRef: row.media_ref || null,
@@ -362,23 +437,18 @@ function groupMemoryItems(memoryItems) {
 }
 
 function buildDateItem(row) {
-  const parts = [];
-
-  if (row.minutes) parts.push(`${row.minutes} min`);
-  if (row.location) parts.push(row.location === 'home' ? 'At home' : 'Out');
-
-  const meta = parts.length ? parts.join(' • ') : 'Date night';
+  const details = buildDateDetails(row, 'Date night');
 
   return {
     id: `date:${row.id}`,
     kind: 'date',
     sourceId: row.id,
     title: row.title || 'Date tried',
-    body: 'A date you tried together.',
+    body: details,
     eyebrow: 'Date tried',
     icon: 'calendar-outline',
     accent: '#34C759',
-    meta,
+    meta: details,
     dateLabel: formatDateLabel(row.addedAt),
     sortAt: row.addedAt,
     memoryId: row.memoryId || null,
@@ -399,6 +469,11 @@ function buildDateItemFromMemoryRow(row) {
       ...buildSavedDateItem({
         date_id: dateId,
         title: payload.title || row?.title || 'Saved date',
+        heat: payload.heat ?? null,
+        load: payload.load ?? null,
+        style: payload.style ?? null,
+        minutes: payload.minutes ?? null,
+        location: payload.location ?? null,
         created_at: row?.created_at || row?.date,
         isOwn: row?.isOwn,
       }),
@@ -410,8 +485,12 @@ function buildDateItemFromMemoryRow(row) {
   return buildDateItem({
     id: dateId,
     title: payload.title || row?.title || 'Date tried',
+    heat: payload.heat ?? null,
+    load: payload.load ?? null,
+    style: payload.style ?? null,
     minutes: payload.minutes ?? null,
     location: payload.location ?? null,
+    rating: payload.rating ?? null,
     addedAt: row?.created_at || row?.date || Date.now(),
     memoryId: row?.id || null,
     isOwn: row?.isOwn,
@@ -427,11 +506,11 @@ function buildSavedDateItem(row) {
     kind: 'date_saved',
     sourceId: dateId,
     title: row?.title || 'Saved date',
-    body: 'A date you saved for later.',
+    body: buildDateDetails(row, 'Saved for later'),
     eyebrow: 'Saved date',
     icon: 'bookmark-outline',
     accent: '#34C759',
-    meta: 'Date night',
+    meta: buildDateDetails(row, 'Saved for later'),
     dateLabel: formatDateLabel(row?.created_at || row?.addedAt || row?.savedAt),
     sortAt: row?.created_at || row?.addedAt || row?.savedAt,
     editable: false,
@@ -447,12 +526,12 @@ function buildPositionTriedItem(row) {
     id: `position-tried:${row.positionId}`,
     kind: 'position_tried',
     sourceId: row.positionId,
-    title: label || 'Position tried',
-    body: 'An intimacy position you tried together.',
-    eyebrow: 'Position tried',
+    title: label || 'Sex position tried',
+    body: buildPositionDetails(row, 'Sex position marked as tried'),
+    eyebrow: 'Sex position tried',
     icon: 'checkmark-circle-outline',
     accent: '#D2121A',
-    meta: row.mood ? String(row.mood).toUpperCase() : 'Intimacy',
+    meta: row.mood ? String(row.mood).toUpperCase() : 'Sex position',
     dateLabel: formatDateLabel(row.triedAt),
     sortAt: row.triedAt,
     memoryId: row.memoryId || null,
@@ -467,18 +546,23 @@ function buildPositionFavoriteItemFromMemoryRow(row) {
   const positionId = payload?.positionId || payload?.id || row?.id;
   const title = payload
     ? (payload.commonName ? `${payload.commonName}: ${payload.title}` : payload.title)
-    : String(row?.content || '').replace(/^Shared intimacy favorite:\s*/i, '').trim();
+    : String(row?.content || '').replace(/^Shared (?:intimacy|sex position) favorite:\s*/i, '').trim();
+  const details = buildPositionDetails({
+    mood: payload?.mood || row?.mood || null,
+    heat: payload?.heat ?? null,
+    rating: payload?.rating ?? null,
+  }, 'Saved sex position');
 
   return {
     id: `position-favorite-memory:${row.id}`,
     kind: 'position_favorite',
     sourceId: positionId,
-    title: title || 'Position saved',
-    body: 'An intimacy position you saved together.',
-    eyebrow: 'Position saved',
+    title: title || 'Saved sex position',
+    body: details,
+    eyebrow: 'Saved sex position',
     icon: 'heart-outline',
     accent: '#D2121A',
-    meta: row.mood ? String(row.mood).toUpperCase() : 'Intimacy',
+    meta: row.mood ? String(row.mood).toUpperCase() : 'Sex position',
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.created_at || row.date,
     memoryId: row.id || null,
@@ -499,6 +583,8 @@ function buildPositionTriedItemFromMemoryRow(row) {
     title: payload.title || row?.title || 'Position tried',
     commonName: payload.commonName || null,
     mood: payload.mood || row?.mood || null,
+    heat: payload.heat ?? null,
+    rating: payload.rating ?? null,
     triedAt: row?.created_at || row?.date || new Date().toISOString(),
     memoryId: row?.id || null,
     isOwn: row?.isOwn,

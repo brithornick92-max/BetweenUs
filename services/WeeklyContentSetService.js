@@ -69,9 +69,9 @@ const UPGRADE_COPY = {
     cta: 'Unlock All Dates',
   },
   [CONTENT_TYPES.POSITIONS]: {
-    headline: 'Explore the full intimacy library',
-    body: 'You experienced 5 positions. Premium unlocks 10+ positions right now, plus 2 new ones every week.',
-    cta: 'Unlock All Positions',
+    headline: 'Explore the full sex position library',
+    body: 'You experienced 5 sex positions. Premium unlocks 10+ positions right now, plus 2 new ones every week.',
+    cta: 'Unlock All Sex Positions',
   },
 };
 

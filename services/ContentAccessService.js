@@ -1,7 +1,7 @@
 /**
  * ContentAccessService
  *
- * Centralizes content gating for prompts, date ideas, and intimacy positions.
+ * Centralizes content gating for prompts, date ideas, and sex positions.
  * Access is evaluated in this order:
  * 1. User content boundaries and paused/hidden content.
  * 2. Weekly content release schedule.

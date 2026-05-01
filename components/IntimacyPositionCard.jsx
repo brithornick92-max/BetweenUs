@@ -91,7 +91,7 @@ export default function IntimacyPositionCard({
         <View style={styles.eyebrowRow}>
           <Icon name="star-outline" size={14} color={t.primary} />
           <Text style={[styles.eyebrow, { color: t.primary }]} numberOfLines={1}>
-            {position.commonName || "INTIMACY"}
+            {position.commonName || "SEX POSITION"}
           </Text>
         </View>
       </View>
@@ -104,7 +104,7 @@ export default function IntimacyPositionCard({
         <View style={styles.actionRow}>
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityLabel={isFavorite ? 'Remove intimacy favorite' : 'Save intimacy favorite'}
+            accessibilityLabel={isFavorite ? 'Remove sex position favorite' : 'Save sex position favorite'}
             activeOpacity={0.8}
             disabled={favoriteBusy || !onToggleFavorite}
             onPress={onToggleFavorite}

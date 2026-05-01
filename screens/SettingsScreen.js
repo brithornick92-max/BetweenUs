@@ -569,7 +569,7 @@ export default function SettingsScreen({ navigation }) {
             <EditorialToggleRow
               icon="checkmark-circle-outline"
               title="Positions Tried"
-              subtitle="Show intimacy positions marked as tried"
+              subtitle="Show sex positions marked as tried"
               value={keepsakeSettings.positions}
               onValueChange={(value) => handleKeepsakeToggle('positions', value)}
               t={t}

@@ -104,7 +104,7 @@ Each call to `buildWeeklySet()` needs:
 Here's your starter pack:
 • 10 conversation prompts
 • 10 date ideas
-• 5 intimacy positions
+• 5 sex positions
 
 Explore and see what resonates with you two.
 ```

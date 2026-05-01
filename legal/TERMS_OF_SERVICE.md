@@ -95,8 +95,8 @@ You agree not to use the Service to create, upload, store, or share content that
 
 - Free users can answer 1 guided prompt per day and preview prompts across Heat levels 1-5
 - Viewing or revealing limited free prompts and date ideas may count toward free usage limits
-- Free users can browse a limited weekly selection of date ideas and intimacy positions, fully plan 1 date flow per week, link with a partner, and export supported data
-- Premium unlocks a growing library of prompts, date ideas, and intimacy positions over time, with new content released to you weekly. It also adds calendar features, signals, recaps, inside-joke features, and other premium experiences shown in the app.
+- Free users can browse a limited weekly selection of date ideas and sex positions, fully plan 1 date flow per week, link with a partner, and export supported data
+- Premium unlocks a growing library of prompts, date ideas, and sex positions over time, with new content released to you weekly. It also adds calendar features, signals, recaps, inside-joke features, and other premium experiences shown in the app.
 - One premium subscription is intended to cover both linked partners after entitlement sync completes
 - Current fallback display pricing in the app is:
   - Monthly: $7.99/month

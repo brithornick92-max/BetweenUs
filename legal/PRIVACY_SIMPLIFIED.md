@@ -10,7 +10,7 @@ Your privacy matters. This is the short version of how Between Us handles data. 
 
 ### Core synced content
 
-Journal entries, prompt answers, memories, check-ins, vibes, calendar events, date plans, tried/favorite intimacy positions, and media attachments may sync through Supabase so the app can work across linked partners and devices.
+Journal entries, prompt answers, memories, check-ins, vibes, calendar events, date plans, tried/favorite sex positions, and media attachments may sync through Supabase so the app can work across linked partners and devices.
 
 Core synced content is protected by:
 

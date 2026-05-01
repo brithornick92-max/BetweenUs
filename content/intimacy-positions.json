@@ -3,7 +3,7 @@
     "type": "intimacy-positions",
     "app": "Between Us",
     "version": "3.0.0",
-    "description": "Intimacy building positions for all couples. Premium-only with weekly releases.",
+    "description": "Sex positions for all couples. Premium-only with weekly releases.",
     "premium": true,
     "releaseSchedule": "10 positions at launch (releaseWeek 0), then 2 new positions per week through week 95. Full library screens can show all accessible positions for premium users.",
     "categories": {

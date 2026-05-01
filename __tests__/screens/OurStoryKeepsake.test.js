@@ -155,6 +155,14 @@ describe('OurStory Keepsake entry building', () => {
 
     expect(entries.some((entry) => entry.sourceId === 'date-1')).toBe(true);
     expect(entries.some((entry) => entry.sourceId === 'ip001')).toBe(true);
+
+    const dateEntry = entries.find((entry) => entry.kind === 'date');
+    expect(dateEntry.body).toContain('45 min');
+    expect(dateEntry.body).toContain('Out');
+
+    const positionEntry = entries.find((entry) => entry.kind === 'position_tried');
+    expect(positionEntry.eyebrow).toBe('Sex position tried');
+    expect(positionEntry.body).toContain('Tender');
   });
 
   it('includes saved dates and favorite positions from memory rows', async () => {
