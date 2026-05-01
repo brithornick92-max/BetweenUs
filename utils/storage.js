@@ -64,6 +64,8 @@ export const STORAGE_KEYS = {
   CLOUD_SYNC_QUEUE: key("cloudSyncQueue"),
   RITUAL_REMINDERS: key("ritualReminders"),
   LOVE_NOTES: key("loveNotes"),
+  DATE_TRIED_FALLBACK: key("dateTriedFallback"),
+  INTIMACY_TRIED_FALLBACK: key("intimacyTriedFallback"),
 };
 
 const safeParse = (raw) => {

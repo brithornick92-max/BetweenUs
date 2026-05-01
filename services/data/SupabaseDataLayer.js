@@ -21,7 +21,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import PartnerNotifications from '../PartnerNotifications';
 import CrashReporting from '../CrashReporting';
 import { getPromptById } from '../../utils/contentLoader';
-import { storage, STORAGE_KEYS } from '../../utils/storage';
+import { loveNoteStorage, storage, STORAGE_KEYS } from '../../utils/storage';
 
 // ─── Module state ────────────────────────────────────────────────────────────
 
@@ -211,9 +211,25 @@ async function saveCache(scope, rows) {
   await storage.set(cacheKey(_userId, scope), Array.isArray(rows) ? rows : []);
 }
 
+function isPendingCacheRow(row) {
+  return (
+    row?.sync_status === 'pending'
+    || row?.remoteSynced === false
+    || row?.isRemote === false
+  );
+}
+
 async function replaceCache(scope, rows) {
-  await saveCache(scope, rows);
-  return rows;
+  const incomingRows = Array.isArray(rows) ? rows.filter(Boolean) : [];
+  const incomingIds = new Set(incomingRows.map((row) => row?.id).filter(Boolean));
+  const cachedRows = await loadCache(scope);
+  const pendingRows = (cachedRows || []).filter((row) =>
+    row?.id && !incomingIds.has(row.id) && isPendingCacheRow(row)
+  );
+
+  const next = [...incomingRows, ...pendingRows];
+  await saveCache(scope, next);
+  return next;
 }
 
 async function replaceCacheSubset(scope, rows, shouldReplaceRow, { sortBy = 'created_at', descending = true } = {}) {
@@ -223,6 +239,7 @@ async function replaceCacheSubset(scope, rows, shouldReplaceRow, { sortBy = 'cre
 
   const retainedRows = (cachedRows || []).filter((row) => {
     if (!row?.id || incomingIds.has(row.id)) return false;
+    if (isPendingCacheRow(row)) return true;
     return typeof shouldReplaceRow === 'function' ? !shouldReplaceRow(row) : true;
   });
 
@@ -240,7 +257,7 @@ async function replaceCacheSubset(scope, rows, shouldReplaceRow, { sortBy = 'cre
   });
 
   await saveCache(scope, next);
-  return incomingRows;
+  return next;
 }
 
 async function upsertCacheRow(scope, row, { sortBy = 'created_at', descending = true } = {}) {
@@ -267,12 +284,12 @@ async function removeCacheRow(scope, id) {
   await saveCache(scope, rows.filter((item) => item?.id !== id));
 }
 
-async function runCloudOperation({ perform, onSuccess, onOffline }) {
+async function runCloudOperation({ perform, onSuccess, onOffline, fallbackOnAnyError = false }) {
   try {
     const result = await perform();
     return onSuccess ? await onSuccess(result) : result;
   } catch (error) {
-    if (!isOfflineCapableError(error) || !onOffline) throw error;
+    if ((!fallbackOnAnyError && !isOfflineCapableError(error)) || !onOffline) throw error;
     return onOffline(error);
   }
 }
@@ -405,7 +422,7 @@ async function cdQuery(dataType, { limit = 100, offset = 0, filter } = {}) {
   const sb = getSupabaseOrNull();
 
   if (!sb) return CACHE_FALLBACK;
-  if (!_coupleId) return [];
+  if (!_coupleId) return CACHE_FALLBACK;
 
   let query = sb
     .from(TABLES.COUPLE_DATA)
@@ -896,6 +913,7 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.journals, mapped);
         return mapped;
       },
+      fallbackOnAnyError: true,
     });
   },
 
@@ -932,7 +950,10 @@ const SupabaseDataLayer = {
     }
 
     return runCloudOperation({
-      perform: async () => cdUpdate(id, patch),
+      perform: async () => {
+        if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
+        return cdUpdate(id, patch);
+      },
       onSuccess: async (row) => {
         const mapped = await mapJournalRow(row);
         await upsertCacheRow(CACHE_SCOPES.journals, mapped);
@@ -961,12 +982,16 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.journals, mapped);
         return mapped;
       },
+      fallbackOnAnyError: true,
     });
   },
 
   async deleteJournalEntry(id) {
     return runCloudOperation({
-      perform: async () => cdSoftDelete(id),
+      perform: async () => {
+        if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
+        return cdSoftDelete(id);
+      },
       onSuccess: async () => {
         await removeCacheRow(CACHE_SCOPES.journals, id);
       },
@@ -974,12 +999,12 @@ const SupabaseDataLayer = {
         await enqueueOfflineMutation({ entity: 'journal', action: 'delete', id });
         await removeCacheRow(CACHE_SCOPES.journals, id);
       },
+      fallbackOnAnyError: true,
     });
   },
 
   async getJournalEntries({ limit = 50, offset = 0, mood, visibility } = {}) {
-    const shouldReadShared = !!_coupleId || visibility === 'shared';
-    if (visibility === 'shared' && !_coupleId) return [];
+    const shouldReadShared = !!_coupleId && visibility !== 'owned';
 
     const rows = await cdQuery('journal', {
       limit,
@@ -1001,8 +1026,7 @@ const SupabaseDataLayer = {
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapJournalRow(r)));
-      await replaceCache(CACHE_SCOPES.journals, mapped);
-      return mapped;
+      return replaceCache(CACHE_SCOPES.journals, mapped);
     }
 
     const cached = await loadCache(CACHE_SCOPES.journals);
@@ -1015,9 +1039,9 @@ const SupabaseDataLayer = {
 
   async getJournalEntry(id) {
     const sb = getSupabaseOrNull();
+    const cached = await loadCache(CACHE_SCOPES.journals);
 
-    if (!sb) {
-      const cached = await loadCache(CACHE_SCOPES.journals);
+    if (!sb || !_coupleId) {
       return cached.find((entry) => entry?.id === id) || null;
     }
 
@@ -1029,7 +1053,6 @@ const SupabaseDataLayer = {
 
     if (error) {
       if (isOfflineCapableError(error)) {
-        const cached = await loadCache(CACHE_SCOPES.journals);
         return cached.find((entry) => entry?.id === id) || null;
       }
 
@@ -1126,6 +1149,7 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
         return mapped;
       },
+      fallbackOnAnyError: true,
     });
   },
 
@@ -1133,7 +1157,10 @@ const SupabaseDataLayer = {
     const patch = { isRevealed: true, revealAt: now() };
 
     return runCloudOperation({
-      perform: async () => cdUpdate(id, patch),
+      perform: async () => {
+        if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
+        return cdUpdate(id, patch);
+      },
       onSuccess: async (row) => {
         const mapped = await mapPromptRow(row);
         await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
@@ -1161,6 +1188,7 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
         return mapped;
       },
+      fallbackOnAnyError: true,
     });
   },
 
@@ -1168,7 +1196,10 @@ const SupabaseDataLayer = {
     if (!id) throw new Error('Prompt answer id is required');
 
     return runCloudOperation({
-      perform: async () => cdSoftDelete(id),
+      perform: async () => {
+        if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
+        return cdSoftDelete(id);
+      },
       onSuccess: async () => {
         await removeCacheRow(CACHE_SCOPES.prompts, id);
       },
@@ -1181,6 +1212,7 @@ const SupabaseDataLayer = {
 
         await removeCacheRow(CACHE_SCOPES.prompts, id);
       },
+      fallbackOnAnyError: true,
     });
   },
 
@@ -1199,12 +1231,11 @@ const SupabaseDataLayer = {
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapPromptRow(r)));
-      await replaceCacheSubset(CACHE_SCOPES.prompts, mapped, (row) =>
+      return replaceCacheSubset(CACHE_SCOPES.prompts, mapped, (row) =>
         row?.user_id === _userId
         && (!dk || row?.date_key === dk)
         && (!promptId || row?.prompt_id === promptId)
       );
-      return mapped;
     }
 
     const cached = await loadCache(CACHE_SCOPES.prompts);
@@ -1280,7 +1311,7 @@ const SupabaseDataLayer = {
     const sb = getSupabaseOrNull();
 
     if (!sb) return CACHE_FALLBACK;
-    if (!_coupleId) return null;
+    if (!_coupleId) return CACHE_FALLBACK;
 
     const { data, error } = await sb
       .from(TABLES.COUPLE_DATA)
@@ -1390,10 +1421,20 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.memories, mapped);
         return mapped;
       },
+      fallbackOnAnyError: true,
     });
   },
 
   async getMemories({ type, limit = 100, offset = 0, ownedOnly = false } = {}) {
+    if (!_coupleId) {
+      const cached = await loadCache(CACHE_SCOPES.memories);
+
+      return cached
+        .filter((row) => row?.user_id === _userId)
+        .filter((row) => !type || row?.type === type)
+        .slice(offset, offset + limit);
+    }
+
     const rows = await cdQuery('memory', {
       limit,
       offset,
@@ -1408,11 +1449,10 @@ const SupabaseDataLayer = {
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapMemoryRow(r)));
-      await replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
+      return replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
         ((_coupleId && !ownedOnly) || row?.user_id === _userId)
         && (!type || row?.type === type)
       );
-      return mapped;
     }
 
     const cached = await loadCache(CACHE_SCOPES.memories);
@@ -1440,10 +1480,9 @@ const SupabaseDataLayer = {
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapMemoryRow(r)));
-      await replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
+      return replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
         !type || row?.type === type
       );
-      return mapped;
     }
 
     const cached = await loadCache(CACHE_SCOPES.memories);
@@ -1470,6 +1509,9 @@ const SupabaseDataLayer = {
     const cachedRows = await loadCache(CACHE_SCOPES.memories);
     const cached = cachedRows.find((row) => row?.id === id) || {};
     const cachedUpdate = {
+      id,
+      user_id: cached.user_id || _userId,
+      couple_id: cached.couple_id || _coupleId,
       ...cached,
       ...updates,
       type: valuePatch.type || cached.type || 'moment',
@@ -1485,7 +1527,10 @@ const SupabaseDataLayer = {
     };
 
     return runCloudOperation({
-      perform: async () => cdUpdate(id, valuePatch),
+      perform: async () => {
+        if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
+        return cdUpdate(id, valuePatch);
+      },
       onSuccess: async (row) => {
         const mapped = await mapMemoryRow(row);
         await upsertCacheRow(CACHE_SCOPES.memories, mapped);
@@ -1502,12 +1547,16 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.memories, cachedUpdate);
         return cachedUpdate;
       },
+      fallbackOnAnyError: true,
     });
   },
 
   async deleteMemory(id) {
     return runCloudOperation({
-      perform: async () => cdSoftDelete(id),
+      perform: async () => {
+        if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
+        return cdSoftDelete(id);
+      },
       onSuccess: async () => {
         await removeCacheRow(CACHE_SCOPES.memories, id);
       },
@@ -1520,6 +1569,7 @@ const SupabaseDataLayer = {
 
         await removeCacheRow(CACHE_SCOPES.memories, id);
       },
+      fallbackOnAnyError: true,
     });
   },
 
@@ -1707,7 +1757,7 @@ const SupabaseDataLayer = {
     return mapped;
   },
 
-  // ─── Rituals / Love Notes (retired) ─────────────────────────────────────
+  // ─── Rituals / Love Notes ───────────────────────────────────────────────
 
   async saveRitual() {
     throw new Error('Rituals are no longer supported');
@@ -1717,32 +1767,35 @@ const SupabaseDataLayer = {
     return [];
   },
 
-  async saveLoveNote() {
-    throw new Error('Love Notes are no longer supported');
+  async saveLoveNote(note = {}) {
+    return loveNoteStorage.saveNote(note);
   },
 
-  async getLoveNotes() {
-    return [];
+  async getLoveNotes({ limit = 100 } = {}) {
+    const notes = await loveNoteStorage.getNotes();
+    return notes.slice(0, limit);
   },
 
-  async getLoveNote() {
-    return null;
+  async getLoveNote(id) {
+    const notes = await loveNoteStorage.getNotes();
+    return notes.find((note) => note?.id === id) || null;
   },
 
   async markLoveNoteRead(id) {
-    return { id, skipped: true };
+    await loveNoteStorage.markRead(id);
+    return this.getLoveNote(id);
   },
 
   async purgeExpiredLoveNotes() {
     return undefined;
   },
 
-  async deleteLoveNote() {
-    return undefined;
+  async deleteLoveNote(id) {
+    return loveNoteStorage.deleteNote(id);
   },
 
   async getUnreadLoveNoteCount() {
-    return 0;
+    return loveNoteStorage.getUnreadCount();
   },
 
   async getLoveNoteImageUri() {

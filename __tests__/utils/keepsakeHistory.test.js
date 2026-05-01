@@ -3,6 +3,8 @@ const mockGetSharedMemories = jest.fn();
 const mockSaveMemory = jest.fn();
 const mockUpdateMemory = jest.fn();
 const mockDeleteMemory = jest.fn();
+const AsyncStorage = require('@react-native-async-storage/async-storage');
+let localStorage;
 
 jest.mock('../../services/localfirst', () => ({
   DataLayer: {
@@ -16,16 +18,31 @@ jest.mock('../../services/localfirst', () => ({
 
 const {
   DATE_COMPLETION_HIDE_DAYS,
+  getDateHistory,
   getRecentlyCompletedDateIds,
   removeDateSavedKeepsake,
   saveDateHistoryEntry,
   saveDateSavedKeepsake,
 } = require('../../utils/dateHistory');
-const { toggleIntimacyFavorite, toggleIntimacyTried } = require('../../utils/intimacyFavorites');
+const {
+  getIntimacyTried,
+  toggleIntimacyFavorite,
+  toggleIntimacyTried,
+} = require('../../utils/intimacyFavorites');
 
 describe('Keepsake history writers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage = new Map();
+    AsyncStorage.getItem.mockImplementation(async (key) => (
+      localStorage.has(key) ? localStorage.get(key) : null
+    ));
+    AsyncStorage.setItem.mockImplementation(async (key, value) => {
+      localStorage.set(key, value);
+    });
+    AsyncStorage.removeItem.mockImplementation(async (key) => {
+      localStorage.delete(key);
+    });
     mockGetMemories.mockResolvedValue([]);
     mockGetSharedMemories.mockResolvedValue([]);
     mockSaveMemory.mockResolvedValue({ id: 'memory-1', created_at: '2026-04-28T12:00:00.000Z' });
@@ -77,6 +94,38 @@ describe('Keepsake history writers', () => {
       id: 'date-1',
       memoryId: 'memory-1',
     }));
+  });
+
+  it('keeps dates tried in local fallback when memory sync fails', async () => {
+    mockSaveMemory.mockRejectedValueOnce(new Error('offline'));
+    const date = {
+      id: 'date-1',
+      title: 'Coffee walk',
+      heat: 1,
+      load: 1,
+      style: 'talking',
+      minutes: 45,
+      location: 'out',
+    };
+
+    const result = await saveDateHistoryEntry(date);
+
+    expect(result.entry).toEqual(expect.objectContaining({
+      id: 'date-1',
+      title: 'Coffee walk',
+      memoryId: null,
+    }));
+
+    mockGetMemories.mockRejectedValueOnce(new Error('read failed'));
+    mockGetSharedMemories.mockRejectedValueOnce(new Error('read failed'));
+
+    const history = await getDateHistory();
+    expect(history).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'date-1',
+        title: 'Coffee walk',
+      }),
+    ]));
   });
 
   it('saves saved dates as date_saved memories for Keepsake', async () => {
@@ -166,6 +215,37 @@ describe('Keepsake history writers', () => {
     expect(result.tried.ip001).toEqual(expect.objectContaining({
       positionId: 'ip001',
       memoryId: 'memory-1',
+    }));
+  });
+
+  it('keeps positions tried in local fallback when memory sync fails', async () => {
+    mockSaveMemory.mockRejectedValueOnce(new Error('offline'));
+    const position = {
+      id: 'ip001',
+      title: 'Close Hold',
+      commonName: 'Side by side',
+      mood: 'tender',
+      heat: 2,
+    };
+
+    const result = await toggleIntimacyTried(position, {
+      currentlyTried: false,
+      currentTried: {},
+    });
+
+    expect(result.tried.ip001).toEqual(expect.objectContaining({
+      positionId: 'ip001',
+      title: 'Close Hold',
+      memoryId: null,
+    }));
+
+    mockGetMemories.mockRejectedValueOnce(new Error('read failed'));
+    mockGetSharedMemories.mockRejectedValueOnce(new Error('read failed'));
+
+    const tried = await getIntimacyTried();
+    expect(tried.ip001).toEqual(expect.objectContaining({
+      positionId: 'ip001',
+      title: 'Close Hold',
     }));
   });
 

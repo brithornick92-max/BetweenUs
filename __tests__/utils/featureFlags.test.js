@@ -65,8 +65,8 @@ describe('FREE_LIMITS', () => {
     expect(FREE_LIMITS.PROMPTS_PER_DAY).toBe(1);
   });
 
-  it('allows five date idea previews per day', () => {
-    expect(FREE_LIMITS.DATE_IDEAS_PER_DAY ?? 5).toBe(5);
+  it('allows three date idea previews per day', () => {
+    expect(FREE_LIMITS.DATE_IDEAS_PER_DAY ?? 3).toBe(3);
   });
 
   it('allows two fully planned date flows per week', () => {

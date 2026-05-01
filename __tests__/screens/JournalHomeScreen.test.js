@@ -6,8 +6,6 @@ const {
   createNavigation,
   resetScreenHarnessMocks,
   mockGetJournalEntries,
-  mockStorageGet,
-  mockStorageSet,
 } = require('../helpers/screenTestHarness');
 
 const JournalHomeScreen = require('../../screens/JournalHomeScreen').default;
@@ -19,7 +17,6 @@ describe('JournalHomeScreen', () => {
 
   it('navigates to a new shared entry from the empty state', async () => {
     mockGetJournalEntries.mockResolvedValueOnce([]);
-    mockStorageGet.mockResolvedValueOnce(true);
 
     const navigation = createNavigation();
 
@@ -36,23 +33,21 @@ describe('JournalHomeScreen', () => {
     expect(navigation.navigate).toHaveBeenCalledWith('JournalEntry');
   });
 
-  it('dismisses the shared journal notice and persists that preference', async () => {
+  it('navigates to a new shared entry from the floating action button', async () => {
     mockGetJournalEntries.mockResolvedValueOnce([]);
-    mockStorageGet.mockResolvedValueOnce(false);
 
     const navigation = createNavigation();
 
     const tree = await renderScreen(JournalHomeScreen, { navigation });
     await flushEffects();
 
-    const [dismissButton] = tree.root.findAllByProps({ accessibilityLabel: 'Dismiss journal notice' });
-    expect(dismissButton).toBeTruthy();
+    const [newEntryButton] = tree.root.findAllByProps({ accessibilityLabel: 'New shared entry' });
+    expect(newEntryButton).toBeTruthy();
 
     await require('../helpers/screenTestHarness').renderer.act(async () => {
-      await dismissButton.props.onPress();
+      newEntryButton.props.onPress();
     });
 
-    expect(mockStorageSet).toHaveBeenCalledWith('@betweenus:cache:sharedJournalNoticeDismissed', true);
-    expect(tree.root.findAllByProps({ accessibilityLabel: 'Dismiss journal notice' })).toHaveLength(0);
+    expect(navigation.navigate).toHaveBeenCalledWith('JournalEntry');
   });
 });

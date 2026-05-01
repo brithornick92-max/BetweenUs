@@ -1,4 +1,5 @@
 import { DataLayer } from '../services/localfirst';
+import { storage, STORAGE_KEYS } from './storage';
 
 const ensureObject = (value) => (
   value && typeof value === 'object' && !Array.isArray(value) ? value : {}
@@ -64,6 +65,72 @@ function memoryToTriedEntry(memory) {
   };
 }
 
+function triedEntryTime(entry) {
+  const value = new Date(entry?.triedAt || 0).getTime();
+  return Number.isFinite(value) ? value : 0;
+}
+
+async function getLocalTriedState() {
+  const stored = ensureObject(await storage.get(STORAGE_KEYS.INTIMACY_TRIED_FALLBACK, {}));
+  return {
+    entries: ensureObject(stored.entries),
+    deleted: ensureObject(stored.deleted),
+  };
+}
+
+async function setLocalTriedState(state) {
+  await storage.set(STORAGE_KEYS.INTIMACY_TRIED_FALLBACK, {
+    entries: ensureObject(state?.entries),
+    deleted: ensureObject(state?.deleted),
+  });
+}
+
+function mergeTriedMaps(remoteTried = {}, localState = {}) {
+  const localEntries = ensureObject(localState.entries);
+  const deleted = ensureObject(localState.deleted);
+  const merged = {};
+
+  Object.values(ensureObject(remoteTried)).forEach((entry) => {
+    if (!entry?.positionId) return;
+    const deletedAt = Number(deleted[entry.positionId] || 0);
+    if (deletedAt && triedEntryTime(entry) <= deletedAt) return;
+    merged[entry.positionId] = entry;
+  });
+
+  Object.values(localEntries).forEach((entry) => {
+    if (!entry?.positionId) return;
+    const deletedAt = Number(deleted[entry.positionId] || 0);
+    if (deletedAt && triedEntryTime(entry) <= deletedAt) return;
+
+    const existing = merged[entry.positionId];
+    if (!existing || triedEntryTime(entry) >= triedEntryTime(existing)) {
+      merged[entry.positionId] = {
+        ...existing,
+        ...entry,
+        memoryId: entry.memoryId || existing?.memoryId || null,
+      };
+    }
+  });
+
+  return merged;
+}
+
+async function upsertLocalTriedEntry(entry) {
+  if (!entry?.positionId) return;
+  const local = await getLocalTriedState();
+  local.entries[entry.positionId] = entry;
+  delete local.deleted[entry.positionId];
+  await setLocalTriedState(local);
+}
+
+async function removeLocalTriedEntry(positionId) {
+  if (!positionId) return;
+  const local = await getLocalTriedState();
+  delete local.entries[positionId];
+  local.deleted[positionId] = Date.now();
+  await setLocalTriedState(local);
+}
+
 function dedupeMemories(rows) {
   const seen = new Set();
   return (Array.isArray(rows) ? rows : []).filter((row) => {
@@ -116,6 +183,8 @@ export async function getIntimacyFavorites() {
 }
 
 export async function getIntimacyTried() {
+  const local = await getLocalTriedState();
+
   try {
     const [personalMemories, sharedMemories] = await Promise.all([
       DataLayer.getMemories({ type: 'intimacy_tried', limit: 200 }),
@@ -138,9 +207,9 @@ export async function getIntimacyTried() {
         return acc;
       }, {});
 
-    return fromMemories;
+    return mergeTriedMaps(fromMemories, local);
   } catch {
-    return {};
+    return mergeTriedMaps({}, local);
   }
 }
 
@@ -188,10 +257,15 @@ export async function toggleIntimacyFavorite(position, { currentlyFavorite = fal
 }
 
 export async function toggleIntimacyTried(position, { currentlyTried = false, currentTried = null } = {}) {
-  const tried = currentTried ? { ...ensureObject(currentTried) } : await getIntimacyTried();
+  const local = await getLocalTriedState();
+  const tried = currentTried
+    ? mergeTriedMaps(ensureObject(currentTried), local)
+    : await getIntimacyTried();
   const existing = tried[position.id] || null;
 
   if (currentlyTried) {
+    await removeLocalTriedEntry(position.id);
+
     if (existing?.memoryId) {
       try {
         await DataLayer.deleteMemory(existing.memoryId);
@@ -205,6 +279,19 @@ export async function toggleIntimacyTried(position, { currentlyTried = false, cu
   }
 
   let memoryId = existing?.memoryId || null;
+  let entry = {
+    positionId: position.id,
+    title: position.title,
+    commonName: position.commonName || null,
+    mood: position.mood || null,
+    heat: position.heat || null,
+    triedAt: existing?.triedAt || new Date().toISOString(),
+    rating: existing?.rating || null,
+    memoryId,
+  };
+
+  await upsertLocalTriedEntry(entry);
+
   try {
     if (existing?.memoryId && typeof DataLayer.updateMemory === 'function') {
       await DataLayer.updateMemory(existing.memoryId, {
@@ -224,20 +311,13 @@ export async function toggleIntimacyTried(position, { currentlyTried = false, cu
       });
       memoryId = row?.id || memoryId;
     }
+    entry = { ...entry, memoryId };
+    await upsertLocalTriedEntry(entry);
   } catch (error) {
     if (__DEV__) console.warn('[intimacyFavorites] Failed to save tried memory:', error?.message);
   }
 
-  tried[position.id] = {
-    positionId: position.id,
-    title: position.title,
-    commonName: position.commonName || null,
-    mood: position.mood || null,
-    heat: position.heat || null,
-    triedAt: existing?.triedAt || new Date().toISOString(),
-    rating: existing?.rating || null,
-    memoryId,
-  };
+  tried[position.id] = entry;
 
   return { tried, isTried: true };
 }
@@ -250,7 +330,20 @@ export async function rateIntimacyTried(position, rating) {
   const nextRating = existing.rating === rating ? null : rating;
 
   let memoryId = existing.memoryId || null;
-  if (!existing.positionId) {
+  let entry = {
+    positionId: position.id,
+    title: position.title,
+    commonName: position.commonName || null,
+    mood: position.mood || null,
+    heat: position.heat || null,
+    triedAt: existing.triedAt || new Date().toISOString(),
+    rating: nextRating,
+    memoryId,
+  };
+
+  await upsertLocalTriedEntry(entry);
+
+  if (!existing.positionId || !existing.memoryId) {
     try {
       const row = await DataLayer.saveMemory({
         type: 'intimacy_tried',
@@ -261,6 +354,8 @@ export async function rateIntimacyTried(position, rating) {
         isPrivate: false,
       });
       memoryId = row?.id || null;
+      entry = { ...entry, memoryId };
+      await upsertLocalTriedEntry(entry);
     } catch (error) {
       if (__DEV__) console.warn('[intimacyFavorites] Failed to save tried memory:', error?.message);
     }
@@ -276,17 +371,6 @@ export async function rateIntimacyTried(position, rating) {
       if (__DEV__) console.warn('[intimacyFavorites] Failed to update tried memory:', error?.message);
     }
   }
-
-  const entry = {
-    positionId: position.id,
-    title: position.title,
-    commonName: position.commonName || null,
-    mood: position.mood || null,
-    heat: position.heat || null,
-    triedAt: existing.triedAt || new Date().toISOString(),
-    rating: nextRating,
-    memoryId,
-  };
 
   tried[position.id] = entry;
   return { tried, entry };

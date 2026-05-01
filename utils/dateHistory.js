@@ -1,10 +1,14 @@
 import { DataLayer } from '../services/localfirst';
+import { storage, STORAGE_KEYS } from './storage';
 
 export const DATE_COMPLETION_HIDE_DAYS = 90;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const ensureArray = (value) => (Array.isArray(value) ? value : []);
+const ensureObject = (value) => (
+  value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+);
 
 function dedupeMemories(rows) {
   const seen = new Set();
@@ -78,6 +82,72 @@ function memoryToHistoryEntry(memory) {
     rating: payload.rating ?? null,
     memoryId: memory?.id || null,
   };
+}
+
+function entryTime(entry) {
+  return Number(entry?.addedAt || 0);
+}
+
+async function getLocalDateHistoryState() {
+  const stored = ensureObject(await storage.get(STORAGE_KEYS.DATE_TRIED_FALLBACK, {}));
+  return {
+    entries: ensureObject(stored.entries),
+    deleted: ensureObject(stored.deleted),
+  };
+}
+
+async function setLocalDateHistoryState(state) {
+  await storage.set(STORAGE_KEYS.DATE_TRIED_FALLBACK, {
+    entries: ensureObject(state?.entries),
+    deleted: ensureObject(state?.deleted),
+  });
+}
+
+function mergeDateHistory(remoteHistory = [], localState = {}) {
+  const localEntries = ensureObject(localState.entries);
+  const deleted = ensureObject(localState.deleted);
+  const byId = new Map();
+
+  ensureArray(remoteHistory).forEach((entry) => {
+    if (!entry?.id) return;
+    const deletedAt = Number(deleted[entry.id] || 0);
+    if (deletedAt && entryTime(entry) <= deletedAt) return;
+    byId.set(entry.id, entry);
+  });
+
+  Object.values(localEntries).forEach((entry) => {
+    if (!entry?.id) return;
+    const deletedAt = Number(deleted[entry.id] || 0);
+    if (deletedAt && entryTime(entry) <= deletedAt) return;
+
+    const existing = byId.get(entry.id);
+    if (!existing || entryTime(entry) >= entryTime(existing)) {
+      byId.set(entry.id, {
+        ...existing,
+        ...entry,
+        memoryId: entry.memoryId || existing?.memoryId || null,
+      });
+    }
+  });
+
+  return Array.from(byId.values())
+    .sort((a, b) => entryTime(b) - entryTime(a));
+}
+
+async function upsertLocalDateHistoryEntry(entry) {
+  if (!entry?.id) return;
+  const local = await getLocalDateHistoryState();
+  local.entries[entry.id] = entry;
+  delete local.deleted[entry.id];
+  await setLocalDateHistoryState(local);
+}
+
+async function removeLocalDateHistoryEntry(dateId) {
+  if (!dateId) return;
+  const local = await getLocalDateHistoryState();
+  delete local.entries[dateId];
+  local.deleted[dateId] = Date.now();
+  await setLocalDateHistoryState(local);
 }
 
 function memoryToSavedDateEntry(memory) {
@@ -177,6 +247,8 @@ export async function removeDateSavedKeepsake(dateId) {
 }
 
 export async function getDateHistory() {
+  const local = await getLocalDateHistoryState();
+
   try {
     const [personalMemories, sharedMemories] = await Promise.all([
       DataLayer.getMemories({ type: 'date_tried', limit: 200 }),
@@ -202,9 +274,9 @@ export async function getDateHistory() {
     const history = Array.from(historyByDateId.values())
       .sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
 
-    return history;
+    return mergeDateHistory(history, local);
   } catch {
-    return [];
+    return mergeDateHistory([], local);
   }
 }
 
@@ -228,15 +300,34 @@ export async function saveDateHistoryEntry(date, overrides = {}) {
   const existing = prev.find((entry) => entry.id === date.id);
   if (existing) {
     const updatedExisting = { ...existing, ...overrides };
-    const history = prev.map((entry) => entry.id === date.id ? updatedExisting : entry);
-    if (existing.memoryId && typeof DataLayer.updateMemory === 'function') {
-      await DataLayer.updateMemory(existing.memoryId, {
-        content: JSON.stringify(buildDateHistoryPayload(date, {
-          rating: updatedExisting.rating ?? null,
-        })),
-      });
+    await upsertLocalDateHistoryEntry(updatedExisting);
+
+    let entry = updatedExisting;
+    try {
+      if (existing.memoryId && typeof DataLayer.updateMemory === 'function') {
+        await DataLayer.updateMemory(existing.memoryId, {
+          content: JSON.stringify(buildDateHistoryPayload(date, {
+            rating: updatedExisting.rating ?? null,
+          })),
+        });
+      } else {
+        const memory = await DataLayer.saveMemory({
+          type: 'date_tried',
+          mood: date.style || 'date',
+          content: JSON.stringify(buildDateHistoryPayload(date, {
+            rating: updatedExisting.rating ?? null,
+          })),
+          isPrivate: false,
+        });
+        entry = { ...updatedExisting, memoryId: memory?.id || null };
+        await upsertLocalDateHistoryEntry(entry);
+      }
+    } catch (error) {
+      if (__DEV__) console.warn('[dateHistory] Failed to sync date history update:', error?.message);
     }
-    return { history, entry: updatedExisting, inserted: false };
+
+    const history = mergeDateHistory(prev.map((item) => item.id === date.id ? entry : item), await getLocalDateHistoryState());
+    return { history, entry, inserted: false };
   }
 
   const payload = buildDateHistoryPayload(date, overrides);
@@ -253,15 +344,22 @@ export async function saveDateHistoryEntry(date, overrides = {}) {
     memoryId: null,
   };
 
-  const memory = await DataLayer.saveMemory({
-    type: 'date_tried',
-    mood: date.style || 'date',
-    content: JSON.stringify(payload),
-    isPrivate: false,
-  });
-  entry.memoryId = memory?.id || null;
+  await upsertLocalDateHistoryEntry(entry);
 
-  const next = [entry, ...prev];
+  try {
+    const memory = await DataLayer.saveMemory({
+      type: 'date_tried',
+      mood: date.style || 'date',
+      content: JSON.stringify(payload),
+      isPrivate: false,
+    });
+    entry.memoryId = memory?.id || null;
+    await upsertLocalDateHistoryEntry(entry);
+  } catch (error) {
+    if (__DEV__) console.warn('[dateHistory] Failed to sync date history entry:', error?.message);
+  }
+
+  const next = mergeDateHistory([entry, ...prev], await getLocalDateHistoryState());
   return { history: next, entry, inserted: true };
 }
 
@@ -273,6 +371,8 @@ export async function removeDateHistoryEntry(dateId) {
   const prev = await getDateHistory();
   const removed = prev.find((entry) => entry.id === dateId) || null;
   const next = prev.filter((entry) => entry.id !== dateId);
+
+  await removeLocalDateHistoryEntry(dateId);
 
   if (removed?.memoryId) {
     try {

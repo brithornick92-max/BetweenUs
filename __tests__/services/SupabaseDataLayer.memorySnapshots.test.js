@@ -6,6 +6,12 @@ const mockSingle = jest.fn();
 const mockStorageGet = jest.fn();
 const mockStorageSet = jest.fn();
 const mockMemorySaved = jest.fn(() => Promise.resolve());
+const mockLoveNoteSave = jest.fn();
+const mockLoveNoteGetNotes = jest.fn();
+const mockLoveNoteMarkRead = jest.fn();
+const mockLoveNoteDelete = jest.fn();
+const mockLoveNoteUnreadCount = jest.fn();
+let mockStorageState;
 
 jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => 'mem-test-id-123'),
@@ -21,6 +27,13 @@ jest.mock('expo-file-system/legacy', () => ({
 jest.mock('../../utils/storage', () => ({
   STORAGE_KEYS: {
     CLOUD_SYNC_QUEUE: '@betweenus:cache:cloudSyncQueue',
+  },
+  loveNoteStorage: {
+    saveNote: (...args) => mockLoveNoteSave(...args),
+    getNotes: (...args) => mockLoveNoteGetNotes(...args),
+    markRead: (...args) => mockLoveNoteMarkRead(...args),
+    deleteNote: (...args) => mockLoveNoteDelete(...args),
+    getUnreadCount: (...args) => mockLoveNoteUnreadCount(...args),
   },
   storage: {
     get: (...args) => mockStorageGet(...args),
@@ -97,9 +110,20 @@ describe('SupabaseDataLayer memory snapshots', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockStorageState = new Map();
 
-    mockStorageGet.mockResolvedValue([]);
-    mockStorageSet.mockResolvedValue(undefined);
+    mockStorageGet.mockImplementation((key, fallback = null) => (
+      Promise.resolve(mockStorageState.has(key) ? mockStorageState.get(key) : fallback)
+    ));
+    mockStorageSet.mockImplementation((key, value) => {
+      mockStorageState.set(key, value);
+      return Promise.resolve(undefined);
+    });
+    mockLoveNoteSave.mockImplementation(async (note) => ({ id: 'note-1', ...note }));
+    mockLoveNoteGetNotes.mockResolvedValue([{ id: 'note-1', body: 'A local note', isRead: false }]);
+    mockLoveNoteMarkRead.mockResolvedValue(undefined);
+    mockLoveNoteDelete.mockResolvedValue(true);
+    mockLoveNoteUnreadCount.mockResolvedValue(1);
 
     mockSingle.mockImplementation(() => {
       const insertedPayload = mockInsert.mock.calls.at(-1)?.[0];
@@ -238,6 +262,232 @@ describe('SupabaseDataLayer memory snapshots', () => {
     });
 
     expect(mockMemorySaved).not.toHaveBeenCalled();
+  });
+
+  it('keeps pending memory rows readable while unpaired', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: null,
+      isPremium: false,
+    });
+
+    const saved = await SupabaseDataLayer.saveMemory({
+      content: JSON.stringify({
+        kind: 'date_history',
+        dateId: 'date-1',
+        title: 'Coffee walk',
+      }),
+      type: 'date_tried',
+      mood: 'talking',
+      notifyPartner: false,
+    });
+
+    const rows = await SupabaseDataLayer.getMemories({ type: 'date_tried' });
+
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(saved).toEqual(expect.objectContaining({
+      id: 'mem-test-id-123',
+      user_id: 'user-1',
+      couple_id: null,
+      type: 'date_tried',
+      sync_status: 'pending',
+    }));
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual(expect.objectContaining({
+      id: 'mem-test-id-123',
+      user_id: 'user-1',
+      type: 'date_tried',
+      content: expect.stringContaining('"dateId":"date-1"'),
+    }));
+  });
+
+  it('updates and removes pending memory rows while unpaired', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: null,
+      isPremium: false,
+    });
+
+    const saved = await SupabaseDataLayer.saveMemory({
+      content: 'first',
+      type: 'intimacy_tried',
+      notifyPartner: false,
+    });
+
+    await SupabaseDataLayer.updateMemory(saved.id, { content: 'updated' });
+    let rows = await SupabaseDataLayer.getMemories({ type: 'intimacy_tried' });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual(expect.objectContaining({
+      id: saved.id,
+      content: 'updated',
+      sync_status: 'pending',
+    }));
+
+    await SupabaseDataLayer.deleteMemory(saved.id);
+    rows = await SupabaseDataLayer.getMemories({ type: 'intimacy_tried' });
+
+    expect(rows).toEqual([]);
+  });
+
+  it('keeps prompt answers readable while unpaired', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: null,
+      isPremium: false,
+    });
+
+    const saved = await SupabaseDataLayer.savePromptAnswer({
+      promptId: 'prompt-1',
+      answer: 'Local answer',
+      heatLevel: 2,
+      _createdAt: '2026-04-30T12:00:00.000Z',
+    });
+
+    const rows = await SupabaseDataLayer.getPromptAnswers({ promptId: 'prompt-1' });
+
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(saved).toEqual(expect.objectContaining({
+      id: 'mem-test-id-123',
+      user_id: 'user-1',
+      couple_id: null,
+      prompt_id: 'prompt-1',
+      answer: 'Local answer',
+      sync_status: 'pending',
+    }));
+    expect(rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: saved.id,
+        prompt_id: 'prompt-1',
+        answer: 'Local answer',
+      }),
+    ]));
+  });
+
+  it('keeps journal entries readable and editable while unpaired', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: null,
+      isPremium: false,
+    });
+
+    const saved = await SupabaseDataLayer.saveJournalEntry({
+      title: 'Local journal',
+      body: 'Private to this device until sync.',
+      mood: 'warm',
+      tags: ['fallback'],
+    });
+
+    let rows = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
+
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: saved.id,
+        user_id: 'user-1',
+        title: 'Local journal',
+        sync_status: 'pending',
+      }),
+    ]));
+
+    await SupabaseDataLayer.updateJournalEntry(saved.id, { title: 'Updated local journal' });
+    rows = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
+
+    expect(rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: saved.id,
+        title: 'Updated local journal',
+      }),
+    ]));
+
+    await SupabaseDataLayer.deleteJournalEntry(saved.id);
+    rows = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
+
+    expect(rows).toEqual([]);
+  });
+
+  it('uses local love note storage as the notes fallback', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: null,
+      isPremium: false,
+    });
+
+    const saved = await SupabaseDataLayer.saveLoveNote({ body: 'A local note' });
+    const notes = await SupabaseDataLayer.getLoveNotes();
+    const note = await SupabaseDataLayer.getLoveNote('note-1');
+    const unread = await SupabaseDataLayer.getUnreadLoveNoteCount();
+
+    expect(mockLoveNoteSave).toHaveBeenCalledWith({ body: 'A local note' });
+    expect(saved).toEqual(expect.objectContaining({ id: 'note-1', body: 'A local note' }));
+    expect(notes).toEqual([expect.objectContaining({ id: 'note-1' })]);
+    expect(note).toEqual(expect.objectContaining({ id: 'note-1' }));
+    expect(unread).toBe(1);
+
+    await SupabaseDataLayer.markLoveNoteRead('note-1');
+    await SupabaseDataLayer.deleteLoveNote('note-1');
+
+    expect(mockLoveNoteMarkRead).toHaveBeenCalledWith('note-1');
+    expect(mockLoveNoteDelete).toHaveBeenCalledWith('note-1');
+  });
+
+  it('preserves pending local content after unexpected Supabase write errors and empty cloud reads', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'new row violates row-level security policy' },
+    });
+
+    const memory = await SupabaseDataLayer.saveMemory({
+      content: 'Local keepsake',
+      type: 'snapshot',
+      notifyPartner: false,
+    });
+
+    let memories = await SupabaseDataLayer.getMemories({ type: 'snapshot' });
+
+    expect(memory).toEqual(expect.objectContaining({
+      id: 'mem-test-id-123',
+      content: 'Local keepsake',
+      sync_status: 'pending',
+    }));
+    expect(memories).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: memory.id,
+        content: 'Local keepsake',
+        sync_status: 'pending',
+      }),
+    ]));
+
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'new row violates row-level security policy' },
+    });
+
+    const journal = await SupabaseDataLayer.saveJournalEntry({
+      title: 'Local journal',
+      body: 'Still visible after an empty cloud read.',
+    });
+
+    const journals = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
+
+    expect(journal).toEqual(expect.objectContaining({
+      id: 'mem-test-id-123',
+      title: 'Local journal',
+      sync_status: 'pending',
+    }));
+    expect(journals).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: journal.id,
+        title: 'Local journal',
+        sync_status: 'pending',
+      }),
+    ]));
   });
 
   it('creates a synced date plan when creating a date-night calendar event', async () => {
