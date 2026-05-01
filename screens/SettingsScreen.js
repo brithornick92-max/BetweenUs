@@ -37,7 +37,6 @@ import ReAnimated, {
 
 // Context & Services
 import { useAuth } from '../context/AuthContext';
-import { seedReviewerData } from '../utils/DemoSeeder';
 import { supabase } from '../config/supabase';
 import { useEntitlements, clearCouplePremiumCache } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
@@ -632,44 +631,6 @@ export default function SettingsScreen({ navigation }) {
               isLast
             />
           </EditorialSection>
-
-          {/* ═══ ACCOUNT DESTRUCTION ═══ */}
-          
-          {user?.email?.toLowerCase().includes('betweenusreviewer') && (
-            <EditorialSection title="Reviewer Tools" t={t} delay={800}>
-              <EditorialRow 
-                icon="flask-outline" 
-                title="Seed Demo Data (90 Days)" 
-                onPress={async () => {
-                  try {
-                    Alert.alert('Seeding Data', 'Generating 90 days of content. This may take a minute...');
-                    const stats = await seedReviewerData();
-                    if (stats?.success) {
-                      Alert.alert(
-                        'Success',
-                        `Demo data seeded successfully!\n\n` +
-                        `Vibes: ${stats.vibes || 0}\n` +
-                        `Check-ins: ${stats.checkIns || 0}\n` +
-                        `Journals: ${stats.journals || 0}\n` +
-                        `Prompts: ${stats.prompts || 0}\n` +
-                        `Memories: ${stats.memories || 0}\n` +
-                        `Calendar: ${stats.calendar || 0}\n` +
-                        `Date Plans: ${stats.datePlans || 0}\n` +
-                        `Media: ${stats.media || 0}`
-                      );
-                    } else {
-                      Alert.alert('Error', stats?.error || 'Failed to seed demo data. Check console for details.');
-                    }
-                  } catch (err) {
-                    console.error('Seeding error:', err);
-                    Alert.alert('Error', `Seeding failed: ${err.message}`);
-                  }
-                }}
-                t={t}
-                isLast
-              />
-            </EditorialSection>
-          )}
 
           <EditorialSection title="Account" t={t} delay={900}>
             <EditorialRow 

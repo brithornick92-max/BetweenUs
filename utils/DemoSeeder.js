@@ -11,6 +11,7 @@ const DEFAULT_TONE = 'warm';
 const DEFAULT_HEAT_LEVEL = 3;
 const DEFAULT_SEASON = 'steady_and_close';
 const SEEDED_DATA_TYPES = ['journal', 'prompt_answer', 'memory', 'check_in', 'vibe', 'date_plan'];
+const DEMO_SEEDING_ENABLED = false;
 
 const DEMO_IMAGE_MODULES = [
   require('../assets/simulator-media/between-us-date-night-1.png'),
@@ -569,6 +570,11 @@ function chooseMemoryType(dayIndex) {
 
 export async function seedReviewerData() {
   try {
+    if (!DEMO_SEEDING_ENABLED) {
+      console.warn('Seeder: Demo seeding is disabled.');
+      return { success: false, error: 'Demo seeding is disabled' };
+    }
+
     const user = await supabase.auth.getUser();
     if (!user?.data?.user?.email?.toLowerCase().includes('betweenusreviewer')) {
       console.warn('Seeder: This script is restricted to reviewer accounts only.');
