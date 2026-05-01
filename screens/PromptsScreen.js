@@ -48,6 +48,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SCREEN_W = SCREEN_WIDTH;
 const PROMPT_DECK_FRAME_H = Math.min(SCREEN_HEIGHT * 0.62, 536);
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
+const PRIMARY_RED = '#D2121A';
 
 const loadAllBundledPrompts = () => {
   const bundled = require("../content/prompts.json");
@@ -588,7 +589,7 @@ export default function PromptsScreen({ navigation }) {
         <SafeAreaView style={styles.safe} edges={["top"]}>
           {/* Editorial Header */}
           <Animated.View entering={FadeInDown.duration(800).delay(200)} style={styles.header}>
-            <Text style={[styles.headerLabel, { color: t.primary }]}>
+            <Text style={[styles.headerLabel, { color: PRIMARY_RED }]}>
               {deckCountLabel}
             </Text>
             <Text style={[styles.headerTitle, { color: t.text }]}>Draw a card</Text>
