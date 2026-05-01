@@ -139,6 +139,10 @@ function normalizeSnapshotCount(value) {
   return Number.isFinite(Number(value)) ? Number(value) : 1;
 }
 
+function hasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(object || {}, key);
+}
+
 async function getOfflineQueue() {
   return storage.get(offlineQueueKey(_userId), []);
 }
@@ -676,6 +680,10 @@ function mapDatePlanRow(row) {
 
 function makeOfflineJournalRow(id, value, base = {}) {
   const timestamp = now();
+  const photoUri = hasOwn(value, 'photoUri') ? value.photoUri : (base.photo_uri || null);
+  const mediaRef = hasOwn(value, 'mediaPath') ? value.mediaPath : (base.mediaRef || null);
+  const mediaType = hasOwn(value, 'mimeType') ? value.mimeType : (base.mediaType || null);
+  const mediaUri = photoUri || (mediaRef ? (base.mediaUri || null) : null);
 
   return {
     id,
@@ -686,13 +694,13 @@ function makeOfflineJournalRow(id, value, base = {}) {
     mood: value.mood || null,
     tags: value.tags || [],
     is_private: false,
-    photo_uri: value.photoUri || null,
-    mediaRef: value.mediaPath || null,
-    mediaUri: value.photoUri || base.mediaUri || null,
-    mediaType: value.mimeType || base.mediaType || null,
-    mediaKind: (value.mimeType || base.mediaType || '').startsWith('video/')
+    photo_uri: photoUri || null,
+    mediaRef: mediaRef || null,
+    mediaUri,
+    mediaType: mediaType || null,
+    mediaKind: (mediaType || '').startsWith('video/')
       ? 'video'
-      : ((value.photoUri || base.mediaUri) ? 'image' : null),
+      : (mediaUri || mediaRef ? 'image' : null),
     created_at: base.created_at || timestamp,
     updated_at: timestamp,
     sync_status: 'pending',
@@ -961,15 +969,16 @@ const SupabaseDataLayer = {
       },
       onOffline: async () => {
         const existing = await this.getJournalEntry(id);
+        const hasPatch = (key) => hasOwn(patch, key);
 
         const mapped = makeOfflineJournalRow(id, {
           title: patch.title ?? existing?.title ?? '',
           body: patch.body ?? existing?.body ?? '',
           mood: patch.mood ?? existing?.mood ?? null,
           tags: patch.tags ?? existing?.tags ?? [],
-          photoUri: patch.photoUri ?? existing?.photo_uri ?? null,
-          mediaPath: patch.mediaPath ?? existing?.mediaRef ?? null,
-          mimeType: patch.mimeType ?? existing?.mediaType ?? null,
+          photoUri: hasPatch('photoUri') ? patch.photoUri : (existing?.photo_uri ?? null),
+          mediaPath: hasPatch('mediaPath') ? patch.mediaPath : (existing?.mediaRef ?? null),
+          mimeType: hasPatch('mimeType') ? patch.mimeType : (existing?.mediaType ?? null),
         }, existing || {});
 
         await enqueueOfflineMutation({

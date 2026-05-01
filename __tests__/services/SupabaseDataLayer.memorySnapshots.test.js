@@ -376,6 +376,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
       body: 'Private to this device until sync.',
       mood: 'warm',
       tags: ['fallback'],
+      imageUri: 'file:///journal-photo.jpg',
     });
 
     let rows = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
@@ -386,6 +387,8 @@ describe('SupabaseDataLayer memory snapshots', () => {
         id: saved.id,
         user_id: 'user-1',
         title: 'Local journal',
+        photo_uri: 'file:///journal-photo.jpg',
+        mediaUri: 'file:///journal-photo.jpg',
         sync_status: 'pending',
       }),
     ]));
@@ -397,6 +400,19 @@ describe('SupabaseDataLayer memory snapshots', () => {
       expect.objectContaining({
         id: saved.id,
         title: 'Updated local journal',
+        photo_uri: 'file:///journal-photo.jpg',
+        mediaUri: 'file:///journal-photo.jpg',
+      }),
+    ]));
+
+    await SupabaseDataLayer.updateJournalEntry(saved.id, { imageUri: null, mediaUri: null });
+    rows = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
+
+    expect(rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: saved.id,
+        photo_uri: null,
+        mediaUri: null,
       }),
     ]));
 

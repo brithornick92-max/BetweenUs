@@ -85,16 +85,32 @@ function buildMediaItem(asset, index = 0) {
 }
 
 function buildExistingMediaItem(mediaItem, index = 0) {
-  const mimeType = mediaItem?.mimeType
+  const explicitMimeType = mediaItem?.mimeType
     || mediaItem?.mime
     || mediaItem?.media?.mimeType
-    || 'image/jpeg';
+    || mediaItem?.row?.mime_type
+    || mediaItem?.sourceItem?.mimeType
+    || mediaItem?.sourceItem?.row?.mime_type
+    || null;
 
   const uri = mediaItem?.uri || mediaItem?.media?.uri || null;
-  const type = mediaItem?.kind || mediaItem?.media?.kind || getMediaTypeFromMime(mimeType);
-  const sourceId = mediaItem?.sourceItem?.sourceId || mediaItem?.sourceId || null;
+  const mediaRef = mediaItem?.mediaRef
+    || mediaItem?.media_ref
+    || mediaItem?.row?.media_ref
+    || mediaItem?.sourceItem?.mediaRef
+    || mediaItem?.sourceItem?.row?.media_ref
+    || null;
+  const type = mediaItem?.kind
+    || mediaItem?.media?.kind
+    || (explicitMimeType ? getMediaTypeFromMime(explicitMimeType) : 'image');
+  const sourceId = mediaItem?.sourceItem?.sourceId
+    || mediaItem?.sourceId
+    || mediaItem?.row?.id
+    || null;
 
-  if (!uri) return null;
+  if (!uri && (!sourceId || (!mediaRef && !explicitMimeType))) return null;
+
+  const mimeType = explicitMimeType || 'image/jpeg';
 
   return {
     id: `existing:${sourceId || uri}:${index}`,
@@ -104,34 +120,54 @@ function buildExistingMediaItem(mediaItem, index = 0) {
     fileName: `snapshot_existing_${index}.${type === 'video' ? 'mp4' : 'jpg'}`,
     duration: null,
     sourceId,
+    mediaRef,
+    hasPreview: !!uri,
     isExisting: true,
   };
 }
 
-function getInitialMediaItems(editItem) {
+function buildExistingMediaItemFromRawItem(rawItem, index = 0) {
+  if (!rawItem) return null;
+
+  return buildExistingMediaItem({
+    uri: rawItem?.media?.uri || rawItem?.row?.mediaUri || null,
+    mimeType: rawItem?.media?.mimeType || rawItem?.mimeType || rawItem?.row?.mime_type || null,
+    kind: rawItem?.media?.kind || null,
+    sourceId: rawItem?.sourceId || rawItem?.row?.id || null,
+    mediaRef: rawItem?.mediaRef || rawItem?.row?.media_ref || null,
+    row: rawItem?.row || null,
+  }, index);
+}
+
+export function getInitialMediaItems(editItem) {
   if (!editItem) return [];
 
   if (editItem.kind === 'snapshot' && Array.isArray(editItem.mediaItems)) {
-    return editItem.mediaItems
+    const visibleItems = editItem.mediaItems
       .map((mediaItem, index) => buildExistingMediaItem(mediaItem, index))
       .filter(Boolean);
+
+    const visibleSourceIds = new Set(visibleItems.map((item) => item.sourceId).filter(Boolean));
+    const retainedRawItems = (editItem.rawItems || [])
+      .map((rawItem, index) => buildExistingMediaItemFromRawItem(rawItem, visibleItems.length + index))
+      .filter((item) => item && item.sourceId && !visibleSourceIds.has(item.sourceId));
+
+    return [...visibleItems, ...retainedRawItems];
   }
 
-  if (editItem.media?.uri) {
-    const one = buildExistingMediaItem(
-      {
-        uri: editItem.media.uri,
-        mimeType: editItem.media.mimeType,
-        kind: editItem.media.kind,
-        sourceId: editItem.sourceId,
-      },
-      0
-    );
+  const one = buildExistingMediaItem(
+    {
+      uri: editItem.media?.uri || null,
+      mimeType: editItem.media?.mimeType || editItem.mimeType || editItem.row?.mime_type || null,
+      kind: editItem.media?.kind || null,
+      sourceId: editItem.sourceId,
+      mediaRef: editItem.mediaRef || editItem.row?.media_ref || null,
+      row: editItem.row || null,
+    },
+    0
+  );
 
-    return one ? [one] : [];
-  }
-
-  return [];
+  return one ? [one] : [];
 }
 
 function getOriginalMemoryIds(editItem) {
@@ -164,7 +200,7 @@ function getOriginalSnapshotCreatedAt(editItem) {
   return editItem.row?.snapshot_created_at || null;
 }
 
-function isSameExistingMediaSet(items, originalIds) {
+export function isSameExistingMediaSet(items, originalIds) {
   if (!Array.isArray(items) || !Array.isArray(originalIds)) return false;
   if (items.length !== originalIds.length) return false;
 
@@ -259,6 +295,7 @@ export default function AddMemoryScreen() {
     () => getInitialMediaItems(editItem),
     [editItem]
   );
+  const originallyHadMedia = initialMediaItems.length > 0;
 
   const [content, setContent] = useState(initialContent);
   const [mediaItems, setMediaItems] = useState(initialMediaItems);
@@ -307,7 +344,7 @@ export default function AddMemoryScreen() {
     if (!normalized.length) return;
 
     setMediaItems((current) => {
-      const existingUris = new Set(current.map((item) => item.uri));
+      const existingUris = new Set(current.map((item) => item.uri).filter(Boolean));
       const uniqueNewItems = normalized.filter((item) => !existingUris.has(item.uri));
 
       const remainingSlots = Math.max(0, MAX_MEDIA_ITEMS - current.length);
@@ -499,12 +536,18 @@ export default function AddMemoryScreen() {
         && originalMemoryIds.length === 1
         && (
           isSameExistingMediaSet(mediaItems, originalMemoryIds)
-          || (!editItem?.media?.uri && mediaItems.length === 0)
+          || (!originallyHadMedia && mediaItems.length === 0)
         )
       ) {
         await DataLayer.updateMemory(originalMemoryIds[0], {
           content: trimmed || '',
           type: originalMemoryType,
+        });
+      } else if (isEditMode && mediaItems.some((item) => item?.isExisting)) {
+        await saveSnapshotEdit({
+          snapshotId,
+          trimmed,
+          items: mediaItems,
         });
       } else {
         await saveSnapshotItems({
@@ -537,13 +580,13 @@ export default function AddMemoryScreen() {
     content,
     editSnapshotId,
     editItem?.kind,
-    editItem?.media?.uri,
     isEditMode,
     mediaItems,
     navigation,
     originalMemoryIds,
     originalMemoryType,
     originalSnapshotCreatedAt,
+    originallyHadMedia,
     promptRevealDraft.type,
     saveSnapshotItems,
     saveSnapshotEdit,
@@ -695,10 +738,20 @@ export default function AddMemoryScreen() {
                   >
                     {mediaItems.map((item) => {
                       const isItemVideo = item.type === 'video';
+                      const hasPreview = !!item.uri;
 
                       return (
                         <View key={item.id} style={styles.mediaTile}>
-                          {isItemVideo ? (
+                          {!hasPreview ? (
+                            <View style={styles.videoTileFallback}>
+                              <Icon
+                                name={isItemVideo ? 'play-circle-outline' : 'image-outline'}
+                                size={44}
+                                color="#FFF"
+                              />
+                              <Text style={styles.videoTileText}>Media saved</Text>
+                            </View>
+                          ) : isItemVideo ? (
                             <View style={styles.videoTileFallback}>
                               <Icon name="play-circle-outline" size={44} color="#FFF" />
                               <Text style={styles.videoTileText}>Video</Text>
