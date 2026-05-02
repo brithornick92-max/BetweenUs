@@ -123,8 +123,8 @@ describe('OurStory Keepsake entry building', () => {
           type: 'date_tried',
           content: JSON.stringify({
             kind: 'date_history',
-            dateId: 'date-1',
-            title: 'Coffee walk',
+            dateId: 'd004',
+            title: 'Golden Hour Photos',
             minutes: 45,
             location: 'out',
           }),
@@ -153,16 +153,19 @@ describe('OurStory Keepsake entry building', () => {
       'position_tried',
     ]);
 
-    expect(entries.some((entry) => entry.sourceId === 'date-1')).toBe(true);
+    expect(entries.some((entry) => entry.sourceId === 'd004')).toBe(true);
     expect(entries.some((entry) => entry.sourceId === 'ip001')).toBe(true);
 
     const dateEntry = entries.find((entry) => entry.kind === 'date');
-    expect(dateEntry.body).toContain('45 min');
-    expect(dateEntry.body).toContain('Out');
+    expect(dateEntry.body).toBe('Took a peaceful walk and picked a few favorite photos together.');
+    expect(dateEntry.meta).toContain('45 min');
+    expect(dateEntry.meta).toContain('Out');
 
     const positionEntry = entries.find((entry) => entry.kind === 'position_tried');
     expect(positionEntry.eyebrow).toBe('Sex position tried');
-    expect(positionEntry.body).toContain('Tender');
+    expect(positionEntry.body).toBe('Tried a face-to-face seated sex position that felt grounded, emotionally close, and easy to stay with.');
+    expect(positionEntry.body).not.toMatch(/intimacy position/i);
+    expect(positionEntry.meta).toBe('TENDER');
   });
 
   it('includes saved dates and favorite positions from memory rows', async () => {
@@ -179,15 +182,21 @@ describe('OurStory Keepsake entry building', () => {
           type: 'date_saved',
           content: JSON.stringify({
             kind: 'date_saved',
-            dateId: 'date-1',
-            title: 'Coffee walk',
+            dateId: 'd013',
+            title: 'Next Year Letters',
           }),
           created_at: '2026-04-28T12:05:00.000Z',
         },
         {
           id: 'position-favorite-memory-1',
           type: 'intimacy_favorite',
-          content: 'Shared intimacy favorite: Side by side: Close Hold',
+          content: JSON.stringify({
+            kind: 'intimacy_favorite',
+            positionId: 'ip002',
+            title: 'The Mirror',
+            commonName: 'Lotus',
+            mood: 'tender',
+          }),
           mood: 'tender',
           created_at: '2026-04-28T12:06:00.000Z',
         },
@@ -200,8 +209,14 @@ describe('OurStory Keepsake entry building', () => {
       'position_favorite',
     ]);
 
-    expect(entries.some((entry) => entry.sourceId === 'date-1')).toBe(true);
-    expect(entries.some((entry) => entry.sourceId === 'position-favorite-memory-1')).toBe(true);
+    const savedDateEntry = entries.find((entry) => entry.kind === 'date_saved');
+    expect(savedDateEntry.sourceId).toBe('d013');
+    expect(savedDateEntry.body).toBe('Saved a date to craft heartfelt letters to your future selves by candlelight, sharing hopes and dreams to rediscover in one year.');
+
+    const favoritePositionEntry = entries.find((entry) => entry.kind === 'position_favorite');
+    expect(favoritePositionEntry.sourceId).toBe('ip002');
+    expect(favoritePositionEntry.body).toBe('Saved a very intimate face-to-face seated sex position built around closeness, breath, and slow mutual rhythm.');
+    expect(favoritePositionEntry.body).not.toMatch(/intimacy position/i);
   });
 
   it('includes keepsakes created by both partners from shared memory rows', async () => {

@@ -27,13 +27,14 @@ import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
 import AttachmentCacheService from '../services/AttachmentCacheService';
-import { getPromptById } from '../utils/contentLoader';
+import { getPromptById, getDateById } from '../utils/contentLoader';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { settingsStorage, storage } from '../utils/storage';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import MediaLightbox from '../components/MediaLightbox';
 import { NicknameEngine } from '../services/PolishEngine';
+import positionsData from '../content/intimacy-positions.json';
 
 const HEARTS_KEY = '@betweenus:cache:momentHearts';
 const HIDDEN_KEEPSAKES_KEY = '@betweenus:cache:hiddenKeepsakes';
@@ -61,6 +62,9 @@ const DEFAULT_KEEPSAKE_SETTINGS = {
   dates: true,
   positions: true,
 };
+
+const POSITION_ITEMS = Array.isArray(positionsData?.items) ? positionsData.items : [];
+const POSITION_BY_ID = new Map(POSITION_ITEMS.map((position) => [position.id, position]));
 
 function normalizeKeepsakeSettings(settings) {
   return {
@@ -222,6 +226,332 @@ function titleCaseLabel(value) {
 function joinDetails(parts, fallback) {
   const details = (parts || []).filter(Boolean);
   return details.length ? details.join(' • ') : fallback;
+}
+
+function cleanKeepsakeSentence(value) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.!?]+$/g, '');
+}
+
+function firstKeepsakeSentence(value) {
+  const clean = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!clean) return '';
+
+  const match = clean.match(/^(.+?[.!?])(?:\s|$)/);
+  return cleanKeepsakeSentence(match ? match[1] : clean);
+}
+
+function lowercaseFirst(value) {
+  const text = String(value || '');
+  return text ? text.charAt(0).toLowerCase() + text.slice(1) : '';
+}
+
+function capitalizeFirst(value) {
+  const text = String(value || '');
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
+}
+
+const LEADING_ACTION_PAST = [
+  [/^wake up\b/i, 'woke up'],
+  [/^take turns\b/i, 'took turns'],
+  [/^take\b/i, 'took'],
+  [/^go\b/i, 'went'],
+  [/^make\b/i, 'made'],
+  [/^put\b/i, 'put'],
+  [/^set\b/i, 'set'],
+  [/^hit\b/i, 'hit'],
+  [/^let\b/i, 'let'],
+  [/^write\b/i, 'wrote'],
+  [/^light\b/i, 'lit'],
+  [/^find\b/i, 'found'],
+  [/^choose\b/i, 'chose'],
+  [/^pick\b/i, 'picked'],
+  [/^grab\b/i, 'grabbed'],
+  [/^read\b/i, 'read'],
+  [/^seal\b/i, 'sealed'],
+  [/^share\b/i, 'shared'],
+  [/^try\b/i, 'tried'],
+  [/^explore\b/i, 'explored'],
+  [/^discover\b/i, 'discovered'],
+  [/^create\b/i, 'created'],
+  [/^settle\b/i, 'settled'],
+  [/^turn\b/i, 'turned'],
+  [/^unleash\b/i, 'unleashed'],
+  [/^experience\b/i, 'experienced'],
+  [/^indulge\b/i, 'indulged'],
+  [/^craft\b/i, 'crafted'],
+  [/^enjoy\b/i, 'enjoyed'],
+  [/^wander\b/i, 'wandered'],
+  [/^unwind\b/i, 'unwound'],
+  [/^ignite\b/i, 'ignited'],
+  [/^savor\b/i, 'savored'],
+  [/^embrace\b/i, 'embraced'],
+  [/^engage\b/i, 'engaged'],
+  [/^dive\b/i, 'dove'],
+  [/^capture\b/i, 'captured'],
+  [/^deepen\b/i, 'deepened'],
+  [/^learn\b/i, 'learned'],
+  [/^curate\b/i, 'curated'],
+  [/^escape\b/i, 'escaped'],
+  [/^revisit\b/i, 'revisited'],
+  [/^start\b/i, 'started'],
+  [/^build\b/i, 'built'],
+  [/^stroll\b/i, 'strolled'],
+  [/^connect\b/i, 'connected'],
+  [/^step\b/i, 'stepped'],
+  [/^navigate\b/i, 'navigated'],
+  [/^move\b/i, 'moved'],
+  [/^relive\b/i, 'relived'],
+  [/^design\b/i, 'designed'],
+  [/^cultivate\b/i, 'cultivated'],
+  [/^delight\b/i, 'delighted'],
+  [/^witness\b/i, 'witnessed'],
+  [/^use\b/i, 'used'],
+  [/^spend\b/i, 'spent'],
+  [/^gather\b/i, 'gathered'],
+  [/^surprise\b/i, 'surprised'],
+  [/^dedicate\b/i, 'dedicated'],
+  [/^walk\b/i, 'walked'],
+  [/^journey\b/i, 'journeyed'],
+  [/^team\b/i, 'teamed'],
+  [/^strengthen\b/i, 'strengthened'],
+  [/^visualize\b/i, 'visualized'],
+  [/^chart\b/i, 'charted'],
+  [/^release\b/i, 'released'],
+  [/^reconnect\b/i, 'reconnected'],
+  [/^address\b/i, 'addressed'],
+  [/^reflect\b/i, 'reflected'],
+  [/^melt\b/i, 'melted'],
+  [/^rediscover\b/i, 'rediscovered'],
+  [/^slip\b/i, 'slipped'],
+  [/^master\b/i, 'mastered'],
+  [/^soar\b/i, 'soared'],
+  [/^relax\b/i, 'relaxed'],
+  [/^test\b/i, 'tested'],
+  [/^unveil\b/i, 'unveiled'],
+  [/^ascend\b/i, 'ascended'],
+  [/^glide\b/i, 'glided'],
+  [/^greet\b/i, 'greeted'],
+  [/^host\b/i, 'hosted'],
+  [/^challenge\b/i, 'challenged'],
+  [/^delve\b/i, 'delved'],
+  [/^co-create\b/i, 'co-created'],
+  [/^sink\b/i, 'sank'],
+  [/^snuggle\b/i, 'snuggled'],
+  [/^serve\b/i, 'served'],
+  [/^transform\b/i, 'transformed'],
+  [/^unfold\b/i, 'unfolded'],
+  [/^paddle\b/i, 'paddled'],
+  [/^order\b/i, 'ordered'],
+  [/^identify\b/i, 'identified'],
+  [/^hide\b/i, 'hid'],
+  [/^dance\b/i, 'danced'],
+  [/^rent\b/i, 'rented'],
+  [/^feed\b/i, 'fed'],
+];
+
+function makePastTenseLine(value) {
+  let line = firstKeepsakeSentence(value)
+    .replace(/^together,\s*/i, '')
+    .replace(/^then,\s*/i, '')
+    .replace(/^finally,\s*/i, '')
+    .replace(/^each\s+/i, '')
+    .replace(/^both\s+/i, '');
+
+  if (!line) return '';
+
+  for (const [pattern, replacement] of LEADING_ACTION_PAST) {
+    if (pattern.test(line)) {
+      line = line.replace(pattern, replacement);
+      break;
+    }
+  }
+
+  line = line
+    .replace(/\band leave\b/gi, 'and left')
+    .replace(/\band write\b/gi, 'and wrote')
+    .replace(/\band create\b/gi, 'and created')
+    .replace(/\band choose\b/gi, 'and chose')
+    .replace(/\band take\b/gi, 'and took')
+    .replace(/\band make\b/gi, 'and made')
+    .replace(/\band share\b/gi, 'and shared')
+    .replace(/\band find\b/gi, 'and found')
+    .replace(/\band pick\b/gi, 'and picked')
+    .replace(/\byou actually want to keep\b/gi, 'worth keeping')
+    .replace(/\byou both\b/gi, 'you both')
+    .replace(/\bfeels\b/gi, 'felt')
+    .replace(/\bkeeps\b/gi, 'kept')
+    .replace(/\bmakes\b/gi, 'made')
+    .replace(/\binvites\b/gi, 'invited')
+    .replace(/\bcreates\b/gi, 'created')
+    .replace(/\boffers\b/gi, 'offered')
+    .replace(/\bgives\b/gi, 'gave')
+    .replace(/\buses\b/gi, 'used')
+    .replace(/\badds\b/gi, 'added')
+    .replace(/\bcenters\b/gi, 'centered')
+    .replace(/\bturns\b/gi, 'turned')
+    .replace(/\bhelps\b/gi, 'helped')
+    .replace(/\blets\b/gi, 'let')
+    .replace(/\bworks\b/gi, 'worked')
+    .replace(/\bis\b/gi, 'was')
+    .replace(/\bare\b/gi, 'were')
+    .replace(/\bcan\b/gi, 'could');
+
+  return `${capitalizeFirst(line)}.`;
+}
+
+function buildDateActionLineFromSteps(steps) {
+  const actions = (Array.isArray(steps) ? steps : [])
+    .map((step) => makePastTenseLine(step).replace(/[.!?]+$/g, ''))
+    .filter(Boolean)
+    .slice(0, 3);
+
+  if (!actions.length) return '';
+
+  const line = actions.reduce((acc, action, index) => {
+    const next = index === 0 ? action : lowercaseFirst(action);
+    if (!acc) return next;
+    if (index === actions.length - 1) return `${acc}, and ${next}`;
+    return `${acc}, ${next}`;
+  }, '');
+
+  return `${capitalizeFirst(line)}.`;
+}
+
+function resolveDateCatalogEntry(row) {
+  const dateId = row?.dateId || row?.date_id || row?.id;
+  return dateId ? getDateById(dateId) : null;
+}
+
+function getDateCopySource(row) {
+  const catalog = resolveDateCatalogEntry(row) || {};
+  return {
+    ...catalog,
+    ...row,
+    description: row?.description || catalog.description || catalog.vibe || catalog.setup || '',
+    steps: Array.isArray(row?.steps) ? row.steps : catalog.steps,
+  };
+}
+
+function buildDateKeepsakeLine(row, fallback = 'Date night') {
+  const source = getDateCopySource(row);
+
+  if (source.title === 'Golden Hour Photos' || source.id === 'd004' || source.dateId === 'd004' || source.date_id === 'd004') {
+    return 'Took a peaceful walk and picked a few favorite photos together.';
+  }
+
+  if (source.title === 'Next Year Letters' || source.id === 'd013' || source.dateId === 'd013' || source.date_id === 'd013') {
+    return 'Wrote letters for next year and saved them to open together later.';
+  }
+
+  const fromDescription = makePastTenseLine(source.description);
+  if (fromDescription) return fromDescription;
+
+  const fromSteps = buildDateActionLineFromSteps(source.steps);
+  if (fromSteps) return fromSteps;
+
+  return buildDateDetails(row, fallback);
+}
+
+function buildSavedDateKeepsakeLine(row, fallback = 'Saved for later') {
+  const source = getDateCopySource(row);
+  const line = firstKeepsakeSentence(source.description);
+
+  if (line) {
+    const connector = /^(a|an|the)\s/i.test(line) ? 'for' : 'to';
+    return `Saved a date ${connector} ${lowercaseFirst(line)}.`;
+  }
+
+  return buildDateDetails(row, fallback);
+}
+
+function findPositionByLabel(label) {
+  const normalized = String(label || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!normalized) return null;
+
+  return POSITION_ITEMS.find((position) => {
+    const title = String(position.title || '').toLowerCase();
+    const commonName = String(position.commonName || '').toLowerCase();
+    const fullLabel = commonName ? `${commonName}: ${title}` : title;
+    return normalized === title || normalized === commonName || normalized === fullLabel;
+  }) || null;
+}
+
+function resolvePositionCatalogEntry(row) {
+  const positionId = row?.positionId || row?.position_id || row?.id;
+  if (positionId && POSITION_BY_ID.has(positionId)) return POSITION_BY_ID.get(positionId);
+
+  const label = row?.commonName && row?.title ? `${row.commonName}: ${row.title}` : row?.title;
+  return findPositionByLabel(label);
+}
+
+function getPositionCopySource(row) {
+  const catalog = resolvePositionCatalogEntry(row) || {};
+  return {
+    ...catalog,
+    ...row,
+    shortSummary: row?.shortSummary || catalog.shortSummary || '',
+    focus: row?.focus || catalog.focus || '',
+  };
+}
+
+function buildPositionPhrase(row) {
+  const source = getPositionCopySource(row);
+  const raw = firstKeepsakeSentence(source.shortSummary || source.focus);
+
+  if (!raw) return '';
+
+  let phrase = raw
+    .replace(/\bintimacy\b/gi, 'sex')
+    .replace(/\bpleasure point\b/gi, 'pleasure');
+
+  if (!/\bsex position\b/i.test(phrase)) {
+    if (/\bposition\b/i.test(phrase)) {
+      phrase = phrase.replace(/\bposition\b/i, 'sex position');
+    } else {
+      phrase = phrase.replace(
+        /\b(straddle|carry|wrap|hold|variation|recline|alignment|shape|angle|embrace|rhythm|rock|cuddle)\b/i,
+        'sex position'
+      );
+    }
+  }
+
+  phrase = phrase
+    .replace(/\bfeels\b/gi, 'felt')
+    .replace(/\bkeeps\b/gi, 'kept')
+    .replace(/\bmakes\b/gi, 'made')
+    .replace(/\binvites\b/gi, 'invited')
+    .replace(/\bcreates\b/gi, 'created')
+    .replace(/\boffers\b/gi, 'offered')
+    .replace(/\bgives\b/gi, 'gave')
+    .replace(/\buses\b/gi, 'used')
+    .replace(/\badds\b/gi, 'added')
+    .replace(/\bcenters\b/gi, 'centered')
+    .replace(/\bturns\b/gi, 'turned')
+    .replace(/\bhelps\b/gi, 'helped')
+    .replace(/\blets\b/gi, 'let')
+    .replace(/\bworks\b/gi, 'worked')
+    .replace(/\bis\b/gi, 'was')
+    .replace(/\bare\b/gi, 'were')
+    .replace(/\bcan\b/gi, 'could');
+
+  return lowercaseFirst(phrase);
+}
+
+function buildPositionKeepsakeLine(row, fallback = 'Sex position') {
+  const phrase = buildPositionPhrase(row);
+  if (phrase) return `Tried ${phrase}.`;
+
+  return buildPositionDetails(row, fallback);
+}
+
+function buildSavedPositionKeepsakeLine(row, fallback = 'Saved sex position') {
+  const phrase = buildPositionPhrase(row);
+  if (phrase) return `Saved ${phrase}.`;
+
+  return buildPositionDetails(row, fallback);
 }
 
 function formatDateLocation(value) {
@@ -438,13 +768,14 @@ function groupMemoryItems(memoryItems) {
 
 function buildDateItem(row) {
   const details = buildDateDetails(row, 'Date night');
+  const body = buildDateKeepsakeLine(row, details);
 
   return {
     id: `date:${row.id}`,
     kind: 'date',
     sourceId: row.id,
     title: row.title || 'Date tried',
-    body: details,
+    body,
     eyebrow: 'Date tried',
     icon: 'calendar-outline',
     accent: '#34C759',
@@ -474,6 +805,8 @@ function buildDateItemFromMemoryRow(row) {
         style: payload.style ?? null,
         minutes: payload.minutes ?? null,
         location: payload.location ?? null,
+        description: payload.description || null,
+        steps: payload.steps || null,
         created_at: row?.created_at || row?.date,
         isOwn: row?.isOwn,
       }),
@@ -490,6 +823,8 @@ function buildDateItemFromMemoryRow(row) {
     style: payload.style ?? null,
     minutes: payload.minutes ?? null,
     location: payload.location ?? null,
+    description: payload.description || null,
+    steps: payload.steps || null,
     rating: payload.rating ?? null,
     addedAt: row?.created_at || row?.date || Date.now(),
     memoryId: row?.id || null,
@@ -500,17 +835,19 @@ function buildDateItemFromMemoryRow(row) {
 function buildSavedDateItem(row) {
   const dateId = row?.date_id || row?.dateId || row?.id;
   if (!dateId) return null;
+  const details = buildDateDetails(row, 'Saved for later');
+  const body = buildSavedDateKeepsakeLine(row, details);
 
   return {
     id: `date-saved:${dateId}`,
     kind: 'date_saved',
     sourceId: dateId,
     title: row?.title || 'Saved date',
-    body: buildDateDetails(row, 'Saved for later'),
+    body,
     eyebrow: 'Saved date',
     icon: 'bookmark-outline',
     accent: '#34C759',
-    meta: buildDateDetails(row, 'Saved for later'),
+    meta: details,
     dateLabel: formatDateLabel(row?.created_at || row?.addedAt || row?.savedAt),
     sortAt: row?.created_at || row?.addedAt || row?.savedAt,
     editable: false,
@@ -521,13 +858,15 @@ function buildSavedDateItem(row) {
 
 function buildPositionTriedItem(row) {
   const label = row.commonName ? `${row.commonName}: ${row.title}` : row.title;
+  const details = buildPositionDetails(row, 'Sex position marked as tried');
+  const body = buildPositionKeepsakeLine(row, details);
 
   return {
     id: `position-tried:${row.positionId}`,
     kind: 'position_tried',
     sourceId: row.positionId,
     title: label || 'Sex position tried',
-    body: buildPositionDetails(row, 'Sex position marked as tried'),
+    body,
     eyebrow: 'Sex position tried',
     icon: 'checkmark-circle-outline',
     accent: '#D2121A',
@@ -552,13 +891,23 @@ function buildPositionFavoriteItemFromMemoryRow(row) {
     heat: payload?.heat ?? null,
     rating: payload?.rating ?? null,
   }, 'Saved sex position');
+  const body = buildSavedPositionKeepsakeLine({
+    positionId,
+    title,
+    commonName: payload?.commonName || null,
+    shortSummary: payload?.shortSummary || null,
+    focus: payload?.focus || null,
+    mood: payload?.mood || row?.mood || null,
+    heat: payload?.heat ?? null,
+    rating: payload?.rating ?? null,
+  }, details);
 
   return {
     id: `position-favorite-memory:${row.id}`,
     kind: 'position_favorite',
     sourceId: positionId,
     title: title || 'Saved sex position',
-    body: details,
+    body,
     eyebrow: 'Saved sex position',
     icon: 'heart-outline',
     accent: '#D2121A',
@@ -582,6 +931,8 @@ function buildPositionTriedItemFromMemoryRow(row) {
     positionId,
     title: payload.title || row?.title || 'Position tried',
     commonName: payload.commonName || null,
+    shortSummary: payload.shortSummary || null,
+    focus: payload.focus || null,
     mood: payload.mood || row?.mood || null,
     heat: payload.heat ?? null,
     rating: payload.rating ?? null,
