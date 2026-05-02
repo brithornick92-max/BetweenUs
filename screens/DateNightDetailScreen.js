@@ -40,8 +40,10 @@ import {
   rateDateHistoryEntry,
   removeDateHistoryEntry,
   removeDateSavedKeepsake,
+  saveDateSavedKeepsake,
   saveDateHistoryEntry,
 } from '../utils/dateHistory';
+import { getDateMatchState } from '../utils/coupleMatches';
 import {
   addDateToShortlist,
   getDateShortlist,
@@ -70,6 +72,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const [freeDateFlowRemaining, setFreeDateFlowRemaining] = useState(null);
   const [dateHistoryEntry, setDateHistoryEntry] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [isMatched, setIsMatched] = useState(false);
   const [saveBusy, setSaveBusy] = useState(false);
   const [triedBusy, setTriedBusy] = useState(false);
   const [ratingBusy, setRatingBusy] = useState(false);
@@ -262,16 +265,22 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
     if (!date?.id || !userId) {
       setIsSaved(false);
+      setIsMatched(false);
       return undefined;
     }
 
     getDateShortlist(userId)
-      .then((rows) => {
+      .then(async (rows) => {
         if (!active) return;
         setIsSaved((rows || []).some((row) => row.date_id === date.id));
+        const matches = await getDateMatchState(userId).catch(() => ({}));
+        if (active) setIsMatched(!!matches?.[date.id]?.isMatch);
       })
       .catch(() => {
-        if (active) setIsSaved(false);
+        if (active) {
+          setIsSaved(false);
+          setIsMatched(false);
+        }
       });
 
     return () => {
@@ -340,7 +349,11 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
       if (wasSaved) {
         await removeDateSavedKeepsake(date.id);
+      } else {
+        await saveDateSavedKeepsake(date);
       }
+      const matches = await getDateMatchState(userId).catch(() => ({}));
+      setIsMatched(!!matches?.[date.id]?.isMatch);
     } catch (error) {
       setIsSaved(wasSaved);
       if (__DEV__) console.warn('[DateNightDetail] Failed to toggle saved date:', error?.message);
@@ -535,6 +548,12 @@ export default function DateNightDetailScreen({ route, navigation }) {
                 {isSaved ? 'Saved' : 'Save'}
               </Text>
             </TouchableOpacity>
+            {isMatched ? (
+              <View style={[styles.matchPill, { backgroundColor: withAlpha(t.primary, 0.14), borderColor: withAlpha(t.primary, 0.34) }]}>
+                <Icon name="heart" size={14} color={t.primary} />
+                <Text style={[styles.matchPillText, { color: t.primary }]}>You both picked this</Text>
+              </View>
+            ) : null}
             <TouchableOpacity
               accessibilityRole="checkbox"
               accessibilityState={{ checked: !!dateHistoryEntry, disabled: triedBusy }}
@@ -839,6 +858,23 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  matchPill: {
+    width: '100%',
+    minHeight: 40,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  matchPillText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0,
   },
   dateRatingRow: {
     flexDirection: 'row',

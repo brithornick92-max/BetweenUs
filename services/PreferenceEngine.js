@@ -220,7 +220,7 @@ async function getContentProfile(userProfile = {}) {
   const durationCategory = getDurationCategory(userProfile);
 
   // 8. Quiz preferences from onboarding ("What Feels Like Us")
-  const quiz = userProfile?.quiz || {};
+  const quiz = userProfile?.quiz || userProfile?.preferences?.quiz || {};
   const quizInfluence = getQuizInfluence(quiz);
 
   // Calculate effective max heat: the lowest ceiling from user pref, energy, and boundaries

@@ -174,6 +174,7 @@ export default function RootNavigator() {
         <Stack.Screen name="JournalHome" getComponent={Screens.JournalHome} options={{ headerShown: false }} />
         <Stack.Screen name="JournalEntry" getComponent={Screens.JournalEntry} options={{ headerShown: false }} />
         <Stack.Screen name="VibeSignal" getComponent={Screens.VibeSignal} options={{ headerShown: false }} />
+        <Stack.Screen name="RelationshipProfile" getComponent={Screens.RelationshipProfile} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" getComponent={Screens.Settings} options={{ headerShown: false }} />
         <Stack.Screen name="OurStory" getComponent={Screens.OurStory} options={{ headerShown: false }} />
         <Stack.Screen name="AddMemory" getComponent={Screens.AddMemory} options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />

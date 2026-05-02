@@ -49,7 +49,9 @@ import {
   getDateHistory,
   getRecentlyCompletedDateIds,
   removeDateSavedKeepsake,
+  saveDateSavedKeepsake,
 } from '../utils/dateHistory';
+import { getDateMatchState } from '../utils/coupleMatches';
 import {
   canOpenFreeDateDetail,
   trackFreeDateDetailUsage,
@@ -487,6 +489,7 @@ export default function DateNightScreen({ navigation }) {
   const [rawBoundaries, setRawBoundaries] = useState(null);
   const [deckIndex, setDeckIndex] = useState(0);
   const [likedDates, setLikedDates] = useState([]);
+  const [dateMatches, setDateMatches] = useState({});
   const [shortlistBusyIds, setShortlistBusyIds] = useState({});
   const [dropdownOpen, setDropdownOpen] = useState(null); // 'heat' | 'load' | 'style' | null
 
@@ -557,10 +560,14 @@ export default function DateNightScreen({ navigation }) {
         setWeeklyDateSet(weeklySet);
 
         if (userId) {
-          getDateShortlist(userId)
-            .then((rows) => {
+          Promise.all([
+            getDateShortlist(userId).catch(() => []),
+            getDateMatchState(userId).catch(() => ({})),
+          ])
+            .then(([rows, matches]) => {
               const ids = new Set((rows || []).map((row) => row.date_id));
               setLikedDates(boundaryEligible.filter((date) => ids.has(date.id)));
+              setDateMatches(matches || {});
             })
             .catch(() => {});
         }
@@ -657,16 +664,18 @@ export default function DateNightScreen({ navigation }) {
         : Promise.resolve(),
       wasSaved
         ? removeDateSavedKeepsake(date.id)
-        : Promise.resolve(),
+        : saveDateSavedKeepsake(date),
     ]);
 
-    persist.catch(() => {
-      setLikedDates(prev => (
-        wasSaved
-          ? prev.some(item => item.id === date.id) ? prev : [...prev, date]
-          : prev.filter(item => item.id !== date.id)
-      ));
-    });
+    persist
+      .then(() => getDateMatchState(userId).then(setDateMatches).catch(() => {}))
+      .catch(() => {
+        setLikedDates(prev => (
+          wasSaved
+            ? prev.some(item => item.id === date.id) ? prev : [...prev, date]
+            : prev.filter(item => item.id !== date.id)
+        ));
+      });
 
     setDeckIndex(prev => prev + 1);
   }, [likedDates, userId, showPaywall]);
@@ -783,7 +792,11 @@ export default function DateNightScreen({ navigation }) {
 
       if (wasSaved) {
         await removeDateSavedKeepsake(date.id);
+      } else {
+        await saveDateSavedKeepsake(date);
       }
+
+      setDateMatches(await getDateMatchState(userId));
     } catch (error) {
       setLikedDates(prev => (
         wasSaved
@@ -1011,6 +1024,7 @@ export default function DateNightScreen({ navigation }) {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.likedRow}>
               {likedDates.map((d, i) => {
                 const hm = DIMS.heat.find(h => h.level === d.heat) || DIMS.heat[0];
+                const isMatch = !!dateMatches[d.id]?.isMatch;
                 return (
                   <TouchableOpacity
                     key={d.id || i}
@@ -1034,6 +1048,12 @@ export default function DateNightScreen({ navigation }) {
                     >
                       <Icon name="bookmark" size={15} color={colors.primary} />
                     </TouchableOpacity>
+                    {isMatch ? (
+                      <View style={styles.matchBadge}>
+                        <Icon name="heart" size={11} color="#FFFFFF" />
+                        <Text style={styles.matchBadgeText}>Match</Text>
+                      </View>
+                    ) : null}
                     <View style={[styles.likedCardIcon, { backgroundColor: hm.color + '15' }]}>
                       <Icon name={HEAT_ICONS[d.heat] || 'heart-outline'} size={18} color={hm.color} />
                     </View>
@@ -1403,6 +1423,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     minHeight: 174,
     padding: 16,
     paddingRight: 46,
+    paddingBottom: 46,
     borderRadius: 20,
     borderWidth: 1.5,
     gap: 12,
@@ -1418,6 +1439,23 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
+  },
+  matchBadge: {
+    position: 'absolute',
+    left: 12,
+    bottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: colors.primary,
+  },
+  matchBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900',
   },
   likedCardIcon: {
     width: 32,

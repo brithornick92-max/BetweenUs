@@ -504,6 +504,13 @@ export default function SettingsScreen({ navigation }) {
               subtitle="How you appear to each other"
               onPress={() => navigation.navigate('PartnerNamesSettings')}
               t={t}
+            />
+            <EditorialRow
+              icon="heart-circle-outline"
+              title="Relationship Profile"
+              subtitle="Your shared preferences and connection style"
+              onPress={() => navigation.navigate('RelationshipProfile')}
+              t={t}
               isLast
             />
           </EditorialSection>

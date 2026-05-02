@@ -40,6 +40,7 @@ import {
   toggleIntimacyFavorite,
   toggleIntimacyTried,
 } from '../utils/intimacyFavorites';
+import { getIntimacyMatchState } from '../utils/coupleMatches';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 let lastSelectedPositionId = null;
@@ -69,6 +70,7 @@ export default function IntimacyPositionsScreen() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedPositionId, setSelectedPositionId] = useState(lastSelectedPositionId);
   const [favorites, setFavorites] = useState({});
+  const [positionMatches, setPositionMatches] = useState({});
   const [triedPositions, setTriedPositions] = useState({});
   const [positionAccess, setPositionAccess] = useState(null);
   const [weeklyPositionSet, setWeeklyPositionSet] = useState(null);
@@ -209,10 +211,15 @@ export default function IntimacyPositionsScreen() {
   useEffect(() => {
     let active = true;
 
-    Promise.all([getIntimacyFavorites(), getIntimacyTried()]).then(([savedFavorites, savedTried]) => {
+    Promise.all([
+      getIntimacyFavorites({ ownedOnly: true }),
+      getIntimacyTried(),
+      getIntimacyMatchState(),
+    ]).then(([savedFavorites, savedTried, matches]) => {
       if (active) {
         setFavorites(savedFavorites);
         setTriedPositions(savedTried);
+        setPositionMatches(matches || {});
       }
     });
 
@@ -288,6 +295,7 @@ export default function IntimacyPositionsScreen() {
       });
       rememberSelectedPosition(positionId);
       setFavorites(next.favorites);
+      setPositionMatches(await getIntimacyMatchState());
     } catch (error) {
       rememberSelectedPosition(positionId);
       if (__DEV__) {
@@ -511,6 +519,7 @@ export default function IntimacyPositionsScreen() {
                     rating={triedPositions[position.id]?.rating || null}
                     onRate={handleRateTried}
                     ratingBusy={ratingBusy}
+                    isMatch={!!positionMatches[position.id]?.isMatch}
                     compact={isCompact}
                   />
                 )}

@@ -55,6 +55,7 @@ function memoryToTriedEntry(memory) {
 
   return {
     positionId: payload.positionId,
+    userId: memory?.user_id || null,
     title: payload.title || 'Untitled position',
     commonName: payload.commonName || null,
     mood: payload.mood || null,
@@ -155,19 +156,22 @@ function memoryToFavoriteEntry(memory) {
   };
 }
 
-export async function getIntimacyFavorites() {
+export async function getIntimacyFavorites({ ownedOnly = false } = {}) {
   try {
-    const [personalMemories, sharedMemories] = await Promise.all([
-      DataLayer.getMemories({ type: 'intimacy_favorite', limit: 200 }),
-      typeof DataLayer.getSharedMemories === 'function'
-        ? DataLayer.getSharedMemories({ type: 'intimacy_favorite', limit: 200 })
-        : Promise.resolve([]),
-    ]);
+    const memories = ownedOnly
+      ? await DataLayer.getMemories({ type: 'intimacy_favorite', limit: 200, ownedOnly: true })
+      : dedupeMemories([
+        ...(
+          await DataLayer.getMemories({ type: 'intimacy_favorite', limit: 200 }).catch(() => [])
+        ),
+        ...(
+          typeof DataLayer.getSharedMemories === 'function'
+            ? await DataLayer.getSharedMemories({ type: 'intimacy_favorite', limit: 200 }).catch(() => [])
+            : []
+        ),
+      ]);
 
-    return dedupeMemories([
-      ...(Array.isArray(sharedMemories) ? sharedMemories : []),
-      ...(Array.isArray(personalMemories) ? personalMemories : []),
-    ])
+    return dedupeMemories(memories)
       .map(memoryToFavoriteEntry)
       .filter(Boolean)
       .reduce((acc, entry) => {
@@ -214,7 +218,7 @@ export async function getIntimacyTried() {
 }
 
 export async function toggleIntimacyFavorite(position, { currentlyFavorite = false } = {}) {
-  const favorites = await getIntimacyFavorites();
+  const favorites = await getIntimacyFavorites({ ownedOnly: true });
   const existing = favorites[position.id] || null;
 
   if (currentlyFavorite) {

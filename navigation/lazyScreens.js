@@ -21,6 +21,7 @@ export const HeatLevel = () => withScreenErrorBoundary(require("../screens/HeatL
 export const JournalHome = () => withScreenErrorBoundary(require("../screens/JournalHomeScreen").default, "JournalHome");
 export const JournalEntry = () => withScreenErrorBoundary(require("../screens/JournalEntryScreen").default, "JournalEntry");
 export const VibeSignal = () => withScreenErrorBoundary(require("../screens/VibeSignalScreen").default, "VibeSignal");
+export const RelationshipProfile = () => withScreenErrorBoundary(require("../screens/RelationshipProfileScreen").default, "RelationshipProfile");
 export const Settings = () => withScreenErrorBoundary(require("../screens/SettingsScreen").default, "Settings");
 export const OurStory = () => withScreenErrorBoundary(require("../screens/OurStoryScreen").default, "OurStory");
 export const AddMemory = () => withScreenErrorBoundary(require("../screens/AddMemoryScreen").default, "AddMemory");
@@ -65,4 +66,3 @@ export const PromptAnswer = () => withScreenErrorBoundary(require("../screens/Pr
 export const Reveal = () => withScreenErrorBoundary(require("../screens/RevealScreen").default, "Reveal");
 export const RevenueCatPaywall = () => withScreenErrorBoundary(require("../components/RevenueCatPaywall").default, "RevenueCatPaywall");
 export const CustomerCenter = () => withScreenErrorBoundary(require("../components/CustomerCenter").default, "CustomerCenter");
-

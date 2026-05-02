@@ -60,6 +60,9 @@ function mergeCloudProfile(localProfile, remoteProfile) {
     ...(remotePrefs.relationshipStartDate
       ? { relationshipStartDate: remotePrefs.relationshipStartDate }
       : {}),
+    ...(remotePrefs.quiz && typeof remotePrefs.quiz === 'object'
+      ? { quiz: remotePrefs.quiz }
+      : {}),
     ...(remotePrefs.partnerNames && typeof remotePrefs.partnerNames === 'object'
       ? {
           partnerNames: {

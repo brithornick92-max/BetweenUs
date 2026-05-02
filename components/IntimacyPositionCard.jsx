@@ -64,6 +64,7 @@ export default function IntimacyPositionCard({
   rating = null,
   onRate,
   ratingBusy = false,
+  isMatch = false,
   compact = false,
 }) {
   const [activeBodyType, setActiveBodyType] = useState(defaultBodyType);
@@ -98,6 +99,13 @@ export default function IntimacyPositionCard({
       <Text style={[styles.promptText, compact && styles.promptTextCompact, { color: t.text }]}>
         {position.title}
       </Text>
+
+      {isMatch ? (
+        <View style={[styles.matchPill, { backgroundColor: t.primary, borderColor: t.primary }]}>
+          <Icon name="heart" size={14} color="#FFFFFF" />
+          <Text style={styles.matchPillText}>You both saved this</Text>
+        </View>
+      ) : null}
 
       {/* ── Grouped Control Panel: Actions & Ratings ── */}
       <View style={styles.controlPanel}>
@@ -309,6 +317,25 @@ const styles = StyleSheet.create({
   promptTextCompact: {
     fontSize: 20,
     lineHeight: 26,
+  },
+  matchPill: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    marginTop: -8,
+    marginBottom: 16,
+  },
+  matchPillText: {
+    color: '#FFFFFF',
+    fontFamily: systemFont,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.1,
   },
   controlPanel: {
     marginBottom: 22,

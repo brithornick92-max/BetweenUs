@@ -80,6 +80,10 @@ function buildCloudProfileUpdates(localProfile = {}) {
     preferences.softBoundaries = localProfile.softBoundaries;
   }
 
+  if (localProfile?.quiz && typeof localProfile.quiz === 'object') {
+    preferences.quiz = localProfile.quiz;
+  }
+
   const updates = { preferences };
 
   const displayName =
@@ -155,6 +159,9 @@ function buildCanonicalLocalProfile(localProfile = {}, remoteProfile = null) {
       : {}),
     ...(remotePrefs.relationshipStartDate
       ? { relationshipStartDate: remotePrefs.relationshipStartDate }
+      : {}),
+    ...(remotePrefs.quiz && typeof remotePrefs.quiz === 'object'
+      ? { quiz: remotePrefs.quiz }
       : {}),
     ...(remotePrefs.partnerNames && typeof remotePrefs.partnerNames === 'object'
       ? {

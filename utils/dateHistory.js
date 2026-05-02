@@ -156,6 +156,7 @@ function memoryToSavedDateEntry(memory) {
 
   return {
     id: payload.dateId,
+    userId: memory?.user_id || null,
     title: payload.title || 'Untitled date',
     heat: payload.heat ?? null,
     load: payload.load ?? null,
@@ -167,9 +168,9 @@ function memoryToSavedDateEntry(memory) {
   };
 }
 
-export async function getDateSavedKeepsakes() {
+export async function getDateSavedKeepsakes({ ownedOnly = false } = {}) {
   try {
-    const memories = await DataLayer.getMemories({ type: 'date_saved', limit: 200 });
+    const memories = await DataLayer.getMemories({ type: 'date_saved', limit: 200, ownedOnly });
     const savedByDateId = dedupeMemories(memories)
       .map(memoryToSavedDateEntry)
       .filter(Boolean)
@@ -190,12 +191,12 @@ export async function getDateSavedKeepsakes() {
   }
 }
 
-export async function saveDateSavedKeepsake(date) {
+export async function saveDateSavedKeepsake(date, { notifyPartner = false } = {}) {
   if (!date?.id) {
     return { saved: [], entry: null, inserted: false };
   }
 
-  const prev = await getDateSavedKeepsakes();
+  const prev = await getDateSavedKeepsakes({ ownedOnly: true });
   const existing = prev.find((entry) => entry.id === date.id);
   if (existing) {
     return { saved: prev, entry: existing, inserted: false };
@@ -219,6 +220,7 @@ export async function saveDateSavedKeepsake(date) {
     mood: date.style || 'date',
     content: JSON.stringify(payload),
     isPrivate: false,
+    notifyPartner,
   });
   entry.memoryId = memory?.id || null;
 
@@ -231,7 +233,7 @@ export async function removeDateSavedKeepsake(dateId) {
     return { saved: [], removed: null };
   }
 
-  const prev = await getDateSavedKeepsakes();
+  const prev = await getDateSavedKeepsakes({ ownedOnly: true });
   const removed = prev.find((entry) => entry.id === dateId) || null;
   const next = prev.filter((entry) => entry.id !== dateId);
 
