@@ -15885,45 +15885,45 @@
     },
     {
       "id": "d438",
-      "title": "Photo Memory Lane",
+      "title": "Story Spots Walk",
       "minutes": 120,
       "location": "out",
       "steps": [
-        "Visit places that are meaningful to your story",
-        "Take new photos at the same spots as old ones",
-        "Share memories and feelings at each location",
-        "Create a then-and-now photo collage at home"
+        "Choose three places that shaped your relationship",
+        "Visit each one and tell the story you remember there",
+        "Record a short voice note or write one line at every stop",
+        "Save the notes as a tiny map of your story"
       ],
       "heat": 1,
       "load": 3,
       "style": "mixed",
       "releaseWeek": 31,
-      "vibe": "This date is a romantic and reflective journey through places that hold significance in your shared history.",
-      "setup": "Go on a personal walking tour of your relationship's most meaningful spots. Revisit places where key moments happened, allowing you to reflect on your journey. Gather any old photos from these locations to spark conversation and create new memories.",
+      "vibe": "A reflective walking date through the places that shaped your story, focused on tiny memories instead of perfect photos.",
+      "setup": "Choose a few places that hold meaning for your relationship and turn them into a quiet walking route. Bring a phone or small notebook so each stop can become a saved line, voice note, or tiny marker on your shared map.",
       "supplies": [
-        "Old photos (digital or printed) of you two at meaningful locations",
-        "Smartphone or camera for new photos",
+        "Phone for voice notes or a notes app",
         "Comfortable walking shoes",
         "Water bottles or your favorite on-the-go beverage",
-        "Small notebook and pen (optional, for jotting down thoughts)"
+        "Small notebook and pen",
+        "A simple map app or saved list of stops"
       ],
       "guidedSteps": [
-        "Before the date, each of you select 2-3 places that are meaningful to your relationship (e.g., first date spot, a favorite park, an old neighborhood).",
-        "Gather any old photos taken at these locations. If no photos exist, recall specific memories about the place.",
-        "Begin your walk, stopping at each chosen location. At each spot, share the old photo or memory, describing what you remember and how it felt.",
-        "Take a new photo at the exact same spot. Try to recreate the original pose or capture the current feel of the place.",
-        "Spend a few minutes discussing how the place has changed, what has stayed the same, and how you both have grown since that memory.",
-        "After your walk, go home and look through your old and new photos. Choose your favorites to place side-by-side.",
-        "Create a simple digital or physical 'then-and-now' display, perhaps printing a favorite pair to keep."
+        "Before the date, each choose one or two places that carry a clear memory for your relationship.",
+        "Put the stops into a simple walking or driving route, keeping the pace easy enough for conversation.",
+        "At each place, one partner tells the memory first while the other listens without correcting the details.",
+        "Record a short voice note together or write one sentence that captures what this place still means.",
+        "Notice one new detail at each stop so the date feels current, not only nostalgic.",
+        "At the final stop, review the notes and choose one line that feels worth keeping.",
+        "Save the notes in a shared album, notes app, or message thread as a tiny map of your story."
       ],
       "conversationPrompts": [
-        "What's a specific feeling or detail from this place that comes back to you most strongly?",
-        "If you could whisper something to your past self in this moment, what advice or comfort would you offer?",
-        "What new detail about this place or our shared past did you notice or appreciate today?"
+        "What detail from this place came back faster than you expected?",
+        "What do you remember differently from each other, and what do you both agree on?",
+        "Which stop feels most like a chapter we are still writing?"
       ],
-      "connectionTwist": "At the final location, take a new photo of your hands clasped together, symbolizing your continued journey.",
-      "ending": "While looking at your favorite 'then-and-now' photo pair, share one hope or dream you have for your future together, building on the foundation of your past.",
-      "description": "Relive favorite moments and create new ones by revisiting significant places from your shared past, capturing then-and-now photos that tell your personal story.",
+      "connectionTwist": "At one stop, record a ten-second voice note that starts with, \"This place reminds me that we...\"",
+      "ending": "Choose one saved line from the walk and send it to each other before bed.",
+      "description": "Walk through meaningful places and save tiny voice-note memories from each stop.",
       "category": "romantic"
     },
     {
@@ -26984,45 +26984,45 @@
     },
     {
       "id": "d783",
-      "title": "Dessert & Desire",
+      "title": "Candlelit Dessert Tasting",
       "minutes": 75,
       "location": "home",
       "steps": [
-        "Prepare or buy a dessert to share slowly",
-        "Write desire-themed questions on cards",
-        "Draw one card between bites",
-        "Set aside any card that feels better for later"
+        "Choose three small desserts or toppings with different textures",
+        "Dim the lights and plate a tasting board together",
+        "Take turns describing each bite slowly",
+        "Choose the flavor that feels most like the night"
       ],
       "heat": 3,
       "load": 2,
       "style": "mixed",
       "releaseWeek": 6,
-      "vibe": "Savor sweet treats and intimate questions, gently exploring the landscape of your shared desires.",
-      "setup": "Today, you'll indulge in a shared dessert, using each delicious bite as a cue to explore your deepest desires. This date is an invitation to slow down, taste pleasure, and gently say what truly stirs your soul.",
+      "vibe": "A slow dessert tasting with candlelight, texture, and private attention as the focus.",
+      "setup": "Create a small tasting board of desserts, fruit, sauces, or toppings with different textures. Keep the mood low-lit and unhurried, letting flavor, eye contact, and small observations carry the night.",
       "supplies": [
-        "A decadent dessert (e.g., chocolate cake, fruit tart, fancy pastries)",
+        "Three small desserts, fruits, toppings, or sauces",
         "Two small plates and forks/spoons",
-        "Index cards or small paper slips",
-        "Pens",
-        "A comfortable table or couch with good lighting"
+        "Candles or soft lighting",
+        "Napkins",
+        "A comfortable table or couch"
       ],
       "guidedSteps": [
-        "Set out your chosen dessert and plates in a comfortable, inviting space. Portion it into small, shareable bites.",
-        "Each take a few index cards and a pen. Spend 5-7 minutes writing down questions about desire, intimacy, or pleasure that you're curious to ask your partner (e.g., \"What makes you feel most wanted?\", \"What's a new intimate experience you're curious about?\").",
-        "Combine your cards, shuffle them, and place the stack face down between you.",
-        "Take the first small bite of dessert together, enjoying the flavor. Then, one person draws a card, reads it aloud, and answers honestly.",
-        "After the answer, the other partner can briefly share their thoughts or a response. Then, take another bite of dessert.",
-        "Continue taking turns drawing cards and enjoying the dessert. If a question feels too vulnerable for today, simply say \"Let's save that for another time\" and place it in a separate \"Later\" pile.",
-        "Finish the dessert together, lingering over the last bites and the lingering conversation."
+        "Choose three small desserts, fruits, sauces, or toppings that each feel different in texture or temperature.",
+        "Plate them together in a way that feels intentional, then dim the lights or light candles.",
+        "Take the first bite at the same time and describe only the taste, texture, or feeling it creates.",
+        "For each next bite, one partner chooses a pairing or topping for the other.",
+        "Between bites, share one small observation about the mood, the flavor, or how the date feels in your body.",
+        "Choose a winning flavor and give it a name that only the two of you would understand.",
+        "Save the winning combination for a future night when you want to recreate the mood."
       ],
       "conversationPrompts": [
-        "What feeling or sensation do you associate most strongly with 'desire' right now?",
-        "How does the act of verbally articulating a desire change how you perceive it?",
-        "Is there a small, perhaps unexpected, desire you've realized you have for us?"
+        "Which flavor or texture surprised you most?",
+        "What small detail made this feel more intimate than an ordinary dessert?",
+        "What would you add next time to make this mood even better?"
       ],
-      "connectionTwist": "From your \"Later\" pile, or any card that felt particularly resonant, choose one desire. Agree to explore this desire together in a small, concrete way within the next week.",
-      "ending": "Share a final, lingering kiss. Let the sweetness of the dessert and the openness of your conversation linger in the air between you.",
-      "description": "Share a decadent dessert and draw desire cards, allowing each sweet bite to deepen your intimate conversation and reveal hidden longings.",
+      "connectionTwist": "Create one final bite for each other without explaining it first, then describe why you chose it.",
+      "ending": "Name the winning bite and decide when you would want to make it again.",
+      "description": "Create a candlelit dessert tasting, slowing down over texture, flavor, and private attention.",
       "category": "after-dark"
     },
     {
