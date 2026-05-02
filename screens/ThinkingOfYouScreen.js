@@ -21,7 +21,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeIn, ZoomIn } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
@@ -43,6 +42,8 @@ import { getPartnerDisplayName } from '../utils/profileNames';
 const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
+const MAX_MEDIA_FILE_BYTES = 50_000_000;
+const MAX_VIDEO_DURATION_MS = 180_000;
 
 // Curated micro-reactions — Ionicons outline only
 const REACTIONS = [
@@ -54,10 +55,24 @@ const REACTIONS = [
   { id: 'love',      icon: 'heart-outline',        label: 'Love you' },
 ];
 
+function validatePickedAsset(asset) {
+  if (asset?.fileSize && asset.fileSize > MAX_MEDIA_FILE_BYTES) {
+    Alert.alert('File Too Large', 'Please choose a photo or video under 50 MB.');
+    return false;
+  }
+
+  if (asset?.type === 'video' && asset.duration && asset.duration > MAX_VIDEO_DURATION_MS) {
+    Alert.alert('Video Too Long', 'Please choose a video under 3 minutes.');
+    return false;
+  }
+
+  return true;
+}
+
 export default function ThinkingOfYouScreen() {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
-  const { user, userProfile } = useAuth();
+  const { userProfile } = useAuth();
   const { state } = useAppContext();
 
   const [media, setMedia] = useState(null); // { uri, type, mimeType }
@@ -97,6 +112,9 @@ export default function ThinkingOfYouScreen() {
     if (!result.canceled && result.assets?.[0]) {
       impact(ImpactFeedbackStyle.Light);
       const asset = result.assets[0];
+
+      if (!validatePickedAsset(asset)) return;
+
       setMedia({
         uri: asset.uri,
         type: asset.type || 'image',
@@ -120,6 +138,9 @@ export default function ThinkingOfYouScreen() {
     if (!result.canceled && result.assets?.[0]) {
       impact(ImpactFeedbackStyle.Light);
       const asset = result.assets[0];
+
+      if (!validatePickedAsset(asset)) return;
+
       setMedia({
         uri: asset.uri,
         type: asset.type || 'image',

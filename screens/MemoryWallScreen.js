@@ -52,6 +52,38 @@ function getMediaKind(mimeType) {
   return 'image';
 }
 
+export async function buildMemoryWallMediaItem(memory) {
+  try {
+    const mediaRef = memory?.media_ref || memory?.mediaRef || null;
+    const uri = memory?.mediaUri
+      || memory?.media_uri
+      || await AttachmentCacheService.getCachedUri(mediaRef);
+
+    if (!uri) return null;
+
+    const mimeType = memory.mime_type || memory.mimeType || 'image/jpeg';
+    const kind = getMediaKind(mimeType);
+
+    return {
+      id: `memory-wall:${memory.id}`,
+      sourceId: memory.id,
+      uri,
+      mime: mimeType,
+      mimeType,
+      caption: memory.content || '',
+      date: memory.created_at || memory.date || null,
+      type: memory.type || 'memory',
+      media: {
+        uri,
+        mimeType,
+        kind,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function MemoryWallScreen() {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
@@ -84,7 +116,8 @@ export default function MemoryWallScreen() {
       const seen = new Set();
 
       const withMedia = all.filter((memory) => {
-        if (!memory?.id || !memory?.media_ref || seen.has(memory.id)) return false;
+        const hasMedia = memory?.media_ref || memory?.mediaRef || memory?.mediaUri || memory?.media_uri;
+        if (!memory?.id || !hasMedia || seen.has(memory.id)) return false;
         seen.add(memory.id);
         return true;
       });
@@ -92,32 +125,7 @@ export default function MemoryWallScreen() {
       withMedia.sort((a, b) => getSortTime(b.created_at) - getSortTime(a.created_at));
 
       const resolved = await Promise.all(
-        withMedia.map(async (memory) => {
-          try {
-            const uri = await AttachmentCacheService.getCachedUri(memory.media_ref);
-            if (!uri) return null;
-            const mimeType = memory.mime_type || 'image/jpeg';
-            const kind = getMediaKind(mimeType);
-
-            return {
-              id: `memory-wall:${memory.id}`,
-              sourceId: memory.id,
-              uri,
-              mime: mimeType,
-              mimeType,
-              caption: memory.content || '',
-              date: memory.created_at || memory.date || null,
-              type: memory.type || 'memory',
-              media: {
-                uri,
-                mimeType,
-                kind,
-              },
-            };
-          } catch {
-            return null;
-          }
-        })
+        withMedia.map((memory) => buildMemoryWallMediaItem(memory))
       );
 
       setItems(resolved.filter(Boolean));

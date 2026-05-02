@@ -5,6 +5,12 @@ const mockSelect = jest.fn();
 const mockSingle = jest.fn();
 const mockStorageGet = jest.fn();
 const mockStorageSet = jest.fn();
+const mockCreateSignedUrl = jest.fn(() => Promise.resolve({
+  data: { signedUrl: 'https://example.com/signed-media-url' },
+  error: null,
+}));
+const mockStorageUpload = jest.fn(() => Promise.resolve({ error: null }));
+const mockStorageRemove = jest.fn(() => Promise.resolve({ error: null }));
 const mockMemorySaved = jest.fn(() => Promise.resolve());
 const mockLoveNoteSave = jest.fn();
 const mockLoveNoteGetNotes = jest.fn();
@@ -94,12 +100,9 @@ jest.mock('../../config/supabase', () => ({
     }),
     storage: {
       from: jest.fn(() => ({
-        createSignedUrl: jest.fn(() => Promise.resolve({
-          data: { signedUrl: 'https://example.com/signed-media-url' },
-          error: null,
-        })),
-        upload: jest.fn(() => Promise.resolve({ error: null })),
-        remove: jest.fn(() => Promise.resolve({ error: null })),
+        createSignedUrl: mockCreateSignedUrl,
+        upload: mockStorageUpload,
+        remove: mockStorageRemove,
       })),
     },
   },
@@ -124,6 +127,13 @@ describe('SupabaseDataLayer memory snapshots', () => {
     mockLoveNoteMarkRead.mockResolvedValue(undefined);
     mockLoveNoteDelete.mockResolvedValue(true);
     mockLoveNoteUnreadCount.mockResolvedValue(1);
+    mockCreateSignedUrl.mockResolvedValue({
+      data: { signedUrl: 'https://example.com/signed-media-url' },
+      error: null,
+    });
+    mockStorageUpload.mockResolvedValue({ error: null });
+    mockStorageRemove.mockResolvedValue({ error: null });
+    require('expo-file-system/legacy').readAsStringAsync.mockResolvedValue('aGVsbG8=');
 
     mockSingle.mockImplementation(() => {
       const insertedPayload = mockInsert.mock.calls.at(-1)?.[0];
@@ -262,6 +272,127 @@ describe('SupabaseDataLayer memory snapshots', () => {
     });
 
     expect(mockMemorySaved).not.toHaveBeenCalled();
+  });
+
+  it('uploads memory media and returns the signed media URL', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    const saved = await SupabaseDataLayer.saveMemory({
+      content: 'Snapshot with media',
+      type: 'snapshot',
+      mediaUri: 'file:///snapshot-photo.jpg',
+      mimeType: 'image/jpeg',
+      notifyPartner: false,
+    });
+
+    expect(mockStorageUpload).toHaveBeenCalledWith(
+      'couples/couple-1/mem-test-id-123.jpeg',
+      expect.any(Uint8Array),
+      expect.objectContaining({
+        contentType: 'image/jpeg',
+        upsert: false,
+      })
+    );
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      data_type: 'memory',
+      value: expect.objectContaining({
+        mediaPath: 'couples/couple-1/mem-test-id-123.jpeg',
+        mediaBucket: 'couple-media',
+        mimeType: 'image/jpeg',
+      }),
+    }));
+    expect(mockInsert.mock.calls[0][0].value).not.toHaveProperty('localMediaUri');
+    expect(saved).toEqual(expect.objectContaining({
+      media_ref: 'couples/couple-1/mem-test-id-123.jpeg',
+      mime_type: 'image/jpeg',
+      mediaUri: 'https://example.com/signed-media-url',
+    }));
+  });
+
+  it('keeps selected memory media pending if storage upload fails', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    mockStorageUpload.mockResolvedValueOnce({ error: { message: 'storage unavailable' } });
+
+    const saved = await SupabaseDataLayer.saveMemory({
+      content: 'Keep the photo attached',
+      type: 'snapshot',
+      mediaUri: 'file:///snapshot-photo.jpg',
+      mimeType: 'image/jpeg',
+      notifyPartner: false,
+    });
+
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(saved).toEqual(expect.objectContaining({
+      content: 'Keep the photo attached',
+      mediaUri: 'file:///snapshot-photo.jpg',
+      mime_type: 'image/jpeg',
+      sync_status: 'pending',
+    }));
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"localMediaUri":"file:///snapshot-photo.jpg"');
+  });
+
+  it('removes uploaded memory media if the cloud row insert fails', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'new row violates row-level security policy' },
+    });
+
+    const saved = await SupabaseDataLayer.saveMemory({
+      content: 'Rollback this upload',
+      type: 'snapshot',
+      mediaUri: 'file:///snapshot-photo.jpg',
+      mimeType: 'image/jpeg',
+      notifyPartner: false,
+    });
+
+    expect(mockStorageRemove).toHaveBeenCalledWith(['couples/couple-1/mem-test-id-123.jpeg']);
+    expect(saved).toEqual(expect.objectContaining({
+      content: 'Rollback this upload',
+      mediaUri: 'file:///snapshot-photo.jpg',
+      sync_status: 'pending',
+    }));
+  });
+
+  it('keeps selected journal media pending if storage upload fails', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    mockStorageUpload.mockResolvedValueOnce({ error: { message: 'storage unavailable' } });
+
+    const saved = await SupabaseDataLayer.saveJournalEntry({
+      title: 'Journal with media',
+      body: 'Keep this attachment visible while pending.',
+      mediaUri: 'file:///journal-photo.jpg',
+      mimeType: 'image/jpeg',
+    });
+
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(saved).toEqual(expect.objectContaining({
+      title: 'Journal with media',
+      mediaUri: 'file:///journal-photo.jpg',
+      mediaType: 'image/jpeg',
+      mediaKind: 'image',
+      sync_status: 'pending',
+    }));
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"localMediaUri":"file:///journal-photo.jpg"');
   });
 
   it('keeps pending memory rows readable while unpaired', async () => {

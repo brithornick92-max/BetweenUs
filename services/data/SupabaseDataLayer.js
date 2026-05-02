@@ -403,6 +403,22 @@ async function cdUpdate(id, valuePatch) {
   return updated;
 }
 
+async function cdGetValue(id) {
+  const sb = getSupabaseOrNull();
+
+  if (!sb || !id) return null;
+
+  const { data, error } = await sb
+    .from(TABLES.COUPLE_DATA)
+    .select('value')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data?.value || null;
+}
+
 /**
  * Soft-delete a couple_data row.
  */
@@ -479,10 +495,16 @@ const VIDEO_BUCKET = 'attachments';
  * Upload a local file URI to Supabase Storage.
  * Returns the storage path for use in value.mediaPath.
  */
-async function uploadMedia({ localUri, mimeType, coupleId }) {
+async function uploadMedia({ localUri, mimeType, coupleId, throwOnError = false }) {
   const sb = getSupabaseOrNull();
 
-  if (!sb || !coupleId) return null;
+  if (!sb || !coupleId) {
+    if (throwOnError) {
+      throw new Error('Media upload requires a paired account.');
+    }
+
+    return null;
+  }
 
   const isVideo = mimeType?.startsWith('video/');
   const bucket = isVideo ? VIDEO_BUCKET : IMAGE_BUCKET;
@@ -514,7 +536,78 @@ async function uploadMedia({ localUri, mimeType, coupleId }) {
     return { storagePath, bucket, mimeType };
   } catch (err) {
     if (__DEV__) console.warn('[SupabaseDataLayer] Media upload failed:', err?.message);
+    if (throwOnError) throw err;
     return null;
+  }
+}
+
+function stripQueueOnlyFields(payload = {}) {
+  const { localMediaUri, ...cloudPayload } = payload || {};
+  return cloudPayload;
+}
+
+async function deleteStoredMedia(bucket, storagePath) {
+  const sb = getSupabaseOrNull();
+
+  if (!sb || !bucket || !storagePath) return;
+
+  try {
+    await sb.storage.from(bucket).remove([storagePath]);
+  } catch (err) {
+    if (__DEV__) console.warn('[SupabaseDataLayer] Media cleanup failed:', err?.message);
+  }
+}
+
+async function deleteUploadedMedia(mediaData) {
+  if (!mediaData?.bucket || !mediaData?.storagePath) return;
+  await deleteStoredMedia(mediaData.bucket, mediaData.storagePath);
+}
+
+async function deleteStoredMediaFromValue(value) {
+  if (!value?.mediaBucket || !value?.mediaPath) return;
+  await deleteStoredMedia(value.mediaBucket, value.mediaPath);
+}
+
+async function prepareQueuedPayloadForCloud(payload = {}) {
+  const cleanPayload = stripQueueOnlyFields(payload);
+
+  if (!payload?.localMediaUri || cleanPayload.mediaPath) {
+    return cleanPayload;
+  }
+
+  const mediaData = await uploadMedia({
+    localUri: payload.localMediaUri,
+    mimeType: cleanPayload.mimeType,
+    coupleId: _coupleId,
+    throwOnError: true,
+  });
+
+  const next = {
+    ...cleanPayload,
+    mediaPath: mediaData.storagePath,
+    mediaBucket: mediaData.bucket,
+    mimeType: mediaData.mimeType || cleanPayload.mimeType || null,
+  };
+
+  if (hasOwn(cleanPayload, 'photoUri')) {
+    next.photoUri = null;
+  }
+
+  return next;
+}
+
+async function performQueuedCoupleDataMutation(dataType, item) {
+  const payload = await prepareQueuedPayloadForCloud(item.payload);
+
+  try {
+    if (item.action === 'insert') await cdInsert(dataType, item.id, payload);
+    if (item.action === 'update') await cdUpdate(item.id, payload);
+  } catch (error) {
+    if (item.payload?.localMediaUri && payload?.mediaPath) {
+      await deleteStoredMedia(payload.mediaBucket, payload.mediaPath);
+    }
+
+    throw error;
   }
 }
 
@@ -691,7 +784,8 @@ function makeOfflineJournalRow(id, value, base = {}) {
   const photoUri = hasOwn(value, 'photoUri') ? value.photoUri : (base.photo_uri || null);
   const mediaRef = hasOwn(value, 'mediaPath') ? value.mediaPath : (base.mediaRef || null);
   const mediaType = hasOwn(value, 'mimeType') ? value.mimeType : (base.mediaType || null);
-  const mediaUri = photoUri || (mediaRef ? (base.mediaUri || null) : null);
+  const localMediaUri = value.localMediaUri || null;
+  const mediaUri = localMediaUri || photoUri || (mediaRef ? (base.mediaUri || null) : null);
 
   return {
     id,
@@ -891,13 +985,8 @@ const SupabaseDataLayer = {
 
   async saveJournalEntry({ title, body, mood, tags, imageUri = null, mediaUri, mimeType }) {
     const id = makeId('jrn');
-    let mediaData = null;
 
-    if (mediaUri) {
-      mediaData = await uploadMedia({ localUri: mediaUri, mimeType, coupleId: _coupleId });
-    }
-
-    const value = {
+    const buildValue = (mediaData = null, { includeLocalMedia = false } = {}) => ({
       title: title || '',
       body: body || '',
       mood: mood || null,
@@ -905,11 +994,29 @@ const SupabaseDataLayer = {
       photoUri: mediaData ? null : (imageUri || null),
       mediaPath: mediaData?.storagePath || null,
       mediaBucket: mediaData?.bucket || null,
-      mimeType: mediaData?.mimeType || null,
-    };
+      mimeType: mediaData?.mimeType || mimeType || null,
+      ...(includeLocalMedia && mediaUri ? { localMediaUri: mediaUri } : {}),
+    });
 
     return runCloudOperation({
-      perform: async () => cdInsert('journal', id, value),
+      perform: async () => {
+        const mediaData = mediaUri
+          ? await uploadMedia({
+            localUri: mediaUri,
+            mimeType,
+            coupleId: _coupleId,
+            throwOnError: true,
+          })
+          : null;
+        const value = buildValue(mediaData);
+
+        try {
+          return await cdInsert('journal', id, value);
+        } catch (error) {
+          await deleteUploadedMedia(mediaData);
+          throw error;
+        }
+      },
       onSuccess: async (row) => {
         const mapped = await mapJournalRow(row);
         await upsertCacheRow(CACHE_SCOPES.journals, mapped);
@@ -917,6 +1024,7 @@ const SupabaseDataLayer = {
         return mapped;
       },
       onOffline: async () => {
+        const value = buildValue(null, { includeLocalMedia: true });
         const mapped = makeOfflineJournalRow(id, value);
 
         await enqueueOfflineMutation({
@@ -934,41 +1042,98 @@ const SupabaseDataLayer = {
   },
 
   async updateJournalEntry(id, { title, body, mood, tags, imageUri, mediaUri, mimeType }) {
-    const patch = {};
+    const basePatch = {};
 
-    if (title !== undefined) patch.title = title;
-    if (body !== undefined) patch.body = body;
-    if (mood !== undefined) patch.mood = mood;
-    if (tags !== undefined) patch.tags = tags;
+    if (title !== undefined) basePatch.title = title;
+    if (body !== undefined) basePatch.body = body;
+    if (mood !== undefined) basePatch.mood = mood;
+    if (tags !== undefined) basePatch.tags = tags;
 
-    if (mediaUri !== undefined) {
-      if (mediaUri) {
-        const mediaData = await uploadMedia({ localUri: mediaUri, mimeType, coupleId: _coupleId });
+    const buildOfflinePatch = () => {
+      const patch = { ...basePatch };
 
-        if (mediaData) {
-          patch.mediaPath = mediaData.storagePath;
-          patch.mediaBucket = mediaData.bucket;
-          patch.mimeType = mediaData.mimeType;
+      if (mediaUri !== undefined) {
+        if (mediaUri) {
+          patch.mediaPath = null;
+          patch.mediaBucket = null;
+          patch.mimeType = mimeType || null;
+          patch.photoUri = null;
+          patch.localMediaUri = mediaUri;
+        } else {
+          patch.mediaPath = null;
+          patch.mediaBucket = null;
+          patch.mimeType = null;
           patch.photoUri = null;
         }
-      } else {
+      }
+
+      if (imageUri !== undefined) {
+        patch.photoUri = imageUri || null;
+        patch.mediaPath = null;
+        patch.mediaBucket = null;
+        patch.mimeType = null;
+        delete patch.localMediaUri;
+      }
+
+      return patch;
+    };
+
+    const buildCloudPatch = async () => {
+      const patch = { ...basePatch };
+      let mediaData = null;
+
+      if (mediaUri) {
+        mediaData = await uploadMedia({
+          localUri: mediaUri,
+          mimeType,
+          coupleId: _coupleId,
+          throwOnError: true,
+        });
+        patch.mediaPath = mediaData.storagePath;
+        patch.mediaBucket = mediaData.bucket;
+        patch.mimeType = mediaData.mimeType;
+        patch.photoUri = null;
+      } else if (mediaUri === null) {
+        patch.mediaPath = null;
+        patch.mediaBucket = null;
+        patch.mimeType = null;
+        patch.photoUri = null;
+      }
+
+      if (imageUri !== undefined) {
+        patch.photoUri = imageUri || null;
         patch.mediaPath = null;
         patch.mediaBucket = null;
         patch.mimeType = null;
       }
-    }
 
-    if (imageUri !== undefined) {
-      patch.photoUri = imageUri || null;
-      patch.mediaPath = null;
-      patch.mediaBucket = null;
-      patch.mimeType = null;
-    }
+      return { patch, mediaData };
+    };
+
+    const replacesMedia = mediaUri !== undefined || imageUri !== undefined;
 
     return runCloudOperation({
       perform: async () => {
         if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
-        return cdUpdate(id, patch);
+
+        const previousValue = replacesMedia ? await cdGetValue(id).catch(() => null) : null;
+        const { patch, mediaData } = await buildCloudPatch();
+
+        try {
+          const row = await cdUpdate(id, patch);
+
+          if (
+            previousValue?.mediaPath
+            && previousValue.mediaPath !== patch.mediaPath
+          ) {
+            deleteStoredMediaFromValue(previousValue).catch(() => {});
+          }
+
+          return row;
+        } catch (error) {
+          await deleteUploadedMedia(mediaData);
+          throw error;
+        }
       },
       onSuccess: async (row) => {
         const mapped = await mapJournalRow(row);
@@ -976,6 +1141,7 @@ const SupabaseDataLayer = {
         return mapped;
       },
       onOffline: async () => {
+        const patch = buildOfflinePatch();
         const existing = await this.getJournalEntry(id);
         const hasPatch = (key) => hasOwn(patch, key);
 
@@ -1007,7 +1173,10 @@ const SupabaseDataLayer = {
     return runCloudOperation({
       perform: async () => {
         if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
-        return cdSoftDelete(id);
+
+        const previousValue = await cdGetValue(id).catch(() => null);
+        await cdSoftDelete(id);
+        deleteStoredMediaFromValue(previousValue).catch(() => {});
       },
       onSuccess: async () => {
         await removeCacheRow(CACHE_SCOPES.journals, id);
@@ -1033,9 +1202,7 @@ const SupabaseDataLayer = {
           query = query.eq('created_by', _userId);
         }
 
-        if (mood) {
-          query = query.eq('value->>mood', mood);
-        }
+        if (mood) query = query.eq('value->>mood', mood);
 
         return query;
       },
@@ -1043,51 +1210,42 @@ const SupabaseDataLayer = {
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapJournalRow(r)));
-      return replaceCache(CACHE_SCOPES.journals, mapped);
+      return replaceCacheSubset(CACHE_SCOPES.journals, mapped, (row) =>
+        (_coupleId && visibility !== 'owned') || row?.user_id === _userId
+      );
     }
 
     const cached = await loadCache(CACHE_SCOPES.journals);
 
     return cached
-      .filter((entry) => shouldReadShared || entry?.user_id === _userId)
-      .filter((entry) => !mood || entry?.mood === mood)
+      .filter((row) => (_coupleId && visibility !== 'owned') || row?.user_id === _userId)
+      .filter((row) => !mood || row?.mood === mood)
       .slice(offset, offset + limit);
   },
 
   async getJournalEntry(id) {
-    const sb = getSupabaseOrNull();
     const cached = await loadCache(CACHE_SCOPES.journals);
+    const cachedRow = cached.find((row) => row?.id === id);
 
-    if (!sb || !_coupleId) {
-      return cached.find((entry) => entry?.id === id) || null;
-    }
+    if (cachedRow) return cachedRow;
+
+    if (!_coupleId) return null;
+
+    const sb = getSupabaseOrNull();
+    if (!sb) return null;
 
     const { data, error } = await sb
       .from(TABLES.COUPLE_DATA)
       .select('*')
       .eq('id', id)
-      .single();
+      .eq('data_type', 'journal')
+      .or('is_deleted.is.null,is_deleted.eq.false')
+      .maybeSingle();
 
-    if (error) {
-      if (isOfflineCapableError(error)) {
-        return cached.find((entry) => entry?.id === id) || null;
-      }
-
-      if (isMissingRowError(error)) {
-        await removeCacheRow(CACHE_SCOPES.journals, id);
-        return null;
-      }
-
-      throw error;
-    }
-
-    if (!data) {
-      await removeCacheRow(CACHE_SCOPES.journals, id);
-      return null;
-    }
+    if (error || !data) return null;
 
     const mapped = await mapJournalRow(data);
-    await upsertCacheRow(CACHE_SCOPES.journals, mapped);
+    if (mapped) await upsertCacheRow(CACHE_SCOPES.journals, mapped);
     return mapped;
   },
 
@@ -1396,29 +1554,42 @@ const SupabaseDataLayer = {
     notifyPartner = true,
   }) {
     const id = makeId('mem');
-    let mediaData = null;
 
-    if (mediaUri) {
-      mediaData = await uploadMedia({ localUri: mediaUri, mimeType, coupleId: _coupleId });
-    }
-
-    const value = {
+    const buildValue = (mediaData = null, { includeLocalMedia = false } = {}) => ({
       content: content || '',
       type,
       mood: mood || null,
       mediaPath: mediaData?.storagePath || null,
       mediaBucket: mediaData?.bucket || null,
       mimeType: mediaData?.mimeType || mimeType || null,
+      ...(includeLocalMedia && mediaUri ? { localMediaUri: mediaUri } : {}),
 
       // Grouped Snapshot metadata
       snapshot_id,
       snapshot_index,
       snapshot_count,
       snapshot_created_at,
-    };
+    });
 
     return runCloudOperation({
-      perform: async () => cdInsert('memory', id, value),
+      perform: async () => {
+        const mediaData = mediaUri
+          ? await uploadMedia({
+            localUri: mediaUri,
+            mimeType,
+            coupleId: _coupleId,
+            throwOnError: true,
+          })
+          : null;
+        const value = buildValue(mediaData);
+
+        try {
+          return await cdInsert('memory', id, value);
+        } catch (error) {
+          await deleteUploadedMedia(mediaData);
+          throw error;
+        }
+      },
       onSuccess: async (row) => {
         const mapped = await mapMemoryRow(row);
         await upsertCacheRow(CACHE_SCOPES.memories, mapped);
@@ -1430,6 +1601,7 @@ const SupabaseDataLayer = {
         return mapped;
       },
       onOffline: async () => {
+        const value = buildValue(null, { includeLocalMedia: true });
         const mapped = makeOfflineMemoryRow(id, value, { mediaUri });
 
         await enqueueOfflineMutation({
@@ -1576,7 +1748,10 @@ const SupabaseDataLayer = {
     return runCloudOperation({
       perform: async () => {
         if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
-        return cdSoftDelete(id);
+
+        const previousValue = await cdGetValue(id).catch(() => null);
+        await cdSoftDelete(id);
+        deleteStoredMediaFromValue(previousValue).catch(() => {});
       },
       onSuccess: async () => {
         await removeCacheRow(CACHE_SCOPES.memories, id);
@@ -2276,8 +2451,9 @@ const SupabaseDataLayer = {
     const performQueuedMutation = async (item) => {
       switch (item.entity) {
         case 'journal':
-          if (item.action === 'insert') await cdInsert('journal', item.id, item.payload);
-          if (item.action === 'update') await cdUpdate(item.id, item.payload);
+          if (item.action === 'insert' || item.action === 'update') {
+            await performQueuedCoupleDataMutation('journal', item);
+          }
           if (item.action === 'delete') await cdSoftDelete(item.id);
           break;
 
@@ -2288,8 +2464,9 @@ const SupabaseDataLayer = {
           break;
 
         case 'memory':
-          if (item.action === 'insert') await cdInsert('memory', item.id, item.payload);
-          if (item.action === 'update') await cdUpdate(item.id, item.payload);
+          if (item.action === 'insert' || item.action === 'update') {
+            await performQueuedCoupleDataMutation('memory', item);
+          }
           if (item.action === 'delete') await cdSoftDelete(item.id);
           break;
 

@@ -77,8 +77,13 @@ export default function JournalEntryScreen({ navigation, route }) {
   const [content, setContent] = useState(entry?.content || entry?.body || "");
 
   const initialLegacyImageUri = entry?.imageUri || entry?.photoUri || entry?.photo_uri || null;
+  const initialMediaType = entry?.mediaType
+    || entry?.media_type
+    || entry?.mimeType
+    || entry?.mime_type
+    || (initialLegacyImageUri ? 'image/jpeg' : null);
   const [mediaUri, setMediaUri] = useState(entry?.mediaUri || initialLegacyImageUri || null);
-  const [mediaType, setMediaType] = useState(entry?.mediaType || (initialLegacyImageUri ? 'image/jpeg' : null));
+  const [mediaType, setMediaType] = useState(initialMediaType);
   const [mediaFileName, setMediaFileName] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -118,7 +123,7 @@ export default function JournalEntryScreen({ navigation, route }) {
       const initialMediaUri = entry?.mediaUri || initialLegacyImageUri || null;
       const isExistingMediaUnchanged = !!initialMediaUri
         && mediaUri === initialMediaUri
-        && mediaType === (entry?.mediaType || (initialLegacyImageUri ? 'image/jpeg' : null))
+        && mediaType === initialMediaType
         && !mediaFileName;
       const wasMediaRemoved = !!initialMediaUri && !mediaUri;
       const hasNewMedia = !!mediaUri && !isExistingMediaUnchanged;
