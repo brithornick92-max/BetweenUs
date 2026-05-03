@@ -1,5 +1,5 @@
 // screens/OnboardingScreen.js
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -109,11 +109,11 @@ export default function OnboardingScreen({ navigation }) {
     }
   }, [userProfile]);
 
-  const finalizeOnboarding = async () => {
+  const finalizeOnboarding = useCallback(async () => {
     AnalyticsService.track(AnalyticsEvent.ONBOARDING_COMPLETED);
     await actions.completeOnboarding();
     await markOnboardingComplete?.();
-  };
+  }, [actions, markOnboardingComplete]);
 
   // ─── Poll for partner linking after invite code is generated ───
   useEffect(() => {
@@ -167,20 +167,9 @@ export default function OnboardingScreen({ navigation }) {
 
     timer = setTimeout(doPoll, 3000);
     return () => { active = false; clearTimeout(timer); };
-  }, [inviteCode]);
+  }, [finalizeOnboarding, inviteCode]);
 
-  // 1. Intro Transition
-  useEffect(() => {
-    if (step === 0) {
-      AnalyticsService.track(AnalyticsEvent.ONBOARDING_STARTED);
-      const timer = setTimeout(() => {
-        transitionTo(1);
-      }, 12000); // 12 seconds — user can tap Get Started to skip
-      return () => clearTimeout(timer);
-    }
-  }, [step]);
-
-  const transitionTo = (nextStep) => {
+  const transitionTo = useCallback((nextStep) => {
     AnalyticsService.track(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, { step: nextStep - 1 });
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
@@ -193,7 +182,18 @@ export default function OnboardingScreen({ navigation }) {
         Animated.spring(slideAnim, { toValue: 0, friction: 8, tension: 60, useNativeDriver: true }),
       ]).start();
     });
-  };
+  }, [fadeAnim, slideAnim]);
+
+  // 1. Intro Transition
+  useEffect(() => {
+    if (step === 0) {
+      AnalyticsService.track(AnalyticsEvent.ONBOARDING_STARTED);
+      const timer = setTimeout(() => {
+        transitionTo(1);
+      }, 12000); // 12 seconds — user can tap Get Started to skip
+      return () => clearTimeout(timer);
+    }
+  }, [step, transitionTo]);
 
   useEffect(() => {
     if (step !== 0) {
@@ -204,7 +204,7 @@ export default function OnboardingScreen({ navigation }) {
         Animated.spring(slideAnim, { toValue: 0, friction: 8, tension: 60, useNativeDriver: true }),
       ]).start();
     }
-  }, [step]);
+  }, [fadeAnim, slideAnim, step]);
 
   const daysCounting = useMemo(() => {
     const diffTime = Math.abs(Date.now() - anniversaryDate.getTime());

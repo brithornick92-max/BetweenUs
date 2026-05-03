@@ -4,7 +4,7 @@ import RevenueCatService from "../services/RevenueCatService";
 import { storage, STORAGE_KEYS, cloudSyncStorage } from "../utils/storage";
 import { useAuth } from "./AuthContext";
 import StorageRouter from "../services/storage/StorageRouter";
-import SupabaseAuthService from "../services/supabase/SupabaseAuthService";
+import { SupabaseAuthService } from "../services/supabase/SupabaseAuthService";
 
 const SubscriptionContext = createContext(null);
 const DEV_FORCE_PREMIUM = __DEV__ && false;
@@ -161,7 +161,7 @@ export const SubscriptionProvider = ({ children }) => {
     premiumListenersRef.current.forEach((cb) => {
       try {
         cb(value);
-      } catch (e) { /* listener error non-critical */ }
+      } catch (_e) { /* listener error non-critical */ }
     });
   }, []);
 
@@ -206,8 +206,6 @@ export const SubscriptionProvider = ({ children }) => {
     let cancelled = false;
 
     const initialize = async () => {
-      const activeCoupleId = coupleId || storedCoupleId;
-
       if (!user) {
         identifiedRcUserRef.current = null;
         setIsPremium(false);
@@ -256,7 +254,7 @@ export const SubscriptionProvider = ({ children }) => {
         if (listenerRef.current) {
           try {
             listenerRef.current();
-          } catch (e) { /* cleanup non-critical */ }
+          } catch (_e) { /* cleanup non-critical */ }
           listenerRef.current = null;
         }
 
@@ -295,16 +293,16 @@ export const SubscriptionProvider = ({ children }) => {
       if (listenerRef.current) {
         try {
           listenerRef.current();
-        } catch (e) { /* cleanup non-critical */ }
+        } catch (_e) { /* cleanup non-critical */ }
         listenerRef.current = null;
       } else if (typeof Purchases.removeCustomerInfoUpdateListener === 'function') {
         try {
           Purchases.removeCustomerInfoUpdateListener();
-        } catch (e) { /* cleanup non-critical */ }
+        } catch (_e) { /* cleanup non-critical */ }
       }
       initPromiseRef.current = null;
     };
-  }, [user, coupleId, storedCoupleId, checkSubscriptionStatus, effectiveIsPremium, loadOfferings, updateSubscriptionDetails]);
+  }, [user, coupleId, storedCoupleId, checkSubscriptionStatus, effectiveIsPremium, loadOfferings, notifyPremiumListeners, updateSubscriptionDetails]);
 
   const purchasePackage = async (packageToPurchase) => {
     try {

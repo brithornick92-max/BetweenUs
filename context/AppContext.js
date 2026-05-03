@@ -2,13 +2,11 @@
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
 import * as Crypto from 'expo-crypto';
 import { storage, STORAGE_KEYS, vibeStorage, settingsStorage, userStorage } from '../utils/storage';
-import { useEntitlements , clearCouplePremiumCache } from './EntitlementsContext';
+import { useEntitlements } from './EntitlementsContext';
 import { updateWidgetPartnerName } from '../services/widgetData';
 import { NicknameEngine } from '../services/PolishEngine';
-import CoupleService from '../services/supabase/CoupleService';
-import StorageRouter from '../services/storage/StorageRouter';
 import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
-import CouplePresenceService from '../services/couple/CouplePresenceService';
+import { getVerifiedCoupleState, unlinkCouple } from '../services/couple/CouplePresenceService';
 
 const initialState = {
   userId: null,
@@ -161,8 +159,8 @@ export function AppProvider({ children }) {
           coupleId: coupleId || null,
           isLinked: !!coupleId,
           appLockEnabled: !!appLockEnabled,
-          isPremium,
-          isCouplePremium,
+          isPremium: isPremiumRef.current,
+          isCouplePremium: isCouplePremiumRef.current,
           lastPartnerActivity: coupleId ? lastPartnerActivity : null,
         },
       });
@@ -267,7 +265,7 @@ export function AppProvider({ children }) {
       if (resolvedCoupleId) {
         (async () => {
           try {
-            const verifiedCoupleState = await CouplePresenceService.getVerifiedCoupleState({
+            const verifiedCoupleState = await getVerifiedCoupleState({
               currentCoupleId: resolvedCoupleId,
               userId,
               requireRemoteCheck: true,
@@ -394,8 +392,6 @@ export function AppProvider({ children }) {
     setVibe: async (vibe) => {
       dispatch({ type: ACTIONS.SET_VIBE, payload: { vibe } });
 
-      const s = stateRef.current;
-
       // Persist via the Supabase-backed DataLayer. Local state is only a UI cache.
       try {
         const { DataLayer } = await import('../services/localfirst');
@@ -483,7 +479,7 @@ export function AppProvider({ children }) {
         // Remove server-side couple_members row first — must succeed before
         // clearing local state, otherwise we get a zombie half-unpaired state.
         const userId = stateRef.current.userId;
-        await CouplePresenceService.unlinkCouple({
+        await unlinkCouple({
           coupleId: stateRef.current.coupleId,
           userId,
         });

@@ -25,8 +25,8 @@ import CoupleService from '../services/supabase/CoupleService';
 import StorageRouter from '../services/storage/StorageRouter';
 import { joinWithInviteCode } from '../services/linking/CoupleLinkingService';
 import { STORAGE_KEYS, storage } from '../utils/storage';
-import { SPACING, BORDER_RADIUS, SYSTEM_FONT, withAlpha } from '../utils/theme';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+import { SPACING, SYSTEM_FONT, withAlpha } from '../utils/theme';
+import { SupabaseAuthService } from '../services/supabase/SupabaseAuthService';
 
 
 export default function ConnectPartnerScreen({ navigation }) {
@@ -41,7 +41,6 @@ export default function ConnectPartnerScreen({ navigation }) {
   const [joinPhase, setJoinPhase] = useState('idle');
 
   const activeRef = useRef(true);
-  const codeTimerRef = useRef(null);
 
   const t = {
     background: colors.background || '#070509',
@@ -101,7 +100,6 @@ export default function ConnectPartnerScreen({ navigation }) {
     generateCode();
     return () => {
       activeRef.current = false;
-      if (codeTimerRef.current) clearTimeout(codeTimerRef.current);
     };
   }, [generateCode]);
 
@@ -141,7 +139,7 @@ export default function ConnectPartnerScreen({ navigation }) {
       localActive = false;
       if (timer) clearTimeout(timer);
     };
-  }, [myCode, updateProfile, navigation]);
+  }, [actions, myCode, navigation, updateProfile]);
 
   const handleCopyCode = async () => {
     if (!myCode) return;

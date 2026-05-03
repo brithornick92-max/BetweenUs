@@ -39,7 +39,6 @@ import {
   PremiumFeature,
   PremiumSource,
   FREE_LIMITS,
-  PREMIUM_LIMITS,
   UsageEventType,
   FEATURE_META,
   GuardBehavior,
@@ -182,7 +181,7 @@ export const EntitlementsProvider = ({ children }) => {
       if (timeoutId) clearTimeout(timeoutId);
       setCoupleLoading(false);
     }
-  }, [resolvedCoupleId, supabase]);
+  }, [resolvedCoupleId]);
 
   // ─── Request server-side premium recomputation ──────────────────────────────
 
@@ -330,7 +329,7 @@ export const EntitlementsProvider = ({ children }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [resolvedCoupleId, supabase]);
+  }, [resolvedCoupleId]);
 
   // ─── Derived State ──────────────────────────────────────────────────────────
 

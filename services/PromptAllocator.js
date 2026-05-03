@@ -27,7 +27,6 @@
 
 // ─── In-memory caches (reset per session / user) ────────────────
 
-let _userId = null;
 let _dailyPromptId = null;            // reserved for the home card today
 let _todayAnsweredIds = new Set();     // prompt_ids answered today
 let _allAnsweredIds = new Set();       // prompt_ids ever answered by this user
@@ -47,11 +46,8 @@ const PromptAllocator = {
     _loaded = false;
 
     if (!userId) {
-      _userId = null;
       return;
     }
-    
-    _userId = userId;
 
     _loaded = true;
   },
@@ -148,7 +144,6 @@ const PromptAllocator = {
   // ─── Reset (logout / user switch) ─────────────────────────────
 
   reset() {
-    _userId = null;
     _dailyPromptId = null;
     _todayAnsweredIds = new Set();
     _allAnsweredIds = new Set();

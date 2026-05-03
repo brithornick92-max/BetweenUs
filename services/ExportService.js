@@ -113,7 +113,7 @@ const ExportService = {
       if (uri) {
         try {
           await FileSystem.deleteAsync(uri, { idempotent: true });
-        } catch (e) {
+        } catch (_e) {
           // Fire and forget, no hard failure if tmp file delete fails
         }
       }

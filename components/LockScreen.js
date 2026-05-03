@@ -1,5 +1,5 @@
 // components/LockScreen.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
  Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from './Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import * as LocalAuthentication from "expo-local-authentication";
 import { useTheme } from "../context/ThemeContext";
 import { SPACING, TYPOGRAPHY } from "../utils/theme";
@@ -23,8 +23,8 @@ export default function LockScreen({ onUnlock }) {
   const { colors, gradients, isDark } = useTheme();
   const keyBgStyle = { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' };
   const [pin, setPin] = useState("");
-  const [error, setError] = useState(false);
-  const [attempts, setAttempts] = useState(0);
+  const [error] = useState(false);
+  const [attempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
   const [biometricType, setBiometricType] = useState(null);
 
@@ -33,11 +33,22 @@ export default function LockScreen({ onUnlock }) {
 
   const isLockedOut = Date.now() < lockedUntil;
 
-  useEffect(() => {
-    initializeLock();
-  }, []);
+  const authenticateBiometrically = useCallback(async () => {
+    try {
+      if (Platform.OS === "web") return;
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Unlock Between Us",
+        fallbackLabel: "Use PIN",
+      });
+      if (result.success) {
+        onUnlock?.();
+      }
+    } catch (err) {
+      if (__DEV__) console.warn("[LockScreen] Biometric auth error:", err);
+    }
+  }, [onUnlock]);
 
-  const initializeLock = async () => {
+  const initializeLock = useCallback(async () => {
     try {
       if (Platform.OS !== "web") {
         const hasHardware = await LocalAuthentication.hasHardwareAsync();
@@ -60,32 +71,11 @@ export default function LockScreen({ onUnlock }) {
     } catch (err) {
       if (__DEV__) console.warn("[LockScreen] Initialization error:", err);
     }
-  };
+  }, [authenticateBiometrically]);
 
-  const authenticateBiometrically = async () => {
-    try {
-      if (Platform.OS === "web") return;
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: "Unlock Between Us",
-        fallbackLabel: "Use PIN",
-      });
-      if (result.success) {
-        onUnlock?.();
-      }
-    } catch (err) {
-      if (__DEV__) console.warn("[LockScreen] Biometric auth error:", err);
-    }
-  };
-
-  const shake = () => {
-    Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 10, duration: 70, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -10, duration: 70, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 10, duration: 70, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 70, useNativeDriver: true }),
-    ]).start();
-          notification(NotificationFeedbackType.Error);
-  };
+  useEffect(() => {
+    initializeLock();
+  }, [initializeLock]);
 
   const handlePressDigit = async (digit) => {
     if (isLockedOut || pin.length >= PIN_LENGTH) return;

@@ -6,28 +6,9 @@
  * Gives obsidian backgrounds a tactile, high-end paper feeling.
  */
 
-import React, { useMemo } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import React from 'react';
 
-const { width: W, height: H } = Dimensions.get('window');
-
-/**
- * Deterministic grid of tiny "ink" dots to simulate film grain.
- * Keeping it pure-View avoids extra dependencies like SVG or Canvas.
- */
-const CELL = 12;      // Wider grid = fewer dots
-const DOT  = 1.2;     // Smaller, sharper dots for Retina clarity
-const COLS = Math.ceil(W / CELL);
-const ROWS = Math.ceil(H / CELL);
-
-// Simple deterministic PRNG for consistent texture across renders
-const seed = (s) => () => { 
-  s = (s * 16807 + 0) % 2147483647; 
-  return s / 2147483647; 
-};
-
-const FilmGrain = ({ opacity = 0.04 }) => {
+const FilmGrain = () => {
   // Disabled to reduce CPU usage and heat generation
   return null;
 };

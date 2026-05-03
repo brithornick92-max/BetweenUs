@@ -551,9 +551,8 @@ export class MemoryManager {
   /**
    * Sync memories to cloud (Premium feature)
    */
-  async syncToCloud(config = {}) {
+  async syncToCloud() {
     try {
-      const { includePhotos = false } = config;
       const coupleId = await storage.get(STORAGE_KEYS.COUPLE_ID, null);
       if (!coupleId) {
         return { success: false, error: 'Couple not linked.' };

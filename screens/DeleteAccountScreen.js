@@ -157,7 +157,7 @@ export default function DeleteAccountScreen({ navigation }) {
                 Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
                   { text: 'Cancel', style: 'cancel' },
                   { text: 'Sign Out', style: 'destructive', onPress: async () => {
-                      try { await signOutLocal(); } catch (error) { Alert.alert('Error', 'Failed to sign out.'); }
+                      try { await signOutLocal(); } catch (_error) { Alert.alert('Error', 'Failed to sign out.'); }
                   }},
                 ]);
               }}

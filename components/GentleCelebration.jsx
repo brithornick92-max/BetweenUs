@@ -44,7 +44,7 @@ export default function GentleCelebration({
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
-  
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
 
@@ -79,7 +79,7 @@ export default function GentleCelebration({
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [visible]);
+  }, [duration, fadeAnim, onComplete, scaleAnim, visible]);
 
   if (!visible) return null;
 
@@ -177,4 +177,3 @@ const createStyles = (t, isDark) =>
       opacity: 0.6,
     }
   });
-  

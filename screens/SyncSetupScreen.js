@@ -24,7 +24,7 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { cloudSyncStorage } from '../utils/storage';
 import StorageRouter from '../services/storage/StorageRouter';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+import { SupabaseAuthService } from '../services/supabase/SupabaseAuthService';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });

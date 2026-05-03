@@ -1,5 +1,5 @@
 // utils/premiumFeatures.js
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { storage } from './storage';
 
 const FEATURE_USAGE_KEY = '@betweenus:cache:premiumFeatureUsage';

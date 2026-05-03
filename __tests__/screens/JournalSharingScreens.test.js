@@ -1,4 +1,3 @@
-const React = require('react');
 const {
   Image,
   renderer,
@@ -9,9 +8,7 @@ const {
   resetScreenHarnessMocks,
   mockUpdateJournalEntry,
   mockGetJournalEntries,
-  mockNeedsReconnect,
   mockStorageGet,
-  mockStorageSet,
 } = require('../helpers/screenTestHarness');
 
 const JournalEntryScreen = require('../../screens/JournalEntryScreen').default;

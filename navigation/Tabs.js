@@ -1,7 +1,7 @@
 // File: navigation/Tabs.js - Premium Tab Navigation
 // Fully integrated with Apple Editorial & Velvet Glass aesthetic
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
@@ -9,13 +9,10 @@ import { selection } from "../utils/haptics";
 import Animated, {
   useAnimatedStyle,
   withSpring,
-  withTiming,
   useSharedValue,
 } from "react-native-reanimated";
 import { useTheme } from "../context/ThemeContext";
-import { SPACING } from "../utils/theme";
 import Icon from "../components/Icon";
-import { RelationshipMilestones } from "../services/PolishEngine";
 import DeepLinkHandler from "../services/DeepLinkHandler";
 
 // Tab screens
@@ -43,7 +40,7 @@ function AnimatedTabIcon({ routeName, focused, color, size = 24 }) {
       damping: 12,
       stiffness: 200,
     });
-  }, [focused]);
+  }, [focused, scale, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }, { translateY: translateY.value }],
@@ -108,30 +105,6 @@ function PremiumTabBarBackground({ isDark }) {
 // ------------------------------------------------------------------
 export default function Tabs() {
   const { colors, isDark } = useTheme();
-  const [daysSinceJoin, setDaysSinceJoin] = useState(null);
-
-  useEffect(() => {
-    let active = true;
-    RelationshipMilestones._getStats()
-      .then((stats) => {
-        if (!active) return;
-        if (!stats?.firstOpenDate) {
-          setDaysSinceJoin(Infinity);
-          return;
-        }
-        const days = Math.floor(
-          (Date.now() - new Date(stats.firstOpenDate).getTime()) /
-            (1000 * 60 * 60 * 24)
-        );
-        setDaysSinceJoin(days);
-      })
-      .catch(() => {
-        if (active) setDaysSinceJoin(Infinity);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   // Show Calendar + Dates tabs only after day 2 (gives new users space to explore)
   const showSecondaryTabs = true; // Show Calendar + Dates immediately

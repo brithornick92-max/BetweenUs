@@ -20,7 +20,7 @@ import Animated, {
   useAnimatedSensor,
   SensorType,
 } from "react-native-reanimated";
-import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from 'expo-blur';
 import Icon from './Icon';
@@ -112,7 +112,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   const shimmerLoop = useSharedValue(0);
   useEffect(() => {
     shimmerLoop.value = withRepeat(withTiming(1, { duration: 5000, easing: Easing.linear }), -1, false);
-  }, []);
+  }, [shimmerLoop]);
 
   const shimmerAnimatedStyle = useAnimatedStyle(() => {
     const roll = rotationSensor.sensor.value.roll || 0;
@@ -124,7 +124,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   const pulseAnim = useSharedValue(0.3);
   useEffect(() => {
     pulseAnim.value = withRepeat(withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) }), -1, true);
-  }, []);
+  }, [pulseAnim]);
 
   const pulseStyle = useAnimatedStyle(() => ({ opacity: pulseAnim.value }));
 
@@ -134,7 +134,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
       flipProgress.value = 0; setIsFlipped(false);
       scale.value = withSpring(1, SPRING_CONFIG);
     }
-  }, [isTop]);
+  }, [flipProgress, isTop, rotateZ, scale, translateX, translateY]);
 
   const handleSwipeComplete = useCallback((direction) => {
     impact(ImpactFeedbackStyle.Medium);

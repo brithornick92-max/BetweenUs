@@ -18,7 +18,6 @@
  */
 
 const {
-  withXcodeProject,
   withInfoPlist,
   withDangerousMod,
 } = require('@expo/config-plugins');

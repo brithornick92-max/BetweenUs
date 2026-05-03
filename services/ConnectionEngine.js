@@ -805,9 +805,13 @@ export default {
   RelationshipClimateState,
   ClimateInfluenceRouter,
   ContentIntensityMatcher,
+  BinaryPromptEngine,
+  FuturePromptRotation,
   SerendipityTrigger,
   PrivateLanguageVault,
+  SoftIntentionsManager,
   MOMENT_TYPES,
   CLIMATE_OPTIONS,
   ENERGY_LEVELS,
+  SOFT_INTENTIONS,
 };

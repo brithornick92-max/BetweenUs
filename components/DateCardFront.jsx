@@ -76,7 +76,7 @@ export default function DateCardFront({ date, isDark = true, partnerName = 'your
       -1,
       false
     );
-  }, []);
+  }, [shimmerLoop]);
 
   const shimmerStyle = useAnimatedStyle(() => {
     const roll = rotationSensor.sensor.value.roll || 0;

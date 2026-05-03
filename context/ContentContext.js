@@ -5,18 +5,31 @@ import StorageRouter from '../services/storage/StorageRouter';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import contentAccessService from '../services/ContentAccessService';
 import { updateWidgetPrompt } from '../services/widgetData';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+import { SupabaseAuthService } from '../services/supabase/SupabaseAuthService';
 import { useAuth } from './AuthContext';
 import { useEntitlements } from './EntitlementsContext';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import { NicknameEngine, SoftBoundaries } from '../services/PolishEngine';
 import PromptAllocator from '../services/PromptAllocator';
-import CoupleStateService from '../services/couple/CoupleStateService';
-import ContentCoupleService from '../services/content/ContentCoupleService';
+import {
+  clearPendingSharedAnniversary,
+  getActiveCoupleId,
+  getPendingSharedAnniversary,
+  getSharedAnniversary,
+  setPendingSharedAnniversary,
+  subscribeToSharedAnniversary,
+  syncSharedAnniversary as syncSharedAnniversaryRecord,
+} from '../services/couple/CoupleStateService';
+import {
+  getSharedDailyPromptSelection,
+  loadPromptResponses,
+  savePromptResponse,
+  saveSharedDailyPromptSelection,
+} from '../services/content/ContentCoupleService';
 import { DataLayer } from '../services/localfirst';
 import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
 import { getRecentlyCompletedPromptIds } from '../utils/promptHistory';
-import { STORAGE_KEYS, storage } from '../utils/storage';
+import { storage } from '../utils/storage';
 
 const ContentContext = createContext({});
 const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
@@ -57,11 +70,11 @@ export const useContent = () => {
 export const ContentProvider = ({ children }) => {
   const { user, userProfile, updateProfile } = useAuth();
   const { isPremiumEffective: isPremium } = useEntitlements();
-  const [prompts, setPrompts] = useState([]);
-  const [dates, setDates] = useState([]);
+  const [prompts] = useState([]);
+  const [dates] = useState([]);
   const [todayPrompt, setTodayPrompt] = useState(null);
   const [userResponses, setUserResponses] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const loadingPromptRef = useRef(false);
   const [usageStatus, setUsageStatus] = useState(null);
   const [contentProfile, setContentProfile] = useState(null);
@@ -88,7 +101,7 @@ export const ContentProvider = ({ children }) => {
   }, []);
 
   const syncSharedAnniversary = useCallback(async (startDate) => {
-    return CoupleStateService.syncSharedAnniversary(startDate, user?.uid, {
+    return syncSharedAnniversaryRecord(startDate, user?.uid, {
       fallbackCoupleId: userProfile?.coupleId || null,
       ensureSession: ensureSupabaseSession,
     });
@@ -103,7 +116,7 @@ export const ContentProvider = ({ children }) => {
   }, [updateProfile, user]);
 
   // Personalize prompt text with partner/user nicknames
-  const personalizePrompt = async (prompt) => {
+  const personalizePrompt = useCallback(async (prompt) => {
     if (!prompt || typeof prompt.text !== 'string') return prompt;
     try {
       const personalized = await NicknameEngine.personalize(prompt.text);
@@ -111,10 +124,10 @@ export const ContentProvider = ({ children }) => {
     } catch {
       return prompt;
     }
-  };
+  }, []);
 
   // Load the unified content profile (all user preferences)
-  const loadContentProfile = async () => {
+  const loadContentProfile = useCallback(async () => {
     try {
       const profile = await PreferenceEngine.getContentProfile(userProfile || {});
       setContentProfile(profile);
@@ -123,13 +136,54 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error loading content profile:', error);
       return null;
     }
-  };
+  }, [userProfile]);
+
+  // Calculate relationship duration in days
+  const getRelationshipDuration = useCallback(() => {
+    if (!userProfile?.relationshipStartDate) return 0;
+
+    const startDate = new Date(userProfile.relationshipStartDate);
+    const today = new Date();
+    const diffTime = Math.abs(today - startDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  }, [userProfile?.relationshipStartDate]);
+
+  // Categorize relationship duration for prompt filtering
+  const getDurationCategory = useCallback((days) => {
+    if (days < 30) return 'new'; // Less than 1 month
+    if (days < 365) return 'developing'; // 1 month to 1 year
+    if (days < 1095) return 'established'; // 1-3 years
+    if (days < 1825) return 'mature'; // 3-5 years
+    return 'long_term'; // 5+ years
+  }, []);
+
+  // Get relationship duration display text
+  const getRelationshipDurationText = useCallback(() => {
+    const days = getRelationshipDuration();
+    if (days === 0) return 'Set your anniversary date';
+
+    const years = Math.floor(days / 365);
+    const months = Math.floor((days % 365) / 30);
+    const remainingDays = days % 30;
+
+    if (years > 0) {
+      if (months > 0) {
+        return `${years} year${years > 1 ? 's' : ''}, ${months} month${months > 1 ? 's' : ''}`;
+      }
+      return `${years} year${years > 1 ? 's' : ''}`;
+    } else if (months > 0) {
+      return `${months} month${months > 1 ? 's' : ''}`;
+    } else {
+      return `${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+    }
+  }, [getRelationshipDuration]);
 
   // Load today's prompt — one fixed prompt per scope/day.
   // Caller-specific heat selection must not regenerate a second "today" prompt.
   // We keep the legacy parameter for compatibility with existing callers, but
   // the selection itself is based on the persisted content profile only.
-  const loadTodayPrompt = async (heatLevel = null) => {
+  const loadTodayPrompt = useCallback(async (heatLevel = null) => {
       if (loadingPromptRef.current) return todayPrompt;
 
       try {
@@ -140,7 +194,7 @@ export const ContentProvider = ({ children }) => {
         loadingPromptRef.current = true;
 
       const today = getTodayDateKey();
-      const coupleId = await CoupleStateService.getActiveCoupleId({
+      const coupleId = await getActiveCoupleId({
         fallbackCoupleId: userProfile?.coupleId || null,
       });
       const scope = getDailyPromptScope(user.uid, coupleId);
@@ -166,7 +220,7 @@ export const ContentProvider = ({ children }) => {
       }
 
       if (coupleId) {
-        const sharedPromptSelection = await ContentCoupleService.getSharedDailyPromptSelection(today, {
+        const sharedPromptSelection = await getSharedDailyPromptSelection(today, {
           fallbackCoupleId: coupleId,
           ensureSession: ensureSupabaseSession,
         });
@@ -262,7 +316,7 @@ export const ContentProvider = ({ children }) => {
       });
 
       if (coupleId) {
-        await ContentCoupleService.saveSharedDailyPromptSelection(today, selectedPrompt.id, user.uid, {
+        await saveSharedDailyPromptSelection(today, selectedPrompt.id, user.uid, {
           fallbackCoupleId: coupleId,
           ensureSession: ensureSupabaseSession,
         }).catch((error) => {
@@ -298,11 +352,21 @@ export const ContentProvider = ({ children }) => {
       } finally {
         loadingPromptRef.current = false;
       }
-  };
+  }, [
+    ensureSupabaseSession,
+    getDurationCategory,
+    getRelationshipDuration,
+    isPremium,
+    loadContentProfile,
+    personalizePrompt,
+    todayPrompt,
+    user,
+    userProfile,
+  ]);
 
   // Get filtered prompts based on user preferences and premium status
   // Uses PreferenceEngine to rank by season, climate, energy, boundaries
-  const getFilteredPrompts = async (filters = {}) => {
+  const getFilteredPrompts = useCallback(async (filters = {}) => {
     try {
       if (!user) return [];
 
@@ -338,51 +402,10 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error getting filtered prompts:', error);
       return [];
     }
-  };
-
-  // Calculate relationship duration in days
-  const getRelationshipDuration = () => {
-    if (!userProfile?.relationshipStartDate) return 0;
-
-    const startDate = new Date(userProfile.relationshipStartDate);
-    const today = new Date();
-    const diffTime = Math.abs(today - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  // Categorize relationship duration for prompt filtering
-  const getDurationCategory = (days) => {
-    if (days < 30) return 'new'; // Less than 1 month
-    if (days < 365) return 'developing'; // 1 month to 1 year
-    if (days < 1095) return 'established'; // 1-3 years
-    if (days < 1825) return 'mature'; // 3-5 years
-    return 'long_term'; // 5+ years
-  };
-
-  // Get relationship duration display text
-  const getRelationshipDurationText = () => {
-    const days = getRelationshipDuration();
-    if (days === 0) return 'Set your anniversary date';
-
-    const years = Math.floor(days / 365);
-    const months = Math.floor((days % 365) / 30);
-    const remainingDays = days % 30;
-
-    if (years > 0) {
-      if (months > 0) {
-        return `${years} year${years > 1 ? 's' : ''}, ${months} month${months > 1 ? 's' : ''}`;
-      }
-      return `${years} year${years > 1 ? 's' : ''}`;
-    } else if (months > 0) {
-      return `${months} month${months > 1 ? 's' : ''}`;
-    } else {
-      return `${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
-    }
-  };
+  }, [contentProfile, getDurationCategory, getRelationshipDuration, isPremium, loadContentProfile, user]);
 
   // Update relationship start date
-  const updateRelationshipStartDate = async (startDate) => {
+  const updateRelationshipStartDate = useCallback(async (startDate) => {
     try {
       if (!user) throw new Error('User not authenticated');
 
@@ -393,9 +416,9 @@ export const ContentProvider = ({ children }) => {
       const synced = await syncSharedAnniversary(normalizedDate);
 
       if (!synced) {
-        await CoupleStateService.setPendingSharedAnniversary(normalizedDate);
+        await setPendingSharedAnniversary(normalizedDate);
       } else {
-        await CoupleStateService.clearPendingSharedAnniversary();
+        await clearPendingSharedAnniversary();
       }
 
       return true;
@@ -403,7 +426,7 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error updating relationship start date:', error);
       throw error;
     }
-  };
+  }, [applyRelationshipStartDate, syncSharedAnniversary, user]);
 
   useEffect(() => {
     let active = true;
@@ -411,12 +434,12 @@ export const ContentProvider = ({ children }) => {
     const reconcileSharedAnniversary = async () => {
       if (!user?.uid) return;
 
-      const coupleId = await CoupleStateService.getActiveCoupleId({
+      const coupleId = await getActiveCoupleId({
         fallbackCoupleId: userProfile?.coupleId || null,
       });
       if (!coupleId) return;
 
-      const shared = await CoupleStateService.getSharedAnniversary({
+      const shared = await getSharedAnniversary({
         fallbackCoupleId: coupleId,
         ensureSession: ensureSupabaseSession,
       });
@@ -451,12 +474,12 @@ export const ContentProvider = ({ children }) => {
     const flushPendingSharedAnniversary = async () => {
       if (!user?.uid) return;
 
-      const pendingDate = await CoupleStateService.getPendingSharedAnniversary();
+      const pendingDate = await getPendingSharedAnniversary();
       if (!pendingDate || !active) return;
 
       const synced = await syncSharedAnniversary(pendingDate);
       if (synced && active) {
-        await CoupleStateService.clearPendingSharedAnniversary();
+        await clearPendingSharedAnniversary();
       }
     };
 
@@ -471,11 +494,11 @@ export const ContentProvider = ({ children }) => {
     let active = true;
     let unsubscribe = null;
 
-    const subscribeToSharedAnniversary = async () => {
+    const startSharedAnniversarySubscription = async () => {
       if (!user?.uid) return;
 
       try {
-        unsubscribe = await CoupleStateService.subscribeToSharedAnniversary({
+        unsubscribe = await subscribeToSharedAnniversary({
           userId: user.uid,
           currentRelationshipStartDate: userProfile?.relationshipStartDate,
           ensureSession: ensureSupabaseSession,
@@ -490,7 +513,7 @@ export const ContentProvider = ({ children }) => {
       }
     };
 
-    subscribeToSharedAnniversary();
+    startSharedAnniversarySubscription();
 
     return () => {
       active = false;
@@ -501,7 +524,7 @@ export const ContentProvider = ({ children }) => {
   }, [applyRelationshipStartDate, ensureSupabaseSession, user?.uid, userProfile?.relationshipStartDate]);
 
   // Get date ideas with premium filtering + preference-based ranking
-  const getDateIdeas = async (filters = {}) => {
+  const getDateIdeas = useCallback(async (filters = {}) => {
     try {
       if (!user) return [];
 
@@ -532,13 +555,26 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error getting date ideas:', error);
       throw error;
     }
-  };
+  }, [contentProfile, isPremium, loadContentProfile, user]);
 
   // Save user response to Supabase
-  const saveResponse = async (promptId, response, isPrivate = false) => {
+  const loadUsageStatus = useCallback(async () => {
+    try {
+      if (!user) return;
+
+      const status = await PremiumGatekeeper.getUserUsageStatus(user.uid, isPremium);
+      setUsageStatus(status);
+      return status;
+    } catch (error) {
+      if (__DEV__) console.error('Error loading usage status:', error);
+      return null;
+    }
+  }, [isPremium, user]);
+
+  const saveResponse = useCallback(async (promptId, response, isPrivate = false) => {
     try {
       if (!user || !promptId || !response) return;
-      await ContentCoupleService.savePromptResponse(user.uid, promptId, response, {
+      await savePromptResponse(user.uid, promptId, response, {
         isPrivate,
         fallbackCoupleId: userProfile?.coupleId || null,
       });
@@ -557,13 +593,13 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error saving response:', error);
       throw error;
     }
-  };
+  }, [isPremium, loadUsageStatus, user, userProfile?.coupleId]);
 
   // Load user's responses
-  const loadUserResponses = async () => {
+  const loadUserResponses = useCallback(async () => {
     try {
       if (!user) return;
-      const responses = await ContentCoupleService.loadPromptResponses(user.uid, {
+      const responses = await loadPromptResponses(user.uid, {
         fallbackCoupleId: userProfile?.coupleId || null,
       });
 
@@ -573,24 +609,10 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error loading user responses:', error);
       return [];
     }
-  };
-
-  // Load usage status for freemium limits
-  const loadUsageStatus = async () => {
-    try {
-      if (!user) return;
-
-      const status = await PremiumGatekeeper.getUserUsageStatus(user.uid, isPremium);
-      setUsageStatus(status);
-      return status;
-    } catch (error) {
-      if (__DEV__) console.error('Error loading usage status:', error);
-      return null;
-    }
-  };
+  }, [user, userProfile?.coupleId]);
 
   // Track date usage
-  const trackDateUsage = async (dateId) => {
+  const trackDateUsage = useCallback(async (dateId) => {
     try {
       if (!user) return;
 
@@ -600,10 +622,10 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error tracking date usage:', error);
       throw error;
     }
-  };
+  }, [isPremium, loadUsageStatus, user]);
 
   // Get content (prompts or dates) — delegates to the real filtered fetches
-  const getPersonalizedContent = async (contentType = 'prompt', options = {}) => {
+  const getPersonalizedContent = useCallback(async (contentType = 'prompt', options = {}) => {
     try {
       if (!user) return [];
       if (contentType === 'date') return getDateIdeas(options);
@@ -612,7 +634,7 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error getting content:', error);
       return [];
     }
-  };
+  }, [getDateIdeas, getFilteredPrompts, user]);
 
   // Load usage status, content profile, and allocator when user changes
   useEffect(() => {
@@ -629,7 +651,7 @@ export const ContentProvider = ({ children }) => {
       setTodayPrompt(null);
       setContentProfile(null);
     }
-  }, [user, userProfile]);
+  }, [loadContentProfile, loadUsageStatus, loadUserResponses, user]);
 
   const value = useMemo(() => ({
     prompts,

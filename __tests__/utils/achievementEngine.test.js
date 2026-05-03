@@ -167,8 +167,6 @@ describe('evaluateAchievements — couple_all_features', () => {
 
 describe('evaluateAchievements — isNew flag', () => {
   it('marks an achievement as isNew on first unlock, not on re-evaluation', async () => {
-    const AsyncStorage = require('@react-native-async-storage/async-storage');
-
     const dl = makeDataLayer({ journals: [{}] });
 
     // First evaluation — should be new

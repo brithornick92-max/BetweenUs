@@ -20,7 +20,7 @@ import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { SPACING, withAlpha } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });

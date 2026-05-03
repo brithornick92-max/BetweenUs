@@ -315,7 +315,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                           try {
                             impact(ImpactFeedbackStyle.Medium);
                             await signOutLocal();
-                          } catch (error) {
+                          } catch (_error) {
                             Alert.alert('Error', 'Failed to sign out. Please try again.');
                           }
                         },
@@ -348,7 +348,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                           try {
                             notification(NotificationFeedbackType.Warning);
                             await signOutGlobal();
-                          } catch (error) {
+                          } catch (_error) {
                             Alert.alert('Error', 'Failed to sign out. Please try again.');
                           }
                         },

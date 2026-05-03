@@ -34,10 +34,8 @@ import FilmGrain from '../components/FilmGrain';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import { useAuth } from '../context/AuthContext';
 import { getPartnerDisplayName } from '../utils/profileNames';
-import DateCardFront from '../components/DateCardFront';
-import { HEAT_ICONS } from '../components/DateCardFront';
+import DateCardFront, { HEAT_ICONS } from '../components/DateCardFront';
 import DateCardBack from '../components/DateCardBack';
-import { getDateCardPalette } from '../components/dateCardPalette';
 import { SoftBoundaries } from '../services/PolishEngine';
 import { CONTENT_TYPES, buildWeeklySet } from '../services/WeeklyContentSetService';
 import {
@@ -93,43 +91,6 @@ const TONE_DATE_COPY = {
   },
 };
 
-const DECK_FILTER_ICONS = {
-  heat: {
-    1: 'heart-outline',
-    2: 'sparkles-outline',
-    3: 'flame-outline',
-  },
-  load: {
-    1: 'moon-outline',
-    2: 'sunny-outline',
-    3: 'flash-outline',
-  },
-  style: {
-    talking: 'chatbubble-outline',
-    doing: 'compass-outline',
-    mixed: 'shuffle-outline',
-  },
-};
-
-function getDeckFilterIcon(type, option) {
-  if (!option) return null;
-  const key = type === 'style' ? option.id : option.level;
-  return DECK_FILTER_ICONS[type]?.[key] || 'ellipse-outline';
-}
-
-function getDeckFilterTone(type, option, isDark = true) {
-  if (!option) return null;
-  if (type === 'style') {
-    const styleToneMap = {
-      talking: 1,
-      doing: 2,
-      mixed: 3,
-    };
-    return getDateCardPalette(styleToneMap[option.id] || 1, isDark);
-  }
-  return getDateCardPalette(option.level, isDark);
-}
-
 function getCardIdentity(item) {
   return item?.id ?? item?.title ?? null;
 }
@@ -161,7 +122,6 @@ const CardStack = forwardRef(function CardStack(
   const shuffleAnim = useSharedValue(0);
   const shuffleProgress = useSharedValue(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [rawBoundaries, setRawBoundaries] = useState(null);
 
   // Keep ref in sync during render (NOT in useEffect) so gesture handlers
   // always read the same deck/deckIndex that's currently displayed on screen.
@@ -174,14 +134,14 @@ const CardStack = forwardRef(function CardStack(
     setIsFlipped(false);
     topX.value = 0;
     topY.value = 0;
-  }, [deckIndex]);
+  }, [deckIndex, flipProgress, topX, topY]);
 
   const reset = useCallback(() => {
     topX.value = 0;
     topY.value = 0;
     flipProgress.value = 0;
     setIsFlipped(false);
-  }, []);
+  }, [flipProgress, topX, topY]);
 
   const doSwipeRight = useCallback(() => {
     const { deck: d, deckIndex: i, onSwipeRight: cb } = deckRef.current;
@@ -486,12 +446,10 @@ export default function DateNightScreen({ navigation }) {
   const [allDates, setAllDates] = useState([]);
   const [weeklyDateSet, setWeeklyDateSet] = useState(null);
   const [contentProfile, setContentProfile] = useState(null);
-  const [rawBoundaries, setRawBoundaries] = useState(null);
   const [deckIndex, setDeckIndex] = useState(0);
   const [likedDates, setLikedDates] = useState([]);
   const [dateMatches, setDateMatches] = useState({});
   const [shortlistBusyIds, setShortlistBusyIds] = useState({});
-  const [dropdownOpen, setDropdownOpen] = useState(null); // 'heat' | 'load' | 'style' | null
 
   const stackRef = useRef(null);
   const shortlistBusyRef = useRef(new Set());
@@ -523,7 +481,6 @@ export default function DateNightScreen({ navigation }) {
 
         if (boundsResult.status === 'fulfilled') {
           bounds = boundsResult.value;
-          setRawBoundaries(bounds);
         }
 
         if (historyResult.status === 'fulfilled') {

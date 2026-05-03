@@ -77,14 +77,11 @@ describe('app wiring contracts', () => {
 
     const navigationCalls = sourceFiles.flatMap((relativePath) => {
       const text = readRepoFile(relativePath);
-      return collectMatches(text, /\b(?:navigation|_navigationRef)\.(?:navigate|push|replace)\(\s*["']([^"']+)["']/g).map((route) => ({
-        route,
-        relativePath,
-      }));
+      return collectMatches(text, /\b(?:navigation|_navigationRef)\.(?:navigate|push|replace)\(\s*["']([^"']+)["']/g).map((route) => ({ route }));
     });
 
     expect(validRoutes.size).toBeGreaterThan(0);
-    for (const { route, relativePath } of navigationCalls) {
+    for (const { route } of navigationCalls) {
       expect(validRoutes.has(route)).toBe(true);
     }
   });

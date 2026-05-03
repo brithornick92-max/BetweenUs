@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import Icon from './Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import { ContentIntensityMatcher, ENERGY_LEVELS } from '../services/ConnectionEngine';
@@ -61,8 +61,9 @@ export default function EnergyMatcher({ onSelect, compact = false }) {
     const params = ContentIntensityMatcher.getContentParams(level);
     onSelect?.(level, params);
     // Refresh global content profile and today's prompt so all screens see updated energy
+    loadContentProfile?.()?.catch(() => {});
     loadTodayPrompt?.()?.catch(() => {});
-  }, [onSelect, loadContentProfile]);
+  }, [onSelect, loadContentProfile, loadTodayPrompt]);
 
   if (compact) {
     return (

@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { useTheme } from "../context/ThemeContext";
-import { SPACING, withAlpha } from "../utils/theme";
 
 /**
  * High-End Apple Editorial Input Component

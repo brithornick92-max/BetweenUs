@@ -18,13 +18,12 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
-import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
+import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { PremiumFeature } from '../utils/featureFlags';
-import { SPACING, withAlpha } from '../utils/theme';
+import { withAlpha } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
@@ -82,7 +81,7 @@ const SetPinScreen = ({ navigation }) => {
       Alert.alert('App Lock Updated', 'Your app lock preference has been updated.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Error', 'Failed to secure your space. Please try again.');
     } finally {
       setSaving(false);
@@ -96,7 +95,7 @@ const SetPinScreen = ({ navigation }) => {
       Alert.alert('Lock Removed', 'Your app lock has been cleared.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Error', 'Failed to clear the security key.');
     } finally {
       setSaving(false);

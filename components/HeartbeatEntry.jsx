@@ -12,7 +12,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING } from '../utils/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -116,7 +115,6 @@ const HeartbeatEntry = () => {
 };
 
 const createStyles = (t, isDark) => {
-  const systemFont = Platform.select({ ios: "System", android: "Roboto" });
   const serifFont = Platform.select({ ios: "Georgia", android: "serif" });
 
   return StyleSheet.create({

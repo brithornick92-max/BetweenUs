@@ -16,7 +16,6 @@ const DEFAULT_THEME_MODE = "dark";
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
-  const systemColorScheme = useColorScheme();
 
   if (!context) {
     const fallbackPalette = DARK_PALETTE;

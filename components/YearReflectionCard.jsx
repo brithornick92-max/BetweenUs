@@ -45,7 +45,7 @@ export default function YearReflectionCard({ onPress }) {
         Animated.timing(breatheAnim, { toValue: 0, duration: 5000, useNativeDriver: true }),
       ])
     ).start();
-  }, []);
+  }, [breatheAnim]);
 
   const orbOpacity = breatheAnim.interpolate({
     inputRange: [0, 1],

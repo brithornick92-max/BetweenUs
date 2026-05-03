@@ -7,7 +7,6 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-  View,
   Text,
   StyleSheet,
   TouchableOpacity,
@@ -56,14 +55,14 @@ function MilestoneCard() {
         translateY.value = withDelay(800, withSpring(0, { damping: 20, stiffness: 120 }));
       }
     })();
-  }, []);
+  }, [opacity, translateY]);
 
   const handleDismiss = useCallback(() => {
     opacity.value = withTiming(0, { duration: 350 }, (finished) => {
       if (finished) runOnJS(setDismissed)(true);
     });
     translateY.value = withTiming(-12, { duration: 350 });
-  }, []);
+  }, [opacity, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

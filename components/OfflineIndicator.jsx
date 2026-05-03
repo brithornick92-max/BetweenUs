@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING, withAlpha } from '../utils/theme';
+import { withAlpha } from '../utils/theme';
 import { OfflineGrace } from '../services/PolishEngine';
 import { SUPABASE_URL } from '../config/supabase';
 import Icon from './Icon';

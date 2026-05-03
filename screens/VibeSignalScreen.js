@@ -193,7 +193,7 @@ export default function VibeSignalScreen({ navigation }) {
     }).catch(() => {});
 
     loadFluxData();
-  }, [loadFluxData]);
+  }, [entranceFade, entranceSlide, loadFluxData]);
 
   // Re-load chart whenever a new partner vibe arrives via realtime
   const partnerVibe = state?.partnerVibe;

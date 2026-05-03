@@ -16,14 +16,6 @@ import Icon from './Icon';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 
-const HEAT_ICONS = { 1: 'heart-outline', 2: 'sparkles-outline', 3: 'flame-outline', 4: 'flame-outline' };
-const HEAT_LABELS = { 1: 'Gentle', 2: 'Warm', 3: 'Heated' };
-const MOOD_ICONS = {
-  intimate: 'moon-outline', tender: 'heart-outline', curious: 'compass-outline',
-  playful: 'happy-outline', freeform: 'infinite-outline', devoted: 'star-outline',
-  passionate: 'flame-outline', surrendered: 'bed-outline', cozy: 'home-outline',
-};
-
 const BODY_TYPE_OPTIONS = [
   { key: 'standard', label: 'Standard' },
   { key: 'support', label: 'More Support' },
@@ -68,10 +60,6 @@ export default function IntimacyPositionCard({
   compact = false,
 }) {
   const [activeBodyType, setActiveBodyType] = useState(defaultBodyType);
-
-  const heatIcon = HEAT_ICONS[position.heat || 1];
-  const heatLabel = HEAT_LABELS[position.heat || 1];
-  const moodIcon = MOOD_ICONS[position.mood] || 'ellipse-outline';
   
   const comfortBody = activeBodyType === 'support' ? (position.comfort || POSITION_SUPPORT_TIPS[position.id] || null) : null;
 

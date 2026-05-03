@@ -23,8 +23,6 @@ function ShimmerBlock({ width = '100%', height = 16, borderRadius = 8, style }) 
   }, [shimmer]);
 
   const bg = isDark ? '#2C2C2E' : '#E5E5EA';
-  const highlight = isDark ? '#3A3A3C' : '#F2F2F7';
-
   return (
     <Animated.View
       style={[

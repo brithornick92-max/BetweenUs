@@ -12,8 +12,6 @@ const sexualKeywords = ["naked", "undress", "strip", "nude", "erotic", "sensual"
 const romanticKeywords = ["candle", "love letter", "hand-hold", "hand hold", "cuddl", "slow dance", "sunset", "stargaz", "moonlight"];
 const outdoorKeywords = ["hike", "trail", "park", "beach", "lake", "river", "mountain", "camping", "picnic outside", "rooftop", "garden", "outdoor", "farmer", "market", "museum", "restaurant", "cafe", "bar ", "concert", "theater", "zoo", "aquarium", "festival"];
 const homeKeywords = ["living room", "bedroom", "kitchen", "couch", "sofa", "bathtub", "shower", "bed ", "pillow"];
-const talkingKeywords = ["discuss", "share", "conversation", "talk about", "tell each other", "write letter", "read aloud", "reminisce"];
-const doingKeywords = ["cook", "build", "create", "paint", "draw", "dance", "exercise", "play", "race", "climb", "swim"];
 
 dateItems.forEach((d, i) => {
   const allText = [d.title, ...(d.steps || [])].join(" ").toLowerCase();
@@ -73,11 +71,9 @@ issues.filter(i => i.startsWith("DATE")).forEach(i => console.log("  -", i));
 console.log("\n\n=== PROMPT SEMANTIC CHECKS ===\n");
 
 const sexualPromptWords = ["sex ", "sexual", "orgasm", "climax", "naked", "nude", "undress", "strip", "masturbat", "erotic", "foreplay", "moan", "arousal", "aroused", "turn you on", "turns you on", "turned on", "vibrator", "toy ", "toys", "bondage", "handcuff", "blindfold", "spank", "domina", "submissiv", "oral", "thrust", "penetrat", "ride you", "ride me", "make love", "body part", "genitals", "private part", "skinny dip", "intimate with", "intimacy"];
-const flirtyWords = ["flirt", "kiss", "make out", "attract", "crush", "butterfl", "tease", "seduc", "lingerie", "date night", "romantic"];
 const emotionalWords = ["feel ", "feeling", "emotion", "vulnerable", "afraid", "fear ", "trust", "safe", "hurt", "pain", "cry ", "crying", "anger", "forgiv", "sorry", "grateful", "appreciat", "insecur", "jealous", "anxious", "depress"];
 const memoryWords = ["remember", "first time", "childhood", "when we", "our first", "favorite moment", "memory", "memories", "nostalg", "used to"];
 const futureWords = ["future", "dream", "goal", "plan", "hope ", "hoping", "someday", "years from now", "imagine us", "envision", "retirement", "old together", "grow old"];
-const playfulWords = ["game", "dare", "challenge", "silly", "funny", "laugh", "joke", "prank", "goofy", "would you rather", "truth or"];
 
 promptItems.forEach((p, i) => {
   const text = (p.text || "").toLowerCase();

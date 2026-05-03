@@ -176,6 +176,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let active = true;
+    const pendingBackgroundOps = pendingBackgroundOpsRef.current;
     storage.purgeLegacyLocalStorage().catch(() => {});
 
     const unsubscribe = StorageRouter.onAuthStateChanged(async (localUser) => {
@@ -387,7 +388,7 @@ export const AuthProvider = ({ children }) => {
     return () => {
       active = false;
       // Cancel all pending background operations
-      pendingBackgroundOpsRef.current.clear();
+      pendingBackgroundOps.clear();
       lastAuthStateRef.current = null;
       if (typeof unsubscribe === 'function') unsubscribe();
     };

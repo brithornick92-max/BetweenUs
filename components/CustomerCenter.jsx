@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { 
   View, 
   StyleSheet, 
@@ -28,11 +28,11 @@ export default function CustomerCenter({ onDismiss, navigation }) {
   const { colors, isDark } = useTheme();
   const { hidePaywall } = useEntitlements();
 
-  const dismiss = () => {
+  const dismiss = useCallback(() => {
     hidePaywall?.();
     if (onDismiss) { onDismiss(); return; }
     navigation?.goBack?.();
-  };
+  }, [hidePaywall, navigation, onDismiss]);
 
   // STRICT Apple Editorial Theme Map
   const t = useMemo(() => ({
@@ -136,7 +136,7 @@ export default function CustomerCenter({ onDismiss, navigation }) {
     return () => {
       if (removeListener) removeListener();
     };
-  }, []);
+  }, [checkSubscriptionStatus, dismiss]);
 
   return (
     <View style={styles.container}>

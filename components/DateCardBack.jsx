@@ -64,7 +64,7 @@ export default function DateCardBack({ date, dims, isDark = true }) {
       -1,
       true
     );
-  }, []);
+  }, [ringPulse]);
   const ringStyle = useAnimatedStyle(() => ({
     transform: [{ scale: ringPulse.value }],
     opacity: interpolate(ringPulse.value, [1, 1.08], [0.7, 1]),
@@ -81,7 +81,7 @@ export default function DateCardBack({ date, dims, isDark = true }) {
       -1,
       false
     );
-  }, []);
+  }, [shimmerLoop]);
 
   const shimmerStyle = useAnimatedStyle(() => {
     const roll = rotationSensor.sensor.value.roll || 0;

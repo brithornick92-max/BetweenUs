@@ -18,10 +18,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from '../components/Icon';
-import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
+import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { useAppContext } from '../context/AppContext';
 import { NicknameEngine } from '../services/PolishEngine';
 import { SPACING, withAlpha } from '../utils/theme';
 import Input from '../components/Input';
@@ -32,7 +31,6 @@ const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 export default function PartnerNamesSettingsScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { user, userProfile, updateProfile } = useAuth();
-  const { actions } = useAppContext();
   
   const [myName, setMyName] = useState('');
   const [partnerName, setPartnerName] = useState('');

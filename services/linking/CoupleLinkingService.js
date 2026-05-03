@@ -1,9 +1,9 @@
-import SupabaseAuthService from '../supabase/SupabaseAuthService';
+import { SupabaseAuthService } from '../supabase/SupabaseAuthService';
 import StorageRouter from '../storage/StorageRouter';
 import CloudEngine from '../storage/CloudEngine';
 import CoupleService from '../supabase/CoupleService';
 import { finalizeInviteCodeLink } from './InviteCodeLinking';
-import { STORAGE_KEYS, storage } from '../../utils/storage';
+import { storage } from '../../utils/storage';
 
 function getDependencies(dependencies = {}) {
   return {

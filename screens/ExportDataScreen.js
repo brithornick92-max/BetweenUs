@@ -13,8 +13,7 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
-  Switch,
-  Platform
+  Switch
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as FileSystem from 'expo-file-system/legacy';

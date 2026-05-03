@@ -14,7 +14,7 @@ import {
 import Icon from './Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING, withAlpha } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import { RelationshipClimateState, CLIMATE_OPTIONS } from '../services/ConnectionEngine';
 import StorageRouter from '../services/storage/StorageRouter';
 

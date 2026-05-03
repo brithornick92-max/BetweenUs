@@ -48,7 +48,7 @@ for (let h = 1; h <= 5; h++) {
 
 // Test filterDates behavior
 console.log('\n--- Filter test ---');
-const { filterDates, getAllDates, getDimensionMeta } = require('../utils/contentLoader');
+const { filterDates, getAllDates } = require('../utils/contentLoader');
 const all = getAllDates();
 console.log('getAllDates() count:', all.length);
 

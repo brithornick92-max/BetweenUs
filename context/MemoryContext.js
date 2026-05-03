@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef } from 'react';
 import { useAppContext } from './AppContext';
 import { useData } from './DataContext';
-import { memoryManager, MEMORY_TYPES } from '../utils/memoryManager';
+import { memoryManager } from '../utils/memoryManager';
 
 const initialState = {
   memories: [],

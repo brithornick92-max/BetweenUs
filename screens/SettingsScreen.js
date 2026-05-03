@@ -16,8 +16,6 @@ import {
   Linking,
   Platform,
   StatusBar,
-  TextInput,
-  ActivityIndicator,
   Animated as RNAnimated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,14 +35,12 @@ import ReAnimated, {
 
 // Context & Services
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../config/supabase';
 import { useEntitlements, clearCouplePremiumCache } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
 
 // Utilities & Components
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import { SUPPORT_EMAIL } from '../config/constants';
 import GlowOrb from '../components/GlowOrb';
@@ -53,10 +49,8 @@ import { cloudSyncStorage, settingsStorage, STORAGE_KEYS, storage } from '../uti
 import CrashReporting from '../services/CrashReporting';
 import RevenueCatService from '../services/RevenueCatService';
 import CoupleService from '../services/supabase/CoupleService';
-import CouplePresenceService from '../services/couple/CouplePresenceService';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+import { getVerifiedCoupleState } from '../services/couple/CouplePresenceService';
 import StorageRouter from '../services/storage/StorageRouter';
-import CloudEngine from '../services/storage/CloudEngine';
 import SeasonSelector from '../components/SeasonSelector';
 import EnergyMatcher from '../components/EnergyMatcher';
 import SoftBoundariesPanel from '../components/SoftBoundariesPanel';
@@ -166,7 +160,7 @@ const EditorialToggleRow = ({ icon, title, subtitle, value, onValueChange, t, is
 export default function SettingsScreen({ navigation }) {
   // ─── HOOKS & CONTEXT ───
   const { user, userProfile, signOutLocal, updateProfile } = useAuth();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { isPremiumEffective: isPremium } = useEntitlements();
   const { colors, themeMode, setThemeMode, isDark } = useTheme();
   const { getRelationshipDurationText, updateRelationshipStartDate, loadContentProfile } = useContent();
   const scrollY = useRef(new RNAnimated.Value(0)).current;
@@ -187,7 +181,6 @@ export default function SettingsScreen({ navigation }) {
 
   // ─── STATE ───
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [syncStatus, setSyncStatus] = useState({ enabled: false });
   const [paired, setPaired] = useState(false);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [keepsakeSettings, setKeepsakeSettings] = useState(DEFAULT_KEEPSAKE_SETTINGS);
@@ -212,12 +205,11 @@ export default function SettingsScreen({ navigation }) {
   // ─── REFRESH LOGIC ───
   const refreshSyncStatus = useCallback(async () => {
     try {
-      const status = await cloudSyncStorage.getSyncStatus();
-      setSyncStatus(status || { enabled: false });
+      await cloudSyncStorage.getSyncStatus();
 
       // Use the double-confirmed verification helper so a single transient remote
       // miss does not silently clear local couple state.
-      const verified = await CouplePresenceService.getVerifiedCoupleState({
+      const verified = await getVerifiedCoupleState({
         currentCoupleId: await storage.get(STORAGE_KEYS.COUPLE_ID, null),
         userId: user?.id,
         updateProfile,

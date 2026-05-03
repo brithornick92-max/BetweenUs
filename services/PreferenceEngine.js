@@ -671,7 +671,6 @@ function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
  * based on the full preference profile.
  */
 async function getSmartGreeting(profile) {
-  const tone = profile?.tone || 'warm';
   const seasonId = profile?.season?.id || 'cozy';
   const energyLevel = profile?.energy?.level || 'open';
 

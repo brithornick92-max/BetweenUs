@@ -134,9 +134,6 @@ export default function IntimacyPositionsScreen() {
     selectedIndexRef.current = selectedIndex;
   }, [selectedIndex]);
 
-  const accessInfo = positionAccess?.access || null;
-  const previewLockedCount = weeklyPositionSet?.lockedPreviews?.length || accessInfo?.lockedCount || 0;
-
   const selectedIndexSafe = useMemo(() => {
     return resolveSelectedPositionIndex(availablePositions, {
       selectedPositionId: selectedPositionIdRef.current || selectedPositionId,
@@ -145,10 +142,6 @@ export default function IntimacyPositionsScreen() {
   }, [availablePositions, selectedIndex, selectedPositionId]);
 
   const position = availablePositions[selectedIndexSafe];
-  const favoritePositions = useMemo(
-    () => availablePositions.filter((item) => favorites[item.id]),
-    [availablePositions, favorites]
-  );
 
   // ─── ANIMATIONS ───
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -312,7 +305,6 @@ export default function IntimacyPositionsScreen() {
     if (!position || triedBusyRef.current) return;
 
     const positionId = position.id;
-    const currentIndex = selectedIndexRef.current;
     const wasTried = !!triedPositions[positionId];
     const previousTried = triedPositions;
     const optimisticTried = { ...previousTried };

@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
-import SupabaseAuthService from '../services/supabase/SupabaseAuthService';
+import { SupabaseAuthService } from '../services/supabase/SupabaseAuthService';
 import { SPACING, withAlpha } from '../utils/theme';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });

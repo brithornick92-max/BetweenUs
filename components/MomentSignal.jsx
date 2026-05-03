@@ -91,10 +91,12 @@ function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onRece
       ]).start(() => setReceivedSignal(null));
     }, { coupleId, userId });
 
+    const timerIds = timerIdsRef.current;
+
     return () => {
       if (typeof unsubRef.current === 'function') unsubRef.current();
-      timerIdsRef.current.forEach((timerId) => clearTimeout(timerId));
-      timerIdsRef.current.clear();
+      timerIds.forEach((timerId) => clearTimeout(timerId));
+      timerIds.clear();
     };
   }, [coupleId, receiveFadeAnim, receiveScaleAnim, receivePulseAnim, userId]);
 

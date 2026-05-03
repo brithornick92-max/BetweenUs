@@ -2,7 +2,7 @@
 // Max 1-2x per month. Only evenings. Never pushy.
 // Reveal Mechanism + Apple Editorial & Velvet Glass Integration.
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useCallback, useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -59,12 +59,7 @@ export default function SurpriseTonight() {
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
   }), [isDark]);
 
-  useEffect(() => {
-    checkSurprise();
-    return () => breatheLoop.current?.stop();
-  }, []);
-
-  const checkSurprise = async () => {
+  const checkSurprise = useCallback(async () => {
     const shouldShow = await SerendipityTrigger.shouldShow();
     if (!shouldShow) return;
 
@@ -79,7 +74,12 @@ export default function SurpriseTonight() {
       ])
     );
     breatheLoop.current.start();
-  };
+  }, [breatheAnim]);
+
+  useEffect(() => {
+    checkSurprise();
+    return () => breatheLoop.current?.stop();
+  }, [checkSurprise]);
 
   const handlePressIn = () => {
     if (isRevealed) return;

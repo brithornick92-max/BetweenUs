@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { useTheme } from "../context/ThemeContext";
 import { impact, ImpactFeedbackStyle } from "../utils/haptics";
-import { SPACING, withAlpha } from "../utils/theme";
+import { withAlpha } from "../utils/theme";
 
 function Button({
   title,
@@ -80,7 +80,7 @@ function Button({
     if (haptic && Platform.OS !== "web") {
       try {
         impact(ImpactFeedbackStyle.Medium);
-      } catch (e) { /* non-critical */ }
+      } catch (_e) { /* non-critical */ }
     }
 
     onPress?.();

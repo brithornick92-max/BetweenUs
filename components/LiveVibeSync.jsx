@@ -166,7 +166,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
       glowRingOpacity.value = withTiming(0, { duration: 400 });
       glowRingScale.value = withTiming(1, { duration: 400 });
     }
-  }, [partnerOnScreen]);
+  }, [glowRingOpacity, glowRingScale, partnerOnScreen]);
 
   // Subscribe to partner heartbeats via postgres_changes (fallback for when broadcast misses)
   useEffect(() => {

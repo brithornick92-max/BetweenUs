@@ -238,7 +238,7 @@ function validateEnrichment(originalBatch, enrichedBatch) {
 
 async function main() {
   const originalData = readJson(absoluteInputPath);
-  const { items, setItems } = getItemsShape(originalData);
+  const { items } = getItemsShape(originalData);
 
   let workingData = originalData;
 

@@ -65,7 +65,7 @@ function FadeSection({ children, delay = 0 }) {
     ]);
     anim.start();
     return () => anim.stop();
-  }, [delay]);
+  }, [delay, opacity, translateY]);
 
   return (
     <Animated.View style={{ opacity, transform: [{ translateY }] }}>
@@ -111,7 +111,7 @@ export default function YearReflectionScreen({ navigation }) {
       setReflection(data);
       setLoading(false);
     })();
-  }, []);
+  }, [year]);
 
   const toggleSelectMode = useCallback(() => {
     impact(ImpactFeedbackStyle.Medium);
@@ -139,7 +139,7 @@ export default function YearReflectionScreen({ navigation }) {
       } else if (result.cancelled) {
         impact(ImpactFeedbackStyle.Light);
       }
-    } catch (e) {
+    } catch (_e) {
       notification(NotificationFeedbackType.Error);
       Alert.alert('Export Failed', "We couldn't create your snapshot right now.");
     } finally {
