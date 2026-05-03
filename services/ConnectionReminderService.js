@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { REMINDER_CATEGORY_COLORS } from '../config/constants';
 import { settingsStorage } from '../utils/storage';
 import {
   ensureDefaultNotificationChannel,
@@ -62,7 +63,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
   [CONNECTION_REMINDER_TYPES.PROMPT]: {
     label: 'Prompt',
     icon: 'chatbubble-ellipses-outline',
-    accentColor: '#D2121A',
+    accentColor: REMINDER_CATEGORY_COLORS.prompt,
     notificationType: NOTIFICATION_TYPES.RITUAL_REMINDERS,
     route: 'home',
     title: 'One small question',
@@ -74,7 +75,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
   [CONNECTION_REMINDER_TYPES.DAILY_QUIZ]: {
     label: 'Quiz',
     icon: 'help-circle-outline',
-    accentColor: '#AF52DE',
+    accentColor: REMINDER_CATEGORY_COLORS.quiz,
     notificationType: NOTIFICATION_TYPES.RITUAL_REMINDERS,
     route: 'quiz',
     title: 'Quick guess, soft reveal',
@@ -86,7 +87,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
   [CONNECTION_REMINDER_TYPES.DATE_IDEA]: {
     label: 'Date Idea',
     icon: 'wine-outline',
-    accentColor: '#D4AF37',
+    accentColor: REMINDER_CATEGORY_COLORS.date,
     notificationType: NOTIFICATION_TYPES.CALENDAR_REMINDERS,
     route: 'date-ideas',
     title: 'A date idea with your names on it',
@@ -98,7 +99,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
   [CONNECTION_REMINDER_TYPES.INTIMACY]: {
     label: 'Intimacy',
     icon: 'sparkles-outline',
-    accentColor: '#C94D7F',
+    accentColor: REMINDER_CATEGORY_COLORS.intimacy,
     notificationType: NOTIFICATION_TYPES.RITUAL_REMINDERS,
     route: 'intimacy',
     title: 'A private spark',
@@ -110,7 +111,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
   [CONNECTION_REMINDER_TYPES.JOURNAL]: {
     label: 'Journal',
     icon: 'journal-outline',
-    accentColor: '#8E8CD8',
+    accentColor: REMINDER_CATEGORY_COLORS.journal,
     notificationType: NOTIFICATION_TYPES.RITUAL_REMINDERS,
     route: 'journal',
     title: 'Leave a few words',
@@ -122,7 +123,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
   [CONNECTION_REMINDER_TYPES.MEMORY]: {
     label: 'Memory',
     icon: 'images-outline',
-    accentColor: '#FF9F0A',
+    accentColor: REMINDER_CATEGORY_COLORS.memory,
     notificationType: NOTIFICATION_TYPES.MEMORY_RECAPS,
     route: 'our-story',
     title: 'Save this one',

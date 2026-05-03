@@ -6,17 +6,17 @@ export const SUPPORT_RESPONSE_TIME = '24–48 hours';
 export const DATA_REQUEST_RESPONSE_TIME = 'Within 30 days';
 
 export const KEEPSAKE_CATEGORY_COLORS = Object.freeze({
-  position: '#D2121A',
-  prompt: '#4F7DF3',
-  date: '#2FA36B',
-  memory: '#8A5CF6',
+  position: '#B91F2D',
+  prompt: '#3E63C9',
+  date: '#2D7A59',
+  memory: '#7152C7',
 });
 
 export const REMINDER_CATEGORY_COLORS = Object.freeze({
   prompt: KEEPSAKE_CATEGORY_COLORS.prompt,
-  quiz: '#32ADE6',
+  quiz: '#2F7FAE',
   date: KEEPSAKE_CATEGORY_COLORS.date,
   intimacy: KEEPSAKE_CATEGORY_COLORS.position,
-  journal: '#FF9F0A',
+  journal: '#B8732A',
   memory: KEEPSAKE_CATEGORY_COLORS.memory,
 });
