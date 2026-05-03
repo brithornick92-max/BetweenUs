@@ -137,6 +137,8 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Identity"
+      headerSubtitle="ACTIVE PROFILE"
+      headerDescription="Choose the names Between Us uses across prompts, memories, dates, and notifications."
       scroll={false}
       keyboardAvoiding
       onBack={handleBack}
@@ -167,6 +169,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
             <Animated.View style={{ opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }}>
               
               {/* Input Widget */}
+              <Text style={styles.sectionTitle}>NAMES</Text>
               <View style={styles.widgetCard}>
                 <View style={styles.inputSection}>
                   <Text style={styles.inputLabel}>YOUR NAME</Text>
@@ -301,7 +304,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: t.text,
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   },
 
   // ── Examples ──
@@ -381,7 +384,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 16,
     fontWeight: '800',
-    letterSpacing: -0.2,
+    letterSpacing: 0,
     textTransform: 'uppercase',
   },
 });

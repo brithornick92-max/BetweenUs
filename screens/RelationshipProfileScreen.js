@@ -10,8 +10,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
-import Icon from '../components/Icon';
-import { SPACING, withAlpha } from '../utils/theme';
+import { SPACING } from '../utils/theme';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import { CLIMATE_OPTIONS, ENERGY_LEVELS } from '../services/ConnectionEngine';
 import { SEASONS } from '../services/PolishEngine';
@@ -76,26 +75,40 @@ function compactList(values, fallback = 'Not enough signal yet') {
   return list.slice(0, 4).join(', ');
 }
 
-function ProfileCard({ title, icon, children, t }) {
+function ProfileSection({ title, children, t, isDark }) {
   return (
-    <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
-      <View style={styles.cardHeader}>
-        <View style={[styles.iconFrame, { backgroundColor: withAlpha(t.primary, 0.11) }]}>
-          <Icon name={icon} size={19} color={t.primary} />
-        </View>
-        <Text style={[styles.cardTitle, { color: t.text }]}>{title}</Text>
+    <View>
+      <Text style={[styles.sectionTitle, { color: t.subtext }]}>{title}</Text>
+      <View
+        style={[
+          styles.widgetCard,
+          { backgroundColor: t.surface, borderColor: t.border },
+          Platform.select({
+            ios: {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: isDark ? 0 : 0.04,
+              shadowRadius: 10,
+            },
+            android: { elevation: 2 },
+          }),
+        ]}
+      >
+        {children}
       </View>
-      {children}
     </View>
   );
 }
 
-function ProfileRow({ label, value, t }) {
+function ProfileRow({ label, value, t, isLast }) {
   return (
-    <View style={styles.row}>
-      <Text style={[styles.rowLabel, { color: t.subtext }]}>{label}</Text>
-      <Text style={[styles.rowValue, { color: t.text }]}>{value || 'Not set'}</Text>
-    </View>
+    <>
+      <View style={styles.profileRow}>
+        <Text style={[styles.rowLabel, { color: t.subtext }]}>{label}</Text>
+        <Text style={[styles.rowValue, { color: t.text }]}>{value || 'Not set'}</Text>
+      </View>
+      {!isLast && <View style={[styles.divider, { backgroundColor: t.border }]} />}
+    </>
   );
 }
 
@@ -108,12 +121,12 @@ export default function RelationshipProfileScreen() {
 
   const t = useMemo(() => ({
     background: colors.background,
-    surface: colors.surface || (isDark ? '#1C1C1E' : '#FFFFFF'),
-    surfaceSecondary: colors.surface2 || (isDark ? '#2C2C2E' : '#F2F2F7'),
+    surface: isDark ? '#131016' : '#FFFFFF',
+    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
     primary: colors.primary || '#D2121A',
     text: colors.text,
-    subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.58)' : 'rgba(60,60,67,0.62)'),
-    border: colors.border || (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
   useFocusEffect(
@@ -157,43 +170,43 @@ export default function RelationshipProfileScreen() {
       contentContainerStyle={styles.content}
     >
       {loading ? (
-        <View style={styles.loading}>
+        <View style={[styles.loading, { backgroundColor: t.surface, borderColor: t.border }]}>
           <ActivityIndicator size="small" color={t.primary} />
         </View>
       ) : (
         <>
-          <ProfileCard title="You Two" icon="people-outline" t={t}>
+          <ProfileSection title="You Two" t={t} isDark={isDark}>
             <ProfileRow label="Names" value={`${myName} and ${partnerName}`} t={t} />
             <ProfileRow label="Relationship stage" value={DURATION_LABELS[profile?.relationshipDuration] || 'Not set'} t={t} />
-            <ProfileRow label="Current season" value={seasonLabel} t={t} />
-          </ProfileCard>
+            <ProfileRow label="Current season" value={seasonLabel} t={t} isLast />
+          </ProfileSection>
 
-          <ProfileCard title="Connection Style" icon="heart-outline" t={t}>
+          <ProfileSection title="Connection Style" t={t} isDark={isDark}>
             <ProfileRow label="Love language" value={LOVE_LANGUAGE_LABELS[quiz.loveLanguage]} t={t} />
             <ProfileRow label="Main goal" value={GOAL_LABELS[quiz.relationshipGoal]} t={t} />
             <ProfileRow label="Communication" value={COMMUNICATION_LABELS[quiz.communicationStyle]} t={t} />
-            <ProfileRow label="Date style" value={DATE_STYLE_LABELS[quiz.idealDateStyle]} t={t} />
-          </ProfileCard>
+            <ProfileRow label="Date style" value={DATE_STYLE_LABELS[quiz.idealDateStyle]} t={t} isLast />
+          </ProfileSection>
 
-          <ProfileCard title="Content Shape" icon="options-outline" t={t}>
+          <ProfileSection title="Content Shape" t={t} isDark={isDark}>
             <ProfileRow label="Tone" value={TONE_LABELS[profile?.tone] || 'Warm'} t={t} />
             <ProfileRow label="Energy" value={energyLabel} t={t} />
             <ProfileRow label="Climate" value={climateLabel} t={t} />
-            <ProfileRow label="Max heat" value={`Heat ${maxHeat}`} t={t} />
-          </ProfileCard>
+            <ProfileRow label="Max heat" value={`Heat ${maxHeat}`} t={t} isLast />
+          </ProfileSection>
 
-          <ProfileCard title="What We Prioritize" icon="sparkles-outline" t={t}>
+          <ProfileSection title="What We Prioritize" t={t} isDark={isDark}>
             <ProfileRow label="Prompt lanes" value={compactList(profile?.quiz?.preferredCategories)} t={t} />
             <ProfileRow label="Tone lanes" value={compactList(profile?.quiz?.preferredTones)} t={t} />
-            <ProfileRow label="Date effort" value={profile?.preferShort ? 'Shorter, lower friction' : 'Room for deeper plans'} t={t} />
-          </ProfileCard>
+            <ProfileRow label="Date effort" value={profile?.preferShort ? 'Shorter, lower friction' : 'Room for deeper plans'} t={t} isLast />
+          </ProfileSection>
 
-          <ProfileCard title="Boundaries" icon="shield-checkmark-outline" t={t}>
+          <ProfileSection title="Boundaries" t={t} isDark={isDark}>
             <ProfileRow label="Spicy content" value={profile?.boundaries?.hideSpicy ? 'Hidden' : 'Available within heat setting'} t={t} />
             <ProfileRow label="Hidden categories" value={compactList(hiddenCategories, 'None hidden')} t={t} />
             <ProfileRow label="Paused prompts" value={pausedEntries.length ? `${pausedEntries.length} paused` : 'None paused'} t={t} />
-            <ProfileRow label="Paused dates" value={pausedDates.length ? `${pausedDates.length} paused` : 'None paused'} t={t} />
-          </ProfileCard>
+            <ProfileRow label="Paused dates" value={pausedDates.length ? `${pausedDates.length} paused` : 'None paused'} t={t} isLast />
+          </ProfileSection>
         </>
       )}
     </EditorialScreenScaffold>
@@ -203,54 +216,52 @@ export default function RelationshipProfileScreen() {
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: SPACING.screen,
-    paddingBottom: 120,
-    gap: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingBottom: 100,
   },
   loading: {
     minHeight: 220,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  card: {
-    borderRadius: 22,
+    borderRadius: 24,
     borderWidth: 1,
-    padding: SPACING.lg,
-    gap: 14,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 2,
-  },
-  iconFrame: {
-    width: 36,
-    height: 36,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 18,
-    lineHeight: 24,
-    fontWeight: '800',
-    letterSpacing: 0,
-  },
-  row: {
-    gap: 4,
-  },
-  rowLabel: {
+  sectionTitle: {
     fontFamily: SYSTEM_FONT,
     fontSize: 11,
     fontWeight: '900',
-    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: 12,
+    marginTop: 32,
+    paddingLeft: 4,
+  },
+  widgetCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    paddingVertical: 8,
+  },
+  profileRow: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 6,
+  },
+  rowLabel: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
   rowValue: {
     fontFamily: SYSTEM_FONT,
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 23,
     fontWeight: '700',
+    letterSpacing: 0,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: 20,
   },
 });

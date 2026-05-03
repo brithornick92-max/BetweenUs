@@ -423,16 +423,13 @@ export default function SettingsScreen({ navigation }) {
 
           {/* ═══ USER HIGHLIGHT CARD ═══ */}
           <ReAnimated.View entering={FadeInDown.delay(400).duration(800)} style={styles.cardContainer}>
-            <TouchableOpacity 
-              activeOpacity={0.9}
+            <View
               style={[
                 styles.editorialCard, 
                 { backgroundColor: t.surface, borderColor: t.borderGlass },
                 !isDark && styles.lightShadow
               ]}
-              accessibilityLabel="Edit profile names"
-              accessibilityRole="button"
-              onPress={() => navigation.navigate('PartnerNamesSettings')}
+              accessibilityLabel="Active profile"
             >
               <View style={styles.cardContent}>
                 <Text style={[styles.cardTag, { color: t.subtext }]}>ACTIVE PROFILE</Text>
@@ -445,7 +442,7 @@ export default function SettingsScreen({ navigation }) {
                   <Text style={styles.premiumText}>PREMIUM</Text>
                 </View>
               )}
-            </TouchableOpacity>
+            </View>
           </ReAnimated.View>
 
           {/* ═══ PARTNER CONNECTION ═══ */}
