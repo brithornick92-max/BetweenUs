@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -251,6 +251,18 @@ function compactList(values, fallback = 'Not enough signal yet', labels = null) 
   return list.slice(0, 4).join(', ');
 }
 
+function preferenceValueEquals(left, right) {
+  if (Array.isArray(left) || Array.isArray(right)) {
+    const leftValues = Array.isArray(left) ? left.filter(Boolean) : [];
+    const rightValues = Array.isArray(right) ? right.filter(Boolean) : [];
+
+    if (leftValues.length !== rightValues.length) return false;
+    return leftValues.every((value) => rightValues.includes(value));
+  }
+
+  return (left ?? null) === (right ?? null);
+}
+
 function ProfileSection({ title, children, t, isDark }) {
   return (
     <View>
@@ -311,20 +323,50 @@ function ProfileRow({ label, value, t, isLast, onPress, accessibilityLabel, expa
   );
 }
 
-function InlineChoiceEditor({ options, value, values, onSelect, t, saving, multiple = false }) {
+function InlineChoiceEditor({ options, value, values, onSelect, onSave, t, saving, multiple = false }) {
+  const initialValues = useMemo(
+    () => (Array.isArray(values) ? values.filter(Boolean) : []),
+    [values]
+  );
+  const [draftValues, setDraftValues] = useState(initialValues);
+
+  useEffect(() => {
+    if (multiple) setDraftValues(initialValues);
+  }, [initialValues, multiple]);
+
+  const handleOptionPress = useCallback((optionId) => {
+    selection();
+
+    if (!multiple) {
+      onSelect?.(optionId);
+      return;
+    }
+
+    setDraftValues((currentValues) => {
+      if (optionId === null) return [];
+      return currentValues.includes(optionId)
+        ? currentValues.filter((item) => item !== optionId)
+        : [...currentValues, optionId];
+    });
+  }, [multiple, onSelect]);
+
+  const handleSaveDraft = useCallback(() => {
+    onSave?.(draftValues.length ? draftValues : null);
+  }, [draftValues, onSave]);
+
   return (
     <View style={[styles.inlineEditor, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
       <ScrollView
+        style={styles.inlineDropdownList}
         nestedScrollEnabled
         showsVerticalScrollIndicator={options.length > 6}
         contentContainerStyle={styles.inlineDropdownContent}
       >
         {options.map((item) => {
-          const isManualList = Array.isArray(values);
-          const selectedValues = isManualList ? values : [];
+          const selectedValues = multiple ? draftValues : initialValues;
           const isActive = multiple
             ? item.id === null
-              ? !isManualList || selectedValues.length === 0
+              ? selectedValues.length === 0
               : selectedValues.includes(item.id)
             : (value ?? null) === item.id;
 
@@ -339,10 +381,7 @@ function InlineChoiceEditor({ options, value, values, onSelect, t, saving, multi
                 },
               ]}
               activeOpacity={0.78}
-              onPress={() => {
-                selection();
-                onSelect(item.id);
-              }}
+              onPress={() => handleOptionPress(item.id)}
               disabled={saving}
               accessibilityRole={multiple ? 'checkbox' : 'radio'}
               accessibilityState={{ selected: isActive, checked: isActive, disabled: saving }}
@@ -363,6 +402,24 @@ function InlineChoiceEditor({ options, value, values, onSelect, t, saving, multi
           );
         })}
       </ScrollView>
+      {multiple ? (
+        <View style={[styles.multiSelectFooter, { borderTopColor: t.border }]}>
+          <TouchableOpacity
+            activeOpacity={0.82}
+            onPress={handleSaveDraft}
+            disabled={saving}
+            style={[styles.multiSelectDoneButton, { backgroundColor: t.primary, opacity: saving ? 0.65 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Save selections"
+          >
+            {saving ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.multiSelectDoneText}>Done</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -427,16 +484,17 @@ export default function RelationshipProfileScreen() {
     if (savingField) return;
 
     const currentValue = typeof savedQuiz?.[field] === 'undefined' ? null : savedQuiz[field];
-    if (currentValue === value) {
+    const nextValue = Array.isArray(value) && value.length === 0 ? null : value;
+    if (preferenceValueEquals(currentValue, nextValue)) {
       if (!keepOpen) setEditingField(null);
       return;
     }
 
     const nextQuiz = { ...(savedQuiz || {}) };
-    if (value === null || typeof value === 'undefined') {
+    if (nextValue === null || typeof nextValue === 'undefined') {
       delete nextQuiz[field];
     } else {
-      nextQuiz[field] = value;
+      nextQuiz[field] = nextValue;
     }
 
     try {
@@ -465,21 +523,10 @@ export default function RelationshipProfileScreen() {
     }
   }, [savedQuiz, savingField, updateProfile, userProfile]);
 
-  const handleToggleQuizList = useCallback(async (field, value) => {
-    if (savingField) return;
-
-    if (value === null) {
-      await saveQuizValue(field, null, { keepOpen: false });
-      return;
-    }
-
-    const currentValues = Array.isArray(savedQuiz?.[field]) ? savedQuiz[field] : [];
-    const nextValues = currentValues.includes(value)
-      ? currentValues.filter((item) => item !== value)
-      : [...currentValues, value];
-
-    await saveQuizValue(field, nextValues.length ? nextValues : null, { keepOpen: nextValues.length > 0 });
-  }, [savedQuiz, saveQuizValue, savingField]);
+  const handleSaveQuizList = useCallback((field, values) => {
+    const nextValues = Array.isArray(values) ? values.filter(Boolean) : [];
+    return saveQuizValue(field, nextValues.length ? nextValues : null);
+  }, [saveQuizValue]);
 
   const handleSelectDateEffort = useCallback((value) => {
     if (value === null) {
@@ -563,7 +610,7 @@ export default function RelationshipProfileScreen() {
     }
   }, [refreshProfile, savingField, updateProfile, userProfile]);
 
-  const handleToggleHiddenCategory = useCallback(async (value) => {
+  const handleSaveHiddenCategories = useCallback(async (values) => {
     if (savingField) return;
 
     try {
@@ -574,11 +621,13 @@ export default function RelationshipProfileScreen() {
       const currentCategories = Array.isArray(currentBoundaries.hiddenCategories)
         ? currentBoundaries.hiddenCategories
         : [];
-      const nextCategories = value === null
-        ? []
-        : currentCategories.includes(value)
-          ? currentCategories.filter((category) => category !== value)
-          : [...currentCategories, value];
+      const nextCategories = Array.isArray(values) ? values.filter(Boolean) : [];
+
+      if (preferenceValueEquals(currentCategories, nextCategories)) {
+        setEditingField(null);
+        return;
+      }
+
       const nextBoundaries = {
         ...currentBoundaries,
         hiddenCategories: nextCategories,
@@ -587,6 +636,7 @@ export default function RelationshipProfileScreen() {
       await SoftBoundaries.setAll(nextBoundaries);
       await StorageRouter.updateCloudProfilePreferences({ softBoundaries: nextBoundaries });
       await refreshProfile();
+      setEditingField(null);
       notification(NotificationFeedbackType.Success);
     } catch (error) {
       if (__DEV__) console.warn('[RelationshipProfile] Failed to save hidden categories:', error?.message);
@@ -854,7 +904,7 @@ export default function RelationshipProfileScreen() {
                 <InlineChoiceEditor
                   options={PROMPT_LANE_OPTIONS}
                   values={promptLaneValues}
-                  onSelect={(value) => handleToggleQuizList('preferredCategories', value)}
+                  onSave={(values) => handleSaveQuizList('preferredCategories', values)}
                   t={t}
                   saving={savingField === 'preferredCategories'}
                   multiple
@@ -873,7 +923,7 @@ export default function RelationshipProfileScreen() {
                 <InlineChoiceEditor
                   options={TONE_LANE_OPTIONS}
                   values={toneLaneValues}
-                  onSelect={(value) => handleToggleQuizList('preferredTones', value)}
+                  onSave={(values) => handleSaveQuizList('preferredTones', values)}
                   t={t}
                   saving={savingField === 'preferredTones'}
                   multiple
@@ -933,7 +983,7 @@ export default function RelationshipProfileScreen() {
                 <InlineChoiceEditor
                   options={HIDDEN_CATEGORY_OPTIONS}
                   values={hiddenCategories}
-                  onSelect={handleToggleHiddenCategory}
+                  onSave={handleSaveHiddenCategories}
                   t={t}
                   saving={savingField === 'hiddenCategories'}
                   multiple
@@ -1015,6 +1065,9 @@ const styles = StyleSheet.create({
     maxHeight: 340,
     paddingVertical: 6,
   },
+  inlineDropdownList: {
+    maxHeight: 280,
+  },
   inlineDropdownContent: {
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -1044,6 +1097,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     lineHeight: 19,
+    letterSpacing: 0,
+  },
+  multiSelectFooter: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: 2,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  multiSelectDoneButton: {
+    minWidth: 86,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  multiSelectDoneText: {
+    color: '#FFFFFF',
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '800',
     letterSpacing: 0,
   },
 });
