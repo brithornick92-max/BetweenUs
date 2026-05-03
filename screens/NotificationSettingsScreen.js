@@ -162,14 +162,47 @@ function TimePickerColumn({ values, selectedValue, onSelect, disabled, t, accent
 }
 
 function ExactTimePicker({ value, onChange, disabled, t, accentColor, styles }) {
-  const parts = getTimePickerParts(value);
+  const [expanded, setExpanded] = useState(false);
+  const [draftTime, setDraftTime] = useState(() => normalizeConnectionReminderTime(value));
+  const parts = getTimePickerParts(draftTime);
+
+  useEffect(() => {
+    if (!expanded) {
+      setDraftTime(normalizeConnectionReminderTime(value));
+    }
+  }, [expanded, value]);
+
   const changePart = (patch) => {
-    onChange(buildTimeValue({ ...parts, ...patch }));
+    setDraftTime(buildTimeValue({ ...parts, ...patch }));
+  };
+
+  const openPicker = () => {
+    if (disabled) return;
+    setDraftTime(normalizeConnectionReminderTime(value));
+    setExpanded(true);
+    impact(ImpactFeedbackStyle.Light);
+  };
+
+  const saveTime = () => {
+    const nextTime = normalizeConnectionReminderTime(draftTime);
+    if (nextTime !== normalizeConnectionReminderTime(value)) {
+      onChange(nextTime);
+    } else {
+      impact(ImpactFeedbackStyle.Light);
+    }
+    setExpanded(false);
   };
 
   return (
     <View style={[styles.timePicker, { backgroundColor: t.surfaceSecondary, borderColor: withAlpha(accentColor, 0.22) }]}>
-      <View style={styles.timePickerHeader}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={openPicker}
+        disabled={disabled}
+        style={styles.timePickerTrigger}
+        accessibilityRole="button"
+        accessibilityLabel={`Set reminder time, currently ${formatConnectionReminderTime(value)}`}
+      >
         <View style={[styles.timePickerIcon, { backgroundColor: withAlpha(accentColor, 0.12) }]}>
           <Icon name="time-outline" size={16} color={accentColor} />
         </View>
@@ -177,40 +210,56 @@ function ExactTimePicker({ value, onChange, disabled, t, accentColor, styles }) 
         <Text style={[styles.timePickerValue, { color: accentColor }]}>
           {formatConnectionReminderTime(value)}
         </Text>
-      </View>
+        <Icon name={expanded ? 'chevron-up-outline' : 'chevron-down-outline'} size={18} color={t.subtext} />
+      </TouchableOpacity>
 
-      <View style={styles.timeWheelRow}>
-        <TimePickerColumn
-          values={TIME_HOURS}
-          selectedValue={parts.hour}
-          onSelect={(hour) => changePart({ hour })}
-          disabled={disabled}
-          t={t}
-          accentColor={accentColor}
-          styles={styles}
-          formatLabel={(hour) => String(hour)}
-        />
-        <TimePickerColumn
-          values={TIME_MINUTES}
-          selectedValue={parts.minute}
-          onSelect={(minute) => changePart({ minute })}
-          disabled={disabled}
-          t={t}
-          accentColor={accentColor}
-          styles={styles}
-          formatLabel={(minute) => String(minute).padStart(2, '0')}
-        />
-        <TimePickerColumn
-          values={TIME_PERIODS}
-          selectedValue={parts.period}
-          onSelect={(period) => changePart({ period })}
-          disabled={disabled}
-          t={t}
-          accentColor={accentColor}
-          styles={styles}
-          formatLabel={(period) => period}
-        />
-      </View>
+      {expanded ? (
+        <>
+          <View style={styles.timeWheelRow}>
+            <TimePickerColumn
+              values={TIME_HOURS}
+              selectedValue={parts.hour}
+              onSelect={(hour) => changePart({ hour })}
+              disabled={disabled}
+              t={t}
+              accentColor={accentColor}
+              styles={styles}
+              formatLabel={(hour) => String(hour)}
+            />
+            <TimePickerColumn
+              values={TIME_MINUTES}
+              selectedValue={parts.minute}
+              onSelect={(minute) => changePart({ minute })}
+              disabled={disabled}
+              t={t}
+              accentColor={accentColor}
+              styles={styles}
+              formatLabel={(minute) => String(minute).padStart(2, '0')}
+            />
+            <TimePickerColumn
+              values={TIME_PERIODS}
+              selectedValue={parts.period}
+              onSelect={(period) => changePart({ period })}
+              disabled={disabled}
+              t={t}
+              accentColor={accentColor}
+              styles={styles}
+              formatLabel={(period) => period}
+            />
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.84}
+            onPress={saveTime}
+            style={[styles.timeDoneButton, { backgroundColor: accentColor }]}
+            accessibilityRole="button"
+            accessibilityLabel="Save reminder time"
+          >
+            <Icon name="checkmark-outline" size={18} color="#FFFFFF" />
+            <Text style={styles.timeDoneText}>Done</Text>
+          </TouchableOpacity>
+        </>
+      ) : null}
     </View>
   );
 }
@@ -629,10 +678,11 @@ const createStyles = (t, shadows) => StyleSheet.create({
     padding: SPACING.sm,
     gap: SPACING.sm,
   },
-  timePickerHeader: {
+  timePickerTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
+    minHeight: 44,
     paddingHorizontal: SPACING.xs,
   },
   timePickerIcon: {
@@ -681,6 +731,23 @@ const createStyles = (t, shadows) => StyleSheet.create({
     lineHeight: 18,
     fontWeight: '900',
     fontVariant: ['tabular-nums'],
+  },
+  timeDoneButton: {
+    minHeight: 44,
+    borderRadius: BORDER_RADIUS.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+  },
+  timeDoneText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0,
   },
 });
 
