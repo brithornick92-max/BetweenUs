@@ -315,9 +315,9 @@ function InlineChoiceEditor({ options, value, values, onSelect, t, saving, multi
   return (
     <View style={[styles.inlineEditor, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.inlineScrollerContent}
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={options.length > 6}
+        contentContainerStyle={styles.inlineDropdownContent}
       >
         {options.map((item) => {
           const isManualList = Array.isArray(values);
@@ -1012,20 +1012,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 8,
+    maxHeight: 340,
+    paddingVertical: 6,
   },
-  inlineScrollerContent: {
+  inlineDropdownContent: {
     paddingHorizontal: 8,
-    gap: 8,
+    paddingVertical: 2,
+    gap: 6,
   },
   inlineOption: {
-    width: 152,
-    minHeight: 104,
+    minHeight: 58,
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
-    padding: 12,
-    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   inlineOptionIcon: {
     width: 32,
@@ -1035,6 +1039,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   inlineOptionLabel: {
+    flex: 1,
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
     fontWeight: '700',
