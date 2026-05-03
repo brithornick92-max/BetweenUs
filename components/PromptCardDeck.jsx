@@ -26,6 +26,7 @@ import { BlurView } from 'expo-blur';
 import Icon from './Icon';
 import { impact, ImpactFeedbackStyle } from "../utils/haptics";
 import { useTheme } from "../context/ThemeContext";
+import { HEAT_LEVEL_ACCENTS } from "../config/constants";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const DEFAULT_CARD_W = SCREEN_W - 56;
@@ -46,29 +47,29 @@ const PROMPT_FONT = SYSTEM_FONT;
 
 // Core: Almost white tint. Bloom: Pink-to-red heat progression.
 const HEAT_NEON = {
-  1: { core: "#FFF0F7", bloom: "#FF85C2" }, // Soft Orchid Pink
-  2: { core: "#FFEBF4", bloom: "#FF1493" }, // Deep Pink
-  3: { core: "#FFE8F0", bloom: "#FF006E" }, // Vivid Magenta-Red
-  4: { core: "#FFE8EE", bloom: "#F00049" }, // Carmine
-  5: { core: "#FFEBEB", bloom: "#D2121A" }, // Deep Red
+  1: { core: "#FFF4F8", bloom: HEAT_LEVEL_ACCENTS[1] },
+  2: { core: "#FFF0F5", bloom: HEAT_LEVEL_ACCENTS[2] },
+  3: { core: "#FFEFF3", bloom: HEAT_LEVEL_ACCENTS[3] },
+  4: { core: "#FFEDEF", bloom: HEAT_LEVEL_ACCENTS[4] },
+  5: { core: "#FFECEB", bloom: HEAT_LEVEL_ACCENTS[5] },
 };
 
 // Deep Onyx tones — light-refracting Velvet Glass palette.
 const HEAT_METAL = {
-  1: { base: ["#120A0E", "#050204"], chrome: "#FF85C2" }, // Soft Orchid Pink
-  2: { base: ["#12080C", "#050103"], chrome: "#FF1493" }, // Deep Pink
-  3: { base: ["#120809", "#050102"], chrome: "#FF006E" }, // Vivid Magenta-Red
-  4: { base: ["#120406", "#050001"], chrome: "#F00049" }, // Carmine
-  5: { base: ["#120202", "#050000"], chrome: "#D2121A" }, // Deep Red
+  1: { base: ["#120A0E", "#050204"], chrome: HEAT_LEVEL_ACCENTS[1] },
+  2: { base: ["#12080C", "#050103"], chrome: HEAT_LEVEL_ACCENTS[2] },
+  3: { base: ["#120809", "#050102"], chrome: HEAT_LEVEL_ACCENTS[3] },
+  4: { base: ["#120406", "#050001"], chrome: HEAT_LEVEL_ACCENTS[4] },
+  5: { base: ["#120202", "#050000"], chrome: HEAT_LEVEL_ACCENTS[5] },
 };
 
 // Warm parchment tones — light mode card palette.
 const HEAT_PEARL = {
-  1: { base: ["#FFF5F9", "#FDE8F2"], chrome: "#FF85C2", text: "#2D1320" }, // Soft Orchid Pink
-  2: { base: ["#FFF0F6", "#FDE2EE"], chrome: "#FF1493", text: "#2D0E1F" }, // Deep Pink
-  3: { base: ["#FFEFF5", "#FCDDE9"], chrome: "#FF006E", text: "#2D0D1B" }, // Vivid Magenta-Red
-  4: { base: ["#FFECF1", "#FBD9E4"], chrome: "#F00049", text: "#2D0714" }, // Carmine
-  5: { base: ["#FFEBEB", "#FBD5D5"], chrome: "#D2121A", text: "#2D0202" }, // Deep Red
+  1: { base: ["#FFF8FA", "#F2E6EA"], chrome: HEAT_LEVEL_ACCENTS[1], text: "#27121B" },
+  2: { base: ["#FFF6F8", "#F0E2E7"], chrome: HEAT_LEVEL_ACCENTS[2], text: "#260E18" },
+  3: { base: ["#FFF4F6", "#EFDCE2"], chrome: HEAT_LEVEL_ACCENTS[3], text: "#260B15" },
+  4: { base: ["#FFF2F3", "#ECD8DD"], chrome: HEAT_LEVEL_ACCENTS[4], text: "#26080F" },
+  5: { base: ["#FFF0EF", "#E8D2D3"], chrome: HEAT_LEVEL_ACCENTS[5], text: "#250606" },
 };
 
 const HEAT_ICONS = {
@@ -106,6 +107,8 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   const promptLength = item?.text?.length || 0;
   const promptFontSize = promptLength > 180 ? 20 : promptLength > 120 ? 23 : 27;
   const promptLineHeight = promptLength > 180 ? 30 : promptLength > 120 ? 34 : 39;
+  const skipHintBackground = isDark ? colors.surface2 : colors.text;
+  const skipHintTextColor = isDark ? "#FFF" : colors.background;
 
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
 
@@ -334,9 +337,9 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
               <Icon name="pencil-outline" size={24} color="#FFF" />
               <Text style={styles.swipeHintText}>Reflect</Text>
             </Animated.View>
-            <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle, { backgroundColor: colors.surface2 }]}>
-              <Icon name="close-outline" size={24} color="#FFF" />
-              <Text style={styles.swipeHintText}>Skip</Text>
+            <Animated.View style={[styles.swipeHint, styles.swipeHintLeft, leftHintStyle, { backgroundColor: skipHintBackground }]}>
+              <Icon name="close-outline" size={24} color={skipHintTextColor} />
+              <Text style={[styles.swipeHintText, { color: skipHintTextColor }]}>Skip</Text>
             </Animated.View>
           </>
         )}

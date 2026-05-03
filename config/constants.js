@@ -20,3 +20,19 @@ export const REMINDER_CATEGORY_COLORS = Object.freeze({
   journal: '#B8732A',
   memory: KEEPSAKE_CATEGORY_COLORS.memory,
 });
+
+export const HEAT_LEVEL_ACCENTS = Object.freeze({
+  1: '#9B2F64',
+  2: '#A31655',
+  3: '#9A123F',
+  4: '#B01635',
+  5: '#8E0D12',
+});
+
+export const HEAT_LEVEL_GRADIENTS = Object.freeze({
+  1: Object.freeze(['#8E2E59', '#5A1936']),
+  2: Object.freeze(['#A31655', '#6D0E35']),
+  3: Object.freeze(['#9A123F', '#640A27']),
+  4: Object.freeze(['#B01635', '#70091F']),
+  5: Object.freeze(['#8E0D12', '#4A0508']),
+});

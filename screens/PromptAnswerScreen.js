@@ -41,6 +41,7 @@ import * as PreferenceEngine from "../services/PreferenceEngine";
 import { getPromptById } from "../utils/contentLoader";
 import { SPACING, withAlpha } from "../utils/theme";
 import { CONTENT_TYPES } from "../services/WeeklyContentSetService";
+import { HEAT_LEVEL_ACCENTS, HEAT_LEVEL_GRADIENTS } from "../config/constants";
 import {
   canSaveFreePromptAnswer,
   resolvePromptUsageUserId,
@@ -63,13 +64,6 @@ const loadAllBundledPrompts = () => {
 };
 
 // ─── Editorial Heat Mapping (Integrated Velvet Glass) ─────────────────────
-const HEAT_COLORS = {
-  1: ["#FF7EB3", "#7A1B43"],
-  2: ["#FF2D55", "#8E0D2C"],
-  3: ["#BF5AF2", "#4C1C63"],
-  4: ["#D2121A", "#4A0000"],
-  5: ["#000000", "#1A1A1A"],
-};
 const HEAT_ICONS = {
   1: "leaf-outline",
   2: "sparkles-outline",
@@ -110,7 +104,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     surface: colors.surface || '#1C1C1E',
     surface2: colors.surface2 || '#2C2C2E',
     surfaceGlass: colors.surfaceGlass || 'rgba(28,28,30,0.70)',
-    primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
+    primary: HEAT_LEVEL_ACCENTS[prompt?.heat || 1] || colors.primary || '#D2121A',
     text: colors.text,
     subtext: colors.textMuted || 'rgba(255,255,255,0.4)',
     border: colors.border || 'rgba(255,255,255,0.1)',
@@ -120,14 +114,14 @@ export default function PromptAnswerScreen({ route, navigation }) {
     surface2: colors.surface2 || '#E5E5EA',
     surfaceGlass: colors.surfaceGlass || 'rgba(255,255,255,0.80)',
     surfaceSecondary: colors.surfaceSecondary || colors.surface2 || 'rgba(242, 242, 247, 0.78)',
-    primary: HEAT_COLORS[prompt?.heat || 1]?.[0] || '#D2121A',
+    primary: HEAT_LEVEL_ACCENTS[prompt?.heat || 1] || colors.primary || '#D2121A',
     text: colors.text,
     subtext: colors.textMuted || 'rgba(0,0,0,0.4)',
     border: colors.border || 'rgba(0,0,0,0.1)',
   }, [isDark, colors, prompt?.heat]);
 
   const heat = prompt?.heat || 1;
-  const catGradient = HEAT_COLORS[heat] || HEAT_COLORS[1];
+  const catGradient = HEAT_LEVEL_GRADIENTS[heat] || HEAT_LEVEL_GRADIENTS[1];
   const catIcon = HEAT_ICONS[heat] || "heart-outline";
   const catLabel = HEAT_LABELS[heat] || "Emotional";
   const isEditingAnswer = mode === 'edit' || !!existingAnswer;

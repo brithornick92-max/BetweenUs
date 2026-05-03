@@ -4,6 +4,7 @@
 
 import { Platform } from "react-native";
 import { settingsStorage } from "./storage";
+import { REMINDER_CATEGORY_COLORS } from "../config/constants";
 
 let Notifications = null;
 
@@ -52,7 +53,7 @@ export async function ensureDefaultNotificationChannel() {
     name: "Between Us",
     importance: Notifications.AndroidImportance?.HIGH,
     vibrationPattern: [0, 250, 250, 250],
-    lightColor: "#FF2D55",
+    lightColor: REMINDER_CATEGORY_COLORS.intimacy,
     sound: true,
     lockscreenVisibility: Notifications.AndroidNotificationVisibility?.PUBLIC,
   }).catch(() => {});

@@ -315,8 +315,8 @@ export default function VibeSignalScreen({ navigation }) {
                     <View style={[styles.avatar, { backgroundColor: '#FFFFFF', borderColor: t.surface }]}>
                       <Text style={{ color: '#000000', fontWeight: '800', fontSize: 18 }}>{userInitial || '?'}</Text>
                     </View>
-                    <View style={[styles.avatar, { backgroundColor: isTogetherNow ? t.primary : t.border, borderColor: t.surface, marginLeft: -12 }]}>
-                      <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 18 }}>{partnerLabel.charAt(0).toUpperCase()}</Text>
+                    <View style={[styles.avatar, { backgroundColor: isTogetherNow ? t.primary : t.surfaceSecondary, borderColor: t.surface, marginLeft: -12 }]}>
+                      <Text style={{ color: isTogetherNow ? '#FFF' : t.text, fontWeight: '800', fontSize: 18 }}>{partnerLabel.charAt(0).toUpperCase()}</Text>
                     </View>
                   </View>
                   <Text style={[styles.widgetStatus, { color: isTogetherNow ? t.text : t.subtext }]}>

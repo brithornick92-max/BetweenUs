@@ -24,6 +24,7 @@ import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import { SPACING, withAlpha } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
+import { HEAT_LEVEL_ACCENTS } from '../config/constants';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
@@ -32,35 +33,35 @@ const HEAT_LEVELS = [
   {
     level: 1,
     icon: 'leaf-outline',
-    color: '#FF85C2', // Soft Orchid Pink
+    color: HEAT_LEVEL_ACCENTS[1],
     title: 'Emotional',
     description: 'Intimacy & trust, non-sexual',
   },
   {
     level: 2,
     icon: 'sparkles-outline',
-    color: '#FF1493', // Deep Pink
+    color: HEAT_LEVEL_ACCENTS[2],
     title: 'Romantic',
     description: 'Flirty attraction & romance',
   },
   {
     level: 3,
     icon: 'heart-outline',
-    color: '#FF006E', // Vivid Magenta-Red
+    color: HEAT_LEVEL_ACCENTS[3],
     title: 'Sensual',
     description: 'Relationship-focused desire',
   },
   {
     level: 4,
     icon: 'flame-outline',
-    color: '#F00049', // Carmine
+    color: HEAT_LEVEL_ACCENTS[4],
     title: 'Steamy',
     description: 'Adventurous & heated topics',
   },
   {
     level: 5,
     icon: 'infinite-outline',
-    color: '#D2121A', // Deep Red (primary)
+    color: HEAT_LEVEL_ACCENTS[5],
     title: 'Explicit',
     description: 'Intensely passionate exploration',
   },

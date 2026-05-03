@@ -20,6 +20,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { SPACING, withAlpha } from '../utils/theme';
 import { SerendipityTrigger } from '../services/ConnectionEngine';
+import { HEAT_LEVEL_ACCENTS } from '../config/constants';
 
 // Required for LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -52,9 +53,9 @@ export default function SurpriseTonight() {
 
   const t = useMemo(() => ({
     surface: isDark ? 'rgba(44, 44, 46, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-    p1: '#FF85C2', // Soft Orchid
-    p3: '#FF006E', // Vivid Magenta
-    p5: '#D2121A', // Sexy Red
+    p1: HEAT_LEVEL_ACCENTS[1],
+    p3: HEAT_LEVEL_ACCENTS[3],
+    p5: HEAT_LEVEL_ACCENTS[5],
     text: isDark ? '#FFFFFF' : '#1D1D1F',
     subtext: isDark ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)',
   }), [isDark]);

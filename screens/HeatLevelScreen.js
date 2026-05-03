@@ -17,6 +17,11 @@ import { useTheme } from '../context/ThemeContext';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
+import { HEAT_LEVEL_ACCENTS, HEAT_LEVEL_GRADIENTS } from '../config/constants';
+
+const HEAT_CARD_TEXT = '#FFFFFF';
+const HEAT_CARD_SUBTEXT = 'rgba(255,255,255,0.82)';
+const FREE_BADGE_TEXT = '#07110A';
 
 export default function HeatLevelScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -32,8 +37,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Emotional Connection',
       description: 'Emotional intimacy, non-sexual',
       icon: 'spa-outline',
-      color: '#FF85C2',
-      gradient: ['#FF85C2', '#D6609A'],
+      color: HEAT_LEVEL_ACCENTS[1],
+      gradient: HEAT_LEVEL_GRADIENTS[1],
       free: true,
     },
     {
@@ -41,8 +46,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Flirty & Romantic',
       description: 'Flirty attraction, romantic tension',
       icon: 'sparkles-outline',
-      color: '#FF1493',
-      gradient: ['#FF1493', '#CC0070'],
+      color: HEAT_LEVEL_ACCENTS[2],
+      gradient: HEAT_LEVEL_GRADIENTS[2],
       free: true,
     },
     {
@@ -50,8 +55,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Sensual',
       description: 'Sensual, relationship-focused intimacy',
       icon: 'heart-outline',
-      color: '#FF006E',
-      gradient: ['#FF006E', '#CC0055'],
+      color: HEAT_LEVEL_ACCENTS[3],
+      gradient: HEAT_LEVEL_GRADIENTS[3],
       free: true,
     },
     {
@@ -59,8 +64,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Steamy',
       description: 'Suggestive, adventurous, and heated',
       icon: 'water-outline',
-      color: '#F00049',
-      gradient: ['#F00049', '#B80034'],
+      color: HEAT_LEVEL_ACCENTS[4],
+      gradient: HEAT_LEVEL_GRADIENTS[4],
       free: true,
     },
     {
@@ -68,8 +73,8 @@ export default function HeatLevelScreen({ navigation }) {
       name: 'Explicit',
       description: 'Intensely passionate, graphic, explicit',
       icon: 'flame-outline',
-      color: '#D2121A',
-      gradient: ['#D2121A', '#8E0D12'],
+      color: HEAT_LEVEL_ACCENTS[5],
+      gradient: HEAT_LEVEL_GRADIENTS[5],
       free: true,
     },
   ];
@@ -146,13 +151,13 @@ export default function HeatLevelScreen({ navigation }) {
                 <Icon
                   name={isLocked ? 'lock-closed-outline' : heatLevel.icon}
                   size={32}
-                  color={colors.text}
+                  color={HEAT_CARD_TEXT}
                 />
               </View>
               
               {isLocked && (
                 <View style={styles.premiumBadge}>
-                  <Icon name="ribbon-outline" size={16} color={colors.text} />
+                  <Icon name="ribbon-outline" size={16} color={HEAT_CARD_TEXT} />
                 </View>
               )}
             </View>
@@ -217,11 +222,11 @@ export default function HeatLevelScreen({ navigation }) {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Icon name="ribbon-outline" size={24} color={colors.surface} />
-                <Text style={[styles.premiumCTAText, { color: "#070509" }]}>
+                <Icon name="ribbon-outline" size={24} color={HEAT_CARD_TEXT} />
+                <Text style={styles.premiumCTAText}>
                   Discover the full experience
                 </Text>
-                <Icon name="arrow-forward-outline" size={20} color={colors.surface} />
+                <Icon name="arrow-forward-outline" size={20} color={HEAT_CARD_TEXT} />
               </LinearGradient>
             </TouchableOpacity>
           )}
@@ -296,20 +301,20 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'center',
   },
   heatLevelNumber: {
-    color: colors.text,
+    color: HEAT_CARD_TEXT,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: SPACING.xs,
   },
   heatLevelName: {
-    color: colors.text,
+    color: HEAT_CARD_TEXT,
     fontSize: 20,
     fontWeight: '700',
     marginBottom: SPACING.xs,
     textAlign: 'center',
   },
   heatLevelDescription: {
-    color: colors.textMuted,
+    color: HEAT_CARD_SUBTEXT,
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
@@ -324,7 +329,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     borderRadius: 8,
   },
   freeBadgeText: {
-    color: colors.text,
+    color: FREE_BADGE_TEXT,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -343,7 +348,7 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     gap: SPACING.sm,
   },
   premiumCTAText: {
-    color: colors.text,
+    color: HEAT_CARD_TEXT,
     fontSize: 16,
     fontWeight: '600',
     flex: 1,

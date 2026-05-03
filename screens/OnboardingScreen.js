@@ -40,6 +40,7 @@ import StorageRouter from "../services/storage/StorageRouter";
 import { STORAGE_KEYS, storage } from "../utils/storage";
 import { getSupabaseOrThrow } from "../config/supabase";
 import AnalyticsService, { AnalyticsEvent } from "../services/AnalyticsService";
+import { HEAT_LEVEL_ACCENTS } from "../config/constants";
 
 export default function OnboardingScreen({ navigation }) {
   const { actions, state } = useAppContext();
@@ -704,11 +705,11 @@ export default function OnboardingScreen({ navigation }) {
   );
 
   const HEAT_LABELS = [
-    { level: 1, icon: 'heart-outline',         color: '#FF85C2', name: 'Emotional',   description: 'Sweet, honest, and safe' },
-    { level: 2, icon: 'heart-outline',         color: '#FF1493', name: 'Romantic',    description: 'Flirty, tender, and warm' },
-    { level: 3, icon: 'flame-outline',         color: '#FF006E', name: 'Sensual',     description: 'Desire, touch, and closeness' },
-    { level: 4, icon: 'flame-outline',         color: '#F00049', name: 'Steamy',      description: 'Adventurous and heated' },
-    { level: 5, icon: 'flame-outline',         color: '#D2121A', name: 'Explicit',    description: 'Only if you both want explicit' },
+    { level: 1, icon: 'heart-outline',         color: HEAT_LEVEL_ACCENTS[1], name: 'Emotional',   description: 'Sweet, honest, and safe' },
+    { level: 2, icon: 'heart-outline',         color: HEAT_LEVEL_ACCENTS[2], name: 'Romantic',    description: 'Flirty, tender, and warm' },
+    { level: 3, icon: 'flame-outline',         color: HEAT_LEVEL_ACCENTS[3], name: 'Sensual',     description: 'Desire, touch, and closeness' },
+    { level: 4, icon: 'flame-outline',         color: HEAT_LEVEL_ACCENTS[4], name: 'Steamy',      description: 'Adventurous and heated' },
+    { level: 5, icon: 'flame-outline',         color: HEAT_LEVEL_ACCENTS[5], name: 'Explicit',    description: 'Only if you both want explicit' },
   ];
 
   const TONE_OPTIONS = NicknameEngine.TONE_OPTIONS;
