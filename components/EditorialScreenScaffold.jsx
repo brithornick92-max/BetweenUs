@@ -46,6 +46,7 @@ export default function EditorialScreenScaffold({
   showsVerticalScrollIndicator = false,
   backIconName = 'close',
   screenAccentColor,
+  headerSubtitleColor,
 }) {
   const { colors, isDark } = useTheme();
   const gradients = getGradients(colors);
@@ -113,7 +114,7 @@ export default function EditorialScreenScaffold({
       <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
         <View style={styles.header}>
           {headerSubtitle ? (
-            <Text style={[styles.headerSubtitle, { color: screenAccent }]} numberOfLines={2}>
+            <Text style={[styles.headerSubtitle, { color: headerSubtitleColor || screenAccent }]} numberOfLines={2}>
               {headerSubtitle}
             </Text>
           ) : null}

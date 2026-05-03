@@ -32,7 +32,6 @@ import FilmGrain from '../components/FilmGrain';
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
-import { KEEPSAKE_CATEGORY_COLORS } from '../config/constants';
 import {
   impact,
   selection,
@@ -308,7 +307,7 @@ export default function AddMemoryScreen() {
     background: colors.background,
     surface: isDark ? 'rgba(28, 28, 30, 0.45)' : 'rgba(255, 255, 255, 0.65)',
     surfaceSecondary: isDark ? 'rgba(44, 44, 46, 0.8)' : 'rgba(242, 242, 247, 0.8)',
-    primary: KEEPSAKE_CATEGORY_COLORS.memory,
+    primary: colors.primary || '#D2121A',
     accent: colors.accent || '#D4AA7E',
     text: colors.text,
     subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.6)'),
@@ -761,7 +760,7 @@ export default function AddMemoryScreen() {
                             <Image
                               source={{ uri: item.uri }}
                               style={styles.mediaTileImage}
-                              resizeMode="cover"
+                              resizeMode="contain"
                             />
                           )}
 

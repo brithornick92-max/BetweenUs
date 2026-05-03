@@ -1068,6 +1068,7 @@ export default function OurStoryScreen() {
     solidSurface: isDark ? '#1C1C1E' : '#FFFFFF',
     solidSurfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
     surfaceSecondary: isDark ? 'rgba(44, 44, 46, 0.8)' : 'rgba(242, 242, 247, 0.8)',
+    primary: colors.primary || KEEPSAKE_CATEGORY_COLORS.position,
     neutralAccent: isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.58)',
     text: colors.text,
     subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.6)'),
@@ -1553,7 +1554,7 @@ export default function OurStoryScreen() {
           <Image
             source={{ uri: media.uri }}
             style={styles.snapshotImage}
-            resizeMode="cover"
+            resizeMode="contain"
           />
         )}
 
@@ -1748,7 +1749,7 @@ export default function OurStoryScreen() {
                     <Image
                       source={{ uri: item.media.uri }}
                       style={styles.storyImage}
-                      resizeMode="cover"
+                      resizeMode="contain"
                     />
                   )}
                 </TouchableOpacity>
@@ -1864,6 +1865,7 @@ export default function OurStoryScreen() {
       scroll={false}
       onBack={handleBack}
       screenAccentColor={t.neutralAccent}
+      headerSubtitleColor={t.primary}
     >
       <RNAnimated.FlatList
         data={groupedEntries}
