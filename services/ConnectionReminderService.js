@@ -60,7 +60,7 @@ export const CONNECTION_REMINDER_MONTH_DAY_OPTIONS = [
 
 export const CONNECTION_REMINDER_TEMPLATES = {
   [CONNECTION_REMINDER_TYPES.PROMPT]: {
-    label: 'Daily Moment',
+    label: 'Prompt',
     icon: 'chatbubble-ellipses-outline',
     accentColor: '#D2121A',
     notificationType: NOTIFICATION_TYPES.RITUAL_REMINDERS,
@@ -72,7 +72,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
     defaultTime: '20:30',
   },
   [CONNECTION_REMINDER_TYPES.DAILY_QUIZ]: {
-    label: 'Daily Quiz',
+    label: 'Quiz',
     icon: 'help-circle-outline',
     accentColor: '#AF52DE',
     notificationType: NOTIFICATION_TYPES.RITUAL_REMINDERS,
@@ -84,7 +84,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
     defaultTime: '19:30',
   },
   [CONNECTION_REMINDER_TYPES.DATE_IDEA]: {
-    label: 'Date Ideas',
+    label: 'Date Idea',
     icon: 'wine-outline',
     accentColor: '#D4AF37',
     notificationType: NOTIFICATION_TYPES.CALENDAR_REMINDERS,
@@ -96,7 +96,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
     defaultTime: '12:30',
   },
   [CONNECTION_REMINDER_TYPES.INTIMACY]: {
-    label: 'Private Inspiration',
+    label: 'Intimacy',
     icon: 'sparkles-outline',
     accentColor: '#C94D7F',
     notificationType: NOTIFICATION_TYPES.RITUAL_REMINDERS,
@@ -108,7 +108,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
     defaultTime: '21:30',
   },
   [CONNECTION_REMINDER_TYPES.JOURNAL]: {
-    label: 'Journal Check-In',
+    label: 'Journal',
     icon: 'journal-outline',
     accentColor: '#8E8CD8',
     notificationType: NOTIFICATION_TYPES.RITUAL_REMINDERS,
@@ -120,7 +120,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
     defaultTime: '19:30',
   },
   [CONNECTION_REMINDER_TYPES.MEMORY]: {
-    label: 'Memory Moments',
+    label: 'Memory',
     icon: 'images-outline',
     accentColor: '#FF9F0A',
     notificationType: NOTIFICATION_TYPES.MEMORY_RECAPS,

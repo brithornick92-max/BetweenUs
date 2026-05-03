@@ -1,10 +1,3 @@
-/**
- * NotificationSettingsScreen — Personal touch-point configuration
- * Sexy Red Intimacy & Apple Editorial Updates Integrated.
- * * High-fidelity control center for stay-in-sync notifications.
- * OK: Full original logic preserved.
- */
-
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
@@ -12,7 +5,6 @@ import {
   StyleSheet,
   Switch,
   Alert,
-  Platform,
   TouchableOpacity,
   Linking,
 } from 'react-native';
@@ -23,7 +15,15 @@ import { useTheme } from '../context/ThemeContext';
 import { settingsStorage } from '../utils/storage';
 import PushNotificationService from '../services/PushNotificationService';
 import { supabase } from '../config/supabase';
-import { withAlpha } from '../utils/theme';
+import { REMINDER_CATEGORY_COLORS } from '../config/constants';
+import {
+  BORDER_RADIUS,
+  SPACING,
+  SYSTEM_FONT,
+  TYPOGRAPHY,
+  getShadows,
+  withAlpha,
+} from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import {
   CONNECTION_REMINDER_DAY_OPTIONS,
@@ -37,7 +37,6 @@ import {
   scheduleConnectionReminders,
 } from '../services/ConnectionReminderService';
 
-const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const REMINDER_ORDER = [
   CONNECTION_REMINDER_TYPES.PROMPT,
   CONNECTION_REMINDER_TYPES.DAILY_QUIZ,
@@ -46,6 +45,15 @@ const REMINDER_ORDER = [
   CONNECTION_REMINDER_TYPES.JOURNAL,
   CONNECTION_REMINDER_TYPES.MEMORY,
 ];
+
+const REMINDER_ACCENT_COLORS = {
+  [CONNECTION_REMINDER_TYPES.PROMPT]: REMINDER_CATEGORY_COLORS.prompt,
+  [CONNECTION_REMINDER_TYPES.DAILY_QUIZ]: REMINDER_CATEGORY_COLORS.quiz,
+  [CONNECTION_REMINDER_TYPES.DATE_IDEA]: REMINDER_CATEGORY_COLORS.date,
+  [CONNECTION_REMINDER_TYPES.INTIMACY]: REMINDER_CATEGORY_COLORS.intimacy,
+  [CONNECTION_REMINDER_TYPES.JOURNAL]: REMINDER_CATEGORY_COLORS.journal,
+  [CONNECTION_REMINDER_TYPES.MEMORY]: REMINDER_CATEGORY_COLORS.memory,
+};
 
 function formatTimeLabel(time) {
   return CONNECTION_REMINDER_TIME_PRESETS.find((item) => item.id === time)?.label || time;
@@ -72,8 +80,8 @@ function ReminderChip({ label, active, onPress, disabled, t, accentColor, styles
       style={[
         styles.chip,
         {
-          backgroundColor: active ? withAlpha(accentColor, 0.16) : t.surfaceSecondary,
-          borderColor: active ? withAlpha(accentColor, 0.4) : t.border,
+          backgroundColor: active ? withAlpha(accentColor, 0.14) : t.surfaceSecondary,
+          borderColor: active ? withAlpha(accentColor, 0.36) : t.border,
           opacity: disabled ? 0.5 : 1,
         },
       ]}
@@ -85,7 +93,7 @@ function ReminderChip({ label, active, onPress, disabled, t, accentColor, styles
 
 function ConnectionReminderCard({ type, reminder, disabled, t, styles, onChange }) {
   const template = CONNECTION_REMINDER_TEMPLATES[type];
-  const accentColor = template.accentColor;
+  const accentColor = REMINDER_ACCENT_COLORS[type] || t.primary;
   const active = !!reminder?.enabled;
   const showDayPicker = active && (reminder.frequency === 'weekly' || reminder.frequency === 'biweekly');
   const showMonthDayPicker = active && reminder.frequency === 'monthly';
@@ -95,14 +103,13 @@ function ConnectionReminderCard({ type, reminder, disabled, t, styles, onChange 
       style={[
         styles.reminderCard,
         {
-          backgroundColor: t.surface,
-          borderColor: active ? withAlpha(accentColor, 0.36) : t.border,
+          borderColor: active ? withAlpha(accentColor, 0.34) : t.border,
           opacity: disabled ? 0.62 : 1,
         },
       ]}
     >
       <View style={styles.reminderHeader}>
-        <View style={[styles.reminderIcon, { backgroundColor: withAlpha(accentColor, 0.14) }]}>
+        <View style={[styles.reminderIcon, { backgroundColor: withAlpha(accentColor, 0.12) }]}>
           <Icon name={template.icon} size={22} color={accentColor} />
         </View>
         <View style={styles.reminderTitleBlock}>
@@ -116,11 +123,6 @@ function ConnectionReminderCard({ type, reminder, disabled, t, styles, onChange 
           trackColor={{ false: t.border, true: accentColor }}
           ios_backgroundColor={t.border}
         />
-      </View>
-
-      <View style={[styles.notificationPreview, { backgroundColor: withAlpha(accentColor, 0.07) }]}>
-        <Text style={[styles.previewTitle, { color: t.text }]}>{template.title}</Text>
-        <Text style={[styles.previewBody, { color: t.subtext }]}>{template.body}</Text>
       </View>
 
       {active ? (
@@ -195,20 +197,20 @@ function ConnectionReminderCard({ type, reminder, disabled, t, styles, onChange 
 }
 
 const NotificationSettingsScreen = ({ navigation }) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
-  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
-    background: colors.background, 
-    surface: isDark ? '#131016' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#D2121A', // Sexy Red
+    surface: colors.surface,
+    surfaceSecondary: colors.surface2 || colors.surface,
+    surfaceGlass: colors.surfaceGlass || colors.surface,
+    primary: colors.primary,
     text: colors.text,
-    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-  }), [colors, isDark]);
+    subtext: colors.textMuted || colors.textSecondary,
+    border: colors.borderGlass || colors.border,
+  }), [colors]);
 
-  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  const shadows = useMemo(() => getShadows(colors), [colors]);
+  const styles = useMemo(() => createStyles(t, shadows), [t, shadows]);
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [testAlertSending, setTestAlertSending] = useState(false);
@@ -333,17 +335,15 @@ const NotificationSettingsScreen = ({ navigation }) => {
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Communications"
-      heroIcon="notifications-outline"
-      heroTitle="Stay Connected"
-      heroSubtitle="Choose the gentle reminders this device receives."
+      headerTitle="Reminders"
+      headerSubtitle="PRIVATE NUDGES"
+      screenAccentColor={t.primary}
+      contentContainerStyle={styles.content}
     >
-        <View style={[styles.masterToggle, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <Text style={[styles.sectionTitle, styles.firstSectionTitle]}>DEVICE ALERTS</Text>
+        <View style={styles.masterToggle}>
           <View style={styles.settingInfo}>
             <Text style={[styles.settingTitle, { color: t.text }]}>Push Notifications</Text>
-            <Text style={[styles.settingDescription, { color: t.subtext }]}>
-              Allow partner activity alerts and connection reminders on this device.
-            </Text>
           </View>
           <Switch
             value={notificationsEnabled}
@@ -352,22 +352,6 @@ const NotificationSettingsScreen = ({ navigation }) => {
             ios_backgroundColor={t.border}
           />
         </View>
-
-        <View style={[styles.infoCard, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}>
-          <Icon name="shield-checkmark-outline" size={20} color={t.primary} />
-          <Text style={[styles.infoText, { color: t.subtext }]}>
-            This switch controls whether this device stays registered for partner alerts and reminders.
-          </Text>
-        </View>
-
-        {!notificationsEnabled && (
-          <View style={[styles.infoCard, { backgroundColor: withAlpha(t.primary, 0.05), borderColor: withAlpha(t.primary, 0.2) }]}>
-            <Icon name="information-circle-outline" size={20} color={t.primary} />
-            <Text style={[styles.infoText, { color: t.subtext }]}>
-              Enable notifications above to manage reminders and partner activity alerts.
-            </Text>
-          </View>
-        )}
 
         {notificationsEnabled && (
           <TouchableOpacity
@@ -388,12 +372,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
           </TouchableOpacity>
         )}
 
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionLabel, { color: t.primary }]}>CONNECTION REMINDERS</Text>
-          <Text style={[styles.sectionCopy, { color: t.subtext }]}>
-            Warm, private nudges for prompts, dates, memories, and closeness.
-          </Text>
-        </View>
+        <Text style={styles.sectionTitle}>CONNECTION REMINDERS</Text>
 
         <View style={styles.reminderList}>
           {REMINDER_ORDER.map((type) => (
@@ -412,58 +391,52 @@ const NotificationSettingsScreen = ({ navigation }) => {
   );
 };
 
-const createStyles = (t, isDark) => StyleSheet.create({
+const createStyles = (t, shadows) => StyleSheet.create({
+  content: {
+    paddingTop: SPACING.sm,
+  },
+  sectionTitle: {
+    ...TYPOGRAPHY.label,
+    color: t.subtext,
+    marginBottom: SPACING.md,
+    marginTop: SPACING.section,
+    paddingLeft: SPACING.xs,
+  },
+  firstSectionTitle: {
+    marginTop: 0,
+  },
   masterToggle: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 24,
-    borderRadius: 24,
-    marginBottom: 24,
+    padding: SPACING.xl,
+    borderRadius: BORDER_RADIUS.xxl,
+    marginBottom: SPACING.md,
     borderWidth: 1,
+    borderColor: t.border,
+    backgroundColor: t.surface,
+    ...shadows.small,
   },
   settingInfo: {
     flex: 1,
-    marginRight: 24,
+    marginRight: SPACING.lg,
   },
   settingTitle: {
     fontFamily: SYSTEM_FONT,
     fontSize: 16,
     fontWeight: '700',
-    marginBottom: 4,
     letterSpacing: -0.2,
   },
-  settingDescription: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '500',
-  },
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    marginBottom: 32,
-    gap: 12,
-  },
-  infoText: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    lineHeight: 20,
-    flex: 1,
-    fontWeight: '500',
-  },
   testButton: {
-    minHeight: 52,
-    borderRadius: 18,
+    minHeight: 56,
+    borderRadius: BORDER_RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 18,
-    marginBottom: 24,
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.md,
   },
   testButtonText: {
     fontFamily: SYSTEM_FONT,
@@ -473,48 +446,33 @@ const createStyles = (t, isDark) => StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0,
   },
-  sectionHeader: {
-    marginTop: 8,
-    marginBottom: 14,
-  },
-  sectionLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 1.6,
-    marginBottom: 6,
-  },
-  sectionCopy: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '600',
-  },
   reminderList: {
-    gap: 14,
-    marginBottom: 28,
+    gap: SPACING.md,
+    marginBottom: SPACING.xxl,
   },
   reminderCard: {
-    borderRadius: 22,
+    borderRadius: BORDER_RADIUS.xxl,
     borderWidth: 1,
-    padding: 16,
-    gap: 14,
+    backgroundColor: t.surface,
+    padding: SPACING.lg,
+    gap: SPACING.md,
+    ...shadows.small,
   },
   reminderHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: SPACING.md,
   },
   reminderIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
   reminderTitleBlock: {
     flex: 1,
-    gap: 4,
+    gap: SPACING.xs,
   },
   reminderLabel: {
     fontFamily: SYSTEM_FONT,
@@ -528,37 +486,20 @@ const createStyles = (t, isDark) => StyleSheet.create({
     lineHeight: 16,
     fontWeight: '700',
   },
-  notificationPreview: {
-    borderRadius: 16,
-    padding: 14,
-    gap: 4,
-  },
-  previewTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 14,
-    lineHeight: 19,
-    fontWeight: '800',
-  },
-  previewBody: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '600',
-  },
   reminderControls: {
-    gap: 10,
+    gap: SPACING.sm,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: SPACING.sm,
   },
   chip: {
     minHeight: 36,
-    borderRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.full,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -567,24 +508,6 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '800',
-  },
-  saveButton: {
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    marginBottom: 16,
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
-      android: { elevation: 6 },
-    }),
-  },
-  saveButtonText: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: -0.2,
   },
 });
 

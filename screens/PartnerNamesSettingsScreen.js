@@ -1,10 +1,3 @@
-/**
- * PartnerNamesSettingsScreen.js
- * Sexy Red Intimacy & Apple Editorial Updates Integrated.
- * Allows users to customize how they see themselves and their partner in the app.
- * OK: Full original logic preserved.
- */
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
@@ -16,39 +9,43 @@ import {
   Animated,
   Platform,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import Icon from '../components/Icon';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { NicknameEngine } from '../services/PolishEngine';
-import { SPACING, withAlpha } from '../utils/theme';
-import Input from '../components/Input';
+import {
+  BORDER_RADIUS,
+  SPACING,
+  SYSTEM_FONT,
+  TYPOGRAPHY,
+  getShadows,
+  withAlpha,
+} from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
-const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-
 export default function PartnerNamesSettingsScreen({ navigation }) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { user, userProfile, updateProfile } = useAuth();
   
   const [myName, setMyName] = useState('');
   const [partnerName, setPartnerName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
-    background: colors.background, 
-    surface: isDark ? '#131016' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#D2121A', // Sexy Red
-    accent: colors.accent || '#D4AA7E',
+    surface: colors.surface,
+    surfaceSecondary: colors.surface2 || colors.surface,
+    surfaceGlass: colors.surfaceGlass || colors.surface,
+    primary: colors.primary,
     text: colors.text,
-    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-  }), [colors, isDark]);
+    subtext: colors.textMuted || colors.textSecondary,
+    border: colors.borderGlass || colors.border,
+  }), [colors]);
 
-  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  const shadows = useMemo(() => getShadows(colors), [colors]);
+  const styles = useMemo(() => createStyles(t, shadows), [t, shadows]);
 
   // Entrance animations
   const fadeAnimation = useRef(new Animated.Value(0)).current;
@@ -139,7 +136,9 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
       headerTitle="Identity"
       headerSubtitle="ACTIVE PROFILE"
       headerDescription="Choose the names Between Us uses across prompts, memories, dates, and notifications."
+      screenAccentColor={t.primary}
       scroll={false}
+      bodyStyle={styles.body}
       keyboardAvoiding
       onBack={handleBack}
       footer={(
@@ -167,13 +166,11 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
             bounces={true}
           >
             <Animated.View style={{ opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }}>
-              
-              {/* Input Widget */}
-              <Text style={styles.sectionTitle}>NAMES</Text>
+              <Text style={[styles.sectionTitle, styles.firstSectionTitle]}>NAMES</Text>
               <View style={styles.widgetCard}>
                 <View style={styles.inputSection}>
                   <Text style={styles.inputLabel}>YOUR NAME</Text>
-                  <Input
+                  <TextInput
                     value={myName}
                     onChangeText={(val) => { setMyName(val); }}
                     placeholder="e.g. Sarah, Me"
@@ -182,6 +179,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
                     returnKeyType="next"
                     style={styles.inputOverrides}
                     selectionColor={t.primary}
+                    accessibilityLabel="Your name"
                   />
                 </View>
 
@@ -189,7 +187,7 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
 
                 <View style={styles.inputSection}>
                   <Text style={styles.inputLabel}>PARTNER'S NAME</Text>
-                  <Input
+                  <TextInput
                     value={partnerName}
                     onChangeText={(val) => { setPartnerName(val); }}
                     placeholder="e.g. John, Partner"
@@ -198,11 +196,11 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
                     returnKeyType="done"
                     style={styles.inputOverrides}
                     selectionColor={t.primary}
+                    accessibilityLabel="Partner's name"
                   />
                 </View>
               </View>
 
-              {/* Examples Widget */}
               <Text style={styles.sectionTitle}>LIVE PREVIEW</Text>
               <View style={styles.widgetCard}>
                 <View style={styles.exampleRow}>
@@ -226,7 +224,6 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
                 </View>
               </View>
 
-              {/* Info Widget */}
               <View style={styles.infoCard}>
                 <Icon name="information-circle-outline" size={24} color={t.subtext} />
                 <Text style={styles.infoText}>
@@ -240,85 +237,75 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
   );
 }
 
-// ------------------------------------------------------------------
-// STYLES - Apple Editorial (Native Dashboard Look)
-// ------------------------------------------------------------------
-const createStyles = (t, isDark) => StyleSheet.create({
+const createStyles = (t, shadows) => StyleSheet.create({
+  body: {
+    paddingHorizontal: 0,
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: SPACING.screen,
     paddingTop: SPACING.sm,
-    paddingBottom: 100,
+    paddingBottom: SPACING.xxxl * 2,
   },
-  // ── Widgets ──
   sectionTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '900',
+    ...TYPOGRAPHY.label,
     color: t.subtext,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 12,
-    marginTop: 32,
-    paddingLeft: 4,
+    marginBottom: SPACING.md,
+    marginTop: SPACING.section,
+    paddingLeft: SPACING.xs,
+  },
+  firstSectionTitle: {
+    marginTop: 0,
   },
   widgetCard: {
     backgroundColor: t.surface,
-    borderRadius: 24, // Deep Apple Squircle
+    borderRadius: BORDER_RADIUS.xxl,
     borderWidth: 1,
     borderColor: t.border,
-    paddingVertical: 8,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 10 },
-      android: { elevation: 2 },
-    }),
+    paddingVertical: SPACING.sm,
+    ...shadows.small,
   },
   divider: {
-    height: 1,
+    height: StyleSheet.hairlineWidth,
     backgroundColor: t.border,
-    marginHorizontal: 20,
+    marginHorizontal: SPACING.xl,
   },
-
-  // ── Inputs ──
   inputSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
   },
   inputLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 10,
-    fontWeight: '800',
+    ...TYPOGRAPHY.label,
     color: t.subtext,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   inputOverrides: {
     fontFamily: SYSTEM_FONT,
     backgroundColor: 'transparent',
     borderWidth: 0,
     paddingHorizontal: 0,
-    paddingBottom: 0,
+    paddingVertical: 0,
+    margin: 0,
+    minHeight: 34,
     fontSize: 22,
+    lineHeight: 28,
     fontWeight: '700',
     color: t.text,
     letterSpacing: 0,
   },
-
-  // ── Examples ──
   exampleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    gap: 16,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xl,
+    gap: SPACING.lg,
   },
   iconWrap: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: BORDER_RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -334,18 +321,16 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '800',
     color: t.primary,
   },
-
-  // ── Info Card ──
   infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: 20,
-    borderRadius: 20,
-    backgroundColor: withAlpha(t.text, 0.03),
+    padding: SPACING.xl,
+    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: t.surfaceGlass,
     borderWidth: 1,
     borderColor: t.border,
-    marginTop: 32,
-    gap: 12,
+    marginTop: SPACING.section,
+    gap: SPACING.md,
   },
   infoText: {
     fontFamily: SYSTEM_FONT,
@@ -355,29 +340,24 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.subtext,
     fontWeight: '500',
   },
-
-  // ── Action Button ──
   actionSection: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-    paddingTop: 16,
+    paddingHorizontal: SPACING.screen,
+    paddingBottom: Platform.OS === 'ios' ? SPACING.xxl + SPACING.md : SPACING.screen,
+    paddingTop: SPACING.lg,
   },
   primaryButton: {
-    backgroundColor: t.primary, // Sexy Red Call to Action
+    backgroundColor: t.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: 56,
-    borderRadius: 28,
-    gap: 8,
-    ...Platform.select({
-      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
-      android: { elevation: 6 },
-    }),
+    borderRadius: BORDER_RADIUS.full,
+    gap: SPACING.sm,
+    ...shadows.glow,
   },
   primaryButtonText: {
     color: '#FFFFFF',
