@@ -64,9 +64,31 @@ describe('scheduleEventNotification', () => {
     });
     expect(id).toBe('notif-id-123');
     expect(mockSchedule).toHaveBeenCalledWith({
-      content: { title: 'Test', body: 'Test body', data: {} },
+      content: {
+        title: 'Test',
+        body: 'Test body',
+        sound: 'default',
+        color: '#2D7A59',
+        data: {
+          route: 'calendar',
+          type: 'calendar_event_reminder',
+        },
+      },
       trigger: { date: expect.any(Date) },
     });
+  });
+
+  it('does not schedule if OS notification permission is not granted', async () => {
+    mockGetPermissions.mockResolvedValueOnce({ status: 'denied' });
+
+    const id = await scheduleEventNotification({
+      title: 'Test',
+      body: 'Test body',
+      when: Date.now() + 60000,
+    });
+
+    expect(id).toBeNull();
+    expect(mockSchedule).not.toHaveBeenCalled();
   });
 
   it('returns null for past times (safety guard)', async () => {

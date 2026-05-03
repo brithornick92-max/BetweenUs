@@ -13,6 +13,9 @@ jest.mock('expo-notifications', () => ({
 const {
   CONNECTION_REMINDER_TYPES,
   CONNECTION_REMINDER_TEMPLATES,
+  formatConnectionReminderTime,
+  getReminderOccurrences,
+  normalizeConnectionReminderTime,
   normalizeConnectionReminderSettings,
   scheduleConnectionReminders,
 } = require('../../services/ConnectionReminderService');
@@ -31,6 +34,37 @@ describe('ConnectionReminderService', () => {
     expect(normalized.prompt.enabled).toBe(false);
     expect(normalized.prompt.frequency).toBe(CONNECTION_REMINDER_TEMPLATES.prompt.defaultFrequency);
     expect(normalized.intimacy.enabled).toBe(false);
+  });
+
+  it('accepts exact reminder times instead of only presets', () => {
+    const normalized = normalizeConnectionReminderSettings({
+      [CONNECTION_REMINDER_TYPES.PROMPT]: {
+        enabled: true,
+        frequency: 'daily',
+        time: '7:05',
+      },
+      [CONNECTION_REMINDER_TYPES.JOURNAL]: {
+        enabled: true,
+        frequency: 'weekly',
+        time: '23:59',
+      },
+    });
+
+    expect(normalized.prompt.time).toBe('07:05');
+    expect(normalized.journal.time).toBe('23:59');
+    expect(normalizeConnectionReminderTime('25:99', '20:30')).toBe('20:30');
+    expect(formatConnectionReminderTime('00:07')).toBe('12:07 AM');
+    expect(formatConnectionReminderTime('23:59')).toBe('11:59 PM');
+  });
+
+  it('builds occurrences at the exact selected minute', () => {
+    const occurrences = getReminderOccurrences(
+      { enabled: true, frequency: 'daily', time: '07:05' },
+      new Date('2026-05-03T06:00:00')
+    );
+
+    expect(occurrences[0].getHours()).toBe(7);
+    expect(occurrences[0].getMinutes()).toBe(5);
   });
 
   it('schedules enabled reminders with Between Us copy and safe routes', async () => {

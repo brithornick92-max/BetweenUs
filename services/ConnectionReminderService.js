@@ -143,11 +143,30 @@ const REMINDER_ORDER = [
   CONNECTION_REMINDER_TYPES.MEMORY,
 ];
 
-const isSupportedTime = (value) => CONNECTION_REMINDER_TIME_PRESETS.some((item) => item.id === value);
 const isSupportedMonthDay = (value) => CONNECTION_REMINDER_MONTH_DAY_OPTIONS.some((item) => item.id === value);
 
+export function normalizeConnectionReminderTime(value, fallback = DEFAULT_REMINDER_TIME) {
+  const candidate = typeof value === 'string' ? value.trim() : '';
+  const match = candidate.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+
+  if (match) {
+    return `${String(Number(match[1])).padStart(2, '0')}:${match[2]}`;
+  }
+
+  return fallback;
+}
+
+export function formatConnectionReminderTime(value) {
+  const time = normalizeConnectionReminderTime(value);
+  const { hour, minute } = parseTimeParts(time);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
+}
+
 function parseTimeParts(timeValue) {
-  const [rawHour, rawMinute] = String(timeValue || DEFAULT_REMINDER_TIME).split(':');
+  const safeTime = normalizeConnectionReminderTime(timeValue);
+  const [rawHour, rawMinute] = safeTime.split(':');
   const hour = Number(rawHour);
   const minute = Number(rawMinute);
 
@@ -237,9 +256,7 @@ export function normalizeConnectionReminderSettings(rawSettings = {}) {
       dayOfMonth: Number.isInteger(raw.dayOfMonth) && isSupportedMonthDay(raw.dayOfMonth)
         ? raw.dayOfMonth
         : 1,
-      time: isSupportedTime(raw.time)
-        ? raw.time
-        : template.defaultTime,
+      time: normalizeConnectionReminderTime(raw.time, template.defaultTime),
     };
   }
 
@@ -395,6 +412,8 @@ export default {
   CONNECTION_REMINDER_DAY_OPTIONS,
   CONNECTION_REMINDER_MONTH_DAY_OPTIONS,
   CONNECTION_REMINDER_TEMPLATES,
+  normalizeConnectionReminderTime,
+  formatConnectionReminderTime,
   normalizeConnectionReminderSettings,
   getConnectionReminderSettings,
   saveConnectionReminderSettings,

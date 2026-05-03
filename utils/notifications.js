@@ -94,6 +94,9 @@ export async function scheduleEventNotification({
   if (!Notifications) return null;
   if (!(await isNotificationTypeEnabled(notificationType))) return null;
 
+  const permissionState = await Notifications.getPermissionsAsync?.();
+  if (permissionState?.status !== "granted") return null;
+
   // Cancel safety: if when is in the past, do nothing
   const ts = typeof when === "number" ? when : new Date(when).getTime();
   if (!ts || ts <= Date.now() + 2000) return null;
@@ -101,7 +104,17 @@ export async function scheduleEventNotification({
   await ensureDefaultNotificationChannel();
 
   return Notifications.scheduleNotificationAsync({
-    content: { title, body, data: data || {} },
+    content: {
+      title,
+      body,
+      sound: "default",
+      color: REMINDER_CATEGORY_COLORS.date,
+      data: {
+        route: "calendar",
+        type: "calendar_event_reminder",
+        ...(data || {}),
+      },
+    },
     trigger: dateTrigger(new Date(ts)),
   });
 }

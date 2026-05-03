@@ -455,6 +455,8 @@ export default function CalendarScreen({ navigation, route }) {
       const whenTs = combined.getTime();
 
       let notificationId = editingEvent?.notificationId || null;
+      let effectiveNotify = !!form.notify;
+      let notificationIssue = null;
 
       if (editingEvent?.notificationId) {
         try {
@@ -469,21 +471,37 @@ export default function CalendarScreen({ navigation, route }) {
         try {
           const mins = form.notifyMins || 60;
           const triggerTs = whenTs - (mins * 60000);
-          if (triggerTs > Date.now()) {
+          if (triggerTs > Date.now() + 2000) {
             const { ok } = await ensureNotificationPermissions({
               type: NOTIFICATION_TYPES.CALENDAR_REMINDERS,
             });
             if (ok) {
               notificationId = await scheduleEventNotification({
                 title: 'Between Us',
-                body: `${form.title} is coming up`,
+                body: `${form.title.trim()} is coming up.`,
                 when: triggerTs,
+                data: {
+                  route: 'calendar',
+                  type: 'calendar_event_reminder',
+                  eventId: editingEvent?.id || null,
+                  title: form.title.trim(),
+                },
               });
+              if (!notificationId) {
+                effectiveNotify = false;
+                notificationIssue = 'This event was saved, but the alert could not be scheduled on this device.';
+              }
             } else {
-              Alert.alert('Notifications', 'Please enable notifications in Settings to receive reminders.');
+              effectiveNotify = false;
+              notificationIssue = 'This event was saved without an alert. Enable calendar notifications in Settings to receive reminders.';
             }
+          } else {
+            effectiveNotify = false;
+            notificationIssue = 'This event was saved without an alert because that reminder time has already passed.';
           }
         } catch (notifErr) {
+          effectiveNotify = false;
+          notificationIssue = 'This event was saved, but the alert could not be scheduled on this device.';
           CrashReporting.captureException(notifErr, { source: 'calendar_notification_schedule' });
         }
       }
@@ -492,6 +510,7 @@ export default function CalendarScreen({ navigation, route }) {
         ...(editingEvent || {}),
         ...form,
         title: form.title.trim(),
+        notify: effectiveNotify,
         whenTs,
         notificationId,
         eventType: form.eventType,
@@ -511,6 +530,9 @@ export default function CalendarScreen({ navigation, route }) {
       setSelectedDate(savedDate);
       await loadEvents();
       resetComposer();
+      if (notificationIssue) {
+        Alert.alert('Calendar Alert', notificationIssue);
+      }
     } catch (_err) {
       Alert.alert('Error', 'Something went wrong saving your event. Please try again.');
     } finally {

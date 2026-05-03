@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Alert,
   TouchableOpacity,
   Linking,
+  ScrollView,
 } from 'react-native';
 import Icon from '../components/Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
@@ -30,9 +31,10 @@ import {
   CONNECTION_REMINDER_FREQUENCIES,
   CONNECTION_REMINDER_MONTH_DAY_OPTIONS,
   CONNECTION_REMINDER_TEMPLATES,
-  CONNECTION_REMINDER_TIME_PRESETS,
   CONNECTION_REMINDER_TYPES,
   cancelConnectionReminders,
+  formatConnectionReminderTime,
+  normalizeConnectionReminderTime,
   normalizeConnectionReminderSettings,
   scheduleConnectionReminders,
 } from '../services/ConnectionReminderService';
@@ -55,8 +57,25 @@ const REMINDER_ACCENT_COLORS = {
   [CONNECTION_REMINDER_TYPES.MEMORY]: REMINDER_CATEGORY_COLORS.memory,
 };
 
-function formatTimeLabel(time) {
-  return CONNECTION_REMINDER_TIME_PRESETS.find((item) => item.id === time)?.label || time;
+const TIME_HOURS = Array.from({ length: 12 }, (_, index) => index + 1);
+const TIME_MINUTES = Array.from({ length: 60 }, (_, index) => index);
+const TIME_PERIODS = ['AM', 'PM'];
+const TIME_OPTION_HEIGHT = 40;
+
+function getTimePickerParts(value) {
+  const normalized = normalizeConnectionReminderTime(value);
+  const [hourValue, minuteValue] = normalized.split(':').map(Number);
+  return {
+    hour: hourValue % 12 || 12,
+    minute: minuteValue,
+    period: hourValue >= 12 ? 'PM' : 'AM',
+  };
+}
+
+function buildTimeValue({ hour, minute, period }) {
+  let hour24 = Number(hour) % 12;
+  if (period === 'PM') hour24 += 12;
+  return `${String(hour24).padStart(2, '0')}:${String(Number(minute)).padStart(2, '0')}`;
 }
 
 function formatReminderSummary(reminder) {
@@ -64,7 +83,7 @@ function formatReminderSummary(reminder) {
   const frequency = CONNECTION_REMINDER_FREQUENCIES.find((item) => item.id === reminder.frequency)?.label || 'Weekly';
   const day = CONNECTION_REMINDER_DAY_OPTIONS.find((item) => item.id === reminder.dayOfWeek)?.label;
   const monthDay = CONNECTION_REMINDER_MONTH_DAY_OPTIONS.find((item) => item.id === reminder.dayOfMonth)?.label || `${reminder.dayOfMonth || 1}`;
-  const time = formatTimeLabel(reminder.time);
+  const time = formatConnectionReminderTime(reminder.time);
 
   if (reminder.frequency === 'daily') return `${frequency} at ${time}`;
   if (reminder.frequency === 'monthly') return `${frequency} on the ${monthDay} at ${time}`;
@@ -88,6 +107,111 @@ function ReminderChip({ label, active, onPress, disabled, t, accentColor, styles
     >
       <Text style={[styles.chipText, { color: active ? accentColor : t.text }]}>{label}</Text>
     </TouchableOpacity>
+  );
+}
+
+function TimePickerColumn({ values, selectedValue, onSelect, disabled, t, accentColor, styles, formatLabel }) {
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    const index = values.findIndex((value) => value === selectedValue);
+    if (index < 0) return;
+
+    const frame = requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({
+        y: Math.max(0, (index - 1) * TIME_OPTION_HEIGHT),
+        animated: false,
+      });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [selectedValue, values]);
+
+  return (
+    <ScrollView
+      ref={scrollRef}
+      style={styles.timeColumn}
+      contentContainerStyle={styles.timeColumnContent}
+      showsVerticalScrollIndicator={false}
+      nestedScrollEnabled
+    >
+      {values.map((value) => {
+        const active = selectedValue === value;
+        return (
+          <TouchableOpacity
+            key={value}
+            activeOpacity={0.78}
+            onPress={() => onSelect(value)}
+            disabled={disabled}
+            style={[
+              styles.timeOption,
+              {
+                backgroundColor: active ? withAlpha(accentColor, 0.14) : 'transparent',
+                borderColor: active ? withAlpha(accentColor, 0.36) : 'transparent',
+              },
+            ]}
+          >
+            <Text style={[styles.timeOptionText, { color: active ? accentColor : t.text }]}>
+              {formatLabel(value)}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+function ExactTimePicker({ value, onChange, disabled, t, accentColor, styles }) {
+  const parts = getTimePickerParts(value);
+  const changePart = (patch) => {
+    onChange(buildTimeValue({ ...parts, ...patch }));
+  };
+
+  return (
+    <View style={[styles.timePicker, { backgroundColor: t.surfaceSecondary, borderColor: withAlpha(accentColor, 0.22) }]}>
+      <View style={styles.timePickerHeader}>
+        <View style={[styles.timePickerIcon, { backgroundColor: withAlpha(accentColor, 0.12) }]}>
+          <Icon name="time-outline" size={16} color={accentColor} />
+        </View>
+        <Text style={[styles.timePickerLabel, { color: t.text }]}>Time</Text>
+        <Text style={[styles.timePickerValue, { color: accentColor }]}>
+          {formatConnectionReminderTime(value)}
+        </Text>
+      </View>
+
+      <View style={styles.timeWheelRow}>
+        <TimePickerColumn
+          values={TIME_HOURS}
+          selectedValue={parts.hour}
+          onSelect={(hour) => changePart({ hour })}
+          disabled={disabled}
+          t={t}
+          accentColor={accentColor}
+          styles={styles}
+          formatLabel={(hour) => String(hour)}
+        />
+        <TimePickerColumn
+          values={TIME_MINUTES}
+          selectedValue={parts.minute}
+          onSelect={(minute) => changePart({ minute })}
+          disabled={disabled}
+          t={t}
+          accentColor={accentColor}
+          styles={styles}
+          formatLabel={(minute) => String(minute).padStart(2, '0')}
+        />
+        <TimePickerColumn
+          values={TIME_PERIODS}
+          selectedValue={parts.period}
+          onSelect={(period) => changePart({ period })}
+          disabled={disabled}
+          t={t}
+          accentColor={accentColor}
+          styles={styles}
+          formatLabel={(period) => period}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -176,20 +300,14 @@ function ConnectionReminderCard({ type, reminder, disabled, t, styles, onChange 
             </View>
           ) : null}
 
-          <View style={styles.chipRow}>
-            {CONNECTION_REMINDER_TIME_PRESETS.map((item) => (
-              <ReminderChip
-                key={item.id}
-                label={item.label}
-                active={reminder.time === item.id}
-                onPress={() => onChange(type, { time: item.id })}
-                disabled={disabled}
-                t={t}
-                accentColor={accentColor}
-                styles={styles}
-              />
-            ))}
-          </View>
+          <ExactTimePicker
+            value={reminder.time}
+            onChange={(time) => onChange(type, { time })}
+            disabled={disabled}
+            t={t}
+            accentColor={accentColor}
+            styles={styles}
+          />
         </View>
       ) : null}
     </View>
@@ -504,6 +622,65 @@ const createStyles = (t, shadows) => StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '800',
+  },
+  timePicker: {
+    borderRadius: BORDER_RADIUS.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  timePickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
+  },
+  timePickerIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: BORDER_RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timePickerLabel: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '800',
+  },
+  timePickerValue: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '900',
+  },
+  timeWheelRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  timeColumn: {
+    flex: 1,
+    maxHeight: 148,
+    borderRadius: BORDER_RADIUS.lg,
+  },
+  timeColumnContent: {
+    gap: SPACING.xs,
+    paddingVertical: SPACING.xs,
+  },
+  timeOption: {
+    minHeight: 36,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timeOptionText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '900',
+    fontVariant: ['tabular-nums'],
   },
 });
 
