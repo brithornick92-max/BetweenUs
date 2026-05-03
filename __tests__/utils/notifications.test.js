@@ -7,6 +7,7 @@ const mockSchedule = jest.fn().mockResolvedValue('notif-id-123');
 const mockCancel = jest.fn().mockResolvedValue(undefined);
 const mockGetPermissions = jest.fn().mockResolvedValue({ status: 'granted' });
 const mockRequestPermissions = jest.fn().mockResolvedValue({ status: 'granted' });
+const AsyncStorage = require('@react-native-async-storage/async-storage');
 
 jest.mock('expo-notifications', () => ({
   scheduleNotificationAsync: mockSchedule,
@@ -18,11 +19,14 @@ jest.mock('expo-notifications', () => ({
 const {
   ensureNotificationPermissions,
   scheduleEventNotification,
+  isNotificationTypeEnabled,
+  NOTIFICATION_TYPES,
   cancelNotification,
 } = require('../../utils/notifications');
 
 beforeEach(() => {
   jest.clearAllMocks();
+  AsyncStorage.getItem.mockResolvedValue(null);
 });
 
 describe('ensureNotificationPermissions', () => {
@@ -37,6 +41,16 @@ describe('ensureNotificationPermissions', () => {
     const result = await ensureNotificationPermissions();
     expect(result.ok).toBe(true);
     expect(mockRequestPermissions).toHaveBeenCalled();
+  });
+
+  it('does not request OS permissions when app notifications are disabled', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify({ notificationsEnabled: false }));
+
+    const result = await ensureNotificationPermissions();
+
+    expect(result).toEqual({ ok: false, reason: 'notifications disabled' });
+    expect(mockGetPermissions).not.toHaveBeenCalled();
+    expect(mockRequestPermissions).not.toHaveBeenCalled();
   });
 });
 
@@ -64,6 +78,37 @@ describe('scheduleEventNotification', () => {
     });
     expect(id).toBeNull();
     expect(mockSchedule).not.toHaveBeenCalled();
+  });
+
+  it('does not schedule calendar reminders when that notification category is disabled', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify({ calendarReminders: false }));
+
+    const id = await scheduleEventNotification({
+      title: 'Test',
+      body: 'Test body',
+      when: Date.now() + 60000,
+    });
+
+    expect(id).toBeNull();
+    expect(mockSchedule).not.toHaveBeenCalled();
+  });
+});
+
+describe('notification preference helpers', () => {
+  it('honors master and type-level notification settings', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify({
+      notificationsEnabled: true,
+      memoryRecaps: false,
+    }));
+
+    await expect(isNotificationTypeEnabled(NOTIFICATION_TYPES.MEMORY_RECAPS)).resolves.toBe(false);
+
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify({
+      notificationsEnabled: false,
+      memoryRecaps: true,
+    }));
+
+    await expect(isNotificationTypeEnabled(NOTIFICATION_TYPES.MEMORY_RECAPS)).resolves.toBe(false);
   });
 });
 

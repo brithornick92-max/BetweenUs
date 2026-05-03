@@ -10,7 +10,9 @@
  *   betweenus://vibe                    → VibeSignal
  *   betweenus://prompt/:promptId        → PromptAnswer
  *   betweenus://calendar                → Calendar (tab, day 2+)
+ *   betweenus://date-ideas              → DatePlans tab
  *   betweenus://date/:dateId            → DateNightDetail
+ *   betweenus://intimacy                → IntimacyPositions
  *   betweenus://journal                 → JournalHome
  *   betweenus://pair                    → ConnectPartner
  *   betweenus://quiz                    → CouplesQuiz
@@ -61,6 +63,14 @@ const ROUTE_MAP = {
   'date': (params) => ({
     screen: 'DateNightDetail',
     params: { dateId: _sanitizeId(params.id) },
+  }),
+  'date-ideas': () => ({
+    screen: 'MainTabs',
+    params: { screen: 'DatePlans' },
+  }),
+  'intimacy': () => ({
+    screen: 'IntimacyPositions',
+    params: {},
   }),
   'journal': () => ({
     screen: 'JournalHome',

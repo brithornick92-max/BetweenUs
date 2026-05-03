@@ -13,6 +13,11 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  ensureDefaultNotificationChannel,
+  isNotificationTypeEnabled,
+  NOTIFICATION_TYPES,
+} from '../utils/notifications';
 
 let Notifications = null;
 try {
@@ -94,6 +99,11 @@ const MemoryResurfacingService = {
     if (!Notifications) return;
 
     try {
+      if (!(await isNotificationTypeEnabled(NOTIFICATION_TYPES.MEMORY_RECAPS))) {
+        await this.cancel();
+        return;
+      }
+
       // Once-per-day guard
       const todayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
       const lastScheduled = await AsyncStorage.getItem(LAST_SCHEDULED_KEY);
@@ -102,6 +112,7 @@ const MemoryResurfacingService = {
       // Check notification permission — never request it here
       const { status } = await Notifications.getPermissionsAsync();
       if (status !== 'granted') return;
+      await ensureDefaultNotificationChannel();
 
       // Load shared memories through DataLayer
       const todayMMDD = todayYearlessKey();

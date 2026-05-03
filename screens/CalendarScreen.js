@@ -32,7 +32,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { ensureNotificationPermissions, scheduleEventNotification, cancelNotification } from '../utils/notifications';
+import {
+  ensureNotificationPermissions,
+  scheduleEventNotification,
+  cancelNotification,
+  NOTIFICATION_TYPES,
+} from '../utils/notifications';
 import { DataLayer } from '../services/localfirst';
 import CrashReporting from '../services/CrashReporting';
 import { SPACING } from '../utils/theme';
@@ -465,7 +470,9 @@ export default function CalendarScreen({ navigation, route }) {
           const mins = form.notifyMins || 60;
           const triggerTs = whenTs - (mins * 60000);
           if (triggerTs > Date.now()) {
-            const { ok } = await ensureNotificationPermissions();
+            const { ok } = await ensureNotificationPermissions({
+              type: NOTIFICATION_TYPES.CALENDAR_REMINDERS,
+            });
             if (ok) {
               notificationId = await scheduleEventNotification({
                 title: 'Between Us',

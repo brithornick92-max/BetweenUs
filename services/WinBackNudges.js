@@ -17,10 +17,16 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  ensureDefaultNotificationChannel,
+  isNotificationTypeEnabled,
+  NOTIFICATION_TYPES,
+} from '../utils/notifications';
 
 const NUDGE_IDS_KEY = '@betweenus:cache:winbackNudgeIds';
 const STREAK_ALERT_ID_KEY = '@betweenus:cache:streakAlertId';
 const WEEKLY_RECAP_KEY = '@betweenus:cache:weeklyRecapScheduledWeek';
+const WEEKLY_RECAP_ID_KEY = '@betweenus:cache:weeklyRecapNotificationId';
 
 let Notifications = null;
 try {
@@ -54,7 +60,7 @@ const NUDGES = [
     delayDays: 14,
     title: 'New ideas for your next night together',
     body: 'Fresh date ideas and sex positions are waiting for you. Come see what is new.',
-    route: 'date',
+    route: 'date-ideas',
   },
 ];
 
@@ -65,6 +71,10 @@ const WinBackNudges = {
    */
   async scheduleNudges() {
     if (!Notifications) return;
+    if (!(await isNotificationTypeEnabled(NOTIFICATION_TYPES.WINBACK))) {
+      await this.cancelNudges();
+      return;
+    }
 
     // Check if we have permission (don't request it)
     const { status } = await Notifications.getPermissionsAsync();
@@ -72,6 +82,7 @@ const WinBackNudges = {
 
     // Cancel any previously scheduled nudges
     await this.cancelNudges();
+    await ensureDefaultNotificationChannel();
 
     const ids = [];
     const now = Date.now();
@@ -139,12 +150,24 @@ const WinBackNudges = {
    * @param {string} [partnerName]
    */
   async scheduleStreakBreakAlert(currentStreak, partnerName, isPremium) {
-    if (!Notifications || currentStreak < 3) return;
+    if (!Notifications) return;
+    if (currentStreak < 3) {
+      await this.cancelStreakBreakAlert();
+      return;
+    }
     // Premium users don't need loss-aversion nudges
-    if (isPremium) return;
+    if (isPremium) {
+      await this.cancelStreakBreakAlert();
+      return;
+    }
+    if (!(await isNotificationTypeEnabled(NOTIFICATION_TYPES.RITUAL_REMINDERS))) {
+      await this.cancelStreakBreakAlert();
+      return;
+    }
 
     const { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') return;
+    await ensureDefaultNotificationChannel();
 
     // Cancel any previously scheduled rhythm invitation
     try {
@@ -178,6 +201,20 @@ const WinBackNudges = {
     }
   },
 
+  async cancelStreakBreakAlert() {
+    if (!Notifications) return;
+
+    try {
+      const existingId = await AsyncStorage.getItem(STREAK_ALERT_ID_KEY);
+      if (existingId) {
+        await Notifications.cancelScheduledNotificationAsync(existingId).catch(() => {});
+      }
+      await AsyncStorage.removeItem(STREAK_ALERT_ID_KEY);
+    } catch {
+      // Non-critical
+    }
+  },
+
   /**
    * Schedule a weekly relationship recap notification every Sunday at 7pm.
    * Safe to call on every app open — reschedules if not already set for this week.
@@ -186,9 +223,14 @@ const WinBackNudges = {
    */
   async scheduleWeeklyRecap(summary) {
     if (!Notifications) return;
+    if (!(await isNotificationTypeEnabled(NOTIFICATION_TYPES.MEMORY_RECAPS))) {
+      await this.cancelWeeklyRecap();
+      return;
+    }
 
     const { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') return;
+    await ensureDefaultNotificationChannel();
 
     const now = new Date();
     // ISO 8601 week number: week containing the first Thursday of the year
@@ -213,13 +255,19 @@ const WinBackNudges = {
 
       if (next.getTime() <= Date.now() + 2000) return;
 
+      const previousId = await AsyncStorage.getItem(WEEKLY_RECAP_ID_KEY);
+      if (previousId) {
+        await Notifications.cancelScheduledNotificationAsync(previousId).catch(() => {});
+        await AsyncStorage.removeItem(WEEKLY_RECAP_ID_KEY);
+      }
+
       const { prompts = 0, partnerName = 'your partner' } = summary || {};
       const partnerLine = partnerName && partnerName !== 'your partner' ? ` with ${partnerName}` : '';
       const promptLine = prompts > 0
         ? `${prompts} moment${prompts !== 1 ? 's' : ''}${partnerLine} this week`
         : `Your week${partnerLine} is ready`;
 
-      await Notifications.scheduleNotificationAsync({
+      const id = await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Your week together',
           body: `${promptLine}. Open Between Us when you want to revisit it together.`,
@@ -228,7 +276,23 @@ const WinBackNudges = {
         trigger: dateTrigger(next),
       });
 
+      await AsyncStorage.setItem(WEEKLY_RECAP_ID_KEY, id);
       await AsyncStorage.setItem(WEEKLY_RECAP_KEY, yearWeek);
+    } catch {
+      // Non-critical
+    }
+  },
+
+  async cancelWeeklyRecap() {
+    if (!Notifications) return;
+
+    try {
+      const existingId = await AsyncStorage.getItem(WEEKLY_RECAP_ID_KEY);
+      if (existingId) {
+        await Notifications.cancelScheduledNotificationAsync(existingId).catch(() => {});
+      }
+      await AsyncStorage.removeItem(WEEKLY_RECAP_ID_KEY);
+      await AsyncStorage.removeItem(WEEKLY_RECAP_KEY);
     } catch {
       // Non-critical
     }

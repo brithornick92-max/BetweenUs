@@ -2,6 +2,7 @@ const mockSetNotificationHandler = jest.fn();
 const mockGetPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
 const mockRequestPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
 const mockGetExpoPushTokenAsync = jest.fn().mockResolvedValue({ data: 'ExponentPushToken[test]' });
+const AsyncStorage = require('@react-native-async-storage/async-storage');
 
 jest.mock('expo-notifications', () => ({
   setNotificationHandler: mockSetNotificationHandler,
@@ -30,6 +31,9 @@ describe('PushNotificationService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     PushNotificationService._token = null;
+    AsyncStorage.getItem.mockResolvedValue(null);
+    AsyncStorage.setItem.mockResolvedValue(undefined);
+    AsyncStorage.removeItem.mockResolvedValue(undefined);
   });
 
   it('registers a token and saves it to Supabase', async () => {
@@ -56,6 +60,10 @@ describe('PushNotificationService', () => {
       shouldSetBadge: false,
     });
     expect(upsert).toHaveBeenCalled();
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      PushNotificationService._cacheKey,
+      'ExponentPushToken[test]'
+    );
   });
 
   it('does not prompt on silent initialization when permissions are not granted', async () => {
@@ -108,6 +116,25 @@ describe('PushNotificationService', () => {
     await PushNotificationService.removeToken(supabase);
 
     expect(PushNotificationService.getToken()).toBe('ExponentPushToken[test]');
+  });
+
+  it('removes a cached token even when the in-memory token is empty', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce('ExponentPushToken[cached]');
+    const eqToken = jest.fn().mockResolvedValue({ error: null });
+    const eqUser = jest.fn(() => ({ eq: eqToken }));
+    const del = jest.fn(() => ({ eq: eqUser }));
+    const supabase = {
+      auth: {
+        getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'user-1' } } }),
+      },
+      from: jest.fn(() => ({ delete: del })),
+    };
+
+    await PushNotificationService.removeToken(supabase);
+
+    expect(eqUser).toHaveBeenCalledWith('user_id', 'user-1');
+    expect(eqToken).toHaveBeenCalledWith('token', 'ExponentPushToken[cached]');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith(PushNotificationService._cacheKey);
   });
 
   it('calls the partner notification RPC', async () => {

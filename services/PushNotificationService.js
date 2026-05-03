@@ -5,6 +5,7 @@
  */
 
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 
@@ -17,6 +18,7 @@ try {
 
 const PushNotificationService = {
   _token: null,
+  _cacheKey: '@betweenus:cache:expoPushToken',
 
   /**
    * Initialize: configure notification handler for foreground display,
@@ -78,6 +80,7 @@ const PushNotificationService = {
         projectId,
       });
       this._token = tokenData.data;
+      await AsyncStorage.setItem(this._cacheKey, this._token).catch(() => {});
       if (__DEV__) console.log('[Push] Token registered');
 
       // Save to Supabase
@@ -131,7 +134,7 @@ const PushNotificationService = {
   async removeToken(supabase) {
     let shouldClearToken = false;
     try {
-      const token = this._token;
+      const token = this._token || await AsyncStorage.getItem(this._cacheKey).catch(() => null);
       if (!token) return;
 
       if (!supabase) {
@@ -166,6 +169,7 @@ const PushNotificationService = {
     } finally {
       if (shouldClearToken) {
         this._token = null;
+        await AsyncStorage.removeItem(this._cacheKey).catch(() => {});
       }
     }
   },

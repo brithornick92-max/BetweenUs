@@ -54,6 +54,7 @@ let experimentServiceInstance = null;
 let deepLinkHandlerInstance = null;
 let revenueCatServiceInstance = null;
 let pushNotificationServiceInstance = null;
+let connectionReminderServiceInstance = null;
 
 function getAnalyticsService() {
   if (!analyticsServiceInstance) {
@@ -89,6 +90,14 @@ function getPushNotificationService() {
       require("./services/PushNotificationService").default;
   }
   return pushNotificationServiceInstance;
+}
+
+function getConnectionReminderService() {
+  if (!connectionReminderServiceInstance) {
+    connectionReminderServiceInstance =
+      require("./services/ConnectionReminderService").default;
+  }
+  return connectionReminderServiceInstance;
 }
 
 // Initialize Sentry early — this is fast (synchronous config, no network).
@@ -283,6 +292,7 @@ function AppContent() {
         !isLocked
       ) {
         ExpoUpdateService.checkForUpdate({ reason: "foreground" }).catch(() => {});
+        getConnectionReminderService().scheduleConnectionReminders().catch(() => {});
       }
 
       setAppStateVisible(nextAppState);
@@ -294,6 +304,11 @@ function AppContent() {
     );
     return () => subscription?.remove();
   }, [appStateVisible, isLocked, state.appLockEnabled]);
+
+  useEffect(() => {
+    if (isLightweightDevMode || !navReady) return;
+    getConnectionReminderService().scheduleConnectionReminders().catch(() => {});
+  }, [navReady]);
 
   useEffect(() => {
     if (isLightweightDevMode || !navReady || isLocked) return undefined;

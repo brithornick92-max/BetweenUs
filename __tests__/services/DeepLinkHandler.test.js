@@ -8,6 +8,7 @@ beforeEach(() => {
     isReady: () => true,
     navigate,
   });
+  DeepLinkHandler.setShowSecondaryTabs(true);
 });
 
 describe('DeepLinkHandler.handleUrl', () => {
@@ -44,6 +45,20 @@ describe('DeepLinkHandler.handleUrl', () => {
 
     expect(handled).toBe(true);
     expect(navigate).toHaveBeenCalledWith('CouplesQuiz', {});
+  });
+
+  it('routes date idea reminder URLs to the Dates tab', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://date-ideas');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('MainTabs', { screen: 'DatePlans' });
+  });
+
+  it('routes private inspiration URLs to Intimacy Positions', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://intimacy');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('IntimacyPositions', {});
   });
 
   it('keeps old saved-moments URLs routed to Keepsake', () => {
