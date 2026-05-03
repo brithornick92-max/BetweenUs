@@ -212,6 +212,29 @@ export default function OnboardingScreen({ navigation }) {
     return diffDays.toLocaleString();
   }, [anniversaryDate]);
 
+  const buildRelationshipProfileDraft = useCallback(() => {
+    const quizData = {};
+
+    if (loveLanguage) quizData.loveLanguage = loveLanguage;
+    if (relationshipGoal) quizData.relationshipGoal = relationshipGoal;
+    if (idealDateStyle) quizData.idealDateStyle = idealDateStyle;
+    if (communicationStyle) quizData.communicationStyle = communicationStyle;
+    if (hasKids === 'yes') quizData.hasKids = true;
+    if (hasKids === 'no') quizData.hasKids = false;
+
+    return quizData;
+  }, [communicationStyle, hasKids, idealDateStyle, loveLanguage, relationshipGoal]);
+
+  const saveRelationshipProfileDraft = useCallback(async () => {
+    const quizData = buildRelationshipProfileDraft();
+    if (!Object.keys(quizData).length) return null;
+
+    await updateProfile?.({ quiz: quizData });
+    await actions.updateProfile({ quiz: quizData });
+
+    return quizData;
+  }, [actions, buildRelationshipProfileDraft, updateProfile]);
+
   /**
    * Require an existing Supabase session. Never create one implicitly.
    */
@@ -580,7 +603,7 @@ export default function OnboardingScreen({ navigation }) {
       >
         <ReAnimated.View entering={FadeInDown.delay(100).duration(600).springify()}>
           <Text style={styles.title}>What Feels Like Us</Text>
-          <Text style={styles.storySubtitle}>These shape the prompts, date ideas, and little moments in your private space.</Text>
+          <Text style={styles.storySubtitle}>Optional signals for better prompts and date ideas. You can skip now and add or edit this anytime in Settings.</Text>
         </ReAnimated.View>
 
         {/* Love Language */}
@@ -654,35 +677,26 @@ export default function OnboardingScreen({ navigation }) {
             activeOpacity={0.8}
             onPress={async () => {
               Keyboard.dismiss();
-              // Save quiz answers to profile
               try {
-                const quizData = {
-                  loveLanguage,
-                  relationshipGoal,
-                  idealDateStyle,
-                  communicationStyle,
-                  hasKids: hasKids === 'yes',
-                };
-                await updateProfile?.({ quiz: quizData });
-                await actions.updateProfile({ quiz: quizData });
+                await saveRelationshipProfileDraft();
               } catch (e) {
-                if (__DEV__) console.warn('Error saving quiz:', e);
+                if (__DEV__) console.warn('Error saving relationship profile:', e);
               }
               transitionTo(3);
             }}
             accessibilityRole="button"
-            accessibilityLabel="Continue to preferences"
+            accessibilityLabel="Save relationship profile and continue"
           >
-            <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
+            <Text style={[styles.primaryButtonText, { color: t.surface }]}>Save & Continue</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => { Keyboard.dismiss(); transitionTo(3); }}
             style={{ marginTop: 16, alignItems: 'center' }}
             activeOpacity={0.6}
             accessibilityRole="button"
-            accessibilityLabel="Skip quiz for now"
+            accessibilityLabel="Skip relationship profile for now"
           >
-            <Text style={styles.skipLink}>Skip for now</Text>
+            <Text style={styles.skipLink}>Skip relationship profile for now</Text>
           </TouchableOpacity>
         </ReAnimated.View>
       </ScrollView>
