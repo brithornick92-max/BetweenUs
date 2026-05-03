@@ -2182,7 +2182,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
   answerName: {
     fontFamily: SYSTEM_FONT,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: t.text,
   },
   snapshotBody: {
     marginTop: SPACING.lg,
