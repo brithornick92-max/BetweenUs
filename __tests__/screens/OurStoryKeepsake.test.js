@@ -8,6 +8,7 @@ const {
   buildDateGroupedKeepsakeList,
   buildKeepsakeEntriesFromSources,
 } = require('../../screens/OurStoryScreen');
+const { KEEPSAKE_CATEGORY_COLORS } = require('../../config/constants');
 
 describe('OurStory Keepsake entry building', () => {
   it('includes prompts, snapshots, standalone memories, dates tried, and positions tried', async () => {
@@ -108,14 +109,20 @@ describe('OurStory Keepsake entry building', () => {
     expect(entries.some((entry) => entry.sourceId === 'position-memory-1')).toBe(false);
     expect(entries.some((entry) => entry.sourceId === 'favorite-position-memory-1')).toBe(true);
 
-    expect(entries.find((entry) => entry.kind === 'prompt').accent).toBe('#4F7DF3');
-    expect(entries.find((entry) => entry.kind === 'snapshot').accent).toBe('#8A5CF6');
+    expect(KEEPSAKE_CATEGORY_COLORS).toEqual({
+      position: '#D2121A',
+      prompt: '#4F7DF3',
+      date: '#2FA36B',
+      memory: '#8A5CF6',
+    });
+    expect(entries.find((entry) => entry.kind === 'prompt').accent).toBe(KEEPSAKE_CATEGORY_COLORS.prompt);
+    expect(entries.find((entry) => entry.kind === 'snapshot').accent).toBe(KEEPSAKE_CATEGORY_COLORS.memory);
     expect(entries.find((entry) => entry.kind === 'snapshot').eyebrow).toBe('Memory');
-    expect(entries.find((entry) => entry.kind === 'memory').accent).toBe('#8A5CF6');
-    expect(entries.find((entry) => entry.kind === 'date').accent).toBe('#2FA36B');
-    expect(entries.find((entry) => entry.kind === 'date_saved').accent).toBe('#2FA36B');
-    expect(entries.find((entry) => entry.kind === 'position_tried').accent).toBe('#D2121A');
-    expect(entries.find((entry) => entry.kind === 'position_favorite').accent).toBe('#D2121A');
+    expect(entries.find((entry) => entry.kind === 'memory').accent).toBe(KEEPSAKE_CATEGORY_COLORS.memory);
+    expect(entries.find((entry) => entry.kind === 'date').accent).toBe(KEEPSAKE_CATEGORY_COLORS.date);
+    expect(entries.find((entry) => entry.kind === 'date_saved').accent).toBe(KEEPSAKE_CATEGORY_COLORS.date);
+    expect(entries.find((entry) => entry.kind === 'position_tried').accent).toBe(KEEPSAKE_CATEGORY_COLORS.position);
+    expect(entries.find((entry) => entry.kind === 'position_favorite').accent).toBe(KEEPSAKE_CATEGORY_COLORS.position);
   });
 
   it('builds dates tried and positions tried directly from memory rows', async () => {

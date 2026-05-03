@@ -31,6 +31,7 @@ import { getPromptById, getDateById } from '../utils/contentLoader';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { settingsStorage, storage } from '../utils/storage';
+import { KEEPSAKE_CATEGORY_COLORS } from '../config/constants';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import MediaLightbox from '../components/MediaLightbox';
 import { NicknameEngine } from '../services/PolishEngine';
@@ -54,13 +55,6 @@ const MEMORY_TYPE_META = {
   intimacy_tried: { label: 'Sex Position Tried', icon: 'checkmark-circle-outline' },
   date_tried: { label: 'Date Tried', icon: 'calendar-outline' },
   memory: { label: 'Memory', icon: 'time-outline' },
-};
-
-const KEEPSAKE_COLORS = {
-  position: '#D2121A',
-  prompt: '#4F7DF3',
-  date: '#2FA36B',
-  memory: '#8A5CF6',
 };
 
 const DEFAULT_KEEPSAKE_SETTINGS = {
@@ -656,7 +650,7 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     answers,
     eyebrow: row.is_revealed ? 'Prompt' : 'Sealed prompt',
     icon: row.is_revealed ? 'chatbubbles-outline' : 'lock-closed-outline',
-    accent: KEEPSAKE_COLORS.prompt,
+    accent: KEEPSAKE_CATEGORY_COLORS.prompt,
     meta: row.heat_level ? `Heat ${row.heat_level}` : 'Prompt',
     dateLabel: formatDateLabel(row.date_key || row.created_at),
     sortAt: row.created_at || row.date_key,
@@ -679,7 +673,7 @@ function buildMemoryItem(row, media = null) {
     body: row.locked ? 'This moment is locked on this device.' : (row.content || ''),
     eyebrow: isIntimacyFavorite ? 'Sex position favorite' : 'Memory',
     icon: memoryType.icon,
-    accent: isIntimacyFavorite ? KEEPSAKE_COLORS.position : KEEPSAKE_COLORS.memory,
+    accent: isIntimacyFavorite ? KEEPSAKE_CATEGORY_COLORS.position : KEEPSAKE_CATEGORY_COLORS.memory,
     meta: isIntimacyFavorite ? 'Sex position' : (row.mood ? String(row.mood).toUpperCase() : memoryType.label),
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.snapshot_created_at || row.created_at || row.date,
@@ -726,7 +720,7 @@ function buildSnapshotItem(groupId, items) {
     body,
     eyebrow: 'Memory',
     icon: 'images-outline',
-    accent: KEEPSAKE_COLORS.memory,
+    accent: KEEPSAKE_CATEGORY_COLORS.memory,
     meta: mediaItems.length === 1 ? '1 item' : `${mediaItems.length} items`,
     dateLabel: first?.dateLabel || '',
     sortAt: first?.sortAt || null,
@@ -785,7 +779,7 @@ function buildDateItem(row) {
     body,
     eyebrow: 'Date tried',
     icon: 'calendar-outline',
-    accent: KEEPSAKE_COLORS.date,
+    accent: KEEPSAKE_CATEGORY_COLORS.date,
     meta: details,
     dateLabel: formatDateLabel(row.addedAt),
     sortAt: row.addedAt,
@@ -853,7 +847,7 @@ function buildSavedDateItem(row) {
     body,
     eyebrow: 'Saved date',
     icon: 'bookmark-outline',
-    accent: KEEPSAKE_COLORS.date,
+    accent: KEEPSAKE_CATEGORY_COLORS.date,
     meta: details,
     dateLabel: formatDateLabel(row?.created_at || row?.addedAt || row?.savedAt),
     sortAt: row?.created_at || row?.addedAt || row?.savedAt,
@@ -876,7 +870,7 @@ function buildPositionTriedItem(row) {
     body,
     eyebrow: 'Sex position tried',
     icon: 'checkmark-circle-outline',
-    accent: KEEPSAKE_COLORS.position,
+    accent: KEEPSAKE_CATEGORY_COLORS.position,
     meta: row.mood ? String(row.mood).toUpperCase() : 'Sex position',
     dateLabel: formatDateLabel(row.triedAt),
     sortAt: row.triedAt,
@@ -917,7 +911,7 @@ function buildPositionFavoriteItemFromMemoryRow(row) {
     body,
     eyebrow: 'Saved sex position',
     icon: 'heart-outline',
-    accent: KEEPSAKE_COLORS.position,
+    accent: KEEPSAKE_CATEGORY_COLORS.position,
     meta: row.mood ? String(row.mood).toUpperCase() : 'Sex position',
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.created_at || row.date,

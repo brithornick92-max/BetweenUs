@@ -32,6 +32,7 @@ import FilmGrain from '../components/FilmGrain';
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
 import { DataLayer } from '../services/localfirst';
+import { KEEPSAKE_CATEGORY_COLORS } from '../config/constants';
 import {
   impact,
   selection,
@@ -49,7 +50,6 @@ const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 const MAX_MEDIA_ITEMS = 10;
 const MAX_FILE_BYTES = 50_000_000;
 const MAX_VIDEO_DURATION_MS = 180_000;
-const MEMORY_COLOR = '#8A5CF6';
 
 function buildSnapshotId() {
   return `snapshot_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -308,7 +308,7 @@ export default function AddMemoryScreen() {
     background: colors.background,
     surface: isDark ? 'rgba(28, 28, 30, 0.45)' : 'rgba(255, 255, 255, 0.65)',
     surfaceSecondary: isDark ? 'rgba(44, 44, 46, 0.8)' : 'rgba(242, 242, 247, 0.8)',
-    primary: MEMORY_COLOR,
+    primary: KEEPSAKE_CATEGORY_COLORS.memory,
     accent: colors.accent || '#D4AA7E',
     text: colors.text,
     subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.6)'),

@@ -42,7 +42,7 @@ import { useTheme } from '../context/ThemeContext';
 // Utilities & Components
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
-import { SUPPORT_EMAIL } from '../config/constants';
+import { KEEPSAKE_CATEGORY_COLORS, SUPPORT_EMAIL } from '../config/constants';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import { cloudSyncStorage, settingsStorage, STORAGE_KEYS, storage } from '../utils/storage';
@@ -123,13 +123,6 @@ const DEFAULT_KEEPSAKE_SETTINGS = {
   memories: true,
   dates: true,
   positions: true,
-};
-
-const KEEPSAKE_COLORS = {
-  prompt: '#4F7DF3',
-  memory: '#8A5CF6',
-  date: '#2FA36B',
-  position: '#D2121A',
 };
 
 const normalizeKeepsakeSettings = (settings) => ({
@@ -551,7 +544,7 @@ export default function SettingsScreen({ navigation }) {
               value={keepsakeSettings.prompts}
               onValueChange={(value) => handleKeepsakeToggle('prompts', value)}
               t={t}
-              iconColor={KEEPSAKE_COLORS.prompt}
+              iconColor={KEEPSAKE_CATEGORY_COLORS.prompt}
             />
             <EditorialToggleRow
               icon="images-outline"
@@ -560,7 +553,7 @@ export default function SettingsScreen({ navigation }) {
               value={keepsakeSettings.memories}
               onValueChange={(value) => handleKeepsakeToggle('memories', value)}
               t={t}
-              iconColor={KEEPSAKE_COLORS.memory}
+              iconColor={KEEPSAKE_CATEGORY_COLORS.memory}
             />
             <EditorialToggleRow
               icon="calendar-outline"
@@ -569,7 +562,7 @@ export default function SettingsScreen({ navigation }) {
               value={keepsakeSettings.dates}
               onValueChange={(value) => handleKeepsakeToggle('dates', value)}
               t={t}
-              iconColor={KEEPSAKE_COLORS.date}
+              iconColor={KEEPSAKE_CATEGORY_COLORS.date}
             />
             <EditorialToggleRow
               icon="checkmark-circle-outline"
@@ -578,7 +571,7 @@ export default function SettingsScreen({ navigation }) {
               value={keepsakeSettings.positions}
               onValueChange={(value) => handleKeepsakeToggle('positions', value)}
               t={t}
-              iconColor={KEEPSAKE_COLORS.position}
+              iconColor={KEEPSAKE_CATEGORY_COLORS.position}
               isLast
             />
           </EditorialSection>
