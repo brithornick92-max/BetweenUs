@@ -107,6 +107,15 @@ describe('OurStory Keepsake entry building', () => {
     expect(entries.some((entry) => entry.sourceId === 'date-2')).toBe(true);
     expect(entries.some((entry) => entry.sourceId === 'position-memory-1')).toBe(false);
     expect(entries.some((entry) => entry.sourceId === 'favorite-position-memory-1')).toBe(true);
+
+    expect(entries.find((entry) => entry.kind === 'prompt').accent).toBe('#4F7DF3');
+    expect(entries.find((entry) => entry.kind === 'snapshot').accent).toBe('#8A5CF6');
+    expect(entries.find((entry) => entry.kind === 'snapshot').eyebrow).toBe('Memory');
+    expect(entries.find((entry) => entry.kind === 'memory').accent).toBe('#8A5CF6');
+    expect(entries.find((entry) => entry.kind === 'date').accent).toBe('#2FA36B');
+    expect(entries.find((entry) => entry.kind === 'date_saved').accent).toBe('#2FA36B');
+    expect(entries.find((entry) => entry.kind === 'position_tried').accent).toBe('#D2121A');
+    expect(entries.find((entry) => entry.kind === 'position_favorite').accent).toBe('#D2121A');
   });
 
   it('builds dates tried and positions tried directly from memory rows', async () => {

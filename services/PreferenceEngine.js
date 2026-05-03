@@ -117,6 +117,14 @@ const COMMUNICATION_STYLE_TONES = {
   playful: ['playful', 'light', 'spontaneous'],
 };
 
+function normalizePreferenceList(values) {
+  return [...new Set(
+    (Array.isArray(values) ? values : [])
+      .filter((value) => typeof value === 'string' && value.trim())
+      .map((value) => value.trim())
+  )];
+}
+
 /**
  * Transform quiz answers into content preferences.
  * Called by getContentProfile to integrate "What Feels Like Us" data.
@@ -161,6 +169,18 @@ function getQuizInfluence(quiz = {}) {
   // Deduplicate arrays
   influence.categories = [...new Set(influence.categories)];
   influence.tones = [...new Set(influence.tones)];
+
+  if (Array.isArray(quiz.preferredCategories)) {
+    influence.categories = normalizePreferenceList(quiz.preferredCategories);
+  }
+
+  if (Array.isArray(quiz.preferredTones)) {
+    influence.tones = normalizePreferenceList(quiz.preferredTones);
+  }
+
+  if (typeof quiz.preferShort === 'boolean') {
+    influence.preferShort = quiz.preferShort;
+  }
 
   return influence;
 }
@@ -217,11 +237,12 @@ async function getContentProfile(userProfile = {}) {
   const tone = nicknameConfig?.tone || 'warm';
 
   // 7. Relationship duration category
-  const durationCategory = getDurationCategory(userProfile);
-
   // 8. Quiz preferences from onboarding ("What Feels Like Us")
   const quiz = userProfile?.quiz || userProfile?.preferences?.quiz || {};
   const quizInfluence = getQuizInfluence(quiz);
+  const durationCategory = typeof quiz.relationshipStage === 'string' && quiz.relationshipStage.trim()
+    ? quiz.relationshipStage.trim()
+    : getDurationCategory(userProfile);
 
   // Calculate effective max heat: the lowest ceiling from user pref, energy, and boundaries
   const caps = [heatLevelPref, energyParams.maxHeat];
@@ -263,6 +284,7 @@ async function getContentProfile(userProfile = {}) {
     quiz: {
       loveLanguage: quiz.loveLanguage,
       relationshipGoal: quiz.relationshipGoal,
+      relationshipStage: quiz.relationshipStage,
       idealDateStyle: quiz.idealDateStyle,
       communicationStyle: quiz.communicationStyle,
       hasKids: quiz.hasKids,

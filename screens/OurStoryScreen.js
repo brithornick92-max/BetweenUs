@@ -1,7 +1,7 @@
 // screens/OurStoryScreen.js
 /**
  * BETWEEN US - KEEPSAKE / OUR STORY
- * Premium grouped Snapshot cards + timeline moments.
+ * Premium grouped memory cards + timeline moments.
  * Long press a Keepsake card to edit or delete.
  */
 
@@ -44,9 +44,9 @@ const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 const MEMORY_TYPE_META = {
-  snapshot: { label: 'Snapshot', icon: 'images-outline' },
+  snapshot: { label: 'Memory', icon: 'images-outline' },
   moment: { label: 'Saved Moment', icon: 'sparkles-outline' },
-  thinking_of_you: { label: 'Thinking of You', icon: 'paper-plane-outline' },
+  thinking_of_you: { label: 'Memory', icon: 'paper-plane-outline' },
   date_saved: { label: 'Saved Date', icon: 'bookmark-outline' },
   anniversary: { label: 'Anniversary', icon: 'heart-outline' },
   milestone: { label: 'Milestone', icon: 'ribbon-outline' },
@@ -54,6 +54,13 @@ const MEMORY_TYPE_META = {
   intimacy_tried: { label: 'Sex Position Tried', icon: 'checkmark-circle-outline' },
   date_tried: { label: 'Date Tried', icon: 'calendar-outline' },
   memory: { label: 'Memory', icon: 'time-outline' },
+};
+
+const KEEPSAKE_COLORS = {
+  position: '#D2121A',
+  prompt: '#4F7DF3',
+  date: '#2FA36B',
+  memory: '#8A5CF6',
 };
 
 const DEFAULT_KEEPSAKE_SETTINGS = {
@@ -649,7 +656,7 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     answers,
     eyebrow: row.is_revealed ? 'Prompt' : 'Sealed prompt',
     icon: row.is_revealed ? 'chatbubbles-outline' : 'lock-closed-outline',
-    accent: '#5856D6',
+    accent: KEEPSAKE_COLORS.prompt,
     meta: row.heat_level ? `Heat ${row.heat_level}` : 'Prompt',
     dateLabel: formatDateLabel(row.date_key || row.created_at),
     sortAt: row.created_at || row.date_key,
@@ -672,7 +679,7 @@ function buildMemoryItem(row, media = null) {
     body: row.locked ? 'This moment is locked on this device.' : (row.content || ''),
     eyebrow: isIntimacyFavorite ? 'Sex position favorite' : 'Memory',
     icon: memoryType.icon,
-    accent: '#D2121A',
+    accent: isIntimacyFavorite ? KEEPSAKE_COLORS.position : KEEPSAKE_COLORS.memory,
     meta: isIntimacyFavorite ? 'Sex position' : (row.mood ? String(row.mood).toUpperCase() : memoryType.label),
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.snapshot_created_at || row.created_at || row.date,
@@ -705,7 +712,7 @@ function buildSnapshotItem(groupId, items) {
       media: item.media,
       caption: body,
       body,
-      title: 'Snapshot',
+      title: 'Memory',
       date: item.rawDate || item.sortAt,
       dateLabel: item.dateLabel,
       sourceItem: item,
@@ -715,11 +722,11 @@ function buildSnapshotItem(groupId, items) {
     id: `snapshot:${groupId}`,
     kind: 'snapshot',
     sourceId: groupId,
-    title: 'Snapshot',
+    title: 'Memory',
     body,
-    eyebrow: 'Snapshot',
+    eyebrow: 'Memory',
     icon: 'images-outline',
-    accent: '#FFD60A',
+    accent: KEEPSAKE_COLORS.memory,
     meta: mediaItems.length === 1 ? '1 item' : `${mediaItems.length} items`,
     dateLabel: first?.dateLabel || '',
     sortAt: first?.sortAt || null,
@@ -778,7 +785,7 @@ function buildDateItem(row) {
     body,
     eyebrow: 'Date tried',
     icon: 'calendar-outline',
-    accent: '#34C759',
+    accent: KEEPSAKE_COLORS.date,
     meta: details,
     dateLabel: formatDateLabel(row.addedAt),
     sortAt: row.addedAt,
@@ -846,7 +853,7 @@ function buildSavedDateItem(row) {
     body,
     eyebrow: 'Saved date',
     icon: 'bookmark-outline',
-    accent: '#34C759',
+    accent: KEEPSAKE_COLORS.date,
     meta: details,
     dateLabel: formatDateLabel(row?.created_at || row?.addedAt || row?.savedAt),
     sortAt: row?.created_at || row?.addedAt || row?.savedAt,
@@ -869,7 +876,7 @@ function buildPositionTriedItem(row) {
     body,
     eyebrow: 'Sex position tried',
     icon: 'checkmark-circle-outline',
-    accent: '#D2121A',
+    accent: KEEPSAKE_COLORS.position,
     meta: row.mood ? String(row.mood).toUpperCase() : 'Sex position',
     dateLabel: formatDateLabel(row.triedAt),
     sortAt: row.triedAt,
@@ -910,7 +917,7 @@ function buildPositionFavoriteItemFromMemoryRow(row) {
     body,
     eyebrow: 'Saved sex position',
     icon: 'heart-outline',
-    accent: '#D2121A',
+    accent: KEEPSAKE_COLORS.position,
     meta: row.mood ? String(row.mood).toUpperCase() : 'Sex position',
     dateLabel: formatDateLabel(row.created_at || row.date),
     sortAt: row.created_at || row.date,
@@ -929,7 +936,7 @@ function buildPositionTriedItemFromMemoryRow(row) {
 
   return buildPositionTriedItem({
     positionId,
-    title: payload.title || row?.title || 'Position tried',
+    title: payload.title || row?.title || 'Sex position tried',
     commonName: payload.commonName || null,
     shortSummary: payload.shortSummary || null,
     focus: payload.focus || null,
@@ -1067,8 +1074,7 @@ export default function OurStoryScreen() {
     solidSurface: isDark ? '#1C1C1E' : '#FFFFFF',
     solidSurfaceSecondary: isDark ? '#2C2C2E' : '#F2F2F7',
     surfaceSecondary: isDark ? 'rgba(44, 44, 46, 0.8)' : 'rgba(242, 242, 247, 0.8)',
-    primary: colors.primary || '#D2121A',
-    accent: colors.accent || '#D4AA7E',
+    neutralAccent: isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.58)',
     text: colors.text,
     subtext: colors.textMuted || (isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.6)'),
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
@@ -1254,9 +1260,9 @@ export default function OurStoryScreen() {
     switch (item?.kind) {
       case 'snapshot':
         return {
-          title: 'Delete Snapshot?',
-          message: 'This will remove all photos and videos in this snapshot from Keepsake.',
-          action: 'Delete Snapshot',
+          title: 'Delete Memory?',
+          message: 'This will remove all photos and videos in this memory from Keepsake.',
+          action: 'Delete Memory',
         };
       case 'prompt':
         return {
@@ -1274,9 +1280,9 @@ export default function OurStoryScreen() {
       case 'position_tried':
       case 'position_favorite':
         return {
-          title: 'Delete Position?',
-          message: 'This will remove this position from Keepsake.',
-          action: 'Delete Position',
+          title: 'Delete Sex Position?',
+          message: 'This will remove this sex position from Keepsake.',
+          action: 'Delete Sex Position',
         };
       default:
         return {
@@ -1500,10 +1506,8 @@ export default function OurStoryScreen() {
 
     impact(ImpactFeedbackStyle.Medium);
 
-    const isSnapshot = item.kind === 'snapshot';
-
     Alert.alert(
-      isSnapshot ? 'Snapshot Options' : 'Keepsake Options',
+      'Keepsake Options',
       null,
       [
         canEditOccurrence(item) ? {
@@ -1511,7 +1515,7 @@ export default function OurStoryScreen() {
           onPress: () => openOccurrenceEditor(item),
         } : null,
         item.editable ? {
-          text: isSnapshot ? 'Edit Snapshot' : 'Edit Memory',
+          text: 'Edit Memory',
           onPress: () => handleEditItem(item),
         } : null,
         item.deletable ? {
@@ -1791,14 +1795,14 @@ export default function OurStoryScreen() {
                     <Icon
                       name="heart-outline"
                       size={18}
-                      color={heartState.hearted ? t.primary : t.subtext}
+                      color={heartState.hearted ? item.accent : t.subtext}
                     />
 
                     {heartState.count > 0 && (
                       <Text
                         style={[
                           styles.heartCount,
-                          { color: heartState.hearted ? t.primary : t.subtext },
+                          { color: heartState.hearted ? item.accent : t.subtext },
                         ]}
                       >
                         {heartState.count}
@@ -1831,7 +1835,7 @@ export default function OurStoryScreen() {
   const EmptyState = (
     <ReAnimated.View entering={FadeIn.duration(450)} style={styles.emptyState}>
       <View style={[styles.emptyIconCircle, { borderColor: t.border, backgroundColor: t.surface }]}>
-        <Icon name="archive-outline" size={42} color={t.primary} />
+        <Icon name="archive-outline" size={42} color={t.neutralAccent} />
       </View>
 
       <Text style={[styles.emptyTitle, { color: t.text }]}>
@@ -1839,14 +1843,14 @@ export default function OurStoryScreen() {
       </Text>
 
       <Text style={styles.emptyBody}>
-        Prompts, snapshots, dates tried, and positions tried will collect here.
+        Prompt, memory, date, and sex position keepsakes will collect here.
       </Text>
     </ReAnimated.View>
   );
 
   const LoadingState = (
     <View style={styles.loadingState}>
-      <ActivityIndicator size="small" color={t.primary} />
+      <ActivityIndicator size="small" color={t.neutralAccent} />
       <Text style={styles.loadingText}>
         Gathering your story...
       </Text>
@@ -1856,6 +1860,7 @@ export default function OurStoryScreen() {
   const NativeDateTimePicker = occurrenceEditor
     ? require('@react-native-community/datetimepicker').default
     : null;
+  const occurrenceAccent = occurrenceEditor?.item?.accent || t.neutralAccent;
 
   return (
     <EditorialScreenScaffold
@@ -1864,6 +1869,7 @@ export default function OurStoryScreen() {
       headerSubtitle="OUR STORY"
       scroll={false}
       onBack={handleBack}
+      screenAccentColor={t.neutralAccent}
     >
       <RNAnimated.FlatList
         data={groupedEntries}
@@ -1882,7 +1888,7 @@ export default function OurStoryScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={t.primary}
+            tintColor={t.neutralAccent}
           />
         )}
       />
@@ -1897,10 +1903,10 @@ export default function OurStoryScreen() {
           tint={isDark ? 'dark' : 'light'}
           style={[
             styles.fabBlur,
-            { backgroundColor: withAlpha(t.primary, 0.8) },
+            { backgroundColor: t.solidSurfaceSecondary, borderColor: t.border },
           ]}
         >
-          <Icon name="add-outline" size={28} color="#FFF" />
+          <Icon name="add-outline" size={28} color={t.text} />
         </BlurView>
       </TouchableOpacity>
 
@@ -1920,7 +1926,7 @@ export default function OurStoryScreen() {
           <View style={[styles.occurrenceSheet, { backgroundColor: t.solidSurface, borderColor: t.border }]}>
             <View style={styles.occurrenceHeaderRow}>
               <View>
-                <Text style={[styles.occurrenceEyebrow, { color: t.primary }]}>OCCURRED</Text>
+                <Text style={[styles.occurrenceEyebrow, { color: occurrenceAccent }]}>OCCURRED</Text>
                 <Text style={[styles.occurrenceTitle, { color: t.text }]}>Edit date and time</Text>
               </View>
               <TouchableOpacity
@@ -1977,7 +1983,7 @@ export default function OurStoryScreen() {
                 <Text style={[styles.occurrenceSecondaryText, { color: t.text }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.occurrencePrimaryButton, { backgroundColor: t.primary }]}
+                style={[styles.occurrencePrimaryButton, { backgroundColor: occurrenceAccent }]}
                 onPress={saveOccurrenceEditor}
                 disabled={occurrenceEditor?.saving}
               >
@@ -2076,9 +2082,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderRadius: 28,
     ...Platform.select({
       ios: {
-        shadowColor: t.primary,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.25,
+        shadowOpacity: isDark ? 0.35 : 0.12,
         shadowRadius: 16,
       },
       android: { elevation: 8 },

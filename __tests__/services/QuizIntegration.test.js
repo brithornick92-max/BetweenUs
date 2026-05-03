@@ -299,5 +299,30 @@ describe('Quiz Integration: "What Feels Like Us" Actually Shapes Content', () =>
 
       expect(profile.preferShort).toBe(true);
     });
+
+    it('respects manually selected prompt and tone lanes', async () => {
+      const profile = await PreferenceEngine.getContentProfile({
+        heatLevelPreference: 5,
+        quiz: {
+          loveLanguage: 'words',
+          preferredCategories: ['playful', 'sensory'],
+          preferredTones: ['bold', 'soft'],
+        },
+      });
+
+      expect(profile.quiz.preferredCategories).toEqual(['playful', 'sensory']);
+      expect(profile.quiz.preferredTones).toEqual(['bold', 'soft']);
+      expect(profile.quiz.preferredCategories).not.toContain('emotional');
+    });
+
+    it('allows relationship stage to be set without an anniversary date', async () => {
+      const profile = await PreferenceEngine.getContentProfile({
+        heatLevelPreference: 5,
+        quiz: { relationshipStage: 'long_term' },
+      });
+
+      expect(profile.relationshipDuration).toBe('long_term');
+      expect(profile.quiz.relationshipStage).toBe('long_term');
+    });
   });
 });

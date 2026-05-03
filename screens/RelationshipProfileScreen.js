@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -16,8 +17,14 @@ import Icon from '../components/Icon';
 import { SPACING } from '../utils/theme';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as PreferenceEngine from '../services/PreferenceEngine';
-import { CLIMATE_OPTIONS, ENERGY_LEVELS } from '../services/ConnectionEngine';
-import { SEASONS } from '../services/PolishEngine';
+import {
+  CLIMATE_OPTIONS,
+  ContentIntensityMatcher,
+  ENERGY_LEVELS,
+  RelationshipClimateState,
+} from '../services/ConnectionEngine';
+import { NicknameEngine, RelationshipSeasons, SEASONS, SoftBoundaries } from '../services/PolishEngine';
+import StorageRouter from '../services/storage/StorageRouter';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -101,8 +108,133 @@ const COMMUNICATION_OPTIONS = [
 
 const HAS_KIDS_OPTIONS = [
   EMPTY_OPTION,
-  { id: true, icon: 'people-outline', label: 'Yes' },
-  { id: false, icon: 'person-outline', label: 'No' },
+  { id: true, icon: 'people-outline', label: 'Kids are part of our day-to-day' },
+  { id: false, icon: 'person-outline', label: 'No kids in our day-to-day' },
+];
+
+const RELATIONSHIP_STAGE_OPTIONS = [
+  { id: null, icon: 'calendar-outline', label: 'Use anniversary' },
+  { id: 'new', icon: 'sparkles-outline', label: DURATION_LABELS.new },
+  { id: 'developing', icon: 'leaf-outline', label: DURATION_LABELS.developing },
+  { id: 'established', icon: 'heart-outline', label: DURATION_LABELS.established },
+  { id: 'mature', icon: 'infinite-outline', label: DURATION_LABELS.mature },
+  { id: 'long_term', icon: 'ribbon-outline', label: DURATION_LABELS.long_term },
+];
+
+const SEASON_OPTIONS = SEASONS.map((season) => ({
+  id: season.id,
+  icon: season.icon,
+  label: season.label,
+}));
+
+const APP_TONE_OPTIONS = NicknameEngine.TONE_OPTIONS.map((tone) => ({
+  id: tone.id,
+  icon: tone.icon,
+  label: tone.label,
+}));
+
+const CLIMATE_SCROLL_OPTIONS = [
+  { id: null, icon: 'ellipse-outline', label: 'Open' },
+  ...CLIMATE_OPTIONS.map((climate) => ({
+    id: climate.id,
+    icon: climate.icon,
+    label: climate.label,
+  })),
+];
+
+const HEAT_OPTIONS = [
+  { id: 1, icon: 'leaf-outline', label: 'Heat 1: Emotional' },
+  { id: 2, icon: 'sparkles-outline', label: 'Heat 2: Romantic' },
+  { id: 3, icon: 'heart-outline', label: 'Heat 3: Sensual' },
+  { id: 4, icon: 'flame-outline', label: 'Heat 4: Steamy' },
+  { id: 5, icon: 'infinite-outline', label: 'Heat 5: Explicit' },
+];
+
+const PROMPT_LANE_LABELS = {
+  emotional: 'Emotional',
+  romance: 'Romance',
+  memory: 'Memory',
+  future: 'Future',
+  playful: 'Playful',
+  physical: 'Physical',
+  sensory: 'Sensory',
+  fantasy: 'Fantasy',
+  visual: 'Visual',
+  seasonal: 'Seasonal',
+  location: 'Location',
+  roleplay: 'Roleplay',
+  kinky: 'Kinky',
+};
+
+const PROMPT_LANE_ICONS = {
+  emotional: 'chatbubble-ellipses-outline',
+  romance: 'heart-outline',
+  memory: 'albums-outline',
+  future: 'telescope-outline',
+  playful: 'sparkles-outline',
+  physical: 'hand-left-outline',
+  sensory: 'color-palette-outline',
+  fantasy: 'color-wand-outline',
+  visual: 'eye-outline',
+  seasonal: 'leaf-outline',
+  location: 'map-outline',
+  roleplay: 'people-circle-outline',
+  kinky: 'flame-outline',
+};
+
+const PROMPT_LANE_OPTIONS = [
+  { id: null, icon: 'sync-outline', label: 'Use profile answers' },
+  ...Object.keys(PROMPT_LANE_LABELS).map((id) => ({
+    id,
+    icon: PROMPT_LANE_ICONS[id] || 'ellipse-outline',
+    label: PROMPT_LANE_LABELS[id],
+  })),
+];
+
+const HIDDEN_CATEGORY_OPTIONS = [
+  { id: null, icon: 'checkmark-circle-outline', label: 'None hidden' },
+  ...Object.keys(PROMPT_LANE_LABELS).map((id) => ({
+    id,
+    icon: PROMPT_LANE_ICONS[id] || 'ellipse-outline',
+    label: PROMPT_LANE_LABELS[id],
+  })),
+];
+
+const TONE_LANE_LABELS = {
+  warm: 'Warm',
+  soft: 'Soft',
+  gentle: 'Gentle',
+  deep: 'Deep',
+  honest: 'Honest',
+  reflective: 'Reflective',
+  playful: 'Playful',
+  light: 'Light',
+  spontaneous: 'Spontaneous',
+  sensual: 'Sensual',
+  bold: 'Bold',
+  appreciative: 'Appreciative',
+  cozy: 'Cozy',
+  future: 'Future',
+};
+
+const TONE_LANE_OPTIONS = [
+  { id: null, icon: 'sync-outline', label: 'Use profile answers' },
+  ...Object.keys(TONE_LANE_LABELS).map((id) => ({
+    id,
+    icon: id === 'sensual' || id === 'bold' ? 'flame-outline' : id === 'playful' ? 'sparkles-outline' : 'chatbubble-outline',
+    label: TONE_LANE_LABELS[id],
+  })),
+];
+
+const DATE_EFFORT_OPTIONS = [
+  { id: null, icon: 'sync-outline', label: 'Use profile signals' },
+  { id: 'short', icon: 'flash-outline', label: 'Shorter, lower friction' },
+  { id: 'deeper', icon: 'hourglass-outline', label: 'Room for deeper plans' },
+];
+
+const SPICY_CONTENT_OPTIONS = [
+  { id: 'available', icon: 'checkmark-circle-outline', label: 'Available within heat setting' },
+  { id: 'hidden', icon: 'eye-off-outline', label: 'Hide spicy content' },
 ];
 
 function labelFrom(list, id, fallback = 'Not set') {
@@ -110,10 +242,10 @@ function labelFrom(list, id, fallback = 'Not set') {
   return list.find((item) => item.id === id)?.label || fallback;
 }
 
-function compactList(values, fallback = 'Not enough signal yet') {
+function compactList(values, fallback = 'Not enough signal yet', labels = null) {
   const list = (Array.isArray(values) ? values : [])
     .filter(Boolean)
-    .map((value) => String(value).replace(/_/g, ' '));
+    .map((value) => labels?.[value] || String(value).replace(/_/g, ' '));
 
   if (!list.length) return fallback;
   return list.slice(0, 4).join(', ');
@@ -144,59 +276,94 @@ function ProfileSection({ title, children, t, isDark }) {
   );
 }
 
-function ProfileRow({ label, value, t, isLast }) {
-  return (
-    <>
-      <View style={styles.profileRow}>
+function ProfileRow({ label, value, t, isLast, onPress, accessibilityLabel, expanded, children }) {
+  const row = (
+    <View style={[styles.profileRow, onPress && styles.profileRowPressable]}>
+      <View style={styles.profileRowText}>
         <Text style={[styles.rowLabel, { color: t.subtext }]}>{label}</Text>
         <Text style={[styles.rowValue, { color: t.text }]}>{value || 'Not set'}</Text>
       </View>
+      {onPress ? (
+        <Icon
+          name={expanded ? 'chevron-up-outline' : 'chevron-down-outline'}
+          size={18}
+          color={t.subtext}
+        />
+      ) : null}
+    </View>
+  );
+
+  return (
+    <>
+      {onPress ? (
+        <TouchableOpacity
+          activeOpacity={0.72}
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={accessibilityLabel || `Edit ${label}`}
+        >
+          {row}
+        </TouchableOpacity>
+      ) : row}
+      {children}
       {!isLast && <View style={[styles.divider, { backgroundColor: t.border }]} />}
     </>
   );
 }
 
-function ChoiceRow({ item, selected, onSelect, t, isLast }) {
-  const isActive = selected === item.id;
-
+function InlineChoiceEditor({ options, value, values, onSelect, t, saving, multiple = false }) {
   return (
-    <>
-      <TouchableOpacity
-        style={styles.choiceRow}
-        activeOpacity={0.78}
-        onPress={() => {
-          selection();
-          onSelect(item.id);
-        }}
-        accessibilityRole="radio"
-        accessibilityState={{ selected: isActive }}
-        accessibilityLabel={item.label}
+    <View style={[styles.inlineEditor, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.inlineScrollerContent}
       >
-        <View style={[styles.choiceIcon, { backgroundColor: isActive ? `${t.primary}15` : t.surfaceSecondary }]}>
-          <Icon name={item.icon} size={20} color={isActive ? t.primary : t.subtext} />
-        </View>
-        <Text style={[styles.choiceLabel, { color: isActive ? t.primary : t.text }]}>{item.label}</Text>
-        {isActive ? <Icon name="checkmark-outline" size={20} color={t.primary} /> : null}
-      </TouchableOpacity>
-      {!isLast && <View style={[styles.dividerIndent, { backgroundColor: t.border }]} />}
-    </>
-  );
-}
+        {options.map((item) => {
+          const isManualList = Array.isArray(values);
+          const selectedValues = isManualList ? values : [];
+          const isActive = multiple
+            ? item.id === null
+              ? !isManualList || selectedValues.length === 0
+              : selectedValues.includes(item.id)
+            : (value ?? null) === item.id;
 
-function ChoiceSection({ title, options, value, onChange, t, isDark }) {
-  return (
-    <ProfileSection title={title} t={t} isDark={isDark}>
-      {options.map((item, index) => (
-        <ChoiceRow
-          key={`${title}-${String(item.id)}`}
-          item={item}
-          selected={value ?? null}
-          onSelect={onChange}
-          t={t}
-          isLast={index === options.length - 1}
-        />
-      ))}
-    </ProfileSection>
+          return (
+            <TouchableOpacity
+              key={String(item.id)}
+              style={[
+                styles.inlineOption,
+                isActive && {
+                  backgroundColor: `${t.primary}12`,
+                  borderColor: `${t.primary}33`,
+                },
+              ]}
+              activeOpacity={0.78}
+              onPress={() => {
+                selection();
+                onSelect(item.id);
+              }}
+              disabled={saving}
+              accessibilityRole={multiple ? 'checkbox' : 'radio'}
+              accessibilityState={{ selected: isActive, checked: isActive, disabled: saving }}
+              accessibilityLabel={item.label}
+            >
+              <View style={[styles.inlineOptionIcon, { backgroundColor: isActive ? `${t.primary}16` : t.surface }]}>
+                <Icon name={item.icon} size={18} color={isActive ? t.primary : t.subtext} />
+              </View>
+              <Text style={[styles.inlineOptionLabel, { color: isActive ? t.primary : t.text }]} numberOfLines={2}>
+                {item.label}
+              </Text>
+              {saving && isActive ? (
+                <ActivityIndicator size="small" color={t.primary} />
+              ) : isActive ? (
+                <Icon name="checkmark-outline" size={18} color={t.primary} />
+              ) : null}
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -206,9 +373,8 @@ export default function RelationshipProfileScreen() {
   const { colors, isDark } = useTheme();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [draftQuiz, setDraftQuiz] = useState({});
+  const [editingField, setEditingField] = useState(null);
+  const [savingField, setSavingField] = useState(null);
 
   const t = useMemo(() => ({
     background: colors.background,
@@ -245,54 +411,38 @@ export default function RelationshipProfileScreen() {
     () => userProfile?.quiz || userProfile?.preferences?.quiz || {},
     [userProfile]
   );
-  const hasSavedProfile = useMemo(() => (
-    !!(
-      savedQuiz?.loveLanguage
-      || savedQuiz?.relationshipGoal
-      || savedQuiz?.idealDateStyle
-      || savedQuiz?.communicationStyle
-      || typeof savedQuiz?.hasKids === 'boolean'
-    )
-  ), [savedQuiz]);
+  const handleToggleField = useCallback((field) => {
+    if (savingField) return;
+    selection();
+    setEditingField((current) => (current === field ? null : field));
+  }, [savingField]);
 
-  useEffect(() => {
-    if (!editing) {
-      setDraftQuiz(savedQuiz);
-    }
-  }, [editing, savedQuiz]);
+  const refreshProfile = useCallback(async (sourceProfile = userProfile) => {
+    const nextProfile = await PreferenceEngine.getContentProfile(sourceProfile || {});
+    setProfile(nextProfile);
+    return nextProfile;
+  }, [userProfile]);
 
-  const handleToggleEdit = useCallback(() => {
-    impact(ImpactFeedbackStyle.Light);
-    if (editing) {
-      setDraftQuiz(savedQuiz);
-      setEditing(false);
+  const saveQuizValue = useCallback(async (field, value, { keepOpen = false } = {}) => {
+    if (savingField) return;
+
+    const currentValue = typeof savedQuiz?.[field] === 'undefined' ? null : savedQuiz[field];
+    if (currentValue === value) {
+      if (!keepOpen) setEditingField(null);
       return;
     }
 
-    setDraftQuiz(savedQuiz);
-    setEditing(true);
-  }, [editing, savedQuiz]);
-
-  const updateDraftField = useCallback((field, value) => {
-    setDraftQuiz((current) => {
-      const next = { ...(current || {}) };
-      if (value === null || typeof value === 'undefined') {
-        delete next[field];
-      } else {
-        next[field] = value;
-      }
-      return next;
-    });
-  }, []);
-
-  const handleSave = useCallback(async () => {
-    if (saving) return;
+    const nextQuiz = { ...(savedQuiz || {}) };
+    if (value === null || typeof value === 'undefined') {
+      delete nextQuiz[field];
+    } else {
+      nextQuiz[field] = value;
+    }
 
     try {
-      setSaving(true);
+      setSavingField(field);
       impact(ImpactFeedbackStyle.Medium);
 
-      const nextQuiz = { ...(draftQuiz || {}) };
       const nextPreferences = {
         ...(userProfile?.preferences || {}),
         quiz: nextQuiz,
@@ -304,17 +454,148 @@ export default function RelationshipProfileScreen() {
       const nextProfile = await PreferenceEngine.getContentProfile(updatedProfile || userProfile || {});
 
       setProfile(nextProfile);
-      setDraftQuiz(nextQuiz);
-      setEditing(false);
+      if (!keepOpen) setEditingField(null);
       notification(NotificationFeedbackType.Success);
     } catch (error) {
       if (__DEV__) console.warn('[RelationshipProfile] Failed to save profile:', error?.message);
       notification(NotificationFeedbackType.Error);
-      Alert.alert('Update Failed', 'We could not save your relationship profile. Please try again.');
+      Alert.alert('Update Failed', 'We could not save your couple profile. Please try again.');
     } finally {
-      setSaving(false);
+      setSavingField(null);
     }
-  }, [draftQuiz, saving, updateProfile, userProfile]);
+  }, [savedQuiz, savingField, updateProfile, userProfile]);
+
+  const handleToggleQuizList = useCallback(async (field, value) => {
+    if (savingField) return;
+
+    if (value === null) {
+      await saveQuizValue(field, null, { keepOpen: false });
+      return;
+    }
+
+    const currentValues = Array.isArray(savedQuiz?.[field]) ? savedQuiz[field] : [];
+    const nextValues = currentValues.includes(value)
+      ? currentValues.filter((item) => item !== value)
+      : [...currentValues, value];
+
+    await saveQuizValue(field, nextValues.length ? nextValues : null, { keepOpen: nextValues.length > 0 });
+  }, [savedQuiz, saveQuizValue, savingField]);
+
+  const handleSelectDateEffort = useCallback((value) => {
+    if (value === null) {
+      return saveQuizValue('preferShort', null);
+    }
+    return saveQuizValue('preferShort', value === 'short');
+  }, [saveQuizValue]);
+
+  const handleSelectPreference = useCallback(async (field, value) => {
+    if (savingField) return;
+
+    try {
+      setSavingField(field);
+      impact(ImpactFeedbackStyle.Medium);
+
+      if (field === 'season') {
+        const nextSeason = await RelationshipSeasons.set(value);
+        await StorageRouter.updateCloudProfilePreferences({ relationshipSeason: nextSeason });
+        await refreshProfile();
+      }
+
+      if (field === 'tone') {
+        const nicknameConfig = await NicknameEngine.setConfig({ tone: value });
+        const nextPreferences = {
+          ...(userProfile?.preferences || {}),
+          tone: value,
+          nicknameConfig,
+        };
+        const updatedProfile = await updateProfile({
+          tone: value,
+          nicknameConfig,
+          preferences: nextPreferences,
+        });
+        await refreshProfile(updatedProfile || userProfile);
+      }
+
+      if (field === 'energy') {
+        await ContentIntensityMatcher.setEnergyLevel(value);
+        await StorageRouter.updateCloudProfilePreferences({ energyLevel: value });
+        await refreshProfile();
+      }
+
+      if (field === 'climate') {
+        const nextClimate = await RelationshipClimateState.set(value);
+        await StorageRouter.updateCloudProfilePreferences({ relationshipClimate: nextClimate });
+        await refreshProfile();
+      }
+
+      if (field === 'heat') {
+        const nextPreferences = {
+          ...(userProfile?.preferences || {}),
+          heatLevelPreference: value,
+        };
+        const updatedProfile = await updateProfile({
+          heatLevelPreference: value,
+          preferences: nextPreferences,
+        });
+        await refreshProfile(updatedProfile || userProfile);
+      }
+
+      if (field === 'spicyContent') {
+        const currentBoundaries = await SoftBoundaries.getAll();
+        const nextBoundaries = {
+          ...currentBoundaries,
+          hideSpicy: value === 'hidden',
+          maxHeatOverride: value === 'hidden' ? 3 : null,
+        };
+        await SoftBoundaries.setAll(nextBoundaries);
+        await StorageRouter.updateCloudProfilePreferences({ softBoundaries: nextBoundaries });
+        await refreshProfile();
+      }
+
+      setEditingField(null);
+      notification(NotificationFeedbackType.Success);
+    } catch (error) {
+      if (__DEV__) console.warn('[RelationshipProfile] Failed to save preference:', error?.message);
+      notification(NotificationFeedbackType.Error);
+      Alert.alert('Update Failed', 'We could not save your couple profile. Please try again.');
+    } finally {
+      setSavingField(null);
+    }
+  }, [refreshProfile, savingField, updateProfile, userProfile]);
+
+  const handleToggleHiddenCategory = useCallback(async (value) => {
+    if (savingField) return;
+
+    try {
+      setSavingField('hiddenCategories');
+      impact(ImpactFeedbackStyle.Medium);
+
+      const currentBoundaries = await SoftBoundaries.getAll();
+      const currentCategories = Array.isArray(currentBoundaries.hiddenCategories)
+        ? currentBoundaries.hiddenCategories
+        : [];
+      const nextCategories = value === null
+        ? []
+        : currentCategories.includes(value)
+          ? currentCategories.filter((category) => category !== value)
+          : [...currentCategories, value];
+      const nextBoundaries = {
+        ...currentBoundaries,
+        hiddenCategories: nextCategories,
+      };
+
+      await SoftBoundaries.setAll(nextBoundaries);
+      await StorageRouter.updateCloudProfilePreferences({ softBoundaries: nextBoundaries });
+      await refreshProfile();
+      notification(NotificationFeedbackType.Success);
+    } catch (error) {
+      if (__DEV__) console.warn('[RelationshipProfile] Failed to save hidden categories:', error?.message);
+      notification(NotificationFeedbackType.Error);
+      Alert.alert('Update Failed', 'We could not save your couple profile. Please try again.');
+    } finally {
+      setSavingField(null);
+    }
+  }, [refreshProfile, savingField]);
 
   const myName = getMyDisplayName(userProfile, null, user?.displayName || 'You');
   const partnerName = getPartnerDisplayName(userProfile, null, 'Partner');
@@ -322,141 +603,344 @@ export default function RelationshipProfileScreen() {
   const seasonLabel = labelFrom(SEASONS, profile?.season?.id);
   const climateLabel = labelFrom(CLIMATE_OPTIONS, profile?.climate?.id, 'Open');
   const energyLabel = labelFrom(ENERGY_LEVELS, profile?.energy?.level);
+  const heatLevel = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
   const maxHeat = profile?.maxHeat || userProfile?.heatLevelPreference || 5;
   const hiddenCategories = profile?.boundaries?.hiddenCategories || [];
-  const pausedEntries = profile?.boundaries?.pausedEntries || [];
-  const pausedDates = profile?.boundaries?.pausedDates || [];
+  const hasKidsValue = typeof quiz.hasKids === 'boolean' ? quiz.hasKids : null;
+  const promptLaneValues = Array.isArray(savedQuiz?.preferredCategories) ? savedQuiz.preferredCategories : null;
+  const toneLaneValues = Array.isArray(savedQuiz?.preferredTones) ? savedQuiz.preferredTones : null;
+  const dateEffortValue = typeof savedQuiz?.preferShort === 'boolean'
+    ? savedQuiz.preferShort ? 'short' : 'deeper'
+    : null;
+  const dateEffortLabel = dateEffortValue
+    ? labelFrom(DATE_EFFORT_OPTIONS, dateEffortValue)
+    : profile?.preferShort ? 'Shorter, lower friction' : 'Room for deeper plans';
+  const spicyContentValue = profile?.boundaries?.hideSpicy ? 'hidden' : 'available';
 
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Relationship Profile"
+      headerTitle="Couple Profile"
       headerSubtitle="WHAT FEELS LIKE US"
       headerDescription="Preferences, signals, and boundaries that shape your prompts, dates, and private moments."
-      headerRight={(
-        <TouchableOpacity
-          style={[
-            styles.headerAction,
-            { backgroundColor: t.surfaceSecondary, borderColor: t.border },
-          ]}
-          activeOpacity={0.75}
-          onPress={handleToggleEdit}
-          accessibilityRole="button"
-          accessibilityLabel={editing ? 'Cancel editing relationship profile' : `${hasSavedProfile ? 'Edit' : 'Add'} relationship profile`}
-          disabled={saving}
-        >
-          <Text style={[styles.headerActionText, { color: t.text }]}>
-            {editing ? 'Cancel' : hasSavedProfile ? 'Edit' : 'Add'}
-          </Text>
-        </TouchableOpacity>
-      )}
       contentContainerStyle={styles.content}
     >
       {loading ? (
         <View style={[styles.loading, { backgroundColor: t.surface, borderColor: t.border }]}>
           <ActivityIndicator size="small" color={t.primary} />
         </View>
-      ) : editing ? (
-        <>
-          <ChoiceSection
-            title="Love Language"
-            options={LOVE_LANGUAGE_OPTIONS}
-            value={draftQuiz.loveLanguage}
-            onChange={(value) => updateDraftField('loveLanguage', value)}
-            t={t}
-            isDark={isDark}
-          />
-
-          <ChoiceSection
-            title="Main Goal"
-            options={RELATIONSHIP_GOAL_OPTIONS}
-            value={draftQuiz.relationshipGoal}
-            onChange={(value) => updateDraftField('relationshipGoal', value)}
-            t={t}
-            isDark={isDark}
-          />
-
-          <ChoiceSection
-            title="Communication"
-            options={COMMUNICATION_OPTIONS}
-            value={draftQuiz.communicationStyle}
-            onChange={(value) => updateDraftField('communicationStyle', value)}
-            t={t}
-            isDark={isDark}
-          />
-
-          <ChoiceSection
-            title="Date Style"
-            options={DATE_STYLE_OPTIONS}
-            value={draftQuiz.idealDateStyle}
-            onChange={(value) => updateDraftField('idealDateStyle', value)}
-            t={t}
-            isDark={isDark}
-          />
-
-          <ChoiceSection
-            title="Family Rhythm"
-            options={HAS_KIDS_OPTIONS}
-            value={typeof draftQuiz.hasKids === 'boolean' ? draftQuiz.hasKids : null}
-            onChange={(value) => updateDraftField('hasKids', value)}
-            t={t}
-            isDark={isDark}
-          />
-
-          <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: t.primary }, saving && styles.disabledControl]}
-            activeOpacity={0.88}
-            onPress={handleSave}
-            disabled={saving}
-            accessibilityRole="button"
-            accessibilityLabel="Save relationship profile"
-          >
-            {saving ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Apply Changes</Text>
-            )}
-          </TouchableOpacity>
-        </>
       ) : (
         <>
           <ProfileSection title="You Two" t={t} isDark={isDark}>
             <ProfileRow label="Names" value={`${myName} and ${partnerName}`} t={t} />
-            <ProfileRow label="Relationship stage" value={DURATION_LABELS[profile?.relationshipDuration] || 'Not set'} t={t} />
-            <ProfileRow label="Current season" value={seasonLabel} t={t} isLast />
+            <ProfileRow
+              label="Relationship stage"
+              value={DURATION_LABELS[profile?.relationshipDuration] || 'Not set'}
+              t={t}
+              onPress={() => handleToggleField('relationshipStage')}
+              accessibilityLabel="Edit relationship stage"
+              expanded={editingField === 'relationshipStage'}
+            >
+              {editingField === 'relationshipStage' ? (
+                <InlineChoiceEditor
+                  options={RELATIONSHIP_STAGE_OPTIONS}
+                  value={savedQuiz.relationshipStage ?? null}
+                  onSelect={(value) => saveQuizValue('relationshipStage', value)}
+                  t={t}
+                  saving={savingField === 'relationshipStage'}
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Current season"
+              value={seasonLabel}
+              t={t}
+              onPress={() => handleToggleField('season')}
+              accessibilityLabel="Edit current season"
+              expanded={editingField === 'season'}
+              isLast
+            >
+              {editingField === 'season' ? (
+                <InlineChoiceEditor
+                  options={SEASON_OPTIONS}
+                  value={profile?.season?.id || 'cozy'}
+                  onSelect={(value) => handleSelectPreference('season', value)}
+                  t={t}
+                  saving={savingField === 'season'}
+                />
+              ) : null}
+            </ProfileRow>
           </ProfileSection>
 
           <ProfileSection title="Connection Style" t={t} isDark={isDark}>
-            <ProfileRow label="Love language" value={LOVE_LANGUAGE_LABELS[quiz.loveLanguage]} t={t} />
-            <ProfileRow label="Main goal" value={GOAL_LABELS[quiz.relationshipGoal]} t={t} />
-            <ProfileRow label="Communication" value={COMMUNICATION_LABELS[quiz.communicationStyle]} t={t} />
-            <ProfileRow label="Date style" value={DATE_STYLE_LABELS[quiz.idealDateStyle]} t={t} />
             <ProfileRow
-              label="Family rhythm"
-              value={typeof quiz.hasKids === 'boolean' ? (quiz.hasKids ? 'Kids at home' : 'No kids noted') : 'Not set'}
+              label="Love language"
+              value={LOVE_LANGUAGE_LABELS[quiz.loveLanguage]}
               t={t}
+              onPress={() => handleToggleField('loveLanguage')}
+              accessibilityLabel="Edit love language"
+              expanded={editingField === 'loveLanguage'}
+            >
+              {editingField === 'loveLanguage' ? (
+                <InlineChoiceEditor
+                  options={LOVE_LANGUAGE_OPTIONS}
+                  value={quiz.loveLanguage}
+                  onSelect={(value) => saveQuizValue('loveLanguage', value)}
+                  t={t}
+                  saving={savingField === 'loveLanguage'}
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Main goal"
+              value={GOAL_LABELS[quiz.relationshipGoal]}
+              t={t}
+              onPress={() => handleToggleField('relationshipGoal')}
+              accessibilityLabel="Edit main goal"
+              expanded={editingField === 'relationshipGoal'}
+            >
+              {editingField === 'relationshipGoal' ? (
+                <InlineChoiceEditor
+                  options={RELATIONSHIP_GOAL_OPTIONS}
+                  value={quiz.relationshipGoal}
+                  onSelect={(value) => saveQuizValue('relationshipGoal', value)}
+                  t={t}
+                  saving={savingField === 'relationshipGoal'}
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Communication"
+              value={COMMUNICATION_LABELS[quiz.communicationStyle]}
+              t={t}
+              onPress={() => handleToggleField('communicationStyle')}
+              accessibilityLabel="Edit communication style"
+              expanded={editingField === 'communicationStyle'}
+            >
+              {editingField === 'communicationStyle' ? (
+                <InlineChoiceEditor
+                  options={COMMUNICATION_OPTIONS}
+                  value={quiz.communicationStyle}
+                  onSelect={(value) => saveQuizValue('communicationStyle', value)}
+                  t={t}
+                  saving={savingField === 'communicationStyle'}
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Date style"
+              value={DATE_STYLE_LABELS[quiz.idealDateStyle]}
+              t={t}
+              onPress={() => handleToggleField('idealDateStyle')}
+              accessibilityLabel="Edit date style"
+              expanded={editingField === 'idealDateStyle'}
+            >
+              {editingField === 'idealDateStyle' ? (
+                <InlineChoiceEditor
+                  options={DATE_STYLE_OPTIONS}
+                  value={quiz.idealDateStyle}
+                  onSelect={(value) => saveQuizValue('idealDateStyle', value)}
+                  t={t}
+                  saving={savingField === 'idealDateStyle'}
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Kids at home"
+              value={hasKidsValue === null ? 'Not set' : hasKidsValue ? 'Kids at home' : 'No kids noted'}
+              t={t}
+              onPress={() => handleToggleField('hasKids')}
+              accessibilityLabel="Edit kids at home"
+              expanded={editingField === 'hasKids'}
               isLast
-            />
+            >
+              {editingField === 'hasKids' ? (
+                <InlineChoiceEditor
+                  options={HAS_KIDS_OPTIONS}
+                  value={hasKidsValue}
+                  onSelect={(value) => saveQuizValue('hasKids', value)}
+                  t={t}
+                  saving={savingField === 'hasKids'}
+                />
+              ) : null}
+            </ProfileRow>
           </ProfileSection>
 
           <ProfileSection title="Content Shape" t={t} isDark={isDark}>
-            <ProfileRow label="Tone" value={TONE_LABELS[profile?.tone] || 'Warm'} t={t} />
-            <ProfileRow label="Energy" value={energyLabel} t={t} />
-            <ProfileRow label="Climate" value={climateLabel} t={t} />
-            <ProfileRow label="Max heat" value={`Heat ${maxHeat}`} t={t} isLast />
+            <ProfileRow
+              label="Tone"
+              value={TONE_LABELS[profile?.tone] || 'Warm'}
+              t={t}
+              onPress={() => handleToggleField('tone')}
+              accessibilityLabel="Edit tone"
+              expanded={editingField === 'tone'}
+            >
+              {editingField === 'tone' ? (
+                <InlineChoiceEditor
+                  options={APP_TONE_OPTIONS}
+                  value={profile?.tone || 'warm'}
+                  onSelect={(value) => handleSelectPreference('tone', value)}
+                  t={t}
+                  saving={savingField === 'tone'}
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Energy"
+              value={energyLabel}
+              t={t}
+              onPress={() => handleToggleField('energy')}
+              accessibilityLabel="Edit energy"
+              expanded={editingField === 'energy'}
+            >
+              {editingField === 'energy' ? (
+                <InlineChoiceEditor
+                  options={ENERGY_LEVELS}
+                  value={profile?.energy?.level || 'open'}
+                  onSelect={(value) => handleSelectPreference('energy', value)}
+                  t={t}
+                  saving={savingField === 'energy'}
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Climate"
+              value={climateLabel}
+              t={t}
+              onPress={() => handleToggleField('climate')}
+              accessibilityLabel="Edit climate"
+              expanded={editingField === 'climate'}
+            >
+              {editingField === 'climate' ? (
+                <InlineChoiceEditor
+                  options={CLIMATE_SCROLL_OPTIONS}
+                  value={profile?.climate?.id ?? null}
+                  onSelect={(value) => handleSelectPreference('climate', value)}
+                  t={t}
+                  saving={savingField === 'climate'}
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Max heat"
+              value={`Heat ${maxHeat}`}
+              t={t}
+              onPress={() => handleToggleField('heat')}
+              accessibilityLabel="Edit max heat"
+              expanded={editingField === 'heat'}
+              isLast
+            >
+              {editingField === 'heat' ? (
+                <InlineChoiceEditor
+                  options={HEAT_OPTIONS}
+                  value={heatLevel}
+                  onSelect={(value) => handleSelectPreference('heat', value)}
+                  t={t}
+                  saving={savingField === 'heat'}
+                />
+              ) : null}
+            </ProfileRow>
           </ProfileSection>
 
           <ProfileSection title="What We Prioritize" t={t} isDark={isDark}>
-            <ProfileRow label="Prompt lanes" value={compactList(profile?.quiz?.preferredCategories)} t={t} />
-            <ProfileRow label="Tone lanes" value={compactList(profile?.quiz?.preferredTones)} t={t} />
-            <ProfileRow label="Date effort" value={profile?.preferShort ? 'Shorter, lower friction' : 'Room for deeper plans'} t={t} isLast />
+            <ProfileRow
+              label="Prompt lanes"
+              value={compactList(profile?.quiz?.preferredCategories, 'Use profile answers', PROMPT_LANE_LABELS)}
+              t={t}
+              onPress={() => handleToggleField('preferredCategories')}
+              accessibilityLabel="Edit prompt lanes"
+              expanded={editingField === 'preferredCategories'}
+            >
+              {editingField === 'preferredCategories' ? (
+                <InlineChoiceEditor
+                  options={PROMPT_LANE_OPTIONS}
+                  values={promptLaneValues}
+                  onSelect={(value) => handleToggleQuizList('preferredCategories', value)}
+                  t={t}
+                  saving={savingField === 'preferredCategories'}
+                  multiple
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Tone lanes"
+              value={compactList(profile?.quiz?.preferredTones, 'Use profile answers', TONE_LANE_LABELS)}
+              t={t}
+              onPress={() => handleToggleField('preferredTones')}
+              accessibilityLabel="Edit tone lanes"
+              expanded={editingField === 'preferredTones'}
+            >
+              {editingField === 'preferredTones' ? (
+                <InlineChoiceEditor
+                  options={TONE_LANE_OPTIONS}
+                  values={toneLaneValues}
+                  onSelect={(value) => handleToggleQuizList('preferredTones', value)}
+                  t={t}
+                  saving={savingField === 'preferredTones'}
+                  multiple
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Date effort"
+              value={dateEffortLabel}
+              t={t}
+              onPress={() => handleToggleField('preferShort')}
+              accessibilityLabel="Edit date effort"
+              expanded={editingField === 'preferShort'}
+              isLast
+            >
+              {editingField === 'preferShort' ? (
+                <InlineChoiceEditor
+                  options={DATE_EFFORT_OPTIONS}
+                  value={dateEffortValue}
+                  onSelect={handleSelectDateEffort}
+                  t={t}
+                  saving={savingField === 'preferShort'}
+                />
+              ) : null}
+            </ProfileRow>
           </ProfileSection>
 
           <ProfileSection title="Boundaries" t={t} isDark={isDark}>
-            <ProfileRow label="Spicy content" value={profile?.boundaries?.hideSpicy ? 'Hidden' : 'Available within heat setting'} t={t} />
-            <ProfileRow label="Hidden categories" value={compactList(hiddenCategories, 'None hidden')} t={t} />
-            <ProfileRow label="Paused prompts" value={pausedEntries.length ? `${pausedEntries.length} paused` : 'None paused'} t={t} />
-            <ProfileRow label="Paused dates" value={pausedDates.length ? `${pausedDates.length} paused` : 'None paused'} t={t} isLast />
+            <ProfileRow
+              label="Spicy content"
+              value={profile?.boundaries?.hideSpicy ? 'Hidden' : 'Available within heat setting'}
+              t={t}
+              onPress={() => handleToggleField('spicyContent')}
+              accessibilityLabel="Edit spicy content"
+              expanded={editingField === 'spicyContent'}
+            >
+              {editingField === 'spicyContent' ? (
+                <InlineChoiceEditor
+                  options={SPICY_CONTENT_OPTIONS}
+                  value={spicyContentValue}
+                  onSelect={(value) => handleSelectPreference('spicyContent', value)}
+                  t={t}
+                  saving={savingField === 'spicyContent'}
+                />
+              ) : null}
+            </ProfileRow>
+            <ProfileRow
+              label="Hidden categories"
+              value={compactList(hiddenCategories, 'None hidden', PROMPT_LANE_LABELS)}
+              t={t}
+              onPress={() => handleToggleField('hiddenCategories')}
+              accessibilityLabel="Edit hidden categories"
+              expanded={editingField === 'hiddenCategories'}
+              isLast
+            >
+              {editingField === 'hiddenCategories' ? (
+                <InlineChoiceEditor
+                  options={HIDDEN_CATEGORY_OPTIONS}
+                  values={hiddenCategories}
+                  onSelect={handleToggleHiddenCategory}
+                  t={t}
+                  saving={savingField === 'hiddenCategories'}
+                  multiple
+                />
+              ) : null}
+            </ProfileRow>
           </ProfileSection>
         </>
       )}
@@ -493,8 +977,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
+    gap: 12,
+  },
+  profileRowPressable: {
+    minHeight: 72,
+  },
+  profileRowText: {
+    flex: 1,
     gap: 6,
   },
   rowLabel: {
@@ -515,72 +1008,38 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     marginHorizontal: 20,
   },
-  dividerIndent: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 76,
-  },
-  headerAction: {
-    minWidth: 64,
-    height: 40,
-    borderRadius: 20,
+  inlineEditor: {
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 8,
+  },
+  inlineScrollerContent: {
+    paddingHorizontal: 8,
+    gap: 8,
+  },
+  inlineOption: {
+    width: 152,
+    minHeight: 104,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
+    padding: 12,
+    gap: 10,
+  },
+  inlineOptionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 14,
   },
-  headerActionText: {
+  inlineOptionLabel: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0,
-  },
-  choiceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    gap: 16,
-  },
-  choiceIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  choiceLabel: {
-    flex: 1,
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
-    lineHeight: 22,
+    lineHeight: 19,
     letterSpacing: 0,
-  },
-  primaryButton: {
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 32,
-    marginBottom: 24,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#D2121A',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-      },
-      android: { elevation: 6 },
-    }),
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0,
-    textTransform: 'uppercase',
-  },
-  disabledControl: {
-    opacity: 0.65,
   },
 });

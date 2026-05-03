@@ -45,10 +45,13 @@ export default function EditorialScreenScaffold({
   safeAreaEdges = ['top'],
   showsVerticalScrollIndicator = false,
   backIconName = 'close',
+  screenAccentColor,
 }) {
   const { colors, isDark } = useTheme();
   const gradients = getGradients(colors);
-  const accentColor = heroTint || colors.primary;
+  const screenAccent = screenAccentColor || colors.primary;
+  const screenSecondaryAccent = screenAccentColor || colors.accent || colors.text;
+  const accentColor = heroTint || screenAccent;
 
   const content = (
     <>
@@ -103,14 +106,14 @@ export default function EditorialScreenScaffold({
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
       />
-      <GlowOrb color={colors.primary} size={420} top={-160} left={220} opacity={isDark ? 0.12 : 0.06} />
-      <GlowOrb color={colors.accent || colors.text} size={260} top={560} left={-100} opacity={isDark ? 0.05 : 0.035} />
+      <GlowOrb color={screenAccent} size={420} top={-160} left={220} opacity={isDark ? 0.12 : 0.06} />
+      <GlowOrb color={screenSecondaryAccent} size={260} top={560} left={-100} opacity={isDark ? 0.05 : 0.035} />
       <FilmGrain opacity={0.04} />
 
       <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
         <View style={styles.header}>
           {headerSubtitle ? (
-            <Text style={[styles.headerSubtitle, { color: colors.primary }]} numberOfLines={2}>
+            <Text style={[styles.headerSubtitle, { color: screenAccent }]} numberOfLines={2}>
               {headerSubtitle}
             </Text>
           ) : null}

@@ -125,6 +125,13 @@ const DEFAULT_KEEPSAKE_SETTINGS = {
   positions: true,
 };
 
+const KEEPSAKE_COLORS = {
+  prompt: '#4F7DF3',
+  memory: '#8A5CF6',
+  date: '#2FA36B',
+  position: '#D2121A',
+};
+
 const normalizeKeepsakeSettings = (settings) => ({
   prompts: settings?.prompts ?? DEFAULT_KEEPSAKE_SETTINGS.prompts,
   memories: settings?.memories ?? DEFAULT_KEEPSAKE_SETTINGS.memories,
@@ -145,7 +152,7 @@ const EditorialToggleRow = ({ icon, title, subtitle, value, onValueChange, t, is
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: t.border, true: t.primary }}
+        trackColor={{ false: t.border, true: iconColor || t.primary }}
         ios_backgroundColor={t.border}
       />
     </View>
@@ -496,7 +503,7 @@ export default function SettingsScreen({ navigation }) {
             />
             <EditorialRow
               icon="heart-circle-outline"
-              title="Relationship Profile"
+              title="Couple Profile"
               subtitle="Your shared preferences and connection style"
               onPress={() => navigation.navigate('RelationshipProfile')}
               t={t}
@@ -539,35 +546,39 @@ export default function SettingsScreen({ navigation }) {
           <EditorialSection title="Keepsake" t={t} delay={725}>
             <EditorialToggleRow
               icon="chatbubbles-outline"
-              title="Prompts"
+              title="Prompt"
               subtitle="Show shared reflections in Keepsake"
               value={keepsakeSettings.prompts}
               onValueChange={(value) => handleKeepsakeToggle('prompts', value)}
               t={t}
+              iconColor={KEEPSAKE_COLORS.prompt}
             />
             <EditorialToggleRow
               icon="images-outline"
-              title="Snapshots"
+              title="Memory"
               subtitle="Show saved photos, videos, and notes"
               value={keepsakeSettings.memories}
               onValueChange={(value) => handleKeepsakeToggle('memories', value)}
               t={t}
+              iconColor={KEEPSAKE_COLORS.memory}
             />
             <EditorialToggleRow
               icon="calendar-outline"
-              title="Dates Tried"
+              title="Date"
               subtitle="Show date nights you marked as tried"
               value={keepsakeSettings.dates}
               onValueChange={(value) => handleKeepsakeToggle('dates', value)}
               t={t}
+              iconColor={KEEPSAKE_COLORS.date}
             />
             <EditorialToggleRow
               icon="checkmark-circle-outline"
-              title="Positions Tried"
+              title="Sex Position"
               subtitle="Show sex positions marked as tried"
               value={keepsakeSettings.positions}
               onValueChange={(value) => handleKeepsakeToggle('positions', value)}
               t={t}
+              iconColor={KEEPSAKE_COLORS.position}
               isLast
             />
           </EditorialSection>
