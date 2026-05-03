@@ -340,7 +340,6 @@ const NotificationSettingsScreen = ({ navigation }) => {
       screenAccentColor={t.primary}
       contentContainerStyle={styles.content}
     >
-        <Text style={[styles.sectionTitle, styles.firstSectionTitle]}>DEVICE ALERTS</Text>
         <View style={styles.masterToggle}>
           <View style={styles.settingInfo}>
             <Text style={[styles.settingTitle, { color: t.text }]}>Push Notifications</Text>
@@ -401,9 +400,6 @@ const createStyles = (t, shadows) => StyleSheet.create({
     marginBottom: SPACING.md,
     marginTop: SPACING.section,
     paddingLeft: SPACING.xs,
-  },
-  firstSectionTitle: {
-    marginTop: 0,
   },
   masterToggle: {
     flexDirection: 'row',

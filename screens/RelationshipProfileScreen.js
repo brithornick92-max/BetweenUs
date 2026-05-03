@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,7 +13,14 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import Icon from '../components/Icon';
-import { SPACING } from '../utils/theme';
+import {
+  BORDER_RADIUS,
+  SPACING,
+  SYSTEM_FONT,
+  TYPOGRAPHY,
+  getShadows,
+  withAlpha,
+} from '../utils/theme';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 import {
@@ -26,8 +32,6 @@ import {
 import { NicknameEngine, RelationshipSeasons, SEASONS, SoftBoundaries } from '../services/PolishEngine';
 import StorageRouter from '../services/storage/StorageRouter';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
-
-const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
 const LOVE_LANGUAGE_LABELS = {
   words: 'Words of Affirmation',
@@ -263,7 +267,7 @@ function preferenceValueEquals(left, right) {
   return (left ?? null) === (right ?? null);
 }
 
-function ProfileSection({ title, children, t, isDark }) {
+function ProfileSection({ title, children, t, shadows }) {
   return (
     <View>
       <Text style={[styles.sectionTitle, { color: t.subtext }]}>{title}</Text>
@@ -271,15 +275,7 @@ function ProfileSection({ title, children, t, isDark }) {
         style={[
           styles.widgetCard,
           { backgroundColor: t.surface, borderColor: t.border },
-          Platform.select({
-            ios: {
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: isDark ? 0 : 0.04,
-              shadowRadius: 10,
-            },
-            android: { elevation: 2 },
-          }),
+          shadows.small,
         ]}
       >
         {children}
@@ -376,8 +372,8 @@ function InlineChoiceEditor({ options, value, values, onSelect, onSave, t, savin
               style={[
                 styles.inlineOption,
                 isActive && {
-                  backgroundColor: `${t.primary}12`,
-                  borderColor: `${t.primary}33`,
+                  backgroundColor: withAlpha(t.primary, 0.07),
+                  borderColor: withAlpha(t.primary, 0.2),
                 },
               ]}
               activeOpacity={0.78}
@@ -387,7 +383,7 @@ function InlineChoiceEditor({ options, value, values, onSelect, onSave, t, savin
               accessibilityState={{ selected: isActive, checked: isActive, disabled: saving }}
               accessibilityLabel={item.label}
             >
-              <View style={[styles.inlineOptionIcon, { backgroundColor: isActive ? `${t.primary}16` : t.surface }]}>
+              <View style={[styles.inlineOptionIcon, { backgroundColor: isActive ? withAlpha(t.primary, 0.09) : t.surface }]}>
                 <Icon name={item.icon} size={18} color={isActive ? t.primary : t.subtext} />
               </View>
               <Text style={[styles.inlineOptionLabel, { color: isActive ? t.primary : t.text }]} numberOfLines={2}>
@@ -427,21 +423,23 @@ function InlineChoiceEditor({ options, value, values, onSelect, onSave, t, savin
 export default function RelationshipProfileScreen() {
   const navigation = useNavigation();
   const { user, userProfile, updateProfile } = useAuth();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editingField, setEditingField] = useState(null);
   const [savingField, setSavingField] = useState(null);
 
   const t = useMemo(() => ({
-    background: colors.background,
-    surface: isDark ? '#131016' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#D2121A',
+    surface: colors.surface,
+    surfaceSecondary: colors.surface2 || colors.surface,
+    surfaceGlass: colors.surfaceGlass || colors.surface,
+    primary: colors.primary,
     text: colors.text,
-    subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-  }), [colors, isDark]);
+    subtext: colors.textMuted || colors.textSecondary,
+    border: colors.borderGlass || colors.border,
+  }), [colors]);
+
+  const shadows = useMemo(() => getShadows(colors), [colors]);
 
   useFocusEffect(
     useCallback(() => {
@@ -672,15 +670,16 @@ export default function RelationshipProfileScreen() {
       navigation={navigation}
       headerTitle="Couple Profile"
       headerSubtitle="WHAT FEELS LIKE US"
+      screenAccentColor={t.primary}
       contentContainerStyle={styles.content}
     >
       {loading ? (
-        <View style={[styles.loading, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <View style={[styles.loading, { backgroundColor: t.surface, borderColor: t.border }, shadows.small]}>
           <ActivityIndicator size="small" color={t.primary} />
         </View>
       ) : (
         <>
-          <ProfileSection title="You Two" t={t} isDark={isDark}>
+          <ProfileSection title="You Two" t={t} shadows={shadows}>
             <ProfileRow label="Names" value={`${myName} and ${partnerName}`} t={t} />
             <ProfileRow
               label="Relationship stage"
@@ -721,7 +720,7 @@ export default function RelationshipProfileScreen() {
             </ProfileRow>
           </ProfileSection>
 
-          <ProfileSection title="Connection Style" t={t} isDark={isDark}>
+          <ProfileSection title="Connection Style" t={t} shadows={shadows}>
             <ProfileRow
               label="Love language"
               value={LOVE_LANGUAGE_LABELS[quiz.loveLanguage]}
@@ -815,7 +814,7 @@ export default function RelationshipProfileScreen() {
             </ProfileRow>
           </ProfileSection>
 
-          <ProfileSection title="Content Shape" t={t} isDark={isDark}>
+          <ProfileSection title="Content Shape" t={t} shadows={shadows}>
             <ProfileRow
               label="Tone"
               value={TONE_LABELS[profile?.tone] || 'Warm'}
@@ -891,7 +890,7 @@ export default function RelationshipProfileScreen() {
             </ProfileRow>
           </ProfileSection>
 
-          <ProfileSection title="What We Prioritize" t={t} isDark={isDark}>
+          <ProfileSection title="What We Prioritize" t={t} shadows={shadows}>
             <ProfileRow
               label="Prompt lanes"
               value={compactList(profile?.quiz?.preferredCategories, 'Use profile answers', PROMPT_LANE_LABELS)}
@@ -951,7 +950,7 @@ export default function RelationshipProfileScreen() {
             </ProfileRow>
           </ProfileSection>
 
-          <ProfileSection title="Boundaries" t={t} isDark={isDark}>
+          <ProfileSection title="Boundaries" t={t} shadows={shadows}>
             <ProfileRow
               label="Spicy content"
               value={profile?.boundaries?.hideSpicy ? 'Hidden' : 'Available within heat setting'}
@@ -1001,50 +1000,42 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: SPACING.screen,
     paddingTop: SPACING.sm,
-    paddingBottom: 100,
+    paddingBottom: SPACING.xxxl * 2,
   },
   loading: {
     minHeight: 220,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 24,
+    borderRadius: BORDER_RADIUS.xxl,
     borderWidth: 1,
   },
   sectionTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 12,
-    marginTop: 32,
-    paddingLeft: 4,
+    ...TYPOGRAPHY.label,
+    marginBottom: SPACING.md,
+    marginTop: SPACING.section,
+    paddingLeft: SPACING.xs,
   },
   widgetCard: {
-    borderRadius: 24,
+    borderRadius: BORDER_RADIUS.xxl,
     borderWidth: 1,
-    paddingVertical: 8,
+    paddingVertical: SPACING.sm,
   },
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 12,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
+    gap: SPACING.md,
   },
   profileRowPressable: {
     minHeight: 72,
   },
   profileRowText: {
     flex: 1,
-    gap: 6,
+    gap: SPACING.xs,
   },
   rowLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
+    ...TYPOGRAPHY.label,
   },
   rowValue: {
     fontFamily: SYSTEM_FONT,
@@ -1055,39 +1046,39 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    marginHorizontal: 20,
+    marginHorizontal: SPACING.xl,
   },
   inlineEditor: {
-    marginHorizontal: 12,
-    marginBottom: 12,
-    borderRadius: 18,
+    marginHorizontal: SPACING.md,
+    marginBottom: SPACING.md,
+    borderRadius: BORDER_RADIUS.xl,
     borderWidth: StyleSheet.hairlineWidth,
     maxHeight: 340,
-    paddingVertical: 6,
+    paddingVertical: SPACING.sm,
   },
   inlineDropdownList: {
     maxHeight: 280,
   },
   inlineDropdownContent: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    gap: 6,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    gap: SPACING.sm,
   },
   inlineOption: {
     minHeight: 58,
-    borderRadius: 14,
+    borderRadius: BORDER_RADIUS.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: SPACING.md,
   },
   inlineOptionIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: BORDER_RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1101,19 +1092,19 @@ const styles = StyleSheet.create({
   },
   multiSelectFooter: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 8,
-    paddingTop: 8,
-    paddingBottom: 2,
+    paddingHorizontal: SPACING.sm,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xs,
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
   multiSelectDoneButton: {
     minWidth: 86,
     height: 40,
-    borderRadius: 20,
+    borderRadius: BORDER_RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 18,
+    paddingHorizontal: SPACING.lg,
   },
   multiSelectDoneText: {
     color: '#FFFFFF',
