@@ -622,7 +622,6 @@ export default function RelationshipProfileScreen() {
       navigation={navigation}
       headerTitle="Couple Profile"
       headerSubtitle="WHAT FEELS LIKE US"
-      headerDescription="Preferences, signals, and boundaries that shape your prompts, dates, and private moments."
       contentContainerStyle={styles.content}
     >
       {loading ? (
