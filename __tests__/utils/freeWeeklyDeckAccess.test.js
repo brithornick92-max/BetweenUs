@@ -22,7 +22,7 @@ const makeDate = (id, heat = 1) => ({
 });
 
 describe('freeWeeklyDeckAccess', () => {
-  it('limits free prompt decks to 20 cards in signup week', () => {
+  it('builds a 5-card free prompt library in signup week', () => {
     const prompts = Array.from({ length: 24 }, (_, index) => makePrompt(`prompt-${index + 1}`));
     const deck = getFreeWeeklyDeck(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
@@ -32,13 +32,13 @@ describe('freeWeeklyDeckAccess', () => {
       date: new Date('2026-05-03T12:00:00.000Z'),
     });
 
-    expect(deck).toHaveLength(20);
+    expect(deck).toHaveLength(5);
     expect(deck.every((item) => item.requiresPremium === false)).toBe(true);
     expect(deck.every((item) => item.isLockedPreview === false)).toBe(true);
   });
 
-  it('limits free prompt decks to 20 cards after signup week', () => {
-    const prompts = Array.from({ length: 24 }, (_, index) => makePrompt(`prompt-${index + 1}`));
+  it('grows the free prompt library to 25 cards after four weeks', () => {
+    const prompts = Array.from({ length: 40 }, (_, index) => makePrompt(`prompt-${index + 1}`));
     const deck = getFreeWeeklyDeck(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
@@ -47,25 +47,10 @@ describe('freeWeeklyDeckAccess', () => {
       date: new Date('2026-04-30T12:00:00.000Z'),
     });
 
-    expect(deck).toHaveLength(20);
+    expect(deck).toHaveLength(25);
   });
 
-  it('pads free prompt decks back to 20 cards when the eligible pool is smaller', () => {
-    const prompts = Array.from({ length: 8 }, (_, index) => makePrompt(`prompt-${index + 1}`));
-    const deck = getFreeWeeklyDeck(prompts, {
-      contentType: CONTENT_TYPES.PROMPTS,
-      userId: 'user-1',
-      userProfile: { created_at: '2026-04-01T12:00:00.000Z' },
-      userSettings: { maxHeat: 5 },
-      date: new Date('2026-04-30T12:00:00.000Z'),
-    });
-
-    expect(deck).toHaveLength(20);
-    expect(deck.some((item) => item.weeklySetMeta?.isRepeatedFill)).toBe(true);
-    expect(deck.every((item) => prompts.some((prompt) => prompt.id === item.id))).toBe(true);
-  });
-
-  it('uses the same 20-card deck shape for free dates each week', () => {
+  it('uses a cumulative 5-card-to-growing-library shape for free dates', () => {
     const dates = Array.from({ length: 24 }, (_, index) => makeDate(`date-${index + 1}`));
 
     const welcomeDeck = getFreeWeeklyDeck(dates, {
@@ -83,26 +68,11 @@ describe('freeWeeklyDeckAccess', () => {
       date: new Date('2026-04-30T12:00:00.000Z'),
     });
 
-    expect(welcomeDeck).toHaveLength(20);
-    expect(ongoingDeck).toHaveLength(20);
+    expect(welcomeDeck).toHaveLength(5);
+    expect(ongoingDeck).toHaveLength(24);
   });
 
-  it('pads free date decks back to 20 cards when the eligible pool is smaller', () => {
-    const dates = Array.from({ length: 7 }, (_, index) => makeDate(`date-${index + 1}`));
-    const deck = getFreeWeeklyDeck(dates, {
-      contentType: CONTENT_TYPES.DATES,
-      userId: 'user-1',
-      userProfile: { created_at: '2026-04-01T12:00:00.000Z' },
-      userSettings: { maxHeat: 5 },
-      date: new Date('2026-04-30T12:00:00.000Z'),
-    });
-
-    expect(deck).toHaveLength(20);
-    expect(deck.some((item) => item.weeklySetMeta?.isRepeatedFill)).toBe(true);
-    expect(deck.every((item) => dates.some((date) => date.id === item.id))).toBe(true);
-  });
-
-  it('limits the free sex-position deck to 5 items each week', () => {
+  it('grows the free sex-position library to 5 items after four weeks', () => {
     const positions = Array.from({ length: 12 }, (_, index) => ({
       id: `position-${index + 1}`,
       heat: 1,
@@ -122,8 +92,8 @@ describe('freeWeeklyDeckAccess', () => {
     expect(deck).toHaveLength(5);
   });
 
-  it('identifies whether an item belongs to the current free weekly deck', () => {
-    const prompts = Array.from({ length: 24 }, (_, index) => makePrompt(`prompt-${index + 1}`));
+  it('identifies whether an item belongs to the current free prompt library', () => {
+    const prompts = Array.from({ length: 40 }, (_, index) => makePrompt(`prompt-${index + 1}`));
     const options = {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
@@ -139,8 +109,8 @@ describe('freeWeeklyDeckAccess', () => {
     expect(isItemInFreeWeeklyDeck(outsideId, prompts, options)).toBe(false);
   });
 
-  it('filters a prompt pool down to the current free weekly deck', () => {
-    const prompts = Array.from({ length: 24 }, (_, index) => makePrompt(`prompt-${index + 1}`));
+  it('filters a prompt pool down to the current free prompt library', () => {
+    const prompts = Array.from({ length: 40 }, (_, index) => makePrompt(`prompt-${index + 1}`));
     const options = {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',

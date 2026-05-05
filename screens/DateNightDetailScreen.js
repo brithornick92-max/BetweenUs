@@ -417,18 +417,6 @@ export default function DateNightDetailScreen({ route, navigation }) {
       isDateNight: true,
     };
 
-    // Calendar tab is only mounted after day 2. Guard to avoid navigating to an
-    // unmounted route for brand-new users.
-    const joinedAt = userProfile?.createdAt ? new Date(userProfile.createdAt).getTime() : null;
-    const daysSinceJoin = joinedAt ? Math.floor((Date.now() - joinedAt) / 86400000) : Infinity;
-    if (daysSinceJoin < 2) {
-      Alert.alert(
-        'Calendar Unlocks Soon',
-        'The shared calendar unlocks after your first day together in the app. Check back tomorrow!',
-        [{ text: 'Got it' }]
-      );
-      return;
-    }
     navigation.navigate("MainTabs", { screen: "Calendar", params: { prefill } });
   };
 

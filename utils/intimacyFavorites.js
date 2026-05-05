@@ -1,4 +1,5 @@
 import { DataLayer } from '../services/localfirst';
+import { removeRestoredDeckItem } from './contentDeckRestores';
 import { storage, STORAGE_KEYS } from './storage';
 
 const ensureObject = (value) => (
@@ -281,6 +282,8 @@ export async function toggleIntimacyTried(position, { currentlyTried = false, cu
     delete tried[position.id];
     return { tried, isTried: false };
   }
+
+  await removeRestoredDeckItem('positions', position.id).catch(() => {});
 
   let memoryId = existing?.memoryId || null;
   let entry = {

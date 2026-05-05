@@ -106,8 +106,8 @@ function PremiumTabBarBackground({ isDark }) {
 export default function Tabs() {
   const { colors, isDark } = useTheme();
 
-  // Show Calendar + Dates tabs only after day 2 (gives new users space to explore)
-  const showSecondaryTabs = true; // Show Calendar + Dates immediately
+  // Calendar + Dates are part of the free core experience.
+  const showSecondaryTabs = true;
 
   // Keep DeepLinkHandler in sync so calendar deep links are guarded correctly
   useEffect(() => {
@@ -170,7 +170,7 @@ export default function Tabs() {
         component={PromptsScreen}
         options={{ tabBarLabel: "Prompts" }}
       />
-      {/* Calendar and Dates tabs revealed after day 2 */}
+      {/* Calendar and Dates tabs */}
       {showSecondaryTabs && (
         <Tab.Screen
           name="Calendar"

@@ -6,7 +6,7 @@ import { storage } from '../utils/storage';
  */
 export const FREE_TIER_LIMITS = {
   promptsPerDay: Infinity,
-  visibleDates: 20,
+  visibleDates: 5,
   fullDateFlowsPerWeek: Infinity,
   journalEntriesVisible: Infinity,
   surpriseMeEnabled: true,

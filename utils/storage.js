@@ -46,6 +46,7 @@ export const STORAGE_KEYS = {
   PARTNER_PREMIUM_STATUS: key("partnerPremiumStatus"),
   PREMIUM_PROMPT_LIBRARY_STARTED_AT: key("premiumPromptLibraryStartedAt"),
   SAVED_PROMPTS_FOR_LATER: key("savedPromptsForLater"),
+  CONTENT_DECK_RESTORES: key("contentDeckRestores"),
   MEMORIES: key("memories"),
   RITUAL_HISTORY: key("ritualHistory"),
   RITUAL_SYNC_QUEUE: key("ritualSyncQueue"),

@@ -3,20 +3,19 @@
  * 
  * MODEL: Each user gets their own content schedule starting from signup date
  * 
- * FREE USERS (ROTATING):
- * - Every week: 20 prompts, 20 dates, 5 positions
- * - The free tier gets the full core experience; premium sells depth, not access
- * - Free decks rotate weekly instead of accumulating forever
+ * FREE USERS (CUMULATIVE):
+ * - Week 0: 5 prompts, 5 dates, 1 position
+ * - Each week after: +5 prompts, +5 dates, +1 position
+ * - The library grows over time instead of rotating away old cards
  * 
  * PREMIUM USERS (CUMULATIVE):
- * - Week 0 (signup): 200 prompts balanced across heat levels, 200 dates, 10 positions
- * - Week 1: 210 prompts, 208 dates, 12 positions
- * - Week 10: 300 prompts, 280 dates, 30 positions
+ * - Week 0 (signup): 100 prompts balanced across heat levels, 100 dates, 10 positions
+ * - Week 1: 115 prompts, 115 dates, 13 positions
+ * - Week 10: 250 prompts, 250 dates, 40 positions
  * - Eventually: 880 prompts, 675 dates, 200 positions (full library)
  * - Library GROWS each week - they get cumulative access
  * 
- * NOTE: For premium, screens should use ALL boundary-filtered items, not buildWeeklySet.
- *       buildWeeklySet is primarily for FREE users' rotating weekly picks.
+ * NOTE: buildWeeklySet returns the current visible library for the user's tier.
  */
 
 const CONTENT_TYPES = {
@@ -27,29 +26,31 @@ const CONTENT_TYPES = {
 
 const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
-    premium: 10,         // Premium gets 10 new prompts/week
-    premiumStart: 200,   // Premium starts with ~40 prompts per heat level
-    freeWelcomePack: 20, // Free gets a full weekly deck right away
-    freeOngoing: 20,     // Free gets the same weekly deck size after week 0
+    premium: 15,         // Premium gets 15 new prompts/week
+    premiumStart: 100,   // Premium starts with ~20 prompts per heat level
+    freeWelcomePack: 5,  // Free starts with 5 prompts
+    freeOngoing: 5,      // Free gets 5 more prompts each week
     freeLockedPreview: 0,
   },
   [CONTENT_TYPES.DATES]: {
-    premium: 8,          // Premium gets 8 new dates/week
-    freeWelcomePack: 20, // Free gets a full weekly deck right away
-    freeOngoing: 20,     // Free gets the same weekly deck size after week 0
+    premium: 15,         // Premium gets 15 new dates/week
+    premiumStart: 100,   // Premium starts with a larger date library
+    freeWelcomePack: 5,  // Free starts with 5 dates
+    freeOngoing: 5,      // Free gets 5 more dates each week
     freeLockedPreview: 0,
   },
   [CONTENT_TYPES.POSITIONS]: {
-    premium: 2,          // Premium gets 2 new positions/week
-    freeWelcomePack: 5,  // Free gets 5 positions on signup
-    freeOngoing: 5,      // Free gets 5 positions each week after week 0
+    premium: 3,          // Premium gets 3 new positions/week
+    premiumStart: 10,    // Premium starts with 10 positions
+    freeWelcomePack: 1,  // Free starts with 1 position
+    freeOngoing: 1,      // Free gets 1 more position each week
     freeLockedPreview: 0,
   },
 };
 
 const PREMIUM_PROMPT_HEAT_LEVELS = [1, 2, 3, 4, 5];
-const PREMIUM_PROMPT_START_PER_HEAT = 40;
-const PREMIUM_PROMPT_WEEKLY_PER_HEAT = 2;
+const PREMIUM_PROMPT_START_PER_HEAT = 20;
+const PREMIUM_PROMPT_WEEKLY_PER_HEAT = 3;
 
 const PREMIUM_LIBRARY_TOTALS = {
   [CONTENT_TYPES.PROMPTS]: 880,
@@ -60,17 +61,17 @@ const PREMIUM_LIBRARY_TOTALS = {
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
     headline: 'Keep more of the conversation open',
-    body: 'Free gives you 20 prompts each week. Premium opens the larger prompt library right away, balanced across every heat level, plus fresh prompts every week.',
+    body: 'Free starts with 5 prompts and adds 5 more each week. Premium starts with 100 prompts across every heat level and adds 15 more each week.',
     cta: 'Unlock All Prompts',
   },
   [CONTENT_TYPES.DATES]: {
     headline: 'Ready for more date inspiration?',
-    body: 'Free gives you 20 date ideas each week. Premium opens the larger date library right away, plus fresh ideas every week.',
+    body: 'Free starts with 5 date ideas and adds 5 more each week. Premium starts with 100 date ideas and adds 15 more each week.',
     cta: 'Unlock All Dates',
   },
   [CONTENT_TYPES.POSITIONS]: {
     headline: 'Explore the full sex position library',
-    body: 'Free gives you 5 sex positions each week. Premium opens a larger library right away, plus new ones every week.',
+    body: 'Free starts with 1 sex position and adds 1 more each week. Premium starts with 10 positions and adds 3 more each week.',
     cta: 'Unlock All Sex Positions',
   },
 };
@@ -242,33 +243,6 @@ const pickBalancedPrompts = (items, limit, seed) => {
   return selected;
 };
 
-const padSelectionToTarget = (items, targetCount, seed) => {
-  const normalized = Array.isArray(items) ? items.filter(Boolean) : [];
-  if (!normalized.length || normalized.length >= targetCount) {
-    return normalized;
-  }
-
-  const padded = [...normalized];
-  const refillPool = sortSeeded(normalized, `${seed}:pad`);
-  let refillIndex = 0;
-
-  while (padded.length < targetCount) {
-    const source = refillPool[refillIndex % refillPool.length];
-    const repeatIndex = Math.floor(refillIndex / refillPool.length) + 1;
-
-    padded.push({
-      ...source,
-      deckInstanceId: `${source?.id ?? source?.title ?? source?.text ?? padded.length}:repeat:${repeatIndex}:${padded.length}`,
-      isRepeatedFill: true,
-      repeatedFillIndex: repeatIndex,
-    });
-
-    refillIndex += 1;
-  }
-
-  return padded;
-};
-
 const buildPremiumPromptLibrary = (
   items,
   {
@@ -436,8 +410,6 @@ const withUnlockedWeeklyMeta = (item, contentType, weeklyIndex, weekNumber) => (
     isWeeklyPick: true,
     isLockedPreview: false,
     weeklyIndex,
-    isRepeatedFill: !!item?.isRepeatedFill,
-    repeatedFillIndex: item?.repeatedFillIndex ?? 0,
   },
 });
 
@@ -455,13 +427,10 @@ const buildWeeklySet = (
   const type = contentType || CONTENT_TYPES.PROMPTS;
   const limits = WEEKLY_LIMITS[type] || WEEKLY_LIMITS[CONTENT_TYPES.PROMPTS];
   const premiumLimit = limits.premium;
-  
-  // Calculate user's personal week number
   const weekNumber = getUserWeekNumber(userCreatedAt, date);
-  const isWelcomeWeek = weekNumber === 0;
-  
-  // Free users get welcome pack on week 0, then ongoing amount
-  const freeUnlockedLimit = isWelcomeWeek ? limits.freeWelcomePack : limits.freeOngoing;
+  const freeUnlockedLimit = limits.freeWelcomePack + (weekNumber * limits.freeOngoing);
+  const premiumUnlockedLimit =
+    (limits.premiumStart ?? premiumLimit) + (weekNumber * premiumLimit);
   const freeLockedPreviewLimit = limits.freeLockedPreview;
 
   const settings = normalizeUserSettings(userSettings);
@@ -471,18 +440,25 @@ const buildWeeklySet = (
     isAllowedByHeat(item, settings)
   );
 
-  const weeklyPickLimit = isPremium
-    ? premiumLimit
+  const visibleTargetCount = isPremium
+    ? premiumUnlockedLimit
     : freeUnlockedLimit + freeLockedPreviewLimit;
 
   let selected;
 
-  if (type === CONTENT_TYPES.DATES) {
-    selected = pickBalancedDates(eligible, weeklyPickLimit, seed);
+  if (type === CONTENT_TYPES.PROMPTS && isPremium) {
+    selected = buildPremiumPromptLibrary(eligible, {
+      userId,
+      userSettings,
+      userCreatedAt,
+      date,
+    });
+  } else if (type === CONTENT_TYPES.DATES) {
+    selected = pickBalancedDates(eligible, visibleTargetCount, seed);
   } else if (type === CONTENT_TYPES.POSITIONS) {
-    selected = pickBalancedPositions(eligible, weeklyPickLimit, seed);
+    selected = pickBalancedPositions(eligible, visibleTargetCount, seed);
   } else {
-    selected = pickBalancedPrompts(eligible, weeklyPickLimit, seed);
+    selected = pickBalancedPrompts(eligible, visibleTargetCount, seed);
   }
 
   const weeklySelection = isPremium
@@ -521,23 +497,17 @@ const buildWeeklySet = (
         return seededScore(a, `${seed}:free-sort`) - seededScore(b, `${seed}:free-sort`);
       });
 
-  const shouldPadFreeDeck =
-    !isPremium &&
-    type !== CONTENT_TYPES.POSITIONS;
+  const unlockedCount = isPremium
+    ? weeklySelection.length
+    : Math.min(freeUnlockedLimit, weeklySelection.length);
 
-  const paddedWeeklySelection = shouldPadFreeDeck
-    ? padSelectionToTarget(weeklySelection, freeUnlockedLimit, seed)
-    : weeklySelection;
-
-  const unlockedCount = isPremium ? paddedWeeklySelection.length : freeUnlockedLimit;
-
-  const unlocked = paddedWeeklySelection
+  const unlocked = weeklySelection
     .slice(0, unlockedCount)
     .map((item, index) => withUnlockedWeeklyMeta(item, type, index, weekNumber));
 
   const lockedPreviews = isPremium
     ? []
-    : paddedWeeklySelection
+    : weeklySelection
         .slice(freeUnlockedLimit, freeUnlockedLimit + freeLockedPreviewLimit)
         .map((item, index) => toLockedPreview(item, type, index + freeUnlockedLimit, weekNumber));
 
@@ -548,7 +518,7 @@ const buildWeeklySet = (
     premiumLibraryTotal: PREMIUM_LIBRARY_TOTALS[type] ?? eligible.length,
     freeUnlockedLimit,
     freeLockedPreviewLimit,
-    totalWeeklyPicks: paddedWeeklySelection.length,
+    totalWeeklyPicks: weeklySelection.length,
     upgradeCopy: UPGRADE_COPY[type],
     unlocked,
     lockedPreviews,

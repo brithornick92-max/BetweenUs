@@ -1,7 +1,8 @@
 import { DataLayer } from '../services/localfirst';
+import { removeRestoredDeckItem } from './contentDeckRestores';
 import { storage, STORAGE_KEYS } from './storage';
 
-export const DATE_COMPLETION_HIDE_DAYS = 90;
+export const DATE_COMPLETION_HIDE_DAYS = 36500;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -297,6 +298,8 @@ export async function saveDateHistoryEntry(date, overrides = {}) {
   if (!date?.id) {
     return { history: [], entry: null, inserted: false };
   }
+
+  await removeRestoredDeckItem('dates', date.id).catch(() => {});
 
   const prev = await getDateHistory();
   const existing = prev.find((entry) => entry.id === date.id);

@@ -141,6 +141,9 @@ jest.mock('../../utils/freeWeeklyDeckAccess', () => ({
 }));
 
 jest.mock('../../utils/storage', () => ({
+  STORAGE_KEYS: {
+    CONTENT_DECK_RESTORES: 'contentDeckRestores',
+  },
   storage: {
     get: (...args) => mockStorageGet(...args),
     set: (...args) => mockStorageSet(...args),
@@ -208,6 +211,13 @@ describe('ContentContext daily prompt boundary refresh', () => {
           dateKey: TODAY_KEY,
           scope: 'user:user-1',
           promptId: 'blocked',
+        };
+      }
+      if (key === 'contentDeckRestores') {
+        return {
+          prompts: [],
+          dates: [],
+          positions: [],
         };
       }
       return null;

@@ -32,6 +32,18 @@ const makeDate = (id, heat, load, style, title = id, category = 'romantic') => (
   category,
 });
 
+const makeDateCatalog = (count = 24) =>
+  Array.from({ length: count }, (_, index) =>
+    makeDate(
+      `d${index + 1}`,
+      (index % 3) + 1,
+      (index % 3) + 1,
+      index % 2 === 0 ? 'mixed' : 'talking',
+      `Date ${index + 1}`,
+      ['romantic', 'after-dark', 'creative', 'adventure', 'health', 'cozy'][index % 6]
+    )
+  );
+
 const makePosition = (id, heat, category, accessibility, title = id) => ({
   id,
   heat,
@@ -63,7 +75,7 @@ describe('WeeklyContentSetService', () => {
     makePosition('i6', 2, 'deep-connection', 'standard', 'Connected standard'),
   ];
 
-  it('builds premium prompt weekly sets with weekly featured picks unlocked', () => {
+  it('builds premium prompt libraries inside weekly sets', () => {
     const result = buildWeeklySet(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
@@ -79,7 +91,7 @@ describe('WeeklyContentSetService', () => {
     expect(result.items.every((item) => item.isLockedPreview === false)).toBe(true);
   });
 
-  it('builds premium prompt libraries with 200 balanced starter cards', () => {
+  it('builds premium prompt libraries with 100 balanced starter cards', () => {
     const result = buildPremiumPromptLibrary(makePromptCatalog(50), {
       userId: 'premium-starter',
       userSettings: { maxHeat: 5 },
@@ -87,13 +99,13 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result).toHaveLength(200);
+    expect(result).toHaveLength(100);
     [1, 2, 3, 4, 5].forEach((heat) => {
-      expect(result.filter((prompt) => prompt.heat === heat)).toHaveLength(40);
+      expect(result.filter((prompt) => prompt.heat === heat)).toHaveLength(20);
     });
   });
 
-  it('adds 10 premium prompt cards each week across heat levels', () => {
+  it('adds 15 premium prompt cards each week across heat levels', () => {
     const result = buildPremiumPromptLibrary(makePromptCatalog(50), {
       userId: 'premium-week-one',
       userSettings: { maxHeat: 5 },
@@ -101,186 +113,150 @@ describe('WeeklyContentSetService', () => {
       date: new Date('2026-05-04T12:00:00.000Z'),
     });
 
-    expect(result).toHaveLength(210);
+    expect(result).toHaveLength(115);
     [1, 2, 3, 4, 5].forEach((heat) => {
-      expect(result.filter((prompt) => prompt.heat === heat)).toHaveLength(42);
+      expect(result.filter((prompt) => prompt.heat === heat)).toHaveLength(23);
     });
   });
 
-  it('builds free prompt welcome-week decks with 20 usable cards and no locked previews', () => {
-    const promptCatalog = makePromptCatalog(6);
-    const result = buildWeeklySet(promptCatalog, {
+  it('builds free prompt welcome-week libraries with 5 usable cards and no locked previews', () => {
+    const result = buildWeeklySet(makePromptCatalog(6), {
       contentType: CONTENT_TYPES.PROMPTS,
-      userId: 'user-1',
+      userId: 'free-user',
       isPremium: false,
       userSettings: { maxHeat: 5 },
       date: TEST_DATE,
     });
 
-    expect(result.freeUnlockedLimit).toBe(20);
+    expect(result.freeUnlockedLimit).toBe(5);
     expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(20);
-    expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(20);
-    expect(result.items.every((item) => item.isLockedPreview === false)).toBe(true);
-    expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
-  });
-
-  it('pads free prompt decks back to 20 cards when boundaries leave too few unique picks', () => {
-    const promptCatalog = makePromptCatalog(6);
-    const result = buildWeeklySet(promptCatalog, {
-      contentType: CONTENT_TYPES.PROMPTS,
-      userId: 'tight-boundaries',
-      isPremium: false,
-      userSettings: { maxHeat: 2 },
-      date: TEST_DATE,
-    });
-
-    const repeatedFill = result.unlocked.filter((item) => item.weeklySetMeta?.isRepeatedFill);
-    const eligibleIds = new Set(promptCatalog.filter((item) => item.heat <= 2).map((item) => item.id));
-
-    expect(result.unlocked).toHaveLength(20);
-    expect(repeatedFill.length).toBeGreaterThan(0);
-    expect(repeatedFill.every((item) => item.weeklySetMeta?.repeatedFillIndex > 0)).toBe(true);
-    expect(result.unlocked.every((item) => eligibleIds.has(item.id))).toBe(true);
-  });
-
-  it('builds free date welcome-week decks with 20 usable cards and no locked previews', () => {
-    const dateCatalog = Array.from({ length: 24 }, (_, index) =>
-      makeDate(
-        `d${index + 1}`,
-        (index % 3) + 1,
-        (index % 3) + 1,
-        index % 2 === 0 ? 'mixed' : 'talking',
-        `Date ${index + 1}`,
-        ['romantic', 'after-dark', 'creative', 'adventure', 'health', 'cozy'][index % 6]
-      )
-    );
-
-    const result = buildWeeklySet(dateCatalog, {
-      contentType: CONTENT_TYPES.DATES,
-      userId: 'user-1',
-      isPremium: false,
-      userSettings: { maxHeat: 5 },
-      date: TEST_DATE,
-    });
-
-    expect(result.freeUnlockedLimit).toBe(20);
-    expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(20);
-    expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(20);
-    expect(new Set(result.unlocked.map((item) => item.category)).size).toBeGreaterThanOrEqual(3);
-    expect(result.items.every((item) => item.isLockedPreview === false)).toBe(true);
-    expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
-  });
-
-  it('pads free date decks back to 20 cards when boundaries leave too few unique picks', () => {
-    const dateCatalog = Array.from({ length: 9 }, (_, index) =>
-      makeDate(
-        `d${index + 1}`,
-        1,
-        (index % 3) + 1,
-        index % 2 === 0 ? 'mixed' : 'talking',
-        `Date ${index + 1}`,
-        ['romantic', 'after-dark', 'creative'][index % 3]
-      )
-    );
-
-    const result = buildWeeklySet(dateCatalog, {
-      contentType: CONTENT_TYPES.DATES,
-      userId: 'tight-boundaries',
-      isPremium: false,
-      userSettings: { maxHeat: 5 },
-      date: TEST_DATE,
-    });
-
-    expect(result.unlocked).toHaveLength(20);
-    expect(result.unlocked.some((item) => item.weeklySetMeta?.isRepeatedFill)).toBe(true);
-    expect(result.unlocked.every((item) => dateCatalog.some((candidate) => candidate.id === item.id))).toBe(true);
-  });
-
-  it('builds free position welcome-week previews and prioritizes soft accessible picks first', () => {
-    const result = buildWeeklySet(positions, {
-      contentType: CONTENT_TYPES.POSITIONS,
-      userId: 'user-1',
-      isPremium: false,
-      userSettings: { maxHeat: 5 },
-      date: TEST_DATE,
-    });
-
     expect(result.unlocked).toHaveLength(5);
     expect(result.lockedPreviews).toHaveLength(0);
     expect(result.items).toHaveLength(5);
+    expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
+  });
+
+  it('grows the free prompt library by 5 cards each week', () => {
+    const result = buildWeeklySet(makePromptCatalog(8), {
+      contentType: CONTENT_TYPES.PROMPTS,
+      userId: 'free-user',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      userCreatedAt: '2026-04-01T12:00:00.000Z',
+      date: new Date('2026-04-30T12:00:00.000Z'),
+    });
+
+    expect(result.weekNumber).toBeGreaterThan(0);
+    expect(result.freeUnlockedLimit).toBe(25);
+    expect(result.unlocked).toHaveLength(25);
+  });
+
+  it('builds free date welcome-week libraries with 5 usable cards and no locked previews', () => {
+    const result = buildWeeklySet(makeDateCatalog(), {
+      contentType: CONTENT_TYPES.DATES,
+      userId: 'free-user',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      date: TEST_DATE,
+    });
+
+    expect(result.freeUnlockedLimit).toBe(5);
+    expect(result.freeLockedPreviewLimit).toBe(0);
+    expect(result.unlocked).toHaveLength(5);
+    expect(result.lockedPreviews).toHaveLength(0);
+    expect(result.items).toHaveLength(5);
+  });
+
+  it('grows the free date library by 5 cards each week', () => {
+    const result = buildWeeklySet(makeDateCatalog(24), {
+      contentType: CONTENT_TYPES.DATES,
+      userId: 'free-user',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      userCreatedAt: '2026-04-01T12:00:00.000Z',
+      date: new Date('2026-04-30T12:00:00.000Z'),
+    });
+
+    expect(result.weekNumber).toBeGreaterThan(0);
+    expect(result.freeUnlockedLimit).toBe(25);
+    expect(result.unlocked).toHaveLength(24);
+  });
+
+  it('builds free position welcome-week libraries and prioritizes soft accessible picks first', () => {
+    const result = buildWeeklySet(positions, {
+      contentType: CONTENT_TYPES.POSITIONS,
+      userId: 'free-user',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      date: TEST_DATE,
+    });
+
+    expect(result.unlocked).toHaveLength(1);
+    expect(result.lockedPreviews).toHaveLength(0);
+    expect(result.items).toHaveLength(1);
     expect(result.unlocked[0].heat).toBe(1);
     expect(result.unlocked[0].accessibility).toBe('low-mobility');
   });
 
-  it('does not pad sex positions with duplicate ids when the eligible pool is smaller than five', () => {
-    const limitedPositions = positions.slice(0, 3);
-    const result = buildWeeklySet(limitedPositions, {
+  it('grows the free position library by 1 card each week', () => {
+    const result = buildWeeklySet(positions, {
       contentType: CONTENT_TYPES.POSITIONS,
-      userId: 'tight-boundaries',
-      isPremium: false,
-      userSettings: { maxHeat: 5 },
-      date: TEST_DATE,
-    });
-
-    expect(result.unlocked).toHaveLength(3);
-    expect(result.unlocked.some((item) => item.weeklySetMeta?.isRepeatedFill)).toBe(false);
-  });
-
-
-  it('keeps free prompt sets at 20 cards after welcome week', () => {
-    const result = buildWeeklySet(makePromptCatalog(6), {
-      contentType: CONTENT_TYPES.PROMPTS,
-      userId: 'user-1',
+      userId: 'free-user',
       isPremium: false,
       userSettings: { maxHeat: 5 },
       userCreatedAt: '2026-04-01T12:00:00.000Z',
-      date: TEST_DATE,
+      date: new Date('2026-04-30T12:00:00.000Z'),
     });
 
     expect(result.weekNumber).toBeGreaterThan(0);
-    expect(result.freeUnlockedLimit).toBe(20);
-    expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(20);
-    expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(20);
+    expect(result.freeUnlockedLimit).toBe(5);
+    expect(result.unlocked).toHaveLength(5);
   });
 
-  it('keeps free date sets at 20 cards after welcome week', () => {
-    const dateCatalog = Array.from({ length: 24 }, (_, index) =>
-      makeDate(
-        `d${index + 1}`,
-        (index % 3) + 1,
-        (index % 3) + 1,
-        index % 2 === 0 ? 'mixed' : 'talking',
-        `Date ${index + 1}`,
-        ['romantic', 'after-dark', 'creative', 'adventure', 'health', 'cozy'][index % 6]
+  it('builds premium date libraries that start large and keep growing weekly', () => {
+    const result = buildWeeklySet(makeDateCatalog(260), {
+      contentType: CONTENT_TYPES.DATES,
+      userId: 'premium-dates',
+      isPremium: true,
+      userSettings: { maxHeat: 5 },
+      userCreatedAt: TEST_DATE,
+      date: new Date('2026-05-04T12:00:00.000Z'),
+    });
+
+    expect(result.unlocked).toHaveLength(115);
+    expect(result.lockedPreviews).toHaveLength(0);
+    expect(result.items).toHaveLength(115);
+  });
+
+  it('builds premium position libraries that start large and keep growing weekly', () => {
+    const positionCatalog = Array.from({ length: 20 }, (_, index) =>
+      makePosition(
+        `ip${index + 1}`,
+        (index % 5) + 1,
+        ['deep-connection', 'playful-energy', 'exploratory', 'trust-vulnerability', 'sensual-rhythm'][index % 5],
+        ['low-mobility', 'standard', 'active'][index % 3],
+        `Position ${index + 1}`
       )
     );
 
-    const result = buildWeeklySet(dateCatalog, {
-      contentType: CONTENT_TYPES.DATES,
-      userId: 'user-1',
-      isPremium: false,
+    const result = buildWeeklySet(positionCatalog, {
+      contentType: CONTENT_TYPES.POSITIONS,
+      userId: 'premium-positions',
+      isPremium: true,
       userSettings: { maxHeat: 5 },
-      userCreatedAt: '2026-04-01T12:00:00.000Z',
-      date: TEST_DATE,
+      userCreatedAt: TEST_DATE,
+      date: new Date('2026-05-04T12:00:00.000Z'),
     });
 
-    expect(result.weekNumber).toBeGreaterThan(0);
-    expect(result.freeUnlockedLimit).toBe(20);
-    expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(20);
+    expect(result.unlocked).toHaveLength(13);
     expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(20);
+    expect(result.items).toHaveLength(13);
   });
 
-  it('does not keep stale numeric free-copy in prompt or date upgrade copy', () => {
-    expect(UPGRADE_COPY.prompts.body).not.toMatch(/\b10\b/);
-    expect(UPGRADE_COPY.dates.body).not.toMatch(/\b10\b/);
+  it('keeps upgrade copy aligned with the new growth model', () => {
+    expect(UPGRADE_COPY.prompts.body).toContain('5 prompts');
+    expect(UPGRADE_COPY.dates.body).toContain('5 date ideas');
+    expect(UPGRADE_COPY.positions.body).toContain('1 sex position');
   });
 
   it('respects maxHeat when building weekly sets', () => {

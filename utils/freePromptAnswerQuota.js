@@ -2,15 +2,15 @@ import UsageEventsService from '../services/UsageEventsService';
 import { getUserWeekNumber } from '../services/WeeklyContentSetService';
 
 export const FREE_PROMPT_ANSWER_QUOTAS = {
-  welcomeWeek: 20,
-  ongoingWeek: 20,
+  welcomeWeek: Infinity,
+  ongoingWeek: Infinity,
 };
 
 export const FREE_WEEKLY_USAGE_LIMITS = {
   prompts: FREE_PROMPT_ANSWER_QUOTAS,
   dates: {
-    welcomeWeek: 20,
-    ongoingWeek: 20,
+    welcomeWeek: Infinity,
+    ongoingWeek: Infinity,
   },
 };
 

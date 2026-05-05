@@ -39,6 +39,7 @@ import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import * as PreferenceEngine from "../services/PreferenceEngine";
 import { getPromptById } from "../utils/contentLoader";
+import { removeRestoredDeckItem } from "../utils/contentDeckRestores";
 import { SPACING, withAlpha } from "../utils/theme";
 import { CONTENT_TYPES } from "../services/WeeklyContentSetService";
 import { HEAT_LEVEL_ACCENTS, HEAT_LEVEL_GRADIENTS } from "../config/constants";
@@ -287,6 +288,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
           isRevealed: existingAnswer?.isRevealed || false,
         });
       }
+
+      await removeRestoredDeckItem(CONTENT_TYPES.PROMPTS, prompt.id).catch(() => {});
 
       if (!isPremium && isFirstResponse) {
         await trackFreePromptAnswerUsage({

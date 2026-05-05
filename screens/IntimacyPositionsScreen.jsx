@@ -41,6 +41,7 @@ import {
   toggleIntimacyTried,
 } from '../utils/intimacyFavorites';
 import { getIntimacyMatchState } from '../utils/coupleMatches';
+import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 let lastSelectedPositionId = null;
@@ -119,12 +120,12 @@ export default function IntimacyPositionsScreen() {
     []
   );
   const availablePositions = useMemo(() => {
-    if (!isPremiumEffective && weeklyPositionSet?.items?.length) {
+    if (weeklyPositionSet?.items?.length) {
       return weeklyPositionSet.items;
     }
 
     return positionAccess?.positions || [];
-  }, [isPremiumEffective, positionAccess, weeklyPositionSet]);
+  }, [positionAccess, weeklyPositionSet]);
 
   useEffect(() => {
     availablePositionsRef.current = availablePositions;
@@ -157,7 +158,11 @@ export default function IntimacyPositionsScreen() {
   }, [headerAnim, pickerAnim, cardAnim]);
 
   const loadPositionAccess = useCallback(async () => {
-    const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+    const [profile, tried, restoredPositionIds] = await Promise.all([
+      PreferenceEngine.getContentProfile(userProfile || {}),
+      getIntimacyTried(),
+      getRestoredDeckItemIds(CONTENT_TYPES.POSITIONS),
+    ]);
     const result = await contentAccessService.getAccessiblePositions(positionCatalog, {
       isPremium: isPremiumEffective,
       userSettings: profile || userProfile || {},
@@ -166,7 +171,10 @@ export default function IntimacyPositionsScreen() {
 
     setPositionAccess(result);
 
-    const accessiblePositions = result.positions || [];
+    const accessiblePositions = (result.positions || []).filter((position) => {
+      const positionId = String(position?.id || '');
+      return restoredPositionIds.has(positionId) || !tried?.[positionId];
+    });
     const weeklySet = buildWeeklySet(accessiblePositions, {
       contentType: CONTENT_TYPES.POSITIONS,
       userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
@@ -363,6 +371,7 @@ export default function IntimacyPositionsScreen() {
       });
       // Only update tried state, don't touch position state
       setTriedPositions(next.tried);
+      await loadPositionAccess();
     } catch (error) {
       setTriedPositions(previousTried);
       if (__DEV__) {
@@ -375,7 +384,7 @@ export default function IntimacyPositionsScreen() {
       triedBusyRef.current = false;
       setTriedBusy(false);
     }
-  }, [position, triedPositions]);
+  }, [loadPositionAccess, position, triedPositions]);
 
   const handleRateTried = useCallback(async (rating) => {
     if (!position || ratingBusyRef.current) return;
@@ -432,7 +441,7 @@ export default function IntimacyPositionsScreen() {
       navigation={navigation}
       headerTitle="Sex Positions"
       headerSubtitle="SEX POSITIONS"
-      headerDescription={isPremiumEffective ? "A larger library with new positions added every week." : "5 positions refreshed each week."}
+      headerDescription={isPremiumEffective ? "Starts with 10 positions and grows by 3 each week." : "Starts with 1 position and adds 1 more each week."}
       scroll={false}
       onBack={handleBack}
       bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge
@@ -451,7 +460,7 @@ export default function IntimacyPositionsScreen() {
             <View style={styles.cardContainer}>
               <View style={[styles.editorialCard, styles.editorialCardColumn, styles.positionCardShell, { backgroundColor: t.surface, borderColor: t.borderGlass }, !isDark && styles.lightShadow]}>
                 <View style={styles.cardContent}>
-                  <Text style={[styles.cardTag, { color: t.subtext }]}>THIS WEEK</Text>
+                  <Text style={[styles.cardTag, { color: t.subtext }]}>YOUR LIBRARY</Text>
                   <Text style={[styles.cardTitle, { color: t.text }]}>Explore closeness</Text>
                   <Text style={[styles.cardEmail, { color: t.subtext }]}>{intimacyForLine}</Text>
                 </View>

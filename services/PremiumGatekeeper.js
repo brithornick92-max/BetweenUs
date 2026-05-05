@@ -51,7 +51,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: `Free already includes the core experience. Premium adds a larger prompt library and the full Keepsake archive.`
+          message: `Free includes the core experience with a smaller growing prompt library. Premium starts bigger and keeps growing faster.`
         };
       }
       
@@ -95,7 +95,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: `Free already includes weekly date ideas. Premium adds a larger date library for the two of you.`
+          message: `Free includes a smaller growing date library. Premium starts bigger and keeps growing faster for both of you.`
         };
       }
       
@@ -212,7 +212,7 @@ class PremiumGatekeeper {
       return {
         canAccess: false,
         reason: 'weekly_limit_reached',
-        message: `Free already includes weekly planning. Premium adds a larger date library and the full Keepsake archive.`
+        message: `Free already includes planning. Premium starts with a much larger date library and the full Keepsake archive.`
       };
     } catch (error) {
       CrashReporting.captureException(error, { source: 'PremiumGatekeeper.canAccessDateFlow' });

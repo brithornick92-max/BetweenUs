@@ -81,10 +81,10 @@ describe('FREE_LIMITS', () => {
     expect(FREE_LIMITS.FREE_HEAT_LEVELS).toEqual([1, 2, 3, 4, 5]);
   });
 
-  it('uses the new weekly free content deck sizes', () => {
-    expect(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK).toBe(20);
-    expect(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK).toBe(20);
-    expect(FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK).toBe(5);
+  it('uses the new cumulative free content growth sizes', () => {
+    expect(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK).toBe(5);
+    expect(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK).toBe(5);
+    expect(FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK).toBe(1);
   });
 
   it('keeps the core app experience available on free', () => {

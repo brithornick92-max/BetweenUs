@@ -79,7 +79,7 @@ export default function AuthCallbackScreen({ navigation }) {
         }
 
         const syncStatus = await cloudSyncStorage.getSyncStatus();
-        const syncEnabled = !!syncStatus?.enabled && !!isPremium;
+        const syncEnabled = !!syncStatus?.enabled;
 
         if (!active) return;
 

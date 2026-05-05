@@ -43,9 +43,9 @@ export const FREE_LIMITS = Object.freeze({
   PROMPTS_PER_DAY: Infinity,    // Weekly deck + weekly answer quota drive free access, not daily locks
   DATE_IDEAS_PER_DAY: Infinity, // Weekly deck + weekly detail quota drive free access, not daily locks
   PREVIEW_PROMPTS_TOTAL: 12,    // A fixed welcome pack of preview prompts
-  VISIBLE_PROMPTS_PER_WEEK: 20, // Free users get a real weekly prompt deck
-  VISIBLE_DATE_IDEAS_PER_WEEK: 20, // Free users get a real weekly date deck
-  VISIBLE_POSITIONS_PER_WEEK: 5, // Free users get 5 sex positions each week
+  VISIBLE_PROMPTS_PER_WEEK: 5, // Free users add 5 prompts per week to a growing library
+  VISIBLE_DATE_IDEAS_PER_WEEK: 5, // Free users add 5 dates per week to a growing library
+  VISIBLE_POSITIONS_PER_WEEK: 1, // Free users add 1 sex position per week to a growing library
   FULL_DATE_FLOWS_PER_WEEK: Infinity, // Planning stays usable on the free tier
   JOURNAL_ENTRIES_VISIBLE: Infinity, // Notes stay usable on the free tier
   FREE_HEAT_LEVELS: [1, 2, 3, 4, 5],
@@ -55,12 +55,12 @@ export const FREE_LIMITS = Object.freeze({
   PROMPT_RESPONSES_ENABLED: true,
   CLOUD_SYNC_ENABLED: true,
   // Weekly access for free users
-  WEEK_0_PROMPTS: 20,
-  WEEK_0_DATES: 20,
-  WEEK_0_POSITIONS: 5,
-  WEEKLY_PROMPTS: 20,
-  WEEKLY_DATES: 20,
-  WEEKLY_POSITIONS: 5,
+  WEEK_0_PROMPTS: 5,
+  WEEK_0_DATES: 5,
+  WEEK_0_POSITIONS: 1,
+  WEEKLY_PROMPTS: 5,
+  WEEKLY_DATES: 5,
+  WEEKLY_POSITIONS: 1,
 });
 
 // ─── Premium Limits (effectively unlimited) ─────────────────────────────────────
@@ -79,13 +79,13 @@ export const PREMIUM_LIMITS = Object.freeze({
   PROMPT_RESPONSES_ENABLED: true,
   CLOUD_SYNC_ENABLED: true,
   // Week 0 starting library for premium users
-  WEEK_0_PROMPTS: 200,
-  WEEK_0_DATES: 200,
+  WEEK_0_PROMPTS: 100,
+  WEEK_0_DATES: 100,
   WEEK_0_POSITIONS: 10,
   // Weekly content drops for premium users
-  WEEKLY_PROMPTS: 10,
-  WEEKLY_DATES: 8,
-  WEEKLY_POSITIONS: 2,
+  WEEKLY_PROMPTS: 15,
+  WEEKLY_DATES: 15,
+  WEEKLY_POSITIONS: 3,
 });
 
 // ─── Fixed Preview Prompts for Free Users ────────────────────────────────────
@@ -198,7 +198,7 @@ export const PremiumSource = Object.freeze({
 export const FEATURE_META = Object.freeze({
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     name: 'Growing Prompt Library',
-    description: 'Free gives you 20 prompts each week. Premium opens the larger prompt library right away, with more added every week.',
+    description: 'Free starts with 5 prompts and adds 5 more each week. Premium starts with 100 prompts and adds 15 more each week.',
     icon: 'flame-outline',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
@@ -214,7 +214,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     name: 'Endless Date Inspiration',
-    description: 'Free gives you 20 date ideas each week. Premium opens the larger date library right away, with more added every week.',
+    description: 'Free starts with 5 date ideas and adds 5 more each week. Premium starts with 100 dates and adds 15 more each week.',
     icon: 'flower-outline',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,

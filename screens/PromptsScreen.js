@@ -38,8 +38,9 @@ import PromptCardDeck from "../components/PromptCardDeck";
 import { SoftBoundaries } from "../services/PolishEngine";
 import { DataLayer } from "../services/localfirst";
 import { FALLBACK_PROMPT } from "../utils/contentLoader";
+import { getRestoredDeckItemIds } from "../utils/contentDeckRestores";
 import { getRecentlyCompletedPromptIds } from "../utils/promptHistory";
-import { STORAGE_KEYS, promptStorage, savedPromptStorage, storage } from "../utils/storage";
+import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -81,7 +82,6 @@ const loadAllBundledPrompts = () => {
 };
 
 const ALL_BUNDLED = loadAllBundledPrompts();
-const TOTAL_PROMPT_COUNT = ALL_BUNDLED.length;
 
 const normalizePrompt = (p) => {
   if (!p || typeof p !== "object") return FALLBACK_PROMPT;
@@ -147,11 +147,6 @@ const resolveExplicitMaxHeat = (profile) => {
   return Math.min(...caps.map((heat) => normalizeHeatLevel(heat)));
 };
 
-const clampHeatSelection = (profile, selectedHeat) => {
-  const normalizedHeat = normalizeHeatLevel(selectedHeat, 1);
-  return Math.min(normalizedHeat, resolveExplicitMaxHeat(profile));
-};
-
 function interleavePromptsByHeat(items) {
   const buckets = new Map();
   const heatOrder = [1, 2, 3, 4, 5];
@@ -212,16 +207,6 @@ function applyRawBoundaryFilter(items, bounds) {
   });
 }
 
-async function getPremiumPromptLibraryStartedAt(userId) {
-  const key = `${STORAGE_KEYS.PREMIUM_PROMPT_LIBRARY_STARTED_AT}:${userId || 'anonymous'}`;
-  const cached = await storage.get(key, null);
-  if (cached) return cached;
-
-  const startedAt = new Date().toISOString();
-  await storage.set(key, startedAt);
-  return startedAt;
-}
-
 async function getLocalPromptAnswerRows() {
   const byDate = await promptStorage.getAll();
 
@@ -239,7 +224,6 @@ export default function PromptsScreen({ navigation }) {
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
 
-  const [selectedHeat, setSelectedHeat] = useState(null);
   const [weeklyPromptSet, setWeeklyPromptSet] = useState(null);
   const [selectedTone, setSelectedTone] = useState('warm');
   const [contentProfile, setContentProfile] = useState(null);
@@ -280,18 +264,14 @@ export default function PromptsScreen({ navigation }) {
             savedPromptStorage.getAll(),
           ]);
           if (!active) return;
-          let heat = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
-          heat = isPremium ? null : clampHeatSelection(profile, heat);
           setContentProfile(profile);
           setRawBoundaries(bounds);
-          setSelectedHeat(heat);
           setSelectedTone(profile?.tone || 'warm');
           setSavedLaterPrompts(savedPrompts);
         } catch {
           if (!active) return;
           setContentProfile(null);
           SoftBoundaries.getAll().then(b => { if (active) setRawBoundaries(b); }).catch(() => {});
-          setSelectedHeat(1);
           setSelectedTone('warm');
         }
       })();
@@ -299,7 +279,7 @@ export default function PromptsScreen({ navigation }) {
       return () => {
         active = false;
       };
-    }, [isPremium, userProfile])
+    }, [userProfile])
   );
 
   const toneCopy = TONE_PROMPT_COPY[selectedTone] || TONE_PROMPT_COPY.warm;
@@ -307,9 +287,10 @@ export default function PromptsScreen({ navigation }) {
     setLoading(true);
     try {
       const allPrompts = ALL_BUNDLED.map(normalizePrompt);
-      const [dataLayerPromptAnswers, localPromptAnswers] = await Promise.all([
+      const [dataLayerPromptAnswers, localPromptAnswers, restoredPromptIds] = await Promise.all([
         DataLayer.getPromptAnswers?.({ limit: 1000 }).catch(() => []),
         getLocalPromptAnswerRows().catch(() => []),
+        getRestoredDeckItemIds(CONTENT_TYPES.PROMPTS),
       ]);
       const recentPromptAnswers = [
         ...(dataLayerPromptAnswers || []),
@@ -318,8 +299,6 @@ export default function PromptsScreen({ navigation }) {
       const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(recentPromptAnswers);
 
       // Apply user boundaries (heat limits, hidden categories, paused items).
-      // Free weekly decks intentionally do not remove answered prompts; users
-      // can return to items they already answered during the same weekly drop.
       const boundaryEligible = contentProfile 
         ? allPrompts.filter(p => {
             const heat = p.heat || 1;
@@ -330,11 +309,13 @@ export default function PromptsScreen({ navigation }) {
           })
         : applyRawBoundaryFilter(allPrompts, rawBoundaries);
 
-      const unseenBoundaryEligible = boundaryEligible
-        .filter((prompt) => !recentlyCompletedPromptIds.has(prompt?.id));
+      const activeBoundaryEligible = boundaryEligible.filter((prompt) => {
+        const promptId = String(prompt?.id || '');
+        return restoredPromptIds.has(promptId) || !recentlyCompletedPromptIds.has(prompt?.id);
+      });
 
-      // Build personalized weekly set (handles both free rotating and premium growing library)
-      const weeklySet = buildWeeklySet(boundaryEligible, {
+      // Build the user's visible prompt library for their current tier.
+      const weeklySet = buildWeeklySet(activeBoundaryEligible, {
         contentType: CONTENT_TYPES.PROMPTS,
         userId: user?.uid || user?.id || 'anonymous',
         isPremium,
@@ -346,15 +327,15 @@ export default function PromptsScreen({ navigation }) {
       setWeeklyPromptSet(weeklySet);
 
       const promptPool = isPremium
-        ? buildPremiumPromptLibrary(unseenBoundaryEligible, {
+        ? buildPremiumPromptLibrary(activeBoundaryEligible, {
             userId: user?.uid || user?.id || 'anonymous',
             userSettings: contentProfile
               ? { ...contentProfile, maxHeat: resolveExplicitMaxHeat(contentProfile) }
               : userProfile || {},
-            userCreatedAt: await getPremiumPromptLibraryStartedAt(user?.uid || user?.id || userProfile?.id),
+            userCreatedAt: userProfile?.created_at || userProfile?.createdAt || user?.metadata?.creationTime,
             date: new Date(),
           })
-        : boundaryEligible;
+        : activeBoundaryEligible;
 
       setPrompts(promptPool);
     } catch {
@@ -379,7 +360,7 @@ export default function PromptsScreen({ navigation }) {
     const weeklyItems = weeklyPromptSet?.items || [];
     if (isPremium || !weeklyItems.length) return null;
 
-    // Free users see ONLY their weekly rotating set (not cumulative)
+    // Free users see their cumulative prompt library from the weekly builder.
     return weeklyItems.map((item) => normalizePrompt({
       ...item,
       text: item.text || item.prompt || item.previewText || item.title || 'Premium prompt',
@@ -396,7 +377,7 @@ export default function PromptsScreen({ navigation }) {
     let finalDeck = [];
     
     if (!isPremium && freeWeeklyPromptDeck?.length) {
-      // Free users: Use ONLY the rotating weekly set
+      // Free users: Use the visible free library only.
       finalDeck = [...freeWeeklyPromptDeck];
     } else if (isPremium) {
       // Premium users draw from the full balanced 1-5 starter pool.

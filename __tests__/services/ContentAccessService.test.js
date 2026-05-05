@@ -116,7 +116,7 @@ describe('ContentAccessService', () => {
     expect(result.reason).toBe('within_free_limits');
   });
 
-  it('limits the free prompt deck to 20 weekly cards', async () => {
+  it('limits the free prompt deck to 5 visible cards', async () => {
     const prompts = [1, 2, 3, 4, 5].flatMap((heat) =>
       [0, 1, 2, 3, 4].map((index) => ({
         id: `h${heat}_${index}`,
@@ -131,7 +131,7 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 5 },
     });
 
-    expect(result.prompts).toHaveLength(20);
+    expect(result.prompts).toHaveLength(5);
     expect(result.access.isPreviewLimited).toBe(true);
     expect(result.access.lockedCount).toBeGreaterThan(0);
   });
@@ -164,7 +164,7 @@ describe('ContentAccessService', () => {
     expect(result.reason).toBe('weekly_preview_locked');
   });
 
-  it('limits the free date deck to 20 weekly cards and respects heat boundaries', async () => {
+  it('limits the free date deck to 5 visible cards and respects heat boundaries', async () => {
     const dates = [1, 2, 3].flatMap((heat) =>
       Array.from({ length: 12 }, (_, index) => ({
         id: `date${heat}_${index}`,
@@ -179,7 +179,7 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 2 },
     });
 
-    expect(result.dates).toHaveLength(20);
+    expect(result.dates).toHaveLength(5);
     expect(result.dates.every((date) => date.heat <= 2)).toBe(true);
     expect(result.access.accessibleHeatLevels).toEqual([1, 2]);
     expect(result.access.isPreviewLimited).toBe(true);
@@ -220,7 +220,7 @@ describe('ContentAccessService', () => {
     expect(UsageEventsService.incrementDailyUsage).not.toHaveBeenCalled();
   });
 
-  it('allows free users a 5-card weekly sex-position deck', async () => {
+  it('allows free users a 1-card visible sex-position deck', async () => {
     const positions = [1, 2, 3].flatMap((heat) =>
       [0, 1].map((index) => ({
         id: `ip${heat}_${index}`,
@@ -234,7 +234,7 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 3 },
     });
 
-    expect(result.positions).toHaveLength(5);
+    expect(result.positions).toHaveLength(1);
     expect(result.access.requiresPremium).toBe(false);
     expect(result.access.isPreviewLimited).toBe(true);
   });

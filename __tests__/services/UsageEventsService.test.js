@@ -14,7 +14,7 @@ beforeEach(() => {
 describe('FREE_TIER_LIMITS', () => {
   it('defines correct limits matching featureFlags.FREE_LIMITS', () => {
     expect(FREE_TIER_LIMITS.promptsPerDay).toBe(Infinity);
-    expect(FREE_TIER_LIMITS.visibleDates).toBe(20);
+    expect(FREE_TIER_LIMITS.visibleDates).toBe(5);
     expect(FREE_TIER_LIMITS.fullDateFlowsPerWeek).toBe(Infinity);
     expect(FREE_TIER_LIMITS.journalEntriesVisible).toBe(Infinity);
     expect(FREE_TIER_LIMITS.surpriseMeEnabled).toBe(true);

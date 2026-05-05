@@ -1,4 +1,4 @@
-export const PROMPT_COMPLETION_HIDE_DAYS = 90;
+export const PROMPT_COMPLETION_HIDE_DAYS = 36500;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

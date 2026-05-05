@@ -28,6 +28,7 @@ import {
 } from '../services/content/ContentCoupleService';
 import { DataLayer } from '../services/localfirst';
 import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
+import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 import { getRecentlyCompletedPromptIds } from '../utils/promptHistory';
 import { filterItemsToFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
 import { storage } from '../utils/storage';
@@ -254,12 +255,15 @@ export const ContentProvider = ({ children }) => {
         throw new Error('No prompts available for your preferences');
       }
 
-      const promptAnswers = await DataLayer.getPromptAnswers?.({ limit: 1000 }).catch(() => []);
+      const [promptAnswers, restoredPromptIds] = await Promise.all([
+        DataLayer.getPromptAnswers?.({ limit: 1000 }).catch(() => []),
+        getRestoredDeckItemIds('prompts'),
+      ]);
       const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(promptAnswers);
-      const freshPromptsData = promptsData.filter((prompt) => !recentlyCompletedPromptIds.has(prompt?.id));
-      if (freshPromptsData.length > 0) {
-        promptsData = freshPromptsData;
-      }
+      promptsData = promptsData.filter((prompt) => {
+        const promptId = String(prompt?.id || '');
+        return restoredPromptIds.has(promptId) || !recentlyCompletedPromptIds.has(prompt?.id);
+      });
 
       if (!isPremium) {
         const freeDeckPrompts = filterItemsToFreeWeeklyDeck(promptsData, {
@@ -385,6 +389,10 @@ export const ContentProvider = ({ children }) => {
           errorString.includes('weekly_preview_locked')
         ) {
           if (__DEV__) console.log("[ContentContext] Setting fallback daily prompt for free user.");
+        } else if (errorString.includes('No prompts available for your preferences')) {
+          setTodayPrompt(null);
+          updateWidgetPrompt('').catch(() => {});
+          return null;
         } else {
           if (__DEV__) console.error("Error loading today's prompt:", error);
         }

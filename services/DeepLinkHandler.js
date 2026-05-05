@@ -9,7 +9,7 @@
  * Supported routes:
  *   betweenus://vibe                    → VibeSignal
  *   betweenus://prompt/:promptId        → PromptAnswer
- *   betweenus://calendar                → Calendar (tab, day 2+)
+ *   betweenus://calendar                → Calendar
  *   betweenus://date-ideas              → DatePlans tab
  *   betweenus://date/:dateId            → DateNightDetail
  *   betweenus://intimacy                → IntimacyPositions

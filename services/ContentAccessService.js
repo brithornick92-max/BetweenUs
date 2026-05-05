@@ -84,19 +84,19 @@ class ContentAccessService {
 
     this.RELEASE_SCHEDULE = {
       prompts: {
-        week0: { free: 20, premium: 200 },
-        perWeek: { free: 20, premium: 10 },
-        description: 'Free rotates a weekly set. Premium opens a larger library with more added every week.',
+        week0: { free: 5, premium: 100 },
+        perWeek: { free: 5, premium: 15 },
+        description: 'Free starts with 5 prompts and adds 5 more each week. Premium starts with 100 prompts and grows faster.',
       },
       dates: {
-        week0: { free: 20, premium: 200 },
-        perWeek: { free: 20, premium: 8 },
-        description: 'Free rotates a weekly set. Premium opens a larger library with more added every week.',
+        week0: { free: 5, premium: 100 },
+        perWeek: { free: 5, premium: 15 },
+        description: 'Free starts with 5 date ideas and adds 5 more each week. Premium starts with 100 dates and grows faster.',
       },
       positions: {
-        week0: { free: 5, premium: 10 },
-        perWeek: { free: 5, premium: 2 },
-        description: 'Free rotates 5 sex positions each week. Premium opens a larger library with new additions every week.',
+        week0: { free: 1, premium: 10 },
+        perWeek: { free: 1, premium: 3 },
+        description: 'Free starts with 1 sex position and adds 1 each week. Premium starts with 10 positions and grows faster.',
       },
     };
   }

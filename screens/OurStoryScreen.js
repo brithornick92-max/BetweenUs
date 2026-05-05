@@ -37,6 +37,7 @@ import MediaLightbox from '../components/MediaLightbox';
 import { NicknameEngine } from '../services/PolishEngine';
 import { useEntitlements } from '../context/EntitlementsContext';
 import positionsData from '../content/intimacy-positions.json';
+import { addRestoredDeckItem } from '../utils/contentDeckRestores';
 
 const HEARTS_KEY = '@betweenus:cache:momentHearts';
 const HIDDEN_KEEPSAKES_KEY = '@betweenus:cache:hiddenKeepsakes';
@@ -647,6 +648,7 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     id: `prompt:${row.id}`,
     kind: 'prompt',
     sourceId: row.id,
+    contentId: row.prompt_id || row.promptId || null,
     title: prompt?.text || 'Saved reflection',
     body,
     answers,
@@ -777,6 +779,7 @@ function buildDateItem(row) {
     id: `date:${row.id}`,
     kind: 'date',
     sourceId: row.id,
+    contentId: row.id,
     title: row.title || 'Date tried',
     body,
     eyebrow: 'Date tried',
@@ -868,6 +871,7 @@ function buildPositionTriedItem(row) {
     id: `position-tried:${row.positionId}`,
     kind: 'position_tried',
     sourceId: row.positionId,
+    contentId: row.positionId,
     title: label || 'Sex position tried',
     body,
     eyebrow: 'Sex position tried',
@@ -1517,8 +1521,25 @@ export default function OurStoryScreen() {
     });
   }, [navigation]);
 
+  const getRestoreTarget = useCallback((item) => {
+    if (item?.kind === 'prompt' && item?.contentId) {
+      return { type: 'prompts', itemId: item.contentId, label: 'Show Prompt In Deck Again' };
+    }
+
+    if (item?.kind === 'date' && item?.contentId) {
+      return { type: 'dates', itemId: item.contentId, label: 'Show Date In Deck Again' };
+    }
+
+    if (item?.kind === 'position_tried' && item?.contentId) {
+      return { type: 'positions', itemId: item.contentId, label: 'Show Position In Deck Again' };
+    }
+
+    return null;
+  }, []);
+
   const handleLongPressItem = useCallback((item) => {
-    if (!item?.editable && !item?.deletable) return;
+    const restoreTarget = getRestoreTarget(item);
+    if (!restoreTarget && !item?.editable && !item?.deletable) return;
 
     impact(ImpactFeedbackStyle.Medium);
 
@@ -1526,6 +1547,12 @@ export default function OurStoryScreen() {
       'Keepsake Options',
       null,
       [
+        restoreTarget ? {
+          text: restoreTarget.label,
+          onPress: async () => {
+            await addRestoredDeckItem(restoreTarget.type, restoreTarget.itemId);
+          },
+        } : null,
         canEditOccurrence(item) ? {
           text: 'Edit Date & Time',
           onPress: () => openOccurrenceEditor(item),
@@ -1545,7 +1572,7 @@ export default function OurStoryScreen() {
         },
       ].filter(Boolean)
     );
-  }, [canEditOccurrence, confirmDeleteItem, getDeleteCopy, handleEditItem, openOccurrenceEditor]);
+  }, [canEditOccurrence, confirmDeleteItem, getDeleteCopy, getRestoreTarget, handleEditItem, openOccurrenceEditor]);
 
   const renderSnapshotTile = (media, index, mediaItems, tileStyle, options = {}) => {
     const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/');

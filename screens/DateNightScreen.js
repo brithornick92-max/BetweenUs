@@ -54,6 +54,7 @@ import {
   canOpenFreeDateDetail,
   trackFreeDateDetailUsage,
 } from '../utils/freePromptAnswerQuota';
+import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
@@ -468,10 +469,12 @@ export default function DateNightScreen({ navigation }) {
         let profile = null;
         let bounds = null;
         let recentlyCompletedDateIds = new Set();
-        const [profileResult, boundsResult, historyResult] = await Promise.allSettled([
+        let restoredDateIds = new Set();
+        const [profileResult, boundsResult, historyResult, restoredIdsResult] = await Promise.allSettled([
           PreferenceEngine.getContentProfile(userProfile || {}),
           SoftBoundaries.getAll(),
           getDateHistory(),
+          getRestoredDeckItemIds(CONTENT_TYPES.DATES),
         ]);
 
         if (profileResult.status === 'fulfilled') {
@@ -487,8 +490,12 @@ export default function DateNightScreen({ navigation }) {
           recentlyCompletedDateIds = getRecentlyCompletedDateIds(historyResult.value);
         }
 
-        // Apply boundaries to filter dates. Free weekly decks intentionally keep
-        // completed dates visible for that same week so users can return to them.
+        if (restoredIdsResult.status === 'fulfilled') {
+          restoredDateIds = restoredIdsResult.value;
+        }
+
+        // Apply boundaries to filter dates. Free libraries intentionally keep
+        // completed dates visible so users can return to them later.
         const boundaryEligible = dates.filter(d => {
           if (!d) return false;
           const heat = d.heat || 1;
@@ -499,13 +506,15 @@ export default function DateNightScreen({ navigation }) {
           if (bounds?.hideSpicy && heat >= 4) return false;
           return true;
         });
-        const unseenBoundaryEligible = boundaryEligible
-          .filter((date) => !recentlyCompletedDateIds.has(date?.id));
+        const activeBoundaryEligible = boundaryEligible.filter((date) => {
+          const dateId = String(date?.id || '');
+          return restoredDateIds.has(dateId) || !recentlyCompletedDateIds.has(date?.id);
+        });
 
-        setAllDates(isPremium ? unseenBoundaryEligible : boundaryEligible);
+        setAllDates(activeBoundaryEligible);
 
-        // Build personalized weekly set from boundary-filtered dates
-        const weeklySet = buildWeeklySet(boundaryEligible, {
+        // Build the user's visible cumulative library from boundary-filtered dates.
+        const weeklySet = buildWeeklySet(activeBoundaryEligible, {
           contentType: CONTENT_TYPES.DATES,
           userId: userId || 'anonymous',
           isPremium,
@@ -535,11 +544,10 @@ export default function DateNightScreen({ navigation }) {
     }, [userProfile, userId, isPremium])
   );
 
-  const freeWeeklyDateDeck = useMemo(() => {
+  const visibleDateDeck = useMemo(() => {
     const weeklyItems = weeklyDateSet?.items || [];
-    if (isPremium || !weeklyItems.length) return null;
+    if (!weeklyItems.length) return null;
   
-    // Free users see ONLY their weekly rotating set (not cumulative)
     return weeklyItems.map((item) => ({
       ...item,
       title: item.title || item.previewText || 'Premium date idea',
@@ -551,17 +559,15 @@ export default function DateNightScreen({ navigation }) {
       requiresPremium: item.requiresPremium,
       upgradeCopy: weeklyDateSet.upgradeCopy,
     }));
-  }, [isPremium, weeklyDateSet]);
+  }, [weeklyDateSet]);
 
   const baseDeck = useMemo(() => {
     let finalDeck = [];
     
-    if (!isPremium && freeWeeklyDateDeck?.length) {
-      // Free users: Use ONLY the rotating weekly set
-      finalDeck = [...freeWeeklyDateDeck];
+    if (!isPremium && visibleDateDeck?.length) {
+      finalDeck = [...visibleDateDeck];
     } else if (isPremium) {
-      // Premium users: Use all eligible dates after boundaries and recent completions are removed.
-      const baseDates = allDates;
+      const baseDates = visibleDateDeck?.length ? visibleDateDeck : allDates;
 
       if (!contentProfile) {
         finalDeck = [...baseDates];
@@ -576,7 +582,7 @@ export default function DateNightScreen({ navigation }) {
     }
 
     return finalDeck;
-  }, [allDates, contentProfile, isPremium, freeWeeklyDateDeck]);
+  }, [allDates, contentProfile, isPremium, visibleDateDeck]);
 
   useEffect(() => {
     setShuffledDeck(null);
@@ -964,7 +970,7 @@ export default function DateNightScreen({ navigation }) {
             </View>
             <Text style={[styles.editorialTitle, { color: colors.text }]}>More date ideas made for you</Text>
             <Text style={[styles.editorialBody, { color: colors.textMuted }]}>
-              Premium opens a larger weekly date set plus the full catalog across romantic, adventure, wellness, cozy, and after-dark ideas.
+              Premium starts with 100 date ideas and adds 15 more each week.
             </Text>
           </View>
         )}
