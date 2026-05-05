@@ -3,11 +3,13 @@
 // OK: Guarantees prompt-returning functions always return an object with .text (never undefined)
 // Apple Editorial System Colors Integrated
 
-if (__DEV__) console.log("[content] ContentLoader: Module loading started");
+const isDevRuntime = typeof __DEV__ !== "undefined" && __DEV__;
+
+if (isDevRuntime) console.log("[content] ContentLoader: Module loading started");
 
 // Helper: return the eligible library. releaseWeek is metadata for freshness;
 // weekly/free limits are applied by the feature-specific access services.
-const weeklyFilter = (items) =>
+const eligibleCatalog = (items) =>
   (Array.isArray(items) ? items : []);
 
 // Initialize with empty safe defaults
@@ -19,7 +21,7 @@ try {
   const loadedPrompts = require("../content/prompts.json");
   if (loadedPrompts && Array.isArray(loadedPrompts.items)) {
     promptsData = loadedPrompts;
-    if (__DEV__) console.log("OK: ContentLoader: Loaded", promptsData.items.length, "prompts");
+    if (isDevRuntime) console.log("OK: ContentLoader: Loaded", promptsData.items.length, "prompts");
   } else {
     console.warn("Warning: ContentLoader: prompts.json loaded but missing items[]");
   }
@@ -31,7 +33,7 @@ try {
   const loadedDates = require("../content/dates.json");
   if (loadedDates && Array.isArray(loadedDates.items)) {
     datesData = loadedDates;
-    if (__DEV__) console.log("OK: ContentLoader: Loaded", datesData.items.length, "dates");
+    if (isDevRuntime) console.log("OK: ContentLoader: Loaded", datesData.items.length, "dates");
   } else {
     console.warn("Warning: ContentLoader: dates.json loaded but missing items[]");
   }
@@ -39,10 +41,10 @@ try {
   console.error("Error: ContentLoader: Failed to load dates", e?.message || e);
 }
 
-if (__DEV__) console.log("[content] ContentLoader: Module loading complete");
+if (isDevRuntime) console.log("[content] ContentLoader: Module loading complete");
 
 // Validate ID uniqueness in dev mode
-if (__DEV__) {
+if (isDevRuntime) {
   const validateIds = (items, label) => {
     const seen = new Set();
     for (const item of items) {
@@ -112,17 +114,17 @@ const safeArray = (value) => (Array.isArray(value) ? value : []);
 // =======================
 
 export function loadContent() {
-  // Return the whole promptsData object, but never null, and filtered by week
+  // Return the whole promptsData object, but never null.
   if (!promptsData) return { items: [], meta: {} };
   
   return {
     ...promptsData,
-    items: weeklyFilter(safeArray(promptsData.items))
+    items: eligibleCatalog(safeArray(promptsData.items))
   };
 }
 
 export function getFilteredPrompts(filters = {}) {
-  const items = weeklyFilter(safeArray(promptsData?.items));
+  const items = eligibleCatalog(safeArray(promptsData?.items));
 
   const {
     maxHeatLevel = 5,
@@ -154,7 +156,7 @@ export function getFilteredPrompts(filters = {}) {
 export function getPromptByHeatLevel(heatLevel) {
   try {
     const level = typeof heatLevel === "number" ? heatLevel : Number(heatLevel) || 5;
-    const items = weeklyFilter(safeArray(promptsData?.items));
+    const items = eligibleCatalog(safeArray(promptsData?.items));
 
     const levelPrompts = items.filter(
       (p) =>
@@ -236,19 +238,19 @@ export function getRandomPrompt(userFilters = {}) {
 }
 
 export function getAllPrompts() {
-  // Returns raw prompts filtered by weekly schedule
-  return weeklyFilter(safeArray(promptsData?.items).filter(Boolean));
+  // Returns the raw eligible prompt catalog; weekly allocation happens downstream.
+  return eligibleCatalog(safeArray(promptsData?.items).filter(Boolean));
 }
 
 export function getPromptById(id) {
-  const items = weeklyFilter(safeArray(promptsData?.items));
+  const items = eligibleCatalog(safeArray(promptsData?.items));
   const match = items.find((prompt) => prompt && prompt.id === id);
   return match ? normalizePrompt(match) : null;
 }
 
 export function getPromptsByHeatLevel(heatLevel) {
   const level = typeof heatLevel === "number" ? heatLevel : Number(heatLevel) || 5;
-  const items = weeklyFilter(safeArray(promptsData?.items));
+  const items = eligibleCatalog(safeArray(promptsData?.items));
 
   return items.filter(
     (p) =>
@@ -262,7 +264,7 @@ export function getPromptsByHeatLevel(heatLevel) {
 
 export function getPromptsByCategory(category) {
   const cat = typeof category === "string" ? category : String(category ?? "");
-  const items = weeklyFilter(safeArray(promptsData?.items));
+  const items = eligibleCatalog(safeArray(promptsData?.items));
 
   return items.filter(
     (p) => p && typeof p === "object" && typeof p.text === "string" && p.text.trim() && p.category === cat
@@ -296,7 +298,7 @@ const normalizeDate = (date) => {
 };
 
 export function filterDates(sourceData = null, filters = {}) {
-  const dataToFilter = Array.isArray(sourceData) ? sourceData : weeklyFilter(safeArray(datesData?.items));
+  const dataToFilter = Array.isArray(sourceData) ? sourceData : eligibleCatalog(safeArray(datesData?.items));
   const normalized = dataToFilter.map(normalizeDate).filter(Boolean);
 
   const {
@@ -353,7 +355,7 @@ export function surpriseMeDate(sourceData = null, filters = {}, topN = 5) {
     ? matches
     : Array.isArray(sourceData)
       ? sourceData.map(normalizeDate).filter(Boolean)
-      : weeklyFilter(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
+      : eligibleCatalog(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
 
   if (!Array.isArray(pool) || pool.length === 0) return null;
 
@@ -523,27 +525,18 @@ export function getDimensionMeta() {
   };
 }
 
-// Legacy alias — some callers may still reference getMoodMeta
-export function getMoodMeta() {
-  const dims = getDimensionMeta();
-  return [
-    ...dims.load.map(l => ({ id: `load-${l.level}`, label: l.label, color: l.color })),
-    ...dims.style.map(s => ({ id: `style-${s.id}`, label: s.label, color: s.color })),
-  ];
-}
-
 export function getAllDates() {
-  return weeklyFilter(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
+  return eligibleCatalog(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
 }
 
 export function getDateById(id) {
-  const items = weeklyFilter(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
+  const items = eligibleCatalog(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
   return items.find((d) => d && d.id === id) || null;
 }
 
 export function getContentStats() {
   const promptsByHeat = {};
-  const items = weeklyFilter(safeArray(promptsData?.items));
+  const items = eligibleCatalog(safeArray(promptsData?.items));
 
   items.forEach((prompt) => {
     if (prompt && typeof prompt === "object") {
@@ -555,7 +548,7 @@ export function getContentStats() {
   return {
     totalPrompts: items.length,
     promptsByHeat,
-    totalDates: weeklyFilter(safeArray(datesData?.items)).length,
+    totalDates: eligibleCatalog(safeArray(datesData?.items)).length,
     lastUpdated: new Date().toLocaleDateString(),
   };
 }
@@ -567,7 +560,7 @@ export function getContentStats() {
 export function getFilteredPromptsWithProfile(profile = null) {
   if (!profile) return getFilteredPrompts();
 
-  const items = weeklyFilter(safeArray(promptsData?.items));
+  const items = eligibleCatalog(safeArray(promptsData?.items));
 
   // Apply hard filters from profile
   return items.filter((prompt) => {
@@ -591,7 +584,7 @@ export function getFilteredPromptsWithProfile(profile = null) {
 export function getFilteredDatesWithProfile(profile = null) {
   if (!profile) return getAllDates();
 
-  const items = weeklyFilter(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
+  const items = eligibleCatalog(safeArray(datesData?.items)).map(normalizeDate).filter(Boolean);
 
   return items.filter((date) => {
     if (profile.boundaries?.pausedDates?.includes(date.id)) return false;
@@ -601,8 +594,8 @@ export function getFilteredDatesWithProfile(profile = null) {
   });
 }
 
-if (__DEV__) console.log("[content] ContentLoader: All exports defined");
+if (isDevRuntime) console.log("[content] ContentLoader: All exports defined");
 
-if (__DEV__) {
+if (isDevRuntime) {
   console.log("[debug] ContentLoader: Development mode - monitoring ready");
 }

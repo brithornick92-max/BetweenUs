@@ -54,6 +54,13 @@ describe('DeepLinkHandler.handleUrl', () => {
     expect(navigate).toHaveBeenCalledWith('MainTabs', { screen: 'DatePlans' });
   });
 
+  it('routes current Dates tab URLs to the Dates tab', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://dates');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('MainTabs', { screen: 'DatePlans' });
+  });
+
   it('routes private inspiration URLs to Intimacy Positions', () => {
     const handled = DeepLinkHandler.handleUrl('betweenus://intimacy');
 
@@ -73,6 +80,21 @@ describe('DeepLinkHandler.handleUrl', () => {
 
     expect(handled).toBe(false);
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('rejects prompt URLs with missing or unsafe ids', () => {
+    expect(DeepLinkHandler.handleUrl('betweenus://prompt')).toBe(false);
+    expect(DeepLinkHandler.handleUrl('betweenus://prompt/bad/id')).toBe(false);
+    expect(DeepLinkHandler.handleUrl('betweenus://prompt/bad%2Fid')).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('passes auth callback URLs through to the auth screen', () => {
+    const url = 'betweenus://auth-callback#access_token=token';
+    const handled = DeepLinkHandler.handleUrl(url);
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('AuthCallback', { url });
   });
 });
 

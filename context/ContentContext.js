@@ -33,15 +33,14 @@ import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 import { getRecentlyCompletedPromptIds } from '../utils/promptHistory';
 import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
+import {
+  getDailyContentDateKey,
+  getMsUntilNextDailyContentRollover,
+} from '../utils/dailyContentDate';
 import { storage } from '../utils/storage';
 
 const ContentContext = createContext({});
 const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
-
-function getTodayDateKey() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-}
 
 function getDailyPromptScope(userId, coupleId) {
   return coupleId ? `couple:${coupleId}` : `user:${userId}`;
@@ -222,7 +221,7 @@ export const ContentProvider = ({ children }) => {
 
         loadingPromptRef.current = true;
 
-      const today = getTodayDateKey();
+      const today = getDailyContentDateKey();
       const coupleId = await getActiveCoupleId({
         fallbackCoupleId: userProfile?.coupleId || null,
       });
@@ -407,7 +406,7 @@ export const ContentProvider = ({ children }) => {
         const fallbackPrompt = FALLBACK_PROMPT;
 
         const personalizedFallback = await personalizePrompt(fallbackPrompt);
-        const fallbackResolved = { ...personalizedFallback, dateKey: getTodayDateKey() };
+        const fallbackResolved = { ...personalizedFallback, dateKey: getDailyContentDateKey() };
         setTodayPrompt(fallbackResolved);
         return fallbackResolved;
       } finally {
@@ -426,6 +425,38 @@ export const ContentProvider = ({ children }) => {
     user,
     userProfile,
   ]);
+
+  useEffect(() => {
+    let timeoutId = null;
+    let active = true;
+
+    const scheduleNextPromptRollover = () => {
+      if (!active) return;
+
+      const delay = getMsUntilNextDailyContentRollover() + 1000;
+      timeoutId = setTimeout(() => {
+        if (!active) return;
+
+        const activeDateKey = getDailyContentDateKey();
+        setTodayPrompt((currentPrompt) => {
+          if (!currentPrompt || currentPrompt.dateKey === activeDateKey) {
+            return currentPrompt;
+          }
+
+          PromptAllocator.setDailyPromptId(null);
+          return null;
+        });
+        scheduleNextPromptRollover();
+      }, delay);
+    };
+
+    scheduleNextPromptRollover();
+
+    return () => {
+      active = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
 
   // Get filtered prompts based on user preferences and premium status
   // Uses PreferenceEngine to rank by season, climate, energy, boundaries

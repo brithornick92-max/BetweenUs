@@ -48,8 +48,27 @@ for (let h = 1; h <= 5; h++) {
 
 // Test filterDates behavior
 console.log('\n--- Filter test ---');
-const { filterDates, getAllDates } = require('../utils/contentLoader');
-const all = getAllDates();
+const normalizeDate = (date) => ({
+  ...date,
+  heat: typeof date.heat === 'number' ? Math.max(1, Math.min(3, date.heat)) : 1,
+  load: typeof date.load === 'number' ? Math.max(1, Math.min(3, date.load)) : 2,
+  style: ['talking', 'doing', 'mixed'].includes(date.style) ? date.style : 'mixed',
+});
+const filterDates = (sourceData, filters = {}) => {
+  const {
+    heat = null,
+    load = null,
+    style = null,
+  } = filters;
+
+  return sourceData.map(normalizeDate).filter((date) => {
+    if (heat !== null && date.heat !== heat) return false;
+    if (load !== null && date.load !== load) return false;
+    if (style && date.style !== style) return false;
+    return true;
+  });
+};
+const all = items.map(normalizeDate);
 console.log('getAllDates() count:', all.length);
 
 // Filter by each heat level
@@ -74,3 +93,15 @@ for (const s of ['talking', 'doing', 'mixed']) {
 const combo = filterDates(all, { heat: 3, load: 2, style: 'mixed' });
 console.log('heat=3 + load=2 + style=mixed:', combo.length, 'dates');
 if (combo.length > 0) console.log('  sample:', combo[0].id, combo[0].title);
+
+if (
+  missingHeat.length ||
+  missingLoad.length ||
+  missingStyle.length ||
+  badHeat.length ||
+  badLoad.length ||
+  badStyle.length ||
+  all.length !== items.length
+) {
+  process.exitCode = 1;
+}

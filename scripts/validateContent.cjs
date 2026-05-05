@@ -9,8 +9,9 @@ console.log("=== DATES VALIDATION ===\n");
 const dateItems = dates.items;
 const validLocations = new Set(Object.keys(dates.meta.locations)); // home, out, either
 const validStyles = new Set(["talking", "doing", "mixed"]);
-const validHeat = [1, 2, 3, 4, 5];
+const validHeat = [1, 2, 3];
 const validLoad = [1, 2, 3];
+const validDateCategories = new Set(Object.keys(dates.meta.categories || {}));
 
 const dateIssues = [];
 
@@ -22,6 +23,10 @@ dateItems.forEach((d, i) => {
   if (!d.title) dateIssues.push(`${ctx}: missing title`);
   if (!d.minutes) dateIssues.push(`${ctx}: missing minutes`);
   if (!d.steps || d.steps.length === 0) dateIssues.push(`${ctx}: missing/empty steps`);
+  if (!d.category) dateIssues.push(`${ctx}: missing category`);
+  if (d.category && !validDateCategories.has(d.category)) {
+    dateIssues.push(`${ctx}: invalid category "${d.category}" (valid: ${[...validDateCategories]})`);
+  }
 
   // Location
   if (!d.location) {
@@ -41,7 +46,7 @@ dateItems.forEach((d, i) => {
   if (d.heat === undefined || d.heat === null) {
     dateIssues.push(`${ctx}: missing heat`);
   } else if (!validHeat.includes(d.heat)) {
-    dateIssues.push(`${ctx}: invalid heat ${d.heat} (valid: 1-5)`);
+    dateIssues.push(`${ctx}: invalid heat ${d.heat} (valid: 1-3)`);
   }
 
   // Load
@@ -59,21 +64,39 @@ dateItems.forEach((d, i) => {
     dateIssues.push(`${ctx}: suspiciously high minutes: ${d.minutes}`);
   }
 
+  if (!Number.isInteger(d.releaseWeek) || d.releaseWeek < 0) {
+    dateIssues.push(`${ctx}: invalid releaseWeek ${d.releaseWeek}`);
+  }
+
   // Steps quality - check for placeholder/generic steps
-  if (d.steps) {
-    d.steps.forEach((step, si) => {
-      if (!step || step.trim().length === 0) {
-        dateIssues.push(`${ctx}: empty step at index ${si}`);
+  const textArrays = [
+    ['steps', d.steps],
+    ['supplies', d.supplies],
+    ['guidedSteps', d.guidedSteps],
+    ['conversationPrompts', d.conversationPrompts],
+  ];
+
+  textArrays.forEach(([field, values]) => {
+    if (values === undefined) return;
+    if (!Array.isArray(values)) {
+      dateIssues.push(`${ctx}: ${field} is not an array`);
+      return;
+    }
+    values.forEach((step, si) => {
+      const text = typeof step === 'string' ? step : '';
+      const minLength = field === 'supplies' ? 2 : 5;
+      if (!text.trim()) {
+        dateIssues.push(`${ctx}: empty ${field} item at index ${si}`);
       }
-      if (step && step.trim().length < 5) {
-        dateIssues.push(`${ctx}: very short step "${step}" at index ${si}`);
+      if (text && text.trim().length < minLength) {
+        dateIssues.push(`${ctx}: very short ${field} item "${step}" at index ${si}`);
       }
-      const lower = (step || "").toLowerCase();
+      const lower = text.toLowerCase();
       if (lower.includes("lorem") || lower.includes("placeholder") || lower.includes("todo") || lower.includes("tbd") || lower.includes("xxx")) {
-        dateIssues.push(`${ctx}: placeholder step "${step}" at index ${si}`);
+        dateIssues.push(`${ctx}: placeholder ${field} item "${step}" at index ${si}`);
       }
     });
-  }
+  });
 
   // Title quality
   const titleLower = (d.title || "").toLowerCase();
@@ -81,8 +104,26 @@ dateItems.forEach((d, i) => {
     dateIssues.push(`${ctx}: placeholder/test title`);
   }
 
-  // Check for extra/unexpected fields
-  const validDateFields = new Set(["id", "title", "minutes", "location", "steps", "heat", "load", "style"]);
+  const validDateFields = new Set([
+    "id",
+    "title",
+    "minutes",
+    "location",
+    "steps",
+    "heat",
+    "load",
+    "style",
+    "category",
+    "releaseWeek",
+    "vibe",
+    "setup",
+    "supplies",
+    "guidedSteps",
+    "conversationPrompts",
+    "connectionTwist",
+    "ending",
+    "description",
+  ]);
   Object.keys(d).forEach(k => {
     if (!validDateFields.has(k)) {
       dateIssues.push(`${ctx}: unexpected field "${k}" = ${JSON.stringify(d[k])}`);
@@ -168,8 +209,11 @@ promptItems.forEach((p, i) => {
     promptIssues.push(`${ctx}: very short text (${p.text.trim().length} chars)`);
   }
 
-  // Check for extra/unexpected fields
-  const validPromptFields = new Set(["id", "text", "category", "heat", "relationshipDuration"]);
+  if (!Number.isInteger(p.releaseWeek) || p.releaseWeek < 0) {
+    promptIssues.push(`${ctx}: invalid releaseWeek ${p.releaseWeek}`);
+  }
+
+  const validPromptFields = new Set(["id", "text", "category", "heat", "relationshipDuration", "releaseWeek"]);
   Object.keys(p).forEach(k => {
     if (!validPromptFields.has(k)) {
       promptIssues.push(`${ctx}: unexpected field "${k}" = ${JSON.stringify(p[k])}`);
@@ -200,3 +244,6 @@ promptIssues.forEach(i => console.log("  -", i));
 totalIssues += promptIssues.length;
 
 console.log("\n\n=== TOTAL ISSUES:", totalIssues, "===");
+if (totalIssues > 0) {
+  process.exitCode = 1;
+}

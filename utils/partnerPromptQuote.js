@@ -1,3 +1,5 @@
+import { getDailyContentDateKey } from './dailyContentDate';
+
 function parseDateKey(value) {
   if (!value || typeof value !== 'string') return null;
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -15,11 +17,6 @@ function parseDateKey(value) {
   }
 
   return date;
-}
-
-function localDateKey(date = new Date()) {
-  const d = date instanceof Date ? date : new Date(date);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function isAtLeastOneYearOld(date, now) {
@@ -40,7 +37,7 @@ function pickRandom(items, random = Math.random) {
 }
 
 function normalizePartnerQuoteRows(rows = [], now = new Date()) {
-  const todayKey = localDateKey(now);
+  const todayKey = getDailyContentDateKey(now);
 
   return (Array.isArray(rows) ? rows : [])
     .map((row) => {

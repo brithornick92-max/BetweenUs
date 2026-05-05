@@ -5,7 +5,7 @@ const {
 } = require('../../utils/partnerPromptQuote');
 
 describe('choosePartnerPromptQuote', () => {
-  const now = new Date(2026, 3, 30);
+  const now = new Date(2026, 3, 30, 12);
 
   it('uses a random partner answer before the first year', () => {
     const quote = choosePartnerPromptQuote([
@@ -83,10 +83,23 @@ describe('choosePartnerPromptQuote', () => {
 
     expect(quote).toBeNull();
   });
+
+  it('treats the previous calendar day as today before 4am', () => {
+    const quote = choosePartnerPromptQuote([
+      { prompt_id: 'p1', date_key: '2026-04-30', partnerAnswer: 'Still today before 4am.' },
+      { prompt_id: 'p2', date_key: '2026-04-29', partnerAnswer: 'Past answer.' },
+    ], {
+      now: new Date(2026, 4, 1, 3, 30),
+      relationshipStartDate: '2026-01-01',
+      random: () => 0,
+    });
+
+    expect(quote.prompt_id).toBe('p2');
+  });
 });
 
 describe('canShowPartnerPromptQuote', () => {
-  const now = new Date(2026, 3, 30);
+  const now = new Date(2026, 3, 30, 12);
 
   it('unlocks after enough eligible partner answers', () => {
     expect(canShowPartnerPromptQuote({
@@ -124,6 +137,6 @@ describe('getPartnerPromptQuoteCandidateCount', () => {
       { prompt_id: 'p2', date_key: '2026-04-30', partnerAnswer: 'Today is excluded.' },
       { prompt_id: 'quiz:p3', date_key: '2026-04-28', partnerAnswer: 'Quiz is excluded.' },
       { prompt_id: 'p4', date_key: '2026-04-27', partnerAnswer: '   ' },
-    ], { now: new Date(2026, 3, 30) })).toBe(1);
+    ], { now: new Date(2026, 3, 30, 12) })).toBe(1);
   });
 });

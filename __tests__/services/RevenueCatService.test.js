@@ -199,6 +199,22 @@ describe('RevenueCatService', () => {
       expect(result).toBeTruthy();
       expect(result.current).toBeTruthy();
     });
+
+    it('falls back to free mode when offerings time out', async () => {
+      await RevenueCatService.init();
+      jest.useFakeTimers();
+      mockGetOfferings.mockImplementationOnce(() => new Promise(() => {}));
+
+      const resultPromise = RevenueCatService.getOfferings();
+      jest.advanceTimersByTime(5000);
+      await expect(resultPromise).resolves.toEqual(expect.objectContaining({
+        current: null,
+        packages: [],
+        nonFatal: true,
+        reason: 'timeout',
+      }));
+      jest.useRealTimers();
+    });
   });
 
   describe('purchasePackage', () => {

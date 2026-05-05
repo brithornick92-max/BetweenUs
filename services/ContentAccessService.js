@@ -18,6 +18,7 @@ import {
   getAccessibleHeatLevels,
   getTimedUnlockLimits,
 } from '../utils/featureFlags';
+import { getUserWeekNumber } from './WeeklyContentSetService';
 
 const UNLIMITED = 'unlimited';
 
@@ -248,23 +249,11 @@ class ContentAccessService {
     return normalized.filter((item) => allowedHeatLevels.has(this.getItemHeat(item)));
   }
 
-  filterByWeeklySchedule(items) {
-    return this.normalizeItems(items);
-  }
-
-  applyWeeklyPreviewLimit(items) {
-    return this.normalizeItems(items);
-  }
-
   getEligibleReleasedItems(items, contentType, { isPremium = false, userSettings = {} } = {}) {
-    let eligible = this.filterByWeeklySchedule(items);
+    let eligible = this.normalizeItems(items);
     eligible = this.filterByUserBoundaries(eligible, userSettings, contentType);
     eligible = this.filterByTier(eligible, isPremium);
     return eligible;
-  }
-
-  getWeeklyPreviewAccessResult() {
-    return null;
   }
 
   async getDailyUsage(userId) {
@@ -400,12 +389,7 @@ class ContentAccessService {
             userSettings,
           });
 
-      const available = includeAll
-        ? eligible
-        : this.applyWeeklyPreviewLimit(eligible, CONTENT_TYPES.PROMPTS, {
-            isPremium,
-            userSettings,
-          });
+      const available = eligible;
 
       const [dailyUsage, weeklyUsage] = await Promise.all([
         this.getDailyUsage(userId),
@@ -442,12 +426,6 @@ class ContentAccessService {
         userSettings,
       });
       if (!staticAccess.canAccess) return staticAccess;
-
-      const previewAccess = this.getWeeklyPreviewAccessResult(prompt, allPrompts, CONTENT_TYPES.PROMPTS, {
-        isPremium,
-        userSettings,
-      });
-      if (previewAccess) return previewAccess;
 
       if (this.isPremiumUser(isPremium)) return staticAccess;
 
@@ -489,10 +467,7 @@ class ContentAccessService {
         isPremium,
         userSettings,
       });
-      const available = this.applyWeeklyPreviewLimit(eligible, CONTENT_TYPES.DATES, {
-        isPremium,
-        userSettings,
-      });
+      const available = eligible;
 
       const [dailyUsage, weeklyUsage] = await Promise.all([
         this.getDailyUsage(userId),
@@ -529,12 +504,6 @@ class ContentAccessService {
         userSettings,
       });
       if (!staticAccess.canAccess) return staticAccess;
-
-      const previewAccess = this.getWeeklyPreviewAccessResult(date, allDates, CONTENT_TYPES.DATES, {
-        isPremium,
-        userSettings,
-      });
-      if (previewAccess) return previewAccess;
 
       if (this.isPremiumUser(isPremium)) return staticAccess;
 
@@ -583,12 +552,7 @@ class ContentAccessService {
             userSettings,
           });
 
-      const available = includeAll
-        ? eligible
-        : this.applyWeeklyPreviewLimit(eligible, CONTENT_TYPES.POSITIONS, {
-            isPremium,
-            userSettings,
-          });
+      const available = eligible;
       const limits = this.getEffectiveLimits(isPremium);
       const weeklyVisibleLimit = limits.positions.weeklyVisible;
       const isPreviewLimited = !this.isPremiumUser(isPremium)
@@ -629,11 +593,7 @@ class ContentAccessService {
       });
       if (!staticAccess.canAccess) return staticAccess;
 
-      const previewAccess = this.getWeeklyPreviewAccessResult(position, allPositions, CONTENT_TYPES.POSITIONS, {
-        isPremium,
-        userSettings,
-      });
-      return previewAccess || staticAccess;
+      return staticAccess;
     } catch (error) {
       CrashReporting.captureException(error, { source: 'ContentAccessService.canAccessPosition' });
       return {
@@ -810,8 +770,8 @@ class ContentAccessService {
     return this.RELEASE_SCHEDULE;
   }
 
-  getCurrentReleaseWeek() {
-    return 0;
+  getCurrentReleaseWeek(anchorDate = null, date = new Date()) {
+    return getUserWeekNumber(anchorDate, date);
   }
 }
 

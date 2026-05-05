@@ -41,4 +41,6 @@ Boundary changes are intentionally conservative:
 
 - Live app paths no longer import the removed legacy scheduler.
 - The old fixed free-preview prompt pack is disabled.
+- The deprecated global-week helper has been removed from `WeeklyContentSetService`.
+- Tracked backup and stale generated content artifacts have been removed from source folders.
 - Automated coverage includes weekly count growth, premium anchors, stable boundary allocations, and direct detail-screen access checks.

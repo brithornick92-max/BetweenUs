@@ -1,11 +1,9 @@
 import {
   CONTENT_TYPES,
-  PREMIUM_LIBRARY_TOTALS,
   UPGRADE_COPY,
   buildPremiumPromptLibrary,
   buildWeeklySet,
   getUserWeekNumber,
-  getWeekNumberFromStart,
 } from '../../services/WeeklyContentSetService';
 
 const TEST_DATE = new Date('2026-04-27T12:00:00.000Z');
@@ -85,7 +83,7 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.premiumLibraryTotal).toBe(PREMIUM_LIBRARY_TOTALS.prompts);
+    expect(result.premiumLibraryTotal).toBe(prompts.length);
     expect(result.unlocked).toHaveLength(9);
     expect(result.lockedPreviews).toHaveLength(0);
     expect(result.items).toHaveLength(9);
@@ -326,12 +324,6 @@ describe('WeeklyContentSetService', () => {
     expect(signupWeek.items).toHaveLength(20);
     expect(nextWeek.items).toHaveLength(25);
     expect(signupWeek.items.every((item) => nextWeekIds.has(item.id))).toBe(true);
-  });
-
-  it('computes week numbers from the shared weekly start date', () => {
-    expect(getWeekNumberFromStart(new Date('2026-01-05T12:00:00.000Z'))).toBe(0);
-    expect(getWeekNumberFromStart(new Date('2026-01-12T12:00:00.000Z'))).toBe(1);
-    expect(getWeekNumberFromStart(new Date('2026-01-26T12:00:00.000Z'))).toBe(3);
   });
 
   it('uses local calendar days for personalized weekly rollovers', () => {

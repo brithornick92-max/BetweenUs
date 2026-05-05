@@ -64,6 +64,7 @@ import {
   trackFreePromptAnswerUsage,
 } from '../utils/freePromptAnswerQuota';
 import { isItemInStableFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
+import { getDailyContentDateKey } from '../utils/dailyContentDate';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:cache:promptedPartnerShare';
@@ -78,11 +79,6 @@ const loadAllBundledPrompts = () => {
   if (Array.isArray(bundled?.default?.prompts)) return bundled.default.prompts;
   return [];
 };
-
-function dateKey(date) {
-  const d = date instanceof Date ? date : new Date(date ?? undefined);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 function deriveRitualState({ isLinked, myAnswer, partnerAnswer, isRevealed }) {
   if (isRevealed) return 'revealed';
@@ -140,8 +136,8 @@ export default function HomeScreen({ navigation }) {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
-  const todayKey = useMemo(() => dateKey(new Date()), []);
   const prompt = useMemo(() => normalizePrompt(todayPrompt), [todayPrompt]);
+  const todayKey = todayPrompt?.dateKey || getDailyContentDateKey();
   const promptReady = !!todayPrompt?.id && typeof todayPrompt?.text === 'string' && !!todayPrompt.text.trim();
 
   const [myAnswer, setMyAnswer] = useState('');
@@ -319,7 +315,7 @@ export default function HomeScreen({ navigation }) {
       if (!promptReady) return;
 
       try {
-        const row = await DataLayer.getPromptAnswerForToday(prompt.id);
+        const row = await DataLayer.getPromptAnswerForToday(prompt.id, todayKey);
         if (!active) return;
 
         if (row?.answer) {
@@ -353,7 +349,7 @@ export default function HomeScreen({ navigation }) {
 
       (async () => {
         try {
-          const row = await DataLayer.getPromptAnswerForToday(prompt.id);
+          const row = await DataLayer.getPromptAnswerForToday(prompt.id, todayKey);
           if (!active) return;
 
           if (row?.answer) {
@@ -393,7 +389,7 @@ export default function HomeScreen({ navigation }) {
 
         const answered = (past || []).filter((r) =>
           r.answer
-          && r.date_key !== dateKey()
+          && r.date_key !== todayKey
           && !String(r.prompt_id || '').startsWith('quiz:')
         );
         setAnsweredCount(answered.length);
@@ -431,7 +427,7 @@ export default function HomeScreen({ navigation }) {
     return () => {
       active = false;
     };
-  }, [state?.userProfile?.relationshipStartDate, userProfile?.relationshipStartDate]);
+  }, [state?.userProfile?.relationshipStartDate, todayKey, userProfile?.relationshipStartDate]);
 
   useFocusEffect(
     useCallback(() => {
@@ -529,7 +525,7 @@ export default function HomeScreen({ navigation }) {
                 if (row?.data_type !== 'prompt_answer') return;
                 if (row?.created_by === user?.uid) return;
 
-                DataLayer.getPromptAnswerForToday(prompt.id)
+                DataLayer.getPromptAnswerForToday(prompt.id, todayKey)
                   .then((row) => {
                     if (cancelled || !row) return;
                     if (row?.partnerAnswer) setPartnerAnswer(row.partnerAnswer);
@@ -565,7 +561,7 @@ export default function HomeScreen({ navigation }) {
           channelRef = null;
         }
       };
-    }, [state?.coupleId, prompt?.id, promptReady, user?.uid])
+    }, [state?.coupleId, prompt?.id, promptReady, todayKey, user?.uid])
   );
 
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
@@ -660,6 +656,7 @@ export default function HomeScreen({ navigation }) {
           promptId: prompt.id,
           answer: finalText,
           heatLevel: prompt.heat || 1,
+          dateKey: todayKey,
         });
       } catch (dataLayerError) {
         if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);

@@ -42,6 +42,7 @@ import { DataLayer } from '../services/localfirst';
 import { SPACING } from '../utils/theme';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { storage } from '../utils/storage';
+import { getDailyContentDateKey } from '../utils/dailyContentDate';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
@@ -90,8 +91,7 @@ function isMatchingPromptAnswer(row, promptId, dk) {
 }
 
 function getTodayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return getDailyContentDateKey();
 }
 
 function getDailyQuestion(dateKey) {
@@ -235,6 +235,7 @@ export default function CouplesQuizScreen({ navigation }) {
           promptId: quizPromptId,
           answer: trimmed,
           heatLevel: 1,
+          dateKey: todayKey,
         });
         setAnswerId((current) => savedAnswer?.id || current);
 

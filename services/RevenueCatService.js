@@ -4,6 +4,29 @@ import CrashReporting from './CrashReporting';
 
 // OK: Matches RevenueCat dashboard entitlement identifier exactly
 const ENTITLEMENT_ID = 'Between Us Pro';
+const REVENUECAT_TIMEOUT_MS = 5000;
+
+const createTimeoutError = (operation, timeoutMs) => {
+  const error = new Error(`${operation} timed out after ${timeoutMs}ms`);
+  error.code = 'revenuecat_timeout';
+  error.operation = operation;
+  return error;
+};
+
+const withRevenueCatTimeout = (promise, operation, timeoutMs = REVENUECAT_TIMEOUT_MS) => {
+  let timer;
+
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(() => reject(createTimeoutError(operation, timeoutMs)), timeoutMs);
+    }),
+  ]).finally(() => clearTimeout(timer));
+};
+
+const isRevenueCatTimeout = (error) =>
+  error?.code === 'revenuecat_timeout' ||
+  String(error?.message || '').toLowerCase().includes('timed out');
 
 class RevenueCatService {
   constructor() {
@@ -22,7 +45,16 @@ class RevenueCatService {
   async init() {
     if (this._configured) return;
     if (this._initPromise) return this._initPromise;
-    this._initPromise = this._doInit();
+    this._initPromise = withRevenueCatTimeout(
+      this._doInit(),
+      'RevenueCatService.init'
+    ).then(() => {
+      if (!this._configured) this._initPromise = null;
+    }).catch((error) => {
+      this._initPromise = null;
+      CrashReporting.captureException(error, { source: 'RevenueCatService.init' });
+      throw error;
+    });
     return this._initPromise;
   }
 
@@ -82,7 +114,10 @@ class RevenueCatService {
       // Debug: Log available entitlements to help identify the correct ENTITLEMENT_ID
       if (__DEV__) {
         try {
-          const customerInfo = await Purchases.getCustomerInfo();
+          const customerInfo = await withRevenueCatTimeout(
+            Purchases.getCustomerInfo(),
+            'RevenueCatService.initialCustomerInfo'
+          );
           console.log('Available Available entitlement keys:', Object.keys(customerInfo?.entitlements?.active ?? {}));
         } catch (error) {
           if (__DEV__) console.log('Could not fetch initial customer info:', error?.message);
@@ -125,7 +160,10 @@ class RevenueCatService {
         return { skipped: true, userId };
       }
 
-      await Purchases.logIn(userId);
+      await withRevenueCatTimeout(
+        Purchases.logIn(userId),
+        'RevenueCatService.identifyUser'
+      );
       this.currentUserId = userId;
       // Reset per-user offerings cache flag
       this._offeringsUnavailable = false;
@@ -180,7 +218,10 @@ class RevenueCatService {
         };
       }
 
-      const offerings = await Purchases.getOfferings();
+      const offerings = await withRevenueCatTimeout(
+        Purchases.getOfferings(),
+        'RevenueCatService.getOfferings'
+      );
       
       if (offerings.current !== null && offerings.current.availablePackages.length > 0) {
         return {
@@ -211,6 +252,17 @@ class RevenueCatService {
           packages: [],
           nonFatal: true,
           reason: 'offerings_unavailable',
+        };
+      }
+
+      if (isRevenueCatTimeout(error)) {
+        this._offeringsUnavailable = true;
+        CrashReporting.captureException(error, { source: 'RevenueCatService.getOfferings' });
+        return {
+          current: null,
+          packages: [],
+          nonFatal: true,
+          reason: 'timeout',
         };
       }
 
@@ -294,7 +346,10 @@ class RevenueCatService {
   async getCustomerInfo() {
     try {
       this.ensureConfigured();
-      const customerInfo = await Purchases.getCustomerInfo();
+      const customerInfo = await withRevenueCatTimeout(
+        Purchases.getCustomerInfo(),
+        'RevenueCatService.getCustomerInfo'
+      );
       const isPremium = this.checkPremiumStatus(customerInfo);
 
       return {

@@ -13,6 +13,7 @@ import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
+import { getDailyContentDateKey } from '../utils/dailyContentDate';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
@@ -103,7 +104,7 @@ export default function HeatLevelScreen({ navigation }) {
         navigation.navigate('PromptAnswer', {
           prompt: {
             ...prompt,
-            dateKey: new Date().toISOString().split('T')[0],
+            dateKey: prompt.dateKey || getDailyContentDateKey(),
           },
         });
       }

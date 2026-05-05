@@ -30,6 +30,19 @@ function collectAssetReferences(value, refs = []) {
 }
 
 describe('app wiring contracts', () => {
+  it('keeps tracked source folders free of backup artifacts', () => {
+    const sourceDirs = ['screens', 'components', 'services', 'utils', 'context', 'content'];
+    const backupFiles = sourceDirs.flatMap((dir) =>
+      fs
+        .readdirSync(path.join(repoRoot, dir), { recursive: true, withFileTypes: true })
+        .filter((entry) => entry.isFile())
+        .map((entry) => path.join(entry.parentPath || dir, entry.name))
+        .filter((file) => /\.(bak|backup|old)$/i.test(file))
+    );
+
+    expect(backupFiles).toEqual([]);
+  });
+
   it('keeps every app.json asset reference pointed at an existing file', () => {
     const appConfig = JSON.parse(readRepoFile('app.json'));
     const assetRefs = collectAssetReferences(appConfig);
@@ -72,7 +85,6 @@ describe('app wiring contracts', () => {
         .filter((entry) => entry.isFile())
         .map((entry) => path.join(entry.parentPath || dir, entry.name))
         .filter((file) => /\.(js|jsx|ts|tsx)$/.test(file))
-        .filter((file) => !file.includes('.bak'))
     );
 
     const navigationCalls = sourceFiles.flatMap((relativePath) => {

@@ -1,8 +1,8 @@
 const React = require('react');
 const renderer = require('react-test-renderer');
+const { getDailyContentDateKey } = require('../../utils/dailyContentDate');
 
-const TODAY = new Date();
-const TODAY_KEY = `${TODAY.getFullYear()}-${String(TODAY.getMonth() + 1).padStart(2, '0')}-${String(TODAY.getDate()).padStart(2, '0')}`;
+const TODAY_KEY = getDailyContentDateKey();
 const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
 
 const mockPromptCatalog = {

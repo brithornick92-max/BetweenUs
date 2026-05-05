@@ -104,7 +104,7 @@ export default function RevealScreen({ route, navigation }) {
     
     try {
       // Mark as revealed in the active DataLayer.
-      const row = await DataLayer.getPromptAnswerForToday(prompt.id);
+      const row = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
       if (row?.id) {
         await DataLayer.revealPromptAnswer(row.id);
       }

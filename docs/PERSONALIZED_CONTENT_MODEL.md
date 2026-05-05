@@ -33,10 +33,12 @@ Between Us uses a **personalized content release calendar** where each user gets
 - **15 new dates** every week
 - **3 new positions** every week
 
-#### **Eventually (After ~49 weeks)**
-- **792 total prompts** (entire library)
-- **823 total dates** (entire library)
-- **200 total positions** (entire library)
+#### **Eventually**
+- **749 total prompts** in the current live catalog
+- **707 total dates** in the current live catalog
+- **200 total sex positions** in the current live catalog
+
+Premium reaches the full current prompt catalog after about 44 premium weeks, the full date catalog after about 41 premium weeks, and the full sex position catalog after about 64 premium weeks.
 
 ---
 
@@ -64,12 +66,21 @@ Between Us uses a **personalized content release calendar** where each user gets
  * @param {Date|string} currentDate - Current date (defaults to now)
  * @returns {number} Week number (0 = signup week, 1 = first week after, etc.)
  */
+const toLocalDayStart = (value) => {
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+};
+
 const getUserWeekNumber = (userCreatedAt, currentDate = new Date()) => {
-  const signupDate = new Date(userCreatedAt);
-  const current = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const signupDate = toLocalDayStart(userCreatedAt);
+  const current = toLocalDayStart(currentDate);
+  if (!signupDate || !current) return 0;
+
   const diffMs = current.getTime() - signupDate.getTime();
   const weekMs = 7 * 24 * 60 * 60 * 1000;
-  
+
+  if (!Number.isFinite(diffMs) || diffMs < 0) return 0;
   return Math.floor(diffMs / weekMs); // 0, 1, 2, 3...
 };
 ```
@@ -77,20 +88,16 @@ const getUserWeekNumber = (userCreatedAt, currentDate = new Date()) => {
 ### Weekly Set Logic
 
 ```javascript
-// Week 0 detection
 const weekNumber = getUserWeekNumber(userCreatedAt, date);
-const isWelcomeWeek = weekNumber === 0;
-
-// Free user gets different limits
-const freeUnlockedLimit = isWelcomeWeek 
-  ? limits.freeWelcomePack  // 10 for week 0
-  : limits.freeOngoing;      // 5 for week 1+
+const freeUnlockedLimit = limits.freeWelcomePack + (weekNumber * limits.freeOngoing);
+const premiumUnlockedLimit = limits.premiumStart + (weekNumber * limits.premium);
 ```
 
 ### Required Data
 
 Each call to `buildWeeklySet()` needs:
 - `userCreatedAt` - User's signup timestamp (from `userProfile.created_at`)
+- Premium users should pass their premium start timestamp as the anchor date.
 - `date` - Current date (defaults to `new Date()`)
 - Other existing params (userId, isPremium, userSettings, etc.)
 
@@ -147,7 +154,7 @@ Premium starts with 100 prompts
 - Free = Starter library + smaller weekly drops
 - Premium = 100 prompts and dates right away + larger weekly drops
 
-**The gap is clear:** Premium isn't just "more" - it's "everything now" vs "little by little"
+**The gap is clear:** Premium starts with a much larger library and keeps growing faster, while free grows little by little.
 
 ---
 
@@ -183,9 +190,8 @@ If you have existing users with the old Monday model:
 2. Calculate their current week based on that anchor
 3. They continue on personalized schedule going forward
 
-### Backwards Compatibility
-Old function `getWeekNumberFromStart()` is deprecated but kept for compatibility.
-New code should use `getUserWeekNumber()` instead.
+### Removed Old Release Logic
+The previous global Monday release helper has been removed from the live service. New code should use `getUserWeekNumber()` with the user-specific signup or premium-start anchor.
 
 ---
 

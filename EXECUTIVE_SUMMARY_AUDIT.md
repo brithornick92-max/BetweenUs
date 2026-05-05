@@ -1,5 +1,7 @@
 # Between Us — Executive Summary
 
+**Current status update:** May 5, 2026. This is now a historical snapshot. The current source of truth is `ISSUES_TRACKER.md`, `CRITICAL_LOGIC_ISSUES.md`, and `docs/PERSONALIZED_CONTENT_MODEL.md`. The content-release conflict, release-schedule ambiguity, missing script blocker, Android validation script gap, offline queue recovery/persistence, RevenueCat timeout handling, and deep link validation are resolved; device QA remains.
+
 **Audit Date:** April 28, 2026 | **Scope:** Full production readiness review  
 **Recommendation:** ❌ NOT READY FOR PRODUCTION — 5 blockers must be fixed
 

@@ -29,7 +29,7 @@ import Icon from '../components/Icon';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
-export default function AuthCallbackScreen({ navigation }) {
+export default function AuthCallbackScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium } = useEntitlements();
   
@@ -55,7 +55,7 @@ export default function AuthCallbackScreen({ navigation }) {
     const handleCallback = async () => {
       let sessionFound = false;
       try {
-        const initialUrl = await Linking.getInitialURL();
+        const initialUrl = route?.params?.url || await Linking.getInitialURL();
         const payload = extractAuthPayloadFromUrl(initialUrl);
 
         let session = null;
@@ -116,7 +116,7 @@ export default function AuthCallbackScreen({ navigation }) {
       active = false;
       if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     };
-  }, [isPremium, navigation, retryKey]);
+  }, [isPremium, navigation, retryKey, route?.params?.url]);
 
   const handleRetry = () => {
     setChecking(true);

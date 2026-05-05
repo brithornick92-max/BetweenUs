@@ -21,6 +21,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import PartnerNotifications from '../PartnerNotifications';
 import CrashReporting from '../CrashReporting';
 import { getPromptById } from '../../utils/contentLoader';
+import { getDailyContentDateKey } from '../../utils/dailyContentDate';
 import { loveNoteStorage, storage, STORAGE_KEYS } from '../../utils/storage';
 
 // ─── Module state ────────────────────────────────────────────────────────────
@@ -95,6 +96,10 @@ function dateKey(date = new Date()) {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
+}
+
+function promptDateKey(date = new Date()) {
+  return getDailyContentDateKey(date);
 }
 
 function getSupabaseOrNull() {
@@ -213,6 +218,11 @@ async function enqueueOfflineMutation(mutation) {
   }));
 
   await setOfflineQueue(queue);
+  CrashReporting.addBreadcrumb('sync', 'Queued offline mutation', {
+    entity: mutation?.entity,
+    action: mutation?.action,
+    id: mutation?.id,
+  });
 }
 
 async function loadCache(scope) {
@@ -365,6 +375,17 @@ async function cdUpsert(dataType, id, value) {
   if (error) throw error;
 
   return data;
+}
+
+async function cdSoftDeleteIfExists(id) {
+  try {
+    await cdSoftDelete(id);
+  } catch (error) {
+    if (isMissingRowError(error) || String(error?.message || '').includes('No deletable row')) {
+      return;
+    }
+    throw error;
+  }
 }
 
 /**
@@ -600,7 +621,7 @@ async function performQueuedCoupleDataMutation(dataType, item) {
   const payload = await prepareQueuedPayloadForCloud(item.payload);
 
   try {
-    if (item.action === 'insert') await cdInsert(dataType, item.id, payload);
+    if (item.action === 'insert') await cdUpsert(dataType, item.id, payload);
     if (item.action === 'update') await cdUpdate(item.id, payload);
   } catch (error) {
     if (item.payload?.localMediaUri && payload?.mediaPath) {
@@ -609,6 +630,47 @@ async function performQueuedCoupleDataMutation(dataType, item) {
 
     throw error;
   }
+}
+
+async function upsertQueuedCalendarEvent(event, id) {
+  const sb = getSupabaseOrNull();
+
+  if (!sb) throw new Error('Supabase not configured');
+  if (!_coupleId || !_userId) throw new Error('Not configured for calendar');
+
+  const metadata = SupabaseDataLayer._buildCalendarMetadata(event);
+  const { data, error } = await sb
+    .from(TABLES.CALENDAR_EVENTS)
+    .upsert({
+      id,
+      couple_id: _coupleId,
+      title: event?.title?.trim() || '',
+      description: event?.notes || null,
+      event_date: new Date(event?.whenTs).toISOString(),
+      event_type: event?.eventType || 'general',
+      location: event?.location || null,
+      metadata,
+      created_by: _userId,
+      updated_at: now(),
+    }, { onConflict: 'id' })
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function deleteQueuedCalendarEvent(id) {
+  const sb = getSupabaseOrNull();
+
+  if (!sb) throw new Error('Supabase not configured');
+
+  const { error } = await sb
+    .from(TABLES.CALENDAR_EVENTS)
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 }
 
 /**
@@ -1271,12 +1333,12 @@ const SupabaseDataLayer = {
 
   // ─── Prompt Answers ──────────────────────────────────────────────────────
 
-  async savePromptAnswer({ promptId, answer, heatLevel, _createdAt }) {
+  async savePromptAnswer({ promptId, answer, heatLevel, dateKey: explicitDateKey, _createdAt }) {
     const resolvedHeatLevel = typeof heatLevel === 'number'
       ? heatLevel
       : (getPromptById(promptId)?.heat || 1);
 
-    const dk = _createdAt ? dateKey(new Date(_createdAt)) : dateKey();
+    const dk = explicitDateKey || (_createdAt ? promptDateKey(new Date(_createdAt)) : promptDateKey());
 
     const found = await this._findPromptAnswer(promptId, dk, _userId);
     const cachedExisting = isCacheFallback(found)
@@ -1469,8 +1531,8 @@ const SupabaseDataLayer = {
     }));
   },
 
-  async getPromptAnswerForToday(promptId) {
-    const dk = dateKey();
+  async getPromptAnswerForToday(promptId, explicitDateKey = null) {
+    const dk = explicitDateKey || promptDateKey();
     const row = await this._findPromptAnswer(promptId, dk, _userId);
 
     if (isCacheFallback(row)) {
@@ -2454,48 +2516,43 @@ const SupabaseDataLayer = {
           if (item.action === 'insert' || item.action === 'update') {
             await performQueuedCoupleDataMutation('journal', item);
           }
-          if (item.action === 'delete') await cdSoftDelete(item.id);
+          if (item.action === 'delete') await cdSoftDeleteIfExists(item.id);
           break;
 
         case 'prompt_answer':
-          if (item.action === 'insert') await cdInsert('prompt_answer', item.id, item.payload);
+          if (item.action === 'insert') await cdUpsert('prompt_answer', item.id, item.payload);
           if (item.action === 'update') await cdUpdate(item.id, item.payload);
-          if (item.action === 'delete') await cdSoftDelete(item.id);
+          if (item.action === 'delete') await cdSoftDeleteIfExists(item.id);
           break;
 
         case 'memory':
           if (item.action === 'insert' || item.action === 'update') {
             await performQueuedCoupleDataMutation('memory', item);
           }
-          if (item.action === 'delete') await cdSoftDelete(item.id);
+          if (item.action === 'delete') await cdSoftDeleteIfExists(item.id);
           break;
 
         case 'check_in':
-          if (item.action === 'insert') await cdInsert('check_in', item.id, item.payload);
+          if (item.action === 'insert') await cdUpsert('check_in', item.id, item.payload);
           if (item.action === 'update') await cdUpdate(item.id, item.payload);
           break;
 
         case 'vibe':
-          if (item.action === 'insert') await cdInsert('vibe', item.id, item.payload);
+          if (item.action === 'insert') await cdUpsert('vibe', item.id, item.payload);
           break;
 
         case 'calendar':
-          if (item.action === 'insert') await this.createCalendarEvent({ ...item.payload, id: item.id });
-          if (item.action === 'update') await this.updateCalendarEvent({ ...item.payload, id: item.id });
-
+          if (item.action === 'insert' || item.action === 'update') {
+            await upsertQueuedCalendarEvent(item.payload, item.id);
+          }
           if (item.action === 'delete') {
-            const { error } = await supabase
-              .from(TABLES.CALENDAR_EVENTS)
-              .delete()
-              .eq('id', item.id);
-
-            if (error) throw error;
+            await deleteQueuedCalendarEvent(item.id);
           }
           break;
 
         case 'date_plan':
           if (item.action === 'upsert') await cdUpsert('date_plan', item.id, item.payload);
-          if (item.action === 'delete') await cdSoftDelete(item.id);
+          if (item.action === 'delete') await cdSoftDeleteIfExists(item.id);
           break;
 
         default:

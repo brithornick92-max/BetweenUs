@@ -56,6 +56,10 @@ const ROUTE_MAP = {
     screen: 'PromptAnswer',
     params: { promptId: _sanitizeId(params.id) },
   }),
+  'prompts': () => ({
+    screen: 'MainTabs',
+    params: { screen: 'Prompts' },
+  }),
   'calendar': () => ({
     screen: 'MainTabs',
     params: { screen: 'Calendar' },
@@ -65,6 +69,10 @@ const ROUTE_MAP = {
     params: { dateId: _sanitizeId(params.id) },
   }),
   'date-ideas': () => ({
+    screen: 'MainTabs',
+    params: { screen: 'DatePlans' },
+  }),
+  'dates': () => ({
     screen: 'MainTabs',
     params: { screen: 'DatePlans' },
   }),
@@ -83,6 +91,14 @@ const ROUTE_MAP = {
   'pair': () => ({
     screen: 'ConnectPartner',
     params: {},
+  }),
+  'connect-partner': () => ({
+    screen: 'ConnectPartner',
+    params: {},
+  }),
+  'auth-callback': (params) => ({
+    screen: 'AuthCallback',
+    params: { url: params.url || null },
   }),
   'home': () => ({
     screen: 'MainTabs',
@@ -136,6 +152,7 @@ const DeepLinkHandler = {
       const id = hostRoute
         ? (pathParts[0] || parsed.searchParams?.get('id') || null)
         : (pathParts[1] || parsed.searchParams?.get('id') || null);
+      const extraPathParts = hostRoute ? pathParts.slice(1) : pathParts.slice(2);
 
       const handler = ROUTE_MAP[route];
       if (!handler) {
@@ -143,7 +160,15 @@ const DeepLinkHandler = {
         return false;
       }
 
-      const { screen, params } = handler({ id });
+      const sanitizedId = id ? _sanitizeId(String(id)) : null;
+      if (ID_REQUIRED_ROUTES.has(route)) {
+        if (!sanitizedId || extraPathParts.length > 0) {
+          CrashReporting.captureMessage(`Deep link route '${route}' has invalid id`, 'warning');
+          return false;
+        }
+      }
+
+      const { screen, params } = handler({ id: sanitizedId, url });
       _navigateSafe(screen, params);
       return true;
     } catch (err) {

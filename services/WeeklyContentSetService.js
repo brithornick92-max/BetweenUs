@@ -12,7 +12,7 @@
  * - Week 0 (premium start): 100 prompts balanced across heat levels, 100 date ideas, 10 sex positions
  * - Week 1: 115 prompts, 115 date ideas, 13 sex positions
  * - Week 10: 250 prompts, 250 date ideas, 40 sex positions
- * - Eventually: 749 prompts, 675 date ideas, 200 sex positions (full library)
+ * - Eventually: all eligible prompts, date ideas, and sex positions in the live catalog.
  * - Library GROWS each week - they get cumulative access
  * 
  * NOTE: buildWeeklySet returns the current visible library for the user's tier.
@@ -51,12 +51,6 @@ const WEEKLY_LIMITS = {
 const PREMIUM_PROMPT_HEAT_LEVELS = [1, 2, 3, 4, 5];
 const PREMIUM_PROMPT_START_PER_HEAT = 20;
 const PREMIUM_PROMPT_WEEKLY_PER_HEAT = 3;
-
-const PREMIUM_LIBRARY_TOTALS = {
-  [CONTENT_TYPES.PROMPTS]: 749,
-  [CONTENT_TYPES.DATES]: 675,
-  [CONTENT_TYPES.POSITIONS]: 200,
-};
 
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
@@ -141,24 +135,6 @@ const getUserWeekNumber = (userCreatedAt, currentDate = new Date()) => {
   }
 
   return Math.floor(diffMs / weekMs);
-};
-
-/**
- * DEPRECATED: Global week calculation (kept for backwards compatibility)
- * Use getUserWeekNumber instead for personalized content release
- */
-const getWeekNumberFromStart = (date = new Date(), startDate = '2026-01-05T00:00:00.000Z') => {
-  console.warn('[WeeklyContentSetService] getWeekNumberFromStart is deprecated. Use getUserWeekNumber instead.');
-  const current = date instanceof Date ? date : new Date(date);
-  const start = new Date(startDate);
-  const diffMs = current.getTime() - start.getTime();
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
-
-  if (!Number.isFinite(diffMs)) {
-    return 0;
-  }
-
-  return Math.max(0, Math.floor(diffMs / weekMs));
 };
 
 const normalizeUserSettings = (userSettings = {}) => {
@@ -524,7 +500,7 @@ const buildWeeklySet = (
     contentType: type,
     weekNumber,
     isPremium,
-    premiumLibraryTotal: PREMIUM_LIBRARY_TOTALS[type] ?? eligible.length,
+    premiumLibraryTotal: eligible.length,
     premiumUnlockedLimit,
     freeUnlockedLimit,
     freeLockedPreviewLimit,
@@ -539,10 +515,8 @@ const buildWeeklySet = (
 export {
   CONTENT_TYPES,
   WEEKLY_LIMITS,
-  PREMIUM_LIBRARY_TOTALS,
   UPGRADE_COPY,
   buildWeeklySet,
   buildPremiumPromptLibrary,
   getUserWeekNumber,
-  getWeekNumberFromStart, // Deprecated, use getUserWeekNumber
 };

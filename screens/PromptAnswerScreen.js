@@ -49,6 +49,7 @@ import {
   trackFreePromptAnswerUsage,
 } from "../utils/freePromptAnswerQuota";
 import { isItemInStableFreeWeeklyDeck } from "../utils/freeWeeklyDeckAccess";
+import { getDailyContentDateKey } from "../utils/dailyContentDate";
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const MAX_LEN = 1000;
@@ -187,7 +188,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         }
       }
 
-      const dateKey = resolvedPrompt.dateKey || new Date().toISOString().split('T')[0];
+      const dateKey = resolvedPrompt.dateKey || getDailyContentDateKey();
       setPrompt({ ...resolvedPrompt, dateKey });
     })().catch(() => {
       if (active) {
@@ -206,7 +207,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     if (!prompt?.id) return;
     // Supabase-backed DataLayer is authoritative; cache is display-only fallback.
     try {
-      const row = await DataLayer.getPromptAnswerForToday(prompt.id);
+      const row = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
       if (row?.answer) {
         setExistingAnswer(row);
         setAnswer(row.answer);
@@ -275,6 +276,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
           promptId: prompt.id,
           answer: finalText,
           heatLevel: prompt?.heat || 1,
+          dateKey: prompt.dateKey,
         });
       } catch (dataLayerError) {
         if (__DEV__) console.warn('[PromptAnswer] DataLayer prompt save failed:', dataLayerError?.message);

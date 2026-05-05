@@ -1,6 +1,5 @@
 import "react-native-get-random-values";
 import "./polyfills"; // MUST be first
-import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import React, {
   useCallback,
@@ -12,6 +11,7 @@ import React, {
 import {
   NavigationContainer,
   createNavigationContainerRef,
+  getStateFromPath,
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
@@ -37,7 +37,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import CrashReporting from "./services/CrashReporting";
 import { impact, ImpactFeedbackStyle } from "./utils/haptics";
 import { addNotificationResponseListener } from "./utils/notifications";
-import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
+import { SupabaseAuthService } from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
 import { cloudSyncStorage, storage, STORAGE_KEYS } from "./utils/storage";
 import ExpoUpdateService from "./services/ExpoUpdateService";
@@ -47,6 +47,8 @@ SplashScreen.preventAutoHideAsync();
 
 const isLightweightDevMode =
   __DEV__ && process.env.EXPO_PUBLIC_LIGHTWEIGHT_DEV === "1";
+const LOCK_GRACE_PERIOD_MS = 5 * 60 * 1000;
+const SAFE_DEEP_LINK_ID_RE = /^[a-zA-Z0-9_\-:.]{1,128}$/;
 
 let analyticsServiceInstance = null;
 let experimentServiceInstance = null;
@@ -149,7 +151,7 @@ if (__DEV__) {
         );
         console.log("[map_error] Call site:", new Error().stack);
       }
-    } catch (e) {
+    } catch (_error) {
       // ignore logging helper failures
     }
     originalConsoleError(...args);
@@ -180,7 +182,7 @@ if (__DEV__ && global?.ErrorUtils?.setGlobalHandler) {
           error?.componentStack || "(none)"
         );
       }
-    } catch (e) {
+    } catch (_error) {
       // ignore
     }
     defaultHandler?.(error, isFatal);
@@ -190,20 +192,53 @@ if (__DEV__ && global?.ErrorUtils?.setGlobalHandler) {
 // Utility helpers for consistent, non-sensitive logging
 const isDev = __DEV__;
 
-function safeErrorMessage(err) {
-  if (!err) return "unknown";
-  if (typeof err === "string") return err.slice(0, 120);
-  const name = err.name ? String(err.name) : "Error";
-  const msg = err.message ? String(err.message) : "Something went wrong";
-  return `${name}: ${msg}`.slice(0, 160);
-}
-
 function logError(context, err) {
   if (isDev) {
     console.error(`[${context}]`, err?.name, err?.message);
     return;
   }
   console.error(`[${context}] failed`);
+}
+
+function getInvalidDeepLinkReason(path) {
+  const cleanPath = String(path || "").split(/[?#]/)[0].replace(/^\/+/, "");
+  const parts = cleanPath.split("/").filter(Boolean);
+  const route = parts[0] || "";
+
+  if ((route === "prompt" || route === "date") && (
+    parts.length !== 2 ||
+    !SAFE_DEEP_LINK_ID_RE.test(parts[1] || "")
+  )) {
+    return `invalid_${route}_id`;
+  }
+
+  return null;
+}
+
+function normalizeDeepLinkPath(path) {
+  const rawPath = String(path || "");
+  const suffix = rawPath.match(/[?#].*$/)?.[0] || "";
+  const cleanPath = rawPath.split(/[?#]/)[0].replace(/^\/+/, "");
+  const parts = cleanPath.split("/").filter(Boolean);
+  const route = parts[0] || "";
+  const rest = parts.slice(1);
+  const aliases = {
+    pair: "connect-partner",
+    "date-ideas": "dates",
+    home: "",
+    "saved-moments": "our-story",
+  };
+
+  if (route === "widget") {
+    return `${rest[0] === "prompt" ? "prompts" : ""}${suffix}`;
+  }
+
+  if (!route) return rawPath;
+
+  const normalizedRoute = Object.prototype.hasOwnProperty.call(aliases, route)
+    ? aliases[route]
+    : route;
+  return [normalizedRoute, ...rest].filter(Boolean).join("/") + suffix;
 }
 
 const initializeRevenueCat = async () => {
@@ -246,19 +281,17 @@ function AppContent() {
   const [appStateVisible, setAppStateVisible] = useState(AppState.currentState);
   const backgroundTimeRef = useRef(null);
 
-  const LOCK_GRACE_PERIOD = 5 * 60 * 1000;
-
   useEffect(() => {
     if (state.appLockEnabled && appStateVisible === "active") {
       const lastBackgroundTime = backgroundTimeRef.current;
       if (
         !lastBackgroundTime ||
-        Date.now() - lastBackgroundTime > LOCK_GRACE_PERIOD
+        Date.now() - lastBackgroundTime > LOCK_GRACE_PERIOD_MS
       ) {
         setIsLocked(true);
       }
     }
-  }, [state.appLockEnabled]);
+  }, [appStateVisible, state.appLockEnabled]);
 
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
@@ -272,7 +305,7 @@ function AppContent() {
           const backgroundTime = backgroundTimeRef.current;
           if (
             backgroundTime &&
-            Date.now() - backgroundTime > LOCK_GRACE_PERIOD
+            Date.now() - backgroundTime > LOCK_GRACE_PERIOD_MS
           ) {
             setIsLocked(true);
           }
@@ -529,7 +562,10 @@ function AppContent() {
         JournalEntry: "journal/new",
         OurStory: "our-story",
         DateNightDetail: "date/:dateId",
+        IntimacyPositions: "intimacy",
+        CouplesQuiz: "quiz",
         MainTabs: {
+          path: "",
           screens: {
             Calendar: "calendar",
             DatePlans: "dates",
@@ -537,6 +573,18 @@ function AppContent() {
           },
         },
       },
+    },
+    getStateFromPath(path, options) {
+      const invalidReason = getInvalidDeepLinkReason(path);
+      if (invalidReason) {
+        CrashReporting.captureMessage(
+          `Rejected malformed deep link: ${invalidReason}`,
+          "warning"
+        );
+        return undefined;
+      }
+
+      return getStateFromPath(normalizeDeepLinkPath(path), options);
     },
   };
 

@@ -46,6 +46,7 @@ import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
+import { getDailyContentDateKey } from "../utils/dailyContentDate";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SCREEN_W = SCREEN_WIDTH;
@@ -443,7 +444,7 @@ export default function PromptsScreen({ navigation }) {
     }
 
     navigation.navigate("PromptAnswer", {
-      prompt: { ...prompt, dateKey: new Date().toISOString().split("T")[0] },
+      prompt: { ...prompt, dateKey: getDailyContentDateKey() },
     });
   }, [freeDeckPromptIds, isPremium, navigation, showPaywall]);
 

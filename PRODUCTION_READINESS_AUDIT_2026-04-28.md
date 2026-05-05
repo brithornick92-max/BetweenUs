@@ -23,7 +23,7 @@ This historical audit also listed infrastructure and offline-sync concerns that 
 
 - Offline queue recovery and duplicate protection.
 - Sentry breadcrumbs for high-value user flows.
-- Build and deployment health checks.
+- Platform build/QA verification beyond the current npm validation scripts.
 - Store metadata and privacy-policy review.
 
 Those items are not part of the current content logic gate.

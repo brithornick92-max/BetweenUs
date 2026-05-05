@@ -20,13 +20,13 @@ const _getSupabase = () => {
   return _supabase || null;
 };
 
-// ── UUID validation — legacy cached IDs have a "user_" prefix and are not
-//    valid Supabase auth UUIDs. Skip remote ops when the ID fails this check. ──
+// ── UUID validation — cached device IDs are not valid Supabase auth UUIDs.
+//    Skip remote ops when the ID fails this check. ──
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const _isValidUUID = (str) => typeof str === 'string' && UUID_RE.test(str);
 
 // ── Resolve the real Supabase auth UUID at runtime.
-//    Cache may hold a legacy 'user_XXX' id; always prefer the live session. ──
+//    Cache may hold a device-local ID; always prefer the live session. ──
 const _resolveSupabaseUserId = async (fallbackUserId) => {
   try {
     const sb = _getSupabase();
@@ -168,7 +168,7 @@ export const MomentSignalSender = {
     };
 
     // ── Remote send via Supabase ──
-    // Guard: legacy cached IDs ("user_" prefix) are not Supabase auth UUIDs
+    // Guard: cached device-local IDs are not Supabase auth UUIDs
     if (sb && coupleId && userId && _isValidUUID(userId)) {
       try {
         const tableName = (_supabaseTables && _supabaseTables.COUPLE_DATA) || 'couple_data';
@@ -345,8 +345,8 @@ export const MomentSignalSender = {
             if (row?.data_type !== 'moment_signal') return;
             if (userId && row?.created_by === userId) return; // Skip own signals
             try {
-              // value is stored as jsonb — the Supabase client returns it as an object.
-              // Guard against legacy rows where it was stored as a JSON string.
+              // value is stored as jsonb. Accept string-valued rows defensively
+              // so a malformed realtime payload cannot break the listener.
               const signal = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
               if (__DEV__) console.log('[MomentSignal] Incoming signal received:', signal?.moment_type);
               onSignal(signal);
