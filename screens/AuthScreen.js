@@ -11,6 +11,7 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -25,6 +26,24 @@ import { SPACING } from '../utils/theme';
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 
+const INTRO_POINTS = [
+  {
+    icon: "people-outline",
+    title: "Made for two people",
+    body: "Invite your partner into the same private space so prompts, date ideas, and saved moments stay shared.",
+  },
+  {
+    icon: "sparkles-outline",
+    title: "Small ways back to each other",
+    body: "Answer gentle questions, plan time together, and keep the moments you want to remember.",
+  },
+  {
+    icon: "lock-closed-outline",
+    title: "Account required for pairing",
+    body: "Sign-in keeps each person connected to the right partner and protects synced content across devices.",
+  },
+];
+
 export default function AuthScreen() {
   const auth = useAuth();
   const signIn = auth?.signIn;
@@ -35,6 +54,7 @@ export default function AuthScreen() {
   const recoveryEmail = String(route?.params?.recoveryEmail || '').trim();
 
   const [isSignUp, setIsSignUp] = useState(false);
+  const [authVisible, setAuthVisible] = useState(!!recoveryEmail);
   const [email, setEmail] = useState(recoveryEmail);
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -63,6 +83,12 @@ export default function AuthScreen() {
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  const headerSubtitle = authVisible
+    ? isSignUp ? "Where closeness deepens" : "Welcome back"
+    : "A private space for two";
+  const scrollContentStyle = authVisible
+    ? styles.scrollContent
+    : styles.onboardingScrollContent;
 
   const handleAuth = useCallback(async () => {
     if (submitting) return;
@@ -140,6 +166,23 @@ export default function AuthScreen() {
     }
   }, [signIn, signUp, email, password, displayName, confirmPassword, isSignUp, ageConfirmed, termsAccepted, submitting]);
 
+  const startAuth = useCallback((mode) => {
+    selection().catch(() => {});
+    setIsSignUp(mode === "signup");
+    setPassword("");
+    setDisplayName("");
+    setConfirmPassword("");
+    setAgeConfirmed(false);
+    setTermsAccepted(false);
+    setAuthVisible(true);
+  }, []);
+
+  const returnToIntro = useCallback(() => {
+    Keyboard.dismiss();
+    selection().catch(() => {});
+    setAuthVisible(false);
+  }, []);
+
   const toggleMode = useCallback(() => {
     selection().catch(() => {});
     setIsSignUp((v) => !v);
@@ -190,26 +233,107 @@ export default function AuthScreen() {
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={scrollContentStyle}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             bounces={true}
           >
-            {/* ─── Header ─── */}
-            <View style={styles.header}>
-              <View style={[styles.heartGlow, { shadowColor: t.primary }]}>
-                <Icon name="heart" size={32} color={t.primary} />
-              </View>
-              <Text style={styles.title}>Between Us</Text>
-              <View style={styles.divider} />
-              <Text style={styles.subtitle}>
-                {isSignUp ? "Where closeness deepens" : "Welcome back"}
-              </Text>
-            </View>
+            {!authVisible ? (
+              <>
+                <View style={styles.screenHeader}>
+                  <Text style={[styles.screenEyebrow, { color: t.primary }]}>BETWEEN US</Text>
+                  <Text style={styles.screenTitle}>{headerSubtitle}</Text>
+                  <Text style={styles.screenDescription}>
+                    Built for two, not a feed. Share prompts, date ideas, and little memories in one private place.
+                  </Text>
+                </View>
 
-            {/* ─── Form ─── */}
-            <View style={styles.form}>
+                <Text style={styles.groupLabel}>HOW IT WORKS</Text>
+                <View style={[styles.groupCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                  {INTRO_POINTS.map((item) => (
+                    <View key={item.title}>
+                      <View style={styles.listRow}>
+                        <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(210, 18, 26, 0.18)' : 'rgba(210, 18, 26, 0.08)' }]}>
+                          <Icon name={item.icon} size={20} color={t.primary} />
+                        </View>
+                        <View style={styles.rowText}>
+                          <Text style={styles.rowTitle}>{item.title}</Text>
+                          <Text style={styles.rowBody}>{item.body}</Text>
+                        </View>
+                      </View>
+                      {item !== INTRO_POINTS[INTRO_POINTS.length - 1] && (
+                        <View style={[styles.rowDivider, { backgroundColor: t.border }]} />
+                      )}
+                    </View>
+                  ))}
+                </View>
+
+                <Text style={styles.groupLabel}>ACCOUNT</Text>
+                <View style={[styles.groupCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                  <View style={styles.listRow}>
+                    <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(210, 18, 26, 0.18)' : 'rgba(210, 18, 26, 0.08)' }]}>
+                      <Icon name="mail-outline" size={20} color={t.primary} />
+                    </View>
+                    <View style={styles.rowText}>
+                      <Text style={styles.rowTitle}>Private sync, not marketing</Text>
+                      <Text style={styles.rowBody}>
+                        Your account is for sign-in, partner pairing, and private sync. It is not used for marketing emails.
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.authButton, styles.onboardingPrimaryButton, { backgroundColor: t.primary }]}
+                  onPress={() => startAuth("signup")}
+                  activeOpacity={0.9}
+                  accessibilityRole="button"
+                  accessibilityLabel="Create Account"
+                >
+                  <Text style={styles.authButtonText}>Create Account</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.introSignInButton}
+                  onPress={() => startAuth("signin")}
+                  activeOpacity={0.75}
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign In"
+                >
+                  <Text style={styles.toggleLabel}>
+                    Already have an account?
+                    <Text style={[styles.toggleAction, { color: t.primary }]}> Sign In</Text>
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                {/* ─── Header ─── */}
+                <View style={styles.header}>
+                  <View style={[styles.heartGlow, { shadowColor: t.primary }]}>
+                    <Icon name="heart" size={32} color={t.primary} />
+                  </View>
+                  <Text style={styles.title}>Between Us</Text>
+                  <View style={styles.divider} />
+                  <Text style={styles.subtitle}>{headerSubtitle}</Text>
+                </View>
+
+                {!recoveryEmail && (
+                  <TouchableOpacity
+                    style={styles.backToIntroButton}
+                    onPress={returnToIntro}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel="Back to app introduction"
+                  >
+                    <Icon name="chevron-back-outline" size={18} color={t.subtext} />
+                    <Text style={styles.backToIntroText}>Why Between Us?</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* ─── Form ─── */}
+                <View style={styles.form}>
               {isSignUp && (
                 <InputWrapper>
                   <Icon
@@ -423,7 +547,9 @@ export default function AuthScreen() {
                   <Text style={[styles.toggleAction, { color: t.primary }]}> {isSignUp ? "Sign In" : "Create Account"}</Text>
                 </Text>
               </TouchableOpacity>
-            </View>
+                </View>
+              </>
+            )}
 
             {/* ─── Security Badge ─── */}
             <View style={styles.securityBadge}>
@@ -478,7 +604,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SERIF_FONT,
     fontSize: 40,
     color: t.text,
-    letterSpacing: -1,
+    letterSpacing: 0,
     textAlign: 'center',
   },
 
@@ -497,12 +623,122 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.subtext,
     textAlign: "center",
     fontWeight: "400",
-    letterSpacing: 0.3,
+    letterSpacing: 0,
     textTransform: 'uppercase',
   },
 
   form: {
     width: "100%",
+  },
+
+  intro: {
+    width: "100%",
+  },
+
+  introTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "800",
+    color: t.text,
+    letterSpacing: 0,
+    textAlign: "center",
+    marginBottom: SPACING.sm,
+  },
+
+  introBody: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
+    lineHeight: 23,
+    color: t.subtext,
+    textAlign: "center",
+    fontWeight: "500",
+    marginBottom: SPACING.xl,
+  },
+
+  introList: {
+    gap: 12,
+    marginBottom: SPACING.lg,
+  },
+
+  introRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: SPACING.lg,
+  },
+
+  introIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: SPACING.md,
+  },
+
+  introCopy: {
+    flex: 1,
+  },
+
+  introPointTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 16,
+    color: t.text,
+    fontWeight: "700",
+    letterSpacing: 0,
+    marginBottom: 4,
+  },
+
+  introPointBody: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    lineHeight: 20,
+    color: t.subtext,
+    fontWeight: "500",
+  },
+
+  privacyNote: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+    gap: 10,
+  },
+
+  privacyText: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    lineHeight: 19,
+    color: t.subtext,
+    fontWeight: "600",
+  },
+
+  introSignInButton: {
+    alignItems: "center",
+    paddingVertical: SPACING.lg,
+  },
+
+  backToIntroButton: {
+    flexDirection: "row",
+    alignSelf: "center",
+    alignItems: "center",
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginTop: -SPACING.md,
+    marginBottom: SPACING.lg,
+    gap: 4,
+  },
+
+  backToIntroText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    color: t.subtext,
+    fontWeight: "700",
   },
 
   inputContainer: {
@@ -554,7 +790,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 17,
     fontWeight: "600",
-    letterSpacing: -0.4,
+    letterSpacing: 0,
   },
 
   toggleButton: {
@@ -572,14 +808,14 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
     fontWeight: '500',
-    letterSpacing: -0.2,
+    letterSpacing: 0,
   },
 
   toggleLabel: {
     fontFamily: SYSTEM_FONT,
     fontSize: 15,
     color: t.subtext,
-    letterSpacing: -0.2,
+    letterSpacing: 0,
   },
 
   toggleAction: {

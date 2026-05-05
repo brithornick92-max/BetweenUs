@@ -25,6 +25,7 @@ export const RelationshipProfile = () => withScreenErrorBoundary(require("../scr
 export const Settings = () => withScreenErrorBoundary(require("../screens/SettingsScreen").default, "Settings");
 export const OurStory = () => withScreenErrorBoundary(require("../screens/OurStoryScreen").default, "OurStory");
 export const AddMemory = () => withScreenErrorBoundary(require("../screens/AddMemoryScreen").default, "AddMemory");
+export const ThinkingOfYou = () => withScreenErrorBoundary(require("../screens/ThinkingOfYouScreen").default, "ThinkingOfYou");
 
 // ─── Legal / info ───────────────────────────────────────────────────
 export const Terms = () => withScreenErrorBoundary(require("../screens/TermsScreen").default, "Terms");

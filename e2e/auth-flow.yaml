@@ -20,12 +20,20 @@ appId: com.brittany.betweenus
     optional: true
 - waitForAnimationToEnd
 
-# Auth screen should appear first for new users
-- assertVisible: "Sign In"
+# Intro screen should appear before account friction for new users
+- assertVisible: "Built for two, not a feed."
+- assertVisible: "Account required for pairing"
+- assertVisible: "not used for marketing emails"
+
+# Continue into the sign-in form
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Auth form should now be visible
 - assertVisible: "Email address"
 - assertVisible: "Password"
 
-# Verify the auth screen has key elements
+# Verify the auth flow still has key elements
 - assertVisible:
     text: ".*Between Us.*"
 
