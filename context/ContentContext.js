@@ -128,9 +128,9 @@ export const ContentProvider = ({ children }) => {
   }, []);
 
   // Load the unified content profile (all user preferences)
-  const loadContentProfile = useCallback(async () => {
+  const loadContentProfile = useCallback(async (profileSource = userProfile || {}) => {
     try {
-      const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+      const profile = await PreferenceEngine.getContentProfile(profileSource || {});
       setContentProfile(profile);
       return profile;
     } catch (error) {
@@ -138,6 +138,24 @@ export const ContentProvider = ({ children }) => {
       return null;
     }
   }, [userProfile]);
+
+  const filterVisiblePromptsForProfile = useCallback(async (promptPool, profile) => {
+    const normalizedPool = Array.isArray(promptPool) ? promptPool.filter(Boolean) : [];
+    if (!normalizedPool.length) return [];
+
+    if (profile) {
+      return PreferenceEngine.filterPrompts(normalizedPool, profile);
+    }
+
+    const checks = await Promise.all(
+      normalizedPool.map(async (prompt) => ({
+        prompt,
+        ok: await SoftBoundaries.shouldShowPrompt(prompt),
+      }))
+    );
+
+    return checks.filter((entry) => entry.ok).map((entry) => entry.prompt);
+  }, []);
 
   // Calculate relationship duration in days
   const getRelationshipDuration = useCallback(() => {
@@ -184,7 +202,7 @@ export const ContentProvider = ({ children }) => {
   // Caller-specific heat selection must not regenerate a second "today" prompt.
   // We keep the legacy parameter for compatibility with existing callers, but
   // the selection itself is based on the persisted content profile only.
-  const loadTodayPrompt = useCallback(async (heatLevel = null) => {
+  const loadTodayPrompt = useCallback(async (_heatLevel = null, options = {}) => {
       if (loadingPromptRef.current) return todayPrompt;
 
       try {
@@ -200,17 +218,13 @@ export const ContentProvider = ({ children }) => {
       });
       const scope = getDailyPromptScope(user.uid, coupleId);
 
-      if (todayPrompt?.dateKey === today && todayPrompt?._dailyPromptScope === scope) {
-        return todayPrompt;
-      }
-
       // Load (or refresh) the content profile
-      const profile = await loadContentProfile();
+      const profile = await loadContentProfile(options?.profileOverride || userProfile || {});
 
       // Determine the daily pool from the persisted profile only so the day's
       // moment stays fixed regardless of which screen opens it first.
       const effectiveHeat = contentAccessService.getUserMaxHeatLevel(
-        profile || userProfile || {}
+        profile || options?.profileOverride || userProfile || {}
       );
 
       // Check if user can access this heat level
@@ -252,11 +266,17 @@ export const ContentProvider = ({ children }) => {
           contentType: 'prompts',
           user,
           userProfile,
-          userSettings: profile || userProfile || {},
+          userSettings: profile || options?.profileOverride || userProfile || {},
         });
         if (freeDeckPrompts.length > 0) {
           promptsData = freeDeckPrompts;
         }
+      }
+
+      promptsData = await filterVisiblePromptsForProfile(promptsData, profile);
+
+      if (promptsData.length === 0) {
+        throw new Error('No prompts available for your preferences');
       }
 
       const availablePromptIds = new Set(
@@ -264,6 +284,16 @@ export const ContentProvider = ({ children }) => {
           .map((prompt) => String(prompt?.id || ''))
           .filter(Boolean)
       );
+
+      if (
+        todayPrompt?.dateKey === today
+        && todayPrompt?._dailyPromptScope === scope
+        && todayPrompt?.id
+        && availablePromptIds.has(String(todayPrompt.id))
+      ) {
+        PromptAllocator.setDailyPromptId(todayPrompt.id);
+        return todayPrompt;
+      }
 
       const cachedPromptSelection = await storage.get(DAILY_PROMPT_CACHE_KEY, null);
       if (
@@ -317,11 +347,7 @@ export const ContentProvider = ({ children }) => {
 
       // Guard against prompt missing .text — still respect boundaries
       if (!selectedPrompt || typeof selectedPrompt.text !== 'string' || !selectedPrompt.text.trim()) {
-        const boundaryChecks = await Promise.all(
-          promptsData.map(async (p) => ({ prompt: p, allowed: await SoftBoundaries.shouldShowPrompt(p) }))
-        );
-        const safePool = boundaryChecks.filter(b => b.allowed).map(b => b.prompt);
-        const fallback = (safePool.length > 0 ? safePool : promptsData)
+        const fallback = promptsData
           .find((p) => p && typeof p.text === 'string' && p.text.trim());
         selectedPrompt = fallback || FALLBACK_PROMPT;
       }
@@ -374,6 +400,7 @@ export const ContentProvider = ({ children }) => {
       }
   }, [
     ensureSupabaseSession,
+    filterVisiblePromptsForProfile,
     getDurationCategory,
     getRelationshipDuration,
     isPremium,

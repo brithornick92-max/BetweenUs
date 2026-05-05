@@ -300,6 +300,14 @@ export default function HomeScreen({ navigation }) {
     }
   }, [user, todayPrompt, loadTodayPrompt]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!user || typeof loadTodayPrompt !== 'function') return undefined;
+      loadTodayPrompt(null).catch(() => {});
+      return undefined;
+    }, [user, loadTodayPrompt])
+  );
+
   useEffect(() => {
     let active = true;
 

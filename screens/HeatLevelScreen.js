@@ -26,7 +26,7 @@ export default function HeatLevelScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium } = useEntitlements();
   const { loadTodayPrompt, usageStatus, loadContentProfile } = useContent();
-  const { updateProfile } = useAuth();
+  const { userProfile, updateProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
@@ -83,17 +83,21 @@ export default function HeatLevelScreen({ navigation }) {
       setLoading(true);
       impact(ImpactFeedbackStyle.Light);
 
-      // Load today's prompt for this heat level
-      const prompt = await loadTodayPrompt(level);
-
       // Persist the heat level as their preference
+      const updatedProfile = updateProfile
+        ? await updateProfile({ heatLevelPreference: level })
+        : null;
+
       if (updateProfile) {
-        updateProfile({ heatLevelPreference: level }).catch(() => {});
+        if (loadContentProfile) {
+          await loadContentProfile(updatedProfile || { heatLevelPreference: level });
+        }
       }
-      // Refresh the content profile so other screens pick up the change
-      if (loadContentProfile) {
-        loadContentProfile().catch(() => {});
-      }
+
+      // Load today's prompt using the just-saved profile so boundaries/heat apply immediately.
+      const prompt = await loadTodayPrompt(level, {
+        profileOverride: updatedProfile || { ...(userProfile || {}), heatLevelPreference: level },
+      });
       
       if (prompt) {
         navigation.navigate('PromptAnswer', {

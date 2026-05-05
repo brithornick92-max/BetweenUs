@@ -14,7 +14,7 @@ import {
   Animated,
   useWindowDimensions,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 // Context & Services
 import { useTheme } from '../context/ThemeContext';
@@ -156,33 +156,35 @@ export default function IntimacyPositionsScreen() {
     ]).start();
   }, [headerAnim, pickerAnim, cardAnim]);
 
+  const loadPositionAccess = useCallback(async () => {
+    const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+    const result = await contentAccessService.getAccessiblePositions(positionCatalog, {
+      isPremium: isPremiumEffective,
+      userSettings: profile || userProfile || {},
+      includeAll: true,
+    });
+
+    setPositionAccess(result);
+
+    const accessiblePositions = result.positions || [];
+    const weeklySet = buildWeeklySet(accessiblePositions, {
+      contentType: CONTENT_TYPES.POSITIONS,
+      userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
+      isPremium: isPremiumEffective,
+      userSettings: profile || userProfile || {},
+      userCreatedAt: userProfile?.created_at || userProfile?.createdAt || userProfile?.created || userProfile?.creationTime,
+      date: new Date(),
+    });
+
+    setWeeklyPositionSet(weeklySet);
+  }, [isPremiumEffective, positionCatalog, userProfile]);
+
   useEffect(() => {
     let active = true;
 
     (async () => {
       try {
-        const profile = await PreferenceEngine.getContentProfile(userProfile || {});
-        const result = await contentAccessService.getAccessiblePositions(positionCatalog, {
-          isPremium: isPremiumEffective,
-          userSettings: profile || userProfile || {},
-          includeAll: true,
-        });
-
-        if (active) {
-          setPositionAccess(result);
-
-          const accessiblePositions = result.positions || [];
-          const weeklySet = buildWeeklySet(accessiblePositions, {
-            contentType: CONTENT_TYPES.POSITIONS,
-            userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
-            isPremium: isPremiumEffective,
-            userSettings: profile || userProfile || {},
-            userCreatedAt: userProfile?.created_at || userProfile?.createdAt || userProfile?.created || userProfile?.creationTime,
-            date: new Date(),
-          });
-
-          setWeeklyPositionSet(weeklySet);
-        }
+        await loadPositionAccess();
       } catch {
         if (active) {
           setPositionAccess({
@@ -199,7 +201,28 @@ export default function IntimacyPositionsScreen() {
     return () => {
       active = false;
     };
-  }, [isPremiumEffective, positionCatalog, userProfile]);
+  }, [isPremiumEffective, loadPositionAccess]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      loadPositionAccess().catch(() => {
+        if (!active) return;
+        setPositionAccess({
+          positions: [],
+          totalAvailable: 0,
+          access: { isPremium: isPremiumEffective, isPreviewLimited: false, lockedCount: 0 },
+          newThisWeek: [],
+        });
+        setWeeklyPositionSet(null);
+      });
+
+      return () => {
+        active = false;
+      };
+    }, [isPremiumEffective, loadPositionAccess])
+  );
 
   useEffect(() => {
     let active = true;
