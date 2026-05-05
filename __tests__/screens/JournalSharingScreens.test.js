@@ -9,6 +9,8 @@ const {
   mockUpdateJournalEntry,
   mockGetJournalEntries,
   mockStorageGet,
+  mockShowPaywall,
+  setEntitlementsMock,
 } = require('../helpers/screenTestHarness');
 
 const JournalEntryScreen = require('../../screens/JournalEntryScreen').default;
@@ -58,6 +60,21 @@ describe('Journal sharing screens', () => {
       })
     );
     expect(navigation.goBack).toHaveBeenCalled();
+  });
+
+  it('does not auto-paywall free users when opening the journal entry screen', async () => {
+    setEntitlementsMock({ isPremiumEffective: false });
+
+    const navigation = createNavigation({
+      canGoBack: jest.fn(() => true),
+    });
+
+    await renderScreen(JournalEntryScreen, { navigation, route: { params: {} } });
+    await flushEffects();
+
+    expect(mockShowPaywall).not.toHaveBeenCalled();
+    expect(navigation.goBack).not.toHaveBeenCalled();
+    expect(navigation.navigate).not.toHaveBeenCalled();
   });
 
   it('shows shared journal photo thumbnails and opens partner entries read-only', async () => {

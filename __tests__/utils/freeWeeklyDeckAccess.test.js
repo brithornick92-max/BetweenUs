@@ -1,5 +1,6 @@
 import { CONTENT_TYPES } from '../../services/WeeklyContentSetService';
 import {
+  filterItemsToFreeWeeklyDeck,
   getFreeWeeklyDeck,
   isItemInFreeWeeklyDeck,
 } from '../../utils/freeWeeklyDeckAccess';
@@ -86,5 +87,22 @@ describe('freeWeeklyDeckAccess', () => {
 
     expect(isItemInFreeWeeklyDeck(deckId, prompts, options)).toBe(true);
     expect(isItemInFreeWeeklyDeck(outsideId, prompts, options)).toBe(false);
+  });
+
+  it('filters a prompt pool down to the current free weekly deck', () => {
+    const prompts = Array.from({ length: 8 }, (_, index) => makePrompt(`prompt-${index + 1}`));
+    const options = {
+      contentType: CONTENT_TYPES.PROMPTS,
+      userId: 'user-1',
+      userProfile: { created_at: '2026-04-01T12:00:00.000Z' },
+      userSettings: { maxHeat: 5 },
+      date: new Date('2026-04-30T12:00:00.000Z'),
+    };
+
+    const deck = getFreeWeeklyDeck(prompts, options);
+    const filtered = filterItemsToFreeWeeklyDeck(prompts, options);
+
+    expect(filtered).toHaveLength(deck.length);
+    expect(filtered.map((item) => item.id).sort()).toEqual(deck.map((item) => item.id).sort());
   });
 });

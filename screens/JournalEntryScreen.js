@@ -1,7 +1,7 @@
 // screens/JournalEntryScreen.js — Shared Journal
 // Velvet Glass · Apple Editorial Vertical Rhythm · Haptic Stationery Physics
 
-import React, { useState, useRef, useMemo, useEffect } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -27,10 +27,8 @@ import * as ImagePicker from "expo-image-picker";
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { DataLayer } from "../services/localfirst";
 import { useTheme } from "../context/ThemeContext";
-import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import { useAppContext } from "../context/AppContext";
-import { PremiumFeature } from '../utils/featureFlags';
 import { withAlpha, SPACING } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
@@ -44,7 +42,6 @@ const { width: SCREEN_W } = Dimensions.get('window');
 export default function JournalEntryScreen({ navigation, route }) {
   const { entry, readOnly = false } = route.params || {};
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user } = useAuth();
   const { state } = useAppContext();
 
@@ -55,23 +52,6 @@ export default function JournalEntryScreen({ navigation, route }) {
 
   const isOwnEntry = !!entry?.id && (ownerIds.has(entry?.user_id) || ownerIds.has(entry?.created_by));
   const isReadOnly = !!readOnly || (!!entry?.id && !isOwnEntry);
-  const isPremiumGated = !isPremium;
-
-  useEffect(() => {
-    if (!isPremiumGated) return undefined;
-
-    showPaywall?.(PremiumFeature.UNLIMITED_JOURNAL_HISTORY);
-
-    const id = requestAnimationFrame(() => {
-      if (navigation.canGoBack()) {
-        navigation.goBack();
-      } else {
-        navigation.navigate('JournalHome');
-      }
-    });
-
-    return () => cancelAnimationFrame(id);
-  }, [isPremiumGated, navigation, showPaywall]);
 
   const [title, setTitle] = useState(entry?.title || "");
   const [content, setContent] = useState(entry?.content || entry?.body || "");

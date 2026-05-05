@@ -13,6 +13,11 @@ const mockStorageGet = jest.fn();
 const mockStorageSet = jest.fn();
 const mockStorageRemove = jest.fn();
 const mockAlert = jest.fn();
+const mockShowPaywall = jest.fn();
+const mockEntitlements = {
+  isPremiumEffective: true,
+  showPaywall: mockShowPaywall,
+};
 
 function mockCreateHostComponent(name) {
   const Component = (props) => React.createElement(name, props, props.children);
@@ -162,10 +167,7 @@ jest.mock('../../context/ThemeContext', () => ({
 }));
 
 jest.mock('../../context/EntitlementsContext', () => ({
-  useEntitlements: () => ({
-    isPremiumEffective: true,
-    showPaywall: jest.fn(),
-  }),
+  useEntitlements: () => mockEntitlements,
 }));
 
 jest.mock('../../context/AuthContext', () => ({
@@ -261,6 +263,7 @@ function findTouchablesByText(root, textValue) {
 
 function resetScreenHarnessMocks() {
   jest.clearAllMocks();
+  mockEntitlements.isPremiumEffective = true;
   mockUpdateJournalEntry.mockResolvedValue(undefined);
   mockSaveJournalEntry.mockResolvedValue(undefined);
   mockGetJournalEntries.mockResolvedValue([]);
@@ -272,6 +275,10 @@ function resetScreenHarnessMocks() {
   mockStorageGet.mockResolvedValue(true);
   mockStorageSet.mockResolvedValue(undefined);
   mockStorageRemove.mockResolvedValue(undefined);
+}
+
+function setEntitlementsMock(overrides = {}) {
+  Object.assign(mockEntitlements, overrides);
 }
 
 module.exports = {
@@ -295,4 +302,6 @@ module.exports = {
   mockStorageSet,
   mockStorageRemove,
   mockAlert,
+  mockShowPaywall,
+  setEntitlementsMock,
 };

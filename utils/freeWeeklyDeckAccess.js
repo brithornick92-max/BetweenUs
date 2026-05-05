@@ -35,6 +35,14 @@ export function getFreeWeeklyDeckItemIds(items, options = {}) {
   );
 }
 
+export function filterItemsToFreeWeeklyDeck(items, options = {}) {
+  const weeklyDeckItemIds = getFreeWeeklyDeckItemIds(items, options);
+  return (Array.isArray(items) ? items : []).filter((item) => {
+    const itemId = getItemId(item);
+    return itemId != null && weeklyDeckItemIds.has(String(itemId));
+  });
+}
+
 export function isItemInFreeWeeklyDeck(itemId, items, options = {}) {
   if (!itemId) return false;
   return getFreeWeeklyDeckItemIds(items, options).has(String(itemId));
