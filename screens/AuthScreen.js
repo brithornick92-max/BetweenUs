@@ -51,9 +51,24 @@ const APP_PREVIEW_POINTS = [
     body: "Answer thoughtful questions, reveal responses, and build a private rhythm of checking in.",
   },
   {
-    icon: "calendar-outline",
+    icon: "sparkles-outline",
     title: "Date ideas and plans",
     body: "Find date-night ideas, save favorites, and keep track of the experiences you try together.",
+  },
+  {
+    icon: "calendar-outline",
+    title: "Shared calendar",
+    body: "Plan date nights, anniversaries, reminders, and the rituals you want to protect together.",
+  },
+  {
+    icon: "book-outline",
+    title: "Journal",
+    body: "Write private or shared reflections, save meaningful answers, and revisit what you are learning.",
+  },
+  {
+    icon: "flame-outline",
+    title: "Sex positions",
+    body: "Explore intimacy positions by heat level and save the ones you both want to revisit.",
   },
   {
     icon: "images-outline",

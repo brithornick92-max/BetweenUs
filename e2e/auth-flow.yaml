@@ -29,6 +29,11 @@ appId: com.brittany.betweenus
 - assertVisible: "Account required for pairing"
 
 - scroll
+- assertVisible: "Shared calendar"
+- assertVisible: "Journal"
+- assertVisible: "Sex positions"
+
+- scroll
 - assertVisible:
     text: ".*not used for marketing emails.*"
 
