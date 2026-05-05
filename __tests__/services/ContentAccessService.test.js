@@ -1,5 +1,6 @@
 import contentAccessService from '../../services/ContentAccessService';
 import UsageEventsService from '../../services/UsageEventsService';
+import { FREE_LIMITS, PREMIUM_LIMITS } from '../../utils/featureFlags';
 
 jest.mock('../../services/UsageEventsService', () => ({
   __esModule: true,
@@ -41,6 +42,41 @@ describe('ContentAccessService', () => {
 
   it('defaults to all heat levels when no boundaries are set', () => {
     expect(contentAccessService.getAllowedHeatLevels(false, {})).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('keeps release summary counts aligned with canonical feature limits', () => {
+    expect(contentAccessService.getReleaseSummary()).toMatchObject({
+      prompts: {
+        week0: {
+          free: FREE_LIMITS.WEEK_0_PROMPTS,
+          premium: PREMIUM_LIMITS.WEEK_0_PROMPTS,
+        },
+        perWeek: {
+          free: FREE_LIMITS.WEEKLY_PROMPTS,
+          premium: PREMIUM_LIMITS.WEEKLY_PROMPTS,
+        },
+      },
+      dates: {
+        week0: {
+          free: FREE_LIMITS.WEEK_0_DATES,
+          premium: PREMIUM_LIMITS.WEEK_0_DATES,
+        },
+        perWeek: {
+          free: FREE_LIMITS.WEEKLY_DATES,
+          premium: PREMIUM_LIMITS.WEEKLY_DATES,
+        },
+      },
+      positions: {
+        week0: {
+          free: FREE_LIMITS.WEEK_0_POSITIONS,
+          premium: PREMIUM_LIMITS.WEEK_0_POSITIONS,
+        },
+        perWeek: {
+          free: FREE_LIMITS.WEEKLY_POSITIONS,
+          premium: PREMIUM_LIMITS.WEEKLY_POSITIONS,
+        },
+      },
+    });
   });
 
   it('does not treat personalization heat hints as hard boundaries', () => {

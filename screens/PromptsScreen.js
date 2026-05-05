@@ -235,6 +235,8 @@ export default function PromptsScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [shuffleNonce, setShuffleNonce] = useState(0);
   const [promptDeckIndex, setPromptDeckIndex] = useState(0);
+  const [promptDeckRevealsCards, setPromptDeckRevealsCards] = useState(false);
+  const [topPromptRevealed, setTopPromptRevealed] = useState(false);
   const [shuffledDeckPrompts, setShuffledDeckPrompts] = useState(null);
   const [savedLaterPrompts, setSavedLaterPrompts] = useState([]);
   const shuffleAnim = useSharedValue(0);
@@ -410,6 +412,8 @@ export default function PromptsScreen({ navigation }) {
   useEffect(() => {
     setShuffledDeckPrompts(null);
     setPromptDeckIndex(0);
+    setPromptDeckRevealsCards(false);
+    setTopPromptRevealed(false);
   }, [baseDeckPrompts]);
 
   const deckPrompts = shuffledDeckPrompts || baseDeckPrompts;
@@ -427,7 +431,13 @@ export default function PromptsScreen({ navigation }) {
   const handlePromptReveal = useCallback(() => {
     // Revealing/browsing a card is free. The free prompt quota is consumed only
     // when the user saves their first answer for that prompt.
+    setTopPromptRevealed(true);
   }, []);
+
+  const handlePromptDeckIndexChange = useCallback((nextIndex) => {
+    setPromptDeckIndex(nextIndex);
+    setTopPromptRevealed(promptDeckRevealsCards);
+  }, [promptDeckRevealsCards]);
 
   const handlePromptSelect = useCallback((prompt) => {
     if (prompt?.isLockedPreview || prompt?.requiresPremium) {
@@ -528,6 +538,8 @@ export default function PromptsScreen({ navigation }) {
   const handleShuffle = useCallback(() => {
     if (freeDeckDone) return;
 
+    const shouldRevealCards = topPromptRevealed;
+    setPromptDeckRevealsCards(shouldRevealCards);
     setShuffleNonce((value) => value + 1);
 
     // 1. Visual shake animation
@@ -548,8 +560,9 @@ export default function PromptsScreen({ navigation }) {
     setTimeout(() => {
       setShuffledDeckPrompts(shuffleArray(baseDeckPrompts, deckPrompts[promptDeckIndex]));
       setPromptDeckIndex(0);
+      setTopPromptRevealed(shouldRevealCards);
     }, 420);
-  }, [baseDeckPrompts, deckPrompts, freeDeckDone, promptDeckIndex, shuffleAnim]);
+  }, [baseDeckPrompts, deckPrompts, freeDeckDone, promptDeckIndex, shuffleAnim, topPromptRevealed]);
 
   const deckStyle = useAnimatedStyle(() => {
     const shuffleX = interpolate(shuffleAnim.value, [-1, 0, 1], [-15, 0, 15]);
@@ -625,10 +638,11 @@ export default function PromptsScreen({ navigation }) {
                   onSkip={() => impact(ImpactFeedbackStyle.Light)}
                   onLongPress={handlePromptBoundaryAction}
                   onReveal={handlePromptReveal}
-                  onIndexChange={setPromptDeckIndex}
+                  onIndexChange={handlePromptDeckIndexChange}
                   onSaveForLater={handleSavePromptForLater}
                   shuffleNonce={shuffleNonce}
                   allowLoop={isPremium}
+                  revealCards={promptDeckRevealsCards}
                 />
               </View>
               
@@ -767,7 +781,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
     gap: 8,
-    marginTop: -8,
+    marginTop: 14,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 100, // Velvet Glass Pill Shape

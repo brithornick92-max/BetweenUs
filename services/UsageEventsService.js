@@ -1,15 +1,19 @@
 import { supabase } from '../config/supabase';
 import { storage } from '../utils/storage';
+import { FREE_LIMITS } from '../utils/featureFlags';
 
 /**
  * Supabase-backed usage service with a cache-only fallback.
  */
 export const FREE_TIER_LIMITS = {
-  promptsPerDay: Infinity,
-  visibleDates: 5,
-  fullDateFlowsPerWeek: Infinity,
-  journalEntriesVisible: Infinity,
-  surpriseMeEnabled: true,
+  promptsPerDay: FREE_LIMITS.PROMPTS_PER_DAY,
+  visiblePromptsPerWeek: FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK,
+  visibleDates: FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK,
+  visibleDatesPerWeek: FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK,
+  visiblePositionsPerWeek: FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK,
+  fullDateFlowsPerWeek: FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK,
+  journalEntriesVisible: FREE_LIMITS.JOURNAL_ENTRIES_VISIBLE,
+  surpriseMeEnabled: FREE_LIMITS.SURPRISE_ME_ENABLED,
 };
 
 const CACHE_PREFIX = '@betweenus:cache:usage';

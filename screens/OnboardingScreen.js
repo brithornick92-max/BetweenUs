@@ -41,6 +41,7 @@ import { STORAGE_KEYS, storage } from "../utils/storage";
 import { getSupabaseOrThrow } from "../config/supabase";
 import AnalyticsService, { AnalyticsEvent } from "../services/AnalyticsService";
 import { HEAT_LEVEL_ACCENTS } from "../config/constants";
+import { FREE_LIMITS, PREMIUM_LIMITS } from "../utils/featureFlags";
 
 export default function OnboardingScreen({ navigation }) {
   const { actions, state } = useAppContext();
@@ -213,6 +214,20 @@ export default function OnboardingScreen({ navigation }) {
     return diffDays.toLocaleString();
   }, [anniversaryDate]);
 
+  const freePlanFeatures = useMemo(() => ([
+    `${FREE_LIMITS.WEEK_0_PROMPTS} prompts, ${FREE_LIMITS.WEEK_0_DATES} date ideas, and ${FREE_LIMITS.WEEK_0_POSITIONS} sex positions to start`,
+    `Adds ${FREE_LIMITS.WEEKLY_PROMPTS} prompts, ${FREE_LIMITS.WEEKLY_DATES} date ideas, and ${FREE_LIMITS.WEEKLY_POSITIONS} sex position each week`,
+    'All 5 heat levels, partner linking, shared notes, calendar, app lock, and recaps',
+    'Keepsake collects the last 30 days of your shared story',
+  ]), []);
+
+  const premiumPlanFeatures = useMemo(() => ([
+    `${PREMIUM_LIMITS.WEEK_0_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEK_0_DATES} date ideas, and ${PREMIUM_LIMITS.WEEK_0_POSITIONS} sex positions to start`,
+    `Adds ${PREMIUM_LIMITS.WEEKLY_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEKLY_DATES} date ideas, and ${PREMIUM_LIMITS.WEEKLY_POSITIONS} sex positions each week`,
+    'Full Keepsake archive beyond the free 30-day window',
+    'Vibe Signal, plus shared premium access for linked partners after sync',
+  ]), []);
+
   const buildRelationshipProfileDraft = useCallback(() => {
     const quizData = {};
 
@@ -345,6 +360,28 @@ export default function OnboardingScreen({ navigation }) {
     }
   };
 
+  const renderPlanSection = ({ title, subtitle, icon, items, accentColor = t.primary }) => (
+    <View style={[styles.planCard, { borderColor: t.border, backgroundColor: t.surface }]}>
+      <View style={styles.planHeaderRow}>
+        <View style={[styles.planIconWrap, { backgroundColor: `${accentColor}18` }]}>
+          <Icon name={icon} size={18} color={accentColor} />
+        </View>
+        <View style={styles.planHeaderText}>
+          <Text style={[styles.planTitle, { color: t.text }]}>{title}</Text>
+          <Text style={[styles.planSubtitle, { color: t.subtext }]}>{subtitle}</Text>
+        </View>
+      </View>
+      <View style={styles.planFeatureList}>
+        {items.map((item) => (
+          <View key={item} style={styles.planFeatureRow}>
+            <Icon name="checkmark-circle-outline" size={17} color={accentColor} />
+            <Text style={[styles.planFeatureText, { color: t.text }]}>{item}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+
   const renderIntro = () => (
     <View style={{ flex: 1 }}>
       <HeartbeatEntry />
@@ -411,6 +448,23 @@ export default function OnboardingScreen({ navigation }) {
               What's one small thing about your partner that still surprises you?
             </Text>
           </View>
+        </ReAnimated.View>
+
+        <ReAnimated.View entering={FadeInDown.delay(175).duration(600).springify()}>
+          <Text style={styles.groupLabel}>WHAT'S INCLUDED</Text>
+          {renderPlanSection({
+            title: 'Free includes',
+            subtitle: 'The core couple experience',
+            icon: 'heart-outline',
+            items: freePlanFeatures,
+          })}
+          {renderPlanSection({
+            title: 'Premium adds',
+            subtitle: 'Everything in free, plus a larger growing library',
+            icon: 'sparkles-outline',
+            items: premiumPlanFeatures,
+            accentColor: t.accent,
+          })}
         </ReAnimated.View>
 
         {/* Names Group (Apple List Style) */}
@@ -1115,6 +1169,53 @@ const createStyles = (t, isDark) => {
       fontSize: 13,
       fontWeight: '500',
       lineHeight: 18,
+    },
+    planCard: {
+      borderRadius: 18,
+      borderWidth: 1,
+      padding: SPACING.lg,
+      marginBottom: SPACING.md,
+    },
+    planHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: SPACING.md,
+    },
+    planIconWrap: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    planHeaderText: {
+      flex: 1,
+      minWidth: 0,
+    },
+    planTitle: {
+      fontSize: 17,
+      fontWeight: '800',
+      marginBottom: 2,
+    },
+    planSubtitle: {
+      fontSize: 13,
+      fontWeight: '600',
+      lineHeight: 18,
+    },
+    planFeatureList: {
+      gap: 10,
+    },
+    planFeatureRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 9,
+    },
+    planFeatureText: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '600',
+      lineHeight: 20,
     },
 
     // ── Grouped Apple Lists ──

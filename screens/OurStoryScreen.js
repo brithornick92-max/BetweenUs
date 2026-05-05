@@ -1872,8 +1872,8 @@ export default function OurStoryScreen() {
           {isPremium
             ? (entries.length ? `${entries.length} keepsakes, newest first` : 'Newest first')
             : (entries.length
-              ? `Last 30 days • ${entries.length} keepsakes`
-              : 'Last 30 days')}
+              ? `Free tier • Last 30 days • ${entries.length} keepsakes`
+              : 'Free tier • Last 30 days')}
         </Text>
       </View>
     </ReAnimated.View>
@@ -1892,7 +1892,7 @@ export default function OurStoryScreen() {
       <Text style={styles.emptyBody}>
         {isPremium
           ? 'Prompt, memory, date, and sex position keepsakes will collect here.'
-          : 'Prompt, memory, date, and sex position keepsakes from the last 30 days will collect here.'}
+          : 'On the free tier, prompt, memory, date, and sex position keepsakes from the last 30 days will collect here.'}
       </Text>
     </ReAnimated.View>
   );

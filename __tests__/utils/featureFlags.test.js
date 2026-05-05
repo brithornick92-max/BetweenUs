@@ -119,6 +119,15 @@ describe('PREMIUM_LIMITS', () => {
     expect(PREMIUM_LIMITS.PARTNER_LINKING_ENABLED).toBe(true);
     expect(PREMIUM_LIMITS.CLOUD_SYNC_ENABLED).toBe(true);
   });
+
+  it('uses the premium cumulative content growth sizes', () => {
+    expect(PREMIUM_LIMITS.WEEK_0_PROMPTS).toBe(100);
+    expect(PREMIUM_LIMITS.WEEK_0_DATES).toBe(100);
+    expect(PREMIUM_LIMITS.WEEK_0_POSITIONS).toBe(10);
+    expect(PREMIUM_LIMITS.WEEKLY_PROMPTS).toBe(15);
+    expect(PREMIUM_LIMITS.WEEKLY_DATES).toBe(15);
+    expect(PREMIUM_LIMITS.WEEKLY_POSITIONS).toBe(3);
+  });
 });
 
 // ─── Feature Metadata ─────────────────────────────────────────────────────────

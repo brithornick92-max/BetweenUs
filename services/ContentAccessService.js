@@ -15,6 +15,7 @@ import UsageEventsService from './UsageEventsService';
 import CrashReporting from './CrashReporting';
 import {
   FREE_LIMITS as FEATURE_FREE_LIMITS,
+  PREMIUM_LIMITS as FEATURE_PREMIUM_LIMITS,
   getAccessibleHeatLevels,
   getTimedUnlockLimits,
 } from '../utils/featureFlags';
@@ -44,6 +45,17 @@ const clampHeatLevel = (value) => {
 };
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
+
+const describeRelease = ({
+  freeStart,
+  freeWeekly,
+  premiumStart,
+  premiumWeekly,
+  label,
+}) => (
+  `Free starts with ${freeStart} ${label} and adds ${freeWeekly} more each week. `
+  + `Premium starts with ${premiumStart} ${label} and adds ${premiumWeekly} more each week.`
+);
 
 class ContentAccessService {
   constructor() {
@@ -87,19 +99,55 @@ class ContentAccessService {
 
     this.RELEASE_SCHEDULE = {
       prompts: {
-        week0: { free: 20, premium: 100 },
-        perWeek: { free: 5, premium: 15 },
-        description: 'Free starts with 20 prompts and adds 5 more each week. Premium starts with 100 prompts and grows faster.',
+        week0: {
+          free: FEATURE_FREE_LIMITS.WEEK_0_PROMPTS,
+          premium: FEATURE_PREMIUM_LIMITS.WEEK_0_PROMPTS,
+        },
+        perWeek: {
+          free: FEATURE_FREE_LIMITS.WEEKLY_PROMPTS,
+          premium: FEATURE_PREMIUM_LIMITS.WEEKLY_PROMPTS,
+        },
+        description: describeRelease({
+          freeStart: FEATURE_FREE_LIMITS.WEEK_0_PROMPTS,
+          freeWeekly: FEATURE_FREE_LIMITS.WEEKLY_PROMPTS,
+          premiumStart: FEATURE_PREMIUM_LIMITS.WEEK_0_PROMPTS,
+          premiumWeekly: FEATURE_PREMIUM_LIMITS.WEEKLY_PROMPTS,
+          label: 'prompts',
+        }),
       },
       dates: {
-        week0: { free: 20, premium: 100 },
-        perWeek: { free: 5, premium: 15 },
-        description: 'Free starts with 20 date ideas and adds 5 more each week. Premium starts with 100 date ideas and grows faster.',
+        week0: {
+          free: FEATURE_FREE_LIMITS.WEEK_0_DATES,
+          premium: FEATURE_PREMIUM_LIMITS.WEEK_0_DATES,
+        },
+        perWeek: {
+          free: FEATURE_FREE_LIMITS.WEEKLY_DATES,
+          premium: FEATURE_PREMIUM_LIMITS.WEEKLY_DATES,
+        },
+        description: describeRelease({
+          freeStart: FEATURE_FREE_LIMITS.WEEK_0_DATES,
+          freeWeekly: FEATURE_FREE_LIMITS.WEEKLY_DATES,
+          premiumStart: FEATURE_PREMIUM_LIMITS.WEEK_0_DATES,
+          premiumWeekly: FEATURE_PREMIUM_LIMITS.WEEKLY_DATES,
+          label: 'date ideas',
+        }),
       },
       positions: {
-        week0: { free: 5, premium: 10 },
-        perWeek: { free: 1, premium: 3 },
-        description: 'Free starts with 5 sex positions and adds 1 each week. Premium starts with 10 sex positions and grows faster.',
+        week0: {
+          free: FEATURE_FREE_LIMITS.WEEK_0_POSITIONS,
+          premium: FEATURE_PREMIUM_LIMITS.WEEK_0_POSITIONS,
+        },
+        perWeek: {
+          free: FEATURE_FREE_LIMITS.WEEKLY_POSITIONS,
+          premium: FEATURE_PREMIUM_LIMITS.WEEKLY_POSITIONS,
+        },
+        description: describeRelease({
+          freeStart: FEATURE_FREE_LIMITS.WEEK_0_POSITIONS,
+          freeWeekly: FEATURE_FREE_LIMITS.WEEKLY_POSITIONS,
+          premiumStart: FEATURE_PREMIUM_LIMITS.WEEK_0_POSITIONS,
+          premiumWeekly: FEATURE_PREMIUM_LIMITS.WEEKLY_POSITIONS,
+          label: 'sex positions',
+        }),
       },
     };
   }

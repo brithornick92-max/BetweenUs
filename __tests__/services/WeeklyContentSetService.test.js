@@ -1,10 +1,12 @@
 import {
   CONTENT_TYPES,
   UPGRADE_COPY,
+  WEEKLY_LIMITS,
   buildPremiumPromptLibrary,
   buildWeeklySet,
   getUserWeekNumber,
 } from '../../services/WeeklyContentSetService';
+import { FREE_LIMITS, PREMIUM_LIMITS } from '../../utils/featureFlags';
 
 const TEST_DATE = new Date('2026-04-27T12:00:00.000Z');
 
@@ -73,6 +75,27 @@ describe('WeeklyContentSetService', () => {
     makePosition('i5', 3, 'sensual-rhythm', 'active', 'Rhythm position'),
     makePosition('i6', 2, 'deep-connection', 'standard', 'Connected standard'),
   ];
+
+  it('keeps weekly release counts aligned with canonical feature limits', () => {
+    expect(WEEKLY_LIMITS[CONTENT_TYPES.PROMPTS]).toMatchObject({
+      freeWelcomePack: FREE_LIMITS.WEEK_0_PROMPTS,
+      freeOngoing: FREE_LIMITS.WEEKLY_PROMPTS,
+      premiumStart: PREMIUM_LIMITS.WEEK_0_PROMPTS,
+      premium: PREMIUM_LIMITS.WEEKLY_PROMPTS,
+    });
+    expect(WEEKLY_LIMITS[CONTENT_TYPES.DATES]).toMatchObject({
+      freeWelcomePack: FREE_LIMITS.WEEK_0_DATES,
+      freeOngoing: FREE_LIMITS.WEEKLY_DATES,
+      premiumStart: PREMIUM_LIMITS.WEEK_0_DATES,
+      premium: PREMIUM_LIMITS.WEEKLY_DATES,
+    });
+    expect(WEEKLY_LIMITS[CONTENT_TYPES.POSITIONS]).toMatchObject({
+      freeWelcomePack: FREE_LIMITS.WEEK_0_POSITIONS,
+      freeOngoing: FREE_LIMITS.WEEKLY_POSITIONS,
+      premiumStart: PREMIUM_LIMITS.WEEK_0_POSITIONS,
+      premium: PREMIUM_LIMITS.WEEKLY_POSITIONS,
+    });
+  });
 
   it('builds premium prompt libraries inside weekly sets', () => {
     const result = buildWeeklySet(prompts, {

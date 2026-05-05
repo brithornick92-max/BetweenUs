@@ -115,7 +115,7 @@ function shuffleArray(arr, avoidFirstItem = arr[0]) {
 
 // ── Card stack with flip + swipe ─────────────────────────────────────────────────
 const CardStack = forwardRef(function CardStack(
-  { deck, deckIndex, colors, isDark, partnerName, onSwipeLeft, onSwipeRight, onPress, onLongPress, onReveal },
+  { deck, deckIndex, colors, isDark, partnerName, onSwipeLeft, onSwipeRight, onPress, onLongPress, onReveal, revealCards = false },
   ref,
 ) {
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
@@ -133,11 +133,11 @@ const CardStack = forwardRef(function CardStack(
 
   // Reset flip + position when deck advances
   useEffect(() => {
-    flipProgress.value = 0;
-    setIsFlipped(false);
+    flipProgress.value = revealCards ? 1 : 0;
+    setIsFlipped(revealCards);
     topX.value = 0;
     topY.value = 0;
-  }, [deckIndex, flipProgress, topX, topY]);
+  }, [deckIndex, flipProgress, revealCards, topX, topY]);
 
   const reset = useCallback(() => {
     topX.value = 0;
@@ -450,6 +450,8 @@ export default function DateNightScreen({ navigation }) {
   const [weeklyDateSet, setWeeklyDateSet] = useState(null);
   const [contentProfile, setContentProfile] = useState(null);
   const [deckIndex, setDeckIndex] = useState(0);
+  const [dateDeckRevealsCards, setDateDeckRevealsCards] = useState(false);
+  const [topDateRevealed, setTopDateRevealed] = useState(false);
   const [likedDates, setLikedDates] = useState([]);
   const [dateMatches, setDateMatches] = useState({});
   const [shortlistBusyIds, setShortlistBusyIds] = useState({});
@@ -596,6 +598,8 @@ export default function DateNightScreen({ navigation }) {
   useEffect(() => {
     setShuffledDeck(null);
     setDeckIndex(0);
+    setDateDeckRevealsCards(false);
+    setTopDateRevealed(false);
   }, [baseDeck]);
 
   const deck = shuffledDeck || baseDeck;
@@ -608,16 +612,22 @@ export default function DateNightScreen({ navigation }) {
   const freeDeckDone = !isPremium && deckDone;
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
 
+  const handleDateReveal = useCallback(() => {
+    setTopDateRevealed(true);
+  }, []);
+
   const handleSwipeRight = useCallback((date) => {
     if (date?.isLockedPreview || date?.requiresPremium) {
       impact(ImpactFeedbackStyle.Medium);
       showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
       setDeckIndex(prev => prev + 1);
+      setTopDateRevealed(dateDeckRevealsCards);
       return;
     }
 
     if (!date?.id) {
       setDeckIndex(prev => prev + 1);
+      setTopDateRevealed(dateDeckRevealsCards);
       return;
     }
 
@@ -650,11 +660,13 @@ export default function DateNightScreen({ navigation }) {
       });
 
     setDeckIndex(prev => prev + 1);
-  }, [likedDates, userId, showPaywall]);
+    setTopDateRevealed(dateDeckRevealsCards);
+  }, [dateDeckRevealsCards, likedDates, userId, showPaywall]);
 
   const handleSwipeLeft = useCallback(() => {
     setDeckIndex(prev => prev + 1);
-  }, []);
+    setTopDateRevealed(dateDeckRevealsCards);
+  }, [dateDeckRevealsCards]);
 
   const openDate = useCallback(async (date) => {
     if (date?.isLockedPreview || date?.requiresPremium) {
@@ -704,6 +716,9 @@ export default function DateNightScreen({ navigation }) {
   const handleReset = useCallback(() => {
     if (freeDeckDone) return;
 
+    const shouldRevealCards = topDateRevealed;
+    setDateDeckRevealsCards(shouldRevealCards);
+
     // 1. Trigger the visual shuffle animation
     if (stackRef.current) {
       stackRef.current.shuffle();
@@ -726,8 +741,9 @@ export default function DateNightScreen({ navigation }) {
     setTimeout(() => {
       setShuffledDeck(shuffleArray(baseDeck, deck[deckIndex]));
       setDeckIndex(0);
+      setTopDateRevealed(shouldRevealCards);
     }, 420);
-  }, [baseDeck, deck, deckIndex, emptyShuffleAnim, freeDeckDone]);
+  }, [baseDeck, deck, deckIndex, emptyShuffleAnim, freeDeckDone, topDateRevealed]);
 
   const emptyStyle = useAnimatedStyle(() => {
     const shuffleX = interpolate(emptyShuffleAnim.value, [-1, 0, 1], [-15, 0, 15]);
@@ -932,6 +948,8 @@ export default function DateNightScreen({ navigation }) {
                 onSwipeLeft={handleSwipeLeft}
                 onPress={openDate}
                 onLongPress={handlePauseDate}
+                onReveal={handleDateReveal}
+                revealCards={dateDeckRevealsCards}
               />
             </>
           )}

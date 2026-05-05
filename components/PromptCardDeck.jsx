@@ -88,12 +88,12 @@ const HEAT_LABELS = {
   5: "Explicit passion",
 };
 
-function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, onReveal, onSelect, onSaveForLater, isDark, colors, cardWidth, cardHeight, shimmerBandStyle, shuffleProgress }) {
+function DeckCard({ item, index, isTop, initiallyRevealed, onSwipeRight, onSwipeLeft, onLongPress, onReveal, onSelect, onSaveForLater, isDark, colors, cardWidth, cardHeight, shimmerBandStyle, shuffleProgress }) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const rotateZ = useSharedValue(0);
-  const flipProgress = useSharedValue(0);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const flipProgress = useSharedValue(initiallyRevealed ? 1 : 0);
+  const [isFlipped, setIsFlipped] = useState(initiallyRevealed);
   const scale = useSharedValue(1);
   const swipeThreshold = cardWidth * 0.32;
 
@@ -134,10 +134,11 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   useEffect(() => {
     if (isTop) {
       translateX.value = 0; translateY.value = 0; rotateZ.value = 0;
-      flipProgress.value = 0; setIsFlipped(false);
+      flipProgress.value = initiallyRevealed ? 1 : 0;
+      setIsFlipped(initiallyRevealed);
       scale.value = withSpring(1, SPRING_CONFIG);
     }
-  }, [flipProgress, isTop, rotateZ, scale, translateX, translateY]);
+  }, [flipProgress, initiallyRevealed, isTop, rotateZ, scale, translateX, translateY]);
 
   const handleSwipeComplete = useCallback((direction) => {
     impact(ImpactFeedbackStyle.Medium);
@@ -348,7 +349,7 @@ function DeckCard({ item, index, isTop, onSwipeRight, onSwipeLeft, onLongPress, 
   );
 }
 
-export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress, onReveal, onIndexChange, onSaveForLater, shuffleNonce = 0, allowLoop = true }) {
+export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongPress, onReveal, onIndexChange, onSaveForLater, shuffleNonce = 0, allowLoop = true, revealCards = false }) {
   const { isDark, colors } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [deckLayout, setDeckLayout] = useState({ width: DEFAULT_CARD_W + (CARD_HORIZONTAL_MARGIN * 2), height: DEFAULT_CARD_H + (CARD_VERTICAL_MARGIN * 2) });
@@ -418,6 +419,7 @@ export default function PromptCardDeck({ prompts = [], onSelect, onSkip, onLongP
             item={item}
             index={i}
             isTop={i === 0}
+            initiallyRevealed={!!revealCards}
             onSwipeRight={handleSwipeRight}
             onSwipeLeft={handleSwipeLeft}
             onLongPress={onLongPress}

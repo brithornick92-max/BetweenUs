@@ -62,7 +62,7 @@ export const FREE_LIMITS = Object.freeze({
   WEEKLY_POSITIONS: 1,
 });
 
-// ─── Premium Limits (effectively unlimited) ─────────────────────────────────────
+// ─── Premium Limits ─────────────────────────────────────────────────────────
 export const PREMIUM_LIMITS = Object.freeze({
   // Premium is no longer "all access" but a weekly drip model.
   // The actual number of items will be determined by the user's

@@ -4,6 +4,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UsageEventsService, { FREE_TIER_LIMITS } from '../../services/UsageEventsService';
+import { FREE_LIMITS } from '../../utils/featureFlags';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -13,11 +14,14 @@ beforeEach(() => {
 
 describe('FREE_TIER_LIMITS', () => {
   it('defines correct limits matching featureFlags.FREE_LIMITS', () => {
-    expect(FREE_TIER_LIMITS.promptsPerDay).toBe(Infinity);
-    expect(FREE_TIER_LIMITS.visibleDates).toBe(5);
-    expect(FREE_TIER_LIMITS.fullDateFlowsPerWeek).toBe(Infinity);
-    expect(FREE_TIER_LIMITS.journalEntriesVisible).toBe(Infinity);
-    expect(FREE_TIER_LIMITS.surpriseMeEnabled).toBe(true);
+    expect(FREE_TIER_LIMITS.promptsPerDay).toBe(FREE_LIMITS.PROMPTS_PER_DAY);
+    expect(FREE_TIER_LIMITS.visiblePromptsPerWeek).toBe(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK);
+    expect(FREE_TIER_LIMITS.visibleDates).toBe(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK);
+    expect(FREE_TIER_LIMITS.visibleDatesPerWeek).toBe(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK);
+    expect(FREE_TIER_LIMITS.visiblePositionsPerWeek).toBe(FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK);
+    expect(FREE_TIER_LIMITS.fullDateFlowsPerWeek).toBe(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK);
+    expect(FREE_TIER_LIMITS.journalEntriesVisible).toBe(FREE_LIMITS.JOURNAL_ENTRIES_VISIBLE);
+    expect(FREE_TIER_LIMITS.surpriseMeEnabled).toBe(FREE_LIMITS.SURPRISE_ME_ENABLED);
   });
 });
 

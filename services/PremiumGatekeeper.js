@@ -6,8 +6,8 @@ import { FREE_LIMITS, getAccessibleHeatLevels } from '../utils/featureFlags';
 class PremiumGatekeeper {
   constructor() {
     this.DAILY_LIMITS = {
-      FREE_PROMPTS: FREE_LIMITS.PROMPTS_PER_DAY, // Free users get one guided prompt response per day
-      FREE_DATES: FREE_LIMITS.DATE_IDEAS_PER_DAY,   // Free users can browse date ideas per day
+      FREE_PROMPTS: FREE_LIMITS.PROMPTS_PER_DAY, // No daily prompt lock; weekly library access drives free.
+      FREE_DATES: FREE_LIMITS.DATE_IDEAS_PER_DAY, // No daily date lock; weekly library access drives free.
       FREE_HEAT_LEVELS: FREE_LIMITS.FREE_HEAT_LEVELS,
       PREMIUM_HEAT_LEVELS: [1, 2, 3, 4, 5]
     };

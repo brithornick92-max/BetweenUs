@@ -18,6 +18,11 @@
  * NOTE: buildWeeklySet returns the current visible library for the user's tier.
  */
 
+import {
+  FREE_LIMITS,
+  PREMIUM_LIMITS,
+} from '../utils/featureFlags';
+
 const CONTENT_TYPES = {
   PROMPTS: 'prompts',
   DATES: 'dates',
@@ -26,31 +31,33 @@ const CONTENT_TYPES = {
 
 const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
-    premium: 15,         // Premium gets 15 new prompts/week
-    premiumStart: 100,   // Premium starts with ~20 prompts per heat level
-    freeWelcomePack: 20, // Free starts with 20 prompts
-    freeOngoing: 5,      // Free gets 5 more prompts each week
+    premium: PREMIUM_LIMITS.WEEKLY_PROMPTS,
+    premiumStart: PREMIUM_LIMITS.WEEK_0_PROMPTS,
+    freeWelcomePack: FREE_LIMITS.WEEK_0_PROMPTS,
+    freeOngoing: FREE_LIMITS.WEEKLY_PROMPTS,
     freeLockedPreview: 0,
   },
   [CONTENT_TYPES.DATES]: {
-    premium: 15,         // Premium gets 15 new dates/week
-    premiumStart: 100,   // Premium starts with a larger date library
-    freeWelcomePack: 20, // Free starts with 20 dates
-    freeOngoing: 5,      // Free gets 5 more dates each week
+    premium: PREMIUM_LIMITS.WEEKLY_DATES,
+    premiumStart: PREMIUM_LIMITS.WEEK_0_DATES,
+    freeWelcomePack: FREE_LIMITS.WEEK_0_DATES,
+    freeOngoing: FREE_LIMITS.WEEKLY_DATES,
     freeLockedPreview: 0,
   },
   [CONTENT_TYPES.POSITIONS]: {
-    premium: 3,          // Premium gets 3 new positions/week
-    premiumStart: 10,    // Premium starts with 10 sex positions
-    freeWelcomePack: 5,  // Free starts with 5 positions
-    freeOngoing: 1,      // Free gets 1 more position each week
+    premium: PREMIUM_LIMITS.WEEKLY_POSITIONS,
+    premiumStart: PREMIUM_LIMITS.WEEK_0_POSITIONS,
+    freeWelcomePack: FREE_LIMITS.WEEK_0_POSITIONS,
+    freeOngoing: FREE_LIMITS.WEEKLY_POSITIONS,
     freeLockedPreview: 0,
   },
 };
 
 const PREMIUM_PROMPT_HEAT_LEVELS = [1, 2, 3, 4, 5];
-const PREMIUM_PROMPT_START_PER_HEAT = 20;
-const PREMIUM_PROMPT_WEEKLY_PER_HEAT = 3;
+const PREMIUM_PROMPT_START_PER_HEAT =
+  PREMIUM_LIMITS.WEEK_0_PROMPTS / PREMIUM_PROMPT_HEAT_LEVELS.length;
+const PREMIUM_PROMPT_WEEKLY_PER_HEAT =
+  PREMIUM_LIMITS.WEEKLY_PROMPTS / PREMIUM_PROMPT_HEAT_LEVELS.length;
 
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
