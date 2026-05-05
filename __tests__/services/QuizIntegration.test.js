@@ -135,7 +135,7 @@ describe('Quiz Integration: "What Feels Like Us" Actually Shapes Content', () =>
       expect(ranked.findIndex(p => p.category === 'future')).toBeLessThan(2);
     });
 
-    it('prioritizes physical/sensory prompts for "Keep intimacy alive"', async () => {
+    it('prioritizes physical/sensory prompts for "Keep sex alive"', async () => {
       const profile = await PreferenceEngine.getContentProfile({
         heatLevelPreference: 5,
         quiz: { relationshipGoal: 'intimacy' },

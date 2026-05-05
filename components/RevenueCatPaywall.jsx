@@ -46,7 +46,7 @@ const FEATURE_COPY = {
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     eyebrow: "PROMPTS",
     title: "Keep the conversation going.",
-    body: "Premium starts with 100 prompts on the day premium begins, then adds 15 new prompts each week from that premium start day.",
+    body: "Premium users start with 100 prompts on the day premium begins, then add 15 new prompts each week from that premium start day.",
     benefits: [
       ["copy-outline", "100 prompts at premium start"],
       ["sparkles-outline", "15 new prompts each premium week"],
@@ -56,7 +56,7 @@ const FEATURE_COPY = {
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     eyebrow: "DATES",
     title: "More plans for the two of you.",
-    body: "Premium starts with 100 date ideas on the day premium begins, then adds 15 new date ideas each week from that premium start day.",
+    body: "Premium users start with 100 date ideas on the day premium begins, then add 15 new date ideas each week from that premium start day.",
     benefits: [
       ["calendar-outline", "100 date ideas at premium start"],
       ["map-outline", "15 new date ideas each premium week"],
@@ -86,7 +86,7 @@ const FEATURE_COPY = {
   default: {
     eyebrow: "PREMIUM",
     title: "Keep more of what you start.",
-    body: "Premium starts with 100 prompts, 100 date ideas, and 10 sex positions on the day premium begins. After that, premium adds 15 prompts, 15 date ideas, and 3 sex positions every week from that premium start day.",
+    body: "Premium users start with 100 prompts, 100 date ideas, and 10 sex positions on the day premium begins. After that, premium adds 15 prompts, 15 date ideas, and 3 sex positions every week from that premium start day.",
     benefits: [
       ["sparkles-outline", "A larger growing library for both of you"],
       ["archive-outline", "Your full keepsake archive"],
@@ -310,7 +310,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
 
               <Text style={[styles.title, { color: t.text }]}>Choose your rhythm.</Text>
               <Text style={[styles.body, { color: t.subtext }]}>
-                Choose monthly or yearly access for your couple. Premium starts with 100 prompts, 100 date ideas, and 10 sex positions, then adds 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts.
+                Choose monthly or yearly access for your couple. Premium users start with 100 prompts, 100 date ideas, and 10 sex positions, then add 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts.
               </Text>
 
               <View style={[styles.exactBenefitsBlock, { borderColor: t.border }]}>

@@ -429,7 +429,7 @@ export function getAvailableCategories() {
   return (
     promptsData?.meta?.categories || {
       romance: "Sweet romantic connection",
-      emotional: "Deep emotional intimacy",
+      emotional: "Deep emotional closeness",
       playful: "Light-hearted and fun",
       physical: "Touch and physical connection",
       fantasy: "Desires and imagination",

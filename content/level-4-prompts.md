@@ -35,15 +35,15 @@
 - What were you thinking the first time we had sex?
 - What would make light bondage feel safe enough to try together?
 - What's something adventurous you want us to try together in the next year that we haven't done yet?
-- What playful food-related intimacy sounds fun or appealing to you?
-- What would make mirror intimacy feel exciting instead of awkward?
+- What playful food-related sex idea sounds fun or appealing to you?
+- What would make mirror sex feel exciting instead of awkward?
 - What's the fastest way for me to get you in the mood?
 - When it comes to describing what you want to try in bed, what works better for you: saying it out loud or sending it in a text?
 - If I wrote you a love letter that slowly got more daring with every paragraph, how would you want it to end?
 - What would you want to do if we had complete privacy somewhere unexpected?
 - On the coldest night of the year, how would you want us to warm each other up?
 - Who would be your celebrity hall pass? Tell me more.
-- What praise or feedback makes you feel confident during intimacy?
+- What praise or feedback makes you feel confident during sex?
 - Describe a fantasy you'd love for us to fulfill together someday — somewhere we've never been.
 - How would a blindfolded taste test feel playful and exciting for us?
 - What playful taste-based experience would feel fun for us to try together?
@@ -57,9 +57,9 @@
 - Imagine our anniversary five years from now — what bold, passionate tradition do you hope we've started?
 - Which ice, feather, or sensory play would feel most exciting to explore together?
 - What flirty text would you send me if you couldn't say it out loud?
-- How would you feel about making an intimacy tape together if you knew no one else would ever see it?
+- How would you feel about making a private sex tape together if you knew no one else would ever see it?
 - If romance had no limits today, describe how you'd want me to sweep you off your feet?
-- What adventurous setting would make intimacy feel exciting for you?
+- What adventurous setting would make sex feel exciting for you?
 - If we had a cabin in the snow all to ourselves for a weekend, how would you want to warm up together?
 - What's a mildly risky place you'd want to be intimate? What would we do there?
 - When would you enjoy taking the lead with me?
@@ -71,7 +71,7 @@
 - What's a semi-public place you'd find exciting to be intimate? What would we do there?
 - On a hot summer night with the windows open, what would you want us to be doing?
 - Imagine we're breathless after a workout and your hands linger just a little too long? Tell me more.
-- What restraint or surrender dynamic feels intriguing during intimacy?
+- What restraint or surrender dynamic feels intriguing during sex?
 - If we could plan one uninhibited night together somewhere exotic, what would it look like?
 - Tell me about the sensation you've never experienced but want to try.
 - What one sentence would turn me on fastest?
@@ -79,8 +79,8 @@
 - What's a slightly risky place you'd consider being intimate?
 - Imagine a New Year's Eve where we skip the party and ring it in together our way — describe everything?
 - What's something playful and adventurous you've been curious about exploring.
-- Which words during intimacy make you feel most desired?
-- What's something sexy you'd like to whisper during intimacy?
+- Which words during sex make you feel most desired?
+- What's something sexy you'd like to whisper during sex?
 - What's something adventurous you'd genuinely want us to try together?
 - How would you feel about me going down on you while you're wearing something that drives me wild?
 - What's the most daring place you'd want to have sex with me?
@@ -90,16 +90,16 @@
 - How would you want a guided massage to feel with me?
 - We're strangers at a hotel bar. You slide a room key across the counter with a note that says 'Room 1204. Don't knock.' Describe everything that happens from the moment I open that door — what I find, what you're wearing, and how you take control of every moment.
 - What's your ideal beach or nature intimate fantasy?
-- What intimacy act have you always wanted to try? Tell me more.
-- How would you want to control the pace during intimacy?
+- What sex act have you always wanted to try? Tell me more.
+- How would you want to control the pace during sex?
 - What's something involving different sensations you'd like to try?
 - What's a new intimate position you'd like to explore with me?
-- What's your favorite shower or bath intimacy fantasy?
+- What's your favorite shower or bath sex fantasy?
 - What playful intimate game would be fun for both of us?
 - When do you feel most confident taking the lead sexually?
 - One of us is blindfolded and completely at the other's mercy. Describe the full scene — who wears the blindfold, what sensations you use to drive them wild, the teasing from start to finish.
 - What's the most seductive way you'd want me to use my mouth on you?
-- What's an outdoor setting you'd find exciting for intimacy?
+- What's an outdoor setting you'd find exciting for sex?
 - Imagine we're talking late into the night on a couch and the tension suddenly becomes impossible to ignore? Tell me more.
 - What excites you about the idea of not being able to move your hands?
 - Describe the sensations or experiences you'd like to feel during fantasy play. It could involve touch, taste, sight, sound, or scent.
@@ -125,7 +125,7 @@
 - I need you home today. What happens the second we get each other alone?
 - What's an intimate boundary you'd be curious to explore?
 - Describe your hottest fantasy with me.
-- What's your ideal romantic getaway for intimacy?
+- What's your ideal romantic getaway for sex?
 - I'm in a no-limits mood. What would you like to do?
 - What's something involving trust and vulnerability you'd try sexually?
 - Where would you want to kiss me if you had permission to take your time?
@@ -139,7 +139,7 @@
 - What would make a no-kissing foreplay challenge feel teasing and connected?
 - Imagine we steal a private moment in the middle of a high-pressure day and neither of us can keep it professional anymore? Tell me more.
 - What type of foreplay gets you in the mood the fastest?
-- Walk me through your ideal extended intimacy session with me.
+- Walk me through your ideal extended sex session with me.
 - Describe how you want me to make love to you today.
 - Tell me about a dirty dream you've had about me.
 - How do you like to drive me crazy with desire?
@@ -156,7 +156,7 @@
 - What happened in your most recent dirty dream? Tell me more.
 - Take off 1-3 pieces of your clothing. Make it a show if you want!
 - Each share 1-2 things you've always wanted to try and pick one to try out.
-- Which playful intensity feels exciting during intimacy?
+- Which playful intensity feels exciting during sex?
 - What's your favorite intimate fantasy involving just the two of us? Tell me more.
 - What does more passionate, intense sex look like to you?
 - Tell me how you'd guide me hands-on to show me what you want, slowly.
@@ -174,9 +174,9 @@
 - When does mutual touch feel especially connected for you?
 - How would you show me you're interested in sex without using words?
 - What new position would you like to explore together?
-- What are some creative ways we can both start intimacy more often?
-- Where do you most and least like to be touched during intimacy?
-- How would you like to start morning intimacy?
+- What are some creative ways we can both start sex more often?
+- Where do you most and least like to be touched during sex?
+- How would you like to start morning sex?
 - What makes a kiss from you feel especially passionate?
 - Walk me through how you want to be touched right now, slowly.
 - What's something you'd enjoy doing to give me sexual pleasure?
@@ -192,7 +192,7 @@
 - What private getaway would let us be more adventurous with each other?
 - What intimate experience do you hope we're brave enough to try someday?
 - What would you want our next no-rules night together to feel like?
-- What future version of our intimacy feels exciting to imagine?
+- What future version of our sex life feels exciting to imagine?
 - What daring plan would you want us to save for a weekend with total privacy?
 - What roleplay would let you flirt with me in a way you usually hold back?
 - If we acted like strangers at a hotel bar, how would you want the tension to build?

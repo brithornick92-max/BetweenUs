@@ -422,7 +422,7 @@ export default function IntimacyPositionsScreen() {
       navigation={navigation}
       headerTitle="Sex Positions"
       headerSubtitle="SEX POSITIONS"
-      headerDescription={isPremiumEffective ? "Starts with 10 sex positions and grows by 3 each week." : "Starts with 5 sex positions and adds 1 more each week."}
+      headerDescription={isPremiumEffective ? "Premium users start with 10 sex positions and add 3 more each week." : "Free users start with 5 sex positions and add 1 more each week."}
       scroll={false}
       onBack={handleBack}
       bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge

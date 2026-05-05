@@ -215,15 +215,15 @@ export default function OnboardingScreen({ navigation }) {
   }, [anniversaryDate]);
 
   const freePlanFeatures = useMemo(() => ([
-    `${FREE_LIMITS.WEEK_0_PROMPTS} prompts, ${FREE_LIMITS.WEEK_0_DATES} date ideas, and ${FREE_LIMITS.WEEK_0_POSITIONS} sex positions to start`,
-    `Adds ${FREE_LIMITS.WEEKLY_PROMPTS} prompts, ${FREE_LIMITS.WEEKLY_DATES} date ideas, and ${FREE_LIMITS.WEEKLY_POSITIONS} sex position each week`,
+    `Free users start with ${FREE_LIMITS.WEEK_0_PROMPTS} prompts, ${FREE_LIMITS.WEEK_0_DATES} date ideas, and ${FREE_LIMITS.WEEK_0_POSITIONS} sex positions`,
+    `Free users add ${FREE_LIMITS.WEEKLY_PROMPTS} prompts, ${FREE_LIMITS.WEEKLY_DATES} date ideas, and ${FREE_LIMITS.WEEKLY_POSITIONS} sex position each week`,
     'All 5 heat levels, partner linking, shared notes, calendar, app lock, and recaps',
     'Keepsake collects the last 30 days of your shared story',
   ]), []);
 
   const premiumPlanFeatures = useMemo(() => ([
-    `${PREMIUM_LIMITS.WEEK_0_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEK_0_DATES} date ideas, and ${PREMIUM_LIMITS.WEEK_0_POSITIONS} sex positions to start`,
-    `Adds ${PREMIUM_LIMITS.WEEKLY_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEKLY_DATES} date ideas, and ${PREMIUM_LIMITS.WEEKLY_POSITIONS} sex positions each week`,
+    `Premium users start with ${PREMIUM_LIMITS.WEEK_0_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEK_0_DATES} date ideas, and ${PREMIUM_LIMITS.WEEK_0_POSITIONS} sex positions`,
+    `Premium users add ${PREMIUM_LIMITS.WEEKLY_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEKLY_DATES} date ideas, and ${PREMIUM_LIMITS.WEEKLY_POSITIONS} sex positions each week`,
     'Full Keepsake archive beyond the free 30-day window',
     'Vibe Signal, plus shared premium access for linked partners after sync',
   ]), []);

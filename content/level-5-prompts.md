@@ -1,8 +1,8 @@
 - If you could write the script for our dirty talk today, what would you have me say to you — and what would you whisper back? Start from the first words?
 - What intimate experience is most likely to make you orgasm?
-- How do you like to be pleasured during oral intimacy?
-- What's your ideal oral intimacy experience?
-- Share your top 5 favorite words, phrases, or forms of dirty talk that you enjoy or fantasize about hearing during intimacy.
+- How do you like to be pleasured during oral sex?
+- What's your ideal oral sex experience?
+- Share your top 5 favorite words, phrases, or forms of dirty talk that you enjoy or fantasize about hearing during sex.
 - What does an orgasm feel like for you? Describe it.
 - How would you feel about me using a vibrator on you?
 - Which intimate accessory would you want us to experiment with together?
@@ -42,7 +42,7 @@
 - If we were to explore inviting someone else into our bedroom, describe how you'd want that night to unfold — the boundaries, the dynamic, the details of how the three of us interact?
 - We're alone at the pool after dark, water still on our skin. Describe how the closeness in the water turns into heated tension, and what happens when we finally give in to it.
 - We're setting up a sensual massage night, but one partner arrives first and the tension is already building by the time the other joins in. Describe the oil, the hands, and the three-way dynamic that unfolds once everyone is finally together.
-- What's your most explicit fantasy about us having intensely passionate intimacy? What happens?
+- What's your most explicit fantasy about us having intensely passionate sex? What happens?
 - We're alone in a candlelit studio stretching together. Describe how you guide me deeper into each pose, how our bodies keep brushing, and what happens when we stop pretending this is only about the stretches.
 - What commanding or degrading dirty talk would feel exciting and safe?
 - We've been flirting with someone we both find irresistible. Today, they're in our bedroom. Describe the scene from the very beginning — who makes the first move, how the three of us navigate each other's bodies, the dynamic of watching me with someone else while waiting for your turn, every position, every moment of shared pleasure.
@@ -69,7 +69,7 @@
 - Tell me about a time you almost lost control with me — and what would push you completely over the edge.
 - You're the one I trust to take your time with me until every touch feels unbearable, addictive, and impossible to recover from. What happens?
 - Tell me intimately what you want to do to me in the water.
-- How would you want me to start the morning with intimacy? Describe it in detail.
+- How would you want me to start sex in the morning? Describe it in detail.
 - Describe how you would want us to grind against each other right now.
 - Where somewhere adventurous would you want me to make love to you and how? Describe it in detail.
 - Share how you want me to use my tongue on you completely.
@@ -91,7 +91,7 @@
 - I'm a room service attendant who brings your order. You answer the door in just a robe. You pull me inside and tell me the tip is 'on the bed.' Walk me through this encounter in explicit detail — the power play, the seduction, every position we try in that luxury suite.
 - Describe a roleplay where you explore every inch of me slowly and thoroughly.
 - We get caught up in a dangerous amount of tension after everyone else has left. Describe how the charged conversation turns into a reckless, urgent moment where neither of us can pretend we don't want it.
-- I'm lying beside you on the couch, telling you my deepest thoughts, and the intimacy becomes impossible to resist. What happens?
+- I'm lying beside you on the couch, telling you my deepest thoughts, and the tension becomes impossible to resist. What happens?
 - Which finish would feel most exciting or intimate during sex?
 - What would you want to do next if you could take your time with every part of me?
 - How would you feel about me using my fingers to pleasure you while I kiss you?
@@ -130,7 +130,7 @@
 - What's the most passionate, most graphic thing you've ever wanted to do to my body?
 - We're outlaws on the run who duck into an abandoned cabin. Adrenaline is pumping. Describe the desperate, urgent encounter — against the wall, on the dusty floor, the danger outside making everything more intense — every raw, explicit detail of our hideout tryst.
 - Tell me how you want me to use every part of my body on you.
-- We're astronauts on a two-person mission, floating alone in zero gravity. How does intimacy work up here? Describe the physics, the floating, bodies intertwined with nothing to hold onto but each other — every weightless, explicit detail.
+- We're astronauts on a two-person mission, floating alone in zero gravity. How does sex work up here? Describe the physics, the floating, bodies intertwined with nothing to hold onto but each other — every weightless, explicit detail.
 - I'm posing for you in a private sketch session. Describe how your eyes move over me, how your attention makes the room feel electric, and what happens when the distance between artist and muse disappears.
 - How would you like me to pleasure you while you touch yourself?
 - You're a vampire who's been watching me for centuries and today you finally reveal yourself. Describe the seduction — how you mesmerize me, how your lips trace my neck, and the explicit encounter that unfolds when I willingly submit to your dark desire.

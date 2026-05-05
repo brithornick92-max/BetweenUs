@@ -53,8 +53,8 @@ const describeRelease = ({
   premiumWeekly,
   label,
 }) => (
-  `Free starts with ${freeStart} ${label} and adds ${freeWeekly} more each week. `
-  + `Premium starts with ${premiumStart} ${label} and adds ${premiumWeekly} more each week.`
+  `Free users start with ${freeStart} ${label} and add ${freeWeekly} more each week. `
+  + `Premium users start with ${premiumStart} ${label} and add ${premiumWeekly} more each week.`
 );
 
 class ContentAccessService {

@@ -354,11 +354,12 @@ describe('WeeklyContentSetService', () => {
   });
 
   it('keeps upgrade copy aligned with the new growth model', () => {
-    expect(UPGRADE_COPY.prompts.body).toContain('adds 5 more each week');
-    expect(UPGRADE_COPY.dates.body).toContain('adds 5 more each week');
+    expect(UPGRADE_COPY.prompts.body).toContain('add 5 more each week');
+    expect(UPGRADE_COPY.dates.body).toContain('add 5 more each week');
     expect(UPGRADE_COPY.prompts.body).toContain('20 prompts');
     expect(UPGRADE_COPY.dates.body).toContain('20 date ideas');
-    expect(UPGRADE_COPY.positions.body).toContain('5 sex positions');
+    expect(UPGRADE_COPY.positions.body).toContain('Free users start with 5 sex positions');
+    expect(UPGRADE_COPY.positions.body).toContain('Premium users start with 10 sex positions');
   });
 
   it('respects maxHeat when building weekly sets', () => {

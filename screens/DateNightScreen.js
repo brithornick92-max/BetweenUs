@@ -1019,7 +1019,7 @@ export default function DateNightScreen({ navigation }) {
             </View>
             <Text style={[styles.editorialTitle, { color: colors.text }]}>More date ideas made for you</Text>
             <Text style={[styles.editorialBody, { color: colors.textMuted }]}>
-              Premium starts with 100 date ideas and adds 15 more each week.
+              Premium users start with 100 date ideas and add 15 more each week.
             </Text>
           </View>
         )}

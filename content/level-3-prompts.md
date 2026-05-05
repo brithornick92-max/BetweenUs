@@ -1,14 +1,14 @@
 - What helps you feel safest and most cared for around protection?
-- How do emotional and physical intimacy support each other for you?
+- How do emotional closeness and physical desire support each other for you?
 - Which turns you on more — seeing me in a sexy dressed-up outfit or jeans and a t-shirt?
-- What balance between planned intimacy and spontaneous intimacy feels best to you?
+- What balance between planned sex and spontaneous sex feels best to you?
 - What roleplay idea feels exciting but still comfortable?
 - What's a time we almost kissed — or the tension was unbearable before we finally did?
 - How do you feel when I say your name during our most passionate moments?
-- What are a few fun ways you'd like me to start intimacy?
+- What are a few fun ways you'd like me to start sex?
 - If we had a rainy afternoon with nowhere to be, how would you want us to spend it together?
-- What's your favorite way we communicate without words during intimacy?
-- What is one small thing we could try to make intimacy feel more fun or less serious?
+- What's your favorite way we communicate without words during sex?
+- What is one small thing we could try to make sex feel more fun or less serious?
 - What would make a sensual hand massage feel especially relaxing to you?
 - What's a fantasy you've had about us that feels surprisingly tender?
 - What's a boundary you'd be curious to gently explore together if we both felt safe?
@@ -31,7 +31,7 @@
 - What do you find most attractive about me?
 - If I whispered a dare in your ear right now, what's the most adventurous thing you'd want it to be?
 - What's the most vulnerable you've felt during an intimate moment with me?
-- How do we build up to intimacy in a way that's uniquely ours?
+- How do we build up to sex in a way that's uniquely ours?
 - How do you want me to touch you when you're feeling dysphoric?
 - Which season makes you want to be closer to me, and what brings that out?
 - How would you feel about starring in or receiving a boudoir photoshoot?
@@ -45,14 +45,14 @@
 - What's something about our sexual chemistry that amazes you?
 - What part of your body is most sensitive to different textures?
 - What intimate experiences or activities are outside your comfort zone?
-- What's your favorite way we build intimacy before being physical?
-- What would make our physical intimacy feel even better for you lately?
+- What's your favorite way we build closeness before being physical?
+- What would make our sex life feel even better for you lately?
 - What's a sensation you want to explore with me next?
 - What's one boundary we've crossed together that made us closer?
 - What's the most meaningful thing about how we pleasure each other?
 - How do you feel when we're physically close but not necessarily sexual?
 - What would make slow eye contact or shared breathing feel intimate instead of awkward?
-- What's something about our intimacy that makes you feel accepted?
+- What's something about our sex life that makes you feel accepted?
 - Describe how you feel when I focus entirely on your pleasure.
 - How do you like it when I touch your chest, and when would you rather I don't?
 - What's the most sensual moment we've shared that wasn't sexual?
@@ -65,18 +65,18 @@
 - What do you love most about the way we make love?
 - Tell me about a scent that reminds you of an intimate moment between us.
 - What's your favorite way we connect both emotionally and physically?
-- What role would you want toys to have in our intimacy?
+- What role would you want toys to have in our sex life?
 - How does it feel when I breathe against your neck?
 - What happens between us right after we make love?
 - What's something about our chemistry that still surprises you?
 - What mood or boundaries would make watching something sexy together feel good to you?
 - Which kiss from me makes you melt?
-- Tell me about a moment when our intimacy felt sacred or spiritual.
-- How do you feel when I focus on making you feel loved during intimacy?
+- Tell me about a moment when sex between us felt sacred or spiritual.
+- How do you feel when I focus on making you feel loved during sex?
 - How does it feel when we're both equally aggressive?
 - In your ideal world, what would a satisfying intimate rhythm between us look like?
-- How do you feel when our physical intimacy happens spontaneously?
-- Tell me about a time our emotional intimacy led to physical closeness.
+- How do you feel when sex between us happens spontaneously?
+- Tell me about a time our emotional closeness led to physical closeness.
 - How do you like it when I take the more dominant role?
 - Describe how you feel when I kiss you slowly and tenderly.
 - How has our intimate relationship helped you love yourself more?
@@ -94,17 +94,17 @@
 - What's your favorite way to be intimate when your body needs extra care?
 - What's the most emotionally satisfying physical experience we've had?
 - What's one thing you want me to know about your body?
-- Tell me about a time our physical intimacy brought you to tears of joy.
+- Tell me about a time sex between us brought you to tears of joy.
 - How do you feel when we take our time with foreplay and connection?
 - What does sexual compatibility mean to you?
 - What's the difference between how I touch you and how others have?
-- What's one thing I do during intimacy that makes you feel seen?
+- What's one thing I do during sex that makes you feel seen?
 - What's your preference — quickies or taking your time?
 - Taking a bath together.
 - Extended hugging and caressing for at least one full minute.
 - Describe how you feel when we're right there with you with each other intimately.
 - How has being intimate with me changed your relationship with pleasure?
-- What's something about our intimacy that makes you feel powerful?
+- What's something about our sex life that makes you feel powerful?
 - How has our physical relationship helped you trust me more?
 - How central does sexual connection feel to your sense of a healthy relationship?
 - What's something about our sexual connection that feels healing?

@@ -35,7 +35,7 @@ const HEAT_LEVELS = [
     icon: 'leaf-outline',
     color: HEAT_LEVEL_ACCENTS[1],
     title: 'Emotional',
-    description: 'Intimacy & trust, non-sexual',
+    description: 'Closeness & trust, non-sexual',
   },
   {
     level: 2,

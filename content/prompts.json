@@ -55,7 +55,7 @@
       },
       "established": {
         "label": "Established Relationship",
-        "description": "1-3 years - deepening intimacy and commitment",
+        "description": "1-3 years - deepening closeness and commitment",
         "days": "366-1095"
       },
       "mature": {
@@ -2053,7 +2053,7 @@
     },
     {
       "id": "h3_052",
-      "text": "What balance between planned intimacy and spontaneous intimacy feels best to you?",
+      "text": "What balance between planned sex and spontaneous sex feels best to you?",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -2078,7 +2078,7 @@
     },
     {
       "id": "h4_061",
-      "text": "What are a few fun ways you'd like me to start intimacy?",
+      "text": "What are a few fun ways you'd like me to start sex?",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -2365,7 +2365,7 @@
     },
     {
       "id": "h3_041",
-      "text": "How do we build up to intimacy in a way that's uniquely ours?",
+      "text": "How do we build up to sex in a way that's uniquely ours?",
       "category": "romance",
       "heat": 3,
       "relationshipDuration": [
@@ -2657,7 +2657,7 @@
     },
     {
       "id": "h3_076",
-      "text": "What role would you want toys to have in our intimacy?",
+      "text": "What role would you want toys to have in our sex life?",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -2851,7 +2851,7 @@
     },
     {
       "id": "h3_108",
-      "text": "What's one thing I do during intimacy that makes you feel seen?",
+      "text": "What's one thing I do during sex that makes you feel seen?",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -3187,7 +3187,7 @@
     },
     {
       "id": "h3_059",
-      "text": "What playful food-related intimacy sounds fun or appealing to you?",
+      "text": "What playful food-related sex idea sounds fun or appealing to you?",
       "category": "playful",
       "heat": 4,
       "relationshipDuration": [
@@ -3200,7 +3200,7 @@
     },
     {
       "id": "h4_081",
-      "text": "What would make mirror intimacy feel exciting instead of awkward?",
+      "text": "What would make mirror sex feel exciting instead of awkward?",
       "category": "visual",
       "heat": 4,
       "relationshipDuration": [
@@ -3273,7 +3273,7 @@
     },
     {
       "id": "h4_207",
-      "text": "What praise or feedback makes you feel confident during intimacy?",
+      "text": "What praise or feedback makes you feel confident during sex?",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -3501,7 +3501,7 @@
     },
     {
       "id": "h4_203",
-      "text": "What restraint or surrender dynamic feels intriguing during intimacy?",
+      "text": "What restraint or surrender dynamic feels intriguing during sex?",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -3561,7 +3561,7 @@
     },
     {
       "id": "h4_206",
-      "text": "Which words during intimacy make you feel most desired?",
+      "text": "Which words during sex make you feel most desired?",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -3573,7 +3573,7 @@
     },
     {
       "id": "h4_029",
-      "text": "What's something sexy you'd like to whisper during intimacy?",
+      "text": "What's something sexy you'd like to whisper during sex?",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
@@ -3659,7 +3659,7 @@
     },
     {
       "id": "h4_017",
-      "text": "What's your favorite shower or bath intimacy fantasy?",
+      "text": "What's your favorite shower or bath sex fantasy?",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -3695,7 +3695,7 @@
     },
     {
       "id": "h4_040",
-      "text": "What's an outdoor setting you'd find exciting for intimacy?",
+      "text": "What's an outdoor setting you'd find exciting for sex?",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -3875,7 +3875,7 @@
     },
     {
       "id": "h5_146",
-      "text": "Share your top 5 favorite words, phrases, or forms of dirty talk that you enjoy or fantasize about hearing during intimacy.",
+      "text": "Share your top 5 favorite words, phrases, or forms of dirty talk that you enjoy or fantasize about hearing during sex.",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -3921,7 +3921,7 @@
     },
     {
       "id": "h4_025",
-      "text": "What's your ideal romantic getaway for intimacy?",
+      "text": "What's your ideal romantic getaway for sex?",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -4112,7 +4112,7 @@
     },
     {
       "id": "h4_035",
-      "text": "Which playful intensity feels exciting during intimacy?",
+      "text": "Which playful intensity feels exciting during sex?",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -4241,7 +4241,7 @@
     },
     {
       "id": "h4_062",
-      "text": "What are some creative ways we can both start intimacy more often?",
+      "text": "What are some creative ways we can both start sex more often?",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -4253,7 +4253,7 @@
     },
     {
       "id": "h4_076",
-      "text": "Where do you most and least like to be touched during intimacy?",
+      "text": "Where do you most and least like to be touched during sex?",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -4265,7 +4265,7 @@
     },
     {
       "id": "h4_024",
-      "text": "How would you like to start morning intimacy?",
+      "text": "How would you like to start morning sex?",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -4961,7 +4961,7 @@
     },
     {
       "id": "h5_133",
-      "text": "I'm lying beside you on the couch, telling you my deepest thoughts, and the intimacy becomes impossible to resist. What happens?",
+      "text": "I'm lying beside you on the couch, telling you my deepest thoughts, and the tension becomes impossible to resist. What happens?",
       "category": "fantasy",
       "heat": 5,
       "relationshipDuration": [
@@ -5711,7 +5711,7 @@
     },
     {
       "id": "h4_217",
-      "text": "What future version of our intimacy feels exciting to imagine?",
+      "text": "What future version of our sex life feels exciting to imagine?",
       "category": "future",
       "heat": 4,
       "relationshipDuration": [

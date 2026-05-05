@@ -97,7 +97,7 @@ export const CONNECTION_REMINDER_TEMPLATES = {
     defaultTime: '12:30',
   },
   [CONNECTION_REMINDER_TYPES.INTIMACY]: {
-    label: 'Intimacy',
+    label: 'Sex Positions',
     icon: 'sparkles-outline',
     accentColor: REMINDER_CATEGORY_COLORS.intimacy,
     notificationType: NOTIFICATION_TYPES.RITUAL_REMINDERS,

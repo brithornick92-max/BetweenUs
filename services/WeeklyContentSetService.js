@@ -62,17 +62,17 @@ const PREMIUM_PROMPT_WEEKLY_PER_HEAT =
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
     headline: 'Keep more of the conversation open',
-    body: 'Free starts with 20 prompts and adds 5 more each week. Premium starts with 100 prompts across every heat level and adds 15 more each week.',
+    body: 'Free users start with 20 prompts and add 5 more each week. Premium users start with 100 prompts across every heat level and add 15 more each week.',
     cta: 'Unlock All Prompts',
   },
   [CONTENT_TYPES.DATES]: {
     headline: 'Ready for more date inspiration?',
-    body: 'Free starts with 20 date ideas and adds 5 more each week. Premium starts with 100 date ideas and adds 15 more each week.',
+    body: 'Free users start with 20 date ideas and add 5 more each week. Premium users start with 100 date ideas and add 15 more each week.',
     cta: 'Unlock All Dates',
   },
   [CONTENT_TYPES.POSITIONS]: {
     headline: 'Explore the full sex position library',
-    body: 'Free starts with 5 sex positions and adds 1 more each week. Premium starts with 10 sex positions and adds 3 more each week.',
+    body: 'Free users start with 5 sex positions and add 1 more each week. Premium users start with 10 sex positions and add 3 more each week.',
     cta: 'Unlock All Sex Positions',
   },
 };

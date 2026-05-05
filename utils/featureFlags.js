@@ -108,7 +108,7 @@ export const PremiumSource = Object.freeze({
 export const FEATURE_META = Object.freeze({
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     name: 'Growing Prompt Library',
-    description: 'Free starts with 20 prompts and adds 5 more each week. Premium starts with 100 prompts and adds 15 more each week.',
+    description: 'Free users start with 20 prompts and add 5 more each week. Premium users start with 100 prompts and add 15 more each week.',
     icon: 'flame-outline',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
@@ -116,7 +116,7 @@ export const FEATURE_META = Object.freeze({
   },
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     name: 'Endless Date Inspiration',
-    description: 'Free starts with 20 date ideas and adds 5 more each week. Premium starts with 100 date ideas and adds 15 more each week.',
+    description: 'Free users start with 20 date ideas and add 5 more each week. Premium users start with 100 date ideas and add 15 more each week.',
     icon: 'flower-outline',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,

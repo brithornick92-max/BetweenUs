@@ -175,4 +175,19 @@ describe('prompts catalog integrity', () => {
 
     expect(violatingIds).toEqual([]);
   });
+
+  it('uses sex instead of intimacy when a prompt asks how to start sex', () => {
+    const bannedPatterns = [
+      /\bstart intimacy\b/i,
+      /\bstart morning intimacy\b/i,
+      /\bstart the morning with intimacy\b/i,
+      /\bmake intimacy easier to start\b/i,
+    ];
+
+    const violatingIds = items
+      .filter((prompt) => bannedPatterns.some((pattern) => pattern.test(prompt.text || '')))
+      .map((prompt) => prompt.id);
+
+    expect(violatingIds).toEqual([]);
+  });
 });
